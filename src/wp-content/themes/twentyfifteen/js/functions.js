@@ -5,28 +5,46 @@
  * Contains handlers for navigation and widget area.
  */
 
-( function( $ ) {
-	var $body, $window, $sidebar, resizeTimer,
-		secondary, button;
+( function() {
+	var sidebar, resizeTimer, secondary, button;
 
 	function initMainNavigation( container ) {
+		if ( ! container ) {
+			return;
+		}
+
 		// Add dropdown toggle that display child menu items.
-		container.find( '.menu-item-has-children > a' ).after( '<button class="dropdown-toggle" aria-expanded="false">' + screenReaderText.expand + '</button>' );
+		container.querySelectorAll( '.menu-item-has-children > a' ).forEach( function( menuLink ) {
+			var dropdownToggle = document.createElement( 'button' );
+			dropdownToggle.className = 'dropdown-toggle';
+			dropdownToggle.setAttribute( 'aria-expanded', 'false' );
+			dropdownToggle.innerHTML = screenReaderText.expand;
+			menuLink.parentElement.insertBefore( dropdownToggle, menuLink.nextElementSibling );
+		} );
 
 		// Toggle buttons and submenu items with active children menu items.
-		container.find( '.current-menu-ancestor > button' ).addClass( 'toggle-on' ).attr( 'aria-expanded', 'true' );
-		container.find( '.current-menu-ancestor > .sub-menu' ).addClass( 'toggled-on' );
+		container.querySelectorAll( '.current-menu-ancestor > button' ).forEach( function( ancestorToggle ) {
+			ancestorToggle.classList.add( 'toggle-on' );
+			ancestorToggle.setAttribute( 'aria-expanded', 'true' );
+		} );
 
-		container.find( '.dropdown-toggle' ).on( 'click', function( e ) {
-			var _this = $( this );
-			e.preventDefault();
-			_this.toggleClass( 'toggle-on' );
-			_this.next( '.children, .sub-menu' ).toggleClass( 'toggled-on' );
-			_this.attr( 'aria-expanded', _this.hasClass( 'toggle-on' ) ? 'true' : 'false' );
-			_this.html( _this.html() === screenReaderText.expand ? screenReaderText.collapse : screenReaderText.expand );
+		container.querySelectorAll( '.current-menu-ancestor > .sub-menu' ).forEach( function( subMenu ) {
+			subMenu.classList.add( 'toggled-on' );
+		} );
+
+		container.querySelectorAll( '.dropdown-toggle' ).forEach( function( dropdownToggle ) {
+			dropdownToggle.addEventListener( 'click', function( e ) {
+				e.preventDefault();
+				this.classList.toggle( 'toggle-on' );
+				if ( this.nextElementSibling && this.nextElementSibling.matches( '.children, .sub-menu' ) ) {
+					this.nextElementSibling.classList.toggle( 'toggled-on' );
+				}
+				this.setAttribute( 'aria-expanded', this.classList.contains( 'toggle-on' ) ? 'true' : 'false' );
+				this.innerHTML = this.innerHTML === screenReaderText.expand ? screenReaderText.collapse : screenReaderText.expand;
+			} );
 		} );
 	}
-	initMainNavigation( $( '.main-navigation' ) );
+	initMainNavigation( document.querySelector( '.main-navigation' ) );
 
 	// Add unique ID to each .sub-menu and aria-controls to parent links
 	function addUniqueIDToSubMenus() {
@@ -46,47 +64,52 @@
 	addUniqueIDToSubMenus();
 
 	// Re-initialize the main navigation when it is updated, persisting any existing submenu expanded states.
-	$( document ).on( 'customize-preview-menu-refreshed', function( e, params ) {
-		if ( 'primary' === params.wpNavMenuArgs.theme_location ) {
-			initMainNavigation( params.newContainer );
+	// This is only relevant for the Customize preview where jQuery is expected to be loaded.
+	if ( window.jQuery ) {
+		var $ = window.jQuery;
+		$( document ).on( 'customize-preview-menu-refreshed', function( e, params ) {
+			if ( params.wpNavMenuArgs.theme_location === 'primary' ) {
+				// Extract the raw DOM element from the jQuery wrapper here.
+				initMainNavigation( params.newContainer[0] );
 
-			// Re-sync expanded states from oldContainer.
-			params.oldContainer.find( '.dropdown-toggle.toggle-on' ).each(function() {
-				var containerId = $( this ).parent().prop( 'id' );
-				$( params.newContainer ).find( '#' + containerId + ' > .dropdown-toggle' ).triggerHandler( 'click' );
-			});
-		}
-	});
+				// Re-sync expanded states from oldContainer.
+				params.oldContainer.find( '.dropdown-toggle.toggle-on' ).each(function() {
+					var containerId = $( this ).parent().prop( 'id' );
+					$( params.newContainer ).find( '#' + containerId + ' > .dropdown-toggle' ).triggerHandler( 'click' );
+				});
+			}
+		});
+	}
 
-	secondary = $( '#secondary' );
-	button = $( '.site-branding' ).find( '.secondary-toggle' );
+	secondary = document.getElementById( 'secondary' );
+	button = document.querySelector( '.site-branding .secondary-toggle' );
 
 	// Enable menu toggle for small screens.
 	( function() {
 		var menu, widgets, social;
-		if ( ! secondary.length || ! button.length ) {
+		if ( ! secondary || ! button ) {
 			return;
 		}
 
 		// Hide button if there are no widgets and the menus are missing or empty.
-		menu    = secondary.find( '.nav-menu' );
-		widgets = secondary.find( '#widget-area' );
-		social  = secondary.find( '#social-navigation' );
-		if ( ! widgets.length && ! social.length && ( ! menu.length || ! menu.children().length ) ) {
-			button.hide();
+		menu    = secondary.querySelector( '.nav-menu' );
+		widgets = secondary.querySelector( '#widget-area' );
+		social  = secondary.querySelector( '#social-navigation' );
+		if ( ! widgets && ! social && ( ! menu || ! menu.children.length ) ) {
+			button.style.display = 'none';
 			return;
 		}
 
-		button.on( 'click.twentyfifteen', function() {
-			secondary.toggleClass( 'toggled-on' );
-			secondary.trigger( 'resize' );
-			$( this ).toggleClass( 'toggled-on' );
-			if ( $( this, secondary ).hasClass( 'toggled-on' ) ) {
-				$( this ).attr( 'aria-expanded', 'true' );
-				secondary.attr( 'aria-expanded', 'true' );
+		button.addEventListener( 'click', function() {
+			secondary.classList.toggle( 'toggled-on' );
+			window.dispatchEvent( new Event( 'resize' ) );
+			this.classList.toggle( 'toggled-on' );
+			if ( this.classList.contains( 'toggled-on' ) && secondary.classList.contains( 'toggled-on' ) ) {
+				this.setAttribute( 'aria-expanded', 'true' );
+				secondary.setAttribute( 'aria-expanded', 'true' );
 			} else {
-				$( this ).attr( 'aria-expanded', 'false' );
-				secondary.attr( 'aria-expanded', 'false' );
+				this.setAttribute( 'aria-expanded', 'false' );
+				secondary.setAttribute( 'aria-expanded', 'false' );
 			}
 		} );
 	} )();
@@ -94,58 +117,67 @@
 	/**
 	 * Adds or removes ARIA attributes.
 	 *
-	 * Uses jQuery's width() function to determine the size of the window and add
-	 * the default ARIA attributes for the menu toggle if it's visible.
+	 * Determine the size of the window and add the default ARIA attributes
+	 * for the menu toggle if it's visible.
 	 *
 	 * @since Twenty Fifteen 1.1
 	 */
 	function onResizeARIA() {
-		if ( 955 > $window.width() ) {
-			button.attr( 'aria-expanded', 'false' );
-			secondary.attr( 'aria-expanded', 'false' );
-			button.attr( 'aria-controls', 'secondary' );
+		if ( ! secondary || ! button ) {
+			return;
+		}
+
+		if ( document.documentElement.clientWidth < 955 ) {
+			button.setAttribute( 'aria-expanded', 'false' );
+			secondary.setAttribute( 'aria-expanded', 'false' );
+			button.setAttribute( 'aria-controls', 'secondary' );
 		} else {
-			button.removeAttr( 'aria-expanded' );
-			secondary.removeAttr( 'aria-expanded' );
-			button.removeAttr( 'aria-controls' );
+			button.removeAttribute( 'aria-expanded' );
+			secondary.removeAttribute( 'aria-expanded' );
+			button.removeAttribute( 'aria-controls' );
 		}
 	}
 
 	// Sidebar scrolling.
 	function resizeAndScroll() {
-		var windowPos = $window.scrollTop(),
-			windowHeight = $window.height(),
-			sidebarHeight = $sidebar.height(),
-			pageHeight = $( '#page' ).height();
+		if ( ! sidebar ) {
+			return;
+		}
 
-		if ( 955 < $window.width() && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
-			$sidebar.css({
-				position: 'fixed',
-				bottom: sidebarHeight > windowHeight ? 0 : 'auto'
-			});
+		var windowPos = document.documentElement.scrollTop,
+			windowHeight = document.documentElement.clientHeight,
+			sidebarHeight = sidebar.clientHeight,
+			page = document.getElementById( 'page' ),
+			pageHeight = page ? page.clientHeight : 0;
+
+		if ( document.documentElement.clientWidth > 955 && pageHeight > sidebarHeight && ( windowPos + windowHeight ) >= sidebarHeight ) {
+			sidebar.style.position = 'fixed';
+			sidebar.style.bottom = sidebarHeight > windowHeight ? '0' : 'auto';
 		} else {
-			$sidebar.css('position', 'relative');
+			sidebar.style.position = 'relative';
 		}
 	}
 
-	$( function() {
-		$body          = $( document.body );
-		$window        = $( window );
-		$sidebar       = $( '#sidebar' ).first();
+	( function() {
+		sidebar = document.getElementById( 'sidebar' );
 
-		$window
-			.on( 'scroll.twentyfifteen', resizeAndScroll )
-			.on( 'load.twentyfifteen', onResizeARIA )
-			.on( 'resize.twentyfifteen', function() {
-				clearTimeout( resizeTimer );
-				resizeTimer = setTimeout( resizeAndScroll, 500 );
-				onResizeARIA();
+		window.addEventListener( 'scroll', resizeAndScroll );
+		window.addEventListener( 'load', onResizeARIA );
+		window.addEventListener( 'resize', function() {
+			clearTimeout( resizeTimer );
+			resizeTimer = setTimeout( resizeAndScroll, 500 );
+			onResizeARIA();
+		} );
+		if ( sidebar ) {
+			sidebar.querySelectorAll( 'button' ).forEach( function( sidebarButton ) {
+				sidebarButton.addEventListener( 'click', resizeAndScroll );
+				sidebarButton.addEventListener( 'keydown', resizeAndScroll );
 			} );
-		$sidebar.on( 'click.twentyfifteen keydown.twentyfifteen', 'button', resizeAndScroll );
+		}
 
 		for ( var i = 0; i < 6; i++ ) {
 			setTimeout( resizeAndScroll, 100 * i );
 		}
-	} );
+	} )();
 
-} )( jQuery );
+} )();
