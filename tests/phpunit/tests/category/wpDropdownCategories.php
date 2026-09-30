@@ -255,4 +255,86 @@ class Tests_Category_WpDropdownCategories extends WP_UnitTestCase {
 		// Test to see if it contains the "required" attribute.
 		$this->assertDoesNotMatchRegularExpression( '/<select[^>]+required/', $dropdown_categories );
 	}
+
+	/**
+	 * Test that the category dropdown is generated correctly, including the level classes.
+	 *
+	 * @ticket 60910
+	 */
+	public function test_wp_dropdown_categories_hierarchical_should_have_level_classes() {
+		$parent = self::factory()->category->create( array( 'name' => 'Parent' ) );
+		$child  = self::factory()->category->create(
+			array(
+				'name'   => 'Child',
+				'parent' => $parent,
+			)
+		);
+		$grandchild = self::factory()->category->create(
+			array(
+				'name'   => 'Grandchild',
+				'parent' => $child,
+			)
+		);
+
+		$found = wp_dropdown_categories(
+			array(
+				'echo'         => 0,
+				'hide_empty'   => 0,
+				'hierarchical' => 1,
+				'orderby'      => 'name', // Ensure consistent order for testing.
+				'order'        => 'ASC',
+			)
+		);
+
+		// Check for level classes at different depths.
+		$this->assertStringContainsString( 'class="level-0"', $found, 'Level 0 class missing.' );
+		$this->assertStringContainsString( 'class="level-1"', $found, 'Level 1 class missing.' );
+		$this->assertStringContainsString( 'class="level-2"', $found, 'Level 2 class missing.' );
+
+		// Check specific options.
+		$this->assertMatchesRegularExpression( '/<option[^>]+class="level-0"[^>]*value="' . $parent . '"/', $found, 'Parent level class incorrect.' );
+		$this->assertMatchesRegularExpression( '/<option[^>]+class="level-1"[^>]*value="' . $child . '"/', $found, 'Child level class incorrect.' );
+		$this->assertMatchesRegularExpression( '/<option[^>]+class="level-2"[^>]*value="' . $grandchild . '"/', $found, 'Grandchild level class incorrect.' );
+	}
+
+	/**
+	 * @ticket 60910
+	 */
+	public function test_wp_dropdown_categories_hierarchical_should_have_custom_select_class() {
+		self::factory()->category->create(); // Ensure there's at least one category.
+
+		$found = wp_dropdown_categories(
+			array(
+				'echo'         => 0,
+				'hide_empty'   => 0,
+				'hierarchical' => 1,
+				'class'        => 'some-other-class', // Test appending.
+			)
+		);
+
+		// Check that the select tag contains the specific hierarchical class along with any others.
+		$this->assertMatchesRegularExpression( '/<select[^>]+class="[^"]*some-other-class[^"]*category-parent-hierarchical-select[^"]*"/', $found );
+	}
+
+	/**
+	 * @ticket 60910
+	 */
+	public function test_wp_dropdown_categories_non_hierarchical_should_not_have_custom_select_class() {
+		self::factory()->category->create(); // Ensure there's at least one category.
+
+		$found = wp_dropdown_categories(
+			array(
+				'echo'         => 0,
+				'hide_empty'   => 0,
+				'hierarchical' => 0, // Explicitly non-hierarchical.
+				'class'        => 'postform some-other-class',
+			)
+		);
+
+		// Check that the select tag does NOT contain the specific hierarchical class.
+		$this->assertStringNotContainsString( 'category-parent-hierarchical-select', $found );
+		// Check that other classes are still present.
+		$this->assertMatchesRegularExpression( '/<select[^>]+class="[^"]*postform[^"]*"/', $found );
+		$this->assertMatchesRegularExpression( '/<select[^>]+class="[^"]*some-other-class[^"]*"/', $found );
+	}
 }
