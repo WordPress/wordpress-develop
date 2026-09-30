@@ -88,7 +88,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
-			'#https?://(www\.)?reverbnation\.com/.*#i'     => array( 'https://www.reverbnation.com/oembed', true ),
+			'#https?://((legacy|www)\.)?reverbnation\.com/.*#i' => array( 'https://legacy.reverbnation.com/oembed', true ),
 			'#https?://videopress\.com/v/.*#'              => array( 'https://public-api.wordpress.com/oembed/?for=' . $host, true ),
 			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i' => array( 'https://www.reddit.com/oembed', true ),
 			'#https?://(www\.)?speakerdeck\.com/.*#i'      => array( 'https://speakerdeck.com/oembed.{format}', true ),
@@ -102,9 +102,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?amzn\.in/.*#i'              => array( 'https://read.amazon.in/kp/api/oembed', true ),
 			'#https?://(www\.)?amzn\.asia/.*#i'            => array( 'https://read.amazon.com.au/kp/api/oembed', true ),
 			'#https?://(www\.)?z\.cn/.*#i'                 => array( 'https://read.amazon.cn/kp/api/oembed', true ),
-			'#https?://www\.someecards\.com/.+-cards/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://(www\.)?tiktok\.com/@.*#i'          => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
@@ -175,7 +172,6 @@ class WP_oEmbed {
 		 * | Twitter      | twitter.com/user                          | 4.7.0   |
 		 * | Twitter      | twitter.com/likes                         | 4.7.0   |
 		 * | Twitter      | twitter.com/lists                         | 4.7.0   |
-		 * | Screencast   | screencast.com                            | 4.8.0   |
 		 * | Amazon       | amazon.com (com.mx, com.br, ca)           | 4.9.0   |
 		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) | 4.9.0   |
 		 * | Amazon       | amazon.co.jp (com.au)                     | 4.9.0   |
@@ -183,8 +179,6 @@ class WP_oEmbed {
 		 * | Amazon       | a.co                                      | 4.9.0   |
 		 * | Amazon       | amzn.to (eu, in, asia)                    | 4.9.0   |
 		 * | Amazon       | z.cn                                      | 4.9.0   |
-		 * | Someecards   | someecards.com                            | 4.9.0   |
-		 * | Someecards   | some.ly                                   | 4.9.0   |
 		 * | Crowdsignal  | survey.fm                                 | 5.1.0   |
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
@@ -219,6 +213,8 @@ class WP_oEmbed {
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
+		 * | Someecards   | someecards.com       | 4.9.0     | 7.1.3     |
+		 * | Someecards   | some.ly              | 4.9.0     | 7.1.3     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -674,6 +670,7 @@ class WP_oEmbed {
 			return false;
 		}
 
+		$loader = null;
 		if ( PHP_VERSION_ID < 80000 ) {
 			/*
 			 * This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
@@ -688,7 +685,7 @@ class WP_oEmbed {
 
 		libxml_use_internal_errors( $errors );
 
-		if ( PHP_VERSION_ID < 80000 && isset( $loader ) ) {
+		if ( PHP_VERSION_ID < 80000 ) {
 			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
 			libxml_disable_entity_loader( $loader );
 		}
@@ -806,7 +803,7 @@ class WP_oEmbed {
 	 *
 	 * @param string|false $html Existing HTML.
 	 * @param object       $data Data object from WP_oEmbed::data2html()
-	 * @param string       $url The original URL passed to oEmbed.
+	 * @param string       $url  The original URL passed to oEmbed.
 	 * @return string|false Possibly modified $html.
 	 */
 	public function _strip_newlines( $html, $data, $url ) {
