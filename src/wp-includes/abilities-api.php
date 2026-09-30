@@ -587,8 +587,8 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     @type string          $category                  Optional. Filter by category slug. Only abilities whose category
  *                                                      exactly matches the given slug are included.
  *     @type bool            $include_deprecated        Optional. Whether to include deprecated abilities. Deprecated
- *                                                      abilities retrieved this way do not trigger deprecation notices.
- *                                                      Default false.
+ *                                                      abilities retrieved this way do not trigger deprecation notices until
+ *                                                      they are executed. Default false.
  *     @type string          $namespace                 Optional. Filter by ability namespace prefix. Pass the namespace
  *                                                      without a trailing slash, e.g. `'woocommerce'` matches
  *                                                      `'woocommerce/create-order'`.
