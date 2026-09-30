@@ -7,9 +7,10 @@
 /**
  * IIFE.
  *
- * @param {Object} wp The global WordPress JS object.
+ * @param {Object} wp       The global WordPress JS object.
+ * @param {Object} settings The settings object.
  */
-( function ( wp ) {
+( function ( wp, settings ) {
 	'use strict';
 
 	var TYPE_SPEED  = 100,  // Milliseconds per character.
@@ -62,7 +63,7 @@
 
 	var STYLE = [
 		'.wp-teletype { --wp-teletype-transition-duration: ' + FADE_TIME / 1000 + 's }',
-		wpTeletype.styles,
+		settings.styles,
 	].join( '' );
 
 	/**
@@ -417,4 +418,4 @@
 	}
 
 	wp.teletype = { run: run };
-}( window.wp = window.wp || {} ) );
+}( window.wp = window.wp || {}, window.wpTeletype ) );
