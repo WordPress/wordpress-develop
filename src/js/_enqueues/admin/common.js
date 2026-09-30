@@ -2258,6 +2258,7 @@ jQuery( function() {
 	 * @since 7.2.0
 	 *
 	 * @param {HTMLTableElement} table The table inside a scroll wrapper.
+	 *
 	 * @return {void}
 	 */
 	function observeTableOverflow( table ) {
@@ -2279,7 +2280,8 @@ jQuery( function() {
 			const position = Math.min( maxScroll, Math.max( 0, scrollLeft ) );
 
 			// Skip non-scrolling wrappers without moving focus if the wrapper is already focused.
-			wrapper.tabIndex = maxScroll > 0 && ( style.overflowX === 'auto' || style.overflowX === 'scroll' ) ? 0 : -1;
+			wrapper.tabIndex = maxScroll > 0 &&
+				( style.overflowX === 'auto' || style.overflowX === 'scroll' ) ? 0 : -1;
 
 			// Allow for fractional scroll positions at either end of the table.
 			wrapper.classList.toggle( 'has-scroll-overflow-start', position > 1 );
@@ -2294,6 +2296,14 @@ jQuery( function() {
 
 		tables.set( table, {
 			wrapper: wrapper,
+
+			/**
+			 * Releases overflow tracking and restores the wrapper's original Tab order.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @return {void}
+			 */
 			cleanup: function() {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
@@ -2303,7 +2313,7 @@ jQuery( function() {
 				} else {
 					wrapper.setAttribute( 'tabindex', tabIndex );
 				}
-			}
+			},
 		} );
 	}
 
@@ -2322,11 +2332,12 @@ jQuery( function() {
 			}
 		} );
 
-		content.querySelectorAll( '.wp-list-table-scroll > .wp-list-table' ).forEach( function( table ) {
-			if ( ! tables.has( table ) ) {
-				observeTableOverflow( table );
-			}
-		} );
+		content.querySelectorAll( '.wp-list-table-scroll > .wp-list-table' )
+			.forEach( function( table ) {
+				if ( ! tables.has( table ) ) {
+					observeTableOverflow( table );
+				}
+			} );
 	}
 
 	refreshTables();

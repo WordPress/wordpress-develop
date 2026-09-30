@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<title>WordPress Common Admin QUnit Test Suite</title>
-		<meta charset="UTF-8" />
+		<meta charset="utf-8" />
 		<link rel="stylesheet" href="../../node_modules/qunit/qunit/qunit.css" />
 		<script src="../../node_modules/qunit/qunit/qunit.js"></script>
 		<script src="../../node_modules/sinon/pkg/sinon.js"></script>
@@ -37,9 +37,19 @@
 		<!-- Keep the content element in place: common.js observes it across table replacements. -->
 		<div id="wpwrap">
 			<div id="wpadminbar"></div>
-			<div id="adminmenuwrap"><ul id="adminmenu"></ul></div>
+			<div id="adminmenuwrap">
+				<ul id="adminmenu"></ul>
+			</div>
 			<div id="wpbody-content">
-				<div class="wp-list-table-scroll" tabindex="0"><table class="wp-list-table"><tbody><tr><td>Post title</td></tr></tbody></table></div>
+				<div class="wp-list-table-scroll" tabindex="0">
+					<table class="wp-list-table">
+						<tbody>
+							<tr>
+								<td>Post title</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 		<script src="../../build/wp-admin/js/common.js"></script>

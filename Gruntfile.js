@@ -300,7 +300,7 @@ module.exports = function(grunt) {
 				cwd: WORKING_DIR,
 				src: []
 			},
-			qunit: ['tests/qunit/compiled.html', 'tests/qunit/common-compiled.html'],
+			qunit: [ 'tests/qunit/compiled.html', 'tests/qunit/common-compiled.html' ],
 
 			// This is only meant to run within a numbered branch after branching has occurred.
 			workflows: {
@@ -660,7 +660,7 @@ module.exports = function(grunt) {
 			qunit: {
 				files: {
 					'tests/qunit/compiled.html': 'tests/qunit/index.html',
-					'tests/qunit/common-compiled.html': 'tests/qunit/common.html'
+					'tests/qunit/common-compiled.html': 'tests/qunit/common.html',
 				},
 				options: {
 					processContent: function( src ) {

@@ -1796,7 +1796,10 @@ div.action-links,
 -------------------------------------------------------------- */
 
 @media screen and (min-width: 783px) {
+
+	/* Share the table's scrollable area so the fades stick to the viewport. */
 	.wp-list-table-scroll {
+		display: grid;
 		clear: both;
 		overflow-x: auto;
 		overflow-y: hidden;
@@ -1821,6 +1824,17 @@ div.action-links,
 		table-layout: auto;
 	}
 
+	:where(.wp-list-table-scroll) > .fixed .column-author,
+	:where(.wp-list-table-scroll) > .fixed .column-categories,
+	:where(.wp-list-table-scroll) > .fixed .column-tags,
+	:where(.wp-list-table-scroll) > .fixed .column-date,
+	:where(.wp-list-table-scroll) > .fixed .column-response,
+	:where(.wp-list-table-scroll) > .fixed .column-role,
+	:where(.wp-list-table-scroll) > .fixed .column-slug,
+	:where(.wp-list-table-scroll) > .fixed .column-locations {
+		width: auto;
+	}
+
 	/* Long words, URLs, and filenames must not set the table's intrinsic width. */
 	.wp-list-table-scroll > .fixed .column-primary,
 	.wp-list-table-scroll > .fixed .column-primary *,
@@ -1839,17 +1853,6 @@ div.action-links,
 	.wp-list-table-scroll > .fixed .column-locations,
 	.wp-list-table-scroll > .fixed .column-locations * {
 		overflow-wrap: anywhere;
-	}
-
-	:where(.wp-list-table-scroll) > .fixed .column-author,
-	:where(.wp-list-table-scroll) > .fixed .column-categories,
-	:where(.wp-list-table-scroll) > .fixed .column-tags,
-	:where(.wp-list-table-scroll) > .fixed .column-date,
-	:where(.wp-list-table-scroll) > .fixed .column-response,
-	:where(.wp-list-table-scroll) > .fixed .column-role,
-	:where(.wp-list-table-scroll) > .fixed .column-slug,
-	:where(.wp-list-table-scroll) > .fixed .column-locations {
-		width: auto;
 	}
 
 	.wp-list-table-scroll > .fixed th.column-author,
@@ -1874,11 +1877,6 @@ div.action-links,
 		min-width: 20em;
 	}
 
-	/* Share the table's scrollable area so the fades stick to the viewport. */
-	.wp-list-table-scroll {
-		display: grid;
-	}
-
 	.wp-list-table-scroll > .widefat,
 	.wp-list-table-scroll::before,
 	.wp-list-table-scroll::after {
@@ -1889,8 +1887,8 @@ div.action-links,
 	.wp-list-table-scroll::after {
 		content: "";
 		position: sticky;
-		width: 32px;
 		z-index: 1;
+		width: 32px;
 		pointer-events: none;
 		opacity: 0;
 	}
@@ -1898,6 +1896,7 @@ div.action-links,
 	.wp-list-table-scroll::before {
 		inset-inline-start: 0;
 		justify-self: start;
+
 		/* rtl:ignore */
 		background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
 	}
@@ -1905,6 +1904,7 @@ div.action-links,
 	.wp-list-table-scroll::after {
 		inset-inline-end: 0;
 		justify-self: end;
+
 		/* rtl:ignore */
 		background: linear-gradient(to left, #fff, rgba(255, 255, 255, 0));
 	}
