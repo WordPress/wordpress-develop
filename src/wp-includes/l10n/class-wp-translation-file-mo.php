@@ -121,28 +121,54 @@ class WP_Translation_File_MO extends WP_Translation_File {
 			return false;
 		}
 
-		$offsets['originals_length']    = $offsets['translations_addr'] - $offsets['originals_addr'];
-		$offsets['translations_length'] = $offsets['hash_addr'] - $offsets['translations_addr'];
-
 		if ( $offsets['rev'] > 0 ) {
 			$this->error = 'Unsupported revision';
 			return false;
 		}
 
-		if ( $offsets['translations_addr'] > $file_length || $offsets['originals_addr'] > $file_length ) {
+		/*
+		 * Validate the table addresses before using them to calculate table
+		 * lengths and slice the file. They must describe ranges that are
+		 * both in order and within the bounds of the file, otherwise the
+		 * subtractions below can produce negative lengths, causing the
+		 * originals/translations tables to be read from the wrong location
+		 * in the file instead of being cleanly rejected.
+		 */
+		if (
+			$offsets['originals_addr'] > $file_length ||
+			$offsets['translations_addr'] > $file_length ||
+			$offsets['hash_addr'] > $file_length ||
+			$offsets['originals_addr'] > $offsets['translations_addr'] ||
+			$offsets['translations_addr'] > $offsets['hash_addr']
+		) {
 			$this->error = 'Invalid data';
 			return false;
 		}
+
+		$offsets['originals_length']    = $offsets['translations_addr'] - $offsets['originals_addr'];
+		$offsets['translations_length'] = $offsets['hash_addr'] - $offsets['translations_addr'];
 
 		// Load the Originals.
 		$original_data     = str_split( substr( $file_contents, $offsets['originals_addr'], $offsets['originals_length'] ), 8 );
 		$translations_data = str_split( substr( $file_contents, $offsets['translations_addr'], $offsets['translations_length'] ), 8 );
 
 		foreach ( array_keys( $original_data ) as $i ) {
+			if ( ! isset( $translations_data[ $i ] ) ) {
+				continue;
+			}
+
 			$o = unpack( "{$this->uint32}length/{$this->uint32}pos", $original_data[ $i ] );
 			$t = unpack( "{$this->uint32}length/{$this->uint32}pos", $translations_data[ $i ] );
 
 			if ( false === $o || false === $t ) {
+				continue;
+			}
+
+			// Skip entries whose position/length describe a range outside the file.
+			if (
+				$o['pos'] > $file_length || $o['length'] > $file_length - $o['pos'] ||
+				$t['pos'] > $file_length || $t['length'] > $file_length - $t['pos']
+			) {
 				continue;
 			}
 
