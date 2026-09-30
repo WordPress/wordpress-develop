@@ -8,6 +8,7 @@ use WordPress\AiClient\Common\Exception\InvalidArgumentException;
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\Contracts\ProviderInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderWithOperationsHandlerInterface;
+use WordPress\AiClient\Providers\Contracts\VerifiesCredentialsInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\DTO\ProviderModelsMetadata;
 use WordPress\AiClient\Providers\Http\Contracts\HttpTransporterInterface;
@@ -192,6 +193,31 @@ class ProviderRegistry implements WithHttpTransporterInterface
         } catch (InvalidArgumentException $e) {
             return \false;
         }
+    }
+    /**
+     * Verifies the credentials configured for a provider by sending a request to it.
+     *
+     * If the provider's availability check implements VerifiesCredentialsInterface, this only returns false when the
+     * provider rejected the credentials, and throws for failures that do not reflect on them, such as network errors.
+     * Otherwise, it returns the result of the availability check, like isProviderConfigured() does.
+     *
+     * @since n.e.x.t
+     *
+     * @param string|class-string<ProviderInterface> $idOrClassName The provider ID or class name.
+     * @return bool True if the provider accepted the credentials, false if it rejected them.
+     * @throws InvalidArgumentException If the provider is not registered.
+     * @throws \Exception If the credentials could not be verified.
+     */
+    public function verifyProviderCredentials(string $idOrClassName): bool
+    {
+        $className = $this->resolveProviderClassName($idOrClassName);
+        // Use static method from ProviderInterface
+        /** @var class-string<ProviderInterface> $className */
+        $availability = $className::availability();
+        if ($availability instanceof VerifiesCredentialsInterface) {
+            return $availability->verifyCredentials();
+        }
+        return $availability->isConfigured();
     }
     /**
      * Finds models across all available providers that support the given requirements.

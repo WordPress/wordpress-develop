@@ -4,8 +4,11 @@ declare (strict_types=1);
 namespace WordPress\AiClient\Providers\ApiBasedImplementation;
 
 use Exception;
+use WordPress\AiClient\Common\Contracts\CachesDataInterface;
 use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
+use WordPress\AiClient\Providers\Contracts\VerifiesCredentialsInterface;
+use WordPress\AiClient\Providers\Http\Exception\ClientException;
 /**
  * Class to check availability for an API-based provider via a test request to the endpoint to list models.
  *
@@ -15,7 +18,7 @@ use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
  *
  * @since 0.1.0
  */
-class ListModelsApiBasedProviderAvailability implements ProviderAvailabilityInterface
+class ListModelsApiBasedProviderAvailability implements ProviderAvailabilityInterface, VerifiesCredentialsInterface
 {
     /**
      * @var ModelMetadataDirectoryInterface The model metadata directory to use for checking availability.
@@ -48,5 +51,28 @@ class ListModelsApiBasedProviderAvailability implements ProviderAvailabilityInte
             // If an exception occurs, the provider is not available.
             return \false;
         }
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * The cached model list is invalidated first, as it may have been fetched with other credentials.
+     *
+     * @since n.e.x.t
+     */
+    public function verifyCredentials(): bool
+    {
+        if ($this->modelMetadataDirectory instanceof CachesDataInterface) {
+            $this->modelMetadataDirectory->invalidateCaches();
+        }
+        try {
+            $this->modelMetadataDirectory->listModelMetadata();
+        } catch (ClientException $e) {
+            // A request timeout or rate limit says nothing about the credentials.
+            if (in_array($e->getCode(), [408, 429], \true)) {
+                throw $e;
+            }
+            return \false;
+        }
+        return \true;
     }
 }
