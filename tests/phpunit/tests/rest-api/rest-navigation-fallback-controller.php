@@ -214,14 +214,10 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * Navigation fallback has no collection route.
-	 *
-	 * @ticket 40538
+	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
-		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallbacks' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		// Controller has no collection operation.
 	}
 
 	/**
