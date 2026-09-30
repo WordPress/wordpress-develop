@@ -2973,10 +2973,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_logged_out() {
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -2986,14 +2991,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_cannot_upload() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'editor' ) );
 		$user->add_cap( 'upload_files', false );
 
 		wp_set_current_user( $user->ID );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -3003,11 +3013,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_cannot_edit() {
 		wp_set_current_user( self::$uploader_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -3219,6 +3234,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_rotate_with_unbaked_exif_orientation() {
+		// Only the full-size image dimensions are checked, so no intermediate sizes are needed.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg' );
 
@@ -3658,7 +3676,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		// The edit endpoint creates a new attachment, so we expect a 201 status.
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data              = $response->get_data();
 		$new_attachment_id = $data['id'];
