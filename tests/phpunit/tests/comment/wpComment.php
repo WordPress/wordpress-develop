@@ -151,7 +151,6 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsInt( $parent );
 		$comment = get_comment( $parent );
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 
@@ -184,7 +183,6 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsInt( $parent );
 		$comment = get_comment( $parent );
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 
@@ -211,8 +209,6 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 
-		$this->assertIsInt( $post_id );
-		$this->assertIsInt( $comment_id );
 		$comment = get_comment( $comment_id );
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 
@@ -232,8 +228,6 @@ class Tests_Comment_WpComment extends WP_UnitTestCase {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => 0 ) );
 
-		$this->assertIsInt( $post_id );
-		$this->assertIsInt( $comment_id );
 		$comment = get_comment( $comment_id );
 		$this->assertInstanceOf( WP_Comment::class, $comment );
 

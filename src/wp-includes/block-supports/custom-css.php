@@ -109,7 +109,7 @@ function wp_enqueue_block_custom_css() {
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
- * @return string               Filtered block content.
+ * @return string Filtered block content.
  *
  * @phpstan-param array{
  *     attrs: array{
@@ -156,6 +156,8 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_block_custom_css', 1 );
 
 /**
  * Registers the style block attribute for block types that support it.
+ *
+ * @since 7.0.0
  *
  * @param WP_Block_Type $block_type Block Type.
  */
