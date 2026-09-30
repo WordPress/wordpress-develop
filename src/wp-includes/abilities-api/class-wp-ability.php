@@ -829,6 +829,9 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		// Triggers a deprecation notice if the ability is marked as as deprecated and hasn't been triggered earlier.
+		$this->_handle_ability_deprecation();
+
 		/**
 		 * Fires when an ability is invoked, before any processing takes place.
 		 *
@@ -940,15 +943,15 @@ class WP_Ability {
 	}
 
 	/**
-	 * Informs when a deprecated ability has been retrieved.
+	 * Informs when a deprecated ability has been called.
 	 *
 	 * There is a {@see 'deprecated_ability_run'} hook that will be called that can be used
-	 * to get the backtrace up to what file and function retrieved the deprecated ability.
+	 * to get the backtrace up to what file and function used the deprecated ability.
 	 *
 	 * The current behavior is to trigger a user error if `WP_DEBUG` is true.
 	 *
 	 * @since 7.2.0
-	 * @internal Triggered when a deprecated ability is retrieved. It should never be called directly in user
+	 * @internal Triggered when a deprecated ability is called. It should never be called directly in user
 	 *           code. There is no guarantee of backward compatibility.
 	 */
 	public function _handle_ability_deprecation(): void {
@@ -963,7 +966,7 @@ class WP_Ability {
 		$message     = $deprecation_meta['message'] ?? '';
 
 		/**
-		 * Fires every time a deprecated ability is accessed.
+		 * Fires every time a deprecated ability is called.
 		 *
 		 * @since 7.2.0
 		 *

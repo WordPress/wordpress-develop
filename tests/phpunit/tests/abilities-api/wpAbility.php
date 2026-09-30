@@ -481,16 +481,20 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that executing a deprecated ability does not emit a deprecation notice.
+	 * Tests that executing a deprecated ability emits a deprecation notice.
 	 *
-	 * Deprecation notices are emitted when an ability is retrieved by name, not on execution.
-	 * Any unexpected notice fails the test.
+	 * Covers abilities that were retrieved without a notice, e.g. via `wp_get_abilities()`.
 	 *
 	 * @ticket 64209
+	 *
+	 * @covers WP_Ability::execute
+	 * @covers WP_Ability::_handle_ability_deprecation
 	 */
-	public function test_execute_deprecated_ability_does_not_emit_deprecation(): void {
+	public function test_execute_deprecated_ability_emits_deprecation(): void {
 		$args                       = self::$test_ability_properties;
 		$args['meta']['deprecated'] = array( 'since' => '2.0.0' );
+
+		$this->setExpectedDeprecated( self::$test_ability_name );
 
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 

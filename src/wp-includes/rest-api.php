@@ -776,7 +776,7 @@ function rest_handle_deprecated_argument( $function_name, $message, $version ) {
  *
  * @since 7.2.0
  *
- * @param string $ability_name The deprecated ability that was retrieved.
+ * @param string $ability_name The deprecated ability that was used.
  * @param string $replacement  The ability that should be used as a replacement.
  * @param string $version      The version of the ability provider that deprecated the ability.
  * @param string $message      Additional migration guidance.
