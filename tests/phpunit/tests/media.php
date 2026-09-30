@@ -2807,7 +2807,7 @@ EOF;
 		$uploads_url     = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2026/09/';
 		$expected_srcset = $uploads_url . 'test-image-44x22.png 44w, ' .
 			$uploads_url . 'test-image-88x44.png 88w, ' .
-			$uploads_url . 'test-image.png 301w';
+			$uploads_url . 'test-image.png 300w';
 
 		$this->assertSame( $expected_srcset, wp_calculate_image_srcset( array( 44, 22 ), $image_src, $image_meta ) );
 	}

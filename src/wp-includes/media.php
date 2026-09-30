@@ -1587,7 +1587,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 
 		// If the image dimensions are within 1px of the expected size, use it.
 		if ( wp_image_matches_ratio( $image_width, $image_height, $image['width'], $image['height'] ) ) {
-			$source_width = (int) round( $image['width'] );
+			$source_width = (int) $image['width'];
 
 			if ( $source_width < 1 ) {
 				continue;
