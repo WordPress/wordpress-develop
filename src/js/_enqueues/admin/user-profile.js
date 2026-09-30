@@ -494,9 +494,10 @@
 
 	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
-			select       = $( '#display_name' ),
-			current_name = select.val(),
-			greeting     = $( '#wp-admin-bar-my-account' ).find( '.user-display-name' );
+			select            = $( '#display_name' ),
+			current_name      = select.val(),
+			user_display_name = $( '#wp-admin-bar-my-account' ).find( '.user-display-name' ),
+			user_actions      = $( '#wp-admin-bar-user-actions' );
 
 		$( '#pass1' ).val( '' ).on( 'input' + ' pwupdate', check_pass_strength );
 		$('#pass-strength-result').show();
@@ -549,7 +550,8 @@
 
 				var display_name = this.value.trim() || current_name;
 
-				greeting.text( display_name );
+				user_display_name.text( display_name );
+				user_actions.attr( 'aria-label', display_name );
 			} );
 		}
 
