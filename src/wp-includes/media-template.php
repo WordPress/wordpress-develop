@@ -523,12 +523,24 @@ function wp_print_media_templates() {
 						<textarea id="attachment-details-two-column-alt-text" aria-describedby="alt-text-description" {{ maybeReadOnly }}>{{ data.alt }}</textarea>
 					</span>
 					<p class="description" id="alt-text-description"><?php echo $alt_text_description; ?></p>
+					<?php
+					/**
+					 * Fires after the Alternative Text field in the two-column attachment details template.
+					 */
+					do_action( 'attachment_details_two_column_after_alt_text' );
+					?>
 				<# } #>
 				<?php if ( post_type_supports( 'attachment', 'title' ) ) : ?>
 				<span class="setting" data-setting="title">
 					<label for="attachment-details-two-column-title" class="name"><?php _e( 'Title' ); ?></label>
 					<input type="text" id="attachment-details-two-column-title" value="{{ data.title }}" {{ maybeReadOnly }} />
 				</span>
+					<?php
+					/**
+					 * Fires after the Title field in the two-column attachment details template.
+					 */
+					do_action( 'attachment_details_two_column_after_title' );
+					?>
 				<?php endif; ?>
 				<# if ( 'audio' === data.type ) { #>
 				<?php
@@ -551,10 +563,22 @@ function wp_print_media_templates() {
 					<# } #>
 					<textarea id="attachment-details-two-column-caption" {{ maybeReadOnly }}>{{ data.caption }}</textarea>
 				</span>
+				<?php
+				/**
+				 * Fires after the Caption field in the two-column attachment details template.
+				 */
+				do_action( 'attachment_details_two_column_after_caption' );
+				?>
 				<span class="setting" data-setting="description">
 					<label for="attachment-details-two-column-description" class="name"><?php _e( 'Description' ); ?></label>
 					<textarea id="attachment-details-two-column-description" {{ maybeReadOnly }}>{{ data.description }}</textarea>
 				</span>
+				<?php
+				/**
+				 * Fires after the Description field in the two-column attachment details template.
+				 */
+				do_action( 'attachment_details_two_column_after_description' );
+				?>
 				<span class="setting" data-setting="url">
 					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
 					<input type="text" class="attachment-details-copy-link ltr" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
