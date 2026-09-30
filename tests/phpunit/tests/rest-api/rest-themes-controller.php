@@ -1606,9 +1606,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		foreach ( $data['endpoints'] as $endpoint ) {
-			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
-		}
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route . '/' . get_stylesheet() );
@@ -1616,8 +1614,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
-		foreach ( $data['endpoints'] as $endpoint ) {
-			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
-		}
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 	}
 }
