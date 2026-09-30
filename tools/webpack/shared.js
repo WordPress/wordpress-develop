@@ -2,7 +2,7 @@
  * External dependencies
  */
 const { DefinePlugin } = require( 'webpack' );
-const TerserPlugin = require( 'terser-webpack-plugin' );
+const TerserPlugin = require( 'minimizer-webpack-plugin' );
 const postcss = require( 'postcss' );
 const { join } = require( 'path' );
 
@@ -108,6 +108,7 @@ const MODULES = [
 const SCRIPT_AND_MODULE_DUAL_PACKAGES = [
 	'@wordpress/a11y',
 	'@wordpress/block-library',
+	'@wordpress/block-editor',
 ];
 const WORDPRESS_NAMESPACE = '@wordpress/';
 

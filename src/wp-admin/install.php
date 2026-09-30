@@ -10,13 +10,12 @@
 if ( false ) {
 	?>
 <!DOCTYPE html>
-<html>
+<html lang="en-US">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>Error: PHP is not running</title>
 </head>
-<body class="wp-core-ui">
-	<p id="logo"><a href="https://wordpress.org/">WordPress</a></p>
+<body class="wp-core-ui admin-color-modern">
 	<h1>Error: PHP is not running</h1>
 	<p>WordPress requires that your web server is running PHP. Your server does not have PHP installed, or PHP is turned off.</p>
 </body>
@@ -53,7 +52,7 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : 0;
  *
  * @since 2.5.0
  *
- * @param string $body_classes
+ * @param string $body_classes Class attribute values for the body tag.
  */
 function display_header( $body_classes = '' ) {
 	header( 'Content-Type: text/html; charset=utf-8' );
@@ -73,7 +72,7 @@ function display_header( $body_classes = '' ) {
 	<title><?php _e( 'WordPress &rsaquo; Installation' ); ?></title>
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
-<body class="wp-core-ui<?php echo $body_classes; ?>">
+<body class="wp-core-ui admin-color-modern<?php echo $body_classes; ?>">
 <p id="logo"><?php _e( 'WordPress' ); ?></p>
 
 	<?php
@@ -86,7 +85,7 @@ function display_header( $body_classes = '' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|null $error
+ * @param string|null $error Error message to display, if any.
  */
 function display_setup_form( $error = null ) {
 	global $wpdb;
@@ -115,20 +114,19 @@ function display_setup_form( $error = null ) {
 			<td><input name="weblog_title" type="text" id="weblog_title" size="25" value="<?php echo esc_attr( $weblog_title ); ?>" /></td>
 		</tr>
 		<tr>
-			<th scope="row"><label for="user_login"><?php _e( 'Username' ); ?></label></th>
-			<td>
-			<?php
-			if ( $user_table ) {
-				_e( 'User(s) already exists.' );
-				echo '<input name="user_name" type="hidden" value="admin" />';
-			} else {
-				?>
-				<input name="user_name" type="text" id="user_login" size="25" aria-describedby="user-name-desc" value="<?php echo esc_attr( sanitize_user( $user_name, true ) ); ?>" />
-				<p id="user-name-desc"><?php _e( 'Usernames can have only alphanumeric characters, spaces, underscores, hyphens, periods, and the @ symbol.' ); ?></p>
-				<?php
-			}
-			?>
-			</td>
+			<?php if ( $user_table ) : ?>
+				<th scope="row"><?php _e( 'Username' ); ?></th>
+				<td>
+					<?php _e( 'User(s) already exists.' ); ?>
+					<input name="user_name" type="hidden" value="admin" />
+				</td>
+			<?php else : ?>
+				<th scope="row"><label for="user_login"><?php _e( 'Username' ); ?></label></th>
+				<td>
+					<input name="user_name" type="text" id="user_login" size="25" aria-describedby="user-name-desc" value="<?php echo esc_attr( sanitize_user( $user_name, true ) ); ?>" />
+					<p id="user-name-desc"><?php _e( 'Usernames can have only alphanumeric characters, spaces, underscores, hyphens, periods, and the @ symbol.' ); ?></p>
+				</td>
+			<?php endif; ?>
 		</tr>
 		<?php if ( ! $user_table ) : ?>
 		<tr class="form-field form-required user-pass1-wrap">
@@ -144,7 +142,7 @@ function display_setup_form( $error = null ) {
 						<input type="password" name="admin_password" id="pass1" class="regular-text" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result admin-password-desc" />
 						<div id="pass-strength-result" aria-live="polite"></div>
 					</div>
-					<button type="button" class="button wp-hide-pw hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+					<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-start-masked="<?php echo (int) isset( $_POST['admin_password'] ); ?>" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 						<span class="dashicons dashicons-hidden"></span>
 						<span class="text"><?php _e( 'Hide' ); ?></span>
 					</button>
@@ -180,35 +178,32 @@ function display_setup_form( $error = null ) {
 			<td><input name="admin_email" type="email" id="admin_email" size="25" aria-describedby="admin-email-desc" value="<?php echo esc_attr( $admin_email ); ?>" />
 			<p id="admin-email-desc"><?php _e( 'Double-check your email address before continuing.' ); ?></p></td>
 		</tr>
+		<?php
+			$has_action_blog_privacy_selector = has_action( 'blog_privacy_selector' );
+			$blog_privacy_selector_title      = $has_action_blog_privacy_selector ? __( 'Site visibility' ) : __( 'Search engine visibility' );
+			$fieldset_aria_describedby        = $has_action_blog_privacy_selector ? ' aria-describedby="options-site-visibility-description"' : '';
+		?>
 		<tr>
-			<th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?></th>
+			<th scope="row"><?php echo esc_html( $blog_privacy_selector_title ); ?></th>
 			<td>
-				<fieldset>
-					<legend class="screen-reader-text"><span>
-						<?php
-						has_action( 'blog_privacy_selector' )
-							/* translators: Hidden accessibility text. */
-							? _e( 'Site visibility' )
-							/* translators: Hidden accessibility text. */
-							: _e( 'Search engine visibility' );
-						?>
-					</span></legend>
+				<fieldset<?php echo $fieldset_aria_describedby; ?>>
+					<legend class="screen-reader-text"><?php echo esc_html( $blog_privacy_selector_title ); ?></legend>
 					<?php
-					if ( has_action( 'blog_privacy_selector' ) ) {
+					if ( $has_action_blog_privacy_selector ) {
 						?>
 						<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( 1, $blog_public ); ?> />
 						<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br />
-						<input id="blog-norobots" type="radio" name="blog_public"  aria-describedby="public-desc" value="0" <?php checked( 0, $blog_public ); ?> />
+						<input id="blog-norobots" type="radio" name="blog_public" value="0" <?php checked( 0, $blog_public ); ?> />
 						<label for="blog-norobots"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-						<p id="public-desc" class="description"><?php _e( 'Note: Discouraging search engines does not block access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
+						<p id="options-site-visibility-description" class="description"><?php _e( 'Note: Discouraging search engines does not block access to your site &mdash; it is up to search engines to honor your request.' ); ?></p>
 						<?php
 						/** This action is documented in wp-admin/options-reading.php */
 						do_action( 'blog_privacy_selector' );
 					} else {
 						?>
-						<label for="blog_public"><input name="blog_public" type="checkbox" id="blog_public" aria-describedby="privacy-desc" value="0" <?php checked( 0, $blog_public ); ?> />
-						<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
-						<p id="privacy-desc" class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
+						<input name="blog_public" type="checkbox" id="blog_public" aria-describedby="options-site-visibility-description" value="0" <?php checked( 0, $blog_public ); ?> />
+						<label for="blog_public"><?php _e( 'Discourage search engines from indexing this site' ); ?></label>
+						<p id="options-site-visibility-description" class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 					<?php } ?>
 				</fieldset>
 			</td>
@@ -350,6 +345,7 @@ if ( defined( 'DO_NOT_UPGRADE_GLOBAL_TABLES' ) ) {
 /**
  * @global string    $wp_local_package Locale code of the package.
  * @global WP_Locale $wp_locale        WordPress date and time locale object.
+ * @global wpdb      $wpdb             WordPress database abstraction object.
  */
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
@@ -477,17 +473,30 @@ switch ( $step ) {
 }
 
 if ( ! wp_is_mobile() ) {
-	?>
-<script type="text/javascript">var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
-	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		const t = document.getElementById( 'weblog_title' );
+		if ( t ) {
+			t.focus();
+		}
+		JS
+	);
 }
 
 wp_print_scripts( $scripts_to_print );
+
+wp_print_inline_script_tag(
+	<<<'JS'
+	/**
+	 * Shows the content intended only for browsers with JS enabled.
+	 *
+	 * @param {JQueryStatic} $ The jQuery object.
+	 */
+	jQuery( function ( $ ) {
+		$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
+	} );
+	JS
+);
 ?>
-<script type="text/javascript">
-jQuery( function( $ ) {
-	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
-} );
-</script>
 </body>
 </html>

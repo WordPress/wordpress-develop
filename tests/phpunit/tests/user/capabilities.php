@@ -669,7 +669,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
-			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
 			if ( 'anonymous' === $role ) {
@@ -700,7 +700,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
-		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 	}
 
@@ -1178,8 +1178,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
-		// Author = user level 2.
-		$this->assertEquals( 2, $user->user_level );
+		// Author = user level 2. Read from user meta, so a numeric string until set_role() recalculates it.
+		$this->assertSame( '2', $user->user_level );
 
 		// They get promoted to editor - level should get bumped to 7.
 		$user->set_role( 'editor' );
@@ -1405,7 +1405,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Add 'edit_foobars' primitive cap to a user.
 		$admin->add_cap( 'edit_foobars', true );
-		$admin = new WP_User( $admin->ID );
+		$admin                        = new WP_User( $admin->ID );
+		self::$users['administrator'] = $admin;
 		$this->assertTrue( $admin->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $author->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $editor->has_cap( $cap->create_posts ) );
@@ -1701,13 +1702,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_site( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_site( $blog_id, 'foo_the_bar' ) );
 
 		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
-
-		$this->assertNotWPError( $another_blog_id );
 
 		// Verify the user doesn't have a capability
 		$this->assertFalse( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
@@ -1738,7 +1736,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( user_can_for_site( $user->ID, $blog_id, 'edit_posts' ) );
 		$this->assertFalse( user_can_for_site( $user->ID, $blog_id, 'foo_the_bar' ) );
 
@@ -1830,11 +1827,47 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( current_user_can( 'edit_user', $other_user->ID ) );
 	}
 
-	public function test_user_can_edit_self() {
-		foreach ( self::$users as $role => $user ) {
-			wp_set_current_user( $user->ID );
-			$this->assertTrue( current_user_can( 'edit_user', $user->ID ), "User with role {$role} should have the capability to edit their own profile" );
+	/**
+	 * Test if a user can edit their own profile based on their role.
+	 *
+	 * @ticket 63684
+	 *
+	 * @dataProvider data_user_can_edit_self
+	 *
+	 * @param string $role          The role of the user.
+	 * @param bool   $can_edit_self Whether the user can edit their own profile.
+	 */
+	public function test_user_can_edit_self( $role, $can_edit_self = true ) {
+		$user = self::$users[ $role ];
+		wp_set_current_user( $user->ID );
+
+		if ( $can_edit_self ) {
+			$this->assertTrue(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should have the capability to edit their own profile"
+			);
+		} else {
+			$this->assertFalse(
+				current_user_can( 'edit_user', $user->ID ),
+				"User with role '{$role}' should not have the capability to edit their own profile"
+			);
 		}
+	}
+
+	/**
+	 * Data provider for test_user_can_edit_self.
+	 *
+	 * @return array[] Data provider.
+	 */
+	public static function data_user_can_edit_self() {
+		return array(
+			'anonymous'     => array( 'anonymous', false ),
+			'administrator' => array( 'administrator', true ),
+			'editor'        => array( 'editor', true ),
+			'author'        => array( 'author', true ),
+			'contributor'   => array( 'contributor', true ),
+			'subscriber'    => array( 'subscriber', true ),
+		);
 	}
 
 	public function test_only_admins_and_super_admins_can_remove_users() {
@@ -2505,5 +2538,56 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				"Role: {$role} in template editing"
 			);
 		}
+	}
+
+	/**
+	 * Ensure that caps are updated correctly when using `update_option()` to save roles.
+	 *
+	 * Compares the efficiency and accuracy of updating role capabilities when `WP_Roles`
+	 * uses the database vs when the updates are done via `update_option()`.
+	 *
+	 * This method of updating roles is used in `populate_roles()` to reduce the number of
+	 * queries by approximately 300.
+	 *
+	 * @ticket 37687
+	 */
+	public function test_role_capabilities_updated_correctly_via_update_option() {
+		global $wp_roles;
+		$emcee_role = 'emcee';
+		$wp_roles->add_role( $emcee_role, 'Emcee', array( 'level_1' => true ) );
+		$this->flush_roles();
+
+		$expected_caps = array(
+			'level_1'             => true,
+			'attend_kit_kat_klub' => true,
+			'win_tony_award'      => true,
+		);
+
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $emcee_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $emcee_role, 'win_tony_award' );
+		$emcee_queries = get_num_queries() - $start_queries;
+		$this->flush_roles();
+		$emcee_caps = $wp_roles->get_role( $emcee_role )->capabilities;
+
+		$wp_roles->use_db = false;
+		$sally_role       = 'sally';
+		$wp_roles->add_role( $sally_role, 'Sally Bowles', array( 'level_1' => true ) );
+		$start_queries = get_num_queries();
+		$wp_roles->add_cap( $sally_role, 'attend_kit_kat_klub' );
+		$wp_roles->add_cap( $sally_role, 'win_tony_award' );
+
+		update_option( $wp_roles->role_key, $wp_roles->roles, true );
+		$sally_queries    = get_num_queries() - $start_queries;
+		$wp_roles->use_db = true;
+
+		// Restore the default value.
+		$this->flush_roles();
+		$sally_caps = $wp_roles->get_role( $sally_role )->capabilities;
+
+		$this->assertSameSetsWithIndex( $expected_caps, $emcee_caps, 'Emcee role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
+		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
+		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
 }

@@ -145,6 +145,8 @@ function shortcode_exists( $tag ) {
  * @param string $content Content to search for shortcodes.
  * @param string $tag     Shortcode tag to check.
  * @return bool Whether the passed content contains the given shortcode.
+ *
+ * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
 	if ( ! str_contains( $content, '[' ) ) {
@@ -182,7 +184,7 @@ function has_shortcode( $content, $tag ) {
  * @return string[] An array of registered shortcode names found in the content.
  */
 function get_shortcode_tags_in_content( $content ) {
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return array();
 	}
 
@@ -319,7 +321,7 @@ function _filter_do_shortcode_context() {
  * @global array $shortcode_tags
  *
  * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
- * @return string The shortcode search regular expression
+ * @return string The shortcode search regular expression.
  */
 function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
@@ -429,7 +431,7 @@ function do_shortcode_tag( $m ) {
 		return $return;
 	}
 
-	$content = isset( $m[5] ) ? $m[5] : null;
+	$content = $m[5] ?? null;
 
 	$output = $m[1] . call_user_func( $shortcode_tags[ $tag ], $attr, $content, $tag ) . $m[6];
 
