@@ -1166,7 +1166,7 @@ function get_super_admins( $network_id = null ) {
 	global $super_admins;
 
 	// Falsy values (including 0) mean "unspecified", matching get_network_option()'s own fallback.
-	$is_current_network = ! $network_id || (int) $network_id === get_current_network_id();
+	$is_current_network = ! $network_id || get_current_network_id() === (int) $network_id;
 
 	if ( $is_current_network && isset( $super_admins ) ) {
 		return $super_admins;
