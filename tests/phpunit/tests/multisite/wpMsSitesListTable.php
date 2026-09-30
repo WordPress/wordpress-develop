@@ -73,6 +73,10 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 				'domain' => 'atest.example.org',
 				'path'   => '/',
 			),
+			'foo.example.com/'        => array(
+				'domain' => 'foo.example.com',
+				'path'   => '/',
+			),
 		);
 
 		foreach ( self::$site_ids as &$id ) {
@@ -96,11 +100,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1 ) + self::$site_ids, $items );
 	}
 
-	public function test_ms_sites_list_table_subdirectory_path_search_items() {
-		if ( is_subdomain_install() ) {
-			$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
-		}
-
+	public function test_ms_sites_list_table_search_items() {
 		$_REQUEST['s'] = 'foo';
 
 		$this->table->prepare_items();
@@ -117,16 +117,37 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 			self::$site_ids['make.wordpress.org/foo/'],
 			self::$site_ids['www.w.org/foo/'],
 			self::$site_ids['www.w.org/foo/bar/'],
+			self::$site_ids['foo.example.com/'],
 		);
 
 		$this->assertSameSets( $expected, $items );
 	}
 
-	public function test_ms_sites_list_table_subdirectory_multiple_path_search_items() {
-		if ( is_subdomain_install() ) {
-			$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
-		}
+	public function test_ms_sites_list_table_orderby_blogname() {
+		$_REQUEST['s']       = 'foo';
+		$_REQUEST['orderby'] = 'blogname';
 
+		$this->table->prepare_items();
+
+		$items = wp_list_pluck( $this->table->items, 'blog_id' );
+		$items = array_map( 'intval', $items );
+
+		unset( $_REQUEST['s'] );
+
+		$expected = array(
+			self::$site_ids['foo.example.com/'],
+			self::$site_ids['make.wordpress.org/foo/'],
+			self::$site_ids['wordpress.org/afoo/'],
+			self::$site_ids['wordpress.org/foo/'],
+			self::$site_ids['wordpress.org/foo/bar/'],
+			self::$site_ids['www.w.org/foo/'],
+			self::$site_ids['www.w.org/foo/bar/'],
+		);
+
+		$this->assertSameSets( $expected, $items );
+	}
+
+	public function test_ms_sites_list_table_multiple_path_search_items() {
 		$_REQUEST['s'] = 'foo/bar';
 
 		$this->table->prepare_items();
@@ -144,7 +165,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $items );
 	}
 
-	public function test_ms_sites_list_table_invalid_path_search_items() {
+	public function test_ms_sites_list_table_invalid_search_items() {
 		$_REQUEST['s'] = 'foobar';
 
 		$this->table->prepare_items();
@@ -158,10 +179,6 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 	}
 
 	public function test_ms_sites_list_table_subdomain_domain_search_items() {
-		if ( ! is_subdomain_install() ) {
-			$this->markTestSkipped( 'Domain search is not available for subdirectory configurations.' );
-		}
-
 		$_REQUEST['s'] = 'test';
 
 		$this->table->prepare_items();
@@ -182,10 +199,6 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 	}
 
 	public function test_ms_sites_list_table_subdomain_domain_search_items_with_trailing_wildcard() {
-		if ( ! is_subdomain_install() ) {
-			$this->markTestSkipped( 'Domain search is not available for subdirectory configurations.' );
-		}
-
 		$_REQUEST['s'] = 'test*';
 
 		$this->table->prepare_items();
@@ -206,10 +219,6 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 	}
 
 	public function test_ms_sites_list_table_subdirectory_path_search_items_with_trailing_wildcard() {
-		if ( is_subdomain_install() ) {
-			$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
-		}
-
 		$_REQUEST['s'] = 'fo*';
 
 		$this->table->prepare_items();
@@ -226,6 +235,7 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 			self::$site_ids['make.wordpress.org/foo/'],
 			self::$site_ids['www.w.org/foo/'],
 			self::$site_ids['www.w.org/foo/bar/'],
+			self::$site_ids['foo.example.com/'],
 		);
 
 		$this->assertSameSets( $expected, $items );
