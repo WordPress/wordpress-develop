@@ -1810,6 +1810,13 @@ div.action-links,
 		box-shadow: none;
 	}
 
+	/* Keep sorting links' focus indicators inside the scrolling viewport. */
+	.wp-list-table-scroll th.sortable a:focus,
+	.wp-list-table-scroll th.sorted a:focus {
+		box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+		outline-offset: -2px;
+	}
+
 	.wp-list-table-scroll > .fixed {
 		table-layout: auto;
 	}
