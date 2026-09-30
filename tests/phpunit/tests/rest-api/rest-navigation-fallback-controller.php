@@ -198,17 +198,30 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback does not register a context request parameter via get_context_param().
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Covered by the core test.
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback has no collection route.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_get_items() {
-		// Covered by the core test.
+		$request  = new WP_REST_Request( 'GET', '/wp-block-editor/v1/navigation-fallbacks' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
