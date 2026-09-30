@@ -64,6 +64,7 @@ jobs:
         label: [ 'E2E Tests' ]
     with:
       LOCAL_SCRIPT_DEBUG: ${{ matrix.LOCAL_SCRIPT_DEBUG }}
+      gutenberg-version: '24.0.0'
 
   slack-notifications:
     name: Slack Notifications
