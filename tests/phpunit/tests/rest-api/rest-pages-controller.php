@@ -414,15 +414,22 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	public function test_get_item() {
 		$page_id = self::factory()->post->create(
 			array(
-				'post_status' => 'publish',
-				'post_type'   => 'page',
+				'post_title'   => 'Page Title',
+				'post_content' => 'Page content',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
 			)
 		);
 
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
 		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
 
-		$this->check_get_post_response( $response, 'view' );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['id'] );
+		$this->assertSame( 'page', $data['type'] );
+		$this->assertSame( 'Page Title', $data['title']['rendered'] );
+		$this->assertSame( wpautop( 'Page content' ), $data['content']['rendered'] );
 	}
 
 	public function test_get_item_invalid_post_type() {
