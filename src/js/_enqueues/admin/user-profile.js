@@ -496,7 +496,7 @@
 		var $colorpicker, $stylesheet, user_id, current_user_id,
 			select       = $( '#display_name' ),
 			current_name = select.val(),
-			greeting     = $( '#wp-admin-bar-my-account' ).find( '.display-name' ).not( '.edit-profile' );
+			greeting     = $( '#wp-admin-bar-my-account' ).find( '.user-display-name' );
 
 		$( '#pass1' ).val( '' ).on( 'input' + ' pwupdate', check_pass_strength );
 		$('#pass-strength-result').show();
