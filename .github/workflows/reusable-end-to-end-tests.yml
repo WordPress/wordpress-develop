@@ -161,6 +161,7 @@ jobs:
           path: artifacts
           if-no-files-found: ignore
           include-hidden-files: true
+          retention-days: 14
 
       - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code
