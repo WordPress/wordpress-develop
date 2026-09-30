@@ -1139,7 +1139,7 @@ endif;
 	 * @since 3.4.0
 	 *
 	 * @param array $form_fields
-	 * @return array $form_fields
+	 * @return array
 	 */
 	public function attachment_fields_to_edit( $form_fields ) {
 		return $form_fields;
@@ -1151,7 +1151,7 @@ endif;
 	 * @since 3.4.0
 	 *
 	 * @param array $tabs
-	 * @return array $tabs
+	 * @return array
 	 */
 	public function filter_upload_tabs( $tabs ) {
 		return $tabs;
