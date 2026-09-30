@@ -214,43 +214,57 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	/**
 	 * Test canonical redirect does not reveal private posts presence.
 	 *
-	 * @ticket 5272
-	 * @dataProvider data_canonical_redirects_to_plain_permalinks
+	 * Asserts every plain-permalink case inside one test to avoid repeated
+	 * PHPUnit setup/teardown while preserving each case's mutable state reset
+	 * (attachment pages option, current user) and all expected URLs.
 	 *
-	 * @param string $post_key  Post key used for creating fixtures.
-	 * @param string $user_role User role.
-	 * @param string $requested Requested URL.
-	 * @param string $expected  Expected URL.
-	 * @param string $enable_attachment_pages Whether to enable attachment pages. Default true.
+	 * @ticket 5272
+	 * @ticket 66074
 	 */
-	public function test_canonical_redirects_to_plain_permalinks( $post_key, $user_role, $requested, $expected, $enable_attachment_pages = true ) {
-		if ( $enable_attachment_pages ) {
-			update_option( 'wp_attachment_pages_enabled', 1 );
-		} else {
-			update_option( 'wp_attachment_pages_enabled', 0 );
-		}
-
-		wp_set_current_user( self::$users[ $user_role ] );
+	public function test_canonical_redirects_to_plain_permalinks() {
+		// Identical for every case in this method; set once to avoid rewrite churn.
 		$this->set_permalink_structure( '' );
-		$post = self::$posts[ $post_key ];
-		clean_post_cache( $post->ID );
 
-		/*
-		 * The dataProvider runs before the fixures are set up, therefore the
-		 * post object IDs are placeholders that needs to be replaced.
-		 */
-		$requested = str_replace( '%ID%', $post->ID, $requested );
-		$expected  = str_replace( '%ID%', $post->ID, $expected );
+		foreach ( $this->get_canonical_redirects_to_plain_permalinks_cases() as $case ) {
+			$post_key                = $case[0];
+			$user_role               = $case[1];
+			$requested               = $case[2];
+			$expected                = $case[3];
+			$enable_attachment_pages = array_key_exists( 4, $case ) ? $case[4] : true;
 
-		$this->assertCanonical( $requested, $expected );
+			update_option( 'wp_attachment_pages_enabled', $enable_attachment_pages ? 1 : 0 );
+			wp_set_current_user( self::$users[ $user_role ] );
+
+			$post = self::$posts[ $post_key ];
+			clean_post_cache( $post->ID );
+
+			$requested = str_replace( '%ID%', (string) $post->ID, $requested );
+			$expected  = str_replace( '%ID%', (string) $post->ID, $expected );
+
+			try {
+				$this->assertCanonical( $requested, $expected );
+			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
+				$this->fail(
+					sprintf(
+						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
+						$post_key,
+						$user_role,
+						$enable_attachment_pages ? '1' : '0',
+						$requested,
+						$expected,
+						$e->getMessage()
+					)
+				);
+			}
+		}
 	}
 
 	/**
-	 * Data provider for test_canonical_redirects_to_plain_permalinks.
+	 * Cases for test_canonical_redirects_to_plain_permalinks.
 	 *
 	 * @return array[]
 	 */
-	public function data_canonical_redirects_to_plain_permalinks() {
+	private function get_canonical_redirects_to_plain_permalinks_cases() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
@@ -840,39 +854,53 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	/**
 	 * Test canonical redirect does not reveal private slugs.
 	 *
-	 * @ticket 5272
-	 * @dataProvider data_canonical_redirects_to_pretty_permalinks
+	 * Asserts every pretty-permalink case inside one test to avoid repeated
+	 * PHPUnit setup/teardown while preserving each case's mutable state reset
+	 * (attachment pages option, current user) and all expected URLs.
 	 *
-	 * @param string $post_key  Post key used for creating fixtures.
-	 * @param string $user_role User role.
-	 * @param string $requested Requested URL.
-	 * @param string $expected  Expected URL.
-	 * @param string $enable_attachment_pages Whether to enable attachment pages. Default true.
+	 * @ticket 5272
+	 * @ticket 66074
 	 */
-	public function test_canonical_redirects_to_pretty_permalinks( $post_key, $user_role, $requested, $expected, $enable_attachment_pages = true ) {
-		if ( $enable_attachment_pages ) {
-			update_option( 'wp_attachment_pages_enabled', 1 );
-		} else {
-			update_option( 'wp_attachment_pages_enabled', 0 );
-		}
-
-		wp_set_current_user( self::$users[ $user_role ] );
+	public function test_canonical_redirects_to_pretty_permalinks() {
+		// Identical for every case in this method; set once to avoid rewrite churn.
 		$this->set_permalink_structure( '/%postname%/' );
-		$post = self::$posts[ $post_key ];
-		clean_post_cache( $post->ID );
 
-		/*
-		 * The dataProvider runs before the fixures are set up, therefore the
-		 * post object IDs are placeholders that needs to be replaced.
-		 */
-		$requested = str_replace( '%ID%', $post->ID, $requested );
-		$expected  = str_replace( '%ID%', $post->ID, $expected );
+		foreach ( $this->get_canonical_redirects_to_pretty_permalinks_cases() as $case ) {
+			$post_key                = $case[0];
+			$user_role               = $case[1];
+			$requested               = $case[2];
+			$expected                = $case[3];
+			$enable_attachment_pages = array_key_exists( 4, $case ) ? $case[4] : true;
 
-		$this->assertCanonical( $requested, $expected );
+			update_option( 'wp_attachment_pages_enabled', $enable_attachment_pages ? 1 : 0 );
+			wp_set_current_user( self::$users[ $user_role ] );
+
+			$post = self::$posts[ $post_key ];
+			clean_post_cache( $post->ID );
+
+			$requested = str_replace( '%ID%', (string) $post->ID, $requested );
+			$expected  = str_replace( '%ID%', (string) $post->ID, $expected );
+
+			try {
+				$this->assertCanonical( $requested, $expected );
+			} catch ( \PHPUnit\Framework\ExpectationFailedException $e ) {
+				$this->fail(
+					sprintf(
+						'Canonical mismatch for post_key=%s user_role=%s attachment_pages=%s requested=%s expected=%s. %s',
+						$post_key,
+						$user_role,
+						$enable_attachment_pages ? '1' : '0',
+						$requested,
+						$expected,
+						$e->getMessage()
+					)
+				);
+			}
+		}
 	}
 
 	/**
-	 * Data provider for test_canonical_redirects_to_pretty_permalinks.
+	 * Cases for test_canonical_redirects_to_pretty_permalinks.
 	 *
 	 * @return array[] Array of arguments for tests {
 	 *     @type string $post_key  Post key used for creating fixtures.
@@ -881,7 +909,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	public function data_canonical_redirects_to_pretty_permalinks() {
+	private function get_canonical_redirects_to_pretty_permalinks_cases() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );

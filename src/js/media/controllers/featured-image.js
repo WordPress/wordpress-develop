@@ -48,6 +48,8 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	}, Library.prototype.defaults ),
 
 	/**
+	 * Initializes the FeaturedImage controller.
+	 *
 	 * @since 3.5.0
 	 */
 	initialize: function() {
@@ -84,6 +86,8 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	},
 
 	/**
+	 * Activates the FeaturedImage controller.
+	 *
 	 * @since 3.5.0
 	 */
 	activate: function() {
@@ -93,6 +97,8 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	},
 
 	/**
+	 * Deactivates the FeaturedImage controller.
+	 *
 	 * @since 3.5.0
 	 */
 	deactivate: function() {
@@ -102,6 +108,8 @@ FeaturedImage = Library.extend(/** @lends wp.media.controller.FeaturedImage.prot
 	},
 
 	/**
+	 * Updates the selection to match the current featured image.
+	 *
 	 * @since 3.5.0
 	 */
 	updateSelection: function() {
