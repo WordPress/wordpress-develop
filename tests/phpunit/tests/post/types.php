@@ -67,7 +67,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_register_post_type_with_too_long_name() {
 		// Post type too long.
-		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
+		$this->assertWPError( register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_register_post_type_with_empty_name() {
 		// Post type too short.
-		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
+		$this->assertWPError( register_post_type( '' ) );
 	}
 
 	/**
