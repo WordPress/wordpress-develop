@@ -73,12 +73,31 @@ function wp_signon( $credentials = array(), $secure_cookie = '' ) {
 	 *
 	 * @since 1.5.1
 	 *
-	 * @todo Decide whether to deprecate the wp_authenticate action.
+	 * @deprecated 6.8.0 Use wp_signon_credentials instead.
 	 *
 	 * @param string $user_login    Username (passed by reference).
 	 * @param string $user_password User password (passed by reference).
 	 */
-	do_action_ref_array( 'wp_authenticate', array( &$credentials['user_login'], &$credentials['user_password'] ) );
+	do_action_deprecated( 'wp_authenticate', array( &$credentials['user_login'], &$credentials['user_password'] ), '6.8.0', 'wp_signon_credentials' );
+
+	/**
+	 * Filter the credentials array before user sign-in.
+	 *
+	 * This filter allows modification of the sign-on credentials, such as the username,
+	 * password, and "remember me" setting, before authentication. It can be used by plugins
+	 * or themes to enforce custom login rules or modify the credentials.
+	 *
+	 * @since 6.8.0
+	 *
+	 * @param array $credentials An associative array of the user's login credentials:
+	 *                            - 'user_login' (string) The username (or email).
+	 *                            - 'user_password' (string) The password entered.
+	 *                            - 'remember' (bool) Whether to remember the user.
+	 *                            Default is false.
+	 *
+	 * @return array The filtered credentials array.
+	 */
+	$credentials = apply_filters( 'wp_signon_credentials', $credentials );
 
 	if ( '' === $secure_cookie ) {
 		$secure_cookie = is_ssl();
