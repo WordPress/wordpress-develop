@@ -77,7 +77,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_missing_name() {
 		$name     = null;
@@ -97,7 +97,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_invalid_non_string_name() {
 		$name     = 123;
@@ -117,7 +117,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_missing_title() {
 		$name     = 'test/pattern';
@@ -136,7 +136,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_invalid_non_string_title() {
 		$name     = 'test/pattern';
@@ -156,7 +156,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_missing_content() {
 		$name     = 'Test Pattern';
@@ -175,7 +175,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::register
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::register
 	 */
 	public function test_invalid_non_string_content() {
 		$name     = 'Test Pattern';
@@ -213,7 +213,7 @@ class Tests_Blocks_wpBlockPatternsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Patterns_Registry::unregister
 	 *
-	 * @expectedIncorrectUsage WP_Block_Patterns_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Block_Patterns_Registry::unregister
 	 */
 	public function test_unregister_not_registered_block() {
 		$success = $this->registry->unregister( 'test/unregistered' );

@@ -152,7 +152,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_icon_twice() {
 		$settings = array(
@@ -171,7 +171,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 *
 	 * @param mixed $name Invalid icon name candidate.
 	 */
@@ -194,7 +194,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_rejects_non_namespaced_name() {
 		$result = $this->registry->register(
@@ -217,7 +217,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_rejects_collection_property() {
 		$result = $this->registry->register(
@@ -238,7 +238,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_rejects_unregistered_collection() {
 		$result = $this->registry->register(
@@ -357,7 +357,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_icon_with_content_and_file_path() {
 		$result = $this->registry->register(
@@ -379,7 +379,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_icon_without_content_or_file_path() {
 		$result = $this->registry->register(
@@ -453,7 +453,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::unregister
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::unregister
 	 */
 	public function test_unregister_unknown_icon() {
 		$this->assertFalse( $this->registry->unregister( 'test-collection/ghost' ) );
@@ -527,7 +527,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 */
 	public function test_register_rejects_non_boolean_public_property() {
 		$result = $this->registry->register(
@@ -611,7 +611,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 * @ticket 66158
 	 *
 	 * @dataProvider data_invalid_keywords
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icons_Registry::register
 	 *
 	 * @param mixed $keywords Invalid keywords candidate.
 	 */

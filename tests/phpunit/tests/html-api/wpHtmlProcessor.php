@@ -30,7 +30,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 58517
 	 *
 	 * @covers WP_HTML_Processor::__construct
-	 * @expectedIncorrectUsage WP_HTML_Processor::__construct
+	 * @expectedWPIncorrectUsage WP_HTML_Processor::__construct
 	 */
 	public function test_warns_that_the_static_creator_methods_should_be_called_instead_of_the_public_constructor() {
 		new WP_HTML_Processor( '<p>Light roast.</p>' );
@@ -40,7 +40,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 63854
 	 *
 	 * @covers ::create_fragment
-	 * @expectedIncorrectUsage WP_HTML_Processor::create_fragment
+	 * @expectedWPIncorrectUsage WP_HTML_Processor::create_fragment
 	 */
 	public function test_create_fragment_validates_html_parameter() {
 		$processor = WP_HTML_Processor::create_fragment( null );
@@ -51,7 +51,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 * @ticket 63854
 	 *
 	 * @covers ::create_full_parser
-	 * @expectedIncorrectUsage WP_HTML_Processor::create_full_parser
+	 * @expectedWPIncorrectUsage WP_HTML_Processor::create_full_parser
 	 */
 	public function test_create_full_parser_validates_html_parameter() {
 		$processor = WP_HTML_Processor::create_full_parser( null );
@@ -1130,7 +1130,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	 *
 	 * @ticket 64394
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 * @expectedWPIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_deep_nesting_fails_process_without_error() {
 		$html      = str_repeat( '<i>', WP_HTML_Processor::MAX_BOOKMARKS * 2 );
@@ -1150,7 +1150,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 64394
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 * @expectedWPIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_deep_nesting_fails_processing_virtual_tokens_without_error() {
 		/*
@@ -1209,7 +1209,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * @ticket 64394
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 * @expectedWPIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_prevents_unbounded_bookmarking() {
 		$processor = WP_HTML_Processor::create_full_parser( '<!DOCTYPE html><html>' );

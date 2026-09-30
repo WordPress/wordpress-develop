@@ -419,7 +419,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 36361
 	 */
 	public function test_check_admin_referer_with_no_action_triggers_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage( 'check_admin_referer' );
+		$this->expectWPIncorrectUsage( 'check_admin_referer' );
 
 		// A valid nonce needs to be set so the check doesn't die().
 		$_REQUEST['_wpnonce'] = wp_create_nonce( -1 );
@@ -442,7 +442,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @ticket 36361
 	 */
 	public function test_check_ajax_referer_with_no_action_triggers_doing_it_wrong() {
-		$this->setExpectedIncorrectUsage( 'check_ajax_referer' );
+		$this->expectWPIncorrectUsage( 'check_ajax_referer' );
 
 		// A valid nonce needs to be set so the check doesn't die().
 		$_REQUEST['_wpnonce'] = wp_create_nonce( -1 );

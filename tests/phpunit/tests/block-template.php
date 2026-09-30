@@ -684,7 +684,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		unregister_block_template( $template_name );
 
 		// Expect _doing_it_wrong() notice.
-		$this->setExpectedIncorrectUsage( 'WP_Block_Templates_Registry::unregister' );
+		$this->expectWPIncorrectUsage( 'WP_Block_Templates_Registry::unregister' );
 
 		// Try to unregister again, should return WP_Error.
 		$error = unregister_block_template( $template_name );

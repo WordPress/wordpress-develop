@@ -276,7 +276,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @covers WP_List_Table::get_views_links
 	 *
-	 * @expectedIncorrectUsage WP_List_Table::get_views_links
+	 * @expectedWPIncorrectUsage WP_List_Table::get_views_links
 	 *
 	 * @dataProvider data_get_views_links_doing_it_wrong
 	 *

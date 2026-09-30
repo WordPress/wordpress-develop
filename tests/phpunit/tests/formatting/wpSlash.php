@@ -107,7 +107,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	 *
 	 * @ticket 64539
 	 * @covers ::addslashes_gpc
-	 * @expectedDeprecated addslashes_gpc
+	 * @expectedWPDeprecated addslashes_gpc
 	 */
 	public function test_addslashes_gpc_matches_wp_slash_for_strings() {
 		$input = "String with 'quotes' and \"double quotes\"";
@@ -119,7 +119,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	 *
 	 * @ticket 64539
 	 * @covers ::addslashes_gpc
-	 * @expectedDeprecated addslashes_gpc
+	 * @expectedWPDeprecated addslashes_gpc
 	 */
 	public function test_addslashes_gpc_matches_wp_slash_for_arrays() {
 		$input = array(

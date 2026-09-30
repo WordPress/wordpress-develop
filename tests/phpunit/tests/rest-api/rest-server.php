@@ -1580,7 +1580,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 38446
-	 * @expectedDeprecated rest_enabled
+	 * @expectedWPDeprecated rest_enabled
 	 */
 	public function test_rest_enable_filter_is_deprecated() {
 		add_filter( 'rest_enabled', '__return_false' );

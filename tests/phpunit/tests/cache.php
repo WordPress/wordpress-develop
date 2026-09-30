@@ -44,7 +44,7 @@ class Tests_Cache extends WP_UnitTestCase {
 			$this->assertTrue( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return true for valid keys.' );
 			$this->assertSame( $val, $this->cache->get( $key ), 'The retrieved value should match the added value.' );
 		} else {
-			$this->setExpectedIncorrectUsage( 'WP_Object_Cache::add' );
+			$this->expectWPIncorrectUsage( 'WP_Object_Cache::add' );
 			$this->assertFalse( $this->cache->add( $key, $val ), 'WP_Object_Cache:add() should return false for invalid keys.' );
 		}
 	}
@@ -213,7 +213,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( $val, wp_cache_get( $key, 'group-test' ), 'group-test should contain my-val' );
 
 		if ( wp_using_ext_object_cache() ) {
-			$this->setExpectedIncorrectUsage( 'wp_cache_flush_group' );
+			$this->expectWPIncorrectUsage( 'wp_cache_flush_group' );
 		}
 
 		$results = wp_cache_flush_group( 'group-test' );

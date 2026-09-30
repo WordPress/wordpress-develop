@@ -121,7 +121,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_invalid_name(): void {
 		$this->simulate_doing_wp_abilities_init_action();
@@ -136,7 +136,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage wp_register_ability
+	 * @expectedWPIncorrectUsage wp_register_ability
 	 */
 	public function test_register_ability_no_abilities_api_init_action(): void {
 		$this->assertFalse( doing_action( 'wp_abilities_api_init' ) );
@@ -151,7 +151,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_register_ability_no_init_action(): void {
 		global $wp_actions;
@@ -326,7 +326,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		// Try again with an invalid class throws a doing it wrong.
-		$this->setExpectedIncorrectUsage( WP_Abilities_Registry::class . '::register' );
+		$this->expectWPIncorrectUsage( WP_Abilities_Registry::class . '::register' );
 		wp_register_ability(
 			self::$test_ability_name,
 			array_merge(
@@ -484,7 +484,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_unregister_ability_no_init_action(): void {
 		global $wp_actions;
@@ -530,7 +530,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_get_ability_no_init_action(): void {
 		global $wp_actions;
@@ -593,7 +593,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_has_ability_no_init_action(): void {
 		global $wp_actions;
@@ -649,7 +649,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_instance
 	 */
 	public function test_get_abilities_no_init_action(): void {
 		global $wp_actions;

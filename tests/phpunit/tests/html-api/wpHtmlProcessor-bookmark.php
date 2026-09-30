@@ -161,7 +161,7 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 	/**
 	 * @ticket 62521
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Processor::set_bookmark
+	 * @expectedWPIncorrectUsage WP_HTML_Processor::set_bookmark
 	 */
 	public function test_bookmarks_not_allowed_on_virtual_nodes() {
 		$processor = WP_HTML_Processor::create_full_parser( 'text' );

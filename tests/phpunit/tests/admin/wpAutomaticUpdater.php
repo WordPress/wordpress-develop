@@ -689,7 +689,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Automatic_Updater::is_allowed_dir
 	 *
-	 * @expectedIncorrectUsage WP_Automatic_Updater::is_allowed_dir
+	 * @expectedWPIncorrectUsage WP_Automatic_Updater::is_allowed_dir
 	 *
 	 * @dataProvider data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir
 	 *

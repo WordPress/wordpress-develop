@@ -133,7 +133,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * Note that when a means of adding elements in extension namespaces is settled on,
 	 * this test will need to be updated accordingly.
 	 *
-	 * @expectedIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 * @expectedWPIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_index_xml
 	 */
 	public function test_get_sitemap_index_xml_extra_elements() {
 		$url_list = array(
@@ -253,7 +253,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * Note that when a means of adding elements in extension namespaces is settled on,
 	 * this test will need to be updated accordingly.
 	 *
-	 * @expectedIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_xml
+	 * @expectedWPIncorrectUsage WP_Sitemaps_Renderer::get_sitemap_xml
 	 */
 	public function test_get_sitemap_xml_extra_elements() {
 		$url_list = array(

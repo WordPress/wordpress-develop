@@ -865,10 +865,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	 * Test deprecated methods.
 	 */
 	public function test_deprecated_methods() {
-		$this->setExpectedDeprecated( 'WP_Customize_Widgets::setup_widget_addition_previews' );
-		$this->setExpectedDeprecated( 'WP_Customize_Widgets::prepreview_added_sidebars_widgets' );
-		$this->setExpectedDeprecated( 'WP_Customize_Widgets::prepreview_added_widget_instance' );
-		$this->setExpectedDeprecated( 'WP_Customize_Widgets::remove_prepreview_filters' );
+		$this->expectWPDeprecated( 'WP_Customize_Widgets::setup_widget_addition_previews' );
+		$this->expectWPDeprecated( 'WP_Customize_Widgets::prepreview_added_sidebars_widgets' );
+		$this->expectWPDeprecated( 'WP_Customize_Widgets::prepreview_added_widget_instance' );
+		$this->expectWPDeprecated( 'WP_Customize_Widgets::remove_prepreview_filters' );
 		$this->manager->widgets->setup_widget_addition_previews();
 		$this->manager->widgets->prepreview_added_sidebars_widgets();
 		$this->manager->widgets->prepreview_added_widget_instance();

@@ -170,7 +170,7 @@ HTML;
 	 *
 	 * @ticket 64500
 	 *
-	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 * @expectedWPIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
 	 */
 	public function test_script_tag_dangerous_unescapeable_contents() {
 		/*

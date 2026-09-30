@@ -816,7 +816,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_get_typography_font_size_value
 	 *
-	 * @expectedDeprecated wp_get_typography_font_size_value
+	 * @expectedWPDeprecated wp_get_typography_font_size_value
 	 *
 	 * @dataProvider data_generate_font_size_preset_should_use_fluid_typography_deprecated_fixtures
 	 *
@@ -1307,7 +1307,7 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * @covers ::wp_get_typography_value_and_unit
 	 *
 	 * @dataProvider data_invalid_size_wp_get_typography_value_and_unit
-	 * @expectedIncorrectUsage wp_get_typography_value_and_unit
+	 * @expectedWPIncorrectUsage wp_get_typography_value_and_unit
 	 *
 	 * @param mixed $raw_value Raw size value to test.
 	 */

@@ -155,7 +155,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 *
 	 * @ticket 63486
 	 *
-	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 * @expectedWPIncorrectUsage WP_Script_Modules::register
 	 *
 	 * @covers ::wp_register_script_module
 	 * @covers WP_Script_Modules::register
@@ -170,7 +170,7 @@ class Tests_Script_Modules_WpScriptModules extends WP_UnitTestCase {
 	 *
 	 * @ticket 63486
 	 *
-	 * @expectedIncorrectUsage WP_Script_Modules::enqueue
+	 * @expectedWPIncorrectUsage WP_Script_Modules::enqueue
 	 *
 	 * @covers ::wp_enqueue_script_module
 	 * @covers WP_Script_Modules::enqueue
@@ -1508,7 +1508,7 @@ HTML;
 	 * @ticket 61734
 	 *
 	 * @covers WP_Script_Modules::register
-	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 * @expectedWPIncorrectUsage WP_Script_Modules::register
 	 */
 	public function test_register_script_module_having_fetchpriority_with_invalid_value() {
 		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => 'silly' ) );
@@ -1524,7 +1524,7 @@ HTML;
 	 * @ticket 61734
 	 *
 	 * @covers WP_Script_Modules::register
-	 * @expectedIncorrectUsage WP_Script_Modules::register
+	 * @expectedWPIncorrectUsage WP_Script_Modules::register
 	 */
 	public function test_register_script_module_having_fetchpriority_with_invalid_value_type() {
 		$this->script_modules->register( 'foo', '/foo.js', array(), false, array( 'fetchpriority' => array( 'WHY AM I NOT A STRING???' ) ) );
@@ -1541,7 +1541,7 @@ HTML;
 	 *
 	 * @covers WP_Script_Modules::register
 	 * @covers WP_Script_Modules::set_fetchpriority
-	 * @expectedIncorrectUsage WP_Script_Modules::set_fetchpriority
+	 * @expectedWPIncorrectUsage WP_Script_Modules::set_fetchpriority
 	 */
 	public function test_set_fetchpriority_with_invalid_value() {
 		$this->script_modules->register( 'foo', '/foo.js' );
@@ -2196,7 +2196,7 @@ HTML;
 	 */
 	public function test_wp_scripts_doing_it_wrong_for_missing_script_module_dependencies() {
 		$expected_incorrect_usage = 'WP_Scripts::add_data';
-		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+		$this->expectWPIncorrectUsage( $expected_incorrect_usage );
 
 		wp_enqueue_script(
 			'registered-dep',
@@ -2616,7 +2616,7 @@ HTML;
 	 */
 	public function test_missing_script_module_dependency_triggers_incorrect_usage() {
 		$expected_incorrect_usage = 'WP_Script_Modules::register';
-		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+		$this->expectWPIncorrectUsage( $expected_incorrect_usage );
 
 		$this->script_modules->enqueue( 'main-module', '/main-module.js', array( 'missing-mod-dep' ) );
 
