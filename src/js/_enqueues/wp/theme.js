@@ -480,7 +480,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			return;
 		}
 
-		// Set focused theme to current element.
+		// Store the theme that had focus when expand is called.
 		themes.focusedTheme = this.$el;
 
 		this.trigger( 'theme:expand', self.model.cid );
@@ -520,7 +520,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 
 		event = event || window.event;
 
-		// Set focus to current theme.
+		// Store the theme that had focus when preview is called.
 		themes.focusedTheme = this.$el;
 
 		// Construct a new Preview view.
@@ -786,9 +786,9 @@ themes.view.Details = wp.Backbone.View.extend({
 				// Restore scroll position.
 				document.body.scrollTop = scroll;
 
-				// Return focus to the theme div.
+				// Return focus to the opener theme 'more-details' button.
 				if ( themes.focusedTheme ) {
-					themes.focusedTheme.find('.more-details').trigger( 'focus' );
+					themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 				}
 
 				// Add back the `theme-overlay-initial` class for the theme overlay.
@@ -982,9 +982,9 @@ themes.view.Preview = themes.view.Details.extend({
 		this.$el.fadeOut( 200, function() {
 			$( 'body' ).removeClass( 'theme-installer-active full-overlay-active' );
 
-			// Return focus to the theme div.
+			// Return focus to the opener theme 'more-details' button.
 			if ( themes.focusedTheme ) {
-				themes.focusedTheme.find('.more-details').trigger( 'focus' );
+				themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 			}
 		}).removeClass( 'iframe-ready' );
 
