@@ -117,6 +117,86 @@ if ( false !== $redirection ) {
 	exit;
 }
 
+/*
+ * Resolve the template post being edited, if any.
+ *
+ * Site Editor URLs use the canonical `?p=/{post_type}/{post_id}` form once the
+ * redirection block above has run. Theme-supplied templates that have not been
+ * persisted yet (no numeric ID) are intentionally not resolved here; locking
+ * starts at the point a real WP_Post exists.
+ */
+$site_editor_post           = null;
+$site_editor_post_candidate = null;
+
+if ( ! empty( $_GET['postId'] ) && is_numeric( $_GET['postId'] ) ) {
+	$site_editor_post_candidate = get_post( (int) $_GET['postId'] );
+} elseif ( isset( $_GET['p'] ) && preg_match( '#^/(wp_template|wp_template_part)/(\d+)$#', $_GET['p'], $site_editor_post_matches ) ) {
+	$site_editor_post_candidate = get_post( (int) $site_editor_post_matches[2] );
+}
+
+if (
+	$site_editor_post_candidate instanceof WP_Post &&
+	in_array( $site_editor_post_candidate->post_type, array( 'wp_template', 'wp_template_part' ), true )
+) {
+	$site_editor_post = $site_editor_post_candidate;
+}
+
+unset( $site_editor_post_candidate, $site_editor_post_matches );
+
+/*
+ * Determine whether locking applies to the resolved template. Computed once so
+ * the take-over handler, lock acquisition, and dialog hook below all share a
+ * single filter dispatch.
+ */
+$site_editor_post_lock_enabled = false;
+
+if ( $site_editor_post ) {
+	/** This filter is documented in wp-admin/includes/post.php */
+	$site_editor_post_lock_enabled = (bool) apply_filters( 'wp_apply_site_editor_post_lock', true, $site_editor_post );
+}
+
+// Handle "Take over" requests from the Site Editor post lock dialog.
+if ( $site_editor_post && ! empty( $_GET['get-post-lock'] ) ) {
+	check_admin_referer( 'lock-post_' . $site_editor_post->ID );
+
+	if ( $site_editor_post_lock_enabled ) {
+		wp_set_post_lock( $site_editor_post->ID );
+	}
+
+	wp_safe_redirect( remove_query_arg( array( 'get-post-lock', '_wpnonce' ) ) );
+	exit;
+}
+
+/*
+ * Acquire (or refresh) the post lock for the current user when no other user
+ * holds it. Mirrors the wp-admin/post.php:191-192 pattern.
+ */
+$site_editor_active_post_lock = null;
+
+if ( $site_editor_post_lock_enabled && ! wp_check_post_lock( $site_editor_post->ID ) ) {
+	$site_editor_active_post_lock = wp_set_post_lock( $site_editor_post );
+}
+
+/*
+ * Render the shared post lock dialog markup in the Site Editor footer.
+ *
+ * The classic editor hooks _admin_notice_post_locked() from
+ * wp-admin/edit-form-advanced.php; templates never go through that path, so
+ * the same hook is registered here with the resolved template post swapped
+ * into $GLOBALS['post'] for the duration of the callback.
+ */
+if ( $site_editor_post && $site_editor_post_lock_enabled ) {
+	add_action(
+		'admin_footer',
+		static function () use ( $site_editor_post ) {
+			$previous_post   = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+			$GLOBALS['post'] = $site_editor_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below.
+			_admin_notice_post_locked();
+			$GLOBALS['post'] = $previous_post;
+		}
+	);
+}
+
 // Used in the HTML title tag.
 $title       = _x( 'Editor', 'site editor title tag' );
 $parent_file = 'themes.php';
@@ -304,6 +384,37 @@ wp_enqueue_script( 'wp-format-library' );
 wp_enqueue_style( 'wp-edit-site' );
 wp_enqueue_style( 'wp-format-library' );
 wp_enqueue_media();
+
+// Site Editor post lock bridge.
+if ( $site_editor_post && $site_editor_post_lock_enabled ) {
+	wp_enqueue_script( 'heartbeat' );
+	wp_enqueue_script( 'site-editor-post-lock' );
+
+	wp_localize_script(
+		'site-editor-post-lock',
+		'wpSiteEditorPostLockL10n',
+		array(
+			'enabled'     => true,
+			'postId'      => $site_editor_post->ID,
+			'postType'    => $site_editor_post->post_type,
+			'lock'        => is_array( $site_editor_active_post_lock ) ? implode( ':', $site_editor_active_post_lock ) : '',
+			'takeOverUrl' => add_query_arg(
+				'get-post-lock',
+				'1',
+				wp_nonce_url(
+					add_query_arg(
+						array(
+							'p'      => '/' . $site_editor_post->post_type . '/' . $site_editor_post->ID,
+							'canvas' => 'edit',
+						),
+						admin_url( 'site-editor.php' )
+					),
+					'lock-post_' . $site_editor_post->ID
+				)
+			),
+		)
+	);
+}
 
 if (
 	current_theme_supports( 'wp-block-styles' ) &&
