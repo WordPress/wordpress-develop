@@ -4,6 +4,11 @@
  * @output wp-admin/js/teletype.js
  */
 
+/**
+ * IIFE.
+ *
+ * @param {Object} wp The global WordPress JS object.
+ */
 ( function ( wp ) {
 	'use strict';
 
@@ -78,6 +83,9 @@
 		canvas.className = 'rain';
 		canvas.setAttribute( 'aria-hidden', 'true' );
 
+		/**
+		 * Recalculate canvas size on resize event.
+		 */
 		function resize() {
 			var ratio = window.devicePixelRatio || 1,
 				count,
@@ -108,6 +116,9 @@
 			columns.length = count;
 		}
 
+		/**
+		 * Draw the rain.
+		 */
 		function draw() {
 			var i;
 
@@ -131,6 +142,11 @@
 			}
 		}
 
+		/**
+		 * Rain animation frame tick event.
+		 *
+		 * @param {DOMHighResTimeStamp} now Event timestamp.
+		 */
 		function tick( now ) {
 			frame = window.requestAnimationFrame( tick );
 
@@ -222,6 +238,12 @@
 			narration.textContent = text;
 		}
 
+		/**
+		 * setTimout helper.
+		 *
+		 * @param {number}   ms   Milliseconds to wait.
+		 * @param {callback} next Callback function.
+		 */
 		function wait( ms, next ) {
 			timer = window.setTimeout( function () {
 				if ( ! aborted ) {
@@ -230,18 +252,27 @@
 			}, ms );
 		}
 
+		/**
+		 * Clear the first line.
+		 */
 		function clear() {
 			while ( line.firstChild !== cursor ) {
 				line.removeChild( line.firstChild );
 			}
 		}
 
+		/**
+		 * Add a new line.
+		 */
 		function newline() {
 			line.insertBefore( document.createElement( 'br' ), cursor );
 		}
 
 		/**
 		 * Types one line, a character at a time, ahead of the cursor.
+		 *
+		 * @param {string}   text String to type.
+		 * @param {callback} done Event callback at completion.
 		 */
 		function type( text, done ) {
 			var chars = text.split( '' );
@@ -263,6 +294,8 @@
 
 		/**
 		 * Act one: typed on the lights-on screen, each line under the last.
+		 *
+		 * @param {number} index Line index to type.
 		 */
 		function actOne( index ) {
 			if ( index >= ACT_ONE.length ) {
@@ -303,6 +336,8 @@
 		/**
 		 * Act two: one line at a time, cleared between each. The last line holds, then
 		 * the scene takes itself down and gives the admin page back.
+		 *
+		 * @param {number} index Line index to type.
 		 */
 		function actTwo( index ) {
 			var text = dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
@@ -323,6 +358,9 @@
 			} );
 		}
 
+		/**
+		 * End the easter egg.
+		 */
 		function abort() {
 			if ( aborted ) {
 				return;
@@ -345,6 +383,11 @@
 			}
 		}
 
+		/**
+		 * Keydown event listener while easter egg running.
+		 *
+		 * @param {KeyboardEvent} event Fired keyboard event.
+		 */
 		function onKeydown( event ) {
 			if ( 'Escape' === event.key ) {
 				abort();
