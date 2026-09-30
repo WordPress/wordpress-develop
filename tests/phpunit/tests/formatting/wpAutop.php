@@ -491,6 +491,21 @@ Paragraph two.';
 	}
 
 	/**
+	 * @ticket 40202
+	 */
+	public function test_that_wpautop_does_not_split_anchors_containing_block_elements() {
+		$content  = '<a href="document.htm"><div>Text</div></a>';
+		$expected = "<a href=\"document.htm\">\n<div>Text</div>\n</a>";
+
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
+
+		$content  = '<a href="document.htm"><div>First</div><section>Second</section></a>';
+		$expected = "<a href=\"document.htm\">\n<div>First</div>\n<section>Second</section>\n</a>";
+
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
 	 * Do not allow newlines within HTML elements to become mangled.
 	 *
 	 * @ticket 33106
