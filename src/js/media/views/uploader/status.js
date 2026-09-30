@@ -107,7 +107,7 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 	/**
 	 * Escapes the filename to prevent XSS attacks.
 	 *
-	 * @param {string} filename
+	 * @param {string} filename The name of the file to be escaped.
 	 * @return {string} Escaped filename.
 	 */
 	filename: function( filename ) {
@@ -116,7 +116,7 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 	/**
 	 * Handles an error event from the uploader queue.
 	 *
-	 * @param {Backbone.Model} error
+	 * @param {Backbone.Model} error The error model from the uploader queue.
 	 * @return {void}
 	 */
 	error: function( error ) {

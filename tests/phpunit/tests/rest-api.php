@@ -17,12 +17,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		// Override the normal server with our spying server.
-		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
-		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
+		$GLOBALS['wp_rest_server'] = null;
 	}
 
 	public function tear_down() {
+		$GLOBALS['wp_rest_server'] = null;
 		remove_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 		parent::tear_down();
 	}
@@ -89,6 +88,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * Ensures that single and multiple routes are handled correctly.
 	 */
 	public function test_route_canonicalized() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -125,6 +126,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * Ensures that single and multiple routes are handled correctly.
 	 */
 	public function test_route_canonicalized_multiple() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -168,6 +171,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * Check that routes are merged by default.
 	 */
 	public function test_route_merge() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -197,6 +202,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * Check that we can override routes.
 	 */
 	public function test_route_override() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -235,6 +242,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_rest_route
 	 */
 	public function test_route_reject_empty_namespace() {
+		rest_get_server();
+
 		register_rest_route(
 			'',
 			'/test-empty-namespace',
@@ -255,6 +264,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_rest_route
 	 */
 	public function test_route_reject_empty_route() {
+		rest_get_server();
+
 		register_rest_route(
 			'/test-empty-route',
 			'',
@@ -278,6 +289,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	public function test_route_method() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -297,6 +310,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * The 'methods' arg should accept a single value as well as array.
 	 */
 	public function test_route_method_string() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -316,6 +331,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * The 'methods' arg should accept a single value as well as array.
 	 */
 	public function test_route_method_array() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -341,6 +358,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * The 'methods' arg should a comma-separated string.
 	 */
 	public function test_route_method_comma_separated() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -362,7 +381,139 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * The 'methods' arg should split comma-separated values given inside an array,
+	 * matching how the string form is handled.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_array_with_comma_separated_values() {
+		rest_get_server();
+
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( 'GET,POST', 'DELETE' ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'    => true,
+				'POST'   => true,
+				'DELETE' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * A multi-method constant inside an array should register each of its methods.
+	 *
+	 * WP_REST_Server::EDITABLE is 'POST, PUT, PATCH'. Before #65905 the array form did not
+	 * split it, registering the single unmatchable key 'POST, PUT, PATCH'.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_array_with_multi_method_constant() {
+		rest_get_server();
+
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame(
+			array(
+				'GET'   => true,
+				'POST'  => true,
+				'PUT'   => true,
+				'PATCH' => true,
+			),
+			$routes['/test-ns/test'][0]['methods']
+		);
+	}
+
+	/**
+	 * Each method of a multi-method constant given in an array should route.
+	 *
+	 * The registered keys are asserted above; this covers the behavior a plugin author
+	 * actually observes, which was a 404.
+	 *
+	 * @ticket 65905
+	 */
+	public function test_route_method_array_with_multi_method_constant_dispatches() {
+		rest_get_server();
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::EDITABLE ),
+				'callback'            => static function () {
+					return new WP_REST_Response( 'ok', 200 );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		foreach ( array( 'GET', 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( $method, '/test-ns/test' ) );
+
+			$this->assertSame( 200, $response->get_status(), "$method should route to the handler." );
+		}
+	}
+
+	/**
+	 * An empty 'methods' array should register no methods rather than an empty one.
+	 *
+	 * @ticket 65905
+	 *
+	 * @global WP_REST_Server $wp_rest_server
+	 */
+	public function test_route_method_empty_array() {
+		rest_get_server();
+
+		global $wp_rest_server;
+
+		register_rest_route(
+			'test-ns',
+			'/test',
+			array(
+				'methods'             => array(),
+				'callback'            => '__return_null',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$routes = $wp_rest_server->get_routes();
+
+		$this->assertSame( array(), $routes['/test-ns/test'][0]['methods'] );
+	}
+
 	public function test_options_request() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -386,6 +537,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * Ensure that the OPTIONS handler doesn't kick in for non-OPTIONS requests.
 	 */
 	public function test_options_request_not_options() {
+		rest_get_server();
+
 		register_rest_route(
 			'test-ns',
 			'/test',
@@ -788,7 +941,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Switch to an admin request on a different domain name.
 		$_SERVER['SERVER_NAME'] = 'admin.example.org';
 		update_option( 'siteurl', 'http://admin.example.org' );
-		$this->assertNotEquals( $_SERVER['SERVER_NAME'], parse_url( home_url(), PHP_URL_HOST ) );
+		$this->assertNotSame( $_SERVER['SERVER_NAME'], parse_url( home_url(), PHP_URL_HOST ) );
 
 		// Test an HTTP URL.
 		unset( $_SERVER['HTTPS'] );
@@ -860,14 +1013,14 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @dataProvider data_rest_parse_date
 	 */
 	public function test_rest_parse_date( $date, $expected ) {
-		$this->assertEquals( $expected, rest_parse_date( $date ) );
+		$this->assertSame( $expected, rest_parse_date( $date ) );
 	}
 
 	public function data_rest_parse_date() {
 		return array(
 			// Valid dates with timezones.
 			array( '2017-01-16T11:30:00-05:00', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
-			array( '2017-01-16T11:30:00-05:30', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5.5 * HOUR_IN_SECONDS ),
+			array( '2017-01-16T11:30:00-05:30', (int) ( gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5.5 * HOUR_IN_SECONDS ) ),
 			array( '2017-01-16T11:30:00-05', gmmktime( 11, 30, 0, 1, 16, 2017 ) + 5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00+05', gmmktime( 11, 30, 0, 1, 16, 2017 ) - 5 * HOUR_IN_SECONDS ),
 			array( '2017-01-16T11:30:00-00', gmmktime( 11, 30, 0, 1, 16, 2017 ) ),
@@ -921,6 +1074,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	public function test_register_rest_route_without_server() {
+		rest_get_server();
+
 		$GLOBALS['wp_rest_server'] = null;
 		add_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
 
@@ -939,9 +1094,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	public function test_rest_preload_api_request_with_method() {
-		$rest_server               = $GLOBALS['wp_rest_server'];
-		$GLOBALS['wp_rest_server'] = null;
-
 		$preload_paths = array(
 			'/wp/v2/types',
 			array( '/wp/v2/media', 'OPTIONS' ),
@@ -955,8 +1107,6 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$this->assertSame( array_keys( $preload_data ), array( '/wp/v2/types', 'OPTIONS' ) );
 		$this->assertArrayHasKey( '/wp/v2/media', $preload_data['OPTIONS'] );
-
-		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
 
 	/**
@@ -969,16 +1119,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @param array|string $expected_preload_path Expected path after preloading.
 	 */
 	public function test_rest_preload_api_request_removes_trailing_slashes( $preload_path, $expected_preload_path ) {
-		$rest_server               = $GLOBALS['wp_rest_server'];
-		$GLOBALS['wp_rest_server'] = null;
-
 		$actual_preload_path = rest_preload_api_request( array(), $preload_path );
 		if ( '' !== $preload_path ) {
 			$actual_preload_path = key( $actual_preload_path );
 		}
 		$this->assertSame( $expected_preload_path, $actual_preload_path );
-
-		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
 
 	/**
@@ -1050,6 +1195,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 49749
 	 */
 	public function test_register_route_with_invalid_namespace() {
+		rest_get_server();
+
 		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		register_rest_route(
@@ -1071,6 +1218,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 50075
 	 */
 	public function test_register_route_with_missing_permission_callback_top_level_route() {
+		rest_get_server();
+
 		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
@@ -1088,6 +1237,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 50075
 	 */
 	public function test_register_route_with_missing_permission_callback_single_wrapped_route() {
+		rest_get_server();
+
 		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
@@ -1108,6 +1259,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 50075
 	 */
 	public function test_register_route_with_missing_permission_callback_multiple_wrapped_route() {
+		rest_get_server();
+
 		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(
@@ -2746,6 +2899,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 * @ticket 51986
 	 */
 	public function test_route_args_is_array_of_arrays() {
+		rest_get_server();
+
 		$this->setExpectedIncorrectUsage( 'register_rest_route' );
 
 		$registered = register_rest_route(

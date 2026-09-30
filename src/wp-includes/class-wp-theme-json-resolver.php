@@ -234,7 +234,7 @@ class WP_Theme_JSON_Resolver {
 	 *              Added registration and merging of block style variations from partial theme.json files and the block styles registry.
 	 *
 	 * @param array $deprecated Deprecated. Not used.
-	 * @param array $options {
+	 * @param array $options    {
 	 *     Options arguments.
 	 *
 	 *     @type bool $with_supports Whether to include theme supports in the data. Default true.

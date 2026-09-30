@@ -442,21 +442,28 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		$wp_settings_errors = null;
 
-		$expected = sprintf( 'notice %s settings-error is-dismissible', $expected );
-
 		$this->assertStringContainsString( $expected, $output );
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
 	public function data_settings_errors_css_classes() {
 		return array(
-			array( 'error', 'notice-error' ),
-			array( 'success', 'notice-success' ),
-			array( 'warning', 'notice-warning' ),
-			array( 'info', 'notice-info' ),
-			array( 'updated', 'notice-success' ),
-			array( 'notice-error', 'notice-error' ),
-			array( 'error my-own-css-class hello world', 'error my-own-css-class hello world' ),
+			// The admin notices default types will generate CSS classes in this order.
+			array( 'error', 'notice notice-error is-dismissible settings-error' ),
+			array( 'success', 'notice notice-success is-dismissible settings-error' ),
+			array( 'warning', 'notice notice-warning is-dismissible settings-error' ),
+			array( 'info', 'notice notice-info is-dismissible settings-error' ),
+			array( 'updated', 'notice notice-success is-dismissible settings-error' ),
+			/*
+			 * Backward compatibility: custom types and anything else (e.g.
+			 * strings with spaces) are now passed as additional_classes. As
+			 * such, the classes will be appended to the end of the generated
+			 * class attribute.
+			 */
+			array( 'notice-error', 'notice is-dismissible settings-error notice-error' ),
+			array( 'custom', 'notice is-dismissible settings-error custom' ),
+			array( 'error my-own-css-class hello world', 'notice is-dismissible settings-error error my-own-css-class hello world' ),
+			array( 'error my-notice-is-awesome hello world', 'notice is-dismissible settings-error error my-notice-is-awesome hello world' ),
 		);
 	}
 

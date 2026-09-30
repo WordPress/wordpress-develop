@@ -1,6 +1,8 @@
 ##
 # A reusable workflow that reads the .version-support-*.json files and returns values for use in a
 # test matrix based on a given WordPress version.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
 ##
 name: Determine test matrix values
 

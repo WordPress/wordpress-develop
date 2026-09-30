@@ -109,8 +109,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 	) {
 		$sample = true;
 	} else {
-		$post   = get_post( $post );
-		$sample = $sample ?? false;
+		$post     = get_post( $post );
+		$sample ??= false;
 	}
 
 	if ( ! $post ) {
@@ -153,6 +153,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
 	return get_permalink( $post, $leavename );
@@ -166,6 +168,8 @@ function get_the_permalink( $post = 0, $leavename = false ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_permalink( $post = 0, $leavename = false ) {
 	$rewritecode = array(
@@ -320,6 +324,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @param bool        $leavename Optional. Whether to keep post name. Default false.
  * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|false The post permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
@@ -1131,8 +1137,8 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  * @param string           $after   Optional. Display after edit link. Default empty.
  * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
  * @param bool             $display Optional. Whether or not to echo the return. Default true.
- * @return string|void HTML content when retrieving, null on failure or without the
- *                     capability to edit the term. Nothing when displaying.
+ * @return string|null|void HTML content when retrieving, null on failure or without the
+ *                          capability to edit the term. Nothing when displaying.
  * @phpstan-return ( $display is true ? void : string|null )
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
@@ -2007,9 +2013,9 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 4.9.0 Added the `$order` parameter.
 	 * @since 6.9.0 Adds ID sort to ensure deterministic ordering for posts with identical dates.
 	 *
-	 * @param string $order_by The `ORDER BY` clause in the SQL.
-	 * @param WP_Post $post    WP_Post object.
-	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
+	 * @param string  $order_by The `ORDER BY` clause in the SQL.
+	 * @param WP_Post $post     WP_Post object.
+	 * @param string  $order    Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
 	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order, p.ID $order LIMIT 1", $post, $order );
 
@@ -3268,16 +3274,16 @@ function previous_comments_link( $label = '' ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return string|string[]|void Markup for comment page links, or an array of them when the 'type'
- *                              argument is 'array'. Null if the query is not for an existing single
- *                              post of any post type. Nothing when 'echo' is true and 'type' is not
- *                              'array'.
+ * @return string|string[]|null|void Markup for comment page links, or an array of them when
+ *                                   the 'type' argument is 'array'. Null if the query is not for
+ *                                   an existing single post of any post type. Nothing when 'echo'
+ *                                   is true and 'type' is not 'array'.
  * @phpstan-return (
  *     $args is array{ type: 'array', ... }
  *         ? string[]|null
  *         : ( $args is array{ echo: false|0|''|'0', ... }
  *             ? string|null
- *             : ( $args is ''|array ? void : string|string[]|null ) )
+ *             : ( $args is ''|'0'|array ? void : string|string[]|null ) )
  * )
  */
 function paginate_comments_links( $args = array() ) {
