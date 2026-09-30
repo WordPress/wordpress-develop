@@ -56,28 +56,8 @@
 	}
 
 	var STYLE = [
-		'.wp-teletype{position:fixed;inset:0;z-index:2147483647;margin:0;padding:2.5em;',
-			'font-family:courier,monospace;font-size:16px;line-height:1.6;',
-			'background:#fff;color:#000;overflow:hidden;',
-			'transition:background-color .6s linear,color .6s linear}',
-		'.wp-teletype.is-dark{background:#000;color:#0f0}',
-		// Focused only to move the reading position in, never by tabbing to it.
-		'.wp-teletype:focus{outline:none}',
-		'.wp-teletype p{position:relative;z-index:1;margin:0;white-space:pre-wrap}',
-		'.wp-teletype .rain{position:absolute;inset:0;opacity:.5}',
-		'.wp-teletype .narration{position:absolute;width:1px;height:1px;margin:-1px;',
-			'padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}',
-		'.wp-teletype .exit{position:absolute;z-index:2;top:1.5em;right:1.5em;',
-			'padding:.7em 1.8em;border:0;border-radius:999px;background:#2271b1;color:#fff;',
-			'font-family:inherit;font-size:14px;line-height:1;cursor:pointer}',
-		'.wp-teletype .exit:hover{background:#135e96}',
-		'.wp-teletype .exit:focus-visible{outline:2px solid #fff;outline-offset:2px}',
-		'.wp-teletype .cursor{opacity:0;transition:opacity ' + ( FADE_TIME / 1000 ) + 's linear}',
-		'.wp-teletype .cursor.is-visible{opacity:1;animation:wp-teletype-blink 1s step-end infinite}',
-		'@keyframes wp-teletype-blink{50%{opacity:0}}',
-		'@media (prefers-reduced-motion:reduce){',
-			'.wp-teletype .cursor.is-visible{animation:none}',
-			'.wp-teletype,.wp-teletype .cursor{transition:none}}'
+		'.wp-teletype { --wp-teletype-transition-duration: ' + FADE_TIME / 1000 + 's }',
+		wpTeletype.styles,
 	].join( '' );
 
 	/**
