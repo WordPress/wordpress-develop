@@ -1406,6 +1406,12 @@ body.full-overlay-active {
 	visibility: hidden;
 }
 
+/* Make sure the ARIA live regions are visible, as they inherit the hidden visibility from the body. */
+.a11y-speak-intro-text,
+.a11y-speak-region {
+	visibility: visible;
+}
+
 .wp-full-overlay {
 	background: #1d2327;
 	z-index: 500000;
