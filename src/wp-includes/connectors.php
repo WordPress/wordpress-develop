@@ -652,32 +652,6 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 }
 
 /**
- * Sanitizes a connector API key setting.
- *
- * A key matching the mask that `_wp_connectors_rest_settings_dispatch()` places
- * in REST responses keeps the stored key, so a masked settings response can be
- * submitted back to the endpoint unchanged.
- *
- * @since 7.2.0
- * @access private
- *
- * @param mixed  $value  The submitted setting value.
- * @param string $option The option name being sanitized.
- * @return string The sanitized API key.
- */
-function _wp_connectors_sanitize_api_key( $value, string $option ): string {
-	$value  = sanitize_text_field( $value );
-	$stored = get_option( $option );
-
-	// A masked key means a client resubmitted a masked REST response.
-	if ( is_string( $stored ) && '' !== $stored && _wp_connectors_mask_api_key( $stored ) === $value ) {
-		return $stored;
-	}
-
-	return $value;
-}
-
-/**
  * Sanitizes stored application-password credentials for a connector.
  *
  * Credential fields that are missing or not strings keep their currently
@@ -864,9 +838,7 @@ function _wp_register_default_connector_settings(): void {
 					),
 					'default'           => '',
 					'show_in_rest'      => true,
-					'sanitize_callback' => static function ( $value ) use ( $setting_name ) {
-						return _wp_connectors_sanitize_api_key( $value, $setting_name );
-					},
+					'sanitize_callback' => 'sanitize_text_field',
 				)
 			);
 		} elseif ( 'application_password' === $auth['method'] ) {
