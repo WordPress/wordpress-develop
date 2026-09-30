@@ -8,10 +8,7 @@
  */
 
 use WordPress\AiClient\AiClient;
-use WordPress\AiClient\Common\Contracts\CachesDataInterface;
-use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
-use WordPress\AiClient\Providers\Http\Exception\ClientException;
 
 /**
  * Checks if a connector is registered.
@@ -617,34 +614,7 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 			new ApiKeyRequestAuthentication( $key )
 		);
 
-		$provider_class_name = $registry->getProviderClassName( $provider_id );
-
-		/*
-		 * ListModelsApiBasedProviderAvailability::isConfigured() reports every failure as false,
-		 * which makes an unreachable provider indistinguishable from a rejected key. Send the
-		 * same list models request directly so that its failure can be told apart.
-		 */
-		if ( ! ( $provider_class_name::availability() instanceof ListModelsApiBasedProviderAvailability ) ) {
-			return $registry->isProviderConfigured( $provider_id );
-		}
-
-		$model_metadata_directory = $provider_class_name::modelMetadataDirectory();
-
-		// A cached model list says nothing about the key being checked.
-		if ( $model_metadata_directory instanceof CachesDataInterface ) {
-			$model_metadata_directory->invalidateCaches();
-		}
-
-		$model_metadata_directory->listModelMetadata();
-		return true;
-	} catch ( ClientException $e ) {
-		// The provider rejected the key, unless the request timed out or was rate limited.
-		if ( ! in_array( $e->getCode(), array( 408, 429 ), true ) ) {
-			return false;
-		}
-
-		wp_trigger_error( __FUNCTION__, $e->getMessage() );
-		return null;
+		return $registry->verifyProviderCredentials( $provider_id );
 	} catch ( Exception $e ) {
 		wp_trigger_error( __FUNCTION__, $e->getMessage() );
 		return null;
