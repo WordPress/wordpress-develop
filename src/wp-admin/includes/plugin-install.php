@@ -409,6 +409,9 @@ function display_plugins_table() {
 				return;
 			}
 			break;
+		case 'install_plugins_multisite':
+			echo '<p>' . __( 'These are all plugins tagged with <code>multisite</code> from their author, this does not necessarily mean that they are optimized for multisite.' ) . '</p>';
+			break;
 	}
 	?>
 	<form id="plugin-filter" method="post">
