@@ -267,7 +267,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 
 		$author = '';
 		if ( str_contains( $permalink, '%author%' ) ) {
-			$authordata = get_userdata( $post->post_author );
+			$authordata = get_authordata( $post->post_author );
 			$author     = $authordata->user_nicename;
 		}
 
