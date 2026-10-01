@@ -1189,6 +1189,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 		);
 		set_theme_mod( 'sidebars_widgets', $old_sidebars_widgets );
 
+		$sidebars_widgets = $old_sidebars_widgets;
+
 		$result = retrieve_widgets( 'customize' );
 
 		$_wp_sidebars_widgets = array();
