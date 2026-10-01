@@ -38,7 +38,7 @@ function filterIgnoresAndFalsePositives( results, exclusions ) {
 		violation.nodes = violation.nodes.filter( ( node ) => {
 			const targetSelector = node.target[ 0 ];
 
-			/*
+		/*
 		 * Normalize the received Axe-core Target Selector: remove combinators,
 		 * attributes, and collapse spaces. This allows us to match patterns
 		 * against the normalized selector using token-based matching. For example:
@@ -112,14 +112,20 @@ test.describe( 'Admin Pages Accessibility', () => {
 	test.beforeAll( async ( { requestUtils } ) => {
 		// Upload sample image to media library for testing.
 		const imagePath = path.resolve( __dirname, '../assets/sample.png' )
-		await requestUtils.uploadMedia(
+		const response = await requestUtils.uploadMedia(
 			imagePath
 		);
+
+		// Store the sample image ID for later cleanup.
+		mediaAttachmentId = response.id;
 	} );
 
 	test.afterAll( async ( { requestUtils } ) => {
-		// Delete all media.
-		await requestUtils.deleteAllMedia();
+		// Delete the uploaded sample image.
+		if ( mediaAttachmentId ) {
+			await requestUtils.deleteMedia( mediaAttachmentId );
+		}
+
 		// Delete all posts of type 'post' and all associated comments.
 		await requestUtils.deleteAllPosts();
 	} );
