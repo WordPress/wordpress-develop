@@ -932,4 +932,53 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
+
+	/**
+	 * This test should not add a Shortlink node when shortlink is empty.
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_does_not_add_node_when_shortlink_is_empty() {
+		// Establish a non-singular query context.
+		$short = wp_get_shortlink( 0, 'query' );
+
+		$this->assertSame( '', $short );
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNull( $node );
+	}
+
+	/**
+	 * This test should add a Shortlink node when a shortlink exists.
+	 *
+	 * @covers ::wp_admin-bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
+		$post_id = self::factory()->post->create();
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$short = wp_get_shortlink( 0, 'query' );
+
+		$this->assertNotSame( '', $short );
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node );
+		$this->assertSame( $short, $node->href );
+		$this->assertSame( 'Shortlink', $node->title );
+		$this->assertStringContainsString(
+			'value="' . esc_attr( $short ) . '"',
+			$node->meta['html']
+		);
+	}
 }
