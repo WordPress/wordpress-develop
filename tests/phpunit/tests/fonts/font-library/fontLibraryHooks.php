@@ -10,6 +10,15 @@
  */
 class Tests_Fonts_FontLibraryHooks extends WP_UnitTestCase {
 
+	/**
+	 * Tear down the test fixture.
+	 */
+	public function tear_down() {
+		// Remove all fonts uploaded during the tests.
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
 	public function test_deleting_font_family_deletes_child_font_faces() {
 		$font_family_id       = self::factory()->post->create(
 			array(
