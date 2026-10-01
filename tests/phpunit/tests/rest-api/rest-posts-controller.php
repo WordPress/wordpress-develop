@@ -1210,6 +1210,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'tags_exclude', array( $tag['term_id'] ) );
+		$request->set_param( 'orderby', 'id' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();

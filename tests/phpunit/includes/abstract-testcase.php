@@ -33,6 +33,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	protected static $ignore_files;
 
 	/**
+	 * The value of $GLOBALS['locale'] before each test, or null if it was unset.
+	 *
+	 * @var string|null
+	 */
+	protected $original_locale;
+
+	/**
+	 * The translation controller's locale before each test, or null if
+	 * set_up() did not capture it.
+	 *
+	 * @var string|null
+	 */
+	protected $original_translation_locale;
+
+	/**
 	 * Fixture factory.
 	 *
 	 * @deprecated 6.1.0 Use the WP_UnitTestCase_Base::factory() method instead.
@@ -128,6 +143,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$this->clean_up_global_scope();
+
+		$this->original_locale             = $GLOBALS['locale'] ?? null;
+		$this->original_translation_locale = WP_Translation_Controller::get_instance()->get_locale();
 
 		/*
 		 * When running core tests, ensure that post types and taxonomies
@@ -242,6 +260,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		$this->_restore_hooks();
 		wp_set_current_user( 0 );
+
+		// Restore the locale captured in set_up(); skip it for tests that bypass parent::set_up().
+		if ( null !== $this->original_translation_locale ) {
+			if ( null === $this->original_locale ) {
+				unset( $GLOBALS['locale'] );
+			} else {
+				$GLOBALS['locale'] = $this->original_locale;
+			}
+			WP_Translation_Controller::get_instance()->set_locale( $this->original_translation_locale );
+		}
 
 		$this->reset_lazyload_queue();
 
