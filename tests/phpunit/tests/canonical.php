@@ -438,6 +438,30 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensure encoded query string keys do not trigger a redirect on the front page.
+	 *
+	 * @ticket 44899
+	 */
+	public function test_encoded_query_string_keys_on_front_page() {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $p );
+
+		$this->go_to( get_permalink( $p ) );
+
+		$url      = site_url( '/?xtor=AD-4970-%5BSocial%5D-%5B%5D-%5BPPL%5D-%5BFacebook%5D-%5B228284160&105478095%5D-%5B0%5D' );
+		$redirect = redirect_canonical( $url, false );
+
+		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
+	}
+
+	/**
 	 * Ensure NOT EXISTS queries do not trigger not-countable or undefined array key errors.
 	 *
 	 * @ticket 55955
