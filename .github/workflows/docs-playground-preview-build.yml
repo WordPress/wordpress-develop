@@ -1,0 +1,235 @@
+name: Code Reference Playground Preview Build
+
+on:
+  push:
+    branches:
+      - trunk
+  pull_request:
+    branches:
+      - trunk
+    types: [ labeled, synchronize ]
+
+# Pull-request code receives no write authority or repository secrets.
+permissions: {}
+
+jobs:
+  build:
+    name: Build Code Reference snapshot
+    # Fork pull_request runs cannot read the base repository's Actions variables.
+    # This allowlisted job is untrusted and read-only; every trusted staging job
+    # remains gated by DOCS_PREVIEW_STAGING.
+    if: >-
+      github.event_name == 'pull_request' &&
+      ( github.repository == 'WordPress/wordpress-develop' ||
+        github.repository == 'sirreal/wordpress-develop' ) &&
+      github.event.pull_request.base.ref == 'trunk' &&
+      github.event.pull_request.state == 'open' &&
+      ( ( github.event.action == 'labeled' && github.event.label.name == 'docs-preview' ) ||
+        ( github.event.action == 'synchronize' && contains( github.event.pull_request.labels.*.name, 'docs-preview' ) ) )
+    # A newer eligible head makes every older build obsolete for this pull request.
+    concurrency:
+      group: docs-preview-build-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      DEPLOYMENT_REPOSITORY: ${{ github.repository }}
+      SOURCE_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+      PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+      WORKFLOW_RUN_ID: ${{ github.run_id }}
+      WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HANDOFF_DIRECTORY: ${{ github.workspace }}/handoff
+      SNAPSHOT_NAME: code-reference-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.zip
+    steps:
+      - name: Check out the exact pull-request head
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up the pinned Node version
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20.20.2'
+
+      - name: Reuse a healthy public snapshot for the same SHA
+        id: reuse
+        if: ${{ github.run_attempt == 1 }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          node .github/scripts/docs-playground-preview/reuse.mjs
+          --repository "$DEPLOYMENT_REPOSITORY"
+          --source-repository "$SOURCE_REPOSITORY"
+          --pull-request-number "$PULL_REQUEST_NUMBER"
+          --source-sha "$SOURCE_SHA"
+          --workflow-run-id "$WORKFLOW_RUN_ID"
+          --workflow-run-attempt "$WORKFLOW_RUN_ATTEMPT"
+          --run-url "$RUN_URL"
+          --maximum-bytes 104857600
+          --output "$HANDOFF_DIRECTORY/build.json"
+
+      - name: Set up the pinned PHP and Composer versions
+        if: ${{ steps.reuse.outputs.reused != 'true' }}
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          tools: composer:2.8.12
+          coverage: none
+
+      - name: Resolve the exact build and cache identity
+        id: resolve
+        if: ${{ steps.reuse.outputs.reused != 'true' }}
+        run: >-
+          npm --prefix .github/docs-playground-preview run build --
+          --resolve-only
+          --source "$GITHUB_WORKSPACE"
+          --source-repository "$SOURCE_REPOSITORY"
+          --source-sha "$SOURCE_SHA"
+          --pull-request "$PULL_REQUEST_NUMBER"
+          --run-id "$WORKFLOW_RUN_ID"
+          --run-attempt "$WORKFLOW_RUN_ATTEMPT"
+          --run-url "$RUN_URL"
+          --runner-image ubuntu-24.04
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --inputs-output "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
+          --metadata "$HANDOFF_DIRECTORY/build.json"
+
+      - name: Restore the exact invariant site base
+        if: ${{ steps.reuse.outputs.reused != 'true' }}
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.resolve.outputs.cache-directory }}
+          key: ${{ steps.resolve.outputs.cache-key }}
+
+      # Administrator: enable enforcement in Settings > Secrets and variables >
+      # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
+      - name: Build and validate the Code Reference snapshot
+        if: ${{ steps.reuse.outputs.reused != 'true' }}
+        env:
+          DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
+        run: >-
+          npm --prefix .github/docs-playground-preview run build --
+          --source "$GITHUB_WORKSPACE"
+          --source-repository "$SOURCE_REPOSITORY"
+          --source-sha "$SOURCE_SHA"
+          --pull-request "$PULL_REQUEST_NUMBER"
+          --run-id "$WORKFLOW_RUN_ID"
+          --run-attempt "$WORKFLOW_RUN_ATTEMPT"
+          --run-url "$RUN_URL"
+          --runner-image ubuntu-24.04
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --resolved-inputs "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
+          --output "$HANDOFF_DIRECTORY/$SNAPSHOT_NAME"
+          --metadata "$HANDOFF_DIRECTORY/build.json"
+
+      - name: Upload the terminal publisher handoff
+        if: ${{ always() && ! cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: docs-preview-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.HANDOFF_DIRECTORY }}
+          if-no-files-found: error
+          retention-days: 1
+
+  build-trunk:
+    name: Build trunk Code Reference snapshot
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/trunk' &&
+      ( github.repository == 'WordPress/wordpress-develop' ||
+        ( github.repository == 'sirreal/wordpress-develop' && vars.DOCS_PREVIEW_STAGING == 'true' ) )
+    concurrency:
+      group: docs-preview-build-trunk
+      cancel-in-progress: true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      SOURCE_REPOSITORY: ${{ github.repository }}
+      SOURCE_SHA: ${{ github.sha }}
+      WORKFLOW_RUN_ID: ${{ github.run_id }}
+      WORKFLOW_RUN_ATTEMPT: ${{ github.run_attempt }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      HANDOFF_DIRECTORY: ${{ github.workspace }}/handoff
+      SNAPSHOT_NAME: code-reference-trunk-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}.zip
+    steps:
+      - name: Check out the exact trunk commit
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Set up the pinned Node version
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: '20.20.2'
+
+      - name: Set up the pinned PHP and Composer versions
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.4'
+          tools: composer:2.8.12
+          coverage: none
+
+      - name: Resolve the exact build and cache identity
+        id: resolve
+        run: >-
+          npm --prefix .github/docs-playground-preview run build --
+          --resolve-only
+          --source "$GITHUB_WORKSPACE"
+          --source-repository "$SOURCE_REPOSITORY"
+          --source-sha "$SOURCE_SHA"
+          --run-id "$WORKFLOW_RUN_ID"
+          --run-attempt "$WORKFLOW_RUN_ATTEMPT"
+          --run-url "$RUN_URL"
+          --runner-image ubuntu-24.04
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --inputs-output "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
+          --metadata "$HANDOFF_DIRECTORY/build.json"
+
+      - name: Restore the exact invariant site base
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: ${{ steps.resolve.outputs.cache-directory }}
+          key: ${{ steps.resolve.outputs.cache-key }}
+
+      # Administrator: enable enforcement in Settings > Secrets and variables >
+      # Actions > Variables by creating or updating DOCS_PREVIEW_ENFORCE to true.
+      - name: Build and validate the trunk Code Reference snapshot
+        env:
+          DOCS_PREVIEW_ENFORCE: ${{ vars.DOCS_PREVIEW_ENFORCE }}
+        run: >-
+          npm --prefix .github/docs-playground-preview run build --
+          --source "$GITHUB_WORKSPACE"
+          --source-repository "$SOURCE_REPOSITORY"
+          --source-sha "$SOURCE_SHA"
+          --run-id "$WORKFLOW_RUN_ID"
+          --run-attempt "$WORKFLOW_RUN_ATTEMPT"
+          --run-url "$RUN_URL"
+          --runner-image ubuntu-24.04
+          --cache-root "$RUNNER_TEMP/docs-preview-cache"
+          --work-root "$RUNNER_TEMP/docs-preview-work"
+          --resolved-inputs "$RUNNER_TEMP/docs-preview-resolved-inputs.json"
+          --output "$HANDOFF_DIRECTORY/$SNAPSHOT_NAME"
+          --metadata "$HANDOFF_DIRECTORY/build.json"
+
+      - name: Upload the terminal trunk publisher handoff
+        if: ${{ always() && ! cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: docs-preview-trunk-handoff-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.HANDOFF_DIRECTORY }}
+          if-no-files-found: error
+          retention-days: 1
