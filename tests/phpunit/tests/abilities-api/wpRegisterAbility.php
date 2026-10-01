@@ -519,6 +519,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_unregister_ability( self::$test_ability_name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
@@ -581,6 +582,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( $name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
 			$result,
@@ -699,6 +701,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		$result = wp_get_abilities();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $result );
 	}
 }
