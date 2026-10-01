@@ -806,6 +806,27 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/*
+		 * Ask a user to confirm a change to their own email address, rather than
+		 * applying it immediately, as the profile screen does. The change is held
+		 * in the `_new_email` user meta until it is confirmed.
+		 */
+		if ( is_string( $request['email'] ) && '' !== $request['email'] ) {
+			$email_sent = send_user_email_change_confirmation_email( $user, $request['email'] );
+
+			if ( is_wp_error( $email_sent ) ) {
+				return new WP_Error(
+					'rest_user_invalid_email',
+					__( 'Invalid email address.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			if ( true === $email_sent ) {
+				unset( $request['email'] );
+			}
+		}
+
 		$user = $this->prepare_item_for_database( $request );
 
 		// Ensure we're operating on the same user we already checked.
