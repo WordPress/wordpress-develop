@@ -926,7 +926,7 @@ function update_option( $option, $value, $autoload = null ) {
 
 	/** This filter is documented in wp-includes/option.php */
 	if ( apply_filters( "default_option_{$option}", false, $option, false ) === $old_value ) {
-		return _add_option( $option, $value, $autoload );
+		return _wp_add_option( $option, $value, $autoload );
 	}
 
 	$serialized_value = maybe_serialize( $value );
@@ -1065,7 +1065,6 @@ function update_option( $option, $value, $autoload = null ) {
  * @return bool True if the option was added, false otherwise.
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
-
 	if ( ! empty( $deprecated ) ) {
 		_deprecated_argument( __FUNCTION__, '2.3.0' );
 	}
@@ -1109,7 +1108,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
 
 	$value = sanitize_option( $option, $value );
 
-	return _add_option( $option, $value, $autoload );
+	return _wp_add_option( $option, $value, $autoload );
 }
 
 /**
@@ -1122,6 +1121,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
  * are protected. The value is expected to be filtered and sanitized.
  *
  * @since X.X.X
+ * @internal
  * @access private
  *
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -1140,7 +1140,7 @@ function add_option( $option, $value = '', $deprecated = '', $autoload = null ) 
  *                              Default is null, which means WordPress will determine the autoload value.
  * @return bool True if the option was added, false otherwise.
  */
-function _add_option( $option, $value = '', $autoload = null ) {
+function _wp_add_option( $option, $value, $autoload ) {
 	global $wpdb;
 
 	/*
