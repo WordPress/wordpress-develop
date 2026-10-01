@@ -256,6 +256,49 @@ function edit_user( $user_id = 0 ) {
 }
 
 /**
+ * Sends password reset links to users.
+ *
+ * @since x.x.x
+ * @access private
+ *
+ * @param int[] $user_ids User IDs.
+ * @return int|WP_Error Number of password reset links sent on success,
+ *                      WP_Error if a user cannot be edited or does not exist.
+ */
+function _wp_send_password_reset_to_users( $user_ids ) {
+	$reset_count = 0;
+
+	foreach ( array_map( 'intval', (array) $user_ids ) as $user_id ) {
+		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+			return new WP_Error(
+				'edit_user',
+				__( 'Sorry, you are not allowed to edit this user.' ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( get_current_user_id() === $user_id ) {
+			continue;
+		}
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return new WP_Error(
+				'invalid_user_id',
+				__( 'Invalid user ID.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( true === retrieve_password( $user->user_login ) ) {
+			++$reset_count;
+		}
+	}
+
+	return $reset_count;
+}
+
+/**
  * Fetch a filtered list of user roles that the current user is
  * allowed to edit.
  *
