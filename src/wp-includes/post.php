@@ -2493,11 +2493,14 @@ function post_type_supports( $post_type, $feature, $sub_feature = '' ) {
 		return false;
 	}
 
-	$args = $_wp_post_type_features[ $post_type ][ $feature ][0];
+	foreach ( $_wp_post_type_features[ $post_type ][ $feature ][0] as $key => $value ) {
+		// Lists hold sub-features as values, associative arguments are keyed by sub-feature.
+		if ( is_int( $key ) ? $sub_feature === $value : ( $sub_feature === $key && ! empty( $value ) ) ) {
+			return true;
+		}
+	}
 
-	// Associative arguments are keyed by sub-feature, lists hold sub-features as values.
-	return ! empty( $args[ $sub_feature ] ) ||
-		in_array( $sub_feature, array_filter( $args, 'is_int', ARRAY_FILTER_USE_KEY ), true );
+	return false;
 }
 /**
  * Retrieves a list of post type names that support a specific feature.

@@ -612,6 +612,22 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that post_type_supports() does not match numeric sub-feature names against list positions.
+	 *
+	 * @ticket 66225
+	 */
+	public function test_post_type_supports_numeric_sub_feature_in_list() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'aside', 'gallery' ) );
+		add_post_type_support( 'foo', 'zero-feature', array( '0' ) );
+
+		$this->assertFalse( post_type_supports( 'foo', 'my-feature', '0' ), 'A numeric name should not match the first list item.' );
+		$this->assertFalse( post_type_supports( 'foo', 'my-feature', '1' ), 'A numeric name should not match the second list item.' );
+		$this->assertTrue( post_type_supports( 'foo', 'zero-feature', '0' ), 'A sub-feature named 0 in a list should be supported.' );
+	}
+
+	/**
 	 * Tests that post_type_supports() reports no sub-feature support for features without arguments.
 	 *
 	 * @ticket 66225
