@@ -564,11 +564,11 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @param string $query Query that does not produce a result set.
+	 * @ticket 64130
 	 *
 	 * @dataProvider data_get_col_info_without_result_set
 	 *
-	 * @ticket 64130
+	 * @param string $query Query that does not produce a result set.
 	 */
 	public function test_get_col_info_without_result_set( $query ) {
 		global $wpdb;
