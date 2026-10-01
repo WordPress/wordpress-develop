@@ -2322,10 +2322,11 @@ function _add_post_type_submenus() {
  * A third, optional parameter can also be passed along with a feature to provide
  * additional information about supporting that feature.
  *
- * When calling this function multiple times for the same post type and feature
- * with array arguments, the arguments will be merged rather than overwritten.
- * This allows multiple calls to add different sub-properties to the same
- * feature.
+ * When calling this function multiple times for the same post type and feature,
+ * an array passed as the first argument is merged into the existing one rather
+ * than overwritten. This allows multiple calls to add different sub-properties
+ * to the same feature. Any further arguments are replaced by those of the most
+ * recent call.
  *
  * Example usage:
  *
@@ -2340,8 +2341,8 @@ function _add_post_type_submenus() {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
- * @since 7.2.0 Multiple calls to add support for the same feature with array
- *              arguments now merge the arguments instead of overwriting them.
+ * @since 7.2.0 Multiple calls to add support for the same feature with an array
+ *              as the first argument now merge it instead of overwriting it.
  *
  * @global array $_wp_post_type_features
  *
@@ -2409,7 +2410,8 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 function remove_post_type_support( $post_type, $feature, $sub_features = array() ) {
 	global $_wp_post_type_features;
 
-	if ( empty( $sub_features ) ) {
+	// Compare strictly, so a sub-feature named '0' is not mistaken for the default.
+	if ( array() === $sub_features || '' === $sub_features ) {
 		unset( $_wp_post_type_features[ $post_type ][ $feature ] );
 		return;
 	}

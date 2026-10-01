@@ -506,6 +506,26 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that remove_post_type_support() removes a sub-feature named '0' instead of the whole feature.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_removes_sub_feature_named_zero() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( '0', 'aside' ) );
+
+		remove_post_type_support( 'foo', 'my-feature', '0' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'my-feature' ), 'The feature should still be supported.' );
+		$this->assertSame(
+			array( 'aside' ),
+			get_all_post_type_supports( 'foo' )['my-feature'][0],
+			'Only the sub-feature named 0 should be removed.'
+		);
+	}
+
+	/**
 	 * Tests that remove_post_type_support() keeps the feature when all sub-features are removed.
 	 *
 	 * @ticket 66224
