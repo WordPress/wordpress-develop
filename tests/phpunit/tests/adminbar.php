@@ -964,7 +964,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 *
 	 *@ticket 66223
 	 *
-	 * @covers ::wp_admin-bar_shortlink_menu
+	 * @covers ::wp_admin_bar_shortlink_menu
 	 */
 	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
 		$post_id = self::factory()->post->create();
