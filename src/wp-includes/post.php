@@ -2455,18 +2455,47 @@ function get_all_post_type_supports( $post_type ) {
 /**
  * Checks a post type's support for a given feature.
  *
+ * Passing `$sub_feature` checks for a sub-feature within the feature's array
+ * arguments. For an associative array, the sub-feature is supported when its
+ * key is set to a non-empty value. For a list, it is supported when the list
+ * contains it.
+ *
+ * Example usage:
+ *
+ *     add_post_type_support( 'my_post_type', 'editor', array(
+ *         'notes' => true,
+ *     ) );
+ *     post_type_supports( 'my_post_type', 'editor', 'notes' );
+ *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$sub_feature` parameter.
  *
  * @global array $_wp_post_type_features
  *
- * @param string $post_type The post type being checked.
- * @param string $feature   The feature being checked.
- * @return bool Whether the post type supports the given feature.
+ * @param string $post_type   The post type being checked.
+ * @param string $feature     The feature being checked.
+ * @param string $sub_feature Optional. The sub-feature being checked. Default empty.
+ * @return bool Whether the post type supports the given feature, or sub-feature if given.
  */
-function post_type_supports( $post_type, $feature ) {
+function post_type_supports( $post_type, $feature, $sub_feature = '' ) {
 	global $_wp_post_type_features;
 
-	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	if ( '' === $sub_feature ) {
+		return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	}
+
+	if (
+		! isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) ||
+		! is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] )
+	) {
+		return false;
+	}
+
+	$args = $_wp_post_type_features[ $post_type ][ $feature ][0];
+
+	// Associative arguments are keyed by sub-feature, lists hold sub-features as values.
+	return ! empty( $args[ $sub_feature ] ) ||
+		in_array( $sub_feature, array_filter( $args, 'is_int', ARRAY_FILTER_USE_KEY ), true );
 }
 /**
  * Retrieves a list of post type names that support a specific feature.

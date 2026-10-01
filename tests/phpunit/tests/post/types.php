@@ -553,6 +553,75 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that post_type_supports() checks a sub-feature of associative arguments.
+	 *
+	 * @ticket 66225
+	 */
+	public function test_post_type_supports_sub_feature() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+				'notes'        => true,
+				'disabled'     => false,
+			)
+		);
+
+		$this->assertTrue( post_type_supports( 'foo', 'editor', 'notes' ), 'A sub-feature set to true should be supported.' );
+		$this->assertTrue( post_type_supports( 'foo', 'editor', 'default-mode' ), 'A sub-feature set to a non-empty value should be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'editor', 'disabled' ), 'A sub-feature set to false should not be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'editor', 'missing' ), 'A sub-feature that is not set should not be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'editor', 'template-locked' ), 'The value of a sub-feature should not be matched as a sub-feature.' );
+	}
+
+	/**
+	 * Tests that post_type_supports() checks a sub-feature of list arguments.
+	 *
+	 * @ticket 66225
+	 */
+	public function test_post_type_supports_sub_feature_in_list() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'aside', 'gallery' ) );
+
+		$this->assertTrue( post_type_supports( 'foo', 'my-feature', 'gallery' ), 'A value in the list should be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'my-feature', 'link' ), 'A value missing from the list should not be supported.' );
+	}
+
+	/**
+	 * Tests that post_type_supports() reports no sub-feature support for features without arguments.
+	 *
+	 * @ticket 66225
+	 */
+	public function test_post_type_supports_sub_feature_without_arguments() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'editor' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'The feature should be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'editor', 'notes' ), 'A feature without arguments should not support any sub-feature.' );
+		$this->assertFalse( post_type_supports( 'foo', 'not-a-feature', 'notes' ), 'An unsupported feature should not support any sub-feature.' );
+	}
+
+	/**
+	 * Tests that post_type_supports() reflects sub-features removed with remove_post_type_support().
+	 *
+	 * @ticket 66225
+	 */
+	public function test_post_type_supports_sub_feature_after_removal() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'editor', array( 'notes' => true ) );
+		remove_post_type_support( 'foo', 'editor', 'notes' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'The feature should still be supported.' );
+		$this->assertFalse( post_type_supports( 'foo', 'editor', 'notes' ), 'The removed sub-feature should not be supported.' );
+	}
+
+	/**
 	 * Tests that add_post_type_support() overwrites values when called with the same key.
 	 *
 	 * @ticket 64156
