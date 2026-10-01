@@ -1124,4 +1124,109 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertContains( $tax1, $taxonomies );
 		$this->assertContains( $tax2, $taxonomies );
 	}
+
+	/**
+	 * Tests that no query runs when a taxonomy has no registered post types.
+	 *
+	 * @ticket 65055
+	 *
+	 * @covers ::_pad_term_counts
+	 */
+	public function test_pad_term_counts_should_not_query_when_taxonomy_has_no_registered_post_types() {
+		register_taxonomy( 'wptests_tax', array( 'wptests_nonexistent_type' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+
+		$num_queries = get_num_queries();
+
+		_pad_term_counts( $terms, 'wptests_tax' );
+
+		$this->assertSame( $num_queries, get_num_queries(), 'No query should run when the taxonomy has no registered post types.' );
+	}
+
+	/**
+	 * Tests that parent term counts include posts assigned to child terms.
+	 *
+	 * @ticket 65055
+	 *
+	 * @covers ::_pad_term_counts
+	 */
+	public function test_pad_term_counts_with_registered_post_type() {
+		register_post_type( 'wptests_cpt' );
+		register_taxonomy( 'wptests_tax', array( 'wptests_cpt' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$child  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$post_id = self::factory()->post->create( array( 'post_type' => 'wptests_cpt' ) );
+		wp_set_object_terms( $post_id, $child, 'wptests_tax' );
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+
+		_pad_term_counts( $terms, 'wptests_tax' );
+
+		$counts = wp_list_pluck( $terms, 'count', 'term_id' );
+
+		$this->assertSame( 1, $counts[ $parent ], 'Parent terms should include post counts from their child terms.' );
+		$this->assertSame( 1, $counts[ $child ] );
+	}
+
+	/**
+	 * Tests that unregistered post types are ignored without dropping registered ones.
+	 *
+	 * @ticket 65055
+	 *
+	 * @covers ::_pad_term_counts
+	 */
+	public function test_pad_term_counts_should_ignore_unregistered_post_types() {
+		register_post_type( 'wptests_cpt' );
+		register_taxonomy( 'wptests_tax', array( 'wptests_cpt', 'wptests_nonexistent_type' ), array( 'hierarchical' => true ) );
+
+		$parent = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		$child  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent,
+			)
+		);
+
+		$post_id = self::factory()->post->create( array( 'post_type' => 'wptests_cpt' ) );
+		wp_set_object_terms( $post_id, $child, 'wptests_tax' );
+
+		$terms = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'pad_counts' => true,
+			)
+		);
+
+		$counts = wp_list_pluck( $terms, 'count', 'term_id' );
+
+		$this->assertSame( 1, $counts[ $parent ] );
+		$this->assertSame( 1, $counts[ $child ] );
+	}
 }
