@@ -22,13 +22,7 @@ mockedApiResponse.Schema = {
         "wp-block-editor/v1",
         "wp-abilities/v1"
     ],
-    "authentication": {
-        "application-passwords": {
-            "endpoints": {
-                "authorization": "http://example.org/wp-admin/authorize-application.php"
-            }
-        }
-    },
+    "authentication": [],
     "routes": {
         "/": {
             "namespace": "",
@@ -11208,7 +11202,6 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "network": {
-                            "default": 1,
                             "description": "The site's network ID. Default is the current network ID.",
                             "type": "integer",
                             "required": false

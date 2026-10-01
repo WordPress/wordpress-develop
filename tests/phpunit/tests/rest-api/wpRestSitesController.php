@@ -1999,7 +1999,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids_exist
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_items_permissions_check_invalid_network_id() {
@@ -2015,7 +2015,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids_exist
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_items_permissions_check_invalid_network_exclude_id() {
@@ -2031,7 +2031,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_items_permissions_check_denies_access_to_another_network() {
@@ -2048,7 +2048,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_items_permissions_check_allows_filtering_by_the_current_network() {
@@ -2066,7 +2066,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_ids_exist
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_create_item_permissions_check_invalid_network_id() {
@@ -2084,7 +2084,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_create_item_permissions_check_denies_access_to_another_network() {
@@ -2103,7 +2103,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_create_item_permissions_check_allows_a_super_admin_of_the_target_network() {
@@ -2123,7 +2123,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_ids_exist
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_update_item_permissions_check_invalid_network_id() {
@@ -2141,7 +2141,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_update_item_permissions_check_denies_moving_a_site_to_another_network() {
@@ -2161,7 +2161,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_update_item_permissions_check_allows_the_sites_own_network_by_default() {
@@ -2177,8 +2177,71 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::check_network_ids
+	 * @group ms-required
+	 */
+	public function test_delete_item_permissions_check_invalid_network_id() {
+		$blog_id = self::factory()->blog->create();
+
+		// Orphan the site from its network to simulate an invalid stored network ID.
+		wp_update_site( $blog_id, array( 'network_id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::check_network_ids
+	 * @group ms-required
+	 */
+	public function test_delete_item_permissions_check_denies_access_to_another_network() {
+		$network_id = self::factory()->network->create();
+		delete_network_option( $network_id, 'site_admins' );
+		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::check_network_ids
+	 * @group ms-required
+	 */
+	public function test_delete_item_permissions_check_allows_a_super_admin_of_the_sites_network() {
+		$network_id = self::factory()->network->create();
+		$user       = self::factory()->user->create_and_get();
+		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
+		// delete_sites is checked against the current network, so grant it there too.
+		grant_super_admin( $user->ID );
+		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
+
+		wp_set_current_user( $user->ID );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$this->assertTrue( $this->endpoint->delete_item_permissions_check( $request ) );
+	}
+
+	/**
+	 * @ticket 40365
 	 * @covers ::get_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_item_permissions_check_denies_a_site_on_another_network() {
@@ -2199,7 +2262,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::get_item_permissions_check
-	 * @covers ::check_network_access
+	 * @covers ::check_network_ids
 	 * @group ms-required
 	 */
 	public function test_get_item_permissions_check_allows_a_site_on_the_current_network() {
