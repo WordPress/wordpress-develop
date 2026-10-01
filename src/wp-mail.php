@@ -92,6 +92,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	$author_found              = false;
 	$post_date                 = null;
 	$post_date_gmt             = null;
+	$subject                   = '';
 
 	foreach ( $message as $line ) {
 		// Body signal.

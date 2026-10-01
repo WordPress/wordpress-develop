@@ -949,11 +949,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-login.php
 		-
-			message: '#^Variable \$subject might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-mail.php
-		-
 			message: '#^Variable \$table_prefix might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -968,13 +963,3 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-signup.php
-		-
-			message: '#^Variable \$posts might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-trackback.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 4
-			path: ../../../src/wp-trackback.php
