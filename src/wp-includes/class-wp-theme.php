@@ -7,6 +7,20 @@
  * @since 3.4.0
  *
  * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
+ * @phpstan-property-read string|false $name
+ * @phpstan-property-read string|false $title
+ * @phpstan-property-read string|false $version
+ * @phpstan-property-read string $parent_theme
+ * @phpstan-property-read string $template_dir
+ * @phpstan-property-read string $stylesheet_dir
+ * @phpstan-property-read string $template
+ * @phpstan-property-read string $stylesheet
+ * @phpstan-property-read string|false $screenshot
+ * @phpstan-property-read string|false $description
+ * @phpstan-property-read string|false $author
+ * @phpstan-property-read string[]|false $tags
+ * @phpstan-property-read string $theme_root
+ * @phpstan-property-read string $theme_root_uri
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
