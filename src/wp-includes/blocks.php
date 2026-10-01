@@ -2648,6 +2648,9 @@ function _restore_wpautop_hook( $content ) {
  * @return string The processed content.
  */
 function _wp_apply_block_content_filters( $content, $context = '', &$seen_ids = null, $id = null ) {
+	global $wp_embed;
+	$content = $wp_embed->autoembed( $content );
+
 	$content = shortcode_unautop( $content );
 	$content = do_shortcode( $content );
 
@@ -2666,9 +2669,6 @@ function _wp_apply_block_content_filters( $content, $context = '', &$seen_ids = 
 	$content = wptexturize( $content );
 	$content = convert_smilies( $content );
 	$content = wp_filter_content_tags( $content, $context );
-
-	global $wp_embed;
-	$content = $wp_embed->autoembed( $content );
 
 	return $content;
 }
