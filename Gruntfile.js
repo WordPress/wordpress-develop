@@ -1346,7 +1346,19 @@ module.exports = function(grunt) {
 		'uglify:jqueryform'
 	] );
 
+	grunt.registerTask( 'build:gutenberg', 'Builds the @wordpress packages in gb-src.', function() {
+		var result = spawn( 'node', [ 'tools/gutenberg/build-packages.js' ], {
+			cwd: __dirname,
+			stdio: 'inherit'
+		} );
+
+		if ( result.status !== 0 ) {
+			grunt.fail.fatal( 'Building the gb-src packages failed.' );
+		}
+	} );
+
 	grunt.registerTask( 'build:js', [
+		'build:gutenberg',
 		'clean:js',
 		'webpack:prod',
 		'webpack:dev',
