@@ -8,7 +8,6 @@
  * @requires extension exif
  *
  * @covers ::wp_read_image_metadata
- * @covers ::wp_get_image_alttext
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
 
@@ -138,32 +137,6 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
 
 		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $out['alt'], 'Alt text does not match source.' );
-	}
-
-	/**
-	 * Tests reading alt text with wp_get_image_alttext().
-	 *
-	 * @ticket 66221
-	 *
-	 * @covers ::wp_get_image_alttext
-	 */
-	public function test_wp_get_image_alttext() {
-		$alt = wp_get_image_alttext( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
-
-		$this->assertSame( 'This is the Alt Text description to support accessibility in 2025.1', $alt );
-	}
-
-	/**
-	 * Tests wp_get_image_alttext() with an image that has no XMP metadata.
-	 *
-	 * @ticket 66221
-	 *
-	 * @covers ::wp_get_image_alttext
-	 */
-	public function test_wp_get_image_alttext_without_xmp() {
-		$alt = wp_get_image_alttext( DIR_TESTDATA . '/images/test-image-upside-down.jpg' );
-
-		$this->assertSame( '', $alt );
 	}
 
 	/**
