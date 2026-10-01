@@ -165,20 +165,15 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
-	 */
-	public function test_context_param() {
-		// See test_get_context_param().
-	}
-
-	/**
+	 * @ticket 40538
+	 *
 	 * @dataProvider data_get_context_param
 	 *
 	 * @covers WP_REST_Font_Families_Controller::get_context_param
 	 *
 	 * @param bool $single_route Whether to test a single route.
 	 */
-	public function test_get_context_param( $single_route ) {
+	public function test_context_param( $single_route = false ) {
 		$route = '/wp/v2/font-families';
 		if ( $single_route ) {
 			$route .= '/' . self::$font_family_id1;

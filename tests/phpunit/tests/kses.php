@@ -1225,6 +1225,7 @@ EOF;
 	 * @ticket 65457
 	 * @ticket 64974
 	 * @ticket 65832
+	 * @ticket 64972
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1984,6 +1985,12 @@ EOF;
 			array(
 				'css'      => 'font-family: var(--wp--preset--font-family--inter), sans-serif',
 				'expected' => 'font-family: var(--wp--preset--font-family--inter), sans-serif',
+			),
+
+			// CSS anchor positioning properties introduced in 7.2.
+			array(
+				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 			),
 		);
 	}

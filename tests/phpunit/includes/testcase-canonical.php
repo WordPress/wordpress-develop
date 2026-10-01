@@ -32,6 +32,7 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 
 		$this->set_permalink_structure( $this->structure );
 		create_initial_taxonomies();
+		flush_rewrite_rules( false );
 	}
 
 	/**

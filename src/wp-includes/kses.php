@@ -2069,21 +2069,6 @@ function wp_kses_array_lc( $inarray ) {
 }
 
 /**
- * Handles parsing errors in `wp_kses_hair()`.
- *
- * The general plan is to remove everything to and including some whitespace,
- * but it deals with quotes and apostrophes as well.
- *
- * @since 1.0.0
- *
- * @param string $attr
- * @return string
- */
-function wp_kses_html_error( $attr ) {
-	return preg_replace( '/^("[^"]*("|$)|\'[^\']*(\'|$)|\S)*\s*/', '', $attr );
-}
-
-/**
  * Sanitizes content from bad protocols and other characters.
  *
  * This function searches for URL protocols at the beginning of the string, while
@@ -2683,7 +2668,8 @@ function _wp_kses_split_css_declarations( $css ) {
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
- * @since 7.2.0 Splits declarations with quote and escape awareness, and validates
+ * @since 7.2.0 Added support for CSS anchor positioning properties.
+ *              Splits declarations with quote and escape awareness, and validates
  *              `font-family` with the CSS font family grammar.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
@@ -2929,6 +2915,15 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 			'pointer-events',
 			'visibility',
+
+			'anchor-name',
+			'anchor-scope',
+			'position-anchor',
+			'position-area',
+			'position-try',
+			'position-try-fallbacks',
+			'position-try-order',
+			'position-visibility',
 
 			// Custom CSS properties.
 			'--*',

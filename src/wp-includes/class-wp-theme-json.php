@@ -954,6 +954,8 @@ class WP_Theme_JSON {
 	/**
 	 * Processes pseudo-selectors for any node (block or variation).
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param array      $node            The node data (block or variation).
 	 * @param string     $base_selector   The base selector.
 	 * @param array      $settings        The theme settings.
@@ -5885,7 +5887,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( 0 <= strpos( $style, 'var(' ) ) {
+			if ( str_contains( $style, 'var(' ) ) {
 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
 
 				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
