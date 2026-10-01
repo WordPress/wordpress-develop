@@ -199,10 +199,36 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			echo "\n\t<ul class='wp-submenu wp-submenu-wrap'>";
 			echo "<li class='wp-submenu-head' aria-hidden='true'>{$item[0]}</li>";
 
+			$has_visible_items_before_separator = false;
+			$has_visible_items_after_separator  = false;
+			$after_separator                    = false;
+
+			foreach ( $submenu_items as $submenu_item ) {
+				if ( 'wp-submenu-separator' === $submenu_item[2] ) {
+					$after_separator = true;
+					continue;
+				}
+
+				if ( current_user_can( $submenu_item[1] ) ) {
+					if ( $after_separator ) {
+						$has_visible_items_after_separator = true;
+					} else {
+						$has_visible_items_before_separator = true;
+					}
+				}
+			}
+
 			$first = true;
 
 			// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes.
 			foreach ( $submenu_items as $sub_key => $sub_item ) {
+				if ( 'wp-submenu-separator' === $sub_item[2] ) {
+					if ( $has_visible_items_before_separator && $has_visible_items_after_separator ) {
+						echo "<li class='wp-submenu-separator' role='separator'></li>";
+					}
+					continue;
+				}
+
 				if ( ! current_user_can( $sub_item[1] ) ) {
 					continue;
 				}
