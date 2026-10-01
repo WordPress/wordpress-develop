@@ -318,6 +318,7 @@ function wp_nav_menu( $args = array() ) {
  *
  * @access private
  * @since 3.0.0
+ * @since 7.2.0 Non-object menu items are removed from `$menu_items`.
  *
  * @global WP_Query   $wp_query   WordPress Query object.
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
@@ -326,6 +327,13 @@ function wp_nav_menu( $args = array() ) {
  */
 function _wp_menu_item_classes_by_context( &$menu_items ) {
 	global $wp_query, $wp_rewrite;
+
+	// Only keep items that are objects
+	foreach ( (array) $menu_items as $key => $menu_item ) {
+		if ( ! is_object( $menu_item ) ) {
+			unset( $menu_items[ $key ] );
+		}
+	}
 
 	$queried_object    = $wp_query->get_queried_object();
 	$queried_object_id = (int) $wp_query->queried_object_id;
