@@ -964,7 +964,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			remove_filter( 'the_title', 'esc_html' );
 		}
 
-		$attachment_title = get_the_title( $post ) ?? __( '(no title)' );
+		$attachment_title = empty( get_the_title( $post ) ) ? __( '(no title)' ) : get_the_title( $post );
 
 		if ( $has_the_title_filter ) {
 			add_filter( 'the_title', 'esc_html' );
