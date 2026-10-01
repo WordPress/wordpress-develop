@@ -64,6 +64,9 @@ require_once ABSPATH . 'wp-admin/includes/taxonomy.php';
 /** WordPress Template Administration API */
 require_once ABSPATH . 'wp-admin/includes/template.php';
 
+/** WordPress Form Validation API */
+require_once ABSPATH . 'wp-admin/includes/form-validation.php';
+
 /** WordPress List Table Administration API and base class */
 require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 require_once ABSPATH . 'wp-admin/includes/class-wp-list-table-compat.php';
