@@ -527,7 +527,9 @@ ul#adminmenu > li.current > a.current::after {
 }
 
 #wpadminbar #wp-admin-bar-user-info a:hover .howdy,
-#wpadminbar #wp-admin-bar-user-info a:hover .display-name {
+#wpadminbar #wp-admin-bar-user-info a:focus .howdy,
+#wpadminbar #wp-admin-bar-user-info a:hover .display-name,
+#wpadminbar #wp-admin-bar-user-info a:focus .display-name {
 	color: variables.$menu-submenu-focus-text;
 }
 
