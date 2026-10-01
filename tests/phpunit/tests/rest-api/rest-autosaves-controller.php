@@ -24,6 +24,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	protected static int $child_draft_page_id;
 
 	private WP_Post $post_autosave;
+	protected static array $extra_users;
 
 	protected function set_post_data( $args = array() ) {
 		$defaults = array(
@@ -108,6 +109,15 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 				'post_author' => self::$editor_id,
 			)
 		);
+		self::$extra_users         = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			// Set a random user ID to ensure a new autosave is created.
+			self::$extra_users[] = $factory->user->create(
+				array(
+					'role' => 'editor',
+				)
+			);
+		}
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -117,6 +127,10 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		self::delete_user( self::$editor_id );
 		self::delete_user( self::$contributor_id );
+
+		foreach ( self::$extra_users as $user_id ) {
+			self::delete_user( $user_id );
+		}
 	}
 
 	public function set_up() {
@@ -159,6 +173,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		sort( $keys );
 		$this->assertSame(
 			array(
+				'author',
 				'context',
 				'parent',
 			),
@@ -949,5 +964,139 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_item request'  => array( '/wp/v2/posts/%d/autosaves/%d' ),
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
+	}
+
+	/**
+	 * Creates an autosave on the shared post for each of the extra users.
+	 *
+	 * @return int[] Author id keyed to the autosave id created for them.
+	 */
+	private function create_autosaves_for_extra_users() {
+		$autosave_ids = array();
+
+		foreach ( self::$extra_users as $i => $user_id ) {
+			wp_set_current_user( $user_id );
+			$autosave_ids[ $user_id ] = wp_create_post_autosave(
+				array(
+					'post_content' => "Autosave content {$i}",
+					'post_ID'      => self::$post_id,
+					'post_type'    => 'post',
+				)
+			);
+		}
+
+		return $autosave_ids;
+	}
+
+	/**
+	 * Tests that the collection is unscoped without an author.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_returns_every_author_by_default() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( count( $autosave_ids ) + 1, $response->get_data(), 'The extra users\' autosaves and the one created in set_up should all be returned.' );
+	}
+
+	/**
+	 * Tests that an author scoped request returns only that author's autosave.
+	 *
+	 * WordPress stores one autosave per author, so this is the single record
+	 * a client reading one user's autosave is after.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_scoped_to_one_author() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+		$author_id    = self::$extra_users[1];
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', $author_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertSame( $autosave_ids[ $author_id ], $data[0]['id'] );
+		$this->assertSame( $author_id, $data[0]['author'] );
+	}
+
+	/**
+	 * Tests that the author parameter accepts more than one id.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_scoped_to_several_authors() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+		$author_ids   = array( self::$extra_users[0], self::$extra_users[2] );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', $author_ids );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 2, $data );
+		$this->assertSameSets(
+			array( $autosave_ids[ $author_ids[0] ], $autosave_ids[ $author_ids[1] ] ),
+			wp_list_pluck( $data, 'id' )
+		);
+	}
+
+	/**
+	 * Tests that an author without an autosave gets an empty collection rather
+	 * than somebody else's record.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_for_an_author_with_no_autosave() {
+		$this->create_autosaves_for_extra_users();
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', self::$contributor_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
+	}
+
+	/**
+	 * Tests that revisions newer than the autosave do not displace it.
+	 *
+	 * Narrowing the underlying revision query by count rather than by author
+	 * returns whatever is most recent, which on a post with revision history
+	 * is usually not an autosave at all.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_scoped_to_one_author_past_newer_revisions() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+		$author_id    = self::$extra_users[0];
+
+		wp_set_current_user( self::$editor_id );
+		wp_update_post(
+			array(
+				'ID'           => self::$post_id,
+				'post_content' => 'A revision made after every autosave.',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', $author_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertSame( $autosave_ids[ $author_id ], $data[0]['id'] );
 	}
 }
