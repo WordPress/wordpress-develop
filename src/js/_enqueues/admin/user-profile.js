@@ -13,6 +13,7 @@
 	var updateLock = false,
 		isSubmitting = false,
 		__ = wp.i18n.__,
+		sprintf = wp.i18n.sprintf,
 		clipboard = new ClipboardJS( '.application-password-display .copy-button' ),
 		$pass1Row,
 		$pass1,
@@ -496,7 +497,10 @@
 		var $colorpicker, $stylesheet, user_id, current_user_id,
 			select       = $( '#display_name' ),
 			current_name = select.val(),
-			greeting     = $( '#wp-admin-bar-my-account' ).find( '.display-name' );
+			greeting     = $( '#wp-admin-bar-my-account > .ab-item .display-name' ),
+			userInfo     = $( '#wp-admin-bar-user-info' ),
+			infoName     = userInfo.find( '.display-name' ).not( '.edit-profile' ),
+			userActions  = $( '#wp-admin-bar-user-actions' );
 
 		$( '#pass1' ).val( '' ).on( 'input' + ' pwupdate', check_pass_strength );
 		$('#pass-strength-result').show();
@@ -540,16 +544,31 @@
 			});
 
 			/**
-			 * Replaces "Howdy, *" in the admin toolbar whenever the display name dropdown is updated for one's own profile.
+			 * Updates the account menu in the admin toolbar whenever the display name dropdown is updated for one's own profile.
 			 */
 			select.on( 'change', function() {
 				if ( user_id !== current_user_id ) {
 					return;
 				}
 
-				var display_name = this.value.trim() || current_name;
+				var display_name = this.value.trim() || current_name,
+					user_login   = $( '#user_login' ).val() || '',
+					username     = userInfo.find( '.username' );
 
 				greeting.text( display_name );
+				infoName.text( display_name );
+
+				/* translators: %s: Current user's display name. */
+				userActions.attr( 'aria-label', sprintf( __( 'Howdy, %s' ), display_name ) );
+
+				// Mirror the server-side logic: only show the username when it differs from the display name.
+				if ( display_name === user_login ) {
+					username.remove();
+				} else if ( username.length ) {
+					username.text( user_login );
+				} else if ( infoName.length ) {
+					$( '<span />', { 'class': 'username', 'text': user_login } ).insertAfter( infoName );
+				}
 			} );
 		}
 
