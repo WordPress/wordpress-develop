@@ -853,4 +853,39 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Ensures that serialize_token() reflects enqueued attribute updates instead
+	 * of emitting removed attributes as value-less attributes or omitting added ones.
+	 *
+	 * serialize_token() iterates the names from get_attribute_names_with_prefix( '' )
+	 * but reads each value through get_attribute(). Before #64567 the name list did not
+	 * reflect enqueued updates while the values did, so a removed attribute survived in
+	 * the output as a boolean attribute and an added attribute was dropped entirely.
+	 *
+	 * @ticket 64567
+	 *
+	 * @covers WP_HTML_Processor::serialize_token
+	 */
+	public function test_serialize_token_reflects_enqueued_attribute_updates() {
+		$processor = WP_HTML_Processor::create_fragment( '<div onclick="alert(1)" class="x">Text</div>' );
+		$processor->next_tag();
+		$processor->remove_attribute( 'onclick' );
+
+		$this->assertSame(
+			'<div class="x">',
+			$processor->serialize_token(),
+			'An attribute enqueued for removal was serialized as a value-less attribute.'
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( '<div class="x">Text</div>' );
+		$processor->next_tag();
+		$processor->set_attribute( 'id', 'new' );
+
+		$this->assertSame(
+			'<div id="new" class="x">',
+			$processor->serialize_token(),
+			'An attribute enqueued via set_attribute() was not serialized. A newly added attribute is emitted before the existing ones.'
+		);
+	}
 }
