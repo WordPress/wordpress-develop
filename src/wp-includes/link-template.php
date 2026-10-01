@@ -4887,6 +4887,8 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
  * @since 6.2.0
  *
  * @return string[] An array of URL hosts.
+ *
+ * @phpstan-return array<lowercase-string>
  */
 function wp_internal_hosts() {
 	static $internal_hosts;

@@ -2189,6 +2189,8 @@ function path_is_absolute( $path ) {
  * @param string $base Base path.
  * @param string $path Path relative to $base.
  * @return string The path with the base or absolute path.
+ *
+ * @phpstan-return non-falsy-string
  */
 function path_join( $base, $path ) {
 	if ( path_is_absolute( $path ) ) {
@@ -2955,6 +2957,8 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * }
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
  *                |array{ error: string, ... }
+ *
+ * @phpstan-param non-empty-string $name
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
@@ -4475,6 +4479,8 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  * @param int   $depth Optional. Maximum depth to walk through $value. Must be
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
+ *
+ * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
@@ -8172,6 +8178,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
+ *
+ * @phpstan-return lowercase-string&non-falsy-string
  */
 function wp_generate_uuid4() {
 	static $backup_randomizer = false;
@@ -9206,6 +9214,8 @@ function clean_dirsize_cache( $path ) {
  * @since 6.7.0
  *
  * @return string The current WordPress version.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_get_wp_version() {
 	static $wp_version;
@@ -9473,6 +9483,8 @@ function wp_is_heic_image_mime_type( $mime_type ) {
  *
  * @param string $message The message to hash.
  * @return string The hash of the message.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_fast_hash(
 	#[\SensitiveParameter]

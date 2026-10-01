@@ -2146,6 +2146,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @param string $parent_page The slug name for the parent menu (or the file name of a standard
  *                            WordPress admin page).
  * @return string Hook name for the plugin page.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	global $admin_page_hooks;

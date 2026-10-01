@@ -3084,6 +3084,8 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param WP_Block $block   Block instance.
  * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_query_pagination_arrow( $block, $is_next ) {
 	$arrow_map = array(
@@ -3184,6 +3186,8 @@ function build_comment_query_vars_from_block( $block ) {
  * @param string   $pagination_type Optional. Type of the arrow we will be rendering.
  *                                  Accepts 'next' or 'previous'. Default 'next'.
  * @return string|null The pagination arrow HTML or null if there is none.
+ *
+ * @phpstan-return non-falsy-string|null
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
 	$arrow_map = array(

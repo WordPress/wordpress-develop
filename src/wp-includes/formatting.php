@@ -622,6 +622,8 @@ function wp_html_split( $input ) {
  * @since 4.4.0
  *
  * @return string The regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
 	static $regex;
@@ -2278,6 +2280,8 @@ function sanitize_title_for_query( $title ) {
  *                          When set to 'save', additional entities are converted to hyphens
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
+ *
+ * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
@@ -2863,6 +2867,8 @@ function backslashit( $value ) {
  *
  * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
+ *
+ * @phpstan-return non-falsy-string
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
