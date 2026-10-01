@@ -1432,6 +1432,48 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 					break;
 				}
 
+				/*
+				 * PLAINTEXT is unique in that it changes the tokenization. Everything in
+				 * a document following the PLAINTEXT opening tag is interpreted as character
+				 * data, meaning there are no more tags, comments, or anything. Because of
+				 * this, it is the only element without a closing tag.
+				 *
+				 * Because of its unique role, it’s risky to leave in place because very few
+				 * parsers are going to recognize the tag and properly switch modes for the
+				 * rest of the document. Instead, the PLAINTEXT tag is removed and its content
+				 * is re-written as an escaped text node.
+				 *
+				 * This changes the structure of the document, because no PLAINTEXT element
+				 * will appear, and it won’t be possible to style its contents, but the element
+				 * is discouraged anyway and should not be allowed from untrusted inputs.
+				 */
+				if ( 'PLAINTEXT' === $token_name && 'html' === $namespace && ! $is_closer ) {
+					$text = substr( $this->html, $here->start + $here->length );
+
+					$needs_special_newline = (
+						strlen( $output ) === $special_newline_at &&
+						1 === strspn( $text, "\n\r", 0, 1 )
+					);
+
+					if ( $needs_special_newline ) {
+						$output .= "\n";
+					}
+
+					$output .= strtr(
+						$text,
+						array(
+							"\x00" => "\u{FFFD}",
+							"\r\n" => "\n",
+							"\r"   => '&#xD;',
+							'<'    => '&lt;',
+							'&'    => '&amp;',
+							'>'    => '&gt;',
+						)
+					);
+
+					break;
+				}
+
 				$is_in_text_integration_point = (
 					$is_in_mathml_text_integration_point ||
 					( ! $is_closer && $is_in_svg_html_integration_point )
