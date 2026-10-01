@@ -224,7 +224,7 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		// Modify global to avoid tests needing to change with each new version of WordPress.
 		$original_wp_version = $wp_version;
 		$wp_version          = '6.7';
-		$instance            = wp_scripts();
+		$instance            = wp_styles();
 
 		foreach ( $load as $handle => $ver ) {
 			// The src should not be empty.
