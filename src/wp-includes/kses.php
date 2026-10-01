@@ -1009,6 +1009,9 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
  *
  * @global string $wp_kses_operating_mode
  *
+ * @access private This function should not be called directly, as it serves a transitionary
+ *                 role while replacing the implementation of {@see \wp_kses()}.
+ *
  * @param string $content              Text content to filter.
  * @param array[]|string $allowed_html An array of allowed HTML elements and attributes,
  *                                     or a context name such as 'post'. See wp_kses_allowed_html()
