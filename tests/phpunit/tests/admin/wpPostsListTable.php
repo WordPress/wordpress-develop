@@ -408,6 +408,34 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31199
+	 *
+	 * @covers WP_Posts_List_Table::get_bulk_actions
+	 */
+	public function test_get_bulk_actions_with_unregistered_post_type() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		// Set post type to a non-existent one.
+		$this->table->screen->post_type = 'foo';
+
+		$this->assertSame( array(), $this->table->get_bulk_actions() );
+	}
+
+	/**
+	 * @ticket 31199
+	 *
+	 * @covers WP_Posts_List_Table::get_bulk_actions
+	 */
+	public function test_get_bulk_actions_with_registered_post_type() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$actions = $this->table->get_bulk_actions();
+
+		$this->assertArrayHasKey( 'edit', $actions );
+		$this->assertArrayHasKey( 'trash', $actions );
+	}
+
+	/**
 	 * Renders the title column for a post in a given list view mode.
 	 *
 	 * @param WP_Post $post       The post to render.
