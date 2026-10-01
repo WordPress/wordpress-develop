@@ -956,7 +956,7 @@ https://w.org</a>',
 	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
 	 */
 	public function test_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file( $filesize ) {
-		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = self::$large_id;
 		$this->assertIsInt( $id );
 		$post = get_post( $id );
 		$this->assertInstanceOf( WP_Post::class, $post );
