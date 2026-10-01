@@ -404,13 +404,13 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		// Long version.
 		foreach ( $feeds as $feed ) {
 			$this->go_to( "/feed/{$feed}/" );
-			$this->assertQueryTrue( 'is_feed' );
+			$this->assertQueryTrue( 'is_feed', 'is_home_feed' );
 		}
 
 		// Short version.
 		foreach ( $feeds as $feed ) {
 			$this->go_to( "/{$feed}/" );
-			$this->assertQueryTrue( 'is_feed' );
+			$this->assertQueryTrue( 'is_feed', 'is_home_feed' );
 		}
 	}
 
@@ -419,8 +419,19 @@ class Tests_Query_Conditionals extends WP_UnitTestCase {
 		$types = array( 'rss2', 'rss', 'atom' );
 		foreach ( $types as $type ) {
 			$this->go_to( get_feed_link( $type ) );
-			$this->assertQueryTrue( 'is_feed' );
+			$this->assertQueryTrue( 'is_feed', 'is_home_feed' );
 		}
+	}
+
+	/**
+	 * A feed type that is not a bundled feed is a custom feed, not a homepage feed.
+	 *
+	 * @ticket 20899
+	 */
+	public function test_custom_feed() {
+		$this->go_to( home_url( '?feed=my-custom-feed' ) );
+
+		$this->assertQueryTrue( 'is_feed', 'is_custom_feed' );
 	}
 
 	// 'page/?([0-9]{1,})/?$' => 'index.php?&paged=$matches[1]',

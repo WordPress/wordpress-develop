@@ -322,6 +322,22 @@ class WP_Query {
 	public $is_comment_feed = false;
 
 	/**
+	 * Signifies whether the current query is for the blog homepage feed.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	public $is_home_feed = false;
+
+	/**
+	 * Signifies whether the current query is for a custom feed.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	public $is_custom_feed = false;
+
+	/**
 	 * Signifies whether the current query is for trackback endpoint call.
 	 *
 	 * @since 1.5.0
@@ -516,6 +532,8 @@ class WP_Query {
 		$this->is_search            = false;
 		$this->is_feed              = false;
 		$this->is_comment_feed      = false;
+		$this->is_home_feed         = false;
+		$this->is_custom_feed       = false;
 		$this->is_trackback         = false;
 		$this->is_home              = false;
 		$this->is_privacy_policy    = false;
@@ -1010,6 +1028,14 @@ class WP_Query {
 
 		if ( '' != $query_vars['feed'] ) {
 			$this->is_feed = true;
+
+			/*
+			 * A feed that is not one of the bundled feed types is a custom feed.
+			 * The bundled types are the default value of WP_Rewrite::$feeds.
+			 */
+			if ( ! in_array( $query_vars['feed'], array( 'feed', 'rdf', 'rss', 'rss2', 'atom' ), true ) ) {
+				$this->is_custom_feed = true;
+			}
 		}
 
 		if ( '' != $query_vars['embed'] ) {
@@ -1044,10 +1070,17 @@ class WP_Query {
 			$this->is_comment_feed = true;
 		}
 
-		if ( ! ( $this->is_singular || $this->is_archive || $this->is_search || $this->is_feed
+		if ( ! ( $this->is_singular || $this->is_archive || $this->is_search
 				|| ( wp_is_serving_rest_request() && $this->is_main_query() )
-				|| $this->is_trackback || $this->is_404 || $this->is_admin || $this->is_robots || $this->is_favicon || $this->is_sitemap ) ) {
-			$this->is_home = true;
+				|| $this->is_trackback || $this->is_404 || $this->is_admin || $this->is_robots
+				|| $this->is_favicon || $this->is_sitemap || $this->is_custom_feed ) ) {
+			if ( $this->is_feed ) {
+				if ( ! $this->is_comment_feed ) {
+					$this->is_home_feed = true;
+				}
+			} else {
+				$this->is_home = true;
+			}
 		}
 
 		// Correct `is_*` for 'page_on_front' and 'page_for_posts'.
@@ -4459,6 +4492,28 @@ class WP_Query {
 	 */
 	public function is_comment_feed() {
 		return (bool) $this->is_comment_feed;
+	}
+
+	/**
+	 * Determines whether the query is for the blog homepage feed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether the query is for the blog homepage feed.
+	 */
+	public function is_home_feed(): bool {
+		return $this->is_home_feed;
+	}
+
+	/**
+	 * Determines whether the query is for a custom feed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether the query is for a custom feed.
+	 */
+	public function is_custom_feed(): bool {
+		return $this->is_custom_feed;
 	}
 
 	/**
