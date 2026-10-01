@@ -93,8 +93,8 @@ $preload_paths = array(
 	'/?_fields=' . implode(
 		',',
 		array(
-			'animated_image_subsizes',
 			'description',
+			'generate_animated_image_subsizes',
 			'gmt_offset',
 			'home',
 			'image_max_bit_depth',

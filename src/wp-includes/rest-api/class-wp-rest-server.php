@@ -1480,10 +1480,10 @@ class WP_REST_Server {
 			 *
 			 * @since 7.2.0
 			 *
-			 * @param bool $animated_image_subsizes Whether to generate animated sub-sizes
-			 *                                      for animated images. Default false.
+			 * @param bool $generate_animated_image_subsizes Whether to generate animated sub-sizes
+			 *                                               for animated images. Default false.
 			 */
-			$available['animated_image_subsizes'] = (bool) apply_filters( 'wp_generate_animated_image_subsizes', false );
+			$available['generate_animated_image_subsizes'] = (bool) apply_filters( 'wp_generate_animated_image_subsizes', false );
 		}
 
 		$response = new WP_REST_Response( $available );
