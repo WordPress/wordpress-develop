@@ -74,16 +74,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-plugin-install-list-table.php
 		-
-			message: '#^Cannot access property \$parent on array\|object\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-terms-list-table.php
-		-
-			message: '#^Cannot access property \$term_id on array\|object\.$#'
-			identifier: property.nonObject
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-terms-list-table.php
-		-
 			message: '#^Cannot access property \$info on array\|object\.$#'
 			identifier: property.nonObject
 			count: 1
