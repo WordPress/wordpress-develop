@@ -130,6 +130,76 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	}
 
 	/**
+	 * Tests that an error is returned when the request status is invalid.
+	 *
+	 * @ticket 65758
+	 *
+	 * @dataProvider data_invalid_request_status
+	 *
+	 * @param string $status The invalid request post status.
+	 */
+	public function test_should_return_wp_error_when_request_status_is_invalid( $status ) {
+		$request_id = wp_create_user_request( 'unconfirmed-user@example.com', 'export_personal_data' );
+
+		wp_update_post(
+			array(
+				'ID'          => $request_id,
+				'post_status' => $status,
+			)
+		);
+
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+
+		$this->assertWPError( $email_sent );
+		$this->assertSame( 'invalid_request', $email_sent->get_error_code() );
+		$this->assertSame( 'Invalid request status when sending personal data export email.', $email_sent->get_error_message() );
+	}
+
+	/**
+	 * Data provider for test_should_return_wp_error_when_request_status_is_invalid().
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_request_status() {
+		return array(
+			'request-pending' => array( 'request-pending' ),
+			'request-failed'  => array( 'request-failed' ),
+			'draft'           => array( 'draft' ),
+		);
+	}
+
+	/**
+	 * Tests that an export email can be sent when the request status is completed.
+	 *
+	 * @ticket 65758
+	 */
+	public function test_should_send_export_link_when_request_status_is_completed() {
+		$request_id = wp_create_user_request( 'completed-user@example.com', 'export_personal_data' );
+
+		wp_update_post(
+			array(
+				'ID'          => $request_id,
+				'post_status' => 'request-completed',
+			)
+		);
+
+		$exports_url      = wp_privacy_exports_url();
+		$export_file_name = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		$export_file_url  = $exports_url . $export_file_name;
+		update_post_meta( $request_id, '_export_file_name', $export_file_name );
+
+		$email_sent = wp_privacy_send_personal_data_export_email( $request_id );
+		$mailer     = tests_retrieve_phpmailer_instance();
+
+		$this->assertNotWPError( $email_sent );
+		$this->assertTrue( $email_sent );
+		$this->assertSame( 'request-completed', get_post_status( $request_id ) );
+		$this->assertSame( 'completed-user@example.com', $mailer->get_recipient( 'to' )->address );
+		$this->assertStringContainsString( 'Personal Data Export', $mailer->get_sent()->subject );
+		$this->assertStringContainsString( $export_file_url, $mailer->get_sent()->body );
+	}
+
+	/**
 	 * The function should error when the email was not sent.
 	 *
 	 * @since 4.9.6
@@ -438,7 +508,7 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'export_personal_data' );
 
-		_wp_privacy_account_request_confirmed( self::$request_id );
+		_wp_privacy_account_request_confirmed( $request_id );
 		wp_privacy_send_personal_data_export_email( $request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -463,7 +533,7 @@ class Tests_Privacy_wpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'export_personal_data' );
 
-		_wp_privacy_account_request_confirmed( self::$request_id );
+		_wp_privacy_account_request_confirmed( $request_id );
 		wp_privacy_send_personal_data_export_email( $request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
