@@ -63,6 +63,25 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that a one-character final domain segment is rejected, while a
+	 * two-character final domain segment is still accepted.
+	 *
+	 * @ticket 25108
+	 */
+	public function test_rejects_one_character_final_domain_segment() {
+		$this->assertFalse(
+			is_email( 'email@domain.c' ),
+			'Should have rejected a one-character final domain segment.'
+		);
+
+		$this->assertSame(
+			'email@domain.co',
+			is_email( 'email@domain.co' ),
+			'Should have accepted a two-character final domain segment.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return Generator
@@ -81,6 +100,12 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'h(aj@couc.ou', // bad comment.
 			'hi@',
 			'hi@hi@couc.ou', // double @.
+
+			/*
+			 * A final domain segment of a single character is not a valid TLD.
+			 */
+			'email@domain.c',
+			'someone@example.x',
 
 			/*
 			 * The next address is not deliverable as described,

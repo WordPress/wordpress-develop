@@ -3647,6 +3647,7 @@ function convert_smilies( $text ) {
  * Does not grok i18n domains. Not RFC compliant.
  *
  * @since 0.71
+ * @since 7.2.0 Rejects email addresses with a one-character final domain segment.
  *
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
@@ -3664,7 +3665,8 @@ function is_email( $email, $deprecated = false ) {
 		 *
 		 * This filter is evaluated under several different contexts, such as 'email_too_short',
 		 * 'email_no_at', 'local_invalid_chars', 'domain_period_sequence', 'domain_period_limits',
-		 * 'domain_no_periods', 'sub_hyphen_limits', 'sub_invalid_chars', or no specific context.
+		 * 'domain_no_periods', 'sub_hyphen_limits', 'sub_invalid_chars', 'last_sub_too_few_chars',
+		 * or no specific context.
 		 *
 		 * @since 2.8.0
 		 *
@@ -3730,6 +3732,12 @@ function is_email( $email, $deprecated = false ) {
 			/** This filter is documented in wp-includes/formatting.php */
 			return apply_filters( 'is_email', false, $email, 'sub_invalid_chars' );
 		}
+	}
+
+	// Test for fewer than 2 characters in the last sub.
+	if ( 2 > strlen( end( $subs ) ) ) {
+		/** This filter is documented in wp-includes/formatting.php */
+		return apply_filters( 'is_email', false, $email, 'last_sub_too_few_chars' );
 	}
 
 	// Congratulations, your email made it!
