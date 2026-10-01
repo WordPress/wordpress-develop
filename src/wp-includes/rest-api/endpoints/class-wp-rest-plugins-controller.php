@@ -380,12 +380,16 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		/** This filter is documented in wp-includes/update.php */
 		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
 
-		$language_packs = array_map(
-			static function ( $item ) {
-				return (object) $item;
-			},
-			$api->language_packs
-		);
+		$language_packs = array();
+
+		if ( ! empty( $api->language_packs ) && is_array( $api->language_packs ) ) {
+			$language_packs = array_map(
+				static function ( $item ) {
+					return (object) $item;
+				},
+				$api->language_packs
+			);
+		}
 
 		$language_packs = array_filter(
 			$language_packs,
