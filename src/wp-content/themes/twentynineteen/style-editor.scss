@@ -696,6 +696,10 @@ figcaption,
 		margin-left: 0;
 	}
 
+	&.alignfull:not(.is-style-dots) {
+		width: 100%;
+	}
+
 	&.is-style-dots {
 		color: $color__text-light;
 	}
