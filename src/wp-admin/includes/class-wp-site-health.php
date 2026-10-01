@@ -1383,7 +1383,7 @@ class WP_Site_Health {
 	/**
 	 * Tests if the site can communicate with a non-default update API endpoint.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 *
 	 * @return array The test results.
 	 */
