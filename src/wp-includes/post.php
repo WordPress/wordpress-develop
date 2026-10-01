@@ -826,6 +826,134 @@ function create_initial_post_types() {
 }
 
 /**
+ * Registers the personal data exporter for posts.
+ *
+ * @since 6.9.0
+ *
+ * @param array $exporters An array of personal data exporters.
+ * @return array An array of personal data exporters.
+ */
+function wp_register_post_personal_data_exporter( $exporters ) {
+	$exporters[] = array(
+		'exporter_friendly_name' => __( 'WordPress Posts' ),
+		'callback'               => 'wp_posts_personal_data_exporter',
+	);
+
+	return $exporters;
+}
+
+/**
+ * Finds and exports personal data associated with an email address from the posts table.
+ *
+ * @since 6.9.0
+ *
+ * @param string $email_address The post author email address.
+ * @param int    $page          Post page.
+ * @return array An array of personal data.
+ */
+function wp_posts_personal_data_exporter( $email_address, $page = 1 ) {
+	$email_address = trim( $email_address );
+
+	/**
+	 * Filters the number of posts processed in a single batch in the personal data exporter.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param int $number Default number of posts processed in a batch (500).
+	 */
+	$number = apply_filters( 'wp_privacy_personal_data_posts_batch_size', 500 );
+	$page   = (int) $page;
+
+	$data_to_export = array();
+
+	$user = get_user_by( 'email', $email_address );
+
+	if ( false === $user ) {
+		return array(
+			'data' => $data_to_export,
+			'done' => true,
+		);
+	}
+
+	$post_stati = array_diff(
+		get_post_stati(),
+		array(
+			'inherit',
+			'auto-draft',
+		)
+	);
+
+	$post_query = new WP_Query(
+		array(
+			'author'         => $user->ID,
+			'posts_per_page' => $number,
+			'paged'          => $page,
+			'post_type'      => array(
+				'post',
+				'page',
+			),
+			'post_status'    => $post_stati,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
+		)
+	);
+
+	$user_prop_to_export = array(
+		'post_title' => __( 'Post Title' ),
+		'guid'       => __( 'Post URL' ),
+		'ID'         => __( 'Post ID' ),
+	);
+
+	foreach ( (array) $post_query->posts as $post ) {
+		$post_data_to_export = array();
+
+		foreach ( $user_prop_to_export as $key => $name ) {
+			// Skip guid for private posts and ID for public posts.
+			if ( 'private' === $post->post_status || ! empty( $post->post_password ) ) {
+				if ( 'guid' === $key ) {
+					continue;
+				}
+			} else {
+				if ( 'ID' === $key ) {
+					continue;
+				}
+			}
+
+			$value = $post->$key;
+
+			if ( 'post_title' === $key ) {
+				if ( 'private' === $post->post_status ) {
+					$value = sprintf( __( 'Private: %s' ), $value );
+				} elseif ( ! empty( $post->post_password ) ) {
+					$value = sprintf( __( 'Password Protected: %s' ), $value );
+				}
+			}
+
+			if ( ! empty( $value ) ) {
+				$post_data_to_export[] = array(
+					'name'  => $name,
+					'value' => $value,
+				);
+			}
+		}
+
+		$data_to_export[] = array(
+			'group_id'    => 'posts',
+			'group_label' => __( 'Posts / Pages' ),
+			'item_id'     => "post-{$post->ID}",
+			'data'        => $post_data_to_export,
+		);
+	}
+
+	$done = $post_query->max_num_pages <= $page;
+
+	return array(
+		'data' => $data_to_export,
+		'done' => $done,
+	);
+}
+
+/**
  * Retrieves attached file path based on attachment ID.
  *
  * By default the path will go through the {@see 'get_attached_file'} filter, but
