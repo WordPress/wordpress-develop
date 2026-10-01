@@ -79,6 +79,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 		);
 
 		$registered = get_all_registered_block_bindings_sources();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $registered );
 	}
 
@@ -95,6 +97,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 		register_block_bindings_source( self::$test_source_name, self::$test_source_properties );
 
 		$result = unregister_block_bindings_source( self::$test_source_name );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Block_Bindings_Source(
 				self::$test_source_name,
