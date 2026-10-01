@@ -204,6 +204,8 @@ add_filter( 'the_content', 'wptexturize' );
 add_filter( 'the_content', 'convert_smilies', 20 );
 add_filter( 'the_content', 'wpautop' );
 add_filter( 'the_content', 'shortcode_unautop' );
+// Fix for #50863: [playlist] + trailing text produces a </p> with no matching <p>.
+add_filter( 'the_content', 'wp_split_paragraphs_around_block_shortcodes' );
 add_filter( 'the_content', 'prepend_attachment' );
 add_filter( 'the_content', 'wp_replace_insecure_home_url' );
 add_filter( 'the_content', 'do_shortcode', 11 ); // AFTER wpautop().
