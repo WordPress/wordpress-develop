@@ -296,14 +296,13 @@ class WP_Debug_Data {
 		}
 
 		$fields['update_api_base'] = array(
-			'label' => 'Update API URL',
+			'label' => __( 'Update API URL' ),
 			'value' => $update_api_base,
-			'debug' => true,
 		);
 
-		$update_dom = parse_url( wp_get_api_request_url(), PHP_URL_HOST );
+		$update_dom = parse_url( $update_api_base, PHP_URL_HOST );
 		if ( WP_UPDATE_API_DEFAULT !== $update_dom ) {
-			$wp_update_api = wp_remote_get( wp_get_api_request_url(), array( 'timeout' => 10 ) );
+			$wp_update_api = wp_remote_get( $update_api_base, array( 'timeout' => 10 ) );
 
 			if ( ! is_wp_error( $wp_update_api ) ) {
 				$fields['alt_update_api_communication'] = array(
@@ -315,7 +314,7 @@ class WP_Debug_Data {
 				$fields['alt_update_api_communication'] = array(
 					'label' => __( 'Communication with update API' ),
 					'value' => sprintf(
-						/* Translators: 1: hostname of update API, 2: IP address the update API hostname resolves to. 3: The error returned by the lookup */
+						/* translators: 1: Hostname of the update API. 2: The IP address the update API hostname resolves to. 3: The error returned by the lookup. */
 						__( 'Unable to reach %1$s (%2$s): %3$s' ),
 						$update_dom,
 						gethostbyname( $update_dom ),

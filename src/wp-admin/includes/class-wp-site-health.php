@@ -1340,7 +1340,7 @@ class WP_Site_Health {
 		);
 
 		$wp_dotorg = wp_remote_get(
-			'http://' . WP_UPDATE_API_DEFAULT . '/',
+			'https://' . WP_UPDATE_API_DEFAULT . '/',
 			array(
 				'timeout' => 10,
 			)
@@ -1361,7 +1361,7 @@ class WP_Site_Health {
 					sprintf(
 						/* translators: 1: The IP address WordPress.org resolves to. 2: The error returned by the lookup. */
 						__( 'Your site is unable to reach WordPress.org at %1$s, and returned the error: %2$s' ),
-						gethostbyname( parse_url( WP_UPDATE_API_DEFAULT, PHP_URL_HOST ) ),
+						gethostbyname( WP_UPDATE_API_DEFAULT ),
 						$wp_dotorg->get_error_message()
 					)
 				)
@@ -2980,10 +2980,6 @@ class WP_Site_Health {
 				'available_updates_disk_space' => array(
 					'label' => __( 'Available disk space' ),
 					'test'  => 'available_updates_disk_space',
-				),
-				'update_api_info' => array(
-					'label' => __( 'Update API Info' ),
-					'test'  => 'update_api_info',
 				),
 				'autoloaded_options'           => array(
 					'label' => __( 'Autoloaded options' ),

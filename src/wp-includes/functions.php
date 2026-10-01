@@ -9514,7 +9514,7 @@ function wp_verify_fast_hash(
 /**
  * Given a path, returns the complete URL for a WP API request.
  *
- * @since 7.0.0
+ * @since 7.2.0
  *
  * @param string $path     The API endpoint to request.
  * @param string $scheme   Optional. Scheme for request. Defaults to https.
@@ -9531,7 +9531,7 @@ function wp_get_api_request_url( $path = '/', $scheme = 'https' ) {
 	/**
 	 * Filters the URL for a WP API request.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 *
 	 * @param string $url URL for this WP API request.
 	 */
