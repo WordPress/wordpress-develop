@@ -142,9 +142,41 @@ foreach ( get_default_block_template_types() as $slug => $template_type ) {
 $context_settings = array( 'name' => 'core/edit-site' );
 
 if ( ! empty( $_GET['postId'] ) && is_numeric( $_GET['postId'] ) ) {
-	$context_settings['post'] = get_post( (int) $_GET['postId'] );
+	$post = get_post( (int) $_GET['postId'] );
+	if ( $post ) {
+		$context_settings['post'] = $post;
+	} else {
+		// Post doesn't exist, show error message but don't break the editor
+		wp_admin_notice(
+			sprintf(
+				/* translators: %d: Post ID. */
+				__( 'The post with ID %d does not exist. You can continue editing other content.' ),
+				(int) $_GET['postId']
+			),
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'notice-alt' ),
+			)
+		);
+	}
 } elseif ( isset( $_GET['p'] ) && preg_match( '/^\/page\/(\d+)$/', $_GET['p'], $matches ) ) {
-	$context_settings['post'] = get_post( (int) $matches[1] );
+	$post = get_post( (int) $matches[1] );
+	if ( $post ) {
+		$context_settings['post'] = $post;
+	} else {
+		// Post doesn't exist, show error message but don't break the editor
+		wp_admin_notice(
+			sprintf(
+				/* translators: %d: Post ID. */
+				__( 'The page with ID %d does not exist. You can continue editing other content.' ),
+				(int) $matches[1]
+			),
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'notice-alt' ),
+			)
+		);
+	}
 }
 
 $block_editor_context = new WP_Block_Editor_Context( $context_settings );
@@ -342,6 +374,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		);
 		?>
 	</div>
+	
+	<?php if ( ! $block_editor_context->post && ( isset( $_GET['postId'] ) || isset( $_GET['p'] ) ) ) : ?>
+		<div class="wrap">
+			<?php
+			wp_admin_notice(
+				__( 'No specific content was found to edit. Use the editor sidebar to navigate to different templates, pages, or patterns.' ),
+				array(
+					'type'               => 'info',
+					'additional_classes' => array( 'notice-alt' ),
+				)
+			);
+			?>
+		</div>
+	<?php endif; ?>
 </div>
 
 <?php
