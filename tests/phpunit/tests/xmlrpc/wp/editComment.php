@@ -93,4 +93,33 @@ class Tests_XMLRPC_wp_editComment extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertSame( 'trash', get_comment( $comment_id )->comment_approved );
 	}
+
+	/**
+	 * @ticket 66107
+	 * @ticket 42995
+	 */
+	public function test_string_date_created_gmt_is_accepted(): void {
+		$this->make_user_by_role( 'administrator' );
+		$comment_id = self::factory()->comment->create();
+
+		$date_string = '1984-01-11 05:00:00';
+		$result      = $this->myxmlrpcserver->wp_editComment(
+			array( 1, 'administrator', 'administrator', $comment_id, array( 'date_created_gmt' => $date_string ) )
+		);
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result );
+		$this->assertSame( $date_string, get_comment( $comment_id )->comment_date_gmt );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$this->make_user_by_role( 'administrator' );
+		$comment_id = self::factory()->comment->create();
+
+		$result = $this->myxmlrpcserver->wp_editComment( array( 1, 'administrator', 'administrator', $comment_id, 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

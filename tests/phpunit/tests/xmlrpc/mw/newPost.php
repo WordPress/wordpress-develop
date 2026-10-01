@@ -201,4 +201,31 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 'draft', $out->post_status );
 		$this->assertSame( '0000-00-00 00:00:00', $out->post_date_gmt );
 	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_string_date_created_is_accepted(): void {
+		$this->make_user_by_role( 'author' );
+
+		$date_string = '1984-01-11 05:00:00';
+		$post        = array(
+			'title'       => 'Test',
+			'dateCreated' => $date_string,
+		);
+		$result      = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
+		$this->assertNotIXRError( $result );
+		$this->assertSame( $date_string, get_post( $result )->post_date );
+	}
+
+	/**
+	 * @ticket 66107
+	 */
+	public function test_non_array_content_struct_returns_error(): void {
+		$this->make_user_by_role( 'author' );
+
+		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', 'not a struct' ) );
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
+	}
 }

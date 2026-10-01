@@ -57,18 +57,40 @@ class IXR_Date {
         $this->timezone = substr($iso, 17);
     }
 
+    /**
+     * Gets the datetime in ISO format.
+     *
+     * @return string ISO datetime.
+     * @phpstan-return non-falsy-string
+     */
     function getIso()
     {
         return $this->year.$this->month.$this->day.'T'.$this->hour.':'.$this->minute.':'.$this->second.$this->timezone;
     }
 
+    /**
+     * Gets the `dateTime.iso8601` XML tag.
+     *
+     * @return string A dateTime.iso8601 XML tag.
+     * @phpstan-return non-falsy-string
+     */
     function getXml()
     {
         return '<dateTime.iso8601>'.$this->getIso().'</dateTime.iso8601>';
     }
 
+    /**
+     * Gets the timestamp.
+     *
+     * @return int|false Timestamp, or false on error.
+     */
     function getTimestamp()
     {
+        // A date that could not be parsed has empty or non-numeric components, which mktime() rejects.
+        if (!preg_match('/^\d{8}T\d{2}:\d{2}:\d{2}/', $this->getIso())) {
+            return false;
+        }
+
         return mktime($this->hour, $this->minute, $this->second, $this->month, $this->day, $this->year);
     }
 }
