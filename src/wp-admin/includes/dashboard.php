@@ -936,6 +936,47 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
+ * Outputs a row for the Recent Notes widget. Notes are implemented as a type of comment.
+ *
+ * Each row represents a post with open notes, not an individual note.
+ *
+ * @access private
+ * @since 7.2.0
+ *
+ * @param WP_Comment $note       The most recent open note of the post.
+ * @param int        $open_notes Optional. Number of open notes the post has. Default 1.
+ */
+function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
+	$note_post_id = (int) $note->comment_post_ID;
+
+	$time = strtotime( $note->comment_date_gmt . ' +0000' );
+
+	$note_post_title = _draft_or_post_title( $note_post_id );
+
+	// The post may have been deleted since the note was queried.
+	$note_post_link = get_edit_post_link( $note_post_id );
+
+	if ( ! $note_post_link ) {
+		return;
+	}
+
+	printf(
+		'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span></li>',
+		/* translators: %s: Human-readable time difference. */
+		sprintf( __( '%s ago' ), human_time_diff( $time ) ),
+		esc_url( $note_post_link ),
+		/* translators: %s: Post title. */
+		esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title ) ),
+		$note_post_title,
+		sprintf(
+			/* translators: %s: Number of open notes. */
+			_n( '%s open note', '%s open notes', $open_notes ),
+			number_format_i18n( $open_notes )
+		)
+	);
+}
+
+/**
  * Outputs the Activity widget.
  *
  * Callback function for {@see 'dashboard_activity'}.
@@ -967,7 +1008,9 @@ function wp_dashboard_site_activity() {
 
 	$recent_comments = wp_dashboard_recent_comments();
 
-	if ( ! $future_posts && ! $recent_posts && ! $recent_comments ) {
+	$recent_notes = wp_dashboard_recent_notes();
+
+	if ( ! $future_posts && ! $recent_posts && ! $recent_comments && ! $recent_notes ) {
 		echo '<div class="no-activity">';
 		echo '<p>' . __( 'No activity yet!' ) . '</p>';
 		echo '</div>';
@@ -1149,6 +1192,145 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 	} else {
 		return false;
 	}
+	return true;
+}
+
+/**
+ * Show Notes section.
+ *
+ * Lists the posts the current user can edit that have at least one open note,
+ * ordered by the note or reply most recently added to them.
+ *
+ * @since 7.2.0
+ *
+ * @param int $total_items Optional. Number of posts to display. Default 5.
+ * @return bool False if no posts with open notes were found. True otherwise.
+ */
+function wp_dashboard_recent_notes( $total_items = 5 ) {
+	/*
+	 * Replies are queried alongside the notes that start a thread, so that a
+	 * thread someone replied to counts as added to when it was replied to.
+	 * Resolving a thread approves the note that starts it, while the replies
+	 * stay on hold, so a reply is only recent activity while its thread is.
+	 */
+	$notes_query = array(
+		'type'                      => 'note',
+		'status'                    => 'hold',
+		'orderby'                   => 'comment_date_gmt',
+		'order'                     => 'DESC',
+		'number'                    => $total_items * 5,
+		'offset'                    => 0,
+		// The posts are needed for the capability checks below, the note meta is not.
+		'update_comment_post_cache' => true,
+		'update_comment_meta_cache' => false,
+	);
+
+	// The most recent open note or reply of each post, keyed by post ID.
+	$latest_notes = array();
+
+	/*
+	 * Only notes on posts the current user can edit are listed, and a user who
+	 * can edit none of them would otherwise page through every open note on the
+	 * site. Paging stops once a hundred notes per row have been looked at, so
+	 * that the section costs a bounded number of queries however many notes the
+	 * site has.
+	 */
+	$max_notes_examined = $total_items * 100;
+	$notes_examined     = 0;
+
+	do {
+		$possible = get_comments( $notes_query );
+
+		if ( empty( $possible ) || ! is_array( $possible ) ) {
+			break;
+		}
+
+		$notes_examined += count( $possible );
+
+		/*
+		 * Prime the threads the replies belong to, so that they are not
+		 * queried for one at a time below.
+		 */
+		$thread_ids = array();
+
+		foreach ( $possible as $note ) {
+			if ( $note->comment_parent ) {
+				$thread_ids[] = (int) $note->comment_parent;
+			}
+		}
+
+		if ( $thread_ids ) {
+			_prime_comment_caches( array_unique( $thread_ids ), false );
+		}
+
+		foreach ( $possible as $note ) {
+			$note_post_id = (int) $note->comment_post_ID;
+
+			// Only the first note of a post is kept, as notes are ordered by date.
+			if ( isset( $latest_notes[ $note_post_id ] ) ) {
+				continue;
+			}
+
+			// A reply is resolved along with the thread it belongs to.
+			if ( $note->comment_parent ) {
+				$thread = get_comment( (int) $note->comment_parent );
+
+				if ( ! $thread || '0' !== $thread->comment_approved ) {
+					continue;
+				}
+			}
+
+			// Notes are only visible to users who can edit the post they belong to.
+			if ( ! current_user_can( 'edit_post', $note_post_id ) ) {
+				continue;
+			}
+
+			$latest_notes[ $note_post_id ] = $note;
+
+			if ( count( $latest_notes ) === $total_items ) {
+				break 2;
+			}
+		}
+
+		$notes_query['offset'] += $notes_query['number'];
+		$notes_query['number']  = min( $total_items * 10, $max_notes_examined - $notes_examined );
+	} while ( count( $latest_notes ) < $total_items && $notes_examined < $max_notes_examined );
+
+	if ( ! $latest_notes ) {
+		return false;
+	}
+
+	/*
+	 * Count the open notes of each of the posts about to be displayed. A count
+	 * query per post is cheaper than one query for every open note on them: the
+	 * count is a single value, so the notes themselves are never loaded.
+	 */
+	$open_notes = array();
+
+	foreach ( array_keys( $latest_notes ) as $note_post_id ) {
+		$open_notes[ $note_post_id ] = (int) get_comments(
+			array(
+				'type'    => 'note',
+				'parent'  => 0,
+				'status'  => 'hold',
+				'post_id' => $note_post_id,
+				'count'   => true,
+				'orderby' => 'none',
+			)
+		);
+	}
+
+	echo '<div id="latest-notes" class="activity-block">';
+	echo '<h3>' . __( 'Recent Notes' ) . '</h3>';
+
+	echo '<ul>';
+	foreach ( $latest_notes as $note_post_id => $note ) {
+		_wp_dashboard_recent_notes_row( $note, $open_notes[ $note_post_id ] );
+	}
+	echo '</ul>';
+
+	echo '</div>';
+
 	return true;
 }
 
