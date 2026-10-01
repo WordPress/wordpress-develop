@@ -2539,6 +2539,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @since 2.3.0
+ * @since 7.2.0 A non-scalar `$term` now returns a WP_Error instead of causing a fatal error.
  *
  * @param string       $term     The term name to add.
  * @param string       $taxonomy The taxonomy to which to add the term.
@@ -2596,7 +2597,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term_id', __( 'Invalid term ID.' ) );
 	}
 
-	if ( '' === trim( $term ) ) {
+	if ( ! is_scalar( $term ) || '' === trim( $term ) ) {
 		return new WP_Error( 'empty_term_name', __( 'A name is required for this term.' ) );
 	}
 
