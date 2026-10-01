@@ -1086,7 +1086,12 @@ function wp_read_image_metadata( $file ) {
  * @return string Embedded alternative text.
  */
 function wp_get_image_alttext( $file ) {
-	$alt_text     = '';
+	$alt_text = '';
+
+	if ( ! class_exists( 'DOMDocument', false ) || ! class_exists( 'DOMXPath', false ) ) {
+		return $alt_text;
+	}
+
 	$img_contents = file_get_contents( $file );
 
 	if ( false === $img_contents ) {
