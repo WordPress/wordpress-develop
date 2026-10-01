@@ -997,7 +997,7 @@ class wpdb {
 	 */
 	public function set_prefix( $prefix, $set_table_names = true ) {
 
-		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
+		if ( null !== $prefix && preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
 			return new WP_Error( 'invalid_db_prefix', 'Invalid database prefix' );
 		}
 
