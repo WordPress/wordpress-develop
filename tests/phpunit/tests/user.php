@@ -1203,6 +1203,39 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The error message for an invalid username should tell the user which
+	 * characters are allowed.
+	 *
+	 * @ticket 17793
+	 * @dataProvider data_invalid_usernames
+	 *
+	 * @param string $user_login A username that contains disallowed characters.
+	 */
+	public function test_register_new_user_invalid_username_message( $user_login ) {
+		$response = register_new_user( $user_login, 'testuser@example.com' );
+
+		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertSame( 'invalid_username', $response->get_error_code() );
+
+		$this->assertStringContainsString(
+			'Usernames can only contain letters (a-z), numbers (0-9), dashes (-), underscores (_), and periods (.).',
+			$response->get_error_message()
+		);
+	}
+
+	/**
+	 * Data provider for test_register_new_user_invalid_username_message().
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public function data_invalid_usernames() {
+		return array(
+			'accented characters' => array( 'jösé' ),
+			'disallowed symbol'   => array( 'testuser*' ),
+		);
+	}
+
+	/**
 	 * @ticket 27317
 	 * @group ms-required
 	 */
