@@ -19,6 +19,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	private $test_blocks = array();
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Administrator ID.
 	 *
 	 * @var int
@@ -37,6 +44,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 	}
 
@@ -47,6 +55,10 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 				unregister_block_type( $test_block );
 			}
 			$this->test_blocks = array();
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();
@@ -63,7 +75,7 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 		wp_add_global_styles_for_blocks();
 
 		$this->assertNotContains(
-			':root :where(.wp-block-my-third-party-block){background-color: hotpink;}',
+			':root :where(.wp-block-my-unregistered-third-party-block){background-color: hotpink;}',
 			$this->get_global_styles()
 		);
 	}
@@ -287,8 +299,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 56915
 	 * @ticket 61165
+	 *
+	 * @covers ::wp_add_global_styles_for_blocks
 	 */
 	public function test_blocks_inline_styles_get_rendered() {
+		// Override wp_load_classic_theme_block_styles_on_demand().
+		add_filter( 'should_load_block_assets_on_demand', '__return_false' ); // Needed for the .wp-block-post-featured-image assertion below.
+
 		$this->set_up_third_party_block();
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );
@@ -311,10 +328,13 @@ class Tests_Theme_WpAddGlobalStylesForBlocks extends WP_Theme_UnitTestCase {
 	/**
 	 * @ticket 57868
 	 * @ticket 61165
+	 *
+	 * @covers ::wp_add_global_styles_for_blocks
 	 */
 	public function test_third_party_blocks_inline_styles_for_elements_get_rendered_when_per_block() {
 		$this->set_up_third_party_block();
 		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		$this->assertTrue( wp_should_load_separate_core_block_assets(), 'Core assets are expected to load separately' );
 
 		wp_register_style( 'global-styles', false, array(), true, true );
 		wp_enqueue_style( 'global-styles' );

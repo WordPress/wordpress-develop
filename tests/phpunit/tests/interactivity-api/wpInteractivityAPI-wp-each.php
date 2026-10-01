@@ -580,8 +580,6 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
-	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags() {
 		$original = '' .
@@ -600,8 +598,6 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
-	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::_process_directives
 	 */
 	public function test_wp_each_unbalanced_tags_in_nested_template_tags() {
 		$this->interactivity->state( 'myPlugin', array( 'list2' => array( 3, 4 ) ) );
@@ -681,6 +677,38 @@ class Tests_WP_Interactivity_API_WP_Each extends WP_UnitTestCase {
 			'<span data-wp-each-child="myPlugin::state.list" data-wp-text="myPlugin::context.item">1</span>' .
 			'<span data-wp-each-child="myPlugin::state.list" data-wp-text="myPlugin::context.item">2</span>' .
 			'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>';
+		$new      = $this->interactivity->process_directives( $original );
+		$this->assertSame( $expected, $new );
+	}
+
+	/**
+	 * Tests it doesn't support multiple directives.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_each_doesnt_support_multiple_directives() {
+		$original = '' .
+			'<div data-wp-interactive="directive-each">' .
+				'<template data-wp-each="myPlugin::state.list" data-wp-each--item="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<template data-wp-each---unique-id="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<div data-wp-bind--id="myPlugin::state.after">Text</div>' .
+			'</div>';
+		$expected = '' .
+			'<div data-wp-interactive="directive-each">' .
+				'<template data-wp-each="myPlugin::state.list" data-wp-each--item="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<template data-wp-each---unique-id="myPlugin::state.list">' .
+					'<span data-wp-text="myPlugin::context.item"></span>' .
+				'</template>' .
+				'<div id="after-wp-each" data-wp-bind--id="myPlugin::state.after">Text</div>' .
+			'</div>';
 		$new      = $this->interactivity->process_directives( $original );
 		$this->assertSame( $expected, $new );
 	}

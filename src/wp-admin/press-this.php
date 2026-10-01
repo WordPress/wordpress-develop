@@ -22,8 +22,8 @@ function wp_load_press_this() {
 			403
 		);
 	} elseif ( is_plugin_active( $plugin_file ) ) {
-		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
-		$wp_press_this = new WP_Press_This_Plugin();
+		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php'; // @phpstan-ignore include.fileNotFound
+		$wp_press_this = new WP_Press_This_Plugin(); // @phpstan-ignore class.notFound
 		$wp_press_this->html();
 	} elseif ( current_user_can( 'activate_plugins' ) ) {
 		if ( file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
@@ -84,12 +84,4 @@ function wp_load_press_this() {
 	}
 }
 
-/**
- * Loads the Press This plugin.
- *
- * Via admin-filters.php, the wp_load_press_this() function is hooked into this action.
- * Plugins can remove_action and add their own function to load their own Press This functionality.
- *
- * @since 6.9.0
- */
-do_action( 'press_this_init' );
+wp_load_press_this();

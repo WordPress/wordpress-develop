@@ -333,9 +333,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_nicename', 'display_name' );
 			}
 			$search_columns         = $request->get_param( 'search_columns' );
-			$valid_columns          = isset( $prepared_args['search_columns'] )
-				? $prepared_args['search_columns']
-				: array( 'ID', 'user_login', 'user_nicename', 'user_email', 'display_name' );
+			$valid_columns          = $prepared_args['search_columns'] ?? array( 'ID', 'user_login', 'user_nicename', 'user_email', 'display_name' );
 			$search_columns_mapping = array(
 				'id'       => 'ID',
 				'username' => 'user_login',
@@ -399,10 +397,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$total_users = $query->get_total();
 
 		if ( $total_users < 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
-			$count_query = new WP_User_Query( $prepared_args );
-			$total_users = $count_query->get_total();
+
+			$prepared_args['number'] = 1;
+			$prepared_args['fields'] = 'ID';
+			$count_query             = new WP_User_Query( $prepared_args );
+			$total_users             = $count_query->get_total();
 		}
 
 		$response->header( 'X-WP-Total', (int) $total_users );

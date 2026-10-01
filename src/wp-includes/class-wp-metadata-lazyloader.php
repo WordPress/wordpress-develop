@@ -65,10 +65,6 @@ class WP_Metadata_Lazyloader {
 				'filter'   => 'get_blog_metadata',
 				'callback' => array( $this, 'lazyload_meta_callback' ),
 			),
-			'user'    => array(
-				'filter'   => 'get_user_metadata',
-				'callback' => array( $this, 'lazyload_meta_callback' ),
-			),
 		);
 	}
 
@@ -88,15 +84,11 @@ class WP_Metadata_Lazyloader {
 
 		$type_settings = $this->settings[ $object_type ];
 
-		if ( ! isset( $this->pending_objects[ $object_type ] ) ) {
-			$this->pending_objects[ $object_type ] = array();
-		}
+		$this->pending_objects[ $object_type ] ??= array();
 
 		foreach ( $object_ids as $object_id ) {
 			// Keyed by ID for faster lookup.
-			if ( ! isset( $this->pending_objects[ $object_type ][ $object_id ] ) ) {
-				$this->pending_objects[ $object_type ][ $object_id ] = 1;
-			}
+			$this->pending_objects[ $object_type ][ $object_id ] ??= 1;
 		}
 
 		add_filter( $type_settings['filter'], $type_settings['callback'], 10, 5 );

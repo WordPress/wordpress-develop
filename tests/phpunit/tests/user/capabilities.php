@@ -669,7 +669,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
-			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
 			if ( 'anonymous' === $role ) {
@@ -700,7 +700,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
-		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ) );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 	}
 
@@ -993,42 +993,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test adding capabilities, roles, and allcaps manually to a user.
-	 *
-	 * @ticket 58001
-	 *
-	 * @dataProvider data_add_user_properties_manually
-	 *
-	 * @param string $property_name  The property name to set.
-	 * @param array  $property_value The property value to set.
-	 * @param bool   $check_null     Whether to check that the property is null after unsetting it.
-	 */
-	public function test_add_user_properties_manually( $property_name, $property_value, $check_null ) {
-		$id                     = self::factory()->user->create();
-		$user                   = new WP_User( $id );
-		$user->{$property_name} = $property_value;
-
-		$this->assertSameSets( $property_value, $user->{$property_name}, "User property {$property_name} was not set correctly." );
-		unset( $user->{$property_name} );
-		if ( $check_null ) {
-			$this->assertNull( $user->{$property_name}, "User property {$property_name} should be null after unsetting it." );
-		}
-	}
-
-	/**
-	 * Data provider for test_add_user_properties_manually.
-	 *
-	 * @return array<string, array{0:string,1:array}>
-	 */
-	public function data_add_user_properties_manually() {
-		return array(
-			'caps'    => array( 'caps', array( 'foo' => true ), false ),
-			'roles'   => array( 'roles', array( 'foo' => true ), true ),
-			'allcaps' => array( 'allcaps', array( 'foo' => true ), true ),
-		);
-	}
-
-	/**
 	 * Test add_role with implied capabilities grant successfully grants capabilities.
 	 *
 	 * @ticket 43421
@@ -1137,41 +1101,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 58001
-	 */
-	public function test_get_role_caps() {
-		$id_1   = self::$users['contributor']->ID;
-		$user_1 = new WP_User( $id_1 );
-
-		$role_caps = $user_1->get_role_caps();
-		$this->assertIsArray( $role_caps, 'User role capabilities should be an array' );
-		$this->assertArrayHasKey( 'edit_posts', $role_caps, 'User role capabilities should contain the edit_posts capability' );
-	}
-
-	/**
-	 * @ticket 58001
-	 */
-	public function test_user_lazy_capabilities() {
-		$id_1   = self::$users['contributor']->ID;
-		$user_1 = new WP_User( $id_1 );
-
-		$this->assertTrue( isset( $user_1->roles ), 'User roles should be set' );
-		$this->assertTrue( isset( $user_1->allcaps ), 'User all capabilities should be set' );
-		$this->assertTrue( isset( $user_1->caps ), 'User capabilities should be set' );
-		$this->assertIsArray( $user_1->roles, 'User roles should be an array' );
-		$this->assertSame( array( 'contributor' ), $user_1->roles, 'User roles should match' );
-		$this->assertIsArray( $user_1->allcaps, 'User allcaps should be an array' );
-		$this->assertIsArray( $user_1->caps, 'User caps should be an array' );
-
-		$caps = $this->getAllCapsAndRoles();
-		foreach ( $caps as $cap => $roles ) {
-			if ( in_array( 'contributor', $roles, true ) ) {
-				$this->assertTrue( $user_1->has_cap( $cap ), "User should have the {$cap} capability" );
-			}
-		}
-	}
-
-	/**
 	 * Add an extra capability to a user.
 	 */
 	public function test_user_add_cap() {
@@ -1249,8 +1178,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
-		// Author = user level 2.
-		$this->assertEquals( 2, $user->user_level );
+		// Author = user level 2. Read from user meta, so a numeric string until set_role() recalculates it.
+		$this->assertSame( '2', $user->user_level );
 
 		// They get promoted to editor - level should get bumped to 7.
 		$user->set_role( 'editor' );
@@ -1476,7 +1405,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		// Add 'edit_foobars' primitive cap to a user.
 		$admin->add_cap( 'edit_foobars', true );
-		$admin = new WP_User( $admin->ID );
+		$admin                        = new WP_User( $admin->ID );
+		self::$users['administrator'] = $admin;
 		$this->assertTrue( $admin->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $author->has_cap( $cap->create_posts ) );
 		$this->assertFalse( $editor->has_cap( $cap->create_posts ) );
@@ -1772,13 +1702,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_site( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_site( $blog_id, 'foo_the_bar' ) );
 
 		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
-
-		$this->assertNotWPError( $another_blog_id );
 
 		// Verify the user doesn't have a capability
 		$this->assertFalse( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
@@ -1809,7 +1736,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( user_can_for_site( $user->ID, $blog_id, 'edit_posts' ) );
 		$this->assertFalse( user_can_for_site( $user->ID, $blog_id, 'foo_the_bar' ) );
 

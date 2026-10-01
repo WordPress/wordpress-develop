@@ -10,14 +10,6 @@
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
-	 * Cleans up CSS added to block-supports from duotone styles. We need to do this
-	 * in order to avoid impacting other tests.
-	 */
-	public static function wpTearDownAfterClass() {
-		WP_Style_Engine_CSS_Rules_Store::remove_all_stores();
-	}
-
-	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *
 	 * @ticket 58555
@@ -70,6 +62,20 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65576
+	 *
+	 * @covers ::restore_image_outer_container
+	 */
+	public function test_restore_image_outer_container_moves_duotone_class_to_wrapper_in_classic_theme() {
+		switch_theme( 'default' );
+
+		$block_content = '<div class="wp-block-image"><figure class="alignright wp-duotone-blue-orange size-full"><img src="/my-image.jpg"></figure></div>';
+		$expected      = '<div class="wp-block-image wp-duotone-blue-orange"><figure class="alignright size-full"><img src="/my-image.jpg"></figure></div>';
+
+		$this->assertEqualHTML( $expected, WP_Duotone::restore_image_outer_container( $block_content ) );
+	}
+
+	/**
 	 * Tests whether the slug is extracted from the attribute.
 	 *
 	 * @dataProvider data_get_slug_from_attribute
@@ -101,6 +107,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'pipe-slug-no-value'              => array( 'var:preset|duotone|', '' ),
 			'css-var-spaces'                  => array( 'var(--wp--preset--duotone--    ', '' ),
 			'pipe-slug-spaces'                => array( 'var:preset|duotone|  ', '' ),
+			'array-of-colors'                 => array( array( '#000000', '#ffffff' ), '' ),
+			'empty-array'                     => array( array(), '' ),
 		);
 	}
 
@@ -172,6 +180,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', false ),
 			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', false ),
 			'invalid'                         => array( 'not a valid attribute', false ),
+			'array-of-colors'                 => array( array( '#000000', '#ffffff' ), false ),
+			'empty-array'                     => array( array(), false ),
 		);
 	}
 

@@ -1216,7 +1216,6 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 			'cache_results'          => true,
 			'fields'                 => 'ids',
 			'suppress_filters'       => true,
-			'cache_results'          => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
 			'lazy_load_term_meta'    => false,
@@ -1486,7 +1485,7 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$this->assertTrue( $query2->have_comments() );
 
 		$feed_comment = $query1->next_comment();
-		$this->assertEquals( $comment_id, $feed_comment->comment_ID );
+		$this->assertSame( (string) $comment_id, $feed_comment->comment_ID );
 	}
 
 	/**
@@ -1982,10 +1981,11 @@ class Test_Query_CacheResults extends WP_UnitTestCase {
 		$query_1->the_post();
 		$num_loop_queries = get_num_queries() - $start_loop_queries;
 		/*
-		 * One expected query:
-		 * 1: User data.
+		 * Two expected queries:
+		 * 1: User meta data,
+		 * 2: User data.
 		 */
-		$this->assertSame( 1, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
+		$this->assertSame( 2, $num_loop_queries, 'Unexpected number of queries while initializing the loop.' );
 
 		$start_author_queries = get_num_queries();
 		get_user_by( 'ID', self::$author_id );

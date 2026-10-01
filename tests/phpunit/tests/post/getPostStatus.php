@@ -166,17 +166,17 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure the `post_states_string` filter works to modify post state output.
+	 * Ensure the `post_states_html` filter works to modify post state output.
 	 *
 	 * @ticket 51403
 	 *
-	 * @dataProvider data_filter_post_states_string_should_enable_post_state_html_output_modification
+	 * @dataProvider data_filter_post_states_html_should_enable_post_state_html_output_modification
 	 *
 	 * @covers ::_post_states
 	 *
 	 * @param string $post_state The post state to test.
 	 */
-	public function test_filter_post_states_string_should_enable_post_state_html_output_modification( $post_state ) {
+	public function test_filter_post_states_html_should_enable_post_state_html_output_modification( $post_state ) {
 		$post = get_post( self::$post_ids[ $post_state ] );
 
 		$original_output = _post_states( $post, false );
@@ -188,13 +188,13 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		}
 
 		add_filter(
-			'post_states_string',
-			function ( $post_states_string, $post_states, $filtered_post ) use ( $text_to_append, $post ) {
-				$this->assertIsString( $post_states_string, 'Expected first filter arg to be a string.' );
+			'post_states_html',
+			function ( $post_states_html, $post_states, $filtered_post ) use ( $text_to_append, $post ) {
+				$this->assertIsString( $post_states_html, 'Expected first filter arg to be a string.' );
 				$this->assertIsArray( $post_states, 'Expected second filter arg to be an array.' );
 				$this->assertInstanceOf( WP_Post::class, $filtered_post, 'Expected third filter arg to be a WP_Post' );
 				$this->assertSame( $post->ID, $filtered_post->ID, 'Expected the third filter arg to be the same as the current post.' );
-				return $post_states_string . $text_to_append;
+				return $post_states_html . $text_to_append;
 			},
 			10,
 			3
@@ -206,13 +206,13 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_filter_post_states_string_should_enable_post_state_html_output_modification().
+	 * Data provider for test_filter_post_states_html_should_enable_post_state_html_output_modification().
 	 *
 	 * @return array[] {
 	 *     @type string $post_state The post state to test.
 	 * }
 	 */
-	public static function data_filter_post_states_string_should_enable_post_state_html_output_modification() {
+	public static function data_filter_post_states_html_should_enable_post_state_html_output_modification() {
 		return array(
 			array( 'publish' ),
 			array( 'future' ),

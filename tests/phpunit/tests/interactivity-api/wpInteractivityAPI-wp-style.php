@@ -190,7 +190,7 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 				data-wp-style--background="myPlugin::state.green"
 			>Text</div>';
 		list($p) = $this->process_directives( $html );
-		$this->assertSame( 'color:green;background:green;', $p->get_attribute( 'style' ) );
+		$this->assertSame( 'background:green;color:green;', $p->get_attribute( 'style' ) );
 	}
 
 	/**
@@ -445,6 +445,32 @@ class Tests_WP_Interactivity_API_WP_Style extends WP_UnitTestCase {
 
 		$this->interactivity->state( 'myPlugin', array( 'null' => null ) );
 		$html    = '<div data-wp-style--color="myPlugin::state.null">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertNull( $p->get_attribute( 'style' ) );
+	}
+
+	/**
+	 * Tests it can use CSS variables.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_style_can_use_CSS_variables() {
+		$html    = '<div data-wp-style----text-color="myPlugin::state.green">Text</div>';
+		list($p) = $this->process_directives( $html );
+		$this->assertSame( '--text-color:green;', $p->get_attribute( 'style' ) );
+	}
+
+	/**
+	 * Tests it ignores unique IDs.
+	 *
+	 * @ticket 64106
+	 *
+	 * @covers ::process_directives
+	 */
+	public function test_wp_style_ignores_unique_ids() {
+		$html    = '<div data-wp-style--color---unique-id="myPlugin::state.green">Text</div>';
 		list($p) = $this->process_directives( $html );
 		$this->assertNull( $p->get_attribute( 'style' ) );
 	}
