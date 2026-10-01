@@ -1318,7 +1318,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'description' => __( 'The site\'s network ID. Default is the current network ID.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'default'     => get_current_network_id(),
 				),
 				'domain'           => array(
 					'description' => __( 'Site domain.' ),
