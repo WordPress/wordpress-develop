@@ -91,7 +91,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		if ( has_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' ) ) {
 			remove_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 		}
-		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/block' ) ) {
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'tests/hooked-block' ) ) {
 			unregister_block_type( 'tests/hooked-block' );
 		}
 
