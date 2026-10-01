@@ -2410,7 +2410,8 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 function remove_post_type_support( $post_type, $feature, $sub_features = array() ) {
 	global $_wp_post_type_features;
 
-	if ( empty( $sub_features ) ) {
+	// Compare strictly, so a sub-feature named '0' is not mistaken for the default.
+	if ( array() === $sub_features || '' === $sub_features ) {
 		unset( $_wp_post_type_features[ $post_type ][ $feature ] );
 		return;
 	}
