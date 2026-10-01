@@ -79,7 +79,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-nav-menu-setting.php
 		-
-			message: '#^Function _wp_filter_font_directory\(\) should return string but returns array\.$#'
+			message: '#^Function _wp_filter_font_directory\(\) should return string but returns array\<mixed\>\.$#'
 			identifier: return.type
 			count: 1
 			path: ../../../src/wp-includes/fonts.php
