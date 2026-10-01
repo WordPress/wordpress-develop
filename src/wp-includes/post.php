@@ -2383,17 +2383,58 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 /**
  * Removes support for a feature from a post type.
  *
+ * Passing `$sub_features` removes only those sub-features from the feature's
+ * array arguments, while the feature itself stays supported. Sub-features are
+ * matched against the keys of an associative array and the values of a list.
+ *
+ * Example usage:
+ *
+ *     add_post_type_support( 'my_post_type', 'editor', array(
+ *         'default-mode' => 'template-locked',
+ *         'notes'        => true,
+ *     ) );
+ *     remove_post_type_support( 'my_post_type', 'editor', 'notes' );
+ *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$sub_features` parameter.
  *
  * @global array $_wp_post_type_features
  *
- * @param string $post_type The post type for which to remove the feature.
- * @param string $feature   The feature being removed.
+ * @param string          $post_type    The post type for which to remove the feature.
+ * @param string          $feature      The feature being removed.
+ * @param string|string[] $sub_features Optional. Sub-feature or list of sub-features to remove
+ *                                      from the feature's arguments. Default empty array,
+ *                                      which removes the whole feature.
  */
-function remove_post_type_support( $post_type, $feature ) {
+function remove_post_type_support( $post_type, $feature, $sub_features = array() ) {
 	global $_wp_post_type_features;
 
-	unset( $_wp_post_type_features[ $post_type ][ $feature ] );
+	if ( empty( $sub_features ) ) {
+		unset( $_wp_post_type_features[ $post_type ][ $feature ] );
+		return;
+	}
+
+	if (
+		! isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) ||
+		! is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] )
+	) {
+		return;
+	}
+
+	$sub_features = (array) $sub_features;
+	$args         = $_wp_post_type_features[ $post_type ][ $feature ][0];
+	$is_list      = array_is_list( $args );
+
+	foreach ( $args as $key => $value ) {
+		// Associative arguments are keyed by sub-feature, lists hold sub-features as values.
+		$name = is_int( $key ) ? $value : $key;
+
+		if ( in_array( $name, $sub_features, true ) ) {
+			unset( $args[ $key ] );
+		}
+	}
+
+	$_wp_post_type_features[ $post_type ][ $feature ][0] = $is_list ? array_values( $args ) : $args;
 }
 
 /**

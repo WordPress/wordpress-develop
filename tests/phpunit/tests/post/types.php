@@ -433,6 +433,126 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that remove_post_type_support() removes a single sub-feature and keeps the others.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_removes_sub_feature() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode' => 'template-locked',
+				'notes'        => true,
+			)
+		);
+
+		remove_post_type_support( 'foo', 'editor', 'notes' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'The feature should still be supported.' );
+		$this->assertSame(
+			array( 'default-mode' => 'template-locked' ),
+			get_all_post_type_supports( 'foo' )['editor'][0],
+			'Only the given sub-feature should be removed.'
+		);
+	}
+
+	/**
+	 * Tests that remove_post_type_support() removes several sub-features at once.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_removes_multiple_sub_features() {
+		register_post_type( 'foo' );
+
+		add_post_type_support(
+			'foo',
+			'editor',
+			array(
+				'default-mode'   => 'template-locked',
+				'notes'          => true,
+				'another-option' => 'test-value',
+			)
+		);
+
+		remove_post_type_support( 'foo', 'editor', array( 'notes', 'another-option' ) );
+
+		$this->assertSame(
+			array( 'default-mode' => 'template-locked' ),
+			get_all_post_type_supports( 'foo' )['editor'][0],
+			'All given sub-features should be removed.'
+		);
+	}
+
+	/**
+	 * Tests that remove_post_type_support() removes sub-features from a list by value.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_removes_sub_feature_from_list() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'my-feature', array( 'aside', 'gallery', 'link' ) );
+
+		remove_post_type_support( 'foo', 'my-feature', 'gallery' );
+
+		$this->assertSame(
+			array( 'aside', 'link' ),
+			get_all_post_type_supports( 'foo' )['my-feature'][0],
+			'The value should be removed from the list and the list reindexed.'
+		);
+	}
+
+	/**
+	 * Tests that remove_post_type_support() keeps the feature when all sub-features are removed.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_removing_all_sub_features_keeps_feature() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'editor', array( 'notes' => true ) );
+
+		remove_post_type_support( 'foo', 'editor', 'notes' );
+
+		$this->assertTrue( post_type_supports( 'foo', 'editor' ), 'The feature should still be supported.' );
+		$this->assertSame( array(), get_all_post_type_supports( 'foo' )['editor'][0], 'The arguments should be empty.' );
+	}
+
+	/**
+	 * Tests that remove_post_type_support() leaves the feature untouched when it has no sub-features.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_sub_feature_without_arguments() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'editor' );
+		remove_post_type_support( 'foo', 'editor', 'notes' );
+		remove_post_type_support( 'foo', 'not-a-feature', 'notes' );
+
+		$support = get_all_post_type_supports( 'foo' );
+		$this->assertTrue( $support['editor'], 'A feature without arguments should be left as is.' );
+		$this->assertArrayNotHasKey( 'not-a-feature', $support, 'Removing a sub-feature should not add the feature.' );
+	}
+
+	/**
+	 * Tests that remove_post_type_support() still removes the whole feature without sub-features.
+	 *
+	 * @ticket 66224
+	 */
+	public function test_remove_post_type_support_without_sub_features_removes_feature() {
+		register_post_type( 'foo' );
+
+		add_post_type_support( 'foo', 'editor', array( 'notes' => true ) );
+		remove_post_type_support( 'foo', 'editor' );
+
+		$this->assertFalse( post_type_supports( 'foo', 'editor' ), 'The whole feature should be removed.' );
+	}
+
+	/**
 	 * Tests that add_post_type_support() overwrites values when called with the same key.
 	 *
 	 * @ticket 64156
