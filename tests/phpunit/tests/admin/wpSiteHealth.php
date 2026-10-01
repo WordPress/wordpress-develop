@@ -15,6 +15,24 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 */
 	private WP_Site_Health $instance;
 
+	/**
+	 * The value of the WP_UPDATE_API_BASE environment variable before the test ran.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var string|false
+	 */
+	private $original_update_api_base;
+
+	/**
+	 * URLs requested during the test via the HTTP API.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var string[]
+	 */
+	private $requested_urls = array();
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Include the `WP_Site_Health` file.
 		require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
@@ -24,11 +42,33 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * Performs setup tasks for every test.
 	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Unsets the WP_UPDATE_API_BASE environment variable.
 	 */
 	public function set_up() {
 		parent::set_up();
 
 		$this->instance = new WP_Site_Health();
+
+		// Ensure tests start with the default update API, regardless of the host environment.
+		$this->original_update_api_base = getenv( 'WP_UPDATE_API_BASE' );
+		putenv( 'WP_UPDATE_API_BASE' );
+	}
+
+	/**
+	 * Performs cleanup tasks for every test.
+	 *
+	 * @since 7.2.0
+	 */
+	public function tear_down() {
+		if ( false === $this->original_update_api_base ) {
+			putenv( 'WP_UPDATE_API_BASE' );
+		} else {
+			putenv( 'WP_UPDATE_API_BASE=' . $this->original_update_api_base );
+		}
+
+		$this->requested_urls = array();
+
+		parent::tear_down();
 	}
 
 	/**
@@ -706,5 +746,200 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertSame( __( 'Opcode cache is not enabled' ), $result['label'] );
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
+	}
+
+	/**
+	 * Tests that the alternate update API test passes when the endpoint is reachable.
+	 *
+	 * @ticket 62132
+	 * @covers ::get_test_alt_update_api_communication
+	 */
+	public function test_get_test_alt_update_api_communication_good() {
+		putenv( 'WP_UPDATE_API_BASE=updates.example.invalid' );
+		$this->mock_http_response(
+			array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			)
+		);
+
+		$result = $this->instance->get_test_alt_update_api_communication();
+
+		$this->assertSame( array( 'https://updates.example.invalid/' ), $this->requested_urls, 'The configured update API should be requested.' );
+		$this->assertSame( 'alt_update_api_communication', $result['test'] );
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertSame( __( 'Can communicate with update API' ), $result['label'] );
+		$this->assertSame(
+			array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			$result['badge']
+		);
+		$this->assertSame( '', $result['actions'], 'No actions should be suggested when the update API is reachable.' );
+	}
+
+	/**
+	 * Tests that the alternate update API test is critical when the endpoint is unreachable.
+	 *
+	 * @ticket 62132
+	 *
+	 * @covers ::get_test_alt_update_api_communication
+	 */
+	public function test_get_test_alt_update_api_communication_critical() {
+		putenv( 'WP_UPDATE_API_BASE=updates.example.invalid' );
+		$this->mock_http_response( new WP_Error( 'http_request_failed', 'cURL error 6: Could not resolve host' ) );
+
+		$result = $this->instance->get_test_alt_update_api_communication();
+
+		$this->assertSame( 'critical', $result['status'] );
+		$this->assertSame( __( 'Could not reach update API' ), $result['label'] );
+		$this->assertStringContainsString( 'https://updates.example.invalid/', $result['description'], 'The description should name the update API URL.' );
+		$this->assertStringContainsString( 'cURL error 6: Could not resolve host', $result['description'], 'The description should include the request error.' );
+		$this->assertStringContainsString( 'https://updates.example.invalid/', $result['actions'], 'The actions should name the update API URL.' );
+	}
+
+	/**
+	 * Tests that the alternate update API test respects the `wp_api_request` filter.
+	 *
+	 * @ticket 62132
+	 * @covers ::get_test_alt_update_api_communication
+	 */
+	public function test_get_test_alt_update_api_communication_uses_filtered_url() {
+		add_filter(
+			'wp_api_request',
+			static function () {
+				return 'https://filtered.example.invalid/';
+			}
+		);
+		$this->mock_http_response(
+			array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			)
+		);
+
+		$this->instance->get_test_alt_update_api_communication();
+
+		$this->assertSame( array( 'https://filtered.example.invalid/' ), $this->requested_urls );
+	}
+
+	/**
+	 * Tests that the alternate update API test is not registered when the default API is in use.
+	 *
+	 * @ticket 62132
+	 *
+	 * @dataProvider data_default_update_api_base
+	 *
+	 * @covers ::get_tests
+	 *
+	 * @param string|null $update_api_base Value for the WP_UPDATE_API_BASE environment variable, or null to leave it unset.
+	 */
+	public function test_get_tests_excludes_alt_update_api_communication_by_default( $update_api_base ) {
+		if ( null !== $update_api_base ) {
+			putenv( 'WP_UPDATE_API_BASE=' . $update_api_base );
+		}
+
+		$tests = WP_Site_Health::get_tests();
+
+		$this->assertArrayNotHasKey( 'alt_update_api_communication', $tests['async'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_default_update_api_base() {
+		return array(
+			'environment variable unset'          => array( null ),
+			'environment variable set to default' => array( 'api.wordpress.org' ),
+		);
+	}
+
+	/**
+	 * Tests that the alternate update API test is registered when an alternate API is configured.
+	 *
+	 * @ticket 62132
+	 *
+	 * @covers ::get_tests
+	 */
+	public function test_get_tests_includes_alt_update_api_communication_when_configured() {
+		putenv( 'WP_UPDATE_API_BASE=updates.example.invalid' );
+
+		$tests = WP_Site_Health::get_tests();
+
+		$this->assertArrayHasKey( 'alt_update_api_communication', $tests['async'] );
+
+		$test = $tests['async']['alt_update_api_communication'];
+		$this->assertSame( rest_url( 'wp-site-health/v1/tests/alt-update-api-communication' ), $test['test'] );
+		$this->assertTrue( $test['has_rest'] );
+		$this->assertIsCallable( $test['async_direct_test'] );
+	}
+
+	/**
+	 * Tests that the alternate update API test is registered when the URL is changed via filter.
+	 *
+	 * @ticket 62132
+	 *
+	 * @covers ::get_tests
+	 */
+	public function test_get_tests_includes_alt_update_api_communication_when_filtered() {
+		add_filter(
+			'wp_api_request',
+			static function () {
+				return 'https://filtered.example.invalid/';
+			}
+		);
+
+		$tests = WP_Site_Health::get_tests();
+
+		$this->assertArrayHasKey( 'alt_update_api_communication', $tests['async'] );
+	}
+
+	/**
+	 * Tests that the WordPress.org communication test still targets WordPress.org
+	 * when an alternate update API is configured.
+	 *
+	 * @ticket 62132
+	 *
+	 * @covers ::get_test_dotorg_communication
+	 */
+	public function test_get_test_dotorg_communication_ignores_alternate_update_api() {
+		putenv( 'WP_UPDATE_API_BASE=updates.example.invalid' );
+		$this->mock_http_response(
+			array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+			)
+		);
+
+		$this->instance->get_test_dotorg_communication();
+		$this->assertSame( array( 'https://api.wordpress.org/' ), $this->requested_urls );
+	}
+
+	/**
+	 * Mocks every HTTP API response, recording each requested URL.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array|WP_Error $response The response to return for every request.
+	 */
+	private function mock_http_response( $response ) {
+		add_filter(
+			'pre_http_request',
+			function ( $preempt, $parsed_args, $url ) use ( $response ) {
+				$this->requested_urls[] = $url;
+				return $response;
+			},
+			10,
+			3
+		);
 	}
 }
