@@ -3098,6 +3098,8 @@ class wpdb {
 	 *         )
 	 *         : null
 	 * )
+	 *
+	 * @phpstan-param int<0, max> $y
 	 */
 	public function get_row( $query = null, $output = OBJECT, $y = 0 ) {
 		$this->func_call = "\$db->get_row(\"$query\",$output,$y)";
