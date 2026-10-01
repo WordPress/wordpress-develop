@@ -454,6 +454,17 @@ class WP_Query {
 	private $query_vars_changed = true;
 
 	/**
+	 * Whether parse_query() has run for this query.
+	 *
+	 * A query created without any query vars, such as `new WP_Query()`, is never parsed and
+	 * so has none of its `is_*` flags populated.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $query_parsed = false;
+
+	/**
 	 * Set if post thumbnails are cached
 	 *
 	 * @since 3.2.0
@@ -805,6 +816,8 @@ class WP_Query {
 	 * }
 	 */
 	public function parse_query( $query = '' ) {
+		$this->query_parsed = true;
+
 		if ( ! empty( $query ) ) {
 			$this->init();
 			$this->query      = wp_parse_args( $query );
@@ -4474,10 +4487,21 @@ class WP_Query {
 	 * Otherwise the same as {@see WP_Query::is_home()}.
 	 *
 	 * @since 3.1.0
+	 * @since 7.2.0 Added support for queries that have not been parsed.
 	 *
 	 * @return bool Whether the query is for the front page of the site.
 	 */
 	public function is_front_page() {
+		/*
+		 * A query that has never been parsed has none of its `is_*` flags populated, which is
+		 * the case for the `new WP_Query()` instance the Customizer uses. When the site shows a
+		 * static front page, such a query is still for the front page. This mirrors how an empty
+		 * query is handled in parse_query(), and does not depend on a page being selected.
+		 */
+		if ( ! $this->query_parsed && 'page' === get_option( 'show_on_front' ) ) {
+			return true;
+		}
+
 		// Most likely case.
 		if ( 'posts' === get_option( 'show_on_front' ) && $this->is_home() ) {
 			return true;
