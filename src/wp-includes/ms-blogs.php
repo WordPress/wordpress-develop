@@ -644,7 +644,6 @@ function wp_cache_switch_to_blog_fallback() {
 		if ( ! is_array( $global_groups ) || empty( $global_groups ) ) {
 			$global_groups = array(
 				'blog-details',
-				'blog-id-cache',
 				'blog-lookup',
 				'blog_meta',
 				'global-posts',

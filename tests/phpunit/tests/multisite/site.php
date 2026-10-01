@@ -231,7 +231,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
-		$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -272,7 +271,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
-		$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -313,7 +311,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $blog_id, 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 		$this->assertFalse( wp_cache_get( $key, 'blog-lookup' ) );
-		$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -464,7 +461,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		// Test the original response and cached response for the newly created site.
 		$this->assertSame( $blog_id, get_blog_id_from_url( $details->domain, $details->path ) );
-		$this->assertSame( $blog_id, wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -490,7 +486,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$details = get_site( $blog_id );
 
 		$this->assertSame( 0, get_blog_id_from_url( $details->domain, 'foo' ) );
-		$this->assertSame( -1, wp_cache_get( md5( $details->domain . 'foo' ), 'blog-id-cache' ) );
 	}
 
 	/**
@@ -504,7 +499,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		wpmu_delete_blog( $blog_id );
 
 		$this->assertSame( $blog_id, get_blog_id_from_url( $details->domain, $details->path ) );
-		$this->assertSame( $blog_id, wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -517,9 +511,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$key     = md5( $details->domain . $details->path );
 		wpmu_delete_blog( $blog_id, true );
 
-		$this->assertFalse( wp_cache_get( $key, 'blog-id-cache' ) );
 		$this->assertSame( 0, get_blog_id_from_url( $details->domain, $details->path ) );
-		$this->assertSame( -1, wp_cache_get( $key, 'blog-id-cache' ) );
 	}
 
 	/**
@@ -1041,7 +1033,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 			array( '%blog_id%', 'blog-details' ),
 			array( '%blog_id%' . 'short', 'blog-details' ),
 			array( '%domain_path_key%', 'blog-lookup' ),
-			array( '%domain_path_key%', 'blog-id-cache' ),
 		);
 	}
 
@@ -1656,11 +1647,9 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		// Ensure all respective cache values are empty.
 		$result = array(
 			wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
-			wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
 			wp_cache_get( 'current_blog_' . $old_domain, 'site-options' ),
 			wp_cache_get( 'current_blog_' . $old_domain . '/', 'site-options' ),
 			wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
-			wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
 			wp_cache_get( 'current_blog_' . $new_domain, 'site-options' ),
 			wp_cache_get( 'current_blog_' . $new_domain . '/', 'site-options' ),
 		);
@@ -1711,10 +1700,8 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		// Ensure all respective cache values are empty.
 		$result = array(
 			wp_cache_get( $domain_path_key_old, 'blog-lookup' ),
-			wp_cache_get( $domain_path_key_old, 'blog-id-cache' ),
 			wp_cache_get( 'current_blog_test.wordpress.org' . $old_path, 'site-options' ),
 			wp_cache_get( $domain_path_key_new, 'blog-lookup' ),
-			wp_cache_get( $domain_path_key_new, 'blog-id-cache' ),
 			wp_cache_get( 'current_blog_test.wordpress.org' . $new_path, 'site-options' ),
 		);
 
