@@ -1242,6 +1242,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'password-toggle', "/wp-admin/js/password-toggle$suffix.js", array(), false, 1 );
 	$scripts->set_translations( 'password-toggle' );
 
+	$scripts->add( 'wp-teletype-loader', "/wp-admin/js/teletype-loader$suffix.js", array( 'wp-data', 'wp-core-commands' ), false, 1 );
+
 	$scripts->add( 'application-passwords', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util', 'wp-api-request', 'wp-date', 'wp-i18n', 'wp-hooks' ), false, 1 );
 	$scripts->set_translations( 'application-passwords' );
 
@@ -3498,6 +3500,15 @@ function wp_enqueue_classic_theme_styles() {
 function wp_enqueue_command_palette_assets() {
 	global $menu, $submenu;
 
+	/*
+	 * Include an unmodified $wp_version.
+	 *
+	 * Note: wp_get_wp_version() is not used here, as this file can be included
+	 * via wp-admin/load-scripts.php or wp-admin/load-styles.php, in which case
+	 * wp-includes/functions.php is not loaded.
+	 */
+	require ABSPATH . WPINC . '/version.php';
+
 	$command_palette_settings = array(
 		'is_network_admin' => is_network_admin(),
 	);
@@ -3616,6 +3627,133 @@ function wp_enqueue_command_palette_assets() {
 			'wp.coreCommands.initializeCommandPalette( %s );',
 			wp_json_encode( $command_palette_settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 		)
+	);
+
+	/*
+	 * Styles for teletype easter egg.
+	 *
+	 * These are added to the DOM via the teletype JavaScript if the
+	 * easter egg is activated. Stored here to allow for HEREDOC
+	 * highlighting by IDEs.
+	 */
+	$teletype_styles = <<<'CSS'
+		.wp-teletype {
+			position:fixed;
+			inset:0;
+			z-index:2147483647;
+			margin:0;
+			padding:2.5em;
+			font-family:courier,monospace;
+			font-size:16px;
+			line-height:1.6;
+			background:#fff;
+			color:#000;
+			overflow:hidden;
+			transition:background-color .6s linear,color .6s linear
+		}
+		.wp-teletype.is-dark {
+			background:#000;color:#0f0
+		}
+		/* Focused only to move the reading position in, never by tabbing to it. */
+		.wp-teletype:focus {
+			outline:none
+		}
+		.wp-teletype p {
+			position:relative;
+			z-index:1;
+			margin:0;
+			white-space:pre-wrap
+		}
+		.wp-teletype .rain {
+			position:absolute;
+			inset:0;
+			opacity:.5
+		}
+		.wp-teletype .narration {
+			position:absolute;
+			width:1px;
+			height:1px;
+			margin:-1px;
+
+			padding:0;
+			overflow:hidden;
+			clip-path:inset(50%);
+			white-space:nowrap;
+			border:0
+		}
+		.wp-teletype .exit{
+			position:absolute;
+			z-index:2;
+			top:1.5em;
+			right:1.5em;
+
+			padding:.7em 1.8em;
+			border:0;
+			border-radius:999px;
+			background:#2271b1;
+			color:#fff;
+
+			font-family:inherit;
+			font-size:14px;
+			line-height:1;
+			cursor:pointer
+		}
+		.wp-teletype .exit:hover {
+			background:#135e96
+		}
+		.wp-teletype .exit:focus-visible {
+			outline:2px solid #fff;
+			outline-offset:2px
+		}
+		.wp-teletype .cursor{
+			opacity:0;
+			transition:opacity linear;
+			transition-duration: var( --wp-teletype-transition-duration ); /* Set in JS file */
+		}
+
+		.wp-teletype .cursor.is-visible{
+			opacity:1;
+			animation:wp-teletype-blink 1s step-end infinite
+		}
+
+		@keyframes wp-teletype-blink{
+			50% {
+				opacity:0}
+			}
+			@media (prefers-reduced-motion:reduce) {
+			.wp-teletype .cursor.is-visible{
+				animation:none
+			}
+			.wp-teletype,.wp-teletype .cursor {
+				transition:none
+			}
+		}
+	CSS;
+
+	// Someone has to keep an eye on the terminal.
+	wp_enqueue_script( 'wp-teletype-loader' );
+	wp_add_inline_script(
+		'wp-teletype-loader',
+		sprintf(
+			'window.wpTeletype = %s;',
+			wp_json_encode(
+				array(
+					'src'    => add_query_arg(
+						'ver',
+						$wp_version,
+						admin_url( 'js/teletype' . wp_scripts_get_suffix() . '.js' )
+					),
+					'name'   => wp_get_current_user()->display_name,
+					'styles' => str_replace( array( "\n", "\t" ), '', $teletype_styles ),
+					'i18n'   => array(
+						'label' => __( 'Press Escape to leave.' ),
+						'exit'  => __( 'Exit' ),
+					),
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+			)
+		),
+		'before'
 	);
 }
 
