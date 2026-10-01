@@ -35,6 +35,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
@@ -44,6 +46,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertIsArray( $image );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
 	}
 
 	/**
