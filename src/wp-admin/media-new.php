@@ -40,7 +40,7 @@ if ( $_POST ) {
 }
 
 // Used in the HTML title tag.
-$title       = __( 'Upload New Media' );
+$title       = __( 'Upload Media' );
 $parent_file = 'upload.php';
 
 get_current_screen()->add_help_tab(
@@ -77,7 +77,7 @@ if ( get_user_setting( 'uploader' ) || isset( $_GET['browser-uploader'] ) ) {
 
 	<?php media_upload_form(); ?>
 
-	<script type="text/javascript">
+	<script>
 	var post_id = <?php echo absint( $post_id ); ?>, shortform = 3;
 	</script>
 	<input type="hidden" name="post_id" id="post_id" value="<?php echo absint( $post_id ); ?>" />

@@ -263,15 +263,6 @@ function rest_api_default_filters() {
  * @since 4.7.0
  */
 function create_initial_rest_routes() {
-	global $wp_post_types;
-
-	// Register the registered templates endpoint. For that we need to copy the
-	// wp_template post type so that it's available as an entity in core-data.
-	$wp_post_types['wp_registered_template']                        = clone $wp_post_types['wp_template'];
-	$wp_post_types['wp_registered_template']->name                  = 'wp_registered_template';
-	$wp_post_types['wp_registered_template']->rest_base             = 'wp_registered_template';
-	$wp_post_types['wp_registered_template']->rest_controller_class = 'WP_REST_Registered_Templates_Controller';
-
 	foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
 		$controller = $post_type->get_rest_controller();
 
@@ -297,64 +288,6 @@ function create_initial_rest_routes() {
 			$controller->register_routes();
 		}
 	}
-
-	// Register the old templates endpoints. The WP_REST_Templates_Controller
-	// and sub-controllers used linked to the wp_template post type, but are no
-	// longer. They still require a post type object when contructing the class.
-	// To maintain backward and changes to these controller classes, we make use
-	// that the wp_template post type has the right information it needs.
-	$wp_post_types['wp_template']->rest_base = 'templates';
-	// Store the classes so they can be restored.
-	$original_rest_controller_class           = $wp_post_types['wp_template']->rest_controller_class;
-	$original_autosave_rest_controller_class  = $wp_post_types['wp_template']->autosave_rest_controller_class;
-	$original_revisions_rest_controller_class = $wp_post_types['wp_template']->revisions_rest_controller_class;
-	// Temporarily set the old classes.
-	$wp_post_types['wp_template']->rest_controller_class           = 'WP_REST_Templates_Controller';
-	$wp_post_types['wp_template']->autosave_rest_controller_class  = 'WP_REST_Template_Autosaves_Controller';
-	$wp_post_types['wp_template']->revisions_rest_controller_class = 'WP_REST_Template_Revisions_Controller';
-	// Initialize the controllers. The order is important: the autosave
-	// controller needs both the templates and revisions controllers.
-	$controller                                    = new WP_REST_Templates_Controller( 'wp_template' );
-	$wp_post_types['wp_template']->rest_controller = $controller;
-	$revisions_controller                          = new WP_REST_Template_Revisions_Controller( 'wp_template' );
-	$wp_post_types['wp_template']->revisions_rest_controller = $revisions_controller;
-	$autosaves_controller                                    = new WP_REST_Template_Autosaves_Controller( 'wp_template' );
-	// Unset the controller cache, it will be re-initialized when
-	// get_rest_controller is called.
-	$wp_post_types['wp_template']->rest_controller           = null;
-	$wp_post_types['wp_template']->revisions_rest_controller = null;
-	// Restore the original classes.
-	$wp_post_types['wp_template']->rest_controller_class           = $original_rest_controller_class;
-	$wp_post_types['wp_template']->autosave_rest_controller_class  = $original_autosave_rest_controller_class;
-	$wp_post_types['wp_template']->revisions_rest_controller_class = $original_revisions_rest_controller_class;
-	// Restore the original base.
-	$wp_post_types['wp_template']->rest_base = 'wp_template';
-
-	// Register the old routes.
-	$autosaves_controller->register_routes();
-	$revisions_controller->register_routes();
-	$controller->register_routes();
-
-	register_rest_field(
-		'wp_template',
-		'theme',
-		array(
-			'get_callback' => function ( $post_arr ) {
-				// add_additional_fields_to_object is also called for the old
-				// templates controller, so we need to check if the id is an
-				// integer to make sure it's the proper post type endpoint.
-				if ( ! is_int( $post_arr['id'] ) ) {
-					$template = get_block_template( $post_arr['id'], 'wp_template' );
-					return $template ? $template->theme : null;
-				}
-				$terms = get_the_terms( $post_arr['id'], 'wp_theme' );
-				if ( is_wp_error( $terms ) || empty( $terms ) ) {
-					return null;
-				}
-				return $terms[0]->slug;
-			},
-		)
-	);
 
 	// Post types.
 	$controller = new WP_REST_Post_Types_Controller();
@@ -491,6 +424,18 @@ function create_initial_rest_routes() {
 	$abilities_run_controller->register_routes();
 	$abilities_list_controller = new WP_REST_Abilities_V1_List_Controller();
 	$abilities_list_controller->register_routes();
+
+	// Icons.
+	$icons_controller = new WP_REST_Icons_Controller();
+	$icons_controller->register_routes();
+
+	// Icon Collections.
+	$icon_collections_controller = new WP_REST_Icon_Collections_Controller();
+	$icon_collections_controller->register_routes();
+
+	// View Config.
+	$view_config_controller = new WP_REST_View_Config_Controller();
+	$view_config_controller->register_routes();
 }
 
 /**
@@ -502,6 +447,15 @@ function create_initial_rest_routes() {
  */
 function rest_api_loaded() {
 	if ( empty( $GLOBALS['wp']->query_vars['rest_route'] ) ) {
+		return;
+	}
+
+	// Short-circuit before define()/die() if a REST dispatch is already in flight.
+	// serve_request() enforces this too; guarding here avoids the trailing die().
+	if ( isset( $GLOBALS['wp_rest_server'] )
+		&& $GLOBALS['wp_rest_server'] instanceof WP_REST_Server
+		&& $GLOBALS['wp_rest_server']->is_dispatching()
+	) {
 		return;
 	}
 
@@ -740,6 +694,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -1019,8 +975,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = isset( $ref[ $next ] ) ? $ref[ $next ] : array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -1577,6 +1533,12 @@ function rest_is_ip_address( $ip ) {
  *
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
+ *
+ * @phpstan-return (
+ *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
+ *         ? false
+ *         : ( $value is true|int|lowercase-string ? true : bool )
+ * )
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.
@@ -1627,13 +1589,43 @@ function rest_is_boolean( $maybe_bool ) {
 /**
  * Determines if a given value is integer-like.
  *
+ * This reports whether the value represents an integer; it does not guarantee that the
+ * value can be represented as a native PHP integer. Values whose magnitude exceeds
+ * `PHP_INT_MAX` are still reported as integer-like, even though the `(int)` cast that
+ * {@see rest_sanitize_value_from_schema()} applies for the 'integer' type cannot round-trip
+ * them: an out-of-range numeric *string* saturates to `PHP_INT_MAX` or `PHP_INT_MIN`, while
+ * an out-of-range *float* is an undefined conversion in PHP that yields an arbitrary wrapped
+ * value. Likewise, a numeric value with a fractional part that is too large for the fraction
+ * to be represented as a float (greater than 2 ** 53) is reported as integer-like.
+ *
  * @since 5.5.0
  *
  * @param mixed $maybe_integer The value being evaluated.
  * @return bool True if an integer, otherwise false.
  */
-function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
+function rest_is_integer( $maybe_integer ): bool {
+	if ( is_int( $maybe_integer ) ) {
+		return true;
+	}
+
+	// A canonical integer string of any magnitude — verified without float conversion.
+	if ( is_string( $maybe_integer ) && preg_match( '/^\s*[+-]?[0-9]+\s*$/', $maybe_integer ) ) {
+		return true;
+	}
+
+	// Decimal and scientific-notation strings (and floats) keep their historical behavior.
+	if ( ! is_numeric( $maybe_integer ) ) {
+		return false;
+	}
+	$float_value = (float) $maybe_integer;
+
+	/*
+	 * The strict equality here is not the unreliable "are two computed floats equal" comparison
+	 * (e.g. 0.1 + 0.2 === 0.3, which is false). It compares a float to its own floor() to ask
+	 * "does this float have a fractional part?". A float is whole exactly when it equals its floor,
+	 * so the comparison is exact and safe regardless of floating-point representation error.
+	 */
+	return floor( $float_value ) === $float_value;
 }
 
 /**
@@ -1901,7 +1893,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -2124,13 +2116,10 @@ function rest_are_values_equal( $value1, $value2 ) {
 			return false;
 		}
 
-		foreach ( $value1 as $index => $value ) {
-			if ( ! array_key_exists( $index, $value2 ) || ! rest_are_values_equal( $value, $value2[ $index ] ) ) {
-				return false;
-			}
-		}
-
-		return true;
+		return array_all(
+			$value1,
+			fn( $value, $index ) => array_key_exists( $index, $value2 ) && rest_are_values_equal( $value, $value2[ $index ] )
+		);
 	}
 
 	if ( is_int( $value1 ) && is_float( $value2 )
@@ -3155,7 +3144,7 @@ function rest_filter_response_by_context( $response_data, $schema, $context ) {
 		$check = array();
 
 		if ( $is_array_type ) {
-			$check = isset( $schema['items'] ) ? $schema['items'] : array();
+			$check = $schema['items'] ?? array();
 		} elseif ( $is_object_type ) {
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
@@ -3466,6 +3455,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.
@@ -3477,14 +3487,20 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {
 	$status = array_reduce(
 		$error->get_all_error_data(),
-		static function ( $status, $error_data ) {
-			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+		/**
+		 * @param int   $status     Status.
+		 * @param mixed $error_data Error data.
+		 */
+		static function ( int $status, $error_data ): int {
+			if ( is_array( $error_data ) && isset( $error_data['status'] ) && is_numeric( $error_data['status'] ) ) {
+				$status = (int) $error_data['status'];
+			}
+			return $status;
 		},
 		500
 	);

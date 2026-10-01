@@ -502,7 +502,8 @@ function url_to_postid( $url ) {
 	$url_host = parse_url( $url, PHP_URL_HOST );
 
 	if ( is_string( $url_host ) ) {
-		$url_host = str_replace( 'www.', '', $url_host );
+		// Only a leading 'www.' is optional. Removing it anywhere else would match a different host.
+		$url_host = preg_replace( '|^www\.|', '', $url_host );
 	} else {
 		$url_host = '';
 	}
@@ -510,7 +511,7 @@ function url_to_postid( $url ) {
 	$home_url_host = parse_url( home_url(), PHP_URL_HOST );
 
 	if ( is_string( $home_url_host ) ) {
-		$home_url_host = str_replace( 'www.', '', $home_url_host );
+		$home_url_host = preg_replace( '|^www\.|', '', $home_url_host );
 	} else {
 		$home_url_host = '';
 	}
@@ -577,7 +578,7 @@ function url_to_postid( $url ) {
 	} else {
 		// Chop off /path/to/blog.
 		$home_path = parse_url( home_url( '/' ) );
-		$home_path = isset( $home_path['path'] ) ? $home_path['path'] : '';
+		$home_path = $home_path['path'] ?? '';
 		$url       = preg_replace( sprintf( '#^%s#', preg_quote( $home_path ) ), '', trailingslashit( $url ) );
 	}
 

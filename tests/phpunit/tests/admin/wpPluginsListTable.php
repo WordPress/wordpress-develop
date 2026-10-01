@@ -137,7 +137,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 * @param string $status The value for $_REQUEST['plugin_status'].
 	 */
 	public function test_construct_should_not_set_show_autoupdates_to_false_for_mustuse_and_dropins( $status ) {
-		$original_status           = isset( $_REQUEST['plugin_status'] ) ? $_REQUEST['plugin_status'] : null;
+		$original_status           = $_REQUEST['plugin_status'] ?? null;
 		$_REQUEST['plugin_status'] = $status;
 
 		// Enable plugin auto-updates.
