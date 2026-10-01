@@ -436,6 +436,10 @@ function create_initial_rest_routes() {
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
+
+	// Fields.
+	$fields_controller = new WP_REST_Fields_Controller();
+	$fields_controller->register_routes();
 }
 
 /**
