@@ -63,6 +63,8 @@ global $allowedposttags, $allowedtags, $allowedentitynames, $allowedxmlentitynam
  * It’s safe to latch this into `legacy`.
  *
  * @global 'legacy'|'html-api' $wp_kses_operating_mode
+ *
+ * @since 7.2.0
  */
 global $wp_kses_operating_mode;
 $wp_kses_operating_mode = 'legacy';
@@ -958,9 +960,11 @@ if ( ! CUSTOM_TAGS ) {
  *
  * @see wp_kses_post() for specifically filtering post content and fields.
  * @see wp_allowed_protocols() for the default allowed protocols in link URLs.
- * @see wp_sanitize_html() for a modern implementation based on the HTML API.
+ *
+ * @see 'wp_kses_force_legacy_parser' to opt-in to the new HTML-API-based implementation.
  *
  * @since 1.0.0
+ * @since 7.2.0 New HTML-API-based implementation available via opt-in filter.
  *
  * @global string $wp_kses_operating_mode
  *
@@ -1003,7 +1007,7 @@ function wp_kses( $content, $allowed_html, $allowed_protocols = array() ) {
 /**
  * Filters HTML content, sanitizing according to given policies.
  *
- * Modern implementation of {@see wp_kses()} which parses via the HTML API.
+ * Modern implementation of {@see wp_kses()} built with the HTML API.
  *
  * @since 7.2.0
  *
@@ -1107,6 +1111,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		private $allowed_protocols;
 
 		/**
+		 * List of attributes whose values are expected to be considered URLs.
+		 *
+		 * @see \wp_kses_uri_attributes()
+		 *
+		 * @since 7.2.0
+		 *
+		 * @var string[]
+		 */
+		private $uri_attributes;
+
+		/**
 		 * Tracks balanced tags when inside foreign content.
 		 *
 		 * @since 7.2.0
@@ -1126,16 +1141,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		private $math_annotation_xml_depth = 0;
 
 		/**
-		 * List of attributes whose values are expected to be considered URLs.
-		 *
-		 * @see \wp_kses_uri_attributes()
+		 * Constructor function, used internally.
 		 *
 		 * @since 7.2.0
+		 * @access private
 		 *
-		 * @var array
+		 * @param string         $html                   Content to filter.
+		 * @param array[]|string $specified_allowed_html Context passed into sanitizer.
+		 * @param array[]        $allowed_html           Resolved allowable HTML.
+		 * @param array[]        $allowed_protocols      Resolved allowable protocols.
+		 * @param array[]        $uri_attributes         Resolved URI attributes.
 		 */
-		private $uri_attributes;
-
 		public function __construct( $html, $specified_allowed_html, $allowed_html, $allowed_protocols, $uri_attributes ) {
 			parent::__construct( $html );
 
@@ -1145,6 +1161,15 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			$this->uri_attributes         = $uri_attributes;
 		}
 
+		/**
+		 * Returns the raw byte-span of the currently-matched token,
+		 * assuming that the parser is matched on a token.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @return WP_HTML_Span|null
+		 */
 		private function get_span() {
 			$this->set_bookmark( 'here' );
 
@@ -1155,6 +1180,17 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return $this->bookmarks['here'];
 		}
 
+		/**
+		 * Sets the value of a given HTML attribute, adjusting URL attributes
+		 * to ensure compatibility with legacy {@see wp_kses()} behavior.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @param string      $name  Name of HTML attribute to set.
+		 * @param string|true $value Value to set; `true` for boolean attribute.
+		 * @return bool Whether the attribute was set.
+		 */
 		public function set_attribute( $name, $value ): bool {
 			$lower_name = strtolower( $name );
 			$is_url_ish = in_array( $lower_name, $this->uri_attributes, true );
@@ -1184,7 +1220,18 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 			return true;
 		}
 
-		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point, bool $is_inside_svg_html_integration_point ) {
+		/**
+		 * Indicates if the currently-matched token, given the parsed context, would require more
+		 * complicated parsing rules to proceed without risking escape from foreign content.
+		 *
+		 * @since 7.2.0
+		 * @access private
+		 *
+		 * @param bool $is_inside_mathml_text_integration_point
+		 * @param bool $is_inside_svg_html_integration_point
+		 * @return bool
+		 */
+		private function could_escape_foreign_content( bool $is_inside_mathml_text_integration_point, bool $is_inside_svg_html_integration_point ): bool {
 			$token_name   = $this->get_token_name();
 			$is_closer    = $this->is_tag_closer();
 			$namespace    = $this->get_namespace();
@@ -1318,6 +1365,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 		 * Indicates if a given string contains text that would parse as a block delimiter.
 		 *
 		 * @since 7.2.0
+		 * @access private
 		 *
 		 * @param string $text Does a block comment delimiter exist in this string value?
 		 * @return bool Whether a block comment delimiter of any kind was found in the given string.
@@ -1334,6 +1382,9 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 
 		/**
 		 * Returns a sanitized copy of the input HTML.
+		 *
+		 * @since 7.2.0
+		 * @access private
 		 *
 		 * @return string Sanitized copy of given input HTML.
 		 */
