@@ -1185,6 +1185,63 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'source_url', $data['media_details']['sizes']['rest-api-test'] );
 	}
 
+	/**
+	 * @ticket 65251
+	 */
+	public function test_get_item_sizes_empty_sizes_is_object() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			),
+			self::$test_file
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'      => 50,
+				'height'     => 50,
+				'file'       => 'canola.jpg',
+				'sizes'      => array(),
+				'image_meta' => array(),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertInstanceOf( 'stdClass', $data['media_details']['sizes'], 'Sizes should be an empty object (stdClass) when empty.' );
+		$this->assertSame( '{}', wp_json_encode( $data['media_details']['sizes'] ), 'Sizes must JSON-encode as an empty object.' );
+	}
+
+	/**
+	 * @ticket 65251
+	 */
+	public function test_get_item_empty_media_details_is_object() {
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			),
+			self::$test_file
+		);
+
+		delete_post_meta( $attachment_id, '_wp_attachment_metadata' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertInstanceOf( 'stdClass', $data['media_details'], 'media_details should be an empty object (stdClass) when metadata is missing.' );
+		$this->assertSame( '{}', wp_json_encode( $data['media_details'] ), 'media_details must JSON-encode as an empty object.' );
+	}
+
 	public function test_get_item_private_post_not_authenticated() {
 		wp_set_current_user( 0 );
 		$draft_post = self::factory()->post->create( array( 'post_status' => 'draft' ) );
