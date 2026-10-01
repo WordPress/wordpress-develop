@@ -152,6 +152,15 @@ const worker = workerFarm( require.resolve( './build-worker' ) );
 let ended = false,
 	complete = 0;
 
+// End the worker farm once the stream has ended and every file has been
+// processed. Completions must be counted even before the stream ends, since
+// workers can finish files before the glob stream emits `end`.
+const maybeEndWorkers = () => {
+	if ( ended && complete === files.length ) {
+		workerFarm.end( worker );
+	}
+};
+
 stream
 	.on( 'data', ( file ) => worker( file, ( error ) => {
 		onFileComplete();
@@ -169,11 +178,13 @@ stream
 			console.error( error );
 		}
 
-		if ( ended && ++complete === files.length ) {
-			workerFarm.end( worker );
-		}
+		++complete;
+		maybeEndWorkers();
 	} ) )
-	.on( 'end', () => ended = true )
+	.on( 'end', () => {
+		ended = true;
+		maybeEndWorkers();
+	} )
 	.resume();
 
 /* eslint-enable no-console */
