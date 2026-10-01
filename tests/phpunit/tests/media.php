@@ -1530,11 +1530,23 @@ VIDEO;
 
 		$h = ceil( ( $height * $width ) / $width );
 
+		// wp_video_shortcode() numbers every call in the process, so record this call's number.
+		$instance = 0;
+		add_filter(
+			'wp_video_shortcode_override',
+			static function ( $html, $attr, $content, $id ) use ( &$instance ) {
+				$instance = $id;
+				return $html;
+			},
+			10,
+			4
+		);
+
 		$content = apply_filters( 'the_content', $video );
 
 		$expected = '<div style="width: ' . $width . 'px;" class="wp-video">' .
-			'<video class="wp-video-shortcode" id="video-' . $post_id . '-1" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
-			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=1" />' .
+			'<video class="wp-video-shortcode" id="video-' . $post_id . '-' . $instance . '" width="' . $width . '" height="' . $h . '" preload="metadata" controls="controls">' .
+			'<source type="video/mp4" src="http://domain.tld/wp-content/uploads/2013/12/xyz.mp4?_=' . $instance . '" />' .
 			'<!-- WebM/VP8 for Firefox4, Opera, and Chrome --><source type="video/webm" src="myvideo.webm" />' .
 			'<!-- Ogg/Vorbis for older Firefox and Opera versions --><source type="video/ogg" src="myvideo.ogv" />' .
 			'<!-- Optional: Add subtitles for each language --><track kind="subtitles" src="subtitles.srt" srclang="en" />' .
