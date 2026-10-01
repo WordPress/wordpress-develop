@@ -20,12 +20,15 @@ class WP_Links_List_Table extends WP_List_Table {
 	 * Constructor.
 	 *
 	 * @since 3.1.0
+	 * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
 	 * @param array $args An associative array of arguments.
 	 */
 	public function __construct( $args = array() ) {
+		_deprecated_class( __CLASS__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 		parent::__construct(
 			array(
 				'plural' => 'bookmarks',

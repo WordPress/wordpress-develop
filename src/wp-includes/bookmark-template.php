@@ -165,6 +165,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
  * display for only the 'title_li' string and only if 'title_li' is not empty.
  *
  * @since 2.1.0
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @see _walk_bookmarks()
  *
@@ -214,6 +215,8 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
  * )
  */
 function wp_list_bookmarks( $args = '' ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$defaults = array(
 		'orderby'          => 'name',
 		'order'            => 'ASC',

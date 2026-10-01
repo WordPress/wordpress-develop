@@ -261,10 +261,13 @@ function wp_popular_terms_checklist( $taxonomy, $default_term = 0, $number = 10,
  * Outputs a link category checklist element.
  *
  * @since 2.5.1
+ * @deprecated 7.2.0 Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.
  *
  * @param int $link_id Optional. The link ID. Default 0.
  */
 function wp_link_category_checklist( $link_id = 0 ) {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'the WP Links plugin (https://github.com/georgestephanis/wp-links)' );
+
 	$default = 1;
 
 	$checked_categories = array();

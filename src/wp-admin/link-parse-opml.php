@@ -11,6 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+_deprecated_file( basename( __FILE__ ), '7.2.0', '', __( 'The Link Manager is deprecated. Use the WP Links plugin (https://github.com/georgestephanis/wp-links) instead.' ) );
+
 /**
  * @global string $opml
  */
