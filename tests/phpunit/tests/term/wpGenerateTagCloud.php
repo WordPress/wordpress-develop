@@ -1,6 +1,10 @@
 <?php
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_generate_tag_cloud
+ * @covers ::_wp_object_name_sort_cb
+ * @covers ::_wp_object_name_sort_key
  */
 class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	protected $terms = array();
@@ -294,6 +298,236 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		preg_match_all( '|tag\-link\-position-([0-9]+)|', $cloud, $matches );
 
 		$this->assertSame( array( 1, 2, 3 ), array_map( 'intval', $matches[1] ) );
+	}
+
+	/**
+	 * Returns tag objects for the given names, shaped the way `wp_tag_cloud()`
+	 * passes them to `wp_generate_tag_cloud()`.
+	 *
+	 * @param string[] $names Term names.
+	 * @return object[] Tag objects.
+	 */
+	protected function get_tags_for_names( array $names ) {
+		$tags = array();
+
+		foreach ( array_values( $names ) as $index => $name ) {
+			$tag        = new stdClass();
+			$tag->id    = $index + 1;
+			$tag->name  = $name;
+			$tag->slug  = 'tag-' . ( $index + 1 );
+			$tag->count = 1;
+			$tag->link  = 'https://example.org/?tag=' . $tag->slug;
+			$tags[]     = $tag;
+		}
+
+		return $tags;
+	}
+
+	/**
+	 * Generates a tag cloud and returns the term names in their sorted order.
+	 *
+	 * @param string[] $names Term names.
+	 * @return string[] Term names in the order produced by `wp_generate_tag_cloud()`.
+	 */
+	protected function get_sorted_names( array $names ) {
+		$cloud = wp_generate_tag_cloud( $this->get_tags_for_names( $names ), array( 'format' => 'array' ) );
+
+		return array_map( 'wp_strip_all_tags', $cloud );
+	}
+
+	/**
+	 * Greek letters that only differ by case.
+	 *
+	 * Each inner array holds all case variants of a single letter, written as
+	 * codepoints:
+	 *
+	 *     U+0391..U+0399  Greek capital letters
+	 *     U+03B1..U+03B9  Greek small letters
+	 *
+	 * All variants of a letter belong to one group and must stay together.
+	 *
+	 * @return string[][]
+	 */
+	protected function get_greek_case_groups() {
+		return array(
+			array( "\u{0391}", "\u{03B1}" ), // Alpha.
+			array( "\u{0392}", "\u{03B2}" ), // Beta.
+			array( "\u{0393}", "\u{03B3}" ), // Gamma.
+			array( "\u{0394}", "\u{03B4}" ), // Delta.
+			array( "\u{0395}", "\u{03B5}" ), // Epsilon.
+			array( "\u{0396}", "\u{03B6}" ), // Zeta.
+			array( "\u{0397}", "\u{03B7}" ), // Eta.
+			array( "\u{0398}", "\u{03B8}" ), // Theta.
+			array( "\u{0399}", "\u{03B9}" ), // Iota.
+		);
+	}
+
+	/**
+	 * Greek letters that differ by case and by accents.
+	 *
+	 * Each inner array holds all variants of a single letter, written as
+	 * codepoints:
+	 *
+	 *     U+0386, U+0388, U+0389, U+038A  capital letter with tonos
+	 *     U+0391..U+0399                 capital letter
+	 *     U+03B1..U+03B9                 small letter
+	 *     U+03AC..U+03AF                 small letter with tonos
+	 *     U+1F00..U+1F77                 small letter with breathing or grave
+	 *     U+1FB0, U+1FB1                 small alpha with vrachy or macron
+	 *
+	 * Consonants have no polytonic variants, so their groups are smaller than
+	 * the vowel groups. All variants of a letter belong to one group and must
+	 * stay together once combining marks are stripped.
+	 *
+	 * @return string[][]
+	 */
+	protected function get_greek_accent_groups() {
+		return array(
+			// Alpha.
+			array( "\u{0386}", "\u{0391}", "\u{03B1}", "\u{03AC}", "\u{1F00}", "\u{1F04}", "\u{1F70}", "\u{1F71}", "\u{1FB0}", "\u{1FB1}" ),
+			// Beta.
+			array( "\u{0392}", "\u{03B2}" ),
+			// Gamma.
+			array( "\u{0393}", "\u{03B3}" ),
+			// Delta.
+			array( "\u{0394}", "\u{03B4}" ),
+			// Epsilon.
+			array( "\u{0388}", "\u{0395}", "\u{03B5}", "\u{03AD}", "\u{1F10}", "\u{1F11}", "\u{1F72}", "\u{1F73}" ),
+			// Zeta.
+			array( "\u{0396}", "\u{03B6}" ),
+			// Eta.
+			array( "\u{0389}", "\u{0397}", "\u{03B7}", "\u{03AE}", "\u{1F20}", "\u{1F21}", "\u{1F74}", "\u{1F75}" ),
+			// Theta.
+			array( "\u{0398}", "\u{03B8}" ),
+			// Iota.
+			array( "\u{038A}", "\u{0399}", "\u{03B9}", "\u{03AF}", "\u{1F30}", "\u{1F31}", "\u{1F76}", "\u{1F77}" ),
+		);
+	}
+
+	/**
+	 * Asserts that every group of equivalent names stays contiguous and that
+	 * the groups themselves keep the order in which they were supplied.
+	 *
+	 * @param string[][] $groups       Groups of equivalent term names.
+	 * @param string[]   $sorted_names Term names in sorted order.
+	 */
+	protected function assertGroupsAreNotSplit( array $groups, array $sorted_names ) {
+		$group_of = array();
+		foreach ( $groups as $group_index => $names ) {
+			foreach ( $names as $name ) {
+				$group_of[ $name ] = $group_index;
+			}
+		}
+
+		$found_groups = array();
+		foreach ( $sorted_names as $name ) {
+			$this->assertArrayHasKey( $name, $group_of, "Unexpected term in the sorted output: {$name}" );
+			$found_groups[] = $group_of[ $name ];
+		}
+
+		$this->assertSame(
+			array_keys( $groups ),
+			array_values( array_unique( $found_groups ) ),
+			'Groups of equivalent names were split or reordered.'
+		);
+
+		$sorted_groups = $found_groups;
+		sort( $sorted_groups );
+		$this->assertSame( $sorted_groups, $found_groups, 'Groups of equivalent names were interleaved.' );
+	}
+
+	/**
+	 * Flattens a list of groups into a single list of names.
+	 *
+	 * @param string[][] $groups Groups of equivalent term names.
+	 * @return string[]
+	 */
+	protected function flatten_groups( array $groups ) {
+		$names = array();
+
+		foreach ( $groups as $group ) {
+			$names = array_merge( $names, $group );
+		}
+
+		return $names;
+	}
+
+	/**
+	 * The tag cloud is sorted in PHP after SQL has already sorted the terms.
+	 * The comparison must not reorder plain ASCII names.
+	 *
+	 * @ticket 35144
+	 */
+	public function test_ascii_names_keep_their_natural_order() {
+		$names = array( 'banana', 'apple', 'Cherry', 'item10', 'item9', 'Item2', 'zebra', 'Zulu', 'alpha' );
+
+		$this->assertSame(
+			array( 'alpha', 'apple', 'banana', 'Cherry', 'Item2', 'item9', 'item10', 'zebra', 'Zulu' ),
+			$this->get_sorted_names( $names )
+		);
+	}
+
+	/**
+	 * Latin terms must keep sorting before Greek ones.
+	 *
+	 * @ticket 35144
+	 */
+	public function test_latin_names_sort_before_greek_names() {
+		$names = array( 'zebra', "\u{0386}\u{03BB}\u{03C6}\u{03B1}", 'Apple', "\u{03C9}\u{03BC}\u{03AD}\u{03B3}\u{03B1}", 'beta' );
+
+		$this->assertSame(
+			array( 'Apple', 'beta', 'zebra', "\u{0386}\u{03BB}\u{03C6}\u{03B1}", "\u{03C9}\u{03BC}\u{03AD}\u{03B3}\u{03B1}" ),
+			$this->get_sorted_names( $names )
+		);
+	}
+
+	/**
+	 * Uppercase and lowercase Greek letters must not be split into separate
+	 * groups by the byte-oriented comparison.
+	 *
+	 * @ticket 35144
+	 */
+	public function test_greek_case_variants_are_not_split_into_groups() {
+		$groups = $this->get_greek_case_groups();
+
+		$this->assertGroupsAreNotSplit( $groups, $this->get_sorted_names( $this->flatten_groups( $groups ) ) );
+	}
+
+	/**
+	 * Accents must not split Greek letters into separate groups either.
+	 *
+	 * Folding accents requires the intl extension, which WordPress does not
+	 * require, so this test is skipped when it is unavailable.
+	 *
+	 * @ticket 35144
+	 */
+	public function test_greek_accent_variants_are_not_split_into_groups() {
+		if ( ! class_exists( 'Normalizer' ) ) {
+			$this->markTestSkipped( 'This test requires the intl extension.' );
+		}
+
+		$groups = $this->get_greek_accent_groups();
+
+		$this->assertGroupsAreNotSplit( $groups, $this->get_sorted_names( $this->flatten_groups( $groups ) ) );
+	}
+
+	/**
+	 * The variants of a single Greek letter form one group, ordered
+	 * deterministically by the original name whenever their sort keys match.
+	 *
+	 * @ticket 35144
+	 */
+	public function test_greek_alpha_variants_form_a_single_deterministic_group() {
+		if ( ! class_exists( 'Normalizer' ) ) {
+			$this->markTestSkipped( 'This test requires the intl extension.' );
+		}
+
+		$names = array( "\u{1FB1}", "\u{03AC}", "\u{0386}", "\u{1FB0}", "\u{1F70}", "\u{1F04}", "\u{1F00}", "\u{03B1}" );
+
+		$this->assertSame(
+			array( "\u{0386}", "\u{03AC}", "\u{03B1}", "\u{1F00}", "\u{1F04}", "\u{1F70}", "\u{1FB0}", "\u{1FB1}" ),
+			$this->get_sorted_names( $names )
+		);
 	}
 
 	/**
