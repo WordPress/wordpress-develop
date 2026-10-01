@@ -667,6 +667,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_crop_image
+	 * @group external-http
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
