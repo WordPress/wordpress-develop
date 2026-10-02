@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-activate.php
-		-
 			message: '#^Variable \$pagenow might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -351,11 +346,6 @@ parameters:
 		-
 			message: '#^Variable \$wpdb might not be defined\.$#'
 			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/network/site-new.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
 			count: 5
 			path: ../../../src/wp-admin/network/site-settings.php
 		-
@@ -407,11 +397,6 @@ parameters:
 			message: '#^Variable \$options_to_update might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/options.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
 			path: ../../../src/wp-admin/options.php
 		-
 			message: '#^Variable \$page might not be defined\.$#'
@@ -509,11 +494,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/upgrade.php
 		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/upload.php
-		-
 			message: '#^Variable \$_wp_admin_css_colors might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -529,19 +509,9 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/user-edit.php
 		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 12
-			path: ../../../src/wp-admin/user-edit.php
-		-
 			message: '#^Variable \$blog_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/user-new.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
 			path: ../../../src/wp-admin/user-new.php
 		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
@@ -664,11 +634,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-content/themes/twentyten/loop.php
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentyten/loop.php
-		-
 			message: '#^Variable \$next_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -698,11 +663,6 @@ parameters:
 			identifier: variable.undefined
 			count: 4
 			path: ../../../src/wp-content/themes/twentytwentyone/image.php
-		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentytwentyone/search.php
 		-
 			message: '#^Variable \$original_content might not be defined\.$#'
 			identifier: variable.undefined
@@ -963,11 +923,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-settings.php
-		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-signup.php
 		-
 			message: '#^Variable \$posts might not be defined\.$#'
 			identifier: variable.undefined

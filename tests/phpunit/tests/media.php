@@ -76,6 +76,10 @@ CAP;
 		self::$original_wp_styles = $wp_styles;
 		$wp_styles                = null;
 		parent::set_up();
+
+		$this->reset_content_media_count();
+		$this->reset_omit_loading_attr_filter();
+		$this->reset_high_priority_element_flag();
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -269,7 +273,7 @@ CAP;
 			)
 		);
 		$this->assertSame( 1, substr_count( $result, 'wp-caption &amp;myAlignment' ) );
-		$this->assertSame( 1, preg_match( '/id="myId(?:[0-9]+)?"/', $result ) );
+		$this->assertSame( 1, preg_match( '/id="myId(?:-[0-9]+)?"/', $result ) );
 		$this->assertSame( 1, substr_count( $result, self::CAPTION ) );
 	}
 
@@ -956,7 +960,7 @@ https://w.org</a>',
 	 * @param mixed $filesize The `filesize` value stored in the attachment metadata.
 	 */
 	public function test_wp_prepare_attachment_for_js_filesize_falls_back_to_the_file( $filesize ) {
-		$id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$id = self::$large_id;
 		$this->assertIsInt( $id );
 		$post = get_post( $id );
 		$this->assertInstanceOf( WP_Post::class, $post );
