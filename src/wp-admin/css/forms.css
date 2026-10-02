@@ -359,6 +359,8 @@ input[type="radio"].disabled:checked::before {
 	border-color: var(--wp-admin-theme-color);
 	color: #1e1e1e;
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
 }
 
 .wp-core-ui select:active {
