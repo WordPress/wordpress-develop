@@ -1472,6 +1472,11 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the default `data-wp-html` entry using an inert comment.
 	 *
+	 * Declines incompatible directives, targets that cannot hold content, and
+	 * unregistered values with a notice. Null values and ignored entries are silent.
+	 *
+	 * @since 7.2.0
+	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
 	 * @param string                                    $mode Whether processing enters or exits the tag.
 	 */
@@ -1479,19 +1484,60 @@ final class WP_Interactivity_API {
 		if ( 'enter' !== $mode ) {
 			return;
 		}
+		$entries = $this->get_directive_entries( $p, 'html' );
+		if ( $this->get_directive_entries( $p, 'text' ) || ( 'TEMPLATE' === $p->get_tag() && $this->get_directive_entries( $p, 'each' ) ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: Directive name, 2: HTML tag name, 3: Directive references. */
+					__( 'The %1$s directive on <%2$s> cannot be combined with data-wp-text or with data-wp-each on a template. References: %3$s.' ),
+					'data-wp-html',
+					$p->get_tag(),
+					implode( ', ', array_unique( array_filter( array_column( $entries, 'value' ), 'is_string' ) ) )
+				),
+				'7.2.0'
+			);
+			return;
+		}
 		$entry = array_find(
-			$this->get_directive_entries( $p, 'html' ),
+			$entries,
 			fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] && ! empty( $entry['value'] )
 		);
 		if ( null === $entry ) {
 			return;
 		}
 		$value = $this->evaluate( $entry );
-		if ( ! $p->has_and_visits_its_closer_tag() || null === $value ) {
+		if ( ! $p->has_and_visits_its_closer_tag() ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: Directive name, 2: Directive reference, 3: HTML tag name. */
+					__( 'The %1$s directive with reference "%2$s" cannot render because <%3$s> cannot hold content.' ),
+					'data-wp-html',
+					$entry['value'],
+					$p->get_tag()
+				),
+				'7.2.0'
+			);
+			return;
+		}
+		if ( null === $value ) {
 			return;
 		}
 		$html = self::get_dangerous_html( $value );
 		if ( null === $html ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: 1: Directive name, 2: Directive reference, 3: HTML tag name, 4: Trusted HTML function name. */
+					__( 'The %1$s directive with reference "%2$s" on <%3$s> resolved to a value that is not a token returned by %4$s.' ),
+					'data-wp-html',
+					$entry['value'],
+					$p->get_tag(),
+					'wp_interactivity_as_dangerous_html()'
+				),
+				'7.2.0'
+			);
 			return;
 		}
 		$placeholder = '<!--' . $this->html_placeholder_marker . count( $this->html_placeholders ) . '-->';

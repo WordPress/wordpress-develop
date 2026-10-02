@@ -9,20 +9,54 @@ class Tests_WP_Interactivity_API_WP_HTML extends WP_UnitTestCase {
 	/** @var WP_Interactivity_API Previous global API instance. */
 	private $previous_interactivity;
 
-	/** Installs a fresh API instance for public function calls. */
+	/** @var array[] Notices emitted while processing directives. */
+	private $notices = array();
+
+	/** Installs a fresh API instance and observes public directive notices. */
 	public function set_up() {
 		parent::set_up();
 		global $wp_interactivity;
 		$this->previous_interactivity = $wp_interactivity;
 		$wp_interactivity             = new WP_Interactivity_API();
 		wp_interactivity_state( 'test', array( 'text' => 'processed' ) );
+		add_action( 'doing_it_wrong_run', array( $this, 'record_notice' ), 10, 3 );
 	}
 
-	/** Restores the global API instance. */
+	/** Removes the notice observer and restores the global API instance. */
 	public function tear_down() {
+		remove_action( 'doing_it_wrong_run', array( $this, 'record_notice' ) );
 		global $wp_interactivity;
 		$wp_interactivity = $this->previous_interactivity;
 		parent::tear_down();
+	}
+
+	/**
+	 * Records the public notice event, including its reported function and version.
+	 *
+	 * @param string $function_name Reported function.
+	 * @param string $message       Notice message.
+	 * @param string $version       Version introducing the notice.
+	 */
+	public function record_notice( $function_name, $message, $version ) {
+		$this->notices[] = array( $function_name, $message, $version );
+	}
+
+	/**
+	 * Asserts exactly one notice identifies the decline reason and host.
+	 *
+	 * @param string $reason    Reason text.
+	 * @param string $tag       Host tag name.
+	 * @param string $reference Directive reference, if present.
+	 */
+	private function assert_decline_notice( string $reason, string $tag, string $reference = 'state.html' ) {
+		$this->assertCount( 1, $this->notices );
+		$this->assertSame( 'WP_Interactivity_API::data_wp_html_processor', $this->notices[0][0] );
+		$this->assertSame( '7.2.0', $this->notices[0][2] );
+		$this->assertStringContainsString( $reason, $this->notices[0][1] );
+		$this->assertStringContainsString( $tag, $this->notices[0][1] );
+		if ( '' !== $reference ) {
+			$this->assertStringContainsString( $reference, $this->notices[0][1] );
+		}
 	}
 
 	/**
@@ -53,7 +87,11 @@ class Tests_WP_Interactivity_API_WP_HTML extends WP_UnitTestCase {
 		}
 	}
 
-	/** Tests repeated tokens, distinct tokens, and reuse of destroyed object IDs. */
+	/**
+	 * Tests repeated tokens, distinct tokens, and reuse of destroyed object IDs.
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 */
 	public function test_token_identity() {
 		for ( $i = 0; $i < 100; ++$i ) {
 			$a = wp_interactivity_as_dangerous_html( '<b>A</b>' );
@@ -184,5 +222,169 @@ class Tests_WP_Interactivity_API_WP_HTML extends WP_UnitTestCase {
 			str_replace( '</template>', '</template><li data-wp-each-child="test::state.items" data-wp-html="state.description"><b>A</b></li><li data-wp-each-child="test::state.items" data-wp-html="state.description"><i>B</i></li>', $html ),
 			wp_interactivity_process_directives( $html )
 		);
+	}
+
+	/**
+	 * Tests non-token values preserve fallback directives and sibling processing.
+	 *
+	 * @dataProvider data_non_tokens
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 * @param string $kind Kind of untrusted value.
+	 */
+	public function test_non_tokens_decline( string $kind ) {
+		$token  = wp_interactivity_as_dangerous_html( '<b>marker-7f3a</b>' );
+		$class  = get_class( $token );
+		$values = array(
+			'string'       => '<p>Hi</p>',
+			'number'       => 1,
+			'boolean'      => true,
+			'array'        => array( '<p>Hi</p>' ),
+			'object'       => new stdClass(),
+			'clone'        => clone $token,
+			'new'          => new $class(),
+			'unserialized' => unserialize( serialize( $token ) ),
+		);
+		wp_interactivity_state( 'test', array( 'html' => $values[ $kind ] ) );
+		$html = $this->region( '<div data-wp-html="state.html">Fallback<span data-wp-text="state.text">x</span></div>' );
+		$this->assertSame( str_replace( '>x</span>', '>processed</span>', $html ), wp_interactivity_process_directives( $html ) );
+		$this->assert_decline_notice( 'not a token', 'DIV' );
+		$this->assertStringNotContainsString( '<p>Hi</p>', $this->notices[0][1] );
+	}
+
+	/**
+	 * Supplies the unregistered value kinds.
+	 *
+	 * @return array[] Value kinds.
+	 */
+	public static function data_non_tokens() {
+		return array_map(
+			static function ( $kind ) {
+				return array( $kind );
+			},
+			array( 'string', 'number', 'boolean', 'array', 'object', 'clone', 'new', 'unserialized' )
+		);
+	}
+
+	/** Tests null and unresolved references preserve fallback silently. */
+	public function test_null_and_unresolved_references() {
+		wp_interactivity_state( 'test', array( 'html' => null ) );
+		foreach ( array( 'state.html', 'state.missing' ) as $reference ) {
+			$html = $this->region( '<div data-wp-html="' . $reference . '">Fallback</div>' );
+			$this->assertSame( str_replace( '>x</span>', '>processed</span>', $html ), wp_interactivity_process_directives( $html ) );
+		}
+		$this->assertSame( array(), $this->notices );
+	}
+
+	/**
+	 * Tests JSON context cannot supply a trusted token.
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 */
+	public function test_context_value_declines() {
+		$html = '<div data-wp-interactive="test" data-wp-context=\'{"html":{}}\'><div data-wp-html="context.html">Fallback</div><span data-wp-text="state.text">x</span></div>';
+		$this->assertSame( str_replace( '>x</span>', '>processed</span>', $html ), wp_interactivity_process_directives( $html ) );
+		$this->assert_decline_notice( 'not a token', 'DIV', 'context.html' );
+	}
+
+	/**
+	 * Tests void, raw-text, and RCDATA hosts decline without changing output.
+	 *
+	 * @dataProvider data_ineligible_hosts
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 * @param string $tag     Host tag.
+	 * @param bool   $is_void Whether the tag is void.
+	 */
+	public function test_ineligible_hosts( string $tag, bool $is_void ) {
+		wp_interactivity_state( 'test', array( 'html' => wp_interactivity_as_dangerous_html( '<b>marker-7f3a</b>' ) ) );
+		$html = $this->region( '<' . $tag . ' data-wp-html="state.html">' . ( $is_void ? '' : 'Fallback</' . $tag . '>' ) );
+		$this->assertSame( str_replace( '>x</span>', '>processed</span>', $html ), wp_interactivity_process_directives( $html ) );
+		$this->assert_decline_notice( 'cannot hold content', strtoupper( $tag ) );
+	}
+
+	/**
+	 * Supplies all unsupported host categories.
+	 *
+	 * @return array[] Host tag and void status.
+	 */
+	public static function data_ineligible_hosts() {
+		return array(
+			array( 'img', true ),
+			array( 'br', true ),
+			array( 'textarea', false ),
+			array( 'title', false ),
+			array( 'script', false ),
+			array( 'style', false ),
+			array( 'iframe', false ),
+			array( 'noembed', false ),
+			array( 'noframes', false ),
+			array( 'xmp', false ),
+		);
+	}
+
+	/**
+	 * Tests text wins over every HTML entry form without evaluating HTML.
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 */
+	public function test_text_combinations() {
+		wp_interactivity_state( 'test', array( 'text' => '<b>processed</b>' ) );
+		$values = array( wp_interactivity_as_dangerous_html( '<b>marker-7f3a</b>' ), '<p>Hi</p>', null );
+		foreach ( $values as $value ) {
+			wp_interactivity_state( 'test', array( 'html' => $value ) );
+			foreach ( array( 'data-wp-html="state.html"', 'data-wp-html=""', 'data-wp-html--x="state.html"', 'data-wp-html---id="state.html"', 'data-wp-html="state.html" data-wp-html--x="state.html"' ) as $attribute ) {
+				$this->notices = array();
+				$html          = $this->region( '<div ' . $attribute . ' data-wp-text="state.text">Fallback</div>' );
+				$this->assertSame( str_replace( array( 'Fallback', '>x</span>' ), array( '&lt;b&gt;processed&lt;/b&gt;', '>&lt;b&gt;processed&lt;/b&gt;</span>' ), $html ), wp_interactivity_process_directives( $html ) );
+				$this->assert_decline_notice( 'cannot be combined', 'DIV', 'data-wp-html=""' === $attribute ? '' : 'state.html' );
+			}
+		}
+		wp_interactivity_state(
+			'test',
+			array(
+				'html' => static function () {
+					throw new Exception( 'The combination must not evaluate this reference.' );
+				},
+			)
+		);
+		$this->notices = array();
+		wp_interactivity_process_directives( $this->region( '<div data-wp-html="state.html" data-wp-text--x="state.text">Fallback</div>' ) );
+		$this->assert_decline_notice( 'cannot be combined', 'DIV' );
+	}
+
+	/**
+	 * Tests each combinations render the same items as a template without HTML.
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 */
+	public function test_each_combinations() {
+		wp_interactivity_state(
+			'test',
+			array(
+				'html' => wp_interactivity_as_dangerous_html( '<b>marker-7f3a</b>' ),
+				'list' => array( 'a', 'b' ),
+			)
+		);
+		foreach ( array( 'data-wp-html="state.html"', 'data-wp-html=""', 'data-wp-html--x="state.html"', 'data-wp-html---id="state.html"' ) as $attribute ) {
+			$this->notices = array();
+			$html          = $this->region( '<ul><template data-wp-each="state.list" ' . $attribute . '><li data-wp-text="context.item">x</li></template></ul>' );
+			$baseline      = wp_interactivity_process_directives( str_replace( ' ' . $attribute, '', $html ) );
+			$this->assertSame( str_replace( 'data-wp-each="state.list"', 'data-wp-each="state.list" ' . $attribute, $baseline ), wp_interactivity_process_directives( $html ) );
+			$this->assertStringContainsString( '>a</li><li data-wp-each-child="test::state.list" data-wp-text="context.item">b</li>', $baseline );
+			$this->assert_decline_notice( 'cannot be combined', 'TEMPLATE', 'data-wp-html=""' === $attribute ? '' : 'state.html' );
+		}
+	}
+
+	/**
+	 * Tests the three public notice messages distinguish decline reasons.
+	 *
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 */
+	public function test_notice_messages_are_distinct() {
+		wp_interactivity_state( 'test', array( 'html' => '<p>Hi</p>' ) );
+		foreach ( array( '<div data-wp-html="state.html">Fallback</div>', '<br data-wp-html="state.html">', '<div data-wp-html="state.html" data-wp-text="state.text">Fallback</div>' ) as $host ) {
+			wp_interactivity_process_directives( $this->region( $host ) );
+		}
+		$this->assertCount( 3, $this->notices );
+		$this->assertCount( 3, array_unique( array_column( $this->notices, 1 ) ) );
 	}
 }
