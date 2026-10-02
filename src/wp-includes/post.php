@@ -323,7 +323,6 @@ function create_initial_post_types() {
 				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
 				'item_scheduled'           => __( 'Pattern scheduled.' ),
 				'item_updated'             => __( 'Pattern updated.' ),
-				
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */

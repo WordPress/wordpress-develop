@@ -135,4 +135,81 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
 		return $labels;
 	}
+
+	/**
+	 * @ticket 65024
+	 *
+	 * @covers ::get_post_type_labels
+	 *
+	 * @dataProvider data_item_draft_saved_label_should_have_a_default_value
+	 *
+	 * @param bool $hierarchical Whether the post type is hierarchical.
+	 */
+	public function test_item_draft_saved_label_should_have_a_default_value( $hierarchical ) {
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(),
+				'hierarchical' => $hierarchical,
+			)
+		);
+
+		$this->assertSame( 'Draft saved.', $labels->item_draft_saved );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_item_draft_saved_label_should_have_a_default_value() {
+		return array(
+			'non-hierarchical post type' => array( false ),
+			'hierarchical post type'     => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 65024
+	 *
+	 * @covers ::get_post_type_labels
+	 */
+	public function test_item_draft_saved_label_should_not_be_overridden_by_default() {
+		$labels = get_post_type_labels(
+			(object) array(
+				'name'         => 'foo',
+				'labels'       => array(
+					'item_draft_saved' => 'Foo draft saved.',
+				),
+				'hierarchical' => false,
+			)
+		);
+
+		$this->assertSame( 'Foo draft saved.', $labels->item_draft_saved );
+	}
+
+	/**
+	 * @ticket 65024
+	 *
+	 * @covers ::get_post_type_labels
+	 *
+	 * @dataProvider data_item_draft_saved_label_should_be_set_for_built_in_post_types
+	 *
+	 * @param string $post_type Post type name.
+	 */
+	public function test_item_draft_saved_label_should_be_set_for_built_in_post_types( $post_type ) {
+		$this->assertSame( 'Draft saved.', get_post_type_object( $post_type )->labels->item_draft_saved );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_item_draft_saved_label_should_be_set_for_built_in_post_types() {
+		return array(
+			'post' => array( 'post' ),
+			'page' => array( 'page' ),
+		);
+	}
 }
