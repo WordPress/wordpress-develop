@@ -21,6 +21,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	protected $backup_registered_sidebars;
 
 	/**
+	 * Theme support state before the test runs.
+	 *
+	 * @var array
+	 */
+	protected $backup_theme_features;
+
+	/**
 	 * ID of the administrator user.
 	 *
 	 * @var int
@@ -40,6 +47,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
+		$this->backup_theme_features = $GLOBALS['_wp_theme_features'];
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
@@ -110,6 +118,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
+		$GLOBALS['_wp_theme_features']     = $this->backup_theme_features;
 		parent::tear_down();
 	}
 
