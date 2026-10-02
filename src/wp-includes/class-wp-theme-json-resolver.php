@@ -106,11 +106,12 @@ class WP_Theme_JSON_Resolver {
 			if ( array_key_exists( $file_path, static::$theme_json_file_cache ) ) {
 				return static::$theme_json_file_cache[ $file_path ];
 			}
-
-			$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
-			if ( is_array( $decoded_file ) ) {
-				static::$theme_json_file_cache[ $file_path ] = $decoded_file;
-				return static::$theme_json_file_cache[ $file_path ];
+			if ( is_readable( $file_path ) ) {
+				$decoded_file = wp_json_file_decode( $file_path, array( 'associative' => true ) );
+				if ( is_array( $decoded_file ) ) {
+					static::$theme_json_file_cache[ $file_path ] = $decoded_file;
+					return static::$theme_json_file_cache[ $file_path ];
+				}
 			}
 		}
 
