@@ -648,6 +648,49 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the deprecated _flip_image_resource() moves every pixel to the expected position.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_moves_pixels( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// A 3x2 image in which every pixel has a distinct color.
+		$width  = 3;
+		$height = 2;
+		$image  = imagecreatetruecolor( $width, $height );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				imagesetpixel( $image, $x, $y, ( $x + 1 ) * 0x100000 + ( $y + 1 ) * 0x10 );
+			}
+		}
+		$original = imagecreatetruecolor( $width, $height );
+		imagecopy( $original, $image, 0, 0, 0, 0, $width, $height );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( is_gd_image( $flipped ), '_flip_image_resource() should return a GD image.' );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				$this->assertSame(
+					imagecolorat( $original, $x, $y ),
+					imagecolorat( $flipped, $vert ? $width - 1 - $x : $x, $horz ? $height - 1 - $y : $y ),
+					"Pixel ($x, $y) was not moved to the expected position."
+				);
+			}
+		}
+	}
+
+	/**
 	 * Tests that flipping returns a WP_Error, not false, when the image cannot be flipped.
 	 *
 	 * @ticket 66113
