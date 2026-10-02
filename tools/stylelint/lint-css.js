@@ -17,6 +17,7 @@ async function main() {
 	// Stylelint leaves `errored` set on results whose problems were all suppressed, so count what remains.
 	const hasErrors = results.some( ( result ) =>
 		result.parseErrors.length > 0 ||
+		result.invalidOptionWarnings.length > 0 ||
 		result.warnings.some( ( warning ) => warning.severity === 'error' )
 	);
 

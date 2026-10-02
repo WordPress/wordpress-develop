@@ -58,7 +58,7 @@ module.exports = {
 			'^([a-z][a-z0-9]*)(-[a-z0-9]+)*$',
 			{
 				message:
-					'Class selector should use lowercase class segments separated with hyphens, double hyphens, or double underscores',
+					'Class selector should use lowercase and separate words with hyphens',
 			},
 		],
 		'selector-id-pattern': [
@@ -74,7 +74,7 @@ module.exports = {
 			{
 				ignoreKeywords: [
 					'currentColor',
-					'optimizeLegibility'
+					'optimizeLegibility',
 				],
 			},
 		],
@@ -103,7 +103,4 @@ module.exports = {
 		// End keep these lines.
 	},
 	reportDescriptionlessDisables: true,
-	ignorePath: '.stylelintignore',
 };
-
-
