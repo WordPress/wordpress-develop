@@ -91,7 +91,7 @@ unset( $GLOBALS['wp_roles'] );
 // Prefill a permalink structure so that WP doesn't try to determine one itself.
 add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
-wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, null, 'password' );
+wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, '', 'password' );
 
 // Delete dummy permalink structure, as prefilled above.
 if ( ! is_multisite() ) {
