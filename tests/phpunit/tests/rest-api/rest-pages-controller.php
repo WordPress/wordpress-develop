@@ -409,10 +409,27 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		$page_id = self::factory()->post->create(
+			array(
+				'post_title'   => 'Page Title',
+				'post_content' => 'Page content',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $page_id, $data['id'] );
+		$this->assertSame( 'page', $data['type'] );
+		$this->assertSame( 'Page Title', $data['title']['rendered'] );
+		$this->assertSame( wpautop( 'Page content' ), $data['content']['rendered'] );
 	}
 
 	public function test_get_item_invalid_post_type() {
