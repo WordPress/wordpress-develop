@@ -28,6 +28,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		$expected = wp_count_attachments( $mime_type );
 		$actual   = wp_cache_get( $cache_key, 'counts' );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $actual );
 	}
 }
