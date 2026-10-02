@@ -397,7 +397,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 /* Search */
 
 html :where(.wp-block-search__button-inside .wp-block-search__inside-wrapper) {
-	border: 1px solid #949494;
+	border: 1px solid #757575;
 	padding: 4px;
 }
 
