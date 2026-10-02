@@ -37,10 +37,10 @@ class WP_Sitemaps_Renderer {
 	protected $stylesheet_index = '';
 
 	/**
-	 * Constructor retained for backward compatibility.
+	 * WP_Sitemaps_Renderer constructor.
 	 *
 	 * @since 5.5.0
-	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 * @since 7.2.0 No longer sets up the stylesheets, which are no longer supported.
 	 */
 	public function __construct() {}
 
