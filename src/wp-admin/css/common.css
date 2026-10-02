@@ -576,6 +576,10 @@ code {
 	margin-left: 0;
 }
 
+.js-update-details-toggle {
+	line-height: inherit;
+}
+
 .js-update-details-toggle .dashicons {
 	text-decoration: none;
 }
