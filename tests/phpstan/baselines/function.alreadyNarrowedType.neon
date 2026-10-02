@@ -69,11 +69,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Call to function is_scalar\(\) with int\|string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 3
-			path: ../../../src/wp-includes/functions.php
-		-
 			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -94,7 +89,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-functions.php
 		-
-			message: '#^Call to function is_array\(\) with array\{non\-falsy\-string, non\-falsy\-string&numeric\-string, numeric\-string, numeric\-string\} will always evaluate to true\.$#'
+			message: '#^Call to function is_array\(\) with non\-empty\-array\<string\> will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: ../../../src/wp-includes/post.php

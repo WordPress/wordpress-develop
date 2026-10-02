@@ -930,7 +930,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( (string) $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,
@@ -2024,6 +2024,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
+	/**
+	 * A missing post should be reported as a missing post, even when the request
+	 * also sets `status` and the user is not allowed to set it.
+	 *
+	 * @ticket 65761
+	 */
+	public function test_create_comment_status_and_no_post_id_no_permission() {
+		wp_set_current_user( self::$author_id );
+
+		$params = array(
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'status'       => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
 	public function test_create_comment_invalid_post_id() {
 		wp_set_current_user( self::$admin_id );
 
@@ -2579,7 +2604,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 	}
 
 	public function test_update_comment_field_does_not_use_default_values() {
@@ -2607,7 +2632,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 		$this->assertSame( 'some content', $updated->comment_content );
 	}
 
@@ -3387,7 +3412,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		wp_set_current_user( 1 );
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(
@@ -3401,7 +3426,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
@@ -3458,10 +3483,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected function check_comment_data( $data, $context, $links ) {
 		$comment = get_comment( $data['id'] );
 
-		$this->assertEquals( $comment->comment_ID, $data['id'] );
-		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
-		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertEquals( $comment->user_id, $data['author'] );
+		$this->assertSame( (int) $comment->comment_ID, $data['id'] );
+		$this->assertSame( (int) $comment->comment_post_ID, $data['post'] );
+		$this->assertSame( (int) $comment->comment_parent, $data['parent'] );
+		$this->assertSame( (int) $comment->user_id, $data['author'] );
 		$this->assertSame( $comment->comment_author, $data['author_name'] );
 		$this->assertSame( $comment->comment_author_url, $data['author_url'] );
 		$this->assertSame( wpautop( $comment->comment_content ), $data['content']['rendered'] );
@@ -3814,6 +3839,36 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A missing post should be reported as a missing post for notes too.
+	 *
+	 * Without a post, the `status` capability check falls back to
+	 * `current_user_can( 'edit_post', 0 )`, which no role can satisfy. An
+	 * administrator is used here to show the missing post is reported even for a
+	 * user holding every capability.
+	 *
+	 * @ticket 65761
+	 */
+	public function test_create_note_status_and_no_post_id() {
+		wp_set_current_user( self::$admin_id );
+
+		$params = array(
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Comic Book Guy',
+			'type'         => 'note',
+			'status'       => 'hold',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
+	/**
 	 * @ticket 64096
 	 */
 	public function test_cannot_create_with_non_valid_comment_type() {
@@ -3987,7 +4042,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		if ( $can_read ) {
 			$comments = $response->get_data();
-			$this->assertEquals( self::$num_notes, count( $comments ) );
+			$this->assertSame( self::$num_notes, count( $comments ) );
 		} else {
 			$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 		}
@@ -4050,7 +4105,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		if ( $can_read ) {
 			$comment = $response->get_data();
-			$this->assertEquals( $comment_id, $comment['id'] );
+			$this->assertSame( $comment_id, $comment['id'] );
 		} else {
 			$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 		}
