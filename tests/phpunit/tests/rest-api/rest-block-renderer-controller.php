@@ -380,6 +380,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$data = $response->get_data();
 
 		$this->assertSame( $defaults, json_decode( $data['rendered'], true ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			json_decode( $block_type->render( $defaults ) ),
 			json_decode( $data['rendered'] )
