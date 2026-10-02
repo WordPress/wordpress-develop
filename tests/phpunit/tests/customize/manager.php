@@ -48,6 +48,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
@@ -56,6 +63,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$theme_features      = $GLOBALS['_wp_theme_features'];
 	}
 
 	/**
@@ -78,7 +86,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST                      = array();
+		$GLOBALS['_wp_theme_features'] = self::$theme_features;
 		parent::tear_down();
 	}
 
