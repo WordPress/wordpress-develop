@@ -429,7 +429,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 8, $response->get_data() );
+		$this->assertSame( 8.0, $response->get_data() );
 	}
 
 	/**
