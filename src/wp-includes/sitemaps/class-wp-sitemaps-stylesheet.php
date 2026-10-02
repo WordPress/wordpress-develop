@@ -30,6 +30,7 @@ class WP_Sitemaps_Stylesheet {
 	 * @return never
 	 */
 	public function render_stylesheet( $type ) {
+		status_header( 410 );
 		_deprecated_function( __METHOD__, '7.2.0' );
 		exit;
 	}
