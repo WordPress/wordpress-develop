@@ -4984,6 +4984,9 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		if ( $desired_post_slug ) {
 			delete_post_meta( $post_id, '_wp_desired_post_slug' );
 			$post_name = $desired_post_slug;
+		} else if ( preg_match( '/__trashed(?:-[0-9]+)?$/', $post_name, $match ) ) {
+			// Trac ticket #40588
+			$post_name = str_replace( $match[0], '', $post_name );
 		}
 	}
 
