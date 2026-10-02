@@ -324,6 +324,7 @@
 	</rule>
 	<rule ref="WordPress.DB.PreparedSQL.NotPrepared">
 		<exclude-pattern>/tests/phpunit/tests/admin/includesSchema\.php</exclude-pattern>
+		<exclude-pattern>/tests/phpunit/tests/admin/includesUpgrade\.php</exclude-pattern>
 		<exclude-pattern>/tests/phpunit/tests/multisite/site\.php</exclude-pattern>
 	</rule>
 

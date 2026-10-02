@@ -1464,6 +1464,32 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 60002
+	 */
+	public function test_utf8mb3_charset_switched_to_utf8mb4() {
+		global $wpdb;
+
+		$result = $wpdb->determine_charset( 'utf8mb3', 'utf8mb3_general_ci' );
+
+		$this->assertSame( 'utf8mb4', $result['charset'] );
+
+		$expected_collate = $wpdb->has_cap( 'utf8mb4_520' ) ? 'utf8mb4_unicode_520_ci' : 'utf8mb4_unicode_ci';
+		$this->assertSame( $expected_collate, $result['collate'] );
+	}
+
+	/**
+	 * @ticket 60002
+	 */
+	public function test_utf8mb3_non_unicode_collation_switched_to_utf8mb4() {
+		global $wpdb;
+
+		$result = $wpdb->determine_charset( 'utf8mb3', 'utf8mb3_swedish_ci' );
+
+		$this->assertSame( 'utf8mb4', $result['charset'] );
+		$this->assertSame( 'utf8mb4_swedish_ci', $result['collate'] );
+	}
+
+	/**
 	 * @ticket 32105
 	 * @ticket 36917
 	 */
