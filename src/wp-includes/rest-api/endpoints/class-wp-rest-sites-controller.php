@@ -230,6 +230,11 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			}
 		}
 
+		// Without an explicit network filter, limit the results to the current network.
+		if ( empty( $prepared_args['network__in'] ) ) {
+			$prepared_args['network__in'] = array( get_current_network_id() );
+		}
+
 		// WP_Site_Query tests the status columns with is_numeric(), and a boolean is not numeric.
 		foreach ( array( 'public', 'archived', 'mature', 'spam', 'deleted' ) as $status_param ) {
 			if ( isset( $prepared_args[ $status_param ] ) ) {
