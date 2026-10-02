@@ -71,6 +71,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <h1><?php echo esc_html( $title ); ?></h1>
 
 <?php
+if ( isset( $_GET['admin_email_updated'] ) ) {
+	$message = '<strong>' . __( 'Administration email updated.' ) . '</strong>';
+	wp_admin_notice(
+		$message,
+		array(
+			'id'          => 'message',
+			'dismissible' => true,
+			'type'        => 'success',
+		)
+	);
+}
+
 if ( $pending_new_admin_email ) {
 	$message = sprintf(
 		/* translators: %s: New administration email address. */
