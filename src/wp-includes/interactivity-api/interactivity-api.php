@@ -188,8 +188,7 @@ function wp_interactivity_get_element(): ?array {
  * inserted HTML are not processed, and the inserted HTML is not checked for
  * balanced tags. Inside a `template` with `data-wp-each`, the directive renders
  * once per item, with that item in context, and the rendered items keep their
- * usual `data-wp-each-child` markings. The directive does not accept an HTML
- * string directly.
+ * usual `data-wp-each-child` markings.
  *
  * When the directive declines to render, the element keeps its content as a
  * fallback and is processed as it would be without `data-wp-html`. Only a
@@ -216,12 +215,12 @@ function wp_interactivity_get_element(): ?array {
  * The client boundary:
  *
  * The directive does not write tokens or HTML to the data the Interactivity API
- * prints, or to context attributes, and `data-wp-html` stays on the element.
- * Strings held in state are still printed, so HTML kept in state, as in the
- * example below, is visible to the client. A token placed in state serializes
- * as an empty object: it carries neither its registered HTML nor its trust.
- * Evaluating a derived state getter can record the path of that getter in the
- * printed data, even if the directive then declines to render.
+ * prints, or to context attributes. Strings held in state are still printed,
+ * so HTML kept in state, as in the example below, is visible to the client. A
+ * token placed in state serializes as an empty object: it carries neither its
+ * registered HTML nor its trust. Evaluating a derived state getter can record
+ * the path of that getter in the printed data, even if the directive then
+ * declines to render.
  *
  * The server never gives the client trust: the client has to create its own
  * token, with `asDangerousHTML()` from `@wordpress/interactivity`, in a client

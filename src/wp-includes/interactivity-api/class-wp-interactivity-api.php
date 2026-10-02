@@ -1541,8 +1541,6 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the default `data-wp-html` entry using an inert comment.
 	 *
-	 * Declines incompatible directives, targets that cannot hold content, and
-	 * unregistered values with a notice. Null values and ignored entries are silent.
 	 * Notices identify the host tag as plain text for error-message sanitization.
 	 *
 	 * When the value is a registered token, this method does not insert its HTML
