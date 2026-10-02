@@ -4016,12 +4016,18 @@ function new_user_email_admin_notice() {
 	global $pagenow;
 
 	if ( 'profile.php' === $pagenow ) {
-		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+		$current_user_id = get_current_user_id();
+		$email           = get_user_meta( $current_user_id, '_new_email', true );
 		if ( $email ) {
 			$message = sprintf(
 				/* translators: %s: New email address. */
 				__( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ),
 				'<code>' . esc_html( $email['newemail'] ) . '</code>'
+			);
+			$message .= sprintf(
+				' <a href="%1$s">%2$s</a>',
+				esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user_id . '_new_email' ), 'dismiss-' . $current_user_id . '_new_email' ) ),
+				_x( 'Cancel request', 'user email change' ),
 			);
 			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}
