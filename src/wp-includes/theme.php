@@ -428,7 +428,15 @@ function register_theme_directory( $directory ) {
 		$wp_theme_directories = array();
 	}
 
-	$untrailed = untrailingslashit( $directory );
+	/*
+	 * Normalize the path so that Windows backslashes are converted to forward
+	 * slashes. This ensures consistent path storage and comparison across
+	 * operating systems, preventing issues when a database dump made on Windows
+	 * is loaded on a Unix-based system (and vice versa).
+	 *
+	 * See https://core.trac.wordpress.org/ticket/29051
+	 */
+	$untrailed = untrailingslashit( wp_normalize_path( $directory ) );
 	if ( ! empty( $untrailed ) && ! in_array( $untrailed, $wp_theme_directories, true ) ) {
 		$wp_theme_directories[] = $untrailed;
 	}
@@ -469,8 +477,17 @@ function search_theme_directories( $force = false ) {
 	 * to use in get_theme_root().
 	 */
 	foreach ( $wp_theme_directories as $theme_root ) {
-		if ( str_starts_with( $theme_root, WP_CONTENT_DIR ) ) {
-			$relative_theme_roots[ str_replace( WP_CONTENT_DIR, '', $theme_root ) ] = $theme_root;
+		/*
+		 * Normalize the theme root path and the content directory to forward slashes
+		 * so that the prefix strip works correctly on Windows, where directory
+		 * separators may differ from those stored in WP_CONTENT_DIR.
+		 *
+		 * See https://core.trac.wordpress.org/ticket/29051
+		 */
+		$normalized_theme_root = wp_normalize_path( $theme_root );
+		$normalized_content_dir = wp_normalize_path( WP_CONTENT_DIR );
+		if ( str_starts_with( $normalized_theme_root, $normalized_content_dir ) ) {
+			$relative_theme_roots[ str_replace( $normalized_content_dir, '', $normalized_theme_root ) ] = $theme_root;
 		} else {
 			$relative_theme_roots[ $theme_root ] = $theme_root;
 		}
