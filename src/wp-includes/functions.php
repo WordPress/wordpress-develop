@@ -1264,6 +1264,7 @@ function wp_removable_query_args() {
 		'activate',
 		'activated',
 		'admin_email_remind_later',
+		'admin_email_updated',
 		'approved',
 		'core-major-auto-updates-saved',
 		'deactivate',
