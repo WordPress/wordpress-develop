@@ -1649,21 +1649,25 @@ function wp_ajax_add_meta() {
 
 		// If the post is an autodraft, save the post as a draft and then attempt to save the meta.
 		if ( 'auto-draft' === $post->post_status ) {
-			$post_data                = array();
-			$post_data['action']      = 'draft'; // Warning fix.
-			$post_data['post_ID']     = $post_id;
-			$post_data['post_type']   = $post->post_type;
-			$post_data['post_status'] = 'draft';
-			$now                      = time();
+			$now = time();
 
-			$post_data['post_title'] = sprintf(
-				/* translators: 1: Post creation date, 2: Post creation time. */
-				__( 'Draft created on %1$s at %2$s' ),
-				gmdate( __( 'F j, Y' ), $now ),
-				gmdate( __( 'g:i a' ), $now )
+			/*
+			 * Update the post directly instead of via edit_post(), which would
+			 * add the meta a second time from the $_POST data and reset the
+			 * comment and ping status of the post to 'closed'. See #66016.
+			 */
+			$post_data = array(
+				'ID'          => $post_id,
+				'post_status' => 'draft',
+				'post_title'  => sprintf(
+					/* translators: 1: Post creation date, 2: Post creation time. */
+					__( 'Draft created on %1$s at %2$s' ),
+					gmdate( __( 'F j, Y' ), $now ),
+					gmdate( __( 'g:i a' ), $now )
+				),
 			);
 
-			$post_id = edit_post( $post_data );
+			$post_id = wp_update_post( $post_data, true );
 
 			if ( $post_id ) {
 				if ( is_wp_error( $post_id ) ) {
@@ -1675,6 +1679,8 @@ function wp_ajax_add_meta() {
 					);
 					$response->send();
 				}
+
+				update_post_meta( $post_id, '_edit_last', get_current_user_id() );
 
 				$meta_id = add_meta( $post_id );
 
