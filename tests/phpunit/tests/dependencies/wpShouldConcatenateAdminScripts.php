@@ -17,6 +17,35 @@
 class Tests_Dependencies_WpShouldConcatenateAdminScripts extends WP_UnitTestCase {
 
 	/**
+	 * Value of the `$concatenate_scripts` global before the test, or null if it was not set.
+	 *
+	 * @var mixed
+	 */
+	private $original_concatenate_scripts;
+
+	/**
+	 * Backs up the `$concatenate_scripts` global, which tests of script_concat_settings() change.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+
+		$this->original_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
+	}
+
+	/**
+	 * Restores the `$concatenate_scripts` global.
+	 */
+	public function tear_down(): void {
+		if ( null === $this->original_concatenate_scripts ) {
+			unset( $GLOBALS['concatenate_scripts'] );
+		} else {
+			$GLOBALS['concatenate_scripts'] = $this->original_concatenate_scripts;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests that `CONCATENATE_SCRIPTS` turns concatenation on, unless `SCRIPT_DEBUG` is on.
 	 *
 	 * @ticket 57548
@@ -86,27 +115,20 @@ class Tests_Dependencies_WpShouldConcatenateAdminScripts extends WP_UnitTestCase
 	 * @covers ::script_concat_settings
 	 */
 	public function test_script_concat_settings(): void {
-		global $concatenate_scripts;
-
-		$original = $concatenate_scripts;
 		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
 
-		try {
-			unset( $GLOBALS['concatenate_scripts'] );
-			script_concat_settings();
-			$this->assertFalse( $GLOBALS['concatenate_scripts'], 'Expected no concatenation on the front end.' );
+		unset( $GLOBALS['concatenate_scripts'] );
+		script_concat_settings();
+		$this->assertFalse( $GLOBALS['concatenate_scripts'], 'Expected no concatenation on the front end.' );
 
-			set_current_screen( 'dashboard' );
-			unset( $GLOBALS['concatenate_scripts'] );
-			script_concat_settings();
-			$this->assertTrue( $GLOBALS['concatenate_scripts'], 'Expected concatenation on an admin screen.' );
+		set_current_screen( 'dashboard' );
+		unset( $GLOBALS['concatenate_scripts'] );
+		script_concat_settings();
+		$this->assertTrue( $GLOBALS['concatenate_scripts'], 'Expected concatenation on an admin screen.' );
 
-			add_filter( 'wp_should_concatenate_admin_scripts', '__return_false', 20 );
-			unset( $GLOBALS['concatenate_scripts'] );
-			script_concat_settings();
-			$this->assertFalse( $GLOBALS['concatenate_scripts'], 'Expected the filter to turn concatenation off on an admin screen.' );
-		} finally {
-			$GLOBALS['concatenate_scripts'] = $original;
-		}
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_false', 20 );
+		unset( $GLOBALS['concatenate_scripts'] );
+		script_concat_settings();
+		$this->assertFalse( $GLOBALS['concatenate_scripts'], 'Expected the filter to turn concatenation off on an admin screen.' );
 	}
 }
