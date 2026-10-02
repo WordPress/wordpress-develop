@@ -375,6 +375,77 @@ class Tests_WP_Interactivity_API_WP_HTML extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests delivered decline notices retain the host tag after sanitization.
+	 *
+	 * @dataProvider data_delivered_decline_notices
+	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor
+	 * @param string $host      Host markup.
+	 * @param string $tag       Host tag name.
+	 * @param string $reason    Decline reason.
+	 * @param string $reference Directive reference, if present.
+	 */
+	public function test_delivered_decline_notices( string $host, string $tag, string $reason, string $reference ) {
+		$this->assertTrue( WP_DEBUG );
+		wp_interactivity_state(
+			'test',
+			array(
+				'html' => 'evaluated-value-7f3a',
+				'list' => array( 'a' ),
+			)
+		);
+		$delivered_notices = array();
+		remove_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+		set_error_handler(
+			/**
+			 * Records the message delivered by PHP's notice handler.
+			 *
+			 * @param int    $severity Error severity.
+			 * @param string $message  Delivered message.
+			 * @return bool Whether the notice was handled.
+			 */
+			static function ( $severity, $message ) use ( &$delivered_notices ) {
+				$delivered_notices[] = array( $severity, $message );
+				return true;
+			},
+			E_USER_NOTICE
+		);
+		try {
+			wp_interactivity_process_directives( $this->region( $host ) );
+		} finally {
+			restore_error_handler();
+			add_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+		}
+		$this->assert_decline_notice( $reason, $tag, $reference );
+		$this->assertCount( 1, $delivered_notices );
+		$this->assertSame( E_USER_NOTICE, $delivered_notices[0][0] );
+		$message = $delivered_notices[0][1];
+		$this->assertStringContainsString( $tag . ' tag', $message );
+		$this->assertStringContainsString( $reason, $message );
+		$this->assertStringContainsString( 'WP_Interactivity_API::data_wp_html_processor', $message );
+		$this->assertStringContainsString( 'version 7.2.0', $message );
+		if ( '' !== $reference ) {
+			$this->assertStringContainsString( $reference, $message );
+		}
+		$this->assertStringNotContainsString( 'evaluated-value-7f3a', $message );
+	}
+
+	/**
+	 * Supplies all decline reasons, including allowed and disallowed HTML tags.
+	 *
+	 * @return array[] Host markup, tag, reason, and reference.
+	 */
+	public static function data_delivered_decline_notices() {
+		return array(
+			'not a token'       => array( '<div data-wp-html="state.html">Fallback</div>', 'DIV', 'not a token', 'state.html' ),
+			'void image'        => array( '<img data-wp-html="state.html">', 'IMG', 'cannot hold content', 'state.html' ),
+			'void break'        => array( '<br data-wp-html="state.html">', 'BR', 'cannot hold content', 'state.html' ),
+			'text combination'  => array( '<div data-wp-html="state.html" data-wp-text="state.text">Fallback</div>', 'DIV', 'cannot be combined', 'state.html' ),
+			'each combination'  => array( '<template data-wp-html="state.html" data-wp-each="state.list"><span>x</span></template>', 'TEMPLATE', 'cannot be combined', 'state.html' ),
+			'empty combination' => array( '<template data-wp-html="" data-wp-each="state.list"><span>x</span></template>', 'TEMPLATE', 'cannot be combined', '' ),
+		);
+	}
+
+	/**
 	 * Tests the three public notice messages distinguish decline reasons.
 	 *
 	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_html_processor

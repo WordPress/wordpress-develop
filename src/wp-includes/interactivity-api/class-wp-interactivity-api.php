@@ -1474,6 +1474,7 @@ final class WP_Interactivity_API {
 	 *
 	 * Declines incompatible directives, targets that cannot hold content, and
 	 * unregistered values with a notice. Null values and ignored entries are silent.
+	 * Notices identify the host tag as plain text for error-message sanitization.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1490,7 +1491,7 @@ final class WP_Interactivity_API {
 				__METHOD__,
 				sprintf(
 					/* translators: 1: Directive name, 2: HTML tag name, 3: Directive references. */
-					__( 'The %1$s directive on <%2$s> cannot be combined with data-wp-text or with data-wp-each on a template. References: %3$s.' ),
+					__( 'The %1$s directive on a %2$s tag cannot be combined with data-wp-text or with data-wp-each on a template. References: %3$s.' ),
 					'data-wp-html',
 					$p->get_tag(),
 					implode( ', ', array_unique( array_filter( array_column( $entries, 'value' ), 'is_string' ) ) )
@@ -1512,7 +1513,7 @@ final class WP_Interactivity_API {
 				__METHOD__,
 				sprintf(
 					/* translators: 1: Directive name, 2: Directive reference, 3: HTML tag name. */
-					__( 'The %1$s directive with reference "%2$s" cannot render because <%3$s> cannot hold content.' ),
+					__( 'The %1$s directive with reference "%2$s" cannot render because a %3$s tag cannot hold content.' ),
 					'data-wp-html',
 					$entry['value'],
 					$p->get_tag()
@@ -1530,7 +1531,7 @@ final class WP_Interactivity_API {
 				__METHOD__,
 				sprintf(
 					/* translators: 1: Directive name, 2: Directive reference, 3: HTML tag name, 4: Trusted HTML function name. */
-					__( 'The %1$s directive with reference "%2$s" on <%3$s> resolved to a value that is not a token returned by %4$s.' ),
+					__( 'The %1$s directive with reference "%2$s" on a %3$s tag resolved to a value that is not a token returned by %4$s.' ),
 					'data-wp-html',
 					$entry['value'],
 					$p->get_tag(),
