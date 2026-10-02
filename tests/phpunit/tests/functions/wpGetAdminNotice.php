@@ -282,7 +282,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 	 *
 	 * @ticket 57791
 	 *
-	 * @expectedIncorrectUsage wp_get_admin_notice
+	 * @expectedWPIncorrectUsage wp_get_admin_notice
 	 */
 	public function test_should_throw_doing_it_wrong_with_a_type_containing_spaces() {
 		$this->assertSame(

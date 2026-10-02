@@ -403,7 +403,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 */
 	public function test_meta_caps_throw_doing_it_wrong_without_required_argument_provided( $cap ) {
 		$admin_user = self::$user_id;
-		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+		$this->expectWPIncorrectUsage( 'map_meta_cap' );
 		$this->assertContains( 'do_not_allow', map_meta_cap( $cap, $admin_user ) );
 	}
 

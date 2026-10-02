@@ -165,7 +165,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$this->start_transaction();
-		$this->expectDeprecated();
+		$this->set_up_deprecation_expectations();
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 		add_filter( 'wp_hash_password_options', array( $this, 'wp_hash_password_options' ), 1, 2 );
 
@@ -620,35 +620,35 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Sets up the expectations for testing a deprecated call.
+	 * Sets up the expectations for testing deprecated and incorrect usage calls.
 	 *
-	 * @since 3.7.0
+	 * Supports the `@expectedWPDeprecated` and `@expectedWPIncorrectUsage`
+	 * annotations, as well as their legacy unprefixed forms.
+	 *
+	 * @since 7.2.0
 	 */
-	public function expectDeprecated() {
-		if ( method_exists( $this, 'getAnnotations' ) ) {
-			// PHPUnit < 9.5.0.
-			$annotations = $this->getAnnotations();
-		} else {
-			// PHPUnit >= 9.5.0.
-			$annotations = \PHPUnit\Util\Test::parseTestMethodAnnotations(
-				static::class,
-				$this->getName( false )
-			);
-		}
+	protected function set_up_deprecation_expectations() {
+		$annotations = $this->get_expected_annotations();
 
 		foreach ( array( 'class', 'method' ) as $depth ) {
-			if ( ! empty( $annotations[ $depth ]['expectedDeprecated'] ) ) {
-				$this->expected_deprecated = array_merge(
-					$this->expected_deprecated,
-					$annotations[ $depth ]['expectedDeprecated']
-				);
+			// Support the old annotation for backward compatibility.
+			foreach ( array( 'expectedWPDeprecated', 'expectedDeprecated' ) as $annotation ) {
+				if ( ! empty( $annotations[ $depth ][ $annotation ] ) ) {
+					$this->expected_deprecated = array_merge(
+						$this->expected_deprecated,
+						$annotations[ $depth ][ $annotation ]
+					);
+				}
 			}
 
-			if ( ! empty( $annotations[ $depth ]['expectedIncorrectUsage'] ) ) {
-				$this->expected_doing_it_wrong = array_merge(
-					$this->expected_doing_it_wrong,
-					$annotations[ $depth ]['expectedIncorrectUsage']
-				);
+			// Support the old annotation for backward compatibility.
+			foreach ( array( 'expectedWPIncorrectUsage', 'expectedIncorrectUsage' ) as $annotation ) {
+				if ( ! empty( $annotations[ $depth ][ $annotation ] ) ) {
+					$this->expected_doing_it_wrong = array_merge(
+						$this->expected_doing_it_wrong,
+						$annotations[ $depth ][ $annotation ]
+					);
+				}
 			}
 		}
 
@@ -668,15 +668,59 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
-	 * Handles a deprecated expectation.
-	 *
-	 * The DocBlock should contain `@expectedDeprecated` to trigger this.
+	 * Sets up the expectations for testing a deprecated call.
 	 *
 	 * @since 3.7.0
-	 * @since 6.1.0 Includes the actual unexpected `_doing_it_wrong()` message
-	 *              or deprecation notice in the output if one is encountered.
+	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::set_up_deprecation_expectations() instead.
 	 */
-	public function expectedDeprecated() {
+	public function expectDeprecated() {
+		$this->set_up_deprecation_expectations();
+	}
+
+	/**
+	 * Retrieves expected deprecation and incorrect usage annotations.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, array<string, string[]>> Annotations grouped by class and method.
+	 */
+	private function get_expected_annotations() {
+		$method_name = method_exists( $this, 'name' ) ? $this->name() : $this->getName( false );
+		$class       = new ReflectionClass( $this );
+		$method      = $class->getMethod( $method_name );
+
+		return array(
+			'class'  => $this->parse_expected_annotations( $class->getDocComment() ),
+			'method' => $this->parse_expected_annotations( $method->getDocComment() ),
+		);
+	}
+
+	/**
+	 * Parses expected deprecation and incorrect usage annotations from a DocBlock.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|false $doc_comment DocBlock to parse, or false if none exists.
+	 * @return array<string, string[]> Expected values grouped by annotation name.
+	 */
+	private function parse_expected_annotations( $doc_comment ) {
+		$annotations = array();
+
+		foreach ( array( 'expectedWPDeprecated', 'expectedDeprecated', 'expectedWPIncorrectUsage', 'expectedIncorrectUsage' ) as $annotation ) {
+			if ( preg_match_all( '/@' . $annotation . '[\t ]+([^\r\n*]+)/', (string) $doc_comment, $matches ) ) {
+				$annotations[ $annotation ] = array_map( 'trim', $matches[1] );
+			}
+		}
+
+		return $annotations;
+	}
+
+	/**
+	 * Handles deprecated and incorrect usage expectations.
+	 *
+	 * @since 7.2.0
+	 */
+	protected function assert_expected_deprecations() {
 		$errors = array();
 
 		$not_caught_deprecated = array_diff(
@@ -727,6 +771,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Handles a deprecated expectation.
+	 *
+	 * @since 3.7.0
+	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::assert_expected_deprecations() instead.
+	 */
+	public function expectedDeprecated() {
+		$this->assert_expected_deprecations();
+	}
+
+	/**
 	 * Blocks an external HTTP request that no other filter has answered.
 	 *
 	 * Added by set_up() for tests that are not in the `external-http` group, and
@@ -757,12 +811,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	/**
 	 * Detects post-test failure conditions.
 	 *
-	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
+	 * We use this method to detect WordPress deprecation and incorrect usage annotations.
 	 *
 	 * @since 4.2.0
 	 */
 	protected function assert_post_conditions() {
-		$this->expectedDeprecated();
+		$this->assert_expected_deprecations();
 
 		if ( $this->blocked_http_requests ) {
 			$this->fail(
@@ -774,28 +828,53 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	}
 
 	/**
+	 * Declares an expected WordPress deprecation call from within a test.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $deprecated Name of the function, method, class, file, hook, or argument that is deprecated.
+	 */
+	public function expectWPDeprecated( $deprecated ) {
+		$this->expected_deprecated[] = $deprecated;
+	}
+
+	/**
 	 * Declares an expected `_deprecated_function()` or `_deprecated_argument()` call from within a test.
 	 *
 	 * @since 4.2.0
+	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::expectWPDeprecated() instead.
 	 *
 	 * @param string $deprecated Name of the function, method, class, or argument that is deprecated.
 	 *                           Must match the first parameter of the `_deprecated_function()`
 	 *                           or `_deprecated_argument()` call.
 	 */
 	public function setExpectedDeprecated( $deprecated ) {
-		$this->expected_deprecated[] = $deprecated;
+		$this->expectWPDeprecated( $deprecated );
+	}
+
+	/**
+	 * Declares an expected WordPress incorrect usage call from within a test.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $doing_it_wrong Name of the function, method, or class that appears in
+	 *                               the first argument of the source `_doing_it_wrong()` call.
+	 */
+	public function expectWPIncorrectUsage( $doing_it_wrong ) {
+		$this->expected_doing_it_wrong[] = $doing_it_wrong;
 	}
 
 	/**
 	 * Declares an expected `_doing_it_wrong()` call from within a test.
 	 *
 	 * @since 4.2.0
+	 * @deprecated 7.2.0 Use WP_UnitTestCase_Base::expectWPIncorrectUsage() instead.
 	 *
 	 * @param string $doing_it_wrong Name of the function, method, or class that appears in
 	 *                               the first argument of the source `_doing_it_wrong()` call.
 	 */
 	public function setExpectedIncorrectUsage( $doing_it_wrong ) {
-		$this->expected_doing_it_wrong[] = $doing_it_wrong;
+		$this->expectWPIncorrectUsage( $doing_it_wrong );
 	}
 
 	/**

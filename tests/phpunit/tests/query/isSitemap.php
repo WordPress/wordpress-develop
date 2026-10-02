@@ -216,7 +216,7 @@ class Tests_Query_IsSitemap extends WP_UnitTestCase {
 	 *
 	 * @covers ::is_sitemap
 	 *
-	 * @expectedIncorrectUsage is_sitemap
+	 * @expectedWPIncorrectUsage is_sitemap
 	 */
 	public function test_global_is_sitemap_before_query_is_run(): void {
 		$wp_query_temp = $GLOBALS['wp_query'];

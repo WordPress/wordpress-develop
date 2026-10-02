@@ -341,7 +341,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @ticket 48599
 	 */
 	public function test_passing_string_as_position_fires_doing_it_wrong_submenu() {
-		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
+		$this->expectWPIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 
 		// Reset menus.

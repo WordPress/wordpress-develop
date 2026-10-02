@@ -196,7 +196,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @covers ::_inject_theme_attribute_in_block_template_content
 	 *
-	 * @expectedDeprecated _inject_theme_attribute_in_block_template_content
+	 * @expectedWPDeprecated _inject_theme_attribute_in_block_template_content
 	 */
 	public function test_inject_theme_attribute_in_block_template_content() {
 		$theme                           = get_stylesheet();
@@ -245,7 +245,7 @@ class Tests_Block_Template_Utils extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_remove_theme_attribute_in_block_template_content
 	 *
-	 * @expectedDeprecated _remove_theme_attribute_in_block_template_content
+	 * @expectedWPDeprecated _remove_theme_attribute_in_block_template_content
 	 */
 	public function test_remove_theme_attribute_in_block_template_content( $template_content, $expected ) {
 		$this->assertSame( $expected, _remove_theme_attribute_in_block_template_content( $template_content ) );

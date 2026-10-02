@@ -347,7 +347,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Tests that wp_save_image_file() throws a deprecated argument notice when passed a GD resource.
 	 *
 	 * @ticket 6821
-	 * @expectedDeprecated wp_save_image_file
+	 * @expectedWPDeprecated wp_save_image_file
 	 * @requires function imagejpeg
 	 *
 	 * @covers ::wp_save_image_file
@@ -602,7 +602,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 17814
 	 * @covers ::wp_load_image
-	 * @expectedDeprecated wp_load_image
+	 * @expectedWPDeprecated wp_load_image
 	 */
 	public function test_wp_load_image_should_fail_with_error_message_when_loading_a_directory() {
 		$editor = wp_load_image( DIR_TESTDATA );

@@ -27,7 +27,7 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_queue_comments_for_comment_meta_lazyload
 	 *
-	 * @expectedDeprecated wp_queue_comments_for_comment_meta_lazyload
+	 * @expectedWPDeprecated wp_queue_comments_for_comment_meta_lazyload
 	 */
 	public function test_wp_queue_comments_for_comment_meta_lazyload() {
 		$filter = new MockAction();
@@ -48,7 +48,7 @@ class Tests_Lazy_Load_Comment_Meta extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_queue_comments_for_comment_meta_lazyload
 	 *
-	 * @expectedDeprecated wp_queue_comments_for_comment_meta_lazyload
+	 * @expectedWPDeprecated wp_queue_comments_for_comment_meta_lazyload
 	 */
 	public function test_wp_queue_comments_for_comment_meta_lazyload_new_comment() {
 		$filter = new MockAction();

@@ -414,7 +414,7 @@ HTML;
 	 * @ticket 56299
 	 *
 	 * @covers WP_HTML_Tag_Processor::set_bookmark
-	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
+	 * @expectedWPIncorrectUsage WP_HTML_Tag_Processor::set_bookmark
 	 */
 	public function test_limits_the_number_of_bookmarks() {
 		$processor = new WP_HTML_Tag_Processor( '<ul><li>One</li><li>Two</li><li>Three</li></ul>' );
@@ -451,7 +451,7 @@ HTML;
 			);
 		}
 
-		$this->setExpectedIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
+		$this->expectWPIncorrectUsage( 'WP_HTML_Tag_Processor::seek' );
 		$this->assertFalse( $processor->seek( 'bookmark' ), "$i-th seek() to the bookmark succeeded, even though it should exceed the allowed limit" );
 	}
 

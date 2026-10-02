@@ -212,7 +212,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_bind_ignores_empty_value() {
 		$html     = '<div data-wp-bind--id="">Text</div>';
@@ -226,7 +226,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 * @ticket 60356
 	 *
 	 * @covers ::process_directives
-	 * @expectedIncorrectUsage WP_Interactivity_API::evaluate
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::evaluate
 	 */
 	public function test_wp_bind_ignores_without_value() {
 		$html     = '<div data-wp-bind--id>Text</div>';
@@ -515,7 +515,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_finite_values
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
 	 * @param float $value Non-finite value to bind.
 	 */
@@ -627,7 +627,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 */
 	public function test_wp_bind_rejects_object_which_fails_to_serialize() {
 		$unserializable = new class() implements JsonSerializable {
@@ -684,7 +684,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @covers ::process_directives
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 */
 	public function test_wp_bind_rejects_object_serializing_to_a_non_finite_value() {
 		$this->interactivity->state( 'myPlugin', array( 'nonFinite' => $this->get_json_serializable( INF ) ) );
@@ -926,7 +926,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_scalar_values
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
 	 * @param mixed  $value          Non-scalar value to bind.
 	 * @param string $tag_name       Tag name to bind the value on.
@@ -964,7 +964,7 @@ class Tests_WP_Interactivity_API_WP_Bind extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_non_scalar_values
 	 *
-	 * @expectedIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
+	 * @expectedWPIncorrectUsage WP_Interactivity_API::data_wp_bind_processor
 	 *
 	 * @param mixed  $value          Non-scalar value to bind.
 	 * @param string $tag_name       Tag name to bind the value on.

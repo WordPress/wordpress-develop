@@ -50,8 +50,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_theme
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_theme_default() {
 		$themes = get_themes();
@@ -81,8 +81,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_theme
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_theme_sandbox() {
 		$theme = get_theme( 'Sandbox' );
@@ -117,7 +117,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * A CSS-only theme
 	 *
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_theme_stylesheet_only() {
 		$themes = get_themes();
@@ -146,7 +146,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_theme_list() {
 		$themes = get_themes();
@@ -198,8 +198,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_themes
-	 * @expectedDeprecated get_broken_themes
+	 * @expectedWPDeprecated get_themes
+	 * @expectedWPDeprecated get_broken_themes
 	 */
 	public function test_broken_themes() {
 		$themes = get_themes();
@@ -226,7 +226,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_page_templates() {
 		$themes = get_themes();
@@ -239,7 +239,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme_data
+	 * @expectedWPDeprecated get_theme_data
 	 */
 	public function test_get_theme_data_top_level() {
 		$theme_data = get_theme_data( DIR_TESTDATA . '/themedir1/theme1/style.css' );
@@ -258,7 +258,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme_data
+	 * @expectedWPDeprecated get_theme_data
 	 */
 	public function test_get_theme_data_subdir() {
 		$theme_data = get_theme_data( self::THEME_ROOT . '/subdir/theme2/style.css' );

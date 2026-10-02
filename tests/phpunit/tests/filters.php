@@ -476,7 +476,7 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10441
-	 * @expectedDeprecated tests_apply_filters_deprecated
+	 * @expectedWPDeprecated tests_apply_filters_deprecated
 	 */
 	public function test_apply_filters_deprecated() {
 		$p = 'Foo';
@@ -495,7 +495,7 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10441
-	 * @expectedDeprecated tests_apply_filters_deprecated
+	 * @expectedWPDeprecated tests_apply_filters_deprecated
 	 */
 	public function test_apply_filters_deprecated_with_multiple_params() {
 		$p1 = 'Foo1';

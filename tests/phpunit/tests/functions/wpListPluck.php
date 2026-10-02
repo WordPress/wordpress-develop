@@ -20,9 +20,9 @@ class Tests_Functions_wpListPluck extends WP_UnitTestCase {
 		 * for this method.
 		 *
 		 * To ensure that deprecation and incorrect usage notices continue to be
-		 * detectable, this method uses WP_UnitTestCase_Base::expectDeprecated().
+		 * detectable, this method uses WP_UnitTestCase_Base::set_up_deprecation_expectations().
 		 */
-		$this->expectDeprecated();
+		$this->set_up_deprecation_expectations();
 
 		$this->array_list['foo'] = array(
 			'name'   => 'foo',

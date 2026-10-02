@@ -113,7 +113,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated register_setting
+	 * @expectedWPDeprecated register_setting
 	 *
 	 * @covers ::register_setting
 	 */
@@ -122,7 +122,7 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated register_setting
+	 * @expectedWPDeprecated register_setting
 	 *
 	 * @covers ::register_setting
 	 */

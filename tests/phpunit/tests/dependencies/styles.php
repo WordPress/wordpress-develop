@@ -324,7 +324,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	/**
 	 * Test if a plugin doing it the wrong way still works
 	 *
-	 * @expectedIncorrectUsage wp_add_inline_style
+	 * @expectedWPIncorrectUsage wp_add_inline_style
 	 * @ticket 24813
 	 */
 	public function test_plugin_doing_inline_styles_wrong() {
@@ -364,7 +364,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test to make sure that inline styles attached to conditional
 	 * stylesheets are also conditional.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedWPDeprecated WP_Dependencies->add_data()
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -772,7 +772,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles
-	 * @expectedIncorrectUsage wp_maybe_inline_styles
+	 * @expectedWPIncorrectUsage wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles_missing_file() {
 		$filter = new MockAction();
@@ -827,7 +827,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles
-	 * @expectedIncorrectUsage wp_maybe_inline_styles
+	 * @expectedWPIncorrectUsage wp_maybe_inline_styles
 	 */
 	public function test_wp_maybe_inline_styles_bad_path_with_file_size_provided() {
 		$style_path = '/css/invalid.css'; // Does not exist.
@@ -951,7 +951,7 @@ HTML;
 	 */
 	public function test_wp_style_doing_it_wrong_for_missing_dependencies() {
 		$expected_incorrect_usage = 'WP_Styles::add';
-		$this->setExpectedIncorrectUsage( $expected_incorrect_usage );
+		$this->expectWPIncorrectUsage( $expected_incorrect_usage );
 
 		wp_enqueue_style(
 			'main-style',

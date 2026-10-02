@@ -131,7 +131,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 40613
 	 * @covers ::query
-	 * @expectedDeprecated WP_User_Query
+	 * @expectedWPDeprecated WP_User_Query
 	 */
 	public function test_query_cache_who() {
 		$args = array(
@@ -788,7 +788,7 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 	 * @ticket 59011
 	 * @covers ::generate_cache_key
 	 *
-	 * @expectedDeprecated WP_User_Query
+	 * @expectedWPDeprecated WP_User_Query
 	 */
 	public function test_generate_cache_key_with_orderby_post_count_and_deprecated_who_parameter() {
 		$query = new WP_User_Query(

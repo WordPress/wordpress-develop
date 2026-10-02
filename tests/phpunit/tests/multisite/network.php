@@ -348,7 +348,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_dashboard_blog
+	 * @expectedWPDeprecated get_dashboard_blog
 	 */
 	public function test_get_dashboard_blog() {
 		// If there is no dashboard blog set, current blog is used.

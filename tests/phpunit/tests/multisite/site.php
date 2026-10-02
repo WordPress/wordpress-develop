@@ -2196,7 +2196,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 */
 	public function test_wpmu_new_blog_action_backward_compatible( $meta, $expected_meta ) {
 		// We are testing deprecated hook. Register it to expected deprecated notices.
-		$this->setExpectedDeprecated( 'wpmu_new_blog' );
+		$this->expectWPDeprecated( 'wpmu_new_blog' );
 		add_action( 'wpmu_new_blog', array( $this, 'wpmu_new_blog_callback' ), 10, 6 );
 
 		wpmu_create_blog( 'testsite1.example.org', '/new-blog/', 'New Blog', get_current_user_id(), $meta, 1 );

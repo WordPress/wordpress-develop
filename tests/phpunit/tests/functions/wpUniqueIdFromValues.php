@@ -113,7 +113,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 *
 	 * @ticket 62985
 	 *
-	 * @expectedIncorrectUsage wp_unique_id_from_values
+	 * @expectedWPIncorrectUsage wp_unique_id_from_values
 	 *
 	 * @since 6.8.0
 	 */

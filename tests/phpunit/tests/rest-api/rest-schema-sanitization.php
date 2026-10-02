@@ -406,7 +406,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	}
 
 	public function test_type_unknown() {
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'type' => 'lalala',
@@ -417,7 +417,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	}
 
 	public function test_no_type() {
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'type' => null,
@@ -460,7 +460,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 			$this->expectNotice(); // For the undefined index.
 		}
 
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array( 'format' => 'hex-color' );
 		$this->assertSame( '#abc', rest_sanitize_value_from_schema( '#abc', $schema ) );
@@ -471,7 +471,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_unknown_type() {
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'format' => 'hex-color',
@@ -529,8 +529,8 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {
-		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'invalid', 'type' ),
@@ -543,8 +543,8 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_some_unknown_types() {
-		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
-		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->expectWPIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'object', 'type' ),

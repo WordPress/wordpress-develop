@@ -32,7 +32,7 @@ class Tests_Fonts_WpFontLibrary_RegisterFontCollection extends WP_Font_Library_U
 		$this->assertInstanceOf( 'WP_Font_Collection', $collection1, 'A collection should be registered.' );
 
 		// Expects a _doing_it_wrong notice.
-		$this->setExpectedIncorrectUsage( 'WP_Font_Library::register_font_collection' );
+		$this->expectWPIncorrectUsage( 'WP_Font_Library::register_font_collection' );
 
 		// Try to register a second collection with same slug.
 		WP_Font_Library::get_instance()->register_font_collection( 'my-collection-1', $mock_collection_data );

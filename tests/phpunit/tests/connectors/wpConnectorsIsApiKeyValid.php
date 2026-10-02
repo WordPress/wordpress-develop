@@ -34,7 +34,7 @@ class Tests_Connectors_WpConnectorsIsApiKeyValid extends WP_UnitTestCase {
 	 * @ticket 64730
 	 */
 	public function test_unregistered_provider_returns_null() {
-		$this->setExpectedIncorrectUsage( '_wp_connectors_is_ai_api_key_valid' );
+		$this->expectWPIncorrectUsage( '_wp_connectors_is_ai_api_key_valid' );
 
 		$result = _wp_connectors_is_ai_api_key_valid( 'test-key', 'nonexistent_provider' );
 

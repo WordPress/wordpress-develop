@@ -58,7 +58,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	public function test_mix_of_valid_and_invalid_ids_should_return_the_valid_ids_and_throw_a_notice() {
 		$object_id = 1;
 
-		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
+		$this->expectWPIncorrectUsage( '_get_non_cached_ids' );
 		$this->assertSame(
 			array( $object_id ),
 			_get_non_cached_ids( array( $object_id, null ), 'fake-group' ),
@@ -74,7 +74,7 @@ class Tests_Functions_GetNonCachedIds extends WP_UnitTestCase {
 	 * @param mixed $object_id The object ID.
 	 */
 	public function test_invalid_cache_ids_should_throw_a_notice( $object_id ) {
-		$this->setExpectedIncorrectUsage( '_get_non_cached_ids' );
+		$this->expectWPIncorrectUsage( '_get_non_cached_ids' );
 		$this->assertSame(
 			array(),
 			_get_non_cached_ids( array( $object_id ), 'fake-group' ),

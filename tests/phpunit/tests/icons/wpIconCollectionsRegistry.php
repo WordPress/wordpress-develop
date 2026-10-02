@@ -99,7 +99,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icon_Collections_Registry::register
 	 *
 	 * @param mixed $slug Invalid slug candidate.
 	 */
@@ -115,7 +115,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icon_Collections_Registry::register
 	 */
 	public function test_register_twice_fails() {
 		$this->assertTrue( $this->collections->register( 'my-collection', array( 'label' => 'A' ) ) );
@@ -129,7 +129,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::register
 	 *
-	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::register
+	 * @expectedWPIncorrectUsage WP_Icon_Collections_Registry::register
 	 */
 	public function test_register_rejects_unknown_property() {
 		$result = $this->collections->register(
@@ -196,7 +196,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers ::unregister
 	 *
-	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Icon_Collections_Registry::unregister
 	 */
 	public function test_unregister_unknown_collection() {
 		$this->assertFalse( $this->collections->unregister( 'ghost' ) );

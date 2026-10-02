@@ -223,7 +223,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 				'render_callback' => array( $this, 'render_echo_and_return' ),
 			)
 		);
-		$this->setExpectedIncorrectUsage( 'render' );
+		$this->expectWPIncorrectUsage( 'render' );
 		$this->assertSame( 'bar', $partial->render() );
 	}
 

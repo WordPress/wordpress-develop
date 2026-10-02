@@ -95,7 +95,7 @@ class Tests_Connectors_WpConnectorsResolveAiProviderLogoUrl extends WP_UnitTestC
 
 	/**
 	 * @ticket 64791
-	 * @expectedIncorrectUsage _wp_connectors_resolve_ai_provider_logo_url
+	 * @expectedWPIncorrectUsage _wp_connectors_resolve_ai_provider_logo_url
 	 */
 	public function test_returns_null_and_triggers_doing_it_wrong_for_path_outside_plugin_dirs() {
 		$tmp_file = tempnam( sys_get_temp_dir(), 'logo_' );

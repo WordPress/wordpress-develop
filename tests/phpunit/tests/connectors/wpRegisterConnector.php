@@ -43,7 +43,7 @@ class Tests_Connectors_WpRegisterConnector extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_get_connector_returns_null_for_unregistered() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::get_registered' );
 
 		$result = wp_get_connector( 'nonexistent_provider' );
 

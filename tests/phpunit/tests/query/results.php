@@ -1021,7 +1021,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10935
-	 * @expectedIncorrectUsage WP_Date_Query
+	 * @expectedWPIncorrectUsage WP_Date_Query
 	 */
 	public function test_query_is_date_with_bad_date() {
 		$this->q->query(

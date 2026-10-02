@@ -214,7 +214,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	public function test_register_sidebar_with_no_id() {
 		global $wp_registered_sidebars;
 
-		$this->setExpectedIncorrectUsage( 'register_sidebar' );
+		$this->expectWPIncorrectUsage( 'register_sidebar' );
 
 		// Incorrectly register a couple of sidebars for fun.
 		register_sidebar();
@@ -231,7 +231,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	public function test_unregister_sidebar_registered_with_no_id() {
 		global $wp_registered_sidebars;
 
-		$this->setExpectedIncorrectUsage( 'register_sidebar' );
+		$this->expectWPIncorrectUsage( 'register_sidebar' );
 
 		// Incorrectly register a couple of sidebars for fun.
 		register_sidebar();
@@ -347,7 +347,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @group sidebar
 	 */
 	public function test_dynamic_sidebar_using_sidebar_registered_with_no_id() {
-		$this->setExpectedIncorrectUsage( 'register_sidebar' );
+		$this->expectWPIncorrectUsage( 'register_sidebar' );
 
 		// Incorrectly register a couple of sidebars for fun.
 		register_sidebar();
@@ -945,7 +945,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @see \the_widget()
 	 */
 	public function test_the_widget_with_unregistered_widget() {
-		$this->setExpectedIncorrectUsage( 'the_widget' );
+		$this->expectWPIncorrectUsage( 'the_widget' );
 		the_widget( 'Widget_Class' );
 	}
 

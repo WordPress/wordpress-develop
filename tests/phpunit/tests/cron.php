@@ -1074,7 +1074,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49961
-	 * @expectedDeprecated wp_clear_scheduled_hook
+	 * @expectedWPDeprecated wp_clear_scheduled_hook
 	 *
 	 * @covers ::wp_clear_scheduled_hook
 	 */

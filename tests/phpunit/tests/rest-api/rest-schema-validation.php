@@ -160,7 +160,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			$this->expectNotice(); // For the undefined index.
 		}
 
-		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array( 'format' => 'email' );
 		$this->assertTrue( rest_validate_value_from_schema( 'email@example.com', $schema ) );
@@ -171,7 +171,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_unknown_type() {
-		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array(
 			'format' => 'email',
@@ -990,7 +990,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	public function test_type_unknown() {
-		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array(
 			'type' => 'lalala',
@@ -1108,8 +1108,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {
-		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
-		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->expectWPIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'invalid', 'type' ),
@@ -1122,8 +1122,8 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_some_unknown_types() {
-		$this->setExpectedIncorrectUsage( 'rest_handle_multi_type_schema' );
-		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
+		$this->expectWPIncorrectUsage( 'rest_handle_multi_type_schema' );
+		$this->expectWPIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array(
 			'type' => array( 'object', 'type' ),

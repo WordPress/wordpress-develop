@@ -56,7 +56,7 @@ class Tests_Category_GetCategoryParents extends WP_UnitTestCase {
 	}
 
 	public function test_deprecated_argument_visited() {
-		$this->setExpectedDeprecated( 'get_category_parents' );
+		$this->expectWPDeprecated( 'get_category_parents' );
 		$found = get_category_parents( $this->c2->term_id, false, '/', false, array( $this->c1->term_id ) );
 	}
 

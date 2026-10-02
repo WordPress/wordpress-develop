@@ -221,7 +221,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_doing_it_wrong_for_export_data_grouped_invalid_type( $groups ) {
 		update_post_meta( self::$export_request_id, '_export_data_grouped', $groups );
 
-		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
+		$this->expectWPIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
 
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
@@ -318,7 +318,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_html_contents( $groups, array $expected_content = array() ) {
 		// Set the _doing_it_wrong assertion.
 		if ( ! is_array( $groups ) ) {
-			$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
+			$this->expectWPIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
 		}
 
 		$request    = wp_get_user_request( self::$export_request_id );
@@ -360,7 +360,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_json_contents( $groups, array $expected_content = array() ) {
 		// Set the _doing_it_wrong assertion.
 		if ( ! is_array( $groups ) ) {
-			$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
+			$this->expectWPIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
 		}
 
 		$request    = wp_get_user_request( self::$export_request_id );

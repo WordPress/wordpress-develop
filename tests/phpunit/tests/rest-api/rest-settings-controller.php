@@ -782,7 +782,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 42875
 	 */
 	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_is_true() {
-		$this->setExpectedIncorrectUsage( 'register_setting' );
+		$this->expectWPIncorrectUsage( 'register_setting' );
 
 		register_setting(
 			'somegroup',
@@ -798,7 +798,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 42875
 	 */
 	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_omits_schema() {
-		$this->setExpectedIncorrectUsage( 'register_setting' );
+		$this->expectWPIncorrectUsage( 'register_setting' );
 
 		register_setting(
 			'somegroup',
@@ -816,7 +816,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 42875
 	 */
 	public function test_register_setting_issues_doing_it_wrong_when_show_in_rest_omits_schema_items() {
-		$this->setExpectedIncorrectUsage( 'register_setting' );
+		$this->expectWPIncorrectUsage( 'register_setting' );
 
 		register_setting(
 			'somegroup',

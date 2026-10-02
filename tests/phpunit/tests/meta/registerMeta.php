@@ -586,7 +586,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	 * @dataProvider data_get_invalid_default_data
 	 */
 	public function test_get_invalid_default_value( $args, $single, $expected ) {
-		$this->setExpectedIncorrectUsage( 'register_meta' );
+		$this->expectWPIncorrectUsage( 'register_meta' );
 		$object_type = 'post';
 		$meta_key    = 'registered_key1';
 		$register    = register_meta(
@@ -1176,7 +1176,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 	 * @ticket 20564
 	 */
 	public function test_register_meta_with_revisions_enabled_on_post_type_without_revisions() {
-		$this->setExpectedIncorrectUsage( 'register_meta' );
+		$this->expectWPIncorrectUsage( 'register_meta' );
 
 		// Set up a custom post type with revisions disabled.
 		register_post_type(

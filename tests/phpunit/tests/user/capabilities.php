@@ -1625,7 +1625,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$editor = self::$users['editor'];
 
-		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+		$this->expectWPIncorrectUsage( 'map_meta_cap' );
 		foreach ( $caps as $cap ) {
 			// `null` represents a non-existent term ID.
 			$this->assertFalse( user_can( $editor->ID, $cap, null ) );
@@ -1989,7 +1989,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16956
-	 * @expectedIncorrectUsage map_meta_cap
+	 * @expectedWPIncorrectUsage map_meta_cap
 	 */
 	public function test_require_edit_others_posts_if_post_type_doesnt_exist() {
 		register_post_type( 'existed' );
@@ -2012,7 +2012,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48653
-	 * @expectedIncorrectUsage map_meta_cap
+	 * @expectedWPIncorrectUsage map_meta_cap
 	 */
 	public function test_require_edit_others_posts_if_post_status_doesnt_exist() {
 		register_post_status( 'existed' );
@@ -2144,7 +2144,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23016
-	 * @expectedDeprecated WP_Roles::reinit
+	 * @expectedWPDeprecated WP_Roles::reinit
 	 */
 	public function test_wp_roles_reinit_deprecated() {
 		$wp_roles = new WP_Roles();
