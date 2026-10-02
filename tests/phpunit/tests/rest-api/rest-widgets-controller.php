@@ -91,7 +91,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public static function wpTearDownAfterClass() {
-		// Rebuild the default widgets after the class clears the shared factory.
+		global $wp_widget_factory, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
+
+		// Clear existing registrations so rebuilding does not discard default widget objects.
+		$wp_widget_factory->widgets    = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
 		wp_widgets_init();
 	}
 
