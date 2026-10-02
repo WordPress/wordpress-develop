@@ -432,31 +432,31 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * Flips current image.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Uses imageflip() instead of imagecopyresampled() with negative dimensions.
 	 *
 	 * @param bool $horz Flip along Horizontal Axis.
 	 * @param bool $vert Flip along Vertical Axis.
 	 * @return true|WP_Error
 	 */
 	public function flip( $horz, $vert ) {
-		$w   = $this->size['width'];
-		$h   = $this->size['height'];
-		$dst = wp_imagecreatetruecolor( $w, $h );
+		if ( ! is_gd_image( $this->image ) ) {
+			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+		}
 
-		if ( is_gd_image( $dst ) ) {
-			$sx = $vert ? ( $w - 1 ) : 0;
-			$sy = $horz ? ( $h - 1 ) : 0;
-			$sw = $vert ? -$w : $w;
-			$sh = $horz ? -$h : $h;
+		if ( ! $horz && ! $vert ) {
+			return true;
+		}
 
-			if ( imagecopyresampled( $dst, $this->image, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-					imagedestroy( $this->image );
-				}
+		if ( $horz && $vert ) {
+			$mode = IMG_FLIP_BOTH;
+		} elseif ( $horz ) {
+			$mode = IMG_FLIP_VERTICAL;
+		} else {
+			$mode = IMG_FLIP_HORIZONTAL;
+		}
 
-				$this->image = $dst;
-
-				return true;
-			}
+		if ( imageflip( $this->image, $mode ) ) {
+			return true;
 		}
 
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
