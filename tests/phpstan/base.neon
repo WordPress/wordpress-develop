@@ -248,6 +248,7 @@ parameters:
 			- ../../src/wp-includes/ID3
 			- ../../src/wp-includes/IXR
 			- ../../src/wp-includes/PHPMailer
+			- ../../src/wp-includes/php-vips
 			- ../../src/wp-includes/Requests
 			- ../../src/wp-includes/SimplePie
 			- ../../src/wp-includes/Text

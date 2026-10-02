@@ -4422,6 +4422,7 @@ function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 	require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+	require_once ABSPATH . WPINC . '/class-wp-image-editor-vips.php';
 	require_once ABSPATH . WPINC . '/class-avif-info.php';
 	/**
 	 * Filters the list of image editing library classes.
@@ -4429,9 +4430,9 @@ function _wp_image_editor_choose( $args = array() ) {
 	 * @since 3.5.0
 	 *
 	 * @param string[] $image_editors Array of available image editor class names. Defaults are
-	 *                                'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
+	 *                                'WP_Image_Editor_Vips', 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD'.
 	 */
-	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
+	$implementations = apply_filters( 'wp_image_editors', array( 'WP_Image_Editor_Vips', 'WP_Image_Editor_Imagick', 'WP_Image_Editor_GD' ) );
 
 	$editors = wp_cache_get( 'wp_image_editor_choose', 'image_editor' );
 
@@ -5996,9 +5997,12 @@ function wp_getimagesize( $filename, ?array &$image_info = null ) {
 			return false;
 		}
 
-		// If the editor for HEICs is Imagick, use it to get the image size.
-		if ( $editor instanceof WP_Image_Editor_Imagick ) {
-			$size = $editor->get_size();
+		// Any editor that claimed HEIC support and successfully loaded the file can
+		// report the size. This is not limited to Imagick: GD never gets here because it
+		// does not claim HEIC support, but the VIPS editor does.
+		$size = $editor->get_size();
+
+		if ( $size ) {
 			return array(
 				$size['width'],
 				$size['height'],

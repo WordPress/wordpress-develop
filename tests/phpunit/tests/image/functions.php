@@ -16,6 +16,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-vips.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
@@ -33,7 +34,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @return string[] Available image editor classes; empty array when none are available.
 	 */
 	private function get_image_editor_engine_classes() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick', 'WP_Image_Editor_Vips' );
 
 		foreach ( $classes as $key => $class ) {
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {

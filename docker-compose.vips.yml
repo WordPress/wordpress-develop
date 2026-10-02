@@ -1,0 +1,31 @@
+services:
+  php:
+    # The VIPS image gets its own tag. Building it over the base image's tag would
+    # overwrite the base, so each rebuild would stack another layer on the previous
+    # build's output instead of on the base. The overlayfs layer limit is low enough
+    # that a couple of rebuilds would then break both the build and container creation.
+    image: wordpressdevelop/php-vips:${LOCAL_PHP-latest}
+
+    build:
+      context: .
+      dockerfile: tools/local-env/php-vips/Dockerfile
+      args:
+        LOCAL_PHP: ${LOCAL_PHP-latest}
+
+    # `up` only builds when the image is missing, and the base image is always present,
+    # so without this the VIPS image would never be built and the VIPS tests would skip.
+    pull_policy: build
+
+  cli:
+    # WP-CLI image operations (`wp media regenerate`, `wp media import`) run in this
+    # container, so it needs the same backend. It gets its own tag for the same reason as
+    # the php service above.
+    image: wordpressdevelop/cli-vips:${LOCAL_PHP-latest}
+
+    build:
+      context: .
+      dockerfile: tools/local-env/cli-vips/Dockerfile
+      args:
+        LOCAL_PHP: ${LOCAL_PHP-latest}
+
+    pull_policy: build
