@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-activate.php
-		-
 			message: '#^Variable \$pagenow might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -664,11 +659,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-content/themes/twentyten/loop.php
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentyten/loop.php
-		-
 			message: '#^Variable \$next_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -698,11 +688,6 @@ parameters:
 			identifier: variable.undefined
 			count: 4
 			path: ../../../src/wp-content/themes/twentytwentyone/image.php
-		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentytwentyone/search.php
 		-
 			message: '#^Variable \$original_content might not be defined\.$#'
 			identifier: variable.undefined
@@ -963,11 +948,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-settings.php
-		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-signup.php
 		-
 			message: '#^Variable \$posts might not be defined\.$#'
 			identifier: variable.undefined
