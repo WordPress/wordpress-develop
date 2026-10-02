@@ -62,20 +62,57 @@ final class WP_Interactivity_API {
 	/**
 	 * Registered token identities and their HTML, guarded against object ID reuse.
 	 *
+	 * This registry is static, so it is shared by every instance for the rest of
+	 * the request. It is the only place the HTML of a
+	 * WP_Interactivity_Dangerous_HTML token is kept: the token itself is an empty
+	 * opaque object, so a token carries no HTML and a copy or reconstruction of it
+	 * has no entry here.
+	 *
+	 * The only code that writes to it is the closure bound to this class inside
+	 * wp_interactivity_as_dangerous_html(), which stores, under the token's
+	 * `spl_object_id()`, a WeakReference to the new token and the HTML string.
+	 * Lookup, in self::get_dangerous_html(), trusts an entry only when that
+	 * WeakReference still resolves to the very object being checked. Class
+	 * membership or the object ID alone is not enough, because PHP reuses the ID
+	 * of a freed object.
+	 *
+	 * The WeakReference stops the registry from keeping the token alive. It does
+	 * not release the HTML: an entry, and the string it holds, stays in memory
+	 * until a later token reuses its object ID and overwrites it, or until the
+	 * request ends. Entries are never removed otherwise.
+	 *
+	 * The usage and safety contract for callers lives in
+	 * wp_interactivity_as_dangerous_html().
+	 *
+	 * @since 7.2.0
 	 * @var array<int, array{0: WeakReference, 1: string}>
 	 */
 	private static $dangerous_html = array();
 
 	/**
-	 * Maps inert comments to trusted HTML for the current public processing call.
+	 * Maps inert placeholder comments to trusted HTML for the current public processing call.
 	 *
+	 * Each key is the complete comment that `data-wp-html` wrote into the host
+	 * element, and each value is the HTML for it. The map belongs to one call of
+	 * self::process_directives(), which empties it on entry and restores the
+	 * previous contents on exit. All internal passes of that call, including
+	 * the passes over each item of `data-wp-each`, add to the same map, so
+	 * placeholder comments stay unique within the call.
+	 *
+	 * @since 7.2.0
 	 * @var array<string, string>
 	 */
 	private $html_placeholders = array();
 
 	/**
-	 * Marker absent from the current public call's input HTML.
+	 * Marker that begins every placeholder comment of the current public processing call.
 	 *
+	 * It is chosen by self::process_directives() so that it does not occur
+	 * anywhere in that call's input HTML, which keeps a placeholder from being
+	 * mistaken for markup the page already contained. It is restored to its
+	 * previous value when the call ends.
+	 *
+	 * @since 7.2.0
 	 * @var string
 	 */
 	private $html_placeholder_marker = '';
@@ -478,7 +515,30 @@ final class WP_Interactivity_API {
 	 * and updates the markup accordingly.
 	 * Trusted HTML is substituted after a successful processing pass.
 	 *
+	 * While directives are processed, `data-wp-html` leaves an inert placeholder
+	 * comment in its host element and records the trusted HTML for it in
+	 * self::$html_placeholders; see self::data_wp_html_processor(). This method
+	 * owns that map for one public call. It saves the previous map and marker,
+	 * starts a new map, and picks a marker that does not occur in `$html`, so a
+	 * placeholder cannot collide with comments of the input. The previous map and
+	 * marker are restored in a `finally` block, even if processing throws.
+	 *
+	 * After a successful pass, a single `strtr()` swaps each placeholder for its
+	 * HTML. The substitution is not recursive: the inserted HTML is never
+	 * scanned again, for directives or for further placeholders. When the pass
+	 * fails because the tags of `$html` are unbalanced, nothing is substituted
+	 * and `$html` is returned unchanged. That check covers only the original
+	 * page or host markup: trusted HTML is inserted unchecked, and its balance
+	 * is the caller's responsibility, as described in
+	 * wp_interactivity_as_dangerous_html().
+	 *
+	 * Only the placeholder map and marker are saved and restored. The namespace
+	 * and context stacks are reset on entry and cleared on exit, so calling this
+	 * method again while a directive is being processed does not preserve the
+	 * outer call's namespace and context.
+	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Substitutes trusted HTML for `data-wp-html` placeholders after a successful pass.
 	 *
 	 * @param string $html The HTML content to process.
 	 * @return string The processed HTML content. It returns the original content when the HTML contains unbalanced tags.
@@ -1458,6 +1518,15 @@ final class WP_Interactivity_API {
 	/**
 	 * Retrieves HTML only for the original registered token identity.
 	 *
+	 * This is the only lookup into self::$dangerous_html. It returns the HTML
+	 * only when `$value` is an object whose `spl_object_id()` has an entry and
+	 * that entry's WeakReference resolves to `$value` itself. A string, a clone,
+	 * an object created with `new` or by unserializing, and a different object
+	 * that reuses the ID of a freed token all return null. Nothing here
+	 * validates or alters the HTML.
+	 *
+	 * @since 7.2.0
+	 *
 	 * @param mixed $value Evaluated directive value.
 	 * @return string|null Registered HTML, or null for an unregistered value.
 	 */
@@ -1475,6 +1544,23 @@ final class WP_Interactivity_API {
 	 * Declines incompatible directives, targets that cannot hold content, and
 	 * unregistered values with a notice. Null values and ignored entries are silent.
 	 * Notices identify the host tag as plain text for error-message sanitization.
+	 *
+	 * When the value is a registered token, this method does not insert its HTML
+	 * into the host. It writes a placeholder comment, `<!--` followed by
+	 * self::$html_placeholder_marker and a number, as the host's content, and
+	 * records the HTML under that comment in self::$html_placeholders. Writing the
+	 * HTML itself would expose it to the passes that follow: the host is rewound
+	 * to its opener, and the internal passes over each `data-wp-each` item, which
+	 * share the placeholder map, re-scan the item markup. Those passes would
+	 * then visit the HTML's tags and process any `data-wp-*` directives in it,
+	 * although trusted HTML is not parsed as server directives. A comment has no
+	 * tags to visit, so the payload is never scanned. If the host's closer tag is
+	 * not found, nothing is written and no placeholder is recorded.
+	 *
+	 * The HTML is inserted when self::process_directives() substitutes the
+	 * placeholders at the end of a successful call. The HTML comes from
+	 * self::get_dangerous_html(). The safety and usage contract for callers, and
+	 * what the notices cover, is in wp_interactivity_as_dangerous_html().
 	 *
 	 * @since 7.2.0
 	 *

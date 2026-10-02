@@ -63,6 +63,16 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	/**
 	 * Sets the content between two balanced tags.
 	 *
+	 * The new content is escaped with `esc_html()` before it is written, so it
+	 * becomes text: markup in it is shown as characters rather than parsed. To
+	 * write content as given, use self::set_raw_content_between_balanced_tags().
+	 *
+	 * It finds the current opener tag's matching closer tag, replaces what lies
+	 * between them, and leaves the cursor on the opener tag. When there is no
+	 * matching closer tag, it writes nothing and returns false; the cursor is
+	 * then not rewound to the opener. Finding a closer tag balances the host
+	 * element only. It does not validate the content that was passed.
+	 *
 	 * @since 6.5.0
 	 *
 	 * @access private
@@ -88,6 +98,22 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 
 	/**
 	 * Writes verbatim content between balanced tags and rewinds to the opener.
+	 *
+	 * Unlike self::set_content_between_balanced_tags(), the content is not
+	 * escaped: it is written byte for byte, so any markup in it becomes markup
+	 * of the document. Neither the markup nor its balance is checked. The only
+	 * balancing is that of the host element, whose matching closer tag locates
+	 * the end of the content to replace.
+	 *
+	 * Like the escaped helper, it leaves the cursor on the opener tag after a
+	 * write. When there is no matching closer tag, it writes nothing, returns
+	 * false, and does not rewind the cursor to the opener.
+	 *
+	 * The caller must make sure the content is safe to insert. Its use by
+	 * `data-wp-html` is explained in
+	 * WP_Interactivity_API::data_wp_html_processor().
+	 *
+	 * @since 7.2.0
 	 *
 	 * @access private
 	 *
