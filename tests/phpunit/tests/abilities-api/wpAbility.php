@@ -2119,4 +2119,152 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( 'raw value', $result, 'Input should reach the execute callback unmodified (no sanitization).' );
 		$this->assertFalse( $callback_invoked, 'Schema sanitize_callback must not run.' );
 	}
+
+	/**
+	 * Tests that an ability without an eligibility callback is always eligible.
+	 *
+	 * @covers WP_Ability::is_eligible
+	 */
+	public function test_is_eligible_defaults_to_true_without_callback() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertTrue( $ability->is_eligible() );
+		$this->assertTrue( $ability->is_eligible( array( 'surface' => 'rest' ) ) );
+	}
+
+	/**
+	 * Tests that the registered eligibility callback decides the result.
+	 *
+	 * @covers WP_Ability::is_eligible
+	 */
+	public function test_is_eligible_uses_registered_callback() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'eligibility_callback' => static function ( array $context ): bool {
+						return isset( $context['post_type'] ) && 'product' === $context['post_type'];
+					},
+				)
+			)
+		);
+
+		$this->assertTrue( $ability->is_eligible( array( 'post_type' => 'product' ) ) );
+		$this->assertFalse( $ability->is_eligible( array( 'post_type' => 'page' ) ) );
+	}
+
+	/**
+	 * Tests that a non-boolean callback return is treated as eligible.
+	 *
+	 * @covers WP_Ability::is_eligible
+	 */
+	public function test_is_eligible_non_boolean_callback_return_is_treated_as_eligible() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'eligibility_callback' => static function (): string {
+						return 'not-a-boolean';
+					},
+				)
+			)
+		);
+
+		$this->assertTrue( $ability->is_eligible( array( 'surface' => 'rest' ) ) );
+	}
+
+	/**
+	 * Tests that an invalid eligibility callback throws an exception.
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_invalid_eligibility_callback_throws_exception() {
+		$this->expectException( InvalidArgumentException::class );
+		new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'eligibility_callback' => 'this_function_does_not_exist',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Tests that the eligibility result filter can override the callback result.
+	 *
+	 * @covers WP_Ability::is_eligible
+	 */
+	public function test_eligibility_result_filter_can_override_result() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$received = array();
+		add_filter(
+			'wp_ability_eligibility_result',
+			static function ( $is_eligible, $ability_name, $context, $ability_instance ) use ( &$received ) {
+				$received = array( $is_eligible, $ability_name, $context, $ability_instance );
+				return false;
+			},
+			10,
+			4
+		);
+
+		$context = array( 'surface' => 'mcp' );
+
+		$this->assertFalse( $ability->is_eligible( $context ) );
+		$this->assertTrue( $received[0], 'The filter should receive true when the ability declares no callback.' );
+		$this->assertSame( self::$test_ability_name, $received[1] );
+		$this->assertSame( $context, $received[2] );
+		$this->assertSame( $ability, $received[3] );
+	}
+
+	/**
+	 * Tests that a non-boolean filter return is treated as eligible.
+	 *
+	 * @covers WP_Ability::is_eligible
+	 */
+	public function test_eligibility_result_filter_non_boolean_return_is_treated_as_eligible() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'eligibility_callback' => '__return_false',
+				)
+			)
+		);
+
+		add_filter( 'wp_ability_eligibility_result', '__return_null' );
+
+		$this->assertTrue( $ability->is_eligible( array( 'surface' => 'rest' ) ) );
+	}
+
+	/**
+	 * Tests that the eligibility callback is not consulted when executing an ability.
+	 *
+	 * @covers WP_Ability::execute
+	 */
+	public function test_eligibility_callback_not_consulted_on_execute() {
+		$calls   = 0;
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_properties,
+				array(
+					'eligibility_callback' => static function () use ( &$calls ): bool {
+						++$calls;
+						return false;
+					},
+				)
+			)
+		);
+
+		$result = $ability->execute();
+
+		$this->assertSame( 0, $result, 'The ability should execute normally.' );
+		$this->assertSame( 0, $calls, 'The eligibility callback must not run on execute.' );
+	}
 }
