@@ -19,7 +19,9 @@ class WP_Sitemaps_Renderer {
 	/**
 	 * Sitemap stylesheet URL.
 	 *
+	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 *
 	 * @var string
 	 */
 	protected $stylesheet = '';
@@ -27,7 +29,9 @@ class WP_Sitemaps_Renderer {
 	/**
 	 * Sitemap index stylesheet URL.
 	 *
+	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 *
 	 * @var string
 	 */
 	protected $stylesheet_index = '';
@@ -35,6 +39,7 @@ class WP_Sitemaps_Renderer {
 	/**
 	 * Constructor retained for backward compatibility.
 	 *
+	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
 	 */
 	public function __construct() {}
