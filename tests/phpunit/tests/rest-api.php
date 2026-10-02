@@ -907,13 +907,13 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$response->set_data(
 			array(
 				'category' => array(
-					'name' => 'Categories',
-					'slug' => 'category',
+					'name'  => 'Categories',
+					'slug'  => 'category',
 					'types' => array( 'post' ),
 				),
 				'post_tag' => array(
-					'name' => 'Tags',
-					'slug' => 'post_tag',
+					'name'  => 'Tags',
+					'slug'  => 'post_tag',
 					'types' => array( 'post' ),
 				),
 			)

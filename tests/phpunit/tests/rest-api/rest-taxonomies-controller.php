@@ -159,7 +159,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		register_post_type(
 			'rest-fields-cpt',
 			array(
-				'public'   => true,
+				'public'     => true,
 				'taxonomies' => array( 'category' ),
 			)
 		);
