@@ -1189,7 +1189,12 @@ class WP_Query {
 				continue; // Handled further down in the $query_vars['tag'] block.
 			}
 
-			if ( $t->query_var && ! empty( $query_vars[ $t->query_var ] ) ) {
+			if ( $t->query_var
+				&& isset( $query_vars[ $t->query_var ] )
+				&& ( is_array( $query_vars[ $t->query_var ] )
+					? ! empty( $query_vars[ $t->query_var ] )
+					: '' !== (string) $query_vars[ $t->query_var ] )
+			) {
 				$tax_query_defaults = array(
 					'taxonomy' => $taxonomy,
 					'field'    => 'slug',
@@ -3985,7 +3990,7 @@ class WP_Query {
 
 				if ( $cat ) {
 					$term = get_term( $cat, 'category' );
-				} elseif ( $category_name ) {
+				} elseif ( '' !== (string) $category_name ) {
 					$term = get_term_by( 'slug', $category_name, 'category' );
 				}
 			} elseif ( $this->is_tag ) {
