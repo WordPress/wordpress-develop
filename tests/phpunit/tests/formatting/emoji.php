@@ -376,4 +376,74 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	public function test_wp_staticize_emoji( $emoji, $expected ) {
 		$this->assertSame( $expected, wp_staticize_emoji( $emoji ) );
 	}
+
+	/**
+	 * Tests that emoji inside ignored tags are not staticized, with or without attributes.
+	 *
+	 * @ticket 66134
+	 * @dataProvider data_wp_staticize_emoji_ignored_tags
+	 *
+	 * @covers ::wp_staticize_emoji
+	 *
+	 * @param string $element The ignored element name.
+	 */
+	public function test_wp_staticize_emoji_ignores_tags_with_attributes( $element ) {
+		// U+1F642 as the HTML entity produced by _wp_emoji_list( 'entities' ).
+		$emoji = '&#x1f642;';
+
+		$no_attr = "<$element>$emoji</$element>";
+		$this->assertSame( $no_attr, wp_staticize_emoji( $no_attr ), "Emoji inside <$element> should not be staticized." );
+
+		$with_attr = "<$element data-foo=\"bar\">$emoji</$element>";
+		$this->assertSame( $with_attr, wp_staticize_emoji( $with_attr ), "Emoji inside <$element data-foo=\"...\"> should not be staticized." );
+	}
+
+	/**
+	 * Data provider for test_wp_staticize_emoji_ignores_tags_with_attributes().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_staticize_emoji_ignored_tags() {
+		return array(
+			'code'     => array( 'code' ),
+			'pre'      => array( 'pre' ),
+			'style'    => array( 'style' ),
+			'script'   => array( 'script' ),
+			'textarea' => array( 'textarea' ),
+		);
+	}
+
+	/**
+	 * Tests where the ignore block starts and ends, by counting staticized emoji.
+	 *
+	 * @ticket 66134
+	 * @dataProvider data_wp_staticize_emoji_ignore_block_boundaries
+	 *
+	 * @covers ::wp_staticize_emoji
+	 *
+	 * @param string $text     The content to staticize.
+	 * @param int    $expected The expected number of staticized emoji.
+	 */
+	public function test_wp_staticize_emoji_ignore_block_boundaries( $text, $expected ) {
+		$this->assertSame( $expected, substr_count( wp_staticize_emoji( $text ), 'class="wp-smiley"' ) );
+	}
+
+	/**
+	 * Data provider for test_wp_staticize_emoji_ignore_block_boundaries().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_staticize_emoji_ignore_block_boundaries() {
+		return array(
+			'emoji after closing tag is staticized'        => array( '<pre class="wp-block-code">&#x1f642;</pre>&#x1f642;', 1 ),
+			'code block markup'                            => array( '<pre class="wp-block-code"><code>&#x1f642;</code></pre>', 0 ),
+			'raw emoji character'                          => array( "<pre class=\"wp-block-code\">\u{1F642}</pre>\u{1F642}", 1 ),
+			'slash after tag name'                         => array( '<textarea/>&#x1f642;</textarea>&#x1f642;', 1 ),
+			'uppercase tags'                               => array( '<PRE class="foo">&#x1f642;</PRE>&#x1f642;', 1 ),
+			'whitespace in closing tag'                    => array( '<pre>&#x1f642;</pre >&#x1f642;', 1 ),
+			'custom element starting with ignored name'    => array( '<code-snippet>&#x1f642;</code-snippet>&#x1f642;', 2 ),
+			'unknown element starting with ignored name'   => array( '<preview>&#x1f642;</preview>&#x1f642;', 2 ),
+			'element name prefixed by ignored script name' => array( '<script-loader>&#x1f642;</script-loader>&#x1f642;', 2 ),
+		);
+	}
 }
