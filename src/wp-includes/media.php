@@ -6701,17 +6701,22 @@ function wp_set_up_cross_origin_isolation(): bool {
 /**
  * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
- * `isolate-and-credentialless` loads cross-origin subresources without
- * credentials instead of blocking them, so no `crossorigin` attribute is
- * needed on scripts, styles, images, audio, or video for the page to work.
+ * The `isolate-and-credentialless` directive loads cross-origin subresources
+ * without credentials instead of blocking them, so no `crossorigin` attribute
+ * is needed on scripts, styles, images, audio, or video for the page to work.
  * Forcing `crossorigin="anonymous"` would turn those into CORS requests
  * and break any resource served without `Access-Control-Allow-Origin`.
  *
  * @since 7.2.0
  *
- * @return bool Whether the header was sent.
+ * @return bool Whether the header was sent. False if the browser does not
+ *              support Document-Isolation-Policy or headers were already sent.
  */
 function wp_send_document_isolation_policy_header(): bool {
+	if ( headers_sent() ) {
+		return false;
+	}
+
 	$chromium_version = wp_get_chromium_major_version();
 
 	if ( null === $chromium_version || $chromium_version < 137 ) {

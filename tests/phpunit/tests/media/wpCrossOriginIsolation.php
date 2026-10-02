@@ -149,6 +149,21 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Runs in the main PHPUnit process, where output has already started.
+	 *
+	 * @ticket 65930
+	 */
+	public function test_does_not_send_header_when_headers_already_sent() {
+		if ( ! headers_sent() ) {
+			$this->markTestSkipped( 'Requires output to have already been sent.' );
+		}
+
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		$this->assertFalse( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header cannot be sent once headers are sent.' );
+	}
+
+	/**
 	 * The site editor home route on a classic theme skips DIP, because the
 	 * editor renders the front end in a same-origin iframe and must reach its
 	 * `contentDocument` to neutralize interactive elements. DIP would block
