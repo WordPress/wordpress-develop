@@ -48,6 +48,8 @@ class WP_Sitemaps_Renderer {
 	 * @return string Empty string.
 	 */
 	public function get_sitemap_stylesheet_url() {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
 		/**
 		 * Filters the URL for the sitemap stylesheet.
 		 *
@@ -73,6 +75,8 @@ class WP_Sitemaps_Renderer {
 	 * @return string Empty string.
 	 */
 	public function get_sitemap_index_stylesheet_url() {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
 		/**
 		 * Filters the URL for the sitemap index stylesheet.
 		 *

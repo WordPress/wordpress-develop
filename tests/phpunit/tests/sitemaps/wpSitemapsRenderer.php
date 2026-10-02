@@ -278,6 +278,24 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	}
 
 	/**
+	 * Tests that the stylesheet URL methods are deprecated and return an empty string.
+	 *
+	 * @ticket 65593
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 *
+	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 */
+	public function test_stylesheet_url_methods_are_deprecated(): void {
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+
+		$this->assertSame( '', $sitemap_renderer->get_sitemap_stylesheet_url(), 'The sitemap stylesheet URL should be empty.' );
+		$this->assertSame( '', $sitemap_renderer->get_sitemap_index_stylesheet_url(), 'The sitemap index stylesheet URL should be empty.' );
+	}
+
+	/**
 	 * Data provider for {@see self::test_deprecated_stylesheet_filters()}.
 	 *
 	 * @return array<non-falsy-string, array{ hook_name: non-falsy-string, method: 'get_sitemap_xml'|'get_sitemap_index_xml' }>
