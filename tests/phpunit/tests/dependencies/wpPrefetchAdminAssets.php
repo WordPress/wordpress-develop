@@ -2,15 +2,9 @@
 /**
  * Tests for {@see wp_prefetch_admin_assets()}.
  *
- * Prefetching only happens when concatenation is off, which is decided by the `CONCATENATE_SCRIPTS`
- * and `SCRIPT_DEBUG` constants. A constant cannot be undefined again, so every test defines
- * `CONCATENATE_SCRIPTS` in a separate process. `SCRIPT_DEBUG` is already defined by the time a test
- * runs, as on when running from `src/`, so tests whose outcome depends on it are skipped when it
- * has the other value.
- *
- * @todo Once concatenation is retired in https://core.trac.wordpress.org/ticket/57548, remove the
- *       `CONCATENATE_SCRIPTS` constant and the tests that depend on it, and run the rest in the
- *       main process rather than in separate ones, which are slow.
+ * Prefetching only happens when concatenation is off. Each test turns it off with the
+ * {@see 'wp_should_concatenate_admin_scripts'} filter, so that it does not depend on the
+ * `CONCATENATE_SCRIPTS` and `SCRIPT_DEBUG` constants, which cannot be changed once defined.
  *
  * @package WordPress
  * @subpackage Script Loader
@@ -23,40 +17,102 @@
 class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 
 	/**
-	 * Tests that nothing is prefetched when the admin concatenates its assets.
+	 * Globals each test replaces, with the values they had before it.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private $original_globals = array();
+
+	/**
+	 * Gives each test fresh script and style registries, since several tests modify them, and turns
+	 * concatenation off.
+	 */
+	public function set_up(): void {
+		parent::set_up();
+
+		foreach ( array( 'wp_scripts', 'wp_styles', 'concatenate_scripts', 'action', 'interim_login' ) as $name ) {
+			$this->original_globals[ $name ] = $GLOBALS[ $name ] ?? null;
+			unset( $GLOBALS[ $name ] );
+		}
+
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_false' );
+	}
+
+	/**
+	 * Restores the globals the test replaced.
+	 */
+	public function tear_down(): void {
+		foreach ( $this->original_globals as $name => $value ) {
+			if ( null === $value ) {
+				unset( $GLOBALS[ $name ] );
+			} else {
+				$GLOBALS[ $name ] = $value;
+			}
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Tests that nothing is prefetched from the login screen when the admin concatenates its assets.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
-	public function test_prints_nothing_when_concatenating(): void {
-		define( 'CONCATENATE_SCRIPTS', true );
-
-		if ( SCRIPT_DEBUG ) {
-			$this->markTestSkipped( 'SCRIPT_DEBUG is on, which turns off concatenation.' );
-		}
+	public function test_login_prints_nothing_when_admin_concatenates(): void {
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
 
 		$this->assertSame( array(), $this->get_prefetched_on_login() );
 	}
 
 	/**
-	 * Tests that `SCRIPT_DEBUG` turns off concatenation, and so turns on prefetching, even when
-	 * `CONCATENATE_SCRIPTS` is on.
+	 * Tests that the login screen predicts what the admin will do rather than reading the
+	 * `$concatenate_scripts` global, which script_concat_settings() may have settled on false before
+	 * 'login_init' fired.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
-	public function test_script_debug_overrides_concatenation(): void {
-		define( 'CONCATENATE_SCRIPTS', true );
+	public function test_login_ignores_concatenate_scripts_global(): void {
+		$GLOBALS['concatenate_scripts'] = true;
 
-		if ( ! SCRIPT_DEBUG ) {
-			$this->markTestSkipped( 'SCRIPT_DEBUG is off.' );
-		}
+		$this->assertNotSame( array(), $this->get_prefetched_on_login(), 'Expected prefetching when the admin will not concatenate.' );
 
-		$this->assertNotSame( array(), $this->get_prefetched_on_login() );
+		$GLOBALS['concatenate_scripts'] = false;
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
+
+		$this->assertSame( array(), $this->get_prefetched_on_login(), 'Expected no prefetching when the admin will concatenate.' );
+	}
+
+	/**
+	 * Tests that an admin screen goes by the `$concatenate_scripts` global, which has settled by the
+	 * time its head is printed, so a plugin setting the global is respected.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_admin_screen_uses_concatenate_scripts_global(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$GLOBALS['concatenate_scripts'] = true;
+
+		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected no prefetching when the global says to concatenate.' );
+
+		$GLOBALS['concatenate_scripts'] = false;
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
+
+		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected prefetching when the global says not to concatenate.' );
+	}
+
+	/**
+	 * Tests that an admin screen settles the `$concatenate_scripts` global with script_concat_settings()
+	 * when nothing has done so yet.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_admin_screen_settles_concatenate_scripts_global(): void {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
+
+		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
+		$this->assertTrue( $GLOBALS['concatenate_scripts'] );
 	}
 
 	/**
@@ -64,13 +120,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * admin-wide stylesheets, but not the editor's stylesheets or the per-user color scheme.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_prefetches_render_blocking_admin_assets(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$links = $this->get_prefetched_on_login();
 
 		$this->assertPrefetched( $links, 'script', '#/wp-includes/js/jquery/jquery(\.min)?\.js#' );
@@ -98,17 +149,12 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
 	 * @dataProvider data_editor_destinations
 	 *
 	 * @param string $redirect_to Where the login redirects to.
 	 * @param bool   $is_editor   Whether that is the block editor.
 	 */
 	public function test_login_prefetches_editor_assets_for_editor_destination( string $redirect_to, bool $is_editor ): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$links = $this->get_prefetched_on_login( array( 'redirect_to' => $redirect_to ) );
 
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
@@ -143,13 +189,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * editor's stylesheets.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_prefetches_editor_assets_for_absolute_editor_url(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$links = $this->get_prefetched_on_login( array( 'redirect_to' => admin_url( 'post-new.php' ) ) );
 
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
@@ -161,9 +202,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
 	 * @dataProvider data_login_requests_not_leading_to_admin
 	 *
 	 * @param array<string, string> $request       Request parameters of the login screen.
@@ -171,8 +209,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * @param bool                  $interim_login Whether the interim login modal is displayed.
 	 */
 	public function test_login_prints_nothing_when_not_leading_to_admin( array $request, ?string $action, bool $interim_login ): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$this->assertSame( array(), $this->get_prefetched_on_login( $request, $action, $interim_login ) );
 	}
 
@@ -209,13 +245,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that nothing is prefetched when an absolute `redirect_to` points at this site's front end.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_prints_nothing_for_absolute_front_end_redirect(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$this->assertSame( array(), $this->get_prefetched_on_login( array( 'redirect_to' => home_url( '/hello-world/' ) ) ) );
 	}
 
@@ -224,13 +255,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * action wp-login.php does not recognize, which it treats as the login form, still prefetches.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_uses_action_resolved_by_wp_login(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$links = $this->get_prefetched_on_login( array( 'action' => 'unrecognized' ), 'login' );
 
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
@@ -240,13 +266,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that a `redirect_to` pointing off-site falls back to the admin, as wp_safe_redirect() does.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_off_site_redirect_falls_back_to_admin(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$filter = new MockAction();
 		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
 
@@ -262,13 +283,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * such as another site on a multisite network, which would request its assets from its own host.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_prints_nothing_for_admin_on_another_allowed_host(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		add_filter(
 			'allowed_redirect_hosts',
 			static function ( array $hosts ): array {
@@ -288,13 +304,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * which wp_validate_redirect() allows since it compares only the host.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_login_prints_nothing_for_admin_on_another_port(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$scheme = (string) wp_parse_url( admin_url(), PHP_URL_SCHEME );
 		$host   = (string) wp_parse_url( admin_url(), PHP_URL_HOST );
 		$port   = (int) wp_parse_url( admin_url(), PHP_URL_PORT );
@@ -314,16 +325,12 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
 	 * @dataProvider data_admin_screens_leading_to_editor
 	 *
 	 * @param string $screen    Screen ID.
 	 * @param string $post_type Post type of the editor expected to be prefetched for.
 	 */
 	public function test_admin_screen_prefetches_editor_assets( string $screen, string $post_type ): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$filter = new MockAction();
@@ -354,15 +361,11 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
 	 * @dataProvider data_other_admin_screens
 	 *
 	 * @param string $screen Screen ID.
 	 */
 	public function test_other_admin_screen_prints_nothing( string $screen ): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( $screen ) );
@@ -385,12 +388,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that nothing is prefetched for a user who cannot edit posts of the type listed.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_admin_screen_prints_nothing_for_user_who_cannot_edit_posts(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
@@ -403,12 +402,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * A Contributor can edit patterns but not create them, which requires `publish_posts`.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_admin_screen_prefetches_for_user_who_can_edit_but_not_create_posts(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
 
 		$post_type_object = get_post_type_object( 'wp_block' );
@@ -425,12 +420,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that nothing is prefetched for a post type that uses the classic editor.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_admin_screen_prints_nothing_for_classic_editor(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		add_filter( 'use_block_editor_for_post_type', '__return_false' );
 
@@ -441,13 +432,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that assets the current screen has already printed are not prefetched again.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_skips_assets_already_printed(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		wp_styles()->done[]  = 'common';
 		wp_scripts()->done[] = 'utils';
 
@@ -462,12 +448,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that a right-to-left locale prefetches the right-to-left stylesheets.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_prefetches_rtl_stylesheets(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
 		wp_styles()->text_direction = 'rtl';
 
 		$links = $this->get_prefetched_on_login();
@@ -481,13 +463,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * appending the plain form of one is collapsed with it.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_filter_receives_unescaped_stylesheet_urls(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		// Give a stylesheet a query string of its own, so its URL has an `&` before the version.
 		wp_styles()->registered['common']->src = '/wp-admin/css/common.css?color=blue';
 
@@ -534,13 +511,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that the filter can add, replace and remove resources, and that its result is sanitized.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_filter_result_is_deduplicated_and_sanitized(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		add_filter(
 			'prefetch_admin_assets',
 			static function (): array {
@@ -589,16 +561,11 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
 	 * @dataProvider data_filter_turning_off
 	 *
 	 * @param mixed $filtered Value the filter returns.
 	 */
 	public function test_filter_can_turn_off_prefetching( $filtered ): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		add_filter(
 			'prefetch_admin_assets',
 			static function () use ( $filtered ) {
@@ -614,13 +581,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * once, after all of the prefetch links it reads from the page.
 	 *
 	 * @ticket 57548
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_prints_polyfill_after_prefetch_links(): void {
-		define( 'CONCATENATE_SCRIPTS', false );
-
 		$processor      = new WP_HTML_Tag_Processor( $this->get_login_head_output() );
 		$links          = 0;
 		$scripts        = array();

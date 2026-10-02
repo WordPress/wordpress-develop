@@ -2477,10 +2477,7 @@ function script_concat_settings() {
 	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
 
 	if ( ! isset( $concatenate_scripts ) ) {
-		$concatenate_scripts = defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true;
-		if ( ( ! is_admin() && ! did_action( 'login_init' ) ) || ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ) {
-			$concatenate_scripts = false;
-		}
+		$concatenate_scripts = ( is_admin() || did_action( 'login_init' ) ) && wp_should_concatenate_admin_scripts();
 	}
 
 	if ( ! isset( $compress_scripts ) ) {
@@ -2496,6 +2493,38 @@ function script_concat_settings() {
 			$compress_css = false;
 		}
 	}
+}
+
+/**
+ * Determines whether scripts and styles are concatenated on admin screens and the login screen.
+ *
+ * Concatenation is on unless the `CONCATENATE_SCRIPTS` constant turns it off, and `SCRIPT_DEBUG`
+ * turns it off regardless. Scripts and styles are never concatenated elsewhere.
+ *
+ * This is the default that script_concat_settings() gives the `$concatenate_scripts` global when
+ * the global has not already been set. It is also how wp_prefetch_admin_assets() predicts, from the
+ * login screen, what the admin screen the login leads to will do.
+ *
+ * @since 7.2.0
+ *
+ * @return bool Whether scripts and styles are concatenated on admin screens and the login screen.
+ */
+function wp_should_concatenate_admin_scripts(): bool {
+	$concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? (bool) CONCATENATE_SCRIPTS : true )
+		&& ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
+
+	/**
+	 * Filters whether scripts and styles are concatenated on admin screens and the login screen.
+	 *
+	 * Setting the `$concatenate_scripts` global directly still takes precedence over this filter on
+	 * the request where it is set.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $concatenate Whether scripts and styles are concatenated. Default true, unless the
+	 *                          `CONCATENATE_SCRIPTS` constant is false or `SCRIPT_DEBUG` is true.
+	 */
+	return (bool) apply_filters( 'wp_should_concatenate_admin_scripts', $concatenate );
 }
 
 /**
@@ -2538,33 +2567,46 @@ function script_concat_settings() {
  * check-your-email flows, on an interim login, or when `redirect_to` points outside this site's
  * admin.
  *
- * Nothing is printed when concatenation is enabled, since `load-scripts.php` and
- * `load-styles.php` already collapse these handles into a handful of requests.
+ * Nothing is printed when the next screen will concatenate its assets, since `load-scripts.php`
+ * and `load-styles.php` already collapse these handles into a handful of requests.
  *
  * @since 7.2.0
  *
  * @see wp_preload_resources()
+ * @see wp_should_concatenate_admin_scripts()
  *
- * @global string      $action        The action that brought the visitor to the login page.
- * @global bool|string $interim_login Whether interim login modal is being displayed. String 'success'
- *                                    upon successful login.
+ * @global bool        $concatenate_scripts Whether scripts and styles are concatenated.
+ * @global string      $action              The action that brought the visitor to the login page.
+ * @global bool|string $interim_login       Whether interim login modal is being displayed. String
+ *                                          'success' upon successful login.
  */
 function wp_prefetch_admin_assets(): void {
-	/*
-	 * Deliberately not the $concatenate_scripts global: script_concat_settings() often runs on a
-	 * login request before 'login_init' fires — anything registering a script on 'init' is enough
-	 * to trigger it — and at that point it evaluates is_admin() as false and settles the global on
-	 * false whatever the constant says. What matters here is what the admin screen this login leads
-	 * to will do, which is the constant together with the SCRIPT_DEBUG override.
-	 */
-	$admin_will_concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? CONCATENATE_SCRIPTS : true )
-		&& ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
+	global $concatenate_scripts;
 
-	if ( $admin_will_concatenate ) {
+	$on_login = ( 'login_head' === current_action() );
+
+	if ( $on_login ) {
+		/*
+		 * Deliberately not the $concatenate_scripts global: script_concat_settings() often runs on a
+		 * login request before 'login_init' fires — anything registering a script on 'init' is enough
+		 * to trigger it — and at that point it evaluates is_admin() as false and settles the global on
+		 * false whatever the constant says. What matters here is what the admin screen this login
+		 * leads to will do, which is what wp_should_concatenate_admin_scripts() predicts.
+		 */
+		$next_screen_concatenates = wp_should_concatenate_admin_scripts();
+	} else {
+		/*
+		 * On an admin screen the global has settled by the time its head is printed, and the editor
+		 * will be served the same way.
+		 */
+		script_concat_settings();
+		$next_screen_concatenates = (bool) $concatenate_scripts;
+	}
+
+	if ( $next_screen_concatenates ) {
 		return;
 	}
 
-	$on_login     = ( 'login_head' === current_action() );
 	$script_roots = array();
 	$style_roots  = array();
 
