@@ -308,4 +308,37 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 		wp_installing( true );
 		$this->assertSame( 'de_DE', determine_locale() );
 	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_wp_login_get_param_on_login_page_array(): void {
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = array( 'de_DE' );
+
+		$this->assertSame( 'en_US', determine_locale() );
+	}
+
+	/**
+	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as
+	 * an array key and throws a TypeError, so translating any string for an
+	 * unloaded text domain ends the request.
+	 *
+	 * @ticket 66106
+	 */
+	public function test_array_wp_lang_param_does_not_fatal_in_the_textdomain_registry(): void {
+		$GLOBALS['pagenow'] = 'wp-login.php';
+		$_GET['wp_lang']    = array( 'de_DE' );
+
+		$this->assertSame( 'Some text', __( 'Some text', 'my-login-plugin' ) );
+	}
+
+	/**
+	 * @ticket 66106
+	 */
+	public function test_ignores_a_non_string_determine_locale_filter(): void {
+		add_filter( 'determine_locale', '__return_empty_array' );
+
+		$this->assertSame( 'en_US', determine_locale() );
+	}
 }

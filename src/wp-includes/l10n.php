@@ -31,8 +31,19 @@ function get_locale() {
 	global $locale, $wp_local_package;
 
 	if ( isset( $locale ) ) {
+		// The global may be set by wp-config.php, by a plugin, or by an earlier call to this function.
+		if ( empty( $locale ) || ! is_string( $locale ) ) {
+			$locale = 'en_US';
+		}
+
 		/** This filter is documented in wp-includes/l10n.php */
-		return apply_filters( 'locale', $locale );
+		$filtered_locale = apply_filters( 'locale', $locale );
+
+		if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+			return $locale;
+		}
+
+		return $filtered_locale;
 	}
 
 	if ( isset( $wp_local_package ) ) {
@@ -66,18 +77,27 @@ function get_locale() {
 		}
 	}
 
-	if ( empty( $locale ) ) {
+	// This value may come from a global, a constant or an option, none of which are validated.
+	if ( empty( $locale ) || ! is_string( $locale ) ) {
 		$locale = 'en_US';
 	}
 
 	/**
 	 * Filters the locale ID of the WordPress installation.
 	 *
+	 * A non-string or empty value is ignored.
+	 *
 	 * @since 1.5.0
 	 *
 	 * @param string $locale The locale ID.
 	 */
-	return apply_filters( 'locale', $locale );
+	$filtered_locale = apply_filters( 'locale', $locale );
+
+	if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+		return $locale;
+	}
+
+	return $filtered_locale;
 }
 
 /**
@@ -106,9 +126,14 @@ function get_user_locale( $user = 0 ) {
 		return get_locale();
 	}
 
+	// WP_User has no `locale` property: this reads the unvalidated `locale` user meta row.
 	$locale = $user_object->locale;
 
-	return $locale ? $locale : get_locale();
+	if ( empty( $locale ) || ! is_string( $locale ) ) {
+		return get_locale();
+	}
+
+	return $locale;
 }
 
 /**
@@ -162,18 +187,27 @@ function determine_locale() {
 		}
 	}
 
-	if ( ! $determined_locale ) {
+	// This value may come from user meta or from a global, and is not validated.
+	if ( empty( $determined_locale ) || ! is_string( $determined_locale ) ) {
 		$determined_locale = get_locale();
 	}
 
 	/**
 	 * Filters the locale for the current request.
 	 *
+	 * A non-string or empty value is ignored.
+	 *
 	 * @since 5.0.0
 	 *
 	 * @param string $determined_locale The locale.
 	 */
-	return apply_filters( 'determine_locale', $determined_locale );
+	$filtered_locale = apply_filters( 'determine_locale', $determined_locale );
+
+	if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+		return $determined_locale;
+	}
+
+	return $filtered_locale;
 }
 
 /**
