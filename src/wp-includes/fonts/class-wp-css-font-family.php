@@ -82,19 +82,6 @@ final class WP_CSS_Font_Family {
 	);
 
 	/**
-	 * Characters that the plain name compatibility path rejects.
-	 *
-	 * These characters start CSS syntax that a font name must not contain. The
-	 * compatibility path applies only to input that font code accepted before
-	 * WordPress 7.2.0, such as the plain name `O'Reilly Sans`.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @var string
-	 */
-	const PLAIN_NAME_REJECTED_CHARACTERS = ';{}()[]@\\/*<>:!,';
-
-	/**
 	 * Parses a CSS `font-family` property value.
 	 *
 	 * The parser requires valid CSS. It consumes the complete value and
@@ -507,7 +494,8 @@ final class WP_CSS_Font_Family {
 			$character = $value[ $offset ];
 
 			if ( '\\' === $character ) {
-				if ( ! self::is_valid_escape( $value, $offset, $length ) ) {
+				// A backslash at the end of the input or before a newline is not an escape.
+				if ( $offset + 1 >= $length || "\n" === $value[ $offset + 1 ] ) {
 					break;
 				}
 
@@ -545,15 +533,10 @@ final class WP_CSS_Font_Family {
 	 */
 	private static function consume_escape( $value, &$offset, $length ) {
 		if ( ! ctype_xdigit( $value[ $offset ] ) ) {
-			// The escape encodes the next code point. Copy its complete UTF-8 sequence.
-			$size = 1;
-			while ( $offset + $size < $length && 0x80 === ( ord( $value[ $offset + $size ] ) & 0xC0 ) ) {
-				++$size;
-			}
-
-			$result  = substr( $value, $offset, $size );
-			$offset += $size;
-			return $result;
+			// The escape encodes the next code point. The input is valid UTF-8.
+			preg_match( '/\G./su', $value, $matches, 0, $offset );
+			$offset += strlen( $matches[0] );
+			return $matches[0];
 		}
 
 		$size       = strspn( $value, '0123456789abcdefABCDEF', $offset, 6 );
@@ -587,20 +570,6 @@ final class WP_CSS_Font_Family {
 	}
 
 	/**
-	 * Checks whether a backslash at the offset starts a valid escape.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $value  Preprocessed input.
-	 * @param int    $offset Current offset, at the backslash.
-	 * @param int    $length Input length.
-	 * @return bool True if the backslash starts a valid escape.
-	 */
-	private static function is_valid_escape( $value, $offset, $length ) {
-		return $offset + 1 < $length && '\\' === $value[ $offset ] && "\n" !== $value[ $offset + 1 ];
-	}
-
-	/**
 	 * Reads one part of a value as an established plain font name.
 	 *
 	 * @since 7.2.0
@@ -624,12 +593,11 @@ final class WP_CSS_Font_Family {
 			return null;
 		}
 
-		if ( strcspn( $name, self::PLAIN_NAME_REJECTED_CHARACTERS ) !== strlen( $name ) ) {
-			return null;
-		}
-
-		// Reject the remaining control characters.
-		if ( 1 === preg_match( '/[\x00-\x1f\x7f]/', $name ) ) {
+		/*
+		 * Reject the characters that start CSS syntax, and the control characters.
+		 * A font name must not contain them.
+		 */
+		if ( 1 === preg_match( '#[;{}()\[\]@\\\\/*<>:!\x00-\x1f\x7f]#', $name ) ) {
 			return null;
 		}
 
