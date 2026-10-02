@@ -21,11 +21,13 @@
  *
  *     &#8217;cause today&#8217;s effort makes it worth tomorrow&#8217;s &#8220;holiday&#8221; &#8230;
  *
- * Code within certain HTML blocks are skipped.
+ * Code within certain HTML blocks are skipped, as is MathML: the content of a
+ * `math` element is notation, and its annotation can hold source code such as LaTeX.
  *
  * Do not use this function before the {@see 'init'} action hook; everything will break.
  *
  * @since 0.71
+ * @since 7.2.0 Added `math` to the elements skipped by texturization.
  *
  * @global array $wp_cockneyreplace Array of formatted entities for certain common phrases.
  * @global array $shortcode_tags
@@ -103,7 +105,7 @@ function wptexturize( $text, $reset = false ) {
 		/* translators: Em dash. */
 		$em_dash = _x( '&#8212;', 'em dash' );
 
-		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' );
+		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt', 'math' );
 		$default_no_texturize_shortcodes = array( 'code' );
 
 		// If a plugin has provided an autocorrect array, use it.
@@ -214,6 +216,7 @@ function wptexturize( $text, $reset = false ) {
 	 * Filters the list of HTML elements not to texturize.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Added 'math' to the default list of HTML elements.
 	 *
 	 * @param string[] $default_no_texturize_tags An array of HTML element names.
 	 */

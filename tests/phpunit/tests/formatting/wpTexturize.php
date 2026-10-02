@@ -21,6 +21,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( '<style>---&</style>', wptexturize( '<style>---&</style>' ) );
 		$this->assertSame( '<script>---&</script>', wptexturize( '<script>---&</script>' ) );
 		$this->assertSame( '<tt>---&</tt>', wptexturize( '<tt>---&</tt>' ) );
+		$this->assertSame( '<math>---&</math>', wptexturize( '<math>---&</math>' ) );
 
 		$this->assertSame( '<code>href="baba"</code> &#8220;baba&#8221;', wptexturize( '<code>href="baba"</code> "baba"' ) );
 
@@ -32,6 +33,45 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$invalid_nest = '<pre></code>"baba"</pre>';
 		$this->assertSame( $invalid_nest, wptexturize( $invalid_nest ) );
+	}
+
+	/**
+	 * MathML is notation, and its annotation can hold source code such as LaTeX,
+	 * so none of it should be texturized.
+	 *
+	 * @ticket 66153
+	 */
+	public function test_disable_in_math() {
+		$math = '<math display="block"><semantics><mrow><mi>f</mi><mo>\'</mo><mtext>it\'s "x" - y...</mtext></mrow><annotation encoding="application/x-tex">f\'(x) - 1 \\text{"q"} \\dots 2x3</annotation></semantics></math>';
+
+		// Nothing inside the element changes.
+		$this->assertSame( $math, wptexturize( $math ) );
+
+		// The text before and after it is still texturized, so skipping ends at the closing tag.
+		$this->assertSame(
+			'<p>a &#8211; b ' . $math . ' c &#8211; d</p>',
+			wptexturize( '<p>a - b ' . $math . ' c - d</p>' )
+		);
+	}
+
+	/**
+	 * Tests that 'math' is included in the default no_texturize_tags filter parameter.
+	 *
+	 * @ticket 66153
+	 */
+	public function test_default_no_texturize_tags_includes_math() {
+		$passed_tags = null;
+		$filter      = function ( $tags ) use ( &$passed_tags ) {
+			$passed_tags = $tags;
+			return $tags;
+		};
+
+		add_filter( 'no_texturize_tags', $filter );
+		wptexturize( 'Test text' );
+		remove_filter( 'no_texturize_tags', $filter );
+
+		$this->assertIsArray( $passed_tags );
+		$this->assertContains( 'math', $passed_tags );
 	}
 
 	/**
