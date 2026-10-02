@@ -266,8 +266,14 @@ switch ( $action ) {
 
 		<div class="wrap" id="profile-page">
 			<h1 class="wp-heading-inline">
-					<?php echo esc_html( $title ); ?>
+				<?php echo esc_html( $title ); ?>
 			</h1>
+
+			<?php
+			if ( IS_PROFILE_PAGE ) {
+				new_user_email_admin_notice();
+			}
+			?>
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
@@ -601,7 +607,8 @@ switch ( $action ) {
 								wp_admin_notice(
 									$pending_change_message,
 									array(
-										'additional_classes' => array( 'updated', 'inline' ),
+										'type' => 'info',
+										'additional_classes' => array( 'inline' ),
 									)
 								);
 							endif;
