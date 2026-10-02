@@ -192,9 +192,9 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	}
 
 	/**
-	 * Test that the sitemap stylesheet URL can be filtered.
+	 * Test that the sitemap stylesheet URL filter cannot add a stylesheet.
 	 *
-	 * @covers WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
 	 */
 	public function test_get_sitemap_stylesheet_url_filter() {
 		$custom_url = 'https://example.com/custom-sitemap.xsl';
@@ -214,13 +214,13 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$actual = $sitemap_renderer->get_sitemap_xml( $entries );
-		$this->assertStringContainsString( '<?xml-stylesheet type="text/xsl" href="' . $custom_url . '" ?>', $actual );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
 	}
 
 	/**
-	 * Test that the sitemap index stylesheet URL can be filtered.
+	 * Test that the sitemap index stylesheet URL filter cannot add a stylesheet.
 	 *
-	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
 	 */
 	public function test_get_sitemap_index_stylesheet_url_filter() {
 		$custom_url = 'https://example.com/custom-sitemap-index.xsl';
@@ -240,7 +240,7 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		);
 
 		$actual = $sitemap_renderer->get_sitemap_index_xml( $entries );
-		$this->assertStringContainsString( '<?xml-stylesheet type="text/xsl" href="' . $custom_url . '" ?>', $actual );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
 	}
 
 	/**
@@ -252,7 +252,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$renderer = new WP_Sitemaps_Renderer();
 		$actual   = $renderer->get_sitemap_xml( array() );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=sitemap" ?>' .
 					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>';
 
 		$this->assertXMLEquals( $expected, $actual, 'Empty sitemap markup incorrect.' );
@@ -267,7 +266,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$renderer = new WP_Sitemaps_Renderer();
 		$actual   = $renderer->get_sitemap_index_xml( array() );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=index" ?>' .
 					'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>';
 
 		$this->assertXMLEquals( $expected, $actual, 'Empty sitemap index markup incorrect.' );
@@ -298,7 +296,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_xml( $url_list );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=sitemap" ?>' .
 					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 					'<url>' .
 					'<loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-1</loc>' .
