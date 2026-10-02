@@ -565,6 +565,7 @@ function _rotate_image_resource( $img, $angle ) {
  * Flips an image resource. Internal use only.
  *
  * @since 2.9.0
+ * @since 7.2.0 Uses imageflip() instead of imagecopyresampled() with negative dimensions.
  * @deprecated 3.5.0 Use WP_Image_Editor::flip()
  * @see WP_Image_Editor::flip()
  *
@@ -577,23 +578,20 @@ function _rotate_image_resource( $img, $angle ) {
 function _flip_image_resource( $img, $horz, $vert ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'WP_Image_Editor::flip()' );
 
-	$w   = imagesx( $img );
-	$h   = imagesy( $img );
-	$dst = wp_imagecreatetruecolor( $w, $h );
+	if ( ! $horz && ! $vert ) {
+		return $img;
+	}
 
-	if ( is_gd_image( $dst ) ) {
-		$sx = $vert ? ( $w - 1 ) : 0;
-		$sy = $horz ? ( $h - 1 ) : 0;
-		$sw = $vert ? -$w : $w;
-		$sh = $horz ? -$h : $h;
+	if ( $horz && $vert ) {
+		$mode = IMG_FLIP_BOTH;
+	} elseif ( $horz ) {
+		$mode = IMG_FLIP_VERTICAL;
+	} else {
+		$mode = IMG_FLIP_HORIZONTAL;
+	}
 
-		if ( imagecopyresampled( $dst, $img, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-			if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-				imagedestroy( $img );
-			}
-
-			$img = $dst;
-		}
+	if ( is_gd_image( $img ) ) {
+		imageflip( $img, $mode );
 	}
 
 	return $img;
