@@ -6635,11 +6635,16 @@ function wp_get_chromium_major_version(): ?int {
 }
 
 /**
- * Enables cross-origin isolation in the block editor.
+ * Enables cross-origin isolation on admin pages.
  *
  * Required for enabling SharedArrayBuffer for WebAssembly-based
  * media processing in the editor. Uses Document-Isolation-Policy
  * on supported browsers (Chromium 137+).
+ *
+ * Applied to all admin pages so that navigations between editor pages
+ * and other admin screens (site editor, template operations, pattern
+ * editing) remain in the same agent cluster, preserving cross-window
+ * communication.
  *
  * Skips setup when a third-party page builder overrides the block
  * editor via a custom `action` query parameter, as DIP would block
@@ -6652,13 +6657,8 @@ function wp_set_up_cross_origin_isolation(): void {
 		return;
 	}
 
-	$screen = get_current_screen();
-
-	if ( ! $screen ) {
-		return;
-	}
-
-	if ( ! $screen->is_block_editor() && 'site-editor' !== $screen->id && ! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() ) ) {
+	// Cross-origin isolation is not needed if users can't upload files anyway.
+	if ( ! current_user_can( 'upload_files' ) ) {
 		return;
 	}
 
@@ -6684,11 +6684,6 @@ function wp_set_up_cross_origin_isolation(): void {
 	 * which blocks same-origin iframe access that these editors rely on.
 	 */
 	if ( isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
-		return;
-	}
-
-	// Cross-origin isolation is not needed if users can't upload files anyway.
-	if ( ! current_user_can( 'upload_files' ) ) {
 		return;
 	}
 
