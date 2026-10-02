@@ -4015,7 +4015,7 @@ All at ###SITENAME###
 function new_user_email_admin_notice() {
 	global $pagenow;
 
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
+	if ( 'profile.php' === $pagenow ) {
 		$email = get_user_meta( get_current_user_id(), '_new_email', true );
 		if ( $email ) {
 			$message = sprintf(
