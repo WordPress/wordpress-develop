@@ -1682,11 +1682,17 @@ function wp_get_l10n_php_file_data( $php_file ) {
 	$data = (array) include $php_file;
 
 	unset( $data['messages'] );
+
+	/*
+	 * Language packs from translate.wordpress.org name the revision date after the
+	 * GlotPress field, while files converted from a PO or MO source keep the PO
+	 * header name. Both spellings are in circulation, so the first one present wins.
+	 */
 	$headers = array(
-		'POT-Creation-Date'  => 'pot-creation-date',
-		'PO-Revision-Date'   => 'po-revision-date',
-		'Project-Id-Version' => 'project-id-version',
-		'X-Generator'        => 'x-generator',
+		'POT-Creation-Date'  => array( 'pot-creation-date' ),
+		'PO-Revision-Date'   => array( 'translation-revision-date', 'po-revision-date' ),
+		'Project-Id-Version' => array( 'project-id-version' ),
+		'X-Generator'        => array( 'x-generator' ),
 	);
 
 	$result = array(
@@ -1696,9 +1702,12 @@ function wp_get_l10n_php_file_data( $php_file ) {
 		'X-Generator'        => '',
 	);
 
-	foreach ( $headers as $po_header => $php_header ) {
-		if ( isset( $data[ $php_header ] ) ) {
-			$result[ $po_header ] = $data[ $php_header ];
+	foreach ( $headers as $po_header => $php_headers ) {
+		foreach ( $php_headers as $php_header ) {
+			if ( isset( $data[ $php_header ] ) ) {
+				$result[ $po_header ] = $data[ $php_header ];
+				break;
+			}
 		}
 	}
 
