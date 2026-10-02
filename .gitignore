@@ -15,6 +15,7 @@ wp-tests-config.php
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
+/tests/qunit/common-compiled.html
 /tests/performance/**/*.test.results.json
 /src/.wp-tests-version
 /node_modules
