@@ -3,7 +3,7 @@
  * Core Widgets API
  *
  * This API is used for creating dynamic sidebar without hardcoding functionality into
- * themes
+ * themes.
  *
  * Includes both internal WordPress routines and theme-use routines.
  *
@@ -28,27 +28,35 @@ global $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_co
 /**
  * Stores the sidebars, since many themes can have more than one.
  *
- * @global array $wp_registered_sidebars The registered sidebars.
  * @since 2.2.0
+ *
+ * @global array $wp_registered_sidebars The registered sidebars.
  */
 $wp_registered_sidebars = array();
 
 /**
  * Stores the registered widgets.
  *
- * @global array $wp_registered_widgets The registered widgets.
  * @since 2.2.0
+ *
+ * @global array $wp_registered_widgets The registered widgets.
  */
 $wp_registered_widgets = array();
 
 /**
  * Stores the registered widget controls (options).
  *
- * @global array $wp_registered_widget_controls The registered widget controls.
  * @since 2.2.0
+ *
+ * @global array $wp_registered_widget_controls The registered widget controls.
  */
 $wp_registered_widget_controls = array();
+
 /**
+ * Stores the registered widget updates.
+ *
+ * @since 2.8.0
+ *
  * @global array $wp_registered_widget_updates The registered widget updates.
  */
 $wp_registered_widget_updates = array();
@@ -95,7 +103,7 @@ $GLOBALS['_wp_deprecated_widgets_callbacks'] = array(
 //
 
 /**
- * Register a widget
+ * Registers a widget.
  *
  * Registers a WP_Widget widget
  *
@@ -182,7 +190,7 @@ function register_sidebars( $number = 1, $args = array() ) {
 				$_args['name'] = sprintf( __( 'Sidebar %d' ), $i );
 			}
 		} else {
-			$_args['name'] = isset( $args['name'] ) ? $args['name'] : __( 'Sidebar' );
+			$_args['name'] = $args['name'] ?? __( 'Sidebar' );
 		}
 
 		/*
@@ -218,7 +226,7 @@ function register_sidebars( $number = 1, $args = array() ) {
  * on what other plugins and themes are installed.
  *
  * If theme support for 'widgets' has not yet been added when this function is
- * called, it will be automatically enabled through the use of add_theme_support()
+ * called, it will be automatically enabled through the use of add_theme_support().
  *
  * @since 2.2.0
  * @since 5.6.0 Added the `before_sidebar` and `after_sidebar` arguments.
@@ -353,7 +361,7 @@ function is_registered_sidebar( $sidebar_id ) {
 }
 
 /**
- * Register an instance of a widget.
+ * Registers an instance of a widget.
  *
  * The default widget option is 'classname' that can be overridden.
  *
@@ -427,7 +435,7 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
 }
 
 /**
- * Retrieve description for widget.
+ * Retrieves description for widget.
  *
  * When registering widgets, the options can also include 'description' that
  * describes the widget for display on the widget administration panel or
@@ -438,11 +446,11 @@ function wp_register_sidebar_widget( $id, $name, $output_callback, $options = ar
  * @global array $wp_registered_widgets The registered widgets.
  *
  * @param int|string $id Widget ID.
- * @return string|void Widget description, if available.
+ * @return string|null Widget description, if available.
  */
 function wp_widget_description( $id ) {
 	if ( ! is_scalar( $id ) ) {
-		return;
+		return null;
 	}
 
 	global $wp_registered_widgets;
@@ -450,10 +458,11 @@ function wp_widget_description( $id ) {
 	if ( isset( $wp_registered_widgets[ $id ]['description'] ) ) {
 		return esc_html( $wp_registered_widgets[ $id ]['description'] );
 	}
+	return null;
 }
 
 /**
- * Retrieve description for a sidebar.
+ * Retrieves description for a sidebar.
  *
  * When registering sidebars a 'description' parameter can be included that
  * describes the sidebar for display on the widget administration panel.
@@ -463,11 +472,11 @@ function wp_widget_description( $id ) {
  * @global array $wp_registered_sidebars The registered sidebars.
  *
  * @param string $id sidebar ID.
- * @return string|void Sidebar description, if available.
+ * @return string|null Sidebar description, if available.
  */
 function wp_sidebar_description( $id ) {
 	if ( ! is_scalar( $id ) ) {
-		return;
+		return null;
 	}
 
 	global $wp_registered_sidebars;
@@ -475,6 +484,7 @@ function wp_sidebar_description( $id ) {
 	if ( isset( $wp_registered_sidebars[ $id ]['description'] ) ) {
 		return wp_kses( $wp_registered_sidebars[ $id ]['description'], 'sidebar_description' );
 	}
+	return null;
 }
 
 /**
@@ -626,7 +636,6 @@ function _register_widget_update_callback( $id_base, $update_callback, $options 
  *                                  Default empty array.
  * @param mixed      ...$params     Optional additional parameters to pass to the callback function when it's called.
  */
-
 function _register_widget_form_callback( $id, $name, $form_callback, $options = array(), ...$params ) {
 	global $wp_registered_widget_controls;
 
@@ -661,7 +670,7 @@ function _register_widget_form_callback( $id, $name, $form_callback, $options = 
 }
 
 /**
- * Remove control callback for widget.
+ * Removes control callback for widget.
  *
  * @since 2.2.0
  *
@@ -672,7 +681,7 @@ function wp_unregister_widget_control( $id ) {
 }
 
 /**
- * Display dynamic sidebar.
+ * Displays dynamic sidebar.
  *
  * By default this displays the default sidebar or 'sidebar-1'. If your theme specifies the 'id' or
  * 'name' parameter for its registered sidebars you can pass an ID or name as the $index parameter.
@@ -703,11 +712,11 @@ function dynamic_sidebar( $index = 1 ) {
 
 	$sidebars_widgets = wp_get_sidebars_widgets();
 	if ( empty( $wp_registered_sidebars[ $index ] ) || empty( $sidebars_widgets[ $index ] ) || ! is_array( $sidebars_widgets[ $index ] ) ) {
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_before', $index, false );
-		/** This action is documented in wp-includes/widget.php */
+		/** This action is documented in wp-includes/widgets.php */
 		do_action( 'dynamic_sidebar_after', $index, false );
-		/** This filter is documented in wp-includes/widget.php */
+		/** This filter is documented in wp-includes/widgets.php */
 		return apply_filters( 'dynamic_sidebar_has_widgets', false, $index );
 	}
 
@@ -781,7 +790,9 @@ function dynamic_sidebar( $index = 1 ) {
 		 * @see register_sidebar()
 		 *
 		 * @param array $params {
-		 *     @type array $args  {
+		 *     The arguments the display callback is called with, in order.
+		 *
+		 *     @type array $0 {
 		 *         An array of widget display arguments.
 		 *
 		 *         @type string $name          Name of the sidebar the widget is assigned to.
@@ -795,8 +806,8 @@ function dynamic_sidebar( $index = 1 ) {
 		 *         @type string $widget_id     ID of the widget.
 		 *         @type string $widget_name   Name of the widget.
 		 *     }
-		 *     @type array $widget_args {
-		 *         An array of multi-widget arguments.
+		 *     @type array ...$1 {
+		 *         The parameters the widget was registered with, such as the multi-widget arguments.
 		 *
 		 *         @type int $number Number increment used for multiples of the same widget.
 		 *     }
@@ -875,8 +886,8 @@ function dynamic_sidebar( $index = 1 ) {
 /**
  * Determines whether a given widget is displayed on the front end.
  *
- * Either $callback or $id_base can be used
- * $id_base is the first argument when extending WP_Widget class
+ * Either $callback or $id_base can be used.
+ * $id_base is the first argument when extending WP_Widget class.
  * Without the optional $widget_id parameter, returns the ID of the first sidebar
  * in which the first instance of the widget with the given callback or $id_base is found.
  * With the $widget_id parameter, returns the ID of the sidebar where
@@ -917,7 +928,7 @@ function is_active_widget( $callback = false, $widget_id = false, $id_base = fal
 			if ( is_array( $widgets ) ) {
 				foreach ( $widgets as $widget ) {
 					if ( ( $callback && isset( $wp_registered_widgets[ $widget ]['callback'] ) && $wp_registered_widgets[ $widget ]['callback'] === $callback ) || ( $id_base && _get_widget_id_base( $widget ) === $id_base ) ) {
-						if ( ! $widget_id || $widget_id === $wp_registered_widgets[ $widget ]['id'] ) {
+						if ( ! $widget_id || ( isset( $wp_registered_widgets[ $widget ]['id'] ) && $widget_id === $wp_registered_widgets[ $widget ]['id'] ) ) {
 							return $sidebar;
 						}
 					}
@@ -994,7 +1005,7 @@ function is_active_sidebar( $index ) {
 //
 
 /**
- * Retrieve full list of sidebars and their widget instance IDs.
+ * Retrieves the full list of sidebars and their widget instance IDs.
  *
  * Will upgrade sidebar widget list, if needed. Will also save updated list, if
  * needed.
@@ -1073,7 +1084,7 @@ function wp_get_sidebar( $id ) {
 }
 
 /**
- * Set the sidebar widget option to update sidebars.
+ * Sets the sidebar widget option to update sidebars.
  *
  * @since 2.2.0
  * @access private
@@ -1095,7 +1106,7 @@ function wp_set_sidebars_widgets( $sidebars_widgets ) {
 }
 
 /**
- * Retrieve default registered sidebars list.
+ * Retrieves default registered sidebars list.
  *
  * @since 2.2.0
  * @access private
@@ -1186,7 +1197,7 @@ function wp_convert_widget_settings( $base_name, $option_name, $settings ) {
 }
 
 /**
- * Output an arbitrary widget as a template tag.
+ * Outputs an arbitrary widget as a template tag.
  *
  * @since 2.8.0
  *
@@ -1274,7 +1285,7 @@ function _get_widget_id_base( $id ) {
 }
 
 /**
- * Handle sidebars config after theme change
+ * Handles sidebars config after theme change.
  *
  * @access private
  * @since 3.3.0
@@ -1341,6 +1352,13 @@ function retrieve_widgets( $theme_changed = false ) {
 	// Discard invalid, theme-specific widgets from sidebars.
 	$sidebars_widgets = _wp_remove_unregistered_widgets( $sidebars_widgets, $registered_widgets_ids );
 	$sidebars_widgets = wp_map_sidebars_widgets( $sidebars_widgets );
+
+	// Replace non-array values inside the array with an empty array.
+	foreach ( $sidebars_widgets as $key => $value ) {
+		if ( ! is_array( $value ) ) {
+			$sidebars_widgets[ $key ] = array();
+		}
+	}
 
 	// Find hidden/lost multi-widget instances.
 	$shown_widgets = array_merge( ...array_values( $sidebars_widgets ) );
@@ -1480,7 +1498,7 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 
 	// Sidebars_widgets settings from when this theme was previously active.
 	$old_sidebars_widgets = get_theme_mod( 'sidebars_widgets' );
-	$old_sidebars_widgets = isset( $old_sidebars_widgets['data'] ) ? $old_sidebars_widgets['data'] : false;
+	$old_sidebars_widgets = $old_sidebars_widgets['data'] ?? false;
 
 	if ( is_array( $old_sidebars_widgets ) ) {
 
@@ -1502,6 +1520,13 @@ function wp_map_sidebars_widgets( $existing_sidebars_widgets ) {
 		}
 
 		$old_sidebars_widgets = _wp_remove_unregistered_widgets( $old_sidebars_widgets );
+
+		// Replace non-array values inside the array with an empty array.
+		foreach ( $new_sidebars_widgets as $key => $value ) {
+			if ( ! is_array( $value ) ) {
+				$new_sidebars_widgets[ $key ] = array();
+			}
+		}
 
 		if ( ! empty( $old_sidebars_widgets ) ) {
 
@@ -1567,7 +1592,7 @@ function _wp_remove_unregistered_widgets( $sidebars_widgets, $allowed_widget_ids
 }
 
 /**
- * Display the RSS entries in a list.
+ * Displays the RSS entries in a list.
  *
  * @since 2.5.0
  *
@@ -1614,6 +1639,9 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 		return;
 	}
 
+	$blog_charset = get_option( 'blog_charset' );
+	$date_format  = $show_date ? get_option( 'date_format' ) : '';
+
 	echo '<ul>';
 	foreach ( $rss->get_items( 0, $items ) as $item ) {
 		$link = $item->get_link();
@@ -1627,7 +1655,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$title = __( 'Untitled' );
 		}
 
-		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, get_option( 'blog_charset' ) );
+		$desc = html_entity_decode( $item->get_description(), ENT_QUOTES, $blog_charset );
 		$desc = esc_attr( wp_trim_words( $desc, 55, ' [&hellip;]' ) );
 
 		$summary = '';
@@ -1647,7 +1675,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 			$date = $item->get_date( 'U' );
 
 			if ( $date ) {
-				$date = ' <span class="rss-date">' . date_i18n( get_option( 'date_format' ), $date ) . '</span>';
+				$date = ' <span class="rss-date">' . date_i18n( $date_format, $date ) . '</span>';
 			}
 		}
 
@@ -1674,7 +1702,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 }
 
 /**
- * Display RSS widget options form.
+ * Displays RSS widget options form.
  *
  * The options for what fields are displayed for the RSS form are all booleans
  * and are as follows: 'url', 'title', 'items', 'show_summary', 'show_author',
@@ -1696,17 +1724,17 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	);
 	$inputs         = wp_parse_args( $inputs, $default_inputs );
 
-	$args['title'] = isset( $args['title'] ) ? $args['title'] : '';
-	$args['url']   = isset( $args['url'] ) ? $args['url'] : '';
-	$args['items'] = isset( $args['items'] ) ? (int) $args['items'] : 0;
+	$args['title'] ??= '';
+	$args['url']   ??= '';
+	$args['items']   = (int) ( $args['items'] ?? 0 );
 
 	if ( $args['items'] < 1 || 20 < $args['items'] ) {
 		$args['items'] = 10;
 	}
 
-	$args['show_summary'] = isset( $args['show_summary'] ) ? (int) $args['show_summary'] : (int) $inputs['show_summary'];
-	$args['show_author']  = isset( $args['show_author'] ) ? (int) $args['show_author'] : (int) $inputs['show_author'];
-	$args['show_date']    = isset( $args['show_date'] ) ? (int) $args['show_date'] : (int) $inputs['show_date'];
+	$args['show_summary'] = (int) ( $args['show_summary'] ?? $inputs['show_summary'] );
+	$args['show_author']  = (int) ( $args['show_author'] ?? $inputs['show_author'] );
+	$args['show_date']    = (int) ( $args['show_date'] ?? $inputs['show_date'] );
 
 	if ( ! empty( $args['error'] ) ) {
 		echo '<p class="widget-error"><strong>' . __( 'RSS Error:' ) . '</strong> ' . esc_html( $args['error'] ) . '</p>';
@@ -1738,7 +1766,7 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 		<input id="rss-show-author-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_author]" type="checkbox" value="1" <?php checked( $args['show_author'] ); ?> />
 		<label for="rss-show-author-<?php echo $esc_number; ?>"><?php _e( 'Display item author if available?' ); ?></label><br />
 	<?php endif; if ( $inputs['show_date'] ) : ?>
-		<input id="rss-show-date-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_date]" type="checkbox" value="1" <?php checked( $args['show_date'] ); ?>/>
+		<input id="rss-show-date-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_date]" type="checkbox" value="1" <?php checked( $args['show_date'] ); ?> />
 		<label for="rss-show-date-<?php echo $esc_number; ?>"><?php _e( 'Display item date?' ); ?></label><br />
 	<?php endif; ?>
 	</p>
@@ -1755,7 +1783,7 @@ foreach ( array_keys( $default_inputs ) as $input ) :
 }
 
 /**
- * Process RSS feed widget data and optionally retrieve feed items.
+ * Processes RSS feed widget data and optionally retrieve feed items.
  *
  * The feed widget can not have more than 20 items or it will reset back to the
  * default, which is 10.
@@ -1776,10 +1804,10 @@ function wp_widget_rss_process( $widget_rss, $check_feed = true ) {
 		$items = 10;
 	}
 	$url          = sanitize_url( strip_tags( $widget_rss['url'] ) );
-	$title        = isset( $widget_rss['title'] ) ? trim( strip_tags( $widget_rss['title'] ) ) : '';
-	$show_summary = isset( $widget_rss['show_summary'] ) ? (int) $widget_rss['show_summary'] : 0;
-	$show_author  = isset( $widget_rss['show_author'] ) ? (int) $widget_rss['show_author'] : 0;
-	$show_date    = isset( $widget_rss['show_date'] ) ? (int) $widget_rss['show_date'] : 0;
+	$title        = trim( strip_tags( $widget_rss['title'] ?? '' ) );
+	$show_summary = (int) ( $widget_rss['show_summary'] ?? 0 );
+	$show_author  = (int) ( $widget_rss['show_author'] ?? 0 );
+	$show_date    = (int) ( $widget_rss['show_date'] ?? 0 );
 	$error        = false;
 	$link         = '';
 
@@ -1875,9 +1903,9 @@ function wp_setup_widgets_block_editor() {
 }
 
 /**
- * Whether or not to use the block editor to manage widgets. Defaults to true
- * unless a theme has removed support for widgets-block-editor or a plugin has
- * filtered the return value of this function.
+ * Determines whether or not to use the block editor to manage widgets.
+ * Defaults to true unless a theme has removed support for widgets-block-editor
+ * or a plugin has filtered the return value of this function.
  *
  * @since 5.8.0
  *
@@ -1975,7 +2003,7 @@ function wp_assign_widget_to_sidebar( $widget_id, $sidebar_id ) {
  * @global array $wp_registered_widgets  The registered widgets.
  * @global array $wp_registered_sidebars The registered sidebars.
  *
- * @param string $widget_id Widget ID.
+ * @param string $widget_id  Widget ID.
  * @param string $sidebar_id Sidebar ID.
  * @return string
  */

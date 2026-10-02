@@ -41,7 +41,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 
 		$users_per_page = $this->get_items_per_page( 'users_network_per_page' );
 
-		$role = isset( $_REQUEST['role'] ) ? $_REQUEST['role'] : '';
+		$role = $_REQUEST['role'] ?? '';
 
 		$paged = $this->get_pagenum();
 
@@ -467,9 +467,25 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$user = $item;
 
 		/** This filter is documented in wp-admin/includes/class-wp-users-list-table.php */
-		echo apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+		$column_output = apply_filters( 'manage_users_custom_column', '', $column_name, $user->ID );
+
+		/**
+		 * Filters the display output of custom columns in the Network Users list table.
+		 *
+		 * @since 6.8.0
+		 *
+		 * @param string $output      Custom column output. Default empty.
+		 * @param string $column_name Name of the custom column.
+		 * @param int    $user_id     ID of the currently-listed user.
+		 */
+		echo apply_filters( 'manage_users-network_custom_column', $column_output, $column_name, $user->ID );
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		foreach ( $this->items as $user ) {
 			$class = '';
@@ -486,7 +502,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 			}
 
 			?>
-			<tr class="<?php echo trim( $class ); ?>">
+			<tr id="user-<?php echo (int) $user->ID; ?>" class="<?php echo trim( $class ); ?>">
 				<?php $this->single_row_columns( $user ); ?>
 			</tr>
 			<?php
@@ -547,5 +563,20 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		$actions = apply_filters( 'ms_user_row_actions', $actions, $user );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (Username) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the user login as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_User $user The current WP_User object.
+	 * @return string The user login.
+	 */
+	protected function get_primary_column_aria_label( $user ) {
+		return $user->user_login;
 	}
 }

@@ -8,11 +8,15 @@
 /**
  * Renders the `core/block` block on server.
  *
+ * @since 5.0.0
+ *
+ * @global WP_Embed $wp_embed
+ *
  * @param array $attributes The block attributes.
  *
  * @return string Rendered HTML of the referenced block.
  */
-function render_block_core_block( $attributes ) {
+function render_block_core_block( $attributes, $content, $block_instance ) {
 	static $seen_refs = array();
 
 	if ( empty( $attributes['ref'] ) ) {
@@ -69,32 +73,28 @@ function render_block_core_block( $attributes ) {
 		$attributes['content'] = $attributes['overrides'];
 	}
 
+	// Apply Block Hooks.
+	$content = apply_block_hooks_to_content_from_post_object( $content, $reusable_block );
+
 	/**
-	 * We set the `pattern/overrides` context through the `render_block_context`
-	 * filter so that it is available when a pattern's inner blocks are
-	 * rendering via do_blocks given it only receives the inner content.
+	 * We attach the blocks from $content as inner blocks to the Synced Pattern block instance.
+	 * This ensures that block context available to the Synced Pattern block instance is provided to
+	 * those blocks.
 	 */
-	$has_pattern_overrides = isset( $attributes['content'] );
-	if ( $has_pattern_overrides ) {
-		$filter_block_context = static function ( $context ) use ( $attributes ) {
-			$context['pattern/overrides'] = $attributes['content'];
-			return $context;
-		};
-		add_filter( 'render_block_context', $filter_block_context, 1 );
-	}
+	$block_instance->parsed_block['innerBlocks']  = parse_blocks( $content );
+	$block_instance->parsed_block['innerContent'] = array_fill( 0, count( $block_instance->parsed_block['innerBlocks'] ), null );
+	$block_instance->refresh_context_dependents();
 
-	$content = do_blocks( $content );
+	$content = $block_instance->render( array( 'dynamic' => false ) );
 	unset( $seen_refs[ $attributes['ref'] ] );
-
-	if ( $has_pattern_overrides ) {
-		remove_filter( 'render_block_context', $filter_block_context, 1 );
-	}
 
 	return $content;
 }
 
 /**
  * Registers the `core/block` block.
+ *
+ * @since 5.3.0
  */
 function register_block_core_block() {
 	register_block_type_from_metadata(

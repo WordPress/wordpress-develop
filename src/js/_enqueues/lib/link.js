@@ -2,8 +2,15 @@
  * @output wp-includes/js/wplink.js
  */
 
- /* global wpLink */
+/* global wpLink */
 
+/**
+ * The WordPress Link Modal dialog.
+ *
+ * @param {JQueryStatic} $          The jQuery object.
+ * @param {Object}       wpLinkL10n The WordPress Link localization object.
+ * @param {Object}       wp         The WordPress global object.
+ */
 ( function( $, wpLinkL10n, wp ) {
 	var editor, searchTimer, River, Query, correctedURL,
 		emailRegexp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,63}$/i,
@@ -12,6 +19,11 @@
 		rivers = {},
 		isTouch = ( 'ontouchend' in document );
 
+	/**
+	 * Gets the currently selected link in the editor.
+	 *
+	 * @return {JQuery} The currently selected link element.
+	 */
 	function getLink() {
 		if ( editor ) {
 			return editor.$( 'a[data-wplink-edit="true"]' );
@@ -105,6 +117,7 @@
 			var ed,
 				$body = $( document.body );
 
+			$( '#wpwrap' ).attr( 'aria-hidden', 'true' );
 			$body.addClass( 'modal-open' );
 			wpLink.modalOpen = true;
 
@@ -161,7 +174,7 @@
 			if ( wpLink.isMCE() ) {
 				wpLink.mceRefresh( url, text );
 			} else {
-				// For the Text editor the "Link text" field is always shown.
+				// For the Code editor the "Link text" field is always shown.
 				if ( ! inputs.wrap.hasClass( 'has-text-field' ) ) {
 					inputs.wrap.addClass( 'has-text-field' );
 				}
@@ -281,6 +294,7 @@
 
 		close: function( reset ) {
 			$( document.body ).removeClass( 'modal-open' );
+			$( '#wpwrap' ).removeAttr( 'aria-hidden' );
 			wpLink.modalOpen = false;
 
 			if ( reset !== 'noReset' ) {
@@ -321,7 +335,7 @@
 			var html = '<a href="' + attrs.href + '"';
 
 			if ( attrs.target ) {
-				html += ' rel="noopener" target="' + attrs.target + '"';
+				html += ' target="' + attrs.target + '"';
 			}
 
 			return html + '>';

@@ -8,6 +8,8 @@
 /**
  * Renders the `core/post-terms` block on the server.
  *
+ * @since 5.8.0
+ *
  * @param array    $attributes Block attributes.
  * @param string   $content    Block default content.
  * @param WP_Block $block      Block instance.
@@ -19,11 +21,6 @@ function render_block_core_post_terms( $attributes, $content, $block ) {
 	}
 
 	if ( ! is_taxonomy_viewable( $attributes['term'] ) ) {
-		return '';
-	}
-
-	$post_terms = get_the_terms( $block->context['postId'], $attributes['term'] );
-	if ( is_wp_error( $post_terms ) || empty( $post_terms ) ) {
 		return '';
 	}
 
@@ -49,17 +46,25 @@ function render_block_core_post_terms( $attributes, $content, $block ) {
 		$suffix = '<span class="wp-block-post-terms__suffix">' . $attributes['suffix'] . '</span>' . $suffix;
 	}
 
-	return get_the_term_list(
+	$post_terms = get_the_term_list(
 		$block->context['postId'],
 		$attributes['term'],
 		wp_kses_post( $prefix ),
 		'<span class="wp-block-post-terms__separator">' . esc_html( $separator ) . '</span>',
 		wp_kses_post( $suffix )
 	);
+
+	if ( is_wp_error( $post_terms ) || empty( $post_terms ) ) {
+		return '';
+	}
+
+	return $post_terms;
 }
 
 /**
  * Returns the available variations for the `core/post-terms` block.
+ *
+ * @since 6.5.0
  *
  * @return array The available variations for the block.
  */
@@ -110,6 +115,8 @@ function block_core_post_terms_build_variations() {
 
 /**
  * Registers the `core/post-terms` block on the server.
+ *
+ * @since 5.8.0
  */
 function register_block_core_post_terms() {
 	register_block_type_from_metadata(

@@ -19,10 +19,10 @@
 function network_domain_check() {
 	global $wpdb;
 
-	$sql = $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) );
-	if ( $wpdb->get_var( $sql ) ) {
+	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->site ) ) ) ) {
 		return $wpdb->get_var( "SELECT domain FROM $wpdb->site ORDER BY id ASC LIMIT 1" );
 	}
+
 	return false;
 }
 
@@ -158,7 +158,7 @@ function network_step1( $errors = false ) {
 
 	$error_codes = array();
 	if ( is_wp_error( $errors ) ) {
-		$network_created_error_message = '<p><strong>' . __( 'Error: The network could not be created.' ) . '</strong></p>';
+		$network_created_error_message = '<p><strong>' . __( 'Error:' ) . '</strong> ' . __( 'The network could not be created.' ) . '</p>';
 		foreach ( $errors->get_error_messages() as $error ) {
 			$network_created_error_message .= "<p>$error</p>";
 		}
@@ -198,6 +198,9 @@ function network_step1( $errors = false ) {
 	} else {
 		$subdomain_install = false;
 		$got_mod_rewrite   = got_mod_rewrite();
+		$message_class     = '';
+		$message           = '';
+
 		if ( $got_mod_rewrite ) { // Dangerous assumptions.
 			$message_class = 'updated';
 			$message       = '<p><strong>' . __( 'Warning:' ) . '</strong> ';
@@ -237,7 +240,7 @@ function network_step1( $errors = false ) {
 
 	if ( allow_subdomain_install() && allow_subdirectory_install() ) :
 		?>
-		<h3><?php esc_html_e( 'Addresses of Sites in your Network' ); ?></h3>
+		<h2><?php esc_html_e( 'Addresses of Sites in your Network' ); ?></h2>
 		<p><?php _e( 'Please choose whether you would like sites in your WordPress network to use sub-domains or sub-directories.' ); ?>
 			<strong><?php _e( 'You cannot change this later.' ); ?></strong></p>
 		<p><?php _e( 'You will need a wildcard DNS record if you are going to use the virtual host (sub-domain) functionality.' ); ?></p>
@@ -286,7 +289,7 @@ function network_step1( $errors = false ) {
 	$is_www = str_starts_with( $hostname, 'www.' );
 	if ( $is_www ) :
 		?>
-		<h3><?php esc_html_e( 'Server Address' ); ?></h3>
+		<h2><?php esc_html_e( 'Server Address' ); ?></h2>
 		<p>
 		<?php
 		printf(
@@ -314,7 +317,7 @@ function network_step1( $errors = false ) {
 		</table>
 		<?php endif; ?>
 
-		<h3><?php esc_html_e( 'Network Details' ); ?></h3>
+		<h2><?php esc_html_e( 'Network Details' ); ?></h2>
 		<table class="form-table" role="presentation">
 		<?php if ( 'localhost' === $hostname ) : ?>
 			<tr>
@@ -375,8 +378,8 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="sitename"><?php esc_html_e( 'Network Title' ); ?></label></th>
 				<td>
-					<input name='sitename' id='sitename' type='text' size='45' value='<?php echo esc_attr( $site_name ); ?>' />
-					<p class="description">
+					<input name='sitename' id='sitename' type='text' size='45' aria-describedby='sitename-desc' value='<?php echo esc_attr( $site_name ); ?>' />
+					<p class="description" id="sitename-desc">
 						<?php _e( 'What would you like to call your network?' ); ?>
 					</p>
 				</td>
@@ -384,8 +387,8 @@ function network_step1( $errors = false ) {
 			<tr>
 				<th scope='row'><label for="email"><?php esc_html_e( 'Network Admin Email' ); ?></label></th>
 				<td>
-					<input name='email' id='email' type='text' size='45' value='<?php echo esc_attr( $admin_email ); ?>' />
-					<p class="description">
+					<input name='email' id='email' type='text' size='45' aria-describedby='email-desc' value='<?php echo esc_attr( $admin_email ); ?>' />
+					<p class="description" id="email-desc">
 						<?php _e( 'Your email address.' ); ?>
 					</p>
 				</td>
@@ -467,7 +470,7 @@ function network_step2( $errors = false ) {
 
 	if ( $_POST || ! is_multisite() ) {
 		?>
-		<h3><?php esc_html_e( 'Enabling the Network' ); ?></h3>
+		<h2><?php esc_html_e( 'Enabling the Network' ); ?></h2>
 		<p><?php _e( 'Complete the following steps to enable the features for creating a network of sites.' ); ?></p>
 		<?php
 		$notice_message = '<strong>' . __( 'Caution:' ) . '</strong> ';

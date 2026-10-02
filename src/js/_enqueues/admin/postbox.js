@@ -246,10 +246,10 @@
 		 *
 		 * @memberof postboxes
 		 *
-		 * @param {string} page The page we are currently on.
-		 * @param {Object} [args]
-		 * @param {Function} args.pbshow A callback that is called when a postbox opens.
-		 * @param {Function} args.pbhide A callback that is called when a postbox closes.
+		 * @param {string}   page          The page we are currently on.
+		 * @param {Object}   [args]        Optional arguments for the postbox toggles.
+		 * @param {Function} [args.pbshow] A callback that is called when a postbox opens.
+		 * @param {Function} [args.pbhide] A callback that is called when a postbox closes.
 		 * @return {void}
 		 */
 		add_postbox_toggles : function (page, args) {
@@ -353,8 +353,8 @@
 		 *
 		 * @memberof postboxes
 		 *
-		 * @param {string} page The page we are currently on.
-		 * @param {Object} [args={}] The arguments for the postbox initializer.
+		 * @param {string}   page        The page we are currently on.
+		 * @param {Object}   [args={}]   The arguments for the postbox initializer.
 		 * @param {Function} args.pbshow A callback that is called when a postbox opens.
 		 * @param {Function} args.pbhide A callback that is called when a postbox
 		 *                               closes.
@@ -461,13 +461,19 @@
 			closed = $( '.postbox' ).filter( '.closed' ).map( function() { return this.id; } ).get().join( ',' );
 			hidden = $( '.postbox' ).filter( ':hidden' ).map( function() { return this.id; } ).get().join( ',' );
 
-			$.post(ajaxurl, {
-				action: 'closed-postboxes',
-				closed: closed,
-				hidden: hidden,
-				closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
-				page: page
-			});
+			$.post(
+				ajaxurl,
+				{
+					action: 'closed-postboxes',
+					closed: closed,
+					hidden: hidden,
+					closedpostboxesnonce: jQuery('#closedpostboxesnonce').val(),
+					page: page
+				},
+				function() {
+					wp.a11y.speak( __( 'Screen Options updated.' ) );
+				}
+			);
 		},
 
 		/**

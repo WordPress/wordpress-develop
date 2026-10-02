@@ -1,5 +1,3 @@
-/* nav-menu */
-
 /* @todo: determine if this is truly for nav menus only */
 .no-js #message {
 	display: block;
@@ -21,6 +19,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-meta .accordion-section-content {
 	padding: 18px 13px;
+	resize: vertical;
 }
 
 #nav-menu-meta .button-controls {
@@ -48,6 +47,26 @@ ul.add-menu-item-tabs li {
 #menu-settings-column .inside {
 	clear: both;
 	margin: 10px 0 0;
+	height: 100%;
+	max-height: inherit;
+}
+
+#menu-settings-column .categorydiv,
+#menu-settings-column .customlinkdiv,
+#menu-settings-column .posttypediv,
+#menu-settings-column .taxonomydiv {
+	max-height: inherit;
+	height: 100%;
+}
+
+#menu-settings-column .wp-tab-panel,
+#menu-settings-column .categorydiv div.tabs-panel,
+#menu-settings-column .customlinkdiv div.tabs-panel,
+#menu-settings-column .posttypediv div.tabs-panel,
+#menu-settings-column .taxonomydiv div.tabs-panel {
+	/* Allow space for content after tab panels in nav menu editor. */
+	max-height: calc(100% - 75px);
+	height: 100%;
 }
 
 .metabox-holder-disabled .postbox,
@@ -103,7 +122,7 @@ ul.add-menu-item-tabs li {
 
 #nav-menu-bulk-actions-bottom {
 	margin: 1em 0;
-	margin: calc( 1em + 9px ) 0;
+	margin: calc(1em + 9px) 0;
 }
 
 .bulk-actions input.button {
@@ -174,11 +193,10 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .bulk-actions input.menu-items-delete {
-	-webkit-appearance: none;
 	appearance: none;
 	font-size: inherit;
 	border: 0;
-	line-height: 2.1em;
+	line-height: 2.1;
 	background: none;
 	cursor: pointer;
 	text-decoration: underline;
@@ -201,7 +219,6 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 
 .menu-settings-group {
 	margin: 0 0 10px;
-	overflow: hidden;
 	padding-left: 20%;
 }
 
@@ -356,8 +373,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 /* Add Menu Item Boxes */
-.postbox .howto input,
-.customlinkdiv .menu-item-textbox {
+.postbox .howto input {
 	width: 180px;
 	float: right;
 }
@@ -367,7 +383,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .customlinkdiv p {
-	margin-top: 0
+	margin-top: 0;
 }
 
 #nav-menu-theme-locations .howto select {
@@ -394,16 +410,18 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	font-size: 12px;
 	margin-left: 20px;
 	margin-top: 5px;
+	cursor: pointer;
 }
 
-.button.right, .button-secondary.right, .button-primary.right {
+.button.right,
+.button-secondary.right,
+.button-primary.right {
 	float: right;
 }
 
 /* Button Secondary Actions */
 .list-controls {
 	float: left;
-	margin-top: 5px;
 }
 
 .add-to-menu {
@@ -411,6 +429,9 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 }
 
 .button-controls {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 	clear: both;
 	margin: 10px 0;
 }
@@ -454,7 +475,10 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	width: 180px;
 }
 
-.customlinkdiv label,
+.customlinkdiv .menu-item-textbox {
+	width: 100%;
+}
+
 .nav-menus-php .howto span {
 	float: left;
 	margin-top: 6px;
@@ -496,7 +520,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	margin-top: -3px;
 }
 
-.menu-item-title input[type=checkbox] {
+.menu-item-title input[type="checkbox"] {
 	display: inline-block;
 	margin-top: -4px;
 }
@@ -542,7 +566,7 @@ input.bulk-select-switcher:focus + .bulk-select-button-label {
 	height: auto;
 	min-height: 20px;
 	max-width: 382px;
-	line-height: 2.30769230;
+	line-height: 2.3076923;
 	overflow: hidden;
 	word-wrap: break-word;
 }
@@ -612,44 +636,149 @@ li.menu-item.ui-sortable-helper .menu-item-transport .menu-item-bar {
 }
 
 /* WARNING: The factor of 30px is hardcoded into the nav-menus JavaScript. */
-.menu-item-depth-0 { margin-left: 0; }
-.menu-item-depth-1 { margin-left: 30px; }
-.menu-item-depth-2 { margin-left: 60px; }
-.menu-item-depth-3 { margin-left: 90px; }
-.menu-item-depth-4 { margin-left: 120px; }
-.menu-item-depth-5 { margin-left: 150px; }
-.menu-item-depth-6 { margin-left: 180px; }
-.menu-item-depth-7 { margin-left: 210px; }
-.menu-item-depth-8 { margin-left: 240px; }
-.menu-item-depth-9 { margin-left: 270px; }
-.menu-item-depth-10 { margin-left: 300px; }
-.menu-item-depth-11 { margin-left: 330px; }
+.menu-item-depth-0 {
+	margin-left: 0;
+}
 
-.menu-item-depth-0 .menu-item-transport { margin-left: 0; }
-.menu-item-depth-1 .menu-item-transport { margin-left: -30px; }
-.menu-item-depth-2 .menu-item-transport { margin-left: -60px; }
-.menu-item-depth-3 .menu-item-transport { margin-left: -90px; }
-.menu-item-depth-4 .menu-item-transport { margin-left: -120px; }
-.menu-item-depth-5 .menu-item-transport { margin-left: -150px; }
-.menu-item-depth-6 .menu-item-transport { margin-left: -180px; }
-.menu-item-depth-7 .menu-item-transport { margin-left: -210px; }
-.menu-item-depth-8 .menu-item-transport { margin-left: -240px; }
-.menu-item-depth-9 .menu-item-transport { margin-left: -270px; }
-.menu-item-depth-10 .menu-item-transport { margin-left: -300px; }
-.menu-item-depth-11 .menu-item-transport { margin-left: -330px; }
+.menu-item-depth-1 {
+	margin-left: 30px;
+}
 
-body.menu-max-depth-0 { min-width: 950px !important; }
-body.menu-max-depth-1 { min-width: 980px !important; }
-body.menu-max-depth-2 { min-width: 1010px !important; }
-body.menu-max-depth-3 { min-width: 1040px !important; }
-body.menu-max-depth-4 { min-width: 1070px !important; }
-body.menu-max-depth-5 { min-width: 1100px !important; }
-body.menu-max-depth-6 { min-width: 1130px !important; }
-body.menu-max-depth-7 { min-width: 1160px !important; }
-body.menu-max-depth-8 { min-width: 1190px !important; }
-body.menu-max-depth-9 { min-width: 1220px !important; }
-body.menu-max-depth-10 { min-width: 1250px !important; }
-body.menu-max-depth-11 { min-width: 1280px !important; }
+.menu-item-depth-2 {
+	margin-left: 60px;
+}
+
+.menu-item-depth-3 {
+	margin-left: 90px;
+}
+
+.menu-item-depth-4 {
+	margin-left: 120px;
+}
+
+.menu-item-depth-5 {
+	margin-left: 150px;
+}
+
+.menu-item-depth-6 {
+	margin-left: 180px;
+}
+
+.menu-item-depth-7 {
+	margin-left: 210px;
+}
+
+.menu-item-depth-8 {
+	margin-left: 240px;
+}
+
+.menu-item-depth-9 {
+	margin-left: 270px;
+}
+
+.menu-item-depth-10 {
+	margin-left: 300px;
+}
+
+.menu-item-depth-11 {
+	margin-left: 330px;
+}
+
+.menu-item-depth-0 .menu-item-transport {
+	margin-left: 0;
+}
+
+.menu-item-depth-1 .menu-item-transport {
+	margin-left: -30px;
+}
+
+.menu-item-depth-2 .menu-item-transport {
+	margin-left: -60px;
+}
+
+.menu-item-depth-3 .menu-item-transport {
+	margin-left: -90px;
+}
+
+.menu-item-depth-4 .menu-item-transport {
+	margin-left: -120px;
+}
+
+.menu-item-depth-5 .menu-item-transport {
+	margin-left: -150px;
+}
+
+.menu-item-depth-6 .menu-item-transport {
+	margin-left: -180px;
+}
+
+.menu-item-depth-7 .menu-item-transport {
+	margin-left: -210px;
+}
+
+.menu-item-depth-8 .menu-item-transport {
+	margin-left: -240px;
+}
+
+.menu-item-depth-9 .menu-item-transport {
+	margin-left: -270px;
+}
+
+.menu-item-depth-10 .menu-item-transport {
+	margin-left: -300px;
+}
+
+.menu-item-depth-11 .menu-item-transport {
+	margin-left: -330px;
+}
+
+body.menu-max-depth-0 {
+	min-width: 950px !important;
+}
+
+body.menu-max-depth-1 {
+	min-width: 980px !important;
+}
+
+body.menu-max-depth-2 {
+	min-width: 1010px !important;
+}
+
+body.menu-max-depth-3 {
+	min-width: 1040px !important;
+}
+
+body.menu-max-depth-4 {
+	min-width: 1070px !important;
+}
+
+body.menu-max-depth-5 {
+	min-width: 1100px !important;
+}
+
+body.menu-max-depth-6 {
+	min-width: 1130px !important;
+}
+
+body.menu-max-depth-7 {
+	min-width: 1160px !important;
+}
+
+body.menu-max-depth-8 {
+	min-width: 1190px !important;
+}
+
+body.menu-max-depth-9 {
+	min-width: 1220px !important;
+}
+
+body.menu-max-depth-10 {
+	min-width: 1250px !important;
+}
+
+body.menu-max-depth-11 {
+	min-width: 1280px !important;
+}
 
 /* Menu item controls */
 .item-type {
@@ -704,14 +833,13 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 .no-js.nav-menus-php .item-edit .screen-reader-text {
 	position: static;
-	-webkit-clip-path: none;
 	clip-path: none;
 	width: auto;
 	height: auto;
 	margin: 0;
 }
 
-.nav-menus-php .item-edit:before {
+.nav-menus-php .item-edit::before {
 	margin-top: 10px;
 	margin-left: 4px;
 	width: 20px;
@@ -719,11 +847,11 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	text-indent: -1px; /* account for the dashicon alignment */
 }
 
-.no-js.nav-menus-php .item-edit:before {
+.no-js.nav-menus-php .item-edit::before {
 	display: none;
 }
 
-.rtl .nav-menus-php .item-edit:before {
+.rtl .nav-menus-php .item-edit::before {
 	text-indent: 1px; /* account for the dashicon alignment */
 }
 
@@ -731,8 +859,8 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	box-shadow: none;
 }
 
-.nav-menus-php .item-edit:focus:before {
-	box-shadow: 0 0 0 2px #2271b1;
+.nav-menus-php .item-edit:focus::before {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -777,7 +905,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 .add-menu-item-pagelinks {
-	margin: .5em -10px;
+	margin: 0.5em -10px;
 	text-align: center;
 }
 
@@ -808,31 +936,18 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	display: none;
 }
 
-.menu-item-settings .description-thin,
-.menu-item-settings .description-wide {
-	margin-right: 10px;
-	float: left;
+.description-group {
+	display: flex;
+	column-gap: 10px;
 }
 
-.description-thin {
-	width: calc(50% - 5px);
-}
-
-.menu-item-settings .description-thin + .description-thin {
-	margin-right: 0;
-}
-
-.description-wide {
-	width: 100%;
+.description-group > * {
+	flex-grow: 1;
 }
 
 .menu-item-actions {
 	padding-top: 15px;
 	padding-bottom: 7px;
-}
-
-#cancel-save {
-	cursor: pointer;
 }
 
 /* Major/minor publishing actions (classes) */
@@ -852,10 +967,13 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 #nav-menus-frame,
-.button-controls,
 #menu-item-url-wrap,
 #menu-item-name-wrap {
 	display: block;
+}
+
+.button-controls-customlinkdiv {
+	justify-content: flex-end;
 }
 
 /* =Media Queries
@@ -915,7 +1033,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	}
 
 	.nav-menus-php .menu-name-label.howto span {
-		margin-top: 13px
+		margin-top: 13px;
 	}
 
 	#menu-name {
@@ -932,8 +1050,7 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	}
 
 	.menu-item-bar .menu-item-handle,
-	.menu-item-settings,
-	.description-wide {
+	.menu-item-settings {
 		width: auto;
 	}
 
@@ -941,9 +1058,8 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 		padding: 10px;
 	}
 
-	.menu-item-settings .description-thin,
-	.menu-item-settings .description-wide {
-		width: 100%;
+	.menu-item-settings .description-group {
+		display: block;
 	}
 
 	.menu-item-settings input {
@@ -990,19 +1106,19 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 @media only screen and (min-width: 783px) {
-    @supports (position: sticky) and (scroll-margin-bottom: 130px) {
-
+	@supports (position: sticky) and (scroll-margin-bottom: 130px) {
 		#nav-menu-footer {
-                position: sticky;
-				bottom: 0;
-				z-index: 10;
-				box-shadow: 0 -1px 0 0 #ddd;
-        }
+			position: sticky;
+			bottom: 0;
+			z-index: 10;
+			box-shadow: 0 -1px 0 0 #ddd;
+		}
 
-        #save_menu_header {
-                display: none;
-        }
-    }
+		/* stylelint-disable-next-line selector-id-pattern -- This ID selector uses a single underscore but cannot be changed because of backward compatibility reasons. */
+		#save_menu_header {
+			display: none;
+		}
+	}
 }
 
 @media only screen and (max-width: 768px) {

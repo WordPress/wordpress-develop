@@ -17,7 +17,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 	/**
 	 * The file structure for tests.
 	 *
-	 * @var array
+	 * @var array<string, array{type: string, path: string, contents?: string}>
 	 */
 	protected static $file_structure = array();
 
@@ -90,7 +90,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 			} elseif ( 'f' === $entry['type'] ) {
 				$this->create_file_if_needed(
 					$entry['path'],
-					isset( $entry['contents'] ) ? $entry['contents'] : ''
+					$entry['contents'] ?? ''
 				);
 			}
 		}
@@ -160,7 +160,7 @@ abstract class WP_Filesystem_Direct_UnitTestCase extends WP_UnitTestCase {
 	 * @return bool Whether the operating system is Windows.
 	 */
 	public static function is_windows() {
-		return 'WIN' === substr( PHP_OS, 0, 3 );
+		return 'Windows' === PHP_OS_FAMILY;
 	}
 
 	/**

@@ -15,13 +15,6 @@
  * @see WP_REST_Autosaves_Controller
  */
 class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller {
-	/**
-	 * Parent post type.
-	 *
-	 * @since 6.4.0
-	 * @var string
-	 */
-	private $parent_post_type;
 
 	/**
 	 * Parent post controller.
@@ -56,7 +49,6 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 */
 	public function __construct( $parent_post_type ) {
 		parent::__construct( $parent_post_type );
-		$this->parent_post_type = $parent_post_type;
 		$post_type_object       = get_post_type_object( $parent_post_type );
 		$parent_controller      = $post_type_object->get_rest_controller();
 
@@ -174,6 +166,11 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	public function prepare_item_for_response( $item, $request ) {
 		$template = _build_block_template_result_from_post( $item );
 		$response = $this->parent_controller->prepare_item_for_response( $template, $request );
+
+		// Don't prepare the response body for HEAD requests.
+		if ( $request->is_method( 'HEAD' ) ) {
+			return $response;
+		}
 
 		$fields = $this->get_fields_for_response( $request );
 		$data   = $response->get_data();

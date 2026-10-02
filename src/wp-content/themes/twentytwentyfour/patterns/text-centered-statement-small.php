@@ -5,8 +5,13 @@
  * Categories: text, about
  * Keywords: mission, introduction
  * Viewport width: 1200
- * Description: A centered itallic text statement with compact padding.
+ * Description: A centered italic text statement with compact padding.
+ *
+ * @package WordPress
+ * @subpackage Twenty_Twenty_Four
+ * @since Twenty Twenty-Four 1.0
  */
+
 ?>
 
 <!-- wp:group {"align":"full","style":{"spacing":{"padding":{"top":"var:preset|spacing|50","bottom":"var:preset|spacing|50","left":"var:preset|spacing|50","right":"var:preset|spacing|50"},"margin":{"top":"0","bottom":"0"}}},"layout":{"type":"constrained","contentSize":"800px"}} -->

@@ -95,11 +95,6 @@
 			} );
 		}
 
-		if ( skipLink ) {
-			// Focus the target of skip link after pressing Enter.
-			skipLink.addEventListener( 'keydown', focusTargetAfterEnter );
-		}
-
 		if ( shortlink ) {
 			shortlink.addEventListener( 'click', clickShortlink );
 		}
@@ -174,41 +169,12 @@
 	}
 
 	/**
-	 * Focus the target of skip link after pressing Enter.
-	 *
-	 * @since 5.3.1
-	 *
-	 * @param {Event} event The keydown event.
-	 */
-	function focusTargetAfterEnter( event ) {
-		var id, userAgent;
-
-		if ( event.which !== 13 ) {
-			return;
-		}
-
-		id = event.target.getAttribute( 'href' );
-		userAgent = navigator.userAgent.toLowerCase();
-
-		if ( userAgent.indexOf( 'applewebkit' ) > -1 && id && id.charAt( 0 ) === '#' ) {
-			setTimeout( function() {
-				var target = document.getElementById( id.replace( '#', '' ) );
-
-				if ( target ) {
-					target.setAttribute( 'tabIndex', '0' );
-					target.focus();
-				}
-			}, 100 );
-		}
-	}
-
-	/**
 	 * Toggle hover class for mobile devices.
 	 *
 	 * @since 5.3.1
 	 *
 	 * @param {NodeList} topMenuItems All menu items.
-	 * @param {Event} event The click event.
+	 * @param {Event}    event        The click event.
 	 */
 	function mobileHover( topMenuItems, event ) {
 		var wrapper;
@@ -240,7 +206,7 @@
 	 * @since 5.3.1 Use querySelector to clean up the function.
 	 *
 	 * @param {Event} event The click event.
-	 * @return {boolean} Returns false to prevent default click behavior.
+	 * @return {boolean|void} False to prevent default action.
 	 */
 	function clickShortlink( event ) {
 		var wrapper = event.target.parentNode,
@@ -294,7 +260,7 @@
 	 *
 	 * @since 5.3.1
 	 *
-	 * @param {HTMLElement} element The HTML element.
+	 * @param {HTMLElement} element   The HTML element.
 	 * @param {string}      className The class name.
 	 * @return {boolean} Whether the element has the className.
 	 */
@@ -320,7 +286,7 @@
 	 *
 	 * @since 5.3.1
 	 *
-	 * @param {HTMLElement} element The HTML element.
+	 * @param {HTMLElement} element   The HTML element.
 	 * @param {string}      className The class name.
 	 */
 	function addClass( element, className ) {
@@ -349,7 +315,7 @@
 	 *
 	 * @since 5.3.1
 	 *
-	 * @param {HTMLElement} element The HTML element.
+	 * @param {HTMLElement} element   The HTML element.
 	 * @param {string}      className The class name.
 	 */
 	function removeClass( element, className ) {
@@ -429,8 +395,10 @@
 	 *
 	 * @since 5.3.1
 	 *
-	 * @param {HTMLElement} el Element to get parent.
-	 * @param {string} selector CSS selector to match.
+	 * @param {HTMLElement} el       Element to get parent.
+	 * @param {string}      selector CSS selector to match.
+	 *
+	 * @return {HTMLElement|null} The closest matching element or null if not found.
 	 */
 	function getClosest( el, selector ) {
 		if ( ! window.Element.prototype.matches ) {
@@ -451,7 +419,7 @@
 				};
 		}
 
-		// Get the closest matching elent.
+		// Get the closest matching element.
 		for ( ; el && el !== document; el = el.parentNode ) {
 			if ( el.matches( selector ) ) {
 				return el;

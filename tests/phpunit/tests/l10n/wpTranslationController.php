@@ -361,4 +361,51 @@ class WP_Translation_Controller_Tests extends WP_UnitTestCase {
 		$this->assertSame( 'Este es un plugin dummy', $actual );
 		$this->assertSame( 'This is a dummy plugin', $after );
 	}
+
+	/**
+	 * @ticket 52696
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_existing_translation() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @ticket 52696
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_no_translation() {
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'Goodbye', 'wp-tests-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @ticket 52696
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_different_textdomain() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertFalse( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'custom-domain', 'en_US' ) );
+	}
+
+	/**
+	 * @ticket 52696
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_different_locale() {
+		switch_to_locale( 'es_ES' );
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$actual = WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain', 'es_ES' );
+		restore_previous_locale();
+		$this->assertTrue( $actual );
+	}
+
+	/**
+	 * @ticket 52696
+	 * @covers ::has_translation
+	 */
+	public function test_has_translation_with_no_locale_provided() {
+		load_textdomain( 'wp-tests-domain', DIR_TESTDATA . '/pomo/simple.mo' );
+		$this->assertTrue( WP_Translation_Controller::get_instance()->has_translation( 'baba', 'wp-tests-domain' ) );
+	}
 }

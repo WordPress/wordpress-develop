@@ -35,13 +35,17 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	 * Test that spaces are correctly replaced with dashes.
 	 *
 	 * @ticket 16330
+	 * @ticket 62995
 	 */
 	public function test_replaces_spaces() {
 		$urls = array(
-			'unencoded space.png'  => 'unencoded-space.png',
-			'encoded-space.jpg'    => 'encoded-space.jpg',
-			'plus+space.jpg'       => 'plusspace.jpg',
-			'multi %20 +space.png' => 'multi-20-space.png',
+			'unencoded space.png'                         => 'unencoded-space.png',
+			'encoded-space.jpg'                           => 'encoded-space.jpg',
+			'plus+space.jpg'                              => 'plusspace.jpg',
+			'multi %20 +space.png'                        => 'multi-20-space.png',
+			"Screenshot 2025-02-19 at 2.17.33\u{202F}PM.png" => 'Screenshot-2025-02-19-at-2.17.33-PM.png',
+			"Filename with non-breaking\u{00A0}space.txt" => 'Filename-with-non-breaking-space.txt',
+			"Filename with thin\u{2009}space.txt"         => 'Filename-with-thin-space.txt',
 		);
 
 		foreach ( $urls as $test => $expected ) {

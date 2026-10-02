@@ -63,7 +63,9 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		// Setup an empty testing instance of `WP_Block_Pattern_Categories_Registry` and save the original.
 		self::$orig_registry              = WP_Block_Pattern_Categories_Registry::get_instance();
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
-		self::$registry_instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( true );
+		}
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
 		self::$registry_instance_property->setValue( null, $test_registry );
 
@@ -89,7 +91,10 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 
 		// Restore the original registry instance.
 		self::$registry_instance_property->setValue( null, self::$orig_registry );
-		self::$registry_instance_property->setAccessible( false );
+
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( false );
+		}
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
 	}
@@ -121,6 +126,33 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 			$this->assertSame( $expected_names[ $idx ], $item['name'] );
 			$this->assertSame( $expected_fields, array_keys( $item ) );
 		}
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_block_pattern_categories_data() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
 	}
 
 	/**
@@ -194,9 +226,19 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Pattern_Categories_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 3, $properties, 'The schema should contain 3 properties.' );
+		$this->assertArrayHasKey( 'name', $properties, 'The schema should contain a name property.' );
+		$this->assertArrayHasKey( 'label', $properties, 'The schema should contain a label property.' );
+		$this->assertArrayHasKey( 'description', $properties, 'The schema should contain a description property.' );
 	}
 }

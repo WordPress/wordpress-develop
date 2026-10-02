@@ -121,15 +121,16 @@ if ( ! empty( $messages ) ) {
 	<table class="form-table" role="presentation">
 		<?php
 		$blog_prefix = $wpdb->get_blog_prefix( $id );
-		$sql         = "SELECT * FROM {$blog_prefix}options
-			WHERE option_name NOT LIKE %s
-			AND option_name NOT LIKE %s";
-		$query       = $wpdb->prepare(
-			$sql,
-			$wpdb->esc_like( '_' ) . '%',
-			'%' . $wpdb->esc_like( 'user_roles' )
+		$options     = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i
+				WHERE option_name NOT LIKE %s
+				AND option_name NOT LIKE %s',
+				"{$blog_prefix}options",
+				$wpdb->esc_like( '_' ) . '%',
+				'%' . $wpdb->esc_like( 'user_roles' )
+			)
 		);
-		$options     = $wpdb->get_results( $query );
 
 		foreach ( $options as $option ) {
 			if ( 'default_role' === $option->option_name ) {
@@ -147,6 +148,25 @@ if ( ! empty( $messages ) ) {
 					$disabled             = true;
 					$class                = 'all-options disabled';
 				}
+			}
+
+			$ltr_fields = array(
+				'siteurl',
+				'home',
+				'admin_email',
+				'new_admin_email',
+				'mailserver_url',
+				'mailserver_login',
+				'mailserver_pass',
+				'ping_sites',
+				'permalink_structure',
+				'category_base',
+				'tag_base',
+				'upload_path',
+				'upload_url_path',
+			);
+			if ( in_array( $option->option_name, $ltr_fields, true ) ) {
+				$class .= ' ltr';
 			}
 
 			if ( str_contains( $option->option_value, "\n" ) ) {

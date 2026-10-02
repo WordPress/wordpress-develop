@@ -29,7 +29,7 @@ $wp_list_table = _get_list_table( 'WP_MS_Themes_List_Table' );
 
 $action = $wp_list_table->current_action();
 
-$s = isset( $_REQUEST['s'] ) ? $_REQUEST['s'] : '';
+$s = $_REQUEST['s'] ?? '';
 
 // Clean up request URI from temporary args for screen options/paging uri's to work as expected.
 $temp_args              = array( 'enabled', 'disabled', 'error' );
@@ -143,7 +143,7 @@ if ( $action ) {
 			}
 	}
 
-	update_option( 'allowedthemes', $allowed_themes );
+	update_option( 'allowedthemes', $allowed_themes, false );
 	restore_current_blog();
 
 	wp_safe_redirect(
@@ -237,7 +237,7 @@ if ( isset( $_GET['enabled'] ) ) {
 <p><?php _e( 'Network enabled themes are not shown on this screen.' ); ?></p>
 
 <form method="get">
-<?php $wp_list_table->search_box( __( 'Search Installed Themes' ), 'theme' ); ?>
+<?php $wp_list_table->search_box( __( 'Search installed themes' ), 'theme' ); ?>
 <input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 </form>
 

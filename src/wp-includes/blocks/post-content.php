@@ -8,6 +8,8 @@
 /**
  * Renders the `core/post-content` block on the server.
  *
+ * @since 5.8.0
+ *
  * @param array    $attributes Block attributes.
  * @param string   $content    Block default content.
  * @param WP_Block $block      Block instance.
@@ -52,17 +54,36 @@ function render_block_core_post_content( $attributes, $content, $block ) {
 		return '';
 	}
 
+	$tag_name = 'div';
+
+	if ( isset( $attributes['tagName'] ) && is_string( $attributes['tagName'] ) ) {
+		/**
+		 * The allowed tag names match the options offered in the editor.
+		 *
+		 * @see packages/block-library/src/post-content/edit.jsx
+		 */
+		$allowed_tag_names   = array( 'div', 'main', 'section', 'article' );
+		$normalized_tag_name = strtolower( $attributes['tagName'] );
+
+		if ( in_array( $normalized_tag_name, $allowed_tag_names, true ) ) {
+			$tag_name = $normalized_tag_name;
+		}
+	}
+
 	$wrapper_attributes = get_block_wrapper_attributes( array( 'class' => 'entry-content' ) );
 
-	return (
-		'<div ' . $wrapper_attributes . '>' .
-			$content .
-		'</div>'
+	return sprintf(
+		'<%1$s %2$s>%3$s</%1$s>',
+		$tag_name,
+		$wrapper_attributes,
+		$content
 	);
 }
 
 /**
  * Registers the `core/post-content` block on the server.
+ *
+ * @since 5.8.0
  */
 function register_block_core_post_content() {
 	register_block_type_from_metadata(

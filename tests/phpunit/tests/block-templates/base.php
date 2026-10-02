@@ -1,7 +1,6 @@
 <?php
 
 /**
- * @group block-templates
  * @covers ::get_template_hierarchy
  */
 abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {

@@ -72,11 +72,15 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 			$source_one_name         => new WP_Block_Bindings_Source( $source_one_name, $source_one_properties ),
 			$source_two_name         => new WP_Block_Bindings_Source( $source_two_name, $source_two_properties ),
 			$source_three_name       => new WP_Block_Bindings_Source( $source_three_name, $source_three_properties ),
+			'core/post-data'         => get_block_bindings_source( 'core/post-data' ),
 			'core/post-meta'         => get_block_bindings_source( 'core/post-meta' ),
 			'core/pattern-overrides' => get_block_bindings_source( 'core/pattern-overrides' ),
+			'core/term-data'         => get_block_bindings_source( 'core/term-data' ),
 		);
 
 		$registered = get_all_registered_block_bindings_sources();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $registered );
 	}
 
@@ -93,6 +97,8 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 		register_block_bindings_source( self::$test_source_name, self::$test_source_properties );
 
 		$result = unregister_block_bindings_source( self::$test_source_name );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Block_Bindings_Source(
 				self::$test_source_name,

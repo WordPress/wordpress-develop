@@ -190,7 +190,11 @@ class WP_Fatal_Error_Handler {
 			if ( is_multisite() ) {
 				$message = __( 'There has been a critical error on this website. Please reach out to your site administrator, and inform them of this error for further assistance.' );
 			} else {
-				$message = __( 'There has been a critical error on this website. Please check your site admin email inbox for instructions.' );
+				$message = sprintf(
+					/* translators: %s: Support forums URL. */
+					__( 'There has been a critical error on this website. Please check your site admin email inbox for instructions. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
+					__( 'https://wordpress.org/support/forums/' )
+				);
 			}
 		} else {
 			$message = __( 'There has been a critical error on this website.' );
@@ -224,8 +228,8 @@ class WP_Fatal_Error_Handler {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array $args Associative array of arguments passed to `wp_die()`. By default these contain a
-		 *                    'response' key, and optionally 'link_url' and 'link_text' keys.
+		 * @param array $args  Associative array of arguments passed to `wp_die()`. By default these contain a
+		 *                     'response' key, and optionally 'link_url' and 'link_text' keys.
 		 * @param array $error Error information retrieved from `error_get_last()`.
 		 */
 		$args = apply_filters( 'wp_php_error_args', $args, $error );

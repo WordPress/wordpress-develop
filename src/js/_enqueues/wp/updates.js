@@ -1,33 +1,34 @@
 /**
- * Functions for ajaxified updates, deletions and installs inside the WordPress admin.
- *
- * @version 4.2.0
  * @output wp-admin/js/updates.js
  */
 
 /* global pagenow, _wpThemeSettings */
 
 /**
- * @param {jQuery}  $                                        jQuery object.
- * @param {object}  wp                                       WP object.
- * @param {object}  settings                                 WP Updates settings.
- * @param {string}  settings.ajax_nonce                      Ajax nonce.
- * @param {object=} settings.plugins                         Base names of plugins in their different states.
- * @param {Array}   settings.plugins.all                     Base names of all plugins.
- * @param {Array}   settings.plugins.active                  Base names of active plugins.
- * @param {Array}   settings.plugins.inactive                Base names of inactive plugins.
- * @param {Array}   settings.plugins.upgrade                 Base names of plugins with updates available.
- * @param {Array}   settings.plugins.recently_activated      Base names of recently activated plugins.
- * @param {Array}   settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
- * @param {Array}   settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
- * @param {object=} settings.themes                          Slugs of themes in their different states.
- * @param {Array}   settings.themes.all                      Slugs of all themes.
- * @param {Array}   settings.themes.upgrade                  Slugs of themes with updates available.
- * @param {Arrat}   settings.themes.disabled                 Slugs of disabled themes.
- * @param {Array}   settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
- * @param {Array}   settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
- * @param {object=} settings.totals                          Combined information for available update counts.
- * @param {number}  settings.totals.count                    Holds the amount of available updates.
+ * Provides functions for ajaxified updates, deletions and installs inside the WordPress admin.
+ *
+ * @version 4.2.0
+ *
+ * @param {JQueryStatic} $                                        The jQuery object.
+ * @param {Object}       wp                                       The WordPress global object.
+ * @param {Object}       settings                                 WP Updates settings.
+ * @param {string}       settings.ajax_nonce                      Ajax nonce.
+ * @param {Object}       settings.plugins                         Base names of plugins in their different states.
+ * @param {Array}        settings.plugins.all                     Base names of all plugins.
+ * @param {Array}        settings.plugins.active                  Base names of active plugins.
+ * @param {Array}        settings.plugins.inactive                Base names of inactive plugins.
+ * @param {Array}        settings.plugins.upgrade                 Base names of plugins with updates available.
+ * @param {Array}        settings.plugins.recently_activated      Base names of recently activated plugins.
+ * @param {Array}        settings.plugins['auto-update-enabled']  Base names of plugins set to auto-update.
+ * @param {Array}        settings.plugins['auto-update-disabled'] Base names of plugins set to not auto-update.
+ * @param {Object}       settings.themes                          Slugs of themes in their different states.
+ * @param {Array}        settings.themes.all                      Slugs of all themes.
+ * @param {Array}        settings.themes.upgrade                  Slugs of themes with updates available.
+ * @param {Array}        settings.themes.disabled                 Slugs of disabled themes.
+ * @param {Array}        settings.themes['auto-update-enabled']   Slugs of themes set to auto-update.
+ * @param {Array}        settings.themes['auto-update-disabled']  Slugs of themes set to not auto-update.
+ * @param {Object}       settings.totals                          Combined information for available update counts.
+ * @param {number}       settings.totals.count                    Holds the amount of available updates.
  */
 (function( $, wp, settings ) {
 	var $document = $( document ),
@@ -54,7 +55,7 @@
 	 * @since 4.2.0
 	 * @deprecated 5.5.0
 	 *
-	 * @type {object}
+	 * @type {Object}
 	 */
 	wp.updates.l10n = {
 		searchResults: '',
@@ -142,11 +143,20 @@
 	wp.updates.searchTerm = '';
 
 	/**
+	 * Minimum number of characters before an ajax search is fired.
+	 *
+	 * @since 6.7.0
+	 *
+	 * @type {number}
+	 */
+	wp.updates.searchMinCharacters = 2;
+
+	/**
 	 * Whether filesystem credentials need to be requested from the user.
 	 *
 	 * @since 4.2.0
 	 *
-	 * @type {bool}
+	 * @type {boolean}
 	 */
 	wp.updates.shouldRequestFilesystemCredentials = false;
 
@@ -157,18 +167,19 @@
 	 * @since 4.6.0 Added `available` property to indicate whether credentials have been provided.
 	 *
 	 * @type {Object}
-	 * @property {Object} filesystemCredentials.ftp                Holds FTP credentials.
-	 * @property {string} filesystemCredentials.ftp.host           FTP host. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.username       FTP user name. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.password       FTP password. Default empty string.
-	 * @property {string} filesystemCredentials.ftp.connectionType Type of FTP connection. 'ssh', 'ftp', or 'ftps'.
-	 *                                                             Default empty string.
-	 * @property {Object} filesystemCredentials.ssh                Holds SSH credentials.
-	 * @property {string} filesystemCredentials.ssh.publicKey      The public key. Default empty string.
-	 * @property {string} filesystemCredentials.ssh.privateKey     The private key. Default empty string.
-	 * @property {string} filesystemCredentials.fsNonce            Filesystem credentials form nonce.
-	 * @property {bool}   filesystemCredentials.available          Whether filesystem credentials have been provided.
-	 *                                                             Default 'false'.
+	 * @property {Object}  filesystemCredentials                    Holds all filesystem credentials.
+	 * @property {Object}  filesystemCredentials.ftp                Holds FTP credentials.
+	 * @property {string}  filesystemCredentials.ftp.host           FTP host. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.username       FTP user name. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.password       FTP password. Default empty string.
+	 * @property {string}  filesystemCredentials.ftp.connectionType Type of FTP connection. 'ssh', 'ftp', or 'ftps'.
+	 *                                                              Default empty string.
+	 * @property {Object}  filesystemCredentials.ssh                Holds SSH credentials.
+	 * @property {string}  filesystemCredentials.ssh.publicKey      The public key. Default empty string.
+	 * @property {string}  filesystemCredentials.ssh.privateKey     The private key. Default empty string.
+	 * @property {string}  filesystemCredentials.fsNonce            Filesystem credentials form nonce.
+	 * @property {boolean} filesystemCredentials.available          Whether filesystem credentials have been provided.
+	 *                                                              Default 'false'.
 	 */
 	wp.updates.filesystemCredentials = {
 		ftp:       {
@@ -191,7 +202,7 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `ajaxLocked`.
 	 *
-	 * @type {bool}
+	 * @type {boolean}
 	 */
 	wp.updates.ajaxLocked = false;
 
@@ -200,7 +211,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @type {function}
+	 * @type {Function}
 	 */
 	wp.updates.adminNotice = wp.template( 'wp-updates-admin-notice' );
 
@@ -231,14 +242,14 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}  data
-	 * @param {*=}      data.selector      Optional. Selector of an element to be replaced with the admin notice.
-	 * @param {string=} data.id            Optional. Unique id that will be used as the notice's id attribute.
-	 * @param {string=} data.className     Optional. Class names that will be used in the admin notice.
-	 * @param {string=} data.message       Optional. The message displayed in the notice.
-	 * @param {number=} data.successes     Optional. The amount of successful operations.
-	 * @param {number=} data.errors        Optional. The amount of failed operations.
-	 * @param {Array=}  data.errorMessages Optional. Error messages of failed operations.
+	 * @param {Object} data                 The data for the admin notice.
+	 * @param {*}      [data.selector]      Optional. Selector of an element to be replaced with the admin notice.
+	 * @param {string} [data.id]            Optional. Unique id that will be used as the notice's id attribute.
+	 * @param {string} [data.className]     Optional. Class names that will be used in the admin notice.
+	 * @param {string} [data.message]       Optional. The message displayed in the notice.
+	 * @param {number} [data.successes]     Optional. The amount of successful operations.
+	 * @param {number} [data.errors]        Optional. The amount of failed operations.
+	 * @param {Array}  [data.errorMessages] Optional. Error messages of failed operations.
 	 *
 	 */
 	wp.updates.addAdminNotice = function( data ) {
@@ -324,9 +335,9 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}  response
-	 * @param {Array=}  response.debug     Optional. Debug information.
-	 * @param {string=} response.errorCode Optional. Error code for an error that occurred.
+	 * @param {Object} response             The response object from the Ajax request.
+	 * @param {Array}  [response.debug]     Optional. Debug information.
+	 * @param {string} [response.errorCode] Optional. Error code for an error that occurred.
 	 */
 	wp.updates.ajaxAlways = function( response ) {
 		if ( ! response.errorCode || 'unable_to_connect_to_filesystem' !== response.errorCode ) {
@@ -418,16 +429,16 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object}  data               An object of data to use for the button.
-	 * @param {string}  data.slug          The plugin's slug.
-	 * @param {string}  data.text          The text to use for the button.
-	 * @param {string}  data.ariaLabel     The value for the button's aria-label attribute. An empty string removes the attribute.
-	 * @param {string=} data.status        Optional. An identifier for the status.
-	 * @param {string=} data.removeClasses Optional. A space-separated list of classes to remove from the button.
-	 * @param {string=} data.addClasses    Optional. A space-separated list of classes to add to the button.
-	 * @param {string=} data.href          Optional. The button's URL.
-	 * @param {string=} data.pluginName    Optional. The plugin's name.
-	 * @param {string=} data.plugin        Optional. The plugin file, relative to the plugins directory.
+	 * @param {Object} data                 An object of data to use for the button.
+	 * @param {string} data.slug            The plugin's slug.
+	 * @param {string} data.text            The text to use for the button.
+	 * @param {string} data.ariaLabel       The value for the button's aria-label attribute. An empty string removes the attribute.
+	 * @param {string} [data.status]        Optional. An identifier for the status.
+	 * @param {string} [data.removeClasses] Optional. A space-separated list of classes to remove from the button.
+	 * @param {string} [data.addClasses]    Optional. A space-separated list of classes to add to the button.
+	 * @param {string} [data.href]          Optional. The button's URL.
+	 * @param {string} [data.pluginName]    Optional. The plugin's name.
+	 * @param {string} [data.plugin]        Optional. The plugin file, relative to the plugins directory.
 	 */
 	wp.updates.setCardButtonStatus = function( data ) {
 		var target = window.parent === window ? null : window.parent;
@@ -467,11 +478,11 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `updatePlugin`.
 	 *
-	 * @param {Object}               args         Arguments.
-	 * @param {string}               args.plugin  Plugin basename.
-	 * @param {string}               args.slug    Plugin slug.
-	 * @param {updatePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.updatePluginSuccess
-	 * @param {updatePluginError=}   args.error   Optional. Error callback. Default: wp.updates.updatePluginError
+	 * @param {Object}              args           Arguments.
+	 * @param {string}              args.plugin    Plugin basename.
+	 * @param {string}              args.slug      Plugin slug.
+	 * @param {updatePluginSuccess} [args.success] Optional. Success callback. Default: wp.updates.updatePluginSuccess
+	 * @param {updatePluginError}   [args.error]   Optional. Error callback. Default: wp.updates.updatePluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -610,12 +621,12 @@
 	 * @since 4.2.0
 	 * @since 4.6.0 More accurately named `updatePluginError`.
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be updated.
-	 * @param {string}  response.plugin       Basename of the plugin to be updated.
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be updated.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be updated.
+	 * @param {string} response.plugin       Basename of the plugin to be updated.
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be updated.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.updatePluginError = function( response ) {
 		var $pluginRow, $card, $message, errorMessage, buttonText, ariaLabel,
@@ -727,10 +738,10 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}                args         Arguments.
-	 * @param {string}                args.slug    Plugin identifier in the WordPress.org Plugin repository.
-	 * @param {installPluginSuccess=} args.success Optional. Success callback. Default: wp.updates.installPluginSuccess
-	 * @param {installPluginError=}   args.error   Optional. Error callback. Default: wp.updates.installPluginError
+	 * @param {Object}               args         Arguments.
+	 * @param {string}               args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {installPluginSuccess} args.success Optional. Success callback. Default: wp.updates.installPluginSuccess
+	 * @param {installPluginError}   args.error   Optional. Error callback. Default: wp.updates.installPluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -842,11 +853,11 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be installed.
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be installed.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be installed.
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be installed.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.installPluginError = function( response ) {
 		var $card   = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ),
@@ -875,7 +886,7 @@
 
 		$card
 			.addClass( 'plugin-card-update-failed' )
-			.append( '<div class="notice notice-error notice-alt is-dismissible"><p>' + errorMessage + '</p></div>' );
+			.append( '<div class="notice notice-error notice-alt is-dismissible" role="alert"><p>' + errorMessage + '</p></div>' );
 
 		$card.on( 'click', '.notice.is-dismissible .notice-dismiss', function() {
 
@@ -913,10 +924,10 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object}                          args         Arguments.
-	 * @param {string}                          args.slug    Plugin identifier in the WordPress.org Plugin repository.
-	 * @param {checkPluginDependenciesSuccess=} args.success Optional. Success callback. Default: wp.updates.checkPluginDependenciesSuccess
-	 * @param {checkPluginDependenciesError=}   args.error   Optional. Error callback. Default: wp.updates.checkPluginDependenciesError
+	 * @param {Object}                         args         Arguments.
+	 * @param {string}                         args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {checkPluginDependenciesSuccess} args.success Optional. Success callback. Default: wp.updates.checkPluginDependenciesSuccess
+	 * @param {checkPluginDependenciesError}   args.error   Optional. Error callback. Default: wp.updates.checkPluginDependenciesError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -956,7 +967,7 @@
 		wp.a11y.speak( __( 'Plugin dependencies check completed successfully.' ) );
 		$document.trigger( 'wp-check-plugin-dependencies-success', response );
 
-		if ( 'plugins-network' === pagenow ) {
+		if ( 'plugins-network' === pagenow || 'plugin-install-network' === pagenow ) {
 			buttonText = _x( 'Network Activate', 'plugin' );
 			ariaLabel  = sprintf(
 				/* translators: %s: Plugin name. */
@@ -1005,11 +1016,11 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be checked.
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be checked.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be checked.
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be checked.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.checkPluginDependenciesError = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.install-now' ),
@@ -1060,12 +1071,12 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object}                 args         Arguments.
-	 * @param {string}                 args.name    The name of the plugin.
-	 * @param {string}                 args.slug    Plugin identifier in the WordPress.org Plugin repository.
-	 * @param {string}                 args.plugin  The plugin file, relative to the plugins directory.
-	 * @param {activatePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.activatePluginSuccess
-	 * @param {activatePluginError=}   args.error   Optional. Error callback. Default: wp.updates.activatePluginError
+	 * @param {Object}                args         Arguments.
+	 * @param {string}                args.name    The name of the plugin.
+	 * @param {string}                args.slug    Plugin identifier in the WordPress.org Plugin repository.
+	 * @param {string}                args.plugin  The plugin file, relative to the plugins directory.
+	 * @param {activatePluginSuccess} args.success Optional. Success callback. Default: wp.updates.activatePluginSuccess
+	 * @param {activatePluginError}   args.error   Optional. Error callback. Default: wp.updates.activatePluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -1112,26 +1123,14 @@
 	 */
 	wp.updates.activatePluginSuccess = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
-			isInModal = 'plugin-information-footer' === $message.parent().attr( 'id' ),
 			buttonText = _x( 'Activated!', 'plugin' ),
 			ariaLabel = sprintf(
 				/* translators: %s: The plugin name. */
 				'%s activated successfully.',
 				response.pluginName
-			),
-			noticeData = {
-				id: 'plugin-activated-successfully',
-				className: 'notice-success',
-				message: sprintf(
-					/* translators: %s: The refresh link's attributes. */
-					__( 'Plugin activated. Some changes may not occur until you refresh the page. <a %s>Refresh Now</a>' ),
-					'href="#" class="button button-secondary refresh-page"'
-				),
-				slug: response.slug
-			},
-			noticeTarget;
+			);
 
-		wp.a11y.speak( __( 'Activation completed successfully. Some changes may not occur until you refresh the page.' ) );
+		wp.a11y.speak( __( 'Activation completed successfully.' ) );
 		$document.trigger( 'wp-plugin-activate-success', response );
 
 		$message
@@ -1140,7 +1139,7 @@
 			.attr( 'aria-label', ariaLabel )
 			.text( buttonText );
 
-		if ( isInModal ) {
+		if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
 			wp.updates.setCardButtonStatus(
 				{
 					status: 'activated-plugin',
@@ -1151,26 +1150,13 @@
 					ariaLabel: ariaLabel
 				}
 			);
-
-			// Add a notice to the modal's footer.
-			$message.replaceWith( wp.updates.adminNotice( noticeData ) );
-
-			// Send notice information back to the parent screen.
-			noticeTarget = window.parent === window ? null : window.parent;
-			$.support.postMessage = !! window.postMessage;
-			if ( false !== $.support.postMessage && null !== noticeTarget && -1 === window.parent.location.pathname.indexOf( 'index.php' ) ) {
-				noticeTarget.postMessage(
-					JSON.stringify( noticeData ),
-					window.location.origin
-				);
-			}
-		} else {
-			// Add a notice to the top of the screen.
-			wp.updates.addAdminNotice( noticeData );
 		}
 
 		setTimeout( function() {
-			if ( isInModal ) {
+			$message.removeClass( 'activated-message' )
+			.text( _x( 'Active', 'plugin' ) );
+
+			if ( 'plugin-information-footer' === $message.parent().attr( 'id' ) ) {
 				wp.updates.setCardButtonStatus(
 					{
 						status: 'plugin-active',
@@ -1184,8 +1170,6 @@
 						)
 					}
 				);
-			} else {
-				$message.removeClass( 'activated-message' ).text( _x( 'Active', 'plugin' ) );
 			}
 		}, 1000 );
 	};
@@ -1195,11 +1179,11 @@
 	 *
 	 * @since 6.5.0
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be activated.
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be activated.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be activated.
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be activated.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.activatePluginError = function( response ) {
 		var $message = $( '.plugin-card-' + response.slug + ', #plugin-information-footer' ).find( '.activating-message' ),
@@ -1288,11 +1272,11 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be installed.
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be installed.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be installed.
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be installed.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.installImporterError = function( response ) {
 		var errorMessage = sprintf(
@@ -1339,11 +1323,11 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}               args         Arguments.
-	 * @param {string}               args.plugin  Basename of the plugin to be deleted.
-	 * @param {string}               args.slug    Slug of the plugin to be deleted.
-	 * @param {deletePluginSuccess=} args.success Optional. Success callback. Default: wp.updates.deletePluginSuccess
-	 * @param {deletePluginError=}   args.error   Optional. Error callback. Default: wp.updates.deletePluginError
+	 * @param {Object}              args         Arguments.
+	 * @param {string}              args.plugin  Basename of the plugin to be deleted.
+	 * @param {string}              args.slug    Slug of the plugin to be deleted.
+	 * @param {deletePluginSuccess} args.success Optional. Success callback. Default: wp.updates.deletePluginSuccess
+	 * @param {deletePluginError}   args.error   Optional. Error callback. Default: wp.updates.deletePluginError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -1498,12 +1482,12 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}  response              Response from the server.
-	 * @param {string}  response.slug         Slug of the plugin to be deleted.
-	 * @param {string}  response.plugin       Base name of the plugin to be deleted
-	 * @param {string=} response.pluginName   Optional. Name of the plugin to be deleted.
-	 * @param {string}  response.errorCode    Error code for the error that occurred.
-	 * @param {string}  response.errorMessage The error that occurred.
+	 * @param {Object} response              Response from the server.
+	 * @param {string} response.slug         Slug of the plugin to be deleted.
+	 * @param {string} response.plugin       Base name of the plugin to be deleted
+	 * @param {string} response.pluginName   Optional. Name of the plugin to be deleted.
+	 * @param {string} response.errorCode    Error code for the error that occurred.
+	 * @param {string} response.errorMessage The error that occurred.
 	 */
 	wp.updates.deletePluginError = function( response ) {
 		var $plugin, $pluginUpdateRow,
@@ -1555,10 +1539,10 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}              args         Arguments.
-	 * @param {string}              args.slug    Theme stylesheet.
-	 * @param {updateThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.updateThemeSuccess
-	 * @param {updateThemeError=}   args.error   Optional. Error callback. Default: wp.updates.updateThemeError
+	 * @param {Object}             args         Arguments.
+	 * @param {string}             args.slug    Theme stylesheet.
+	 * @param {updateThemeSuccess} args.success Optional. Success callback. Default: wp.updates.updateThemeSuccess
+	 * @param {updateThemeError}   args.error   Optional. Error callback. Default: wp.updates.updateThemeError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -1611,7 +1595,7 @@
 	 * @since 4.6.0
 	 * @since 5.5.0 Auto-update "time to next update" text cleared.
 	 *
-	 * @param {Object} response
+	 * @param {Object} response            The response object from the Ajax request.
 	 * @param {string} response.slug       Slug of the theme to be updated.
 	 * @param {Object} response.theme      Updated theme.
 	 * @param {string} response.oldVersion Old version of the theme.
@@ -1726,10 +1710,10 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}               args
-	 * @param {string}               args.slug    Theme stylesheet.
-	 * @param {installThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.installThemeSuccess
-	 * @param {installThemeError=}   args.error   Optional. Error callback. Default: wp.updates.installThemeError
+	 * @param {Object}              args         The arguments for the theme installation request.
+	 * @param {string}              args.slug    Theme stylesheet.
+	 * @param {installThemeSuccess} args.success Optional. Success callback. Default: wp.updates.installThemeSuccess
+	 * @param {installThemeError}   args.error   Optional. Error callback. Default: wp.updates.installThemeError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -1918,10 +1902,10 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Object}              args
-	 * @param {string}              args.slug    Theme stylesheet.
-	 * @param {deleteThemeSuccess=} args.success Optional. Success callback. Default: wp.updates.deleteThemeSuccess
-	 * @param {deleteThemeError=}   args.error   Optional. Error callback. Default: wp.updates.deleteThemeError
+	 * @param {Object}             args         The arguments for the theme deletion request.
+	 * @param {string}             args.slug    Theme stylesheet.
+	 * @param {deleteThemeSuccess} args.success Optional. Success callback. Default: wp.updates.deleteThemeSuccess
+	 * @param {deleteThemeError}   args.error   Optional. Error callback. Default: wp.updates.deleteThemeError
 	 * @return {$.promise} A jQuery promise that represents the request,
 	 *                     decorated with an abort() method.
 	 */
@@ -2165,7 +2149,7 @@
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param {Event=} event Optional. Event interface.
+	 * @param {Event} event Optional. Event interface.
 	 */
 	wp.updates.requestFilesystemCredentials = function( event ) {
 		if ( false === wp.updates.filesystemCredentials.available ) {
@@ -2187,7 +2171,7 @@
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param {Event=} event Optional. Event interface.
+	 * @param {Event} event Optional. Event interface.
 	 */
 	wp.updates.maybeRequestFilesystemCredentials = function( event ) {
 		if ( wp.updates.shouldRequestFilesystemCredentials && ! wp.updates.ajaxLocked ) {
@@ -2287,7 +2271,7 @@
 
 		// Remove any existing error.
 		$filesystemForm.find( '.notice' ).remove();
-		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error"><p>' + message + '</p></div>' );
+		$filesystemForm.find( '#request-filesystem-credentials-title' ).after( '<div class="notice notice-alt notice-error" role="alert"><p>' + message + '</p></div>' );
 	};
 
 	/**
@@ -2343,15 +2327,16 @@
 	 *
 	 * If the response deems to be invalid, an admin notice is being displayed.
 	 *
-	 * @param {(Object|string)} response              Response from the server.
-	 * @param {function=}       response.always       Optional. Callback for when the Deferred is resolved or rejected.
-	 * @param {string=}         response.statusText   Optional. Status message corresponding to the status code.
-	 * @param {string=}         response.responseText Optional. Request response as text.
-	 * @param {string}          action                Type of action the response is referring to. Can be 'delete',
-	 *                                                'update' or 'install'.
+	 * @param {(Object|string)} response                Response from the server.
+	 * @param {Function}        [response.always]       Optional. Callback for when the Deferred is resolved or rejected.
+	 * @param {string}          [response.statusText]   Optional. Status message corresponding to the status code.
+	 * @param {string}          [response.responseText] Optional. Request response as text.
+	 * @param {string}          action                  Type of action the response is referring to. Can be 'delete',
+	 *                                                  'update' or 'install'.
+	 * @return {boolean} Whether the response is valid or not.
 	 */
 	wp.updates.isValidResponse = function( response, action ) {
-		var error = __( 'Something went wrong.' ),
+		var error = __( 'An error occurred during the update process. Please try again.' ),
 			errorMessage;
 
 		// Make sure the response is a valid data object and not a Promise object.
@@ -2439,6 +2424,7 @@
 	 * opens an "Are you sure?" alert.
 	 *
 	 * @since 4.2.0
+	 * @return {string|void} Message to display in the "Are you sure?" alert, or nothing.
 	 */
 	wp.updates.beforeunload = function() {
 		if ( wp.updates.ajaxLocked ) {
@@ -2664,41 +2650,16 @@
 		} );
 
 		/**
-		 * Click handler for plugin activations in plugin activation view.
+		 * Click handler for plugin activations in plugin activation modal view.
 		 *
 		 * @since 6.5.0
+		 * @since 6.5.4 Redirect the parent window to the activation URL.
 		 *
 		 * @param {Event} event Event interface.
 		 */
-		$pluginFilter.on( 'click', '.activate-now', function( event ) {
-			var $activateButton = $( event.target );
-
+		$document.on( 'click', '#plugin-information-footer .activate-now', function( event ) {
 			event.preventDefault();
-
-			if ( $activateButton.hasClass( 'activating-message' ) || $activateButton.hasClass( 'button-disabled' ) ) {
-				return;
-			}
-
-			$activateButton
-				.removeClass( 'activate-now button-primary' )
-				.addClass( 'activating-message' )
-				.attr(
-					'aria-label',
-					sprintf(
-						/* translators: %s: Plugin name. */
-						_x( 'Activating %s', 'plugin' ),
-						$activateButton.data( 'name' )
-					)
-				)
-				.text( __( 'Activating...' ) );
-
-			wp.updates.activatePlugin(
-				{
-					name: $activateButton.data( 'name' ),
-					slug: $activateButton.data( 'slug' ),
-					plugin: $activateButton.data( 'plugin' )
-				}
-			);
+			window.parent.location.href = $( event.target ).attr( 'href' );
 		});
 
 		/**
@@ -2875,14 +2836,7 @@
 
 			// Bail if there were no items selected.
 			if ( ! itemsSelected.length ) {
-				event.preventDefault();
-				$( 'html, body' ).animate( { scrollTop: 0 } );
-
-				return wp.updates.addAdminNotice( {
-					id:        'no-items-selected',
-					className: 'notice-error is-dismissible',
-					message:   __( 'Please select at least one item to perform this action on.' )
-				} );
+				bulkAction = false;
 			}
 
 			// Determine the type of request we're dealing with.
@@ -3029,6 +2983,15 @@
 			$pluginInstallSearch.attr( 'aria-describedby', 'live-search-desc' );
 		}
 
+		// Track the previous search string length.
+		var previousSearchStringLength = 0;
+		wp.updates.shouldSearch = function( searchStringLength ) {
+			var shouldSearch = searchStringLength >= wp.updates.searchMinCharacters ||
+				previousSearchStringLength > wp.updates.searchMinCharacters;
+			previousSearchStringLength = searchStringLength;
+			return shouldSearch;
+		};
+
 		/**
 		 * Handles changes to the plugin search box on the new-plugin page,
 		 * searching the repository dynamically.
@@ -3036,7 +2999,8 @@
 		 * @since 4.6.0
 		 */
 		$pluginInstallSearch.on( 'keyup input', _.debounce( function( event, eventtype ) {
-			var $searchTab = $( '.plugin-install-search' ), data, searchLocation;
+			var $searchTab = $( '.plugin-install-search' ), data, searchLocation,
+				searchStringLength = $pluginInstallSearch.val().length;
 
 			data = {
 				_ajax_nonce: wp.updates.ajaxNonce,
@@ -3046,6 +3010,14 @@
 				pagenow:     pagenow
 			};
 			searchLocation = location.href.split( '?' )[ 0 ] + '?' + $.param( _.omit( data, [ '_ajax_nonce', 'pagenow' ] ) );
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginInstallSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginInstallSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -3106,6 +3078,7 @@
 
 		if ( $pluginSearch.length ) {
 			$pluginSearch.attr( 'aria-describedby', 'live-search-desc' );
+
 		}
 
 		/**
@@ -3121,7 +3094,16 @@
 				pagenow:       pagenow,
 				plugin_status: 'all'
 			},
-			queryArgs;
+			queryArgs,
+			searchStringLength = $pluginSearch.val().length;
+
+			// Set the autocomplete attribute, turning off autocomplete 1 character before ajax search kicks in.
+			if ( wp.updates.shouldSearch( searchStringLength ) ) {
+				$pluginSearch.attr( 'autocomplete', 'off' );
+			} else {
+				$pluginSearch.attr( 'autocomplete', 'on' );
+				return;
+			}
 
 			// Clear on escape.
 			if ( 'keyup' === event.type && 27 === event.which ) {
@@ -3281,11 +3263,6 @@
 				return;
 			}
 
-			if ( 'undefined' !== typeof message.id && 'plugin-activated-successfully' === message.id ) {
-				wp.updates.addAdminNotice( message );
-				return;
-			}
-
 			if (
 				'undefined' !== typeof message.status &&
 				'undefined' !== typeof message.slug &&
@@ -3328,7 +3305,10 @@
 
 				// Called from `wp-admin/includes/class-wp-upgrader-skins.php`.
 				case 'decrementUpdateCount':
-					/** @property {string} message.upgradeType */
+					/**
+					 * @property {string} message             The message associated with the update.
+					 * @property {string} message.upgradeType The type of upgrade being performed.
+					 */
 					wp.updates.decrementCount( message.upgradeType );
 					break;
 
@@ -3518,22 +3498,5 @@
 				} );
 			}
 		);
-
-		/**
-		 * Click handler for page refresh link.
-		 *
-		 * @since 6.5.3
-		 *
-		 * @param {Event} event Event interface.
-		 */
-		$document.on( 'click', '.refresh-page', function( event ) {
-			event.preventDefault();
-
-			if ( window.parent === window ) {
-				window.location.reload();
-			} else {
-				window.parent.location.reload();
-			}
-		} );
 	} );
 })( jQuery, window.wp, window._wpUpdatesSettings );

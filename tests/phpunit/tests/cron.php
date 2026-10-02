@@ -460,7 +460,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
 			'schedule' => $event->schedule,
-			'interval' => isset( $event->interval ) ? $event->interval : 0,
+			'interval' => $event->interval ?? 0,
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
@@ -598,7 +598,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -643,7 +643,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * When no timestamp is specified, the next event should be returned.
 	 * When a timestamp is specified, a particular event should be returned.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -689,7 +689,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_get_scheduled_event() returns false when expected.
 	 *
-	 * @ticket 45976.
+	 * @ticket 45976
 	 *
 	 * @covers ::wp_get_scheduled_event
 	 */
@@ -1329,5 +1329,28 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertTrue( $event );
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_before_shutdown() {
+		remove_all_actions( 'shutdown' );
+		wp_cron();
+		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ), 'Expected _wp_cron() to be scheduled for shutdown.' );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_already_at_shutdown() {
+		remove_all_actions( 'shutdown' );
+		add_action( 'shutdown', 'wp_cron' );
+		do_action( 'shutdown' );
+		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to run at shutdown.' );
 	}
 }

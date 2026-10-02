@@ -36,7 +36,6 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * installed plugins.
 	 *
 	 * @since 4.9.0
-	 * @access protected
 	 *
 	 * @return array
 	 */
@@ -332,14 +331,24 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides parent views so we can use the filter bar display.
+	 *
+	 * @global string $tab The current tab.
 	 */
 	public function views() {
+		global $tab;
+
 		$views = $this->get_views();
 
 		/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
 		$views = apply_filters( "views_{$this->screen->id}", $views );
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
+
+		printf(
+			/* translators: %s: https://wordpress.org/plugins/ */
+			'<p>' . __( 'Plugins extend and expand the functionality of WordPress. You may install plugins from the <a href="%s">WordPress Plugin Directory</a> right on this page, or upload a plugin in .zip format by clicking the button above.' ) . '</p>',
+			__( 'https://wordpress.org/plugins/' )
+		);
 		?>
 <div class="wp-filter">
 	<ul class="filter-links">
@@ -353,7 +362,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		?>
 	</ul>
 
-		<?php install_search_form(); ?>
+		<?php
+		if ( 'favorites' !== $tab ) {
+			install_search_form();
+		}
+		?>
 </div>
 		<?php
 	}
@@ -453,17 +466,16 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$a = $plugin_a->$orderby;
 		$b = $plugin_b->$orderby;
 
-		if ( $a === $b ) {
-			return 0;
-		}
-
-		if ( 'DESC' === $this->order ) {
-			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
-		}
+		return 'DESC' === $this->order ?
+			$b <=> $a :
+			$a <=> $b;
 	}
 
+	/**
+	 * Generates the list table rows.
+	 *
+	 * @since 3.1.0
+	 */
 	public function display_rows() {
 		$plugins_allowedtags = array(
 			'a'       => array(
@@ -546,8 +558,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				$author = ' <cite>' . sprintf( __( 'By %s' ), $author ) . '</cite>';
 			}
 
-			$requires_php = isset( $plugin['requires_php'] ) ? $plugin['requires_php'] : null;
-			$requires_wp  = isset( $plugin['requires'] ) ? $plugin['requires'] : null;
+			$requires_php = $plugin['requires_php'] ?? null;
+			$requires_wp  = $plugin['requires'] ?? null;
 
 			$compatible_php = is_php_version_compatible( $requires_php );
 			$compatible_wp  = is_wp_version_compatible( $requires_wp );
@@ -626,7 +638,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				} elseif ( ! $compatible_wp ) {
 					$incompatible_notice_message .= __( 'This plugin does not work with your version of WordPress.' );
 					if ( current_user_can( 'update_core' ) ) {
-						$incompatible_notice_message .= printf(
+						$incompatible_notice_message .= sprintf(
 							/* translators: %s: URL to WordPress Updates screen. */
 							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
 							self_admin_url( 'update-core.php' )

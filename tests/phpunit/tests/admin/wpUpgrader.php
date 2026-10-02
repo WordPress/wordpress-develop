@@ -49,11 +49,11 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		self::$upgrader_skin_mock = $this->getMockBuilder( 'WP_Upgrader_Skin' )->getMock();
+		self::$upgrader_skin_mock = $this->createMock( 'WP_Upgrader_Skin' );
 
 		self::$instance = new WP_Upgrader( self::$upgrader_skin_mock );
 
-		self::$wp_filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Base' )->getMock();
+		self::$wp_filesystem_mock = $this->createMock( 'WP_Filesystem_Base' );
 
 		if ( array_key_exists( 'wp_filesystem', $GLOBALS ) ) {
 			self::$wp_filesystem_backup = $GLOBALS['wp_filesystem'];
@@ -170,9 +170,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 */
 	public function test_flatten_dirlist_should_flatten_the_provided_directory_list( $expected, $nested_files, $path = '' ) {
 		$flatten_dirlist = new ReflectionMethod( self::$instance, 'flatten_dirlist' );
-		$flatten_dirlist->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( true );
+		}
 		$actual = $flatten_dirlist->invoke( self::$instance, $nested_files, $path );
-		$flatten_dirlist->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( false );
+		}
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
@@ -943,6 +947,107 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'incompatible_archive_empty',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory's file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 */
+	public function test_install_package_should_return_wp_error_when_source_directory_file_list_cannot_be_retrieved() {
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		self::$wp_filesystem_mock
+				->expects( $this->once() )
+				->method( 'dirlist' )
+				->willReturn( false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'source_read_failed',
+			$actual->get_error_code(),
+			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Tests that `WP_Upgrader::install_package()` returns a WP_Error object
+	 * when the source directory is filtered and its file list cannot be retrieved.
+	 *
+	 * @ticket 61114
+	 *
+	 * @covers WP_Upgrader::install_package
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_install_package_should_return_wp_error_when_a_filtered_source_directory_file_list_cannot_be_retrieved() {
+		define( 'FS_CHMOD_DIR', 0755 );
+
+		self::$instance->generic_strings();
+
+		self::$upgrader_skin_mock
+				->expects( $this->once() )
+				->method( 'feedback' )
+				->with( 'installing_package' );
+
+		$first_source = array(
+			'subdir' => array(
+				'name'  => 'subdir',
+				'type'  => 'd',
+				'files' => array( 'subfile.php' ),
+			),
+		);
+
+		self::$wp_filesystem_mock
+				->expects( $this->exactly( 2 ) )
+				->method( 'dirlist' )
+				->willReturn( $first_source, false );
+
+		$args = array(
+			'source'      => '/',
+			'destination' => '/',
+		);
+
+		// Filter the source to something else.
+		add_filter(
+			'upgrader_source_selection',
+			static function () {
+				return '/not_original_source/';
+			}
+		);
+
+		$actual = self::$instance->install_package( $args );
+
+		$this->assertWPError(
+			$actual,
+			'WP_Upgrader::install_package() did not return a WP_Error object'
+		);
+
+		$this->assertSame(
+			'new_source_read_failed',
 			$actual->get_error_code(),
 			'Unexpected WP_Error code'
 		);

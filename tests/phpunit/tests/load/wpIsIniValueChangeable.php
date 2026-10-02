@@ -41,7 +41,7 @@ class Tests_Load_wpIsIniValueChangeable extends WP_UnitTestCase {
 			array( 'upload_tmp_dir', false ), // PHP_INI_SYSTEM.
 		);
 
-		if ( PHP_VERSION_ID > 70000 && extension_loaded( 'Tidy' ) ) {
+		if ( extension_loaded( 'Tidy' ) ) {
 			$array[] = array( 'tidy.clean_output', true ); // PHP_INI_USER.
 		}
 

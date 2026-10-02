@@ -1,6 +1,6 @@
 {
 	"$schema": "https://schemas.wp.org/trunk/theme.json",
-	"version": 2,
+	"version": 3,
 	"title": "Block theme",
 	"settings": {
 		"color": {
@@ -95,6 +95,11 @@
 							"text": "white"
 						}
 					}
+				}
+			},
+			"my/unregistered-third-party-block": {
+				"color": {
+					"background": "hotpink"
 				}
 			}
 		},

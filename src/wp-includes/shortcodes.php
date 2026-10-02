@@ -145,6 +145,8 @@ function shortcode_exists( $tag ) {
  * @param string $content Content to search for shortcodes.
  * @param string $tag     Shortcode tag to check.
  * @return bool Whether the passed content contains the given shortcode.
+ *
+ * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
 	if ( ! str_contains( $content, '[' ) ) {
@@ -182,7 +184,7 @@ function has_shortcode( $content, $tag ) {
  * @return string[] An array of registered shortcode names found in the content.
  */
 function get_shortcode_tags_in_content( $content ) {
-	if ( false === strpos( $content, '[' ) ) {
+	if ( ! str_contains( $content, '[' ) ) {
 		return array();
 	}
 
@@ -319,7 +321,7 @@ function _filter_do_shortcode_context() {
  * @global array $shortcode_tags
  *
  * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
- * @return string The shortcode search regular expression
+ * @return string The shortcode search regular expression.
  */
 function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
@@ -417,10 +419,11 @@ function do_shortcode_tag( $m ) {
 	 * shortcode generation process, returning that value instead.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 The `$attr` parameter is always an array.
 	 *
 	 * @param false|string $output Short-circuit return value. Either false or the value to replace the shortcode with.
 	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
+	 * @param array        $attr   Shortcode attributes array, can be empty if the original arguments string cannot be parsed.
 	 * @param array        $m      Regular expression match array.
 	 */
 	$return = apply_filters( 'pre_do_shortcode_tag', false, $tag, $attr, $m );
@@ -428,7 +431,7 @@ function do_shortcode_tag( $m ) {
 		return $return;
 	}
 
-	$content = isset( $m[5] ) ? $m[5] : null;
+	$content = $m[5] ?? null;
 
 	$output = $m[1] . call_user_func( $shortcode_tags[ $tag ], $attr, $content, $tag ) . $m[6];
 
@@ -436,11 +439,12 @@ function do_shortcode_tag( $m ) {
 	 * Filters the output created by a shortcode callback.
 	 *
 	 * @since 4.7.0
+	 * @since 6.5.0 The `$attr` parameter is always an array.
 	 *
-	 * @param string       $output Shortcode output.
-	 * @param string       $tag    Shortcode name.
-	 * @param array|string $attr   Shortcode attributes array or the original arguments string if it cannot be parsed.
-	 * @param array        $m      Regular expression match array.
+	 * @param string $output Shortcode output.
+	 * @param string $tag    Shortcode name.
+	 * @param array  $attr   Shortcode attributes array, can be empty if the original arguments string cannot be parsed.
+	 * @param array  $m      Regular expression match array.
 	 */
 	return apply_filters( 'do_shortcode_tag', $output, $tag, $attr, $m );
 }
@@ -600,7 +604,7 @@ function get_shortcode_atts_regex() {
  * retrieval of the attributes, since all attributes have to be known.
  *
  * @since 2.5.0
- * @since 6.5.0 The function now always returns an empty array,
+ * @since 6.5.0 The function now always returns an array,
  *              even if the original arguments string cannot be parsed or is empty.
  *
  * @param string $text Shortcode arguments list.
