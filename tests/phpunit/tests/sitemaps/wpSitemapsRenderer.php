@@ -197,6 +197,8 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
 	 */
 	public function test_get_sitemap_stylesheet_url_filter() {
+		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_url' );
+
 		$custom_url = 'https://example.com/custom-sitemap.xsl';
 
 		add_filter(
@@ -223,6 +225,8 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
 	 */
 	public function test_get_sitemap_index_stylesheet_url_filter() {
+		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_index_url' );
+
 		$custom_url = 'https://example.com/custom-sitemap-index.xsl';
 
 		add_filter(
@@ -241,6 +245,70 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual = $sitemap_renderer->get_sitemap_index_xml( $entries );
 		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
+	}
+
+	/**
+	 * Tests that a callback on a removed stylesheet filter triggers a deprecation notice.
+	 *
+	 * @ticket 65593
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 *
+	 * @dataProvider data_deprecated_stylesheet_filters
+	 *
+	 * @param string $hook_name Deprecated filter name.
+	 * @param string $method    Renderer method that generates the XML.
+	 */
+	public function test_deprecated_stylesheet_filters( string $hook_name, string $method ): void {
+		$this->setExpectedDeprecated( $hook_name );
+
+		add_filter( $hook_name, '__return_empty_string' );
+
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+		$entries          = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+			),
+		);
+
+		$actual = $sitemap_renderer->$method( $entries );
+		$this->assertIsString( $actual );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
+	}
+
+	/**
+	 * Data provider for {@see self::test_deprecated_stylesheet_filters()}.
+	 *
+	 * @return array<non-falsy-string, array{ hook_name: non-falsy-string, method: 'get_sitemap_xml'|'get_sitemap_index_xml' }>
+	 */
+	public function data_deprecated_stylesheet_filters(): array {
+		return array(
+			'stylesheet URL'             => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_url',
+				'method'    => 'get_sitemap_xml',
+			),
+			'stylesheet content'         => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_content',
+				'method'    => 'get_sitemap_xml',
+			),
+			'stylesheet CSS for sitemap' => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_css',
+				'method'    => 'get_sitemap_xml',
+			),
+			'index stylesheet URL'       => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_index_url',
+				'method'    => 'get_sitemap_index_xml',
+			),
+			'index stylesheet content'   => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_index_content',
+				'method'    => 'get_sitemap_index_xml',
+			),
+			'stylesheet CSS for index'   => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_css',
+				'method'    => 'get_sitemap_index_xml',
+			),
+		);
 	}
 
 	/**

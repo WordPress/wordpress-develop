@@ -118,6 +118,8 @@ class WP_Sitemaps_Renderer {
 	 * @return string|false A well-formed XML string for a sitemap index. False on error.
 	 */
 	public function get_sitemap_index_xml( $sitemaps ) {
+		$this->apply_deprecated_stylesheet_filters( 'index' );
+
 		$sitemap_index = new SimpleXMLElement(
 			sprintf(
 				'%1$s%2$s',
@@ -181,6 +183,8 @@ class WP_Sitemaps_Renderer {
 	 * @return string|false A well-formed XML string for a sitemap index. False on error.
 	 */
 	public function get_sitemap_xml( $url_list ) {
+		$this->apply_deprecated_stylesheet_filters( 'sitemap' );
+
 		$urlset = new SimpleXMLElement(
 			sprintf(
 				'%1$s%2$s',
@@ -213,6 +217,50 @@ class WP_Sitemaps_Renderer {
 		}
 
 		return $urlset->asXML();
+	}
+
+	/**
+	 * Applies the removed stylesheet filters so that their callbacks trigger deprecation notices.
+	 *
+	 * The stylesheet filters no longer have any effect. Applying them where a sitemap is
+	 * generated ensures a callback still added to one is reported rather than silently ignored.
+	 * No notice is triggered for a filter that has no callbacks.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $type Sitemap type. Either 'sitemap' or 'index'.
+	 */
+	private function apply_deprecated_stylesheet_filters( string $type ): void {
+		if ( 'index' === $type ) {
+			/** This filter is documented in wp-includes/sitemaps/class-wp-sitemaps-renderer.php */
+			apply_filters_deprecated( 'wp_sitemaps_stylesheet_index_url', array( '' ), '7.2.0' );
+
+			/**
+			 * Filters the content of the sitemap index stylesheet.
+			 *
+			 * @since 5.5.0
+			 * @deprecated 7.2.0 Stylesheets are no longer supported.
+			 *
+			 * @param string $xsl_content Full content for the XML stylesheet.
+			 */
+			apply_filters_deprecated( 'wp_sitemaps_stylesheet_index_content', array( '' ), '7.2.0' );
+		} else {
+			/** This filter is documented in wp-includes/sitemaps/class-wp-sitemaps-renderer.php */
+			apply_filters_deprecated( 'wp_sitemaps_stylesheet_url', array( '' ), '7.2.0' );
+
+			/**
+			 * Filters the content of the sitemap stylesheet.
+			 *
+			 * @since 5.5.0
+			 * @deprecated 7.2.0 Stylesheets are no longer supported.
+			 *
+			 * @param string $xsl_content Full content for the XML stylesheet.
+			 */
+			apply_filters_deprecated( 'wp_sitemaps_stylesheet_content', array( '' ), '7.2.0' );
+		}
+
+		/** This filter is documented in wp-includes/sitemaps/class-wp-sitemaps-stylesheet.php */
+		apply_filters_deprecated( 'wp_sitemaps_stylesheet_css', array( '' ), '7.2.0' );
 	}
 
 	/**
