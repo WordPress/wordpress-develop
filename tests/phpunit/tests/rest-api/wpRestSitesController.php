@@ -107,6 +107,50 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Without an explicit network filter, only sites on the current network are returned.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
+	 * @group ms-required
+	 */
+	public function test_get_items_defaults_to_the_current_network() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$current_network_site = self::factory()->blog->create( array( 'path' => '/current/' ) );
+
+		$other_network_id = self::factory()->network->create(
+			array(
+				'domain' => 'other-network.example.org',
+				'path'   => '/',
+			)
+		);
+
+		$other_network_site = self::factory()->blog->create(
+			array(
+				'domain'     => 'other-network.example.org',
+				'path'       => '/',
+				'network_id' => $other_network_id,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data     = $response->get_data();
+		$site_ids = wp_list_pluck( $data, 'id' );
+
+		$this->assertContains( $current_network_site, $site_ids, 'Sites on the current network should be returned.' );
+		$this->assertNotContains( $other_network_site, $site_ids, 'Sites on another network should not be returned.' );
+
+		$current_network_id = get_current_network_id();
+		foreach ( $data as $site ) {
+			$this->assertSame( $current_network_id, $site['network'], 'Every returned site should belong to the current network.' );
+		}
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::get_item
 	 * @group ms-required
