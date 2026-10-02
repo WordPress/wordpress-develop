@@ -435,22 +435,26 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @param bool $horz Flip along Horizontal Axis.
 	 * @param bool $vert Flip along Vertical Axis.
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function flip( $horz, $vert ) {
-		if ( ! is_gd_image( $this->image ) ) {
-			return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
+		if ( ! $horz && ! $vert ) {
+			return true;
 		}
 
 		if ( $horz && $vert ) {
-			return imageflip( $this->image, IMG_FLIP_BOTH );
+			$mode = IMG_FLIP_BOTH;
 		} elseif ( $horz ) {
-			return imageflip( $this->image, IMG_FLIP_VERTICAL );
-		} elseif ( $vert ) {
-			return imageflip( $this->image, IMG_FLIP_HORIZONTAL );
+			$mode = IMG_FLIP_VERTICAL;
+		} else {
+			$mode = IMG_FLIP_HORIZONTAL;
 		}
 
-		return true;
+		if ( is_gd_image( $this->image ) && imageflip( $this->image, $mode ) ) {
+			return true;
+		}
+
+		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
 	}
 
 	/**
