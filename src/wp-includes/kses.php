@@ -1390,7 +1390,6 @@ function _wp_kses_split_callback( $matches ) {
  *                                          or a context name such as 'post'. See wp_kses_allowed_html()
  *                                          for the list of accepted context names.
  * @param string[]       $allowed_protocols Array of allowed URL protocols.
- *
  * @return string Fixed HTML element
  */
 function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
@@ -2070,21 +2069,6 @@ function wp_kses_array_lc( $inarray ) {
 }
 
 /**
- * Handles parsing errors in `wp_kses_hair()`.
- *
- * The general plan is to remove everything to and including some whitespace,
- * but it deals with quotes and apostrophes as well.
- *
- * @since 1.0.0
- *
- * @param string $attr
- * @return string
- */
-function wp_kses_html_error( $attr ) {
-	return preg_replace( '/^("[^"]*("|$)|\'[^\']*(\'|$)|\S)*\s*/', '', $attr );
-}
-
-/**
  * Sanitizes content from bad protocols and other characters.
  *
  * This function searches for URL protocols at the beginning of the string, while
@@ -2638,6 +2622,9 @@ function kses_init() {
  * @since 6.6.0 Added support for `grid-column`, `grid-row`, and `container-type`.
  * @since 6.9.0 Added support for `white-space`.
  * @since 7.1.0 Extended gradient support to allow any single-level nested function.
+ *              Added support for transform functions, `clip-path` basic shapes,
+ *              and URLs in the SVG element reference properties.
+ * @since 7.2.0 Added support for CSS anchor positioning properties.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -2884,6 +2871,15 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'pointer-events',
 			'visibility',
 
+			'anchor-name',
+			'anchor-scope',
+			'position-anchor',
+			'position-area',
+			'position-try',
+			'position-try-fallbacks',
+			'position-try-order',
+			'position-visibility',
+
 			// Custom CSS properties.
 			'--*',
 		)
@@ -2906,6 +2902,16 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 
 		'list-style',
 		'list-style-image',
+
+		// SVG presentation properties that accept url() references.
+		'clip-path',
+		'fill',
+		'marker',
+		'marker-end',
+		'marker-mid',
+		'marker-start',
+		'mask',
+		'stroke',
 	);
 
 	/*
@@ -3004,7 +3010,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			 * Nested functions and parentheses are also removed, so long as the parentheses are balanced.
 			 */
 			$css_test_string = preg_replace(
-				'/\b(?:var|calc|min|max|minmax|clamp|repeat)(\((?:[^()]|(?1))*\))/',
+				'/\b(?:'
+					// General purpose value functions.
+					. 'var|calc|min|max|minmax|clamp|repeat'
+					// Transform functions.
+					. '|matrix|matrix3d|perspective'
+					. '|rotate|rotate3d|rotateX|rotateY|rotateZ'
+					. '|scale|scale3d|scaleX|scaleY|scaleZ'
+					. '|skew|skewX|skewY'
+					. '|translate|translate3d|translateX|translateY|translateZ'
+					// Basic shape functions, as used by `clip-path`.
+					. '|circle|ellipse|inset|path|polygon|rect|shape|xywh'
+				. ')(\((?:[^()]|(?1))*\))/',
 				'',
 				$css_test_string
 			);

@@ -29,11 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
-			message: '#^Strict comparison using \=\=\= between ''STATE_INCOMPLETE…'' and ''STATE_READY'' will always evaluate to false\.$#'
-			identifier: identical.alwaysFalse
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Strict comparison using \=\=\= between 3000000000 and 2147483647 will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
 			count: 1

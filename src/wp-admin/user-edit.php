@@ -104,6 +104,11 @@ if ( is_multisite()
 	wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
 }
 
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 // Execute confirmed email change. See send_confirmation_on_profile_email().
 if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
 	$new_email = get_user_meta( $current_user->ID, '_new_email', true );
@@ -931,7 +936,7 @@ switch ( $action ) {
 					 *
 					 * @since 2.8.0
 					 *
-					 * @param bool    $enable      Whether to display the capabilities. Default true.
+					 * @param bool    $enable       Whether to display the capabilities. Default true.
 					 * @param WP_User $profile_user The current WP_User object.
 					 */
 					$display_additional_caps = apply_filters( 'additional_capabilities_display', true, $profile_user );

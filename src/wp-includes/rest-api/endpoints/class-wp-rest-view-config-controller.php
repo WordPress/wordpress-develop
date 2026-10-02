@@ -508,17 +508,21 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'width'    => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'maxWidth' => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The maximum width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'minWidth' => array(
-					'type' => array( 'string', 'number' ),
+					'description' => __( 'The minimum width of the column.' ),
+					'type'        => array( 'string', 'number' ),
 				),
 				'align'    => array(
-					'type' => 'string',
-					'enum' => array( 'start', 'center', 'end' ),
+					'description' => __( 'The horizontal alignment of the column content.' ),
+					'type'        => 'string',
+					'enum'        => array( 'start', 'center', 'end' ),
 				),
 			),
 		);
@@ -536,6 +540,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'styles'       => array(
+					'description'          => __( 'Column styles keyed by field id, for the columns listed in the view fields. The primary column (title, media, and description fields) ignores these styles; in the table layout it takes the width left over by the other columns, or the last column does when there is no primary column.' ),
 					'type'                 => 'object',
 					'additionalProperties' => $this->get_column_style_schema(),
 				),
@@ -626,6 +631,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * matching the TypeScript Layout union in dataviews/src/types/dataform.ts.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added the `showPlaceholderIfEmpty` property to the panel layout.
 	 *
 	 * @return array Schema for a form layout object.
 	 */
@@ -650,15 +656,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 				array(
 					'type'       => 'object',
 					'properties' => array(
-						'type'           => array(
+						'type'                   => array(
 							'type' => 'string',
 							'enum' => array( 'panel' ),
 						),
-						'labelPosition'  => array(
+						'labelPosition'          => array(
 							'type' => 'string',
 							'enum' => array( 'top', 'side', 'none' ),
 						),
-						'openAs'         => array(
+						'openAs'                 => array(
 							'oneOf' => array(
 								array(
 									'type' => 'string',
@@ -681,7 +687,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'summary'        => array(
+						'summary'                => array(
 							'oneOf' => array(
 								array( 'type' => 'string' ),
 								array(
@@ -692,9 +698,12 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'editVisibility' => array(
+						'editVisibility'         => array(
 							'type' => 'string',
 							'enum' => array( 'always', 'on-hover' ),
+						),
+						'showPlaceholderIfEmpty' => array(
+							'type' => 'boolean',
 						),
 					),
 				),
