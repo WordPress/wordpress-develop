@@ -66,6 +66,99 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that pre-sampling does not upscale the source image.
+	 *
+	 * @ticket 48842
+	 */
+	public function test_thumbnail_image_presampling_does_not_upscale() {
+		$image = new class() {
+			public $source_size;
+			public $sample_size;
+
+			// phpcs:disable WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+			public function getImageGeometry() {
+				return $this->source_size;
+			}
+
+			public function sampleImage( $width, $height ) {
+				$this->sample_size = array( $width, $height );
+			}
+
+			public function scaleImage() {
+			}
+			// phpcs:enable
+		};
+
+		$editor = new class( null ) extends WP_Image_Editor_Imagick {
+			public function call_thumbnail_image( $image, $source_size, $editor_size, $destination_size ) {
+				$image->source_size = array(
+					'width'  => $source_size[0],
+					'height' => $source_size[1],
+				);
+				$image->sample_size = null;
+				$this->image        = $image;
+				$this->size         = array(
+					'width'  => $editor_size[0],
+					'height' => $editor_size[1],
+				);
+
+				$result = $this->thumbnail_image( $destination_size[0], $destination_size[1], 'FILTER_TRIANGLE', false );
+
+				return is_wp_error( $result ) ? $result : $image->sample_size;
+			}
+		};
+
+		// The ticket's source and destination dimensions must not trigger an upscale.
+		$this->assertNull(
+			$editor->call_thumbnail_image(
+				$image,
+				array( 10315, 7049 ),
+				array( 10315, 7049 ),
+				array( 2560, 1750 )
+			)
+		);
+
+		// Use current geometry because cropping can make the editor's stored size stale.
+		$this->assertNull(
+			$editor->call_thumbnail_image(
+				$image,
+				array( 200, 1000 ),
+				array( 1000, 1000 ),
+				array( 50, 100 )
+			)
+		);
+
+		// Skip pre-sampling unless both intermediate dimensions are smaller than the source.
+		$this->assertNull(
+			$editor->call_thumbnail_image(
+				$image,
+				array( 1500, 1000 ),
+				array( 1500, 1000 ),
+				array( 300, 150 )
+			)
+		);
+		$this->assertNull(
+			$editor->call_thumbnail_image(
+				$image,
+				array( 2000, 750 ),
+				array( 2000, 750 ),
+				array( 300, 150 )
+			)
+		);
+
+		// Keep pre-sampling when both intermediate dimensions are smaller than the source.
+		$this->assertSame(
+			array( 1500, 750 ),
+			$editor->call_thumbnail_image(
+				$image,
+				array( 4800, 2400 ),
+				array( 4800, 2400 ),
+				array( 300, 150 )
+			)
+		);
+	}
+
+	/**
 	 * Tests multi_resize() with single image resize and no crop.
 	 */
 	public function test_single_multi_resize() {
