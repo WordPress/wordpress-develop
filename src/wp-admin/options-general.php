@@ -83,12 +83,19 @@ if ( isset( $_GET['admin_email_updated'] ) ) {
 	);
 }
 
+$pending_admin_email_cancel_request_link = sprintf(
+	' <a href="%1$s">%2$s</a>',
+	esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
+	_x( 'Cancel request', 'admin email change' )
+);
+
 if ( $pending_new_admin_email ) {
 	$message = sprintf(
 		/* translators: %s: New administration email address. */
 		__( 'The administration email address has not been updated yet. Please check the inbox at %s for a confirmation email.' ),
 		'<code>' . esc_html( $new_admin_email ) . '</code>'
 	);
+	$message .= $pending_admin_email_cancel_request_link;
 	wp_admin_notice( $message, array( 'type' => 'info' ) );
 }
 ?>
@@ -294,15 +301,11 @@ if ( ! is_multisite() ) {
 <?php
 if ( $pending_new_admin_email ) {
 	$pending_admin_email_message = sprintf(
-		/* translators: %s: New admin email. */
+		/* translators: %s: New administration email address. */
 		__( 'There is a pending change of the administration email to %s.' ),
 		'<code>' . esc_html( $new_admin_email ) . '</code>'
 	);
-	$pending_admin_email_message .= sprintf(
-		' <a href="%1$s">%2$s</a>',
-		esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
-		__( 'Cancel' )
-	);
+	$pending_admin_email_message .= $pending_admin_email_cancel_request_link;
 	wp_admin_notice(
 		$pending_admin_email_message,
 		array(

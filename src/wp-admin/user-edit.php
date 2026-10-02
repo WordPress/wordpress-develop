@@ -602,7 +602,7 @@ switch ( $action ) {
 								$pending_change_message .= sprintf(
 									' <a href="%1$s">%2$s</a>',
 									esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
-									__( 'Cancel' )
+									_x( 'Cancel request', 'user email change' )
 								);
 								wp_admin_notice(
 									$pending_change_message,
