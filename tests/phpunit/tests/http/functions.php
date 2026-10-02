@@ -49,6 +49,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_body
 	 * @covers ::wp_remote_retrieve_headers
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
@@ -65,6 +66,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
+		$this->assertSame( 153204, strlen( wp_remote_retrieve_body( $response ) ) );
 	}
 
 	/**
