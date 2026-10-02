@@ -87,6 +87,7 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+/src/wp-content/test-suite-uploads
 
 # Files and folders relating to wp-content build tools.
 /src/wp-content/themes/twentynineteen/node_modules
