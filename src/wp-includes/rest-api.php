@@ -2981,9 +2981,13 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
  * Expected to be called in the context of `array_reduce`.
  *
  * @since 5.0.0
+ * @since 7.2.0 The `$path` array may include a third element for the allowed response statuses.
  *
  * @param array        $memo Reduce accumulator.
- * @param string|array $path REST API path to preload.
+ * @param string|array $path REST API path to preload, or an array containing the path,
+ *                           the HTTP method ('GET' or 'OPTIONS'), and the allowed response
+ *                           status code(s). Only responses with an allowed status are
+ *                           preloaded. Default allowed status is 200.
  * @return array Modified reduce accumulator.
  *
  * @phpstan-param array<string, array{ body: array<mixed>, headers: array<string, string> } | array<string, array{ body: array<mixed>, headers: array<string, string> }> > $memo

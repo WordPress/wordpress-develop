@@ -39,14 +39,14 @@ $parent_file = 'options-general.php';
  * plugin capability discovery, and each connector's plugin record after
  * the JS hydrates, which noticeably delays first paint.
  *
- * @since 7.0.1
+ * @since 7.2.0
  * @access private
  *
  * @param array<string|array{ 0: string, 1?: 'GET'|'OPTIONS', 2?: int<100, 599>|int<100, 599>[] }> $preload_paths Paths already queued for preloading.
  * @return array<string|array{ 0: string, 1?: 'GET'|'OPTIONS', 2?: int<100, 599>|int<100, 599>[] }> Paths with the Connectors-specific requests appended.
  */
 function _wp_connectors_preload_paths( array $preload_paths ): array {
-	// getEntityRecord( 'root', 'site' ) in stage.tsx / use-connector-plugin.ts.
+	// getEntityRecord( 'root', 'site' ) in use-connector-plugin.ts / ai-plugin-callout.tsx.
 	$preload_paths[] = '/wp/v2/settings';
 
 	// canUser( 'create', { kind: 'root', name: 'plugin' } ) in stage.tsx.
