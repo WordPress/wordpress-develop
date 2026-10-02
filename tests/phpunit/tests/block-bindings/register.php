@@ -91,6 +91,7 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 	 *
 	 * @covers ::register_block_bindings_source
 	 * @covers ::unregister_block_bindings_source
+	 * @covers ::get_block_bindings_source
 	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
@@ -106,5 +107,6 @@ class Tests_Block_Bindings_Register extends WP_UnitTestCase {
 			),
 			$result
 		);
+		$this->assertNull( get_block_bindings_source( self::$test_source_name ) );
 	}
 }
