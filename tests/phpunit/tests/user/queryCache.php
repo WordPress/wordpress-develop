@@ -802,4 +802,59 @@ class Tests_User_Query_Cache extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $query->get_results() );
 	}
+
+	/**
+	 * Tests that queries with the same SQL but a different `fields` format do not share a cache entry.
+	 *
+	 * @ticket 62003
+	 *
+	 * @covers ::generate_cache_key
+	 *
+	 * @dataProvider data_query_cache_should_respect_fields_return_format
+	 *
+	 * @param string|string[] $first_fields  The `fields` value used to prime the cache.
+	 * @param string|string[] $second_fields The `fields` value read from the cache.
+	 */
+	public function test_query_cache_should_respect_fields_return_format( $first_fields, $second_fields ) {
+		new WP_User_Query( array( 'fields' => $first_fields ) );
+
+		$cached   = new WP_User_Query( array( 'fields' => $second_fields ) );
+		$uncached = new WP_User_Query(
+			array(
+				'fields'        => $second_fields,
+				'cache_results' => false,
+			)
+		);
+
+		$get_format = static function ( $result ) {
+			return is_object( $result ) ? get_class( $result ) : gettype( $result );
+		};
+
+		$this->assertSame(
+			array_map( $get_format, $uncached->get_results() ),
+			array_map( $get_format, $cached->get_results() ),
+			'Cached results should have the same format as uncached results.'
+		);
+		$this->assertEquals(
+			$uncached->get_results(),
+			$cached->get_results(),
+			'Cached results should match uncached results.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_query_cache_should_respect_fields_return_format() {
+		return array(
+			'string then array'        => array( 'ID', array( 'ID' ) ),
+			'array then string'        => array( array( 'ID' ), 'ID' ),
+			'array then all'           => array( array( 'ID' ), 'all' ),
+			'all then array'           => array( 'all', array( 'ID' ) ),
+			'array then all_with_meta' => array( array( 'ID' ), 'all_with_meta' ),
+			'array then string field'  => array( array( 'user_email' ), 'user_email' ),
+		);
+	}
 }
