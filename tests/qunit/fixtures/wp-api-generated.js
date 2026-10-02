@@ -12226,6 +12226,27 @@ mockedApiResponse.Schema = {
                 ]
             }
         },
+        "/wp-site-health/v1/tests/alt-update-api-communication": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/alt-update-api-communication"
+                    }
+                ]
+            }
+        },
         "/wp-site-health/v1/tests/authorization-header": {
             "namespace": "wp-site-health/v1",
             "methods": [
