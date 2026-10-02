@@ -764,6 +764,7 @@ th.sorted a span {
 
 .media-toolbar.wp-filter .view-switch {
 	margin: 0 12px 0 2px;
+	padding: 0;
 }
 
 .view-switch a {
