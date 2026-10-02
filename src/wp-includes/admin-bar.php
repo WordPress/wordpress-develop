@@ -1171,11 +1171,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 		);
 	}
 
-	if ( ! current_user_can( 'edit_theme_options' ) ) {
-		return;
-	}
-
-	if ( current_theme_supports( 'widgets' ) ) {
+	if ( current_user_can( 'edit_theme_options' ) && current_theme_supports( 'widgets' ) ) {
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => 'appearance',
@@ -1186,7 +1182,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 		);
 	}
 
-	if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) {
+	if ( current_user_can( 'manage_nav_menus' ) && ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) ) {
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => 'appearance',
@@ -1197,7 +1193,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 		);
 	}
 
-	if ( current_theme_supports( 'custom-background' ) ) {
+	if ( current_user_can( 'edit_theme_options' ) && current_theme_supports( 'custom-background' ) ) {
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => 'appearance',
@@ -1211,7 +1207,7 @@ function wp_admin_bar_appearance_menu( $wp_admin_bar ) {
 		);
 	}
 
-	if ( current_theme_supports( 'custom-header' ) ) {
+	if ( current_user_can( 'edit_theme_options' ) && current_theme_supports( 'custom-header' ) ) {
 		$wp_admin_bar->add_node(
 			array(
 				'parent' => 'appearance',
