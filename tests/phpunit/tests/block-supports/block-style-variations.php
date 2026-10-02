@@ -644,6 +644,67 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the variation instance class name is applied only when it is
+	 * a complete class name in the `className` attribute.
+	 *
+	 * @ticket 65466
+	 *
+	 * @covers ::wp_render_block_style_variation_class_name
+	 *
+	 * @dataProvider data_block_style_variation_class_name
+	 *
+	 * @param string $class_name Value of the `className` block attribute.
+	 * @param string $expected   Expected rendered block content.
+	 */
+	public function test_block_style_variation_class_name( $class_name, $expected ) {
+		$block = array(
+			'blockName' => 'core/paragraph',
+			'attrs'     => array(
+				'className' => $class_name,
+			),
+		);
+
+		$this->assertSame(
+			$expected,
+			wp_render_block_style_variation_class_name( '<p>Test</p>', $block )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string }>
+	 */
+	public function data_block_style_variation_class_name() {
+		return array(
+			'instance class name'                  => array(
+				'custom is-style-fancy--1',
+				'<p class="is-style-fancy--1">Test</p>',
+			),
+			'instance class name after a tab'      => array(
+				"custom\tis-style-fancy--2",
+				'<p class="is-style-fancy--2">Test</p>',
+			),
+			'variation slug containing dashes'     => array(
+				'is-style-my--fancy--3',
+				'<p class="is-style-my--fancy--3">Test</p>',
+			),
+			'variation without an instance number' => array(
+				'is-style-fancy',
+				'<p>Test</p>',
+			),
+			'prefix inside another class name'     => array(
+				'custom-is-style-fancy--1',
+				'<p>Test</p>',
+			),
+			'instance number followed by a suffix' => array(
+				'is-style-fancy--1-extra',
+				'<p>Test</p>',
+			),
+		);
+	}
+
+	/**
 	 * Tests to ensure that there are no references to an undefined array key
 	 * if `className` is not assigned.
 	 *
