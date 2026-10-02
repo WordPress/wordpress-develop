@@ -436,4 +436,20 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 65024
+	 *
+	 * @covers WP_Post_Type::get_default_labels
+	 */
+	public function test_get_default_labels_includes_item_draft_saved() {
+		WP_Post_Type::reset_default_labels();
+		$default_labels = WP_Post_Type::get_default_labels();
+
+		$this->assertArrayHasKey( 'item_draft_saved', $default_labels );
+		$this->assertSame(
+			array( 'Draft saved.', 'Draft saved.' ),
+			$default_labels['item_draft_saved']
+		);
+	}
 }

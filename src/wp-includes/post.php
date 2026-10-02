@@ -323,6 +323,7 @@ function create_initial_post_types() {
 				'item_reverted_to_draft'   => __( 'Pattern reverted to draft.' ),
 				'item_scheduled'           => __( 'Pattern scheduled.' ),
 				'item_updated'             => __( 'Pattern updated.' ),
+				'item_draft_saved'         => __( 'Draft saved.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -2115,6 +2116,7 @@ function _post_type_meta_capabilities( $capabilities = array() ): void {
  * @since 6.6.0 Added the `template_name` label.
  * @since 6.7.0 Restored pre-6.4.0 defaults for the `add_new` label and updated documentation.
  *              Updated core usage to reference `add_new_item`.
+ * @since 7.2.0 Added the `item_draft_saved` label.
  *
  * @access private
  *
@@ -2189,6 +2191,8 @@ function _post_type_meta_capabilities( $capabilities = array() ): void {
  *                                                 Default is 'Post scheduled.' / 'Page scheduled.'
  *     @type string      $item_updated             Label used when an item is updated.
  *                                                 Default is 'Post updated.' / 'Page updated.'
+ *     @type string      $item_draft_saved         Label used when an item draft is saved.
+ *                                                 Default is 'Draft saved.'
  *     @type string      $item_link                Title for a navigation link block variation.
  *                                                 Default is 'Post Link' / 'Page Link'.
  *     @type string      $item_link_description    Description for a navigation link block variation.
