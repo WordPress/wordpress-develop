@@ -1766,8 +1766,11 @@ Thanks! -- The WordPress Team"
 			return false;
 		}
 
-		require $maintenance_file;
-		if ( ! is_int( $upgrading ) ) {
+		// The file may be removed between the check above and the load below.
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in expected failure case.
+		$maintenance_file_loaded = @include $maintenance_file;
+
+		if ( false === $maintenance_file_loaded || ! is_int( $upgrading ) ) {
 			return false;
 		}
 
