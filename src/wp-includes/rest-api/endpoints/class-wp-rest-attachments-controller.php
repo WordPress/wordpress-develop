@@ -1694,6 +1694,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * Embeddable link to the edit root, like `featured_media`. Added here rather than
 		 * in `prepare_links()`, which cannot see the request, and gated like the parent
 		 * controller's own links so a `_fields` request is not handed a stray `_links`.
+		 * Like `featured_media`, the link is skipped when the edit root no longer exists
+		 * or the user cannot read it, although the `edit_root` field still reports the ID.
 		 */
 		if (
 			'edit' === $request['context'] &&
@@ -1701,7 +1703,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		) {
 			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
 
-			if ( $edit_root_id !== (int) $post->ID ) {
+			if (
+				$edit_root_id !== (int) $post->ID &&
+				( 'publish' === get_post_status( $edit_root_id ) || current_user_can( 'read_post', $edit_root_id ) )
+			) {
 				$response->add_link(
 					'https://api.w.org/edit-root',
 					rest_url( rest_get_route_for_post( $edit_root_id ) ),

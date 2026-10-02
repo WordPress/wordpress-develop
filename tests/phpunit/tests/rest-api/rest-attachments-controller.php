@@ -6568,6 +6568,30 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * The field reports the recorded ID as is, but the link is only offered when the
+	 * edit root exists and can be read, in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_missing_edit_root_keeps_the_field_but_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_edit_root_id', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $response->get_data()['edit_root'] );
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/edit-root',
+			$response->get_links(),
+			'A missing edit root should carry no link.'
+		);
+	}
+
+	/**
 	 * Trashing is not deleting. `delete_attachment` does not fire for a trashed
 	 * attachment, and the record is deliberately left in place so that untrashing
 	 * the edit root restores the relationship intact.
