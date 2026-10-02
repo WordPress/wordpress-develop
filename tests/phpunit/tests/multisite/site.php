@@ -621,6 +621,22 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that get_blog_post() from another site does not set $GLOBALS['switched'].
+	 */
+	public function test_get_blog_post_does_not_switch_context() {
+		$post_id = self::factory()->post->create(); // Post on site 1.
+		$blog_id = self::factory()->blog->create();
+
+		// Call get_blog_post from site 2 to fetch a post from site 1.
+		switch_to_blog( $blog_id );
+		$post = get_blog_post( 1, $post_id );
+		restore_current_blog();
+
+		$this->assertInstanceOf( 'WP_Post', $post );
+		$this->assertEquals( $post_id, $post->ID );
+	}
+
+	/**
 	 * Added as a callback to the domain_exists filter to provide manual results for
 	 * the testing of the filter and for a test which does not need the database.
 	 */
