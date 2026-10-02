@@ -3,7 +3,7 @@
  * Tests for {@see wp_should_concatenate_admin_scripts()}.
  *
  * A constant cannot be undefined again, so tests that define `CONCATENATE_SCRIPTS` run in a separate
- * process. `SCRIPT_DEBUG` is already defined by the time a test runs, as on when running from
+ * process. `SCRIPT_DEBUG` is already defined by the time a test runs, as when running from
  * `src/`, so tests whose outcome depends on it are skipped when it has the other value.
  *
  * @package WordPress
