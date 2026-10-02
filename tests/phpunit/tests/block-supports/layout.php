@@ -1089,6 +1089,13 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 				'registered_styles' => array(),
 				'expected_result'   => null,
 			),
+			'variation separated by a tab or newline'      => array(
+				'class_name'        => "wp-block-button\tis-style-outlined\ncustom",
+				'registered_styles' => array(
+					array( 'name' => 'outlined' ),
+				),
+				'expected_result'   => 'outlined',
+			),
 			'registered styles with missing name property' => array(
 				'class_name'        => 'is-style-outlined wp-block-button',
 				'registered_styles' => array(
