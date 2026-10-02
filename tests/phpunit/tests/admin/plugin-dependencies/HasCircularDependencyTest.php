@@ -5,17 +5,22 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::has_circular_dependency
- * @covers WP_Plugin_Dependencies::get_circular_dependencies
- * @covers WP_Plugin_Dependencies::check_for_circular_dependencies
+ * @covers \WP_Plugin_Dependencies::has_circular_dependency
+ * @covers \WP_Plugin_Dependencies::get_circular_dependencies
+ * @covers \WP_Plugin_Dependencies::check_for_circular_dependencies
  */
-class Tests_Admin_WPPluginDependencies_HasCircularDependency extends WP_PluginDependencies_UnitTestCase {
+class HasCircularDependencyTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that false is returned if Plugin Dependencies has not been initialized.
