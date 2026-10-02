@@ -203,11 +203,20 @@ class WP_Links_List_Table extends WP_List_Table {
 	 */
 	public function column_name( $link ) {
 		$edit_link = get_edit_bookmark_link( $link );
+
+		/*
+		 * `display_rows()` escapes the name, so entities are decoded first to let
+		 * `wp_strip_all_tags()` detect the HTML. Otherwise it survives the
+		 * `esc_attr()` call below and is announced as literal text.
+		 */
+		$aria_label_name = html_entity_decode( $link->link_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$aria_label_name = wp_strip_all_tags( $aria_label_name );
+
 		printf(
 			'<strong><a class="row-title" href="%s" aria-label="%s">%s</a></strong>',
 			$edit_link,
 			/* translators: %s: Link name. */
-			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $link->link_name ) ),
+			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $aria_label_name ) ),
 			$link->link_name
 		);
 	}
