@@ -26,6 +26,7 @@ final class WP_Interactivity_API {
 	 *     'data-wp-class': 'data_wp_class_processor',
 	 *     'data-wp-style': 'data_wp_style_processor',
 	 *     'data-wp-text': 'data_wp_text_processor',
+	 *     'data-wp-html': 'data_wp_html_processor',
 	 *     'data-wp-each': 'data_wp_each_processor',
 	 * }
 	 */
@@ -37,6 +38,7 @@ final class WP_Interactivity_API {
 		'data-wp-class'         => 'data_wp_class_processor',
 		'data-wp-style'         => 'data_wp_style_processor',
 		'data-wp-text'          => 'data_wp_text_processor',
+		'data-wp-html'          => 'data_wp_html_processor',
 		/*
 		 * `data-wp-each` needs to be processed in the last place because it moves
 		 * the cursor to the end of the processed items to prevent them to be
@@ -56,6 +58,27 @@ final class WP_Interactivity_API {
 	 * @var array
 	 */
 	private $state_data = array();
+
+	/**
+	 * Registered token identities and their HTML, guarded against object ID reuse.
+	 *
+	 * @var array<int, array{0: WeakReference, 1: string}>
+	 */
+	private static $dangerous_html = array();
+
+	/**
+	 * Maps inert comments to trusted HTML for the current public processing call.
+	 *
+	 * @var array<string, string>
+	 */
+	private $html_placeholders = array();
+
+	/**
+	 * Marker absent from the current public call's input HTML.
+	 *
+	 * @var string
+	 */
+	private $html_placeholder_marker = '';
 
 	/**
 	 * Holds the configuration required by the different Interactivity API stores.
@@ -453,6 +476,7 @@ final class WP_Interactivity_API {
 	/**
 	 * Processes the interactivity directives contained within the HTML content
 	 * and updates the markup accordingly.
+	 * Trusted HTML is substituted after a successful processing pass.
 	 *
 	 * @since 6.5.0
 	 *
@@ -467,12 +491,29 @@ final class WP_Interactivity_API {
 		$this->namespace_stack = array();
 		$this->context_stack   = array();
 
-		$result = $this->_process_directives( $html );
+		$previous_placeholders         = $this->html_placeholders;
+		$previous_marker               = $this->html_placeholder_marker;
+		$this->html_placeholders       = array();
+		$this->html_placeholder_marker = 'wp-interactivity-html:';
+		while ( str_contains( $html, $this->html_placeholder_marker ) ) {
+			$this->html_placeholder_marker .= ':';
+		}
+
+		try {
+			$result       = $this->_process_directives( $html );
+			$placeholders = $this->html_placeholders;
+		} finally {
+			$this->html_placeholders       = $previous_placeholders;
+			$this->html_placeholder_marker = $previous_marker;
+		}
 
 		$this->namespace_stack = null;
 		$this->context_stack   = null;
 
-		return $result ?? $html;
+		if ( null === $result ) {
+			return $html;
+		}
+		return strtr( $result, $placeholders );
 	}
 
 	/**
@@ -1411,6 +1452,51 @@ final class WP_Interactivity_API {
 			} else {
 				$p->set_content_between_balanced_tags( '' );
 			}
+		}
+	}
+
+	/**
+	 * Retrieves HTML only for the original registered token identity.
+	 *
+	 * @param mixed $value Evaluated directive value.
+	 * @return string|null Registered HTML, or null for an unregistered value.
+	 */
+	private static function get_dangerous_html( $value ): ?string {
+		if ( ! is_object( $value ) ) {
+			return null;
+		}
+		$entry = self::$dangerous_html[ spl_object_id( $value ) ] ?? null;
+		return null !== $entry && $entry[0]->get() === $value ? $entry[1] : null;
+	}
+
+	/**
+	 * Processes the default `data-wp-html` entry using an inert comment.
+	 *
+	 * @param WP_Interactivity_API_Directives_Processor $p    The directives processor instance.
+	 * @param string                                    $mode Whether processing enters or exits the tag.
+	 */
+	private function data_wp_html_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ): void {
+		if ( 'enter' !== $mode ) {
+			return;
+		}
+		$entry = array_find(
+			$this->get_directive_entries( $p, 'html' ),
+			fn( $entry ) => null === $entry['suffix'] && null === $entry['unique_id'] && ! empty( $entry['value'] )
+		);
+		if ( null === $entry ) {
+			return;
+		}
+		$value = $this->evaluate( $entry );
+		if ( ! $p->has_and_visits_its_closer_tag() || null === $value ) {
+			return;
+		}
+		$html = self::get_dangerous_html( $value );
+		if ( null === $html ) {
+			return;
+		}
+		$placeholder = '<!--' . $this->html_placeholder_marker . count( $this->html_placeholders ) . '-->';
+		if ( $p->set_raw_content_between_balanced_tags( $placeholder ) ) {
+			$this->html_placeholders[ $placeholder ] = $html;
 		}
 	}
 

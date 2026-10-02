@@ -138,3 +138,25 @@ function wp_interactivity_get_context( ?string $store_namespace = null ): array 
 function wp_interactivity_get_element(): ?array {
 	return wp_interactivity()->get_element();
 }
+
+/**
+ * Creates an opaque token for verbatim server-rendered HTML.
+ *
+ * @param string $html HTML to register.
+ * @return WP_Interactivity_Dangerous_HTML The registered token.
+ */
+function wp_interactivity_as_dangerous_html( string $html ): WP_Interactivity_Dangerous_HTML {
+	static $register = null;
+	if ( null === $register ) {
+		$register = Closure::bind(
+			static function ( WP_Interactivity_Dangerous_HTML $token, string $html ): void {
+				WP_Interactivity_API::$dangerous_html[ spl_object_id( $token ) ] = array( WeakReference::create( $token ), $html );
+			},
+			null,
+			WP_Interactivity_API::class
+		);
+	}
+	$token = new WP_Interactivity_Dangerous_HTML();
+	$register( $token, $html );
+	return $token;
+}

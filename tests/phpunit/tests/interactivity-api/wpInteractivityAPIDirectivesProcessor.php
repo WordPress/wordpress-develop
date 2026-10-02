@@ -294,6 +294,26 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 		$this->assertSame( '<div>&lt;span&gt;New text&lt;/span&gt;&lt;a href=&quot;#&quot;&gt;Link&lt;/a&gt;</div>', $p->get_updated_html() );
 	}
 
+	/** Tests verbatim content replacement and rewind to the opener. */
+	public function test_set_raw_content_between_balanced_tags() {
+		$p = new WP_Interactivity_API_Directives_Processor( '<div><span>old</span></div>' );
+		$p->next_tag();
+		$this->assertTrue( $p->set_raw_content_between_balanced_tags( '<DIV Class=\'x\'>&amp;é</div>' ) );
+		$this->assertSame( 'DIV', $p->get_tag() );
+		$this->assertFalse( $p->is_tag_closer() );
+		$this->assertSame( '<div><DIV Class=\'x\'>&amp;é</div></div>', $p->get_updated_html() );
+		$p->set_attribute( 'id', 'opener' );
+		$this->assertSame( '<div id="opener"><DIV Class=\'x\'>&amp;é</div></div>', $p->get_updated_html() );
+	}
+
+	/** Tests that a missing closer prevents any raw write. */
+	public function test_set_raw_content_without_closer() {
+		$p = new WP_Interactivity_API_Directives_Processor( '<div>old' );
+		$p->next_tag();
+		$this->assertFalse( $p->set_raw_content_between_balanced_tags( '<b>new</b>' ) );
+		$this->assertSame( '<div>old', $p->get_updated_html() );
+	}
+
 	/**
 	 * Tests the `set_content_between_balanced_tags` method with an empty string.
 	 *

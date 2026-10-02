@@ -87,6 +87,30 @@ final class WP_Interactivity_API_Directives_Processor extends WP_HTML_Tag_Proces
 	}
 
 	/**
+	 * Writes verbatim content between balanced tags and rewinds to the opener.
+	 *
+	 * @access private
+	 *
+	 * @param string $html HTML to replace the content between the matching tags.
+	 * @return bool Whether a matching closer was found and the content replaced.
+	 */
+	public function set_raw_content_between_balanced_tags( string $html ): bool {
+		$positions = $this->get_after_opener_tag_and_before_closer_tag_positions( true );
+		if ( ! $positions ) {
+			return false;
+		}
+		list( $after_opener_tag, $before_closer_tag ) = $positions;
+
+		$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+			$after_opener_tag,
+			$before_closer_tag - $after_opener_tag,
+			$html
+		);
+
+		return true;
+	}
+
+	/**
 	 * Appends content after the closing tag of a template tag.
 	 *
 	 * It positions the cursor in the closer tag of the balanced template tag,
