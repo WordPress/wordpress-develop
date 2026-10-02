@@ -392,7 +392,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 		$this->assertCount( 1, $entries, 'The serialized value should hold one entry.' );
 		$this->assertSame( 'name', $entries[0]['type'], 'The entry should be a name.' );
 		$this->assertSame( $name, $entries[0]['value'], 'The decoded name should not change.' );
-		$this->assertSame( $css, WP_Font_Utils::serialize_font_family_list( $entries ), 'The serializer should be stable.' );
+		$this->assertSame( $entries, WP_Font_Utils::parse_font_family_list( WP_Font_Utils::serialize_font_family_list( $entries ) ), 'The list serializer should keep the name.' );
 	}
 
 	/**

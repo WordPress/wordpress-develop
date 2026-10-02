@@ -30,40 +30,40 @@ class Tests_Fonts_WpFontUtils_GetFontFaceSlug extends WP_UnitTestCase {
 	 */
 	public function data_get_font_face_slug_normalizes_values() {
 		return array(
-			'Sets defaults'                           => array(
+			'Sets defaults'                             => array(
 				'settings'      => array(
 					'fontFamily' => 'Open Sans',
 				),
 				'expected_slug' => 'open sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Converts normal weight to 400'           => array(
+			'Converts normal weight to 400'             => array(
 				'settings'      => array(
 					'fontFamily' => 'Open Sans',
 					'fontWeight' => 'normal',
 				),
 				'expected_slug' => 'open sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Converts bold weight to 700'             => array(
+			'Converts bold weight to 700'               => array(
 				'settings'      => array(
 					'fontFamily' => 'Open Sans',
 					'fontWeight' => 'bold',
 				),
 				'expected_slug' => 'open sans;normal;700;100%;U+0-10FFFF',
 			),
-			'Converts normal font-stretch to 100%'    => array(
+			'Converts normal font-stretch to 100%'      => array(
 				'settings'      => array(
 					'fontFamily'  => 'Open Sans',
 					'fontStretch' => 'normal',
 				),
 				'expected_slug' => 'open sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Removes double quotes from fontFamilies' => array(
+			'Removes double quotes from fontFamilies'   => array(
 				'settings'      => array(
 					'fontFamily' => '"Open Sans"',
 				),
 				'expected_slug' => 'open sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Removes single quotes from fontFamilies' => array(
+			'Removes single quotes from fontFamilies'   => array(
 				'settings'      => array(
 					'fontFamily' => "'Open Sans'",
 				),
@@ -89,37 +89,49 @@ class Tests_Fonts_WpFontUtils_GetFontFaceSlug extends WP_UnitTestCase {
 			),
 
 			// Trac #63568: the slug uses the decoded font name.
-			'Keeps a comma inside a quoted name'      => array(
+			'Keeps a comma inside a quoted name'        => array(
 				'settings'      => array(
 					'fontFamily' => '"ACME, Sans"',
 				),
 				'expected_slug' => 'acme%2c sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Keeps an apostrophe'                     => array(
+			'Removes an apostrophe, as in 6.5.0'        => array(
 				'settings'      => array(
 					'fontFamily' => "O'Reilly Sans",
 				),
-				'expected_slug' => "o'reilly sans;normal;400;100%;U+0-10FFFF",
+				'expected_slug' => 'oreilly sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Keeps a percent sequence'                => array(
+			'Removes an apostrophe in a quoted name'    => array(
+				'settings'      => array(
+					'fontFamily' => '"O\'Reilly Sans"',
+				),
+				'expected_slug' => 'oreilly sans;normal;400;100%;U+0-10FFFF',
+			),
+			'Sanitizes a value that the parser rejects' => array(
+				'settings'      => array(
+					'fontFamily' => '"A"; color:red',
+				),
+				'expected_slug' => 'a color:red;normal;400;100%;U+0-10FFFF',
+			),
+			'Keeps a percent sequence'                  => array(
 				'settings'      => array(
 					'fontFamily' => '"Font 50%AB"',
 				),
 				'expected_slug' => 'font 50%25ab;normal;400;100%;U+0-10FFFF',
 			),
-			'Keeps both spaces'                       => array(
+			'Keeps both spaces'                         => array(
 				'settings'      => array(
 					'fontFamily' => '"A  B"',
 				),
 				'expected_slug' => 'a  b;normal;400;100%;U+0-10FFFF',
 			),
-			'Escapes a semicolon inside a name'       => array(
+			'Escapes a semicolon inside a name'         => array(
 				'settings'      => array(
 					'fontFamily' => '"A;B"',
 				),
 				'expected_slug' => 'a%3bb;normal;400;100%;U+0-10FFFF',
 			),
-			'Decodes a hexadecimal escape'            => array(
+			'Decodes a hexadecimal escape'              => array(
 				'settings'      => array(
 					'fontFamily' => '"Tom \\26  Jerry"',
 				),

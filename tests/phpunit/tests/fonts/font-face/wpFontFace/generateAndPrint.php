@@ -81,7 +81,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 			'an ampersand'            => array( '"Tom \\26  Jerry"', '"Tom \\26  Jerry"' ),
 			'a percent sequence'      => array( '"Font 50%AB"', '"Font 50%AB"' ),
 			'two spaces'              => array( '"A  B"', '"A  B"' ),
-			'a semicolon'             => array( '"A;B"', '"A;B"' ),
+			'a semicolon'             => array( '"A;B"', '"A\\3b B"' ),
 		);
 	}
 

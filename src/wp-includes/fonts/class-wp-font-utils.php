@@ -91,13 +91,13 @@ class WP_Font_Utils {
 	 *                string if the value is invalid.
 	 */
 	public static function sanitize_font_family( $font_family ) {
-		$entries = WP_Font_Utils::parse_font_family_list_with_plain_names( $font_family );
+		$entries = self::parse_font_family_list_with_plain_names( $font_family );
 
 		if ( null === $entries ) {
 			return '';
 		}
 
-		return WP_Font_Utils::serialize_font_family_list( $entries );
+		return self::serialize_font_family_list( $entries );
 	}
 
 	/**
@@ -180,29 +180,27 @@ class WP_Font_Utils {
 			$slug_elements
 		);
 
-		// The font family part keeps its own characters, so add it after the map above.
-		array_unshift( $slug_elements, $font_family );
-
-		return implode( ';', $slug_elements );
+		// The font family part keeps its own characters, so add it after the sanitization.
+		return $font_family . ';' . sanitize_text_field( implode( ';', $slug_elements ) );
 	}
 
 	/**
 	 * Builds the font family part of a font face slug.
 	 *
-	 * The method returns the decoded font names, separated by commas. Each
-	 * name replaces a small set of characters with a percent sequence:
+	 * The method returns the decoded font names, separated by commas. As in
+	 * WordPress 6.5.0, it removes the quotation marks and the apostrophes from
+	 * each name, so that the slug of an existing font face does not change.
+	 * Each name then replaces a small set of characters with a percent sequence:
 	 *
 	 * - `;` and `,` cannot change the field boundaries of the slug.
 	 * - `&`, `<`, and `>` cannot change when KSES filters the `post_title` of
 	 *   the font face post for a user without the `unfiltered_html` capability.
 	 * - `\` cannot disappear when {@see WP_Query} removes slashes from its
 	 *   `title` query parameter.
-	 * - `%` keeps the replacement reversible, so that two different names
-	 *   cannot produce one key.
+	 * - `%` keeps the replacement reversible.
 	 *
 	 * If the value is not a font family value that the parser accepts, the
-	 * method falls back to the text normalization of WordPress 6.5.0, so that
-	 * the slug of an existing record does not change.
+	 * method uses the text normalization of WordPress 6.5.0.
 	 *
 	 * @since 7.2.0
 	 *
@@ -210,17 +208,17 @@ class WP_Font_Utils {
 	 * @return string The font family comparison key.
 	 */
 	private static function get_font_family_comparison_key( $font_family ) {
-		$entries = WP_Font_Utils::parse_font_family_list_with_plain_names( $font_family );
+		$entries = self::parse_font_family_list_with_plain_names( $font_family );
 
 		if ( null === $entries ) {
 			// Keep the WordPress 6.5.0 behavior for a value that the parser rejects.
 			$key = trim( str_replace( array( '"', "'", ';' ), '', (string) $font_family ) );
-			return preg_replace( '/,\s+/', ',', $key );
+			return sanitize_text_field( preg_replace( '/,\s+/', ',', $key ) );
 		}
 
-		// Replace '%' first, so that the replacement stays reversible.
-		$search  = array( '%', '\\', ';', ',', '&', '<', '>' );
-		$replace = array( '%25', '%5c', '%3b', '%2c', '%26', '%3c', '%3e' );
+		// Remove the quotes first. Replace '%' next, so that the replacement stays reversible.
+		$search  = array( '"', "'", '%', '\\', ';', ',', '&', '<', '>' );
+		$replace = array( '', '', '%25', '%5c', '%3b', '%2c', '%26', '%3c', '%3e' );
 
 		$keys = array();
 		foreach ( $entries as $entry ) {
@@ -353,63 +351,19 @@ class WP_Font_Utils {
 	 * @return array[]|null List of parsed entries, or null if the value is invalid.
 	 */
 	public static function parse_font_family_list( $value ) {
-		if ( ! is_string( $value ) || 1 !== preg_match( '//u', $value ) ) {
-			// Reject invalid UTF-8 rather than replace characters in a name.
-			return null;
-		}
-
-		// Apply the CSS input preprocessing rules. See https://www.w3.org/TR/css-syntax-3/#input-preprocessing.
-		$value = str_replace( array( "\r\n", "\r", "\f" ), "\n", $value );
-		$value = str_replace( "\0", "\u{FFFD}", $value );
-
-		$length  = strlen( $value );
-		$offset  = 0;
-		$entries = array();
-
-		while ( true ) {
-			if ( ! self::skip_css_whitespace_and_comments( $value, $offset, $length ) ) {
-				return null;
-			}
-
-			$entry = self::consume_css_family_name( $value, $offset, $length );
-			if ( null === $entry ) {
-				return null;
-			}
-
-			$entries[] = $entry;
-
-			if ( ! self::skip_css_whitespace_and_comments( $value, $offset, $length ) ) {
-				return null;
-			}
-
-			if ( $offset >= $length ) {
-				break;
-			}
-
-			if ( ',' !== $value[ $offset ] ) {
-				return null;
-			}
-
-			++$offset;
-		}
-
-		// A reserved keyword is valid only as the single value of the property.
-		if ( count( $entries ) > 1 && in_array( 'keyword', array_column( $entries, 'type' ), true ) ) {
-			return null;
-		}
-
-		return $entries;
+		return self::parse_font_family_entries( $value, false );
 	}
 
 	/**
 	 * Parses a CSS `font-family` value and accepts an established plain name.
 	 *
 	 * Use this method at font input boundaries, such as the REST API, theme
-	 * settings, and direct calls to {@see wp_print_font_faces()}. It first
-	 * reads the value as CSS. If that fails, it reads each comma separated
-	 * part as a plain name, which earlier WordPress versions accepted.
+	 * settings, and direct calls to {@see wp_print_font_faces()}. It reads each
+	 * entry of the list as CSS. If an entry is not valid CSS, it reads the text
+	 * up to the next comma as a plain name, which earlier WordPress versions
+	 * accepted. It ignores an empty entry, such as the one after a trailing comma.
 	 *
-	 * The plain name path rejects a part that contains CSS syntax characters,
+	 * The plain name path rejects an entry that contains CSS syntax characters,
 	 * such as a semicolon or a parenthesis. Use
 	 * {@see WP_Font_Utils::parse_font_family_list()} where the input must be valid CSS.
 	 *
@@ -419,38 +373,7 @@ class WP_Font_Utils {
 	 * @return array[]|null List of parsed entries, or null if the value is invalid.
 	 */
 	public static function parse_font_family_list_with_plain_names( $value ) {
-		$entries = self::parse_font_family_list( $value );
-		if ( null !== $entries ) {
-			return $entries;
-		}
-
-		if ( ! is_string( $value ) || 1 !== preg_match( '//u', $value ) ) {
-			return null;
-		}
-
-		$entries = array();
-
-		foreach ( explode( ',', $value ) as $part ) {
-			// A part without a comma parses to one entry, such as a generic family.
-			$parsed = self::parse_font_family_list( $part );
-
-			if ( null !== $parsed && 'keyword' !== $parsed[0]['type'] ) {
-				$entries[] = $parsed[0];
-				continue;
-			}
-
-			$name = self::parse_plain_font_family_name( $part );
-			if ( null === $name ) {
-				return null;
-			}
-
-			$entries[] = array(
-				'type'  => 'name',
-				'value' => $name,
-			);
-		}
-
-		return $entries;
+		return self::parse_font_family_entries( $value, true );
 	}
 
 	/**
@@ -481,7 +404,8 @@ class WP_Font_Utils {
 	 * The method always adds quotes. It escapes the quote character, the
 	 * backslash, and the control characters. It also escapes the characters
 	 * that HTML reads, so that the name survives HTML output and the KSES
-	 * post filters without a change.
+	 * post filters without a change. It escapes the semicolon, because
+	 * {@see safecss_filter_attr()} splits declarations at each semicolon.
 	 *
 	 * A hexadecimal escape uses the shortest digit sequence and always ends
 	 * with one space. A leading zero is not possible, and the backslash also
@@ -497,7 +421,7 @@ class WP_Font_Utils {
 	 */
 	public static function serialize_font_family_name( $name ) {
 		return '"' . preg_replace_callback(
-			'/[\x00-\x1f\x7f"\\\\<>&]/',
+			'/[\x00-\x1f\x7f"\\\\<>&;]/',
 			static function ( $matches ) {
 				if ( "\0" === $matches[0] ) {
 					return "\u{FFFD}";
@@ -515,6 +439,11 @@ class WP_Font_Utils {
 	/**
 	 * Serializes a list of parsed entries as a CSS `font-family` value.
 	 *
+	 * A name that is one identifier of letters and hyphens stays unquoted, such
+	 * as `Arial` or `-apple-system`. Some browsers read a system font keyword,
+	 * such as `-apple-system`, only when it has no quotes. Each other name is a
+	 * quoted CSS string.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param array[] $entries List of parsed entries.
@@ -524,14 +453,119 @@ class WP_Font_Utils {
 		$parts = array();
 
 		foreach ( $entries as $entry ) {
-			if ( 'name' === $entry['type'] ) {
-				$parts[] = self::serialize_font_family_name( $entry['value'] );
-			} else {
+			if ( 'name' !== $entry['type'] || self::is_unquoted_font_family_name( $entry['value'] ) ) {
 				$parts[] = $entry['value'];
+			} else {
+				$parts[] = self::serialize_font_family_name( $entry['value'] );
 			}
 		}
 
 		return implode( ', ', $parts );
+	}
+
+	/**
+	 * Parses a CSS `font-family` value into a list of entries.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $value             CSS `font-family` value.
+	 * @param bool   $allow_plain_names Whether to read an entry that is not valid CSS as a plain name.
+	 * @return array[]|null List of parsed entries, or null if the value is invalid.
+	 */
+	private static function parse_font_family_entries( $value, $allow_plain_names ) {
+		if ( ! is_string( $value ) || 1 !== preg_match( '//u', $value ) ) {
+			// Reject invalid UTF-8 rather than replace characters in a name.
+			return null;
+		}
+
+		// Apply the CSS input preprocessing rules. See https://www.w3.org/TR/css-syntax-3/#input-preprocessing.
+		$value = str_replace( array( "\r\n", "\r", "\f" ), "\n", $value );
+		$value = str_replace( "\0", "\u{FFFD}", $value );
+
+		$length  = strlen( $value );
+		$offset  = 0;
+		$entries = array();
+
+		while ( true ) {
+			$start = $offset;
+			$entry = null;
+
+			if ( self::skip_css_whitespace_and_comments( $value, $offset, $length ) ) {
+				$entry = self::consume_css_family_name( $value, $offset, $length );
+			}
+
+			// The entry must end at a comma or at the end of the value.
+			if (
+				null !== $entry &&
+				( ! self::skip_css_whitespace_and_comments( $value, $offset, $length ) ||
+					( $offset < $length && ',' !== $value[ $offset ] ) )
+			) {
+				$entry = null;
+			}
+
+			// A reserved keyword is valid only as the single value of the property.
+			if ( null !== $entry && 'keyword' === $entry['type'] && ( $entries || $offset < $length ) ) {
+				$entry = null;
+			}
+
+			if ( null === $entry ) {
+				if ( ! $allow_plain_names ) {
+					return null;
+				}
+
+				$end    = strpos( $value, ',', $start );
+				$offset = false === $end ? $length : $end;
+				$part   = substr( $value, $start, $offset - $start );
+
+				if ( '' !== trim( $part, " \t\n" ) ) {
+					$name = self::parse_plain_font_family_name( $part );
+					if ( null === $name ) {
+						return null;
+					}
+
+					$entry = array(
+						'type'  => 'name',
+						'value' => $name,
+					);
+				}
+			}
+
+			if ( null !== $entry ) {
+				$entries[] = $entry;
+			}
+
+			if ( $offset >= $length ) {
+				break;
+			}
+
+			// Skip the comma.
+			++$offset;
+		}
+
+		return $entries ? $entries : null;
+	}
+
+	/**
+	 * Checks whether a font name can be written as an unquoted identifier.
+	 *
+	 * The name must be one identifier of ASCII letters and hyphens. It must not
+	 * be a generic family or a reserved keyword, because without quotes the
+	 * name would have a different meaning.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $name Decoded font name.
+	 * @return bool True if the name can be written without quotes.
+	 */
+	private static function is_unquoted_font_family_name( $name ) {
+		if ( 1 !== preg_match( '/^-?[a-zA-Z][a-zA-Z-]*$/', $name ) ) {
+			return false;
+		}
+
+		$lowercase = strtolower( $name );
+
+		return ! in_array( $lowercase, self::GENERIC_FONT_FAMILIES, true )
+			&& ! in_array( $lowercase, self::RESERVED_FONT_FAMILY_KEYWORDS, true );
 	}
 
 	/**

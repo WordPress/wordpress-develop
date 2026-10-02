@@ -1926,10 +1926,16 @@ EOF;
 				'expected' => 'font-family: generic(kai)',
 			),
 
-			// A semicolon inside a quoted font name does not end the declaration.
+			// The font library writes a semicolon in a name as a CSS escape.
 			array(
-				'css'      => 'font-family:"A;B";color:red',
-				'expected' => 'font-family:"A;B";color:red',
+				'css'      => 'font-family:"A\\3b B";color:red',
+				'expected' => 'font-family:"A\\3b B";color:red',
+			),
+
+			// A quote inside an unquoted url() does not hide the next declaration.
+			array(
+				'css'      => "background-image: url(a'b); behavior: url(x.htc); color: red",
+				'expected' => "background-image: url(a'b);color: red",
 			),
 
 			/*

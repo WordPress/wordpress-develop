@@ -51,154 +51,166 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 	 */
 	public function data_should_sanitize_font_family() {
 		return array(
-			'data_families_with_spaces_and_numbers' => array(
+			'data_families_with_spaces_and_numbers'     => array(
 				'font_family' => 'Arial, Rock 3D , Open Sans,serif',
-				'expected'    => '"Arial", "Rock 3D", "Open Sans", serif',
+				'expected'    => 'Arial, "Rock 3D", "Open Sans", serif',
 			),
-			'data_single_font_family'               => array(
+			'data_single_font_family'                   => array(
 				'font_family' => 'Rock 3D',
 				'expected'    => '"Rock 3D"',
 			),
-			'data_many_spaces_and_existing_quotes'  => array(
+			'data_many_spaces_and_existing_quotes'      => array(
 				'font_family' => 'Rock 3D serif, serif,sans-serif, "Open Sans"',
 				'expected'    => '"Rock 3D serif", serif, sans-serif, "Open Sans"',
 			),
-			'data_empty_family'                     => array(
+			'data_empty_family'                         => array(
 				'font_family' => ' ',
 				'expected'    => '',
 			),
-			'data_font_family_with_markup'          => array(
+			'data_font_family_with_markup'              => array(
 				'font_family' => "   Rock      3D</style><script>alert('XSS');</script>\n    ",
 				'expected'    => '',
 			),
-			'data_font_family_with_generic_names'   => array(
+			'data_font_family_with_generic_names'       => array(
 				'font_family' => 'generic(kai), generic(fangsong), Rock 3D',
 				'expected'    => 'generic(kai), generic(fangsong), "Rock 3D"',
 			),
 
 			// Semantic matrix for Trac #63568. The input is CSS unless the key says otherwise.
-			'basic name'                            => array(
+			'basic name'                                => array(
 				'font_family' => 'Inter',
-				'expected'    => '"Inter"',
+				'expected'    => 'Inter',
 			),
-			'unquoted words'                        => array(
+			'quoted basic name'                         => array(
+				'font_family' => '"Inter"',
+				'expected'    => 'Inter',
+			),
+			'system font keywords'                      => array(
+				'font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+				'expected'    => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+			),
+			'quoted generic name'                       => array(
+				'font_family' => '"serif", serif',
+				'expected'    => '"serif", serif',
+			),
+			'unquoted words'                            => array(
 				'font_family' => 'Open Sans',
 				'expected'    => '"Open Sans"',
 			),
-			'apostrophe'                            => array(
+			'apostrophe'                                => array(
 				'font_family' => '"O\'Reilly Sans"',
 				'expected'    => '"O\'Reilly Sans"',
 			),
-			'legacy plain apostrophe'               => array(
+			'legacy plain apostrophe'                   => array(
 				'font_family' => 'O\'Reilly Sans',
 				'expected'    => '"O\'Reilly Sans"',
 			),
-			'double quote'                          => array(
+			'double quote'                              => array(
 				'font_family' => '\'O"Reilly Sans\'',
 				'expected'    => '"O\\"Reilly Sans"',
 			),
-			'both quote types'                      => array(
+			'both quote types'                          => array(
 				'font_family' => '"O\'Reilly \\"Sans\\""',
 				'expected'    => '"O\'Reilly \\"Sans\\""',
 			),
-			'comma in a name'                       => array(
+			'comma in a name'                           => array(
 				'font_family' => '"ACME, Sans", sans-serif',
 				'expected'    => '"ACME, Sans", sans-serif',
 			),
-			'escaped comma'                         => array(
+			'escaped comma'                             => array(
 				'font_family' => 'ACME\\,Sans, serif',
 				'expected'    => '"ACME,Sans", serif',
 			),
-			'ampersand'                             => array(
+			'ampersand'                                 => array(
 				'font_family' => '"Tom & Jerry"',
 				'expected'    => '"Tom \\26  Jerry"',
 			),
-			'short hex escape'                      => array(
+			'short hex escape'                          => array(
 				'font_family' => '"Tom \\26  Jerry"',
 				'expected'    => '"Tom \\26  Jerry"',
 			),
-			'six-digit escape'                      => array(
+			'six-digit escape'                          => array(
 				'font_family' => '"Tom \\000026 Jerry"',
 				'expected'    => '"Tom \\26 Jerry"',
 			),
-			'six-digit escape with a name space'    => array(
+			'six-digit escape with a name space'        => array(
 				'font_family' => '"Tom \\000026  Jerry"',
 				'expected'    => '"Tom \\26  Jerry"',
 			),
-			'percent sequence'                      => array(
+			'percent sequence'                          => array(
 				'font_family' => '"Font 50%AB"',
 				'expected'    => '"Font 50%AB"',
 			),
-			'significant spaces'                    => array(
+			'significant spaces'                        => array(
 				'font_family' => '"A  B"',
 				'expected'    => '"A  B"',
 			),
-			'identifier whitespace'                 => array(
+			'identifier whitespace'                     => array(
 				'font_family' => 'A  B',
 				'expected'    => '"A B"',
 			),
-			'numeric name'                          => array(
+			'numeric name'                              => array(
 				'font_family' => '"12345"',
 				'expected'    => '"12345"',
 			),
-			'hyphen and digit'                      => array(
+			'hyphen and digit'                          => array(
 				'font_family' => '"-1 Font"',
 				'expected'    => '"-1 Font"',
 			),
-			'question mark'                         => array(
+			'question mark'                             => array(
 				'font_family' => '"What?"',
 				'expected'    => '"What?"',
 			),
-			'semicolon in a name'                   => array(
+			'semicolon in a name'                       => array(
 				'font_family' => '"A;B"',
-				'expected'    => '"A;B"',
+				'expected'    => '"A\\3b B"',
 			),
-			'braces in a name'                      => array(
+			'braces in a name'                          => array(
 				'font_family' => '"A{B}"',
 				'expected'    => '"A{B}"',
 			),
-			'equals sign in a name'                 => array(
+			'equals sign in a name'                     => array(
 				'font_family' => '"A=B"',
 				'expected'    => '"A=B"',
 			),
-			'backslash'                             => array(
+			'backslash'                                 => array(
 				'font_family' => '"A\\\\B"',
 				'expected'    => '"A\\5c B"',
 			),
 			// wp_kses_no_null() removes a backslash that zeros follow.
-			'backslash before a zero'               => array(
+			'backslash before a zero'                   => array(
 				'font_family' => '"A\\\\0B"',
 				'expected'    => '"A\\5c 0B"',
 			),
-			'escaped quote'                         => array(
+			'escaped quote'                             => array(
 				'font_family' => '"O\\22 Reilly Sans"',
 				'expected'    => '"O\\"Reilly Sans"',
 			),
-			'generic distinction'                   => array(
+			'generic distinction'                       => array(
 				'font_family' => '"serif", serif',
 				'expected'    => '"serif", serif',
 			),
-			'CSS-wide name'                         => array(
+			'CSS-wide name'                             => array(
 				'font_family' => '"inherit", sans-serif',
 				'expected'    => '"inherit", sans-serif',
 			),
-			'existing generic function'             => array(
+			'existing generic function'                 => array(
 				'font_family' => 'Inter, generic(kai)',
-				'expected'    => '"Inter", generic(kai)',
+				'expected'    => 'Inter, generic(kai)',
 			),
-			'unicode'                               => array(
+			'unicode'                                   => array(
 				'font_family' => '"日本語 😀"',
 				'expected'    => '"日本語 😀"',
 			),
-			'literal angle brackets'                => array(
+			'literal angle brackets'                    => array(
 				'font_family' => '"A<B>"',
 				'expected'    => '"A\\3c B\\3e "',
 			),
-			'CSS comments'                          => array(
+			'CSS comments'                              => array(
 				'font_family' => 'Inter/* comment */, serif',
-				'expected'    => '"Inter", serif',
+				'expected'    => 'Inter, serif',
 			),
-			'CSS-wide keyword alone'                => array(
+			'CSS-wide keyword alone'                    => array(
 				'font_family' => 'inherit',
 				'expected'    => 'inherit',
 			),
@@ -206,90 +218,98 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			 * A CSS-wide keyword is invalid inside a list. The plain name path
 			 * reads the part as a font name and returns valid CSS.
 			 */
-			'CSS-wide keyword inside a list'        => array(
+			'CSS-wide keyword inside a list'            => array(
 				'font_family' => 'inherit, serif',
 				'expected'    => '"inherit", serif',
 			),
-			'leading and trailing whitespace'       => array(
+			'leading and trailing whitespace'           => array(
 				'font_family' => "  \n Inter \t ",
-				'expected'    => '"Inter"',
+				'expected'    => 'Inter',
 			),
-			'zero as a quoted name'                 => array(
+			'zero as a quoted name'                     => array(
 				'font_family' => '"0"',
 				'expected'    => '"0"',
 			),
-			'escaped newline in a string'           => array(
+			'escaped newline in a string'               => array(
 				'font_family' => "\"Tom \\\n Jerry\"",
 				'expected'    => '"Tom  Jerry"',
 			),
-			'escape before hexadecimal characters'  => array(
+			'escape before hexadecimal characters'      => array(
 				'font_family' => '"\\41 BC"',
-				'expected'    => '"ABC"',
+				'expected'    => 'ABC',
 			),
-			'NUL becomes the replacement character' => array(
+			'NUL becomes the replacement character'     => array(
 				'font_family' => "\"A\0B\"",
 				'expected'    => '"A' . "\u{FFFD}" . 'B"',
 			),
-			'invalid code point escape'             => array(
+			'invalid code point escape'                 => array(
 				'font_family' => '"A\\110000 B"',
 				'expected'    => '"A' . "\u{FFFD}" . 'B"',
 			),
-			'surrogate escape'                      => array(
+			'surrogate escape'                          => array(
 				'font_family' => '"A\\d800 B"',
 				'expected'    => '"A' . "\u{FFFD}" . 'B"',
 			),
 
 			// Invalid values return an empty string.
-			'unterminated string'                   => array(
+			'unterminated string'                       => array(
 				'font_family' => '"Inter',
 				'expected'    => '',
 			),
-			'unterminated comment'                  => array(
+			'unterminated comment'                      => array(
 				'font_family' => 'Inter/* comment',
 				'expected'    => '',
 			),
-			'extra token after a quoted family'     => array(
+			'extra token after a quoted family'         => array(
 				'font_family' => '"Inter" Sans',
 				'expected'    => '',
 			),
 			// Trac #63568: the second attachment of the ticket uses this name.
-			'legacy plain double quote'             => array(
+			'legacy plain double quote'                 => array(
 				'font_family' => 'O"Reilly Sans',
 				'expected'    => '"O\\"Reilly Sans"',
 			),
-			'empty list entry'                      => array(
+			'empty list entry'                          => array(
 				'font_family' => 'Inter, , serif',
-				'expected'    => '',
+				'expected'    => 'Inter, serif',
 			),
-			'trailing comma'                        => array(
+			'trailing comma'                            => array(
 				'font_family' => 'Inter, ',
-				'expected'    => '',
+				'expected'    => 'Inter',
 			),
-			'leading comma'                         => array(
+			'leading comma'                             => array(
 				'font_family' => ', Inter',
+				'expected'    => 'Inter',
+			),
+			'only commas'                               => array(
+				'font_family' => ' , ',
 				'expected'    => '',
 			),
-			'second declaration'                    => array(
+			'quoted name with a comma and a plain name' => array(
+				'font_family' => '"ACME, Sans", O\'Reilly',
+				'expected'    => '"ACME, Sans", "O\'Reilly"',
+			),
+			'second declaration'                        => array(
 				'font_family' => '"A"; color:red',
 				'expected'    => '',
 			),
-			'javascript url'                        => array(
+			'javascript url'                            => array(
 				'font_family' => 'url(javascript:alert(1))',
 				'expected'    => '',
 			),
-			'expression function'                   => array(
+			'expression function'                       => array(
 				'font_family' => 'expression(alert(1))',
 				'expected'    => '',
 			),
-			'rule injection'                        => array(
+			'rule injection'                            => array(
 				'font_family' => 'Inter}body{color:red}',
 				'expected'    => '',
 			),
-			'trailing backslash'                    => array(
+			'trailing backslash'                        => array(
 				'font_family' => 'Inter\\',
 				'expected'    => '',
 			),
-			'invalid UTF-8'                         => array(
+			'invalid UTF-8'                             => array(
 				'font_family' => "\"A\xC3\x28B\"",
 				'expected'    => '',
 			),
@@ -323,7 +343,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			str_repeat( '"A", ', 9999 ) . '"A"',
+			str_repeat( 'A, ', 9999 ) . 'A',
 			WP_Font_Utils::sanitize_font_family( str_repeat( 'A,', 9999 ) . 'A' )
 		);
 	}
