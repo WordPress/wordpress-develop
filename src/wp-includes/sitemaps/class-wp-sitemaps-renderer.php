@@ -17,6 +17,29 @@
 #[AllowDynamicProperties]
 class WP_Sitemaps_Renderer {
 	/**
+	 * Sitemap stylesheet URL.
+	 *
+	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 * @var string
+	 */
+	protected $stylesheet = '';
+
+	/**
+	 * Sitemap index stylesheet URL.
+	 *
+	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 * @var string
+	 */
+	protected $stylesheet_index = '';
+
+	/**
+	 * Constructor retained for backward compatibility.
+	 *
+	 * @deprecated 7.2.0 Stylesheets are no longer supported.
+	 */
+	public function __construct() {}
+
+	/**
 	 * Gets the URL for the sitemap stylesheet.
 	 *
 	 * @since 5.5.0
