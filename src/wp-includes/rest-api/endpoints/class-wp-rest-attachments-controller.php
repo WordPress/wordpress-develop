@@ -1691,17 +1691,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		/*
-		 * Let clients fetch the edit root in the same request with `_embed`,
-		 * the way `featured_media` is paired with its own link. Added here rather than in
-		 * `prepare_links()` because that method cannot see the request, and this belongs
-		 * in the `edit` context only, alongside the field itself.
+		 * Embeddable link to the edit root, like `featured_media`. Added here rather than
+		 * in `prepare_links()`, which cannot see the request, and gated like the parent
+		 * controller's own links so a `_fields` request is not handed a stray `_links`.
 		 */
-		if ( ! empty( $data['edit_root'] ) ) {
-			$response->add_link(
-				'https://api.w.org/edit-root',
-				rest_url( rest_get_route_for_post( $data['edit_root'] ) ),
-				array( 'embeddable' => true )
-			);
+		if (
+			'edit' === $request['context'] &&
+			( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) )
+		) {
+			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
+
+			if ( $edit_root_id !== (int) $post->ID ) {
+				$response->add_link(
+					'https://api.w.org/edit-root',
+					rest_url( rest_get_route_for_post( $edit_root_id ) ),
+					array( 'embeddable' => true )
+				);
+			}
 		}
 
 		/**

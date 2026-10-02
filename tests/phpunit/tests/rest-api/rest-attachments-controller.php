@@ -6486,6 +6486,69 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Core leaves `_links` out of a response limited with `_fields` by not building
+	 * its own links at all, so this link must not be the one thing that puts the
+	 * member back.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_omits_the_edit_root_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * Asking for the field is not asking for links.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_requesting_the_edit_root_field_without_links_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,edit_root' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * A request that limits the fields but asks for links gets every link, this one
+	 * included, whether or not it asked for the field.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_keeps_the_edit_root_link_when_links_are_requested() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,_links' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
 	 * An attachment recorded as its own edit root is a broken record, not a chain,
 	 * so it reports no edit root.
 	 *
