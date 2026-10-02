@@ -153,7 +153,7 @@ class WP_Font_Face {
 		 * can be CSS, such as `"ACME, Sans"`, or a plain name, such as
 		 * `O'Reilly Sans`. The serializer writes it back as a quoted CSS string.
 		 */
-		$font_family_name = WP_CSS_Font_Family::parse_descriptor_name( $font_face['font-family'] );
+		$font_family_name = WP_Font_Utils::parse_font_family_descriptor_name( $font_face['font-family'] );
 
 		if ( null === $font_family_name || '' === $font_family_name ) {
 			// @todo replace with `wp_trigger_error()`.
@@ -165,7 +165,7 @@ class WP_Font_Face {
 			return false;
 		}
 
-		$font_face['font-family'] = WP_CSS_Font_Family::serialize_name( $font_family_name );
+		$font_face['font-family'] = WP_Font_Utils::serialize_font_family_name( $font_family_name );
 
 		// Make sure that local fonts have 'src' defined.
 		if ( empty( $font_face['src'] ) || ( ! is_string( $font_face['src'] ) && ! is_array( $font_face['src'] ) ) ) {

@@ -114,20 +114,20 @@ class WP_Font_Face_Resolver {
 	 * quoted CSS string, so that the name keeps every character that it needs.
 	 *
 	 * @since 6.4.0
-	 * @since 7.2.0 Uses {@see WP_CSS_Font_Family} and returns a quoted CSS string.
+	 * @since 7.2.0 Uses {@see WP_Font_Utils::parse_font_family_descriptor_name()} and returns a quoted CSS string.
 	 *
 	 * @param string $font_family Font family `fontFamily' to parse.
 	 * @return string The font-family descriptor as a quoted CSS string, or an
 	 *                empty string if the value is invalid.
 	 */
 	private static function parse_font_family_descriptor( $font_family ) {
-		$name = WP_CSS_Font_Family::parse_descriptor_name( $font_family );
+		$name = WP_Font_Utils::parse_font_family_descriptor_name( $font_family );
 
 		if ( null === $name || '' === $name ) {
 			return '';
 		}
 
-		return WP_CSS_Font_Family::serialize_name( $name );
+		return WP_Font_Utils::serialize_font_family_name( $name );
 	}
 
 	/**

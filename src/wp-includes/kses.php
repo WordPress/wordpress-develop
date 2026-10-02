@@ -3010,7 +3010,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				 * tokens, an unsafe function such as `url()`, and any declaration
 				 * that follows.
 				 */
-				if ( 'font-family' === $css_selector && null !== WP_CSS_Font_Family::parse_list( trim( $parts[1] ) ) ) {
+				if ( 'font-family' === $css_selector && null !== WP_Font_Utils::parse_font_family_list( trim( $parts[1] ) ) ) {
 					$css_test_string = '';
 				}
 			}

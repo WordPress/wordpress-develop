@@ -151,7 +151,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 		 * A value that contains other CSS syntax, such as a second declaration,
 		 * is an error.
 		 */
-		if ( isset( $settings['fontFamily'] ) && null === WP_CSS_Font_Family::parse_list_with_plain_names( $settings['fontFamily'] ) ) {
+		if ( isset( $settings['fontFamily'] ) && null === WP_Font_Utils::parse_font_family_list_with_plain_names( $settings['fontFamily'] ) ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: Name of the font family setting parameter: "font_family_settings[fontFamily]". */

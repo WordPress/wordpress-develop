@@ -126,7 +126,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$stored = $data['font_family_settings']['fontFamily'];
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $stored ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $stored ),
 			'The first family of the stored value should keep the name.'
 		);
 
@@ -138,7 +138,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status(), 'The face should be readable.' );
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $face['font_face_settings']['fontFamily'] ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $face['font_face_settings']['fontFamily'] ),
 			'The face should keep the name.'
 		);
 
@@ -146,7 +146,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$family_json = json_decode( get_post( $family_id )->post_content, true );
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $family_json['fontFamily'] ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $family_json['fontFamily'] ),
 			'The stored family JSON should keep the name.'
 		);
 
@@ -191,7 +191,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $matches[1] ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $matches[1] ),
 			'The preset CSS should keep the name.'
 		);
 
@@ -219,7 +219,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 			'The list should keep the generic keyword and the quoted name apart.'
 		);
 
-		$entries = WP_CSS_Font_Family::parse_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
+		$entries = WP_Font_Utils::parse_font_family_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
 
 		$this->assertSame( 'name', $entries[0]['type'], 'The first entry should be a name.' );
 		$this->assertSame( 'generic', $entries[1]['type'], 'The second entry should be a generic family.' );
@@ -275,7 +275,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $previous ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $previous ),
 			'The name should survive three cycles.'
 		);
 	}
@@ -411,7 +411,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			$decoded_name,
-			WP_CSS_Font_Family::parse_descriptor_name( $safe['settings']['typography']['fontFamilies']['custom'][0]['fontFamily'] ),
+			WP_Font_Utils::parse_font_family_descriptor_name( $safe['settings']['typography']['fontFamilies']['custom'][0]['fontFamily'] ),
 			'The preset should keep the name.'
 		);
 	}
