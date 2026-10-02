@@ -1516,7 +1516,7 @@ $( function() {
 
 	/**
 	 * Moves the admin notices into an `aside` element after the first `h1`.
-	 * Prior to 7.2.0, admin notices were only moved after the first `h1`; 
+	 * Prior to 7.2.0, admin notices were only moved after the first `h1`;
 	 * The `aside` wrapper was added in 7.2.0.
 	 *
 	 * @since 7.2.0
@@ -1525,17 +1525,17 @@ $( function() {
 	 */
 	function moveAdminNotices() {
 		/*
-		* The `.below-h2` class is here just for backward compatibility with plugins
-		* that are (incorrectly) using it. Do not use. Use `.inline` instead. See #34570.
-		* If '.wp-header-end' is found, append the notices after it otherwise
-		* after the first h1 or h2 heading found within the main content.
-		*/
+		 * The `.below-h2` class is here just for backward compatibility with plugins
+		 * that are (incorrectly) using it. Do not use. Use `.inline` instead. See #34570.
+		 * If '.wp-header-end' is found, append the notices after it otherwise
+		 * after the first h1 or h2 heading found within the main content.
+		 */
 		if ( ! $headerEnd.length ) {
 			$headerEnd = $( '.wrap h1, .wrap h2' ).first();
 		}
-		var $notices = $( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' );
+		const $notices = $( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' );
 		if ( $notices.length ) {
-			var $wpAdminNotices = $( '<aside id="wp-admin-notices"></aside>' ).attr( 'aria-label', __( 'Admin Notices' ) ).insertAfter( $headerEnd );
+			const $wpAdminNotices = $( '<aside id="wp-admin-notices"></aside>' ).attr( 'aria-label', __( 'Admin Notices' ) ).insertAfter( $headerEnd );
 			$notices.appendTo( $wpAdminNotices );
 		}
 	}
