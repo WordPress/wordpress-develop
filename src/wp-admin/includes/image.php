@@ -226,10 +226,54 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 }
 
 /**
+ * Handles an image processing error.
+ *
+ * Fires an action so that plugins can capture structured error details, and writes
+ * the error to the configured PHP error log when debug logging is enabled.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param WP_Error $error         The image processing error.
+ * @param int      $attachment_id The attachment post ID.
+ * @param string   $file          Full path to the image file.
+ * @param string   $operation     Description of the operation that failed.
+ */
+function _wp_log_image_processing_error( $error, $attachment_id, $file, $operation ) {
+	/**
+	 * Fires when an error occurs while processing an image.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Error $error         The image processing error.
+	 * @param int      $attachment_id The attachment post ID.
+	 * @param string   $file          Full path to the image file.
+	 * @param string   $operation     Description of the operation that failed.
+	 */
+	do_action( 'wp_image_processing_error', $error, $attachment_id, $file, $operation );
+
+	if ( ! WP_DEBUG || ! WP_DEBUG_LOG ) {
+		return;
+	}
+
+	error_log(
+		sprintf(
+			'WordPress image processing error for attachment %1$d (%2$s) while %3$s: [%4$s] %5$s',
+			$attachment_id,
+			$file,
+			$operation,
+			$error->get_error_code(),
+			$error->get_error_message()
+		)
+	);
+}
+
+/**
  * Creates image sub-sizes, adds the new data to the image meta `sizes` array, and updates the image metadata.
  *
  * Intended for use after an image is uploaded. Saves/updates the image metadata after each
- * sub-size is created. If there was an error, it is added to the returned image metadata array.
+ * sub-size is created. Image processing errors are passed to the
+ * {@see 'wp_image_processing_error'} action and logged when debug logging is enabled.
  *
  * @since 5.3.0
  *
@@ -353,10 +397,10 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$image_meta['image_meta']['orientation'] = 1;
 				}
 			} else {
-				// TODO: Log errors.
+				_wp_log_image_processing_error( $saved, $attachment_id, $file, 'saving the scaled or converted image' );
 			}
 		} else {
-			// TODO: Log errors.
+			_wp_log_image_processing_error( $resized, $attachment_id, $file, 'resizing or rotating the image' );
 		}
 	} elseif ( ! empty( $exif_meta['orientation'] ) && 1 !== (int) $exif_meta['orientation'] ) {
 		// Rotate the whole original image if there is EXIF data and "orientation" is not 1.
@@ -382,7 +426,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 					$image_meta['image_meta']['orientation'] = 1;
 				}
 			} else {
-				// TODO: Log errors.
+				_wp_log_image_processing_error( $saved, $attachment_id, $file, 'saving the rotated image' );
 			}
 		}
 	}
@@ -416,7 +460,8 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
  * Low-level function to create image sub-sizes.
  *
  * Updates the image meta after each sub-size is created.
- * Errors are stored in the returned image metadata array.
+ * Image processing errors are passed to the {@see 'wp_image_processing_error'}
+ * action and logged when debug logging is enabled.
  *
  * @since 5.3.0
  * @access private
@@ -480,7 +525,7 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		$rotated = $editor->maybe_exif_rotate();
 
 		if ( is_wp_error( $rotated ) ) {
-			// TODO: Log errors.
+			_wp_log_image_processing_error( $rotated, $attachment_id, $file, 'rotating the image before creating sub-sizes' );
 		}
 	}
 
@@ -489,7 +534,12 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 			$new_size_meta = $editor->make_subsize( $new_size_data );
 
 			if ( is_wp_error( $new_size_meta ) ) {
-				// TODO: Log errors.
+				_wp_log_image_processing_error(
+					$new_size_meta,
+					$attachment_id,
+					$file,
+					sprintf( 'creating the "%s" image sub-size', $new_size_name )
+				);
 			} else {
 				// Save the size meta value.
 				$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
