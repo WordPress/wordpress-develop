@@ -10588,7 +10588,9 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "status": {
-                            "default": "approve",
+                            "default": [
+                                "approve"
+                            ],
                             "description": "Limit result set to comments assigned one or more statuses. Requires authorization.",
                             "type": "array",
                             "items": {

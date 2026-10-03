@@ -1799,7 +1799,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		$query_params['status'] = array(
-			'default'           => 'approve',
+			'default'           => array( 'approve' ),
 			'description'       => __( 'Limit result set to comments assigned one or more statuses. Requires authorization.' ),
 			'type'              => 'array',
 			'items'             => array(
