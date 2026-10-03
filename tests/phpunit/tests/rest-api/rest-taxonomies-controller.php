@@ -147,6 +147,53 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( '{}', json_encode( $data ) );
 	}
 
+	/**
+	 * Ensure that requesting a taxonomy collection filtered by `type` with `_fields`
+	 * set does not fatal when the resulting collection is empty (and thus encoded
+	 * as a JSON object rather than an array), and that `_fields` is applied to the
+	 * individual taxonomies rather than to the collection's own slug keys.
+	 *
+	 * @ticket 62534
+	 */
+	public function test_get_taxonomies_for_type_with_fields_does_not_fatal() {
+		register_post_type(
+			'rest-fields-cpt',
+			array(
+				'public'     => true,
+				'taxonomies' => array( 'category' ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( 'type', 'rest-fields-cpt' );
+		$request->set_param( '_fields', 'name,slug,rest_base,hierarchical,types' );
+		$response = rest_get_server()->dispatch( $request );
+
+		unregister_post_type( 'rest-fields-cpt' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'category', $data );
+		$this->assertSame(
+			array( 'name', 'slug', 'types', 'hierarchical', 'rest_base' ),
+			array_keys( $data['category'] )
+		);
+		$this->assertSame( 'category', $data['category']['slug'] );
+	}
+
+	/**
+	 * @ticket 62534
+	 */
+	public function test_get_taxonomies_for_invalid_type_with_fields_does_not_fatal() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( 'type', 'wingding' );
+		$request->set_param( '_fields', 'name,slug' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '{}', json_encode( $response->get_data() ) );
+	}
+
 	public function test_get_item() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
 		$response = rest_get_server()->dispatch( $request );
