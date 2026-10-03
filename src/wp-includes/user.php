@@ -3842,13 +3842,11 @@ function _wp_get_current_user() {
 		// Upgrade stdClass to WP_User.
 		if ( is_object( $current_user ) && isset( $current_user->ID ) ) {
 			$cur_id       = $current_user->ID;
-			$current_user = null;
 			wp_set_current_user( $cur_id );
 			return $current_user;
 		}
 
 		// $current_user has a junk value. Force to WP_User with ID 0.
-		$current_user = null;
 		wp_set_current_user( 0 );
 		return $current_user;
 	}
@@ -3878,7 +3876,6 @@ function _wp_get_current_user() {
 	}
 
 	wp_set_current_user( $user_id );
-
 	return $current_user;
 }
 

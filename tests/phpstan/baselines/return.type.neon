@@ -99,31 +99,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/meta.php
 		-
-			message: '#^Function wp_post_revision_title\(\) should return string\|false but returns null\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/post-template.php
-		-
-			message: '#^Function wp_post_revision_title_expanded\(\) should return string\|false but returns null\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/post-template.php
-		-
-			message: '#^Function wp_set_post_categories\(\) should return array\|WP_Error\|false but returns true\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Function wp_trash_post\(\) should return WP_Post\|false\|null but returns bool\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
-			message: '#^Function wp_untrash_post\(\) should return WP_Post\|false\|null but returns bool\.$#'
-			identifier: return.type
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
 			message: '#^Method WP_REST_Autosaves_Controller\:\:get_item\(\) should return WP_Error\|WP_Post but returns WP_REST_Response\.$#'
 			identifier: return.type
 			count: 1
@@ -143,8 +118,3 @@ parameters:
 			identifier: return.type
 			count: 2
 			path: ../../../src/wp-includes/revision.php
-		-
-			message: '#^Function _wp_get_current_user\(\) should return WP_User but returns null\.$#'
-			identifier: return.type
-			count: 2
-			path: ../../../src/wp-includes/user.php
