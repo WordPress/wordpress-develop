@@ -339,16 +339,47 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 }
 
 /**
+ * Determines whether an `Update URI` header identifies an item as hosted on WordPress.org.
+ *
+ * The WordPress.org update APIs only return updates for items whose `Update URI` is empty
+ * or takes one of these forms, where `{slug}` is the plugin or theme slug:
+ *
+ *  - `https://wordpress.org/plugins/{slug}/`
+ *  - `w.org/plugins/{slug}`
+ *  - `https://wordpress.org/themes/{slug}/`
+ *  - `w.org/themes/{slug}`
+ *
+ * Any other value, including `false`, means the item is updated elsewhere.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $update_uri The value of the `Update URI` header.
+ * @param string $type       Either 'plugin' or 'theme'.
+ * @return bool True if the URI identifies a WordPress.org hosted item, false otherwise.
+ */
+function _wp_is_wporg_update_uri( $update_uri, $type ) {
+	$type = 'theme' === $type ? 'themes' : 'plugins';
+
+	return 1 === preg_match(
+		'#^(?:(?:https?://)?(?:www\.)?wordpress\.org/|w\.org/)' . $type . '/[^/\s]+/?$#i', // phpcs:ignore WordPress.WP.CapitalPDangit.MisspelledInText
+		trim( (string) $update_uri )
+	);
+}
+
+/**
  * Checks for available updates to plugins based on the latest versions hosted on WordPress.org.
  *
  * Despite its name this function does not actually perform any updates, it only checks for available updates.
  *
- * A list of all plugins installed is sent to api.wordpress.org, along with the site locale.
+ * A list of the installed plugins is sent to api.wordpress.org, along with the site locale.
+ * Plugins whose `Update URI` header points somewhere other than WordPress.org are omitted.
  *
  * Checks against the WordPress server at api.wordpress.org. Will only check
  * if WordPress isn't installing.
  *
  * @since 2.3.0
+ * @since 7.2.0 Plugins with an `Update URI` outside of WordPress.org are no longer sent to the API.
  *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
  */
@@ -424,7 +455,21 @@ function wp_update_plugins( $extra_stats = array() ) {
 	$current->last_checked = time();
 	set_site_transient( 'update_plugins', $current );
 
-	$to_send = compact( 'plugins', 'active' );
+	/*
+	 * Plugins that declare an `Update URI` outside of WordPress.org are not updated from
+	 * WordPress.org, so there is no reason to disclose them to the API.
+	 */
+	$plugins_to_send = array_filter(
+		$plugins,
+		static function ( $plugin_data ) {
+			return empty( $plugin_data['UpdateURI'] ) || _wp_is_wporg_update_uri( $plugin_data['UpdateURI'], 'plugin' );
+		}
+	);
+
+	$to_send = array(
+		'plugins' => $plugins_to_send,
+		'active'  => array_values( array_intersect( $active, array_keys( $plugins_to_send ) ) ),
+	);
 
 	$locales = array_values( get_available_languages() );
 
@@ -614,12 +659,14 @@ function wp_update_plugins( $extra_stats = array() ) {
  *
  * Despite its name this function does not actually perform any updates, it only checks for available updates.
  *
- * A list of all themes installed is sent to api.wordpress.org, along with the site locale.
+ * A list of the installed themes is sent to api.wordpress.org, along with the site locale.
+ * Themes whose `Update URI` header points somewhere other than WordPress.org are omitted.
  *
  * Checks against the WordPress server at api.wordpress.org. Will only check
  * if WordPress isn't installing.
  *
  * @since 2.7.0
+ * @since 7.2.0 Themes with an `Update URI` outside of WordPress.org are no longer sent to the API.
  *
  * @param array $extra_stats Extra statistics to report to the WordPress.org API.
  */
@@ -711,7 +758,20 @@ function wp_update_themes( $extra_stats = array() ) {
 	$last_update->last_checked = time();
 	set_site_transient( 'update_themes', $last_update );
 
-	$request['themes'] = $themes;
+	/*
+	 * Themes that declare an `Update URI` outside of WordPress.org are not updated from
+	 * WordPress.org, so there is no reason to disclose them to the API.
+	 */
+	$request['themes'] = array_filter(
+		$themes,
+		static function ( $theme_data ) {
+			return empty( $theme_data['UpdateURI'] ) || _wp_is_wporg_update_uri( $theme_data['UpdateURI'], 'theme' );
+		}
+	);
+
+	if ( ! isset( $request['themes'][ $request['active'] ] ) ) {
+		unset( $request['active'] );
+	}
 
 	$locales = array_values( get_available_languages() );
 
