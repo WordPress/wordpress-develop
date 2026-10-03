@@ -60,12 +60,12 @@ ms_subdomain_constants();
 if ( ! isset( $current_site ) || ! isset( $current_blog ) ) {
 
 	$domain = strtolower( stripslashes( $_SERVER['HTTP_HOST'] ?? '' ) );
-	if ( str_ends_with( $domain, ':80' ) ) {
-		$domain               = substr( $domain, 0, -3 );
-		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -3 );
-	} elseif ( str_ends_with( $domain, ':443' ) ) {
-		$domain               = substr( $domain, 0, -4 );
-		$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -4 );
+	foreach ( ms_default_port_suffixes() as $port_suffix ) {
+		if ( str_ends_with( $domain, $port_suffix ) ) {
+			$domain               = substr( $domain, 0, -strlen( $port_suffix ) );
+			$_SERVER['HTTP_HOST'] = substr( $_SERVER['HTTP_HOST'], 0, -strlen( $port_suffix ) );
+			break;
+		}
 	}
 
 	$path = stripslashes( $_SERVER['REQUEST_URI'] );
