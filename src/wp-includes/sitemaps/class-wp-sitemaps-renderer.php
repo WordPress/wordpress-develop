@@ -237,7 +237,7 @@ class WP_Sitemaps_Renderer {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $type Sitemap type. Either 'sitemap' or 'index'.
+	 * @param 'sitemap'|'index' $type Sitemap type.
 	 */
 	private function apply_deprecated_stylesheet_filters( string $type ): void {
 		if ( 'index' === $type ) {
