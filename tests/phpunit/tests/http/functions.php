@@ -1,5 +1,7 @@
 <?php
 
+require_once DIR_TESTDATA . '/../includes/class-wp-http-unit-test-transport.php';
+
 /**
  * @group http
  *
@@ -8,120 +10,87 @@
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
-	 * Set up the mocked HTTP responses.
+	 * Whether the current test is using the fake Requests transport.
+	 *
+	 * @var bool
 	 */
-	public function set_up() {
-		parent::set_up();
+	private $using_mock_transport = false;
 
-		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+	/**
+	 * Tear down the fake transport hook when used.
+	 */
+	public function tear_down() {
+		if ( $this->using_mock_transport ) {
+			remove_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10 );
+			$this->using_mock_transport = false;
+		}
+
+		parent::tear_down();
 	}
 
 	/**
-	 * Mock external HTTP responses for these tests.
+	 * Enables the fake Requests transport for tests that must exercise
+	 * WP_Http request handling without live network access.
 	 *
-	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
-	 * @param array                $parsed_args HTTP request arguments.
-	 * @param string               $url         The request URL.
-	 * @return array|WP_Error Response data.
+	 * Removes the core external-HTTP blocker so the request proceeds past
+	 * `pre_http_request` into cookie normalization, transport execution, and
+	 * response conversion.
 	 */
-	public function mock_http_request( $response, $parsed_args, $url ) {
-		// Simulate too many redirects without performing a live request.
-		if ( isset( $parsed_args['redirection'] ) && $parsed_args['redirection'] < 0 ) {
-			return new WP_Error( 'http_request_failed', 'Too many redirects.' );
-		}
-
-		$png_headers = array(
-			'Content-Type'   => 'image/png',
-			'Content-Length' => '153204',
-		);
-
-		switch ( $url ) {
-			case 'https://s.w.org/screenshots/3.9/dashboard.png':
-				return $this->build_mock_http_response( 200, 'OK', $png_headers );
-
-			case 'https://wp.org/screenshots/3.9/dashboard.png':
-				if ( isset( $parsed_args['method'] ) && 'HEAD' === $parsed_args['method'] ) {
-					return $this->build_mock_http_response(
-						301,
-						'Moved Permanently',
-						array(
-							'location' => 'https://wordpress.org/screenshots/3.9/dashboard.png',
-						)
-					);
-				}
-
-				// GET follows the redirect and returns the final image response.
-				return $this->build_mock_http_response( 200, 'OK', $png_headers );
-
-			case 'https://wordpress.org/screenshots/3.9/awefasdfawef.jpg':
-				return $this->build_mock_http_response( 404, 'Not Found' );
-
-			case 'https://login.wordpress.org/wp-login.php':
-				$cookies = array(
-					new WP_Http_Cookie(
-						array(
-							'name'  => 'wordpress_test_cookie',
-							'value' => 'WP Cookie check',
-						)
-					),
-				);
-
-				if ( ! empty( $parsed_args['cookies'] ) ) {
-					foreach ( $parsed_args['cookies'] as $name => $value ) {
-						if ( $value instanceof WP_Http_Cookie ) {
-							$cookies[] = $value;
-							continue;
-						}
-
-						$cookies[] = new WP_Http_Cookie(
-							array(
-								'name'  => $name,
-								'value' => $value,
-							)
-						);
-					}
-				}
-
-				return $this->build_mock_http_response( 200, 'OK', array(), $cookies );
-		}
-
-		return new WP_Error(
-			'unexpected_http_request',
-			sprintf( 'Unexpected HTTP request for URL: %s', $url )
-		);
+	private function use_mock_transport() {
+		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
+		add_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10, 5 );
+		$this->using_mock_transport = true;
 	}
 
 	/**
-	 * Builds a mocked HTTP API response array.
+	 * Injects the fake Requests transport into request options.
 	 *
-	 * @param int              $code     HTTP response code.
-	 * @param string           $message  HTTP response message.
-	 * @param array            $headers  Optional. Response headers. Default empty array.
-	 * @param WP_Http_Cookie[] $cookies  Optional. Response cookies. Default empty array.
+	 * @param string       $url     Request URL.
+	 * @param array        $headers Request headers.
+	 * @param string|array $data    Request data.
+	 * @param string       $type    HTTP method.
+	 * @param array        $options Request options (passed by reference).
+	 */
+	public function inject_mock_transport( $url, $headers, $data, $type, &$options ) {
+		$options['transport'] = new WP_Http_Unit_Test_Transport();
+	}
+
+	/**
+	 * Builds a WP_Http-shaped response via WP_HTTP_Requests_Response conversion.
+	 *
+	 * Suitable for retrieval-helper coverage that does not need transport or
+	 * redirect behavior.
+	 *
+	 * @param int                  $status_code HTTP status code.
+	 * @param array<string,string> $headers     Optional. Response headers.
+	 * @param string               $body        Optional. Response body.
 	 * @return array Response data in the shape returned by the HTTP API.
 	 */
-	private function build_mock_http_response( $code, $message, $headers = array(), $cookies = array() ) {
-		return array(
-			'headers'  => $headers,
-			'body'     => '',
-			'response' => array(
-				'code'    => $code,
-				'message' => $message,
-			),
-			'cookies'  => $cookies,
-			'filename' => null,
-		);
+	private function build_response_from_requests( $status_code, $headers = array(), $body = '' ) {
+		$requests_response              = new WpOrg\Requests\Response();
+		$requests_response->status_code = $status_code;
+		$requests_response->body        = $body;
+
+		foreach ( $headers as $name => $value ) {
+			$requests_response->headers[ $name ] = $value;
+		}
+
+		return ( new WP_HTTP_Requests_Response( $requests_response ) )->to_array();
 	}
 
 	/**
-	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_headers
+	 * @covers ::wp_remote_retrieve_response_code
+	 * @covers WP_HTTP_Requests_Response::to_array
 	 */
 	public function test_head_request() {
-		// This URL gives a direct 200 response.
-		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
-		$response = wp_remote_head( $url );
-
-		$this->assertNotWPError( $response );
+		$response = $this->build_response_from_requests(
+			200,
+			array(
+				'Content-Type'   => 'image/png',
+				'Content-Length' => '153204',
+			)
+		);
 
 		$headers = wp_remote_retrieve_headers( $response );
 
@@ -135,7 +104,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_head
 	 */
 	public function test_head_redirect() {
-		// This URL will 301 redirect.
+		$this->use_mock_transport();
+
+		// This URL will 301 redirect. HEAD requests do not follow redirects by default.
 		$url      = 'https://wp.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_head( $url );
 
@@ -145,8 +116,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_head_404() {
+		$this->use_mock_transport();
+
 		$url      = 'https://wordpress.org/screenshots/3.9/awefasdfawef.jpg';
 		$response = wp_remote_head( $url );
 
@@ -155,20 +129,21 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_headers
 	 * @covers ::wp_remote_retrieve_response_code
+	 * @covers WP_HTTP_Requests_Response::to_array
 	 */
 	public function test_get_request() {
-		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
-
-		$response = wp_remote_get( $url );
-
-		$this->assertNotWPError( $response );
+		$response = $this->build_response_from_requests(
+			200,
+			array(
+				'Content-Type'   => 'image/png',
+				'Content-Length' => '153204',
+			)
+		);
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		// Should return the same headers as a HEAD request.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
@@ -180,6 +155,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_redirect() {
+		$this->use_mock_transport();
+
 		// This will redirect to wordpress.org.
 		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
@@ -189,7 +166,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		// Should return the same headers as a HEAD request.
+		// GET follows the redirect and returns the final image response.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
@@ -199,6 +176,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 */
 	public function test_get_redirect_limit_exceeded() {
+		$this->use_mock_transport();
+
 		// This will redirect to wordpress.org.
 		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
@@ -216,8 +195,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
 	 * @covers ::wp_remote_retrieve_cookie_value
+	 * @covers WP_HTTP_Requests_Response::get_cookies
 	 */
 	public function test_get_response_cookies() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_head( $url );
@@ -249,8 +231,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_get_response_cookies_with_wp_http_cookie_object() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
@@ -285,8 +270,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_get_response_cookies_with_name_value_array() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
