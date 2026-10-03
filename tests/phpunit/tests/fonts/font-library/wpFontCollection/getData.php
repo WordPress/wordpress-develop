@@ -171,19 +171,23 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 					'name'          => 'My Collection',
 					'font_families' => array(
 						array(
+							/*
+							 * The `fontFamily` of the family is markup, which is not a
+							 * valid CSS font family value. The sanitizer returns an empty
+							 * string, and ::sanitize_from_schema() removes the key.
+							 */
 							'font_family_settings' => array(
-								'fontFamily' => '"Open Sans", sans-serif',
-								'slug'       => 'open-sans',
-								'name'       => 'Open Sans',
-								'fontFace'   => array(
+								'slug'     => 'open-sans',
+								'name'     => 'Open Sans',
+								'fontFace' => array(
 									array(
-										'fontFamily' => 'Open Sans',
+										'fontFamily' => '"Open Sans"',
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => 'https://example.com/src-as-string.ttf?a=',
 									),
 									array(
-										'fontFamily' => 'Open Sans',
+										'fontFamily' => '"Open Sans"',
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => array(
