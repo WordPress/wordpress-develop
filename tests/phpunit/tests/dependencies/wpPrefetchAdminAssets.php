@@ -321,6 +321,39 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that nothing is prefetched when the login lands in this site's admin under another scheme,
+	 * since the URLs prefetched take the scheme of the login screen and that admin would request
+	 * different ones.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prints_nothing_for_admin_on_another_scheme(): void {
+		$scheme       = (string) wp_parse_url( admin_url(), PHP_URL_SCHEME );
+		$other_scheme = 'https' === $scheme ? 'http' : 'https';
+
+		$this->assertSame(
+			array(),
+			$this->get_prefetched_on_login( array( 'redirect_to' => set_url_scheme( admin_url( 'post-new.php' ), $other_scheme ) ) )
+		);
+	}
+
+	/**
+	 * Tests that a protocol-relative `redirect_to` pointing at this site's admin prefetches, since it
+	 * keeps the scheme of the login screen.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prefetches_for_protocol_relative_admin_url(): void {
+		$redirect_to = (string) preg_replace( '#^https?:#', '', admin_url( 'post-new.php' ) );
+		$this->assertStringStartsWith( '//', $redirect_to );
+
+		$links = $this->get_prefetched_on_login( array( 'redirect_to' => $redirect_to ) );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
+	}
+
+	/**
 	 * Tests that the Dashboard and the post list tables prefetch only the editor's stylesheets.
 	 *
 	 * @ticket 57548

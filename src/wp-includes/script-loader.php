@@ -2651,16 +2651,24 @@ function wp_prefetch_admin_assets(): void {
 		/*
 		 * Nor are they when it lands in the admin of another host. wp_validate_redirect() accepts any
 		 * host in 'allowed_redirect_hosts', such as another site on a multisite network, and that
-		 * admin would request its assets from its own host rather than from this one. A relative
-		 * `redirect_to` stays on this host.
+		 * admin would request its assets from its own host rather than from this one. The same goes
+		 * for this host's admin under another scheme, such as an `https` destination from an `http`
+		 * login: the URLs prefetched here take the scheme of the current request, so that admin
+		 * would request different ones. A relative `redirect_to` stays on this host and scheme, and
+		 * a protocol-relative one on this scheme.
 		 */
-		$next_screen_host = wp_parse_url( $next_screen, PHP_URL_HOST );
+		$next_screen_host   = wp_parse_url( $next_screen, PHP_URL_HOST );
+		$next_screen_scheme = wp_parse_url( $next_screen, PHP_URL_SCHEME );
 
 		if (
 			is_string( $next_screen_host ) &&
 			(
 				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( admin_url(), PHP_URL_HOST ) ) ||
-				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( admin_url(), PHP_URL_PORT )
+				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( admin_url(), PHP_URL_PORT ) ||
+				(
+					is_string( $next_screen_scheme ) &&
+					strtolower( $next_screen_scheme ) !== strtolower( (string) wp_parse_url( admin_url(), PHP_URL_SCHEME ) )
+				)
 			)
 		) {
 			return;
