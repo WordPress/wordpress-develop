@@ -31,6 +31,8 @@ var Router = Backbone.Router.extend(/** @lends wp.media.view.MediaFrame.Manage.R
 
 	// Respond to the search route by filling the search field and triggering the input event.
 	search: function( query ) {
+		// Backbone's :query matches past '&', so drop any trailing query args.
+		query = ( query || '' ).split( '&' ).shift();
 		jQuery( '#media-search-input' ).val( query ).trigger( 'input' );
 	},
 
