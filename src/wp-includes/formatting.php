@@ -250,8 +250,18 @@ function wptexturize( $text, $reset = false ) {
 			} else {
 				// This is an HTML element delimiter.
 
-				// Replace each & with &#038; unless it already looks like an entity.
-				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+				/*
+				 * Replace each & with &#038; unless it already looks like an entity,
+				 * but only when outside no-texturize tags like <script> and <pre>.
+				 *
+				 * When a no-texturize tag contains a raw '<' character (e.g. JavaScript
+				 * like `if(a<b)`), preg_split() with _get_wptexturize_split_regex()
+				 * misidentifies that content as an HTML element delimiter. Encoding &
+				 * inside such a token would corrupt the script or preformatted content.
+				 */
+				if ( empty( $no_texturize_tags_stack ) ) {
+					$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
+				}
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
