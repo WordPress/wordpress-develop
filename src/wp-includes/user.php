@@ -722,6 +722,8 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
  * @since MU (3.0.0)
  *
  * @return int The current user's ID, or 0 if no user is logged in.
+ *
+ * @phpstan-return int<0, max>
  */
 function get_current_user_id() {
 	if ( ! function_exists( 'wp_get_current_user' ) ) {
@@ -749,6 +751,8 @@ function get_current_user_id() {
  * @param int    $user       Optional. User ID.
  * @param string $deprecated Use get_option() to check for an option in the options table.
  * @return mixed User option value on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_user_option( $option, $user = 0, $deprecated = '' ) {
 	global $wpdb;
@@ -3125,6 +3129,8 @@ function wp_get_password_hint() {
  *
  * @param WP_User $user User to retrieve password reset key for.
  * @return string|WP_Error Password reset key on success. WP_Error on error.
+ *
+ * @phpstan-impure
  */
 function get_password_reset_key( $user ) {
 	if ( ! ( $user instanceof WP_User ) ) {

@@ -74,6 +74,8 @@ class WP_Dependencies {
 	 * @since 2.8.0
 	 *
 	 * @var (int|false)[]
+	 *
+	 * @phpstan-var array<string, int|false>
 	 */
 	public $groups = array();
 
@@ -539,6 +541,8 @@ class WP_Dependencies {
 	 *
 	 * @param string[] $load Array of script or style handles to load.
 	 * @return string Etag header.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_etag( $load ) {
 		/*

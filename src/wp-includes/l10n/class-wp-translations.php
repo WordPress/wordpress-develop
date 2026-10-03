@@ -115,6 +115,7 @@ class WP_Translations {
 	 *
 	 * @phpstan-template T of string|null
 	 * @phpstan-param T $singular
+	 * @phpstan-param int $count
 	 * @phpstan-return ( $singular is null ? null : ( $plural is null ? T : string ) )
 	 */
 	public function translate_plural( $singular, $plural, $count = 1, $context = '' ) {

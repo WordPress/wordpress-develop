@@ -19,6 +19,8 @@ class Custom_Image_Header {
 	 *
 	 * @since 2.1.0
 	 * @var callable
+	 *
+	 * @phpstan-var ''|callable(): void
 	 */
 	public $admin_header_callback;
 
@@ -27,6 +29,8 @@ class Custom_Image_Header {
 	 *
 	 * @since 3.0.0
 	 * @var callable
+	 *
+	 * @phpstan-var ''|callable(): void
 	 */
 	public $admin_image_div_callback;
 
@@ -54,6 +58,8 @@ class Custom_Image_Header {
 	 * @param callable $admin_header_callback    Administration header callback.
 	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
 	 *                                           Default empty string.
+	 *
+	 * @phpstan-param ''|callable(): void $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback, $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;
@@ -310,6 +316,8 @@ class Custom_Image_Header {
 	 *
 	 * @param string $type The header type. One of 'default' (for the Uploaded Images control)
 	 *                     or 'uploaded' (for the Uploaded Images control).
+	 *
+	 * @phpstan-param 'default'|'uploaded' $type
 	 */
 	public function show_header_selector( $type = 'default' ) {
 		if ( 'default' === $type ) {
@@ -1169,6 +1177,13 @@ endif;
 	 *                      registered for that theme; and the key of an image uploaded for that theme
 	 *                      (the attachment ID of the image). Or an array of arguments: attachment_id,
 	 *                      url, width, height. All are required.
+	 *
+	 * @phpstan-param string|array{
+	 *     attachment_id: int<1, max>,
+	 *     url: string,
+	 *     width: int<0, max>,
+	 *     height: int<0, max>,
+	 * } $choice
 	 */
 	final public function set_header_image( $choice ) {
 		if ( is_array( $choice ) || is_object( $choice ) ) {

@@ -188,6 +188,8 @@ function wp_insert_category( $catarr, $wp_error = false ) {
  *
  * @param array $catarr The 'cat_ID' value is required. All other keys are optional.
  * @return int|false The ID number of the new or updated Category on success. Zero or FALSE on failure.
+ *
+ * @phpstan-return int<0, max>|false
  */
 function wp_update_category( $catarr ) {
 	$cat_id = (int) $catarr['cat_ID'];
