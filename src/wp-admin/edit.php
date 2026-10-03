@@ -135,14 +135,18 @@ if ( $doaction ) {
 				++$trashed;
 			}
 
-			$sendback = add_query_arg(
-				array(
-					'trashed' => $trashed,
-					'ids'     => implode( ',', $post_ids ),
-					'locked'  => $locked,
-				),
-				$sendback
+			$query_args = array(
+				'trashed' => $trashed,
+				'ids'     => implode( ',', $post_ids ),
+				'locked'  => $locked,
 			);
+
+			// The IDs only feed the Undo link, so skip them when they would make the URL too long.
+			if ( strlen( $query_args['ids'] ) > 1000 ) {
+				unset( $query_args['ids'] );
+			}
+
+			$sendback = add_query_arg( $query_args, $sendback );
 			break;
 		case 'untrash':
 			$untrashed = 0;

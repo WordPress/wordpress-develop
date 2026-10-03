@@ -596,4 +596,80 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * The bulk actions are submitted with POST so that selecting many posts does not
+	 * exceed the URL length limit of the server.
+	 *
+	 * @ticket 10762
+	 *
+	 * @covers WP_Posts_List_Table::get_bulk_actions_method
+	 * @covers WP_List_Table::bulk_actions
+	 */
+	public function test_bulk_actions_apply_button_submits_with_post() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		ob_start();
+		$this->table->bulk_actions( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression(
+			'/<input[^>]*id="doaction"[^>]*formmethod="post"/',
+			$output,
+			'The Apply button should submit the bulk actions form with POST.'
+		);
+	}
+
+	/**
+	 * The Empty Trash button also submits the selected rows, so it uses POST as well.
+	 *
+	 * @ticket 10762
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
+	 */
+	public function test_empty_trash_button_submits_with_post() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		wp_trash_post( self::$post_ids[0] );
+		$_GET['post_type']       = 'page';
+		$_GET['post_status']     = 'trash';
+		$_REQUEST['post_status'] = 'trash';
+
+		$this->table->prepare_items();
+
+		ob_start();
+		$this->table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		unset( $_GET['post_type'], $_GET['post_status'], $_REQUEST['post_status'] );
+
+		$this->assertMatchesRegularExpression(
+			'/<input[^>]*id="delete_all"[^>]*formmethod="post"/',
+			$output,
+			'The Empty Trash button should submit the form with POST.'
+		);
+	}
+
+	/**
+	 * The bulk edit Update button submits the selected rows, so it uses POST as well.
+	 *
+	 * @ticket 10762
+	 *
+	 * @covers WP_Posts_List_Table::inline_edit
+	 */
+	public function test_bulk_edit_update_button_submits_with_post() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$GLOBALS['post'] = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
+
+		ob_start();
+		$this->table->inline_edit();
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression(
+			'/<input[^>]*id="bulk_edit"[^>]*formmethod="post"/',
+			$output,
+			'The bulk edit Update button should submit the form with POST.'
+		);
+	}
 }

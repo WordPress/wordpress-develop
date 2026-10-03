@@ -636,8 +636,29 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action compact', 'bulk_action', false, array( 'id' => "doaction$two" ) );
+		$apply_attributes = array( 'id' => "doaction$two" );
+		if ( 'post' === $this->get_bulk_actions_method() ) {
+			$apply_attributes['formmethod'] = 'post';
+		}
+
+		submit_button( __( 'Apply' ), 'action compact', 'bulk_action', false, $apply_attributes );
 		echo "\n";
+	}
+
+	/**
+	 * Gets the HTTP method used to submit the bulk actions form.
+	 *
+	 * Defaults to GET for backward compatibility with list tables whose bulk
+	 * action handlers read from `$_GET`. A list table can return 'post' to keep
+	 * the selected item IDs out of the URL, which can otherwise exceed the
+	 * length limit of the server when many items are selected.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string Either 'get' or 'post'.
+	 */
+	protected function get_bulk_actions_method() {
+		return 'get';
 	}
 
 	/**

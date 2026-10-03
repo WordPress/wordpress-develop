@@ -275,4 +275,24 @@ OPTIONS;
 			'all type requested'             => array( 'all' ),
 		);
 	}
+
+	/**
+	 * List tables keep submitting their bulk actions with GET unless they opt in to POST,
+	 * as their bulk action handlers may read from `$_GET`.
+	 *
+	 * @ticket 10762
+	 *
+	 * @covers WP_List_Table::get_bulk_actions_method
+	 * @covers WP_List_Table::bulk_actions
+	 */
+	public function test_bulk_actions_apply_button_does_not_override_form_method_by_default() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		ob_start();
+		$this->table->bulk_actions( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="doaction"', $output, 'The Apply button should be rendered.' );
+		$this->assertStringNotContainsString( 'formmethod', $output, 'The Apply button should not override the form method.' );
+	}
 }
