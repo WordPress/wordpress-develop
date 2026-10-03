@@ -15,7 +15,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Whether the theme has been marked as updateable.
 	 *
 	 * @since 4.4.0
-	 * @var bool
+	 * @var bool|array<string, mixed>
 	 *
 	 * @see WP_MS_Themes_List_Table
 	 */

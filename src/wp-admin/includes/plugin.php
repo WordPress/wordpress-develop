@@ -1477,7 +1477,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @global array $submenu
  * @global array $menu
  * @global array $_wp_real_parent_file
- * @global bool  $_wp_submenu_nopriv
+ * @global array  $_wp_submenu_nopriv
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
