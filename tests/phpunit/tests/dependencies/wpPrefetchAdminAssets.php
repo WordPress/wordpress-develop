@@ -595,6 +595,27 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that assets the current screen has queued but not yet printed are not prefetched either,
+	 * along with their dependencies, so the result does not depend on whether this runs before or
+	 * after the screen's footer scripts.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_skips_assets_queued_but_not_yet_printed(): void {
+		wp_enqueue_script( 'user-profile' );
+		wp_enqueue_style( 'forms' );
+
+		$links = $this->get_prefetched_on_login();
+
+		$this->assertSame( array(), wp_scripts()->done, 'Expected no scripts to have been printed.' );
+		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery(\.min)?\.js#' );
+		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery-migrate(\.min)?\.js#' );
+		$this->assertNotPrefetched( $links, '#/wp-admin/css/forms(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'script', '#/wp-includes/js/utils(\.min)?\.js#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
 	 * Tests that the login screen skips scripts it loads itself in the footer.
 	 *
 	 * wp-login.php enqueues `user-profile` after its header has printed, and that script brings in

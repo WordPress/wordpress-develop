@@ -2543,13 +2543,11 @@ function wp_should_concatenate_admin_scripts(): bool {
  *   compressed, which is far too much to spend on a screen the user may never open, whereas the
  *   stylesheets are render-blocking and in the same size class as the login screen's own prefetch.
  *
- * Handles the current screen has already printed are skipped, so each context only fetches what it
- * is actually adding. On the login screen this runs in the footer, after the footer scripts, since
- * scripts the login form enqueues after its header has printed, such as `user-profile`, bring in
- * some of the same handles, like `jquery`. A prefetch of those in the head would compete with the
- * login screen's own requests for them. On admin screens it runs in the head, where only the
- * editor's stylesheets are prefetched, and a screen prints nearly all of its own stylesheets in
- * the head as well.
+ * Handles the current screen has printed or queued are skipped, along with their dependencies, so
+ * each context only fetches what it is actually adding. On the login screen this runs in the
+ * footer, since some of what the login form loads, such as `user-profile` and the `jquery` it
+ * depends on, is only enqueued after its header has printed. On admin screens it runs in the head,
+ * where the screen's assets have been enqueued already.
  *
  * These are resources for the *next* navigation rather than for the screen printing them, which is
  * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
@@ -2815,37 +2813,54 @@ function wp_prefetch_admin_assets(): void {
 			'script' => array( wp_scripts(), $script_roots ),
 			'style'  => array( wp_styles(), $style_roots ),
 		)
-		as $as => list( $dependencies, $queue )
+		as $as => list( $dependencies, $roots )
 	) {
 		/*
-		 * Expand the roots to include everything they depend on, roots first. A handle that is not
-		 * registered is dropped along with its dependencies.
+		 * Expand the roots to include everything they depend on, roots first, and likewise what the
+		 * current screen has queued. A handle that is not registered is dropped along with its
+		 * dependencies. Unlike WP_Dependencies::all_deps(), this leaves the dependencies' state
+		 * untouched.
 		 */
-		$handles = array();
+		$expanded = array(
+			'roots' => array(),
+			'queue' => array(),
+		);
 
-		while ( $queue ) {
-			$handle = array_shift( $queue );
+		foreach (
+			array(
+				'roots' => $roots,
+				'queue' => $dependencies->queue,
+			)
+			as $list => $handles
+		) {
+			while ( $handles ) {
+				$handle = array_shift( $handles );
 
-			if ( isset( $handles[ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
-				continue;
-			}
+				if ( isset( $expanded[ $list ][ $handle ] ) || ! isset( $dependencies->registered[ $handle ] ) ) {
+					continue;
+				}
 
-			$handles[ $handle ] = true;
+				$expanded[ $list ][ $handle ] = true;
 
-			foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
-				if ( is_string( $dependency ) && '' !== $dependency && ! isset( $handles[ $dependency ] ) ) {
-					$queue[] = $dependency;
+				foreach ( $dependencies->registered[ $handle ]->deps as $dependency ) {
+					if ( is_string( $dependency ) && '' !== $dependency && ! isset( $expanded[ $list ][ $dependency ] ) ) {
+						$handles[] = $dependency;
+					}
 				}
 			}
 		}
 
-		foreach ( array_keys( $handles ) as $handle ) {
-			/*
-			 * Whichever screen this is running on shares some of these handles and has already
-			 * printed them by the time this runs, so the browser is fetching them anyway.
-			 * Prefetching them again would only add markup.
-			 */
-			if ( in_array( $handle, $dependencies->done, true ) ) {
+		/*
+		 * Whichever screen this is running on shares some of these handles, and the browser fetches
+		 * those for it anyway, so prefetching them as well would only compete with its own requests.
+		 * These are the ones it has printed, and the ones it has queued along with their
+		 * dependencies, which it has yet to print if this runs before its footer scripts. On the
+		 * login screen, for instance, `user-profile` brings in `jquery`.
+		 */
+		$on_current_screen = $expanded['queue'] + array_fill_keys( $dependencies->done, true );
+
+		foreach ( array_keys( $expanded['roots'] ) as $handle ) {
+			if ( isset( $on_current_screen[ $handle ] ) ) {
 				continue;
 			}
 
