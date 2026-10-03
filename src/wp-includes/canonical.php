@@ -773,6 +773,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		return null;
 	}
 
+	// Use the site's HTTPS scheme when another canonical change already requires a redirect.
+	// Do not redirect solely to change the scheme, as that can loop behind a reverse proxy.
+	if ( ! empty( $user_home['scheme'] ) && 'https' === $user_home['scheme'] ) {
+		$redirect_url = set_url_scheme( $redirect_url, 'https' );
+	}
+
 	// Hex-encoded octets are case-insensitive.
 	if ( str_contains( $requested_url, '%' ) ) {
 		if ( ! function_exists( 'lowercase_octets' ) ) {
