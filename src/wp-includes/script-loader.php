@@ -2689,24 +2689,32 @@ function wp_prefetch_admin_assets(): void {
 		 * admin would request its assets from its own host rather than from this one. The same goes
 		 * for this host's admin under another scheme, such as an `https` destination from an `http`
 		 * login: the URLs prefetched here take the scheme of the current request, so that admin
-		 * would request different ones. A relative `redirect_to` stays on this host and scheme, and
-		 * a protocol-relative one on this scheme.
+		 * would request different ones. A relative `redirect_to` stays on this host and scheme, while
+		 * wp_validate_redirect() gives a protocol-relative one the `http` scheme, which is where
+		 * wp_safe_redirect() then sends it. A port is compared with the scheme's default filled in
+		 * when none is given, since `https://example.com:443/` is the same admin as
+		 * `https://example.com/`.
 		 */
-		$next_screen_host   = wp_parse_url( $next_screen, PHP_URL_HOST );
-		$next_screen_scheme = wp_parse_url( $next_screen, PHP_URL_SCHEME );
+		$next_screen_host = wp_parse_url( $next_screen, PHP_URL_HOST );
 
-		if (
-			is_string( $next_screen_host ) &&
-			(
+		if ( is_string( $next_screen_host ) ) {
+			$default_ports = array(
+				'http'  => 80,
+				'https' => 443,
+			);
+
+			$admin_scheme       = strtolower( (string) wp_parse_url( $admin_url, PHP_URL_SCHEME ) );
+			$next_screen_scheme = strtolower( (string) wp_parse_url( $next_screen, PHP_URL_SCHEME ) );
+			$admin_port         = wp_parse_url( $admin_url, PHP_URL_PORT ) ?? $default_ports[ $admin_scheme ] ?? null;
+			$next_screen_port   = wp_parse_url( $next_screen, PHP_URL_PORT ) ?? $default_ports[ $next_screen_scheme ] ?? null;
+
+			if (
 				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( $admin_url, PHP_URL_HOST ) ) ||
-				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( $admin_url, PHP_URL_PORT ) ||
-				(
-					is_string( $next_screen_scheme ) &&
-					strtolower( $next_screen_scheme ) !== strtolower( (string) wp_parse_url( $admin_url, PHP_URL_SCHEME ) )
-				)
-			)
-		) {
-			return;
+				$next_screen_scheme !== $admin_scheme ||
+				$next_screen_port !== $admin_port
+			) {
+				return;
+			}
 		}
 	} else {
 		$post_type        = ( 'edit' === $current_screen->base && $current_screen->post_type ) ? $current_screen->post_type : 'post';

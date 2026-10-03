@@ -460,12 +460,34 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a protocol-relative `redirect_to` pointing at this site's admin prefetches, since it
-	 * keeps the scheme of the login screen.
+	 * Tests that an explicit port that is the scheme's default counts as the admin's own, since
+	 * `http://example.org:80/` is the same admin as `http://example.org/`.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prefetches_for_admin_with_explicit_default_port(): void {
+		$scheme = (string) wp_parse_url( admin_url(), PHP_URL_SCHEME );
+		$host   = (string) wp_parse_url( admin_url(), PHP_URL_HOST );
+		$path   = (string) wp_parse_url( admin_url( 'post-new.php' ), PHP_URL_PATH );
+		$this->assertNull( wp_parse_url( admin_url(), PHP_URL_PORT ), 'Expected the admin URL to have no port.' );
+
+		$default_port = 'https' === $scheme ? 443 : 80;
+
+		$links = $this->get_prefetched_on_login( array( 'redirect_to' => "{$scheme}://{$host}:{$default_port}{$path}" ) );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
+	}
+
+	/**
+	 * Tests that a protocol-relative `redirect_to` pointing at this site's admin prefetches when the
+	 * admin is served over `http`, since wp_validate_redirect() gives such a value the `http` scheme.
 	 *
 	 * @ticket 57548
 	 */
 	public function test_login_prefetches_for_protocol_relative_admin_url(): void {
+		$this->assertSame( 'http', wp_parse_url( admin_url(), PHP_URL_SCHEME ), 'Expected the admin to be served over http.' );
+
 		$redirect_to = (string) preg_replace( '#^https?:#', '', admin_url( 'post-new.php' ) );
 		$this->assertStringStartsWith( '//', $redirect_to );
 
@@ -473,6 +495,22 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
 		$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
+	}
+
+	/**
+	 * Tests that nothing is prefetched from an `https` login screen for a protocol-relative
+	 * `redirect_to`, since wp_validate_redirect() gives it the `http` scheme, which is where
+	 * wp_safe_redirect() then sends the browser.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prints_nothing_for_protocol_relative_admin_url_over_https(): void {
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertSame( 'https', wp_parse_url( admin_url(), PHP_URL_SCHEME ), 'Expected the admin to be served over https.' );
+
+		$redirect_to = (string) preg_replace( '#^https?:#', '', admin_url( 'post-new.php' ) );
+
+		$this->assertSame( array(), $this->get_prefetched_on_login( array( 'redirect_to' => $redirect_to ) ) );
 	}
 
 	/**
