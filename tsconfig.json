@@ -20,13 +20,18 @@
 		"typeRoots": [ "./typings", "./node_modules/@types" ],
 		"types": [
 			"node",
+			"backbone",
 			"wp-globals",
+			"media-uploads",
 			"codemirror/addon/lint/lint",
 			"codemirror/addon/hint/show-hint"
 		]
 	},
 	"include": [],
 	"files": [
+		"src/js/_enqueues/admin/media-library-upload.js",
+		"src/js/_enqueues/admin/media-new-upload.js",
+		"src/js/_enqueues/admin/media-upload-pipeline.js",
 		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
 		"src/js/_enqueues/wp/code-editor.js",
