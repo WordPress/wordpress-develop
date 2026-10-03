@@ -47,7 +47,7 @@ final class WP_Term {
 	 * @since 4.4.0
 	 * @var int
 	 */
-	public $term_group = '';
+	public $term_group = 0;
 
 	/**
 	 * Term Taxonomy ID.

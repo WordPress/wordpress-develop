@@ -63,7 +63,6 @@ includes:
 	- tests/phpstan/baselines/parameter.notFound.neon
 	- tests/phpstan/baselines/parameterByRef.type.neon
 	- tests/phpstan/baselines/parameterByRef.unusedType.neon
-	- tests/phpstan/baselines/property.defaultValue.neon
 	- tests/phpstan/baselines/property.nonObject.neon
 	- tests/phpstan/baselines/property.notFound.neon
 	- tests/phpstan/baselines/property.phpDocType.neon
