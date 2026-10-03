@@ -477,7 +477,11 @@ class WP_Styles extends WP_Dependencies {
 
 		$obj = $this->registered[ $handle ];
 
-		// A handle whose source is `true`, like `colors`, gets its URL from the 'style_loader_src' filter.
+		/*
+		 * An alias, with no source of its own, has no URL. A source of `true`, like that of `colors`,
+		 * gets past this, since its URL comes from the 'style_loader_src' filter in build_src(), as
+		 * it does when WP_Styles::do_item() prints the stylesheet.
+		 */
 		if ( ! $obj->src ) {
 			return '';
 		}
