@@ -619,25 +619,27 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Tests that the login screen skips scripts it loads itself in the footer.
 	 *
 	 * wp-login.php enqueues `user-profile` after its header has printed, and that script brings in
-	 * `jquery`, so the login screen loads jQuery in its footer. The prefetching runs after the
-	 * footer scripts, as registered in default-filters.php, so it leaves jQuery out but still
-	 * prefetches `utils`, which the login screen does not load.
+	 * `jquery`, so the login screen loads jQuery in its footer. With the callbacks registered in
+	 * default-filters.php, the prefetching runs in the footer, after the footer scripts, so it
+	 * leaves jQuery out but still prefetches `utils`, which the login screen does not load.
 	 *
 	 * @ticket 57548
 	 */
 	public function test_login_skips_scripts_printed_in_footer(): void {
+		$this->assertFalse( has_action( 'login_head', 'wp_prefetch_admin_assets' ), 'Expected no prefetching from the head of the login screen.' );
+		$this->assertIsInt( has_action( 'login_footer', 'wp_prefetch_admin_assets' ), 'Expected prefetching from the footer of the login screen.' );
+
 		$this->go_to_login_screen();
-
-		remove_all_actions( 'login_footer' );
-		add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
-		add_action( 'login_footer', 'wp_prefetch_admin_assets', 21 );
-
 		wp_enqueue_script( 'user-profile' );
 
 		$output = get_echo( 'do_action', array( 'login_footer' ) );
 		$links  = $this->parse_prefetch_links( $output );
 
-		$this->assertMatchesRegularExpression( '#<script[^>]+src=[\'"][^\'"]*/wp-includes/js/jquery/jquery(\.min)?\.js#', $output, 'Expected the login screen to load jQuery itself.' );
+		$jquery_position = strpos( $output, '/wp-includes/js/jquery/jquery' );
+		$this->assertIsInt( $jquery_position, 'Expected the login screen to load jQuery itself.' );
+		$this->assertMatchesRegularExpression( '#<script[^>]+src=[\'"][^\'"]*/wp-includes/js/jquery/jquery(\.min)?\.js#', $output, 'Expected jQuery to be loaded with a script tag.' );
+		$this->assertGreaterThan( $jquery_position, strpos( $output, "rel='prefetch'" ), 'Expected the prefetch links to follow the footer scripts.' );
+
 		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery(\.min)?\.js#' );
 		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery-migrate(\.min)?\.js#' );
 		$this->assertPrefetched( $links, 'script', '#/wp-includes/js/utils(\.min)?\.js#' );
@@ -673,23 +675,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$this->assertNull( $GLOBALS['current_screen'] ?? null, 'Expected no current screen.' );
 
 		$this->assertSame( '', get_echo( 'wp_prefetch_admin_assets' ) );
-	}
-
-	/**
-	 * Tests that the prefetching from the login screen is hooked to run after its footer scripts.
-	 *
-	 * @ticket 57548
-	 *
-	 * @coversNothing
-	 */
-	public function test_login_hook_follows_footer_scripts(): void {
-		$prefetch_priority = has_action( 'login_footer', 'wp_prefetch_admin_assets' );
-		$scripts_priority  = has_action( 'login_footer', 'wp_print_footer_scripts' );
-
-		$this->assertIsInt( $prefetch_priority );
-		$this->assertIsInt( $scripts_priority );
-		$this->assertGreaterThan( $scripts_priority, $prefetch_priority );
-		$this->assertFalse( has_action( 'login_head', 'wp_prefetch_admin_assets' ) );
 	}
 
 	/**
