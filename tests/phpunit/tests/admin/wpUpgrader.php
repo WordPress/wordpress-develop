@@ -76,6 +76,34 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns a callback that asserts each successive call's arguments against
+	 * an expected sequence, then returns a fixed value.
+	 *
+	 * Replacement for `withConsecutive()`, which was removed in PHPUnit 10.
+	 *
+	 * @param array $expected_args_list Sequential list of expected argument arrays, one per call.
+	 * @param mixed $return_value       Optional. The value to return from every call. Default null.
+	 * @return Closure
+	 */
+	private function get_consecutive_calls_callback( array $expected_args_list, $return_value = null ) {
+		$call_index = 0;
+
+		return function ( ...$args ) use ( &$call_index, $expected_args_list, $return_value ) {
+			$expected_args = $expected_args_list[ $call_index ];
+
+			$this->assertSame(
+				$expected_args,
+				array_slice( $args, 0, count( $expected_args ) ),
+				"Unexpected arguments for call #{$call_index}"
+			);
+
+			++$call_index;
+
+			return $return_value;
+		};
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::__construct()` creates a skin when one is not
 	 * passed to the constructor.
 	 *
@@ -668,8 +696,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$wp_filesystem_mock
 				->expects( $this->exactly( 4 ) )
 				->method( 'is_writable' )
-				->withConsecutive( ...$unwritable_checks )
-				->willReturn( false );
+				->willReturnCallback( $this->get_consecutive_calls_callback( $unwritable_checks, false ) );
 
 		$actual = self::$instance->clear_destination( $destination );
 
@@ -1119,9 +1146,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$upgrader_skin_mock
 				->expects( $this->exactly( 2 ) )
 				->method( 'feedback' )
-				->withConsecutive(
-					array( 'installing_package' ),
-					array( 'remove_old' )
+				->willReturnCallback(
+					$this->get_consecutive_calls_callback(
+						array(
+							array( 'installing_package' ),
+							array( 'remove_old' ),
+						)
+					)
 				);
 
 		self::$wp_filesystem_mock
@@ -1146,8 +1177,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$wp_filesystem_mock
 				->expects( $this->exactly( 3 ) )
 				->method( 'dirlist' )
-				->withConsecutive( ...$dirlist_args )
-				->willReturn( $dirlist_results );
+				->willReturnCallback( $this->get_consecutive_calls_callback( $dirlist_args, $dirlist_results ) );
 
 		add_filter(
 			'upgrader_clear_destination',
@@ -1218,9 +1248,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$upgrader_skin_mock
 				->expects( $this->exactly( 2 ) )
 				->method( 'feedback' )
-				->withConsecutive(
-					array( 'installing_package' ),
-					array( 'remove_old' )
+				->willReturnCallback(
+					$this->get_consecutive_calls_callback(
+						array(
+							array( 'installing_package' ),
+							array( 'remove_old' ),
+						)
+					)
 				);
 
 		self::$wp_filesystem_mock
@@ -1245,8 +1279,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$wp_filesystem_mock
 				->expects( $this->exactly( 3 ) )
 				->method( 'dirlist' )
-				->withConsecutive( ...$dirlist_args )
-				->willReturn( $dirlist_results );
+				->willReturnCallback( $this->get_consecutive_calls_callback( $dirlist_args, $dirlist_results ) );
 
 		add_filter(
 			'upgrader_clear_destination',
@@ -1331,8 +1364,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$wp_filesystem_mock
 				->expects( $this->exactly( 3 ) )
 				->method( 'dirlist' )
-				->withConsecutive( ...$dirlist_args )
-				->willReturn( $dirlist_results );
+				->willReturnCallback( $this->get_consecutive_calls_callback( $dirlist_args, $dirlist_results ) );
 
 		self::$wp_filesystem_mock
 				->expects( $this->once() )
@@ -1408,8 +1440,7 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 		self::$wp_filesystem_mock
 				->expects( $this->exactly( 2 ) )
 				->method( 'dirlist' )
-				->withConsecutive( ...$dirlist_args )
-				->willReturn( $dirlist_results );
+				->willReturnCallback( $this->get_consecutive_calls_callback( $dirlist_args, $dirlist_results ) );
 
 		self::$wp_filesystem_mock
 				->expects( $this->once() )
