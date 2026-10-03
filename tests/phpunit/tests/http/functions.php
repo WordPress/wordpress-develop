@@ -56,41 +56,18 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Builds a WP_Http-shaped response via WP_HTTP_Requests_Response conversion.
-	 *
-	 * Suitable for retrieval-helper coverage that does not need transport or
-	 * redirect behavior.
-	 *
-	 * @param int                  $status_code HTTP status code.
-	 * @param array<string,string> $headers     Optional. Response headers.
-	 * @param string               $body        Optional. Response body.
-	 * @return array Response data in the shape returned by the HTTP API.
-	 */
-	private function build_response_from_requests( $status_code, $headers = array(), $body = '' ) {
-		$requests_response              = new WpOrg\Requests\Response();
-		$requests_response->status_code = $status_code;
-		$requests_response->body        = $body;
-
-		foreach ( $headers as $name => $value ) {
-			$requests_response->headers[ $name ] = $value;
-		}
-
-		return ( new WP_HTTP_Requests_Response( $requests_response ) )->to_array();
-	}
-
-	/**
+	 * @covers ::wp_remote_head
 	 * @covers ::wp_remote_retrieve_headers
 	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers WP_HTTP_Requests_Response::to_array
 	 */
 	public function test_head_request() {
-		$response = $this->build_response_from_requests(
-			200,
-			array(
-				'Content-Type'   => 'image/png',
-				'Content-Length' => '153204',
-			)
-		);
+		$this->use_mock_transport();
+
+		// This URL gives a direct 200 response.
+		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
+		$response = wp_remote_head( $url );
+
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
@@ -129,21 +106,22 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_headers
 	 * @covers ::wp_remote_retrieve_response_code
-	 * @covers WP_HTTP_Requests_Response::to_array
 	 */
 	public function test_get_request() {
-		$response = $this->build_response_from_requests(
-			200,
-			array(
-				'Content-Type'   => 'image/png',
-				'Content-Length' => '153204',
-			)
-		);
+		$this->use_mock_transport();
+
+		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
+
+		$response = wp_remote_get( $url );
+
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
+		// Should return the same headers as a HEAD request.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 		$this->assertSame( 'image/png', $headers['Content-Type'] );
 		$this->assertSame( '153204', $headers['Content-Length'] );
