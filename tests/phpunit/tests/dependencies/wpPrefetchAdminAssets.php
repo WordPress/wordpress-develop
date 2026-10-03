@@ -703,7 +703,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 *
 	 * @ticket 57548
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 */
 	public function test_skips_conditional_handles(): void {
 		wp_styles()->add_data( 'forms', 'conditional', 'IE' );
