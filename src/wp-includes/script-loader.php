@@ -2567,10 +2567,9 @@ function wp_should_concatenate_admin_scripts(): bool {
  * screen will later ask for, which is what lets the prefetched response be reused.
  *
  * The admin-wide handles cover every admin screen rather than only the Dashboard, so that part of
- * the list does not vary with where the login lands. Nothing is printed at all when the login is
- * not going to lead to an admin screen: on the password reset, registration, logout and
- * check-your-email flows, on an interim login, or when `redirect_to` points outside this site's
- * admin.
+ * the list does not vary with where the login lands. They are printed on every screen of the login
+ * page, such as the password reset form, since those mostly lead to the admin as well. Nothing is
+ * printed at all when `redirect_to` points outside this site's admin.
  *
  * Nothing is printed when the next screen will concatenate its assets, since `load-scripts.php`
  * and `load-styles.php` already collapse these handles into a handful of requests.
@@ -2580,15 +2579,17 @@ function wp_should_concatenate_admin_scripts(): bool {
  * @see wp_preload_resources()
  * @see wp_should_concatenate_admin_scripts()
  *
- * @global bool        $concatenate_scripts Whether scripts and styles are concatenated.
- * @global string      $action              The action that brought the visitor to the login page.
- * @global bool|string $interim_login       Whether interim login modal is being displayed. String
- *                                          'success' upon successful login.
+ * @global bool           $concatenate_scripts Whether scripts and styles are concatenated.
+ * @global WP_Screen|null $current_screen      The current admin screen, if any.
  */
 function wp_prefetch_admin_assets(): void {
-	global $concatenate_scripts;
+	global $concatenate_scripts, $current_screen;
 
-	$on_login = ( 'login_footer' === current_action() );
+	/*
+	 * The context is told apart by the request rather than by the hook this runs on, so it works
+	 * from whichever hook it is added to.
+	 */
+	$on_login = is_login();
 
 	if ( $on_login ) {
 		/*
@@ -2598,18 +2599,31 @@ function wp_prefetch_admin_assets(): void {
 		 * false whatever the constant says. What matters here is what the admin screen this login
 		 * leads to will do, which is what wp_should_concatenate_admin_scripts() predicts.
 		 */
-		$next_screen_concatenates = wp_should_concatenate_admin_scripts();
+		if ( wp_should_concatenate_admin_scripts() ) {
+			return;
+		}
 	} else {
+		/*
+		 * From the Dashboard and the post list tables, the editor is the usual next stop. Anywhere
+		 * else in the admin there is no destination worth guessing at.
+		 *
+		 * The global is read rather than calling get_current_screen(), which only exists once the
+		 * admin includes are loaded. On a request with no screen, such as one for the front end,
+		 * this prints nothing.
+		 */
+		if ( ! $current_screen instanceof WP_Screen || ! in_array( $current_screen->base, array( 'dashboard', 'edit' ), true ) ) {
+			return;
+		}
+
 		/*
 		 * On an admin screen the global has settled by the time its head is printed, and the editor
 		 * will be served the same way.
 		 */
 		script_concat_settings();
-		$next_screen_concatenates = (bool) $concatenate_scripts;
-	}
 
-	if ( $next_screen_concatenates ) {
-		return;
+		if ( $concatenate_scripts ) {
+			return;
+		}
 	}
 
 	$script_roots = array();
@@ -2617,25 +2631,19 @@ function wp_prefetch_admin_assets(): void {
 
 	if ( $on_login ) {
 		/*
-		 * Only the login form is followed by an admin screen. The password reset, registration,
-		 * logout confirmation and check-your-email flows all render through 'login_footer' too, and
-		 * none of them leads anywhere these assets are wanted. An interim login re-authenticates
-		 * inside a modal on a page that has already loaded them, so it does not need them either.
-		 *
-		 * The action is the one wp-login.php has already resolved rather than the request parameter,
-		 * which it overrides: a `key` switches to the password reset form and `checkemail` to the
-		 * check-your-email message, while an action it does not recognize falls back to the login form.
-		 */
-		global $action, $interim_login;
-
-		if ( 'login' !== $action || $interim_login ) {
-			return;
-		}
-
-		/*
 		 * Resolve where the login is going to land, the same way wp-login.php will: `redirect_to`
 		 * when one was given, and the admin otherwise. wp_validate_redirect() mirrors what
 		 * wp_safe_redirect() does with a value pointing off-host, which is to fall back to the admin.
+		 *
+		 * This runs on every screen wp-login.php prints, not only the login form, since the others
+		 * mostly lead to the admin as well, and each one gives the prefetching another chance to
+		 * finish before the user gets there. The password reset and registration flows end at the
+		 * login form, and the admin email confirmation follows a login that has already succeeded.
+		 * On the lost password and registration screens, `redirect_to` is where submitting the
+		 * form goes rather than where the login lands, but it is normally absent, and when it is
+		 * not, it typically points back into wp-login.php, so nothing is prefetched. Nor does an
+		 * interim login need to be excluded: it shows inside a modal on an admin screen that has
+		 * already loaded these assets, so they are served from the HTTP cache.
 		 */
 		$next_screen = admin_url();
 
@@ -2679,17 +2687,7 @@ function wp_prefetch_admin_assets(): void {
 			return;
 		}
 	} else {
-		/*
-		 * From the Dashboard and the post list tables, the editor is the usual next stop. Anywhere
-		 * else in the admin there is no destination worth guessing at.
-		 */
-		$screen = get_current_screen();
-
-		if ( ! $screen instanceof WP_Screen || ! in_array( $screen->base, array( 'dashboard', 'edit' ), true ) ) {
-			return;
-		}
-
-		$post_type        = ( 'edit' === $screen->base && $screen->post_type ) ? $screen->post_type : 'post';
+		$post_type        = ( 'edit' === $current_screen->base && $current_screen->post_type ) ? $current_screen->post_type : 'post';
 		$post_type_object = get_post_type_object( $post_type );
 
 		if ( ! $post_type_object instanceof WP_Post_Type ) {

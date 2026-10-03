@@ -24,16 +24,25 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	private $original_globals = array();
 
 	/**
+	 * Name of the script handling the request before the test, which tests on the login screen change.
+	 *
+	 * @var mixed
+	 */
+	private $original_script_name;
+
+	/**
 	 * Gives each test fresh script and style registries, since several tests modify them, and turns
 	 * concatenation off.
 	 */
 	public function set_up(): void {
 		parent::set_up();
 
-		foreach ( array( 'wp_scripts', 'wp_styles', 'concatenate_scripts', 'action', 'interim_login' ) as $name ) {
+		foreach ( array( 'wp_scripts', 'wp_styles', 'concatenate_scripts' ) as $name ) {
 			$this->original_globals[ $name ] = $GLOBALS[ $name ] ?? null;
 			unset( $GLOBALS[ $name ] );
 		}
+
+		$this->original_script_name = $_SERVER['SCRIPT_NAME'] ?? null;
 
 		add_filter( 'wp_should_concatenate_admin_scripts', '__return_false' );
 	}
@@ -48,6 +57,12 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			} else {
 				$GLOBALS[ $name ] = $value;
 			}
+		}
+
+		if ( null === $this->original_script_name ) {
+			unset( $_SERVER['SCRIPT_NAME'] );
+		} else {
+			$_SERVER['SCRIPT_NAME'] = $this->original_script_name;
 		}
 
 		parent::tear_down();
@@ -265,46 +280,86 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that every screen of the login page prefetches the admin's assets, not only the login
+	 * form, since the others mostly lead to the admin as well.
+	 *
+	 * @ticket 57548
+	 *
+	 * @dataProvider data_login_screens
+	 *
+	 * @param array<string, string> $request Request parameters of the login screen.
+	 */
+	public function test_login_prefetches_on_every_login_screen( array $request ): void {
+		$links = $this->get_prefetched_on_login( $request );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_login_prefetches_on_every_login_screen()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
+	 */
+	public function data_login_screens(): array {
+		return array(
+			'login form'           => array( array() ),
+			'lost password'        => array( array( 'action' => 'lostpassword' ) ),
+			'registration'         => array( array( 'action' => 'register' ) ),
+			'password reset key'   => array(
+				array(
+					'key'   => 'abc',
+					'login' => 'admin',
+				),
+			),
+			'check email'          => array( array( 'checkemail' => 'confirm' ) ),
+			'interim login'        => array( array( 'interim-login' => '1' ) ),
+			'unrecognized action'  => array( array( 'action' => 'unrecognized' ) ),
+			'admin email reminder' => array(
+				array(
+					'action'      => 'confirm_admin_email',
+					'redirect_to' => '/wp-admin/',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests that nothing is prefetched from login screens that do not lead to the admin.
 	 *
 	 * @ticket 57548
 	 *
 	 * @dataProvider data_login_requests_not_leading_to_admin
 	 *
-	 * @param array<string, string> $request       Request parameters of the login screen.
-	 * @param string|null           $action        Action as resolved by wp-login.php.
-	 * @param bool                  $interim_login Whether the interim login modal is displayed.
+	 * @param array<string, string> $request Request parameters of the login screen.
 	 */
-	public function test_login_prints_nothing_when_not_leading_to_admin( array $request, ?string $action, bool $interim_login ): void {
-		$this->assertSame( array(), $this->get_prefetched_on_login( $request, $action, $interim_login ) );
+	public function test_login_prints_nothing_when_not_leading_to_admin( array $request ): void {
+		$this->assertSame( array(), $this->get_prefetched_on_login( $request ) );
 	}
 
 	/**
 	 * Data provider for {@see self::test_login_prints_nothing_when_not_leading_to_admin()}.
 	 *
-	 * The action is the one wp-login.php resolves for the request.
+	 * On the lost password and registration screens, `redirect_to` is where submitting the form
+	 * goes, which is typically back into wp-login.php.
 	 *
-	 * @return array<non-falsy-string, array{ 0: array<string, string>, 1: string|null, 2: bool }>
+	 * @return array<non-falsy-string, array{ 0: array<string, string> }>
 	 */
 	public function data_login_requests_not_leading_to_admin(): array {
 		return array(
-			'lost password'                => array( array( 'action' => 'lostpassword' ), 'lostpassword', false ),
-			'registration'                 => array( array( 'action' => 'register' ), 'register', false ),
-			'logout'                       => array( array( 'action' => 'logout' ), 'logout', false ),
-			'password reset key'           => array(
+			'front end redirect'                 => array( array( 'redirect_to' => '/hello-world/' ) ),
+			'lookalike admin path'               => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
+			'lost password redirecting to login' => array(
 				array(
-					'key'   => 'abc',
-					'login' => 'admin',
+					'action'      => 'lostpassword',
+					'redirect_to' => 'wp-login.php?checkemail=confirm',
 				),
-				'resetpass',
-				false,
 			),
-			'check email'                  => array( array( 'checkemail' => 'confirm' ), 'checkemail', false ),
-			'check email after register'   => array( array( 'checkemail' => 'registered' ), 'checkemail', false ),
-			'interim login'                => array( array( 'interim-login' => '1' ), 'login', true ),
-			'login_footer fired by plugin' => array( array(), null, false ),
-			'front end redirect'           => array( array( 'redirect_to' => '/hello-world/' ), 'login', false ),
-			'lookalike admin path'         => array( array( 'redirect_to' => '/wp-admin-lookalike/' ), 'login', false ),
+			'registration redirecting to login'  => array(
+				array(
+					'action'      => 'register',
+					'redirect_to' => 'wp-login.php?checkemail=registered',
+				),
+			),
 		);
 	}
 
@@ -315,18 +370,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function test_login_prints_nothing_for_absolute_front_end_redirect(): void {
 		$this->assertSame( array(), $this->get_prefetched_on_login( array( 'redirect_to' => home_url( '/hello-world/' ) ) ) );
-	}
-
-	/**
-	 * Tests that the action wp-login.php resolved is used rather than the request parameter, so an
-	 * action wp-login.php does not recognize, which it treats as the login form, still prefetches.
-	 *
-	 * @ticket 57548
-	 */
-	public function test_login_uses_action_resolved_by_wp_login(): void {
-		$links = $this->get_prefetched_on_login( array( 'action' => 'unrecognized' ), 'login' );
-
-		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
 	}
 
 	/**
@@ -555,8 +598,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * @ticket 57548
 	 */
 	public function test_login_skips_scripts_printed_in_footer(): void {
-		$GLOBALS['action']        = 'login';
-		$GLOBALS['interim_login'] = false;
+		$this->go_to_login_screen();
 
 		remove_all_actions( 'login_footer' );
 		add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
@@ -572,6 +614,37 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery-migrate(\.min)?\.js#' );
 		$this->assertPrefetched( $links, 'script', '#/wp-includes/js/utils(\.min)?\.js#' );
 		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
+	 * Tests that the login screen is recognized by the request rather than by the hook, so that the
+	 * prefetching still works when it is moved to another hook, such as back to the head.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prefetches_from_another_hook(): void {
+		$this->go_to_login_screen();
+
+		remove_all_actions( 'login_head' );
+		add_action( 'login_head', 'wp_prefetch_admin_assets' );
+
+		$links = $this->parse_prefetch_links( get_echo( 'do_action', array( 'login_head' ) ) );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
+	 * Tests that nothing is printed, and no error raised, on a request that is neither for the login
+	 * screen nor for an admin screen, such as one for the front end, where get_current_screen() is
+	 * not defined unless the admin includes have been loaded.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_prints_nothing_on_front_end(): void {
+		$this->assertFalse( is_login(), 'Expected the request not to be for the login screen.' );
+		$this->assertNull( $GLOBALS['current_screen'] ?? null, 'Expected no current screen.' );
+
+		$this->assertSame( '', get_echo( 'wp_prefetch_admin_assets' ) );
 	}
 
 	/**
@@ -772,37 +845,36 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	/**
 	 * Runs the login screen's prefetching and returns the links it printed.
 	 *
-	 * @param array<string, string> $request       Request parameters of the login screen.
-	 * @param string|null           $action        Action as resolved by wp-login.php, or null for
-	 *                                             `login_footer` fired by a plugin outside of it.
-	 * @param bool                  $interim_login Whether wp-login.php is displaying the interim
-	 *                                             login modal.
+	 * @param array<string, string> $request Request parameters of the login screen.
 	 * @return list<array{ href: string, as: string }> Prefetch links in the order printed.
 	 */
-	private function get_prefetched_on_login( array $request = array(), ?string $action = 'login', bool $interim_login = false ): array {
-		return $this->parse_prefetch_links( $this->get_login_footer_output( $request, $action, $interim_login ) );
+	private function get_prefetched_on_login( array $request = array() ): array {
+		return $this->parse_prefetch_links( $this->get_login_footer_output( $request ) );
 	}
 
 	/**
 	 * Runs the login screen's prefetching and returns everything it printed.
 	 *
-	 * @param array<string, string> $request       Request parameters of the login screen.
-	 * @param string|null           $action        Action as resolved by wp-login.php, or null for
-	 *                                             `login_footer` fired by a plugin outside of it.
-	 * @param bool                  $interim_login Whether wp-login.php is displaying the interim
-	 *                                             login modal.
+	 * @param array<string, string> $request Request parameters of the login screen.
 	 * @return string Printed markup.
 	 */
-	private function get_login_footer_output( array $request = array(), ?string $action = 'login', bool $interim_login = false ): string {
+	private function get_login_footer_output( array $request = array() ): string {
 		$_REQUEST = $request;
 
-		$GLOBALS['action']        = $action;
-		$GLOBALS['interim_login'] = $interim_login;
+		$this->go_to_login_screen();
 
 		remove_all_actions( 'login_footer' );
 		add_action( 'login_footer', 'wp_prefetch_admin_assets' );
 
 		return get_echo( 'do_action', array( 'login_footer' ) );
+	}
+
+	/**
+	 * Makes the request one for the login screen.
+	 */
+	private function go_to_login_screen(): void {
+		$_SERVER['SCRIPT_NAME'] = (string) wp_parse_url( wp_login_url(), PHP_URL_PATH );
+		$this->assertTrue( is_login(), 'Expected the request to be for the login screen.' );
 	}
 
 	/**
