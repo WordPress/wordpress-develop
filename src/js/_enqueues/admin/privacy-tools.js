@@ -240,6 +240,7 @@ jQuery( function( $ ) {
 			if ( false === hasRemoved ) {
 				if ( false === hasRetained ) {
 					summaryMessage = __( 'No personal data was found for this user.' );
+					classes = 'notice-info';
 				} else {
 					summaryMessage = __( 'Personal data was found for this user but was not erased.' );
 					classes = 'notice-warning';
