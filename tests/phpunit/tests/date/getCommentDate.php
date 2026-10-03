@@ -34,18 +34,16 @@ class Tests_Date_GetCommentDate extends WP_UnitTestCase {
 	public function test_get_comment_time_returns_correct_time() {
 		$c = self::factory()->comment->create( array( 'comment_date' => '2020-08-29 01:51:00' ) );
 
-		$GLOBALS['comment'] = get_comment( $c );
-		$this->assertSame( '1:51 am', get_comment_time( 'g:i a' ) );
+		$this->assertSame( '1:51 am', get_comment_time( 'g:i a', 'local', false, $c ) );
 	}
 
 	/**
 	 * @ticket 51184
 	 */
 	public function test_get_comment_time_returns_correct_time_with_empty_format() {
-		$c = self::factory()->comment->create( array( 'comment_date' => '2020-08-29 01:51:00' ) );
+		$GLOBALS['comment'] = self::factory()->comment->create( array( 'comment_date' => '2020-08-29 01:51:00' ) );
 
-		$GLOBALS['comment'] = get_comment( $c );
-		$this->assertSame( '1:51 am', get_comment_time( '' ) );
-		$this->assertSame( '1:51 am', get_comment_time( false ) );
+		$this->assertSame( '1:51 am', get_comment_time() );
+		$this->assertSame( 1598665860, get_comment_time( 'U' ) );
 	}
 }
