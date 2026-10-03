@@ -71,7 +71,7 @@ class Tests_Image_Alttext extends WP_UnitTestCase {
 	 * @param string $message  Optional failure message.
 	 */
 	private function assert_alttext_matches_or_empty_without_dom( $expected, $actual, $message = '' ) {
-		if ( ! class_exists( 'DOMDocument', false ) || ! class_exists( 'DOMXPath', false ) ) {
+		if ( ! class_exists( 'DOMDocument', false ) ) {
 			$this->assertSame( '', $actual, 'Expected empty string when DOM extension is not available.' );
 			return;
 		}

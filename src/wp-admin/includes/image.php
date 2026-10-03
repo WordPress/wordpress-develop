@@ -1088,7 +1088,7 @@ function wp_read_image_metadata( $file ) {
 function wp_get_image_alttext( $file ) {
 	$alt_text = '';
 
-	if ( ! class_exists( 'DOMDocument', false ) || ! class_exists( 'DOMXPath', false ) ) {
+	if ( ! class_exists( 'DOMDocument', false ) ) {
 		return $alt_text;
 	}
 
