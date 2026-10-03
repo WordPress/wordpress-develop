@@ -2915,7 +2915,13 @@ function wp_prefetch_admin_assets(): void {
 			continue;
 		}
 
-		if ( isset( $unique_resources[ $href ] ) ) {
+		/*
+		 * Check again once escaped, since esc_url() returns an empty string for a URL it rejects.
+		 * An empty `href` would resolve to the current page, which the script below would then fetch.
+		 */
+		$href = esc_url( $href );
+
+		if ( '' === $href || isset( $unique_resources[ $href ] ) ) {
 			continue;
 		}
 
@@ -2926,11 +2932,11 @@ function wp_prefetch_admin_assets(): void {
 		return;
 	}
 
-	// Build and output the HTML for each unique resource.
+	// Build and output the HTML for each unique resource. Each URL has already been escaped.
 	foreach ( $unique_resources as $href => $as ) {
 		printf(
 			"<link rel='prefetch' href='%s' as='%s' />\n",
-			esc_url( $href ),
+			$href,
 			esc_attr( $as )
 		);
 	}

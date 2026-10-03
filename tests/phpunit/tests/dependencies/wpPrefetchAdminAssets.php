@@ -568,6 +568,11 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 						'href' => '',
 						'as'   => 'script',
 					),
+					// Rejected by esc_url(), so it would otherwise be printed with an empty `href`.
+					array(
+						'href' => 'javascript:alert(1)',
+						'as'   => 'script',
+					),
 					'not an array',
 				);
 			}
