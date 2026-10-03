@@ -415,7 +415,7 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		$src = $this->get_src( $handle );
+		$src = esc_url_raw( $this->get_src( $handle ) );
 
 		if ( ! $src ) {
 			return true;
@@ -479,6 +479,8 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * This is the URL printed in the script's `src` attribute, including the version query
 	 * argument and any arguments added to the handle, after the {@see 'script_loader_src'} filter.
+	 * Like {@see WP_Script_Modules::get_src()}, it is neither sanitized nor escaped, so a caller
+	 * can pass it through esc_url_raw(), as WP_Scripts::do_item() does, or esc_url(), once.
 	 *
 	 * @since 7.2.0
 	 *
@@ -532,7 +534,7 @@ class WP_Scripts extends WP_Dependencies {
 		/** This filter is documented in wp-includes/class-wp-scripts.php */
 		$src = apply_filters( 'script_loader_src', $src, $handle );
 
-		return is_string( $src ) ? esc_url_raw( $src ) : '';
+		return is_string( $src ) ? $src : '';
 	}
 
 	/**

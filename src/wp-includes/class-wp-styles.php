@@ -224,8 +224,7 @@ class WP_Styles extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
-		// Not get_rtl_src(), which would sanitize the URL before it is escaped here, running the 'clean_url' filter twice.
-		$rtl_src = $this->build_rtl_src( $handle );
+		$rtl_src = $this->get_rtl_src( $handle );
 
 		if ( null !== $rtl_src ) {
 			$rtl_href = esc_url( $rtl_src );
@@ -268,7 +267,8 @@ class WP_Styles extends WP_Dependencies {
 	 * stylesheet, which either replaces its left-to-right one (when the data is `'replace'`)
 	 * or loads alongside it.
 	 *
-	 * Like {@see WP_Styles::get_src()}, the URL is not escaped for an HTML attribute.
+	 * Like {@see WP_Styles::get_src()}, the URL is neither sanitized nor escaped, so a caller can
+	 * pass it through esc_url() to print it, or esc_url_raw() otherwise, once.
 	 *
 	 * @since 7.2.0
 	 *
@@ -278,23 +278,6 @@ class WP_Styles extends WP_Dependencies {
 	 *                     not registered, has no source of its own, or has no right-to-left variant.
 	 */
 	public function get_rtl_src( string $handle ): ?string {
-		$src = $this->build_rtl_src( $handle );
-
-		return null === $src ? null : esc_url_raw( $src );
-	}
-
-	/**
-	 * Builds the URL of the right-to-left stylesheet for a registered style.
-	 *
-	 * The result is not sanitized or escaped, so callers can do either once, for where it is used.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $handle The style's registered handle.
-	 * @return string|null URL of the right-to-left stylesheet, after the {@see 'style_loader_src'}
-	 *                     filter, or null when there is none. See {@see WP_Styles::get_rtl_src()}.
-	 */
-	private function build_rtl_src( string $handle ): ?string {
 		if ( 'rtl' !== $this->text_direction || ! isset( $this->registered[ $handle ] ) ) {
 			return null;
 		}
@@ -477,7 +460,9 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * This is the URL printed in the stylesheet's `href` attribute, including the version query
 	 * argument and any arguments added to the handle, after the {@see 'style_loader_src'} filter.
-	 * Unlike {@see WP_Styles::_css_href()}, it is not escaped for an HTML attribute.
+	 * Unlike {@see WP_Styles::_css_href()}, it is neither sanitized nor escaped, so a caller can
+	 * pass it through esc_url() to print it, or esc_url_raw() otherwise, once. This is the same as
+	 * {@see WP_Script_Modules::get_src()}.
 	 *
 	 * @since 7.2.0
 	 *
@@ -497,7 +482,7 @@ class WP_Styles extends WP_Dependencies {
 			return '';
 		}
 
-		return esc_url_raw( $this->build_src( $obj->src, $obj->ver, $handle ) );
+		return $this->build_src( $obj->src, $obj->ver, $handle );
 	}
 
 	/**

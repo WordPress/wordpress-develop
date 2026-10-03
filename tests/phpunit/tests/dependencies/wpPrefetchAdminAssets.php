@@ -698,6 +698,34 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that each prefetched URL is sanitized only once, so that the {@see 'clean_url'} filter
+	 * runs once for it, as it does for the URL in the tag the next screen prints.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_prefetched_urls_run_clean_url_filter_once(): void {
+		// The contexts the filter ran in, keyed by the URL it was given, before it was escaped.
+		$calls = array();
+		add_filter(
+			'clean_url',
+			static function ( string $good_protocol_url, string $original_url, string $context ) use ( &$calls ): string {
+				$calls[ $original_url ][] = $context;
+				return $good_protocol_url;
+			},
+			10,
+			3
+		);
+
+		$links = $this->get_prefetched_on_login();
+		$this->assertNotSame( array(), $links );
+
+		foreach ( $links as $link ) {
+			$href = html_entity_decode( $link['href'], ENT_QUOTES );
+			$this->assertSame( array( 'display' ), $calls[ $href ] ?? array(), "Expected the 'clean_url' filter to run once for {$href}." );
+		}
+	}
+
+	/**
 	 * Tests that stylesheet URLs reach the filter unescaped, like script URLs, so that a callback
 	 * appending the plain form of one is collapsed with it.
 	 *
