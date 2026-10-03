@@ -334,6 +334,11 @@ abstract class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 			$query_vars = array_merge( $query_vars, $_qv );
 		}
 
+		/*
+		 * Keep assertEquals() because rewrite and $_GET query vars mix integer
+		 * and string scalars (for example paged), while expected fixtures often
+		 * use integers. Identity comparisons would fail on type alone.
+		 */
 		$this->assertEquals( $expected['qv'], $query_vars );
 	}
 
