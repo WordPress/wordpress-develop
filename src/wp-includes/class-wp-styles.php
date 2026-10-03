@@ -224,7 +224,8 @@ class WP_Styles extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'style_loader_tag', $tag, $handle, $href, $media );
 
-		$rtl_src = $this->get_rtl_src( $handle );
+		// Not get_rtl_src(), which would sanitize the URL before it is escaped here, running the 'clean_url' filter twice.
+		$rtl_src = $this->build_rtl_src( $handle );
 
 		if ( null !== $rtl_src ) {
 			$rtl_href = esc_url( $rtl_src );
@@ -277,6 +278,23 @@ class WP_Styles extends WP_Dependencies {
 	 *                     not registered, has no source of its own, or has no right-to-left variant.
 	 */
 	public function get_rtl_src( string $handle ): ?string {
+		$src = $this->build_rtl_src( $handle );
+
+		return null === $src ? null : esc_url_raw( $src );
+	}
+
+	/**
+	 * Builds the URL of the right-to-left stylesheet for a registered style.
+	 *
+	 * The result is not sanitized or escaped, so callers can do either once, for where it is used.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $handle The style's registered handle.
+	 * @return string|null URL of the right-to-left stylesheet, after the {@see 'style_loader_src'}
+	 *                     filter, or null when there is none. See {@see WP_Styles::get_rtl_src()}.
+	 */
+	private function build_rtl_src( string $handle ): ?string {
 		if ( 'rtl' !== $this->text_direction || ! isset( $this->registered[ $handle ] ) ) {
 			return null;
 		}
@@ -300,7 +318,7 @@ class WP_Styles extends WP_Dependencies {
 		if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
 			$suffix = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
 
-			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", esc_url_raw( $this->build_src( $obj->src, $ver, "$handle-rtl" ) ) );
+			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->build_src( $obj->src, $ver, "$handle-rtl" ) );
 		}
 
 		// Any other value is the URL of the right-to-left stylesheet itself.
@@ -308,7 +326,7 @@ class WP_Styles extends WP_Dependencies {
 			return null;
 		}
 
-		return esc_url_raw( $this->build_src( $obj->extra['rtl'], $ver, "$handle-rtl" ) );
+		return $this->build_src( $obj->extra['rtl'], $ver, "$handle-rtl" );
 	}
 
 	/**
