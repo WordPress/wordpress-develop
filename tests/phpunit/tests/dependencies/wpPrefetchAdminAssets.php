@@ -670,6 +670,27 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the login screen is recognized when a plugin serves it at a URL of its own, running
+	 * wp-login.php from another script, in which case is_login() does not recognize it.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prefetches_at_custom_login_url(): void {
+		add_filter(
+			'login_url',
+			static function (): string {
+				return home_url( '/my-login/' );
+			}
+		);
+		$_SERVER['SCRIPT_NAME'] = '/index.php';
+		$this->assertFalse( is_login(), 'Expected is_login() not to recognize the login screen.' );
+
+		$links = $this->get_prefetched_on_login();
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
 	 * Tests that nothing is printed, and no error raised, on a request that is neither for the login
 	 * screen nor for an admin screen, such as one for the front end, where get_current_screen() is
 	 * not defined unless the admin includes have been loaded.
@@ -677,7 +698,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * @ticket 57548
 	 */
 	public function test_prints_nothing_on_front_end(): void {
-		$this->assertFalse( is_login(), 'Expected the request not to be for the login screen.' );
+		$this->assertSame( 0, did_action( 'login_init' ), 'Expected the request not to be for the login screen.' );
 		$this->assertNull( $GLOBALS['current_screen'] ?? null, 'Expected no current screen.' );
 
 		$this->assertSame( '', get_echo( 'wp_prefetch_admin_assets' ) );
@@ -958,11 +979,15 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Makes the request one for the login screen.
+	 * Makes the request one for the login screen, by firing 'login_init' as wp-login.php does.
+	 *
+	 * Its callbacks are removed first, since one of them sends headers.
 	 */
 	private function go_to_login_screen(): void {
-		$_SERVER['SCRIPT_NAME'] = (string) wp_parse_url( wp_login_url(), PHP_URL_PATH );
-		$this->assertTrue( is_login(), 'Expected the request to be for the login screen.' );
+		remove_all_actions( 'login_init' );
+
+		/** This action is documented in wp-login.php */
+		do_action( 'login_init' );
 	}
 
 	/**

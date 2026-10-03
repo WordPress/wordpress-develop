@@ -2596,9 +2596,13 @@ function wp_prefetch_admin_assets(): void {
 
 	/*
 	 * The context is told apart by the request rather than by the hook this runs on, so it works
-	 * from whichever hook it is added to.
+	 * from whichever hook it is added to. The 'login_init' action is fired by wp-login.php however
+	 * it is reached, which is also how script_concat_settings() recognizes it. The is_login()
+	 * function would not do: it compares the login URL with the script handling the request, and a
+	 * plugin serving the login screen at a URL of its own runs wp-login.php from another script,
+	 * such as index.php.
 	 */
-	$on_login = is_login();
+	$on_login = (bool) did_action( 'login_init' );
 
 	if ( $on_login ) {
 		/*
