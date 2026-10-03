@@ -285,7 +285,9 @@ class WP_Theme_JSON {
 		'column-count'                      => array( 'typography', 'textColumns' ),
 		'font-family'                       => array( 'typography', 'fontFamily' ),
 		'font-size'                         => array( 'typography', 'fontSize' ),
+		'font-stretch'                      => array( 'typography', 'fontStretch' ),
 		'font-style'                        => array( 'typography', 'fontStyle' ),
+		'font-variation-settings'           => array( 'typography', 'fontVariationSettings' ),
 		'font-weight'                       => array( 'typography', 'fontWeight' ),
 		'letter-spacing'                    => array( 'typography', 'letterSpacing' ),
 		'line-height'                       => array( 'typography', 'lineHeight' ),
@@ -502,7 +504,9 @@ class WP_Theme_JSON {
 			'dropCap'          => null,
 			'fontFamilies'     => null,
 			'fontSizes'        => null,
+			'fontStretch'      => null,
 			'fontStyle'        => null,
+			'fontVariations'   => null,
 			'fontWeight'       => null,
 			'letterSpacing'    => null,
 			'lineHeight'       => null,
@@ -533,6 +537,7 @@ class WP_Theme_JSON {
 			'fontFace'   => array(
 				array(
 					'ascentOverride'        => null,
+					'axes'                  => null,
 					'descentOverride'       => null,
 					'fontDisplay'           => null,
 					'fontFamily'            => null,
@@ -616,19 +621,21 @@ class WP_Theme_JSON {
 			'blockGap' => null,
 		),
 		'typography' => array(
-			'fontFamily'     => null,
-			'fontSize'       => null,
-			'fontStyle'      => null,
-			'fontWeight'     => null,
-			'letterSpacing'  => null,
-			'lineHeight'     => null,
-			'textAlign'      => null,
-			'textColumns'    => null,
-			'textDecoration' => null,
-			'textIndent'     => null,
-			'textShadow'     => null,
-			'textTransform'  => null,
-			'writingMode'    => null,
+			'fontFamily'            => null,
+			'fontSize'              => null,
+			'fontStretch'           => null,
+			'fontStyle'             => null,
+			'fontVariationSettings' => null,
+			'fontWeight'            => null,
+			'letterSpacing'         => null,
+			'lineHeight'            => null,
+			'textAlign'             => null,
+			'textColumns'           => null,
+			'textDecoration'        => null,
+			'textIndent'            => null,
+			'textShadow'            => null,
+			'textTransform'         => null,
+			'writingMode'           => null,
 		),
 		'css'        => null,
 	);
@@ -3130,6 +3137,19 @@ class WP_Theme_JSON {
 				}
 			}
 
+			/*
+			 * Variation settings are stored as an object keyed by axis tag rather
+			 * than as a string, so the style engine serializes them here. It is
+			 * also what decides which axes may be written, so this is the one
+			 * place that rule is read.
+			 */
+			if ( 'font-variation-settings' === $css_property && is_array( $value ) ) {
+				$variation_styles = wp_style_engine_get_styles(
+					array( 'typography' => array( 'fontVariationSettings' => $value ) )
+				);
+				$value            = $variation_styles['declarations'][ $css_property ] ?? null;
+			}
+
 			// Skip if empty and not "0" or value represents array of longhand values.
 			$has_missing_value = empty( $value ) && ! is_numeric( $value );
 			if ( $has_missing_value || is_array( $value ) ) {
@@ -4714,6 +4734,38 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Keeps the font variation settings a style engine would write.
+	 *
+	 * The value is an object keyed by OpenType axis tag. Which tags and values may
+	 * be written is the style engine's rule, documented where it serializes them,
+	 * so each entry is offered to the engine on its own rather than read a second
+	 * time here: an axis that has a CSS property of its own, a tag that is not four
+	 * letters or digits, and a value that is not a number are all left out.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $settings Axis values keyed by tag.
+	 * @return array The entries that may be written.
+	 */
+	protected static function filter_font_variation_settings( $settings ) {
+		if ( ! is_array( $settings ) ) {
+			return array();
+		}
+
+		$filtered = array();
+		foreach ( $settings as $tag => $value ) {
+			$styles = wp_style_engine_get_styles(
+				array( 'typography' => array( 'fontVariationSettings' => array( $tag => $value ) ) )
+			);
+			if ( ! empty( $styles['declarations']['font-variation-settings'] ) ) {
+				$filtered[ $tag ] = $value;
+			}
+		}
+
+		return $filtered;
+	}
+
+	/**
 	 * Removes insecure data from theme.json.
 	 *
 	 * @since 5.9.0
@@ -5112,9 +5164,15 @@ class WP_Theme_JSON {
 				/*
 				 * Check the value isn't an array before adding so as to not
 				 * double up shorthand and longhand styles.
+				 *
+				 * Font variation settings are an exception: the value is an object
+				 * keyed by axis tag rather than a shorthand, so dropping it here
+				 * would drop the style.
 				 */
 				$value = _wp_array_get( $input, $path, array() );
-				if ( ! is_array( $value ) ) {
+				if ( 'font-variation-settings' === $declaration['name'] ) {
+					_wp_array_set( $output, $path, static::filter_font_variation_settings( $value ) );
+				} elseif ( ! is_array( $value ) ) {
 					_wp_array_set( $output, $path, $value );
 				}
 			}

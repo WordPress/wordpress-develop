@@ -3582,6 +3582,110 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that variation settings are serialized from an object, and that an axis
+	 * with a CSS property of its own is left to that property.
+	 *
+	 * @ticket 66198
+	 *
+	 * @covers ::get_stylesheet
+	 */
+	public function test_font_variation_settings_are_serialized_from_an_object() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'typography' => array(
+						'fontVariationSettings' => array( 'GRAD' => 20 ),
+					),
+					'blocks'     => array(
+						'core/paragraph' => array(
+							'typography' => array(
+								'fontVariationSettings' => array(
+									'GRAD' => 50,
+									'opsz' => 24,
+									'wght' => 700,
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ) );
+		$this->assertStringContainsString( 'body{font-variation-settings: "GRAD" 20;}', $stylesheet );
+		$this->assertStringContainsString( ':root :where(p){font-variation-settings: "GRAD" 50, "opsz" 24;}', $stylesheet, '`wght` is left to font-weight.' );
+	}
+
+	/**
+	 * Tests that a face's axes and a chosen axis value survive, and that an axis a
+	 * property owns, a non-numeric value and an invalid tag do not.
+	 *
+	 * @ticket 66198
+	 *
+	 * @covers ::get_settings
+	 * @covers ::get_raw_data
+	 * @covers ::remove_insecure_properties
+	 */
+	public function test_font_variation_setting_axes_and_styles_survive_sanitization() {
+		$input = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'typography' => array(
+					'fontVariations' => true,
+					'fontFamilies'   => array(
+						array(
+							'name'       => 'Roboto Flex',
+							'slug'       => 'roboto-flex',
+							'fontFamily' => '"Roboto Flex", sans-serif',
+							'fontFace'   => array(
+								array(
+									'fontFamily' => 'Roboto Flex',
+									'fontWeight' => '100 1000',
+									'src'        => array( 'https://example.org/roboto-flex.woff2' ),
+									'axes'       => array(
+										array(
+											'tag'     => 'GRAD',
+											'min'     => -200,
+											'default' => 0,
+											'max'     => 150,
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'styles'   => array(
+				'typography' => array(
+					'fontVariationSettings' => array( 'GRAD' => 20 ),
+				),
+			),
+		);
+
+		$theme_json = new WP_Theme_JSON( $input );
+		$settings   = $theme_json->get_settings();
+		$raw        = $theme_json->get_raw_data();
+
+		$this->assertSame( $input['settings']['typography']['fontVariations'], $settings['typography']['fontVariations'] );
+		$this->assertSame( $input['settings']['typography']['fontFamilies'][0]['fontFace'][0]['axes'], $settings['typography']['fontFamilies']['theme'][0]['fontFace'][0]['axes'] );
+		$this->assertSame( array( 'GRAD' => 20 ), $raw['styles']['typography']['fontVariationSettings'] );
+
+		$sanitized = WP_Theme_JSON::remove_insecure_properties( $input );
+		$this->assertSame( array( 'GRAD' => 20 ), $sanitized['styles']['typography']['fontVariationSettings'], 'Kept for users without unfiltered_html.' );
+
+		$input['styles']['typography']['fontVariationSettings'] = array(
+			'GRAD'        => 20,
+			'wght'        => 700,
+			'XTRA'        => '500; color: red',
+			'x}{color:re' => 1,
+		);
+		$sanitized = WP_Theme_JSON::remove_insecure_properties( $input );
+		$this->assertSame( array( 'GRAD' => 20 ), $sanitized['styles']['typography']['fontVariationSettings'], 'An axis a property owns, a non-numeric value and an invalid tag are dropped.' );
+	}
+
+	/**
 	 * @ticket 54336
 	 */
 	public function test_remove_insecure_properties_removes_unsafe_styles() {
