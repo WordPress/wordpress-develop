@@ -281,7 +281,8 @@ if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
 	wp_admin_notice(
 		$pending_admin_email_message,
 		array(
-			'additional_classes' => array( 'updated', 'inline' ),
+			'type'               => 'success',
+			'additional_classes' => array( 'inline' ),
 		)
 	);
 }

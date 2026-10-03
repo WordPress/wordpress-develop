@@ -188,7 +188,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	wp_admin_notice(
 		__( 'The Theme Installer screen requires JavaScript.' ),
 		array(
-			'additional_classes' => array( 'error', 'hide-if-js' ),
+			'type'               => 'error',
+			'additional_classes' => array( 'hide-if-js' ),
 		)
 	);
 	?>

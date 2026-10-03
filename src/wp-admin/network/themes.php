@@ -139,7 +139,7 @@ if ( $action ) {
 					wp_admin_notice(
 						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'This theme may be active on other sites in the network.' ),
 						array(
-							'additional_classes' => array( 'error' ),
+							'type' => 'error',
 						)
 					);
 					?>
@@ -150,7 +150,7 @@ if ( $action ) {
 					wp_admin_notice(
 						'<strong>' . __( 'Caution:' ) . '</strong> ' . __( 'These themes may be active on other sites in the network.' ),
 						array(
-							'additional_classes' => array( 'error' ),
+							'type' => 'error',
 						)
 					);
 					?>

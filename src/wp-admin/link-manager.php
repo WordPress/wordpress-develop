@@ -125,9 +125,9 @@ if ( isset( $_REQUEST['deleted'] ) ) {
 	wp_admin_notice(
 		$deleted_message,
 		array(
-			'id'                 => 'message',
-			'additional_classes' => array( 'updated' ),
-			'dismissible'        => true,
+			'id'          => 'message',
+			'type'        => 'success',
+			'dismissible' => true,
 		)
 	);
 	$_SERVER['REQUEST_URI'] = remove_query_arg( array( 'deleted' ), $_SERVER['REQUEST_URI'] );

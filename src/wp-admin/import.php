@@ -70,7 +70,7 @@ if ( ! empty( $_GET['invalid'] ) ) :
 	wp_admin_notice(
 		$importer_not_installed,
 		array(
-			'additional_classes' => array( 'error' ),
+			'type' => 'error',
 		)
 	);
 endif;

@@ -233,10 +233,10 @@ switch ( $action ) {
 			wp_admin_notice(
 				$message,
 				array(
-					'id'                 => 'message',
-					'dismissible'        => true,
-					'additional_classes' => array( 'updated' ),
-					'paragraph_wrap'     => false,
+					'id'             => 'message',
+					'dismissible'    => true,
+					'type'           => 'success',
+					'paragraph_wrap' => false,
 				)
 			);
 		endif;
@@ -258,7 +258,7 @@ switch ( $action ) {
 			wp_admin_notice(
 				implode( "</p>\n<p>", $errors->get_error_messages() ),
 				array(
-					'additional_classes' => array( 'error' ),
+					'type' => 'error',
 				)
 			);
 		}
@@ -601,7 +601,8 @@ switch ( $action ) {
 								wp_admin_notice(
 									$pending_change_message,
 									array(
-										'additional_classes' => array( 'updated', 'inline' ),
+										'type' => 'success',
+										'additional_classes' => array( 'inline' ),
 									)
 								);
 							endif;
