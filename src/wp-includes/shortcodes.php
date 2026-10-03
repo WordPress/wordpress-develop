@@ -129,6 +129,8 @@ function remove_all_shortcodes() {
  *
  * @param string $tag Shortcode tag to check.
  * @return bool Whether the given shortcode exists.
+ *
+ * @phpstan-assert-if-true =non-empty-string $tag
  */
 function shortcode_exists( $tag ) {
 	global $shortcode_tags;
@@ -146,6 +148,8 @@ function shortcode_exists( $tag ) {
  * @param string $tag     Shortcode tag to check.
  * @return bool Whether the passed content contains the given shortcode.
  *
+ * @phpstan-assert-if-true =non-falsy-string $content
+ * @phpstan-assert-if-true =non-empty-string $tag
  * @phpstan-return ( $tag is '' ? false : ( $content is empty ? false : bool ) )
  */
 function has_shortcode( $content, $tag ) {
@@ -591,6 +595,8 @@ function unescape_invalid_shortcodes( $content ) {
  * @since 4.4.0
  *
  * @return string The shortcode attribute regular expression.
+ *
+ * @phpstan-pure
  */
 function get_shortcode_atts_regex() {
 	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';

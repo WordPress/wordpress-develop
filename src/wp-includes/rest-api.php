@@ -1534,6 +1534,7 @@ function rest_is_ip_address( $ip ) {
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
  *
+ * @phpstan-pure
  * @phpstan-return (
  *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
  *         ? false

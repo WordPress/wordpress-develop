@@ -1613,6 +1613,7 @@ function get_num_queries() {
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
  *
+ * @phpstan-pure
  * @phpstan-return ( $yn is 'y'|'Y' ? true : false )
  */
 function bool_from_yn( $yn ) {
@@ -2146,6 +2147,7 @@ function wp_mkdir_p( $target ) {
  * @param string $path File path.
  * @return bool True if path is absolute, false is not absolute.
  *
+ * @phpstan-assert-if-true =non-falsy-string $path
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
  */
 function path_is_absolute( $path ) {
@@ -5433,6 +5435,7 @@ function _wp_to_kebab_case( $input_string ) {
  *
  * @phpstan-assert-if-true array<int, mixed> $data
  *
+ * @phpstan-pure
  * @phpstan-return ( $data is array<int, mixed> ? true : false )
  */
 function wp_is_numeric_array( $data ): bool {
@@ -7584,6 +7587,8 @@ function _device_can_upload() {
  *
  * @param string $path The resource path or URL.
  * @return bool True if the path is a stream URL.
+ *
+ * @phpstan-assert-if-true =non-falsy-string $path
  */
 function wp_is_stream( $path ) {
 	$scheme_separator = strpos( $path, '://' );
@@ -8172,6 +8177,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
+ *
+ * @phpstan-impure
  */
 function wp_generate_uuid4() {
 	static $backup_randomizer = false;
@@ -8210,6 +8217,7 @@ function wp_generate_uuid4() {
  *                       to accept any UUID version. Otherwise, only version allowed is `4`.
  * @return bool The string is a valid UUID or false on failure.
  *
+ * @phpstan-assert-if-true =lowercase-string&non-falsy-string $uuid
  * @phpstan-return ( $version is 4|null ? bool : false )
  */
 function wp_is_uuid( $uuid, $version = null ) {
@@ -8244,6 +8252,7 @@ function wp_is_uuid( $uuid, $version = null ) {
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
  *
+ * @phpstan-impure
  * @phpstan-return (
  *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string
@@ -8269,6 +8278,7 @@ function wp_unique_id( $prefix = '' ) {
  * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
  * @return string Incremental ID per prefix.
  *
+ * @phpstan-impure
  * @phpstan-return (
  *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string

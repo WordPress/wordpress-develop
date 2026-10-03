@@ -191,6 +191,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 * @param string|string[] $attachments Optional. Paths to files to attach.
 	 * @param string|string[] $embeds      Optional. Paths to files to embed.
 	 * @return bool Whether the email was sent successfully.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array(), $embeds = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
@@ -2447,6 +2449,8 @@ if ( ! function_exists( 'wp_nonce_tick' ) ) :
 	 *
 	 * @param string|int $action Optional. The nonce action. Default -1.
 	 * @return float Float value rounded up to the next highest integer.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_nonce_tick( $action = -1 ) {
 		/**
@@ -2967,6 +2971,8 @@ if ( ! function_exists( 'wp_generate_password' ) ) :
 	 * @param bool $extra_special_chars Optional. Whether to include other special characters.
 	 *                                  Used when generating secret keys and salts. Default false.
 	 * @return string The random password.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_generate_password( $length = 12, $special_chars = true, $extra_special_chars = false ) {
 		$chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -3012,6 +3018,8 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @param int $max Optional. Upper limit for the generated number.
 	 *                 Accepts positive integers. Defaults to 4294967295.
 	 * @return int A random non-negative number between min and max.
+	 *
+	 * @phpstan-impure
 	 */
 	function wp_rand( $min = null, $max = null ) {
 		global $rnd_value;
