@@ -157,6 +157,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$value = (object) $value;
 		$this->assertTrue( update_option( $key, $value ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $value, get_option( $key ) );
 		$this->assertTrue( delete_option( $key ) );
 	}
