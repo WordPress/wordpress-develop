@@ -194,6 +194,7 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $data['endpoints'] );
 		foreach ( $data['endpoints'] as $endpoint ) {
 			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
 		}
