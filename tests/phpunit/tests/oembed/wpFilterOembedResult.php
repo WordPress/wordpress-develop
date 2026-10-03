@@ -132,6 +132,37 @@ EOD;
 		);
 	}
 
+	public function test_filter_oembed_result_does_not_double_secret_fragment() {
+		// Simulates a same-site embed URL, which already has its own #?secret= fragment (see get_post_embed_html()).
+		$html   = '<iframe src="https://wordpress.org/sample-page/embed/#?secret=abc1234567"></iframe>';
+		$actual = wp_filter_oembed_result( $html, (object) array( 'type' => 'rich' ), '' );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+
+		$this->assertTrue(
+			$processor->next_tag( 'IFRAME' ),
+			'Failed to find expected IFRAME element in filtered output.'
+		);
+
+		$src = $processor->get_attribute( 'src' );
+
+		$this->assertSame(
+			1,
+			substr_count( $src, '#?secret=' ),
+			'The IFRAME "src" attribute should contain exactly one #?secret= fragment.'
+		);
+
+		$query_string = substr( parse_url( $src, PHP_URL_FRAGMENT ), 1 );
+		$query_args   = array();
+		parse_str( $query_string, $query_args );
+
+		$this->assertSame(
+			$query_args['secret'],
+			$processor->get_attribute( 'data-secret' ),
+			'Expected to find identical copy of secret from IFRAME "src" in the "data-secret" attribute.'
+		);
+	}
+
 	public function test_filter_oembed_result_wrong_type_provided() {
 		$actual = wp_filter_oembed_result( 'some string', (object) array( 'type' => 'link' ), '' );
 
