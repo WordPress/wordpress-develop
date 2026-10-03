@@ -1,0 +1,15 @@
+{
+	"version": 3,
+	"metadata": {
+		"name": "JSON Only Theme",
+		"description": "A theme with no style.css, using only theme.json metadata",
+		"author": "Theme Author",
+		"version": "2.0.0",
+		"textDomain": "json-only-theme",
+		"requires": {
+			"wordpress": "7.0",
+			"php": "8.2"
+		}
+	},
+	"settings": {}
+}
