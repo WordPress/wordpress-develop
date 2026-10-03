@@ -3002,8 +3002,10 @@ function wp_prefetch_admin_assets(): void {
 		/*
 		 * Check again once escaped, since esc_url() returns an empty string for a URL it rejects.
 		 * An empty `href` would resolve to the current page, which the script below would then fetch.
+		 * Only `http` and `https` URLs are allowed, as wp_preload_resources() does, since nothing else
+		 * can be prefetched, and the script would pass anything else to fetch().
 		 */
-		$href = esc_url( $href );
+		$href = esc_url( $href, array( 'http', 'https' ) );
 
 		if ( '' === $href || isset( $unique_resources[ $href ] ) ) {
 			continue;

@@ -911,6 +911,15 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 						'href' => 'javascript:alert(1)',
 						'as'   => 'script',
 					),
+					// Allowed by esc_url() by default, but not prefetchable.
+					array(
+						'href' => 'mailto:admin@example.com',
+						'as'   => 'document',
+					),
+					array(
+						'href' => 'ftp://example.com/file.js',
+						'as'   => 'script',
+					),
 					'not an array',
 				);
 			}
