@@ -136,6 +136,13 @@ function _register_core_block_patterns_and_categories() {
 		)
 	);
 	register_block_pattern_category(
+		'community',
+		array(
+			'label'       => _x( 'Community', 'Block pattern category' ),
+			'description' => __( 'Patterns contributed by the WordPress community.' ),
+		)
+	);
+	register_block_pattern_category(
 		'call-to-action',
 		array(
 			'label'       => _x( 'Call to action', 'Block pattern category' ),
@@ -351,6 +358,63 @@ function _load_remote_featured_patterns() {
 		// Some patterns might be already registered as core patterns with the `core` prefix.
 		$is_registered = $registry->is_registered( $pattern_name ) || $registry->is_registered( "core/$pattern_name" );
 		if ( ! $is_registered ) {
+			register_block_pattern( $pattern_name, $normalized_pattern );
+		}
+	}
+}
+
+/**
+ * Register `Community` (category) patterns from wordpress.org/patterns.
+ *
+ * Unlike the curated `core` keyword and `featured` category sets, this loads
+ * community-contributed patterns from the Pattern Directory. Because that
+ * collection is large and not curated, loading is opt-in via the
+ * `load_remote_community_block_patterns` filter (disabled by default), so
+ * existing sites are unaffected until a theme, plugin, or site owner opts in.
+ *
+ * @since 7.2.0
+ */
+function _load_remote_community_patterns() {
+	$supports_core_patterns = get_theme_support( 'core-block-patterns' );
+
+	/** This filter is documented in wp-includes/block-patterns.php */
+	$should_load_remote = apply_filters( 'should_load_remote_block_patterns', true );
+
+	/**
+	 * Filters whether community-contributed patterns are loaded from the Pattern Directory.
+	 *
+	 * The community collection is large and not curated, so it is not loaded by
+	 * default. Return true to surface it in the inserter under the `Community`
+	 * category.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $load_community Whether to load community patterns. Default false.
+	 */
+	$load_community = apply_filters( 'load_remote_community_block_patterns', false );
+
+	if ( ! $should_load_remote || ! $supports_core_patterns || ! $load_community ) {
+		return;
+	}
+
+	$request = new WP_REST_Request( 'GET', '/wp/v2/pattern-directory/patterns' );
+	// Omitting `keyword`/`category` requests the general (community) collection.
+	$request->set_param( 'per_page', 100 );
+	$response = rest_do_request( $request );
+	if ( $response->is_error() ) {
+		return;
+	}
+	$patterns = $response->get_data();
+	$registry = WP_Block_Patterns_Registry::get_instance();
+	foreach ( $patterns as $pattern ) {
+		$pattern['source']  = 'pattern-directory/community';
+		$normalized_pattern = wp_normalize_remote_block_pattern( $pattern );
+
+		// Group everything from this loader under the `Community` category.
+		$normalized_pattern['categories'] = array( 'community' );
+
+		$pattern_name = 'community/' . sanitize_title( $normalized_pattern['title'] );
+		if ( ! $registry->is_registered( $pattern_name ) ) {
 			register_block_pattern( $pattern_name, $normalized_pattern );
 		}
 	}
