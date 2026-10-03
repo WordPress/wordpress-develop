@@ -1390,8 +1390,7 @@ function wp_enqueue_admin_bar_bump_styles() {
 	remove_action( 'wp_head', $header_callback );
 
 	$css = '
-		@media screen { html { margin-top: 32px !important; } }
-		@media screen and ( max-width: 782px ) { html { margin-top: 46px !important; } }
+		@media screen { html { margin-top: 48px !important; } }
 	';
 	wp_add_inline_style( 'admin-bar', $css );
 }
