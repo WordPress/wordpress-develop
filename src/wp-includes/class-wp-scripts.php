@@ -368,6 +368,8 @@ class WP_Scripts extends WP_Dependencies {
 			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
+		$restore_concat_after_print = false;
+
 		if ( $this->do_concat ) {
 			/**
 			 * Filters the script loader source.
@@ -395,8 +397,27 @@ class WP_Scripts extends WP_Dependencies {
 				$this->concat_version .= "$handle$ver";
 				return true;
 			} else {
-				$this->ext_handles .= "$handle,";
-				$this->ext_version .= "$handle$ver";
+				$has_pending_dependents = false;
+
+				if ( $src ) {
+					foreach ( $this->get_dependents( $handle ) as $dependent ) {
+						if ( in_array( $dependent, $this->to_do, true ) && ! in_array( $dependent, $this->done, true ) ) {
+							$has_pending_dependents = true;
+							break;
+						}
+					}
+				}
+
+				if ( $has_pending_dependents ) {
+					$this->do_concat = false;
+
+					_print_scripts();
+					$this->reset();
+					$restore_concat_after_print = true;
+				} else {
+					$this->ext_handles .= "$handle,";
+					$this->ext_version .= "$handle$ver";
+				}
 			}
 		}
 
@@ -450,6 +471,9 @@ class WP_Scripts extends WP_Dependencies {
 		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
 
 		if ( ! $src ) {
+			if ( $restore_concat_after_print ) {
+				$this->do_concat = true;
+			}
 			return true;
 		}
 
@@ -501,6 +525,10 @@ class WP_Scripts extends WP_Dependencies {
 			$this->print_html .= $tag;
 		} else {
 			echo $tag;
+		}
+
+		if ( $restore_concat_after_print ) {
+			$this->do_concat = true;
 		}
 
 		return true;
