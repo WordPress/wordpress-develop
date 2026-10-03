@@ -2667,11 +2667,12 @@ function wp_prefetch_admin_assets(): void {
 
 		/*
 		 * When the login lands somewhere other than the admin, such as the front end or a plugin's
-		 * own screen, none of these assets are wanted.
+		 * own screen, none of these assets are wanted. The admin's path ends in a slash, which a
+		 * `redirect_to` of the admin itself may leave off, as in `/wp-admin`.
 		 */
 		$admin_path = (string) wp_parse_url( $admin_url, PHP_URL_PATH );
 
-		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $next_screen, PHP_URL_PATH ), $admin_path ) ) {
+		if ( '' === $admin_path || ! str_starts_with( trailingslashit( (string) wp_parse_url( $next_screen, PHP_URL_PATH ) ), $admin_path ) ) {
 			return;
 		}
 

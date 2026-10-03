@@ -190,12 +190,13 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function data_editor_destinations(): array {
 		return array(
-			'Dashboard'       => array( '/wp-admin/', false ),
-			'new post'        => array( '/wp-admin/post-new.php', true ),
-			'new page'        => array( '/wp-admin/post-new.php?post_type=page', true ),
-			'editing a post'  => array( '/wp-admin/post.php?post=1&action=edit', true ),
-			'trashing a post' => array( '/wp-admin/post.php?post=1&action=trash', false ),
-			'post list'       => array( '/wp-admin/edit.php', false ),
+			'Dashboard'                    => array( '/wp-admin/', false ),
+			'Dashboard, no trailing slash' => array( '/wp-admin', false ),
+			'new post'                     => array( '/wp-admin/post-new.php', true ),
+			'new page'                     => array( '/wp-admin/post-new.php?post_type=page', true ),
+			'editing a post'               => array( '/wp-admin/post.php?post=1&action=edit', true ),
+			'trashing a post'              => array( '/wp-admin/post.php?post=1&action=trash', false ),
+			'post list'                    => array( '/wp-admin/edit.php', false ),
 		);
 	}
 
