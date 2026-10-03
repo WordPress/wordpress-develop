@@ -2647,17 +2647,18 @@ function wp_prefetch_admin_assets(): void {
 		 * too. The lost password form submits one, for instance, so it is present when the form is
 		 * shown again with an error.
 		 */
-		$next_screen = admin_url();
+		$admin_url   = admin_url();
+		$next_screen = $admin_url;
 
 		if ( ! empty( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
-			$next_screen = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
+			$next_screen = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $admin_url );
 		}
 
 		/*
 		 * When the login lands somewhere other than the admin, such as the front end or a plugin's
 		 * own screen, none of these assets are wanted.
 		 */
-		$admin_path = (string) wp_parse_url( admin_url(), PHP_URL_PATH );
+		$admin_path = (string) wp_parse_url( $admin_url, PHP_URL_PATH );
 
 		if ( '' === $admin_path || ! str_starts_with( (string) wp_parse_url( $next_screen, PHP_URL_PATH ), $admin_path ) ) {
 			return;
@@ -2678,11 +2679,11 @@ function wp_prefetch_admin_assets(): void {
 		if (
 			is_string( $next_screen_host ) &&
 			(
-				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( admin_url(), PHP_URL_HOST ) ) ||
-				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( admin_url(), PHP_URL_PORT ) ||
+				strtolower( $next_screen_host ) !== strtolower( (string) wp_parse_url( $admin_url, PHP_URL_HOST ) ) ||
+				wp_parse_url( $next_screen, PHP_URL_PORT ) !== wp_parse_url( $admin_url, PHP_URL_PORT ) ||
 				(
 					is_string( $next_screen_scheme ) &&
-					strtolower( $next_screen_scheme ) !== strtolower( (string) wp_parse_url( admin_url(), PHP_URL_SCHEME ) )
+					strtolower( $next_screen_scheme ) !== strtolower( (string) wp_parse_url( $admin_url, PHP_URL_SCHEME ) )
 				)
 			)
 		) {
