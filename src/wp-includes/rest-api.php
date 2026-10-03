@@ -955,6 +955,11 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$data = $response->get_data();
 
+	// Objects, such as an empty collection returned as a JSON object, have no fields to filter.
+	if ( is_object( $data ) ) {
+		return $response;
+	}
+
 	$fields = wp_parse_list( $request['_fields'] );
 
 	if ( 0 === count( $fields ) ) {
