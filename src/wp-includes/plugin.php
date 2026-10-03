@@ -423,6 +423,8 @@ function doing_filter( $hook_name = null ) {
  *
  * @param string $hook_name The name of the filter hook.
  * @return int The number of times the filter hook has been applied.
+ *
+ * @phpstan-return int<0, max>
  */
 function did_filter( $hook_name ) {
 	global $wp_filters;
@@ -702,6 +704,8 @@ function doing_action( $hook_name = null ) {
  *
  * @param string $hook_name The name of the action hook.
  * @return int The number of times the action hook has been fired.
+ *
+ * @phpstan-return int<0, max>
  */
 function did_action( $hook_name ) {
 	global $wp_actions;

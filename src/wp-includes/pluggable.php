@@ -2477,6 +2477,8 @@ if ( ! function_exists( 'wp_verify_nonce' ) ) :
 	 * @return int|false 1 if the nonce is valid and generated between 0-12 hours ago,
 	 *                   2 if the nonce is valid and generated between 12-24 hours ago.
 	 *                   False if the nonce is invalid.
+	 *
+	 * @phpstan-return 1|2|false
 	 */
 	function wp_verify_nonce( $nonce, $action = -1 ) {
 		$nonce = (string) $nonce;
