@@ -35,11 +35,18 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 		$this->assertSame( 'http://example.com/', esc_url( 'http://example.com/%0%0%0ADa' ) );
 	}
 
+	/**
+	 * @ticket 24976
+	 * @ticket 46791
+	 */
 	public function test_relative() {
 		$this->assertSame( '/example.php', esc_url( '/example.php' ) );
 		$this->assertSame( 'example.php', esc_url( 'example.php' ) );
 		$this->assertSame( '#fragment', esc_url( '#fragment' ) );
 		$this->assertSame( '?foo=bar', esc_url( '?foo=bar' ) );
+		$this->assertSame( './current-directory', esc_url( './current-directory' ) );
+		$this->assertSame( '../parent-directory', esc_url( '../parent-directory' ) );
+		$this->assertSame( '../../../../up-four-directories', esc_url( '../../../../up-four-directories' ) );
 	}
 
 	/**
