@@ -959,7 +959,8 @@ function wp_read_image_metadata( $file ) {
 			}
 
 			if ( ! empty( $iptc['2#055'][0] ) && ! empty( $iptc['2#060'][0] ) ) { // Created date and time.
-				$datetime = wp_exif_datetime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0] );
+				// Default to UTC, matching the previous strtotime() based timestamp.
+				$datetime = wp_exif_datetime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0], 'UTC' );
 
 				if ( $datetime instanceof DateTimeImmutable ) {
 					// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
