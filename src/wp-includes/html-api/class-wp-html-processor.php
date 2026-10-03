@@ -1064,10 +1064,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			try {
 				$bookmark_name = $this->bookmark_token();
 			} catch ( Exception $e ) {
-				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
-					return false;
-				}
-				throw $e;
+				return false;
 			}
 
 			$this->state->current_token = new WP_HTML_Token(
