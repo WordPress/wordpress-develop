@@ -213,9 +213,18 @@ switch ( $wp_list_table->current_action() ) {
 				continue;
 			}
 
-			if ( 'reassign' === $_REQUEST['delete_option'][ $id ] && empty( $_REQUEST['reassign_user'][ $id ] ) ) {
-				$update = 'err_missing_reassign';
-				continue;
+			if ( 'reassign' === $_REQUEST['delete_option'][ $id ] ) {
+				$reassign_id = isset( $_REQUEST['reassign_user'][ $id ] ) ? absint( $_REQUEST['reassign_user'][ $id ] ) : 0;
+
+				/*
+				 * The reassignment target must be an existing user who is not part
+				 * of this deletion. The autocomplete input cannot exclude users the
+				 * way the <select> did, so it is enforced here.
+				 */
+				if ( ! $reassign_id || in_array( $reassign_id, $user_ids, true ) || ! get_userdata( $reassign_id ) ) {
+					$update = 'err_missing_reassign';
+					continue;
+				}
 			}
 
 			switch ( $_REQUEST['delete_option'][ $id ] ) {
@@ -223,7 +232,7 @@ switch ( $wp_list_table->current_action() ) {
 					wp_delete_user( $id );
 					break;
 				case 'reassign':
-					wp_delete_user( $id, $_REQUEST['reassign_user'][ $id ] );
+					wp_delete_user( $id, $reassign_id );
 					break;
 			}
 
