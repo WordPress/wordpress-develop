@@ -2645,8 +2645,11 @@ function wp_prefetch_admin_assets(): void {
 	if ( $on_login ) {
 		/*
 		 * Resolve where the login is going to land, the same way wp-login.php will: `redirect_to`
-		 * when one was given, and the admin otherwise. wp_validate_redirect() mirrors what
-		 * wp_safe_redirect() does with a value pointing off-host, which is to fall back to the admin.
+		 * when one was given, and the admin otherwise. wp_safe_redirect() sends the browser to what
+		 * wp_validate_redirect() returns, so that is used here as it is: it sanitizes the value,
+		 * resolves a relative path against the current request, as the browser would, and falls back
+		 * to the admin for a value pointing off-host. Passing the value through esc_url_raw() first
+		 * would not match it, since that takes a relative path such as `wp-admin/post.php` for a host.
 		 *
 		 * This runs on every screen wp-login.php prints, not only the login form, since the others
 		 * mostly lead to the admin as well, and each one gives the prefetching another chance to
@@ -2666,7 +2669,7 @@ function wp_prefetch_admin_assets(): void {
 		$next_screen = $admin_url;
 
 		if ( ! empty( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
-			$next_screen = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), $admin_url );
+			$next_screen = wp_validate_redirect( wp_unslash( $_REQUEST['redirect_to'] ), $admin_url );
 		}
 
 		/*

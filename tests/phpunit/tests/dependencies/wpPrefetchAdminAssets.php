@@ -197,6 +197,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			'editing a post'               => array( '/wp-admin/post.php?post=1&action=edit', true ),
 			'trashing a post'              => array( '/wp-admin/post.php?post=1&action=trash', false ),
 			'post list'                    => array( '/wp-admin/edit.php', false ),
+			'relative, editing a post'     => array( 'wp-admin/post.php?post=1&action=edit', true ),
+			'relative, new post'           => array( 'wp-admin/post-new.php', true ),
 		);
 	}
 
@@ -356,6 +358,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		return array(
 			'front end redirect'                 => array( array( 'redirect_to' => '/hello-world/' ) ),
 			'lookalike admin path'               => array( array( 'redirect_to' => '/wp-admin-lookalike/' ) ),
+			// A relative path, which the browser would resolve to /example.org/wp-admin/, not to this site's admin.
+			'relative path resembling a host'    => array( array( 'redirect_to' => 'example.org/wp-admin/' ) ),
 			'lost password redirecting to login' => array(
 				array(
 					'action'      => 'lostpassword',
@@ -981,9 +985,12 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	/**
 	 * Makes the request one for the login screen, by firing 'login_init' as wp-login.php does.
 	 *
-	 * Its callbacks are removed first, since one of them sends headers.
+	 * Its callbacks are removed first, since one of them sends headers. The request URI is that of
+	 * wp-login.php, which a relative `redirect_to` is resolved against.
 	 */
 	private function go_to_login_screen(): void {
+		$_SERVER['REQUEST_URI'] = (string) wp_parse_url( wp_login_url(), PHP_URL_PATH );
+
 		remove_all_actions( 'login_init' );
 
 		/** This action is documented in wp-login.php */
