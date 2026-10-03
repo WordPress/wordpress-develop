@@ -2883,12 +2883,27 @@ function wp_prefetch_admin_assets(): void {
 				continue;
 			}
 
+			// The next screen prints nothing for a handle with conditional data, as do_item() returns early for it.
+			if ( $dependencies->registered[ $handle ]->extra['conditional'] ?? false ) {
+				continue;
+			}
+
 			/*
 			 * The URLs are built the same way WP_Scripts::do_item() and WP_Styles::do_item() build
 			 * those in the tags they print, so they match what the next screen will request. They are
 			 * not escaped yet, so the filter sees plain URLs; they are escaped when printed.
+			 *
+			 * A handle with no URL of its own, such as an alias or one whose URL was filtered away,
+			 * prints nothing either, and for a style that includes its right-to-left stylesheet,
+			 * since WP_Styles::do_item() returns before getting to it.
 			 */
-			$urls = array( $dependencies->get_src( $handle ) );
+			$src = $dependencies->get_src( $handle );
+
+			if ( '' === $src ) {
+				continue;
+			}
+
+			$urls = array( $src );
 
 			if ( $dependencies instanceof WP_Styles ) {
 				$rtl_src = $dependencies->get_rtl_src( $handle );

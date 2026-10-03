@@ -698,6 +698,47 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a handle with conditional data is not prefetched, since do_item() prints nothing
+	 * for it.
+	 *
+	 * @ticket 57548
+	 *
+	 * @expectedDeprecated WP_Dependencies->add_data()
+	 */
+	public function test_skips_conditional_handles(): void {
+		wp_styles()->add_data( 'forms', 'conditional', 'IE' );
+
+		$links = $this->get_prefetched_on_login();
+
+		$this->assertNotPrefetched( $links, '#/wp-admin/css/forms(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+	}
+
+	/**
+	 * Tests that a style whose own URL is filtered away is not prefetched in a right-to-left locale
+	 * either, since WP_Styles::do_item() returns before printing its right-to-left stylesheet.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_skips_rtl_stylesheet_of_style_filtered_away(): void {
+		wp_styles()->text_direction = 'rtl';
+
+		add_filter(
+			'style_loader_src',
+			static function ( $src, string $handle ) {
+				return 'common' === $handle ? '' : $src;
+			},
+			10,
+			2
+		);
+
+		$links = $this->get_prefetched_on_login();
+
+		$this->assertNotPrefetched( $links, '#/wp-admin/css/common(-rtl)?(\.min)?\.css#' );
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/forms-rtl(\.min)?\.css#' );
+	}
+
+	/**
 	 * Tests that each prefetched URL is sanitized only once, so that the {@see 'clean_url'} filter
 	 * runs once for it, as it does for the URL in the tag the next screen prints.
 	 *
