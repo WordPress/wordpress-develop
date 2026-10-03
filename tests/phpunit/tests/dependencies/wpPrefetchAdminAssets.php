@@ -198,6 +198,73 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a login leading to the editor of a post type that does not use the block editor
+	 * prefetches only the admin's stylesheets, not the block editor's.
+	 *
+	 * The classic editor is turned off for pages only, so the post type is what decides. An edit
+	 * link to post.php does not name its post type, so it is taken to be a post.
+	 *
+	 * @ticket 57548
+	 *
+	 * @dataProvider data_editor_destinations_by_post_type
+	 *
+	 * @param non-falsy-string $redirect_to Where the login redirects to.
+	 * @param bool             $is_editor   Whether that is expected to be the block editor.
+	 */
+	public function test_login_checks_block_editor_for_post_type( string $redirect_to, bool $is_editor ): void {
+		add_filter(
+			'use_block_editor_for_post_type',
+			static function ( bool $use_block_editor, string $post_type ): bool {
+				return 'page' === $post_type ? false : $use_block_editor;
+			},
+			10,
+			2
+		);
+
+		$links = $this->get_prefetched_on_login( array( 'redirect_to' => $redirect_to ) );
+
+		$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+
+		if ( $is_editor ) {
+			$this->assertPrefetched( $links, 'style', '#/wp-includes/css/dist/edit-post/style(\.min)?\.css#' );
+		} else {
+			$this->assertNotPrefetched( $links, '#/wp-includes/css/dist/edit-post/#' );
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_login_checks_block_editor_for_post_type()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: bool }>
+	 */
+	public function data_editor_destinations_by_post_type(): array {
+		return array(
+			'new post'               => array( '/wp-admin/post-new.php', true ),
+			'new page'               => array( '/wp-admin/post-new.php?post_type=page', false ),
+			'unregistered post type' => array( '/wp-admin/post-new.php?post_type=nonexistent', false ),
+			'post type not a string' => array( '/wp-admin/post-new.php?post_type[]=post', false ),
+			'editing a post'         => array( '/wp-admin/post.php?post=1&action=edit', true ),
+		);
+	}
+
+	/**
+	 * Tests that a login leading to the editor prefetches only the admin's stylesheets when the
+	 * classic editor replaces the block editor for every post type.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_login_prints_no_editor_assets_for_classic_editor(): void {
+		add_filter( 'use_block_editor_for_post_type', '__return_false' );
+
+		foreach ( array( '/wp-admin/post-new.php', '/wp-admin/post.php?post=1&action=edit' ) as $redirect_to ) {
+			$links = $this->get_prefetched_on_login( array( 'redirect_to' => $redirect_to ) );
+
+			$this->assertPrefetched( $links, 'style', '#/wp-admin/css/common(\.min)?\.css#' );
+			$this->assertNotPrefetched( $links, '#/wp-includes/css/dist/edit-post/#' );
+		}
+	}
+
+	/**
 	 * Tests that nothing is prefetched from login screens that do not lead to the admin.
 	 *
 	 * @ticket 57548
