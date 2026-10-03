@@ -88,6 +88,14 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	public function set_up() {
 		parent::set_up();
 
+		// Avoid a DNS lookup when validating the URL used by the mocked request.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return self::URL_PLACEHOLDER;
+			}
+		);
+
 		add_filter( 'pre_http_request', array( $this, 'mock_success_request_to_remote_url' ), 10, 3 );
 
 		// Disables usage of cache during major of tests.
