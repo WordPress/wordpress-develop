@@ -814,11 +814,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Variable \$gen might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/general-template.php
-		-
 			message: '#^Variable \$my_year might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
