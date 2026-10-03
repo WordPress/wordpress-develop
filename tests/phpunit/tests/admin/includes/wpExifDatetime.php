@@ -4,7 +4,7 @@
  * Class Tests_Admin_wpExifDatetime
  *
  * Contains unit tests for validating the functionality of the wp_exif_datetime function,
- * which is responsible for formatting datetime strings to the EXIF-compliant format.
+ * which parses and validates date strings and returns a DateTimeImmutable object.
  *
  * @group datetime
  * @group image
