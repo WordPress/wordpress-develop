@@ -314,6 +314,13 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			'check email'          => array( array( 'checkemail' => 'confirm' ) ),
 			'interim login'        => array( array( 'interim-login' => '1' ) ),
 			'unrecognized action'  => array( array( 'action' => 'unrecognized' ) ),
+			'empty redirect'       => array( array( 'redirect_to' => '' ) ),
+			'lost password error'  => array(
+				array(
+					'action'      => 'lostpassword',
+					'redirect_to' => '',
+				),
+			),
 			'admin email reminder' => array(
 				array(
 					'action'      => 'confirm_admin_email',

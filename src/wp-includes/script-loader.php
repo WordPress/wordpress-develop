@@ -2644,10 +2644,14 @@ function wp_prefetch_admin_assets(): void {
 		 * not, it typically points back into wp-login.php, so nothing is prefetched. Nor does an
 		 * interim login need to be excluded: it shows inside a modal on an admin screen that has
 		 * already loaded these assets, so they are served from the HTTP cache.
+		 *
+		 * An empty `redirect_to` counts as none, since wp-login.php falls back to the admin for it
+		 * too. The lost password form submits one, for instance, so it is present when the form is
+		 * shown again with an error.
 		 */
 		$next_screen = admin_url();
 
-		if ( isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
+		if ( ! empty( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ) {
 			$next_screen = wp_validate_redirect( esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) ), admin_url() );
 		}
 
