@@ -3202,17 +3202,23 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				continue;
 			}
 
+			$result = rest_validate_request_arg( $status, $request, $parameter );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+
 			$post_type_obj = get_post_type_object( $this->post_type );
 
-			if ( current_user_can( $post_type_obj->cap->edit_posts ) || 'private' === $status && current_user_can( $post_type_obj->cap->read_private_posts ) ) {
-				$result = rest_validate_request_arg( $status, $request, $parameter );
-				if ( is_wp_error( $result ) ) {
-					return $result;
-				}
+			if ( 'private' === $status ) {
+				$can_read_status = current_user_can( $post_type_obj->cap->read_private_posts );
 			} else {
+				$can_read_status = current_user_can( $post_type_obj->cap->edit_posts );
+			}
+
+			if ( ! $can_read_status ) {
 				return new WP_Error(
 					'rest_forbidden_status',
-					__( 'Status is forbidden.' ),
+					__( 'Sorry, you are not allowed to list non-published posts in this post type.' ),
 					array( 'status' => rest_authorization_required_code() )
 				);
 			}
