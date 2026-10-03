@@ -5313,7 +5313,31 @@ function wp_parse_str( $input_string, &$result ) {
  * @return string Converted text.
  */
 function wp_pre_kses_less_than( $content ) {
-	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
+	$processor = new WP_HTML_Tag_Processor( $content );
+
+	while ( $processor->next_token() ) {
+		$attribute_names = $processor->get_attribute_names_with_prefix( '' );
+
+		if ( ! is_array( $attribute_names ) ) {
+			continue;
+		}
+
+		foreach ( $attribute_names as $attribute_name ) {
+			$attribute_value = $processor->get_attribute( $attribute_name );
+
+			if ( is_string( $attribute_value ) && str_contains( $attribute_value, '<' ) ) {
+				$processor->set_attribute( $attribute_name, $attribute_value );
+			}
+		}
+	}
+
+	$content = $processor->get_updated_html();
+
+	return preg_replace_callback(
+		'%<[^>]*?((?=<)|>|$)%',
+		'wp_pre_kses_less_than_callback',
+		$content
+	);
 }
 
 /**
