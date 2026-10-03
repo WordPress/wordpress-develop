@@ -27,7 +27,8 @@ abstract class WP_Test_REST_Post_Type_Controller_Testcase extends WP_Test_REST_C
 
 		// Author.
 		if ( post_type_supports( $post->post_type, 'author' ) ) {
-			$this->assertEquals( $post->post_author, $data['author'] );
+			// REST prepares author as an integer; WP_Post::$post_author is a string.
+			$this->assertSame( (int) $post->post_author, $data['author'] );
 		} else {
 			$this->assertEmpty( $data['author'] );
 		}

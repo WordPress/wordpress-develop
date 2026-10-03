@@ -505,7 +505,7 @@ function get_echo( callable $callback, array $args = array() ): string {
 	return (string) ob_get_clean();
 }
 
-// Recursively generate some quick assertEquals() tests based on an array.
+// Recursively generate some quick assertSame() tests based on an array.
 function gen_tests_array( $name, $expected_data ) {
 	$out = array();
 
@@ -517,9 +517,9 @@ function gen_tests_array( $name, $expected_data ) {
 		}
 
 		if ( is_string( $v ) ) {
-			$out[] = '$this->assertEquals( \'' . addcslashes( $v, "\n\r\t'\\" ) . '\', $' . $name . '[' . $index . '] );';
+			$out[] = '$this->assertSame( \'' . addcslashes( $v, "\n\r\t'\\" ) . '\', $' . $name . '[' . $index . '] );';
 		} elseif ( is_numeric( $v ) ) {
-			$out[] = '$this->assertEquals( ' . $v . ', $' . $name . '[' . $index . '] );';
+			$out[] = '$this->assertSame( ' . $v . ', $' . $name . '[' . $index . '] );';
 		} elseif ( is_array( $v ) ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
