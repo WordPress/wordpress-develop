@@ -1077,7 +1077,8 @@ function wp_read_image_metadata( $file ) {
 			$meta['camera'] = trim( $exif['Model'] );
 		}
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
-			$timezone = null;
+			// Default to UTC, matching the previous wp_exif_date2ts() based timestamp.
+			$timezone = 'UTC';
 			if ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
 				$timezone = $exif['UndefinedTag:0x9012'];
 			}
