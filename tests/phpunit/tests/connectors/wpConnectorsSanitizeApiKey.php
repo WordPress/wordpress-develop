@@ -172,22 +172,6 @@ class Tests_Connectors_WpConnectorsSanitizeApiKey extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The option name falls back to the current `sanitize_option_{$option}` filter.
-	 *
-	 * @ticket 65821
-	 */
-	public function test_option_name_falls_back_to_current_filter(): void {
-		$stored_key = 'ak-live-9f3b2c8d1e4a7601';
-		update_option( self::API_KEY_SETTING_NAME, $stored_key );
-
-		add_filter( 'sanitize_option_' . self::API_KEY_SETTING_NAME, 'wp_connectors_sanitize_api_key' );
-		$result = apply_filters( 'sanitize_option_' . self::API_KEY_SETTING_NAME, _wp_connectors_mask_api_key( $stored_key ) );
-		remove_filter( 'sanitize_option_' . self::API_KEY_SETTING_NAME, 'wp_connectors_sanitize_api_key' );
-
-		$this->assertSame( $stored_key, $result );
-	}
-
-	/**
 	 * @ticket 65821
 	 */
 	public function test_rest_round_trip_of_masked_response_preserves_stored_key(): void {
@@ -199,16 +183,28 @@ class Tests_Connectors_WpConnectorsSanitizeApiKey extends WP_UnitTestCase {
 		$get_response = $this->dispatch_settings_request( new WP_REST_Request( 'GET', '/wp/v2/settings' ) );
 		$masked_key   = $get_response->get_data()[ self::API_KEY_SETTING_NAME ];
 
-		$this->assertSame( _wp_connectors_mask_api_key( $stored_key ), $masked_key );
+		$this->assertSame(
+			_wp_connectors_mask_api_key( $stored_key ),
+			$masked_key,
+			'The GET response should carry the mask of the stored key.'
+		);
 
 		// Submit the masked response back, as a read-modify-write client would.
 		$post_request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
 		$post_request->set_param( self::API_KEY_SETTING_NAME, $masked_key );
 		$post_response = $this->dispatch_settings_request( $post_request );
 
-		$this->assertSame( 200, $post_response->get_status() );
-		$this->assertSame( $stored_key, get_option( self::API_KEY_SETTING_NAME ) );
-		$this->assertSame( $masked_key, $post_response->get_data()[ self::API_KEY_SETTING_NAME ] );
+		$this->assertSame( 200, $post_response->get_status(), 'Posting the masked response back should succeed.' );
+		$this->assertSame(
+			$stored_key,
+			get_option( self::API_KEY_SETTING_NAME ),
+			'Posting the masked response back should keep the stored key.'
+		);
+		$this->assertSame(
+			$masked_key,
+			$post_response->get_data()[ self::API_KEY_SETTING_NAME ],
+			'The POST response should still carry the masked key.'
+		);
 	}
 
 	/**
@@ -223,8 +219,8 @@ class Tests_Connectors_WpConnectorsSanitizeApiKey extends WP_UnitTestCase {
 		$request->set_param( self::API_KEY_SETTING_NAME, '' );
 		$response = $this->dispatch_settings_request( $request );
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( '', get_option( self::API_KEY_SETTING_NAME ) );
+		$this->assertSame( 200, $response->get_status(), 'Posting an empty string should succeed.' );
+		$this->assertSame( '', get_option( self::API_KEY_SETTING_NAME ), 'Posting an empty string should clear the stored key.' );
 	}
 
 	/**

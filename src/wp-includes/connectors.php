@@ -630,18 +630,11 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
  * @access private
  *
  * @param mixed  $value  The submitted setting value.
- * @param string $option The option name being sanitized. Passed explicitly by the
- *                       registered sanitize callback; falls back to the current
- *                       `sanitize_option_{$option}` filter name when omitted.
+ * @param string $option The name of the option being sanitized.
  * @return string The sanitized API key.
  */
-function wp_connectors_sanitize_api_key( $value, string $option = '' ): string {
-	$value = sanitize_text_field( $value );
-
-	if ( '' === $option ) {
-		$option = str_replace( 'sanitize_option_', '', (string) current_filter() );
-	}
-
+function wp_connectors_sanitize_api_key( $value, string $option ): string {
+	$value  = sanitize_text_field( $value );
 	$stored = get_option( $option );
 
 	// A masked key means a client resubmitted a masked REST response.
@@ -767,9 +760,12 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		$value = $data[ $setting_name ];
 
-		// On update, validate AI provider keys submitted in the request before masking.
-		// A resubmitted mask keeps the stored key, so there is nothing new to validate.
-		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
+		/*
+		 * On update, validate AI provider keys submitted in the request before masking.
+		 * A request carrying the mask of the stored key submitted no new key, since
+		 * wp_connectors_sanitize_api_key() kept the stored one, so there is nothing to validate.
+		 * Non-AI connectors accept keys as-is; the service plugin handles its own validation.
+		 */
 		if ( $is_update
 			&& $request->has_param( $setting_name )
 			&& is_string( $value ) && '' !== $value
