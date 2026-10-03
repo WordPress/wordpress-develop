@@ -1990,6 +1990,10 @@ input[type=reset]:disabled,
 	color: currentColor;
 }
 
+.wp-block-cover .wp-block-cover__inner-container a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
+	background: var(--global--color-black);
+}
+
 .wp-block-cover .wp-block-cover__inner-container .has-link-color a,
 .wp-block-cover .wp-block-cover-image-text .has-link-color a,
 .wp-block-cover .wp-block-cover-text .has-link-color a,
