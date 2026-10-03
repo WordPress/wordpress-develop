@@ -2544,7 +2544,12 @@ function wp_should_concatenate_admin_scripts(): bool {
  *   stylesheets are render-blocking and in the same size class as the login screen's own prefetch.
  *
  * Handles the current screen has already printed are skipped, so each context only fetches what it
- * is actually adding.
+ * is actually adding. On the login screen this runs in the footer, after the footer scripts, since
+ * scripts the login form enqueues after its header has printed, such as `user-profile`, bring in
+ * some of the same handles, like `jquery`. A prefetch of those in the head would compete with the
+ * login screen's own requests for them. On admin screens it runs in the head, where only the
+ * editor's stylesheets are prefetched, and a screen prints nearly all of its own stylesheets in
+ * the head as well.
  *
  * These are resources for the *next* navigation rather than for the screen printing them, which is
  * what `rel="prefetch"` describes. `rel="preload"` would fetch them at the current document's
@@ -2583,7 +2588,7 @@ function wp_should_concatenate_admin_scripts(): bool {
 function wp_prefetch_admin_assets(): void {
 	global $concatenate_scripts;
 
-	$on_login = ( 'login_head' === current_action() );
+	$on_login = ( 'login_footer' === current_action() );
 
 	if ( $on_login ) {
 		/*
@@ -2613,7 +2618,7 @@ function wp_prefetch_admin_assets(): void {
 	if ( $on_login ) {
 		/*
 		 * Only the login form is followed by an admin screen. The password reset, registration,
-		 * logout confirmation and check-your-email flows all render through 'login_head' too, and
+		 * logout confirmation and check-your-email flows all render through 'login_footer' too, and
 		 * none of them leads anywhere these assets are wanted. An interim login re-authenticates
 		 * inside a modal on a page that has already loaded them, so it does not need them either.
 		 *
