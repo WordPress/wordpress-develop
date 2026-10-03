@@ -135,6 +135,12 @@ class WP_Translation_Controller_Convert_Tests extends WP_UnitTestCase {
 			array( 'mo', pack( 'V*', 0x950412de ), 'Invalid data' ),
 			array( 'mo', pack( 'V*', 0x950412de ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Unsupported revision' ),
 			array( 'mo', pack( 'V*', 0x950412de, 0x0 ) . 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', 'Invalid data' ),
+			// originals_addr (28) is after translations_addr (20), which would result in a negative originals table length.
+			array( 'mo', pack( 'V*', 0x950412de, 0, 0, 28, 20, 0, 28 ), 'Invalid data' ),
+			// translations_addr (24) is after hash_addr (20), which would result in a negative translations table length.
+			array( 'mo', pack( 'V*', 0x950412de, 0, 0, 20, 24, 0, 20 ), 'Invalid data' ),
+			// hash_addr (0xffffffff) is beyond the end of the file.
+			array( 'mo', pack( 'V*', 0x950412de, 0, 0, 28, 28, 0, 0xffffffff ), 'Invalid data' ),
 		);
 	}
 
