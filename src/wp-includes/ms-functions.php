@@ -2811,20 +2811,19 @@ function update_network_option_new_admin_email( $old_value, $value ) {
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
-	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
+	/* translators: Do not translate USERNAME, ADMIN_URL, NEW_EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Howdy ###USERNAME###,
 
 You recently requested to have the network admin email address on
-your network changed.
+your network changed to:
+###NEW_EMAIL###
 
 If this is correct, please click on the following link to change it:
 ###ADMIN_URL###
 
 You can safely ignore and delete this email if you do not want to
 take this action.
-
-This email has been sent to ###EMAIL###
 
 Regards,
 All at ###SITENAME###
@@ -2838,11 +2837,13 @@ All at ###SITENAME###
 	 *
 	 *  - `###USERNAME###`  The current user's username.
 	 *  - `###ADMIN_URL###` The link to click on to confirm the email change.
-	 *  - `###EMAIL###`     The proposed new network admin email address.
+	 *  - `###NEW_EMAIL###` The proposed new network admin email address.
+	 *  - `###EMAIL###`     Deprecated. Use `###NEW_EMAIL###` instead.
 	 *  - `###SITENAME###`  The name of the network.
 	 *  - `###SITEURL###`   The URL to the network.
 	 *
 	 * @since 4.9.0
+	 * @since 7.2.0 The `###NEW_EMAIL###` placeholder was added. `###EMAIL###` is deprecated.
 	 *
 	 * @param string $email_text      Text in the email.
 	 * @param array  $new_admin_email {
@@ -2854,10 +2855,13 @@ All at ###SITENAME###
 	 */
 	$content = apply_filters( 'new_network_admin_email_content', $email_text, $new_admin_email );
 
+	// The ###EMAIL### placeholder is deprecated in favor of ###NEW_EMAIL###.
+	$content = str_replace( '###EMAIL###', '###NEW_EMAIL###', $content );
+
 	$current_user = wp_get_current_user();
 	$content      = str_replace( '###USERNAME###', $current_user->user_login, $content );
 	$content      = str_replace( '###ADMIN_URL###', esc_url( network_admin_url( 'settings.php?network_admin_hash=' . $hash ) ), $content );
-	$content      = str_replace( '###EMAIL###', $value, $content );
+	$content      = str_replace( '###NEW_EMAIL###', $value, $content );
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', network_home_url(), $content );
 
