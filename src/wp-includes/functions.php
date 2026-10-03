@@ -1005,6 +1005,8 @@ function do_enclose( $content, $post ) {
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2955,6 +2957,8 @@ function _wp_check_existing_file_names( $filename, $files ) {
  * }
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
  *                |array{ error: string, ... }
+ *
+ * @phpstan-param null $deprecated
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
