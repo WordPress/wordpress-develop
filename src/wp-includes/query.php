@@ -1141,7 +1141,20 @@ function wp_old_slug_redirect() {
 			return;
 		}
 
-		wp_redirect( $link, 301 ); // Permanent redirect.
+		/**
+		 * Filters the old slug redirect status.
+		 *
+		 * @since 7.0.1
+		 *
+		 * @param int $status The HTTP response status code to use. Default 301.
+		 * @param int $id     The redirect post ID.
+		 */
+		$status = apply_filters( 'old_slug_redirect_status', 301, $id );
+		if ( ! $status ) {
+			return;
+		}
+
+		wp_redirect( $link, $status );
 		exit;
 	}
 }
