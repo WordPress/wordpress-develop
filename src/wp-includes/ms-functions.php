@@ -1501,6 +1501,19 @@ function newblog_notify_siteadmin( $blog_id, $deprecated = '' ) {
 	$siteurl  = site_url();
 	restore_current_blog();
 
+	/* translators: New site notification email subject. %s: New site URL. */
+	$subject = sprintf( __( 'New Site Registration: %s' ), $siteurl );
+
+	/**
+	 * Filters the subject of the email sent to the network administrator when a new site is activated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string        $subject Subject of the email.
+	 * @param int|string    $blog_id The new site's ID as an integer or numeric string.
+	 */
+	$subject = apply_filters( 'newblog_notify_siteadmin_subject', $subject, $blog_id );
+
 	$msg = sprintf(
 		/* translators: New site notification email. 1: Site URL, 2: User IP address, 3: URL to Network Settings screen. */
 		__(
@@ -1527,8 +1540,7 @@ Disable these notifications: %4$s'
 	 */
 	$msg = apply_filters( 'newblog_notify_siteadmin', $msg, $blog_id );
 
-	/* translators: New site notification email subject. %s: New site URL. */
-	wp_mail( $email, sprintf( __( 'New Site Registration: %s' ), $siteurl ), $msg );
+	wp_mail( $email, $subject, $msg );
 
 	return true;
 }
@@ -1559,6 +1571,19 @@ function newuser_notify_siteadmin( $user_id ) {
 
 	$options_site_url = esc_url( network_admin_url( 'settings.php' ) );
 
+	/* translators: New user notification email subject. %s: User login. */
+	$subject = sprintf( __( 'New User Registration: %s' ), $user->user_login );
+
+	/**
+	 * Filters the subject of the email sent to the network administrator when a new user is activated.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @param string  $subject Subject of the email.
+	 * @param WP_User $user    WP_User instance of the new user.
+	 */
+	$subject = apply_filters( 'newuser_notify_siteadmin_subject', $subject, $user );
+
 	$msg = sprintf(
 		/* translators: New user notification email. 1: User login, 2: User IP address, 3: URL to Network Settings screen. */
 		__(
@@ -1584,7 +1609,7 @@ Disable these notifications: %3$s'
 	$msg = apply_filters( 'newuser_notify_siteadmin', $msg, $user );
 
 	/* translators: New user notification email subject. %s: User login. */
-	wp_mail( $email, sprintf( __( 'New User Registration: %s' ), $user->user_login ), $msg );
+	wp_mail( $email, $subject, $msg );
 
 	return true;
 }
@@ -2811,6 +2836,9 @@ function update_network_option_new_admin_email( $old_value, $value ) {
 
 	$switched_locale = switch_to_user_locale( get_current_user_id() );
 
+	/* translators: Email change notification email subject. %s: Network title */
+	$subject = sprintf( __( '[%s] Network Admin Email Change Request' ), wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ) );
+
 	/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
 		'Howdy ###USERNAME###,
@@ -2861,15 +2889,7 @@ All at ###SITENAME###
 	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES ), $content );
 	$content      = str_replace( '###SITEURL###', network_home_url(), $content );
 
-	wp_mail(
-		$value,
-		sprintf(
-			/* translators: Email change notification email subject. %s: Network title. */
-			__( '[%s] Network Admin Email Change Request' ),
-			wp_specialchars_decode( get_site_option( 'site_name' ), ENT_QUOTES )
-		),
-		$content
-	);
+	wp_mail( $value, $subject, $content );
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
