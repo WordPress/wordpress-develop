@@ -48,6 +48,18 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected $allow_batch = array( 'v1' => true );
 
 	/**
+	 * Item schema properties used to detect taxonomy REST base conflicts.
+	 *
+	 * The properties are captured before taxonomy fields are added to the item
+	 * schema. Taxonomies themselves are retrieved dynamically so changes to an
+	 * object's registered taxonomies are reflected during request processing.
+	 *
+	 * @since 7.2.0
+	 * @var array|null
+	 */
+	protected $rest_taxonomy_schema_properties = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -1691,6 +1703,68 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Retrieves taxonomies exposed as properties on the REST API item resource.
+	 *
+	 * When schema properties are provided, they are stored as the baseline used
+	 * to exclude taxonomy REST bases that conflict with existing item properties.
+	 * Taxonomies are retrieved on every call so runtime changes to an object's
+	 * registered taxonomies are reflected in item processing.
+	 *
+	 * Calling this method without schema properties never triggers schema
+	 * generation, avoiding recursion in controllers that override
+	 * get_item_schema().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array|null $properties Existing item schema properties, or null to use the stored baseline.
+	 * @return WP_Taxonomy[] Taxonomies available as item resource properties.
+	 */
+	protected function get_rest_taxonomies( $properties = null ) {
+		$report_conflicts = null !== $properties;
+
+		if ( $report_conflicts ) {
+			$this->rest_taxonomy_schema_properties = $properties;
+		} elseif ( null !== $this->rest_taxonomy_schema_properties ) {
+			$properties = $this->rest_taxonomy_schema_properties;
+		}
+
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		if ( null === $properties ) {
+			return $taxonomies;
+		}
+
+		$rest_taxonomies = array();
+
+		foreach ( $taxonomies as $taxonomy_name => $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			if ( array_key_exists( $base, $properties ) ) {
+				if ( $report_conflicts ) {
+					$taxonomy_field_name_with_conflict = ! empty( $taxonomy->rest_base ) ? 'rest_base' : 'name';
+					_doing_it_wrong(
+						'register_taxonomy',
+						sprintf(
+							/* translators: 1: The taxonomy name, 2: The property name, either 'rest_base' or 'name', 3: The conflicting value. */
+							__( 'The "%1$s" taxonomy "%2$s" property (%3$s) conflicts with an existing property on the REST API Posts Controller. Specify a custom "rest_base" when registering the taxonomy to avoid this error.' ),
+							$taxonomy->name,
+							$taxonomy_field_name_with_conflict,
+							$base
+						),
+						'5.4.0'
+					);
+				}
+				continue;
+			}
+
+			$rest_taxonomies[ $taxonomy_name ] = $taxonomy;
+			$properties[ $base ]               = true;
+		}
+
+		return $rest_taxonomies;
+	}
+
+	/**
 	 * Updates the post's terms from a REST request.
 	 *
 	 * @since 4.7.0
@@ -1700,7 +1774,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return null|WP_Error WP_Error on an error assigning any of the terms, otherwise null.
 	 */
 	protected function handle_terms( $post_id, $request ) {
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$this->get_item_schema();
+		$taxonomies = $this->get_rest_taxonomies();
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
@@ -1728,7 +1803,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return bool Whether the current user can assign the provided terms.
 	 */
 	protected function check_assign_terms_permission( $request ) {
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$this->get_item_schema();
+		$taxonomies = $this->get_rest_taxonomies();
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
@@ -2103,7 +2179,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$data['meta'] = $this->meta->get_value( $post->ID, $request );
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies();
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
@@ -2369,7 +2445,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies();
 
 		foreach ( $taxonomies as $tax ) {
 			$tax_base   = ! empty( $tax->rest_base ) ? $tax->rest_base : $tax->name;
@@ -2759,25 +2835,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies( $schema['properties'] );
 
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			if ( array_key_exists( $base, $schema['properties'] ) ) {
-				$taxonomy_field_name_with_conflict = ! empty( $taxonomy->rest_base ) ? 'rest_base' : 'name';
-				_doing_it_wrong(
-					'register_taxonomy',
-					sprintf(
-						/* translators: 1: The taxonomy name, 2: The property name, either 'rest_base' or 'name', 3: The conflicting value. */
-						__( 'The "%1$s" taxonomy "%2$s" property (%3$s) conflicts with an existing property on the REST API Posts Controller. Specify a custom "rest_base" when registering the taxonomy to avoid this error.' ),
-						$taxonomy->name,
-						$taxonomy_field_name_with_conflict,
-						$base
-					),
-					'5.4.0'
-				);
-			}
 
 			$schema['properties'][ $base ] = array(
 				/* translators: %s: Taxonomy name. */
@@ -2914,7 +2975,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+		$taxonomies = $this->get_rest_taxonomies();
 
 		foreach ( $taxonomies as $tax ) {
 			$tax_base = ! empty( $tax->rest_base ) ? $tax->rest_base : $tax->name;

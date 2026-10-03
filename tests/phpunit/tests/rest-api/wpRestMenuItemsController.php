@@ -787,6 +787,29 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	}
 
 	/**
+	 * @ticket 65855
+	 * @covers ::get_item_schema
+	 */
+	public function test_get_item_schema_does_not_overwrite_existing_property_when_taxonomy_name_conflicts() {
+		$this->setExpectedIncorrectUsage( 'register_taxonomy' );
+
+		register_taxonomy(
+			'type',
+			'nav_menu_item',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$controller = new WP_REST_Menu_Items_Controller( 'nav_menu_item' );
+		$schema     = $controller->get_item_schema();
+
+		unregister_taxonomy( 'type' );
+
+		$this->assertSame( 'string', $schema['properties']['type']['type'] );
+	}
+
+	/**
 	 * @ticket 40878
 	 * @covers ::get_items_permissions_check
 	 */
