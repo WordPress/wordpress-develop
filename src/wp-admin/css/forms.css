@@ -69,6 +69,7 @@ input[type="week"] {
 	padding: 0 12px;
 	/* inherits font size 14px */
 	min-height: 40px;
+	vertical-align: middle; /* Align with select elements. */
 }
 
 select {
