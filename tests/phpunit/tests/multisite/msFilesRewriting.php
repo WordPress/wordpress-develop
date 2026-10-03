@@ -34,7 +34,7 @@ class Tests_Multisite_msFilesRewriting extends WP_UnitTestCase {
 
 		switch_to_blog( $blog_id2 );
 		$info2 = wp_upload_dir();
-		$this->assertNotEquals( $info, $info2 );
+		$this->assertNotSame( $info, $info2 );
 		$this->assertSame( get_option( 'siteurl' ) . '/wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . $date, $info2['url'] );
 		$this->assertSame( ABSPATH . 'wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . $date, $info2['path'] );
 		$this->assertSame( '/' . $date, $info2['subdir'] );
