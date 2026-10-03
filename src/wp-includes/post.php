@@ -2322,6 +2322,12 @@ function _add_post_type_submenus() {
  * A third, optional parameter can also be passed along with a feature to provide
  * additional information about supporting that feature.
  *
+ * When calling this function multiple times for the same post type and feature,
+ * an array passed as the first argument is merged into the existing one rather
+ * than overwritten. This allows multiple calls to add different sub-properties
+ * to the same feature. Any further arguments are replaced by those of the most
+ * recent call.
+ *
  * Example usage:
  *
  *     add_post_type_support( 'my_post_type', 'comments' );
@@ -2335,6 +2341,8 @@ function _add_post_type_submenus() {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 7.2.0 Multiple calls to add support for the same feature with an array
+ *              as the first argument now merge it instead of overwriting it.
  *
  * @global array $_wp_post_type_features
  *
@@ -2349,7 +2357,24 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 	$features = (array) $feature;
 	foreach ( $features as $feature ) {
 		if ( $args ) {
-			$_wp_post_type_features[ $post_type ][ $feature ] = $args;
+			// Copy per feature, so a merge does not leak into the other features of this call.
+			$feature_args = $args;
+
+			// Check if feature already exists with args and if both are arrays that should be merged.
+			if (
+				isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) &&
+				is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] ) &&
+				isset( $feature_args[0] ) &&
+				is_array( $feature_args[0] )
+			) {
+				// Merge the arrays to preserve existing properties.
+				$feature_args[0] = array_merge(
+					$_wp_post_type_features[ $post_type ][ $feature ][0],
+					$feature_args[0]
+				);
+			}
+
+			$_wp_post_type_features[ $post_type ][ $feature ] = $feature_args;
 		} else {
 			$_wp_post_type_features[ $post_type ][ $feature ] = true;
 		}
