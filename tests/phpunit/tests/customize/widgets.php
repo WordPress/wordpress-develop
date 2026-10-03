@@ -533,6 +533,50 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Custom CSS in a block widget's 'raw_instance' content should be stripped
+	 * for a user without the edit_css capability.
+	 *
+	 * @ticket 64771
+	 *
+	 * @covers WP_Customize_Widgets::sanitize_widget_instance
+	 */
+	public function test_sanitize_widget_instance_raw_instance_strips_custom_css_without_edit_css() {
+		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+		$this->do_customize_boot_actions();
+
+		add_filter( 'map_meta_cap', array( $this, 'revoke_edit_css_cap' ), 10, 2 );
+		$this->assertFalse( current_user_can( 'edit_css' ) );
+
+		$value = array(
+			'raw_instance' => array(
+				'content' => '<!-- wp:paragraph {"style":{"css":"color: red;"}} --><p>Hello</p><!-- /wp:paragraph -->',
+			),
+		);
+
+		$sanitized = $this->manager->widgets->sanitize_widget_instance( $value, 'block' );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_edit_css_cap' ), 10 );
+
+		$blocks = parse_blocks( $sanitized['content'] );
+		$this->assertSame( 'core/paragraph', $blocks[0]['blockName'] );
+		$this->assertArrayNotHasKey( 'style', $blocks[0]['attrs'], 'Custom CSS should be stripped for a user without edit_css.' );
+	}
+
+	/**
+	 * Revoke edit_css cap via map_meta_cap.
+	 *
+	 * @param array  $caps Returns the user's actual capabilities.
+	 * @param string $cap  Capability name.
+	 * @return array Caps.
+	 */
+	public function revoke_edit_css_cap( $caps, $cap ) {
+		if ( 'edit_css' === $cap ) {
+			$caps   = array_diff( $caps, array( 'unfiltered_html' ) );
+			$caps[] = 'do_not_allow';
+		}
+		return $caps;
+	}
+
+	/**
 	 * There should NOT be a 'raw_instance' key when the block editor is enabled
 	 * but the widget does not support them because `show_instance_in_rest` on
 	 * the widget is set to false.
