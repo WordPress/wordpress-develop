@@ -939,4 +939,74 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertTrue( isset( $admin_bar->menu ), 'WP_Admin_Bar::$menu should be set.' );
 		$this->assertSame( array(), $admin_bar->menu, 'WP_Admin_Bar::$menu should be equal to an empty array.' );
 	}
+
+	/**
+	 * This test should not add a Shortlink node when shortlink is empty.
+	 *
+	 * @ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_does_not_add_node_when_shortlink_is_empty() {
+		// Establish a non-singular query context.
+		$short = wp_get_shortlink( 0, 'query' );
+
+		$this->assertSame(
+			'',
+			$short,
+			'The shortlink should be empty in a non-singular query context.'
+		);
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNull( $node, 'The Shortlink admin-bar node should not be added when shortlink is empty' );
+	}
+
+	/**
+	 * This test should add a Shortlink node when a shortlink exists.
+	 *
+	 *@ticket 66223
+	 *
+	 * @covers ::wp_admin_bar_shortlink_menu
+	 */
+	public function test_wp_admin_bar_shortlink_menu_adds_node_when_shortlink_exists() {
+		$post_id = self::factory()->post->create();
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$short = wp_get_shortlink( 0, 'query' );
+
+		$this->assertNotSame(
+			'',
+			$short,
+			'The shortlink should exist for the singular post query context.'
+		);
+
+		$admin_bar = new WP_Admin_Bar();
+
+		wp_admin_bar_shortlink_menu( $admin_bar );
+
+		$node = $admin_bar->get_node( 'get-shortlink' );
+
+		$this->assertNotNull( $node, 'The Shortlink admin-bar node should be added when shortlink exists' );
+		$this->assertSame(
+			$short,
+			$node->href,
+			'The admin-bar node href should use the generated shortlink as its href.'
+		);
+		$this->assertSame(
+			'Shortlink',
+			$node->title,
+			'The admin-bar node title should have  \'Shortlink\' as title.'
+		);
+		$this->assertStringContainsString(
+			'value="' . esc_attr( $short ) . '"',
+			$node->meta['html'],
+			'The admin-bar node HTML should use the generated shortlink as its href.'
+		);
+	}
 }
