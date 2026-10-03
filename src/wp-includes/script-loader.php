@@ -2505,6 +2505,11 @@ function script_concat_settings() {
  * the global has not already been set. It is also how wp_prefetch_admin_assets() predicts, from the
  * login screen, what the admin screen the login leads to will do.
  *
+ * This function and its filter are intended to be removed before 7.2-beta1. They exist only while
+ * concatenation is still an option, and once concatenation is retired, there is nothing left for
+ * them to decide. Do not rely on them; setting the `$concatenate_scripts` global remains the way
+ * to override concatenation on a request.
+ *
  * @since 7.2.0
  *
  * @return bool Whether scripts and styles are concatenated on admin screens and the login screen.
@@ -2518,6 +2523,12 @@ function wp_should_concatenate_admin_scripts(): bool {
 	 *
 	 * Setting the `$concatenate_scripts` global directly still takes precedence over this filter on
 	 * the request where it is set.
+	 *
+	 * An admin screen settles the global the first time scripts are registered, when the
+	 * {@see 'wp_default_scripts'} action registers TinyMCE. That can be as early as while plugins
+	 * load, before the theme's functions.php, whereas the login screen reads this filter only when
+	 * it prints, to predict what the admin will do. So add a callback when a plugin loads, rather
+	 * than from a theme or on a later hook, or the admin may not see it while the login screen does.
 	 *
 	 * @since 7.2.0
 	 *
