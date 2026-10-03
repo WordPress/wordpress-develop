@@ -2697,16 +2697,12 @@ function wp_prefetch_admin_assets(): void {
 		}
 
 		/*
-		 * A user who cannot edit posts of this type will never reach the editor from here, and a
-		 * post type still using the classic editor would not load any of these stylesheets. This is
+		 * A user who cannot edit posts of this type will never reach the editor from here. This is
 		 * `edit_posts` rather than `create_posts`, since the editor is reached by opening an existing
 		 * post as well as by adding a new one, and a user may be able to do the first but not the
 		 * second. Adding a new one requires `edit_posts` too.
 		 */
-		if (
-			! current_user_can( $post_type_object->cap->edit_posts ) ||
-			! use_block_editor_for_post_type( $post_type )
-		) {
+		if ( ! current_user_can( $post_type_object->cap->edit_posts ) ) {
 			return;
 		}
 
@@ -2766,14 +2762,14 @@ function wp_prefetch_admin_assets(): void {
 	$next_screen_is_block_editor = 'post-new.php' === $next_screen_file
 		|| ( 'post.php' === $next_screen_file && 'edit' === ( $next_screen_query['action'] ?? '' ) );
 
-	if ( $next_screen_is_block_editor && $on_login ) {
+	if ( $next_screen_is_block_editor ) {
 		/*
 		 * The editor only loads these stylesheets when the post type uses the block editor, which
-		 * the classic editor, for instance, can turn off. The admin screens have checked this
-		 * already. From the login screen, the post type is the one in `redirect_to`, as for
-		 * post-new.php. An edit link to post.php does not carry one, so it is taken to be a post:
-		 * looking the post up instead would let anyone tell from the login screen whether a post
-		 * with a given ID exists, drafts and private posts included.
+		 * the classic editor, for instance, can turn off. The post type is the one in the query of
+		 * the next screen, as for post-new.php. An edit link to post.php from the login screen does
+		 * not carry one, so it is taken to be a post: looking the post up instead would let anyone
+		 * tell from the login screen whether a post with a given ID exists, drafts and private posts
+		 * included.
 		 */
 		$next_screen_post_type       = $next_screen_query['post_type'] ?? 'post';
 		$next_screen_is_block_editor = is_string( $next_screen_post_type ) && use_block_editor_for_post_type( $next_screen_post_type );
@@ -2804,6 +2800,11 @@ function wp_prefetch_admin_assets(): void {
 				'imgareaselect',
 			)
 		);
+	}
+
+	// From an admin screen, nothing is left to prefetch when the editor turns out not to be the block editor.
+	if ( ! $script_roots && ! $style_roots ) {
+		return;
 	}
 
 	$resources = array();

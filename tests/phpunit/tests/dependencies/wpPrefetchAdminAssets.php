@@ -567,7 +567,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that nothing is prefetched for a post type that uses the classic editor.
+	 * Tests that nothing is prefetched for a post type that uses the classic editor, and that the
+	 * filter is not applied either, since there is no destination to prefetch for.
 	 *
 	 * @ticket 57548
 	 */
@@ -575,7 +576,11 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		add_filter( 'use_block_editor_for_post_type', '__return_false' );
 
+		$filter = new MockAction();
+		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ) );
+
 		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'edit' ) );
+		$this->assertSame( 0, $filter->get_call_count(), 'Expected the filter not to be applied.' );
 	}
 
 	/**
