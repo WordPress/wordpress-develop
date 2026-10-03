@@ -292,6 +292,8 @@ declare( strict_types = 1 );
  *                                                     of ability behavior.
  * }
  * @return WP_Ability|null The registered ability instance on success, `null` on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $name
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
 	if ( ! doing_action( 'wp_abilities_api_init' ) ) {
