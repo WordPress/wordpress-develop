@@ -643,6 +643,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::ERROR_UNSUPPORTED
 	 * @see self::ERROR_EXCEEDED_MAX_BOOKMARKS
 	 *
+	 * @phpstan-impure
+	 *
 	 * @return string|null The last error, if one exists, otherwise null.
 	 */
 	public function get_last_error(): ?string {
@@ -805,7 +807,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function next_visitable_token(): bool {
 		$this->current_element = null;
 
-		if ( isset( $this->last_error ) ) {
+		if ( null !== $this->get_last_error() ) {
 			return false;
 		}
 
@@ -824,7 +826,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->next_visitable_token();
 			}
 
-			if ( isset( $this->last_error ) ) {
+			if ( null !== $this->get_last_error() ) {
 				return false;
 			}
 		}
@@ -1020,7 +1022,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
 		// Refuse to proceed if there was a previous error.
-		if ( null !== $this->last_error ) {
+		if ( null !== $this->get_last_error() ) {
 			return false;
 		}
 
@@ -1064,7 +1066,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			try {
 				$bookmark_name = $this->bookmark_token();
 			} catch ( Exception $e ) {
-				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->get_last_error() ) {
 					return false;
 				}
 				throw $e;
@@ -1176,7 +1178,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return false;
 		} catch ( Exception $e ) {
-			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
+			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->get_last_error() ) {
 				return false;
 			}
 			// Rethrow any other exceptions for higher-level handling.
@@ -1633,6 +1635,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
@@ -1733,6 +1736,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-before-head-insertion-mode
@@ -2163,6 +2167,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#the-after-head-insertion-mode
@@ -3431,6 +3436,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intable
@@ -3905,6 +3911,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
+	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see https://html.spec.whatwg.org/#parsing-main-intbody
@@ -5168,7 +5175,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
 	public function get_tag(): ?string {
-		if ( null !== $this->last_error ) {
+		if ( null !== $this->get_last_error() ) {
 			return null;
 		}
 
