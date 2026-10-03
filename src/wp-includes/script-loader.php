@@ -2816,6 +2816,11 @@ function wp_prefetch_admin_assets(): void {
 		)
 		as $as => list( $dependencies, $roots )
 	) {
+		// Skip a type with nothing to prefetch, such as scripts for the editor, rather than expanding the current screen's queue of it.
+		if ( ! $roots ) {
+			continue;
+		}
+
 		/*
 		 * Expand the roots to include everything they depend on, roots first, and likewise what the
 		 * current screen has queued. A handle that is not registered is dropped along with its
