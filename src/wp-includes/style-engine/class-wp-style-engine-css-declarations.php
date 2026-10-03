@@ -188,8 +188,28 @@ class WP_Style_Engine_CSS_Declarations {
 	 * @return string The filtered declaration or an empty string.
 	 */
 	protected static function filter_declaration( $property, $value, $spacer = '', $options = array() ) {
-		$filtered_value = wp_strip_all_tags( $value, true );
+		$filtered_value = wp_strip_all_tags( $value );
 		if ( '' !== $filtered_value ) {
+			if ( str_contains( $filtered_value, '"' ) || str_contains( $filtered_value, "'" ) ) {
+				$parts          = preg_split( '/("(?:[^"\\\\]|\\\\.)*"|\x27(?:[^\x27\\\\]|\\\\.)*\x27)/', $filtered_value, -1, PREG_SPLIT_DELIM_CAPTURE );
+				$filtered_value = '';
+				foreach ( $parts as $i => $part ) {
+					if ( 1 === $i % 2 ) {
+						// Inside quotes: keep unchanged.
+						$filtered_value .= $part;
+					} else {
+						// Outside quotes: collapse whitespace.
+						$filtered_value .= preg_replace( '/[\r\n\t ]+/', ' ', $part );
+					}
+				}
+				$filtered_value = trim( $filtered_value );
+			} else {
+				$filtered_value = preg_replace( '/[\r\n\t ]+/', ' ', $filtered_value );
+			}
+
+			if ( '' === $filtered_value ) {
+				return '';
+			}
 			$options = wp_parse_args(
 				$options,
 				array(
