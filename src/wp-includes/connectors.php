@@ -898,6 +898,7 @@ add_action( 'init', '_wp_connectors_pass_default_keys_to_ai_client', 20 );
  * Exposes connector settings to the connectors-wp-admin script module.
  *
  * @since 7.0.0
+ * @since 7.2.0 Added the `filesystemCredentialsRequired` flag.
  * @access private
  *
  * @param array<string, mixed> $data Existing script module data.
@@ -908,6 +909,10 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 
 	if ( ! function_exists( 'validate_plugin' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+
+	if ( ! function_exists( 'request_filesystem_credentials' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
 	}
 
 	$connectors = array();
@@ -964,6 +969,22 @@ function _wp_connectors_get_connector_script_module_data( array $data ): array {
 	ksort( $connectors );
 	$data['connectors']        = $connectors;
 	$data['isFileModDisabled'] = ! wp_is_file_mod_allowed( 'install_plugins' );
+
+	/*
+	 * The REST API plugins endpoint cannot install plugins when the filesystem
+	 * method requires credentials that have not been stored. In that case, the
+	 * client installs through `wp.updates.installPlugin()` instead, which prompts
+	 * for the credentials with the "Connection Information" modal.
+	 */
+	$data['filesystemCredentialsRequired'] = false;
+	if ( 'direct' !== get_filesystem_method() ) {
+		ob_start();
+		$filesystem_credentials_are_stored = request_filesystem_credentials( self_admin_url() );
+		ob_end_clean();
+
+		$data['filesystemCredentialsRequired'] = ! $filesystem_credentials_are_stored;
+	}
+
 	return $data;
 }
 add_filter( 'script_module_data_options-connectors-wp-admin', '_wp_connectors_get_connector_script_module_data' );
