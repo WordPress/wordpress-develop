@@ -1,0 +1,27 @@
+# Ignore WordPress plugin files.
+src/wp-content/plugins/**/*
+
+# Ignore WordPress theme files.
+src/wp-content/themes/**/*
+
+# Ignore WordPress block files.
+src/wp-includes/blocks/**/*
+
+# Ignore admin color schemes auto generated files.
+src/wp-admin/css/colors/*/*.css
+
+# Ignore WordPress included dist files.
+src/wp-includes/css/dist/**/*
+
+# Ignore files copied to wp-includes js.
+src/wp-includes/js/**/*
+
+# Ignore WordPress JS vendor files.
+src/js/_enqueues/vendor/**/*
+
+# Ignore minified CSS files.
+**/*.min.css
+
+# Ignore RTL CSS files.
+**/*-rtl.css
+**/*-rtl.min.css
