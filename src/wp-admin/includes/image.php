@@ -792,14 +792,19 @@ function wp_exif_frac2dec( $str ) {
 }
 
 /**
- * Converts the exif date format to DateTime object
+ * Parses a date string, such as an Exif date, into a DateTimeImmutable object.
+ *
+ * Accepts the Exif format (Y:m:d H:i:s) as well as any other format understood
+ * by DateTimeImmutable, such as Y-m-d H:i:s or Y/m/d H:i:s.
  *
  * @since 7.2.0
  *
- * @param string $str
- * @param string $timezone Optional. Timezone or offset string. Anything that is not a
- *                         non-empty string falls back to the site timezone. Default null.
- * @return DateTimeImmutable|false Return false if not valid date.
+ * @param string      $str      The date string to parse.
+ * @param string|null $timezone Optional. Timezone identifier or offset string used when
+ *                              the date string has no timezone of its own. Anything that is
+ *                              not a non-empty string falls back to the site timezone.
+ *                              Default null.
+ * @return DateTimeImmutable|false The parsed date, or false if the date or timezone is invalid.
  */
 function wp_exif_datetime( $str, $timezone = null ) {
 	if ( ! is_string( $str ) || empty( $str ) ) {
