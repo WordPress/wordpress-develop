@@ -95,7 +95,62 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $result;
 		}
 
+		if ( $this->is_paginated_ability( $ability ) && is_array( $result ) && isset( $result['total'], $result['total_pages'] ) ) {
+			return $this->prepare_paginated_response( $result, $input );
+		}
+
 		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Determines whether an ability returns a paginated collection.
+	 *
+	 * An ability opts into REST-level pagination by setting a truthy `pagination` meta
+	 * value. Such an ability accepts `page` and `per_page` input parameters and returns,
+	 * alongside its collection, integer `total` and `total_pages` values describing the
+	 * full result set. This controller turns those into the standard pagination response.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Ability $ability The ability.
+	 * @return bool Whether the ability is paginated.
+	 */
+	private function is_paginated_ability( $ability ): bool {
+		return ! empty( $ability->get_meta_item( 'pagination' ) );
+	}
+
+	/**
+	 * Builds the response for a paginated ability, adding the standard pagination headers.
+	 *
+	 * Mirrors the collection endpoints: `X-WP-Total` and `X-WP-TotalPages` headers are
+	 * emitted from the ability's reported totals, and a request for a page beyond the
+	 * available range returns a 400 error. The response body is the ability result,
+	 * unchanged, so non-REST callers (and clients ignoring the headers) keep the totals.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param array<string, mixed> $result The ability result, including `total` and `total_pages`.
+	 * @param mixed                $input  The input the ability was executed with.
+	 * @return WP_REST_Response|WP_Error The response, or an error for an out-of-range page.
+	 */
+	private function prepare_paginated_response( array $result, $input ) {
+		$total       = (int) $result['total'];
+		$total_pages = (int) $result['total_pages'];
+		$page        = ( is_array( $input ) && isset( $input['page'] ) ) ? (int) $input['page'] : 1;
+
+		if ( $total > 0 && $page > $total_pages ) {
+			return new WP_Error(
+				'rest_ability_invalid_page_number',
+				__( 'The page number requested is larger than the number of pages available.' ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$response = rest_ensure_response( $result );
+		$response->header( 'X-WP-Total', $total );
+		$response->header( 'X-WP-TotalPages', $total_pages );
+
+		return $response;
 	}
 
 	/**
