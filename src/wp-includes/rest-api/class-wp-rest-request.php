@@ -458,13 +458,23 @@ class WP_REST_Request implements ArrayAccess {
 		$found_key = false;
 
 		foreach ( $order as $type ) {
-			if ( 'defaults' !== $type && is_array( $this->params[ $type ] ) && array_key_exists( $key, $this->params[ $type ] ) ) {
-				$this->params[ $type ][ $key ] = $value;
-				$found_key                     = true;
+			if ( 'defaults' !== $type && isset( $this->params[ $type ] ) ) {
+
+				if ( ! is_array( $this->params[ $type ] ) ) {
+					$this->params[ $type ] = array();
+				}
+
+				if ( array_key_exists( $key, $this->params[ $type ] ) ) {
+					$this->params[ $type ][ $key ] = $value;
+					$found_key                     = true;
+				}
 			}
 		}
 
 		if ( ! $found_key ) {
+			if ( ! isset( $this->params[ $order[0] ] ) || ! is_array( $this->params[ $order[0] ] ) ) {
+				$this->params[ $order[0] ] = array();
+			}
 			$this->params[ $order[0] ][ $key ] = $value;
 		}
 	}
@@ -844,7 +854,7 @@ class WP_REST_Request implements ArrayAccess {
 		$invalid_details = array();
 
 		foreach ( $order as $type ) {
-			if ( empty( $this->params[ $type ] ) ) {
+			if ( empty( $this->params[ $type ] ) || ! is_array( $this->params[ $type ] ) ) {
 				continue;
 			}
 
