@@ -19,7 +19,7 @@
 #[AllowDynamicProperties]
 class WP_Sitemaps_Stylesheet {
 	/**
-	 * Renders the XSL stylesheet.
+	 * Renders the XSL stylesheet depending on whether it's the sitemap index or not.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -35,7 +35,7 @@ class WP_Sitemaps_Stylesheet {
 	}
 
 	/**
-	 * Returns the stylesheet for all sitemaps, except index.
+	 * Returns the escaped XSL for all sitemaps, except index.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -48,7 +48,7 @@ class WP_Sitemaps_Stylesheet {
 	}
 
 	/**
-	 * Returns the stylesheet for the sitemap index.
+	 * Returns the escaped XSL for the index sitemaps.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -61,7 +61,7 @@ class WP_Sitemaps_Stylesheet {
 	}
 
 	/**
-	 * Returns the stylesheet CSS.
+	 * Gets the CSS to be included in sitemap XSL stylesheets.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
