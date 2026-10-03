@@ -3522,6 +3522,19 @@ function wp_ajax_heartbeat() {
 		$data = wp_unslash( (array) $_POST['data'] );
 	}
 
+	if ( false === $nonce_state ) {
+		/*
+		 * The Heartbeat nonce has expired. Only hand out fresh nonces in exchange
+		 * for a valid long-lived refresh nonce, which can only be obtained from a
+		 * page rendered by the server. Otherwise the client has to reload.
+		 */
+		$refresh_nonce = ! empty( $_POST['refresh_nonce'] ) ? $_POST['refresh_nonce'] : '';
+
+		if ( ! wp_verify_nonce( $refresh_nonce, 'heartbeat-refresh-nonce' ) ) {
+			wp_send_json( array( 'nonces_expired' => true ) );
+		}
+	}
+
 	if ( 1 !== $nonce_state ) {
 		/**
 		 * Filters the nonces to send to the New/Edit Post screen.
@@ -3535,8 +3548,7 @@ function wp_ajax_heartbeat() {
 		$response = apply_filters( 'wp_refresh_nonces', $response, $data, $screen_id );
 
 		if ( false === $nonce_state ) {
-			// User is logged in but nonces have expired.
-			$response['nonces_expired'] = true;
+			// Nonces were refreshed with the refresh nonce, skip processing the stale request data.
 			wp_send_json( $response );
 		}
 	}

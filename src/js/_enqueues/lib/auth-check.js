@@ -51,6 +51,7 @@
 
 				if ( height ) {
 					if ( body && body.hasClass( 'interim-login-success' ) ) {
+						adoptRefreshNonce( body );
 						hide();
 					} else {
 						parent.css( 'max-height', height + 40 + 'px' );
@@ -87,6 +88,27 @@
 			}, 10000 );
 		} else {
 			noframe.focus();
+		}
+	}
+
+	/**
+	 * Adopts the Heartbeat refresh nonce handed over by a successful interim login.
+	 *
+	 * Logging in again starts a new session, and nonces are tied to the session,
+	 * so the refresh nonce this page was rendered with can no longer renew its
+	 * nonces. The login success page carries one for the new session; the next
+	 * Heartbeat exchanges it for fresh nonces.
+	 *
+	 * @since 7.2.0
+	 * @private
+	 *
+	 * @param {jQuery} body The body of the interim login frame.
+	 */
+	function adoptRefreshNonce( body ) {
+		var refreshNonce = body.find( '#wp-auth-check-heartbeat-refresh-nonce' ).val();
+
+		if ( refreshNonce && typeof window.heartbeatSettings === 'object' ) {
+			window.heartbeatSettings.refreshNonce = refreshNonce;
 		}
 	}
 
