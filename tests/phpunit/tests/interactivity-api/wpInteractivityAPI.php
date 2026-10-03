@@ -20,11 +20,27 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	protected $interactivity;
 
 	/**
+	 * Original global WP_Interactivity_API instance.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	protected $original_wp_interactivity;
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
+		global $wp_interactivity;
 		parent::set_up();
 		$this->interactivity = new WP_Interactivity_API();
+
+		/*
+		 * The hooks added by `add_hooks()` operate on the global instance, so the
+		 * test instance must be the global one for those hooks to see its data.
+		 */
+		$this->original_wp_interactivity = $wp_interactivity;
+		$wp_interactivity                = $this->interactivity;
+
 		wp_default_script_modules();
 		$this->interactivity->add_hooks();
 	}
@@ -33,9 +49,10 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tear_down() {
-		global $wp_script_modules;
+		global $wp_script_modules, $wp_interactivity;
 		parent::tear_down();
 		$wp_script_modules = null;
+		$wp_interactivity  = $this->original_wp_interactivity;
 	}
 
 	public function charset_iso_8859_1() {
@@ -2362,5 +2379,28 @@ HTML;
 		$p->next_tag( array( 'tag_name' => 'SCRIPT' ) );
 		$this->assertSame( 'unmarked-module-js-module', $p->get_attribute( 'id' ) );
 		$this->assertNull( $p->get_attribute( 'data-wp-router-options' ) );
+	}
+
+	/**
+	 * Tests that the callbacks added by `add_hooks()` read the current global
+	 * WP_Interactivity_API instance when they run.
+	 *
+	 * @ticket 66100
+	 * @covers WP_Interactivity_API::add_hooks
+	 */
+	public function test_add_hooks_callbacks_read_the_current_global_instance() {
+		global $wp_interactivity;
+
+		// set_up() registered the hooks on the instance that is the global.
+		$wp_interactivity = new WP_Interactivity_API();
+		wp_interactivity_state( 'test-hooks-global', array( 'value' => 'from-current-global' ) );
+
+		$data = apply_filters( 'script_module_data_@wordpress/interactivity', array() ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+
+		$this->assertSame(
+			array( 'state' => array( 'test-hooks-global' => array( 'value' => 'from-current-global' ) ) ),
+			$data,
+			'The filter callbacks added by add_hooks() must read the current global WP_Interactivity_API instance.'
+		);
 	}
 }
