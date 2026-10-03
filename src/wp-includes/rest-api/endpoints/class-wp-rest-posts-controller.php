@@ -1797,8 +1797,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		// Can we read the parent if we're inheriting?
-		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
+		// Can we read the parent if we're inheriting? A post that is its own parent has none to check.
+		if ( 'inherit' === $post->post_status && $post->post_parent > 0 && $post->post_parent !== $post->ID ) {
 			$parent = get_post( $post->post_parent );
 			if ( $parent ) {
 				return $this->check_read_permission( $parent );
@@ -1806,8 +1806,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * If there isn't a parent, but the status is set to inherit, assume
-		 * it's published (as per get_post_status()).
+		 * If there isn't a parent, or the post is its own parent, but the status is
+		 * set to inherit, assume it's published (as per get_post_status()).
 		 */
 		if ( 'inherit' === $post->post_status ) {
 			return true;
