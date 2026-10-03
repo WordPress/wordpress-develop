@@ -432,6 +432,7 @@ function wp_plugin_update_rows() {
 		$plugins = array_keys( $plugins->response );
 
 		foreach ( $plugins as $plugin_file ) {
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( "after_plugin_row_{$plugin_file}", 'wp_plugin_update_row', 10, 2 );
 		}
 	}
@@ -657,6 +658,7 @@ function wp_theme_update_rows() {
 		$themes = array_keys( $themes->response );
 
 		foreach ( $themes as $theme ) {
+			// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 			add_action( "after_theme_row_{$theme}", 'wp_theme_update_row', 10, 2 );
 		}
 	}

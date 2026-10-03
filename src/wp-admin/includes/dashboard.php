@@ -1622,7 +1622,7 @@ function wp_dashboard_primary() {
 			 *
 			 * @since 4.4.0
 			 *
-			 * @param string $items How many items to show in the secondary feed.
+			 * @param int $items How many items to show in the secondary feed.
 			 */
 			'items'        => apply_filters( 'dashboard_secondary_items', 3 ),
 			'show_summary' => 0,
