@@ -74,6 +74,9 @@ class WP_Sitemaps_Stylesheet {
 		/**
 		 * Filters the CSS only for the sitemap stylesheet.
 		 *
+		 * Following the deprecation of XSLT by browser manufacturers the
+		 * outcome of this filter is ignored.
+		 *
 		 * @since 5.5.0
 		 * @deprecated 7.2.0 Stylesheets are no longer supported.
 		 *

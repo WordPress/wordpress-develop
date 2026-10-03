@@ -59,7 +59,8 @@ class WP_Sitemaps_Renderer {
 		 * Filters the URL for the sitemap stylesheet.
 		 *
 		 * If a falsey value is returned, no stylesheet will be used and
-		 * the "raw" XML of the sitemap will be displayed.
+		 * Following the deprecation of XSLT by browser manufacturers the
+		 * outcome of this filter is ignored.
 		 *
 		 * @since 5.5.0
 		 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -86,7 +87,8 @@ class WP_Sitemaps_Renderer {
 		 * Filters the URL for the sitemap index stylesheet.
 		 *
 		 * If a falsey value is returned, no stylesheet will be used and
-		 * the "raw" XML of the sitemap index will be displayed.
+		 * Following the deprecation of XSLT by browser manufacturers the
+		 * outcome of this filter is ignored.
 		 *
 		 * @since 5.5.0
 		 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -247,6 +249,9 @@ class WP_Sitemaps_Renderer {
 			/**
 			 * Filters the content of the sitemap index stylesheet.
 			 *
+			 * Following the deprecation of XSLT by browser manufacturers the
+			 * outcome of this filter is ignored.
+			 *
 			 * @since 5.5.0
 			 * @deprecated 7.2.0 Stylesheets are no longer supported.
 			 *
@@ -259,6 +264,9 @@ class WP_Sitemaps_Renderer {
 
 			/**
 			 * Filters the content of the sitemap stylesheet.
+			 *
+			 * Following the deprecation of XSLT by browser manufacturers the
+			 * outcome of this filter is ignored.
 			 *
 			 * @since 5.5.0
 			 * @deprecated 7.2.0 Stylesheets are no longer supported.
