@@ -20,6 +20,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	private static $upgrader_skin_mock;
 
 	/**
+	 * A mock upgrader instance for a specific type, Plugin_Upgrader or Theme_Upgrader.
+	 *
+	 * @var (\Plugin_Upgrader|\Theme_Upgrader)&\PHPUnit\Framework\MockObject\MockObject
+	 */
+	private static $upgrader_type_mock;
+
+	/**
 	 * Filesystem mock.
 	 *
 	 * @var WP_Filesystem_Base&PHPUnit\Framework\MockObject\MockObject
@@ -32,6 +39,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 * @var mixed|null
 	 */
 	private static $wp_filesystem_backup = null;
+
+	/**
+	 * A helper for capturing the 'upgrader_process_complete' hook.
+	 *
+	 * @var array
+	 */
+	private $hook_extra = array();
 
 	/**
 	 * Loads the class to be tested.
@@ -1762,6 +1776,92 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 			'download_failed',
 			$result->get_error_code(),
 			'Unexpected WP_Error code'
+		);
+	}
+
+	/**
+	 * Captures the hook extra array for testing.
+	 *
+	 * @param WP_Upgrader $upgrader   The upgrader instance.
+	 * @param array       $hook_extra The hook extra array.
+	 */
+	public function capture_hook_extra( $upgrader, $hook_extra ) {
+		$this->hook_extra = $hook_extra;
+	}
+
+	/**
+	 * Tests that `upgrader_process_complete` is fired with the correct action.
+	 *
+	 * @ticket 50849
+	 *
+	 * @covers WP_Upgrader::get_hook_extra_action
+	 * @dataProvider data_upgrader_process_complete_with_action
+	 *
+	 * @param string $upgrader_class The upgrader class to test.
+	 * @param string $overwrite      The value for the skin's "overwrite" property.
+	 * @param array  $expected       The expected hook_extra array.
+	 */
+	public function test_upgrader_process_complete_with_action( $upgrader_class, $overwrite, $expected ) {
+		self::$upgrader_skin_mock->overwrite = $overwrite;
+
+		self::$upgrader_type_mock = $this->getMockBuilder( $upgrader_class )
+			->setConstructorArgs( array( 'skin' => self::$upgrader_skin_mock ) )
+			->onlyMethods( array( 'run' ) )
+			->getMock();
+
+		self::$upgrader_type_mock->method( 'run' )->will(
+			$this->returnCallback(
+				function ( $options ) {
+					do_action( 'upgrader_process_complete', self::$upgrader_type_mock, $options['hook_extra'] );
+				}
+			)
+		);
+
+		add_action( 'upgrader_process_complete', array( $this, 'capture_hook_extra' ), 10, 2 );
+		self::$upgrader_type_mock->install( 'some-package.zip' );
+
+		$this->assertSame( $expected, $this->hook_extra );
+	}
+
+	/**
+	 * Data provider for test_upgrader_process_complete_with_action.
+	 *
+	 * @return array
+	 */
+	public function data_upgrader_process_complete_with_action() {
+		return array(
+			'plugin update'    => array(
+				\Plugin_Upgrader::class,
+				'update-plugin',
+				array(
+					'type'   => 'plugin',
+					'action' => 'update',
+				),
+			),
+			'plugin downgrade' => array(
+				\Plugin_Upgrader::class,
+				'downgrade-plugin',
+				array(
+					'type'   => 'plugin',
+					'action' => 'downgrade',
+				),
+			),
+			'theme update'     => array(
+				\Theme_Upgrader::class,
+				'update-theme',
+				array(
+					'type'   => 'theme',
+					'action' => 'update',
+				),
+			),
+			'theme downgrade'  => array(
+				\Theme_Upgrader::class,
+				'downgrade-theme',
+				array(
+					'type'   => 'theme',
+					'action' => 'downgrade',
+				),
+			),
 		);
 	}
 }
