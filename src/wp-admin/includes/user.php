@@ -624,7 +624,8 @@ Please click the following link to activate your user account:
  *
  * @since 5.6.0
  * @since 6.2.0 Allow insecure HTTP connections for the local environment.
- * @since 6.3.2 Validates the success and reject URLs to prevent `javascript` pseudo protocol from being executed.
+ * @since 6.3.2 Validates the success URL to prevent `javascript` pseudo protocol from being executed.
+ * @since x.y.z A reject URL is no longer supported or used.
  *
  * @param array   $request {
  *     The array of request data. All arguments are optional and may be empty.
@@ -632,7 +633,6 @@ Please click the following link to activate your user account:
  *     @type string $app_name    The suggested name of the application.
  *     @type string $app_id      A UUID provided by the application to uniquely identify it.
  *     @type string $success_url The URL the user will be redirected to after approving the application.
- *     @type string $reject_url  The URL the user will be redirected to after rejecting the application.
  * }
  * @param WP_User $user The user authorizing the application.
  * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
@@ -646,16 +646,6 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 			$error->add(
 				$validated_success_url->get_error_code(),
 				$validated_success_url->get_error_message()
-			);
-		}
-	}
-
-	if ( isset( $request['reject_url'] ) ) {
-		$validated_reject_url = wp_is_authorize_application_redirect_url_valid( $request['reject_url'] );
-		if ( is_wp_error( $validated_reject_url ) ) {
-			$error->add(
-				$validated_reject_url->get_error_code(),
-				$validated_reject_url->get_error_message()
 			);
 		}
 	}
@@ -731,6 +721,13 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
 		return new WP_Error(
 			'invalid_redirect_url_format',
 			__( 'Invalid URL format.' )
+		);
+	}
+
+	if ( null !== wp_parse_url( $url, PHP_URL_USER ) ) {
+		return new WP_Error(
+			'invalid_redirect_url_format',
+			__( 'Credentials are not allowed in the URL.' )
 		);
 	}
 
