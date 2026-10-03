@@ -382,6 +382,126 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `deprecated` rejects values other than an array.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_meta_deprecated_rejects_invalid_type(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = true;
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability meta should provide `deprecated` as null or an array of deprecation details.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Data provider for deprecation details that must include a `since` version.
+	 *
+	 * @return array<string, array{0: array}> Data sets.
+	 */
+	public function data_meta_deprecated_requires_since(): array {
+		return array(
+			'no details'            => array( array() ),
+			'replacement + message' => array(
+				array(
+					'replacement' => 'test/new-calculator',
+					'message'     => 'Use the new input format.',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that `deprecated` details must always include a `since` version.
+	 *
+	 * @ticket 64209
+	 *
+	 * @dataProvider data_meta_deprecated_requires_since
+	 *
+	 * @param array $deprecated The deprecation details under test.
+	 */
+	public function test_meta_deprecated_rejects_details_without_since( array $deprecated ): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = $deprecated;
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability deprecation details must include a `since` version.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Data provider for supported `deprecated` details with invalid values.
+	 *
+	 * @return array<string, array{0: array, 1: string}> Data sets.
+	 */
+	public function data_meta_deprecated_rejects_invalid_detail(): array {
+		return array(
+			'integer since'       => array(
+				array( 'since' => 2 ),
+				'since',
+			),
+			'integer replacement' => array(
+				array(
+					'since'       => '2.0.0',
+					'replacement' => 5,
+				),
+				'replacement',
+			),
+			'empty replacement'   => array(
+				array(
+					'since'       => '2.0.0',
+					'replacement' => '',
+				),
+				'replacement',
+			),
+		);
+	}
+
+	/**
+	 * Tests that supported `deprecated` details must be non-empty strings.
+	 *
+	 * @ticket 64209
+	 *
+	 * @dataProvider data_meta_deprecated_rejects_invalid_detail
+	 *
+	 * @param array  $deprecated The deprecation details under test.
+	 * @param string $key        The detail key holding the invalid value.
+	 */
+	public function test_meta_deprecated_rejects_invalid_detail( array $deprecated, string $key ): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = $deprecated;
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( sprintf( 'The ability deprecation `%s` value should be a non-empty string.', $key ) );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that executing a deprecated ability emits a deprecation notice.
+	 *
+	 * Covers abilities that were retrieved without a notice, e.g. via `wp_get_abilities()`.
+	 *
+	 * @ticket 64209
+	 *
+	 * @covers WP_Ability::execute
+	 * @covers WP_Ability::_handle_ability_deprecation
+	 */
+	public function test_execute_deprecated_ability_emits_deprecation(): void {
+		$args                       = self::$test_ability_properties;
+		$args['meta']['deprecated'] = array( 'since' => '2.0.0' );
+
+		$this->setExpectedDeprecated( self::$test_ability_name );
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 0, $ability->execute() );
+	}
+
+	/**
 	 * Data provider for testing the execution of the ability.
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.
