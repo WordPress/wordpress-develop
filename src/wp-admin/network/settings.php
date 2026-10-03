@@ -171,7 +171,7 @@ if ( isset( $_GET['updated'] ) ) {
 					</p>
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
-					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
+					if ( $new_admin_email && 0 !== strcasecmp( get_site_option( 'admin_email' ), $new_admin_email ) ) :
 						$notice_message = sprintf(
 							/* translators: %s: New network admin email. */
 							__( 'There is a pending change of the network admin email to %s.' ),
