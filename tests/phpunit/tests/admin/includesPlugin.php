@@ -26,13 +26,18 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * Resets the global menu registries modified by the menu API tests.
 	 */
 	private function reset_menu_globals() {
-		global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages;
+		global $menu, $submenu, $admin_page_hooks, $_registered_pages, $_parent_pages,
+			$_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-		$menu              = array();
-		$submenu           = array();
-		$admin_page_hooks  = array();
-		$_registered_pages = array();
-		$_parent_pages     = array();
+		$menu               = array();
+		$submenu            = array();
+		$admin_page_hooks   = array();
+		$_registered_pages  = array();
+		$_parent_pages      = array();
+		$_wp_menu_nopriv    = array();
+		$_wp_submenu_nopriv = array();
+
+		unset( $GLOBALS['plugin_page'], $GLOBALS['admin_page_parent'] );
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
@@ -93,6 +98,71 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		foreach ( $expected as $name => $value ) {
 			$this->assertSame( $value, menu_page_url( $name, false ) );
 		}
+
+		wp_set_current_user( $current_user );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_when_no_plugin_page_is_set() {
+		global $plugin_page;
+
+		unset( $plugin_page );
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
+		global $admin_page_parent, $plugin_page, $_registered_pages;
+
+		$admin_page_parent = 'options-general.php';
+		$plugin_page       = 'testsettings';
+		$_registered_pages = array(
+			get_plugin_page_hookname( $plugin_page, $admin_page_parent ) => true,
+		);
+
+		$this->assertTrue( wp_admin_page_exists() );
+	}
+
+	/**
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_false_for_an_unregistered_page() {
+		global $admin_page_parent, $plugin_page, $_registered_pages;
+
+		$admin_page_parent = 'options-general.php';
+		$plugin_page       = 'does-not-exist';
+		$_registered_pages = array();
+
+		$this->assertFalse( wp_admin_page_exists() );
+	}
+
+	/**
+	 * Pages the current user cannot access are not added to $_registered_pages,
+	 * but they do exist and must not be reported as missing.
+	 *
+	 * @covers ::wp_admin_page_exists
+	 */
+	public function test_wp_admin_page_exists_returns_true_for_a_registered_page_the_user_cannot_access() {
+		global $admin_page_parent, $plugin_page;
+
+		$current_user = get_current_user_id();
+		wp_set_current_user( self::$admin_id );
+
+		add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
+
+		// Register a submenu page requiring a capability no user has.
+		wp_set_current_user( 0 );
+		add_submenu_page( 'mt-top-level-handle', 'No Priv', 'No Priv', 'do_not_allow', 'mt-no-priv', 'mt_no_priv_page' );
+
+		$admin_page_parent = 'mt-top-level-handle';
+		$plugin_page       = 'mt-no-priv';
+
+		$this->assertTrue( wp_admin_page_exists() );
 
 		wp_set_current_user( $current_user );
 	}
