@@ -17,7 +17,7 @@
 #[AllowDynamicProperties]
 class WP_Sitemaps_Renderer {
 	/**
-	 * Sitemap stylesheet URL.
+	 * XSL stylesheet for styling a sitemap for web browsers.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
@@ -27,7 +27,7 @@ class WP_Sitemaps_Renderer {
 	protected $stylesheet = '';
 
 	/**
-	 * Sitemap index stylesheet URL.
+	 * XSL stylesheet for styling a sitemap for web browsers.
 	 *
 	 * @since 5.5.0
 	 * @deprecated 7.2.0 Stylesheets are no longer supported.
