@@ -352,6 +352,30 @@ jQuery( function( $ ) {
 					location: location
 				});
 			});
+			
+			/**
+			 * Clears the location input field and resets the events.
+			 */
+			$container.on( 'click', '.community-events-clear', function( event ) {
+				event.preventDefault();
+
+				// Clear the input field and focus back on the location input.
+				$( '#community-events-location' ).val( '' ).trigger( 'focus' );
+				
+				// Reset the cache.
+				if (communityEventsData.cache) {
+					communityEventsData.cache.location = false;
+					communityEventsData.cache.events = [];
+				}
+				
+				// Render the empty state.
+				app.renderEventsTemplate( {
+					'location' : false,
+					'events'   : [],
+					'error'    : false
+				}, 'user' );
+
+			});
 
 			if ( communityEventsData && communityEventsData.cache && communityEventsData.cache.location && communityEventsData.cache.events ) {
 				app.renderEventsTemplate( communityEventsData.cache, 'app' );
@@ -374,7 +398,6 @@ jQuery( function( $ ) {
 		 */
 		toggleLocationForm: function( action ) {
 			var $toggleButton = $( '.community-events-toggle-location' ),
-				$cancelButton = $( '.community-events-cancel' ),
 				$form         = $( '.community-events-form' ),
 				$target       = $();
 
@@ -391,7 +414,6 @@ jQuery( function( $ ) {
 
 			if ( 'hide' === action ) {
 				$toggleButton.attr( 'aria-expanded', 'false' );
-				$cancelButton.attr( 'aria-expanded', 'false' );
 				$form.attr( 'aria-hidden', 'true' );
 				/*
 				 * If the Cancel button has been clicked, bring the focus back
@@ -403,7 +425,6 @@ jQuery( function( $ ) {
 				}
 			} else {
 				$toggleButton.attr( 'aria-expanded', 'true' );
-				$cancelButton.attr( 'aria-expanded', 'true' );
 				$form.attr( 'aria-hidden', 'false' );
 			}
 		},
@@ -826,6 +847,225 @@ jQuery( function( $ ) {
 			}
 		});
 	}
+});
+
+/**
+ * WordPress Global Events.
+ * 
+ * This follows the same pattern as wp.communityEvents but focuses on global events
+ * rather than location-specific events.
+ *
+ * @since 6.0.0
+ *
+ * @memberOf wp
+ * @namespace wp.globalEvents
+ */
+window.wp = window.wp || {};
+window.wp.globalEvents = /** @lends wp.globalEvents */ {
+    initialized: false,
+    allEvents: [],
+    
+    // Constants for configuration
+    API_ENDPOINT: 'https://api.wordpress.org/events/1.0/?location=San%20Francisco',
+    MAX_EVENTS_PER_FILTER: 3,
+    ACCESSIBILITY_MEETUP_NAME: 'WordPress Accessibility Meetup',
+    LEARN_MEETUP_NAME: 'Learn WordPress Online Workshops',
+    DEFAULT_LOCATION: 'San Francisco, CA',
+    
+    /**
+     * Initializes the wp.globalEvents object.
+     *
+     * @since 6.0.0
+     *
+     * @return {void}
+     */
+    init: function() {
+        if (wp.globalEvents.initialized) {
+            return;
+        }
+        
+        const $ = jQuery;
+        
+        // Fetch and render global events when the page loads
+        wp.globalEvents.fetchEvents().then(globalEventsData => {
+            wp.globalEvents.allEvents = globalEventsData.events || [];
+            const latestEvents = wp.globalEvents.filterEvents(wp.globalEvents.allEvents, 'All');
+            wp.globalEvents.renderEventsTemplate(latestEvents, 'All');
+        });
+
+        // Set up filter buttons
+        $('#global-events-filters button').on('click', function() {
+            const filter = $(this).data('filter');
+            $('#global-events-filters button').removeClass('button-primary');
+            $(this).addClass('button-primary');
+            
+            const filteredEvents = wp.globalEvents.filterEvents(wp.globalEvents.allEvents, filter);
+            wp.globalEvents.renderEventsTemplate(filteredEvents, filter);
+        });
+        
+        wp.globalEvents.initialized = true;
+    },
+    
+    /**
+     * Fetches events from the WordPress.org API.
+     *
+     * @since 6.0.0
+     *
+     * @return {Promise} Promise resolving to events data.
+     */
+    fetchEvents: async function() {
+        try {
+            const response = await fetch(wp.globalEvents.API_ENDPOINT);
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching global events:', error);
+            return { events: [] };
+        }
+    },
+    
+    /**
+     * Filters events by category.
+     *
+     * @since 6.0.0
+     *
+     * @param {Array}  events Array of event objects.
+     * @param {string} filter Filter category ('All', 'Accessibility', 'Learn').
+     * @return {Array} Filtered events array.
+     */
+    filterEvents: function(events, filter) {
+        let filteredEvents = [];
+
+        if (filter === 'All') {
+            filteredEvents = events.filter(event => {
+                const meetupName = (event.meetup || '');
+                return meetupName === wp.globalEvents.ACCESSIBILITY_MEETUP_NAME || 
+                       meetupName === wp.globalEvents.LEARN_MEETUP_NAME;
+            });
+        } else {
+            filteredEvents = events.filter(event => {
+                const meetupName = (event.meetup || '');
+                
+                if (filter === 'Accessibility') {
+                    return meetupName === wp.globalEvents.ACCESSIBILITY_MEETUP_NAME;
+                } else if (filter === 'Learn') {
+                    return meetupName === wp.globalEvents.LEARN_MEETUP_NAME;
+                }
+                return false;
+            });
+        }
+
+        // Process events for display (add formatted time/date)
+        filteredEvents = filteredEvents.map(event => {
+            const eventCopy = {...event};
+            
+            // Add formatted date/time using existing WordPress functions
+            if (wp.communityEvents && typeof wp.communityEvents.populateDynamicEventFields === 'function') {
+                const processed = wp.communityEvents.populateDynamicEventFields([eventCopy], window.communityEventsData.time_format)[0];
+                return processed;
+            }
+            
+            return eventCopy;
+        });
+
+        // Limit the filtered events to a maximum configured number
+        return filteredEvents.slice(0, wp.globalEvents.MAX_EVENTS_PER_FILTER);
+    },
+    
+    /**
+     * Renders the events template with the filtered events.
+     *
+     * @since 6.0.0
+     *
+     * @param {Array}  events Filtered events array.
+     * @param {string} filter Current active filter.
+     * @return {void}
+     */
+    renderEventsTemplate: function(events, filter) {
+        const $ = jQuery;
+        const $eventList = $('#global-events-list');
+        const template = wp.template('global-events-event-list');
+        
+        // Format events to match community events structure
+        const formattedEvents = events.map(event => {
+            // Determine the correct type based on meetup name
+            let eventType = 'global';
+            const meetupName = event.meetup || '';
+            
+            if (meetupName === wp.globalEvents.ACCESSIBILITY_MEETUP_NAME) {
+                eventType = 'Accessibility Meetup';
+            } else if (meetupName === wp.globalEvents.LEARN_MEETUP_NAME) {
+                eventType = 'Learn WordPress';
+            }
+            
+            // Create a clone with all the expected properties
+            return {
+                ...event,
+                // Use the determined type
+                type: eventType,
+                title: event.title || '',
+                url: event.meetup_url || '#',
+                // Format location properly
+                location: {
+                    location: typeof event.location === 'object' ? 
+                        (event.location.location || event.location.description || wp.globalEvents.DEFAULT_LOCATION) :
+                        (event.location || wp.globalEvents.DEFAULT_LOCATION)
+                },
+                // Make sure these exist for the template
+                user_formatted_date: event.user_formatted_date || '',
+                user_formatted_time: event.user_formatted_time || '',
+                timeZoneAbbreviation: event.timeZoneAbbreviation || ''
+            };
+        });
+
+        // Use the same template that community events uses
+        if (formattedEvents.length > 0) {
+            $eventList.html(template({ events: formattedEvents }));
+            
+            // Apply specific icon classes based on event type or filter
+            $('.event-global .event-icon').each(function() {
+                const $this = $(this);
+                const $eventItem = $this.closest('.event');
+                const eventUrl = $eventItem.find('.event-title').attr('href').toLowerCase();
+                
+                // Add dashicons-calendar class as the default icon
+                $this.addClass('dashicons-nametag');
+                
+                // Apply specific icon based on event type or URL
+                if (eventUrl.includes('accessibility')) {
+                    $this.removeClass('dashicons-nametag').addClass('dashicons-universal-access');
+                } else if (eventUrl.includes('learn')) {
+                    $this.removeClass('dashicons-nametag').addClass('dashicons-welcome-learn-more');
+                }
+            });
+        } else {
+            // Use identical empty state markup
+            $eventList.html('<li class="event-none"><p>' + wp.i18n.__('No global events found at the moment.') + '</p></li>');
+        }
+    }
+};
+
+jQuery(function($) {
+    // Initialize both event modules if their containers exist
+    if ($('#dashboard_primary').is(':visible')) {
+        if ($('#community-events').length) {
+            wp.communityEvents.init();
+        }
+        if ($('#global-events-section').length) {
+            wp.globalEvents.init();
+        }
+    } else {
+        $(document).on('postbox-toggled', function(event, postbox) {
+            var $postbox = $(postbox);
+            if ('dashboard_primary' === $postbox.attr('id') && $postbox.is(':visible')) {
+                if ($('#community-events').length) {
+                    wp.communityEvents.init();
+                }
+                if ($('#global-events-section').length) {
+                    wp.globalEvents.init();
+                }
+            }
+        });
+    }
 });
 
 /**
