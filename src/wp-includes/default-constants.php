@@ -292,6 +292,7 @@ function wp_cookie_constants() {
 
 	/**
 	 * @since 2.3.0
+	 * @since 7.2.0 No longer used by core. Kept for backward compatibility.
 	 */
 	if ( ! defined( 'TEST_COOKIE' ) ) {
 		define( 'TEST_COOKIE', 'wordpress_test_cookie' );

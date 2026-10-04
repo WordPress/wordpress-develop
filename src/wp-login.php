@@ -516,13 +516,7 @@ if ( defined( 'RELOCATE' ) && RELOCATE ) { // Move flag is set.
 	}
 }
 
-// Set a cookie now to see if they are supported by the browser.
 $secure = ( 'https' === parse_url( wp_login_url(), PHP_URL_SCHEME ) );
-setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
-
-if ( SITECOOKIEPATH !== COOKIEPATH ) {
-	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure, true );
-}
 
 if ( isset( $_GET['wp_lang'] ) ) {
 	setcookie( 'wp_lang', sanitize_text_field( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure, true );
@@ -1311,28 +1305,16 @@ switch ( $action ) {
 
 		$user = wp_signon( array(), $secure_cookie );
 
-		if ( empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
-			if ( headers_sent() ) {
-				$user = new WP_Error(
-					'test_cookie',
-					sprintf(
-						/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
-						__( '<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
-						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/' ),
-						__( 'https://wordpress.org/support/forums/' )
-					)
-				);
-			} elseif ( isset( $_POST['testcookie'] ) && empty( $_COOKIE[ TEST_COOKIE ] ) ) {
-				// If cookies are disabled, the user can't log in even with a valid username and password.
-				$user = new WP_Error(
-					'test_cookie',
-					sprintf(
-						/* translators: %s: Browser cookie documentation URL. */
-						__( '<strong>Error:</strong> Cookies are blocked or not supported by your browser. You must <a href="%s">enable cookies</a> to use WordPress.' ),
-						__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/#enable-cookies-in-your-browser' )
-					)
-				);
-			}
+		if ( empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) && headers_sent() ) {
+			$user = new WP_Error(
+				'test_cookie',
+				sprintf(
+					/* translators: 1: Browser cookie documentation URL, 2: Support forums URL. */
+					__( '<strong>Error:</strong> Cookies are blocked due to unexpected output. For help, please see <a href="%1$s">this documentation</a> or try the <a href="%2$s">support forums</a>.' ),
+					__( 'https://developer.wordpress.org/advanced-administration/wordpress/cookies/' ),
+					__( 'https://wordpress.org/support/forums/' )
+				)
+			);
 		}
 
 		$requested_redirect_to = isset( $_REQUEST['redirect_to'] ) && is_string( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : '';
@@ -1581,7 +1563,6 @@ switch ( $action ) {
 				}
 
 				?>
-				<input type="hidden" name="testcookie" value="1" />
 			</p>
 		</form>
 
