@@ -86,6 +86,72 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures unmatched character references are not examined repeatedly.
+	 *
+	 * @dataProvider data_unmatched_character_references
+	 *
+	 * @param string $context  Decoder context.
+	 * @param string $text     Raw input text.
+	 * @param string $expected Expected decoded text.
+	 */
+	public function test_decode_does_not_repeat_unmatched_character_references( $context, $text, $expected ) {
+		global $html5_named_character_references;
+
+		$original_map = $html5_named_character_references;
+
+		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+		$token_map = $this->getMockBuilder( WP_Token_Map::class )
+			->setMethods( array( 'read_token' ) )
+			->getMock();
+
+		// Each input contains two named references. Neither should be read twice.
+		$token_map->expects( $this->exactly( 2 ) )
+			->method( 'read_token' )
+			->willReturnCallback(
+				static function ( $text, $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ) use ( $original_map ) {
+					return $original_map->read_token( $text, $offset, $matched_token_byte_length, $case_sensitivity );
+				}
+			);
+
+		try {
+			$html5_named_character_references = $token_map;
+			$this->assertSame( $expected, WP_HTML_Decoder::decode( $context, $text ) );
+		} finally {
+			$html5_named_character_references = $original_map;
+		}
+	}
+
+	/**
+	 * Data provider for test_decode_does_not_repeat_unmatched_character_references().
+	 *
+	 * @return array[]
+	 */
+	public static function data_unmatched_character_references() {
+		return array(
+			'Unknown name in a text node'            => array(
+				'data',
+				'prefix &unknown; middle &amp; tail',
+				'prefix &unknown; middle & tail',
+			),
+			'Unknown name in an attribute'           => array(
+				'attribute',
+				'prefix &unknown; middle &amp; tail',
+				'prefix &unknown; middle & tail',
+			),
+			'Unknown name after a decoded reference' => array(
+				'data',
+				'prefix &amp; middle &unknown; tail',
+				'prefix & middle &unknown; tail',
+			),
+			'Ambiguous ampersand in an attribute'    => array(
+				'attribute',
+				'prefix &not=value middle &amp; tail',
+				'prefix &not=value middle & tail',
+			),
+		);
+	}
+
+	/**
 	 * Ensures that character references followed by NULL bytes do not emit native PHP errors.
 	 *
 	 * @ticket 65372
