@@ -36,7 +36,7 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	 * @dataProvider data_builds_rtl_url
 	 *
 	 * @param string               $src      Source the style is registered with.
-	 * @param string|false         $ver      Version the style is registered with.
+	 * @param string|false|null    $ver      Version the style is registered with.
 	 * @param array<string, mixed> $data     Data added to the style.
 	 * @param string               $expected Expected URL.
 	 */
@@ -52,13 +52,15 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_builds_rtl_url()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string, 1: string|false, 2: array<string, mixed>, 3: string }>
+	 * @return array<non-falsy-string, array{ 0: string, 1: string|false|null, 2: array<string, mixed>, 3: string }>
 	 */
 	public function data_builds_rtl_url(): array {
 		return array(
 			'rtl true'                    => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => true ), 'http://example.org/wp-admin/css/test-rtl.css?ver=1.0' ),
 			'rtl replace'                 => array( '/wp-admin/css/test.css', '1.0', array( 'rtl' => 'replace' ), 'http://example.org/wp-admin/css/test-rtl.css?ver=1.0' ),
 			'rtl true, default version'   => array( '/wp-admin/css/test.css', false, array( 'rtl' => true ), 'http://example.org/wp-admin/css/test-rtl.css?ver=7.2' ),
+			'rtl true, no version'        => array( '/wp-admin/css/test.css', null, array( 'rtl' => true ), 'http://example.org/wp-admin/css/test-rtl.css' ),
+			'rtl URL, no version'         => array( '/wp-admin/css/test.css', null, array( 'rtl' => 'https://cdn.example.com/test-rtl.css' ), 'https://cdn.example.com/test-rtl.css' ),
 			'rtl true, with suffix'       => array(
 				'/wp-admin/css/test.min.css',
 				'1.0',
@@ -112,6 +114,43 @@ class Tests_Dependencies_WpStyles_GetRtlSrc extends WP_UnitTestCase {
 			'rtl false'                    => array( 'rtl', '/wp-admin/css/test.css', false ),
 			'rtl not a string'             => array( 'rtl', '/wp-admin/css/test.css', 1 ),
 			'alias without a source'       => array( 'rtl', '', true ),
+		);
+	}
+
+	/**
+	 * Tests that the right-to-left URL gets the same version and added arguments as the
+	 * left-to-right one, rather than the arguments being encoded into the version.
+	 *
+	 * @ticket 57548
+	 *
+	 * @dataProvider data_matches_ltr_query
+	 *
+	 * @param string|false|null $ver Version the style is registered with.
+	 */
+	public function test_matches_ltr_query( $ver ): void {
+		$this->styles->add( 'test', '/wp-admin/css/test.css', array(), $ver );
+		$this->styles->add_data( 'test', 'rtl', 'replace' );
+		$this->styles->enqueue( 'test?color=blue' );
+
+		$ltr_src = $this->styles->get_src( 'test' );
+		$this->assertStringContainsString( 'color=blue', $ltr_src );
+
+		$this->assertSame(
+			str_replace( 'test.css', 'test-rtl.css', $ltr_src ),
+			$this->styles->get_rtl_src( 'test' )
+		);
+	}
+
+	/**
+	 * Data provider for {@see self::test_matches_ltr_query()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|false|null }>
+	 */
+	public function data_matches_ltr_query(): array {
+		return array(
+			'version'         => array( '1.0' ),
+			'default version' => array( false ),
+			'no version'      => array( null ),
 		);
 	}
 

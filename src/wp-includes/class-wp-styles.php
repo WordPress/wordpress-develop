@@ -288,20 +288,15 @@ class WP_Styles extends WP_Dependencies {
 			return null;
 		}
 
-		if ( null === $obj->ver ) {
-			$ver = '';
-		} else {
-			$ver = $obj->ver ? $obj->ver : $this->default_version;
-		}
-
-		if ( isset( $this->args[ $handle ] ) ) {
-			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
-		}
-
+		/*
+		 * The version and the handle's added arguments are those of the left-to-right stylesheet,
+		 * appended the same way, while the filter is passed the handle with `-rtl` appended, as it
+		 * always has been.
+		 */
 		if ( is_bool( $obj->extra['rtl'] ) || 'replace' === $obj->extra['rtl'] ) {
 			$suffix = isset( $obj->extra['suffix'] ) && is_string( $obj->extra['suffix'] ) ? $obj->extra['suffix'] : '';
 
-			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->build_src( $obj->src, $ver, "$handle-rtl" ) );
+			return str_replace( "{$suffix}.css", "-rtl{$suffix}.css", $this->build_src( $obj->src, $obj->ver, $handle, "$handle-rtl" ) );
 		}
 
 		// Any other value is the URL of the right-to-left stylesheet itself.
@@ -309,7 +304,7 @@ class WP_Styles extends WP_Dependencies {
 			return null;
 		}
 
-		return $this->build_src( $obj->extra['rtl'], $ver, "$handle-rtl" );
+		return $this->build_src( $obj->extra['rtl'], $obj->ver, $handle, "$handle-rtl" );
 	}
 
 	/**
@@ -498,12 +493,17 @@ class WP_Styles extends WP_Dependencies {
 	 *
 	 * @param string|true       $src    The source of the style, or true for one whose URL comes
 	 *                                  from the {@see 'style_loader_src'} filter.
-	 * @param string|false|null $ver    The version of the style.
-	 * @param string            $handle The style's registered handle.
+	 * @param string|false|null $ver           The version of the style.
+	 * @param string            $handle        The style's registered handle, whose added arguments
+	 *                                         are appended.
+	 * @param string|null       $filter_handle Optional. The handle passed to the
+	 *                                         {@see 'style_loader_src'} filter, such as
+	 *                                         `{$handle}-rtl` for a right-to-left stylesheet.
+	 *                                         Default `$handle`.
 	 * @return string The filtered URL, or an empty string when the filter returns anything other
 	 *                than a string.
 	 */
-	private function build_src( $src, $ver, string $handle ): string {
+	private function build_src( $src, $ver, string $handle, ?string $filter_handle = null ): string {
 		if ( ! is_bool( $src ) && ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
 			$src = $this->base_url . $src;
 		}
@@ -543,7 +543,7 @@ class WP_Styles extends WP_Dependencies {
 		 * @param string $src    The source URL of the enqueued style.
 		 * @param string $handle The style's registered handle.
 		 */
-		$src = apply_filters( 'style_loader_src', $src, $handle );
+		$src = apply_filters( 'style_loader_src', $src, $filter_handle ?? $handle );
 
 		return is_string( $src ) ? $src : '';
 	}
