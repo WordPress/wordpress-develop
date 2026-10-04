@@ -297,6 +297,15 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 	}
 }
 
+/**
+ * During a transition to refactor {@see \wp_kses()}, run the test
+ * suite against the new implementation, because existing tests
+ * encode different behaviors for the legacy implementation.
+ *
+ * @todo Remove this before activating the new `wp_kses()`.
+ */
+tests_add_filter( 'wp_kses_force_legacy_parser', '__return_false', PHP_INT_MAX );
+
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
 
