@@ -34,7 +34,6 @@ includes:
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
-	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
