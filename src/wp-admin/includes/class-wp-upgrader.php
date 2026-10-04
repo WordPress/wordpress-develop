@@ -198,7 +198,7 @@ class WP_Upgrader {
 
 		$this->strings['no_package']           = __( 'Package not available.' );
 		$this->strings['download_failed']      = __( 'Download failed.' );
-		$this->strings['installing_package']   = __( 'Installing the latest version&#8230;' );
+		$this->strings['installing_package']   = __( 'Installing the latest version&hellip;' );
 		$this->strings['no_files']             = __( 'The package contains no files.' );
 		$this->strings['folder_exists']        = __( 'Destination folder already exists.' );
 		$this->strings['mkdir_failed']         = __( 'Could not create directory.' );
@@ -206,8 +206,8 @@ class WP_Upgrader {
 		$this->strings['files_not_writable']   = __( 'The update cannot be installed because some files could not be copied. This is usually due to inconsistent file permissions.' );
 		$this->strings['dir_not_readable']     = __( 'A directory could not be read.' );
 
-		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
-		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
+		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&hellip;' );
+		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&hellip;' );
 
 		/* translators: %s: upgrade-temp-backup */
 		$this->strings['temp_backup_mkdir_failed'] = sprintf( __( 'Could not create the %s directory.' ), 'upgrade-temp-backup' );

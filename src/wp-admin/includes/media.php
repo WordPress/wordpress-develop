@@ -555,7 +555,7 @@ function wp_iframe( $content_func, ...$args ) {
 
 	_wp_admin_html_begin();
 	?>
-	<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php _e( 'Uploads' ); ?> &#8212; <?php _e( 'WordPress' ); ?></title>
+	<title><?php bloginfo( 'name' ); ?> &rsaquo; <?php _e( 'Uploads' ); ?> &mdash; <?php _e( 'WordPress' ); ?></title>
 	<?php
 
 	wp_enqueue_style( 'colors' );
@@ -2967,7 +2967,7 @@ function media_upload_library_form( $errors ) {
 			</select>
 		<?php } ?>
 
-		<?php submit_button( __( 'Filter &#187;' ), 'compact', 'post-query-submit', false ); ?>
+		<?php submit_button( __( 'Filter &raquo;' ), 'compact', 'post-query-submit', false ); ?>
 
 	</div>
 

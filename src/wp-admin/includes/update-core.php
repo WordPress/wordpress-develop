@@ -1390,7 +1390,7 @@ function update_core( $from, $to ) {
 	 *
 	 * @param string $feedback The core update feedback messages.
 	 */
-	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Verifying the unpacked files&hellip;' ) );
 
 	// Confidence check the unzipped distribution.
 	$distro = '';
@@ -1544,7 +1544,7 @@ function update_core( $from, $to ) {
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
-	apply_filters( 'update_feedback', __( 'Preparing to install the latest version&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Preparing to install the latest version&hellip;' ) );
 
 	/*
 	 * Don't copy wp-content, we'll deal with that below.
@@ -1628,7 +1628,7 @@ function update_core( $from, $to ) {
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
-	apply_filters( 'update_feedback', __( 'Enabling Maintenance mode&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Enabling Maintenance mode&hellip;' ) );
 
 	// Create maintenance file to signal that we are upgrading.
 	$maintenance_string = '<?php $upgrading = ' . time() . '; ?>';
@@ -1637,7 +1637,7 @@ function update_core( $from, $to ) {
 	$wp_filesystem->put_contents( $maintenance_file, $maintenance_string, FS_CHMOD_FILE );
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
-	apply_filters( 'update_feedback', __( 'Copying the required files&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Copying the required files&hellip;' ) );
 
 	// Copy new versions of WP files into place.
 	$result = copy_dir( $from . $distro, $to, $skip );
@@ -1777,7 +1777,7 @@ function update_core( $from, $to ) {
 	}
 
 	/** This filter is documented in wp-admin/includes/update-core.php */
-	apply_filters( 'update_feedback', __( 'Disabling Maintenance mode&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Disabling Maintenance mode&hellip;' ) );
 
 	// Remove maintenance file, we're done with potential site-breaking changes.
 	$wp_filesystem->delete( $maintenance_file );
@@ -1892,7 +1892,7 @@ function update_core( $from, $to ) {
 
 	// Upgrade DB with separate request.
 	/** This filter is documented in wp-admin/includes/update-core.php */
-	apply_filters( 'update_feedback', __( 'Upgrading database&#8230;' ) );
+	apply_filters( 'update_feedback', __( 'Upgrading database&hellip;' ) );
 
 	$db_upgrade_url = admin_url( 'upgrade.php?step=upgrade_db' );
 	wp_remote_post( $db_upgrade_url, array( 'timeout' => 60 ) );
