@@ -45,11 +45,10 @@ test.describe( 'Login test cookie', () => {
 
 		await loggedOutPage.getByLabel( 'Username or Email Address' ).fill( username );
 		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
-		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
-
-		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/, {
-			timeout: 30000,
-		} );
+		await Promise.all( [
+			loggedOutPage.waitForURL( /\/wp-admin\/?/, { timeout: 30000 } ),
+			loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click(),
+		] );
 
 		const cookieNames = ( await context.cookies() ).map(
 			( cookie ) => cookie.name
@@ -89,11 +88,10 @@ test.describe( 'Login test cookie', () => {
 
 		await loggedOutPage.getByLabel( 'Username or Email Address' ).fill( username );
 		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
-		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
-
-		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/, {
-			timeout: 30000,
-		} );
+		await Promise.all( [
+			loggedOutPage.waitForURL( /\/wp-admin\/?/, { timeout: 30000 } ),
+			loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click(),
+		] );
 
 		await context.close();
 	} );
