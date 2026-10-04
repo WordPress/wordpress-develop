@@ -88,6 +88,8 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Ensures unmatched character references are not examined repeatedly.
 	 *
+	 * @ticket 66241
+	 *
 	 * @dataProvider data_unmatched_character_references
 	 *
 	 * @param string $context  Decoder context.
