@@ -176,6 +176,37 @@ class Tests_Connectors_WpConnectorsSanitizeApplicationPasswordCredentials extend
 	}
 
 	/**
+	 * A password that only starts with bullets is not the mask, so it is stored as a new password.
+	 *
+	 * @ticket 65821
+	 */
+	public function test_value_starting_with_bullet_is_stored_as_new_password(): void {
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => 'remote-user',
+				'password' => 'abcd efgh ijkl mnop 1234',
+			)
+		);
+
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => 'remote-user',
+				'password' => str_repeat( "\u{2022}", 15 ) . 'x',
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'username' => 'remote-user',
+				'password' => str_repeat( "\u{2022}", 15 ) . 'x',
+			),
+			get_option( self::CREDENTIALS_SETTING_NAME )
+		);
+	}
+
+	/**
 	 * @ticket 64850
 	 */
 	public function test_non_array_value_preserves_stored_credentials(): void {

@@ -155,6 +155,40 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	}
 
 	/**
+	 * Ensures a stored AI provider key resubmitted as its own mask is not re-validated.
+	 *
+	 * The sanitize callback keeps the stored key for a resubmitted mask, so validating it
+	 * again would only risk wiping it when the provider cannot confirm it.
+	 *
+	 * @ticket 65821
+	 */
+	public function test_does_not_validate_ai_key_resubmitted_as_its_mask(): void {
+		$stored_key = 'sk-stored-valid-key';
+		update_option( self::AI_KEY_SETTING_NAME, $stored_key );
+
+		// A provider that would fail validation if it were consulted.
+		self::set_mock_provider_configured( false );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/settings' );
+		$request->set_param( self::AI_KEY_SETTING_NAME, _wp_connectors_mask_api_key( $stored_key ) );
+		$response = new WP_REST_Response( array( self::AI_KEY_SETTING_NAME => $stored_key ) );
+
+		$result = _wp_connectors_rest_settings_dispatch( $response, rest_get_server(), $request );
+		$data   = $result->get_data();
+
+		$this->assertSame(
+			$stored_key,
+			get_option( self::AI_KEY_SETTING_NAME ),
+			'A resubmitted mask should not trigger validation or reset the stored key.'
+		);
+		$this->assertSame(
+			_wp_connectors_mask_api_key( $stored_key ),
+			$data[ self::AI_KEY_SETTING_NAME ],
+			'The stored AI provider key should still be masked in the response.'
+		);
+	}
+
+	/**
 	 * Ensures a submitted AI provider key that passes validation is kept and masked.
 	 *
 	 * @ticket 65554
