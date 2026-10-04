@@ -266,8 +266,11 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $this->result;
 		}
 
-		// Refresh the Theme Update information.
-		wp_clean_themes_cache( $parsed_args['clear_update_cache'] );
+		/*
+		 * Refresh only the themes cache. The update information is cleared
+		 * before 'upgrader_process_complete' (see above), which rebuilds it.
+		 */
+		wp_clean_themes_cache( false );
 
 		if ( $parsed_args['overwrite_package'] ) {
 			/** This action is documented in wp-admin/includes/class-plugin-upgrader.php */
@@ -349,7 +352,11 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $this->result;
 		}
 
-		wp_clean_themes_cache( $parsed_args['clear_update_cache'] );
+		/*
+		 * Refresh only the themes cache. The update information is cleared
+		 * before 'upgrader_process_complete' (see above), which rebuilds it.
+		 */
+		wp_clean_themes_cache( false );
 
 		/*
 		 * Ensure any future auto-update failures trigger a failure email by removing

@@ -152,8 +152,11 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $this->result;
 		}
 
-		// Force refresh of plugin update information.
-		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
+		/*
+		 * Refresh only the plugins list cache. The update information is cleared
+		 * before 'upgrader_process_complete' (see above), which rebuilds it.
+		 */
+		wp_clean_plugins_cache( false );
 
 		if ( $parsed_args['overwrite_package'] ) {
 			/**
@@ -251,8 +254,11 @@ class Plugin_Upgrader extends WP_Upgrader {
 			return $this->result;
 		}
 
-		// Force refresh of plugin update information.
-		wp_clean_plugins_cache( $parsed_args['clear_update_cache'] );
+		/*
+		 * Refresh only the plugins list cache. The update information is cleared
+		 * before 'upgrader_process_complete' (see above), which rebuilds it.
+		 */
+		wp_clean_plugins_cache( false );
 
 		/*
 		 * Ensure any future auto-update failures trigger a failure email by removing
