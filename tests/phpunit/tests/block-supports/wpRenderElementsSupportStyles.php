@@ -22,6 +22,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	 *
 	 * @ticket 59555
 	 * @ticket 60557
+	 * @ticket 65538
 	 *
 	 * @covers ::wp_render_elements_support_styles
 	 *
@@ -183,6 +184,22 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 				'elements_styles' => array(
 					'button' => array( 'color' => $color_styles ),
 				),
+				'expected_styles' => '/^.wp-elements-\d+ .wp-element-button, .wp-elements-\d+ .wp-block-button__link' . $color_css_rules . '$/',
+			),
+			'button hover styles are skipped without a hover selector' => array(
+				'color_settings'  => array( 'button' => true ),
+				'elements_styles' => array(
+					'button' => array(
+						'color'  => $color_styles,
+						':hover' => array( 'color' => $color_styles ),
+					),
+				),
+
+				/*
+				 * Only the base button rule should be emitted. The button element
+				 * type has no `hover_selector`, so the `:hover` object must be
+				 * ignored rather than triggering an undefined array key warning.
+				 */
 				'expected_styles' => '/^.wp-elements-\d+ .wp-element-button, .wp-elements-\d+ .wp-block-button__link' . $color_css_rules . '$/',
 			),
 			'link element styles are applied'            => array(

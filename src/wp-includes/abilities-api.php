@@ -15,7 +15,7 @@
  *  - Define permission checks and execution callbacks.
  *  - Organize abilities into logical categories.
  *  - Validate inputs and outputs using JSON Schema.
- *  - Expose abilities through the REST API.
+ *  - Expose abilities to clients such as the REST API.
  *
  * ## Working with Abilities
  *
@@ -48,7 +48,7 @@
  *                     'required'    => true,
  *                 ),
  *                 'meta'                => array(
- *                     'show_in_rest' => true,
+ *                     'public' => true,
  *                 ),
  *             )
  *         );
@@ -118,15 +118,18 @@ declare( strict_types = 1 );
  *                 'execute_callback'    => 'my_plugin_analyze_text',
  *                 'permission_callback' => 'my_plugin_can_analyze_text',
  *                 'meta'                => array(
- *                     'annotations'   => array(
+ *                     'annotations' => array(
  *                         'readonly' => true,
  *                     ),
- *                     'show_in_rest' => true,
+ *                     'public'      => true,
  *                 ),
  *             )
  *         );
  *     }
  *     add_action( 'wp_abilities_api_init', 'my_plugin_register_abilities' );
+ *
+ * On failure, this function returns `null` and calls `_doing_it_wrong()` with the reason.
+ * By default, the resulting notice is displayed when `WP_DEBUG` is enabled.
  *
  * ### Naming Conventions
  *
@@ -138,8 +141,9 @@ declare( strict_types = 1 );
  *
  * ### Categories
  *
- * Abilities must be organized into categories. Ability categories provide better
- * discoverability and must be registered before the abilities that reference them:
+ * Abilities can be organized into categories. If no category is provided, the ability is
+ * assigned to the built-in `uncategorized` category. Custom categories must be registered
+ * before the abilities that reference them:
  *
  *     function my_plugin_register_categories(): void {
  *         wp_register_ability_category(
@@ -208,18 +212,28 @@ declare( strict_types = 1 );
  *         return current_user_can( 'edit_posts' );
  *     }
  *
- * ### REST API Integration
+ * ### Client Exposure
  *
- * Abilities can be exposed through the REST API by setting `show_in_rest`
- * to `true` in the meta configuration:
+ * Set the high-level `public` flag to make an ability available to clients
+ * such as the REST API, MCP, or AI agents:
  *
  *     'meta' => array(
- *         'show_in_rest' => true,
+ *         'public' => true,
  *     ),
  *
- * This allows abilities to be invoked via HTTP requests to the WordPress REST API.
+ * The `public` flag seeds the default for each per-channel flag. For the REST
+ * API it seeds `show_in_rest`, which lets the ability be invoked via HTTP
+ * requests. Set a per-channel flag directly to override that default. For
+ * example, keep a public ability out of the REST API:
+ *
+ *     'meta' => array(
+ *         'public'       => true,
+ *         'show_in_rest' => false,
+ *     ),
  *
  * @since 6.9.0
+ * @since 7.1.0 Added the `public` meta argument.
+ * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
  *
  * @see WP_Abilities_Registry::register()
  * @see wp_register_ability_category()
@@ -234,9 +248,9 @@ declare( strict_types = 1 );
  *     @type string               $label               Required. The human-readable label for the ability.
  *     @type string               $description         Required. A detailed description of what the ability does
  *                                                     and when it should be used.
- *     @type string               $category            Required. The ability category slug this ability belongs to.
- *                                                     The ability category must be registered via `wp_register_ability_category()`
- *                                                     before registering the ability.
+ *     @type string               $category            Optional. The ability category slug this ability belongs to.
+ *                                                     Defaults to `uncategorized`. Custom categories must be registered
+ *                                                     via `wp_register_ability_category()` before registering the ability.
  *     @type callable             $execute_callback    Required. A callback function to execute when the ability is invoked.
  *                                                     Receives optional mixed input data and must return either a result
  *                                                     value (any type) or a `WP_Error` object on failure.
@@ -264,9 +278,13 @@ declare( strict_types = 1 );
  *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
  *                                          will have no additional effect on its environment.
  *         }
+ *         @type bool                     $public       Optional. Whether the ability is meant to be available to
+ *                                                      clients such as the REST API, MCP, or AI agents. Seeds
+ *                                                      the default for per-channel flags like `$show_in_rest`.
+ *                                                      Defaults to false.
  *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
  *                                                      When true, the ability can be invoked via HTTP requests.
- *                                                      Default false.
+ *                                                      Default is the value of `$public` when set, false otherwise.
  *     }
  *     @type string               $ability_class       Optional. Fully-qualified custom class name to instantiate
  *                                                     instead of the default `WP_Ability` class. The custom class
@@ -595,8 +613,10 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  * Registers a new ability category.
  *
  * Ability categories provide a way to organize and group related abilities for better
- * discoverability and management. Ability categories must be registered before abilities
- * that reference them.
+ * discoverability and management. Custom categories must be registered before abilities
+ * that reference them. Abilities that omit a category are assigned to the built-in
+ * `uncategorized` category, which is intended as an escape hatch for simple or transitional
+ * registrations.
  *
  * Ability categories must be registered on the `wp_abilities_api_categories_init` action hook.
  *
@@ -612,6 +632,9 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  *         );
  *     }
  *     add_action( 'wp_abilities_api_categories_init', 'my_plugin_register_categories' );
+ *
+ * On failure, this function returns `null` and calls `_doing_it_wrong()` with the reason.
+ * By default, the resulting notice is displayed when `WP_DEBUG` is enabled.
  *
  * @since 6.9.0
  *

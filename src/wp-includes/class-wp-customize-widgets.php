@@ -189,6 +189,8 @@ final class WP_Customize_Widgets {
 				return $type;
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -1697,6 +1699,8 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 *
 	 * @see wp_ajax_save_widget()
+	 *
+	 * @return never
 	 */
 	public function wp_ajax_update_widget() {
 
