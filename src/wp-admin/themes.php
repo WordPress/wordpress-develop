@@ -373,9 +373,7 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 		}
 
 		// 0 = name, 1 = capability, 2 = file.
-		if ( 0 === strcmp( $self, $item[2] ) && empty( $parent_file )
-			|| $parent_file && $item[2] === $parent_file
-		) {
+		if ( $item[2] === $parent_file ) {
 			$class = ' current';
 		}
 

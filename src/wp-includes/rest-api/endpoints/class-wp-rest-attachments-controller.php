@@ -991,6 +991,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			update_post_meta( $data['id'], '_wp_attachment_image_alt', $request['alt_text'] );
 		}
 
+		$schema     = $this->get_item_schema();
 		$attachment = get_post( $request['id'] );
 
 		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {

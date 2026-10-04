@@ -27,7 +27,6 @@ includes:
 	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
-	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
