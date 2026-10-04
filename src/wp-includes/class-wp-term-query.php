@@ -863,9 +863,13 @@ class WP_Term_Query {
 
 		// Make sure we show empty categories that have children.
 		if ( $hierarchical && $args['hide_empty'] && is_array( $term_objects ) ) {
+			$term_hierarchies = array();
 			foreach ( $term_objects as $k => $term ) {
 				if ( ! $term->count ) {
-					$children = get_term_children( $term->term_id, $term->taxonomy );
+					if ( ! isset( $term_hierarchies[ $term->taxonomy ] ) ) {
+						$term_hierarchies[ $term->taxonomy ] = _get_term_hierarchy( $term->taxonomy );
+					}
+					$children = _get_term_children_from_hierarchy( $term->term_id, $term_hierarchies[ $term->taxonomy ] );
 
 					if ( is_array( $children ) ) {
 						foreach ( $children as $child_id ) {
