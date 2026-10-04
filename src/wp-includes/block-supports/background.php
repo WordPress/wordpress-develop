@@ -44,6 +44,7 @@ function wp_register_background_support( $block_type ) {
  * @since 6.6.0 Removed requirement for `backgroundImage.source`. A file/url is the default.
  * @since 6.7.0 Added support for `backgroundAttachment` output.
  * @since 7.1.0 Added support for `background.gradient` output.
+ * @since 7.2.0 Added support for `background.backgroundClip` output.
  *
  * @access private
  *
@@ -56,9 +57,10 @@ function wp_render_background_support( $block_content, $block ) {
 	$block_attributes                = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
 	$has_background_image_support    = block_has_support( $block_type, array( 'background', 'backgroundImage' ), false );
 	$has_background_gradient_support = block_has_support( $block_type, array( 'background', 'gradient' ), false );
+	$has_background_clip_support     = block_has_support( $block_type, array( 'background', 'backgroundClip' ), false );
 
 	if (
-		( ! $has_background_image_support && ! $has_background_gradient_support ) ||
+		( ! $has_background_image_support && ! $has_background_gradient_support && ! $has_background_clip_support ) ||
 		! isset( $block_attributes['style']['background'] )
 	) {
 		return $block_content;
@@ -67,8 +69,9 @@ function wp_render_background_support( $block_content, $block ) {
 	// Check serialization skip for each feature individually.
 	$skip_background_image    = ! $has_background_image_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'backgroundImage' );
 	$skip_background_gradient = ! $has_background_gradient_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'gradient' );
+	$skip_background_clip     = ! $has_background_clip_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'backgroundClip' );
 
-	if ( $skip_background_image && $skip_background_gradient ) {
+	if ( $skip_background_image && $skip_background_gradient && $skip_background_clip ) {
 		return $block_content;
 	}
 
@@ -95,6 +98,10 @@ function wp_render_background_support( $block_content, $block ) {
 		$background_styles['gradient'] = $block_attributes['style']['background']['gradient'] ?? null;
 	}
 
+	if ( ! $skip_background_clip ) {
+		$background_styles['backgroundClip'] = $block_attributes['style']['background']['backgroundClip'] ?? null;
+	}
+
 	$styles = wp_style_engine_get_styles( array( 'background' => $background_styles ) );
 
 	if ( ! empty( $styles['css'] ) ) {
@@ -111,7 +118,17 @@ function wp_render_background_support( $block_content, $block ) {
 			}
 
 			$tags->set_attribute( 'style', $updated_style );
-			$tags->add_class( 'has-background' );
+
+			/*
+			 * A background clipped to the text paints the text rather than the
+			 * block's background, so the block has no background to announce.
+			 */
+			$is_text_clip = isset( $block_attributes['style']['background']['backgroundClip'] )
+				&& 'text' === $block_attributes['style']['background']['backgroundClip'];
+
+			if ( ! $is_text_clip ) {
+				$tags->add_class( 'has-background' );
+			}
 		}
 
 		return $tags->get_updated_html();
