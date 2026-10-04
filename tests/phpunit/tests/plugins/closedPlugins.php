@@ -9,6 +9,26 @@
 class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 
 	/**
+	 * Sets up the test fixture.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
+		require_once ABSPATH . 'wp-admin/includes/template.php';
+
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $admin_id );
+			set_current_screen( 'plugins-network' );
+		} else {
+			set_current_screen( 'plugins.php' );
+		}
+		wp_set_current_user( $admin_id );
+	}
+
+	/**
 	 * Cleans up options and transients after each test.
 	 */
 	public function tear_down() {
@@ -17,6 +37,7 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		wp_cache_delete( 'plugins', 'plugins' );
 		remove_all_filters( 'pre_http_request' );
 		remove_all_filters( 'all_plugins' );
+		set_current_screen( 'front' );
 
 		parent::tear_down();
 	}
@@ -285,38 +306,36 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 		require_once ABSPATH . 'wp-admin/includes/class-wp-plugins-list-table.php';
 
-		set_current_screen( 'plugins.php' );
-
 		$transient            = new stdClass();
 		$transient->response  = array(
-			'sec/sec.php' => (object) array(
-				'slug'        => 'sec',
+			'hello.php' => (object) array(
+				'slug'        => 'hello',
 				'closed'      => true,
 				'is_security' => true,
 			),
 		);
 		$transient->no_update = array(
-			'gen/gen.php' => (object) array(
-				'slug'        => 'gen',
+			'internationalized-plugin.php' => (object) array(
+				'slug'        => 'internationalized-plugin',
 				'closed'      => true,
 				'is_security' => false,
 			),
-			'old/old.php' => (object) array(
-				'slug'        => 'old',
+			'custom-internationalized-plugin/custom-internationalized-plugin.php' => (object) array(
+				'slug'        => 'custom-internationalized-plugin',
 				'is_outdated' => true,
 			),
 		);
 		set_site_transient( 'update_plugins', $transient );
 
-		$table = new WP_Plugins_List_Table();
+		$table = new WP_Plugins_List_Table( array( 'screen' => get_current_screen() ) );
 
 		// Security closed plugin.
 		ob_start();
 		$table->single_row(
 			array(
-				'sec/sec.php',
+				'hello.php',
 				array(
-					'Name'        => 'Security Plugin',
+					'Name'        => 'Hello Dolly',
 					'Version'     => '1.0.0',
 					'Description' => 'Test',
 				),
@@ -330,9 +349,9 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		ob_start();
 		$table->single_row(
 			array(
-				'gen/gen.php',
+				'internationalized-plugin.php',
 				array(
-					'Name'        => 'General Plugin',
+					'Name'        => 'Internationalized Plugin',
 					'Version'     => '1.0.0',
 					'Description' => 'Test',
 				),
@@ -346,9 +365,9 @@ class Tests_Plugins_ClosedPlugins extends WP_UnitTestCase {
 		ob_start();
 		$table->single_row(
 			array(
-				'old/old.php',
+				'custom-internationalized-plugin/custom-internationalized-plugin.php',
 				array(
-					'Name'        => 'Old Plugin',
+					'Name'        => 'Custom Internationalized Plugin',
 					'Version'     => '1.0.0',
 					'Description' => 'Test',
 				),
