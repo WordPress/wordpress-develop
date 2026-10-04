@@ -154,6 +154,8 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 		} else {
 			$menu_icon = esc_url( $post_type_obj->menu_icon );
 		}
+	} elseif ( 'page' === $post_type ) {
+		$menu_icon = 'core-admin/page';
 	}
 
 	$menu_class = 'menu-top menu-icon-' . $post_type_for_id;
