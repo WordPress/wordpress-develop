@@ -386,7 +386,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.
 	 */
-	public function data_execute_input() {
+	public static function data_execute_input() {
 		return array(
 			'null input'    => array(
 				array(
@@ -524,7 +524,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: mixed, 2: bool}> Data sets.
 	 */
-	public function data_validate_input_top_level_required() {
+	public static function data_validate_input_top_level_required() {
 		$required_true   = array(
 			'type'     => 'string',
 			'required' => true,
@@ -634,7 +634,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: callable}> Data sets with different execute callbacks.
 	 */
-	public function data_execute_callback() {
+	public static function data_execute_callback() {
 		return array(
 			'function name string'       => array(
 				'strlen',
@@ -651,7 +651,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array( 'Tests_Abilities_API_WpAbility', 'my_static_execute_callback' ),
 			),
 			'object method'              => array(
-				array( $this, 'my_instance_execute_callback' ),
+				array(
+					new class() {
+						public function my_instance_execute_callback( string $input ): int {
+							return strlen( $input );
+						}
+					},
+					'my_instance_execute_callback',
+				),
 			),
 		);
 	}
