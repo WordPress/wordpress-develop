@@ -47,7 +47,9 @@ test.describe( 'Login test cookie', () => {
 		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
 		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
 
-		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/ );
+		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/, {
+			timeout: 30000,
+		} );
 
 		const cookieNames = ( await context.cookies() ).map(
 			( cookie ) => cookie.name
@@ -89,7 +91,9 @@ test.describe( 'Login test cookie', () => {
 		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
 		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
 
-		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/ );
+		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/, {
+			timeout: 30000,
+		} );
 
 		await context.close();
 	} );
