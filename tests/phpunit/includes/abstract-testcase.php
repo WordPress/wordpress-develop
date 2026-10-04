@@ -1051,6 +1051,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 			$actual = preg_replace( '/\s*/', '', $actual );
 		}
 
+		/*
+		 * Keep assertEquals() because this helper accepts mixed types and only
+		 * normalizes whitespace for strings.
+		 */
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1145,6 +1149,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		sort( $expected );
 		sort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSets().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
@@ -1183,6 +1188,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		ksort( $expected );
 		ksort( $actual );
+		// Keep assertEquals() so this helper remains the loose counterpart to assertSameSetsWithIndex().
 		$this->assertEquals( $expected, $actual, $message );
 	}
 
