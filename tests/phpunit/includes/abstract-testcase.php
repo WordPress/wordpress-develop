@@ -1053,8 +1053,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		/*
 		 * Keep assertEquals() because this helper accepts mixed types and only
-		 * normalizes whitespace for strings. Prefer assertSame() at the call
-		 * site when both values are known to share a type.
+		 * normalizes whitespace for strings.
 		 */
 		$this->assertEquals( $expected, $actual, $message );
 	}
