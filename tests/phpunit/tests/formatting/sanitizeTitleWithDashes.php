@@ -146,7 +146,47 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 * @ticket 19820
 	 */
 	public function test_replaces_multiply_sign() {
-		$this->assertSame( '6x7-is-42', sanitize_title_with_dashes( '6×7 is 42', '', 'save' ) );
+		$this->assertSame( '6x7-is-42', sanitize_title_with_dashes( '6×7 is 42', '', 'save' ), 'Multiplication sign (×) should be replaced with letter x' );
+	}
+
+	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_multiply_sign_with_spaces() {
+		$this->assertSame( 'iphone-12-x-256gb', sanitize_title_with_dashes( 'iPhone 12 × 256GB', '', 'save' ), 'Product title with multiplication sign and spaces should convert × to x' );
+		$this->assertSame( 'screen-1920-x-1080', sanitize_title_with_dashes( 'Screen 1920 × 1080', '', 'save' ), 'Screen dimensions with multiplication sign should convert × to x' );
+	}
+
+	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_times_html_entity() {
+		$this->assertSame( '6x7-is-42', sanitize_title_with_dashes( '6&times;7 is 42', '', 'save' ), 'HTML entity &times; should be replaced with letter x' );
+		$this->assertSame( 'product-5x10', sanitize_title_with_dashes( 'Product 5&times;10', '', 'save' ), 'HTML entity &times; without spaces should be replaced with letter x' );
+	}
+
+	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_times_numeric_entity() {
+		$this->assertSame( '3x4-equals-12', sanitize_title_with_dashes( '3&#215;4 equals 12', '', 'save' ), 'Numeric HTML entity &#215; should be replaced with letter x' );
+	}
+
+	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_multiply_sign_in_display_context() {
+		// Should work in display context too, not just 'save'.
+		$this->assertSame( '6x7', sanitize_title_with_dashes( '6×7', '', 'display' ), 'Multiplication sign should be replaced with x in display context' );
+		$this->assertSame( 'testx', sanitize_title_with_dashes( 'test×', '' ), 'Multiplication sign should be replaced with x when context is not specified' );
+	}
+
+	/**
+	 * @ticket 64284
+	 */
+	public function test_replaces_url_encoded_multiply_sign() {
+		$this->assertSame( 'x', sanitize_title_with_dashes( '%c3%97', '', 'save' ), 'URL-encoded multiplication sign (lowercase %c3%97) should be replaced with x in save context' );
+		$this->assertSame( 'x', sanitize_title_with_dashes( '%C3%97', '', 'save' ), 'URL-encoded multiplication sign (uppercase %C3%97) should be replaced with x in save context' );
 	}
 
 	/**

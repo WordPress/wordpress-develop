@@ -2288,6 +2288,14 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	// Restore octets.
 	$title = preg_replace( '|---([a-fA-F0-9][a-fA-F0-9])---|', '%$1', $title );
 
+	// Convert multiplication sign and times entities to 'x'.
+	$times_replacements = array( '×', '&times;', '&#215;' );
+	if ( 'save' === $context ) {
+		$times_replacements[] = '%c3%97';
+		$times_replacements[] = '%C3%97';
+	}
+	$title = str_replace( $times_replacements, 'x', $title );
+
 	if ( wp_is_valid_utf8( $title ) ) {
 		if ( function_exists( 'mb_strtolower' ) ) {
 			$title = mb_strtolower( $title, 'UTF-8' );
@@ -2383,9 +2391,6 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 			'-',
 			$title
 		);
-
-		// Convert &times to 'x'.
-		$title = str_replace( '%c3%97', 'x', $title );
 	}
 
 	// Remove HTML entities.
