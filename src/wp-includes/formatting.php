@@ -2602,6 +2602,33 @@ function balanceTags( $text, $force = false ) {  // phpcs:ignore WordPress.Namin
 }
 
 /**
+ * Balances tags in each page of post content.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $text Post content to be balanced.
+ * @return string Post content with tags balanced separately for each page.
+ */
+function _balance_tags_by_page( $text ) {
+	if ( ! str_contains( $text, '<!--nextpage-->' ) ) {
+		return balanceTags( $text );
+	}
+
+	/*
+	 * Keep the serialized core/nextpage block together as the page delimiter.
+	 */
+	$parts = preg_split(
+		'#((?:<!-- wp:nextpage -->\s*)?<!--nextpage-->(?:\s*<!-- /wp:nextpage -->)?)#',
+		$text,
+		-1,
+		PREG_SPLIT_DELIM_CAPTURE
+	);
+
+	return implode( '', array_map( 'balanceTags', $parts ) );
+}
+
+/**
  * Balances tags of string using a modified stack.
  *
  * {@internal Modified by Scott Reilly (coffee2code) 02 Aug 2004
