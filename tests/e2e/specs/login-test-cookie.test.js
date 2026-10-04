@@ -41,18 +41,17 @@ test.describe( 'Login test cookie', () => {
 		const loggedOutPage = await context.newPage();
 
 		await loggedOutPage.goto( '/wp-login.php' );
-		await loggedOutPage.fill( '#user_login', username );
-		await loggedOutPage.fill( '#user_pass', password );
-		await Promise.all( [
-			loggedOutPage.waitForURL( /\/wp-admin\/?/ ),
-			loggedOutPage.click( '#wp-submit' ),
-		] );
+		await loggedOutPage.waitForSelector( '#loginform' );
+
+		await loggedOutPage.getByLabel( 'Username or Email Address' ).fill( username );
+		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
+		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
+
+		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/ );
 
 		const cookieNames = ( await context.cookies() ).map(
 			( cookie ) => cookie.name
 		);
-
-		await expect( loggedOutPage.locator( '#login_error' ) ).toHaveCount( 0 );
 
 		await context.close();
 
@@ -71,6 +70,7 @@ test.describe( 'Login test cookie', () => {
 		const loggedOutPage = await context.newPage();
 
 		await loggedOutPage.goto( '/wp-login.php' );
+		await loggedOutPage.waitForSelector( '#loginform' );
 
 		/*
 		 * Cached or custom login forms may still post `testcookie`. Without a
@@ -85,14 +85,11 @@ test.describe( 'Login test cookie', () => {
 			document.getElementById( 'loginform' ).appendChild( input );
 		} );
 
-		await loggedOutPage.fill( '#user_login', username );
-		await loggedOutPage.fill( '#user_pass', password );
-		await Promise.all( [
-			loggedOutPage.waitForURL( /\/wp-admin\/?/ ),
-			loggedOutPage.click( '#wp-submit' ),
-		] );
+		await loggedOutPage.getByLabel( 'Username or Email Address' ).fill( username );
+		await loggedOutPage.getByLabel( 'Password', { exact: true } ).fill( password );
+		await loggedOutPage.getByRole( 'button', { name: 'Log In' } ).click();
 
-		await expect( loggedOutPage.locator( '#login_error' ) ).toHaveCount( 0 );
+		await expect( loggedOutPage ).toHaveURL( /\/wp-admin\/?/ );
 
 		await context.close();
 	} );
