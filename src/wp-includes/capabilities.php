@@ -1155,26 +1155,46 @@ function remove_role( $role ) {
  * Retrieves a list of super admins.
  *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$network_id` parameter.
  *
  * @global array $super_admins
  *
+ * @param int|null $network_id Optional. ID of the network. Default is the current network.
  * @return string[] List of super admin logins.
  */
-function get_super_admins() {
+function get_super_admins( $network_id = null ) {
 	global $super_admins;
 
-	return $super_admins ?? get_site_option( 'site_admins', array( 'admin' ) );
+	// Falsy values (including 0) mean "unspecified", matching get_network_option()'s own fallback.
+	$is_current_network = ! $network_id || get_current_network_id() === (int) $network_id;
+
+	if ( $is_current_network && isset( $super_admins ) ) {
+		return $super_admins;
+	}
+
+	/*
+	 * The 'admin' fallback exists for the current network only, where it reflects the
+	 * install's original default super admin. A network whose `site_admins` option was
+	 * never explicitly set has no default super admins - assuming 'admin' there would let
+	 * any user with that login be treated as a super admin of a network they were never
+	 * granted access to.
+	 */
+	$default = $is_current_network ? array( 'admin' ) : array();
+
+	return get_network_option( $network_id, 'site_admins', $default );
 }
 
 /**
  * Determines whether user is a site admin.
  *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$network_id` parameter.
  *
- * @param int|false $user_id Optional. The ID of a user. Defaults to false, to check the current user.
+ * @param int|false $user_id    Optional. The ID of a user. Defaults to false, to check the current user.
+ * @param int|null  $network_id Optional. ID of the network. Default is the current network.
  * @return bool Whether the user is a site admin.
  */
-function is_super_admin( $user_id = false ) {
+function is_super_admin( $user_id = false, $network_id = null ) {
 	if ( ! $user_id ) {
 		$user = wp_get_current_user();
 	} else {
@@ -1186,7 +1206,7 @@ function is_super_admin( $user_id = false ) {
 	}
 
 	if ( is_multisite() ) {
-		$super_admins = get_super_admins();
+		$super_admins = get_super_admins( $network_id );
 		if ( is_array( $super_admins ) && in_array( $user->user_login, $super_admins, true ) ) {
 			return true;
 		}

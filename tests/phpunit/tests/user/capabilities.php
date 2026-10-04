@@ -2591,4 +2591,110 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
 		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::get_super_admins
+	 */
+	public function test_get_super_admins_with_explicit_current_network_id_matches_default() {
+		$this->assertSameSets( get_super_admins(), get_super_admins( get_current_network_id() ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::get_super_admins
+	 */
+	public function test_get_super_admins_for_another_network_returns_that_networks_site_admins() {
+		$network_id = self::factory()->network->create();
+		update_network_option( $network_id, 'site_admins', array( 'someone-else' ) );
+
+		$this->assertSameSets( array( 'someone-else' ), get_super_admins( $network_id ) );
+		$this->assertNotSame( get_super_admins(), get_super_admins( $network_id ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::get_super_admins
+	 */
+	public function test_get_super_admins_for_another_network_without_a_site_admins_option_is_empty() {
+		$network_id = self::factory()->network->create();
+		delete_network_option( $network_id, 'site_admins' );
+
+		// Unlike the current network, a network with no `site_admins` option has no implicit 'admin' fallback.
+		$this->assertSame( array(), get_super_admins( $network_id ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::get_super_admins
+	 */
+	public function test_get_super_admins_global_override_does_not_apply_to_other_networks() {
+		$network_id          = self::factory()->network->create();
+		$had_global_override = array_key_exists( 'super_admins', $GLOBALS );
+		$old_super_admins    = $had_global_override ? $GLOBALS['super_admins'] : null;
+		delete_network_option( $network_id, 'site_admins' );
+		update_network_option( $network_id, 'site_admins', array( 'network-admin' ) );
+
+		$GLOBALS['super_admins'] = array( 'global-override' );
+
+		$this->assertSameSets( array( 'global-override' ), get_super_admins() );
+		$this->assertSameSets( array( 'network-admin' ), get_super_admins( $network_id ) );
+
+		if ( $had_global_override ) {
+			$GLOBALS['super_admins'] = $old_super_admins;
+		} else {
+			unset( $GLOBALS['super_admins'] );
+		}
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::is_super_admin
+	 */
+	public function test_is_super_admin_defaults_to_the_current_network() {
+		$user = self::$super_admin;
+
+		$this->assertTrue( is_super_admin( $user->ID ) );
+		$this->assertTrue( is_super_admin( $user->ID, get_current_network_id() ) );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::is_super_admin
+	 */
+	public function test_is_super_admin_for_a_network_the_user_is_not_a_super_admin_of() {
+		$user       = self::$super_admin;
+		$network_id = self::factory()->network->create();
+		delete_network_option( $network_id, 'site_admins' );
+
+		$this->assertTrue( is_super_admin( $user->ID ), 'User is expected to be a super admin of the current network.' );
+		$this->assertFalse( is_super_admin( $user->ID, $network_id ), 'User is not expected to be a super admin of an unrelated network.' );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @group ms-required
+	 *
+	 * @covers ::is_super_admin
+	 */
+	public function test_is_super_admin_for_a_network_the_user_is_a_super_admin_of() {
+		$user       = self::factory()->user->create_and_get();
+		$network_id = self::factory()->network->create();
+		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
+
+		$this->assertFalse( is_super_admin( $user->ID ), 'User is not expected to be a super admin of the current network.' );
+		$this->assertTrue( is_super_admin( $user->ID, $network_id ), 'User is expected to be a super admin of the network granting them access.' );
+	}
 }
