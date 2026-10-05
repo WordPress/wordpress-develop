@@ -1052,8 +1052,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_slug_lookup_is_not_bounded_by_a_page_size(): void {
 		global $wpdb;
 
-		// Author every post as the administrator, so the subscriber who reads them below can
-		// only see the published one.
+		/*
+		 * Author every post as the administrator, so the subscriber who reads them below can
+		 * only see the published one.
+		 */
 		$this->login_as( 'administrator' );
 
 		// The published post owns the slug and is the oldest of the group.
@@ -1065,8 +1067,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		// Drafts skip slug uniqueness, so they can all share the slug. Create more of them
-		// than the largest page the ability will ever return.
+		/*
+		 * Drafts skip slug uniqueness, so they can all share the slug. Create more of them
+		 * than the largest page the ability will ever return.
+		 */
 		for ( $i = 0; $i < 110; $i++ ) {
 			self::factory()->post->create(
 				array(
@@ -1104,8 +1108,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		// Core regenerates an "empty" post_name from the title, so a post titled "0"
-		// ends up with the literal slug "0".
+		/*
+		 * Core regenerates an "empty" post_name from the title, so a post titled "0"
+		 * ends up with the literal slug "0".
+		 */
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'  => '0',
@@ -2365,8 +2371,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		// `parent` never applies to the non-hierarchical `post` type, so every row
-		// projects to an empty object.
+		/*
+		 * `parent` never applies to the non-hierarchical `post` type, so every row
+		 * projects to an empty object.
+		 */
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'post_type' => 'post',
