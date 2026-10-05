@@ -116,6 +116,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		return $request;
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_logged_out_user_receives_401(): void {
 		wp_set_current_user( 0 );
 
@@ -124,6 +127,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 401, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_subscriber_requesting_drafts_receives_403(): void {
 		wp_set_current_user( self::$subscriber_id );
 
@@ -139,6 +145,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 403, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_subscriber_requesting_published_posts_receives_readable_fields(): void {
 		$post_id = self::factory()->post->create(
 			array(
@@ -172,6 +181,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'content_raw', $post, 'Raw content should not be returned to a subscriber.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_subscriber_requesting_raw_fields_receives_403(): void {
 		wp_set_current_user( self::$subscriber_id );
 
@@ -187,6 +199,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 403, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_admin_query_returns_published_posts(): void {
 		$post_id = self::factory()->post->create(
 			array(
@@ -203,6 +218,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ), 'The published post should be among the returned posts.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_admin_query_include_limits_results(): void {
 		$first  = self::factory()->post->create(
 			array(
@@ -240,6 +258,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertNotContains( $second, wp_list_pluck( $data['posts'], 'id' ), 'Posts outside the include list should not be returned.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_get_single_post_by_id(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -252,6 +273,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'total', $data, 'A single post lookup should not return query totals.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_get_single_post_by_slug(): void {
 		$post_id = self::factory()->post->create(
 			array(
@@ -276,6 +300,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'posts', $data, 'A slug lookup should not return a posts list.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_wrong_http_method_returns_405(): void {
 		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
@@ -287,6 +314,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'], 'The error should identify the invalid HTTP method.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_pagination_returns_totals_in_body(): void {
 		self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) );
 
@@ -307,6 +337,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$this->assertSame( (int) ceil( $data['total'] / 2 ), $data['total_pages'], 'The total pages should match the total and per_page.' );
 	}
 
+	/**
+	 * @ticket 64606
+	 */
 	public function test_out_of_range_page_returns_400(): void {
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 

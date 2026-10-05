@@ -207,6 +207,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The ability is registered in the `content` category and flagged read-only.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_registers_core_content_query_ability(): void {
@@ -230,6 +231,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The content ability is not registered when no post types are exposed to it.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_does_not_register_core_content_query_ability_without_exposed_post_types(): void {
@@ -249,6 +251,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * The input schema models mutually exclusive ID, slug, and query modes, each
 	 * rejecting the other modes' properties and exposing only marked types.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_input_schema_models_mutually_exclusive_modes(): void {
@@ -299,6 +302,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Branch-local defaults are omitted so the schema can compile in the client-side
 	 * Abilities API validator. Runtime defaults are still applied by the ability.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_input_schema_omits_oneof_branch_defaults(): void {
@@ -316,6 +320,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Query-mode filters cannot be combined with a by-ID lookup: passing `per_page` alongside
 	 * `id` is rejected outright rather than silently ignored.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_id_mode_rejects_query_only_params(): void {
@@ -336,6 +341,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * `post_type` is accepted alongside `id` as a guard: the by-ID mode still resolves the post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_id_mode_accepts_post_type_guard(): void {
@@ -359,6 +365,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The output schema describes single-post and query response shapes.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_output_schema_describes_single_post_and_query_responses(): void {
@@ -393,6 +400,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A post type registered by another active plugin and flagged `show_in_abilities`
 	 * is exposed by the ability, both in the input enum and in query results.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_exposes_a_post_type_registered_by_another_plugin(): void {
@@ -428,6 +436,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A schema filter can expose a post type that is registered after the ability.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_schema_filter_exposes_late_registered_post_type(): void {
@@ -484,6 +493,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A published post can be fetched by ID.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_published_post_by_id(): void {
@@ -511,6 +521,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * WP_Ability validates `stdClass` as object input but does not coerce the value before
 	 * passing it to the permission and execute callbacks, so both must preserve its fields.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_published_post_by_id_accepts_object_input(): void {
@@ -537,6 +548,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A single post fetched by ID can return explicitly requested rendered and raw content.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_published_post_by_id_can_return_content_fields(): void {
@@ -562,6 +574,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A missing post ID is denied before execution can probe the requested object.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_by_missing_id_is_denied(): void {
@@ -577,6 +590,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post type guard mismatch is denied before execution can probe the requested object.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_by_id_with_mismatched_post_type_is_denied(): void {
@@ -599,6 +613,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post from a post type not exposed to abilities is denied.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_by_id_for_unexposed_post_type_is_denied(): void {
@@ -632,6 +647,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A status that is public but not viewable is not exposed to read-only users.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_public_non_viewable_status_is_denied_for_read_only_users(): void {
@@ -662,6 +678,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A status that is public but not viewable remains available to users who can edit it.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_public_non_viewable_status_is_readable_with_edit_access(): void {
@@ -694,6 +711,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post that inherits its status from a readable parent is readable.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_inherited_post_is_readable_when_parent_is_readable(): void {
@@ -736,6 +754,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post with an inherited status but no readable parent is denied.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_inherited_post_without_parent_is_denied_for_read_only_users(): void {
@@ -768,6 +787,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query mode returns only published posts by default.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_returns_only_published_by_default(): void {
@@ -787,6 +807,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query mode can limit results to included IDs.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_limits_results(): void {
@@ -821,6 +842,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * WP_Query default, matching the REST posts controller, and `include` only filters the
 	 * query, so a caller that passes IDs in a chosen order must not expect them back in it.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_orders_posts_newest_first_regardless_of_include_order(): void {
@@ -865,6 +887,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query include still respects the requested post type.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_respects_requested_post_type(): void {
@@ -893,6 +916,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query include still respects row-level permissions.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_respects_row_level_permissions(): void {
@@ -930,6 +954,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query mode can return included drafts with explicitly requested rendered and raw content.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_draft_include_can_return_content_fields(): void {
@@ -963,6 +988,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Querying by slug without a post type is rejected by the input schema.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_slug_mode_requires_post_type(): void {
@@ -978,6 +1004,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Slug mode returns a single post directly when paired with a post type.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_published_post_by_slug(): void {
@@ -1009,6 +1036,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A single post fetched by slug can return explicitly requested rendered and raw content.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_published_post_by_slug_can_return_content_fields(): void {
@@ -1047,6 +1075,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * size applies. Bounding it with `post_name__in` and a page size would page straight past
 	 * an older published post, because the query is ordered newest first.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_slug_lookup_is_not_bounded_by_a_page_size(): void {
@@ -1102,6 +1131,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post whose slug is the literal string "0" is fetched in single-post slug mode.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_get_single_post_by_slug_zero(): void {
@@ -1137,6 +1167,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query-only filters cannot be combined with slug mode.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_slug_mode_rejects_query_only_params(): void {
@@ -1158,6 +1189,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A newer draft sharing a published post's slug does not shadow the published post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_slug_lookup_prefers_published_post_over_newer_draft(): void {
@@ -1199,6 +1231,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A slug held only by a draft resolves for its author and stays denied for readers.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_slug_lookup_resolves_draft_only_slug_by_readability(): void {
@@ -1240,6 +1273,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Include is a query-only option and cannot be combined with single-post modes.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_include_cannot_be_combined_with_single_post_modes(): void {
@@ -1269,6 +1303,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The `fields` filter limits the returned keys.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_fields_filter_limits_returned_keys(): void {
@@ -1297,6 +1332,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Unlike fields a post type does not support, which are omitted per post, a field
 	 * name that is not part of the supported set is rejected before the ability executes.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_unknown_requested_field_fails_schema_validation(): void {
@@ -1317,6 +1353,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Logged-out users cannot run the ability.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_logged_out_user_is_denied(): void {
@@ -1332,6 +1369,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers can request rendered published content.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_can_request_published_content(): void {
@@ -1360,6 +1398,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers can fetch a published post by ID.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_can_get_single_published_post_by_id(): void {
@@ -1380,6 +1419,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers cannot request edit-context raw fields in query mode.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_cannot_request_raw_fields_in_query_mode(): void {
@@ -1400,6 +1440,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers cannot request edit-context raw fields for a single post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_cannot_request_raw_fields_for_single_post(): void {
@@ -1422,6 +1463,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Users who cannot edit another user's post do not receive raw fields by default.
 	 *
+	 * @ticket 64606
 	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
 	 *
 	 * @param string $role The role to test.
@@ -1445,6 +1487,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Users who cannot edit another user's post cannot explicitly request raw fields.
 	 *
+	 * @ticket 64606
 	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
 	 *
 	 * @param string $role The role to test.
@@ -1469,6 +1512,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers cannot request draft posts.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_cannot_request_draft_status(): void {
@@ -1489,6 +1533,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Subscribers cannot request private posts.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_cannot_request_private_status(): void {
@@ -1509,6 +1554,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * An author can pass the draft gate but only sees their own drafts.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_author_cannot_see_other_authors_drafts(): void {
@@ -1549,6 +1595,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * This matches the REST posts controller: `posts` only contains rows the current
 	 * user can read, while `total` and `total_pages` describe the underlying query.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_totals_may_include_rows_withheld_by_row_level_permissions(): void {
@@ -1591,6 +1638,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The parent filter is rejected for non-hierarchical post types, mirroring REST.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_mode_rejects_parent_filter_for_non_hierarchical_post_type(): void {
@@ -1611,6 +1659,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The parent filter narrows hierarchical queries to children of the given post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_mode_filters_pages_by_parent(): void {
@@ -1645,6 +1694,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The author filter is rejected for post types without author support, mirroring REST.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_mode_rejects_author_filter_for_post_type_without_author_support(): void {
@@ -1674,6 +1724,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The author filter narrows queries to posts by the given author.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_mode_filters_posts_by_author(): void {
@@ -1709,6 +1760,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Raw content is available to users who can edit the post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_raw_content_visible_to_editor(): void {
@@ -1734,6 +1786,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Password-protected content is visible to users who can edit the post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_password_protected_content_visible_to_editor(): void {
@@ -1764,6 +1817,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Password-protected rendered content is withheld from users who cannot edit the post.
 	 *
+	 * @ticket 64606
 	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
 	 *
 	 * @param string $role The role to test.
@@ -1788,6 +1842,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Password-protected excerpts render for users who can edit the post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_password_protected_excerpt_visible_to_editor(): void {
@@ -1820,6 +1875,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Password-protected rendered excerpts are withheld from users who cannot edit the post.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_password_protected_rendered_excerpt_is_empty_for_subscriber(): void {
@@ -1849,6 +1905,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Rendered excerpts carry the REST API's `the_excerpt` markup (paragraph wrapping).
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_excerpt_rendered_applies_the_excerpt_filters(): void {
@@ -1873,6 +1930,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Rendered excerpt filters run with the requested post as the global context and restore
 	 * the context that was active before the ability executed.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_excerpt_rendered_uses_and_restores_requested_post_context(): void {
@@ -1930,6 +1988,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The password gate is suspended only for posts the current user can edit.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_allow_password_content_only_unlocks_editable_posts(): void {
@@ -1964,6 +2023,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Rendering an editable protected post must not unlock other protected posts embedded in
 	 * its content (e.g. through a shortcode or Query Loop block).
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_password_filter_does_not_leak_other_protected_posts(): void {
@@ -2024,6 +2084,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query mode paginates with `page`/`per_page` and reports totals.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_paginates_and_reports_totals(): void {
@@ -2059,6 +2120,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query mode reports a total that matches the returned posts for an uncapped query.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_total_matches_returned_posts_when_uncapped(): void {
@@ -2083,6 +2145,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Guards the boundary next to the out-of-range page error: the final page must not be
 	 * mistaken for an overshoot.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_last_page_reports_totals(): void {
@@ -2114,6 +2177,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * which is indistinguishable from an empty collection. Match the REST posts controller
 	 * by reporting this as a caller error instead.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_out_of_range_page_is_rejected_rather_than_reported_as_empty(): void {
@@ -2142,6 +2206,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * The out-of-range guard only fires when the underlying query actually matched rows.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_empty_result_beyond_first_page_reports_zero_totals(): void {
@@ -2169,6 +2234,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Without this the default page size silently truncates a batch load: a caller asking
 	 * for a known set of IDs would receive only the first `per_page` of them.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_returns_every_requested_post_without_per_page(): void {
@@ -2198,6 +2264,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * An explicit `per_page` still paginates an include request.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_honors_an_explicit_per_page(): void {
@@ -2223,6 +2290,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * The include list is capped at the maximum page size.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_include_is_capped_at_the_maximum_page_size(): void {
@@ -2251,6 +2319,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * The rendered filter chains may read post meta, so priming avoids one lazy meta
 	 * query per returned row.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_rendered_fields_prime_the_post_meta_cache(): void {
@@ -2291,6 +2360,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * the request belongs to whoever runs the query, and it may prime more for its own
 	 * reasons, so counting queries here would describe that layer rather than this one.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_lean_projection_does_not_request_post_meta_priming(): void {
@@ -2365,6 +2435,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Query rows are kept, not dropped, when the requested fields project to nothing.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_query_keeps_posts_with_empty_field_projection(): void {
@@ -2394,6 +2465,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A single post whose requested fields project to nothing is returned as an empty object.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_single_post_returns_empty_object_for_empty_field_projection(): void {
@@ -2414,6 +2486,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A single post fetched by ID is returned directly without query totals.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_single_post_returns_direct_post_object(): void {
@@ -2433,6 +2506,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Local and GMT date fields report the correct instant and offset on non-UTC sites.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_gmt_dates_are_utc_on_non_utc_sites(): void {
@@ -2477,6 +2551,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * Drafts without a stored GMT date derive it from the local date and the site timezone.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_gmt_date_is_derived_from_local_date_for_drafts(): void {
@@ -2574,6 +2649,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * `strtotime( ' UTC' )` resolves to the current time, so an unguarded null would
 	 * report a fabricated "now" as the publication date.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 *
 	 * @dataProvider data_gmt_date_fields
@@ -2622,6 +2698,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	/**
 	 * A post with no usable date at all reports the documented empty-string sentinel.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 *
 	 * @dataProvider data_gmt_date_fields
@@ -2663,6 +2740,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * denies the same lookups first. The registered callback still fails closed on
 	 * structural lookup errors when invoked directly.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_execute_callback_returns_not_found_for_structural_lookup_failures(): void {
@@ -2701,6 +2779,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * to 0, which WP_Query treats as "no author filter" — returning every author's
 	 * posts. The filter must fail closed instead of widening the result set.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_execute_callback_rejects_non_integer_author_filter(): void {
@@ -2726,6 +2805,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * cannot be detected by a numeric bound; it must be rejected on the raw value so
 	 * garbage does not silently become a top-level query.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_execute_callback_rejects_non_integer_parent_filter(): void {
@@ -2751,6 +2831,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * would otherwise return every post of the type — the opposite of the caller's
 	 * intent. The filter must fail closed instead.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_execute_callback_rejects_include_with_no_valid_ids(): void {
@@ -2777,6 +2858,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * stricter filter parsing must accept those so it only rejects genuinely
 	 * unhonorable values, not well-formed ones.
 	 *
+	 * @ticket 64606
 	 * @since 7.2.0
 	 */
 	public function test_execute_callback_honors_string_author_filter(): void {
