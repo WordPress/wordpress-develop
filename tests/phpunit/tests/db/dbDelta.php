@@ -379,13 +379,9 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$table_row = $wpdb->get_row( "select $column from {$table} where $column = '$value'" );
+		$table_row = $wpdb->get_row( "select $column from {$table} where $column = '$value'", ARRAY_A );
 
-		$expected = (object) array(
-			$column => $value,
-		);
-
-		$this->assertEquals( $expected, $table_row );
+		$this->assertSame( array( $column => $value ), $table_row );
 	}
 
 	/**
