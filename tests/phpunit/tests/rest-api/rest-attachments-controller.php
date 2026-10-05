@@ -120,6 +120,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function set_up() {
 		parent::set_up();
 
+		// Avoid DNS lookups when validating URLs used by mocked image downloads.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return 'https://example.com';
+			}
+		);
+
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
 		$role = get_role( 'uploader' );
@@ -185,6 +193,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function tear_down() {
 		$this->remove_added_uploads();
+		remove_post_type_support( 'attachment', 'thumbnail' );
 
 		if ( class_exists( WP_Image_Editor_Mock::class ) ) {
 			WP_Image_Editor_Mock::$spy         = array();
@@ -3676,7 +3685,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		// The edit endpoint creates a new attachment, so we expect a 201 status.
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data              = $response->get_data();
 		$new_attachment_id = $data['id'];
