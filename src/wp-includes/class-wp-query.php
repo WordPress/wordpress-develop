@@ -1838,7 +1838,7 @@ class WP_Query {
 	 * Not true for 'post_parent__in' or 'post_name__in': several posts can share
 	 * one parent, or one slug across post types, so those orderings can tie.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
 	 * @return bool Whether the ordering is already determinate, making an ID clause unnecessary.
@@ -1915,7 +1915,7 @@ class WP_Query {
 	 * database query.
 	 *
 	 * @since 1.5.0
-	 * @since 7.2.0 Adds the post ID to ORDER BY so that paginated queries do not
+	 * @since 7.3.0 Adds the post ID to ORDER BY so that paginated queries do not
 	 *              return the same post on more than one page.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
@@ -3025,7 +3025,7 @@ class WP_Query {
 			 * Filters the ORDER BY clause of the query.
 			 *
 			 * @since 1.5.1
-			 * @since 7.2.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
+			 * @since 7.3.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string   $orderby The ORDER BY clause of the query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
@@ -3069,7 +3069,7 @@ class WP_Query {
 			 * fields (SELECT), and LIMIT clauses.
 			 *
 			 * @since 3.1.0
-			 * @since 7.2.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
+			 * @since 7.3.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string[] $clauses {
 			 *     Associative array of the clauses for the query.
@@ -3153,7 +3153,7 @@ class WP_Query {
 			 * For use by caching plugins.
 			 *
 			 * @since 2.5.0
-			 * @since 7.2.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
+			 * @since 7.3.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string   $orderby The ORDER BY clause of the query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
@@ -3205,7 +3205,7 @@ class WP_Query {
 			 * fields (SELECT), and LIMIT clauses.
 			 *
 			 * @since 3.1.0
-			 * @since 7.2.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
+			 * @since 7.3.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string[] $clauses {
 			 *     Associative array of the clauses for the query.
