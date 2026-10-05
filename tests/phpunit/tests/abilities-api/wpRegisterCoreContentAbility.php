@@ -405,28 +405,24 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$this->login_as( 'administrator' );
-			$this->register_ability();
+		$this->login_as( 'administrator' );
+		$this->register_ability();
 
-			// Query mode is the third `oneOf` branch; its `post_type` enum lists exposed types.
-			$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
-			$this->assertContains( 'wpai_content_cpt', $enum, 'Custom post types marked show_in_abilities should appear in the query enum.' );
+		// Query mode is the third `oneOf` branch; its `post_type` enum lists exposed types.
+		$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
+		$this->assertContains( 'wpai_content_cpt', $enum, 'Custom post types marked show_in_abilities should appear in the query enum.' );
 
-			$post_id = self::factory()->post->create(
-				array(
-					'post_type'   => 'wpai_content_cpt',
-					'post_status' => 'publish',
-				)
-			);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wpai_content_cpt',
+				'post_status' => 'publish',
+			)
+		);
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'post_type' => 'wpai_content_cpt' ) );
-			$ids    = wp_list_pluck( $result['posts'], 'id' );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'post_type' => 'wpai_content_cpt' ) );
+		$ids    = wp_list_pluck( $result['posts'], 'id' );
 
-			$this->assertContains( $post_id, $ids, 'The custom post type should be queryable through the content ability.' );
-		} finally {
-			unregister_post_type( 'wpai_content_cpt' );
-		}
+		$this->assertContains( $post_id, $ids, 'The custom post type should be queryable through the content ability.' );
 	}
 
 	/**
@@ -468,25 +464,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$post_id = self::factory()->post->create(
-				array(
-					'post_type'   => 'wpai_late_cpt',
-					'post_status' => 'publish',
-				)
-			);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wpai_late_cpt',
+				'post_status' => 'publish',
+			)
+		);
 
-			$result = wp_get_ability( 'core/content-query' )->execute(
-				array(
-					'post_type' => 'wpai_late_cpt',
-					'fields'    => array( 'id' ),
-				)
-			);
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'post_type' => 'wpai_late_cpt',
+				'fields'    => array( 'id' ),
+			)
+		);
 
-			$this->assertSame( array( $post_id ), wp_list_pluck( $result['posts'], 'id' ), 'The late post type should be queryable after it becomes exposed.' );
-		} finally {
-			unregister_post_type( 'wpai_late_cpt' );
-		}
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['posts'], 'id' ), 'The late post type should be queryable after it becomes exposed.' );
 	}
 
 	/**
@@ -619,26 +611,22 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$this->login_as( 'administrator' );
+		$this->login_as( 'administrator' );
 
-			$post_id = self::factory()->post->create(
-				array(
-					'post_type'   => 'wpai_hidden_cpt',
-					'post_status' => 'publish',
-				)
-			);
-			$this->assertGreaterThan( 0, $post_id, 'The hidden custom post should be created for the denial check.' );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wpai_hidden_cpt',
+				'post_status' => 'publish',
+			)
+		);
+		$this->assertGreaterThan( 0, $post_id, 'The hidden custom post should be created for the denial check.' );
 
-			$this->register_ability();
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
 
-			$this->assertWPError( $result, 'Posts from unexposed post types should be denied.' );
-			$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Unexposed post types should fail closed as a permission error.' );
-		} finally {
-			unregister_post_type( 'wpai_hidden_cpt' );
-		}
+		$this->assertWPError( $result, 'Posts from unexposed post types should be denied.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Unexposed post types should fail closed as a permission error.' );
 	}
 
 	/**
@@ -656,23 +644,19 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$post_id = self::factory()->post->create(
-				array(
-					'post_status' => 'wpai_public_hidden',
-				)
-			);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'wpai_public_hidden',
+			)
+		);
 
-			$this->login_as( 'subscriber' );
-			$this->register_ability();
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
 
-			$this->assertWPError( $result, 'Read-only users should not receive public statuses that are not viewable.' );
-			$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Non-viewable public statuses should fail closed for read-only users.' );
-		} finally {
-			unset( $GLOBALS['wp_post_statuses']['wpai_public_hidden'] );
-		}
+		$this->assertWPError( $result, 'Read-only users should not receive public statuses that are not viewable.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Non-viewable public statuses should fail closed for read-only users.' );
 	}
 
 	/**
@@ -690,25 +674,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$post_id = self::factory()->post->create(
-				array(
-					'post_title'  => 'Hidden public status',
-					'post_status' => 'wpai_public_hidden',
-				)
-			);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Hidden public status',
+				'post_status' => 'wpai_public_hidden',
+			)
+		);
 
-			$this->login_as( 'administrator' );
-			$this->register_ability();
+		$this->login_as( 'administrator' );
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
 
-			$this->assertIsArray( $result, 'Editors should be able to access posts they can edit even when the status is not publicly viewable.' );
-			$this->assertSame( $post_id, $result['id'], 'The editable post should be returned.' );
-			$this->assertSame( 'Hidden public status', $result['title_rendered'], 'The editable post should include normal default fields.' );
-		} finally {
-			unset( $GLOBALS['wp_post_statuses']['wpai_public_hidden'] );
-		}
+		$this->assertIsArray( $result, 'Editors should be able to access posts they can edit even when the status is not publicly viewable.' );
+		$this->assertSame( $post_id, $result['id'], 'The editable post should be returned.' );
+		$this->assertSame( 'Hidden public status', $result['title_rendered'], 'The editable post should include normal default fields.' );
 	}
 
 	/**
@@ -726,35 +706,31 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$parent_id = self::factory()->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'wpai_inherit_cpt',
-					'post_status' => 'publish',
-				)
-			);
-			$child_id  = self::factory()->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'wpai_inherit_cpt',
-					'post_parent' => $parent_id,
-					'post_status' => 'inherit',
-					'post_title'  => 'Inherited child',
-				)
-			);
+		$parent_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'wpai_inherit_cpt',
+				'post_status' => 'publish',
+			)
+		);
+		$child_id  = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'wpai_inherit_cpt',
+				'post_parent' => $parent_id,
+				'post_status' => 'inherit',
+				'post_title'  => 'Inherited child',
+			)
+		);
 
-			$this->login_as( 'subscriber' );
-			$this->register_ability();
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $child_id ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $child_id ) );
 
-			$this->assertIsArray( $result, 'Inherited posts should be readable when their parent is readable.' );
-			$this->assertSame( $child_id, $result['id'], 'The inherited child should be returned.' );
-			$this->assertSame( 'Inherited child', $result['title_rendered'], 'The inherited child should include normal default fields.' );
-		} finally {
-			unregister_post_type( 'wpai_inherit_cpt' );
-		}
+		$this->assertIsArray( $result, 'Inherited posts should be readable when their parent is readable.' );
+		$this->assertSame( $child_id, $result['id'], 'The inherited child should be returned.' );
+		$this->assertSame( 'Inherited child', $result['title_rendered'], 'The inherited child should include normal default fields.' );
 	}
 
 	/**
@@ -772,25 +748,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$post_id = self::factory()->post->create(
-				array(
-					'post_author' => self::$user_ids['administrator'],
-					'post_type'   => 'wpai_inherit_cpt',
-					'post_status' => 'inherit',
-				)
-			);
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['administrator'],
+				'post_type'   => 'wpai_inherit_cpt',
+				'post_status' => 'inherit',
+			)
+		);
 
-			$this->login_as( 'subscriber' );
-			$this->register_ability();
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
 
-			$this->assertWPError( $result, 'Inherited posts without a readable parent should be denied.' );
-			$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Orphaned inherited posts should fail closed.' );
-		} finally {
-			unregister_post_type( 'wpai_inherit_cpt' );
-		}
+		$this->assertWPError( $result, 'Inherited posts without a readable parent should be denied.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Orphaned inherited posts should fail closed.' );
 	}
 
 	/**
@@ -1679,22 +1651,18 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		try {
-			$this->login_as( 'administrator' );
-			$this->register_ability();
+		$this->login_as( 'administrator' );
+		$this->register_ability();
 
-			$result = wp_get_ability( 'core/content-query' )->execute(
-				array(
-					'post_type' => 'wpai_no_author_cpt',
-					'author'    => self::$user_ids['author'],
-				)
-			);
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'post_type' => 'wpai_no_author_cpt',
+				'author'    => self::$user_ids['author'],
+			)
+		);
 
-			$this->assertWPError( $result, 'The author filter should be rejected for post types without author support.' );
-			$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'Unsupported author filters should return a filter error.' );
-		} finally {
-			unregister_post_type( 'wpai_no_author_cpt' );
-		}
+		$this->assertWPError( $result, 'The author filter should be rejected for post types without author support.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'Unsupported author filters should return a filter error.' );
 	}
 
 	/**
