@@ -17,6 +17,7 @@ $messages['_item'] = array(
 	4 => __( 'Item not added.' ),
 	5 => __( 'Item not updated.' ),
 	6 => __( 'Items deleted.' ),
+	7 => __( 'Item not updated. The slug is already in use by another term.' ),
 );
 
 $messages['category'] = array(
@@ -27,6 +28,7 @@ $messages['category'] = array(
 	4 => __( 'Category not added.' ),
 	5 => __( 'Category not updated.' ),
 	6 => __( 'Categories deleted.' ),
+	7 => __( 'Category not updated. The slug is already in use by another category.' ),
 );
 
 $messages['post_tag'] = array(
@@ -37,12 +39,16 @@ $messages['post_tag'] = array(
 	4 => __( 'Tag not added.' ),
 	5 => __( 'Tag not updated.' ),
 	6 => __( 'Tags deleted.' ),
+	7 => __( 'Tag not updated. The slug is already in use by another tag.' ),
 );
 
 /**
  * Filters the messages displayed when a tag is updated.
  *
+ * Taxonomies without a given message fall back to the corresponding `_item` message.
+ *
  * @since 3.7.0
+ * @since 7.2.0 Added message 7 for when a term's slug is already in use.
  *
  * @param array[] $messages Array of arrays of messages to be displayed, keyed by taxonomy name.
  */
@@ -53,7 +59,7 @@ if ( isset( $_REQUEST['message'] ) && (int) $_REQUEST['message'] ) {
 	$msg = (int) $_REQUEST['message'];
 	if ( isset( $messages[ $taxonomy ][ $msg ] ) ) {
 		$message = $messages[ $taxonomy ][ $msg ];
-	} elseif ( ! isset( $messages[ $taxonomy ] ) && isset( $messages['_item'][ $msg ] ) ) {
+	} elseif ( isset( $messages['_item'][ $msg ] ) ) {
 		$message = $messages['_item'][ $msg ];
 	}
 }
