@@ -380,6 +380,6 @@ function wp_register_core_abilities(): void {
 	// Register the user abilities (currently the read-only `core/users-query`).
 	( new WP_Abilities_Users() )->register();
 
-	// Register the content abilities (currently the read-only `core/read-content`).
+	// Register the content abilities (currently the read-only `core/content-query`).
 	( new WP_Content_Abilities() )->register();
 }
