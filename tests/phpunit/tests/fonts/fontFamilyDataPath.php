@@ -551,6 +551,71 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A raw name with a space at the start or the end uses the trimmed name everywhere.
+	 *
+	 * The display name, the preset, and the face descriptor must use the same
+	 * name, so that the preset selects the face.
+	 *
+	 * @dataProvider data_raw_names_with_outer_spaces
+	 *
+	 * @param string $raw_name Raw name from the font file.
+	 * @param string $expected Trimmed name.
+	 */
+	public function test_rest_trims_the_outer_spaces_of_a_raw_name( $raw_name, $expected ) {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families' );
+		$request->set_param(
+			'font_family_settings',
+			wp_json_encode(
+				array(
+					'name'       => $raw_name,
+					'slug'       => sanitize_title( $raw_name ),
+					'fontFamily' => $raw_name,
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'The family should be created.' );
+
+		$family_id        = $response->get_data()['id'];
+		$this->post_ids[] = $family_id;
+		$this->create_font_face( $family_id, $raw_name );
+
+		$this->assertSame( $expected, $response->get_data()['font_family_settings']['name'], 'The display name should be trimmed.' );
+
+		$settings = $this->get_settings_for_family( $family_id );
+		$preset   = WP_Font_Utils::parse_font_family_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
+
+		$this->assertSame(
+			array(
+				array(
+					'type'  => 'name',
+					'value' => $expected,
+				),
+			),
+			$preset,
+			'The preset should use the trimmed name.'
+		);
+
+		$css = get_echo( 'wp_print_font_faces', array( $this->get_fonts_from_settings( $settings ) ) );
+
+		$this->assertStringContainsString( 'font-family:"' . $expected . '";', $css, 'The face descriptor should use the trimmed name.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_raw_names_with_outer_spaces() {
+		return array(
+			'a leading space'  => array( ' Leading space', 'Leading space' ),
+			'a trailing space' => array( 'Trailing space ', 'Trailing space' ),
+			'both ends'        => array( "\t Both ends \n", 'Both ends' ),
+		);
+	}
+
+	/**
 	 * Creates a font family through the REST API.
 	 *
 	 * @param string $slug        Font family slug.
