@@ -1,0 +1,25 @@
+@use "variables";
+
+// Admin bar color scheme tokens.
+//
+// The admin bar stylesheet (wp-includes/css/admin-bar.css) reads its colors
+// from these custom properties, falling back to the default colors.
+//
+// Included in each color scheme's colors.css for the admin, and compiled
+// separately into each color scheme's admin-bar.css for the front end.
+@mixin tokens() {
+	#wpadminbar {
+		--wp-admin--admin-bar--text: #{variables.$menu-text};
+		--wp-admin--admin-bar--background: #{variables.$menu-background};
+		--wp-admin--admin-bar--icon: #{variables.$menu-icon};
+		--wp-admin--admin-bar--focus-text: #{variables.$menu-submenu-focus-text};
+		--wp-admin--admin-bar--submenu-text: #{variables.$menu-submenu-text};
+		--wp-admin--admin-bar--submenu-background: #{variables.$menu-submenu-background};
+		--wp-admin--admin-bar--submenu-background-alt: #{variables.$menu-submenu-background-alt};
+		--wp-admin--admin-bar--input-background: #{variables.$adminbar-input-background};
+		--wp-admin--admin-bar--recovery-text: #{variables.$adminbar-recovery-exit-text};
+		--wp-admin--admin-bar--recovery-background: #{variables.$adminbar-recovery-exit-background};
+		--wp-admin--admin-bar--recovery-background-hover: #{variables.$adminbar-recovery-exit-background-alt};
+		--wp-admin--admin-bar--avatar-frame: #{variables.$adminbar-avatar-frame};
+	}
+}
