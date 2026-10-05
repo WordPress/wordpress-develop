@@ -347,8 +347,17 @@
 
 		if ( 'undefined' !== typeof response.debug && window.console && window.console.log ) {
 			_.map( response.debug, function( message ) {
-				// Remove all HTML tags and write a message to the console.
-				window.console.log( wp.sanitize.stripTagsAndEncodeText( message ) );
+				if ( 'string' !== typeof message ) {
+					return;
+				}
+
+				/*
+				 * Remove all HTML tags and decode character references, as the
+				 * console displays plain text rather than HTML.
+				 */
+				window.console.log(
+					new DOMParser().parseFromString( message, 'text/html' ).body.textContent
+				);
 			} );
 		}
 	};
