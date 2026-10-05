@@ -608,7 +608,7 @@ class WP_Term_Query {
 			);
 		}
 
-		if ( '' === $args['object_ids'] ) {
+		if ( null === $args['object_ids'] || '' === $args['object_ids'] ) {
 			$args['object_ids'] = array();
 		} else {
 			$args['object_ids'] = array_map( 'intval', (array) $args['object_ids'] );
