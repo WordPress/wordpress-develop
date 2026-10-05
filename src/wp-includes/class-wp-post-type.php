@@ -380,7 +380,7 @@ final class WP_Post_Type {
 	 * through the read-only `core/content-query` ability, subject to per-post capability
 	 * checks. May be an array to enable specific operations in the future.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var bool|array $show_in_abilities
 	 */
 	public $show_in_abilities;
