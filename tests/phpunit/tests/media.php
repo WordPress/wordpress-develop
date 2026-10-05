@@ -2746,6 +2746,120 @@ EOF;
 	}
 
 	/**
+	 * Shared image meta for the `wp_image_src_get_dimensions()` tests.
+	 */
+	private function get_image_meta_for_dimensions_tests() {
+		return array(
+			'width'  => 1600,
+			'height' => 800,
+			'file'   => '2015/12/test.png',
+			'sizes'  => array(
+				'medium' => array(
+					'file'   => 'test-300x150.png',
+					'width'  => 300,
+					'height' => 150,
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_with_full_size_image() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png';
+
+		$this->assertSame( array( 1600, 800 ), wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_with_intermediate_size() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png';
+
+		$this->assertSame( array( 300, 150 ), wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_with_no_matching_size_returns_false() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/unrelated-999x999.png';
+
+		$this->assertFalse( wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * A missing 'file' key previously triggered a PHP notice when the full-size
+	 * match was attempted; it should fall through to the intermediate sizes instead.
+	 *
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_with_missing_file_key_falls_back_to_sizes() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		unset( $image_meta['file'] );
+
+		$image_src = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test-300x150.png';
+
+		$this->assertSame( array( 300, 150 ), wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_with_missing_file_key_and_no_size_match_returns_false() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		unset( $image_meta['file'] );
+
+		$image_src = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/unrelated.png';
+
+		$this->assertFalse( wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_fires_filter_with_expected_args() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		$image_meta['sizes'] = array();
+
+		$image_src     = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png';
+		$attachment_id = self::$large_id;
+
+		$filter = new MockAction();
+		add_filter( 'wp_image_src_get_dimensions', array( $filter, 'filter' ), 10, 4 );
+
+		$actual = wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id );
+
+		$this->assertSame( array( 1600, 800 ), $actual );
+		$this->assertSame(
+			array( array( 1600, 800 ), $image_src, $image_meta, $attachment_id ),
+			$filter->get_args()[0]
+		);
+	}
+
+	/**
+	 * @ticket 51865
+	 */
+	public function test_wp_image_src_get_dimensions_filter_can_override_dimensions() {
+		$image_meta = $this->get_image_meta_for_dimensions_tests();
+		$image_src  = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/2015/12/test.png';
+
+		add_filter(
+			'wp_image_src_get_dimensions',
+			static function () {
+				return array( 1, 2 );
+			}
+		);
+
+		$this->assertSame( array( 1, 2 ), wp_image_src_get_dimensions( $image_src, $image_meta ) );
+	}
+
+	/**
 	 * @ticket 36549
 	 * @ticket 33641
 	 */
