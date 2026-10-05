@@ -1787,9 +1787,7 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
  *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
  *
- * @phpstan-template T of array|object
- * @phpstan-param T $term
- * @phpstan-return T
+ * @phpstan-return ($term is WP_Term ? WP_Term : ($term is array ? array<string, mixed> : object))
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
 	$fields = array( 'term_id', 'name', 'description', 'slug', 'count', 'parent', 'term_group', 'term_taxonomy_id', 'object_id' );

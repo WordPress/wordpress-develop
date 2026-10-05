@@ -140,6 +140,8 @@ function register_widget( $widget ) {
  * @global WP_Widget_Factory $wp_widget_factory
  *
  * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+ *
+ * @phpstan-param class-string<WP_Widget>|WP_Widget $widget
  */
 function unregister_widget( $widget ) {
 	global $wp_widget_factory;
