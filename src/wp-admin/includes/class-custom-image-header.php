@@ -59,6 +59,7 @@ class Custom_Image_Header {
 	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
 	 *                                           Default empty string.
 	 *
+	 * @phpstan-param ''|(callable(): mixed)|null $admin_header_callback
 	 * @phpstan-param ''|(callable(): mixed)|null $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback, $admin_image_div_callback = '' ) {
