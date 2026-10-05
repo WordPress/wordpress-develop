@@ -88,7 +88,12 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	public function test_get_the_privacy_policy_link_should_allow_supported_title_markup() {
 		$privacy_policy_page_id = self::$privacy_policy_page_id;
 
-		// Run after core `the_title` formatting filters (e.g. wptexturize).
+		/*
+		 * Run after core `the_title` formatting filters (e.g. wptexturize).
+		 *
+		 * A filter is used rather than updating the post to ensure that the script tag is
+		 * stripped from the output by KSES as intended.
+		 */
 		$filter = static function ( $title, $post_id ) use ( $privacy_policy_page_id ) {
 			if ( (int) $privacy_policy_page_id === (int) $post_id ) {
 				return '<strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>';
