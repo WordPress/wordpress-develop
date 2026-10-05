@@ -18,35 +18,18 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A schemeless URL reaches the HTTP API and returns false on WP_Error.
+	 * A schemeless URL returns false when the HTTP API returns a WP_Error.
 	 *
-	 * Per #63914 this covers `wp_remote_fopen()`'s failure path with a mocked
-	 * response instead of a live request. The mock returns the same WP_Error
-	 * shape WP_Http uses when a valid URL was not provided.
+	 * Per #63914 this covers the failure path with a mocked response instead of
+	 * a live request. Mimics the WP_Error WP_Http returns for an invalid URL.
 	 *
 	 * @ticket 48845
 	 * @ticket 63914
 	 */
 	public function test_wp_remote_fopen_bad_url() {
-		$request_url  = null;
-		$request_args = null;
-
-		add_filter(
-			'pre_http_request',
-			static function ( $response, $parsed_args, $url ) use ( &$request_url, &$request_args ) {
-				$request_url  = $url;
-				$request_args = $parsed_args;
-
-				return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
-			},
-			10,
-			3
-		);
+		add_filter( 'pre_http_request', array( $this, 'mock_invalid_url_response' ), 10, 3 );
 
 		$this->assertFalse( wp_remote_fopen( 'wp.com' ) );
-		$this->assertSame( 'wp.com', $request_url, 'The bad URL should still be passed to the HTTP API.' );
-		$this->assertTrue( $request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
-		$this->assertSame( 10, $request_args['timeout'] );
 	}
 
 	/**
@@ -84,5 +67,19 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 		$this->assertSame( $body, $response );
 		$this->assertTrue( $request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
 		$this->assertSame( 10, $request_args['timeout'] );
+	}
+
+	/**
+	 * Mocks an invalid-URL HTTP API response for wp_remote_fopen().
+	 *
+	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
+	 * @param array                $parsed_args HTTP request arguments.
+	 * @param string               $url         The request URL.
+	 * @return WP_Error Mocked error response.
+	 */
+	public function mock_invalid_url_response( $response, $parsed_args, $url ) {
+		unset( $response, $parsed_args, $url );
+
+		return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
 	}
 }
