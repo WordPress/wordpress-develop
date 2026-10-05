@@ -218,6 +218,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_user_properties() {
 		$user = new WP_User( self::$author_id );
 
+		// Keep assertEquals() because user property magic getters return numeric strings for database IDs.
 		foreach ( $user->data as $key => $data ) {
 			$this->assertEquals( $data, $user->$key );
 		}
@@ -449,6 +450,7 @@ class Tests_User extends WP_UnitTestCase {
 		wp_update_user( $user_data );
 
 		$user = new WP_User( self::$author_id );
+		// Keep assertEquals() because user properties from usermeta return numeric strings for database IDs.
 		foreach ( $user_data as $key => $value ) {
 			$this->assertEquals( $value, $user->get( $key ), $key );
 		}
