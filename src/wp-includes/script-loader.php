@@ -1099,7 +1099,6 @@ function wp_default_scripts( $scripts ) {
 					'language' => strtolower( strtok( determine_locale(), '_-' ) ),
 					'strings'  => array(
 						'mejs.download-file'       => __( 'Download File' ),
-						'mejs.install-flash'       => __( 'You are using a browser that does not have Flash player enabled or installed. Please turn on your Flash player plugin or download the latest version from https://get.adobe.com/flashplayer/' ),
 						'mejs.fullscreen'          => __( 'Fullscreen' ),
 						'mejs.play'                => __( 'Play' ),
 						'mejs.pause'               => __( 'Pause' ),
