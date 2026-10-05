@@ -287,6 +287,13 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 				),
 				'{posts}.menu_order ASC, {posts}.ID ASC',
 			),
+			'comment_count'        => array(
+				array(
+					'orderby' => 'comment_count',
+					'order'   => 'DESC',
+				),
+				'{posts}.comment_count DESC, {posts}.ID DESC',
+			),
 			'two columns'          => array(
 				array(
 					'orderby' => array(
@@ -455,41 +462,46 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	 * share one parent, or one slug across post types.
 	 *
 	 * @ticket 44349
+	 *
+	 * @dataProvider data_field_orderings
+	 *
+	 * @param array  $args           Query arguments.
+	 * @param string $expected_field Start of the expected FIELD() clause, with {posts} standing in for the table name.
 	 */
-	public function test_field_orderings_get_the_id_clause() {
-		$parent = self::factory()->post->create(
-			array(
-				'post_type'  => 'page',
-				'post_title' => 'FIELD parent',
-			)
-		);
-		self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent,
-			)
-		);
-		self::factory()->post->create(
-			array(
-				'post_type'   => 'page',
-				'post_parent' => $parent,
-			)
-		);
-
-		$query = new WP_Query(
-			array(
-				'post_type'       => 'page',
-				'post_parent__in' => array( $parent ),
-				'orderby'         => 'post_parent__in',
-				'posts_per_page'  => 5,
-			)
-		);
-
+	public function test_field_orderings_get_the_id_clause( $args, $expected_field ) {
 		global $wpdb;
+
+		$query = new WP_Query( array_merge( $args, array( 'posts_per_page' => 5 ) ) );
+
 		preg_match( '/ORDER BY(.*?)LIMIT/s', $query->request, $matches );
 
-		$this->assertStringContainsString( "FIELD( {$wpdb->posts}.post_parent,", $matches[1] );
+		$this->assertStringContainsString( str_replace( '{posts}', $wpdb->posts, $expected_field ), $matches[1] );
 		$this->assertStringContainsString( "{$wpdb->posts}.ID", $matches[1] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_field_orderings() {
+		return array(
+			'post_parent__in' => array(
+				array(
+					'post_type'       => 'page',
+					'post_parent__in' => array( 1 ),
+					'orderby'         => 'post_parent__in',
+				),
+				'FIELD( {posts}.post_parent,',
+			),
+			'post_name__in'   => array(
+				array(
+					'post_name__in' => array( 'alpha', 'beta' ),
+					'orderby'       => 'post_name__in',
+				),
+				'FIELD( {posts}.post_name,',
+			),
+		);
 	}
 
 	/**
