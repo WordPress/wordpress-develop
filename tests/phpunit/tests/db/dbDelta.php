@@ -385,6 +385,7 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$column => $value,
 		);
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $table_row );
 	}
 
