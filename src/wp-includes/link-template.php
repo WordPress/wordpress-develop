@@ -4851,13 +4851,11 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 			wp_kses(
 				$page_title,
 				array(
-					'strong' => array(),
-					'em'     => array(),
-					'b'      => array(),
-					'i'      => array(),
-					'span'   => array(
-						'class' => true,
-					),
+					'strong' => array( 'class' => true ),
+					'em'     => array( 'class' => true ),
+					'b'      => array( 'class' => true ),
+					'i'      => array( 'class' => true ),
+					'span'   => array( 'class' => true ),
 				)
 			)
 		);
