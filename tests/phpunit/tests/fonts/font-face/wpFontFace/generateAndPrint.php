@@ -127,7 +127,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 		$fonts     = array(
 			array(
 				array(
-					'font-family' => '"A"; color:red',
+					'font-family' => "A\x01B",
 					'src'         => array( 'https://example.org/font.woff2' ),
 				),
 			),

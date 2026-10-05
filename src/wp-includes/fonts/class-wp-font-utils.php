@@ -68,20 +68,21 @@ class WP_Font_Utils {
 	 *
 	 * The method reads the value with the CSS `font-family` grammar and writes
 	 * it back in a canonical form. It writes each named family as a quoted CSS
-	 * string and keeps each generic family as a keyword. The decoded name does
-	 * not change, so a name can contain a comma, an apostrophe, a quotation
-	 * mark, or a CSS escape.
+	 * string, except a name that is one identifier of letters and hyphens, such
+	 * as `-apple-system`. It keeps each generic family as a keyword. The decoded
+	 * name does not change, so a name can contain a comma, an apostrophe, a
+	 * quotation mark, or a CSS escape.
 	 *
 	 * For compatibility, the method also accepts a plain font name that is not
-	 * valid CSS, such as `O'Reilly Sans`. It rejects a value that contains CSS
-	 * syntax outside a quoted name, such as `"A"; color:red`.
+	 * valid CSS, such as `O'Reilly Sans` or `Bodoni*`. It rejects a value with
+	 * control characters.
 	 *
 	 * It follows the recommendations from the CSS Fonts Module Level 4.
 	 * @link https://www.w3.org/TR/css-fonts-4/#font-family-prop
 	 *
 	 * @since 6.5.0
-	 * @since 7.2.0 Parses the value with the CSS font family grammar to keep the font name. Names are
-	 *              always quoted, and an invalid value returns an empty string.
+	 * @since 7.2.0 Parses the value with the CSS font family grammar to keep the font name. An invalid
+	 *              value returns an empty string.
 	 * @access private
 	 *
 	 * @see WP_Font_Utils::parse_font_family_list_with_plain_names()
@@ -360,8 +361,8 @@ class WP_Font_Utils {
 	 * up to the next comma as a plain name, which earlier WordPress versions
 	 * accepted. It ignores an empty entry, such as the one after a trailing comma.
 	 *
-	 * The plain name path rejects an entry that contains CSS syntax characters,
-	 * such as a semicolon or a parenthesis. Use
+	 * The plain name path accepts any text except control characters, such as
+	 * `Bodoni*` or `Font (Display)`. Use
 	 * {@see WP_Font_Utils::parse_font_family_list()} where the input must be valid CSS.
 	 *
 	 * @since 7.2.0
@@ -875,24 +876,13 @@ class WP_Font_Utils {
 	private static function parse_plain_font_family_name( $part ) {
 		$name = trim( $part, " \t\n\r\f" );
 
-		if ( '' === $name ) {
-			return null;
-		}
-
 		/*
-		 * A value that starts with a quote is CSS, and the CSS parser already
-		 * rejected it. A quote inside the value is part of the plain name. This
-		 * accepts the names `O'Reilly Sans` and `O"Reilly Sans`.
+		 * A font file can name its family with any text, such as `Bodoni*` or
+		 * `Font (Display)`, and an upload client can send that text as it is.
+		 * The serializer escapes every character that CSS or HTML reads, so the
+		 * text stays one inert font name. Reject only the control characters.
 		 */
-		if ( "'" === $name[0] || '"' === $name[0] ) {
-			return null;
-		}
-
-		/*
-		 * Reject the characters that start CSS syntax, and the control characters.
-		 * A font name must not contain them.
-		 */
-		if ( 1 === preg_match( '#[;{}()\[\]@\\\\/*<>:!\x00-\x1f\x7f]#', $name ) ) {
+		if ( '' === $name || 1 === preg_match( '/[\x00-\x1f\x7f]/', $name ) ) {
 			return null;
 		}
 

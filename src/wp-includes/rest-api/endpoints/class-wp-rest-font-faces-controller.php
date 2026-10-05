@@ -195,7 +195,8 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		// Check that none of the required settings are empty values.
 		$required = $schema['required'];
 		foreach ( $required as $key ) {
-			if ( isset( $settings[ $key ] ) && ! $settings[ $key ] ) {
+			// A string such as '0' is not empty. A font can use the name '0'.
+			if ( isset( $settings[ $key ] ) && ( '' === $settings[ $key ] || array() === $settings[ $key ] ) ) {
 				return new WP_Error(
 					'rest_invalid_param',
 					/* translators: %s: Name of the missing font face settings parameter, e.g. "font_face_settings[src]". */

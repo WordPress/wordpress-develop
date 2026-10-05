@@ -227,7 +227,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 */
 	public function data_parse_list_with_plain_names() {
 		return array(
-			'the original apostrophe case'                 => array(
+			'the original apostrophe case'         => array(
 				'value'    => "O'Reilly Sans",
 				'expected' => array(
 					array(
@@ -236,7 +236,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 					),
 				),
 			),
-			'a plain name inside a list'                   => array(
+			'a plain name inside a list'           => array(
 				'value'    => "Arial, O'Reilly Sans, serif",
 				'expected' => array(
 					array(
@@ -253,7 +253,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 					),
 				),
 			),
-			'a name that starts with a digit'              => array(
+			'a name that starts with a digit'      => array(
 				'value'    => '12345',
 				'expected' => array(
 					array(
@@ -262,7 +262,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 					),
 				),
 			),
-			'a percent sequence'                           => array(
+			'a percent sequence'                   => array(
 				'value'    => 'Font 50%AB',
 				'expected' => array(
 					array(
@@ -271,23 +271,57 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 					),
 				),
 			),
-			'a second declaration is an error'             => array(
+			// Raw text that is not valid CSS is one plain name. The serializer escapes it.
+			'a second declaration is a plain name' => array(
 				'value'    => '"A"; color:red',
-				'expected' => null,
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => '"A"; color:red',
+					),
+				),
 			),
-			'a url function is an error'                   => array(
+			'a url function is a plain name'       => array(
 				'value'    => 'url(javascript:alert(1))',
-				'expected' => null,
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => 'url(javascript:alert(1))',
+					),
+				),
 			),
-			'markup is an error'                           => array(
+			'markup is a plain name'               => array(
 				'value'    => '</style><script>alert(1)</script>',
-				'expected' => null,
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => '</style><script>alert(1)</script>',
+					),
+				),
 			),
-			'a backslash is an error'                      => array(
+			'a trailing backslash is a plain name' => array(
 				'value'    => 'Inter\\',
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => 'Inter\\',
+					),
+				),
+			),
+			'an asterisk is a plain name'          => array(
+				'value'    => 'Bodoni*',
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => 'Bodoni*',
+					),
+				),
+			),
+			'a control character is an error'      => array(
+				'value'    => "A\x01B",
 				'expected' => null,
 			),
-			'a double quote inside a plain name'           => array(
+			'a double quote inside a plain name'   => array(
 				'value'    => 'O"Reilly Sans',
 				'expected' => array(
 					array(
@@ -296,9 +330,14 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 					),
 				),
 			),
-			'a value that starts with a quote is an error' => array(
+			'a value that starts with a quote is a plain name' => array(
 				'value'    => '"Inter',
-				'expected' => null,
+				'expected' => array(
+					array(
+						'type'  => 'name',
+						'value' => '"Inter',
+					),
+				),
 			),
 		);
 	}
@@ -495,7 +534,8 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 		$this->assertSame( 'Inter', WP_Font_Utils::parse_font_family_descriptor_name( 'Inter, serif' ) );
 		$this->assertSame( "O'Reilly Sans", WP_Font_Utils::parse_font_family_descriptor_name( "O'Reilly Sans" ) );
 		$this->assertNull( WP_Font_Utils::parse_font_family_descriptor_name( 'inherit' ) );
-		$this->assertNull( WP_Font_Utils::parse_font_family_descriptor_name( '"A"; color:red' ) );
+		$this->assertSame( '"A"; color:red', WP_Font_Utils::parse_font_family_descriptor_name( '"A"; color:red' ) );
+		$this->assertNull( WP_Font_Utils::parse_font_family_descriptor_name( "A\x01B" ) );
 	}
 
 	/**

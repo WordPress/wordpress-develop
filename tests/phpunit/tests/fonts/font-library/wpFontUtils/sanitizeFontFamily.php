@@ -67,9 +67,10 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 				'font_family' => ' ',
 				'expected'    => '',
 			),
+			// Markup in a raw name stays in the name, with CSS escapes for "<" and ";".
 			'data_font_family_with_markup'              => array(
 				'font_family' => "   Rock      3D</style><script>alert('XSS');</script>\n    ",
-				'expected'    => '',
+				'expected'    => '"Rock      3D\\3c /style\\3e \\3c script\\3e alert(\'XSS\')\\3b \\3c /script\\3e "',
 			),
 			'data_font_family_with_generic_names'       => array(
 				'font_family' => 'generic(kai), generic(fangsong), Rock 3D',
@@ -251,18 +252,21 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 				'expected'    => '"A' . "\u{FFFD}" . 'B"',
 			),
 
-			// Invalid values return an empty string.
+			/*
+			 * An entry that is not valid CSS is raw text. It becomes one font name,
+			 * and the serializer escapes it, so it stays inert.
+			 */
 			'unterminated string'                       => array(
 				'font_family' => '"Inter',
-				'expected'    => '',
+				'expected'    => '"\\"Inter"',
 			),
 			'unterminated comment'                      => array(
 				'font_family' => 'Inter/* comment',
-				'expected'    => '',
+				'expected'    => '"Inter/* comment"',
 			),
 			'extra token after a quoted family'         => array(
 				'font_family' => '"Inter" Sans',
-				'expected'    => '',
+				'expected'    => '"\\"Inter\\" Sans"',
 			),
 			// Trac #63568: the second attachment of the ticket uses this name.
 			'legacy plain double quote'                 => array(
@@ -291,22 +295,37 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			),
 			'second declaration'                        => array(
 				'font_family' => '"A"; color:red',
-				'expected'    => '',
+				'expected'    => '"\\"A\\"\\3b  color:red"',
 			),
 			'javascript url'                            => array(
 				'font_family' => 'url(javascript:alert(1))',
-				'expected'    => '',
+				'expected'    => '"url(javascript:alert(1))"',
 			),
 			'expression function'                       => array(
 				'font_family' => 'expression(alert(1))',
-				'expected'    => '',
+				'expected'    => '"expression(alert(1))"',
 			),
 			'rule injection'                            => array(
 				'font_family' => 'Inter}body{color:red}',
-				'expected'    => '',
+				'expected'    => '"Inter}body{color:red}"',
 			),
 			'trailing backslash'                        => array(
 				'font_family' => 'Inter\\',
+				'expected'    => '"Inter\\5c "',
+			),
+			// Trac #63568: real font names that are not valid CSS.
+			'asterisk'                                  => array(
+				'font_family' => 'Bodoni*',
+				'expected'    => '"Bodoni*"',
+			),
+			'parentheses'                               => array(
+				'font_family' => 'Font (Display)',
+				'expected'    => '"Font (Display)"',
+			),
+
+			// Invalid values return an empty string.
+			'control character'                         => array(
+				'font_family' => "A\x01B",
 				'expected'    => '',
 			),
 			'invalid UTF-8'                             => array(

@@ -307,7 +307,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The REST API rejects an invalid font family value.
+	 * The REST API rejects a font family value with a control character.
 	 *
 	 * @dataProvider data_invalid_font_family_values
 	 *
@@ -338,6 +338,63 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 	 */
 	public function data_invalid_font_family_values() {
 		return array(
+			'a control character' => array( "A\x01B" ),
+			'a delete character'  => array( "A\x7fB" ),
+		);
+	}
+
+	/**
+	 * The REST API stores raw text that is not valid CSS as one inert font name.
+	 *
+	 * An upload client sends the name from the font file as it is. The name can
+	 * hold any text, so the stored value must keep the text and stay inert.
+	 *
+	 * @dataProvider data_raw_font_family_values
+	 *
+	 * @param string $font_family Raw font family value, which is also the expected name.
+	 */
+	public function test_rest_stores_raw_text_as_an_inert_name( $font_family ) {
+		$family_id = $this->create_font_family( 'raw-' . md5( $font_family ), $font_family );
+		$this->create_font_face( $family_id, $font_family );
+
+		$settings = $this->get_settings_for_family( $family_id );
+		$stored   = $settings['typography']['fontFamilies']['theme'][0]['fontFamily'];
+		$entries  = WP_Font_Utils::parse_font_family_list( $stored );
+
+		$this->assertSame(
+			array(
+				array(
+					'type'  => 'name',
+					'value' => $font_family,
+				),
+			),
+			$entries,
+			'The stored value should be one name with the same text.'
+		);
+
+		$fonts = $this->get_fonts_from_settings( $settings );
+		$css   = get_echo( 'wp_print_font_faces', array( $fonts ) );
+
+		$processor = new WP_HTML_Tag_Processor( $css );
+		$tags      = array();
+		while ( $processor->next_tag() ) {
+			$tags[] = $processor->get_tag();
+		}
+
+		$this->assertSame( array( 'STYLE' ), $tags, 'The output should hold one style element only.' );
+		$this->assertStringContainsString( 'font-family:' . WP_Font_Utils::serialize_font_family_name( $font_family ) . ';', $css, 'The output should hold the escaped name.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_raw_font_family_values() {
+		return array(
+			'an asterisk'            => array( 'Bodoni*' ),
+			'parentheses'            => array( 'Font (Display)' ),
+			'a colon'                => array( 'A:B' ),
 			'generic injection'      => array( 'generic(\\29\\3b color\\3a red)' ),
 			'a second declaration'   => array( '"A"; color:red' ),
 			'a javascript url'       => array( 'url(javascript:alert(1))' ),
@@ -465,6 +522,32 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 			$css,
 			'The legacy record should produce a valid quoted descriptor.'
 		);
+	}
+
+	/**
+	 * The REST API accepts the font name "0", which PHP reads as a false value.
+	 */
+	public function test_rest_accepts_the_name_zero() {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families' );
+		$request->set_param(
+			'font_family_settings',
+			wp_json_encode(
+				array(
+					'name'       => '0',
+					'slug'       => '0',
+					'fontFamily' => '0',
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status(), 'The family should be created.' );
+		$this->assertSame( '"0"', $response->get_data()['font_family_settings']['fontFamily'] );
+
+		$family_id        = $response->get_data()['id'];
+		$this->post_ids[] = $family_id;
+
+		$this->create_font_face( $family_id, '0' );
 	}
 
 	/**

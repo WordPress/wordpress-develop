@@ -107,11 +107,18 @@ class Tests_Fonts_WpFontUtils_GetFontFaceSlug extends WP_UnitTestCase {
 				),
 				'expected_slug' => 'oreilly sans;normal;400;100%;U+0-10FFFF',
 			),
-			'Sanitizes a value that the parser rejects' => array(
+			'Escapes a semicolon in a raw name'         => array(
 				'settings'      => array(
 					'fontFamily' => '"A"; color:red',
 				),
-				'expected_slug' => 'a color:red;normal;400;100%;U+0-10FFFF',
+				'expected_slug' => 'a%3b color:red;normal;400;100%;U+0-10FFFF',
+			),
+			'Sanitizes a value that the parser rejects' => array(
+				'settings'      => array(
+					'fontFamily' => "A\x01B; x",
+				),
+				// sanitize_text_field() keeps the control character, as in WordPress 6.5.
+				'expected_slug' => "a\x01b x;normal;400;100%;U+0-10FFFF",
 			),
 			'Keeps a percent sequence'                  => array(
 				'settings'      => array(
