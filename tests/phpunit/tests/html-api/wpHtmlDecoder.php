@@ -517,16 +517,20 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw attribute value containing named entity.
 	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_named_entities( $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	public function test_decode_attribute_decodes_named_entities( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding named entity in attribute '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for named entities in attributes.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_decode_attribute_named_entities() {
+	public static function data_decode_attribute_named_entities(): array {
 		return array(
 			'Ampersand with semicolon'       => array( '&amp;', '&' ),
 			'Ampersand without semicolon'    => array( '&amp', '&' ),
@@ -551,16 +555,20 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw attribute value containing decimal numeric entity.
 	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_decimal_numeric_entities( $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	public function test_decode_attribute_decodes_decimal_numeric_entities( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding decimal numeric entity in attribute '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for decimal numeric entities in attributes.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_decode_attribute_decimal_numeric_entities() {
+	public static function data_decode_attribute_decimal_numeric_entities(): array {
 		return array(
 			'Standard decimal'             => array( '&#65;', 'A' ),
 			'Leading zero'                 => array( '&#065;', 'A' ),
@@ -579,16 +587,20 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw attribute value containing hex numeric entity.
 	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_hex_numeric_entities( $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	public function test_decode_attribute_decodes_hex_numeric_entities( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding hex numeric entity in attribute '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for hex numeric entities in attributes.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_decode_attribute_hex_numeric_entities() {
+	public static function data_decode_attribute_hex_numeric_entities(): array {
 		return array(
 			'Standard hex'             => array( '&#x41;', 'A' ),
 			'Leading zero'             => array( '&#x041;', 'A' ),
@@ -609,17 +621,25 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw numeric character reference.
 	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decodes_windows_1252_mapped_characters( $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_text_node( $raw_text ) );
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	public function test_decodes_windows_1252_mapped_characters( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_text_node( $raw_text ),
+			"Failed decoding Windows-1252 character reference in text node: '{$raw_text}'."
+		);
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding Windows-1252 character reference in attribute: '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for Windows-1252 mapped characters.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_windows_1252_mapped_characters() {
+	public static function data_windows_1252_mapped_characters(): array {
 		return array(
 			'Euro sign'        => array( '&#x80;', '€' ),
 			'Single low-9'     => array( '&#x82;', '‚' ),
@@ -661,17 +681,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw numeric character reference.
 	 * @param string $expected Expected decoded string.
 	 */
-	public function test_decodes_invalid_numeric_references( $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode_text_node( $raw_text ) );
+	public function test_decodes_invalid_numeric_references( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_text_node( $raw_text ),
+			"Failed handling invalid numeric character reference: '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for invalid numeric references.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_invalid_numeric_references() {
-		$replacement = "\xEF\xBF\xBD";
+	public static function data_invalid_numeric_references(): array {
+		$replacement = "\u{FFFD}";
 		return array(
 			'Null byte'             => array( '&#0;', $replacement ),
 			'Null byte (hex)'       => array( '&#x00;', $replacement ),
@@ -698,16 +722,20 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @param string $raw_text Raw text.
 	 * @param string $expected Expected decoded string.
 	 */
-	public function test_decodes_ambiguous_ampersands( $context, $raw_text, $expected ) {
-		$this->assertSame( $expected, WP_HTML_Decoder::decode( $context, $raw_text ) );
+	public function test_decodes_ambiguous_ampersands( string $context, string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode( $context, $raw_text ),
+			"Failed handling ambiguous ampersand in context '{$context}' for '{$raw_text}'."
+		);
 	}
 
 	/**
 	 * Data provider for ambiguous ampersands.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string, string}>
 	 */
-	public static function data_ambiguous_ampersands() {
+	public static function data_ambiguous_ampersands(): array {
 		return array(
 			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
 			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
