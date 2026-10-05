@@ -19,12 +19,23 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	protected $user;
 
 	/**
+	 * The message body of the password reset email captured by the test.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var string
+	 */
+	protected $captured_message = '';
+
+	/**
 	 * Create users for tests.
 	 *
 	 * @since 6.0.0
 	 */
 	public function set_up() {
 		parent::set_up();
+
+		$this->captured_message = '';
 
 		// Create the user.
 		$this->user = self::factory()->user->create_and_get(
@@ -33,6 +44,35 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 				'user_email' => 'r.jane@example.com',
 			)
 		);
+	}
+
+	/**
+	 * Removes the filters and actions added by these tests.
+	 *
+	 * @since 7.2.0
+	 */
+	public function tear_down() {
+		remove_all_filters( 'reset_password_url' );
+		remove_filter( 'retrieve_password_notification_email', array( $this, 'capture_retrieve_password_notification_email' ) );
+		remove_all_actions( 'retrieve_password_key' );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Captures the message body of the password reset email.
+	 *
+	 * Used as the callback of the `retrieve_password_notification_email` filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $defaults The default notification email arguments.
+	 * @return array The unmodified notification email arguments.
+	 */
+	public function capture_retrieve_password_notification_email( $defaults ) {
+		$this->captured_message = $defaults['message'];
+
+		return $defaults;
 	}
 
 	/**
@@ -86,6 +126,120 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 	 */
 	public function test_retrieve_password_does_not_throw_deprecation_notice_with_default_parameters() {
 		$this->assertWPError( retrieve_password() );
+	}
+
+	/**
+	 * Tests that the `reset_password_url` filter replaces the reset URL in the email.
+	 *
+	 * @ticket 34712
+	 */
+	public function test_retrieve_password_should_apply_reset_password_url_filter() {
+		$custom_url = 'https://example.org/custom-reset-page/';
+
+		add_filter(
+			'reset_password_url',
+			static function () use ( $custom_url ) {
+				return $custom_url;
+			}
+		);
+		add_filter( 'retrieve_password_notification_email', array( $this, 'capture_retrieve_password_notification_email' ) );
+
+		$this->assertTrue( retrieve_password( $this->user->user_login ), 'Sending the password reset notification email failed.' );
+		$this->assertStringContainsString(
+			$custom_url,
+			$this->captured_message,
+			'The custom password reset URL was not used in the email message.'
+		);
+		$this->assertStringNotContainsString(
+			'wp-login.php?login=',
+			$this->captured_message,
+			'The default password reset URL was still used in the email message.'
+		);
+	}
+
+	/**
+	 * Tests that the `reset_password_url` filter receives the expected arguments.
+	 *
+	 * @ticket 34712
+	 */
+	public function test_retrieve_password_should_pass_expected_arguments_to_reset_password_url_filter() {
+		$filter_args         = array();
+		$generated_key       = '';
+		$expected_user_id    = $this->user->ID;
+		$expected_user_login = $this->user->user_login;
+
+		add_action(
+			'retrieve_password_key',
+			static function ( $user_login, $key ) use ( &$generated_key ) {
+				$generated_key = $key;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'reset_password_url',
+			static function ( $reset_url, $user_login, $key, $user_data ) use ( &$filter_args ) {
+				$filter_args = array(
+					'reset_url'  => $reset_url,
+					'user_login' => $user_login,
+					'key'        => $key,
+					'user_data'  => $user_data,
+				);
+
+				return $reset_url;
+			},
+			10,
+			4
+		);
+
+		$this->assertTrue( retrieve_password( $this->user->user_login ), 'Sending the password reset notification email failed.' );
+
+		$this->assertNotEmpty( $generated_key, 'The password reset key was not generated.' );
+		$this->assertSame( $expected_user_login, $filter_args['user_login'], 'The user login passed to the filter is incorrect.' );
+		$this->assertIsString( $filter_args['key'], 'The activation key passed to the filter is not a string.' );
+		$this->assertNotEmpty( $filter_args['key'], 'The activation key passed to the filter is empty.' );
+		$this->assertSame( $generated_key, $filter_args['key'], 'The activation key passed to the filter is incorrect.' );
+		$this->assertInstanceOf( WP_User::class, $filter_args['user_data'], 'The user data passed to the filter is not a WP_User object.' );
+		$this->assertSame( $expected_user_id, $filter_args['user_data']->ID, 'The user ID passed to the filter is incorrect.' );
+
+		$expected_default_url = network_site_url( 'wp-login.php?login=' . rawurlencode( $expected_user_login ) . "&key=$generated_key&action=rp", 'login' );
+
+		$this->assertSame( $expected_default_url, $filter_args['reset_url'], 'The URL passed to the filter is not the default password reset URL.' );
+	}
+
+	/**
+	 * Tests that the default reset URL, including the `wp_lang` query arg, is unchanged
+	 * when the `reset_password_url` filter is not registered.
+	 *
+	 * @ticket 34712
+	 */
+	public function test_retrieve_password_should_keep_default_reset_url_when_unfiltered() {
+		$generated_key = '';
+
+		add_action(
+			'retrieve_password_key',
+			static function ( $user_login, $key ) use ( &$generated_key ) {
+				$generated_key = $key;
+			},
+			10,
+			2
+		);
+		add_filter( 'retrieve_password_notification_email', array( $this, 'capture_retrieve_password_notification_email' ) );
+
+		$this->assertTrue( retrieve_password( $this->user->user_login ), 'Sending the password reset notification email failed.' );
+
+		$this->assertNotEmpty( $generated_key, 'The password reset key was not generated.' );
+
+		$default_url = network_site_url( 'wp-login.php?login=' . rawurlencode( $this->user->user_login ) . "&key=$generated_key&action=rp", 'login' );
+		$locale      = get_user_locale( $this->user );
+
+		$this->assertStringContainsString( 'wp-login.php?login=', $this->captured_message, 'The default password reset URL is missing from the email message.' );
+		$this->assertStringContainsString( 'action=rp', $this->captured_message, 'The default password reset URL is missing the action argument.' );
+		$this->assertStringContainsString(
+			$default_url . '&wp_lang=' . $locale . "\r\n\r\n",
+			$this->captured_message,
+			'The default password reset URL and locale are not intact in the email message.'
+		);
 	}
 
 	/**
