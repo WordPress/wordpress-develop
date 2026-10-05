@@ -1469,7 +1469,7 @@ function wp_random_content_redirect() {
 	 * Only redirect to locations permitted by wp_safe_redirect(). Off-site permalinks would
 	 * otherwise be replaced by its fallback, sending the visitor to the dashboard.
 	 */
-	if ( ! $location || ! wp_validate_redirect( $location, false ) ) {
+	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
 		return;
 	}
 
