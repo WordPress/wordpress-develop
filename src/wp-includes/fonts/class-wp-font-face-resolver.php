@@ -92,7 +92,7 @@ class WP_Font_Face_Resolver {
 					continue;
 				}
 
-				$font_family_name = self::parse_font_family_descriptor( $definition['fontFamily'] );
+				$font_family_name = self::maybe_parse_name_from_comma_separated_list( $definition['fontFamily'] );
 
 				// Skip if no font family is defined.
 				if ( empty( $font_family_name ) ) {
@@ -107,20 +107,18 @@ class WP_Font_Face_Resolver {
 	}
 
 	/**
-	 * Parses the `@font-face` font-family descriptor from a theme font family value.
+	 * Parse font-family name from comma-separated lists.
 	 *
-	 * If the given `fontFamily` is a list (example: "Inter, sans-serif"), the
-	 * method selects the first family of the list. It returns the name as a
-	 * quoted CSS string, so that the name keeps every character that it needs.
+	 * If the given `fontFamily` is a comma-separated lists (example: "Inter, sans-serif" ),
+	 * parse and return the fist font from the list.
 	 *
 	 * @since 6.4.0
-	 * @since 7.2.0 Uses {@see WP_Font_Utils::parse_font_family_descriptor_name()} and returns a quoted CSS string.
+	 * @since 7.2.0 Returns the name as a quoted CSS string, or an empty string if the value is invalid.
 	 *
 	 * @param string $font_family Font family `fontFamily' to parse.
-	 * @return string The font-family descriptor as a quoted CSS string, or an
-	 *                empty string if the value is invalid.
+	 * @return string Font-family name.
 	 */
-	private static function parse_font_family_descriptor( $font_family ) {
+	private static function maybe_parse_name_from_comma_separated_list( $font_family ) {
 		$name = WP_Font_Utils::parse_font_family_descriptor_name( $font_family );
 
 		if ( null === $name || '' === $name ) {

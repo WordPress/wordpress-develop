@@ -129,19 +129,18 @@ class WP_Font_Utils {
 	 * @return string Font face slug.
 	 */
 	public static function get_font_face_slug( $settings ) {
-		$defaults    = array(
+		$defaults = array(
 			'fontFamily'   => '',
 			'fontStyle'    => 'normal',
 			'fontWeight'   => '400',
 			'fontStretch'  => '100%',
 			'unicodeRange' => 'U+0-10FFFF',
 		);
-		$settings    = wp_parse_args( $settings, $defaults );
-		$font_family = self::get_font_family_comparison_key( $settings['fontFamily'] );
+		$settings = wp_parse_args( $settings, $defaults );
 		if ( function_exists( 'mb_strtolower' ) ) {
-			$font_family = mb_strtolower( $font_family );
+			$font_family = mb_strtolower( self::get_font_family_comparison_key( $settings['fontFamily'] ) );
 		} else {
-			$font_family = strtolower( $font_family );
+			$font_family = strtolower( self::get_font_family_comparison_key( $settings['fontFamily'] ) );
 		}
 		$font_style    = strtolower( $settings['fontStyle'] );
 		$font_weight   = strtolower( $settings['fontWeight'] );
