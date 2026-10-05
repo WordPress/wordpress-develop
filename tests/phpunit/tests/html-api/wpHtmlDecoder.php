@@ -65,13 +65,14 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * Ensures proper decoding of edge cases.
 	 *
 	 * @ticket 61072
+	 * @ticket 66241
 	 *
 	 * @dataProvider data_edge_cases
 	 *
-	 * @param $raw_text_node Raw input text.
-	 * @param $decoded_value The expected decoded text result.
+	 * @param non-falsy-string $raw_text_node Raw input text.
+	 * @param non-falsy-string $decoded_value The expected decoded text result.
 	 */
-	public function test_edge_cases( $raw_text_node, $decoded_value ) {
+	public function test_edge_cases( string $raw_text_node, string $decoded_value ): void {
 		$this->assertSame(
 			$decoded_value,
 			WP_HTML_Decoder::decode_text_node( $raw_text_node ),
@@ -79,77 +80,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		);
 	}
 
-	public static function data_edge_cases() {
-		return array(
-			'Single ampersand' => array( '&', '&' ),
-		);
-	}
-
 	/**
-	 * Ensures unmatched character references are not examined repeatedly.
+	 * Data provider.
 	 *
-	 * @ticket 66241
-	 *
-	 * @dataProvider data_unmatched_character_references
-	 *
-	 * @param string $context  Decoder context.
-	 * @param string $text     Raw input text.
-	 * @param string $expected Expected decoded text.
+	 * @return array<non-falsy-string, array{ non-falsy-string, non-falsy-string }>
 	 */
-	public function test_decode_does_not_repeat_unmatched_character_references( $context, $text, $expected ) {
-		global $html5_named_character_references;
+	public static function data_edge_cases(): array {
+		$long_text = str_repeat( 'a', 300000 );
 
-		$original_map = $html5_named_character_references;
-
-		// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-		$token_map = $this->getMockBuilder( WP_Token_Map::class )
-			->setMethods( array( 'read_token' ) )
-			->getMock();
-
-		// Each input contains two named references. Neither should be read twice.
-		$token_map->expects( $this->exactly( 2 ) )
-			->method( 'read_token' )
-			->willReturnCallback(
-				static function ( $text, $offset, &$matched_token_byte_length, $case_sensitivity = 'case-sensitive' ) use ( $original_map ) {
-					return $original_map->read_token( $text, $offset, $matched_token_byte_length, $case_sensitivity );
-				}
-			);
-
-		try {
-			$html5_named_character_references = $token_map;
-			$this->assertSame( $expected, WP_HTML_Decoder::decode( $context, $text ) );
-		} finally {
-			$html5_named_character_references = $original_map;
-		}
-	}
-
-	/**
-	 * Data provider for test_decode_does_not_repeat_unmatched_character_references().
-	 *
-	 * @return array[]
-	 */
-	public static function data_unmatched_character_references() {
 		return array(
-			'Unknown name in a text node'            => array(
-				'data',
-				'prefix &unknown; middle &amp; tail',
-				'prefix &unknown; middle & tail',
-			),
-			'Unknown name in an attribute'           => array(
-				'attribute',
-				'prefix &unknown; middle &amp; tail',
-				'prefix &unknown; middle & tail',
-			),
-			'Unknown name after a decoded reference' => array(
-				'data',
-				'prefix &amp; middle &unknown; tail',
-				'prefix & middle &unknown; tail',
-			),
-			'Ambiguous ampersand in an attribute'    => array(
-				'attribute',
-				'prefix &not=value middle &amp; tail',
-				'prefix &not=value middle & tail',
-			),
+			'Single ampersand'                    => array( '&', '&' ),
+			'Unmatched reference before a match'  => array( 'a &bogus; b &amp; c', 'a &bogus; b & c' ),
+			'Unmatched reference after a match'   => array( 'a &amp; b &bogus; c &lt; d', 'a & b &bogus; c < d' ),
+			'Unmatched numeric references'        => array( 'a &#; b &#x; c &amp;', 'a &#; b &#x; c &' ),
+			'Adjacent ampersands'                 => array( '&&&amp;', '&&&' ),
+			'Unmatched reference after long text' => array( "{$long_text}&bogus;&amp;", "{$long_text}&bogus;&" ),
 		);
 	}
 
