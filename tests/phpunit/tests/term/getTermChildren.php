@@ -6,7 +6,10 @@
  */
 class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 
-	public function test_should_return_direct_children_before_descendants() {
+	/**
+	 * @ticket 66242
+	 */
+	public function test_should_return_direct_children_before_descendants(): void {
 		$parent            = self::factory()->category->create();
 		$first_child       = self::factory()->category->create( array( 'parent' => $parent ) );
 		$second_child      = self::factory()->category->create( array( 'parent' => $parent ) );
@@ -21,21 +24,30 @@ class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_should_return_an_error_for_an_invalid_taxonomy() {
+	/**
+	 * @ticket 66242
+	 */
+	public function test_should_return_an_error_for_an_invalid_taxonomy(): void {
 		$result = get_term_children( 0, 'wptests_invalid_taxonomy' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'invalid_taxonomy', $result->get_error_code() );
 	}
 
-	public function test_should_return_an_empty_array_for_a_leaf() {
+	/**
+	 * @ticket 66242
+	 */
+	public function test_should_return_an_empty_array_for_a_leaf(): void {
 		$parent = self::factory()->category->create();
 		$child  = self::factory()->category->create( array( 'parent' => $parent ) );
 
 		$this->assertSame( array(), get_term_children( $child, 'category' ) );
 	}
 
-	public function test_should_observe_hierarchy_changes_between_calls() {
+	/**
+	 * @ticket 66242
+	 */
+	public function test_should_observe_hierarchy_changes_between_calls(): void {
 		$first_parent  = self::factory()->category->create();
 		$second_parent = self::factory()->category->create();
 		$child         = self::factory()->category->create( array( 'parent' => $first_parent ) );
@@ -56,7 +68,10 @@ class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 		$this->assertSame( array( $child ), get_term_children( $second_parent, 'category' ) );
 	}
 
-	public function test_should_read_the_cached_hierarchy_once_for_all_descendants() {
+	/**
+	 * @ticket 66242
+	 */
+	public function test_should_read_the_cached_hierarchy_once_for_all_descendants(): void {
 		$parent           = self::factory()->category->create();
 		$child            = self::factory()->category->create( array( 'parent' => $parent ) );
 		$grandchild       = self::factory()->category->create( array( 'parent' => $child ) );
@@ -74,9 +89,11 @@ class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66242
+	 *
 	 * @covers WP_Term_Query::get_terms
 	 */
-	public function test_hide_empty_should_retain_a_parent_when_its_nonempty_descendant_is_excluded() {
+	public function test_hide_empty_should_retain_a_parent_when_its_nonempty_descendant_is_excluded(): void {
 		$parent     = self::factory()->category->create();
 		$child      = self::factory()->category->create( array( 'parent' => $parent ) );
 		$grandchild = self::factory()->category->create( array( 'parent' => $child ) );
@@ -96,9 +113,11 @@ class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66242
+	 *
 	 * @covers WP_Term_Query::get_terms
 	 */
-	public function test_hide_empty_should_read_each_taxonomy_hierarchy_once() {
+	public function test_hide_empty_should_read_each_taxonomy_hierarchy_once(): void {
 		$taxonomies = array( 'wptests_hierarchy_a', 'wptests_hierarchy_b' );
 		$expected   = array();
 		$filters    = array();
@@ -153,9 +172,11 @@ class Tests_Term_GetTermChildren extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66242
+	 *
 	 * @covers WP_Term_Query::get_terms
 	 */
-	public function test_hide_empty_should_observe_a_new_descendant_between_queries() {
+	public function test_hide_empty_should_observe_a_new_descendant_between_queries(): void {
 		$parent = self::factory()->category->create();
 		$args   = array(
 			'taxonomy'      => 'category',
