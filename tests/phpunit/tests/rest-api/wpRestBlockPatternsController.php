@@ -127,11 +127,9 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		$this->assertArrayHasKey( static::REQUEST_ROUTE, $routes );
 	}
 
-	/**
-	 * @group external-http
-	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,content,source,template_types';
@@ -196,12 +194,12 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 * @since 6.2.0
 	 *
 	 * @ticket 57532
-	 * @group external-http
 	 *
 	 * @covers WP_REST_Block_Patterns_Controller::get_items
 	 */
 	public function test_get_items_migrate_pattern_categories() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,categories';
@@ -237,10 +235,35 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Mocks requests to the wordpress.org pattern directory with an empty result set.
+	 */
+	public function mock_pattern_directory_request() {
+		return array(
+			'headers'  => array(),
+			'body'     => '[]',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * Block patterns endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
@@ -279,9 +302,33 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'name',
+				'title',
+				'content',
+				'description',
+				'viewport_width',
+				'inserter',
+				'categories',
+				'keywords',
+				'block_types',
+				'post_types',
+				'template_types',
+				'source',
+			),
+			array_keys( $properties )
+		);
 	}
 }
