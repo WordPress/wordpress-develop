@@ -378,6 +378,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 *
 	 * @ticket 43056
 	 * @ticket 59795
+	 * @ticket 44964
 	 *
 	 * @dataProvider data_redirect_guess_404_permalink_post_types
 	 */
@@ -412,6 +413,10 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			'do not redirect to private post type' => array(
 				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
 				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
+			),
+			'do not leak private post type mixed in with a public one' => array(
+				'original_url' => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
+				'expected'     => '/?name=private-cpt-po&post_type[]=page&post_type[]=wp_tests_private',
 			),
 		);
 	}
