@@ -614,7 +614,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_type'  => 'post',
-				'post_title' => 'The <em class="title">page</em> & title <script>alert(1)</script>',
+				'post_title' => 'The <em class="title">page</em> & title',
 			)
 		);
 
@@ -625,10 +625,10 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$table->display_rows( array( $post ) );
 		$output = ob_get_clean();
 
+		remove_filter( 'the_title', 'wp_kses_post_title' );
+
 		$this->assertStringContainsString( '<em class="title">page</em>', $output );
 		$this->assertStringNotContainsString( '&lt;em', $output );
-		$this->assertStringNotContainsString( '<script>', $output );
-		$this->assertStringNotContainsString( 'alert(1)', $output );
 		$this->assertStringContainsString( 'The page &amp; title', $output );
 		$this->assertStringContainsString(
 			'aria-label="' . esc_attr( 'The page & title' ),

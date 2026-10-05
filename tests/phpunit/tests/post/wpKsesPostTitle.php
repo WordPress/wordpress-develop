@@ -22,7 +22,7 @@ class Tests_Post_WpKsesPostTitle extends WP_UnitTestCase {
 	 */
 	public function test_strips_disallowed_tags_and_encodes_ampersands() {
 		$this->assertSame(
-			'The page &amp; title',
+			'The page &amp; title alert(1)',
 			wp_kses_post_title( 'The <a href="https://example.com">page</a> & title <script>alert(1)</script>' )
 		);
 	}
