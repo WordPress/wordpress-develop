@@ -257,6 +257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Context node if created as a fragment parser.
 	 *
+	 * @since 6.6.0
 	 * @var WP_HTML_Token|null
 	 */
 	private $context_node = null;
@@ -1267,7 +1268,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $html Input HTML to normalize.
-	 *
 	 * @return string|null Normalized output, or `null` if unable to normalize.
 	 */
 	public static function normalize( string $html ): ?string {
@@ -5134,6 +5134,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Indicates the namespace of the current token, or "html" if there is none.
 	 *
+	 * @since 6.7.0
+	 *
 	 * @return string One of "html", "math", or "svg".
 	 */
 	public function get_namespace(): string {
@@ -5431,14 +5433,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   echo "{$class_name} ";
+	 * }
+	 * // Outputs: "free <egg> lang-en "
+	 * ```
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 */
@@ -6652,6 +6654,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This unlock code is used to ensure that anyone calling the constructor is
 	 * doing so with a full understanding that it's intended to be a private API.
 	 *
+	 * @since 6.4.0
 	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::create_fragment() instead of calling the class constructor directly.';

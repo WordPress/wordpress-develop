@@ -23,8 +23,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
-		self::$icon_id  = $factory->attachment->create_upload_object( $filename );
+		self::$icon_id  = $factory->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => 'rest-server-site-icon/test-image-large.jpg',
+			)
+		);
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -54,6 +58,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
+		unset( $GLOBALS['wp_rest_auth_cookie'] );
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
@@ -210,7 +215,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request->set_query_params( array( 'foo' => 123 ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( '123', $request['foo'] );
+		$this->assertSame( 123, $request['foo'] );
 	}
 
 	public function test_optional_param() {
@@ -652,7 +657,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
-			->with( $this->equalTo( 400 ) );
+			->with( 400 );
 
 		$data     = array(
 			'code'    => 'wp-api-test-error',
@@ -1205,6 +1210,74 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'site_logo', $data );
 		$this->assertArrayHasKey( 'site_icon', $data );
 		$this->assertArrayHasKey( 'site_icon_url', $data );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_include_media_processing_settings(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayHasKey( 'image_sizes', $data );
+		$this->assertArrayHasKey( 'image_size_threshold', $data );
+		$this->assertArrayHasKey( 'image_strip_meta', $data );
+		$this->assertTrue( $data['image_strip_meta'] );
+		$this->assertArrayHasKey( 'image_max_bit_depth', $data );
+		$this->assertSame( 16, $data['image_max_bit_depth'] );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_not_include_media_processing_settings_without_caps(): void {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+		$this->assertIsArray( $data );
+
+		$this->assertArrayNotHasKey( 'image_sizes', $data );
+		$this->assertArrayNotHasKey( 'image_size_threshold', $data );
+		$this->assertArrayNotHasKey( 'image_strip_meta', $data );
+		$this->assertArrayNotHasKey( 'image_max_bit_depth', $data );
+	}
+
+	/**
+	 * @ticket 64804
+	 *
+	 * @covers WP_REST_Server::get_index
+	 */
+	public function test_get_index_should_honor_media_processing_filters(): void {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
+		add_filter( 'image_strip_meta', '__return_false' );
+		add_filter(
+			'image_max_bit_depth',
+			static fn ( int $max_depth ) => min( 8, $max_depth )
+		);
+
+		$server  = new WP_REST_Server();
+		$request = new WP_REST_Request( 'GET', '/' );
+		$index   = $server->dispatch( $request );
+		$data    = $index->get_data();
+
+		$this->assertFalse( $data['image_strip_meta'] );
+		$this->assertSame( 8, $data['image_max_bit_depth'] );
 	}
 
 	/**
