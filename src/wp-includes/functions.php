@@ -4478,7 +4478,7 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
  *
- * @phpstan-param int<1, max> $depth
+ * @phpstan-param positive-int $depth
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );

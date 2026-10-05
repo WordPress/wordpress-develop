@@ -2823,7 +2823,7 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
  *
- * @phpstan-param int<0, max> $threshold
+ * @phpstan-param non-negative-int $threshold
  * @phpstan-return (
  *     $threshold is 0
  *         ? lowercase-string&non-empty-string&numeric-string

@@ -1512,7 +1512,7 @@ function absint( $maybeint ): int {
  *
  * @return int Site ID.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function get_current_blog_id() {
 	global $blog_id;

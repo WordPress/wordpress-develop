@@ -13,7 +13,7 @@
  *
  * @return int The link ID on success. The value 0 on failure.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function add_link() {
 	return edit_link();
@@ -27,7 +27,7 @@ function add_link() {
  * @param int $link_id Optional. ID of the link to edit. Default 0.
  * @return int The link ID on success. The value 0 on failure.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function edit_link( $link_id = 0 ) {
 	if ( ! current_user_can( 'manage_links' ) ) {
@@ -306,7 +306,7 @@ function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
  * @param array $linkdata Link data to update. See wp_insert_link() for accepted arguments.
  * @return int The updated link ID on success. The value 0 on failure.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function wp_update_link( $linkdata ) {
 	$link_id = (int) $linkdata['link_id'];

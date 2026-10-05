@@ -1303,7 +1303,7 @@ function _get_plugin_from_callback( $callback ) {
  *                                      for example a `WP_Post` or `WP_Comment` object.
  * @return int Number of meta_boxes.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function do_meta_boxes( $screen, $context, $data_object ) {
 	global $wp_meta_boxes;

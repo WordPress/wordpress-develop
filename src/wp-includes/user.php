@@ -723,7 +723,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
  *
  * @return int The current user's ID, or 0 if no user is logged in.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return non-negative-int
  */
 function get_current_user_id() {
 	if ( ! function_exists( 'wp_get_current_user' ) ) {
