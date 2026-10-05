@@ -131,6 +131,7 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$this->assertSame( array( 'title' ), $prepared['required'] );
 		$this->assertArrayNotHasKey( 'required', $prepared['properties']['title'] );
 		$this->assertArrayNotHasKey( 'validate_callback', $prepared['properties']['title'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $prepared['properties']['settings']['default'] );
 		$this->assertSame( array( 'settings' ), $prepared['dependencies']['title'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $prepared['dependencies']['settings'] );

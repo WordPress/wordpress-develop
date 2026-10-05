@@ -1112,6 +1112,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertIsString( $date_return, 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
 		$this->assertSame( $expected, $date_return, 'The date does not match' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
@@ -1181,7 +1182,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$this->assertSame( $ini_limit_before, $ini_limit_after );
 		$this->assertFalse( $raised_limit );
-		$this->assertEquals( WP_MAX_MEMORY_LIMIT, $ini_limit_after );
+		$this->assertSame( (string) WP_MAX_MEMORY_LIMIT, $ini_limit_after );
 	}
 
 	/**
