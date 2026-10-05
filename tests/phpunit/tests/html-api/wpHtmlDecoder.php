@@ -699,9 +699,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		return array(
 			'Null byte'             => array( '&#0;', $replacement ),
 			'Null byte (hex)'       => array( '&#x00;', $replacement ),
-			'Surrogate low'         => array( '&#xD800;', $replacement ),
-			'Surrogate mid'         => array( '&#xDABC;', $replacement ),
-			'Surrogate high'        => array( '&#xDFFF;', $replacement ),
+			'High surrogate start'  => array( '&#xD800;', $replacement ),
+			'High surrogate middle' => array( '&#xDABC;', $replacement ),
+			'Low surrogate end'     => array( '&#xDFFF;', $replacement ),
 			'Out of range'          => array( '&#x110000;', $replacement ),
 			'No digits'             => array( '&#;', '&#;' ),
 			'No digits (hex)'       => array( '&#x;', '&#x;' ),
