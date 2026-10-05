@@ -1240,6 +1240,285 @@ function _find_post_by_old_date( $post_type ) {
 }
 
 /**
+ * Determines whether random content redirects are enabled.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True if random content redirects are enabled, false otherwise.
+ */
+function wp_is_random_content_redirect_enabled() {
+	/**
+	 * Filters whether random content redirects are enabled.
+	 *
+	 * Random content redirects add rewrite rules for URLs such as `/random/`, so the
+	 * rewrite rules need to be flushed after changing the value returned by this filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $enabled Whether random content redirects are enabled. Default true.
+	 */
+	return (bool) apply_filters( 'wp_enable_random_content_redirect', true );
+}
+
+/**
+ * Determines whether a query is a request for random content.
+ *
+ * A random content request is a front end, main query for the blog home, an archive,
+ * or search results that includes the `random` query variable and at least one
+ * `randomable` post type. For example
+ * `example.com/random/`, `example.com/random/category/news/` or `example.com/?s=foo&random`.
+ *
+ * Singular (including embeds) and feed requests are never random content requests,
+ * nor are requests using an HTTP method other than GET or HEAD.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Query $query The query to check.
+ * @return bool True if the query is a request for random content, false otherwise.
+ */
+function wp_is_random_content_query( $query ) {
+	if (
+		! $query instanceof WP_Query
+		|| ! $query->is_main_query()
+		|| ! isset( $query->query_vars['random'] )
+		|| is_admin()
+		|| ! wp_is_random_content_redirect_enabled()
+	) {
+		return false;
+	}
+
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
+	if ( 'GET' !== $request_method && 'HEAD' !== $request_method ) {
+		return false;
+	}
+
+	if ( $query->is_feed() ) {
+		return false;
+	}
+
+	if ( ! $query->is_home() && ! $query->is_archive() && ! $query->is_search() ) {
+		return false;
+	}
+
+	return array() !== wp_get_random_content_post_types( $query );
+}
+
+/**
+ * Retrieves the post types eligible for selection by a random content request.
+ *
+ * These are the post types the query would otherwise return, limited to those
+ * that are viewable and registered as `randomable`.
+ *
+ * @since 7.2.0
+ *
+ * @see register_post_type()
+ *
+ * @param WP_Query $query The query to retrieve the post types for.
+ * @return string[] Post type names eligible for random selection.
+ */
+function wp_get_random_content_post_types( $query ) {
+	$post_types = $query->get( 'post_type' );
+
+	if ( empty( $post_types ) && $query->is_tax() && $query->tax_query instanceof WP_Tax_Query ) {
+		// Match WP_Query::get_posts(): searchable post types using any of the queried taxonomies.
+		$taxonomies = array_keys( $query->tax_query->queried_terms );
+		$post_types = array();
+
+		foreach ( get_post_types( array( 'exclude_from_search' => false ) ) as $post_type ) {
+			$object_taxonomies = 'attachment' === $post_type ? get_taxonomies_for_attachments() : get_object_taxonomies( $post_type );
+			if ( array_intersect( $taxonomies, $object_taxonomies ) ) {
+				$post_types[] = $post_type;
+			}
+		}
+	} elseif ( empty( $post_types ) && ! $query->is_search() ) {
+		$post_types = array( 'post' );
+	}
+
+	if ( empty( $post_types ) || 'any' === $post_types ) {
+		$post_types = get_post_types( array( 'exclude_from_search' => false ) );
+	}
+
+	$random_post_types = array();
+
+	foreach ( (array) $post_types as $post_type ) {
+		$post_type_object = get_post_type_object( $post_type );
+
+		if ( $post_type_object && $post_type_object->randomable && is_post_type_viewable( $post_type_object ) ) {
+			$random_post_types[] = $post_type_object->name;
+		}
+	}
+
+	return $random_post_types;
+}
+
+/**
+ * Modifies the main query to select a single random post for random content requests.
+ *
+ * The main query is used to select the random post so the request runs the same
+ * query, and the same filters, as the archive it is randomizing. As such, callbacks
+ * on the {@see 'pre_get_posts'} action may modify the posts eligible for selection,
+ * for example to limit the post types or exclude a category:
+ *
+ *     add_action(
+ *         'pre_get_posts',
+ *         function ( $query ) {
+ *             if ( wp_is_random_content_query( $query ) ) {
+ *                 $query->set( 'category__not_in', array( 1 ) );
+ *             }
+ *         }
+ *     );
+ *
+ * Runs late on the {@see 'pre_get_posts'} action to prevent other callbacks
+ * modifying the order or number of posts on archives from affecting the selection.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Query $query The WP_Query instance (passed by reference).
+ */
+function wp_random_content_pre_get_posts( $query ) {
+	if ( ! wp_is_random_content_query( $query ) ) {
+		return;
+	}
+
+	$query->set( 'post_type', wp_get_random_content_post_types( $query ) );
+	$query->set( 'orderby', 'rand' );
+	$query->set( 'posts_per_page', 1 );
+	$query->set( 'posts_per_archive_page', 1 );
+	$query->set( 'showposts', '' );
+	$query->set( 'nopaging', false );
+	$query->set( 'paged', 1 );
+	$query->set( 'offset', '' );
+	$query->set( 'post_status', 'publish' );
+	$query->set( 'has_password', false );
+	$query->set( 'ignore_sticky_posts', true );
+	$query->set( 'no_found_rows', true );
+	$query->set( 'update_post_meta_cache', false );
+	$query->set( 'update_post_term_cache', false );
+}
+
+/**
+ * Prevents the random content query from being split into multiple database queries.
+ *
+ * Randomly ordered queries are not cached, so there is no benefit to querying the post
+ * IDs separately to the post objects. Disabling the split allows the random post to be
+ * retrieved in a single database query.
+ *
+ * @since 7.2.0
+ *
+ * @param bool     $split_the_query Whether or not to split the query.
+ * @param WP_Query $query           The WP_Query instance.
+ * @return bool Whether or not to split the query.
+ */
+function wp_random_content_split_the_query( $split_the_query, $query ) {
+	if ( wp_is_random_content_query( $query ) ) {
+		return false;
+	}
+
+	return $split_the_query;
+}
+
+/**
+ * Adds HTTP headers to random content requests.
+ *
+ * Prevents random content requests from being cached, so each request selects a
+ * new random post, and from being indexed by search engines.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @param string[] $headers Associative array of headers to be sent.
+ * @return string[] Associative array of headers to be sent.
+ */
+function wp_random_content_headers( $headers ) {
+	global $wp_query;
+
+	if ( ! wp_is_random_content_query( $wp_query ) ) {
+		return $headers;
+	}
+
+	$headers                 = array_merge( $headers, wp_get_nocache_headers() );
+	$headers['X-Robots-Tag'] = 'noindex, follow';
+
+	return $headers;
+}
+
+/**
+ * Redirects random content requests to the randomly selected post.
+ *
+ * Runs on the {@see 'send_headers'} action, immediately after the main query
+ * selects the random post, to avoid unnecessary processing before the redirect.
+ *
+ * If no post is selected, for example on an empty archive, or the post's permalink
+ * is on another site, the request is handled as a regular archive request.
+ *
+ * @since 7.2.0
+ *
+ * @global WP_Query $wp_query WordPress Query object.
+ */
+function wp_random_content_redirect() {
+	global $wp_query;
+
+	if ( ! wp_is_random_content_query( $wp_query ) || ! $wp_query->post instanceof WP_Post ) {
+		return;
+	}
+
+	$location = get_permalink( $wp_query->post );
+
+	/*
+	 * Only redirect to locations permitted by wp_safe_redirect(). Off-site permalinks would
+	 * otherwise be replaced by its fallback, sending the visitor to the dashboard.
+	 */
+	if ( ! $location || ! wp_validate_redirect( $location, false ) ) {
+		return;
+	}
+
+	if ( wp_safe_redirect( $location, 302 ) ) {
+		exit;
+	}
+}
+
+/**
+ * Flushes the rewrite rules when a page at the random content base changes.
+ *
+ * A published page at the random base, for example `example.com/random/`, takes
+ * precedence over random content redirects. As the rewrite rules account for the
+ * page, they need to be regenerated when it is published, unpublished, renamed,
+ * moved or deleted.
+ *
+ * Runs on the {@see 'wp_after_insert_post'} and {@see 'after_delete_post'} actions.
+ *
+ * @since 7.2.0
+ *
+ * @see WP_Rewrite::random_rewrite_rules()
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ *
+ * @param int          $post_id     Post ID.
+ * @param WP_Post      $post        Post object.
+ * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
+ * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
+ */
+function wp_random_content_flush_rewrite_rules_for_page( $post_id, $post, $update = false, $post_before = null ) {
+	global $wp_rewrite;
+
+	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
+		return;
+	}
+
+	foreach ( array( $post, $post_before ) as $page ) {
+		if (
+			$page instanceof WP_Post
+			&& 'page' === $page->post_type
+			&& 0 === (int) $page->post_parent
+			&& $wp_rewrite->random_base === $page->post_name
+		) {
+			flush_rewrite_rules( false );
+			return;
+		}
+	}
+}
+
+/**
  * Set up global post data.
  *
  * @since 1.5.0

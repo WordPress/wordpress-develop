@@ -121,6 +121,18 @@ class WP_Rewrite {
 	public $feed_base = 'feed';
 
 	/**
+	 * Random content permalink base.
+	 *
+	 * Requests prefixed with this base redirect to a randomly selected post,
+	 * for example `example.com/$random_base/` or `example.com/$random_base/category/news/`.
+	 * A published page with this slug takes precedence over `example.com/$random_base/`.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	public $random_base = 'random';
+
+	/**
 	 * Comments feed permalink structure.
 	 *
 	 * @since 1.5.0
@@ -1407,6 +1419,22 @@ class WP_Rewrite {
 		 */
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
 
+		// Random content rewrite rules.
+		$random_rewrite = $this->random_rewrite_rules();
+
+		/**
+		 * Filters rewrite rules used for random content redirects.
+		 *
+		 * Likely random content rules would include `/random/`, as well as
+		 * term, author and post type archives prefixed with the random base,
+		 * for example `/random/category/news/`.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[] $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
+		 */
+		$random_rewrite = apply_filters( 'random_rewrite_rules', $random_rewrite );
+
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
@@ -1455,9 +1483,9 @@ class WP_Rewrite {
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $random_rewrite, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $random_rewrite, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
@@ -1479,6 +1507,93 @@ class WP_Rewrite {
 		$this->rules = apply_filters( 'rewrite_rules_array', $this->rules );
 
 		return $this->rules;
+	}
+
+	/**
+	 * Retrieves the rewrite rules for random content redirects.
+	 *
+	 * Random content URLs are an existing archive path prefixed with the random base.
+	 * A request to one redirects to a randomly selected post from that archive:
+	 *
+	 * - `/random/` for any post.
+	 * - `/random/{taxonomy-slug}/{term}/` for a post in a term archive, for example `/random/category/news/`.
+	 * - `/random/{author-base}/{author}/` for a post by an author.
+	 * - `/random/{post-type-archive}/` for a post of a post type with an archive.
+	 *
+	 * Only post types registered as `randomable`, and taxonomies used by them, receive rules.
+	 *
+	 * If a published page exists at the random base, the page takes precedence and the
+	 * `/random/` rule is omitted. The rules are flushed when such a page changes, see
+	 * wp_random_content_flush_rewrite_rules_for_page().
+	 *
+	 * The `random` query variable can be added to any other archive or search URL, for example
+	 * `/2026/?random`, to request a random post from that archive.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_redirect_enabled()
+	 *
+	 * @return string[] Array of rewrite rules for random content redirects, keyed by their regex pattern.
+	 */
+	public function random_rewrite_rules() {
+		if ( ! wp_is_random_content_redirect_enabled() ) {
+			return array();
+		}
+
+		$random_base = $this->root . $this->random_base;
+
+		$rules = array();
+
+		// A published page at the random base, for example example.com/random/, takes precedence.
+		$random_base_page = get_page_by_path( $this->random_base );
+		if ( ! $random_base_page || ! is_post_publicly_viewable( $random_base_page ) ) {
+			$rules[ $random_base . '/?$' ] = $this->index . '?random=1';
+		}
+
+		$archive_structures = array(
+			"{$random_base}/{$this->author_base}/%author%",
+		);
+
+		$randomable_post_types = get_post_types( array( 'randomable' => true ) );
+
+		foreach ( get_taxonomies( array( 'publicly_queryable' => true ), 'objects' ) as $taxonomy ) {
+			// Only taxonomies with pretty permalinks have a registered rewrite tag.
+			if ( empty( $taxonomy->rewrite['slug'] ) || ! isset( $this->extra_permastructs[ $taxonomy->name ] ) ) {
+				continue;
+			}
+
+			// Only taxonomies used by randomable post types can contain random content.
+			if ( ! array_intersect( $taxonomy->object_type, $randomable_post_types ) ) {
+				continue;
+			}
+
+			$archive_structures[] = "{$random_base}/{$taxonomy->rewrite['slug']}/%{$taxonomy->name}%";
+		}
+
+		foreach ( $archive_structures as $archive_structure ) {
+			$archive_rules = $this->generate_rewrite_rules( $archive_structure, EP_NONE, false, false, false, false, false );
+
+			foreach ( $archive_rules as $regex => $query ) {
+				$rules[ $regex ] = $query . '&random=1';
+			}
+		}
+
+		$random_post_types = array(
+			'publicly_queryable' => true,
+			'randomable'         => true,
+		);
+
+		foreach ( get_post_types( $random_post_types, 'objects' ) as $post_type ) {
+			if ( ! $post_type->has_archive || empty( $post_type->rewrite['slug'] ) ) {
+				continue;
+			}
+
+			$archive_slug = true === $post_type->has_archive ? $post_type->rewrite['slug'] : $post_type->has_archive;
+
+			$rules[ "{$random_base}/{$archive_slug}/?$" ] = $this->index . "?post_type={$post_type->name}&random=1";
+		}
+
+		return $rules;
 	}
 
 	/**

@@ -492,6 +492,14 @@ add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
 add_action( 'post_updated', 'wp_check_for_changed_dates', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
+// Random content redirects, see wp_is_random_content_redirect_enabled().
+add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 1000 );
+add_filter( 'split_the_query', 'wp_random_content_split_the_query', 10, 2 );
+add_filter( 'wp_headers', 'wp_random_content_headers' );
+add_action( 'send_headers', 'wp_random_content_redirect', 1 );
+add_action( 'wp_after_insert_post', 'wp_random_content_flush_rewrite_rules_for_page', 10, 4 );
+add_action( 'after_delete_post', 'wp_random_content_flush_rewrite_rules_for_page', 10, 2 );
+
 // Nonce check for post previews.
 add_action( 'init', '_show_post_preview' );
 
