@@ -1200,6 +1200,7 @@ function wpmu_signup_user_notification(
  *     password: string,
  *     title: string,
  *     meta: array<string, mixed>,
+ *     user_already_exists: bool,
  * }|WP_Error
  */
 function wpmu_activate_signup(
@@ -1323,11 +1324,12 @@ function wpmu_activate_signup(
 	do_action( 'wpmu_activate_blog', $blog_id, $user_id, $password, $signup->title, $meta );
 
 	return array(
-		'blog_id'  => $blog_id,
-		'user_id'  => $user_id,
-		'password' => $password,
-		'title'    => $signup->title,
-		'meta'     => $meta,
+		'blog_id'             => $blog_id,
+		'user_id'             => $user_id,
+		'password'            => isset( $user_already_exists ) ? '' : $password,
+		'title'               => $signup->title,
+		'meta'                => $meta,
+		'user_already_exists' => isset( $user_already_exists ),
 	);
 }
 
