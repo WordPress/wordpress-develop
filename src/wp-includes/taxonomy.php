@@ -1211,7 +1211,7 @@ function get_term_children( $term_id, $taxonomy ) {
  * @access private
  *
  * @param int   $term_id ID of the term whose children to retrieve.
- * @param array $terms   Complete taxonomy hierarchy, keyed by parent term ID.
+ * @param array<int, int[]> $terms   Complete taxonomy hierarchy, keyed by parent term ID.
  * @return int[] Descendant term IDs.
  */
 function _get_term_children_from_hierarchy( $term_id, $terms ) {
