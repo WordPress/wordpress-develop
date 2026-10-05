@@ -107,7 +107,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * Without an explicit network filter, only sites on the current network are returned.
+	 * Only sites on the current network are returned.
 	 *
 	 * @ticket 40365
 	 * @covers ::get_items
@@ -484,44 +484,6 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
-	 * @covers ::create_item
-	 * @group ms-required
-	 */
-	public function test_create_item_allows_an_existing_domain_and_path_on_a_different_network() {
-		wp_set_current_user( self::$superadmin_id );
-
-		self::factory()->blog->create(
-			array(
-				'domain' => WP_TESTS_DOMAIN,
-				'path'   => '/shared/',
-			)
-		);
-
-		$network_id = self::factory()->network->create(
-			array(
-				'domain' => 'other-network.example.org',
-				'path'   => '/',
-			)
-		);
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
-		$request->set_param( 'domain', WP_TESTS_DOMAIN );
-		$request->set_param( 'path', '/shared/' );
-		$request->set_param( 'network', $network_id );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertEquals( 201, $response->get_status() );
-
-		$data = $response->get_data();
-
-		$this->assertEquals( WP_TESTS_DOMAIN, $data['domain'] );
-		$this->assertEquals( '/shared/', $data['path'] );
-		$this->assertEquals( $network_id, $data['network'] );
-	}
-
-	/**
-	 * @ticket 40365
 	 * @covers ::update_item
 	 * @group ms-required
 	 */
@@ -646,44 +608,6 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$this->assertTrue( $result );
 		}
-	}
-
-	/**
-	 * The same domain/path is available on a different network.
-	 *
-	 * @ticket 40365
-	 * @covers ::check_url_is_available
-	 * @group ms-required
-	 */
-	public function test_check_url_is_available_allows_the_same_domain_and_path_on_a_different_network() {
-		self::factory()->blog->create(
-			array(
-				'domain' => WP_TESTS_DOMAIN,
-				'path'   => '/check-url-shared/',
-			)
-		);
-
-		$other_network_id = self::factory()->network->create(
-			array(
-				'domain' => 'check-url-other-network.example',
-				'path'   => '/',
-			)
-		);
-
-		$method  = $this->get_reflective_method( 'check_url_is_available' );
-		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
-
-		$result = $method->invoke(
-			$this->endpoint,
-			array(
-				'domain'     => WP_TESTS_DOMAIN,
-				'path'       => '/check-url-shared/',
-				'network_id' => $other_network_id,
-			),
-			$request
-		);
-
-		$this->assertTrue( $result );
 	}
 
 	/**
@@ -1135,6 +1059,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertEqualSets( $expected, array_keys( $properties ) );
 		$this->assertTrue( $properties['id']['readonly'] );
+		$this->assertTrue( $properties['network']['readonly'] );
 		$this->assertTrue( $properties['registered']['readonly'] );
 		$this->assertTrue( $properties['blogname']['readonly'] );
 		$this->assertEquals( 'boolean', $properties['public']['type'] );
@@ -1364,7 +1289,28 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertArrayNotHasKey( 'title', $args );
 		$this->assertArrayNotHasKey( 'user_id', $args );
+		$this->assertArrayNotHasKey( 'network', $args );
 		$this->assertArrayHasKey( 'domain', $args );
+	}
+
+	/**
+	 * The network is read-only, so creating a site does not accept it either.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 */
+	public function test_create_item_does_not_accept_the_network_field() {
+		$routes = rest_get_server()->get_routes();
+		$args   = array();
+
+		foreach ( $routes['/wp/v2/sites'] as $handler ) {
+			if ( ! empty( $handler['methods']['POST'] ) ) {
+				$args = $handler['args'];
+			}
+		}
+
+		$this->assertArrayHasKey( 'domain', $args );
+		$this->assertArrayNotHasKey( 'network', $args );
 	}
 
 	/**
@@ -1566,7 +1512,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_orderby_id_list_without_a_list() {
 		wp_set_current_user( self::$superadmin_id );
 
-		foreach ( array( 'site__in', 'network__in' ) as $orderby ) {
+		foreach ( array( 'site__in' ) as $orderby ) {
 			$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 			$request->set_param( 'orderby', $orderby );
 
@@ -2042,170 +1988,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_get_items_permissions_check_invalid_network_id() {
-		wp_set_current_user( self::factory()->user->create() );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_get_items_permissions_check_invalid_network_exclude_id() {
-		wp_set_current_user( self::factory()->user->create() );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'network_exclude', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_get_items_permissions_check_denies_access_to_another_network() {
-		wp_set_current_user( self::factory()->user->create() );
-		$network_id = self::factory()->network->create();
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'network', $network_id );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_get_items_permissions_check_allows_filtering_by_the_current_network() {
-		wp_set_current_user( self::factory()->user->create() );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
-		$request->set_param( 'network', get_current_network_id() );
-
-		$response = rest_get_server()->dispatch( $request );
-
-		// The user still lacks manage_sites, but the network filter itself is not the reason.
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_create_item_permissions_check_invalid_network_id() {
-		wp_set_current_user( self::factory()->user->create() );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
-		$request->set_param( 'domain', WP_TESTS_DOMAIN );
-		$request->set_param( 'path', '/rejected/' );
-		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_create_item_permissions_check_denies_access_to_another_network() {
-		wp_set_current_user( self::factory()->user->create() );
-		$network_id = self::factory()->network->create();
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
-		$request->set_param( 'domain', WP_TESTS_DOMAIN );
-		$request->set_param( 'path', '/rejected/' );
-		$request->set_param( 'network', $network_id );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::create_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_create_item_permissions_check_allows_a_super_admin_of_the_target_network() {
-		$user       = self::factory()->user->create_and_get();
-		$network_id = self::factory()->network->create();
-		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
-		// create_sites is checked against the current network, so grant it there too.
-		grant_super_admin( $user->ID );
-		wp_set_current_user( $user->ID );
-
-		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
-		$request->set_param( 'network', $network_id );
-
-		$this->assertTrue( $this->endpoint->create_item_permissions_check( $request ) );
-	}
-
-	/**
-	 * @ticket 40365
 	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_update_item_permissions_check_invalid_network_id() {
-		$blog_id = self::factory()->blog->create();
-		wp_set_current_user( self::$superadmin_id );
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'id', $blog_id );
-		$request->set_param( 'network', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_update_item_permissions_check_denies_moving_a_site_to_another_network() {
-		$blog_id    = self::factory()->blog->create();
-		$network_id = self::factory()->network->create();
-		delete_network_option( $network_id, 'site_admins' );
-		wp_set_current_user( self::$superadmin_id );
-
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'id', $blog_id );
-		$request->set_param( 'network', $network_id );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::update_item_permissions_check
-	 * @covers ::check_network_ids
+	 * @covers ::site_in_network
 	 * @group ms-required
 	 */
 	public function test_update_item_permissions_check_allows_the_sites_own_network_by_default() {
@@ -2222,7 +2006,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @ticket 40365
 	 * @covers ::delete_item_permissions_check
-	 * @covers ::check_network_ids
+	 * @covers ::site_in_network
 	 * @group ms-required
 	 */
 	public function test_delete_item_permissions_check_invalid_network_id() {
@@ -2237,76 +2021,13 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'id', $blog_id );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_network_id_invalid', $response, 400 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::delete_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_delete_item_permissions_check_denies_access_to_another_network() {
-		$network_id = self::factory()->network->create();
-		delete_network_option( $network_id, 'site_admins' );
-		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
-
-		wp_set_current_user( self::$superadmin_id );
-
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'id', $blog_id );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::delete_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_delete_item_permissions_check_allows_a_super_admin_of_the_sites_network() {
-		$network_id = self::factory()->network->create();
-		$user       = self::factory()->user->create_and_get();
-		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
-		// delete_sites is checked against the current network, so grant it there too.
-		grant_super_admin( $user->ID );
-		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
-
-		wp_set_current_user( $user->ID );
-
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'id', $blog_id );
-
-		$this->assertTrue( $this->endpoint->delete_item_permissions_check( $request ) );
+		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
 	}
 
 	/**
 	 * @ticket 40365
 	 * @covers ::get_item_permissions_check
-	 * @covers ::check_network_ids
-	 * @group ms-required
-	 */
-	public function test_get_item_permissions_check_denies_a_site_on_another_network() {
-		wp_set_current_user( self::$superadmin_id );
-		$network_id = self::factory()->network->create();
-		delete_network_option( $network_id, 'site_admins' );
-		$blog_id = self::factory()->blog->create( array( 'site_id' => $network_id ) );
-
-		wp_set_current_user( self::factory()->user->create() );
-
-		$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
-		$request->set_param( 'id', $blog_id );
-
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_cannot_view_network', $response, 403 );
-	}
-
-	/**
-	 * @ticket 40365
-	 * @covers ::get_item_permissions_check
-	 * @covers ::check_network_ids
+	 * @covers ::site_in_network
 	 * @group ms-required
 	 */
 	public function test_get_item_permissions_check_allows_a_site_on_the_current_network() {
@@ -2320,5 +2041,361 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertEquals( 200, $response->get_status() );
+	}
+
+	/**
+	 * Creates a site on a network other than the current one.
+	 *
+	 * @return int[] The other network ID and the site ID.
+	 */
+	private function create_site_on_another_network() {
+		$network_id = self::factory()->network->create(
+			array(
+				'domain' => 'other-network.example.org',
+				'path'   => '/',
+			)
+		);
+
+		$blog_id = self::factory()->blog->create(
+			array(
+				'domain'     => 'other-network.example.org',
+				'path'       => '/elsewhere/',
+				'network_id' => $network_id,
+			)
+		);
+
+		return array( $network_id, $blog_id );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 */
+	public function test_get_item_on_another_network_is_forbidden() {
+		list( , $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item_permissions_check
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 */
+	public function test_update_item_on_another_network_is_forbidden() {
+		list( , $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'path', '/moved/' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		$this->assertSame( '/elsewhere/', get_site( $blog_id )->path, 'The site should be left unchanged.' );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 */
+	public function test_delete_item_on_another_network_is_forbidden() {
+		list( , $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'force', true );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		$this->assertInstanceOf( 'WP_Site', get_site( $blog_id ), 'The site should still exist.' );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @group ms-required
+	 */
+	public function test_create_item_ignores_network_param() {
+		list( $network_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/ignores-network/' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertSame( get_current_network_id(), $data['network'] );
+		$this->assertSame( get_current_network_id(), get_site( $data['id'] )->network_id );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::update_item
+	 * @group ms-required
+	 */
+	public function test_update_item_ignores_network_param() {
+		list( $network_id ) = $this->create_site_on_another_network();
+		$blog_id            = self::factory()->blog->create( array( 'path' => '/stays-put/' ) );
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( get_current_network_id(), $response->get_data()['network'] );
+		$this->assertSame( get_current_network_id(), get_site( $blog_id )->network_id );
+	}
+
+	/**
+	 * @ticket 40365
+	 * @covers ::get_items
+	 * @group ms-required
+	 */
+	public function test_get_items_ignores_network_param() {
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertNotEmpty( $data );
+		$this->assertNotContains( $blog_id, wp_list_pluck( $data, 'id' ) );
+		foreach ( $data as $site ) {
+			$this->assertSame( get_current_network_id(), $site['network'] );
+		}
+	}
+
+	/**
+	 * Data provider for the single-site permission checks.
+	 *
+	 * @return array[]
+	 */
+	public function data_permission_checks_on_another_network() {
+		return array(
+			'get'    => array( 'GET', 'get_item_permissions_check' ),
+			'update' => array( 'PUT', 'update_item_permissions_check' ),
+			'delete' => array( 'DELETE', 'delete_item_permissions_check' ),
+		);
+	}
+
+	/**
+	 * Every permission check for a single site refuses a site on another network.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::update_item_permissions_check
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 * @dataProvider data_permission_checks_on_another_network
+	 *
+	 * @param string $method           HTTP method.
+	 * @param string $permission_check Permission check method name.
+	 */
+	public function test_permission_checks_block_a_site_on_another_network( $method, $permission_check ) {
+		list( , $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$result = $this->endpoint->$permission_check( $request );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_unable_read_from_network', $result->get_error_code() );
+		$this->assertSame( 403, $result->get_error_data()['status'] );
+	}
+
+	/**
+	 * The same permission checks pass for a site on the current network.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::update_item_permissions_check
+	 * @covers ::delete_item_permissions_check
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 * @dataProvider data_permission_checks_on_another_network
+	 *
+	 * @param string $method           HTTP method.
+	 * @param string $permission_check Permission check method name.
+	 */
+	public function test_permission_checks_allow_a_site_on_the_current_network( $method, $permission_check ) {
+		$blog_id = self::factory()->blog->create( array( 'path' => '/current-network/' ) );
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
+		$request->set_param( 'id', $blog_id );
+
+		$this->assertTrue( $this->endpoint->$permission_check( $request ) );
+	}
+
+	/**
+	 * Even a super admin of the second network is blocked from reaching its sites
+	 * through the current network, for every method.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::update_item_permissions_check
+	 * @covers ::delete_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_super_admin_of_the_other_network_is_blocked() {
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+
+		$user = self::factory()->user->create_and_get();
+		grant_super_admin( $user->ID );
+		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
+		wp_set_current_user( $user->ID );
+
+		foreach ( array( 'GET', 'PUT', 'PATCH', 'DELETE' ) as $method ) {
+			$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
+			if ( 'GET' !== $method && 'DELETE' !== $method ) {
+				$request->set_param( 'path', '/moved/' );
+			}
+
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		}
+
+		$site = get_site( $blog_id );
+		$this->assertInstanceOf( 'WP_Site', $site, 'The site should still exist.' );
+		$this->assertSame( '/elsewhere/', $site->path, 'The site should be left unchanged.' );
+		$this->assertSame( $network_id, $site->network_id, 'The site should stay on its network.' );
+	}
+
+	/**
+	 * Including a site from another network by ID does not expose it.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items
+	 * @group ms-required
+	 */
+	public function test_get_items_include_does_not_expose_another_network() {
+		list( , $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'include', array( $blog_id ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data() );
+		$this->assertSame( '0', $response->get_headers()['X-WP-Total'] );
+	}
+
+	/**
+	 * A super admin of the second network still creates sites on the current network.
+	 *
+	 * @ticket 40365
+	 * @covers ::create_item
+	 * @covers ::create_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_create_item_by_admin_of_another_network_lands_on_the_current_network() {
+		list( $network_id ) = $this->create_site_on_another_network();
+
+		$user = self::factory()->user->create_and_get();
+		grant_super_admin( $user->ID );
+		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
+		wp_set_current_user( $user->ID );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', 'other-network.example.org' );
+		$request->set_param( 'path', '/elsewhere/' );
+		$request->set_param( 'network', $network_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		// The same domain and path exist on the other network, but not on this one.
+		$this->assertEquals( 201, $response->get_status() );
+
+		$data = $response->get_data();
+
+		$this->assertSame( get_current_network_id(), $data['network'] );
+		$this->assertNotSame( $network_id, get_site( $data['id'] )->network_id );
+	}
+
+	/**
+	 * The rest_site_in_network filter can let a site on another network through.
+	 *
+	 * @ticket 40365
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 */
+	public function test_site_in_network_filter_can_allow_another_network() {
+		list( $network_id, $blog_id ) = $this->create_site_on_another_network();
+		wp_set_current_user( self::$superadmin_id );
+
+		$filter_args = array();
+		add_filter(
+			'rest_site_in_network',
+			static function ( $in_network, $site, $current_network_id ) use ( &$filter_args ) {
+				$filter_args = array( $in_network, $site, $current_network_id );
+				return true;
+			},
+			10,
+			3
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $blog_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( $network_id, $response->get_data()['network'] );
+
+		list( $in_network, $site, $current_network_id ) = $filter_args;
+		$this->assertFalse( $in_network, 'The unfiltered value should be false for another network.' );
+		$this->assertInstanceOf( 'WP_Site', $site );
+		$this->assertSame( $blog_id, (int) $site->blog_id );
+		$this->assertSame( get_current_network_id(), $current_network_id );
+	}
+
+	/**
+	 * The rest_site_in_network filter can block a site on the current network.
+	 *
+	 * @ticket 40365
+	 * @covers ::site_in_network
+	 * @group ms-required
+	 */
+	public function test_site_in_network_filter_can_block_the_current_network() {
+		$blog_id = self::factory()->blog->create( array( 'path' => '/filtered-out/' ) );
+		wp_set_current_user( self::$superadmin_id );
+
+		add_filter( 'rest_site_in_network', '__return_false' );
+
+		foreach ( array( 'GET', 'PUT', 'DELETE' ) as $method ) {
+			$request  = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		}
 	}
 }
