@@ -282,6 +282,7 @@ msgstr[2] "бабаяга"',
 		);
 
 		$simple_entry = new Translation_Entry( array( 'singular' => 'moon' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $simple_entry, $po->entries[ $simple_entry->key() ] );
 
 		$all_types_entry = new Translation_Entry(
@@ -292,6 +293,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( 'ztrut0', 'ztrut1', 'ztrut2' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $all_types_entry, $po->entries[ $all_types_entry->key() ] );
 
 		$multiple_line_entry = new Translation_Entry(
@@ -300,6 +302,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( "baba\ndyadogugu" ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $multiple_line_entry, $po->entries[ $multiple_line_entry->key() ] );
 
 		$multiple_line_all_types_entry = new Translation_Entry(
@@ -310,6 +313,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( 'translation0', 'translation1', 'translation2' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $multiple_line_all_types_entry, $po->entries[ $multiple_line_all_types_entry->key() ] );
 
 		$comments_entry = new Translation_Entry(
@@ -321,9 +325,11 @@ msgstr[2] "бабаяга"',
 				'flags'               => array( 'fuzzy' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $comments_entry, $po->entries[ $comments_entry->key() ] );
 
 		$end_quote_entry = new Translation_Entry( array( 'singular' => 'a"' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $end_quote_entry, $po->entries[ $end_quote_entry->key() ] );
 	}
 
@@ -379,6 +385,7 @@ msgstr[2] "бабаяга"',
 			$po->headers
 		);
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $po->entries, $entries, 'Failed for ' . $printable_newline );
 
 		$export_file = $this->temp_filename();
