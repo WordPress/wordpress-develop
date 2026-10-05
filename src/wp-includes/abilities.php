@@ -13,6 +13,7 @@ declare( strict_types = 1 );
  * Registers the core ability categories.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `uncategorized` category.
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -28,6 +29,14 @@ function wp_register_core_ability_categories(): void {
 		array(
 			'label'       => __( 'User' ),
 			'description' => __( 'Abilities that retrieve or modify user information and settings.' ),
+		)
+	);
+
+	wp_register_ability_category(
+		'uncategorized',
+		array(
+			'label'       => __( 'Uncategorized' ),
+			'description' => __( 'Abilities that have not been assigned to a specific category.' ),
 		)
 	);
 }
@@ -132,12 +141,12 @@ function wp_register_core_abilities(): void {
 				return current_user_can( 'manage_options' );
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);
@@ -256,12 +265,12 @@ function wp_register_core_abilities(): void {
 				return is_user_logged_in();
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);
@@ -342,12 +351,12 @@ function wp_register_core_abilities(): void {
 				return current_user_can( 'manage_options' );
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);

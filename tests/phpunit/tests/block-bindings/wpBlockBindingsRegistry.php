@@ -188,6 +188,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 */
 	public function test_register_block_binding_source() {
 		$result = $this->registry->register( self::$test_source_name, self::$test_source_properties );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Block_Bindings_Source(
 				self::$test_source_name,
@@ -201,7 +203,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			'test-value',
 			$result->get_value( array(), null, '' )
 		);
-		$this->assertEquals( array( 'sourceContext' ), $result->uses_context );
+		$this->assertSame( array( 'sourceContext' ), $result->uses_context );
 	}
 
 	/**
@@ -225,12 +227,16 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Block_Bindings_Registry::register
 	 * @covers WP_Block_Bindings_Registry::unregister
+	 * @covers WP_Block_Bindings_Registry::get_registered
+	 * @covers WP_Block_Bindings_Registry::is_registered
 	 * @covers WP_Block_Bindings_Source::__construct
 	 */
 	public function test_unregister_block_source() {
 		$this->registry->register( self::$test_source_name, self::$test_source_properties );
 
 		$result = $this->registry->unregister( self::$test_source_name );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Block_Bindings_Source(
 				self::$test_source_name,
@@ -238,6 +244,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 			),
 			$result
 		);
+		$this->assertNull( $this->registry->get_registered( self::$test_source_name ) );
+		$this->assertFalse( $this->registry->is_registered( self::$test_source_name ) );
 	}
 
 	/**
@@ -269,6 +277,8 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		);
 
 		$registered = $this->registry->get_all_registered();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $registered );
 	}
 
@@ -312,6 +322,7 @@ class Tests_Blocks_wpBlockBindingsRegistry extends WP_UnitTestCase {
 		$expected = new WP_Block_Bindings_Source( $source_two_name, $source_two_properties );
 		$result   = $this->registry->get_registered( 'test/source-two' );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			$expected,
 			$result

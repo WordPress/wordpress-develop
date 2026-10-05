@@ -154,7 +154,7 @@ Please click the following link to confirm the invite:
 			 *
 			 * @since 5.6.0
 			 *
-			 * @param array $new_user_email {
+			 * @param array  $new_user_email {
 			 *     Used to build wp_mail().
 			 *
 			 *     @type string $to      The email address of the invited user.
@@ -162,9 +162,9 @@ Please click the following link to confirm the invite:
 			 *     @type string $message The content of the email.
 			 *     @type string $headers Headers.
 			 * }
-			 * @param int    $user_id     The invited user's ID.
-			 * @param array  $role        Array containing role information for the invited user.
-			 * @param string $newuser_key The key of the invitation.
+			 * @param int    $user_id        The invited user's ID.
+			 * @param array  $role           Array containing role information for the invited user.
+			 * @param string $newuser_key    The key of the invitation.
 			 *
 			 */
 			$new_user_email = apply_filters( 'invited_user_email', $new_user_email, $user_id, $role, $newuser_key );
@@ -240,6 +240,11 @@ Please click the following link to confirm the invite:
 			);
 
 			if ( isset( $_POST['noconfirmation'] ) && current_user_can( 'manage_network_users' ) ) {
+				/**
+				 * @global wpdb $wpdb WordPress database abstraction object.
+				 */
+				global $wpdb;
+
 				$key      = $wpdb->get_var( $wpdb->prepare( "SELECT activation_key FROM {$wpdb->signups} WHERE user_login = %s AND user_email = %s", $new_user_login, $new_user_email ) );
 				$new_user = wpmu_activate_signup( $key );
 				if ( is_wp_error( $new_user ) ) {
@@ -603,7 +608,7 @@ if ( current_user_can( 'create_users' ) ) {
 					<input type="password" name="pass1" id="pass1" class="regular-text ltr" autocomplete="new-password" spellcheck="false" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 					<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 				</div>
-				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+				<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					<span class="text"><?php _e( 'Hide' ); ?></span>
 				</button>
