@@ -10998,8 +10998,7 @@ mockedApiResponse.Schema = {
                                 "registered",
                                 "domain_length",
                                 "path_length",
-                                "site__in",
-                                "network__in"
+                                "site__in"
                             ],
                             "required": false
                         },
@@ -11062,24 +11061,6 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "format": "date-time",
                             "required": false
-                        },
-                        "network": {
-                            "default": [],
-                            "description": "Limit result set to sites of specific network IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "required": false
-                        },
-                        "network_exclude": {
-                            "default": [],
-                            "description": "Ensure result set excludes specific network IDs.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "required": false
                         }
                     }
                 },
@@ -11088,11 +11069,6 @@ mockedApiResponse.Schema = {
                         "POST"
                     ],
                     "args": {
-                        "network": {
-                            "description": "The site's network ID. Default is the current network ID.",
-                            "type": "integer",
-                            "required": false
-                        },
                         "domain": {
                             "default": "",
                             "description": "Site domain.",
@@ -11204,11 +11180,6 @@ mockedApiResponse.Schema = {
                     "args": {
                         "id": {
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
-                        },
-                        "network": {
-                            "description": "The site's network ID. Default is the current network ID.",
                             "type": "integer",
                             "required": false
                         },

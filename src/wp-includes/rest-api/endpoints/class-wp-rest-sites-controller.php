@@ -133,16 +133,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
-		foreach ( array( 'network', 'network_exclude' ) as $network_key ) {
-			if ( ! isset( $request[ $network_key ] ) ) {
-				continue;
-			}
-			$network_check = $this->check_network_ids( (array) $request[ $network_key ] );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
-		}
-
 		if ( $this->check_edit_permission() ) {
 			return true;
 		}
@@ -203,8 +193,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			'include'         => 'site__in',
 			'offset'          => 'offset',
 			'order'           => 'order',
-			'network'         => 'network__in',
-			'network_exclude' => 'network__not_in',
 			'per_page'        => 'number',
 			'path'            => 'path__in',
 			'path_exclude'    => 'path__not_in',
@@ -230,10 +218,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			}
 		}
 
-		// Without an explicit network filter, limit the results to the current network.
-		if ( empty( $prepared_args['network__in'] ) ) {
-			$prepared_args['network__in'] = array( get_current_network_id() );
-		}
+		// Only sites on the current network are exposed.
+		$prepared_args['network__in'] = array( get_current_network_id() );
 
 		// WP_Site_Query tests the status columns with is_numeric(), and a boolean is not numeric.
 		foreach ( array( 'public', 'archived', 'mature', 'spam', 'deleted' ) as $status_param ) {
@@ -260,7 +246,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$orderby = $request['orderby'];
 
 			// Ordering by an ID list needs a list to order by.
-			if ( in_array( $orderby, array( 'site__in', 'network__in' ), true ) && empty( $prepared_args[ $orderby ] ) ) {
+			if ( 'site__in' === $orderby && empty( $prepared_args['site__in'] ) ) {
 				$orderby = 'id';
 			}
 
@@ -426,11 +412,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $site;
 		}
 
-		if ( $site->network_id > 0 ) {
-			$network_check = $this->check_network_ids( (array) $site->network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
+		if ( ! $this->site_in_network( $site ) ) {
+			return new WP_Error( 'rest_unable_read_from_network', __( 'Sorry, you are not allowed to view sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -447,42 +430,29 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Validates that the given network IDs exist and are accessible to the current user.
-	 *
-	 * A user can always access the current network. Access to any other
-	 * network requires the user to be a super admin of that network.
+	 * Checks whether a site belongs to the current network.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param int[] $network_ids Array of network IDs.
-	 * @return true|WP_Error True if all network IDs exist and are accessible, WP_Error otherwise.
+	 * @param WP_Site $site Site object.
+	 * @return bool Whether the site is on the current network.
 	 */
-	protected function check_network_ids( array $network_ids ) {
-		$current_network_id = get_current_network_id();
-		$user_id            = get_current_user_id();
+	protected function site_in_network( WP_Site $site ) {
+		$network_id = get_current_network_id();
 
-		_prime_network_caches( $network_ids );
-		foreach ( $network_ids as $network_id ) {
-			if ( ! get_network( $network_id ) ) {
-				return new WP_Error( 'rest_network_id_invalid', __( 'Invalid network ID.' ), array( 'status' => 400 ) );
-			}
-		}
-
-		if ( count( $network_ids ) === 1 && $current_network_id === $network_ids[0] ) {
-			return true;
-		}
-
-		foreach ( $network_ids as $network_id ) {
-			if ( (int) $network_id === $current_network_id ) {
-				continue;
-			}
-
-			if ( ! is_super_admin( $user_id, $network_id ) ) {
-				return new WP_Error( 'rest_cannot_view_network', __( 'Sorry, you are not allowed to access sites on this network.' ), array( 'status' => rest_authorization_required_code() ) );
-			}
-		}
-
-		return true;
+		/**
+		 * Filters whether a site is treated as belonging to the current network.
+		 *
+		 * Returning false blocks the site from being read, updated or deleted
+		 * via the REST API.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param bool    $in_network Whether the site belongs to the current network.
+		 * @param WP_Site $site       The site being checked.
+		 * @param int     $network_id The current network ID.
+		 */
+		return (bool) apply_filters( 'rest_site_in_network', $network_id === $site->network_id, $site, $network_id );
 	}
 
 	/**
@@ -517,14 +487,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$multisite_support = $this->check_multisite_support();
 		if ( is_wp_error( $multisite_support ) ) {
 			return $multisite_support;
-		}
-
-		$network_id = isset( $request['network'] ) ? (int) $request['network'] : get_current_network_id();
-		if ( $network_id > 0 ) {
-			$network_check = $this->check_network_ids( (array) $network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
 		}
 
 		if ( ! current_user_can( 'create_sites' ) ) {
@@ -652,12 +614,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $site;
 		}
 
-		$network_id = isset( $request['network'] ) ? (int) $request['network'] : $site->network_id;
-		if ( $network_id > 0 ) {
-			$network_check = $this->check_network_ids( (array) $network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
+		if ( ! $this->site_in_network( $site ) ) {
+			return new WP_Error( 'rest_unable_update_from_network', __( 'Sorry, you are not allowed to edit sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! $this->check_edit_permission() ) {
@@ -755,11 +713,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $site;
 		}
 
-		if ( $site->network_id > 0 ) {
-			$network_check = $this->check_network_ids( (array) $site->network_id );
-			if ( is_wp_error( $network_check ) ) {
-				return $network_check;
-			}
+		if ( ! $this->site_in_network( $site ) ) {
+			return new WP_Error( 'rest_unable_delete_from_network', __( 'Sorry, you are not allowed to delete sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! $this->check_delete_permission( $site ) ) {
@@ -1060,13 +1015,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			}
 		}
 
-		if ( isset( $request['network'] ) ) {
-			if ( ! get_network( $request['network'] ) ) {
-				return new WP_Error( 'rest_network_id_invalid', __( 'Invalid network ID.' ), array( 'status' => 400 ) );
-			}
-			$prepared_site['network_id'] = (int) $request['network'];
-		}
-
 		if ( isset( $request['path'] ) ) {
 			$prepared_site['path'] = $request['path'];
 		}
@@ -1265,7 +1213,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$id         = (int) $request['id'];
 		$domain     = isset( $prepared_site['domain'] ) ? $prepared_site['domain'] : '';
 		$path       = isset( $prepared_site['path'] ) ? $prepared_site['path'] : '/';
-		$network_id = isset( $prepared_site['network_id'] ) ? $prepared_site['network_id'] : get_current_network_id();
+		$network_id = get_current_network_id();
 
 		if ( ! empty( $id ) ) {
 			// Updating a site: fall back to the current values for anything the request left out.
@@ -1281,9 +1229,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			if ( ! isset( $prepared_site['path'] ) ) {
 				$path = $current_site->path;
 			}
-			if ( ! isset( $prepared_site['network_id'] ) ) {
-				$network_id = (int) $current_site->network_id;
-			}
+			$network_id = (int) $current_site->network_id;
 		}
 
 		$existing_site_id = domain_exists( $domain, $path, $network_id );
@@ -1320,9 +1266,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'network'          => array(
-					'description' => __( 'The site\'s network ID. Default is the current network ID.' ),
+					'description' => __( 'The site\'s network ID.' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
 				),
 				'domain'           => array(
 					'description' => __( 'Site domain.' ),
@@ -1546,7 +1493,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 				'domain_length',
 				'path_length',
 				'site__in',
-				'network__in',
 			),
 		);
 		$query_params['user']    = array(
@@ -1598,24 +1544,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			'description' => __( 'Limit response to sites registered after a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
-		);
-
-		$query_params['network'] = array(
-			'default'     => array(),
-			'description' => __( 'Limit result set to sites of specific network IDs.' ),
-			'type'        => 'array',
-			'items'       => array(
-				'type' => 'integer',
-			),
-		);
-
-		$query_params['network_exclude'] = array(
-			'default'     => array(),
-			'description' => __( 'Ensure result set excludes specific network IDs.' ),
-			'type'        => 'array',
-			'items'       => array(
-				'type' => 'integer',
-			),
 		);
 
 		/**
