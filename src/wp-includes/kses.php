@@ -2714,6 +2714,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'font-size',
 			'font-style',
 			'font-variant',
+			'font-variation-settings',
 			'font-weight',
 			'letter-spacing',
 			'line-height',
