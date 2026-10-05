@@ -160,16 +160,16 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ) );
+		$this->assertSame( 200, $response->get_status(), 'A subscriber should be able to query published posts.' );
+		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ), 'The published post should be among the returned posts.' );
 
 		$post_index = array_search( $post_id, wp_list_pluck( $data['posts'], 'id' ), true );
-		$this->assertIsInt( $post_index );
+		$this->assertIsInt( $post_index, 'Precondition: the published post should have a position in the posts list.' );
 
 		$post = $data['posts'][ $post_index ];
-		$this->assertSame( 'Published for subscriber via REST', $post['title_rendered'] );
-		$this->assertStringContainsString( 'Subscriber REST body.', $post['content_rendered'] );
-		$this->assertArrayNotHasKey( 'content_raw', $post );
+		$this->assertSame( 'Published for subscriber via REST', $post['title_rendered'], 'The rendered title should be returned to a subscriber.' );
+		$this->assertStringContainsString( 'Subscriber REST body.', $post['content_rendered'], 'The rendered content should be returned to a subscriber.' );
+		$this->assertArrayNotHasKey( 'content_raw', $post, 'Raw content should not be returned to a subscriber.' );
 	}
 
 	public function test_subscriber_requesting_raw_fields_receives_403(): void {
@@ -198,9 +198,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $this->run_request( array( 'post_type' => 'post' ) ) );
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertArrayHasKey( 'posts', $data );
-		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ) );
+		$this->assertSame( 200, $response->get_status(), 'An administrator should be able to query published posts.' );
+		$this->assertArrayHasKey( 'posts', $data, 'Query mode should return a posts list.' );
+		$this->assertContains( $post_id, wp_list_pluck( $data['posts'], 'id' ), 'The published post should be among the returned posts.' );
 	}
 
 	public function test_admin_query_include_limits_results(): void {
@@ -235,9 +235,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( array( $third, $first ), wp_list_pluck( $data['posts'], 'id' ) );
-		$this->assertNotContains( $second, wp_list_pluck( $data['posts'], 'id' ) );
+		$this->assertSame( 200, $response->get_status(), 'The include query should succeed.' );
+		$this->assertSame( array( $third, $first ), wp_list_pluck( $data['posts'], 'id' ), 'Included posts should be returned newest first, regardless of the include order.' );
+		$this->assertNotContains( $second, wp_list_pluck( $data['posts'], 'id' ), 'Posts outside the include list should not be returned.' );
 	}
 
 	public function test_get_single_post_by_id(): void {
@@ -246,10 +246,10 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $this->run_request( array( 'id' => $post_id ) ) );
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $post_id, $data['id'] );
-		$this->assertArrayNotHasKey( 'posts', $data );
-		$this->assertArrayNotHasKey( 'total', $data );
+		$this->assertSame( 200, $response->get_status(), 'The ID lookup should succeed.' );
+		$this->assertSame( $post_id, $data['id'], 'The ID lookup should return the requested post.' );
+		$this->assertArrayNotHasKey( 'posts', $data, 'A single post lookup should not return a posts list.' );
+		$this->assertArrayNotHasKey( 'total', $data, 'A single post lookup should not return query totals.' );
 	}
 
 	public function test_get_single_post_by_slug(): void {
@@ -270,10 +270,10 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $post_id, $data['id'] );
-		$this->assertSame( 'rest-content-slug', $data['slug'] );
-		$this->assertArrayNotHasKey( 'posts', $data );
+		$this->assertSame( 200, $response->get_status(), 'The slug lookup should succeed.' );
+		$this->assertSame( $post_id, $data['id'], 'The slug lookup should return the matching post.' );
+		$this->assertSame( 'rest-content-slug', $data['slug'], 'The slug lookup should return the post slug.' );
+		$this->assertArrayNotHasKey( 'posts', $data, 'A slug lookup should not return a posts list.' );
 	}
 
 	public function test_wrong_http_method_returns_405(): void {
@@ -283,8 +283,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertSame( 405, $response->get_status() );
-		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'] );
+		$this->assertSame( 405, $response->get_status(), 'A POST request to the read-only ability should be rejected.' );
+		$this->assertSame( 'rest_ability_invalid_method', $response->get_data()['code'], 'The error should identify the invalid HTTP method.' );
 	}
 
 	public function test_pagination_returns_totals_in_body(): void {
@@ -301,10 +301,10 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertCount( 2, $data['posts'] );
-		$this->assertGreaterThanOrEqual( 3, $data['total'] );
-		$this->assertSame( (int) ceil( $data['total'] / 2 ), $data['total_pages'] );
+		$this->assertSame( 200, $response->get_status(), 'The paginated query should succeed.' );
+		$this->assertCount( 2, $data['posts'], 'The first page should be limited to per_page posts.' );
+		$this->assertGreaterThanOrEqual( 3, $data['total'], 'The total should count posts across all pages.' );
+		$this->assertSame( (int) ceil( $data['total'] / 2 ), $data['total_pages'], 'The total pages should match the total and per_page.' );
 	}
 
 	public function test_out_of_range_page_returns_400(): void {
@@ -320,7 +320,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status() );
-		$this->assertSame( 'content_invalid_page_number', $response->get_data()['code'] );
+		$this->assertSame( 400, $response->get_status(), 'Requesting a page past the last one should return a 400 error.' );
+		$this->assertSame( 'content_invalid_page_number', $response->get_data()['code'], 'The error should identify the invalid page number.' );
 	}
 }
