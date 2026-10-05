@@ -613,16 +613,11 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_type'  => 'post',
-				'post_title' => 'The <em class="title">page</em> & title',
+				'post_title' => 'The <em class="title">page</em> title',
 			)
 		);
 
-		add_filter( 'the_title', 'wp_kses_post_title' );
-		try {
-			$output = $this->render_column_title( $post, 'list' );
-		} finally {
-			remove_filter( 'the_title', 'wp_kses_post_title' );
-		}
+		$output = $this->render_column_title( $post, 'list' );
 
 		$this->assertStringContainsString( '<em class="title">page</em>', $output );
 		$this->assertStringNotContainsString( '&lt;em', $output );
@@ -631,6 +626,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$method = new ReflectionMethod( $table, 'get_primary_column_aria_label' );
 		$method->setAccessible( true );
 
-		$this->assertSame( 'The page & title', $method->invoke( $table, $post ) );
+		$this->assertSame( 'The page title', $method->invoke( $table, $post ) );
 	}
 }

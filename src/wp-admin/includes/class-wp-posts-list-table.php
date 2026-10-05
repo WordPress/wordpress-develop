@@ -1141,7 +1141,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 			return __( 'no title' );
 		}
 
-		$title = wp_strip_all_tags( wp_kses_post_title( $item->post_title ) );
+		// Keep screen-reader labels as plain text, matching media list table behavior.
+		$title = wp_strip_all_tags( $item->post_title );
+		$title = html_entity_decode( $title, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$title = trim( $title );
 
 		return '' !== $title ? $title : __( 'no title' );
 	}
