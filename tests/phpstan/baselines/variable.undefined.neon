@@ -134,11 +134,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Variable \$stat might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Variable \$type might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1

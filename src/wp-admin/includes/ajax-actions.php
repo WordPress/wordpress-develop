@@ -2323,6 +2323,10 @@ function wp_ajax_find_posts() {
 			case 'draft':
 				$stat = __( 'Draft' );
 				break;
+			default:
+				$post_status_object = get_post_status_object( $post->post_status );
+				$stat               = $post_status_object ? $post_status_object->label : '';
+				break;
 		}
 
 		if ( '0000-00-00 00:00:00' === $post->post_date ) {
