@@ -18,6 +18,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 		// Ensure no legacy / failed tests detritus.
 		$folder = get_temp_dir() . 'wordpress-gsoc-flyer*.*';
@@ -25,6 +26,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
+	}
+
+	public function tear_down() {
+		if ( ! in_array( 'https', stream_get_wrappers(), true ) ) {
+			stream_wrapper_restore( 'https' );
+		}
+		WP_Test_Stream::$data = array();
+
+		parent::tear_down();
 	}
 
 	/**
@@ -667,25 +677,28 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_crop_image
-	 * @group external-http
 	 * @requires function imagejpeg
-	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream' );
+		WP_Test_Stream::$data['s.w.org']['/screenshots/3.9/dashboard.png'] = file_get_contents( DIR_TESTDATA . '/images/canola.jpg' );
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		try {
+			$file = wp_crop_image(
+				'https://s.w.org/screenshots/3.9/dashboard.png',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100,
+				false,
+				DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+			WP_Test_Stream::$data = array();
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
@@ -718,18 +731,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_crop_image
-	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
-		$file = wp_crop_image(
-			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream' );
+
+		try {
+			$file = wp_crop_image(
+				'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+		}
+
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
