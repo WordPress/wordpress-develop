@@ -275,7 +275,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 
 	$current_user = wp_get_current_user();
 	$display_name = $current_user->display_name;
-	if ( '' === $display_name ) {
+	if ( empty( $display_name ) ) {
 		$display_name = $current_user->user_login;
 	}
 
@@ -326,7 +326,7 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	);
 
 	$display_name = $current_user->display_name;
-	if ( '' === $display_name ) {
+	if ( empty( $display_name ) ) {
 		$display_name = $current_user->user_login;
 	}
 
