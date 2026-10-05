@@ -806,7 +806,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$posts = $wp_query->posts;
 		}
 
-		add_filter( 'the_title', 'esc_html' );
+		add_filter( 'the_title', 'wp_kses_post_title' );
 
 		if ( $this->hierarchical_display ) {
 			$this->_display_rows_hierarchical( $posts, $this->get_pagenum(), $per_page );
@@ -1135,7 +1135,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return string The post title, or 'no title' if no title.
 	 */
 	protected function get_primary_column_aria_label( $item ) {
-		return ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
+		if ( empty( $item->post_title ) ) {
+			return __( 'no title' );
+		}
+
+		$title = wp_strip_all_tags( $item->post_title );
+
+		return '' !== $title ? $title : __( 'no title' );
 	}
 
 	/**
@@ -1255,7 +1261,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		if ( isset( $parent_name ) ) {
 			$post_type_object = get_post_type_object( $post->post_type );
-			echo ' | ' . $post_type_object->labels->parent_item_colon . ' ' . esc_html( $parent_name );
+			echo ' | ' . $post_type_object->labels->parent_item_colon . ' ' . wp_kses_post_title( $parent_name );
 		}
 
 		echo "</strong>\n";
@@ -1579,7 +1585,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
-		$title            = _draft_or_post_title();
+		$title            = wp_strip_all_tags( _draft_or_post_title() );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$actions['edit'] = sprintf(

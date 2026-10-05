@@ -653,7 +653,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					'<br /><a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
 					$post->ID,
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $title ) ),
+					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), wp_strip_all_tags( $title ) ) ),
 					__( 'Attach' )
 				);
 			}
@@ -759,7 +759,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$this->comment_pending_count = get_pending_comments_num( $post_ids );
 
-		add_filter( 'the_title', 'esc_html' );
+		add_filter( 'the_title', 'wp_kses_post_title' );
 
 		while ( have_posts() ) :
 			the_post();
@@ -800,7 +800,8 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array<string, string> An array of row actions.
 	 */
 	private function _get_row_actions( $post, $att_title ) {
-		$actions = array();
+		$att_title = wp_strip_all_tags( $att_title );
+		$actions   = array();
 
 		if ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) ) {
 			$actions['edit'] = sprintf(

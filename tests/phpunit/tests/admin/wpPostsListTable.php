@@ -596,4 +596,43 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * Formatting tags in a post title are rendered, and unsafe markup is removed.
+	 *
+	 * @ticket 66244
+	 *
+	 * @covers ::wp_kses_post_title
+	 * @covers ::_draft_or_post_title
+	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::column_title
+	 * @covers WP_Posts_List_Table::get_primary_column_aria_label
+	 */
+	public function test_post_title_formatting_tags_are_rendered_in_list_table() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type'  => 'post',
+				'post_title' => 'The <em class="title">page</em> & title <script>alert(1)</script>',
+			)
+		);
+
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+		$table->set_hierarchical_display( false );
+
+		ob_start();
+		$table->display_rows( array( $post ) );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( '<em class="title">page</em>', $output );
+		$this->assertStringNotContainsString( '&lt;em', $output );
+		$this->assertStringNotContainsString( '<script>', $output );
+		$this->assertStringNotContainsString( 'alert(1)', $output );
+		$this->assertStringContainsString( 'The page &amp; title', $output );
+		$this->assertStringContainsString(
+			'aria-label="' . esc_attr( 'The page & title' ),
+			$output
+		);
+	}
 }

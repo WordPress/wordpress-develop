@@ -2107,6 +2107,7 @@ function the_post_password() {
  * returned.
  *
  * @since 2.7.0
+ * @since 7.2.0 Permits a subset of formatting tags instead of encoding all HTML.
  *
  * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
  * @return string The post title if set.
@@ -2116,7 +2117,7 @@ function _draft_or_post_title( $post = 0 ) {
 	if ( empty( $title ) ) {
 		$title = __( '(no title)' );
 	}
-	return esc_html( $title );
+	return wp_kses_post_title( $title );
 }
 
 /**

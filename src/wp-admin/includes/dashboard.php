@@ -689,8 +689,8 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 			'<div class="draft-title"><a href="%s" aria-label="%s">%s</a><time datetime="%s">%s</time></div>',
 			esc_url( $url ),
 			/* translators: %s: Post title. */
-			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $title ) ),
-			esc_html( $title ),
+			esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), wp_strip_all_tags( $title ) ) ),
+			$title,
 			get_the_time( 'c', $draft ),
 			get_the_time( __( 'F j, Y' ), $draft )
 		);
@@ -1057,7 +1057,7 @@ function wp_dashboard_recent_posts( $args ) {
 				sprintf( _x( '%1$s, %2$s', 'dashboard' ), $date, get_the_time() ),
 				$recent_post_link,
 				/* translators: %s: Post title. */
-				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
+				esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), wp_strip_all_tags( $draft_or_post_title ) ) ),
 				$draft_or_post_title
 			);
 		}
