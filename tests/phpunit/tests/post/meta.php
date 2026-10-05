@@ -171,6 +171,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$mobj->post_id    = self::$post_id;
 		$mobj->meta_key   = 'get_post_meta_by_key';
 		$mobj->meta_value = 'get_post_meta_by_key_value';
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $mobj, get_post_meta_by_id( $mid ) );
 		delete_metadata_by_mid( 'post', $mid );
 
@@ -178,6 +179,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertIsInt( $mid );
 		$mobj->meta_id    = $mid;
 		$mobj->meta_value = array( 'foo', 'bar' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $mobj, get_post_meta_by_id( $mid ) );
 		delete_metadata_by_mid( 'post', $mid );
 	}
