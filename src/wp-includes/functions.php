@@ -2955,10 +2955,10 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *                               Not set if there has been an error.
  *     @type string|false $error Error message, if there has been an error.
  * }
- * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
- *                |array{ error: string, ... }
  *
  * @phpstan-param null $deprecated
+ * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
+ *                |array{ error: string, ... }
  */
 function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	if ( ! empty( $deprecated ) ) {
