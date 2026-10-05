@@ -81,6 +81,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**
 	 * The function should allow only supported formatting in the privacy policy page title.
 	 *
+	 * Supported tags may include a class attribute; other tags and attributes are stripped.
+	 *
 	 * @ticket 64748
 	 */
 	public function test_get_the_privacy_policy_link_should_allow_supported_title_markup() {
@@ -89,7 +91,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		// Run after core `the_title` formatting filters (e.g. wptexturize).
 		$filter = static function ( $title, $post_id ) use ( $privacy_policy_page_id ) {
 			if ( (int) $privacy_policy_page_id === (int) $post_id ) {
-				return '<strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>';
+				return '<strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> <script>alert("test")</script>';
 			}
 
 			return $title;
@@ -104,7 +106,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		remove_filter( 'the_title', $filter, 20 );
 
 		$this->assertStringEndsWith(
-			'><strong>Privacy</strong> <em>Policy</em> <b>Bold</b> <i>Italic</i> <span class="page-title">Page</span> alert("test")</a>',
+			'><strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> alert("test")</a>',
 			$actual_link
 		);
 	}
