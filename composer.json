@@ -58,6 +58,11 @@
 	},
 	"config": {
 		"audit": { "ignore": [ "GHSA-hmqg-cxww-wqhq", "PKSA-rdkp-vv9z-mjkg" ] },
+		"policy": {
+			"advisories": {
+				"ignore-id": [ "GHSA-hmqg-cxww-wqhq", "PKSA-rdkp-vv9z-mjkg" ]
+			}
+		},
 		"allow-plugins": {
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		},
