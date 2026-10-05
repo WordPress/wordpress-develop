@@ -707,7 +707,7 @@ final class WP_Content_Abilities {
 		$count_args['posts_per_page']         = 1;
 		$count_args['update_post_meta_cache'] = false;
 		$count_args['update_post_term_cache'] = false;
-		unset( $count_args['paged'] );
+		unset( $count_args['paged'], $count_args['no_found_rows'] );
 
 		$count_query = new WP_Query( $count_args );
 
