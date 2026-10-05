@@ -43,7 +43,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Sets up users and registers the core abilities.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
@@ -70,7 +70,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * Cleans up registered abilities and categories.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
 		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );

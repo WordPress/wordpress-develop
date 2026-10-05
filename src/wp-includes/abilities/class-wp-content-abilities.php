@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 declare( strict_types = 1 );
@@ -26,7 +26,7 @@ declare( strict_types = 1 );
  * not part of the public API. It may be changed or removed at any time without notice.
  * Do not use it directly or rely on its existence.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @access private
  */
@@ -35,7 +35,7 @@ final class WP_Content_Abilities {
 	/**
 	 * The ability category used for content abilities.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var string
 	 */
 	private const CATEGORY = 'content';
@@ -43,7 +43,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Default number of posts returned per page in query mode.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private const DEFAULT_PER_PAGE = 10;
@@ -51,7 +51,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Maximum number of posts returned per page in query mode.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private const MAX_PER_PAGE = 100;
@@ -61,7 +61,7 @@ final class WP_Content_Abilities {
 	 *
 	 * Requests that explicitly include any of these fields require edit access.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var list<string>
 	 */
 	private array $edit_fields = array(
@@ -76,7 +76,7 @@ final class WP_Content_Abilities {
 	 * Requests that include any of these prime the post meta and term caches for the
 	 * page. Other rendered fields, such as the title, do not need that cache priming.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var list<string>
 	 */
 	private array $cache_priming_fields = array(
@@ -87,7 +87,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Cached post field definitions, keyed by field name in output order.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array<string, mixed>|null
 	 */
 	private ?array $post_properties = null;
@@ -95,7 +95,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Default fields returned when the caller does not request a field subset.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var list<string>
 	 */
 	private array $default_fields = array(
@@ -112,7 +112,7 @@ final class WP_Content_Abilities {
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public function register(): void {
 		$this->register_content_query();
@@ -128,7 +128,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Registers the read-only `core/content-query` ability.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	private function register_content_query(): void {
 		/*
@@ -182,7 +182,7 @@ final class WP_Content_Abilities {
 	 * permissions, since individual rows are unknown until the query runs. Requests
 	 * that explicitly ask for edit-context fields require edit access before execution.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return bool True if the request may proceed, false otherwise.
@@ -237,7 +237,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Casts a raw input value to a non-negative integer.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $value The raw input value.
 	 * @return int The value as a non-negative integer, or 0 when not scalar.
@@ -256,7 +256,7 @@ final class WP_Content_Abilities {
 	 * Accepts native integers and unsigned integer strings, mirroring how the JSON
 	 * Schema `integer` type and the query-string transport respectively deliver them.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $value The raw input value.
 	 * @param int   $min   The smallest acceptable value.
@@ -282,7 +282,7 @@ final class WP_Content_Abilities {
 	 * The capability map is a plain object with untyped properties, so guard the
 	 * lookup and fail closed with `do_not_allow` when the name cannot be resolved.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post_Type $post_type_object The post type object.
 	 * @param string        $capability       The capability key, e.g. 'edit_posts'.
@@ -301,7 +301,7 @@ final class WP_Content_Abilities {
 	 * same way schema validation did (wp_parse_list) so they are honored regardless of
 	 * transport, until core sanitizes ability input itself.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @param string       $key   The input key holding the list.
@@ -322,7 +322,7 @@ final class WP_Content_Abilities {
 	 * Omitted fields are not treated as edit-intent: default responses include the
 	 * fields visible for each individual post.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @return bool True if edit-context fields were explicitly requested.
@@ -338,7 +338,7 @@ final class WP_Content_Abilities {
 	 * requesting non-default statuses requires edit access, except `private`, which
 	 * may be queried by users who can read private posts.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed>  $input            The ability input.
 	 * @param \WP_Post_Type $post_type_object The post type object.
@@ -372,7 +372,7 @@ final class WP_Content_Abilities {
 	 * Mirrors the REST posts controller's read permission, while keeping this ability
 	 * authenticated-only via {@see self::check_permission()}.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post         $post             Post object.
 	 * @param array<int, true> $checked_post_ids Post IDs already checked while walking inherited parents.
@@ -459,7 +459,7 @@ final class WP_Content_Abilities {
 	 * A post is returned as an empty object when its field projection is empty, so callers
 	 * must not assume array access on a post. See {@see self::to_output_post()}.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|\stdClass|\WP_Error A single post, a `posts` list with totals in query mode, or a WP_Error.
@@ -659,7 +659,7 @@ final class WP_Content_Abilities {
 	 * them in one call rather than silently losing the ones past the default page size.
 	 * The input schema caps `include` at {@see self::MAX_PER_PAGE} so it always fits.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input       The ability input.
 	 * @param list<int>    $include_ids Normalized included post IDs; empty when not requested.
@@ -684,7 +684,7 @@ final class WP_Content_Abilities {
 	 * minimal unpaged query so the caller can distinguish an out-of-range page from
 	 * an empty result set, matching the REST posts controller behavior.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Query    $query      The executed query.
 	 * @param array<mixed> $query_args The arguments used for the executed query.
@@ -713,7 +713,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Checks whether requested fields benefit from page-level cache priming.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param list<string> $fields The requested field names.
 	 * @return bool True when post meta and term caches should be primed.
@@ -733,7 +733,7 @@ final class WP_Content_Abilities {
 	 * requested fields; edit-field requests are gated afterwards on the resolved
 	 * post by {@see self::check_permission()}.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param string $post_type The post type.
 	 * @param string $slug      The post slug.
@@ -791,7 +791,7 @@ final class WP_Content_Abilities {
 	 * unregistered or re-registered with different arguments between the ability
 	 * being registered and the ability being used.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, \WP_Post_Type> Exposed post type objects keyed by name.
 	 */
@@ -808,7 +808,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Normalizes the requested statuses to a non-empty, sanitized list defaulting to publish.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @return list<string> Normalized list of post status slugs.
@@ -822,7 +822,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Normalizes query-mode included post IDs.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @return list<int> Unique positive post IDs.
@@ -845,7 +845,7 @@ final class WP_Content_Abilities {
 	 * Otherwise the requested fields are returned as-is. The input schema has already
 	 * validated them against the supported set before the ability executes.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @return list<string> List of requested field names.
@@ -864,7 +864,7 @@ final class WP_Content_Abilities {
 	 * the keys. Read-context fields are returned for readable posts; the edit-context
 	 * fields listed in {@see self::$edit_fields} additionally require edit access.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, mixed> Post field definitions.
 	 */
@@ -980,7 +980,7 @@ final class WP_Content_Abilities {
 	 * Each mode sets `additionalProperties: false`, so e.g. passing `per_page` alongside `id`
 	 * fails validation instead of being dropped. `fields` is accepted in every mode.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param list<string> $post_types Exposed post type names.
 	 * @param list<string> $statuses   Requestable post status slugs.
@@ -1105,7 +1105,7 @@ final class WP_Content_Abilities {
 	 * subset, and a field is only present when its post type supports it. Single-post
 	 * mode returns the post object directly, while query mode returns a paginated wrapper.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
@@ -1157,7 +1157,7 @@ final class WP_Content_Abilities {
 	 * case as `[]` even though it types the response as an object
 	 * (`GET /wp/v2/posts/<id>?_fields=parent` on a non-hierarchical post type).
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $formatted The formatted post data.
 	 * @return array<string, mixed>|\stdClass The post data, or an empty object when the projection is empty.
@@ -1174,7 +1174,7 @@ final class WP_Content_Abilities {
 	 * protected-post placeholders. The field projection itself is delegated to
 	 * {@see self::build_post_fields()}.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post   The post object.
 	 * @param list<string> $fields The requested field names.
@@ -1215,7 +1215,7 @@ final class WP_Content_Abilities {
 	 * are withheld for password-protected posts unless the current user can edit the post,
 	 * mirroring the REST API behavior.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post         The post object.
 	 * @param list<string> $fields       The requested field names.
@@ -1317,7 +1317,7 @@ final class WP_Content_Abilities {
 	 * other protected posts that the content filter may render. Mirrors the REST posts
 	 * controller's check_password_required().
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $required Whether the post currently requires a password.
 	 * @param mixed $post     The post being checked; a WP_Post when invoked by the core filter.
@@ -1334,7 +1334,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Returns the post title with the protected/private prefixes stripped.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post The post object.
 	 * @return string The post title.
@@ -1359,7 +1359,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Returns the raw title format, used to strip protected/private title prefixes.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The unprefixed title format.
 	 */
@@ -1375,7 +1375,7 @@ final class WP_Content_Abilities {
 	 * previous global post context. This ensures filters that rely on loop globals
 	 * render against the requested post.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post The post object.
 	 * @return string Rendered post excerpt.
@@ -1420,7 +1420,7 @@ final class WP_Content_Abilities {
 	 * Mirrors the REST posts controller by preparing post globals before applying
 	 * `the_content`, then restoring the previous global post context.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post The post object.
 	 * @return string Rendered post content.
@@ -1458,7 +1458,7 @@ final class WP_Content_Abilities {
 	/**
 	 * Formats a post date field as an ISO 8601 string in the site's timezone.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post  The post object.
 	 * @param string   $field Either 'date' or 'modified'. Default 'date'.
@@ -1479,7 +1479,7 @@ final class WP_Content_Abilities {
 	 * here because it reprojects even GMT-sourced dates into the site timezone, which
 	 * would label the returned instant with the site offset instead of UTC.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param \WP_Post $post  The post object.
 	 * @param string   $field Either 'date' or 'modified'. Default 'date'.
@@ -1510,7 +1510,7 @@ final class WP_Content_Abilities {
 	 * The columns are `NOT NULL` in core's schema, but a post object can reach this class
 	 * from a filter or an in-memory row where a date is null or a zero date.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $date The raw date column value.
 	 * @return bool True when the value is a non-empty, non-zero date string.
@@ -1532,7 +1532,7 @@ final class WP_Content_Abilities {
 	 * direct call bypasses them. Only invoke the callback through
 	 * {@see WP_Ability::execute()}, which always runs the permission callback first.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return \WP_Error The not-found error.
 	 */
