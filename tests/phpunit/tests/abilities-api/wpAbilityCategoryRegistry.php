@@ -394,7 +394,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<int, array<string>> Valid ability category slugs.
 	 */
-	public function data_valid_slug_provider(): array {
+	public static function data_valid_slug_provider(): array {
 		return array(
 			array( 'test-simple' ),
 			array( 'test-multiple-words' ),
@@ -430,7 +430,7 @@ class Tests_Abilities_API_WpAbilityCategoryRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array<int, array<string>> Invalid ability category slugs.
 	 */
-	public function data_invalid_slug_provider(): array {
+	public static function data_invalid_slug_provider(): array {
 		return array(
 			array( 'Test-Uppercase' ),
 			array( 'test_underscore' ),
