@@ -72,7 +72,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 			),
 			'a comma in a name'    => array(
 				'font_family'  => '"ACME, Sans", sans-serif',
-				'descriptor'   => '"ACME, Sans"',
+				'descriptor'   => '"ACME\\2c  Sans"',
 				'decoded_name' => 'ACME, Sans',
 			),
 			'a double quote'       => array(
@@ -214,7 +214,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$settings  = $this->get_settings_for_family( $family_id );
 
 		$this->assertSame(
-			'"ACME, Sans", serif, "serif"',
+			'"ACME\\2c  Sans", serif, "serif"',
 			$settings['typography']['fontFamilies']['theme'][0]['fontFamily'],
 			'The list should keep the generic keyword and the quoted name apart.'
 		);

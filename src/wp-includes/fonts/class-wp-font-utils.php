@@ -406,6 +406,8 @@ class WP_Font_Utils {
 	 * that HTML reads, so that the name survives HTML output and the KSES
 	 * post filters without a change. It escapes the semicolon, because
 	 * {@see safecss_filter_attr()} splits declarations at each semicolon.
+	 * It escapes the comma, because some clients split a font family list
+	 * at each comma and do not read quoted strings.
 	 *
 	 * A hexadecimal escape uses the shortest digit sequence and always ends
 	 * with one space. A leading zero is not possible, and the backslash also
@@ -421,7 +423,7 @@ class WP_Font_Utils {
 	 */
 	public static function serialize_font_family_name( $name ) {
 		return '"' . preg_replace_callback(
-			'/[\x00-\x1f\x7f"\\\\<>&;]/',
+			'/[\x00-\x1f\x7f"\\\\<>&;,]/',
 			static function ( $matches ) {
 				if ( "\0" === $matches[0] ) {
 					return "\u{FFFD}";

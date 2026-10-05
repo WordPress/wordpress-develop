@@ -115,11 +115,11 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			),
 			'comma in a name'                           => array(
 				'font_family' => '"ACME, Sans", sans-serif',
-				'expected'    => '"ACME, Sans", sans-serif',
+				'expected'    => '"ACME\\2c  Sans", sans-serif',
 			),
 			'escaped comma'                             => array(
 				'font_family' => 'ACME\\,Sans, serif',
-				'expected'    => '"ACME,Sans", serif',
+				'expected'    => '"ACME\\2c Sans", serif',
 			),
 			'ampersand'                                 => array(
 				'font_family' => '"Tom & Jerry"',
@@ -287,7 +287,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			),
 			'quoted name with a comma and a plain name' => array(
 				'font_family' => '"ACME, Sans", O\'Reilly',
-				'expected'    => '"ACME, Sans", "O\'Reilly"',
+				'expected'    => '"ACME\\2c  Sans", "O\'Reilly"',
 			),
 			'second declaration'                        => array(
 				'font_family' => '"A"; color:red',

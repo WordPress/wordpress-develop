@@ -76,7 +76,7 @@ class Tests_Fonts_WPFontFace_GenerateAndPrint extends WP_UnitTestCase {
 			'an apostrophe'           => array( "O'Reilly Sans", '"O\'Reilly Sans"' ),
 			'a quoted apostrophe'     => array( '"O\'Reilly Sans"', '"O\'Reilly Sans"' ),
 			'an escaped double quote' => array( '"O\\22 Reilly Sans"', '"O\\"Reilly Sans"' ),
-			'a comma inside a name'   => array( '"ACME, Sans", sans-serif', '"ACME, Sans"' ),
+			'a comma inside a name'   => array( '"ACME, Sans", sans-serif', '"ACME\\2c  Sans"' ),
 			'a numeric name'          => array( '"12345"', '"12345"' ),
 			'an ampersand'            => array( '"Tom \\26  Jerry"', '"Tom \\26  Jerry"' ),
 			'a percent sequence'      => array( '"Font 50%AB"', '"Font 50%AB"' ),

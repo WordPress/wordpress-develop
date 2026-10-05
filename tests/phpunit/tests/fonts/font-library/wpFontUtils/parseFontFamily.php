@@ -469,6 +469,21 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The serializer must not write a literal comma, because some clients
+	 * split a font family list at each comma.
+	 *
+	 * @ticket 63568
+	 *
+	 * @covers ::serialize_font_family_name
+	 */
+	public function test_serialize_name_escapes_comma() {
+		$css = WP_Font_Utils::serialize_font_family_name( 'ACME, Sans' );
+
+		$this->assertStringNotContainsString( ',', $css );
+		$this->assertSame( '"ACME\\2c  Sans"', $css );
+	}
+
+	/**
 	 * The descriptor must name one family.
 	 *
 	 * @ticket 63568
