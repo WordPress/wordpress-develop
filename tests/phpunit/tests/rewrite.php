@@ -31,6 +31,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$wp_rewrite->init();
 
 		update_option( 'home', $this->home_url );
+		unset( $_SERVER['HTTPS'] );
 		unset( $this->blog_id_35531 );
 		parent::tear_down();
 	}

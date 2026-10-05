@@ -1735,7 +1735,16 @@ function wp_get_l10n_php_file_data( $php_file ) {
  *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
  *                                                  instead of an empty value. Default false.
  * }
- * @return string|void HTML dropdown list of languages.
+ * @return string|void HTML dropdown list of languages. Always returned, whether or not
+ *                     'echo' is true; nothing is returned when the 'id' or 'name'
+ *                     argument is empty.
+ * @phpstan-return (
+ *     $args is array{ id: ''|'0', ... }
+ *         ? void
+ *         : ( $args is array{ name: ''|'0', ... }
+ *             ? void
+ *             : ( $args is array ? string : string|void ) )
+ * )
  */
 function wp_dropdown_languages( $args = array() ) {
 
