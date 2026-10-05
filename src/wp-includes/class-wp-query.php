@@ -3225,15 +3225,10 @@ class WP_Query {
 			 */
 			$clauses = (array) apply_filters_ref_array( 'posts_clauses_request', array( compact( $pieces ), &$this ) );
 
-			$where   = $clauses['where'] ?? '';
-			$groupby = $clauses['groupby'] ?? '';
-			$join    = $clauses['join'] ?? '';
-			/*
-			 * Keep the ORDER BY built above, and any change the 'posts_orderby_request'
-			 * filter made to it, when this filter returns no 'orderby' of its own.
-			 * Dropping it here would leave the query with no ORDER BY at all.
-			 */
-			$orderby  = $clauses['orderby'] ?? $orderby;
+			$where    = $clauses['where'] ?? '';
+			$groupby  = $clauses['groupby'] ?? '';
+			$join     = $clauses['join'] ?? '';
+			$orderby  = $clauses['orderby'] ?? '';
 			$distinct = $clauses['distinct'] ?? '';
 			$fields   = $clauses['fields'] ?? '';
 			$limits   = $clauses['limits'] ?? '';

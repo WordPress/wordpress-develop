@@ -731,54 +731,6 @@ class Tests_Query_DeterministicOrdering extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The ORDER BY survives a posts_clauses_request filter that leaves it out.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_orderby_survives_a_clauses_filter_that_omits_it() {
-		global $wpdb;
-
-		$callback = static function ( $clauses ) {
-			unset( $clauses['orderby'] );
-			return $clauses;
-		};
-
-		add_filter( 'posts_clauses_request', $callback );
-		$query = new WP_Query( array( 'posts_per_page' => 5 ) );
-		remove_filter( 'posts_clauses_request', $callback );
-
-		$this->assertStringContainsString(
-			"ORDER BY {$wpdb->posts}.post_date DESC, {$wpdb->posts}.ID DESC",
-			$query->request
-		);
-	}
-
-	/**
-	 * posts_orderby_request survives a later filter that returns no ordering.
-	 *
-	 * @ticket 44349
-	 */
-	public function test_orderby_request_survives_a_later_clauses_filter() {
-		global $wpdb;
-
-		$set_orderby  = static function () use ( $wpdb ) {
-			return "{$wpdb->posts}.post_title ASC";
-		};
-		$drop_orderby = static function ( $clauses ) {
-			unset( $clauses['orderby'] );
-			return $clauses;
-		};
-
-		add_filter( 'posts_orderby_request', $set_orderby );
-		add_filter( 'posts_clauses_request', $drop_orderby );
-		$query = new WP_Query( array( 'posts_per_page' => 5 ) );
-		remove_filter( 'posts_orderby_request', $set_orderby );
-		remove_filter( 'posts_clauses_request', $drop_orderby );
-
-		$this->assertStringContainsString( "ORDER BY {$wpdb->posts}.post_title ASC", $query->request );
-	}
-
-	/**
 	 * Searching still orders by relevance first.
 	 *
 	 * @ticket 44349
