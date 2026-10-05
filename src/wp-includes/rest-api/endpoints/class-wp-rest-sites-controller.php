@@ -615,7 +615,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $this->site_in_network( $site ) ) {
-			return new WP_Error( 'rest_unable_read_from_network', __( 'Sorry, you are not allowed to edit sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_unable_update_from_network', __( 'Sorry, you are not allowed to edit sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! $this->check_edit_permission() ) {
@@ -714,7 +714,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		if ( ! $this->site_in_network( $site ) ) {
-			return new WP_Error( 'rest_unable_read_from_network', __( 'Sorry, you are not allowed to delete sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
+			return new WP_Error( 'rest_unable_delete_from_network', __( 'Sorry, you are not allowed to delete sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( ! $this->check_delete_permission( $site ) ) {

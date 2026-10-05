@@ -2021,7 +2021,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'id', $blog_id );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		$this->assertErrorResponse( 'rest_unable_delete_from_network', $response, 403 );
 	}
 
 	/**
@@ -2098,7 +2098,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		$this->assertErrorResponse( 'rest_unable_update_from_network', $response, 403 );
 		$this->assertSame( '/elsewhere/', get_site( $blog_id )->path, 'The site should be left unchanged.' );
 	}
 
@@ -2117,7 +2117,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+		$this->assertErrorResponse( 'rest_unable_delete_from_network', $response, 403 );
 		$this->assertInstanceOf( 'WP_Site', get_site( $blog_id ), 'The site should still exist.' );
 	}
 
@@ -2197,9 +2197,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function data_permission_checks_on_another_network() {
 		return array(
-			'get'    => array( 'GET', 'get_item_permissions_check' ),
-			'update' => array( 'PUT', 'update_item_permissions_check' ),
-			'delete' => array( 'DELETE', 'delete_item_permissions_check' ),
+			'get'    => array( 'GET', 'get_item_permissions_check', 'rest_unable_read_from_network' ),
+			'update' => array( 'PUT', 'update_item_permissions_check', 'rest_unable_update_from_network' ),
+			'delete' => array( 'DELETE', 'delete_item_permissions_check', 'rest_unable_delete_from_network' ),
 		);
 	}
 
@@ -2216,8 +2216,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param string $method           HTTP method.
 	 * @param string $permission_check Permission check method name.
+	 * @param string $error_code       Expected error code.
 	 */
-	public function test_permission_checks_block_a_site_on_another_network( $method, $permission_check ) {
+	public function test_permission_checks_block_a_site_on_another_network( $method, $permission_check, $error_code ) {
 		list( , $blog_id ) = $this->create_site_on_another_network();
 		wp_set_current_user( self::$superadmin_id );
 
@@ -2227,7 +2228,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$result = $this->endpoint->$permission_check( $request );
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'rest_unable_read_from_network', $result->get_error_code() );
+		$this->assertSame( $error_code, $result->get_error_code() );
 		$this->assertSame( 403, $result->get_error_data()['status'] );
 	}
 
@@ -2273,7 +2274,14 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		update_network_option( $network_id, 'site_admins', array( $user->user_login ) );
 		wp_set_current_user( $user->ID );
 
-		foreach ( array( 'GET', 'PUT', 'PATCH', 'DELETE' ) as $method ) {
+		$error_codes = array(
+			'GET'    => 'rest_unable_read_from_network',
+			'PUT'    => 'rest_unable_update_from_network',
+			'PATCH'  => 'rest_unable_update_from_network',
+			'DELETE' => 'rest_unable_delete_from_network',
+		);
+
+		foreach ( $error_codes as $method => $error_code ) {
 			$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
 			if ( 'GET' !== $method && 'DELETE' !== $method ) {
 				$request->set_param( 'path', '/moved/' );
@@ -2281,7 +2289,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 			$response = rest_get_server()->dispatch( $request );
 
-			$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+			$this->assertErrorResponse( $error_code, $response, 403 );
 		}
 
 		$site = get_site( $blog_id );
@@ -2391,11 +2399,17 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'rest_site_in_network', '__return_false' );
 
-		foreach ( array( 'GET', 'PUT', 'DELETE' ) as $method ) {
+		$error_codes = array(
+			'GET'    => 'rest_unable_read_from_network',
+			'PUT'    => 'rest_unable_update_from_network',
+			'DELETE' => 'rest_unable_delete_from_network',
+		);
+
+		foreach ( $error_codes as $method => $error_code ) {
 			$request  = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
 			$response = rest_get_server()->dispatch( $request );
 
-			$this->assertErrorResponse( 'rest_unable_read_from_network', $response, 403 );
+			$this->assertErrorResponse( $error_code, $response, 403 );
 		}
 	}
 }
