@@ -223,6 +223,91 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that Custom CSS is not filtered as HTML for a user who can edit CSS.
+	 *
+	 * @ticket 51093
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @dataProvider data_custom_css_post_existence
+	 *
+	 * @param bool $post_exists Whether a Custom CSS post already exists.
+	 */
+	public function test_custom_css_is_not_filtered_as_html_for_user_with_edit_css( $post_exists ) {
+		$original_post = null;
+		if ( $post_exists ) {
+			$original_post = wp_update_custom_css_post( 'body { color: black; }' );
+		}
+
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$user    = get_user_by( 'id', $user_id );
+		$user->add_cap( 'import' );
+
+		add_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap_to_allow_edit_css' ), 20, 2 );
+		wp_set_current_user( $user_id );
+		add_filter( 'content_save_pre', array( $this, 'filter_custom_css_content_for_test' ), 20 );
+
+		$this->assertTrue( current_user_can( 'edit_css' ) );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+
+		$css = "body > a {\n\tcolor: #fff;\n}";
+		$this->wp_customize->set_post_value( $this->setting->id, $css );
+		$result = $this->wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
+
+		remove_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap_to_allow_edit_css' ), 20 );
+		remove_filter( 'content_save_pre', array( $this, 'filter_custom_css_content_for_test' ), 20 );
+
+		$filtered_css = str_replace( '#fff', '#000', $css );
+		$this->assertIsArray( $result );
+		$this->assertSame( $filtered_css, wp_get_custom_css() );
+
+		$post = wp_get_custom_css_post();
+		if ( $post_exists ) {
+			$this->assertSame( $original_post->ID, $post->ID );
+		}
+
+		$revisions = array_values( wp_get_post_revisions( $post ) );
+		$this->assertNotEmpty( $revisions );
+		$this->assertSame( $filtered_css, $revisions[0]->post_content );
+	}
+
+	/**
+	 * Filters Custom CSS content for the #51093 regression test.
+	 *
+	 * @param string $content Post content.
+	 * @return string Filtered post content.
+	 */
+	public function filter_custom_css_content_for_test( $content ) {
+		return str_replace( '#fff', '#000', $content );
+	}
+
+	/**
+	 * Data provider for test_custom_css_is_not_filtered_as_html_for_user_with_edit_css().
+	 *
+	 * @return array[] Test parameters.
+	 */
+	public static function data_custom_css_post_existence() {
+		return array(
+			'insert' => array( false ),
+			'update' => array( true ),
+		);
+	}
+
+	/**
+	 * Maps the edit_css capability to import for the #51093 regression test.
+	 *
+	 * @param string[] $caps Primitive capabilities required of the user.
+	 * @param string   $cap  Capability being checked.
+	 * @return string[] Primitive capabilities required of the user.
+	 */
+	public function filter_map_meta_cap_to_allow_edit_css( $caps, $cap ) {
+		if ( 'edit_css' === $cap && is_multisite() ) {
+			return array( 'import' );
+		}
+		return $caps;
+	}
+
+	/**
 	 * Test revision saving on initial save of Custom CSS.
 	 *
 	 * @ticket 39032

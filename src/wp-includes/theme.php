@@ -2141,6 +2141,16 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 		'post_content_filtered' => $data['preprocessed'],
 	);
 
+	// Custom CSS is not HTML. Prevent KSES from corrupting it during post saves.
+	$kses_filter_priorities = array();
+	foreach ( array( 'content_save_pre', 'content_filtered_save_pre' ) as $filter ) {
+		$priority = has_filter( $filter, 'wp_filter_post_kses' );
+		if ( false !== $priority ) {
+			$kses_filter_priorities[ $filter ] = $priority;
+			remove_filter( $filter, 'wp_filter_post_kses', $priority );
+		}
+	}
+
 	// Update post if it already exists, otherwise create a new one.
 	$post = wp_get_custom_css_post( $args['stylesheet'] );
 	if ( $post ) {
@@ -2160,6 +2170,10 @@ function wp_update_custom_css_post( $css, $args = array() ) {
 				wp_save_post_revision( $r );
 			}
 		}
+	}
+
+	foreach ( $kses_filter_priorities as $filter => $priority ) {
+		add_filter( $filter, 'wp_filter_post_kses', $priority );
 	}
 
 	if ( is_wp_error( $r ) ) {
