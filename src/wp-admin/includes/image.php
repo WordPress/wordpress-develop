@@ -703,7 +703,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				 * Ensure the PDF preview image does not overwrite any JPEG images that already exist.
 				 */
 				$dirname      = dirname( $file ) . '/';
-				$extension          = '.' . pathinfo( $file, PATHINFO_EXTENSION );
+				$extension    = '.' . pathinfo( $file, PATHINFO_EXTENSION );
 				$preview_file = $dirname . wp_unique_filename( $dirname, wp_basename( $file, $extension ) . '-pdf.jpg' );
 
 				$uploaded = $editor->save( $preview_file, 'image/jpeg' );

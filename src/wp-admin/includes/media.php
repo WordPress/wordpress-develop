@@ -314,13 +314,13 @@ function media_handle_upload( $file_id, $post_id, $post_data = array(), $overrid
 	$extension = pathinfo( $name, PATHINFO_EXTENSION );
 	$name      = wp_basename( $name, ".$extension" );
 
-	$url       = $file['url'];
-	$type      = $file['type'];
-	$file      = $file['file'];
-	$title     = sanitize_text_field( $name );
-	$content   = '';
-	$excerpt   = '';
-	$alt       = '';
+	$url     = $file['url'];
+	$type    = $file['type'];
+	$file    = $file['file'];
+	$title   = sanitize_text_field( $name );
+	$content = '';
+	$excerpt = '';
+	$alt     = '';
 
 	if ( preg_match( '#^audio#', $type ) ) {
 		$meta = wp_read_audio_metadata( $file );
@@ -953,7 +953,7 @@ function wp_media_upload_handler() {
 				$html = "<a href='" . esc_url( $src ) . "'>$title</a>";
 			}
 
-			$type = 'file';
+			$type      = 'file';
 			$extension = preg_replace( '/^.+?\.([^.]+)$/', '$1', $src );
 
 			if ( $extension ) {
