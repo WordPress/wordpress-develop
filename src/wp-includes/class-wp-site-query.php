@@ -265,6 +265,12 @@ class WP_Site_Query {
 	 * @param string|array $query Array or URL query string of parameters.
 	 * @return WP_Site[]|int[]|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                             or the number of sites when 'count' is passed as a query var.
+	 *
+	 * @phpstan-return (
+	 *     $query is array{ count: true, ... } ? int : (
+	 *         $query is array{ fields: 'ids', ... } ? int[] : array<int, WP_Site>
+	 *     )
+	 * )
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -674,12 +680,12 @@ class WP_Site_Query {
 		 */
 		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
 
-		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
-		$where   = isset( $clauses['where'] ) ? $clauses['where'] : '';
-		$orderby = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-		$limits  = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
-		$groupby = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$fields  = $clauses['fields'] ?? '';
+		$join    = $clauses['join'] ?? '';
+		$where   = $clauses['where'] ?? '';
+		$orderby = $clauses['orderby'] ?? '';
+		$limits  = $clauses['limits'] ?? '';
+		$groupby = $clauses['groupby'] ?? '';
 
 		if ( $where ) {
 			$where = 'WHERE ' . $where;

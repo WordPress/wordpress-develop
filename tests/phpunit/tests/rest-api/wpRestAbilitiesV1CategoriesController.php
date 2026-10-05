@@ -6,7 +6,7 @@
  * @covers WP_REST_Abilities_V1_Categories_Controller
  *
  * @group abilities-api
- * @group rest-api
+ * @group restapi
  */
 class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCase {
 
@@ -145,7 +145,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -168,12 +168,12 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'test-data-retrieval', $data['slug'] );
-		$this->assertEquals( 'Data Retrieval', $data['label'] );
-		$this->assertEquals( 'Abilities that retrieve and return data from the WordPress site.', $data['description'] );
+		$this->assertSame( 'test-data-retrieval', $data['slug'] );
+		$this->assertSame( 'Data Retrieval', $data['label'] );
+		$this->assertSame( 'Abilities that retrieve and return data from the WordPress site.', $data['description'] );
 		$this->assertArrayHasKey( 'meta', $data );
 	}
 
@@ -186,13 +186,13 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-communication' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'test-communication', $data['slug'] );
+		$this->assertSame( 'test-communication', $data['slug'] );
 		$this->assertArrayHasKey( 'meta', $data );
 		$this->assertIsArray( $data['meta'] );
-		$this->assertEquals( 'high', $data['meta']['priority'] );
+		$this->assertSame( 'high', $data['meta']['priority'] );
 	}
 
 	/**
@@ -206,31 +206,28 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$response = $this->server->dispatch( $request );
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
-		$this->assertEquals( 'test-data-retrieval', $data['slug'] );
-		$this->assertEquals( 'Data Retrieval', $data['label'] );
+		$this->assertSame( 'test-data-retrieval', $data['slug'] );
+		$this->assertSame( 'Data Retrieval', $data['label'] );
 	}
 
 	/**
 	 * Test getting a non-existent ability category returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/non-existent' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( 'rest_ability_category_not_found', $data['code'] );
+		$this->assertSame( 'rest_ability_category_not_found', $data['code'] );
 	}
 
 	/**
@@ -244,7 +241,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -258,7 +255,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -271,15 +268,15 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request->set_param( 'per_page', 10 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_categories = count( wp_get_ability_categories() );
-		$this->assertEquals( $total_categories, (int) $headers['X-WP-Total'] );
-		$this->assertEquals( ceil( $total_categories / 10 ), (int) $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_categories, $headers['X-WP-Total'] );
+		$this->assertSame( (string) ceil( $total_categories / 10 ), $headers['X-WP-TotalPages'] );
 	}
 
 	/**
@@ -352,7 +349,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$request->set_param( 'page', 2 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 5, $data );
 
@@ -424,8 +421,8 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'schema', $data );
 		$schema = $data['schema'];
 
-		$this->assertEquals( 'ability-category', $schema['title'] );
-		$this->assertEquals( 'object', $schema['type'] );
+		$this->assertSame( 'ability-category', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'properties', $schema );
 
 		$properties = $schema['properties'];
@@ -438,7 +435,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'meta', $properties );
 
 		$slug_property = $properties['slug'];
-		$this->assertEquals( 'string', $slug_property['type'] );
+		$this->assertSame( 'string', $slug_property['type'] );
 		$this->assertTrue( $slug_property['readonly'] );
 	}
 
@@ -450,7 +447,7 @@ class Tests_REST_API_WpRestAbilitiesV1CategoriesController extends WP_UnitTestCa
 	public function test_ability_category_slug_with_valid_format(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/categories/test-data-retrieval' );
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**

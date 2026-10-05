@@ -22,7 +22,7 @@ wp_enqueue_script( 'wp-a11y' );
 if ( isset( $_GET['action'] ) ) {
 	$plugin = isset( $_REQUEST['plugin'] ) ? trim( $_REQUEST['plugin'] ) : '';
 	$theme  = isset( $_REQUEST['theme'] ) ? urldecode( $_REQUEST['theme'] ) : '';
-	$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+	$action = $_REQUEST['action'] ?? '';
 
 	if ( 'update-selected' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
@@ -87,7 +87,7 @@ if ( isset( $_GET['action'] ) ) {
 			wp_redirect( admin_url( 'update.php?action=activate-plugin&success=true&plugin=' . urlencode( $plugin ) . '&_wpnonce=' . $_GET['_wpnonce'] ) );
 			die();
 		}
-		iframe_header( __( 'Plugin Reactivation' ), true );
+		iframe_header( __( 'Plugin Reactivation' ) );
 		if ( isset( $_GET['success'] ) ) {
 			echo '<p>' . __( 'Plugin reactivated successfully.' ) . '</p>';
 		}

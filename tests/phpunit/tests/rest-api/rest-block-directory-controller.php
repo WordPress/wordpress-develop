@@ -129,31 +129,63 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block directory has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-directory/guidepost' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block directory search is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/block-directory/search' );
+		$request->set_param( 'term', 'block' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block directory has no item route; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/block-directory/guidepost' );
+		$request->set_param( 'title', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block directory has no item route; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/block-directory/guidepost' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -273,7 +305,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		add_filter(
 			'pre_http_request',
 			static function ( $response, $parsed_args, $url ) use ( $blocked_host ) {
-				if ( @parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
+				if ( wp_parse_url( $url, PHP_URL_HOST ) === $blocked_host ) {
 					return new WP_Error( 'plugins_api_failed', "An expected error occurred connecting to $blocked_host because of a unit test", "cURL error 7: Failed to connect to $blocked_host port 80: Connection refused" );
 
 				}

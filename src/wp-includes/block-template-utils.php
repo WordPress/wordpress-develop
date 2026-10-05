@@ -19,6 +19,9 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_SIDEBAR' ) ) {
 if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
 	define( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED', 'uncategorized' );
 }
+if ( ! defined( 'WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY' ) ) {
+	define( 'WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY', 'navigation-overlay' );
+}
 
 /**
  * For backward compatibility reasons,
@@ -28,7 +31,6 @@ if ( ! defined( 'WP_TEMPLATE_PART_AREA_UNCATEGORIZED' ) ) {
  * @since 5.9.0
  *
  * @param string $theme_stylesheet The stylesheet. Default is to leverage the main theme root.
- *
  * @return string[] {
  *     Folder names used by block themes.
  *
@@ -95,6 +97,15 @@ function get_allowed_block_template_part_areas() {
 			),
 			'icon'        => 'footer',
 			'area_tag'    => 'footer',
+		),
+		array(
+			'area'        => WP_TEMPLATE_PART_AREA_NAVIGATION_OVERLAY,
+			'label'       => _x( 'Navigation Overlay', 'template part area' ),
+			'description' => __(
+				'The Navigation Overlay template defines an overlay area that typically contains navigation links and can be toggled open and closed.'
+			),
+			'icon'        => 'navigation-overlay',
+			'area_tag'    => 'div',
 		),
 	);
 
@@ -308,8 +319,8 @@ function _get_block_templates_paths( $base_directory ) {
  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *     Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
- *     null otherwise.
+ *     Array with template metadata, or null if `$template_type` is neither 'wp_template' nor
+ *     'wp_template_part', or if the theme has no template file for `$slug`.
  *
  *     @type string   $slug      Template slug.
  *     @type string   $path      Template file path.
@@ -331,11 +342,22 @@ function _get_block_template_file( $template_type, $slug ) {
 	);
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths = get_block_theme_folders( $theme_slug );
-		$file_path           = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
-		if ( file_exists( $file_path ) ) {
+		$template_dir        = $theme_dir . '/' . $template_base_paths[ $template_type ];
+		$file_path           = $template_dir . '/' . $slug . '.html';
+		$template_file       = realpath( $file_path );
+		$template_root       = realpath( $template_dir );
+
+		if (
+			false !== $template_file &&
+			false !== $template_root &&
+			str_starts_with(
+				wp_normalize_path( $template_file ),
+				trailingslashit( wp_normalize_path( $template_root ) )
+			)
+		) {
 			$new_template_item = array(
 				'slug'  => $slug,
-				'path'  => $file_path,
+				'path'  => $template_file,
 				'theme' => $theme_slug,
 				'type'  => $template_type,
 			);
@@ -370,6 +392,10 @@ function _get_block_template_file( $template_type, $slug ) {
  * }
  *
  * @return array|null Template files on success, null if `$template_type` is not matched.
+ *
+ * @phpstan-return (
+ *     $template_type is 'wp_template'|'wp_template_part' ? list<array<array-key, mixed>> : null
+ * )
  */
 function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
@@ -382,10 +408,10 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 	}
 
 	// Prepare metadata from $query.
-	$slugs_to_include = isset( $query['slug__in'] ) ? $query['slug__in'] : array();
-	$slugs_to_skip    = isset( $query['slug__not_in'] ) ? $query['slug__not_in'] : array();
-	$area             = isset( $query['area'] ) ? $query['area'] : null;
-	$post_type        = isset( $query['post_type'] ) ? $query['post_type'] : '';
+	$slugs_to_include = $query['slug__in'] ?? array();
+	$slugs_to_skip    = $query['slug__not_in'] ?? array();
+	$area             = $query['area'] ?? null;
+	$post_type        = $query['post_type'] ?? '';
 
 	$stylesheet = get_stylesheet();
 	$template   = get_template();
@@ -404,8 +430,8 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 			$template_base_path = $template_base_paths[ $template_type ];
 			$template_slug      = substr(
 				$template_file,
-				// Starting position of slug.
-				strpos( $template_file, $template_base_path . DIRECTORY_SEPARATOR ) + 1 + strlen( $template_base_path ),
+				// Starting position of the slug - the theme directory and the template base path.
+				strlen( $theme_dir . DIRECTORY_SEPARATOR . $template_base_path . DIRECTORY_SEPARATOR ),
 				// Subtract ending '.html'.
 				-5
 			);
@@ -448,7 +474,7 @@ function _get_block_templates_files( $template_type, $query = array() ) {
 
 				if (
 					! $post_type ||
-					( $post_type && isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
+					( isset( $candidate['postTypes'] ) && in_array( $post_type, $candidate['postTypes'], true ) )
 				) {
 					$template_files[ $template_slug ] = $candidate;
 				}
@@ -583,6 +609,7 @@ function _remove_theme_attribute_from_template_part_block( &$block ) {
  *
  * @since 5.9.0
  * @since 6.3.0 Added `modified` property to template objects.
+ * @since 7.1.0 Added `date` property to template objects.
  * @access private
  *
  * @param array  $template_file Theme file.
@@ -605,6 +632,7 @@ function _build_block_template_result_from_file( $template_file, $template_type 
 	$template->has_theme_file = true;
 	$template->is_custom      = true;
 	$template->modified       = null;
+	$template->date           = null;
 
 	if ( 'wp_template' === $template_type ) {
 		$registered_template = WP_Block_Templates_Registry::get_instance()->get_by_slug( $template_file['slug'] );
@@ -716,7 +744,8 @@ function _wp_build_title_and_description_for_single_post_type_block_template( $p
 	);
 
 	$args = array(
-		'title' => $post_title,
+		'title'          => $post_title,
+		'posts_per_page' => 2,
 	);
 	$args = wp_parse_args( $args, $default_args );
 
@@ -855,6 +884,7 @@ function _build_block_template_object_from_post_object( $post, $terms = array(),
 	$template->is_custom      = empty( $meta['is_wp_suggestion'] );
 	$template->author         = $post->post_author;
 	$template->modified       = $post->post_modified;
+	$template->date           = $post->post_date;
 
 	if ( 'wp_template' === $post->post_type && $has_theme_file && isset( $template_file['postTypes'] ) ) {
 		$template->post_types = $template_file['postTypes'];
@@ -1074,46 +1104,6 @@ function _build_block_template_result_from_post( $post ) {
 	return $template;
 }
 
-function get_registered_block_templates( $query ) {
-	$template_files = _get_block_templates_files( 'wp_template', $query );
-	$query_result   = array();
-
-	// _get_block_templates_files seems broken, it does not obey the query.
-	if ( isset( $query['slug__in'] ) && is_array( $query['slug__in'] ) ) {
-		$template_files = array_filter(
-			$template_files,
-			function ( $template_file ) use ( $query ) {
-				return in_array( $template_file['slug'], $query['slug__in'], true );
-			}
-		);
-	}
-
-	foreach ( $template_files as $template_file ) {
-		$query_result[] = _build_block_template_result_from_file( $template_file, 'wp_template' );
-	}
-
-	// Add templates registered through the template registry. Filtering out the
-	// ones which have a theme file.
-	$registered_templates          = WP_Block_Templates_Registry::get_instance()->get_by_query( $query );
-	$matching_registered_templates = array_filter(
-		$registered_templates,
-		function ( $registered_template ) use ( $template_files ) {
-			foreach ( $template_files as $template_file ) {
-				if ( $template_file['slug'] === $registered_template->slug ) {
-					return false;
-				}
-			}
-			return true;
-		}
-	);
-
-	$query_result = array_merge( $query_result, $matching_registered_templates );
-
-	// Templates added by PHP filter also count as registered templates.
-	/** This filter is documented in wp-includes/block-template-utils.php */
-	return apply_filters( 'get_block_templates', $query_result, $query, 'wp_template' );
-}
-
 /**
  * Retrieves a list of unified template objects based on a query.
  *
@@ -1140,7 +1130,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *
 	 * @param WP_Block_Template[]|null $block_templates Return an array of block templates to short-circuit the default query,
 	 *                                                  or null to allow WP to run its normal queries.
-	 * @param array  $query {
+	 * @param array                    $query {
 	 *     Arguments to retrieve templates. All arguments are optional.
 	 *
 	 *     @type string[] $slug__in  List of slugs to include.
@@ -1148,14 +1138,14 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *     @type string   $area      A 'wp_template_part_area' taxonomy value to filter by (for 'wp_template_part' template type only).
 	 *     @type string   $post_type Post type to get the templates for.
 	 * }
-	 * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
+	 * @param string                   $template_type   Template type. Either 'wp_template' or 'wp_template_part'.
 	 */
 	$templates = apply_filters( 'pre_get_block_templates', null, $query, $template_type );
 	if ( ! is_null( $templates ) ) {
 		return $templates;
 	}
 
-	$post_type     = isset( $query['post_type'] ) ? $query['post_type'] : '';
+	$post_type     = $query['post_type'] ?? '';
 	$wp_query_args = array(
 		'post_status'         => array( 'auto-draft', 'draft', 'publish' ),
 		'post_type'           => $template_type,
@@ -1192,8 +1182,6 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		$wp_query_args['post_status'] = 'publish';
 	}
 
-	$active_templates = get_option( 'active_templates', array() );
-
 	$template_query = new WP_Query( $wp_query_args );
 	$query_result   = array();
 	foreach ( $template_query->posts as $post ) {
@@ -1215,14 +1203,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 			continue;
 		}
 
-		if ( $template->is_custom || isset( $query['wp_id'] ) ) {
-			// Custom templates don't need to be activated, leave them be.
-			// Also don't filter out templates when querying by wp_id.
-			$query_result[] = $template;
-		} elseif ( isset( $active_templates[ $template->slug ] ) && $active_templates[ $template->slug ] === $post->ID ) {
-			// Only include active templates.
-			$query_result[] = $template;
-		}
+		$query_result[] = $template;
 	}
 
 	if ( ! isset( $query['wp_id'] ) ) {
@@ -1298,7 +1279,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 	 *
 	 * @since 5.9.0
 	 *
-	 * @param WP_Block_Template[] $query_result Array of found block templates.
+	 * @param WP_Block_Template[] $query_result  Array of found block templates.
 	 * @param array               $query {
 	 *     Arguments to retrieve templates. All arguments are optional.
 	 *
@@ -1345,23 +1326,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 		return null;
 	}
 	list( $theme, $slug ) = $parts;
-
-	$active_templates = get_option( 'active_templates', array() );
-
-	if ( ! empty( $active_templates[ $slug ] ) ) {
-		if ( is_int( $active_templates[ $slug ] ) ) {
-			$post = get_post( $active_templates[ $slug ] );
-			if ( $post && 'publish' === $post->post_status ) {
-				$template = _build_block_template_result_from_post( $post );
-
-				if ( ! is_wp_error( $template ) && $theme === $template->theme ) {
-					return $template;
-				}
-			}
-		}
-	}
-
-	$wp_query_args  = array(
+	$wp_query_args        = array(
 		'post_name__in'  => array( $slug ),
 		'post_type'      => $template_type,
 		'post_status'    => array( 'auto-draft', 'draft', 'publish', 'trash' ),
@@ -1375,17 +1340,11 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 			),
 		),
 	);
-	$template_query = new WP_Query( $wp_query_args );
-	$posts          = $template_query->posts;
+	$template_query       = new WP_Query( $wp_query_args );
+	$posts                = $template_query->posts;
 
 	if ( count( $posts ) > 0 ) {
 		$template = _build_block_template_result_from_post( $posts[0] );
-
-		// Custom templates don't need to be activated, so if it's a custom
-		// template, return it.
-		if ( ! is_wp_error( $template ) && $template->is_custom ) {
-			return $template;
-		}
 
 		if ( ! is_wp_error( $template ) ) {
 			return $template;
@@ -1520,13 +1479,7 @@ function block_footer_area() {
 function wp_is_theme_directory_ignored( $path ) {
 	$directories_to_ignore = array( '.DS_Store', '.svn', '.git', '.hg', '.bzr', 'node_modules', 'vendor' );
 
-	foreach ( $directories_to_ignore as $directory ) {
-		if ( str_starts_with( $path, $directory ) ) {
-			return true;
-		}
-	}
-
-	return false;
+	return array_any( $directories_to_ignore, fn( $directory ) => str_starts_with( $path, $directory ) );
 }
 
 /**
@@ -1773,8 +1726,8 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 		return $changes;
 	}
 
-	$meta  = isset( $changes->meta_input ) ? $changes->meta_input : array();
-	$terms = isset( $changes->tax_input ) ? $changes->tax_input : array();
+	$meta  = $changes->meta_input ?? array();
+	$terms = $changes->tax_input ?? array();
 
 	if ( empty( $changes->ID ) ) {
 		// There's no post object for this template in the database for this template yet.
@@ -1801,9 +1754,15 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 	// Required for the WP_Block_Template. Update the post object with the current time.
 	$post->post_modified = current_time( 'mysql' );
 
-	// If the post_author is empty, set it to the current user.
+	/*
+	 * If the post_author is empty, set it to the current user. If it arrived as
+	 * an int (e.g. from a REST controller), normalize it to a string, since the
+	 * resulting object is passed to new WP_Post().
+	 */
 	if ( empty( $post->post_author ) ) {
-		$post->post_author = get_current_user_id();
+		$post->post_author = (string) get_current_user_id();
+	} elseif ( is_int( $post->post_author ) ) {
+		$post->post_author = (string) $post->post_author;
 	}
 
 	if ( 'wp_template_part' === $post->post_type && ! isset( $terms['wp_template_part_area'] ) ) {
@@ -1849,88 +1808,4 @@ function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated
 	}
 
 	return $changes;
-}
-
-function wp_assign_new_template_to_theme( $changes, $request ) {
-	// Do not run this for templates created through the old enpoint.
-	$template = $request['id'] ? get_block_template( $request['id'], 'wp_template' ) : null;
-	if ( $template ) {
-		return $changes;
-	}
-	if ( ! isset( $changes->tax_input ) ) {
-		$changes->tax_input = array();
-	}
-	$changes->tax_input['wp_theme'] = isset( $request['theme'] ) ? $request['theme'] : get_stylesheet();
-	// All new templates saved will receive meta so we can distinguish between
-	// templates created the old way as edits and templates created the new way.
-	if ( ! isset( $changes->meta_input ) ) {
-		$changes->meta_input = array();
-	}
-	$changes->meta_input['is_inactive_by_default'] = true;
-	return $changes;
-}
-
-function wp_maybe_activate_template( $post_id ) {
-	$post                   = get_post( $post_id );
-	$is_inactive_by_default = get_post_meta( $post_id, 'is_inactive_by_default', true );
-	if ( $is_inactive_by_default ) {
-		return;
-	}
-	$active_templates                     = get_option( 'active_templates', array() );
-	$active_templates[ $post->post_name ] = $post->ID;
-	update_option( 'active_templates', $active_templates );
-}
-
-function _wp_migrate_active_templates() {
-	// Do not run during installation when the database is not yet available.
-	if ( wp_installing() ) {
-		return;
-	}
-
-	$active_templates = get_option( 'active_templates', false );
-
-	if ( false !== $active_templates ) {
-		return;
-	}
-
-	// Query all templates in the database. See `get_block_templates`.
-	$wp_query_args = array(
-		'post_status'         => 'publish',
-		'post_type'           => 'wp_template',
-		'posts_per_page'      => -1,
-		'no_found_rows'       => true,
-		'lazy_load_term_meta' => false,
-		'tax_query'           => array(
-			array(
-				'taxonomy' => 'wp_theme',
-				'field'    => 'name',
-				'terms'    => get_stylesheet(),
-			),
-		),
-		// Only get templates that are not inactive by default. We check these
-		// meta to make sure we don't fill the option with inactive templates
-		// created after the 6.9 release when for some reason the option is
-		// deleted.
-		'meta_query'          => array(
-			'relation' => 'OR',
-			array(
-				'key'     => 'is_inactive_by_default',
-				'compare' => 'NOT EXISTS',
-			),
-			array(
-				'key'     => 'is_inactive_by_default',
-				'value'   => false,
-				'compare' => '=',
-			),
-		),
-	);
-
-	$template_query   = new WP_Query( $wp_query_args );
-	$active_templates = array();
-
-	foreach ( $template_query->posts as $post ) {
-		$active_templates[ $post->post_name ] = $post->ID;
-	}
-
-	update_option( 'active_templates', $active_templates );
 }

@@ -183,7 +183,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 1, $count->publish );
+		$this->assertSame( '1', $count->publish );
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
@@ -226,7 +226,7 @@ class Tests_Post extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_ids['author'] );
 
 		$count = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 5, $count->publish );
+		$this->assertSame( '5', $count->publish );
 		_unregister_post_type( $post_type );
 	}
 
@@ -245,16 +245,16 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		$count1 = wp_count_posts( $post_type, 'readable' );
-		$this->assertEquals( 3, $count1->publish );
+		$this->assertSame( '3', $count1->publish );
 
 		add_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
 		$count2 = wp_count_posts( $post_type, 'readable' );
 		remove_filter( 'wp_count_posts', array( $this, 'filter_wp_count_posts' ) );
-		$this->assertEquals( 2, $count2->publish );
+		$this->assertSame( '2', $count2->publish );
 	}
 
 	public function filter_wp_count_posts( $counts ) {
-		$counts->publish = 2;
+		$counts->publish = '2';
 		return $counts;
 	}
 
@@ -273,11 +273,11 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_draft_counts->draft );
-		$this->assertEquals( 2, $after_draft_counts->publish );
+		$this->assertSame( '1', $after_draft_counts->draft );
+		$this->assertSame( '2', $after_draft_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_draft_counts->publish );
 	}
 
@@ -294,11 +294,11 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'trash', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
-		$this->assertEquals( 1, $after_trash_counts->trash );
-		$this->assertEquals( 2, $after_trash_counts->publish );
+		$this->assertSame( '1', $after_trash_counts->trash );
+		$this->assertSame( '2', $after_trash_counts->publish );
 		$this->assertNotEquals( $initial_counts->publish, $after_trash_counts->publish );
 	}
 
@@ -522,7 +522,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 		$this->assertSame( 'override-slug-' . $post->post_type, $post->post_name );
 
-		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
+		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ) );
 	}
 
 	public function filter_pre_wp_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type, $post_parent ) {
@@ -668,8 +668,6 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
-	 *
-	 * @param mixed $stick Value to pass to stick_post().
 	 */
 	public function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );

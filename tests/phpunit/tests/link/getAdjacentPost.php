@@ -49,6 +49,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Test normal post adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
 
@@ -59,29 +60,34 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_one->ID ) );
 
 		$this->assertSame( '', get_adjacent_post( true, '', true, 'category' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_three, get_adjacent_post( true, '', false, 'category' ) );
 
 		// Test tag adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
 		$this->assertSame( '', get_adjacent_post( true, '', true, 'post_tag' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false, 'post_tag' ) );
 
 		// Test normal boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_one ), get_boundary_post( false, '', true ) );
 		$this->assertEquals( array( $post_four ), get_boundary_post( false, '', false ) );
 
 		// Test category boundary post.
 		$this->go_to( get_permalink( $post_one->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_one ), get_boundary_post( true, '', true, 'category' ) );
 		$this->assertEquals( array( $post_three ), get_boundary_post( true, '', false, 'category' ) );
 
 		// Test tag boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_two ), get_boundary_post( true, '', true, 'post_tag' ) );
 		$this->assertEquals( array( $post_four ), get_boundary_post( true, '', false, 'post_tag' ) );
 	}
@@ -146,6 +152,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// First post.
 		$this->go_to( get_permalink( $one ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $two, get_adjacent_post( false, array(), false ) );
 		$this->assertEquals( $three, get_adjacent_post( true, array(), false ) );
 		$this->assertEquals( $two, get_adjacent_post( false, array( $exclude ), false ) );
@@ -154,11 +161,13 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Fourth post.
 		$this->go_to( get_permalink( $four ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $five, get_adjacent_post( false, array(), false ) );
 		$this->assertEquals( $five, get_adjacent_post( true, array(), false ) );
 		$this->assertEmpty( get_adjacent_post( false, array( $exclude ), false ) );
 		$this->assertEmpty( get_adjacent_post( true, array( $exclude ), false ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $three, get_adjacent_post( false, array(), true ) );
 		$this->assertEquals( $three, get_adjacent_post( true, array(), true ) );
 		$this->assertEquals( $two, get_adjacent_post( false, array( $exclude ), true ) );
@@ -166,6 +175,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Last post.
 		$this->go_to( get_permalink( $five ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $four, get_adjacent_post( false, array(), true ) );
 		$this->assertEquals( $four, get_adjacent_post( true, array(), true ) );
 		$this->assertEquals( $four, get_adjacent_post( false, array( $exclude ), true ) );
@@ -192,7 +202,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		wp_set_post_terms( $p2, array( $t ), 'wptests_tax' );
 
 		// Fake current page.
-		$_post           = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$_post           = $GLOBALS['post'] ?? null;
 		$GLOBALS['post'] = get_post( $p1 );
 
 		$found = get_adjacent_post( false, array( $t ), true, 'wptests_tax' );
@@ -229,7 +239,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		wp_delete_object_term_relationships( $p3, 'category' );
 
 		// Fake current page.
-		$_post           = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$_post           = $GLOBALS['post'] ?? null;
 		$GLOBALS['post'] = get_post( $p1 );
 
 		$found = get_adjacent_post( false, array( $t ), true, 'wptests_tax' );
@@ -477,14 +487,14 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Should find post_one (previous post that shares term1).
 		$this->assertInstanceOf( WP_Post::class, $result );
-		$this->assertEquals( $post1_id, $result->ID );
+		$this->assertSame( $post1_id, $result->ID );
 
 		// Test next post.
 		$result = get_adjacent_post( true, array( $term2_id ), false, 'wptests_tax' );
 
 		// Should find post_three (next post that shares term1).
 		$this->assertInstanceOf( WP_Post::class, $result );
-		$this->assertEquals( $post3_id, $result->ID );
+		$this->assertSame( $post3_id, $result->ID );
 	}
 
 	/**
@@ -555,6 +565,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Test getting the right result.
 		$first_run = get_adjacent_post( false, '', true );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
 		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
 
@@ -562,6 +573,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$second_run  = get_adjacent_post( false, '', true );
 		$this->assertNotEquals( $post_two, $second_run, 'Got second post when on second post on second run' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $second_run, 'Did not get first post when on second post on second run' );
 		$this->assertSame( $num_queries, get_num_queries() );
 
@@ -574,16 +586,20 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		);
 		$num_queries = get_num_queries();
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ), 'Did not get first post after new post is added' );
 		$this->assertSame( get_num_queries() - $num_queries, 1, 'Number of queries run was not one after new post is added' );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
 		$num_queries = get_num_queries();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
 		$this->assertSame( $num_queries, get_num_queries() );
 		wp_set_object_terms( $post_four->ID, 'themes', 'post_tag', false );
 
 		$num_queries = get_num_queries();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Result of function call is wrong after after adding new term' );
 		$this->assertSame( get_num_queries() - $num_queries, 2, 'Number of queries run was not two after adding new term' );
 	}
@@ -614,12 +630,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous post should be the 2nd post (lower ID, same date).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 
 		// Next post should be the 4th post (higher ID, same date).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID );
+		$this->assertSame( $post_ids[3], $next->ID );
 	}
 
 	/**
@@ -661,12 +677,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the early post (different date).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_early, $previous->ID );
+		$this->assertSame( $post_early, $previous->ID );
 
 		// Next should be the second identical post (same date, higher ID).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[1], $next->ID );
+		$this->assertSame( $post_ids[1], $next->ID );
 
 		// Test from middle identical post.
 		$this->go_to( get_permalink( $post_ids[1] ) );
@@ -674,12 +690,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the first identical post (same date, lower ID).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[0], $previous->ID );
+		$this->assertSame( $post_ids[0], $previous->ID );
 
 		// Next should be the third identical post (same date, higher ID).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[2], $next->ID );
+		$this->assertSame( $post_ids[2], $next->ID );
 
 		// Test from last identical post.
 		$this->go_to( get_permalink( $post_ids[2] ) );
@@ -687,12 +703,12 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Previous should be the second identical post (same date, lower ID).
 		$previous = get_adjacent_post( false, '', true );
 		$this->assertInstanceOf( 'WP_Post', $previous );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 
 		// Next should be the late post (different date).
 		$next = get_adjacent_post( false, '', false );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_late, $next->ID );
+		$this->assertSame( $post_late, $next->ID );
 	}
 
 	/**
@@ -719,26 +735,26 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// From post 1, next should be post 2.
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[1], $next->ID );
+		$this->assertSame( $post_ids[1], $next->ID );
 
 		// From post 2, previous should be post 1, next should be post 3.
 		$this->go_to( get_permalink( $post_ids[1] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[0], $previous->ID );
+		$this->assertSame( $post_ids[0], $previous->ID );
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[2], $next->ID );
+		$this->assertSame( $post_ids[2], $next->ID );
 
 		// From post 3, previous should be post 2, next should be post 4.
 		$this->go_to( get_permalink( $post_ids[2] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[1], $previous->ID );
+		$this->assertSame( $post_ids[1], $previous->ID );
 		$next = get_adjacent_post( false, '', false );
-		$this->assertEquals( $post_ids[3], $next->ID );
+		$this->assertSame( $post_ids[3], $next->ID );
 
 		// From post 4, previous should be post 3.
 		$this->go_to( get_permalink( $post_ids[3] ) );
 		$previous = get_adjacent_post( false, '', true );
-		$this->assertEquals( $post_ids[2], $previous->ID );
+		$this->assertSame( $post_ids[2], $previous->ID );
 	}
 
 	/**
@@ -777,6 +793,6 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		$next = get_adjacent_post( true, '', false, 'category' );
 		$this->assertInstanceOf( 'WP_Post', $next );
-		$this->assertEquals( $post_ids[3], $next->ID ); // Post 4 (in category)
+		$this->assertSame( $post_ids[3], $next->ID ); // Post 4 (in category)
 	}
 }

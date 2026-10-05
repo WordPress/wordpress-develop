@@ -335,9 +335,10 @@ class WP_REST_Font_Collections_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.5.0
 	 *
-	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_items_permissions_check( $request ) {
 		if ( current_user_can( 'edit_theme_options' ) ) {
 			return true;
 		}

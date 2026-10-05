@@ -331,8 +331,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 
 	/**
 	 * Overrides parent views so we can use the filter bar display.
+	 *
+	 * @global string $tab The current tab.
 	 */
 	public function views() {
+		global $tab;
+
 		$views = $this->get_views();
 
 		/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
@@ -358,7 +362,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		?>
 	</ul>
 
-		<?php install_search_form(); ?>
+		<?php
+		if ( 'favorites' !== $tab ) {
+			install_search_form();
+		}
+		?>
 </div>
 		<?php
 	}
@@ -458,15 +466,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$a = $plugin_a->$orderby;
 		$b = $plugin_b->$orderby;
 
-		if ( $a === $b ) {
-			return 0;
-		}
-
-		if ( 'DESC' === $this->order ) {
-			return ( $a < $b ) ? 1 : -1;
-		} else {
-			return ( $a < $b ) ? -1 : 1;
-		}
+		return 'DESC' === $this->order ?
+			$b <=> $a :
+			$a <=> $b;
 	}
 
 	/**
@@ -556,8 +558,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				$author = ' <cite>' . sprintf( __( 'By %s' ), $author ) . '</cite>';
 			}
 
-			$requires_php = isset( $plugin['requires_php'] ) ? $plugin['requires_php'] : null;
-			$requires_wp  = isset( $plugin['requires'] ) ? $plugin['requires'] : null;
+			$requires_php = $plugin['requires_php'] ?? null;
+			$requires_wp  = $plugin['requires'] ?? null;
 
 			$compatible_php = is_php_version_compatible( $requires_php );
 			$compatible_wp  = is_wp_version_compatible( $requires_wp );

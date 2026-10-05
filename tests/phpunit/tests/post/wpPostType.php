@@ -9,9 +9,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $wp_post_types );
 
-		foreach ( $wp_post_types as $post_type ) {
-			$this->assertInstanceOf( 'WP_Post_Type', $post_type );
-		}
+		$this->assertContainsOnlyInstancesOf( 'WP_Post_Type', $wp_post_types );
 	}
 
 	public function test_add_supports_defaults() {
@@ -173,8 +171,8 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_rewrite_rules();
 		$rewrite_tags_after = $wp_rewrite->rewritecode;
 
-		$this->assertNotFalse( array_search( "%$post_type%", $rewrite_tags, true ) );
-		$this->assertFalse( array_search( "%$post_type%", $rewrite_tags_after, true ) );
+		$this->assertContains( "%$post_type%", $rewrite_tags );
+		$this->assertNotContains( "%$post_type%", $rewrite_tags_after );
 	}
 
 	public function test_register_meta_boxes() {

@@ -46,7 +46,8 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertNotIXRError( $result );
-		$this->assertNotEquals( '103948', $result );
+		$this->assertIsString( $result );
+		$this->assertNotSame( '103948', $result );
 	}
 
 	public function test_capable_publish() {
@@ -141,7 +142,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 
 		$out = get_post( $result );
-		$this->assertEquals( $my_author_id, $out->post_author );
+		$this->assertSame( (string) $my_author_id, $out->post_author );
 		$this->assertSame( 'Test', $out->post_title );
 	}
 
@@ -163,7 +164,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $attachment_id, get_post_meta( $result, '_thumbnail_id', true ) );
+		$this->assertSame( (string) $attachment_id, get_post_meta( $result, '_thumbnail_id', true ) );
 
 		remove_theme_support( 'post-thumbnails' );
 	}

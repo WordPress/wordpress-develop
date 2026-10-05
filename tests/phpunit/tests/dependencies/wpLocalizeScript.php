@@ -46,8 +46,6 @@ class Tests_Dependencies_wpLocalizeScript extends WP_UnitTestCase {
 	 * @covers ::wp_localize_script
 	 */
 	public function test_wp_localize_script_outputs_safe_json() {
-		add_theme_support( 'html5', array( 'script' ) );
-
 		$path     = '/test.js';
 		$base_url = site_url( $path );
 
