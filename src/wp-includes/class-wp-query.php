@@ -1843,14 +1843,14 @@ class WP_Query {
 	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
 	 * @return bool Whether the ordering is already determinate, making an ID clause unnecessary.
 	 */
-	protected function is_orderby_id( $orderby ) {
-		$orderby_id = array(
+	protected function is_orderby_deterministic( $orderby ) {
+		$deterministic_orderby = array(
 			'ID',
 			'rand',
 			'post__in',
 		);
 
-		if ( in_array( $orderby, $orderby_id, true ) ) {
+		if ( in_array( $orderby, $deterministic_orderby, true ) ) {
 			return true;
 		}
 
@@ -2537,7 +2537,7 @@ class WP_Query {
 			 * Whether the ordering already puts the posts in a fixed sequence, in which
 			 * case an ID clause would make no difference.
 			 */
-			$found_orderby_id = false;
+			$orderby_is_deterministic = false;
 
 			/*
 			 * An array 'orderby' gives each column its own direction, so the query's
@@ -2559,8 +2559,8 @@ class WP_Query {
 					$last_order      = $this->parse_order( $order );
 					$orderby_array[] = $parsed . ' ' . $last_order;
 
-					if ( $this->is_orderby_id( $orderby ) ) {
-						$found_orderby_id = true;
+					if ( $this->is_orderby_deterministic( $orderby ) ) {
+						$orderby_is_deterministic = true;
 					}
 				}
 			} else {
@@ -2576,8 +2576,8 @@ class WP_Query {
 
 					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
-					if ( $this->is_orderby_id( $orderby ) ) {
-						$found_orderby_id = true;
+					if ( $this->is_orderby_deterministic( $orderby ) ) {
+						$orderby_is_deterministic = true;
 					}
 				}
 
@@ -2596,7 +2596,7 @@ class WP_Query {
 			 * An array 'orderby' whose keys all failed to parse stays empty here and
 			 * produces no ORDER BY at all, as it always has.
 			 */
-			if ( ! $found_orderby_id && ! empty( $orderby_array ) ) {
+			if ( ! $orderby_is_deterministic && ! empty( $orderby_array ) ) {
 				/*
 				 * $last_order is already 'ASC', 'DESC', or '' here. Blank stays blank:
 				 * 'order' is forced empty for the FIELD()-based orderings, whose clauses
