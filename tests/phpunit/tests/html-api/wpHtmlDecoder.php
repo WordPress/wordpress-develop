@@ -508,47 +508,95 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures strict decoding of named entities in attributes.
+	 * Ensures decoding of named entities in attributes.
 	 *
 	 * @ticket 61072
+	 *
+	 * @dataProvider data_decode_attribute_named_entities
+	 *
+	 * @param string $raw_text Raw attribute value containing named entity.
+	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_named_entities() {
-		$this->assertSame( '&', WP_HTML_Decoder::decode_attribute( '&amp;' ) );
-		$this->assertSame( '&', WP_HTML_Decoder::decode_attribute( '&amp' ) );
-		$this->assertSame( '<', WP_HTML_Decoder::decode_attribute( '&lt;' ) );
-		$this->assertSame( '<', WP_HTML_Decoder::decode_attribute( '&lt' ) );
-		$this->assertSame( '>', WP_HTML_Decoder::decode_attribute( '&gt;' ) );
-		$this->assertSame( '>', WP_HTML_Decoder::decode_attribute( '&gt' ) );
-		$this->assertSame( '"', WP_HTML_Decoder::decode_attribute( '&quot;' ) );
-		$this->assertSame( '"', WP_HTML_Decoder::decode_attribute( '&quot' ) );
-		$this->assertSame( '©', WP_HTML_Decoder::decode_attribute( '&copy;' ) );
-		$this->assertSame( '©', WP_HTML_Decoder::decode_attribute( '&copy' ) );
+	public function test_decode_attribute_decodes_named_entities( $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
 	}
 
 	/**
-	 * Ensures strict decoding of decimal numeric entities.
+	 * Data provider for named entities in attributes.
 	 *
-	 * @ticket 61072
+	 * @return array[]
 	 */
-	public function test_decode_attribute_decodes_decimal_numeric_entities() {
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#65;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#065;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#000065;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#65' ) );
+	public static function data_decode_attribute_named_entities() {
+		return array(
+			'Ampersand with semicolon'       => array( '&amp;', '&' ),
+			'Ampersand without semicolon'    => array( '&amp', '&' ),
+			'Less-than with semicolon'       => array( '&lt;', '<' ),
+			'Less-than without semicolon'    => array( '&lt', '<' ),
+			'Greater-than with semicolon'    => array( '&gt;', '>' ),
+			'Greater-than without semicolon' => array( '&gt', '>' ),
+			'Double quote with semicolon'    => array( '&quot;', '"' ),
+			'Double quote without semicolon' => array( '&quot', '"' ),
+			'Copyright with semicolon'       => array( '&copy;', '©' ),
+			'Copyright without semicolon'    => array( '&copy', '©' ),
+		);
 	}
 
 	/**
-	 * Ensures strict decoding of hex numeric entities.
+	 * Ensures decoding of decimal numeric entities in attributes.
 	 *
 	 * @ticket 61072
+	 *
+	 * @dataProvider data_decode_attribute_decimal_numeric_entities
+	 *
+	 * @param string $raw_text Raw attribute value containing decimal numeric entity.
+	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_hex_numeric_entities() {
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x41;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x041;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x000041;' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#x41' ) );
-		$this->assertSame( 'A', WP_HTML_Decoder::decode_attribute( '&#X41;' ) );
-		$this->assertSame( '😀', WP_HTML_Decoder::decode_attribute( '&#x1F600;' ) );
+	public function test_decode_attribute_decodes_decimal_numeric_entities( $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	}
+
+	/**
+	 * Data provider for decimal numeric entities in attributes.
+	 *
+	 * @return array[]
+	 */
+	public static function data_decode_attribute_decimal_numeric_entities() {
+		return array(
+			'Standard decimal'             => array( '&#65;', 'A' ),
+			'Leading zero'                 => array( '&#065;', 'A' ),
+			'Multiple leading zeros'       => array( '&#000065;', 'A' ),
+			'Semicolonless legacy decimal' => array( '&#65', 'A' ),
+		);
+	}
+
+	/**
+	 * Ensures decoding of hex numeric entities in attributes.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_decode_attribute_hex_numeric_entities
+	 *
+	 * @param string $raw_text Raw attribute value containing hex numeric entity.
+	 * @param string $expected Expected decoded character.
+	 */
+	public function test_decode_attribute_decodes_hex_numeric_entities( $raw_text, $expected ) {
+		$this->assertSame( $expected, WP_HTML_Decoder::decode_attribute( $raw_text ) );
+	}
+
+	/**
+	 * Data provider for hex numeric entities in attributes.
+	 *
+	 * @return array[]
+	 */
+	public static function data_decode_attribute_hex_numeric_entities() {
+		return array(
+			'Standard hex'             => array( '&#x41;', 'A' ),
+			'Leading zero'             => array( '&#x041;', 'A' ),
+			'Multiple leading zeros'   => array( '&#x000041;', 'A' ),
+			'Semicolonless legacy hex' => array( '&#x41', 'A' ),
+			'Uppercase X introducer'   => array( '&#X41;', 'A' ),
+			'4-byte UTF-8 emoji'       => array( '&#x1F600;', '😀' ),
+		);
 	}
 
 	/**
