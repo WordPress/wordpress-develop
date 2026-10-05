@@ -158,7 +158,7 @@ final class WP_Content_Abilities {
 				'execute_callback'    => array( $this, 'execute_content_query' ),
 				'permission_callback' => array( $this, 'check_permission' ),
 				'meta'                => array(
-					'annotations'  => array(
+					'annotations' => array(
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
@@ -166,7 +166,7 @@ final class WP_Content_Abilities {
 						// hint is absent; this ability only reads the local database.
 						'open_world'  => false,
 					),
-					'show_in_rest' => true,
+					'public'      => true,
 				),
 			)
 		);

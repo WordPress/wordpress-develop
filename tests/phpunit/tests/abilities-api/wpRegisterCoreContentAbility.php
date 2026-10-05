@@ -225,6 +225,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertNotNull( $ability, 'The core/content-query ability should be registered.' );
 		$this->assertSame( 'core/content-query', $ability->get_name(), 'The registered ability should use the expected name.' );
 		$this->assertSame( 'content', $ability->get_category(), 'The registered ability should use the content category.' );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ), 'The ability should be marked public.' );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ), 'The ability should be exposed in REST.' );
 
 		$annotations = $ability->get_meta_item( 'annotations', array() );
