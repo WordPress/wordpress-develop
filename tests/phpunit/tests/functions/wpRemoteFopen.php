@@ -21,10 +21,17 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 */
 	public function test_wp_remote_fopen_bad_url() {
 		/*
-		 * Remove the external-HTTP guard so WP_Http can reject the schemeless
-		 * URL. No network request is made: validation fails before a transport runs.
+		 * Mock the HTTP layer error that WP_Http would return for a schemeless
+		 * URL. Removing the external-HTTP guard and letting validation run
+		 * hits parse_url() with a non-string and raises PHP warnings in tests.
+		 * A pre_http_request mock still covers wp_remote_fopen()'s WP_Error → false path.
 		 */
-		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
+		add_filter(
+			'pre_http_request',
+			static function () {
+				return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+			}
+		);
 
 		$this->assertFalse( wp_remote_fopen( 'wp.com' ) );
 	}
