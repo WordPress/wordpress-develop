@@ -51,6 +51,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$value = (object) $value;
 		$this->assertTrue( set_site_transient( $key, $value ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $value, get_site_transient( $key ) );
 		$this->assertTrue( delete_site_transient( $key ) );
 	}
@@ -92,6 +93,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 				'_site_transient_' . $key
 			)
 		);
+		// Keep assertEquals() because the database row object is compared by value.
 		$this->assertEquals(
 			(object) array(
 				'option_name'  => '_site_transient_' . $key,
@@ -122,6 +124,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 				'_site_transient_' . $key
 			)
 		);
+		// Keep assertEquals() because the database row object is compared by value.
 		$this->assertEquals(
 			(object) array(
 				'meta_key'   => '_site_transient_' . $key,
