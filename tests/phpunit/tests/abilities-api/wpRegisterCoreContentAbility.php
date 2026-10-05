@@ -118,13 +118,17 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Restores ability and post type state after each test.
+	 * Restores ability, ability category, and post type state after each test.
 	 *
 	 * @since 7.2.0
 	 */
 	public function tearDown(): void {
 		if ( wp_has_ability( 'core/content-query' ) ) {
 			wp_unregister_ability( 'core/content-query' );
+		}
+
+		if ( wp_has_ability_category( 'content' ) ) {
+			wp_unregister_ability_category( 'content' );
 		}
 
 		foreach ( array( 'post', 'page' ) as $post_type ) {
