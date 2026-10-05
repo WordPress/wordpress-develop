@@ -514,13 +514,14 @@ function wp_authenticate_application_password(
  * Validates the application password credentials passed via Basic Authentication.
  *
  * @since 5.6.0
+ * @since 7.2.0 A user ID of 0 from an earlier authentication callback is now preserved.
  *
  * @param int|false $input_user User ID if one has been determined, false otherwise.
  * @return int|false The authenticated user ID if successful, false otherwise.
  */
 function wp_validate_application_password( $input_user ) {
-	// Don't authenticate twice.
-	if ( ! empty( $input_user ) ) {
+	// Don't authenticate twice or override an explicit logged-out result.
+	if ( 0 === $input_user || ! empty( $input_user ) ) {
 		return $input_user;
 	}
 
@@ -580,6 +581,7 @@ function wp_authenticate_spam_check( $user ) {
  * This is a callback for the {@see 'determine_current_user'} filter, rather than API.
  *
  * @since 3.9.0
+ * @since 7.2.0 A user ID of 0 from an earlier authentication callback is now preserved.
  *
  * @param int|false $user_id The user ID (or false) as received from
  *                           the `determine_current_user` filter.
@@ -587,7 +589,7 @@ function wp_authenticate_spam_check( $user ) {
  *                   an earlier filter callback is received, that value is returned.
  */
 function wp_validate_logged_in_cookie( $user_id ) {
-	if ( $user_id ) {
+	if ( 0 === $user_id || $user_id ) {
 		return $user_id;
 	}
 
