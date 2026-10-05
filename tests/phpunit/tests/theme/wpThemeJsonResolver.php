@@ -324,7 +324,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_not_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_not_cached() {
 		return array(
 			'origin: core; cache: empty'       => array(
 				'origin' => 'core',
@@ -399,7 +399,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_are_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_are_cached() {
 		return array(
 			'core'   => array( 'core' ),
 			'blocks' => array( 'blocks' ),
@@ -444,7 +444,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_core_data() {
+	public static function data_get_core_data() {
 		return array(
 			'When both caches are empty'     => array(
 				'should_fire_filter' => true,
@@ -977,7 +977,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_merged_data_returns_origin() {
+	public static function data_get_merged_data_returns_origin() {
 		return array(
 			'origin_default' => array(
 				'origin'             => 'default',
@@ -1061,7 +1061,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_style_variations() {
+	public static function data_get_style_variations() {
 		return array(
 			// @ticket 57545
 			'theme_style_variations' => array(

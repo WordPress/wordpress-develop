@@ -525,7 +525,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_is_block_theme() {
+	public static function data_is_block_theme() {
 		return array(
 			'default - non-block theme' => array(
 				'theme_dir' => 'default',
@@ -567,7 +567,7 @@ class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_file_path() {
+	public static function data_get_file_path() {
 		return array(
 			'no theme: no file given'              => array(
 				'theme_dir' => 'nonexistent',
