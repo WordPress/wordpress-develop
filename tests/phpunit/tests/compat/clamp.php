@@ -193,6 +193,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 * @param DateTimeImmutable $max      The maximum bound.
 	 */
 	public function test_clamp_with_datetime( DateTimeImmutable $expected, DateTimeImmutable $value, DateTimeImmutable $min, DateTimeImmutable $max ): void {
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, clamp( $value, $min, $max ) );
 	}
 
