@@ -42,7 +42,7 @@ function wp_normalize_state_preset_vars( $value ) {
 	 * so a reference has to be converted the same way or it points at a
 	 * property that does not exist (`--wp--preset--font-size--3xl` for a preset
 	 * generated as `--wp--preset--font-size--3-xl`). Mirrors
-	 * `WP_Theme_JSON_Gutenberg::convert_custom_properties()` and the JS style
+	 * `WP_Theme_JSON::convert_custom_properties()` and the JavaScript style
 	 * engine's `getCSSValueFromRawStyle()`.
 	 */
 	if ( 3 === count( $parts ) ) {
