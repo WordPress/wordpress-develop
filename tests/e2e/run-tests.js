@@ -1,7 +1,7 @@
 const dotenv = require( 'dotenv' );
 const dotenvExpand = require( 'dotenv-expand' );
 const { spawn } = require( 'child_process' );
-const { constants, copyFileSync, mkdirSync, unlinkSync } = require( 'fs' );
+const { copyFileSync, mkdirSync, rmSync } = require( 'fs' );
 const path = require( 'path' );
 
 // WP_BASE_URL interpolates LOCAL_PORT, so needs to be parsed by dotenvExpand().
@@ -21,12 +21,11 @@ const muPluginFile = path.join(
 mkdirSync( muPluginDirectory, { recursive: true } );
 copyFileSync(
 	path.join( __dirname, 'mu-plugins', 'disable-login-autofocus.php' ),
-	muPluginFile,
-	constants.COPYFILE_EXCL
+	muPluginFile
 );
 
 // Remove only this run's fixture, including on failure or interruption.
-process.once( 'exit', () => unlinkSync( muPluginFile ) );
+process.once( 'exit', () => rmSync( muPluginFile, { force: true } ) );
 
 // Run the tests, passing additional arguments through to the test script.
 const tests = spawn(
@@ -42,7 +41,7 @@ const tests = spawn(
 );
 
 for ( const signal of [ 'SIGHUP', 'SIGINT', 'SIGQUIT', 'SIGTERM' ] ) {
-	process.once( signal, () => {
+	process.on( signal, () => {
 		// Stop the test process group before removing its fixture.
 		try {
 			if ( process.platform === 'win32' ) {
