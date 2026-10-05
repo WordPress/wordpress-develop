@@ -103,6 +103,7 @@ a:active {
  */
 
 .wp-site-blocks {
+	overflow-wrap: break-word;
 	word-wrap: break-word;
 }
 
