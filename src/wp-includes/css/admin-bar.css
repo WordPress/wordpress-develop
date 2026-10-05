@@ -1043,6 +1043,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 		color: #f0f0f1;
 	}
 
+	#wpadminbar #wp-admin-bar-user-info .howdy {
+		white-space: normal;
+	}
+
 	#wpadminbar #wp-admin-bar-user-info a {
 		padding-top: 4px;
 	}
