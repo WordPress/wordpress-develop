@@ -76,7 +76,7 @@ class WP_Term_Query {
 	 * List of terms located by the query.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array|null
 	 */
 	public $terms;
 
@@ -610,7 +610,7 @@ class WP_Term_Query {
 
 		if ( '' === $args['object_ids'] ) {
 			$args['object_ids'] = array();
-		} else {
+		} elseif ( null !== $args['object_ids'] ) {
 			$args['object_ids'] = array_map( 'intval', (array) $args['object_ids'] );
 		}
 
