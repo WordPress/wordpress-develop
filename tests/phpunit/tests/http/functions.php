@@ -110,7 +110,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookie_value
 	 */
 	public function test_get_response_cookies() {
-		$url = 'https://login.wordpress.org/wp-login.php';
+		$url = 'https://login.wordpress.org/wp-login.php?wp_lang=en_US';
 
 		$response = $this->wp_remote_head( $url );
 
@@ -120,13 +120,13 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $cookies );
 
-		$cookie = wp_remote_retrieve_cookie( $response, 'wordpress_test_cookie' );
+		$cookie = wp_remote_retrieve_cookie( $response, 'wp_lang' );
 		$this->assertInstanceOf( 'WP_Http_Cookie', $cookie );
-		$this->assertSame( 'wordpress_test_cookie', $cookie->name );
-		$this->assertSame( 'WP Cookie check', $cookie->value );
+		$this->assertSame( 'wp_lang', $cookie->name );
+		$this->assertSame( 'en_US', $cookie->value );
 
-		$value = wp_remote_retrieve_cookie_value( $response, 'wordpress_test_cookie' );
-		$this->assertSame( 'WP Cookie check', $value );
+		$value = wp_remote_retrieve_cookie_value( $response, 'wp_lang' );
+		$this->assertSame( 'en_US', $value );
 
 		$no_value = wp_remote_retrieve_cookie_value( $response, 'not_a_cookie' );
 		$this->assertSame( '', $no_value );
