@@ -77,9 +77,10 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertNotIXRError( $result );
 		/*
-		 * This comparison stays loose: wp.getTerm returns the IDs as strings so that they
-		 * cannot exceed what an XML-RPC integer can describe, while get_term() returns them
-		 * as integers. The individual types are asserted below.
+		 * Keep assertEquals() because the comparison is intentionally by value with mixed
+		 * ID types: wp.getTerm returns the IDs as strings so that they cannot exceed what
+		 * an XML-RPC integer can describe, while get_term() returns them as integers.
+		 * The individual types are asserted below.
 		 */
 		$this->assertEquals( $term, $result );
 
