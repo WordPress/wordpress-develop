@@ -28,7 +28,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		'fontFamily' => '"Open Sans"',
 		'fontWeight' => '400',
 		'fontStyle'  => 'normal',
-		'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+		'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 	);
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -149,20 +149,15 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @doesNotPerformAssertions
-	 */
-	public function test_context_param() {
-		// See test_get_context_param().
-	}
-
-	/**
+	 * @ticket 40538
+	 *
 	 * @dataProvider data_get_context_param
 	 *
 	 * @covers WP_REST_Font_Faces_Controller::get_context_param
 	 *
 	 * @param bool $single_route Whether to test a single route.
 	 */
-	public function test_get_context_param( $single_route ) {
+	public function test_context_param( $single_route = false ) {
 		$route = '/wp/v2/font-families/' . self::$font_family_id . '/font-faces';
 		if ( $single_route ) {
 			$route .= '/' . self::$font_face_id1;
@@ -551,7 +546,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 					'fontFamily' => '"Open Sans"',
 					'fontWeight' => '200',
 					'fontStyle'  => 'normal',
-					'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+					'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 				)
 			)
 		);
@@ -583,8 +578,8 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'lineGapOverride'       => '10%',
 			'sizeAdjust'            => '90%',
 			'unicodeRange'          => 'U+0025-00FF, U+4??',
-			'preview'               => 'https://s.w.org/images/fonts/wp-7.0/previews/open-sans/open-sans-400-normal.svg',
-			'src'                   => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+			'preview'               => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+			'src'                   => 'https://example.org/wp-content/fonts/open-sans.ttf',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
@@ -651,7 +646,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 				array(
 					'fontFamily' => '"Open Sans"',
 					'fontWeight' => '200',
-					'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+					'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 				)
 			)
 		);
@@ -765,6 +760,23 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
 		$expected_message = 'font_face_settings parameter must be a valid JSON string.';
+		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_face_settings'];
+		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
+	}
+
+	/**
+	 * @covers WP_REST_Font_Faces_Controller::validate_create_font_face_settings
+	 */
+	public function test_create_item_non_string_settings() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
+		$request->set_param( 'theme_json_version', WP_REST_Font_Faces_Controller::LATEST_THEME_JSON_VERSION_SUPPORTED );
+		$request->set_param( 'font_face_settings', self::$default_settings );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400, 'The response should return an error for "rest_invalid_param" with 400 status.' );
+		$expected_message = 'font_face_settings is not of type string.';
 		$message          = $response->as_error()->get_all_error_data()[0]['params']['font_face_settings'];
 		$this->assertSame( $expected_message, $message, 'The response error message should match.' );
 	}

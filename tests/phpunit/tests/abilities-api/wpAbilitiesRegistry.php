@@ -137,74 +137,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should accept ability name with 3 segments (2 slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 */
-	public function test_register_valid_name_with_three_segments() {
-		$result = $this->registry->register( 'test/sub/add-numbers', self::$test_ability_args );
-		$this->assertInstanceOf( WP_Ability::class, $result );
-		$this->assertSame( 'test/sub/add-numbers', $result->get_name() );
-	}
-
-	/**
-	 * Should accept ability name with 4 segments (3 slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 */
-	public function test_register_valid_name_with_four_segments() {
-		$result = $this->registry->register( 'test/sub/deep/add-numbers', self::$test_ability_args );
-		$this->assertInstanceOf( WP_Ability::class, $result );
-		$this->assertSame( 'test/sub/deep/add-numbers', $result->get_name() );
-	}
-
-	/**
-	 * Should reject ability name with 5 segments (exceeds maximum of 4).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_five_segments() {
-		$result = $this->registry->register( 'test/a/b/c/too-deep', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Should reject ability name with empty segments (double slashes).
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_empty_segment() {
-		$result = $this->registry->register( 'test//add-numbers', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
-	 * Should reject ability name with trailing slash.
-	 *
-	 * @ticket 64098
-	 *
-	 * @covers WP_Abilities_Registry::register
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
-	 */
-	public function test_register_invalid_name_with_trailing_slash() {
-		$result = $this->registry->register( 'test/add-numbers/', self::$test_ability_args );
-		$this->assertNull( $result );
-	}
-
-	/**
 	 * Should reject ability registration without a label.
 	 *
 	 * @ticket 64098
@@ -290,6 +222,68 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$result = $this->registry->register( self::$test_ability_name, $args );
 
 		$this->assertNull( $result, 'Should return null when category does not exist.' );
+	}
+
+	/**
+	 * Tests that an invalid category type is rejected before the category lookup.
+	 *
+	 * @ticket 65569
+	 *
+	 * @dataProvider data_invalid_category_types
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 *
+	 * @param mixed $category Invalid category value.
+	 */
+	public function test_register_ability_rejects_invalid_category_type( $category ): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = $category;
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category must be a string.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
+	}
+
+	/**
+	 * Data provider for invalid category types.
+	 *
+	 * @return array<string, array<mixed>> Test cases.
+	 */
+	public static function data_invalid_category_types(): array {
+		return array(
+			'null'    => array( null ),
+			'boolean' => array( false ),
+			'integer' => array( 1 ),
+			'array'   => array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that an empty category is rejected rather than replaced by the default.
+	 *
+	 * @ticket 65569
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_rejects_empty_category(): void {
+		$args             = self::$test_ability_args;
+		$args['category'] = '';
+
+		$result = $this->registry->register( self::$test_ability_name, $args );
+
+		$this->assertNull( $result );
+		$this->assertStringContainsString(
+			'Ability category "" is not registered.',
+			$this->caught_doing_it_wrong['WP_Abilities_Registry::register']
+		);
 	}
 
 	/**
@@ -426,7 +420,6 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 		$this->assertNull( $result );
 	}
 
-
 	/**
 	 * Should reject ability registration with invalid `annotations` type.
 	 *
@@ -479,6 +472,23 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should reject ability registration with invalid public type.
+	 *
+	 * @ticket 65568
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_invalid_public_type() {
+		self::$test_ability_args['meta']['public'] = 5;
+
+		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Should reject registration for already registered ability.
 	 *
 	 * @ticket 64098
@@ -505,6 +515,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	public function test_register_new_ability() {
 		$result = $this->registry->register( self::$test_ability_name, self::$test_ability_args );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result

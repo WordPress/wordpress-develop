@@ -68,6 +68,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->tag );
 	}
 
@@ -80,6 +81,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->cat );
 	}
 
@@ -93,6 +95,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
 		$this->assertNotEmpty( get_query_var( 'testtax' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->cat );
 	}
 
@@ -104,6 +107,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->cat );
 	}
 
@@ -120,6 +124,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->uncat );
 
 		remove_action( 'pre_get_posts', array( $this, 'cat_uncat_action_tax' ), 11 );
@@ -130,6 +135,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertTrue( $query->is_archive() );
 		$this->assertNotEmpty( $query->get( 'category_name' ) );
 		$this->assertNotEmpty( $query->get( 'tax_query' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $query->get_queried_object(), $this->uncat );
 	}
 
@@ -143,6 +149,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'tax_query' ) );
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), get_term( $this->tax_id, 'testtax' ) );
 	}
 
@@ -154,6 +161,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'tag_id' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->tag );
 	}
 
@@ -165,6 +173,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_query_var( 'taxonomy' ) );
 		$this->assertNotEmpty( get_query_var( 'term_id' ) );
 		$this->assertNotEmpty( get_query_var( 'cat' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_queried_object(), $this->cat );
 	}
 
@@ -206,6 +215,7 @@ class Tests_Query_IsTerm extends WP_UnitTestCase {
 
 		$expected = get_term( $this->tax_id, 'testtax' );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $object );
 	}
 

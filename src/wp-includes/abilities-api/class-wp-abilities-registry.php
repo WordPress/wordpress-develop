@@ -40,17 +40,21 @@ final class WP_Abilities_Registry {
 	 * Do not use this method directly. Instead, use the `wp_register_ability()` function.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 	 *
 	 * @see wp_register_ability()
 	 *
-	 * @param string               $name The name of the ability. Must be the fully-namespaced
- *                                       string identifier, e.g. `my-plugin/my-ability` or `my-plugin/resource/my-ability`.
+	 * @param string               $name The name of the ability. The name must be a string containing a namespace
+	 *                                   prefix, i.e. `my-plugin/my-ability`. It can only contain lowercase
+	 *                                   alphanumeric characters, dashes and the forward slash.
 	 * @param array<string, mixed> $args {
 	 *     An associative array of arguments for the ability.
 	 *
 	 *     @type string               $label                 The human-readable label for the ability.
 	 *     @type string               $description           A detailed description of what the ability does.
-	 *     @type string               $category              The ability category slug this ability belongs to.
+	 *     @type string               $category              Optional. The ability category slug this ability belongs to.
+	 *                                                       Defaults to `uncategorized`.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -70,18 +74,23 @@ final class WP_Abilities_Registry {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
+	 *                                                      to clients such as the REST API, MCP, or AI agents.
+	 *                                                      Seeds the default for per-channel flags like
+	 *                                                      `$show_in_rest`. Defaults to false.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                      Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
-		if ( ! preg_match( '/^[a-z0-9-]+(?:\/[a-z0-9-]+){1,3}$/', $name ) ) {
+		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__(
-					'Ability name must contain 2 to 4 segments separated by forward slashes, e.g. "my-plugin/my-ability" or "my-plugin/resource/my-ability". It can only contain lowercase alphanumeric characters, dashes, and forward slashes.'
+					'Ability name must be a string containing a namespace prefix, i.e. "my-plugin/my-ability". It can only contain lowercase alphanumeric characters, dashes and the forward slash.'
 				),
 				'6.9.0'
 			);
@@ -102,13 +111,16 @@ final class WP_Abilities_Registry {
 		 * Filters the ability arguments before they are validated and used to instantiate the ability.
 		 *
 		 * @since 6.9.0
+		 * @since 7.1.0 Added the `public` meta argument.
+		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
 		 *
 		 *     @type string               $label                 The human-readable label for the ability.
 		 *     @type string               $description           A detailed description of what the ability does.
-		 *     @type string               $category              The ability category slug this ability belongs to.
+		 *     @type string               $category              Optional. The ability category slug this ability belongs to.
+		 *                                                       Defaults to `uncategorized`.
 		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
@@ -119,7 +131,12 @@ final class WP_Abilities_Registry {
 		 *         Optional. Additional metadata for the ability.
 		 *
 		 *         @type array<string, bool|string> $annotations  Optional. Annotation metadata for the ability.
-		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+		 *         @type bool                       $public       Optional. Whether the ability is meant to be
+		 *                                                        available to clients such as the REST API, MCP, or AI
+		 *                                                        agents. Seeds the default for per-channel flags like
+		 *                                                        `$show_in_rest`. Defaults to false.
+		 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API.
+		 *                                                        Default is the value of `$public` when set, false otherwise.
 		 *     }
 		 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 		 * }
@@ -127,21 +144,31 @@ final class WP_Abilities_Registry {
 		 */
 		$args = apply_filters( 'wp_register_ability_args', $args, $name );
 
-		// Validate ability category exists if provided (will be validated as required in WP_Ability).
-		if ( isset( $args['category'] ) ) {
-			if ( ! wp_has_ability_category( $args['category'] ) ) {
-				_doing_it_wrong(
-					__METHOD__,
-					sprintf(
-						/* translators: %1$s: ability category slug, %2$s: ability name */
-						__( 'Ability category "%1$s" is not registered. Please register the ability category before assigning it to ability "%2$s".' ),
-						esc_html( $args['category'] ),
-						esc_html( $name )
-					),
-					'6.9.0'
-				);
-				return null;
-			}
+		if ( ! array_key_exists( 'category', $args ) ) {
+			$args['category'] = 'uncategorized';
+		}
+
+		if ( ! is_string( $args['category'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Ability category must be a string.' ),
+				'6.9.0'
+			);
+			return null;
+		}
+
+		if ( ! wp_has_ability_category( $args['category'] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %1$s: ability category slug, %2$s: ability name */
+					__( 'Ability category "%1$s" is not registered. Please register the ability category before assigning it to ability "%2$s".' ),
+					esc_html( $args['category'] ),
+					esc_html( $name )
+				),
+				'6.9.0'
+			);
+			return null;
 		}
 
 		// The class is only used to instantiate the ability, and is not a property of the ability itself.

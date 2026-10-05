@@ -17,6 +17,9 @@ class WP_HTML_Decoder {
 	 * of how it might be encoded in HTML. For instance, `http:` could be represented as `http:`
 	 * or as `http&colon;` or as `&#x68;ttp:` or as `h&#116;tp&colon;`, or in many other ways.
 	 *
+	 * This is equivalent to a byte-prefix test against the decoded attribute value, without
+	 * the need to allocate and decode the full string.
+	 *
 	 * Example:
 	 *
 	 *     $value = 'http&colon;//wordpress.org/';
@@ -53,24 +56,71 @@ class WP_HTML_Decoder {
 				return false;
 			}
 
-			// If there's no character reference but the character do match, then it could still match.
+			// If there's no character reference but the characters do match, then it could still match.
 			if ( null === $next_chunk && $chars_match ) {
 				++$haystack_at;
 				++$search_at;
 				continue;
 			}
 
-			// If there is a character reference, then the decoded value must exactly match what follows in the search string.
-			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, strlen( $next_chunk ), $loose_case ) ) {
+			/**
+			 * The decoded character reference in `$next_chunk` must be compared with the
+			 * corresponding `$search_text` bytes checking for matching prefixes. The remaining
+			 * search text may be shorter than the decoded chunk, in which case a partial match
+			 * satisfies the prefix. Otherwise, if the decoded chunk is fully matched, the
+			 * comparison must continue after advancing the appropriate byte lengths: the character
+			 * reference token length in the haystack and the decoded chunk length in the
+			 * search text.
+			 *
+			 * For example, consider searches that have reached the character reference
+			 * `&fjlig;` (7 bytes), decoded into the 2-byte chunk `fj`:
+			 *
+			 *                       $haystack_at
+			 *                       │
+			 *                       │      ┌─after matching `fj` continue here
+			 *                       │      │ (advance by $token_length, 7 bytes)
+			 *                       ↓      ↓
+			 *     Haystack:    start&fjlig;ord
+			 *                       ╰──┬──╯
+			 *                          fj - the decoded chunk, tested against the search text.
+			 *
+			 *                       $search_at
+			 *                       │
+			 *                       │ ┌─after matching `fj` continue here
+			 *                       │ │ (advance by $match_length, 2 bytes)
+			 *                       ↓ ↓
+			 *     Search A:    startfjord      Compare 2 bytes: `fj` matches,
+			 *                                  continue matching at `o`.
+			 *
+			 *                       $search_at
+			 *                       ↓
+			 *     Search B:    startf          Compare 1 byte: `f` matches and the
+			 *                                  search text is exhausted — prefix confirmed.
+			 *
+			 *                       $search_at
+			 *                       ↓
+			 *     Search C:    startfr         Compare 2 bytes: `fj` differs
+			 *                                  from `fr`, no match is possible.
+			 *
+			 * The `min()` is required in both directions: Search A fails if the
+			 * comparison length comes from the search text, Search B if it comes
+			 * from the chunk.
+			 *
+			 * After a match each cursor must advance by the appropriate length, the haystack
+			 * cursor by the character reference token length, and the search cursor by the
+			 * matched length.
+			 */
+			$match_length = min( strlen( $next_chunk ), $search_length - $search_at );
+			if ( 0 !== substr_compare( $search_text, $next_chunk, $search_at, $match_length, $loose_case ) ) {
 				return false;
 			}
 
 			// The character reference matched, so continue checking.
 			$haystack_at += $token_length;
-			$search_at   += strlen( $next_chunk );
+			$search_at   += $match_length;
 		}
 
-		return true;
+		return $search_at === $search_length;
 	}
 
 	/**
@@ -83,7 +133,7 @@ class WP_HTML_Decoder {
 	 *
 	 * Example:
 	 *
-	 *     '“😄”' === WP_HTML_Decode::decode_text_node( '&#x93;&#x1f604;&#x94' );
+	 *     '“😄”' === WP_HTML_Decoder::decode_text_node( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
@@ -103,7 +153,7 @@ class WP_HTML_Decoder {
 	 *
 	 * Example:
 	 *
-	 *     '“😄”' === WP_HTML_Decode::decode_attribute( '&#x93;&#x1f604;&#x94' );
+	 *     '“😄”' === WP_HTML_Decoder::decode_attribute( '&#x93;&#x1f604;&#x94' );
 	 *
 	 * @since 6.6.0
 	 *
@@ -361,40 +411,66 @@ class WP_HTML_Decoder {
 
 		$name_length = 0;
 		$replacement = $html5_named_character_references->read_token( $text, $name_at, $name_length );
-		if ( false === $replacement ) {
+		if ( null === $replacement ) {
 			return null;
 		}
 
 		$after_name = $name_at + $name_length;
 
-		// If the match ended with a semicolon then it should always be decoded.
-		if ( ';' === $text[ $name_at + $name_length - 1 ] ) {
-			$match_byte_length = $after_name - $at;
-			return $replacement;
-		}
-
-		/*
-		 * At this point though there's a match for an entry in the named
-		 * character reference table but the match doesn't end in `;`.
-		 * It may be allowed if it's followed by something unambiguous.
+		/**
+		 * For historical reasons, a matched named character reference is left as literal
+		 * text (its decoded replacement is not used) when all of the following hold:
+		 *
+		 * 1. It was matched in attribute context.
+		 * 2. The match does not end in U+003B SEMICOLON (;) — i.e. it is one of the
+		 *    legacy forms recognized without a trailing semicolon.
+		 * 3. The next input character is U+003D EQUALS SIGN (=) or an ASCII alphanumeric.
+		 *
+		 * Some illustrative examples follow. Note that both `not` and `not;` appear in the
+		 * named character references list. References start with `&` and typically end with
+		 * `;`, but the legacy forms are recognized without one.
+		 *
+		 * - In _data context_, "&notme" is decoded to "¬me": condition 1 fails (not an
+		 *   attribute), so the reference is decoded.
+		 * - In _attribute context_, "&not;me" is decoded to "¬me": the longest match is
+		 *   "not;", which ends in a semicolon, so condition 2 fails.
+		 * - In _attribute context_, "&not己" is decoded to "¬己": the following character
+		 *   "己" is a letter but not an ASCII alphanumeric (nor "="), so condition 3 fails.
+		 * - In _attribute context_, "&not" is decoded to "¬": there is no next input
+		 *   character, so condition 3 fails.
+		 * - In _attribute context_, "&not=me" is left as the literal text "&not=me": all
+		 *   three conditions hold.
+		 * - In _attribute context_, "&notme" is left as the literal text "&notme": all
+		 *   three conditions hold.
+		 *
+		 * Without these special rules, ordinary URL query strings could have surprising
+		 * replacements applied. Consider:
+		 *
+		 *     <a href="/?random&degree&gt=0&lt=360&not=90">
+		 *
+		 * The literal attribute value `/?random&degree&gt=0&lt=360&not=90` is preserved
+		 * by the special handling. Otherwise, the value would decode to
+		 * `/?random°ree>=0<=360¬=90`, which is unlikely to be the author's intent.
+		 *
+		 * (Authors should not rely on this. Escaping the example as
+		 * `/?random&amp;degree&amp;gt=0&amp;lt=360&amp;not=90` produces the intended
+		 * value regardless of the following character.)
+		 *
+		 * @see https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
+		 * @see https://html.spec.whatwg.org/multipage/named-characters.html#named-character-references
 		 */
-		$ambiguous_follower = (
-			$after_name < $length &&
-			$name_at < $length &&
-			(
-				ctype_alnum( $text[ $after_name ] ) ||
-				'=' === $text[ $after_name ]
-			)
-		);
-
-		// It's non-ambiguous, safe to leave it in.
-		if ( ! $ambiguous_follower ) {
+		if ( 'attribute' !== $context || ';' === $text[ $after_name - 1 ] || $after_name >= $length ) {
 			$match_byte_length = $after_name - $at;
 			return $replacement;
 		}
 
-		// It's ambiguous, which isn't allowed inside attributes.
-		if ( 'attribute' === $context ) {
+		$follower_byte = ord( $text[ $after_name ] );
+		if (
+			0x3D === $follower_byte || //                              EQUALS SIGN
+			( $follower_byte >= 0x30 && $follower_byte <= 0x39 ) || // ASCII digits 0-9
+			( $follower_byte >= 0x41 && $follower_byte <= 0x5A ) || // ASCII upper alpha A-Z
+			( $follower_byte >= 0x61 && $follower_byte <= 0x7A )    // ASCII lower alpha a-z
+		) {
 			return null;
 		}
 
@@ -424,40 +500,8 @@ class WP_HTML_Decoder {
 	 * @return string Converted code point, or `�` if invalid.
 	 */
 	public static function code_point_to_utf8_bytes( $code_point ): string {
-		// Pre-check to ensure a valid code point.
-		if (
-			$code_point <= 0 ||
-			( $code_point >= 0xD800 && $code_point <= 0xDFFF ) ||
-			$code_point > 0x10FFFF
-		) {
-			return '�';
-		}
+		$string = mb_chr( $code_point, 'UTF-8' );
 
-		if ( $code_point <= 0x7F ) {
-			return chr( $code_point );
-		}
-
-		if ( $code_point <= 0x7FF ) {
-			$byte1 = chr( ( $code_point >> 6 ) | 0xC0 );
-			$byte2 = chr( $code_point & 0x3F | 0x80 );
-
-			return "{$byte1}{$byte2}";
-		}
-
-		if ( $code_point <= 0xFFFF ) {
-			$byte1 = chr( ( $code_point >> 12 ) | 0xE0 );
-			$byte2 = chr( ( $code_point >> 6 ) & 0x3F | 0x80 );
-			$byte3 = chr( $code_point & 0x3F | 0x80 );
-
-			return "{$byte1}{$byte2}{$byte3}";
-		}
-
-		// Any values above U+10FFFF are eliminated above in the pre-check.
-		$byte1 = chr( ( $code_point >> 18 ) | 0xF0 );
-		$byte2 = chr( ( $code_point >> 12 ) & 0x3F | 0x80 );
-		$byte3 = chr( ( $code_point >> 6 ) & 0x3F | 0x80 );
-		$byte4 = chr( $code_point & 0x3F | 0x80 );
-
-		return "{$byte1}{$byte2}{$byte3}{$byte4}";
+		return false !== $string ? $string : '�';
 	}
 }

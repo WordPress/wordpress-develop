@@ -17,9 +17,11 @@ QUnit.test( 'stripTags should strip tags from string', function( assert ) {
 	assert.strictEqual( result, 'Hello World', 'stripTags( "<p>Hello <b>World</b></p>" ) should return "Hello World"' );
 } );
 
-QUnit.test( 'stripTags should convert numbers to strings', function( assert ) {
-	const result = wp.sanitize.stripTags( 123 );
-	assert.strictEqual( result, '123', 'stripTags( 123 ) should return "123"' );
+QUnit.test( 'stripTags should return empty string for truthy non-strings', function( assert ) {
+	assert.strictEqual( wp.sanitize.stripTags( 123 ), '', 'stripTags( 123 ) should return ""' );
+	assert.strictEqual( wp.sanitize.stripTags( true ), '', 'stripTags( true ) should return ""' );
+	assert.strictEqual( wp.sanitize.stripTags( [ 6, 7 ] ), '', 'stripTags( [ 6, 7 ] ) should return ""' );
+	assert.strictEqual( wp.sanitize.stripTags( { foo: 'bar' } ), '', 'stripTags( ( { foo: \'bar\' } ) should return ""' );
 } );
 
 QUnit.test( 'stripTags should return empty string for input 0', function( assert ) {

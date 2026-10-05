@@ -396,6 +396,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<input type="hidden" name="option_page" value="options" />
 		<table class="form-table" role="presentation">
 <?php
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
 
 foreach ( (array) $options as $option ) :
@@ -422,6 +427,12 @@ foreach ( (array) $options as $option ) :
 			$value    = 'SERIALIZED DATA';
 			$disabled = true;
 		}
+	} elseif ( str_starts_with( $option->option_name, 'connectors_' )
+		&& str_ends_with( $option->option_name, '_api_key' )
+	) {
+		// Mask connector API keys and prevent updates from this screen.
+		$value    = _wp_connectors_mask_api_key( $option->option_value );
+		$disabled = true;
 	} else {
 		$value               = $option->option_value;
 		$options_to_update[] = $option->option_name;

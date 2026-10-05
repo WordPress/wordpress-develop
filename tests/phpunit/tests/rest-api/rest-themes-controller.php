@@ -46,6 +46,20 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $current_theme;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
+	 * Registered theme feature state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $registered_theme_features;
+
+	/**
 	 * The REST API route for themes.
 	 *
 	 * @since 5.0.0
@@ -113,7 +127,10 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 				'role' => 'contributor',
 			)
 		);
-		self::$current_theme  = wp_get_theme();
+
+		self::$current_theme             = wp_get_theme();
+		self::$theme_features            = $GLOBALS['_wp_theme_features'];
+		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
 		wp_set_current_user( self::$contributor_id );
 	}
@@ -144,6 +161,13 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		switch_theme( 'rest-api' );
 	}
 
+	public function tear_down() {
+		$GLOBALS['_wp_theme_features']            = self::$theme_features;
+		$GLOBALS['_wp_registered_theme_features'] = self::$registered_theme_features;
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Theme routes should be registered correctly.
 	 *
@@ -163,9 +187,53 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @ticket 45016
 	 * @ticket 61021
-	 * @ticket 62574.
+	 * @ticket 62574
 	 */
 	public function test_get_items() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$fields = array(
+			'_links',
+			'author',
+			'author_uri',
+			'description',
+			'is_block_theme',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'stylesheet_uri',
+			'tags',
+			'template',
+			'template_uri',
+			'textdomain',
+			'theme_uri',
+			'version',
+		);
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+
+		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
+		$this->assertContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
+	 * Test retrieving a collection of active themes.
+	 *
+	 * @ticket 64719
+	 */
+	public function test_get_items_active() {
+		wp_set_current_user( self::$admin_id );
+
 		$response = self::perform_active_theme_request();
 
 		$this->assertSame( 200, $response->get_status() );
@@ -196,8 +264,9 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'version',
 		);
 		$this->assertIsArray( $data );
-		$this->assertNotEmpty( $data );
+		$this->assertCount( 1, $data );
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );
+		$this->assertSame( array( 'rest-api' ), wp_list_pluck( $data, 'stylesheet' ) );
 	}
 
 	/**
@@ -1552,9 +1621,23 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Context is not supported for themes.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		// Collection.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
+
+		// Single.
+		$request  = new WP_REST_Request( 'OPTIONS', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'context', $data['endpoints'][0]['args'] );
 	}
 }

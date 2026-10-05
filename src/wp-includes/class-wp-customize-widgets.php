@@ -176,7 +176,7 @@ final class WP_Customize_Widgets {
 	 * @since 4.2.0
 	 *
 	 * @param string $setting_id Setting ID.
-	 * @return string|void Setting type.
+	 * @return string|null Setting type.
 	 */
 	protected function get_setting_type( $setting_id ) {
 		static $cache = array();
@@ -189,6 +189,8 @@ final class WP_Customize_Widgets {
 				return $type;
 			}
 		}
+
+		return null;
 	}
 
 	/**
@@ -338,7 +340,7 @@ final class WP_Customize_Widgets {
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
 		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'sidebar_admin_setup' );
 	}
 
@@ -775,9 +777,7 @@ final class WP_Customize_Widgets {
 
 		if ( 1 === $registered_sidebar_count ) {
 			$no_areas_shown_message = html_entity_decode(
-				sprintf(
-					__( 'Your theme has 1 widget area, but this particular page does not display it.' )
-				),
+				__( 'Your theme has 1 widget area, but this particular page does not display it.' ),
 				ENT_QUOTES,
 				get_bloginfo( 'charset' )
 			);
@@ -897,7 +897,7 @@ final class WP_Customize_Widgets {
 			wp_enqueue_script( 'wp-customize-widgets' );
 			wp_enqueue_style( 'wp-customize-widgets' );
 
-			/** This action is documented in edit-form-blocks.php */
+			/** This action is documented in wp-admin/edit-form-blocks.php */
 			do_action( 'enqueue_block_editor_assets' );
 		}
 	}
@@ -1454,7 +1454,7 @@ final class WP_Customize_Widgets {
 	 *
 	 * @param array  $value   Widget instance to sanitize.
 	 * @param string $id_base Optional. Base of the ID of the widget being sanitized. Default null.
-	 * @return array|void Sanitized widget instance.
+	 * @return array|null Sanitized widget instance.
 	 */
 	public function sanitize_widget_instance( $value, $id_base = null ) {
 		global $wp_widget_factory;
@@ -1483,21 +1483,21 @@ final class WP_Customize_Widgets {
 			empty( $value['instance_hash_key'] ) ||
 			empty( $value['encoded_serialized_instance'] )
 		) {
-			return;
+			return null;
 		}
 
 		$decoded = base64_decode( $value['encoded_serialized_instance'], true );
 		if ( false === $decoded ) {
-			return;
+			return null;
 		}
 
 		if ( ! hash_equals( $this->get_instance_hash_key( $decoded ), $value['instance_hash_key'] ) ) {
-			return;
+			return null;
 		}
 
 		$instance = unserialize( $decoded );
 		if ( false === $instance ) {
-			return;
+			return null;
 		}
 
 		return $instance;
@@ -1699,6 +1699,8 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 *
 	 * @see wp_ajax_save_widget()
+	 *
+	 * @return never
 	 */
 	public function wp_ajax_update_widget() {
 
@@ -1722,7 +1724,7 @@ final class WP_Customize_Widgets {
 		/** This action is documented in wp-admin/includes/ajax-actions.php */
 		do_action( 'widgets.php' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-		/** This action is documented in wp-admin/widgets.php */
+		/** This action is documented in wp-admin/widgets-form.php */
 		do_action( 'sidebar_admin_setup' );
 
 		$widget_id = $this->get_post_value( 'widget-id' );
