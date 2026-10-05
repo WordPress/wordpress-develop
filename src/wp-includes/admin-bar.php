@@ -256,6 +256,8 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
  * Adds the "My Account" item.
  *
  * @since 3.3.0
+ * @since 7.2.0 Removed "Howdy" from the item title and added a fallback to the
+ *              user login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -299,6 +301,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
  * Adds the "My Account" submenu items.
  *
  * @since 3.1.0
+ * @since 7.2.0 Added "Howdy" to the user info item and a fallback to the user
+ *              login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
