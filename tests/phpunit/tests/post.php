@@ -823,16 +823,16 @@ class Tests_Post extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_insert_post_handle_malformed_post_date
 	 *
-	 * @param string $input    The input post_date value.
+	 * @param string $date     The input post_date value.
 	 * @param bool   $expected Whether the post is expected to be inserted.
 	 */
-	public function test_wp_insert_post_handle_malformed_post_date( $input, $expected ) {
+	public function test_wp_insert_post_handle_malformed_post_date( $date, $expected ) {
 		$post = array(
 			'post_author'  => self::$user_ids['editor'],
 			'post_status'  => 'publish',
 			'post_content' => 'content',
 			'post_title'   => 'title',
-			'post_date'    => $input,
+			'post_date'    => $date,
 		);
 
 		// Inserting the post should fail gracefully.
@@ -846,97 +846,87 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_insert_post_handle_malformed_post_date().
 	 *
-	 * @return array<array{ date: string, expected: bool }>
+	 * @return array<string, array{ date: string, expected: bool }>
 	 */
 	public static function data_wp_insert_post_handle_malformed_post_date(): array {
 		return array(
-			array(
+			'date only'                                 => array(
 				'date'     => '2012-01-01',
 				'expected' => true,
 			),
-			// 24-hour time format.
-			array(
+			'24-hour time format'                       => array(
 				'date'     => '2012-01-01 13:00:00',
 				'expected' => true,
 			),
-			// ISO8601 date with timezone.
-			array(
+			'ISO8601 date with timezone'                => array(
 				'date'     => '2016-01-16T00:00:00Z',
 				'expected' => true,
 			),
-			// ISO8601 date with timezone offset.
-			array(
+			'ISO8601 date with timezone offset'         => array(
 				'date'     => '2016-01-16T00:00:00+0100',
 				'expected' => true,
 			),
-			// RFC3339 Format.
-			array(
+			'RFC3339 format'                            => array(
 				'date'     => '1970-01-01T01:00:00+01:00',
 				'expected' => true,
 			),
-			// RSS Format
-			array(
+			'RSS format'                                => array(
 				'date'     => '1970-01-01T01:00:00+0100',
 				'expected' => true,
 			),
-			// Leap year.
-			array(
+			'leap year'                                 => array(
 				'date'     => '2012-02-29',
 				'expected' => true,
 			),
-			// Strange formats.
-			array(
+			'single digit hour'                         => array(
 				'date'     => '2012-01-01 0',
 				'expected' => true,
 			),
-			array(
+			'hour out of range'                         => array(
 				'date'     => '2012-01-01 25:00:00',
 				'expected' => true,
 			),
-			array(
+			'minute out of range'                       => array(
 				'date'     => '2012-01-01 00:60:00',
 				'expected' => true,
 			),
-			// Dates without leading zeros (valid but malformed format).
-			array(
+			'day without leading zero'                  => array(
 				'date'     => '2012-08-1',
 				'expected' => true,
 			),
-			array(
+			'month without leading zero with time'      => array(
 				'date'     => '2012-1-08 00:00:00',
 				'expected' => true,
 			),
-			array(
+			'day without leading zero with time'        => array(
 				'date'     => '2012-01-8 00:00:00',
 				'expected' => true,
 			),
-			// Failures.
-			array(
+			'invalid character in day'                  => array(
 				'date'     => '2012-08-0z',
 				'expected' => false,
 			),
-			array(
+			'three digit year'                          => array(
 				'date'     => '201-01-08 00:00:00',
 				'expected' => false,
 			),
-			array(
+			'three digit year with minute out of range' => array(
 				'date'     => '201-01-08 00:60:00',
 				'expected' => false,
 			),
-			array(
+			'invalid character in year'                 => array(
 				'date'     => '201a-01-08 00:00:00',
 				'expected' => false,
 			),
-			array(
+			'month out of range'                        => array(
 				'date'     => '2012-31-08 00:00:00',
 				'expected' => false,
 			),
-			array(
+			'day out of range'                          => array(
 				'date'     => '2012-01-48 00:00:00',
 				'expected' => false,
 			),
-			// Not a leap year.
-			array(
+			'not a leap year'                           => array(
 				'date'     => '2011-02-29',
 				'expected' => false,
 			),
@@ -954,7 +944,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * @dataProvider data_wp_resolve_post_date_regex
 	 *
 	 * @param string       $date     The input post_date value.
-	 * @param string|false $expected The expected resolved post date, or false if invalid
+	 * @param string|false $expected The expected resolved post date, or false if invalid.
 	 */
 	public function test_wp_resolve_post_date_regex( $date, $expected ) {
 		// Attempt to resolve post date.
@@ -967,98 +957,91 @@ class Tests_Post extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_resolve_post_date_regex().
 	 *
-	 * @return array<array{ date: string, expected: string|false }>
+	 * @return array<string, array{ date: string, expected: string|false }>
 	 */
 	public static function data_wp_resolve_post_date_regex(): array {
 		return array(
-			array(
+			'date only'                         => array(
 				'date'     => '2012-01-01',
 				'expected' => '2012-01-01',
 			),
-			array(
+			'date with midnight time'           => array(
 				'date'     => '2012-01-01 00:00:00',
 				'expected' => '2012-01-01 00:00:00',
 			),
-			// ISO8601 date with timezone.
-			array(
+			'ISO8601 date with timezone'        => array(
 				'date'     => '2016-01-16T00:00:00Z',
 				'expected' => '2016-01-16T00:00:00Z',
 			),
-			// ISO8601 date with timezone offset.
-			array(
+			'ISO8601 date with timezone offset' => array(
 				'date'     => '2016-01-16T00:00:00+0100',
 				'expected' => '2016-01-16T00:00:00+0100',
 			),
-			// RFC3339 Format.
-			array(
+			'RFC3339 format'                    => array(
 				'date'     => '1970-01-01T01:00:00+01:00',
 				'expected' => '1970-01-01T01:00:00+01:00',
 			),
-			// RSS Format
-			array(
+			'RSS format'                        => array(
 				'date'     => '1970-01-01T01:00:00+0100',
 				'expected' => '1970-01-01T01:00:00+0100',
 			),
-			// 24-hour time format.
-			array(
+			'24-hour time format'               => array(
 				'date'     => '2012-01-01 13:00:00',
 				'expected' => '2012-01-01 13:00:00',
 			),
-			array(
+			'ISO8601 date with partial time'    => array(
 				'date'     => '2016-01-16T00:0',
 				'expected' => '2016-01-16T00:0',
 			),
-			array(
+			'single digit hour'                 => array(
 				'date'     => '2012-01-01 0',
 				'expected' => '2012-01-01 0',
 			),
-			array(
+			'time without seconds'              => array(
 				'date'     => '2012-01-01 00:00',
 				'expected' => '2012-01-01 00:00',
 			),
-			array(
+			'hour out of range'                 => array(
 				'date'     => '2012-01-01 25:00:00',
 				'expected' => '2012-01-01 25:00:00',
 			),
-			array(
+			'minute out of range'               => array(
 				'date'     => '2012-01-01 00:60:00',
 				'expected' => '2012-01-01 00:60:00',
 			),
-			array(
+			'second out of range'               => array(
 				'date'     => '2012-01-01 00:00:60',
 				'expected' => '2012-01-01 00:00:60',
 			),
-			// Dates without leading zeros (valid but malformed format).
-			array(
+			'month without leading zero'        => array(
 				'date'     => '2012-1-08',
 				'expected' => '2012-1-08',
 			),
-			array(
+			'day without leading zero'          => array(
 				'date'     => '2012-01-8',
 				'expected' => '2012-01-8',
 			),
-			array(
+			'three digit year'                  => array(
 				'date'     => '201-01-08',
 				'expected' => false,
 			),
-			array(
+			'invalid character in year'         => array(
 				'date'     => '201a-01-08',
 				'expected' => false,
 			),
-			array(
+			'month out of range'                => array(
 				'date'     => '2012-31-08',
 				'expected' => false,
 			),
-			array(
+			'day out of range'                  => array(
 				'date'     => '2012-01-48 00:00:00',
 				'expected' => false,
 			),
-			// Leap year.
-			array(
+			'leap year'                         => array(
 				'date'     => '2012-02-29',
 				'expected' => '2012-02-29',
 			),
-			array(
+			'not a leap year'                   => array(
 				'date'     => '2011-02-29',
 				'expected' => false,
 			),
