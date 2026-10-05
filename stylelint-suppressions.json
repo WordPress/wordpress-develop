@@ -1,0 +1,219 @@
+{
+  "src/wp-admin/css/about.css": {
+    "selector-class-pattern": {
+      "count": 203
+    },
+    "selector-no-qualifying-type": {
+      "count": 17
+    }
+  },
+  "src/wp-admin/css/admin-menu.css": {
+    "selector-no-qualifying-type": {
+      "count": 145
+    }
+  },
+  "src/wp-admin/css/code-editor.css": {
+    "selector-class-pattern": {
+      "count": 18
+    }
+  },
+  "src/wp-admin/css/color-picker.css": {
+    "selector-no-qualifying-type": {
+      "count": 4
+    }
+  },
+  "src/wp-admin/css/common.css": {
+    "selector-no-qualifying-type": {
+      "count": 171
+    }
+  },
+  "src/wp-admin/css/customize-controls.css": {
+    "selector-class-pattern": {
+      "count": 31
+    },
+    "selector-id-pattern": {
+      "count": 37
+    },
+    "selector-no-qualifying-type": {
+      "count": 78
+    }
+  },
+  "src/wp-admin/css/customize-nav-menus.css": {
+    "selector-class-pattern": {
+      "count": 32
+    },
+    "selector-id-pattern": {
+      "count": 7
+    },
+    "selector-no-qualifying-type": {
+      "count": 13
+    }
+  },
+  "src/wp-admin/css/customize-widgets.css": {
+    "selector-class-pattern": {
+      "count": 20
+    },
+    "selector-no-qualifying-type": {
+      "count": 5
+    }
+  },
+  "src/wp-admin/css/dashboard.css": {
+    "selector-id-pattern": {
+      "count": 87
+    },
+    "selector-no-qualifying-type": {
+      "count": 30
+    }
+  },
+  "src/wp-admin/css/deprecated-media.css": {
+    "selector-no-qualifying-type": {
+      "count": 39
+    }
+  },
+  "src/wp-admin/css/edit.css": {
+    "selector-class-pattern": {
+      "count": 39
+    },
+    "selector-id-pattern": {
+      "count": 12
+    },
+    "selector-no-qualifying-type": {
+      "count": 147
+    }
+  },
+  "src/wp-admin/css/forms.css": {
+    "selector-class-pattern": {
+      "count": 22
+    },
+    "selector-id-pattern": {
+      "count": 8
+    },
+    "selector-no-qualifying-type": {
+      "count": 259
+    }
+  },
+  "src/wp-admin/css/install.css": {
+    "selector-no-qualifying-type": {
+      "count": 12
+    }
+  },
+  "src/wp-admin/css/l10n.css": {
+    "selector-no-qualifying-type": {
+      "count": 38
+    }
+  },
+  "src/wp-admin/css/list-tables.css": {
+    "selector-no-qualifying-type": {
+      "count": 246
+    }
+  },
+  "src/wp-admin/css/login.css": {
+    "selector-class-pattern": {
+      "count": 5
+    },
+    "selector-no-qualifying-type": {
+      "count": 18
+    }
+  },
+  "src/wp-admin/css/media.css": {
+    "selector-class-pattern": {
+      "count": 20
+    },
+    "selector-id-pattern": {
+      "count": 4
+    },
+    "selector-no-qualifying-type": {
+      "count": 30
+    }
+  },
+  "src/wp-admin/css/nav-menus.css": {
+    "selector-no-qualifying-type": {
+      "count": 43
+    }
+  },
+  "src/wp-admin/css/revisions.css": {
+    "selector-no-qualifying-type": {
+      "count": 34
+    }
+  },
+  "src/wp-admin/css/site-icon.css": {
+    "selector-no-qualifying-type": {
+      "count": 3
+    }
+  },
+  "src/wp-admin/css/themes.css": {
+    "selector-class-pattern": {
+      "count": 8
+    },
+    "selector-no-qualifying-type": {
+      "count": 32
+    }
+  },
+  "src/wp-admin/css/widgets.css": {
+    "selector-class-pattern": {
+      "count": 19
+    },
+    "selector-no-qualifying-type": {
+      "count": 32
+    }
+  },
+  "src/wp-admin/css/wp-tooltip.css": {
+    "selector-class-pattern": {
+      "count": 20
+    },
+    "selector-no-qualifying-type": {
+      "count": 6
+    }
+  },
+  "src/wp-includes/css/admin-bar.css": {
+    "selector-no-qualifying-type": {
+      "count": 62
+    }
+  },
+  "src/wp-includes/css/buttons.css": {
+    "selector-no-qualifying-type": {
+      "count": 10
+    }
+  },
+  "src/wp-includes/css/classic-themes.css": {
+    "selector-class-pattern": {
+      "count": 2
+    }
+  },
+  "src/wp-includes/css/customize-preview.css": {
+    "selector-no-qualifying-type": {
+      "count": 2
+    }
+  },
+  "src/wp-includes/css/editor.css": {
+    "selector-class-pattern": {
+      "count": 17
+    },
+    "selector-id-pattern": {
+      "count": 10
+    },
+    "selector-no-qualifying-type": {
+      "count": 166
+    }
+  },
+  "src/wp-includes/css/media-views.css": {
+    "selector-no-qualifying-type": {
+      "count": 134
+    }
+  },
+  "src/wp-includes/css/wp-embed-template.css": {
+    "selector-no-qualifying-type": {
+      "count": 10
+    }
+  },
+  "src/wp-includes/css/wp-pointer.css": {
+    "selector-no-qualifying-type": {
+      "count": 3
+    }
+  },
+  "src/wp-admin/css/colors/_admin.scss": {
+    "selector-no-qualifying-type": {
+      "count": 96
+    }
+  }
+}
