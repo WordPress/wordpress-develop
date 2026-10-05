@@ -226,17 +226,17 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	public function test_no_posts_with_empty_name_after_sanitization_to_empty_string(): void {
 		self::factory()->post->create(
 			array(
-				'post_name' => '',
+				'post_name'   => '',
 				'post_status' => 'draft',
-				'post_date' => '2026-10-05 16:30:00',
+				'post_date'   => '2026-10-05 16:30:00',
 			)
 		);
 
 		$args = array(
-			'name' => '[',
-			'year' => 2026,
+			'name'     => '[',
+			'year'     => 2026,
 			'monthnum' => 10,
-			'day' => 5,
+			'day'      => 5,
 		);
 
 		$q = new WP_Query( $args );
