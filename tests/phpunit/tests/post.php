@@ -1051,4 +1051,67 @@ class Tests_Post extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket ticket #40588
+	 *
+	 * Posts with an empty post_name and post_status "draft" regains theirs post_name after being trashed and untrashed.
+	 */
+	public function test_drafted_posts_reclaim_empty_slug_after_untrashing() {
+		$post_ids = self::factory()->post->create_many(
+			2,
+			array(
+				'post_content' => 'Test Post',
+				'post_status'  => 'draft',
+			)
+		);
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( '', $post_one->post_name );
+		$this->assertSame( '', $post_two->post_name );
+		wp_trash_post( $post_one->ID );
+		wp_trash_post( $post_two->ID );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( '__trashed', $post_one->post_name );
+		$this->assertSame( '__trashed-2', $post_two->post_name );
+		wp_untrash_post( $post_one->ID );
+		wp_untrash_post( $post_two->ID );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( '', $post_one->post_name );
+		$this->assertSame( '', $post_two->post_name );
+	}
+
+	/**
+	 * @ticket ticket #40588
+	 *
+	 * Posts with not empty post_name and post_status "draft" regains theirs post_name after being trashed and untrashed.
+	 */
+	public function test_drafted_posts_reclaim_slug_after_untrashing() {
+		$post_ids = self::factory()->post->create_many(
+			2,
+			array(
+				'post_content' => 'Test Post',
+				'post_status'  => 'draft',
+				'post_name'    => 'test-post',
+			)
+		);
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( 'test-post', $post_one->post_name );
+		$this->assertSame( 'test-post', $post_two->post_name );
+		wp_trash_post( $post_one->ID );
+		wp_trash_post( $post_two->ID );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( 'test-post__trashed', $post_one->post_name );
+		$this->assertSame( 'test-post__trashed-2', $post_two->post_name );
+		wp_untrash_post( $post_one->ID );
+		wp_untrash_post( $post_two->ID );
+		$post_one = get_post( $post_ids[0] );
+		$post_two = get_post( $post_ids[1] );
+		$this->assertSame( 'test-post', $post_one->post_name );
+		$this->assertSame( 'test-post', $post_two->post_name );
+	}
 }
