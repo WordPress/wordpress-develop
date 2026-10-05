@@ -36,7 +36,7 @@ if ( ! class_exists( 'WpOrg\Requests\Autoload' ) ) {
  *     response: array{code: int|false, message: string|false},
  *     cookies: WP_Http_Cookie[],
  *     filename?: string|null,
- *     http_response: WP_HTTP_Requests_Response|null,
+ *     http_response?: WP_HTTP_Requests_Response|null,
  * }
  */
 #[AllowDynamicProperties]
