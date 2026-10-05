@@ -4793,15 +4793,29 @@ function esc_attr( $text ) {
 /**
  * Escaping for HTML attribute names.
  *
+ * Invalid UTF-8 input returns an empty string. Callers must omit the entire
+ * attribute when the escaped name is empty. This function does not determine
+ * whether an attribute is safe to use, such as an event handler attribute.
+ *
  * @since 7.2.0
  *
  * @param string $text The attribute name to escape.
- * @return string The escaped attribute name.
+ * @return string The escaped attribute name, or an empty string if no valid name remains.
  */
 function esc_attr_name( $text ) {
-	$safe_text = wp_check_invalid_utf8( $text, true );
+	$safe_text = wp_check_invalid_utf8( $text );
 
-	$safe_text = preg_replace( '/[^a-zA-Z0-9_.:\[\]-]+/u', '', $safe_text );
+	// Remove HTML attribute delimiters, controls, and Unicode noncharacters.
+	$safe_text = preg_replace(
+		'/[\x{0000}-\x{0020}\x{007F}-\x{009F}"\'<>\/=\x{FDD0}-\x{FDEF}'
+		. '\x{FFFE}\x{FFFF}\x{1FFFE}\x{1FFFF}\x{2FFFE}\x{2FFFF}\x{3FFFE}\x{3FFFF}'
+		. '\x{4FFFE}\x{4FFFF}\x{5FFFE}\x{5FFFF}\x{6FFFE}\x{6FFFF}\x{7FFFE}\x{7FFFF}'
+		. '\x{8FFFE}\x{8FFFF}\x{9FFFE}\x{9FFFF}\x{AFFFE}\x{AFFFF}\x{BFFFE}\x{BFFFF}'
+		. '\x{CFFFE}\x{CFFFF}\x{DFFFE}\x{DFFFF}\x{EFFFE}\x{EFFFF}\x{FFFFE}\x{FFFFF}'
+		. '\x{10FFFE}\x{10FFFF}]+/u',
+		'',
+		$safe_text
+	) ?? '';
 
 	/**
 	 * Filters a string cleaned and escaped for output as an HTML attribute name.
