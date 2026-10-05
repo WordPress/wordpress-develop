@@ -21,6 +21,13 @@ class Tests_Formatting_EscAttrName extends WP_UnitTestCase {
 	 */
 	public function data_valid_attribute_names() {
 		return array(
+			array( 'data-ñame' ),
+			array( 'data-😀' ),
+			array( 'attrф' ),
+			array( 'data-名字' ),
+			array( 'data-@!$%&()+,;?^`{|}~' ),
+			array( "data-\u{00A0}name" ),
+			array( "data-\u{FDCF}\u{FDF0}\u{FFFD}\u{10000}\u{1FFFD}\u{20000}\u{10FFFD}" ),
 			array( 'class' ),
 			array( 'data-my-value' ),
 			array( 'aria-label' ),
@@ -67,24 +74,31 @@ class Tests_Formatting_EscAttrName extends WP_UnitTestCase {
 			array( "\t data-foo \n", 'data-foo' ),
 			array( '', '' ),
 			array( ' "\'><=/', '' ),
-			array( 'data-' . "\xc0\x80" . 'foo', 'data-foo' ),
-			array( 'data-ñame', 'data-ame' ),
-			array( 'data-😀', 'data-' ),
-			array( 'attrф', 'attr' ),
+			array( 'data-' . "\xc0\x80" . 'foo', '' ),
+			array( "caf\xE9", '' ),
+			array( "data-\xED\xA0\x80", '' ),
+			array( "data-\xF4\x90\x80\x80", '' ),
+			array( "data-\u{007F}\u{0080}\u{009F}name", 'data-name' ),
+			array( "data-\u{FDD0}\u{FDEF}\u{FFFE}\u{FFFF}name", 'data-name' ),
+			array( "data-\u{1FFFE}\u{10FFFF}name", 'data-name' ),
+			array( "\u{FDD0}\u{007F}", '' ),
 		);
 	}
 
 	public function test_filter_is_applied() {
 		add_filter( 'esc_attr_name', array( $this, 'filter_attr_name' ), 10, 2 );
 
-		$result = esc_attr_name( 'data-foo' );
+		$result = esc_attr_name( 'data-ñame foo' );
 
 		remove_filter( 'esc_attr_name', array( $this, 'filter_attr_name' ) );
 
-		$this->assertSame( 'filtered-data-foo', $result );
+		$this->assertSame( 'filtered-data-ñamefoo', $result );
 	}
 
 	public function filter_attr_name( $safe_text, $text ) {
+		$this->assertSame( 'data-ñamefoo', $safe_text );
+		$this->assertSame( 'data-ñame foo', $text );
+
 		return 'filtered-' . $safe_text;
 	}
 }
