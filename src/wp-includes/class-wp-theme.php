@@ -10,7 +10,7 @@
  * @phpstan-property-read string|false $name
  * @phpstan-property-read string|false $title
  * @phpstan-property-read string|false $version
- * @phpstan-property-read string $parent_theme
+ * @phpstan-property-read string|false $parent_theme
  * @phpstan-property-read string $template_dir
  * @phpstan-property-read string $stylesheet_dir
  * @phpstan-property-read string $template
