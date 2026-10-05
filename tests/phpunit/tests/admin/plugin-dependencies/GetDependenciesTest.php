@@ -5,15 +5,20 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::get_dependencies
+ * @covers \WP_Plugin_Dependencies::get_dependencies
  */
-class Tests_Admin_WPPluginDependencies_GetDependencies extends WP_PluginDependencies_UnitTestCase {
+class GetDependenciesTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that a plugin with no dependencies will return an empty array.
