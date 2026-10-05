@@ -43,6 +43,7 @@ on:
       - 'tools/local-env/**'
       - 'tools/vendors/**'
       - 'tools/webpack/**'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/performance.yml'
       - '.github/workflows/reusable-performance-*.yml'
   workflow_dispatch:

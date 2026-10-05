@@ -173,7 +173,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Toggles the selection state of the attachment.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object that triggered the selection toggle.
 	 */
 	toggleSelectionHandler: function( event ) {
 		var method;
@@ -229,7 +229,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Toggles the selection state of the attachment.
 	 *
-	 * @param {Object} options
+	 * @param {Object} options The options for toggling the selection state of the attachment.
 	 */
 	toggleSelection: function( options ) {
 		var collection = this.collection,
@@ -322,8 +322,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Selects the model in the selection.
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {Backbone.Collection} collection
+	 * @param {Backbone.Model}      model      The model to select.
+	 * @param {Backbone.Collection} collection The collection containing the model.
 	 */
 	select: function( model, collection ) {
 		var selection = this.options.selection,
@@ -353,8 +353,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Deselects the model in the selection.
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {Backbone.Collection} collection
+	 * @param {Backbone.Model}      model      The model to deselect.
+	 * @param {Backbone.Collection} collection The collection containing the model.
 	 */
 	deselect: function( model, collection ) {
 		var selection = this.options.selection;
@@ -373,8 +373,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Updates the view to reflect whether the model is the single model in the selection.
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {Backbone.Collection} collection
+	 * @param {Backbone.Model}      model      The model to check for details.
+	 * @param {Backbone.Collection} collection The collection containing the model.
 	 */
 	details: function( model, collection ) {
 		var selection = this.options.selection,
@@ -390,7 +390,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Gets the image size object for the specified size.
 	 *
-	 * @param {string} size
+	 * @param {string} size The desired image size.
 	 * @return {Object} Returns an object containing the image size information.
 	 */
 	imageSize: function( size ) {
@@ -425,7 +425,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Update the model's setting with the value from the input.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object that triggered the setting update.
 	 */
 	updateSetting: function( event ) {
 		var $setting = $( event.target ).closest('[data-setting]'),
@@ -478,7 +478,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Updates the view's save status.
 	 *
-	 * @param {string} status
+	 * @param {string} status The new save status to apply to the view.
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	updateSave: function( status ) {
@@ -522,7 +522,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	/**
 	 * Removes the model from the collection.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object that triggered the removal from the library.
 	 */
 	removeFromLibrary: function( event ) {
 		// Catch enter and space events.
@@ -540,7 +540,7 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 * Adds the model if it isn't in the selection, if it is in the selection,
 	 * removes it.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object that triggered the selection toggle.
 	 * @return {void}
 	 */
 	checkClickHandler: function ( event ) {
@@ -576,8 +576,8 @@ _.each({
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {string} value
+	 * @param {Backbone.Model} model The model containing the caption.
+	 * @param {string}         value The new caption value.
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
@@ -587,8 +587,8 @@ _.each({
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {string} value
+	 * @param {Backbone.Model} model The model containing the title.
+	 * @param {string}         value The new title value.
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
@@ -598,8 +598,8 @@ _.each({
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {string} value
+	 * @param {Backbone.Model} model The model containing the artist.
+	 * @param {string}         value The new artist value.
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	/**
@@ -609,8 +609,8 @@ _.each({
 	 * @memberOf wp.media.view.Attachment
 	 * @instance
 	 *
-	 * @param {Backbone.Model} model
-	 * @param {string} value
+	 * @param {Backbone.Model} model The model containing the album.
+	 * @param {string}         value The new album value.
 	 * @return {wp.media.view.Attachment} Returns itself to allow chaining.
 	 */
 	Attachment.prototype[ method ] = function( model, value ) {

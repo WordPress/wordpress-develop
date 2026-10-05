@@ -47,8 +47,8 @@ function wp_register_background_support( $block_type ) {
  *
  * @access private
  *
- * @param  string $block_content Rendered block content.
- * @param  array  $block         Block object.
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
  * @return string Filtered block content.
  */
 function wp_render_background_support( $block_content, $block ) {

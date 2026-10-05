@@ -52,7 +52,7 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 	/**
 	 * Updates the selected value for a setting.
 	 *
-	 * @param {string} key
+	 * @param {string} key The key of the setting to update.
 	 */
 	update: function( key ) {
 		var value = this.model.get( key ),
@@ -101,7 +101,7 @@ Settings = View.extend(/** @lends wp.media.view.Settings.prototype */{
 	/**
 	 * Updates the model when a setting is changed.
 	 *
-	 * @param {Object} event
+	 * @param {JQuery.Event} event The jQuery event object associated with the setting change.
 	 */
 	updateHandler: function( event ) {
 		var $setting = $( event.target ).closest('[data-setting]'),

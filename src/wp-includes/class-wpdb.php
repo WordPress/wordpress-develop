@@ -1291,12 +1291,23 @@ class wpdb {
 	/**
 	 * Escapes data. Works on arrays.
 	 *
+	 * The `$data is string` case must come first in the conditional return type below. PHPStan
+	 * does not treat the documented types as certain, so it still analyzes the nested
+	 * `is_array()` check even though `$v` is a `string`, narrowing `$v` to `never` there. A
+	 * `never` argument satisfies whichever case is tested first, so testing for `string` first
+	 * makes the recursive call resolve to `string`. Testing for the array case first would
+	 * instead resolve it to an array, widening `$data` and contradicting the return type.
+	 *
 	 * @since 2.8.0
 	 *
 	 * @uses wpdb::_real_escape()
 	 *
-	 * @param string|array $data Data to escape.
-	 * @return string|array Escaped data, in the same type as supplied.
+	 * @param string|string[] $data Data to escape.
+	 * @return string|string[] Escaped data, in the same type as supplied.
+	 *
+	 * @phpstan-template TKey of array-key
+	 * @phpstan-param string|array<TKey, string> $data
+	 * @phpstan-return ( $data is string ? string : array<TKey, string> )
 	 */
 	public function _escape( $data ) {
 		if ( is_array( $data ) ) {
