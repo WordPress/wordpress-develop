@@ -53,8 +53,8 @@ class Tests_Admin_IncludesTheme extends WP_UnitTestCase {
 	/**
 	 * @ticket 10959
 	 * @ticket 11216
-	 * @expectedDeprecated get_theme
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_theme
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_page_templates() {
 		$theme = get_theme( 'Page Template Theme' );

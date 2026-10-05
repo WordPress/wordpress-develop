@@ -95,7 +95,7 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated is_blog_user
+	 * @expectedWPDeprecated is_blog_user
 	 */
 	public function test_is_blog_user() {
 		global $wpdb;

@@ -3543,7 +3543,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 		_unregister_post_type( 'bug-post' );
 
-		$this->setExpectedIncorrectUsage( 'map_meta_cap' );
+		$this->expectWPIncorrectUsage( 'map_meta_cap' );
 
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( $method, '/wp/v2/comments/' . $comment_id );

@@ -36,7 +36,7 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	 * Test to see if the deprecated argument is working
 	 */
 	public function test_wp_get_http_headers_deprecated_argument() {
-		$this->setExpectedDeprecated( 'wp_get_http_headers' );
+		$this->expectWPDeprecated( 'wp_get_http_headers' );
 
 		wp_get_http_headers( 'does_not_matter', $deprecated = true );
 	}

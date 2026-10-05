@@ -241,7 +241,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_invalid_request_timeouts
 	 *
-	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
+	 * @expectedWPIncorrectUsage WP_AI_Client_Prompt_Builder::__construct
 	 *
 	 * @param mixed $timeout The invalid timeout value returned by the filter.
 	 */
@@ -2413,10 +2413,10 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 *
 	 * @ticket 64591
 	 *
-	 * @expectedIncorrectUsage WP_AI_Client_Prompt_Builder::using_abilities
+	 * @expectedWPIncorrectUsage WP_AI_Client_Prompt_Builder::using_abilities
 	 */
 	public function test_using_ability_skips_nonexistent_abilities() {
-		$this->setExpectedIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Abilities_Registry::get_registered' );
 
 		$builder = new WP_AI_Client_Prompt_Builder( $this->registry );
 		$result  = $builder->using_abilities(

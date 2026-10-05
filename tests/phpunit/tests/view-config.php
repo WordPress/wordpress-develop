@@ -313,7 +313,7 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	 * from the defaults.
 	 */
 	public function test_filter_data_normalized() {
-		$this->setExpectedIncorrectUsage( 'WP_View_Config_Data::set' );
+		$this->expectWPIncorrectUsage( 'WP_View_Config_Data::set' );
 
 		add_filter(
 			'get_entity_view_config_custom_kind_custom_name',

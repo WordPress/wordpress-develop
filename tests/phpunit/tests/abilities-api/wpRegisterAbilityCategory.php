@@ -58,7 +58,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage wp_register_ability_category
+	 * @expectedWPIncorrectUsage wp_register_ability_category
 	 */
 	public function test_register_category_before_init_hook(): void {
 		$this->assertFalse( doing_action( 'wp_abilities_api_categories_init' ) );
@@ -76,7 +76,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_instance
 	 */
 	public function test_register_ability_category_no_init_action(): void {
 		global $wp_actions;
@@ -126,7 +126,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_instance
 	 */
 	public function test_unregister_ability_category_no_init_action(): void {
 		global $wp_actions;
@@ -154,7 +154,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::unregister
 	 */
 	public function test_unregister_nonexistent_category(): void {
 		$this->simulate_doing_wp_ability_categories_init_action();
@@ -188,7 +188,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_instance
 	 */
 	public function test_has_ability_category_no_init_action(): void {
 		global $wp_actions;
@@ -249,7 +249,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_instance
 	 */
 	public function test_get_ability_category_no_init_action(): void {
 		global $wp_actions;
@@ -277,7 +277,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_registered
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_registered
 	 */
 	public function test_get_nonexistent_category(): void {
 		$this->simulate_doing_wp_ability_categories_init_action();
@@ -322,7 +322,7 @@ class Tests_Abilities_API_WpRegisterAbilityCategory extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Ability_Categories_Registry::get_instance
+	 * @expectedWPIncorrectUsage WP_Ability_Categories_Registry::get_instance
 	 */
 	public function test_get_ability_categories_no_init_action(): void {
 		global $wp_actions;

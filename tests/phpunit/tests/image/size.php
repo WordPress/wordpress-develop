@@ -85,7 +85,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_shrink_dimensions
+	 * @expectedWPDeprecated wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_default() {
 		$out = wp_shrink_dimensions( 640, 480 );
@@ -96,7 +96,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_shrink_dimensions
+	 * @expectedWPDeprecated wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_smaller() {
 		// Image size is smaller than the constraint - no effect.
@@ -108,7 +108,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_shrink_dimensions
+	 * @expectedWPDeprecated wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_equal() {
 		// Image size is equal to the constraint - no effect.
@@ -120,7 +120,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_shrink_dimensions
+	 * @expectedWPDeprecated wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_larger() {
 		// Image size is larger than the constraint - result should be constrained.
@@ -132,7 +132,7 @@ class Tests_Image_Size extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated wp_shrink_dimensions
+	 * @expectedWPDeprecated wp_shrink_dimensions
 	 */
 	public function test_shrink_dimensions_boundary() {
 		// One dimension is larger than the constraint, one smaller - result should be constrained.

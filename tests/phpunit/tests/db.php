@@ -366,7 +366,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25604
-	 * @expectedIncorrectUsage wpdb::prepare
+	 * @expectedWPIncorrectUsage wpdb::prepare
 	 */
 	public function test_prepare_without_arguments() {
 		global $wpdb;
@@ -385,7 +385,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage wpdb::prepare
+	 * @expectedWPIncorrectUsage wpdb::prepare
 	 */
 	public function test_prepare_sprintf_invalid_args() {
 		global $wpdb;
@@ -407,7 +407,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage wpdb::prepare
+	 * @expectedWPIncorrectUsage wpdb::prepare
 	 */
 	public function test_prepare_vsprintf_invalid_args() {
 		global $wpdb;
@@ -424,7 +424,7 @@ class Tests_DB extends WP_UnitTestCase {
 	/**
 	 * @ticket 42040
 	 * @dataProvider data_prepare_incorrect_arg_count
-	 * @expectedIncorrectUsage wpdb::prepare
+	 * @expectedWPIncorrectUsage wpdb::prepare
 	 */
 	public function test_prepare_incorrect_arg_count( $query, $args, $expected ) {
 		global $wpdb;
@@ -523,7 +523,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated supports_collation
+	 * @expectedWPDeprecated supports_collation
 	 */
 	public function test_supports_collation() {
 		global $wpdb;
@@ -1504,7 +1504,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
-			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
+			$this->expectWPIncorrectUsage( 'wpdb::prepare' );
 		}
 
 		if ( ! is_array( $values ) ) {
@@ -1527,7 +1527,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		if ( is_string( $incorrect_usage ) || true === $incorrect_usage ) {
-			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
+			$this->expectWPIncorrectUsage( 'wpdb::prepare' );
 		}
 
 		if ( ! is_array( $values ) ) {
@@ -2114,7 +2114,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 
 		if ( $incorrect_usage ) {
-			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
+			$this->expectWPIncorrectUsage( 'wpdb::prepare' );
 		}
 
 		$escape = esc_sql( $escape );
@@ -2158,7 +2158,7 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedIncorrectUsage wpdb::prepare
+	 * @expectedWPIncorrectUsage wpdb::prepare
 	 */
 	public function test_double_prepare() {
 		global $wpdb;

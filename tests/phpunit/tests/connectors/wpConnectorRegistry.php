@@ -103,7 +103,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_empty_setting_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                   = self::$default_args;
 		$args['authentication']['setting_name'] = '';
@@ -117,7 +117,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_non_string_setting_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                   = self::$default_args;
 		$args['authentication']['setting_name'] = 123;
@@ -184,7 +184,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @param string $name_key Authentication argument key.
 	 */
 	public function test_register_rejects_empty_application_password_external_names( string $name_key ) {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                   = self::$default_args;
 		$args['authentication'] = array(
@@ -234,7 +234,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_empty_constant_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                    = self::$default_args;
 		$args['authentication']['constant_name'] = '';
@@ -248,7 +248,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_non_string_constant_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                    = self::$default_args;
 		$args['authentication']['constant_name'] = 123;
@@ -283,7 +283,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_empty_env_var_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                   = self::$default_args;
 		$args['authentication']['env_var_name'] = '';
@@ -297,7 +297,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64957
 	 */
 	public function test_register_rejects_non_string_env_var_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                                   = self::$default_args;
 		$args['authentication']['env_var_name'] = 123;
@@ -405,7 +405,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 65020
 	 */
 	public function test_register_rejects_non_callable_plugin_is_active() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args           = self::$default_args;
 		$args['plugin'] = array(
@@ -447,7 +447,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_invalid_id_with_uppercase() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$result = $this->registry->register( 'InvalidId', self::$default_args );
 
@@ -476,7 +476,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_empty_id() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$result = $this->registry->register( '', self::$default_args );
 
@@ -487,7 +487,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_duplicate_id() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$this->registry->register( 'test-duplicate', self::$default_args );
 		$result = $this->registry->register( 'test-duplicate', self::$default_args );
@@ -499,7 +499,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_missing_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args = self::$default_args;
 		unset( $args['name'] );
@@ -513,7 +513,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_empty_name() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args         = self::$default_args;
 		$args['name'] = '';
@@ -527,7 +527,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_missing_type() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args = self::$default_args;
 		unset( $args['type'] );
@@ -541,7 +541,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_missing_authentication() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args = self::$default_args;
 		unset( $args['authentication'] );
@@ -555,7 +555,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_register_rejects_invalid_auth_method() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::register' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::register' );
 
 		$args                             = self::$default_args;
 		$args['authentication']['method'] = 'oauth';
@@ -597,7 +597,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_get_registered_returns_null_for_unregistered() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::get_registered' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::get_registered' );
 
 		$result = $this->registry->get_registered( 'nonexistent' );
 
@@ -645,7 +645,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_unregister_returns_null_for_unregistered() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::unregister' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::unregister' );
 
 		$result = $this->registry->unregister( 'nonexistent' );
 
@@ -665,7 +665,7 @@ class Tests_Connectors_WpConnectorRegistry extends WP_UnitTestCase {
 	 * @ticket 64791
 	 */
 	public function test_set_instance_rejects_after_init() {
-		$this->setExpectedIncorrectUsage( 'WP_Connector_Registry::set_instance' );
+		$this->expectWPIncorrectUsage( 'WP_Connector_Registry::set_instance' );
 
 		WP_Connector_Registry::set_instance( new WP_Connector_Registry() );
 	}

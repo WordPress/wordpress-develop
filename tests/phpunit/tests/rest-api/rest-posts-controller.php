@@ -4909,7 +4909,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 * @ticket 48401
 	 */
 	public function test_get_item_schema_issues_doing_it_wrong_when_taxonomy_name_is_already_set_in_properties() {
-		$this->setExpectedIncorrectUsage( 'register_taxonomy' );
+		$this->expectWPIncorrectUsage( 'register_taxonomy' );
 
 		// Register a taxonomy with 'status' as name.
 		register_taxonomy( 'status', 'post', array( 'show_in_rest' => true ) );
@@ -5855,7 +5855,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	 */
 	public function test_rest_post_type_item_schema_filter_add_property_triggers_doing_it_wrong() {
 		add_filter( 'rest_post_item_schema', array( $this, 'filter_post_item_schema_add_property' ) );
-		$this->setExpectedIncorrectUsage( 'WP_REST_Posts_Controller::get_item_schema' );
+		$this->expectWPIncorrectUsage( 'WP_REST_Posts_Controller::get_item_schema' );
 
 		// Re-initialize the controller to cache-bust schemas from prior test runs.
 		$GLOBALS['wp_rest_server']->override_by_default = true;

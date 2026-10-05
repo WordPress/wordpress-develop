@@ -1045,7 +1045,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @expectedDeprecated WP_User_Query
+	 * @expectedWPDeprecated WP_User_Query
 	 */
 	public function test_get_items_who_author_query() {
 		wp_set_current_user( self::$superadmin );

@@ -806,7 +806,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10441
-	 * @expectedDeprecated tests_do_action_deprecated
+	 * @expectedWPDeprecated tests_do_action_deprecated
 	 *
 	 * @covers ::do_action_deprecated
 	 */
@@ -826,7 +826,7 @@ class Tests_Actions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10441
-	 * @expectedDeprecated tests_do_action_deprecated
+	 * @expectedWPDeprecated tests_do_action_deprecated
 	 *
 	 * @covers ::do_action_deprecated
 	 */

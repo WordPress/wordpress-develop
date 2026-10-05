@@ -84,8 +84,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_theme
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_get_themes_default() {
 		$themes = get_themes();
@@ -98,8 +98,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_theme
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_theme
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_get_theme() {
 		$themes = get_themes();
@@ -133,7 +133,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_themes
+	 * @expectedWPDeprecated get_themes
 	 */
 	public function test_get_themes_contents() {
 		$themes = get_themes();
@@ -421,7 +421,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20897
-	 * @expectedDeprecated get_theme_data
+	 * @expectedWPDeprecated get_theme_data
 	 */
 	public function test_extra_theme_headers() {
 		$wp_theme = wp_get_theme( $this->theme_slug );
@@ -440,8 +440,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated get_themes
-	 * @expectedDeprecated get_current_theme
+	 * @expectedWPDeprecated get_themes
+	 * @expectedWPDeprecated get_current_theme
 	 */
 	public function test_switch_theme() {
 		$themes = get_themes();

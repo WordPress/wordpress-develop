@@ -55,7 +55,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
-	 * @expectedDeprecated WP_User_Query
+	 * @expectedWPDeprecated WP_User_Query
 	 */
 	public function test_role_filter() {
 		$author_id        = $this->make_user_by_role( 'author' );

@@ -101,7 +101,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_name_without_namespace() {
 		$result = $this->registry->register( 'without-namespace', self::$test_ability_args );
@@ -115,7 +115,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_characters_in_name() {
 		$result = $this->registry->register( 'still/_doing_it_wrong', array() );
@@ -129,7 +129,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_uppercase_characters_in_name() {
 		$result = $this->registry->register( 'Test/AddNumbers', self::$test_ability_args );
@@ -144,7 +144,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_label() {
 		// Remove the label from the args.
@@ -162,7 +162,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_label_type() {
 		self::$test_ability_args['label'] = false;
@@ -179,7 +179,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_description() {
 		// Remove the description from the args.
@@ -197,7 +197,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_description_type() {
 		self::$test_ability_args['description'] = false;
@@ -211,7 +211,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_nonexistent_category(): void {
 		$args = array_merge(
@@ -233,7 +233,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 *
 	 * @param mixed $category Invalid category value.
 	 */
@@ -271,7 +271,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_rejects_empty_category(): void {
 		$args             = self::$test_ability_args;
@@ -294,7 +294,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_execute_callback() {
 		// Remove the execute_callback from the args.
@@ -312,7 +312,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_execute_callback_type() {
 		self::$test_ability_args['execute_callback'] = 'not-a-callback';
@@ -359,7 +359,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_missing_permission_callback() {
 		// Remove the permission_callback from the args.
@@ -377,7 +377,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_permission_callback_type() {
 		self::$test_ability_args['permission_callback'] = 'not-a-callback';
@@ -394,7 +394,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_input_schema_type() {
 		self::$test_ability_args['input_schema'] = 'not-an-array';
@@ -411,7 +411,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_output_schema_type() {
 		self::$test_ability_args['output_schema'] = 'not-an-array';
@@ -428,7 +428,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_annotations_type() {
 		self::$test_ability_args['meta']['annotations'] = false;
@@ -445,7 +445,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_meta_type() {
 		self::$test_ability_args['meta'] = false;
@@ -462,7 +462,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_show_in_rest_type() {
 		self::$test_ability_args['meta']['show_in_rest'] = 5;
@@ -479,7 +479,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 * @covers WP_Abilities_Registry::register
 	 * @covers WP_Ability::prepare_properties
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_invalid_public_type() {
 		self::$test_ability_args['meta']['public'] = 5;
@@ -495,7 +495,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::register
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_incorrect_already_registered_ability() {
 		$this->registry->register( self::$test_ability_name, self::$test_ability_args );
@@ -558,7 +558,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::get_registered
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_registered_rejects_unknown_ability_name() {
 		$ability = $this->registry->get_registered( 'test/unknown' );
@@ -589,7 +589,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Abilities_Registry::unregister
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::unregister
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::unregister
 	 */
 	public function test_unregister_not_registered_ability() {
 		$result = $this->registry->unregister( 'test/unregistered' );
@@ -687,7 +687,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_args_filter_blocks_registration() {
 		// Define the filter.
@@ -713,7 +713,7 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	 *
 	 * @ticket 64098
 	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 * @expectedWPIncorrectUsage WP_Abilities_Registry::register
 	 */
 	public function test_register_ability_args_filter_blocks_invalid_ability_class() {
 		// Define the filter.
