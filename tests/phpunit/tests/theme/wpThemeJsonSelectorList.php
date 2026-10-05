@@ -45,7 +45,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{selector: string, expected: string[]}>
 	 */
-	public function data_split_selector_list() {
+	public static function data_split_selector_list() {
 		return array(
 			'single selector'                       => array(
 				'selector' => '.wp-block',
@@ -114,7 +114,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{selector: string, expected: string}>
 	 */
-	public function data_prepend_to_selector_uses_safe_splitting() {
+	public static function data_prepend_to_selector_uses_safe_splitting() {
 		return array(
 			'fast path for simple selector list' => array(
 				'selector' => 'h1,h2',
