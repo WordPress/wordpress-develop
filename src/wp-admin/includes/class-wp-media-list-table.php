@@ -777,6 +777,8 @@ class WP_Media_List_Table extends WP_List_Table {
 			</tr>
 			<?php
 		endwhile;
+
+		remove_filter( 'the_title', 'wp_kses_post_title' );
 	}
 
 	/**

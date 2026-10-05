@@ -813,6 +813,8 @@ class WP_Posts_List_Table extends WP_List_Table {
 		} else {
 			$this->_display_rows( $posts, $level );
 		}
+
+		remove_filter( 'the_title', 'wp_kses_post_title' );
 	}
 
 	/**
