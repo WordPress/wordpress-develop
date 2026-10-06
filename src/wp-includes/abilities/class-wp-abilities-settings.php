@@ -224,8 +224,9 @@ final class WP_Abilities_Settings {
 	 * Returns the settings exposed through the Abilities API.
 	 *
 	 * Reads {@see get_registered_settings()} and keeps only settings flagged with a truthy
-	 * `show_in_abilities` argument. Each entry is keyed by its exposed name and carries the
-	 * underlying option name, the settings group, and a JSON Schema describing the value.
+	 * `show_in_abilities` argument, of a type the settings endpoint supports. Each entry is
+	 * keyed by its exposed name and carries the underlying option name, the settings group,
+	 * and a JSON Schema describing the value.
 	 *
 	 * @since 7.2.0
 	 *
@@ -240,13 +241,18 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
+			$schema = $this->value_schema( $args, $show );
+			if ( ! in_array( $schema['type'], array( 'number', 'integer', 'string', 'boolean', 'array', 'object' ), true ) ) {
+				continue;
+			}
+
 			$option_name  = (string) $option_name;
 			$exposed_name = is_array( $show ) && isset( $show['name'] ) && is_string( $show['name'] ) && '' !== $show['name'] ? $show['name'] : $option_name;
 
 			$settings[ $exposed_name ] = array(
 				'option' => $option_name,
 				'group'  => isset( $args['group'] ) && is_string( $args['group'] ) ? $args['group'] : '',
-				'schema' => $this->value_schema( $args, $show ),
+				'schema' => $schema,
 			);
 		}
 

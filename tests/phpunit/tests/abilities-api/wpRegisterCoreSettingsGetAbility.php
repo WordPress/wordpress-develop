@@ -419,4 +419,36 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			'a non-numeric string for an integer' => array( 'integer', 'abc', null ),
 		);
 	}
+
+	/**
+	 * A setting of a type the settings endpoint does not support is not exposed.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_skips_a_setting_with_an_unsupported_type(): void {
+		$option = 'core_settings_get_ability_type_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => 'foo',
+				'show_in_abilities' => true,
+			)
+		);
+		update_option( $option, 'value' );
+
+		try {
+			$this->register_ability();
+			$this->become_admin();
+
+			$ability = wp_get_ability( 'core/settings-get' );
+
+			$this->assertArrayNotHasKey( $option, $ability->get_output_schema()['properties'] );
+			$this->assertArrayNotHasKey( $option, $ability->execute( array() ) );
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+	}
 }
