@@ -42,23 +42,15 @@ declare( strict_types = 1 );
 final class WP_Abilities_Settings {
 
 	/**
-	 * The ability category used for settings abilities.
-	 *
-	 * @since 7.2.0
-	 * @var string
-	 */
-	private const CATEGORY = 'site';
-
-	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
 	 *
 	 * Cached so the input/output schema and the executed result derive from the exact same
 	 * structure, and {@see get_registered_settings()} is only walked once per request.
 	 *
 	 * @since 7.2.0
-	 * @var array<string, array{option: string, group: string, schema: array<string, mixed>}>|null
+	 * @var array<string, array{option: string, group: string, schema: array<string, mixed>}>
 	 */
-	private $exposed_settings = null;
+	private $exposed_settings = array();
 
 	/**
 	 * Registers all settings abilities.
@@ -84,29 +76,19 @@ final class WP_Abilities_Settings {
 	 * @since 7.2.0
 	 */
 	private function register_get_settings(): void {
-		$settings    = (array) $this->exposed_settings;
-		$field_names = array_keys( $settings );
-		$groups      = array();
-		$properties  = array();
-		foreach ( $settings as $exposed_name => $setting ) {
-			$properties[ $exposed_name ] = $setting['schema'];
-			if ( '' === $setting['group'] || in_array( $setting['group'], $groups, true ) ) {
-				continue;
-			}
-			$groups[] = $setting['group'];
-		}
+		$groups = array_values( array_unique( array_filter( array_column( $this->exposed_settings, 'group' ) ) ) );
 
 		wp_register_ability(
 			'core/settings-get',
 			array(
 				'label'               => __( 'Settings Get' ),
 				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both. A setting whose value does not match its schema is left out.' ),
-				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_settings_input_schema( $groups, $field_names ),
+				'category'            => 'site',
+				'input_schema'        => $this->get_settings_input_schema( $groups, array_keys( $this->exposed_settings ) ),
 				'output_schema'       => array(
 					'type'                 => 'object',
 					'description'          => __( 'A map of setting name to its current value.' ),
-					'properties'           => $properties,
+					'properties'           => wp_list_pluck( $this->exposed_settings, 'schema' ),
 					'additionalProperties' => false,
 				),
 				'execute_callback'    => array( $this, 'execute_get_settings' ),
@@ -132,20 +114,12 @@ final class WP_Abilities_Settings {
 	 * @return array<string, mixed> Map of exposed setting name to current value.
 	 */
 	public function execute_get_settings( $input = array() ): array {
-		$input = is_array( $input ) ? $input : array();
-
-		$settings = $this->exposed_settings;
-		if ( null === $settings ) {
-			// The cache is populated in register() before the ability is
-			// registered, so this is unreachable in practice; bail defensively otherwise.
-			return array();
-		}
-
+		$input  = is_array( $input ) ? $input : array();
 		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
 		$fields = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : array();
 
 		$result = array();
-		foreach ( $settings as $exposed_name => $setting ) {
+		foreach ( $this->exposed_settings as $exposed_name => $setting ) {
 			if ( '' !== $group && $setting['group'] !== $group ) {
 				continue;
 			}
@@ -246,12 +220,11 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
-			$option_name  = (string) $option_name;
-			$exposed_name = is_array( $show ) && isset( $show['name'] ) && is_string( $show['name'] ) && '' !== $show['name'] ? $show['name'] : $option_name;
+			$option_name = (string) $option_name;
 
-			$settings[ $exposed_name ] = array(
+			$settings[ empty( $show['name'] ) ? $option_name : $show['name'] ] = array(
 				'option' => $option_name,
-				'group'  => isset( $args['group'] ) && is_string( $args['group'] ) ? $args['group'] : '',
+				'group'  => $args['group'] ?? '',
 				'schema' => $schema,
 			);
 		}
@@ -270,7 +243,7 @@ final class WP_Abilities_Settings {
 	 */
 	private function value_schema( array $args, $show ): array {
 		$schema = array(
-			'type' => isset( $args['type'] ) && is_string( $args['type'] ) ? $args['type'] : 'string',
+			'type' => $args['type'],
 		);
 		if ( ! empty( $args['label'] ) ) {
 			$schema['title'] = $args['label'];
@@ -278,7 +251,7 @@ final class WP_Abilities_Settings {
 		if ( ! empty( $args['description'] ) ) {
 			$schema['description'] = $args['description'];
 		}
-		if ( is_array( $show ) && isset( $show['schema'] ) && is_array( $show['schema'] ) ) {
+		if ( isset( $show['schema'] ) && is_array( $show['schema'] ) ) {
 			/** @var array<string, mixed> $show_schema */
 			$show_schema = $show['schema'];
 			$schema      = array_merge( $schema, $show_schema );
