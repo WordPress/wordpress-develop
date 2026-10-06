@@ -499,11 +499,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets the list of CSS classes for the table container.
+	 * Gets a list of CSS classes for the WP_List_Table table tag.
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return string[] CSS classes.
+	 * @return string[] Array of CSS classes for the table tag.
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
