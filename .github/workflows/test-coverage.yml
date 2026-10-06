@@ -11,6 +11,8 @@ on:
       - 'docker-compose.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
+      - 'phpunit-modern.xml.dist'
+      - 'tests/phpunit/multisite-modern.xml'
   pull_request:
     branches:
       - trunk
@@ -20,6 +22,8 @@ on:
       - 'docker-compose.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
+      - 'phpunit-modern.xml.dist'
+      - 'tests/phpunit/multisite-modern.xml'
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'

@@ -13,7 +13,8 @@ define( 'WP_DEFAULT_THEME', 'default' );
 
 /*
  * Test with multisite enabled.
- * Alternatively, use the tests/phpunit/multisite.xml configuration file.
+ * Alternatively, use tests/phpunit/multisite.xml for PHPUnit 9 and earlier,
+ * or tests/phpunit/multisite-modern.xml for PHPUnit 10.1 and later.
  */
 // define( 'WP_TESTS_MULTISITE', true );
 

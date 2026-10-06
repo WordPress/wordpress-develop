@@ -34,6 +34,7 @@ on:
       - 'tests/phpunit/**'
       - 'tests/phpunit/multisite.xml'
       - 'phpunit.xml.dist'
+      - 'phpunit-modern.xml.dist'
       # Confirm any changes to relevant workflow files.
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
@@ -316,6 +317,7 @@ jobs:
       db-version: ${{ matrix.db-version }}
       db-type: ${{ matrix.db-type }}
       memcached: ${{ matrix.memcached || false }}
+      multisite: ${{ matrix.multisite || false }}
       phpunit-test-groups: ${{ matrix.phpunit-test-groups || '' }}
 
   slack-notifications:

@@ -36,6 +36,9 @@
 		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
 		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
 		"lint:errors": "@lint -n",
-		"test": [ "Composer\\Config::disableProcessTimeout", "@php ./vendor/phpunit/phpunit/phpunit" ]
+		"test": [ "Composer\\Config::disableProcessTimeout", "@php ./vendor/phpunit/phpunit/phpunit" ],
+		"test:modern": "@test -c phpunit-modern.xml.dist",
+		"test:multisite": "@test -c tests/phpunit/multisite.xml",
+		"test:multisite-modern": "@test -c tests/phpunit/multisite-modern.xml"
 	}
 }

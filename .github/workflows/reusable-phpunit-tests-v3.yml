@@ -43,10 +43,10 @@ on:
         type: 'boolean'
         default: false
       phpunit-config:
-        description: 'The PHPUnit configuration file to use'
+        description: 'The PHPUnit configuration file to use. Defaults to the version-appropriate single-site or multisite configuration.'
         required: false
         type: 'string'
-        default: 'phpunit.xml.dist'
+        default: ''
       phpunit-test-groups:
         description: 'A list of test groups to run.'
         required: false
@@ -88,7 +88,7 @@ env:
   LOCAL_DB_VERSION: ${{ inputs.db-version }}
   LOCAL_PHP_MEMCACHED: ${{ inputs.memcached }}
   LOCAL_WP_TESTS_DOMAIN: ${{ inputs.tests-domain }}
-  PHPUNIT_CONFIG: ${{ inputs.phpunit-config }}
+  PHPUNIT_CONFIG: ${{ inputs.phpunit-config || ( inputs.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' ) }}
   PUPPETEER_SKIP_DOWNLOAD: ${{ true }}
 
 # Disable permissions for all available scopes by default.
@@ -165,6 +165,20 @@ jobs:
       - name: Install npm dependencies
         run: npm ci
 
+      - name: Select PHPUnit configuration
+        run: |
+          PHPUNIT_VERSION=$(php -r 'require "vendor/autoload.php"; echo PHPUnit\Runner\Version::id();')
+          if php -r 'exit( version_compare( $argv[1], "10.1", ">=" ) ? 0 : 1 );' "${PHPUNIT_VERSION}"; then
+            case "${PHPUNIT_CONFIG}" in
+              phpunit.xml.dist) PHPUNIT_CONFIG=phpunit-modern.xml.dist ;;
+              tests/phpunit/multisite.xml) PHPUNIT_CONFIG=tests/phpunit/multisite-modern.xml ;;
+            esac
+            echo 'PHPUNIT_VERBOSE=' >> "$GITHUB_ENV"
+          else
+            echo 'PHPUNIT_VERBOSE=--verbose' >> "$GITHUB_ENV"
+          fi
+          echo "PHPUNIT_CONFIG=${PHPUNIT_CONFIG}" >> "$GITHUB_ENV"
+
       - name: General debug information
         run: |
           npm --version
@@ -203,7 +217,7 @@ jobs:
         run: |
           node ./tools/local-env/scripts/docker.js run \
             php ./vendor/bin/phpunit \
-            --verbose \
+            ${PHPUNIT_VERBOSE} \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml" --coverage-html "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}"' || '' }}
@@ -214,23 +228,23 @@ jobs:
       - name: Run AJAX tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ajax
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit ${PHPUNIT_VERBOSE} -c "${PHPUNIT_CONFIG}" --group ajax
 
       - name: Run ms-files tests as a multisite install
         if: ${{ inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group ms-files
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit ${PHPUNIT_VERBOSE} -c "${PHPUNIT_CONFIG}" --group ms-files
 
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
+        run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit ${PHPUNIT_VERBOSE} -c "${PHPUNIT_CONFIG}" --group external-http
 
-      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      # __fakegroup__ is excluded to force PHPUnit to ignore the configured <exclude> settings.
       - name: Run (Xdebug) tests
         if: ${{ ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
-        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit -v --group xdebug --exclude-group __fakegroup__
+        run: LOCAL_PHP_XDEBUG=true node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit ${PHPUNIT_VERBOSE} -c "${PHPUNIT_CONFIG}" --group xdebug --exclude-group __fakegroup__
 
       - name: Upload test coverage report to Codecov
         if: ${{ inputs.coverage-report }}
