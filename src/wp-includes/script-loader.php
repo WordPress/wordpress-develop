@@ -2978,7 +2978,7 @@ function wp_prefetch_admin_assets(): void {
 	 *                            will receive it, so a request-supplied path is passed through
 	 *                            unchanged and only the fallback is a full URL.
 	 */
-	$resources = apply_filters( 'prefetch_admin_assets', $resources, $next_screen );
+	$resources = apply_filters( 'wp_prefetch_admin_assets', $resources, $next_screen );
 
 	if ( ! is_array( $resources ) ) {
 		return;

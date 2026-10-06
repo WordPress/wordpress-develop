@@ -391,7 +391,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function test_login_off_site_redirect_falls_back_to_admin(): void {
 		$filter = new MockAction();
-		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'wp_prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
 
 		$links = $this->get_prefetched_on_login( array( 'redirect_to' => 'https://elsewhere.example.com/wp-admin/post-new.php' ) );
 
@@ -527,7 +527,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$filter = new MockAction();
-		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
+		add_filter( 'wp_prefetch_admin_assets', array( $filter, 'filter' ), 10, 2 );
 
 		$links = $this->get_prefetched_on_admin_screen( $screen );
 
@@ -620,7 +620,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		add_filter( 'use_block_editor_for_post_type', '__return_false' );
 
 		$filter = new MockAction();
-		add_filter( 'prefetch_admin_assets', array( $filter, 'filter' ) );
+		add_filter( 'wp_prefetch_admin_assets', array( $filter, 'filter' ) );
 
 		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'edit' ) );
 		$this->assertSame( 0, $filter->get_call_count(), 'Expected the filter not to be applied.' );
@@ -841,7 +841,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 
 		$common_href = null;
 		add_filter(
-			'prefetch_admin_assets',
+			'wp_prefetch_admin_assets',
 			static function ( array $resources ) use ( &$common_href ): array {
 				foreach ( $resources as $resource ) {
 					if (
@@ -885,7 +885,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function test_filter_result_is_deduplicated_and_sanitized(): void {
 		add_filter(
-			'prefetch_admin_assets',
+			'wp_prefetch_admin_assets',
 			static function (): array {
 				return array(
 					array(
@@ -952,7 +952,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 */
 	public function test_filter_can_turn_off_prefetching( $filtered ): void {
 		add_filter(
-			'prefetch_admin_assets',
+			'wp_prefetch_admin_assets',
 			static function () use ( $filtered ) {
 				return $filtered;
 			}
