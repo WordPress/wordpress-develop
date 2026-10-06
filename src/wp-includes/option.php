@@ -3042,10 +3042,10 @@ function register_initial_settings() {
  *                                            REST API. When registering complex settings, this argument may
  *                                            optionally be an array with a 'schema' key.
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API
- *                                            (e.g. the `core/read-settings` ability). When registering complex
+ *                                            (e.g. the `core/settings-get` ability). When registering complex
  *                                            settings, this argument may optionally be an array with optional 'name'
  *                                            and 'schema' keys, mirroring the `show_in_rest` shape. The set of
- *                                            exposed settings is captured when the `core/read-settings` ability
+ *                                            exposed settings is captured when the `core/settings-get` ability
  *                                            registers on the `wp_abilities_api_init` hook, which fires on first use
  *                                            of the abilities registry, so a setting must be registered before that —
  *                                            registering it on `init` is reliable. Core's initial settings are always
@@ -3274,7 +3274,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *                                                REST API. When registering complex settings, this argument may
  *                                                optionally be an array with a 'schema' key.
  *         @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API
- *                                                (e.g. the `core/read-settings` ability). May optionally be an array
+ *                                                (e.g. the `core/settings-get` ability). May optionally be an array
  *                                                with optional 'name' and 'schema' keys, mirroring the `show_in_rest`
  *                                                shape.
  *         @type mixed         $default           Default value when calling `get_option()`. Only present when the

@@ -3,14 +3,14 @@
 declare( strict_types=1 );
 
 /**
- * Tests for the core/read-settings ability shipped with the Abilities API.
+ * Tests for the core/settings-get ability shipped with the Abilities API.
  *
  * @covers wp_register_core_abilities
  * @covers WP_Settings_Abilities
  *
  * @group abilities-api
  */
-class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestCase {
+class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCase {
 
 	/**
 	 * Backup of the `$wp_registered_settings` global, restored after the class.
@@ -49,7 +49,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 		// setting (not just the core ones) is exposed by the ability.
 		register_setting(
 			'general',
-			'core_read_settings_ability_test_option',
+			'core_settings_get_ability_test_option',
 			array(
 				'type'              => 'integer',
 				'label'             => 'Custom Ability Setting',
@@ -85,7 +85,7 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
 
-		unregister_setting( 'general', 'core_read_settings_ability_test_option' );
+		unregister_setting( 'general', 'core_settings_get_ability_test_option' );
 
 		global $wp_registered_settings, $wp_actions;
 		$wp_registered_settings = self::$registered_settings_backup;
@@ -112,8 +112,8 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_registers_initial_settings_without_rest_api_init(): void {
-		$ability = wp_get_ability( 'core/read-settings' );
+	public function test_core_settings_get_registers_initial_settings_without_rest_api_init(): void {
+		$ability = wp_get_ability( 'core/settings-get' );
 
 		$this->assertArrayHasKey( 'blogname', $ability->get_output_schema()['properties'] );
 
@@ -128,11 +128,11 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_ability_is_registered(): void {
-		$ability = wp_get_ability( 'core/read-settings' );
+	public function test_core_settings_get_ability_is_registered(): void {
+		$ability = wp_get_ability( 'core/settings-get' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
-		$this->assertSame( 'core/read-settings', $ability->get_name() );
+		$this->assertSame( 'core/settings-get', $ability->get_name() );
 		$this->assertSame( 'site', $ability->get_category() );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
@@ -146,8 +146,8 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_input_schema_exposes_group_and_fields_filters(): void {
-		$schema = wp_get_ability( 'core/read-settings' )->get_input_schema();
+	public function test_core_settings_get_input_schema_exposes_group_and_fields_filters(): void {
+		$schema = wp_get_ability( 'core/settings-get' )->get_input_schema();
 
 		$this->assertSame( 'object', $schema['type'] );
 		$this->assertArrayHasKey( 'default', $schema );
@@ -165,14 +165,14 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_returns_flat_typed_values(): void {
+	public function test_core_settings_get_returns_flat_typed_values(): void {
 		$this->become_admin();
 
 		update_option( 'blogname', 'My Test Site' );
 		update_option( 'posts_per_page', 7 );
 		update_option( 'use_smilies', '1' );
 
-		$result = wp_get_ability( 'core/read-settings' )->execute( array() );
+		$result = wp_get_ability( 'core/settings-get' )->execute( array() );
 
 		$this->assertIsArray( $result );
 		$this->assertSame( 'My Test Site', $result['blogname'] );
@@ -185,10 +185,10 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_filters_by_group(): void {
+	public function test_core_settings_get_filters_by_group(): void {
 		$this->become_admin();
 
-		$result = wp_get_ability( 'core/read-settings' )->execute( array( 'group' => 'reading' ) );
+		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'group' => 'reading' ) );
 
 		$this->assertArrayHasKey( 'posts_per_page', $result );
 		$this->assertArrayNotHasKey( 'blogname', $result );
@@ -199,10 +199,10 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_filters_by_fields(): void {
+	public function test_core_settings_get_filters_by_fields(): void {
 		$this->become_admin();
 
-		$result = wp_get_ability( 'core/read-settings' )->execute( array( 'fields' => array( 'blogname', 'posts_per_page' ) ) );
+		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( 'blogname', 'posts_per_page' ) ) );
 
 		$this->assertEqualSets( array( 'blogname', 'posts_per_page' ), array_keys( $result ) );
 	}
@@ -212,12 +212,12 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_combines_group_and_fields_filters(): void {
+	public function test_core_settings_get_combines_group_and_fields_filters(): void {
 		$this->become_admin();
 
 		// `blogname` is in the `general` group and `posts_per_page` in `reading`; only the
 		// latter satisfies both filters.
-		$result = wp_get_ability( 'core/read-settings' )->execute(
+		$result = wp_get_ability( 'core/settings-get' )->execute(
 			array(
 				'group'  => 'reading',
 				'fields' => array( 'blogname', 'posts_per_page' ),
@@ -232,10 +232,10 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_requires_manage_options(): void {
+	public function test_core_settings_get_requires_manage_options(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
-		$result = wp_get_ability( 'core/read-settings' )->execute( array() );
+		$result = wp_get_ability( 'core/settings-get' )->execute( array() );
 
 		$this->assertWPError( $result );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code() );
@@ -246,19 +246,19 @@ class Tests_Abilities_API_WpRegisterCoreReadSettingsAbility extends WP_UnitTestC
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_read_settings_exposes_a_custom_registered_setting(): void {
-		$ability = wp_get_ability( 'core/read-settings' );
+	public function test_core_settings_get_exposes_a_custom_registered_setting(): void {
+		$ability = wp_get_ability( 'core/settings-get' );
 
 		// Present in both the input `fields` enum and the output schema built at registration.
-		$this->assertContains( 'core_read_settings_ability_test_option', $ability->get_input_schema()['properties']['fields']['items']['enum'] );
-		$this->assertArrayHasKey( 'core_read_settings_ability_test_option', $ability->get_output_schema()['properties'] );
+		$this->assertContains( 'core_settings_get_ability_test_option', $ability->get_input_schema()['properties']['fields']['items']['enum'] );
+		$this->assertArrayHasKey( 'core_settings_get_ability_test_option', $ability->get_output_schema()['properties'] );
 
 		// And returned, correctly typed, by execute.
 		$this->become_admin();
-		update_option( 'core_read_settings_ability_test_option', 7 );
+		update_option( 'core_settings_get_ability_test_option', 7 );
 
-		$result = $ability->execute( array( 'fields' => array( 'core_read_settings_ability_test_option' ) ) );
+		$result = $ability->execute( array( 'fields' => array( 'core_settings_get_ability_test_option' ) ) );
 
-		$this->assertSame( array( 'core_read_settings_ability_test_option' => 7 ), $result );
+		$this->assertSame( array( 'core_settings_get_ability_test_option' => 7 ), $result );
 	}
 }

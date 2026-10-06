@@ -363,6 +363,6 @@ function wp_register_core_abilities(): void {
 		)
 	);
 
-	// Register the settings abilities (currently the read-only `core/read-settings`).
+	// Register the settings abilities (currently the read-only `core/settings-get`).
 	( new WP_Settings_Abilities() )->register();
 }
