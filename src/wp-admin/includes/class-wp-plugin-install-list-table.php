@@ -499,11 +499,13 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 * Gets a list of CSS classes for the list table container element.
+	 *
+	 * Unlike in the parent class, these are applied to a `div` element rather than a `table` element.
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return string[] Array of CSS classes for the table tag.
+	 * @return string[] Array of CSS classes for the container element.
 	 *
 	 * @phpstan-return non-empty-list<string>
 	 */
