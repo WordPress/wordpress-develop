@@ -883,16 +883,16 @@ class wpdb {
 			return compact( 'charset', 'collate' );
 		}
 
-		if ( 'utf8' === $charset ) {
+		if ( 'utf8' === $charset || 'utf8mb3' === $charset ) {
 			$charset = 'utf8mb4';
 		}
 
 		if ( 'utf8mb4' === $charset ) {
 			// _general_ is outdated, so we can upgrade it to _unicode_, instead.
-			if ( ! $collate || 'utf8_general_ci' === $collate ) {
+			if ( ! $collate || 'utf8_general_ci' === $collate || 'utf8mb3_general_ci' === $collate ) {
 				$collate = 'utf8mb4_unicode_ci';
 			} else {
-				$collate = str_replace( 'utf8_', 'utf8mb4_', $collate );
+				$collate = str_replace( array( 'utf8mb3_', 'utf8_' ), 'utf8mb4_', $collate );
 			}
 		}
 
