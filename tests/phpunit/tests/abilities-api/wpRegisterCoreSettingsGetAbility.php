@@ -316,4 +316,22 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		$this->assertSame( array( 'core_settings_get_ability_test_option' => 7 ), $result );
 	}
+
+	/**
+	 * A value that does not match its schema is left out instead of failing the whole call.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_drops_values_that_fail_their_schema(): void {
+		$this->become_admin();
+
+		// sanitize_option() only coerces '0' and '' to 'closed', so this out-of-enum value sticks.
+		update_option( 'default_ping_status', 'not-a-valid-status' );
+
+		$result = wp_get_ability( 'core/settings-get' )->execute( array() );
+
+		$this->assertNotWPError( $result, 'One bad value must not fail the whole ability.' );
+		$this->assertArrayHasKey( 'blogname', $result, 'The other settings should still be returned.' );
+		$this->assertArrayNotHasKey( 'default_ping_status', $result, 'Only the bad value should be left out.' );
+	}
 }

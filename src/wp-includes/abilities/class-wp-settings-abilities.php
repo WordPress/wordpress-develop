@@ -119,7 +119,7 @@ final class WP_Settings_Abilities {
 			'core/settings-get',
 			array(
 				'label'               => __( 'Settings Get' ),
-				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both.' ),
+				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both. A setting whose value does not match its schema is left out.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_settings_input_schema( $groups, $field_names ),
 				'output_schema'       => array(
@@ -173,9 +173,17 @@ final class WP_Settings_Abilities {
 			}
 
 			$type  = isset( $setting['schema']['type'] ) && is_string( $setting['schema']['type'] ) ? $setting['schema']['type'] : 'string';
-			$value = get_option( $setting['option'], $setting['default'] );
+			$value = $this->cast_value( get_option( $setting['option'], $setting['default'] ), $type );
 
-			$result[ $exposed_name ] = $this->cast_value( $value, $type );
+			/*
+			 * Leave out a value its schema rejects instead of failing output validation for
+			 * every setting; the settings endpoint answers null for it.
+			 */
+			if ( is_wp_error( rest_validate_value_from_schema( $value, $setting['schema'] ) ) ) {
+				continue;
+			}
+
+			$result[ $exposed_name ] = $value;
 		}
 
 		return $result;
