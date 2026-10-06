@@ -67,14 +67,26 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 				'post_date_gmt' => '2025-01-01 10:00:00',
 			)
 		);
-		wp_update_post(
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->posts,
 			array(
-				'ID'                => self::$post_id,
 				'post_modified'     => '2025-01-02 12:00:00',
 				'post_modified_gmt' => '2025-01-02 12:00:00',
-				'edit_date'         => true,
+			),
+			array(
+				'ID' => self::$post_id,
+			),
+			array(
+				'%s',
+				'%s',
+			),
+			array(
+				'%d',
 			)
 		);
+		clean_post_cache( self::$post_id );
 
 		self::$unmodified_post_id = $factory->post->create(
 			array(
