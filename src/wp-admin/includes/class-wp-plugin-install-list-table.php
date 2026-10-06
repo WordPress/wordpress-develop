@@ -29,6 +29,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Plugin field to sort the list by, or null to keep the API's order.
 	 *
+	 * Not set by core. Sorting currently has no effect, since {@see self::order_callback()}
+	 * reads object properties while the plugins returned by the API are arrays.
+	 *
 	 * @since 4.0.0
 	 *
 	 * @var string|null
