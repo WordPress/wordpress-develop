@@ -30,6 +30,13 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @var array<string, mixed>
+	 * @phpstan-var array{
+	 *     plural: string,
+	 *     singular: string,
+	 *     ajax: bool,
+	 *     screen: string|WP_Screen|null,
+	 *     ...
+	 * }
 	 */
 	protected $_args;
 
@@ -146,6 +153,14 @@ class WP_List_Table {
 	 *                                           screen, or a `WP_Screen` instance. If left null, the current
 	 *                                           screen will be automatically set. Default null.
 	 * }
+	 *
+	 * @phpstan-param array{
+	 *     plural?: string,
+	 *     singular?: string,
+	 *     ajax?: bool,
+	 *     screen?: string|WP_Screen|null,
+	 *     ...
+	 * }|string $args
 	 */
 	public function __construct( $args = array() ) {
 		$args = wp_parse_args(
