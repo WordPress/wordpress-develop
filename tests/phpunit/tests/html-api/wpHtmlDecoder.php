@@ -65,13 +65,14 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * Ensures proper decoding of edge cases.
 	 *
 	 * @ticket 61072
+	 * @ticket 66241
 	 *
 	 * @dataProvider data_edge_cases
 	 *
-	 * @param $raw_text_node Raw input text.
-	 * @param $decoded_value The expected decoded text result.
+	 * @param non-falsy-string $raw_text_node Raw input text.
+	 * @param non-falsy-string $decoded_value The expected decoded text result.
 	 */
-	public function test_edge_cases( $raw_text_node, $decoded_value ) {
+	public function test_edge_cases( string $raw_text_node, string $decoded_value ): void {
 		$this->assertSame(
 			$decoded_value,
 			WP_HTML_Decoder::decode_text_node( $raw_text_node ),
@@ -79,9 +80,21 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 		);
 	}
 
-	public static function data_edge_cases() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string, non-falsy-string }>
+	 */
+	public static function data_edge_cases(): array {
+		$long_text = str_repeat( 'a', 300000 );
+
 		return array(
-			'Single ampersand' => array( '&', '&' ),
+			'Single ampersand'                    => array( '&', '&' ),
+			'Unmatched reference before a match'  => array( 'a &bogus; b &amp; c', 'a &bogus; b & c' ),
+			'Unmatched reference after a match'   => array( 'a &amp; b &bogus; c &lt; d', 'a & b &bogus; c < d' ),
+			'Unmatched numeric references'        => array( 'a &#; b &#x; c &amp;', 'a &#; b &#x; c &' ),
+			'Adjacent ampersands'                 => array( '&&&amp;', '&&&' ),
+			'Unmatched reference after long text' => array( "{$long_text}&bogus;&amp;", "{$long_text}&bogus;&" ),
 		);
 	}
 
