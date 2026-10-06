@@ -847,8 +847,8 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that stylesheet URLs reach the filter unescaped, like script URLs, so that a callback
-	 * appending the plain form of one is collapsed with it.
+	 * Tests that stylesheet URLs reach the filter unescaped, like script URLs, and that a callback
+	 * appending the escaped form of one, as built with esc_url(), is collapsed with it.
 	 *
 	 * @ticket 57548
 	 */
@@ -856,10 +856,11 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		// Give a stylesheet a query string of its own, so its URL has an `&` before the version.
 		wp_styles()->registered['common']->src = '/wp-admin/css/common.css?color=blue';
 
-		$common_href = null;
+		$common_href  = null;
+		$escaped_href = null;
 		add_filter(
 			'wp_prefetch_admin_assets',
-			static function ( array $resources ) use ( &$common_href ): array {
+			static function ( array $resources ) use ( &$common_href, &$escaped_href ): array {
 				foreach ( $resources as $resource ) {
 					if (
 						is_array( $resource ) &&
@@ -867,11 +868,12 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 						is_string( $resource['href'] ) &&
 						str_contains( $resource['href'], '/wp-admin/css/common.css' )
 					) {
-						$common_href = $resource['href'];
+						$common_href  = $resource['href'];
+						$escaped_href = esc_url( $resource['href'] );
 
-						// Append the plain form of the same URL, as a callback building it itself would.
+						// Append the escaped form of the same URL, as a callback building it with esc_url() would.
 						$resources[] = array(
-							'href' => str_replace( '&#038;', '&', $resource['href'] ),
+							'href' => $escaped_href,
 							'as'   => 'style',
 						);
 					}
@@ -886,13 +888,16 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/wp-admin/css/common.css?color=blue&ver=', $common_href );
 		$this->assertStringNotContainsString( '&#038;', $common_href );
 
+		$this->assertIsString( $escaped_href );
+		$this->assertStringContainsString( '&#038;', $escaped_href, 'Expected the appended URL to differ from the one the filter received.' );
+
 		$common_links = array_filter(
 			$links,
 			static function ( array $link ): bool {
 				return str_contains( $link['href'], '/wp-admin/css/common.css' );
 			}
 		);
-		$this->assertCount( 1, $common_links, 'The plain form of the URL should be collapsed with it.' );
+		$this->assertCount( 1, $common_links, 'The escaped form of the URL should be collapsed with it.' );
 	}
 
 	/**
