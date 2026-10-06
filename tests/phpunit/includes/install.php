@@ -79,10 +79,19 @@ foreach ( $wpdb->tables( 'ms_global' ) as $table => $prefixed_table ) {
 }
 $wpdb->query( 'SET foreign_key_checks = 1' );
 
+/*
+ * Discard the roles object created while bootstrapping WordPress above, as it
+ * holds role data loaded from the tables that were just dropped. If it were
+ * kept, populate_roles() would see the default roles as already existing and
+ * write the stale capabilities back to the database. The next call to
+ * wp_roles() recreates the object after the fresh tables are in place.
+ */
+unset( $GLOBALS['wp_roles'] );
+
 // Prefill a permalink structure so that WP doesn't try to determine one itself.
 add_action( 'populate_options', '_set_default_permalink_structure_for_tests' );
 
-wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, null, 'password' );
+wp_install( WP_TESTS_TITLE, 'admin', WP_TESTS_EMAIL, true, '', 'password' );
 
 // Delete dummy permalink structure, as prefilled above.
 if ( ! is_multisite() ) {

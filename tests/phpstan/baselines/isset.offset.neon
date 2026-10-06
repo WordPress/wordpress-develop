@@ -29,11 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Offset 2 on array\{string, non\-empty\-string, non\-empty\-string\} in isset\(\) always exists and is not nullable\.$#'
-			identifier: isset.offset
-			count: 1
-			path: ../../../src/wp-includes/media.php
-		-
 			message: '#^Offset ''orderby'' on array\{post_parent\: mixed, post_type\: ''revision'', post_status\: ''inherit'', posts_per_page\: mixed, orderby\: mixed, order\: mixed, suppress_filters\: true, post__not_in\?\: mixed, \.\.\.\} in isset\(\) always exists and is not nullable\.$#'
 			identifier: isset.offset
 			count: 1
