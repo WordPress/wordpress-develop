@@ -8853,19 +8853,22 @@ function wp_get_original_image_url( $attachment_id ) {
  * so this function can find the edit root in one lookup no matter how long the chain is.
  *
  * Attachments that were uploaded rather than created by editing have no chain of their own,
- * and this returns the ID that was passed in. To tell the two cases apart, compare the
- * result against that ID.
+ * and this returns 0 for them.
  *
  * @since 7.2.0
  *
  * @param int $attachment_id Attachment ID.
- * @return int ID of the attachment the chain of edits started from, or `$attachment_id`
- *             if none is recorded.
+ * @return int ID of the attachment the chain of edits started from, or 0 when none is recorded.
  */
 function wp_get_edit_root_attachment_id( $attachment_id ) {
 	$edit_root_id = (int) get_post_meta( $attachment_id, '_wp_attachment_edit_root_id', true );
 
-	return $edit_root_id > 0 ? $edit_root_id : (int) $attachment_id;
+	// An attachment recorded as its own edit root is a broken record rather than a chain.
+	if ( $edit_root_id <= 0 || $edit_root_id === (int) $attachment_id ) {
+		return 0;
+	}
+
+	return $edit_root_id;
 }
 
 /**

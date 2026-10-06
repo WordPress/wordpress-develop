@@ -6320,10 +6320,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	/**
 	 * @ticket 65987
 	 */
-	public function test_get_edit_root_attachment_id_returns_same_id_for_an_upload() {
+	public function test_get_edit_root_attachment_id_returns_zero_for_an_upload() {
 		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
 
-		$this->assertSame( $attachment, wp_get_edit_root_attachment_id( $attachment ) );
+		$this->assertSame( 0, wp_get_edit_root_attachment_id( $attachment ) );
 	}
 
 	/**
@@ -6565,7 +6565,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertSame( 0, $data['edit_root'] );
+		$this->assertSame(
+			0,
+			wp_get_edit_root_attachment_id( $attachment ),
+			'A record pointing at the attachment itself should resolve to no edit root.'
+		);
+		$this->assertSame( 0, $data['edit_root'], 'The field should report no edit root.' );
 	}
 
 	/**

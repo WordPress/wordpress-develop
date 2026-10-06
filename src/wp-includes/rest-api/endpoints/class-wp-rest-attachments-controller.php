@@ -1362,11 +1362,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * the edit root recorded on the image being edited, or that image itself when it was
 		 * uploaded rather than edited.
 		 */
-		update_post_meta(
-			$new_attachment_id,
-			'_wp_attachment_edit_root_id',
-			wp_get_edit_root_attachment_id( $attachment_id )
-		);
+		$edit_root_id = wp_get_edit_root_attachment_id( $attachment_id );
+
+		if ( ! $edit_root_id ) {
+			$edit_root_id = (int) $attachment_id;
+		}
+
+		update_post_meta( $new_attachment_id, '_wp_attachment_edit_root_id', $edit_root_id );
 
 		/**
 		 * Filters the meta data for the new image created by editing an existing image.
@@ -1527,9 +1529,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 * Not validated: deleting an attachment clears it from images edited from it.
 		 */
 		if ( in_array( 'edit_root', $fields, true ) && 'edit' === $request['context'] ) {
-			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
-
-			$data['edit_root'] = $edit_root_id !== (int) $post->ID ? $edit_root_id : 0;
+			$data['edit_root'] = wp_get_edit_root_attachment_id( $post->ID );
 		}
 
 		if ( in_array( 'source_url', $fields, true ) ) {
@@ -1704,7 +1704,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
 
 			if (
-				$edit_root_id !== (int) $post->ID &&
+				$edit_root_id &&
 				( 'publish' === get_post_status( $edit_root_id ) || current_user_can( 'read_post', $edit_root_id ) )
 			) {
 				$response->add_link(
