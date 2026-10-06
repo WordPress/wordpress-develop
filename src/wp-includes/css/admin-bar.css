@@ -1045,6 +1045,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 
 	#wpadminbar #wp-admin-bar-user-info .howdy {
 		white-space: normal;
+		overflow-wrap: anywhere;
 	}
 
 	#wpadminbar #wp-admin-bar-user-info a {
