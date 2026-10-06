@@ -437,7 +437,7 @@ class WP_Automatic_Updater {
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
 				$item_name = sprintf( __( 'Translations for %s' ), $language_item_name );
 				/* translators: 1: Project name (plugin, theme, or WordPress), 2: Language. */
-				$skin->feedback( sprintf( __( 'Updating translations for %1$s (%2$s)&#8230;' ), $language_item_name, $item->language ) );
+				$skin->feedback( sprintf( __( 'Updating translations for %1$s (%2$s)&hellip;' ), $language_item_name, $item->language ) );
 				break;
 		}
 

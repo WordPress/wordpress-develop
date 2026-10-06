@@ -2123,7 +2123,7 @@ function wp_welcome_panel() {
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Customize your entire site with block themes' ); ?></h3>
-				<p><?php _e( 'Design everything on your site &#8212; from the header down to the footer, all using blocks and patterns.' ); ?></p>
+				<p><?php _e( 'Design everything on your site &mdash; from the header down to the footer, all using blocks and patterns.' ); ?></p>
 				<a href="<?php echo esc_url( admin_url( 'site-editor.php' ) ); ?>"><?php _e( 'Open site editor' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Start Customizing' ); ?></h3>
@@ -2142,11 +2142,11 @@ function wp_welcome_panel() {
 			<div class="welcome-panel-column-content">
 			<?php if ( $is_block_theme ) : ?>
 				<h3><?php _e( 'Switch up your site&#8217;s look & feel with Styles' ); ?></h3>
-				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &#8212; how about a new color palette or font?' ); ?></p>
+				<p><?php _e( 'Tweak your site, or give it a whole new look! Get creative &mdash; how about a new color palette or font?' ); ?></p>
 				<a href="<?php echo esc_url( add_query_arg( 'p', rawurlencode( '/styles' ), admin_url( 'site-editor.php' ) ) ); ?>"><?php _e( 'Edit styles' ); ?></a>
 			<?php else : ?>
 				<h3><?php _e( 'Discover a new way to build your site.' ); ?></h3>
-				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &#8212; with blocks and styles.' ); ?></p>
+				<p><?php _e( 'There is a new kind of WordPress theme, called a block theme, that lets you build the site you&#8217;ve always wanted &mdash; with blocks and styles.' ); ?></p>
 				<a href="<?php echo esc_url( __( 'https://wordpress.org/documentation/article/block-themes/' ) ); ?>"><?php _e( 'Learn about block themes' ); ?></a>
 			<?php endif; ?>
 			</div>

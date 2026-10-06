@@ -114,11 +114,11 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date']       = __( 'Your translations are all up to date.' );
 		$this->strings['no_package']       = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&#8230;' ), '<span class="code pre">%s</span>' );
-		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&hellip;' ), '<span class="code pre">%s</span>' );
+		$this->strings['unpack_package']      = __( 'Unpacking the update&hellip;' );
 		$this->strings['process_failed']      = __( 'Translation update failed.' );
 		$this->strings['process_success']     = __( 'Translation updated successfully.' );
-		$this->strings['remove_old']          = __( 'Removing the old version of the translation&#8230;' );
+		$this->strings['remove_old']          = __( 'Removing the old version of the translation&hellip;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the old translation.' );
 	}
 

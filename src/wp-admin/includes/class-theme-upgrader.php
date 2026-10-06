@@ -56,9 +56,9 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The theme is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
-		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
-		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading update from %s&hellip;' ), '<span class="code pre">%s</span>' );
+		$this->strings['unpack_package']      = __( 'Unpacking the update&hellip;' );
+		$this->strings['remove_old']          = __( 'Removing the old version of the theme&hellip;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the old theme.' );
 		$this->strings['process_failed']      = __( 'Theme update failed.' );
 		$this->strings['process_success']     = __( 'Theme updated successfully.' );
@@ -72,19 +72,19 @@ class Theme_Upgrader extends WP_Upgrader {
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
-		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
-		$this->strings['installing_package']  = __( 'Installing the theme&#8230;' );
-		$this->strings['remove_old']          = __( 'Removing the old version of the theme&#8230;' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&hellip;' ), '<span class="code pre">%s</span>' );
+		$this->strings['unpack_package']      = __( 'Unpacking the package&hellip;' );
+		$this->strings['installing_package']  = __( 'Installing the theme&hellip;' );
+		$this->strings['remove_old']          = __( 'Removing the old version of the theme&hellip;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the old theme.' );
 		$this->strings['no_files']            = __( 'The theme contains no files.' );
 		$this->strings['process_failed']      = __( 'Theme installation failed.' );
 		$this->strings['process_success']     = __( 'Theme installed successfully.' );
 		/* translators: 1: Theme name, 2: Theme version. */
 		$this->strings['process_success_specific'] = __( 'Successfully installed the theme <strong>%1$s %2$s</strong>.' );
-		$this->strings['parent_theme_search']      = __( 'This theme requires a parent theme. Checking if it is installed&#8230;' );
+		$this->strings['parent_theme_search']      = __( 'This theme requires a parent theme. Checking if it is installed&hellip;' );
 		/* translators: 1: Theme name, 2: Theme version. */
-		$this->strings['parent_theme_prepare_install'] = __( 'Preparing to install <strong>%1$s %2$s</strong>&#8230;' );
+		$this->strings['parent_theme_prepare_install'] = __( 'Preparing to install <strong>%1$s %2$s</strong>&hellip;' );
 		/* translators: 1: Theme name, 2: Theme version. */
 		$this->strings['parent_theme_currently_installed'] = __( 'The parent theme, <strong>%1$s %2$s</strong>, is currently installed.' );
 		/* translators: 1: Theme name, 2: Theme version. */
@@ -96,13 +96,13 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		if ( ! empty( $this->skin->overwrite ) ) {
 			if ( 'update-theme' === $this->skin->overwrite ) {
-				$this->strings['installing_package'] = __( 'Updating the theme&#8230;' );
+				$this->strings['installing_package'] = __( 'Updating the theme&hellip;' );
 				$this->strings['process_failed']     = __( 'Theme update failed.' );
 				$this->strings['process_success']    = __( 'Theme updated successfully.' );
 			}
 
 			if ( 'downgrade-theme' === $this->skin->overwrite ) {
-				$this->strings['installing_package'] = __( 'Downgrading the theme&#8230;' );
+				$this->strings['installing_package'] = __( 'Downgrading the theme&hellip;' );
 				$this->strings['process_failed']     = __( 'Theme downgrade failed.' );
 				$this->strings['process_success']    = __( 'Theme downgraded successfully.' );
 			}
