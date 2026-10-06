@@ -742,6 +742,10 @@ class WP_HTML_Style_Attribute_Processor {
 			$value_end   = $this->tokens[ $value_end_index - 1 ]['end'];
 		}
 
+		if ( ! $this->is_parsed_value_valid( $value_start_index, $value_end_index, $this->is_custom_property_name( $name ) ) ) {
+			return null;
+		}
+
 		return array(
 			'name'            => $name,
 			'raw_name'        => substr( $this->style, $name_token['start'], $name_token['length'] ),
@@ -1395,6 +1399,71 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		return 0 === strcasecmp( $actual, $query );
+	}
+
+	/**
+	 * Checks whether CSS keeps a parsed declaration value, excluding its priority.
+	 *
+	 * CSS ignores a declaration whose value contains a bad string, a bad URL, an
+	 * unmatched closing token, or a top-level `!`. A `{}` block must be the whole
+	 * value unless the property is a custom property. Blocks left open at EOF are
+	 * closed by CSS and are valid.
+	 *
+	 * @param int  $start              First value token index.
+	 * @param int  $end                Token index after the value.
+	 * @param bool $is_custom_property Whether the declaration is a custom property.
+	 * @return bool Whether CSS keeps the value.
+	 */
+	private function is_parsed_value_valid( int $start, int $end, bool $is_custom_property ): bool {
+		$stack               = array();
+		$has_top_level_block = false;
+		$has_other_top_level = false;
+
+		for ( $index = $start; $index < $end; $index++ ) {
+			$token = $this->tokens[ $index ];
+			$type  = $token['type'];
+
+			if ( empty( $stack ) && ! $this->is_ignored_token( $token ) ) {
+				if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $type ) {
+					$has_top_level_block = true;
+				} else {
+					$has_other_top_level = true;
+				}
+
+				if ( WP_CSS_Token_Processor::TOKEN_DELIM === $type && '!' === $token['value'] ) {
+					return false;
+				}
+			}
+
+			switch ( $type ) {
+				case WP_CSS_Token_Processor::TOKEN_BAD_STRING:
+				case WP_CSS_Token_Processor::TOKEN_BAD_URL:
+					return false;
+
+				case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+					$stack[] = WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN;
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+					$stack[] = WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET;
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+					$stack[] = WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE;
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+				case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+					if ( empty( $stack ) || array_pop( $stack ) !== $type ) {
+						return false;
+					}
+					break;
+			}
+		}
+
+		return $is_custom_property || ! ( $has_top_level_block && $has_other_top_level );
 	}
 
 	/**

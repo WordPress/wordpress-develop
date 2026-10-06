@@ -602,6 +602,35 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::next_declaration
+	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_declarations_with_values_css_ignores
+	 *
+	 * @param string $style Style attribute value whose first declaration CSS ignores.
+	 */
+	public function test_declarations_with_values_css_ignores_are_skipped_and_preserved( string $style ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'color', $processor->get_property_name() );
+		$this->assertFalse( $processor->next_declaration() );
+		$this->assertSame( $style, $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::next_declaration
+	 */
+	public function test_custom_property_values_may_mix_blocks_with_other_tokens() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( '--x: { a } b; color: red;' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( '--x', $processor->get_property_name() );
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'color', $processor->get_property_name() );
+	}
+
+	/**
+	 * @covers ::next_declaration
 	 * @covers ::set_value
 	 * @covers ::get_updated_style
 	 */
@@ -757,7 +786,30 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 			'whitespace after bang' => array( 'color: red ! important;', true ),
 			'comment after bang'    => array( 'color: red ! /*x*/ important;', true ),
 			'escaped important'     => array( 'color: red !\\69mportant;', true ),
-			'extra trailing token'  => array( 'color: red ! important foo;', false ),
+			'nested important'      => array( 'color: var(--x, red !important);', false ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_declarations_with_values_css_ignores(): array {
+		return array(
+			'bad string'                      => array( "font-family: \"a\n; color: red;" ),
+			'bad url'                         => array( 'background: url(a b); color: red;' ),
+			'nested bad url'                  => array( 'background: image-set(url(a b) 1x); color: red;' ),
+			'unmatched right paren'           => array( 'width: 1px ); color: red;' ),
+			'unmatched right bracket'         => array( 'width: 1px ]; color: red;' ),
+			'unmatched right brace'           => array( 'width: 1px }; color: red;' ),
+			'mismatched closer in function'   => array( 'width: calc(1px } + 2px); color: red;' ),
+			'custom property unmatched brace' => array( '--x: a } b; color: red;' ),
+			'bang before important'           => array( 'padding: 0 ! 1px !important; color: red;' ),
+			'important before other tokens'   => array( 'padding: 0 !important 1px; color: red;' ),
+			'custom property bang'            => array( '--x: a ! b; color: red;' ),
+			'block mixed with other tokens'   => array( 'width: 1px { x }; color: red;' ),
+			'block before other tokens'       => array( 'width: { x } 1px; color: red;' ),
 		);
 	}
 

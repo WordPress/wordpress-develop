@@ -224,7 +224,23 @@ over whitespace preservation.
 
 Declaration discovery follows CSS semantics. If CSS would ignore text as a
 declaration in a style attribute declaration-list context, the processor does
-not expose it as a declaration.
+not expose it as a declaration. That includes a declaration whose value, apart
+from its priority, contains:
+
+- a bad string or a bad URL;
+- a closing `)`, `]`, or `}` that does not match the innermost open block;
+- a top-level `!`;
+- a top-level `{}` block alongside other tokens, unless the property is a custom
+  property.
+
+Blocks and functions left open at EOF are closed by CSS, so a value ending
+inside one is exposed.
+
+Splitting follows CSS Style Attributes and the published CSS Syntax Level 3
+"parse a list of declarations": a stray `}` is an invalid token, and the
+invalid declaration runs to the next top-level semicolon. The CSS Syntax editor's
+draft ends parsing at a top-level `}` instead; browsers and web-platform-tests do
+not, and csswg-drafts#11113 tracks the conflict.
 
 Ignored invalid fragments are preserved where possible. Mutations touching a
 style containing invalid chunks must verify that the declaration-list structure
