@@ -347,7 +347,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Overrides parent views so we can use the filter bar display.
 	 *
-	 * @since 3.1.0
+	 * @since 4.0.0
 	 *
 	 * @global string $tab The current tab.
 	 */
@@ -484,7 +484,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Callback for sorting plugins.
 	 *
-	 * @since 3.1.0
+	 * @since 4.0.0
 	 *
 	 * @param object $plugin_a The first plugin object.
 	 * @param object $plugin_b The second plugin object.
