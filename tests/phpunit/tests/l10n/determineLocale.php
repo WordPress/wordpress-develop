@@ -320,7 +320,7 @@ class Tests_L10n_DetermineLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An array locale reaches WP_Textdomain_Registry::set(), which uses it as
+	 * An array locale reaches WP_Textdomain_Registry::get(), which uses it as
 	 * an array key and throws a TypeError, so translating any string for an
 	 * unloaded text domain ends the request.
 	 *
