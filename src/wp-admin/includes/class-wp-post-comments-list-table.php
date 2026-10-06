@@ -32,7 +32,9 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	}
 
 	/**
-	 * @return array
+	 * @return string[] Array of CSS classes for the table tag.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		$classes   = parent::get_table_classes();

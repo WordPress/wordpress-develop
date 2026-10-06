@@ -504,6 +504,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @return string[] CSS classes.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		return array( 'widefat', $this->_args['plural'] );

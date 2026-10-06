@@ -1667,6 +1667,8 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @return string[] Array of CSS classes for the table tag.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		$mode = get_user_setting( 'posts_list_mode', 'list' );
