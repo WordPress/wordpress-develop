@@ -204,10 +204,15 @@ class Tests_Fonts_WpFontUtils_GetFontFaceSlug extends WP_UnitTestCase {
 	 */
 	public function data_distinct_font_families() {
 		return array(
-			'a comma in a name against a list' => array( '"ACME, Sans"', '"ACME", "Sans"' ),
-			'one space against two spaces'     => array( '"A B"', '"A  B"' ),
-			'a semicolon against no semicolon' => array( '"A;B"', '"AB"' ),
-			'different names'                  => array( '"Open Sans"', '"OpenSans"' ),
+			'a comma in a name against a list'       => array( '"ACME, Sans"', '"ACME", "Sans"' ),
+			'one space against two spaces'           => array( '"A B"', '"A  B"' ),
+			'a semicolon against no semicolon'       => array( '"A;B"', '"AB"' ),
+			'different names'                        => array( '"Open Sans"', '"OpenSans"' ),
+			// The slug writes a comma as "%2c", so a literal "%2c" must stay different.
+			'a percent sequence against a comma'     => array( '"Font%2c Sans"', '"Font, Sans"' ),
+			'a raw percent sequence against a comma' => array( 'Font%2c Sans', '"Font, Sans"' ),
+			// The same letters in Unicode NFC and NFD are different names in CSS.
+			'NFC against NFD'                        => array( "\"Caf\u{E9}\"", "\"Cafe\u{301}\"" ),
 		);
 	}
 }

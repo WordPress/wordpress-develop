@@ -100,6 +100,11 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 				'descriptor'   => '"A  B"',
 				'decoded_name' => 'A  B',
 			),
+			'a literal entity'     => array(
+				'font_family'  => 'Tom &amp; Jerry',
+				'descriptor'   => '"Tom \\26 amp\\3b  Jerry"',
+				'decoded_name' => 'Tom &amp; Jerry',
+			),
 		);
 	}
 
@@ -612,6 +617,232 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 			'a leading space'  => array( ' Leading space', 'Leading space' ),
 			'a trailing space' => array( 'Trailing space ', 'Trailing space' ),
 			'both ends'        => array( "\t Both ends \n", 'Both ends' ),
+		);
+	}
+
+	/**
+	 * KSES keeps HTML-like text in a font name for a user without `unfiltered_html`.
+	 *
+	 * KSES filters the `post_content` of the font family post for such a user.
+	 * The serializer escapes "&", "<", and ">", so the stored JSON holds no text
+	 * that KSES changes, and an entity stays literal text.
+	 *
+	 * @dataProvider data_html_like_names
+	 *
+	 * @param string $raw_name Raw name, which is also the expected decoded name.
+	 */
+	public function test_rest_keeps_html_like_text_without_unfiltered_html( $raw_name ) {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'unfiltered_html' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		// Add the KSES filters for this user. wp_set_current_user() does not run kses_init() for the same user.
+		kses_init();
+
+		$this->assertFalse( current_user_can( 'unfiltered_html' ), 'The user should not have unfiltered_html.' );
+		$this->assertNotFalse( has_filter( 'content_save_pre', 'wp_filter_post_kses' ), 'KSES should filter the post content.' );
+
+		$family_id = $this->create_font_family( 'html-like', $raw_name );
+		$stored    = json_decode( get_post( $family_id )->post_content, true )['fontFamily'];
+
+		$this->assertSame(
+			array(
+				array(
+					'type'  => 'name',
+					'value' => $raw_name,
+				),
+			),
+			WP_Font_Utils::parse_font_family_list( $stored ),
+			'The stored value should keep the name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public function data_html_like_names() {
+		return array(
+			'a literal entity'       => array( 'Tom &amp; Jerry' ),
+			'an ampersand'           => array( 'Tom & Jerry' ),
+			'angle brackets'         => array( 'A<B>' ),
+			'escaped angle brackets' => array( '&lt;b&gt;' ),
+			'a closing style tag'    => array( 'Test </style> Sans' ),
+			'a script element'       => array( '</style><script>alert(1)</script>' ),
+			'an HTML comment'        => array( '<!-- x -->' ),
+		);
+	}
+
+	/**
+	 * Each raw name of the font name test guide gives the documented result.
+	 *
+	 * The case numbers come from the font name test guide in the description of
+	 * https://github.com/WordPress/wordpress-develop/pull/13610. The upload
+	 * client in core sends the raw name from the font file, so this is the
+	 * upload path. Cases 84 and 85 hold invalid UTF-8, which a JSON request
+	 * cannot carry. The sanitizer tests cover invalid UTF-8.
+	 *
+	 * @dataProvider data_font_name_guide
+	 *
+	 * @param string        $raw_name Raw name from the font file.
+	 * @param string[]|null $expected Stored entries as "type:value", or null if the REST API rejects the family.
+	 * @param string|null   $face     Decoded name of the face descriptor, or null if the REST API rejects the face.
+	 */
+	public function test_raw_name_gives_the_documented_result( $raw_name, $expected, $face ) {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families' );
+		$request->set_param(
+			'font_family_settings',
+			wp_json_encode(
+				array(
+					'name'       => 'Guide',
+					'slug'       => 'guide',
+					'fontFamily' => $raw_name,
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( null === $expected ) {
+			$this->assertSame( 400, $response->get_status(), 'The family should be rejected.' );
+			return;
+		}
+
+		$this->assertSame( 201, $response->get_status(), 'The family should be created.' );
+
+		$family_id        = $response->get_data()['id'];
+		$this->post_ids[] = $family_id;
+
+		$entries = WP_Font_Utils::parse_font_family_list( $response->get_data()['font_family_settings']['fontFamily'] );
+		$stored  = array_map(
+			static function ( $entry ) {
+				return $entry['type'] . ':' . $entry['value'];
+			},
+			$entries
+		);
+
+		$this->assertSame( $expected, $stored, 'The stored value should hold the documented entries.' );
+
+		$response = $this->request_font_face( $family_id, $raw_name );
+
+		if ( null === $face ) {
+			$this->assertSame( 400, $response->get_status(), 'The face should be rejected.' );
+			return;
+		}
+
+		$this->assertSame( 201, $response->get_status(), 'The face should be created.' );
+		$this->post_ids[] = $response->get_data()['id'];
+
+		$this->assertSame(
+			$face,
+			WP_Font_Utils::parse_font_family_descriptor_name( $response->get_data()['font_face_settings']['fontFamily'] ),
+			'The face should use the documented name.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_font_name_guide() {
+		return array(
+			// Works: the stored value and the face use the exact name.
+			'case 01' => array( "O'Reilly Sans", array( "name:O'Reilly Sans" ), "O'Reilly Sans" ),
+			'case 02' => array( 'O"Reilly Sans', array( 'name:O"Reilly Sans' ), 'O"Reilly Sans' ),
+			'case 03' => array( "O'Reilly \"Sans\"", array( "name:O'Reilly \"Sans\"" ), "O'Reilly \"Sans\"" ),
+			'case 04' => array( "Suisse BP Int'l", array( "name:Suisse BP Int'l" ), "Suisse BP Int'l" ),
+			'case 05' => array( '‘Curly’ “Quotes”', array( 'name:‘Curly’ “Quotes”' ), '‘Curly’ “Quotes”' ),
+			'case 06' => array( "'Leading apostrophe", array( "name:'Leading apostrophe" ), "'Leading apostrophe" ),
+			'case 07' => array( 'Trailing quote"', array( 'name:Trailing quote"' ), 'Trailing quote"' ),
+			'case 09' => array( 'A;B', array( 'name:A;B' ), 'A;B' ),
+			'case 10' => array( 'A{B}', array( 'name:A{B}' ), 'A{B}' ),
+			'case 11' => array( 'A=B', array( 'name:A=B' ), 'A=B' ),
+			'case 12' => array( 'What?', array( 'name:What?' ), 'What?' ),
+			'case 13' => array( 'A:B', array( 'name:A:B' ), 'A:B' ),
+			'case 14' => array( 'Font (Display)', array( 'name:Font (Display)' ), 'Font (Display)' ),
+			'case 15' => array( 'Font [Beta]', array( 'name:Font [Beta]' ), 'Font [Beta]' ),
+			'case 16' => array( 'Font !important', array( 'name:Font !important' ), 'Font !important' ),
+			'case 17' => array( 'Dr. Font', array( 'name:Dr. Font' ), 'Dr. Font' ),
+			'case 18' => array( 'Font #1', array( 'name:Font #1' ), 'Font #1' ),
+			'case 19' => array( 'Font @Home', array( 'name:Font @Home' ), 'Font @Home' ),
+			'case 20' => array( 'Font/Slash', array( 'name:Font/Slash' ), 'Font/Slash' ),
+			'case 22' => array( 'Bodoni*', array( 'name:Bodoni*' ), 'Bodoni*' ),
+			'case 23' => array( 'Jost*', array( 'name:Jost*' ), 'Jost*' ),
+			'case 24' => array( 'Rounded M+ 1c', array( 'name:Rounded M+ 1c' ), 'Rounded M+ 1c' ),
+			'case 25' => array( 'C++ Mono', array( 'name:C++ Mono' ), 'C++ Mono' ),
+			'case 26' => array( '50% Gray', array( 'name:50% Gray' ), '50% Gray' ),
+			'case 27' => array( 'Font 50%AB', array( 'name:Font 50%AB' ), 'Font 50%AB' ),
+			'case 28' => array( 'Font%2c Sans', array( 'name:Font%2c Sans' ), 'Font%2c Sans' ),
+			'case 31' => array( 'Trailing\\', array( 'name:Trailing\\' ), 'Trailing\\' ),
+			'case 33' => array( 'Tom & Jerry', array( 'name:Tom & Jerry' ), 'Tom & Jerry' ),
+			'case 34' => array( 'Tom &amp; Jerry', array( 'name:Tom &amp; Jerry' ), 'Tom &amp; Jerry' ),
+			'case 35' => array( 'A<B>', array( 'name:A<B>' ), 'A<B>' ),
+			'case 36' => array( 'Test </style> Sans', array( 'name:Test </style> Sans' ), 'Test </style> Sans' ),
+			'case 37' => array( '</style><script>alert(1)</script>', array( 'name:</style><script>alert(1)</script>' ), '</style><script>alert(1)</script>' ),
+			'case 38' => array( '<!-- x -->', array( 'name:<!-- x -->' ), '<!-- x -->' ),
+			'case 39' => array( 'url(javascript:alert(1))', array( 'name:url(javascript:alert(1))' ), 'url(javascript:alert(1))' ),
+			'case 40' => array( 'expression(alert(1))', array( 'name:expression(alert(1))' ), 'expression(alert(1))' ),
+			'case 41' => array( 'A"; color: red; x:"', array( 'name:A"; color: red; x:"' ), 'A"; color: red; x:"' ),
+			'case 42' => array( 'A} body { color: red', array( 'name:A} body { color: red' ), 'A} body { color: red' ),
+			'case 43' => array( '12345', array( 'name:12345' ), '12345' ),
+			'case 44' => array( '0', array( 'name:0' ), '0' ),
+			'case 45' => array( '-1 Font', array( 'name:-1 Font' ), '-1 Font' ),
+			'case 46' => array( '1942 report', array( 'name:1942 report' ), '1942 report' ),
+			'case 47' => array( 'Press Start 2P', array( 'name:Press Start 2P' ), 'Press Start 2P' ),
+			'case 48' => array( '--custom', array( 'name:--custom' ), '--custom' ),
+			'case 49' => array( '-apple-system', array( 'name:-apple-system' ), '-apple-system' ),
+			'case 68' => array( "A\u{A0}B", array( "name:A\u{A0}B" ), "A\u{A0}B" ),
+			'case 69' => array( "A\u{3000}B", array( "name:A\u{3000}B" ), "A\u{3000}B" ),
+			'case 70' => array( "A\u{200B}B", array( "name:A\u{200B}B" ), "A\u{200B}B" ),
+			'case 71' => array( '日本語 😀', array( 'name:日本語 😀' ), '日本語 😀' ),
+			'case 72' => array( '微软雅黑', array( 'name:微软雅黑' ), '微软雅黑' ),
+			'case 73' => array( 'ＭＳ ゴシック', array( 'name:ＭＳ ゴシック' ), 'ＭＳ ゴシック' ),
+			'case 74' => array( 'Ñandú', array( 'name:Ñandú' ), 'Ñandú' ),
+			'case 75' => array( 'Café', array( 'name:Café' ), 'Café' ),
+			'case 76' => array( "Cafe\u{301}", array( "name:Cafe\u{301}" ), "Cafe\u{301}" ),
+			'case 77' => array( 'وزیرمتن', array( 'name:وزیرمتن' ), 'وزیرمتن' ),
+			'case 78' => array( "A\u{202E}B", array( "name:A\u{202E}B" ), "A\u{202E}B" ),
+			'case 79' => array( "Dev 👩\u{200D}💻", array( "name:Dev 👩\u{200D}💻" ), "Dev 👩\u{200D}💻" ),
+			'case 80' => array( str_repeat( 'A', 256 ), array( 'name:' . str_repeat( 'A', 256 ) ), str_repeat( 'A', 256 ) ),
+			'case 81' => array( str_repeat( 'A\\', 2000 ), array( 'name:' . str_repeat( 'A\\', 2000 ) ), str_repeat( 'A\\', 2000 ) ),
+			'case 82' => array( "A\x00B", array( "name:A\u{FFFD}B" ), "A\u{FFFD}B" ),
+
+			// Works: core trims a space at the start or the end of the name.
+			'case 64' => array( ' Leading space', array( 'name:Leading space' ), 'Leading space' ),
+			'case 65' => array( 'Trailing space ', array( 'name:Trailing space' ), 'Trailing space' ),
+
+			// Limit: CSS reads the raw name in a different way. A client that sends a quoted CSS string fixes these cases.
+			'case 08' => array( 'ACME, Sans', array( 'name:ACME', 'name:Sans' ), 'ACME' ),
+			'case 21' => array( 'A/*c*/B', array( 'name:A B' ), 'A B' ),
+			'case 29' => array( 'Font, Sans', array( 'name:Font', 'name:Sans' ), 'Font' ),
+			'case 30' => array( 'A\\B', array( "name:A\x0b" ), "A\x0b" ),
+			'case 32' => array( "\\0030", array( 'name:0' ), '0' ),
+			'case 50' => array( 'serif', array( 'generic:serif' ), 'serif' ),
+			'case 51' => array( 'Serif', array( 'generic:serif' ), 'serif' ),
+			'case 52' => array( 'sans-serif', array( 'generic:sans-serif' ), 'sans-serif' ),
+			'case 53' => array( 'system-ui', array( 'generic:system-ui' ), 'system-ui' ),
+			'case 54' => array( 'emoji', array( 'generic:emoji' ), 'emoji' ),
+			'case 55' => array( 'fangsong', array( 'generic:fangsong' ), 'fangsong' ),
+			'case 56' => array( 'inherit', array( 'keyword:inherit' ), null ),
+			'case 57' => array( 'INHERIT', array( 'keyword:inherit' ), null ),
+			'case 58' => array( 'initial', array( 'keyword:initial' ), null ),
+			'case 59' => array( 'unset', array( 'keyword:unset' ), null ),
+			'case 60' => array( 'revert-layer', array( 'keyword:revert-layer' ), null ),
+			'case 61' => array( 'default', array( 'keyword:default' ), null ),
+			'case 62' => array( 'generic(kai)', array( 'generic:generic(kai)' ), 'generic(kai)' ),
+			'case 63' => array( 'A  B', array( 'name:A B' ), 'A B' ),
+			'case 66' => array( "A\x09B", array( 'name:A B' ), 'A B' ),
+			'case 67' => array( "A\x0aB", array( 'name:A B' ), 'A B' ),
+
+			// Rejected.
+			'case 83' => array( "A\x01B", null, null ),
+			'case 86' => array( '', null, null ),
+			'case 87' => array( ' ', null, null ),
 		);
 	}
 
