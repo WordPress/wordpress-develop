@@ -61,11 +61,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
-	/**
-	 * @var array|null
-	 */
-	private $queries;
-
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
@@ -108,7 +103,6 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'stylesheet_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'template_root', array( $this, 'filter_set_theme_root' ) );
 		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
-		$this->queries = array();
 		// Clear caches.
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
@@ -330,7 +324,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_not_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_not_cached() {
 		return array(
 			'origin: core; cache: empty'       => array(
 				'origin' => 'core',
@@ -405,7 +399,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_has_same_registered_blocks_when_all_blocks_are_cached() {
+	public static function data_has_same_registered_blocks_when_all_blocks_are_cached() {
 		return array(
 			'core'   => array( 'core' ),
 			'blocks' => array( 'blocks' ),
@@ -450,7 +444,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_core_data() {
+	public static function data_get_core_data() {
 		return array(
 			'When both caches are empty'     => array(
 				'should_fire_filter' => true,
@@ -983,7 +977,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_merged_data_returns_origin() {
+	public static function data_get_merged_data_returns_origin() {
 		return array(
 			'origin_default' => array(
 				'origin'             => 'default',
@@ -1067,7 +1061,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_style_variations() {
+	public static function data_get_style_variations() {
 		return array(
 			// @ticket 57545
 			'theme_style_variations' => array(

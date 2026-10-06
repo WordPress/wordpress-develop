@@ -223,11 +223,11 @@ class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 				'menu-item-status'    => 'publish',
 			)
 		);
-		$this->assertEquals( $t1['term_id'], get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
+		$this->assertSame( (string) $t1['term_id'], get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 
 		$new_term_id = _split_shared_term( $t1['term_id'], $t1['term_taxonomy_id'] );
 		$this->assertNotEquals( $new_term_id, $t1['term_id'] );
-		$this->assertEquals( $new_term_id, get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
+		$this->assertSame( (string) $new_term_id, get_post_meta( $cat_menu_item, '_menu_item_object_id', true ) );
 	}
 
 	/**
