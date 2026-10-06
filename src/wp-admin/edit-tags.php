@@ -627,12 +627,40 @@ if ( $can_edit_terms ) {
 <div class="form-wrap edit-term-notes">
 <p>
 	<?php
+	$default_category_id = (int) get_option( 'default_category' );
 	printf(
-		/* translators: %s: Default category. */
+		/* translators: %s: Default category name. */
 		__( 'Deleting a category does not delete the posts in that category. Instead, posts that were only assigned to the deleted category are set to the default category %s. The default category cannot be deleted.' ),
 		/** This filter is documented in wp-includes/category-template.php */
-		'<strong>' . apply_filters( 'the_category', get_cat_name( get_option( 'default_category' ) ), '', '' ) . '</strong>'
+		'<strong>' . apply_filters( 'the_category', get_cat_name( $default_category_id ), '', '' ) . '</strong>'
 	);
+
+	$default_edit_link  = current_user_can( 'edit_term', $default_category_id ) ? get_edit_term_link( $default_category_id, 'category' ) : null;
+	$can_change_default = current_user_can( 'manage_options' );
+
+	if ( $default_edit_link && $can_change_default ) {
+		echo ' ';
+		printf(
+			/* translators: 1: URL to edit the default category, 2: URL to Writing Settings. */
+			__( 'It can be <a href="%1$s">renamed</a> or you can choose a <a href="%2$s">different default category</a>.' ),
+			esc_url( $default_edit_link ),
+			esc_url( admin_url( 'options-writing.php#default_category' ) )
+		);
+	} elseif ( $default_edit_link ) {
+		echo ' ';
+		printf(
+			/* translators: %s: URL to edit the default category. */
+			__( 'It can be <a href="%s">renamed</a>.' ),
+			esc_url( $default_edit_link )
+		);
+	} elseif ( $can_change_default ) {
+		echo ' ';
+		printf(
+			/* translators: %s: URL to Writing Settings. */
+			__( 'You can choose a <a href="%s">different default category</a>.' ),
+			esc_url( admin_url( 'options-writing.php#default_category' ) )
+		);
+	}
 	?>
 </p>
 	<?php if ( current_user_can( 'import' ) ) : ?>
