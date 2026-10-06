@@ -3019,10 +3019,10 @@ function wp_prefetch_admin_assets(): void {
 	}
 
 	// Build and output the HTML for each unique resource. Each URL has already been escaped.
-	foreach ( $unique_resources as $href => $as ) {
+	foreach ( $unique_resources as $escaped_href => $as ) {
 		printf(
 			"<link rel='prefetch' href='%s' as='%s' />\n",
-			$href,
+			$escaped_href,
 			esc_attr( $as )
 		);
 	}
