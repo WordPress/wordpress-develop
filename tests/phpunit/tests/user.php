@@ -947,6 +947,102 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66238
+	 *
+	 * @covers ::email_exists
+	 *
+	 * @dataProvider data_email_case_sensitivity
+	 *
+	 * @param bool $is_case_sensitive Whether the database compares user emails case-sensitively.
+	 */
+	public function test_email_exists_ignores_letter_case( $is_case_sensitive ) {
+		add_filter( 'wp_is_user_email_case_sensitive', $is_case_sensitive ? '__return_true' : '__return_false' );
+
+		$user_id = self::factory()->user->create( array( 'user_email' => 'MixedCase@example.com' ) );
+
+		$this->assertSame( $user_id, email_exists( 'mixedcase@example.com' ), 'Lowercase variant should match.' );
+		$this->assertSame( $user_id, email_exists( 'MIXEDCASE@EXAMPLE.COM' ), 'Uppercase variant should match.' );
+		$this->assertFalse( email_exists( 'other@example.com' ), 'Unrelated address should not match.' );
+	}
+
+	/**
+	 * @ticket 66238
+	 *
+	 * @covers ::email_exists
+	 *
+	 * @dataProvider data_email_case_sensitivity
+	 *
+	 * @param bool $is_case_sensitive Whether the database compares user emails case-sensitively.
+	 */
+	public function test_email_exists_only_uses_lower_lookup_for_case_sensitive_collations( $is_case_sensitive ) {
+		add_filter( 'wp_is_user_email_case_sensitive', $is_case_sensitive ? '__return_true' : '__return_false' );
+
+		$queries = array();
+		$collect = static function ( $query ) use ( &$queries ) {
+			$queries[] = $query;
+			return $query;
+		};
+		add_filter( 'query', $collect );
+
+		email_exists( 'nobody-66238@example.com' );
+
+		remove_filter( 'query', $collect );
+
+		$lower_queries = preg_grep( '/LOWER\(user_email\)/', $queries );
+		if ( $is_case_sensitive ) {
+			$this->assertNotEmpty( $lower_queries, 'A case-sensitive collation should fall back to a LOWER() lookup.' );
+		} else {
+			$this->assertEmpty( $lower_queries, 'A case-insensitive collation should not use LOWER(), so that the index can be used.' );
+		}
+	}
+
+	/**
+	 * @ticket 66238
+	 *
+	 * @covers ::_wp_is_user_email_case_sensitive
+	 */
+	public function test_wp_is_user_email_case_sensitive_matches_column_collation() {
+		global $wpdb;
+
+		$column   = $wpdb->get_row( "SHOW FULL COLUMNS FROM $wpdb->users LIKE 'user_email'" );
+		$expected = ! str_ends_with( strtolower( $column->Collation ), '_ci' );
+
+		$this->assertSame( $expected, _wp_is_user_email_case_sensitive() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_email_case_sensitivity() {
+		return array(
+			'case-insensitive collation' => array( false ),
+			'case-sensitive collation'   => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 66238
+	 *
+	 * @covers ::wp_insert_user
+	 */
+	public function test_wp_insert_user_rejects_email_differing_only_in_letter_case() {
+		self::factory()->user->create( array( 'user_email' => 'abc@example.com' ) );
+
+		$result = wp_insert_user(
+			array(
+				'user_login' => 'abc_case_variant',
+				'user_pass'  => 'password',
+				'user_email' => 'ABc@example.com',
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'existing_user_email', $result->get_error_code() );
+	}
+
+	/**
 	 * @ticket 28315
 	 */
 	public function test_user_meta_error() {
