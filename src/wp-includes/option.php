@@ -2961,11 +2961,12 @@ function register_initial_settings() {
 		'reading',
 		'wp_page_for_privacy_policy',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'name' => 'page_for_privacy_policy',
 			),
-			'type'         => 'integer',
-			'description'  => __( 'The ID of the page that should be displayed as the privacy policy page' ),
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'description'       => __( 'The ID of the page that should be displayed as the privacy policy page' ),
 		)
 	);
 

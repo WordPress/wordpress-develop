@@ -237,6 +237,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		$this->assertContains( 'blogname', $schema['properties']['fields']['items']['enum'] );
 		$this->assertContains( 'posts_per_page', $schema['properties']['fields']['items']['enum'] );
+		$this->assertContains( 'wp_page_for_privacy_policy', $schema['properties']['fields']['items']['enum'] );
 	}
 
 	/**
