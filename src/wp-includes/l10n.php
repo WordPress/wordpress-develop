@@ -31,7 +31,6 @@ function get_locale() {
 	global $locale, $wp_local_package;
 
 	if ( isset( $locale ) ) {
-		// The global may be set by wp-config.php, by a plugin, or by an earlier call to this function.
 		if ( empty( $locale ) || ! is_string( $locale ) ) {
 			$locale = 'en_US';
 		}
@@ -77,7 +76,6 @@ function get_locale() {
 		}
 	}
 
-	// This value may come from a global, a constant or an option, none of which are validated.
 	if ( empty( $locale ) || ! is_string( $locale ) ) {
 		$locale = 'en_US';
 	}
@@ -126,7 +124,6 @@ function get_user_locale( $user = 0 ) {
 		return get_locale();
 	}
 
-	// WP_User has no `locale` property: this reads the unvalidated `locale` user meta row.
 	$locale = $user_object->locale;
 
 	if ( empty( $locale ) || ! is_string( $locale ) ) {
@@ -187,7 +184,6 @@ function determine_locale() {
 		}
 	}
 
-	// This value may come from user meta or from a global, and is not validated.
 	if ( empty( $determined_locale ) || ! is_string( $determined_locale ) ) {
 		$determined_locale = get_locale();
 	}

@@ -88,8 +88,8 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Nothing checks the type of the `WPLANG` option on the way out, so a row
-	 * written by a direct database query or a migration reaches the return value.
+	 * An array stored in the `WPLANG` option falls back to `en_US`. The row is
+	 * written directly because `update_option()` rejects a non-string value.
 	 *
 	 * @ticket 66106
 	 *
