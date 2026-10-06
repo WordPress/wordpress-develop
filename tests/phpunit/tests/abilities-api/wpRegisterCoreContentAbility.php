@@ -1960,6 +1960,31 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A title filter that returns a non-string empties the rendered title instead of failing
+	 * the query.
+	 *
+	 * @ticket 64606
+	 * @since 7.2.0
+	 */
+	public function test_rendered_title_is_empty_when_a_title_filter_returns_a_non_string(): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		// Runs after core's own title filters, which expect a string.
+		add_filter( 'the_title', '__return_null', 20 );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => self::$post_ids['published'],
+				'fields' => array( 'id', 'title_rendered' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A non-string rendered title should not fail the query.' );
+		$this->assertSame( '', $result['title_rendered'], 'A non-string rendered title should be returned as an empty string.' );
+	}
+
+	/**
 	 * Rendered excerpt filters run with the requested post as the global context and restore
 	 * the context that was active before the ability executed.
 	 *
