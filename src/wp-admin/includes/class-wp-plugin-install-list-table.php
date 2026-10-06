@@ -29,8 +29,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Plugin field to sort the list by, or null to keep the API's order.
 	 *
-	 * Not set by core. Sorting currently has no effect, since {@see self::order_callback()}
-	 * reads object properties while the plugins returned by the API are arrays.
+	 * Not set by core. Sorting only applies when the plugins are objects, since
+	 * {@see self::order_callback()} reads object properties, whereas the plugins
+	 * returned by the API have been arrays since WordPress 5.1.
 	 *
 	 * @since 4.0.0
 	 *
@@ -521,8 +522,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param array<string, mixed> $plugin_a The first plugin data.
-	 * @param array<string, mixed> $plugin_b The second plugin data.
+	 * @param array<string, mixed>|object $plugin_a The first plugin data.
+	 * @param array<string, mixed>|object $plugin_b The second plugin data.
 	 * @return int Comparison result.
 	 */
 	private function order_callback( $plugin_a, $plugin_b ) {
