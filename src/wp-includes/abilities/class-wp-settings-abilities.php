@@ -62,7 +62,8 @@ final class WP_Settings_Abilities {
 	/**
 	 * Registers all settings abilities.
 	 *
-	 * Must run on the `wp_abilities_api_init` hook.
+	 * Must run on the `wp_abilities_api_init` hook. Registers nothing when no setting is
+	 * exposed to abilities.
 	 *
 	 * @since 7.2.0
 	 */
@@ -84,6 +85,12 @@ final class WP_Settings_Abilities {
 			$GLOBALS['new_allowed_options'] = $prev_new_allowed_options;
 		}
 
+		// Compute once; execute_get_settings() reuses this exact structure.
+		$this->exposed_settings = $this->get_exposed_settings();
+		if ( empty( $this->exposed_settings ) ) {
+			return;
+		}
+
 		$this->register_get_settings();
 
 		/*
@@ -100,10 +107,7 @@ final class WP_Settings_Abilities {
 	 * @since 7.2.0
 	 */
 	private function register_get_settings(): void {
-		// Compute once; execute_get_settings() reuses this exact structure.
-		$this->exposed_settings = $this->get_exposed_settings();
-
-		$settings    = $this->exposed_settings;
+		$settings    = (array) $this->exposed_settings;
 		$field_names = array_keys( $settings );
 		$groups      = array();
 		$properties  = array();
@@ -155,7 +159,7 @@ final class WP_Settings_Abilities {
 
 		$settings = $this->exposed_settings;
 		if ( null === $settings ) {
-			// The cache is populated in register_get_settings() before the ability is
+			// The cache is populated in register() before the ability is
 			// registered, so this is unreachable in practice; bail defensively otherwise.
 			return array();
 		}

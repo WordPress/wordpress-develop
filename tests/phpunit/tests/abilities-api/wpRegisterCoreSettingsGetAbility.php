@@ -179,6 +179,36 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * Neither settings ability is registered when no setting is exposed to abilities.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_settings_abilities_are_not_registered_without_exposed_settings(): void {
+		global $wp_registered_settings, $wp_actions;
+
+		$registered_settings_backup  = $wp_registered_settings;
+		$rest_api_init_count         = $wp_actions['rest_api_init'] ?? null;
+		$wp_registered_settings      = array();
+		$wp_actions['rest_api_init'] = 1; // Keeps register() from registering core's initial settings.
+
+		try {
+			$this->register_ability();
+
+			$this->assertFalse( wp_has_ability( 'core/settings-get' ) );
+		} finally {
+			$wp_registered_settings = $registered_settings_backup;
+			if ( null === $rest_api_init_count ) {
+				unset( $wp_actions['rest_api_init'] );
+			} else {
+				$wp_actions['rest_api_init'] = $rest_api_init_count;
+			}
+
+			// Register the ability again for the tests that follow.
+			$this->register_ability();
+		}
+	}
+
+	/**
 	 * The ability is registered in the `site` category and flagged read-only.
 	 *
 	 * @ticket 64605
