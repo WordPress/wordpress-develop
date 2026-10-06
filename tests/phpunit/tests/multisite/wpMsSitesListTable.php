@@ -242,4 +242,75 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $this->table->get_views() );
 	}
+
+	/**
+	 * @ticket 43899
+	 */
+	public function test_view_switcher_is_not_displayed() {
+		$pagination = new ReflectionMethod( $this->table, 'pagination' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$pagination->setAccessible( true );
+		}
+
+		ob_start();
+		$pagination->invoke( $this->table, 'top' );
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( 'view-switch', $output );
+	}
+
+	/**
+	 * @ticket 43899
+	 */
+	public function test_site_details_are_not_displayed_without_switching_blog() {
+		$site_id = self::$site_ids['wordpress.org/foo/'];
+		update_blog_option( $site_id, 'blogname', 'Test site title' );
+		update_blog_option( $site_id, 'blogdescription', 'Test site tagline' );
+
+		$switch_blog = new MockAction();
+		add_action( 'switch_blog', array( $switch_blog, 'action' ) );
+
+		ob_start();
+		$this->table->column_blogname(
+			array(
+				'blog_id' => $site_id,
+				'domain'  => 'wordpress.org',
+				'path'    => '/foo/',
+			)
+		);
+		$output = ob_get_clean();
+
+		remove_action( 'switch_blog', array( $switch_blog, 'action' ) );
+
+		$this->assertStringNotContainsString( 'Test site title', $output );
+		$this->assertStringNotContainsString( 'Test site tagline', $output );
+		$this->assertSame( 0, $switch_blog->get_call_count() );
+	}
+
+	/**
+	 * @ticket 43899
+	 */
+	public function test_excerpt_mode_request_does_not_change_site_date_format() {
+		$_REQUEST['mode'] = 'excerpt';
+		$this->table->prepare_items();
+		unset( $_REQUEST['mode'] );
+
+		$date = '2025-01-02 03:04:05';
+		$blog = array(
+			'last_updated' => $date,
+			'registered'   => $date,
+		);
+
+		ob_start();
+		$this->table->column_lastupdated( $blog );
+		$last_updated = ob_get_clean();
+
+		ob_start();
+		$this->table->column_registered( $blog );
+		$registered = ob_get_clean();
+
+		$expected = mysql2date( __( 'Y/m/d g:i:s a' ), $date );
+		$this->assertSame( $expected, $last_updated );
+		$this->assertSame( $expected, $registered );
+	}
 }
