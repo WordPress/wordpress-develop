@@ -683,10 +683,27 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		$output = get_echo( 'do_action', array( 'login_footer' ) );
 		$links  = $this->parse_prefetch_links( $output );
 
-		$jquery_position = strpos( $output, '/wp-includes/js/jquery/jquery' );
-		$this->assertIsInt( $jquery_position, 'Expected the login screen to load jQuery itself.' );
-		$this->assertMatchesRegularExpression( '#<script[^>]+src=[\'"][^\'"]*/wp-includes/js/jquery/jquery(\.min)?\.js#', $output, 'Expected jQuery to be loaded with a script tag.' );
-		$this->assertGreaterThan( $jquery_position, strpos( $output, "rel='prefetch'" ), 'Expected the prefetch links to follow the footer scripts.' );
+		// Find where jQuery's script tag and the first prefetch link are among the tags printed.
+		$processor            = new WP_HTML_Tag_Processor( $output );
+		$tag_index            = 0;
+		$jquery_index         = null;
+		$first_prefetch_index = null;
+		while ( $processor->next_tag() ) {
+			++$tag_index;
+
+			if ( 'SCRIPT' === $processor->get_tag() ) {
+				$src = $processor->get_attribute( 'src' );
+				if ( is_string( $src ) && in_array( basename( (string) wp_parse_url( $src, PHP_URL_PATH ) ), array( 'jquery.js', 'jquery.min.js' ), true ) ) {
+					$jquery_index = $jquery_index ?? $tag_index;
+				}
+			} elseif ( 'LINK' === $processor->get_tag() && 'prefetch' === $processor->get_attribute( 'rel' ) ) {
+				$first_prefetch_index = $first_prefetch_index ?? $tag_index;
+			}
+		}
+
+		$this->assertIsInt( $jquery_index, 'Expected the login screen to load jQuery itself with a script tag.' );
+		$this->assertIsInt( $first_prefetch_index, 'Expected prefetch links to be printed.' );
+		$this->assertGreaterThan( $jquery_index, $first_prefetch_index, 'Expected the prefetch links to follow the footer scripts.' );
 
 		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery(\.min)?\.js#' );
 		$this->assertNotPrefetched( $links, '#/wp-includes/js/jquery/jquery-migrate(\.min)?\.js#' );
