@@ -1030,6 +1030,8 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @param string $which The location of the pagination: Either 'top' or 'bottom'.
+	 *
+	 * @phpstan-param 'top'|'bottom' $which
 	 */
 	protected function pagination( $which ) {
 		if ( empty( $this->_pagination_args['total_items'] ) ) {
@@ -1680,6 +1682,8 @@ class WP_List_Table {
 	 * @since 3.1.0
 	 *
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
+	 *
+	 * @phpstan-param 'top'|'bottom' $which
 	 */
 	protected function display_tablenav( $which ) {
 		if ( 'bottom' === $which && ! $this->has_items() ) {
