@@ -69,31 +69,29 @@
 	 * @param {PipelineAttachment} attachment The finalized attachment from the pipeline.
 	 */
 	function handleSuccess( wpUploader, model, attachment ) {
-		model.set( { id: attachment.id }, { silent: true } );
+		// Not silent: Attachments re-keys a model from its cid to its id when
+		// it sees the change event. Without that the collection cannot find the
+		// attachment by id, and refreshing the library duplicates its tile.
+		model.set( { id: attachment.id } );
 
 		// Register the model in Attachments.all (parity with wp-plupload.js).
 		wp.media.model.Attachment.get( attachment.id, model );
 
+		// Clear the uploading state before the refetch lands, not after. The
+		// attachment details view re-renders on the refetch's changes, so it has
+		// to see `uploading: false` by then or it keeps showing a progress bar.
+		// wp-plupload.js sets both in one call for the same reason.
+		[ 'file', 'loaded', 'size', 'percent' ].forEach( function ( key ) {
+			model.unset( key, { silent: true } );
+		} );
+		model.set( { uploading: false }, { silent: true } );
+
 		model
 			.fetch()
-			.done( function () {
-				[ 'file', 'loaded', 'size', 'percent' ].forEach( function (
-					key
-				) {
-					model.unset( key, { silent: true } );
-				} );
-				model.set( { uploading: false } );
-			} )
 			.fail( function () {
-				// Fetch failed, but the upload succeeded: clear the uploading
-				// state with what the pipeline gave us so no tile is stuck.
-				[ 'file', 'loaded', 'size', 'percent' ].forEach( function (
-					key
-				) {
-					model.unset( key, { silent: true } );
-				} );
+				// Fetch failed, but the upload succeeded: fill the tile with what
+				// the pipeline gave us so it is not left empty.
 				model.set( attachment );
-				model.set( { uploading: false } );
 			} )
 			.always( function () {
 				maybeResetQueue();
