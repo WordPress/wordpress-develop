@@ -724,10 +724,11 @@ final class WP_Content_Abilities {
 	 * Looks up the user an author slug names.
 	 *
 	 * The slug is the user's nicename, which `core/users-query` returns as `slug`. It must match
-	 * exactly one user. A user the current user may not see is reported like a missing one,
-	 * so the lookup reveals no hidden user: the current user can see themselves, any user when
-	 * they can list users or edit others' posts of the post type, and authors with posts in a
-	 * publicly viewable post type, as in `core/users-query`.
+	 * exactly one user. A user the current user may not see is reported like a missing one. As
+	 * in `core/users-query`, the current user can see themselves, any user when they can list
+	 * users, and authors with posts in a publicly viewable post type. Unlike there, a user who
+	 * can edit others' posts of the post type can see any user, since they may make any user
+	 * the author, so for them the lookup does tell whether an account exists.
 	 *
 	 * @since 7.2.0
 	 *
