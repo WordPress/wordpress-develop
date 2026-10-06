@@ -13,8 +13,8 @@ declare( strict_types = 1 );
  * Core class used to register settings-related abilities.
  *
  * Provides the read-only `core/settings-get` ability and the shared building blocks
- * (exposed-settings discovery, schema generation, and value casting) that are intended to
- * also back a future write-oriented `core/settings-update` ability.
+ * (exposed-settings discovery and schema generation) that are intended to also back a
+ * future write-oriented `core/settings-update` ability.
  *
  * Unlike the other core abilities, which are self-contained closures registered directly
  * in wp_register_core_abilities(), the settings abilities live in a dedicated class
@@ -56,7 +56,7 @@ final class WP_Abilities_Settings {
 	 * structure, and {@see get_registered_settings()} is only walked once per request.
 	 *
 	 * @since 7.2.0
-	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>|null
+	 * @var array<string, array{option: string, group: string, schema: array<string, mixed>}>|null
 	 */
 	private $exposed_settings = null;
 
@@ -76,13 +76,6 @@ final class WP_Abilities_Settings {
 		}
 
 		$this->register_get_settings();
-
-		/*
-		 * A future write-oriented ability can be registered here, reusing the shared
-		 * helpers below (get_exposed_settings(), value_schema(), cast_value()):
-		 *
-		 *     $this->register_update_settings();
-		 */
 	}
 
 	/**
@@ -160,18 +153,21 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
-			$type  = isset( $setting['schema']['type'] ) && is_string( $setting['schema']['type'] ) ? $setting['schema']['type'] : 'string';
-			$value = $this->cast_value( get_option( $setting['option'], $setting['default'] ), $type );
+			$value = get_option( $setting['option'] );
 
 			/*
-			 * Leave out a value its schema rejects instead of failing output validation for
-			 * every setting; the settings endpoint answers null for it.
+			 * As the settings endpoint does, validate the stored value before sanitizing it, and
+			 * leave out a value its schema rejects instead of failing output validation for every
+			 * setting; the settings endpoint answers null for it.
 			 */
 			if ( is_wp_error( rest_validate_value_from_schema( $value, $setting['schema'] ) ) ) {
 				continue;
 			}
 
-			$result[ $exposed_name ] = $value;
+			$value = rest_sanitize_value_from_schema( $value, $setting['schema'] );
+
+			// Object (not array()) so an empty object value is serialized as {}, consistent with type:object.
+			$result[ $exposed_name ] = 'object' === $setting['schema']['type'] ? (object) $value : $value;
 		}
 
 		return $result;
@@ -229,12 +225,11 @@ final class WP_Abilities_Settings {
 	 *
 	 * Reads {@see get_registered_settings()} and keeps only settings flagged with a truthy
 	 * `show_in_abilities` argument. Each entry is keyed by its exposed name and carries the
-	 * underlying option name, the settings group, the registration default, and a JSON Schema
-	 * describing the value.
+	 * underlying option name, the settings group, and a JSON Schema describing the value.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}> Settings keyed by exposed name.
+	 * @return array<string, array{option: string, group: string, schema: array<string, mixed>}> Settings keyed by exposed name.
 	 */
 	private function get_exposed_settings(): array {
 		$settings = array();
@@ -249,10 +244,9 @@ final class WP_Abilities_Settings {
 			$exposed_name = is_array( $show ) && isset( $show['name'] ) && is_string( $show['name'] ) && '' !== $show['name'] ? $show['name'] : $option_name;
 
 			$settings[ $exposed_name ] = array(
-				'option'  => $option_name,
-				'group'   => isset( $args['group'] ) && is_string( $args['group'] ) ? $args['group'] : '',
-				'default' => array_key_exists( 'default', $args ) ? $args['default'] : false,
-				'schema'  => $this->value_schema( $args, $show ),
+				'option' => $option_name,
+				'group'  => isset( $args['group'] ) && is_string( $args['group'] ) ? $args['group'] : '',
+				'schema' => $this->value_schema( $args, $show ),
 			);
 		}
 
@@ -285,33 +279,5 @@ final class WP_Abilities_Settings {
 		}
 
 		return $schema;
-	}
-
-	/**
-	 * Casts a stored option value to the type declared in its settings registration.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed  $value The raw option value.
-	 * @param string $type  The registered setting type.
-	 * @return mixed The value cast to the declared type.
-	 */
-	private function cast_value( $value, string $type ) {
-		switch ( $type ) {
-			case 'boolean':
-				return (bool) $value;
-			case 'integer':
-				return is_scalar( $value ) ? (int) $value : 0;
-			case 'number':
-				return is_scalar( $value ) ? (float) $value : 0.0;
-			case 'array':
-				return is_array( $value ) ? $value : array();
-			case 'object':
-				// Cast to object so an empty/non-array value serializes as {} (not []) and
-				// satisfies the `object` output schema validated by execute().
-				return (object) ( is_array( $value ) ? $value : array() );
-			default:
-				return is_scalar( $value ) ? (string) $value : $value;
-		}
 	}
 }

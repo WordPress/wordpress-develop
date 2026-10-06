@@ -358,4 +358,65 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$this->assertArrayHasKey( 'blogname', $result, 'The other settings should still be returned.' );
 		$this->assertArrayNotHasKey( 'default_ping_status', $result, 'Only the bad value should be left out.' );
 	}
+
+	/**
+	 * Stored values are read as the settings endpoint reads them: validated against their schema,
+	 * left out when it rejects them, and sanitized otherwise.
+	 *
+	 * @ticket 64605
+	 *
+	 * @dataProvider data_stored_values
+	 *
+	 * @param string      $type     The setting type.
+	 * @param mixed       $stored   The stored option value.
+	 * @param string|null $expected The value as JSON, or null when it is left out.
+	 */
+	public function test_core_settings_get_reads_stored_values_as_the_settings_endpoint( string $type, $stored, ?string $expected ): void {
+		$option = 'core_settings_get_ability_value_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'type'              => $type,
+				'show_in_abilities' => true,
+			)
+		);
+		update_option( $option, $stored );
+
+		try {
+			$this->register_ability();
+			$this->become_admin();
+
+			$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( $option ) ) );
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+
+		$this->assertSame( $expected, isset( $result[ $option ] ) ? wp_json_encode( $result[ $option ] ) : null );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: mixed, 2: string|null}> Stored values, and the JSON they are read as.
+	 */
+	public static function data_stored_values(): array {
+		return array(
+			'"false" for a boolean'               => array( 'boolean', 'false', 'false' ),
+			'a stdClass for an object'            => array( 'object', (object) array( 'a' => 1 ), '{"a":1}' ),
+			'an empty array for an object'        => array( 'object', array(), '{}' ),
+			'a list with gaps for an array'       => array(
+				'array',
+				array(
+					0 => 'a',
+					2 => 'b',
+				),
+				'["a","b"]',
+			),
+			'a numeric string for an integer'     => array( 'integer', '7', '7' ),
+			'a non-numeric string for an integer' => array( 'integer', 'abc', null ),
+		);
+	}
 }
