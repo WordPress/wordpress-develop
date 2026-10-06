@@ -32,6 +32,10 @@ class WP_Post_Comments_List_Table extends WP_Comments_List_Table {
 	}
 
 	/**
+	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @return string[] Array of CSS classes for the table tag.
 	 *
 	 * @phpstan-return non-empty-list<string>

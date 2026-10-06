@@ -631,6 +631,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $mode List table view mode.
 	 *
 	 * @return string[] Array of CSS classes for the table tag.
