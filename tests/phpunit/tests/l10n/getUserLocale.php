@@ -148,8 +148,7 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A `locale` user meta row holding an array is truthy, so a truthiness
-	 * check alone passes it through to callers that expect a string.
+	 * An array stored in the `locale` user meta falls back to the site locale.
 	 *
 	 * @ticket 66106
 	 */
