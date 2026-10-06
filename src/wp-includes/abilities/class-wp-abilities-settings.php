@@ -14,7 +14,7 @@ declare( strict_types = 1 );
  *
  * Provides the read-only `core/settings-get` ability and the shared building blocks
  * (exposed-settings discovery, schema generation, and value casting) that are intended to
- * also back a future write-oriented `core/manage-settings` ability.
+ * also back a future write-oriented `core/settings-update` ability.
  *
  * Unlike the other core abilities, which are self-contained closures registered directly
  * in wp_register_core_abilities(), the settings abilities live in a dedicated class
@@ -97,7 +97,7 @@ final class WP_Abilities_Settings {
 		 * A future write-oriented ability can be registered here, reusing the shared
 		 * helpers below (get_exposed_settings(), value_schema(), cast_value()):
 		 *
-		 *     $this->register_manage_settings();
+		 *     $this->register_update_settings();
 		 */
 	}
 
