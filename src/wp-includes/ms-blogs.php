@@ -338,6 +338,78 @@ function clean_site_details_cache( $site_id = 0 ) {
 }
 
 /**
+ * Retrieves an option value for a specific site without switching blog context.
+ *
+ * Uses the object cache (same 'blog-alloptions'/'blog-notoptions' groups as
+ * get_option()), falling back to a direct DB query with the site's table prefix
+ * obtained from $wpdb->get_blog_prefix().
+ *
+ * @since 6.8.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param int    $blog_id  Site ID.
+ * @param string $option   Option name.
+ * @param mixed  $default_value Optional. Default value if option not found. Default false.
+ * @return mixed Option value or $default_value.
+ */
+function _get_option_from_blog( int $blog_id, string $option, $default_value = false ) {
+	global $wpdb;
+
+	$blog_id = (int) $blog_id;
+
+	// Fast path: current blog — delegate to get_option() for full filter/cache compat.
+	if ( get_current_blog_id() === $blog_id ) {
+		return get_option( $option, $default_value );
+	}
+
+	// Check object cache first.
+	$alloptions_cache = wp_cache_get( $blog_id, 'blog-alloptions' );
+	if ( is_array( $alloptions_cache ) && array_key_exists( $option, $alloptions_cache ) ) {
+		return maybe_unserialize( $alloptions_cache[ $option ] );
+	}
+
+	$notoptions = wp_cache_get( $blog_id, 'blog-notoptions' );
+	if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+		return $default_value;
+	}
+
+	// Direct DB query using get_blog_prefix() — no switch.
+	$table = $wpdb->get_blog_prefix( $blog_id ) . 'options';
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
+	$row = $wpdb->get_row(
+		$wpdb->prepare(
+			"SELECT option_value FROM `{$table}` WHERE option_name = %s LIMIT 1",
+			$option
+		)
+	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+	if ( null === $row ) {
+		// Mark as not-found in cache.
+		$notoptions            = is_array( $notoptions ) ? $notoptions : array();
+		$notoptions[ $option ] = true;
+		wp_cache_set( $blog_id, $notoptions, 'blog-notoptions' );
+		return $default_value;
+	}
+
+	$value = maybe_unserialize( $row->option_value );
+
+	/**
+	 * Filters a blog option value.
+	 *
+	 * The dynamic portion of the hook name, `$option`, refers to the blog option name.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param string $value The option value.
+	 * @param int    $id    Blog ID.
+	 */
+	return apply_filters( "blog_option_{$option}", $value, $blog_id );
+}
+
+/**
  * Retrieves option value for a given blog id based on name of option.
  *
  * If the option does not exist or does not have a value, then the return value
@@ -361,25 +433,7 @@ function get_blog_option( $id, $option, $default_value = false ) {
 		$id = get_current_blog_id();
 	}
 
-	if ( get_current_blog_id() === $id ) {
-		return get_option( $option, $default_value );
-	}
-
-	switch_to_blog( $id );
-	$value = get_option( $option, $default_value );
-	restore_current_blog();
-
-	/**
-	 * Filters a blog option value.
-	 *
-	 * The dynamic portion of the hook name, `$option`, refers to the blog option name.
-	 *
-	 * @since 3.5.0
-	 *
-	 * @param string  $value The option value.
-	 * @param int     $id    Blog ID.
-	 */
-	return apply_filters( "blog_option_{$option}", $value, $id );
+	return _get_option_from_blog( $id, $option, $default_value );
 }
 
 /**
@@ -402,6 +456,8 @@ function get_blog_option( $id, $option, $default_value = false ) {
  * @return bool True if the option was added, false otherwise.
  */
 function add_blog_option( $id, $option, $value ) {
+	global $wpdb;
+
 	$id = (int) $id;
 
 	if ( empty( $id ) ) {
@@ -412,11 +468,39 @@ function add_blog_option( $id, $option, $value ) {
 		return add_option( $option, $value );
 	}
 
-	switch_to_blog( $id );
-	$return = add_option( $option, $value );
-	restore_current_blog();
+	$table = $wpdb->get_blog_prefix( $id ) . 'options';
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
+	$exists = $wpdb->get_var(
+		$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE option_name = %s", $option )
+	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-	return $return;
+	if ( $exists ) {
+		return false;
+	}
+
+	$serialized = maybe_serialize( $value );
+	$result     = $wpdb->insert(
+		$table,
+		array(
+			'option_name'  => $option,
+			'option_value' => $serialized,
+			'autoload'     => 'yes',
+		),
+		array( '%s', '%s', '%s' )
+	);
+
+	// Bust per-blog option caches.
+	wp_cache_delete( $id, 'blog-alloptions' );
+	wp_cache_delete( $id, 'blog-notoptions' );
+
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
+
+	return false !== $result;
 }
 
 /**
@@ -429,6 +513,8 @@ function add_blog_option( $id, $option, $value ) {
  * @return bool True if the option was deleted, false otherwise.
  */
 function delete_blog_option( $id, $option ) {
+	global $wpdb;
+
 	$id = (int) $id;
 
 	if ( empty( $id ) ) {
@@ -439,11 +525,24 @@ function delete_blog_option( $id, $option ) {
 		return delete_option( $option );
 	}
 
-	switch_to_blog( $id );
-	$return = delete_option( $option );
-	restore_current_blog();
+	$table  = $wpdb->get_blog_prefix( $id ) . 'options';
+	$result = $wpdb->delete(
+		$table,
+		array( 'option_name' => $option ),
+		array( '%s' )
+	);
 
-	return $return;
+	// Bust per-blog option caches.
+	wp_cache_delete( $id, 'blog-alloptions' );
+	wp_cache_delete( $id, 'blog-notoptions' );
+
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
+
+	return false !== $result && $result > 0;
 }
 
 /**
@@ -458,21 +557,69 @@ function delete_blog_option( $id, $option ) {
  * @return bool True if the value was updated, false otherwise.
  */
 function update_blog_option( $id, $option, $value, $deprecated = null ) {
+	global $wpdb;
+
 	$id = (int) $id;
 
 	if ( null !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '3.1.0' );
 	}
 
+	if ( empty( $id ) ) {
+		$id = get_current_blog_id();
+	}
+
 	if ( get_current_blog_id() === $id ) {
 		return update_option( $option, $value );
 	}
 
-	switch_to_blog( $id );
-	$return = update_option( $option, $value );
-	restore_current_blog();
+	$table      = $wpdb->get_blog_prefix( $id ) . 'options';
+	$serialized = maybe_serialize( $value );
 
-	return $return;
+	$old_value = _get_option_from_blog( $id, $option );
+
+	// If old and new values are the same, no update needed.
+	if ( maybe_serialize( $old_value ) === $serialized ) {
+		return false;
+	}
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $table is built from $wpdb->get_blog_prefix().
+	$exists = $wpdb->get_var(
+		$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE option_name = %s", $option )
+	);
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+	if ( $exists ) {
+		$result = $wpdb->update(
+			$table,
+			array( 'option_value' => $serialized ),
+			array( 'option_name' => $option ),
+			array( '%s' ),
+			array( '%s' )
+		);
+	} else {
+		$result = $wpdb->insert(
+			$table,
+			array(
+				'option_name'  => $option,
+				'option_value' => $serialized,
+				'autoload'     => 'yes',
+			),
+			array( '%s', '%s', '%s' )
+		);
+	}
+
+	// Bust per-blog option caches.
+	wp_cache_delete( $id, 'blog-alloptions' );
+	wp_cache_delete( $id, 'blog-notoptions' );
+
+	// Invalidate site-details cache when a site-detail option changes.
+	if ( in_array( $option, array( 'home', 'siteurl', 'blogname', 'post_count' ), true ) ) {
+		wp_cache_delete( $id, 'site-details' );
+		wp_cache_delete( $id, 'blog-details' );
+	}
+
+	return false !== $result;
 }
 
 /**
