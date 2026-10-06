@@ -64,7 +64,7 @@ function wp_apply_dimensions_support( $block_type, $block_attributes ) {
 	}
 
 	$dimensions_block_styles = array();
-	$supported_features      = array( 'minHeight', 'height', 'width' );
+	$supported_features      = array( 'minHeight', 'minWidth', 'height', 'width' );
 
 	foreach ( $supported_features as $feature ) {
 		$has_support        = block_has_support( $block_type, array( 'dimensions', $feature ), false );
@@ -113,9 +113,9 @@ function wp_is_explicit_aspect_ratio_value( $aspect_ratio ) {
  * @since 6.5.0
  * @access private
  *
- * @param  string $block_content Rendered block content.
- * @param  array  $block         Block object.
- * @return string                Filtered block content.
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
  */
 function wp_render_dimensions_support( $block_content, $block ) {
 	$block_type               = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );

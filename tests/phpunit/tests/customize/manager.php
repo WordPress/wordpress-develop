@@ -48,6 +48,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
@@ -56,6 +63,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$theme_features      = $GLOBALS['_wp_theme_features'];
 	}
 
 	/**
@@ -78,7 +86,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST                      = array();
+		$GLOBALS['_wp_theme_features'] = self::$theme_features;
+
+		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
+		remove_post_type_support( 'customize_changeset', 'revisions' );
+
 		parent::tear_down();
 	}
 
@@ -3041,7 +3054,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$url                     = 'http://badreferer.example.com/';
 		$_SERVER['HTTP_REFERER'] = wp_slash( $url );
-		$this->assertNotEquals( $url, $this->manager->get_return_url() );
+		$this->assertNotSame( $url, $this->manager->get_return_url() );
 		$this->assertSame( $preview_url, $this->manager->get_return_url() );
 
 		$this->manager->set_return_url( admin_url( 'edit.php?trashed=1' ) );
@@ -3252,7 +3265,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3269,7 +3281,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3519,14 +3530,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// The default devices list.
 		$default_devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -3551,7 +3562,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function filtered_device_list() {
 		return array(
 			'custom-device' => array(
-				'label'   => __( 'Enter custom-device preview mode' ),
+				'label'   => __( 'Custom device' ),
 				'default' => true,
 			),
 		);
@@ -3561,7 +3572,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {

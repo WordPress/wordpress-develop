@@ -140,6 +140,11 @@ if ( isset( $_REQUEST['action'] ) && 'add-site' === $_REQUEST['action'] ) {
 		do_action( 'network_site_new_created_user', $user_id );
 	}
 
+	/**
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	global $wpdb;
+
 	$wpdb->hide_errors();
 	$id = wpmu_create_blog( $newdomain, $path, $title, $user_id, $meta, get_current_network_id() );
 	$wpdb->show_errors();
@@ -248,7 +253,7 @@ if ( ! empty( $messages ) ) {
 		if ( ! empty( $languages ) || ! empty( $translations ) ) :
 			?>
 			<tr class="form-field form-required">
-				<th scope="row"><label for="site-language"><?php _e( 'Site Language' ); ?></label></th>
+				<th scope="row"><label for="site-language"><?php _e( 'Site Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
 				<td>
 					<?php
 					// Network default.
