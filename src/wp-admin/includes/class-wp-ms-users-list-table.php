@@ -230,8 +230,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		 * @since MU (3.0.0)
 		 *
 		 * @param string[] $users_columns An array of user columns. Default 'cb', 'username',
-		 * @param array<string, string> $users_columns An array of user columns. Default 'cb', 'username',
-		 *                                             'name', 'email', 'registered', 'blogs'.
+		 *                                'name', 'email', 'registered', 'blogs'.
 		 */
 		return apply_filters( 'wpmu_users_columns', $users_columns );
 	}
