@@ -173,7 +173,8 @@ final class WP_Abilities_Settings {
 	private function get_settings_input_schema( array $groups, array $field_names ): array {
 		return array(
 			'type'                 => 'object',
-			'default'              => array(),
+			// Object (not array()) so the serialized schema default is {}, consistent with type:object.
+			'default'              => (object) array(),
 			'properties'           => array(
 				'group'  => array(
 					'type'        => 'string',
