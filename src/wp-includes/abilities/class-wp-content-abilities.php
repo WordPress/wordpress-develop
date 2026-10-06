@@ -244,12 +244,11 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Parses a raw filter value into an integer of at least a minimum, or null when invalid.
+	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
 	 *
 	 * Unlike {@see self::input_int()}, which coerces any non-integer to 0, this rejects
-	 * values that are not integers so a filter whose value cannot be honored can fail
-	 * loudly instead of silently widening the query: `author => 0` drops the author
-	 * filter (matching every author) and `post_parent => 0` becomes a top-level query.
+	 * values that are not integers, so an ID or a parent that cannot be honored fails
+	 * loudly instead of being read as 0: a `parent` filter of 0 asks for top-level posts.
 	 * Accepts native integers and unsigned integer strings, mirroring how the JSON
 	 * Schema `integer` type and the query-string transport respectively deliver them.
 	 *
