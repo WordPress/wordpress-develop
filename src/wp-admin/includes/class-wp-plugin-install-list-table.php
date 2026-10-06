@@ -16,10 +16,41 @@
  */
 class WP_Plugin_Install_List_Table extends WP_List_Table {
 
-	public $order   = 'ASC';
-	public $orderby = null;
-	public $groups  = array();
+	/**
+	 * Sort order of the plugins list: Either 'ASC' or 'DESC'.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @var string
+	 * @phpstan-var 'ASC'|'DESC'
+	 */
+	public $order = 'ASC';
 
+	/**
+	 * Plugin field to sort the list by, or null to keep the API's order.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @var string|null
+	 */
+	public $orderby = null;
+
+	/**
+	 * Plugin group names keyed by group slug, as returned by the Plugin Installation API.
+	 *
+	 * @since 4.0.0
+	 *
+	 * @var array<string, string>
+	 */
+	public $groups = array();
+
+	/**
+	 * Error returned by the Plugin Installation API, if any.
+	 *
+	 * @since 4.2.0
+	 *
+	 * @var WP_Error|null
+	 */
 	private $error;
 
 	/**
