@@ -190,8 +190,7 @@ final class WP_Content_Abilities {
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
 	public function check_permission( $input = array() ): bool {
-		$input   = rest_sanitize_object( $input );
-		$exposed = $this->get_exposed_post_types();
+		$input = rest_sanitize_object( $input );
 
 		if ( ! is_user_logged_in() ) {
 			return false;
@@ -201,12 +200,8 @@ final class WP_Content_Abilities {
 
 		// Single-post mode (by ID).
 		if ( ! empty( $input['id'] ) ) {
-			$post = get_post( $this->input_int( $input['id'] ) );
-
-			if ( ! $post
-				|| ! isset( $exposed[ $post->post_type ] )
-				|| ( ! empty( $input['post_type'] ) && $post->post_type !== $input['post_type'] )
-			) {
+			$post = $this->get_content_by_id( $input );
+			if ( ! $post ) {
 				return false;
 			}
 
@@ -214,11 +209,12 @@ final class WP_Content_Abilities {
 		}
 
 		// Single-post mode (by slug) and query mode require an exposed post type.
-		$post_type = isset( $input['post_type'] ) && is_string( $input['post_type'] ) ? $input['post_type'] : '';
-		if ( '' === $post_type || ! isset( $exposed[ $post_type ] ) ) {
+		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
+		if ( ! $post_type_object ) {
 			return false;
 		}
 
+		$post_type = $post_type_object->name;
 		if ( isset( $input['slug'] ) && is_string( $input['slug'] ) && '' !== $input['slug'] ) {
 			$post = $this->get_post_by_slug( $post_type, $input['slug'] );
 			if ( ! $post ) {
@@ -228,7 +224,6 @@ final class WP_Content_Abilities {
 			return $requires_edit ? current_user_can( 'edit_post', $post->ID ) : $this->check_read_permission( $post );
 		}
 
-		$post_type_object = $exposed[ $post_type ];
 		if ( $requires_edit ) {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
@@ -367,8 +362,7 @@ final class WP_Content_Abilities {
 
 		$checked_post_ids[ $post->ID ] = true;
 
-		$post_type = get_post_type_object( $post->post_type );
-		if ( ! $post_type instanceof \WP_Post_Type || empty( $post_type->show_in_abilities ) ) {
+		if ( ! $this->get_exposed_post_type( $post->post_type ) ) {
 			return false;
 		}
 
@@ -448,18 +442,13 @@ final class WP_Content_Abilities {
 	 */
 	public function execute_content_query( $input = array() ) {
 		$input         = rest_sanitize_object( $input );
-		$exposed       = $this->get_exposed_post_types();
 		$fields        = $this->normalize_fields( $input );
 		$requires_edit = $this->has_explicit_edit_fields( $input );
 
 		// Single-post mode (by ID).
 		if ( ! empty( $input['id'] ) ) {
-			$post = get_post( $this->input_int( $input['id'] ) );
-
-			if ( ! $post
-				|| ! isset( $exposed[ $post->post_type ] )
-				|| ( ! empty( $input['post_type'] ) && $post->post_type !== $input['post_type'] )
-			) {
+			$post = $this->get_content_by_id( $input );
+			if ( ! $post ) {
 				return $this->not_found_error();
 			}
 
@@ -467,11 +456,12 @@ final class WP_Content_Abilities {
 		}
 
 		// Single-post mode (by slug) and query mode.
-		$post_type = isset( $input['post_type'] ) && is_string( $input['post_type'] ) ? $input['post_type'] : '';
-		if ( '' === $post_type || ! isset( $exposed[ $post_type ] ) ) {
+		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
+		if ( ! $post_type_object ) {
 			return $this->not_found_error();
 		}
 
+		$post_type = $post_type_object->name;
 		if ( isset( $input['slug'] ) && is_string( $input['slug'] ) && '' !== $input['slug'] ) {
 			$post = $this->get_post_by_slug( $post_type, $input['slug'] );
 
@@ -707,6 +697,30 @@ final class WP_Content_Abilities {
 	}
 
 	/**
+	 * Looks up the single post an ID request resolves to.
+	 *
+	 * The post must exist, belong to a post type exposed to abilities, and match the
+	 * `post_type` guard when one is given. As with the integer filters, only an integer or
+	 * an unsigned integer string is accepted, so a malformed ID or one beyond the integer
+	 * range cannot be coerced onto another post.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $input The ability input.
+	 * @return \WP_Post|null The post, or null when it cannot be resolved.
+	 */
+	private function get_content_by_id( array $input ): ?WP_Post {
+		$post_id = isset( $input['id'] ) ? $this->parse_filter_int( $input['id'], 1 ) : null;
+		$post    = null === $post_id ? null : get_post( $post_id );
+
+		if ( ! $post instanceof WP_Post || ! $this->get_exposed_post_type( $post->post_type ) ) {
+			return null;
+		}
+
+		return empty( $input['post_type'] ) || $post->post_type === $input['post_type'] ? $post : null;
+	}
+
+	/**
 	 * Looks up the single post a slug request resolves to.
 	 *
 	 * Slugs are not unique across statuses (drafts skip slug uniqueness), so the
@@ -787,6 +801,18 @@ final class WP_Content_Abilities {
 		}
 
 		return $exposed_post_types;
+	}
+
+	/**
+	 * Returns a post type exposed through the Abilities API.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $post_type The post type name.
+	 * @return \WP_Post_Type|null The post type object, or null when the post type is not exposed.
+	 */
+	private function get_exposed_post_type( $post_type ): ?\WP_Post_Type {
+		return is_string( $post_type ) ? ( $this->get_exposed_post_types()[ $post_type ] ?? null ) : null;
 	}
 
 	/**
@@ -953,6 +979,25 @@ final class WP_Content_Abilities {
 	}
 
 	/**
+	 * Builds the schema of the `fields` input, shared by all content abilities.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The `fields` JSON Schema.
+	 */
+	private function get_fields_input_schema(): array {
+		return array(
+			'type'        => 'array',
+			'uniqueItems' => true,
+			'items'       => array(
+				'type' => 'string',
+				'enum' => array_keys( $this->get_post_properties() ),
+			),
+			'description' => __( 'Limit each returned post to these fields. If omitted, a lean set of common read fields is returned. Explicit raw field requests require edit access.' ),
+		);
+	}
+
+	/**
 	 * Builds the input schema for the `core/content-query` ability.
 	 *
 	 * The ability has three mutually exclusive modes, modeled as a `oneOf` so invalid
@@ -973,15 +1018,7 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
 	private function get_content_query_input_schema( array $post_types, array $statuses ): array {
-		$fields  = array(
-			'type'        => 'array',
-			'uniqueItems' => true,
-			'items'       => array(
-				'type' => 'string',
-				'enum' => array_keys( $this->get_post_properties() ),
-			),
-			'description' => __( 'Limit each returned post to these fields. If omitted, a lean set of common read fields is returned. Explicit raw field requests require edit access.' ),
-		);
+		$fields  = $this->get_fields_input_schema();
 		$include = array(
 			'type'        => 'array',
 			'minItems'    => 1,
@@ -1085,6 +1122,24 @@ final class WP_Content_Abilities {
 	}
 
 	/**
+	 * Builds the output schema of a single post, shared by all content abilities.
+	 *
+	 * No field is marked required because the `fields` input lets the caller request any
+	 * subset, and a field is only present when its post type supports it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The post JSON Schema.
+	 */
+	private function get_content_output_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'properties'           => $this->get_post_properties(),
+		);
+	}
+
+	/**
 	 * Builds the output schema for the `core/content-query` ability.
 	 *
 	 * No field is marked required because the `fields` input lets the caller request any
@@ -1096,11 +1151,7 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
 	private function get_content_query_output_schema(): array {
-		$post_schema = array(
-			'type'                 => 'object',
-			'additionalProperties' => false,
-			'properties'           => $this->get_post_properties(),
-		);
+		$post_schema = $this->get_content_output_schema();
 
 		$query_schema = array(
 			'type'                 => 'object',
