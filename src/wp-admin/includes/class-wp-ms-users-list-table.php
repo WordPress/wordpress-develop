@@ -118,7 +118,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array<string, string> An associative array of bulk actions.
+	 * @return array<string, string> Bulk action labels keyed by action name.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -147,7 +147,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global string $role The user role to filter by.
 	 *
-	 * @return array<string, string> An array of view links keyed by view.
+	 * @return array<string, string> View link markup keyed by view name ('all' or 'super').
 	 */
 	protected function get_views() {
 		global $role;
@@ -231,8 +231,8 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		 *
 		 * @since MU (3.0.0)
 		 *
-		 * @param array<string, string> $users_columns An array of user columns. Default 'cb', 'username',
-		 *                                             'name', 'email', 'registered', 'blogs'.
+		 * @param array<string, string> $users_columns Column titles keyed by column name. Default keys are 'cb',
+		 *                                             'username', 'name', 'email', 'registered', and 'blogs'.
 		 */
 		return apply_filters( 'wpmu_users_columns', $users_columns );
 	}

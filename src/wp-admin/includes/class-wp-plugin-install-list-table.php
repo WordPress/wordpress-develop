@@ -124,7 +124,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global array<string, string> $tabs  The tabs shown on the Add Plugins screen.
+	 * @global array<string, string> $tabs  Labels of the tabs shown on the Add Plugins screen, keyed by tab slug.
 	 * @global string                $tab   The current active tab.
 	 * @global int                   $paged The current page number.
 	 * @global string                $type  The type of search being performed.
@@ -172,8 +172,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param array<string, string> $tabs The tabs shown on the Add Plugins screen. Defaults include
-		 *                                    'featured', 'popular', 'recommended', 'favorites', and 'upload'.
+		 * @param array<string, string> $tabs Labels of the tabs shown on the Add Plugins screen, keyed by tab
+		 *                                    slug. Default keys include 'featured', 'popular', 'recommended',
+		 *                                    'favorites', and 'upload'.
 		 */
 		$tabs = apply_filters( 'install_plugins_tabs', $tabs );
 
@@ -358,10 +359,10 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global array<string, string> $tabs The tabs shown on the Add Plugins screen.
+	 * @global array<string, string> $tabs Labels of the tabs shown on the Add Plugins screen, keyed by tab slug.
 	 * @global string                $tab  The current active tab.
 	 *
-	 * @return array<string, string> Array of view links keyed by their ID.
+	 * @return array<string, string> View link markup keyed by view ID ('plugin-install-' followed by the tab slug).
 	 */
 	protected function get_views() {
 		global $tabs, $tab;
