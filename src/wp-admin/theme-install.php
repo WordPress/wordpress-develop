@@ -390,7 +390,11 @@ if ( $tab ) {
 		</p></div>
 	<# } #>
 
+	<# if ( data.compatible_wp && data.compatible_php ) { #>
 	<button type="button" class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></button>
+	<# } else { #>
+	<span class="more-details"><?php _ex( 'Details &amp; Preview', 'theme' ); ?></span>
+	<# } #>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
