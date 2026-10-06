@@ -5303,7 +5303,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * The note response exposes a `reaction_summary` field aggregating
-	 * counts per emoji slug, plus per-user `reacted` and `my_reaction_id`.
+	 * counts per emoji slug, plus the current user's reaction ID as
+	 * `current_user_reaction`.
 	 *
 	 * @ticket 63191
 	 */
@@ -5351,13 +5352,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'reaction_summary', $data );
 		$this->assertArrayHasKey( 'heart', $data['reaction_summary'] );
 		$this->assertSame( 1, $data['reaction_summary']['heart']['count'] );
-		$this->assertTrue( $data['reaction_summary']['heart']['reacted'] );
-		$this->assertSame( $heart_id, $data['reaction_summary']['heart']['my_reaction_id'] );
+		$this->assertSame( $heart_id, $data['reaction_summary']['heart']['current_user_reaction'] );
 
 		$this->assertArrayHasKey( 'rocket', $data['reaction_summary'] );
 		$this->assertSame( 1, $data['reaction_summary']['rocket']['count'] );
-		$this->assertFalse( $data['reaction_summary']['rocket']['reacted'] );
-		$this->assertSame( 0, $data['reaction_summary']['rocket']['my_reaction_id'] );
+		$this->assertSame( 0, $data['reaction_summary']['rocket']['current_user_reaction'] );
 	}
 
 	/**
@@ -5663,7 +5662,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		foreach ( $data as $note ) {
 			$this->assertArrayHasKey( 'reaction_summary', $note );
 			$this->assertSame( 1, $note['reaction_summary']['heart']['count'] );
-			$this->assertTrue( $note['reaction_summary']['heart']['reacted'] );
+			$this->assertGreaterThan( 0, $note['reaction_summary']['heart']['current_user_reaction'] );
 		}
 
 		/*
@@ -5755,9 +5754,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$summary  = $response->get_data()['reaction_summary'];
 
 		$this->assertSame( 2, $summary['heart']['count'], 'Both users should be counted under the same emoji.' );
-		$this->assertTrue( $summary['heart']['reacted'] );
-		$this->assertSame( $my_reaction_id, $summary['heart']['my_reaction_id'] );
-		$this->assertNotSame( $their_reaction_id, $summary['heart']['my_reaction_id'] );
+		$this->assertSame( $my_reaction_id, $summary['heart']['current_user_reaction'] );
+		$this->assertNotSame( $their_reaction_id, $summary['heart']['current_user_reaction'] );
 	}
 
 	/**
