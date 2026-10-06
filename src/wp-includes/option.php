@@ -3010,6 +3010,40 @@ function register_initial_settings() {
 }
 
 /**
+ * Registers the default settings when the Abilities API initializes.
+ *
+ * The default settings are registered on `rest_api_init`, which fires lazily and
+ * independently of `wp_abilities_api_init`: on cron, WP-CLI, or any request where
+ * abilities are used before the REST server loads, it may not have fired, or may be
+ * mid-fire at a priority before register_initial_settings() runs. This makes sure the
+ * settings exist before the core abilities read them. Registering them again later on
+ * `rest_api_init` is harmless.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $new_allowed_options
+ */
+function _wp_register_initial_settings_for_abilities(): void {
+	global $new_allowed_options;
+
+	if ( did_action( 'rest_api_init' ) && ! doing_action( 'rest_api_init' ) ) {
+		return;
+	}
+
+	$allowed_options = $new_allowed_options;
+
+	register_initial_settings();
+
+	/*
+	 * Registering a setting also allows it on the options screen of its group. Restore
+	 * the list, so saving Settings > General does not try to save `admin_email`, which
+	 * that screen sends as `new_admin_email`.
+	 */
+	$new_allowed_options = $allowed_options;
+}
+
+/**
  * Registers a setting and its data.
  *
  * @since 2.7.0

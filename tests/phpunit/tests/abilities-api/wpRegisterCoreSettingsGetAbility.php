@@ -6,6 +6,7 @@ declare( strict_types=1 );
  * Tests for the core/settings-get ability shipped with the Abilities API.
  *
  * @covers wp_register_core_abilities
+ * @covers _wp_register_initial_settings_for_abilities
  * @covers WP_Abilities_Settings
  *
  * @group abilities-api
@@ -31,8 +32,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 *
 	 * The ability is registered under the ordering that used to break it: no settings
 	 * registered yet and `rest_api_init` never fired, as on cron, WP-CLI, or any request
-	 * that uses the Abilities API before the REST server loads. The ability must
-	 * self-register core's initial settings (see WP_Abilities_Settings::register()).
+	 * that uses the Abilities API before the REST server loads. Core must register its
+	 * initial settings when abilities initialize (see _wp_register_initial_settings_for_abilities()).
 	 *
 	 * @since 7.2.0
 	 */
@@ -129,11 +130,11 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * where `rest_api_init` (which registers core's initial settings) has never fired.
 	 *
 	 * The class setup registers the ability with no settings registered up front, so this
-	 * asserts that the ability took care of registering core's initial settings itself.
+	 * asserts that core registered its initial settings when abilities initialized.
 	 *
 	 * @ticket 64605
 	 */
-	public function test_core_settings_get_registers_initial_settings_without_rest_api_init(): void {
+	public function test_core_settings_get_exposes_initial_settings_without_rest_api_init(): void {
 		$ability = wp_get_ability( 'core/settings-get' );
 
 		$this->assertArrayHasKey( 'blogname', $ability->get_output_schema()['properties'] );
@@ -162,7 +163,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		);
 
 		try {
-			$this->register_ability();
+			_wp_register_initial_settings_for_abilities();
 
 			// 'admin_email' must NOT be in $new_allowed_options['general'].
 			$this->assertNotContains( 'admin_email', $new_allowed_options['general'] );
@@ -184,12 +185,10 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * @ticket 64605
 	 */
 	public function test_settings_abilities_are_not_registered_without_exposed_settings(): void {
-		global $wp_registered_settings, $wp_actions;
+		global $wp_registered_settings;
 
-		$registered_settings_backup  = $wp_registered_settings;
-		$rest_api_init_count         = $wp_actions['rest_api_init'] ?? null;
-		$wp_registered_settings      = array();
-		$wp_actions['rest_api_init'] = 1; // Keeps register() from registering core's initial settings.
+		$registered_settings_backup = $wp_registered_settings;
+		$wp_registered_settings     = array();
 
 		try {
 			$this->register_ability();
@@ -197,11 +196,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			$this->assertFalse( wp_has_ability( 'core/settings-get' ) );
 		} finally {
 			$wp_registered_settings = $registered_settings_backup;
-			if ( null === $rest_api_init_count ) {
-				unset( $wp_actions['rest_api_init'] );
-			} else {
-				$wp_actions['rest_api_init'] = $rest_api_init_count;
-			}
 
 			// Register the ability again for the tests that follow.
 			$this->register_ability();
