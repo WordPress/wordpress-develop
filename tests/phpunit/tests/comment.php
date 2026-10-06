@@ -2013,8 +2013,12 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Tests that untrashing a top-level note restores the child notes trashed along with it.
 	 *
 	 * @ticket 66255
+	 *
 	 * @covers ::wp_untrash_comment
+	 *
 	 * @dataProvider data_comment_approved_statuses
+	 *
+	 * @param string $approved_status The approved status of the notes.
 	 */
 	public function test_wp_untrash_comment_restores_child_notes( $approved_status ) {
 		$parent_note = self::factory()->comment->create(
@@ -2057,6 +2061,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Tests that untrashing a top-level note does not restore a child note trashed individually beforehand.
 	 *
 	 * @ticket 66255
+	 *
 	 * @covers ::wp_trash_comment
 	 * @covers ::wp_untrash_comment
 	 */
@@ -2103,6 +2108,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Tests that untrashing a top-level note does not affect a child note restored individually in the meantime.
 	 *
 	 * @ticket 66255
+	 *
 	 * @covers ::wp_untrash_comment
 	 */
 	public function test_wp_untrash_comment_skips_child_note_restored_individually() {
@@ -2136,6 +2142,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Tests that untrashing a regular comment does not restore its trashed children.
 	 *
 	 * @ticket 66255
+	 *
 	 * @covers ::wp_untrash_comment
 	 */
 	public function test_wp_untrash_comment_does_not_restore_child_comments() {
