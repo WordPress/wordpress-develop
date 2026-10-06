@@ -33,7 +33,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global string $mode       List table view mode.
 	 * @global string $usersearch User search query.
-	 * @global string $role       The user role to filter by.
+	 * @global string $role       The user role to filter by. Only 'super' (super admins) is supported.
 	 */
 	public function prepare_items() {
 		global $mode, $usersearch, $role;
@@ -145,7 +145,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global string $role The user role to filter by.
+	 * @global string $role The user role to filter by. Only 'super' (super admins) is supported.
 	 *
 	 * @return array<string, string> View link markup keyed by view name ('all' or 'super').
 	 */
