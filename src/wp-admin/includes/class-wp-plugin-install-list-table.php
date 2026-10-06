@@ -172,8 +172,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param string[] $tabs The tabs shown on the Add Plugins screen. Defaults include
-		 *                       'featured', 'popular', 'recommended', 'favorites', and 'upload'.
+		 * @param array<string, string> $tabs The tabs shown on the Add Plugins screen. Defaults include
+		 *                                    'featured', 'popular', 'recommended', 'favorites', and 'upload'.
 		 */
 		$tabs = apply_filters( 'install_plugins_tabs', $tabs );
 
