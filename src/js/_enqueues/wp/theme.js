@@ -446,6 +446,23 @@ themes.view.Theme = wp.Backbone.View.extend({
 		return !! ( model.get( 'compatible_wp' ) && model.get( 'compatible_php' ) );
 	},
 
+	// Gets the closest theme that can be previewed, before (-1) or after (1) the given one.
+	getAdjacentPreviewable: function( model, direction ) {
+		var collection = this.model.collection,
+			index = collection.indexOf( model ) + direction,
+			adjacent;
+
+		while ( index >= 0 && index < collection.length ) {
+			adjacent = collection.at( index );
+
+			if ( this.isPreviewable( adjacent ) ) {
+				return adjacent;
+			}
+
+			index += direction;
+		}
+	},
+
 	// Adds a class to the currently active theme
 	// and to the overlay in detailed view mode.
 	activeTheme: function() {
@@ -569,8 +586,8 @@ themes.view.Theme = wp.Backbone.View.extend({
 				current = self.current;
 			}
 
-			// Get next theme model.
-			self.current = self.model.collection.at( self.model.collection.indexOf( current ) + 1 );
+			// Get the next theme model that can be previewed.
+			self.current = self.getAdjacentPreviewable( current, 1 );
 
 			// If we have no more themes, bail.
 			if ( _.isUndefined( self.current ) ) {
@@ -601,12 +618,12 @@ themes.view.Theme = wp.Backbone.View.extend({
 				current = self.current;
 			}
 
-			// Get previous theme model.
-			self.current = self.model.collection.at( self.model.collection.indexOf( current ) - 1 );
+			// Get the previous theme model that can be previewed.
+			self.current = self.getAdjacentPreviewable( current, -1 );
 
 			// If we have no more themes, bail.
 			if ( _.isUndefined( self.current ) ) {
-				return;
+				return self.current = current;
 			}
 
 			preview.model = self.current;
@@ -631,8 +648,8 @@ themes.view.Theme = wp.Backbone.View.extend({
 			previousThemeButton = $themeInstaller.find( '.previous-theme' ),
 			nextThemeButton = $themeInstaller.find( '.next-theme' );
 
-		// Disable previous at the zero position.
-		if ( 0 === this.model.collection.indexOf( current ) ) {
+		// Disable previous if there is no previous theme that can be previewed.
+		if ( _.isUndefined( this.getAdjacentPreviewable( current, -1 ) ) ) {
 			previousThemeButton
 				.addClass( 'disabled' )
 				.prop( 'disabled', true );
@@ -640,8 +657,8 @@ themes.view.Theme = wp.Backbone.View.extend({
 			nextThemeButton.trigger( 'focus' );
 		}
 
-		// Disable next if the next model is undefined.
-		if ( _.isUndefined( this.model.collection.at( this.model.collection.indexOf( current ) + 1 ) ) ) {
+		// Disable next if there is no next theme that can be previewed.
+		if ( _.isUndefined( this.getAdjacentPreviewable( current, 1 ) ) ) {
 			nextThemeButton
 				.addClass( 'disabled' )
 				.prop( 'disabled', true );
@@ -2075,6 +2092,13 @@ themes.RunInstaller = {
 		// Handles `theme` route event.
 		// Queries the API for the passed theme slug.
 		themes.router.on( 'route:preview', function( slug ) {
+			var theme = self.view.view.theme,
+				model = self.view.collection.findWhere( { 'slug': slug } );
+
+			// Bail if the requested theme is not in the collection or can't be previewed.
+			if ( theme && ( ! model || ! theme.isPreviewable( model ) ) ) {
+				return;
+			}
 
 			// Remove existing handlers.
 			if ( themes.preview ) {
@@ -2083,9 +2107,9 @@ themes.RunInstaller = {
 			}
 
 			// If the theme preview is active, set the current theme.
-			if ( self.view.view.theme && self.view.view.theme.preview ) {
-				self.view.view.theme.model = self.view.collection.findWhere( { 'slug': slug } );
-				self.view.view.theme.preview();
+			if ( theme && theme.preview ) {
+				theme.model = model;
+				theme.preview();
 			} else {
 
 				// Select the theme by slug.
