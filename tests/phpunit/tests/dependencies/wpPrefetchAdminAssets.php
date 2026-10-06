@@ -1104,7 +1104,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Gets the URLs prefetched with the given `as` value.
 	 *
 	 * @param list<array{ href: string, as: string }> $links    Prefetch links.
-	 * @param string                                  $as_value Value of the `as` attribute.
+	 * @param 'script'|'style'                        $as_value Value of the `as` attribute.
 	 * @return list<string> URLs.
 	 */
 	private function get_hrefs( array $links, string $as_value ): array {
@@ -1123,7 +1123,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * Asserts that a URL matching the pattern is prefetched with the given `as` value.
 	 *
 	 * @param list<array{ href: string, as: string }> $links    Prefetch links.
-	 * @param string                                  $as_value Expected value of the `as` attribute.
+	 * @param 'script'|'style'                        $as_value Expected value of the `as` attribute.
 	 * @param non-empty-string                        $pattern  Regular expression the URL must match.
 	 */
 	private function assertPrefetched( array $links, string $as_value, string $pattern ): void {
