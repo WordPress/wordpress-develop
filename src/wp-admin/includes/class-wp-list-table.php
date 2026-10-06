@@ -453,6 +453,10 @@ class WP_List_Table {
 	 *     }
 	 * }
 	 * @return string[] An array of link markup. Keys match the `$link_data` input array.
+	 *
+	 * @phpstan-template TKey of array-key
+	 * @phpstan-param array<TKey, array{ url: string, label: string, current?: bool }>|string $link_data
+	 * @phpstan-return ($link_data is array ? array<TKey, string> : array{ 0: '' })
 	 */
 	protected function get_views_links( $link_data = array() ) {
 		if ( ! is_array( $link_data ) ) {
