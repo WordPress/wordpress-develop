@@ -26,15 +26,7 @@ class Tests_Compat_strContains extends WP_UnitTestCase {
 	 * @param string $needle   The substring to search for in `$haystack`.
 	 */
 	public function test_str_contains( $expected, $haystack, $needle ) {
-		if ( ! function_exists( 'str_contains' ) ) {
-			$this->markTestSkipped( 'str_contains() is not available.' );
-		} else {
-			$this->assertSame(
-				$expected,
-				str_contains( $haystack, $needle )
-			);
-		}
-
+		$this->assertSame( $expected, str_contains( $haystack, $needle ) );
 	}
 
 	/**

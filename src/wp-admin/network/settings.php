@@ -61,7 +61,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/documentation/article/network-admin-settings-screen/">Documentation on Network Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://developer.wordpress.org/advanced-administration/multisite/admin/settings/">Documentation on Network Settings</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/forums/">Support forums</a>' ) . '</p>'
 );
 
@@ -138,9 +138,14 @@ if ( $_POST ) {
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
-	?>
-	<div id="message" class="notice notice-success is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
-	<?php
+	wp_admin_notice(
+		__( 'Settings saved.' ),
+		array(
+			'type'        => 'success',
+			'dismissible' => true,
+			'id'          => 'message',
+		)
+	);
 }
 ?>
 
@@ -148,7 +153,7 @@ if ( isset( $_GET['updated'] ) ) {
 	<h1><?php echo esc_html( $title ); ?></h1>
 	<form method="post" action="settings.php" novalidate="novalidate">
 		<?php wp_nonce_field( 'siteoptions' ); ?>
-		<h2><?php _e( 'Operational Settings' ); ?></h2>
+		<h2 id="wp-settings-section-operational-settings"><?php _e( 'Operational Settings' ); ?></h2>
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row"><label for="site_name"><?php _e( 'Network Title' ); ?></label></th>
@@ -167,31 +172,36 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
 					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
-						?>
-						<div class="notice notice-warning is-dismissible inline">
-						<p>
-						<?php
-							printf(
-								/* translators: %s: New network admin email. */
-								__( 'There is a pending change of the network admin email to %s.' ),
-								'<code>' . esc_html( $new_admin_email ) . '</code>'
-							);
-							printf(
-								' <a href="%1$s">%2$s</a>',
-								esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
-								__( 'Cancel' )
-							);
-						?>
-						</p>
-						</div>
-					<?php endif; ?>
+						$notice_message = sprintf(
+							/* translators: %s: New network admin email. */
+							__( 'There is a pending change of the network admin email to %s.' ),
+							'<code>' . esc_html( $new_admin_email ) . '</code>'
+						);
+
+						$notice_message .= sprintf(
+							' <a href="%1$s">%2$s</a>',
+							esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
+							__( 'Cancel' )
+						);
+
+						wp_admin_notice(
+							$notice_message,
+							array(
+								'type'               => 'warning',
+								'dismissible'        => true,
+								'additional_classes' => array( 'inline' ),
+							)
+						);
+					endif;
+					?>
 				</td>
 			</tr>
 		</table>
-		<h2><?php _e( 'Registration Settings' ); ?></h2>
+		<h2 id="wp-settings-section-registration-settings"><?php _e( 'Registration Settings' ); ?></h2>
 		<table class="form-table" role="presentation">
+			<?php $new_registrations_settings_title = __( 'Allow new registrations' ); ?>
 			<tr>
-				<th scope="row"><?php _e( 'Allow new registrations' ); ?></th>
+				<th scope="row"><?php echo $new_registrations_settings_title; ?></th>
 				<?php
 				if ( ! get_site_option( 'registration' ) ) {
 					update_site_option( 'registration', 'none' );
@@ -200,12 +210,7 @@ if ( isset( $_GET['updated'] ) ) {
 				?>
 				<td>
 					<fieldset>
-					<legend class="screen-reader-text">
-						<?php
-						/* translators: Hidden accessibility text. */
-						_e( 'New registrations settings' );
-						?>
-					</legend>
+					<legend class="screen-reader-text"><?php echo $new_registrations_settings_title; ?></legend>
 					<label><input name="registration" type="radio" id="registration1" value="none"<?php checked( $reg, 'none' ); ?> /> <?php _e( 'Registration is disabled' ); ?></label><br />
 					<label><input name="registration" type="radio" id="registration2" value="user"<?php checked( $reg, 'user' ); ?> /> <?php _e( 'User accounts may be registered' ); ?></label><br />
 					<label><input name="registration" type="radio" id="registration3" value="blog"<?php checked( $reg, 'blog' ); ?> /> <?php _e( 'Logged in users may register new sites' ); ?></label><br />
@@ -239,9 +244,9 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 
 			<tr id="addnewusers">
-				<th scope="row"><?php _e( 'Add New Users' ); ?></th>
+				<th scope="row"><?php _e( 'Add Users' ); ?></th>
 				<td>
-					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add New" page' ); ?></label>
+					<label><input name="add_new_users" type="checkbox" id="add_new_users" value="1"<?php checked( get_site_option( 'add_new_users' ) ); ?> /> <?php _e( 'Allow site administrators to add new users to their site via the "Users &rarr; Add User" page' ); ?></label>
 				</td>
 			</tr>
 
@@ -310,7 +315,7 @@ if ( isset( $_GET['updated'] ) ) {
 			</tr>
 
 		</table>
-		<h2><?php _e( 'New Site Settings' ); ?></h2>
+		<h2 id="wp-settings-section-new-site-settings"><?php _e( 'New Site Settings' ); ?></h2>
 		<table class="form-table" role="presentation">
 
 			<tr>
@@ -391,12 +396,12 @@ if ( isset( $_GET['updated'] ) ) {
 				</td>
 			</tr>
 		</table>
-		<h2><?php _e( 'Upload Settings' ); ?></h2>
+		<h2 id="wp-settings-section-upload-settings"><?php _e( 'Upload Settings' ); ?></h2>
 		<table class="form-table" role="presentation">
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/>
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?> />
 						<?php
 						printf(
 							/* translators: %s: Number of megabytes to limit uploads to. */
@@ -449,7 +454,7 @@ if ( isset( $_GET['updated'] ) ) {
 		$translations = wp_get_available_translations();
 		if ( ! empty( $languages ) || ! empty( $translations ) ) {
 			?>
-			<h2><?php _e( 'Language Settings' ); ?></h2>
+			<h2 id="wp-settings-section-language-settings"><?php _e( 'Language Settings' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr>
 					<th><label for="WPLANG"><?php _e( 'Default Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
@@ -499,16 +504,14 @@ if ( isset( $_GET['updated'] ) ) {
 
 		if ( $menu_items ) :
 			?>
-			<h2><?php _e( 'Menu Settings' ); ?></h2>
+			<h2 id="wp-settings-section-menu-settings"><?php _e( 'Menu Settings' ); ?></h2>
 			<table id="menu" class="form-table">
+				<?php $enable_administration_menus_title = __( 'Enable administration menus' ); ?>
 				<tr>
-					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
+					<th scope="row"><?php echo $enable_administration_menus_title; ?></th>
 					<td>
 						<?php
-						echo '<fieldset><legend class="screen-reader-text">' .
-							/* translators: Hidden accessibility text. */
-							__( 'Enable menus' ) .
-						'</legend>';
+						echo '<fieldset><legend class="screen-reader-text">' . $enable_administration_menus_title . '</legend>';
 
 						foreach ( (array) $menu_items as $key => $val ) {
 							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';

@@ -8,9 +8,11 @@
 	"textdomain": "default",
 	"attributes": {
 		"content": {
-			"type": "string",
-			"source": "html",
-			"selector": "code"
+			"type": "rich-text",
+			"source": "rich-text",
+			"selector": "code",
+			"__unstablePreserveWhiteSpace": true,
+			"role": "content"
 		}
 	},
 	"supports": {
@@ -31,7 +33,11 @@
 		},
 		"spacing": {
 			"margin": [ "top", "bottom" ],
-			"padding": true
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
 		},
 		"__experimentalBorder": {
 			"radius": true,
@@ -51,6 +57,9 @@
 				"background": true,
 				"text": true
 			}
+		},
+		"interactivity": {
+			"clientNavigation": true
 		}
 	},
 	"style": "wp-block-code"

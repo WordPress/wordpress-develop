@@ -63,9 +63,11 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		// Setup an empty testing instance of `WP_Block_Patterns_Registry` and save the original.
 		self::$orig_registry              = WP_Block_Patterns_Registry::get_instance();
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Patterns_Registry', 'instance' );
-		self::$registry_instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( true );
+		}
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some patterns in the test registry.
 		$test_registry->register(
@@ -106,8 +108,10 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
-		self::$registry_instance_property->setAccessible( false );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( false );
+		}
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
 	}
@@ -125,6 +129,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,content,source,template_types';
@@ -194,6 +199,7 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	 */
 	public function test_get_items_migrate_pattern_categories() {
 		wp_set_current_user( self::$admin_id );
+		add_filter( 'pre_http_request', array( $this, 'mock_pattern_directory_request' ), 10, 3 );
 
 		$request            = new WP_REST_Request( 'GET', static::REQUEST_ROUTE );
 		$request['_fields'] = 'name,categories';
@@ -229,10 +235,35 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Mocks requests to the wordpress.org pattern directory with an empty result set.
+	 */
+	public function mock_pattern_directory_request() {
+		return array(
+			'headers'  => array(),
+			'body'     => '[]',
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * Block patterns endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
@@ -271,9 +302,33 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Patterns_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertSameSets(
+			array(
+				'name',
+				'title',
+				'content',
+				'description',
+				'viewport_width',
+				'inserter',
+				'categories',
+				'keywords',
+				'block_types',
+				'post_types',
+				'template_types',
+				'source',
+			),
+			array_keys( $properties )
+		);
 	}
 }

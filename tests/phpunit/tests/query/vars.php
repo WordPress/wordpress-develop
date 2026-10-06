@@ -73,12 +73,10 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				'rest_route',
 				'sitemap',
 				'sitemap-subtype',
-				'sitemap-stylesheet',
 
 			),
 			$wp->public_query_vars,
 			'Care should be taken when introducing new public query vars. See https://core.trac.wordpress.org/ticket/35115'
 		);
 	}
-
 }

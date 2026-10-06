@@ -306,20 +306,20 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 			$comment_children[ $i ] = $child;
 		}
 
-		$page_1_indicies = array( 2, 3, 4 );
-		$page_2_indicies = array( 0, 1 );
+		$page_1_indices = array( 2, 3, 4 );
+		$page_2_indices = array( 0, 1 );
 
 		$args = array(
 			'per_page'  => 3,
 			'max_depth' => 2,
 		);
 
-		foreach ( $page_1_indicies as $p1i ) {
+		foreach ( $page_1_indices as $p1i ) {
 			$this->assertSame( 1, (int) get_page_of_comment( $comment_parents[ $p1i ], $args ) );
 			$this->assertSame( 1, (int) get_page_of_comment( $comment_children[ $p1i ], $args ) );
 		}
 
-		foreach ( $page_2_indicies as $p2i ) {
+		foreach ( $page_2_indices as $p2i ) {
 			$this->assertSame( 2, (int) get_page_of_comment( $comment_parents[ $p2i ], $args ) );
 			$this->assertSame( 2, (int) get_page_of_comment( $comment_children[ $p2i ], $args ) );
 		}

@@ -79,7 +79,7 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 	public function test__wp_render_title_no_theme_support() {
 		$this->go_to( '/' );
 
-		remove_theme_support( 'title-tag' );
+		add_filter( 'current_theme_supports-title-tag', '__return_false' );
 
 		$this->expectOutputString( '' );
 		_wp_render_title_tag();

@@ -149,4 +149,17 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 
 		$this->assertFalse( has_filter( 'default_option_test_default', 'filter_default_option' ) );
 	}
+
+	/**
+	 * Ensures that unregister_setting() does not throw a notice or warning for unknown settings.
+	 *
+	 * @ticket 57674
+	 *
+	 * @covers ::unregister_setting
+	 */
+	public function test_unregister_invalid_setting_does_not_throw_notice_or_warning() {
+		$setting = uniqid();
+		unregister_setting( $setting, $setting );
+		$this->assertFalse( has_filter( 'default_option_' . $setting, 'filter_default_option' ) );
+	}
 }

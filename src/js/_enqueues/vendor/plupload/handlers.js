@@ -16,8 +16,8 @@ function fileQueued( fileObj ) {
 	jQuery( '<div class="media-item">' )
 		.attr( 'id', 'media-item-' + fileObj.id )
 		.addClass( 'child-of-' + postid )
-		.append( '<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>',
-			jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ) )
+		.append( jQuery( '<div class="filename original">' ).text( ' ' + fileObj.name ),
+			'<div class="progress"><div class="percent">0%</div><div class="bar"></div></div>' )
 		.appendTo( jQuery( '#media-items' ) );
 
 	// Disable submit.
@@ -204,7 +204,7 @@ function prepareMediaItemInit( fileObj ) {
 
 // Generic error message.
 function wpQueueError( message ) {
-	jQuery( '#media-upload-error' ).show().html( '<div class="error"><p>' + message + '</p></div>' );
+	jQuery( '#media-upload-error' ).show().html( '<div class="notice notice-error"><p>' + message + '</p></div>' );
 }
 
 // File-specific error messages.
@@ -276,9 +276,12 @@ function switchUploader( s ) {
 
 		if ( typeof( uploader ) == 'object' )
 			uploader.refresh();
+
+		jQuery( '#plupload-browse-button' ).trigger( 'focus' );
 	} else {
 		setUserSetting( 'uploader', '1' ); // 1 == html uploader.
 		jQuery( '.media-upload-form' ).addClass( 'html-uploader' );
+		jQuery( '#async-upload' ).trigger( 'focus' );
 	}
 }
 
@@ -380,8 +383,6 @@ function copyAttachmentUploadURLClipboard() {
 
 		// Clear the selection and move focus back to the trigger.
 		event.clearSelection();
-		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.trigger( 'focus' );
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
 		successElement.removeClass( 'hidden' );
@@ -422,11 +423,11 @@ jQuery( document ).ready( function( $ ) {
 			target.parents( '.media-item' ).fadeOut( 200, function() {
 				$( this ).remove();
 			} );
-		} else if ( target.is( '.upload-flash-bypass a' ) || target.is( 'a.uploader-html' ) ) { // Switch uploader to html4.
+		} else if ( target.is( '.upload-flash-bypass button' ) || target.is( 'a.uploader-html' ) ) { // Switch uploader to html4.
 			$( '#media-items, p.submit, span.big-file-warning' ).css( 'display', 'none' );
 			switchUploader( 0 );
 			e.preventDefault();
-		} else if ( target.is( '.upload-html-bypass a' ) ) { // Switch uploader to multi-file.
+		} else if ( target.is( '.upload-html-bypass button' ) ) { // Switch uploader to multi-file.
 			$( '#media-items, p.submit, span.big-file-warning' ).css( 'display', '' );
 			switchUploader( 1 );
 			e.preventDefault();
@@ -607,6 +608,11 @@ jQuery( document ).ready( function( $ ) {
 					wpQueueError( pluploadL10n.unsupported_image );
 				} else if ( file.type === 'image/webp' && up.settings.webp_upload_error ) {
 					// Disallow uploading of WebP images if the server cannot edit them.
+					wpQueueError( pluploadL10n.noneditable_image );
+					up.removeFile( file );
+					return;
+				} else if ( file.type === 'image/avif' && up.settings.avif_upload_error ) {
+					// Disallow uploading of AVIF images if the server cannot edit them.
 					wpQueueError( pluploadL10n.noneditable_image );
 					up.removeFile( file );
 					return;

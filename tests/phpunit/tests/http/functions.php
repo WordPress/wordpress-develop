@@ -1,50 +1,107 @@
 <?php
 
+require_once DIR_TESTDATA . '/../includes/class-wp-http-unit-test-transport.php';
+
 /**
  * @group http
- * @group external-http
+ *
+ * @ticket 63914
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
+	 * Whether the current test is using the fake Requests transport.
+	 *
+	 * @var bool
+	 */
+	private $using_mock_transport = false;
+
+	/**
+	 * Tear down the fake transport hook when used.
+	 */
+	public function tear_down() {
+		if ( $this->using_mock_transport ) {
+			remove_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10 );
+			$this->using_mock_transport = false;
+		}
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Enables the fake Requests transport for tests that must exercise
+	 * WP_Http request handling without live network access.
+	 *
+	 * Removes the core external-HTTP blocker so the request proceeds past
+	 * `pre_http_request` into cookie normalization, transport execution, and
+	 * response conversion.
+	 */
+	private function use_mock_transport() {
+		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
+		add_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10, 5 );
+		$this->using_mock_transport = true;
+	}
+
+	/**
+	 * Injects the fake Requests transport into request options.
+	 *
+	 * @param string       $url     Request URL.
+	 * @param array        $headers Request headers.
+	 * @param string|array $data    Request data.
+	 * @param string       $type    HTTP method.
+	 * @param array        $options Request options (passed by reference).
+	 */
+	public function inject_mock_transport( $url, $headers, $data, $type, &$options ) {
+		$options['transport'] = new WP_Http_Unit_Test_Transport();
+	}
+
+	/**
 	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_headers
+	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_head_request() {
+		$this->use_mock_transport();
+
 		// This URL gives a direct 200 response.
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$url      = 'https://s.w.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_head( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
 		$this->assertIsArray( $response );
-
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 	}
 
 	/**
 	 * @covers ::wp_remote_head
 	 */
 	public function test_head_redirect() {
-		// This URL will 301 redirect.
-		$url      = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$this->use_mock_transport();
+
+		// This URL will 301 redirect. HEAD requests do not follow redirects by default.
+		$url      = 'https://wp.org/screenshots/3.9/dashboard.png';
 		$response = wp_remote_head( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 		$this->assertSame( 301, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	/**
 	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_head_404() {
-		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
+		$this->use_mock_transport();
+
+		$url      = 'https://wordpress.org/screenshots/3.9/awefasdfawef.jpg';
 		$response = wp_remote_head( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 		$this->assertSame( 404, wp_remote_retrieve_response_code( $response ) );
 	}
 
@@ -54,20 +111,20 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_request() {
-		$url = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$this->use_mock_transport();
+
+		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
 
 		$response = wp_remote_get( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		$this->assertIsArray( $response );
-
 		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 	}
 
 	/**
@@ -76,33 +133,37 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_response_code
 	 */
 	public function test_get_redirect() {
-		// This will redirect to asdftestblog1.files.wordpress.com.
-		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$this->use_mock_transport();
+
+		// This will redirect to wordpress.org.
+		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
 		$response = wp_remote_get( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$headers = wp_remote_retrieve_headers( $response );
 
-		// Should return the same headers as a HEAD request.
-		$this->assertSame( 'image/jpeg', $headers['Content-Type'] );
-		$this->assertSame( '40148', $headers['Content-Length'] );
+		// GET follows the redirect and returns the final image response.
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/png', $headers['Content-Type'] );
+		$this->assertSame( '153204', $headers['Content-Length'] );
 	}
 
 	/**
 	 * @covers ::wp_remote_get
 	 */
 	public function test_get_redirect_limit_exceeded() {
-		// This will redirect to asdftestblog1.files.wordpress.com.
-		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
+		$this->use_mock_transport();
+
+		// This will redirect to wordpress.org.
+		$url = 'https://wp.org/screenshots/3.9/dashboard.png';
 
 		// Pretend we've already redirected 5 times.
 		$response = wp_remote_get( $url, array( 'redirection' => -1 ) );
 
-		$this->skipTestOnTimeout( $response );
 		$this->assertWPError( $response );
+		$this->assertSame( 'http_request_failed', $response->get_error_code() );
 	}
 
 	/**
@@ -112,13 +173,16 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
 	 * @covers ::wp_remote_retrieve_cookie_value
+	 * @covers WP_HTTP_Requests_Response::get_cookies
 	 */
 	public function test_get_response_cookies() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_head( $url );
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 
@@ -145,8 +209,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_get_response_cookies_with_wp_http_cookie_object() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
@@ -163,7 +230,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 
@@ -181,8 +248,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @covers ::wp_remote_get
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_get_response_cookies_with_name_value_array() {
+		$this->use_mock_transport();
+
 		$url = 'https://login.wordpress.org/wp-login.php';
 
 		$response = wp_remote_get(
@@ -194,7 +264,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->skipTestOnTimeout( $response );
+		$this->assertNotWPError( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
 
@@ -210,9 +280,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @ticket 43231
 	 *
 	 * @covers WP_HTTP_Requests_Response::__construct
+	 * @covers WP_Http_Cookie::__construct
+	 * @covers WP_Http::normalize_cookies
 	 * @covers ::wp_remote_retrieve_cookies
 	 * @covers ::wp_remote_retrieve_cookie
-	 * @covers WP_Http
 	 */
 	public function test_get_cookie_host_only() {
 		// Emulate WP_Http::request() internals.

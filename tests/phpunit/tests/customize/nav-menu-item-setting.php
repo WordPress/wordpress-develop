@@ -14,6 +14,22 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	public $wp_customize;
 
 	/**
+	 * ID of the administrator user.
+	 *
+	 * @var int
+	 */
+	public static $administrator_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
 	 * Set up a test case.
 	 *
 	 * @see WP_UnitTestCase_Base::set_up()
@@ -21,7 +37,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( self::$administrator_id );
 
 		global $wp_customize;
 		$this->wp_customize = new WP_Customize_Manager();
@@ -89,7 +105,6 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 			'classes'          => '',
 			'xfn'              => '',
 			'status'           => 'publish',
-			'original_title'   => '',
 			'nav_menu_term_id' => 0,
 			'_invalid'         => false,
 		);
@@ -175,7 +190,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Hello World', $value['original_title'] );
 
@@ -258,7 +273,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$value = $setting->value();
 		$this->assertSame( $menu_item->title, $value['title'] );
 		$this->assertSame( $menu_item->type, $value['type'] );
-		$this->assertEquals( $menu_item->object_id, $value['object_id'] );
+		$this->assertSame( (int) $menu_item->object_id, $value['object_id'] );
 		$this->assertSame( $menu_id, $value['nav_menu_term_id'] );
 		$this->assertSame( 'Salutations', $value['original_title'] );
 	}
@@ -581,7 +596,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 			'classes'          => 'hello  inject',
 			'xfn'              => 'hello  inject',
 			'status'           => 'draft',
-			'original_title'   => 'Hi',
+			'original_title'   => 'Hi<script>unfilteredHtml()</script>',
 			'nav_menu_term_id' => 0,
 		);
 
@@ -617,8 +632,17 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$post          = get_post( $nav_menu_item_id );
 		$nav_menu_item = wp_setup_nav_menu_item( clone $post );
 
+		/*
+		 * Keep assertEquals() because sanitize() returns object_id as an integer
+		 * while wp_setup_nav_menu_item() retrieves it as a string from post meta.
+		 */
 		$this->assertEquals( $expected_sanitized['object_id'], $nav_menu_item->object_id );
 		$this->assertSame( $expected_sanitized['object'], $nav_menu_item->object );
+
+		/*
+		 * Keep assertEquals() because sanitize() returns menu_item_parent as an integer,
+		 * while wp_setup_nav_menu_item() retrieves it as a string from post meta.
+		 */
 		$this->assertEquals( $expected_sanitized['menu_item_parent'], $nav_menu_item->menu_item_parent );
 		$this->assertSame( $expected_sanitized['position'], $post->menu_order );
 		$this->assertSame( $expected_sanitized['type'], $nav_menu_item->type );
@@ -682,6 +706,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$updated_item              = $menu_items[ $i ];
 		$post_value['post_status'] = $post_value['status'];
 		unset( $post_value['status'] );
+
+		/*
+		 * Keep assertEquals() because object_id is an integer in $post_value
+		 * but is returned as a string from post meta by wp_setup_nav_menu_item().
+		 */
 		foreach ( $post_value as $key => $value ) {
 			$this->assertEquals( $value, $updated_item->$key, "Key $key mismatch" );
 		}
@@ -755,6 +784,11 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		unset( $post_value['status'] );
 		$post_value['menu_order'] = $post_value['position'];
 		unset( $post_value['position'] );
+
+		/*
+		 * Keep assertEquals() because object_id is an integer in $post_value
+		 * but is returned as a string from post meta by wp_setup_nav_menu_item().
+		 */
 		foreach ( $post_value as $key => $value ) {
 			$this->assertEquals( $value, $last_item->$key, "Mismatch for $key property." );
 		}
@@ -926,17 +960,17 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$nav_menu_item = $setting->value_as_wp_post_nav_menu_item();
 		$this->assertSame( 'Custom Label', $nav_menu_item->type_label );
 
-		$this->assertObjectNotHasAttribute( 'nav_menu_term_id', $nav_menu_item );
-		$this->assertObjectNotHasAttribute( 'status', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'nav_menu_term_id', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'status', $nav_menu_item );
 		$this->assertSame( 'publish', $nav_menu_item->post_status );
 		$this->assertSame( 'nav_menu_item', $nav_menu_item->post_type );
-		$this->assertObjectNotHasAttribute( 'position', $nav_menu_item );
+		$this->assertObjectNotHasProperty( 'position', $nav_menu_item );
 		$this->assertSame( $post_value['position'], $nav_menu_item->menu_order );
 		$this->assertSame( $post_value['title'], $nav_menu_item->post_title );
 		$this->assertSame( 123, $nav_menu_item->ID );
 		$this->assertSame( 123, $nav_menu_item->db_id );
-		$this->assertSame( wp_get_current_user()->ID, $nav_menu_item->post_author );
-		$this->assertObjectHasAttribute( 'type_label', $nav_menu_item );
+		$this->assertSame( (string) wp_get_current_user()->ID, $nav_menu_item->post_author );
+		$this->assertObjectHasProperty( 'type_label', $nav_menu_item );
 		$expected = apply_filters( 'nav_menu_attr_title', wp_unslash( apply_filters( 'excerpt_save_pre', wp_slash( $post_value['attr_title'] ) ) ) );
 		$this->assertSame( $expected, $nav_menu_item->attr_title );
 		$this->assertSame( 'Attempted \o/ o&#8217;o markup', $nav_menu_item->description );
@@ -1070,7 +1104,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_post_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_post_title, $item->original_title );
 		$this->assertSame( $original_post_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1097,7 +1131,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_post_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_post_title, $item->original_title );
 		$this->assertSame( $original_post_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1124,7 +1158,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_term_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_term_title, $item->original_title );
 		$this->assertSame( $original_term_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1151,7 +1185,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( $original_term_title, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( $original_term_title, $item->original_title );
 		$this->assertSame( $original_term_title, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1177,7 +1211,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );
@@ -1203,7 +1237,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item_value['original_title'] );
 		$this->assertSame( '', $item_value['title'] );
 		$item = $setting->value_as_wp_post_nav_menu_item();
-		$this->assertObjectHasAttribute( 'type_label', $item );
+		$this->assertObjectHasProperty( 'type_label', $item );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->original_title );
 		$this->assertSame( get_post_type_object( 'press_release' )->labels->archives, $item->title );
 		$this->assertArrayHasKey( 'type_label', $item_value );

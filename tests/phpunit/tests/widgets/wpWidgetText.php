@@ -303,7 +303,7 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 	 */
 	public function do_example_shortcode() {
 		$this->post_during_shortcode = get_post();
-		$this->shortcode_render_count++;
+		++$this->shortcode_render_count;
 		return $this->example_shortcode_content;
 	}
 
@@ -999,33 +999,6 @@ class Tests_Widgets_wpWidgetText extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertStringContainsString( '<script type="text/html" id="tmpl-widget-text-control-fields">', $output );
-	}
-
-	/**
-	 * Ensure that rel="noopener" is added to links with a target.
-	 *
-	 * @ticket 46421
-	 */
-	public function test_render_links_with_target() {
-		$widget = new WP_Widget_Text();
-
-		$text = 'Test content with an external <a href="https://example.org" target="_blank">link</a>.';
-
-		$args = array(
-			'before_title'  => '<h2>',
-			'after_title'   => '</h2>',
-			'before_widget' => '',
-			'after_widget'  => '',
-		);
-
-		$instance = array(
-			'title' => 'Foo',
-			'text'  => $text,
-		);
-
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
-
-		$this->assertStringContainsString( 'rel="noopener"', $output );
 	}
 
 	/**

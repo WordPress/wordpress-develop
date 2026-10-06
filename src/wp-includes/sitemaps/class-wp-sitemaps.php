@@ -75,7 +75,6 @@ class WP_Sitemaps {
 		$this->register_sitemaps();
 
 		// Add additional action callbacks.
-		add_filter( 'pre_handle_404', array( $this, 'redirect_sitemapxml' ), 10, 2 );
 		add_filter( 'robots_txt', array( $this, 'add_robots' ), 0, 2 );
 	}
 
@@ -136,11 +135,6 @@ class WP_Sitemaps {
 		// Register index route.
 		add_rewrite_rule( '^wp-sitemap\.xml$', 'index.php?sitemap=index', 'top' );
 
-		// Register rewrites for the XSL stylesheet.
-		add_rewrite_tag( '%sitemap-stylesheet%', '([^?]+)' );
-		add_rewrite_rule( '^wp-sitemap\.xsl$', 'index.php?sitemap-stylesheet=sitemap', 'top' );
-		add_rewrite_rule( '^wp-sitemap-index\.xsl$', 'index.php?sitemap-stylesheet=index', 'top' );
-
 		// Register routes for providers.
 		add_rewrite_rule(
 			'^wp-sitemap-([a-z]+?)-([a-z\d_-]+?)-(\d+?)\.xml$',
@@ -158,34 +152,34 @@ class WP_Sitemaps {
 	 * Renders sitemap templates based on rewrite rules.
 	 *
 	 * @since 5.5.0
-	 *
-	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function render_sitemaps() {
-		global $wp_query;
+		/*
+		 * Bail early if this isn't a sitemap route.
+		 *
+		 * This runs on every front-end request, so it comes before any
+		 * sanitizing. The raw query vars are tested here, matching
+		 * WP::handle_404(), which exempts sitemap requests from its own 404 on
+		 * the same basis. Testing the sanitized values instead would let a
+		 * request that handle_404() exempted fall through both, leaving it a 200.
+		 */
+		if ( ! get_query_var( 'sitemap' ) ) {
+			return;
+		}
 
-		$sitemap         = sanitize_text_field( get_query_var( 'sitemap' ) );
-		$object_subtype  = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
-		$stylesheet_type = sanitize_text_field( get_query_var( 'sitemap-stylesheet' ) );
-		$paged           = absint( get_query_var( 'paged' ) );
+		$sitemap        = sanitize_text_field( get_query_var( 'sitemap' ) );
+		$object_subtype = sanitize_text_field( get_query_var( 'sitemap-subtype' ) );
+		$paged          = absint( get_query_var( 'paged' ) );
 
-		// Bail early if this isn't a sitemap or stylesheet route.
-		if ( ! ( $sitemap || $stylesheet_type ) ) {
+		// Force a 404 and bail early if the route did not survive sanitizing.
+		if ( ! $sitemap ) {
+			$this->send_404();
 			return;
 		}
 
 		if ( ! $this->sitemaps_enabled() ) {
-			$wp_query->set_404();
-			status_header( 404 );
+			$this->send_404();
 			return;
-		}
-
-		// Render stylesheet if this is stylesheet route.
-		if ( $stylesheet_type ) {
-			$stylesheet = new WP_Sitemaps_Stylesheet();
-
-			$stylesheet->render_stylesheet( $stylesheet_type );
-			exit;
 		}
 
 		// Render the index.
@@ -198,7 +192,9 @@ class WP_Sitemaps {
 
 		$provider = $this->registry->get_provider( $sitemap );
 
+		// Force a 404 and bail early if the requested provider is not registered.
 		if ( ! $provider ) {
+			$this->send_404();
 			return;
 		}
 
@@ -210,8 +206,7 @@ class WP_Sitemaps {
 
 		// Force a 404 and bail early if no URLs are present.
 		if ( empty( $url_list ) ) {
-			$wp_query->set_404();
-			status_header( 404 );
+			$this->send_404();
 			return;
 		}
 
@@ -220,15 +215,38 @@ class WP_Sitemaps {
 	}
 
 	/**
+	 * Sends a 404 for a sitemap route that cannot be served.
+	 *
+	 * WP::handle_404() exempts sitemap requests, so every sitemap 404 is issued
+	 * here instead. That includes the no-cache headers handle_404() sends with
+	 * its own 404, so an intermediary does not retain a 404 for a route that
+	 * becomes valid once the site has more content.
+	 *
+	 * @since 7.1.1
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 */
+	private function send_404(): void {
+		global $wp_query;
+
+		$wp_query->set_404();
+		status_header( 404 );
+		nocache_headers();
+	}
+
+	/**
 	 * Redirects a URL to the wp-sitemap.xml
 	 *
 	 * @since 5.5.0
+	 * @deprecated 6.7.0 Deprecated in favor of {@see WP_Rewrite::rewrite_rules()}
 	 *
 	 * @param bool     $bypass Pass-through of the pre_handle_404 filter value.
 	 * @param WP_Query $query  The WP_Query object.
 	 * @return bool Bypass value.
 	 */
 	public function redirect_sitemapxml( $bypass, $query ) {
+		_deprecated_function( __FUNCTION__, '6.7.0' );
+
 		// If a plugin has already utilized the pre_handle_404 function, return without action to avoid conflicts.
 		if ( $bypass ) {
 			return $bypass;

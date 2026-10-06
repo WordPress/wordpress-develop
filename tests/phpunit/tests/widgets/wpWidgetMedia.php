@@ -16,14 +16,16 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	/**
 	 * Clean up global scope.
 	 *
-	 * @global WP_Scripts $wp_scripts
-	 * @global WP_Styles $wp_styles
+	 * @global WP_Scripts           $wp_scripts
+	 * @global WP_Styles            $wp_styles
+	 * @global WP_Customize_Manager $wp_customize
 	 */
 	public function clean_up_global_scope() {
-		global $wp_scripts, $wp_styles;
+		global $wp_scripts, $wp_styles, $wp_customize;
 		parent::clean_up_global_scope();
-		$wp_scripts = null;
-		$wp_styles  = null;
+		$wp_scripts   = null;
+		$wp_styles    = null;
+		$wp_customize = null;
 	}
 
 	/**
@@ -76,7 +78,7 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 			),
 			array_keys( $widget->l10n )
 		);
-		$this->assertSame( count( $widget->l10n ), count( array_filter( $widget->l10n ) ), 'Expected all translation strings to be defined.' );
+		$this->assertCount( count( $widget->l10n ), array_filter( $widget->l10n ), 'Expected all translation strings to be defined.' );
 		$this->assertSame( 10, has_action( 'admin_print_scripts-widgets.php', array( $widget, 'enqueue_admin_scripts' ) ) );
 		$this->assertFalse( has_action( 'wp_enqueue_scripts', array( $widget, 'enqueue_preview_scripts' ) ), 'Did not expect preview scripts to be enqueued when not in customize preview context.' );
 		$this->assertSame( 10, has_action( 'admin_footer-widgets.php', array( $widget, 'render_control_template_scripts' ) ) );
@@ -494,7 +496,9 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 
 		$wp_widget_media = new ReflectionClass( 'WP_Widget_Media' );
 		$has_content     = $wp_widget_media->getMethod( 'has_content' );
-		$has_content->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$has_content->setAccessible( true );
+		}
 
 		$result = $has_content->invokeArgs(
 			$this->get_mocked_class_instance(),

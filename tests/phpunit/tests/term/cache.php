@@ -55,7 +55,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 	/**
 	 * @ticket 14485
 	 */
-	public function test_hierachy_invalidation() {
+	public function test_hierarchy_invalidation() {
 		$tax = 'burrito';
 		register_taxonomy( $tax, 'post', array( 'hierarchical' => true ) );
 		$this->assertTrue( get_taxonomy( $tax )->hierarchical );
@@ -73,12 +73,12 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 				case 2:
 					$parent    = wp_insert_term( 'Child' . $i, $tax, array( 'parent' => $parent_id ) );
 					$parent_id = $parent['term_id'];
-					$children++;
+					++$children;
 					break;
 				case 3:
 					wp_insert_term( 'Grandchild' . $i, $tax, array( 'parent' => $parent_id ) );
 					$parent_id = 0;
-					$children++;
+					++$children;
 					break;
 			}
 
@@ -93,7 +93,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 			if ( 0 === ( $i % 3 ) ) {
 				$step = 1;
 			} else {
-				$step++;
+				++$step;
 			}
 		}
 
@@ -115,9 +115,6 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertEmpty( wp_cache_get( $term, 'terms' ) );
 
 		$num_queries = get_num_queries();
-
-		// get_term() will only be update the cache if the 'filter' prop is unset.
-		unset( $term_object->filter );
 
 		$term_object_2 = get_term( $term_object, 'wptests_tax' );
 
@@ -150,6 +147,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
@@ -177,6 +176,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		// No new queries should have fired.
 		$this->assertSame( $num_queries + 1, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_object, $term_object_2 );
 	}
 
@@ -225,6 +226,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		update_term_cache( $terms );
 
+		$this->assertNotEmpty( $terms );
+
 		foreach ( $terms as $term ) {
 			$this->assertSame( $p, $term->object_id );
 		}
@@ -255,6 +258,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'Taco', $term->name );
 		$this->assertSame( $num_queries, get_num_queries() );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
@@ -318,6 +322,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_term( $term_id, 'post_tag' ), $term );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
@@ -376,6 +381,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify the term is cached.
 		$term2 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term1, $term2 );
 
 		$suspend = wp_suspend_cache_invalidation();
@@ -387,6 +394,8 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		// Verify that the cached term still matches the initial cached term.
 		$term3 = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$this->assertSame( $num_queries, get_num_queries() );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term1, $term3 );
 
 		// Verify that last changed has not been updated as part of an invalidation routine.
@@ -418,7 +427,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 		$this->assertSame( $num_queries, get_num_queries() );
 
 		$term_meta = get_term_meta( $term_id, 'foo', true );
-		$num_queries++;
+		++$num_queries;
 		$this->assertSame( $term_meta, 'bar' );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
@@ -447,5 +456,57 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		$terms = get_the_terms( $p, 'wptests_tax' );
 		$this->assertWPError( $terms );
+	}
+
+	/**
+	 * Ensures that the term query cache is cleared when a child term is inserted.
+	 *
+	 * @ticket 62031
+	 */
+	public function test_inserting_child_term_clears_the_query_cache() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$parent = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'parent'     => $parent,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertEmpty( $children, 'No child terms are expected to exist.' );
+
+		$child = wp_insert_term(
+			'child-term-62031',
+			'wptests_tax',
+			array(
+				'parent' => $parent,
+			)
+		);
+
+		$children = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+				'parent'     => $parent,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertNotEmpty( $children, 'Child terms are expected to exist.' );
+		$this->assertContains( $child['term_id'], $children, 'Querying by parent ID is expected to include the new child term.' );
 	}
 }

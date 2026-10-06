@@ -1,10 +1,7 @@
 <?php
 
 /**
- * @group image
- * @group media
- * @group upload
- * @group resize
+ * Base class for testing image resize functionality.
  */
 require_once __DIR__ . '/base.php';
 
@@ -12,16 +9,12 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function set_up() {
 		parent::set_up();
-
-		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
-	}
-
-	public function wp_image_editors() {
-		return array( $this->editor_engine );
 	}
 
 	public function test_resize_jpg() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 25, 25 );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -78,6 +71,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 		$image = $this->resize_helper( $file, 25, 25 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = wp_getimagesize( $image );
 
 		unlink( $image );
@@ -86,6 +81,66 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_WEBP, $type );
+	}
+
+	/**
+	 * Test resizing AVIF image.
+	 *
+	 * @ticket 51228
+	 *
+	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
+	 * See https://core.trac.wordpress.org/ticket/63932.
+	 * @requires PHP < 8.3
+	 */
+	public function test_resize_avif() {
+		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
+		$editor = wp_get_image_editor( $file );
+
+		// Check if the editor supports the avif mime type.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( sprintf( 'No AVIF support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$image = $this->resize_helper( $file, 25, 25 );
+
+		$this->assertNotWPError( $image );
+
+		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		unlink( $image );
+
+		$this->assertSame( 'avif-lossy-25x25.avif', wp_basename( $image ) );
+		$this->assertSame( 25, $w );
+		$this->assertSame( 25, $h );
+		$this->assertSame( IMAGETYPE_AVIF, $type );
+	}
+
+	/**
+	 * Test resizing HEIC image.
+	 *
+	 * @ticket 53645
+	 */
+	public function test_resize_heic() {
+		$file   = DIR_TESTDATA . '/images/test-image.heic';
+		$editor = wp_get_image_editor( $file );
+
+		// Check if the editor supports the HEIC mime type.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/heic' ) ) {
+			$this->markTestSkipped( sprintf( 'No HEIC support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$image = $this->resize_helper( $file, 25, 25 );
+
+		$this->assertNotWPError( $image );
+
+		list( $w, $h, $type ) = wp_getimagesize( $image );
+
+		unlink( $image );
+
+		$this->assertSame( 'test-image-25x25.jpg', wp_basename( $image ) );
+		$this->assertSame( 25, $w );
+		$this->assertSame( 25, $h );
+		$this->assertSame( IMAGETYPE_JPEG, $type );
 	}
 
 	public function test_resize_larger() {
@@ -98,6 +153,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function test_resize_thumb_128x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 96 );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -112,6 +169,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_128x0() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 0 );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -124,6 +183,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function test_resize_thumb_0x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 0, 96 );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -138,6 +199,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_150x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 150, true );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -151,6 +214,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	public function test_resize_thumb_150x100_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 100, true );
 
+		$this->assertNotWPError( $image );
+
 		list( $w, $h, $type ) = getimagesize( $image );
 
 		unlink( $image );
@@ -163,6 +228,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	public function test_resize_thumb_50x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 50, 150, true );
+
+		$this->assertNotWPError( $image );
 
 		list( $w, $h, $type ) = getimagesize( $image );
 
@@ -188,6 +255,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 
 	/**
 	 * Function to help out the tests
+	 *
+	 * @return string|WP_Error The path to the resized image file or a WP_Error on failure.
 	 */
 	protected function resize_helper( $file, $width, $height, $crop = false ) {
 		$editor = wp_get_image_editor( $file );
@@ -209,6 +278,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 			return $saved;
 		}
 
-		return $dest_file;
+		return $saved['path'];
 	}
 }

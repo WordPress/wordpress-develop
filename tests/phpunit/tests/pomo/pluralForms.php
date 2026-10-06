@@ -21,7 +21,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 			switch ( $char ) {
 				case '?':
 					$res .= ' ? (';
-					$depth++;
+					++$depth;
 					break;
 				case ':':
 					$res .= ') : (';
@@ -39,11 +39,13 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41562
-	 * @dataProvider data_locales
-	 * @group external-http
+	 * @dataProvider data_regression
+	 *
+	 * @param int    $nplurals   Number of plural forms.
+	 * @param string $expression Plural-Forms expression.
 	 */
-	public function test_regression( $lang, $nplurals, $expression ) {
-		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
+	public function test_regression( int $nplurals, string $expression ): void {
+		require_once dirname( __DIR__, 2 ) . '/includes/plural-form-function.php';
 
 		$parenthesized = self::parenthesize_plural_expression( $expression );
 		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
@@ -61,34 +63,36 @@ class PluralFormsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 41562
-	 * @group external-http
+	 * Distinct plural expressions from the GlotPress locales file, keyed by one locale that uses each.
+	 *
+	 * @see https://github.com/GlotPress/GlotPress/blob/1bf58a783e1888849faf45b53dbc84bc169b3246/locales/locales.php
+	 *
+	 * @return array<string, array{ 0: int, 1: string }>
 	 */
-	public function test_locales_file_not_empty() {
-		$locales = self::data_locales();
-
-		$this->assertNotEmpty( $locales, 'Unable to retrieve GP_Locales file' );
-	}
-
-	public static function data_locales() {
-		if ( ! class_exists( 'GP_Locales' ) ) {
-			$filename = download_url( 'https://raw.githubusercontent.com/GlotPress/GlotPress-WP/develop/locales/locales.php' );
-			if ( is_wp_error( $filename ) ) {
-				return array();
-			}
-			require_once $filename;
-		}
-
-		$locales            = GP_Locales::locales();
-		$plural_expressions = array();
-		foreach ( $locales as $slug => $locale ) {
-			$plural_expression = $locale->plural_expression;
-			if ( 'n != 1' !== $plural_expression ) {
-				$plural_expressions[] = array( $slug, $locale->nplurals, $plural_expression );
-			}
-		}
-
-		return $plural_expressions;
+	public static function data_regression(): array {
+		return array(
+			'ar'    => array( 6, '(n == 0) ? 0 : ((n == 1) ? 1 : ((n == 2) ? 2 : ((n % 100 >= 3 && n % 100 <= 10) ? 3 : ((n % 100 >= 11 && n % 100 <= 99) ? 4 : 5))))' ),
+			'ay'    => array( 1, '0' ),
+			'bel'   => array( 3, '(n % 10 == 1 && n % 100 != 11) ? 0 : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 1 : 2)' ),
+			'bn-in' => array( 2, 'n > 1' ),
+			'cor'   => array( 6, '(n == 0) ? 0 : ((n == 1) ? 1 : (((n % 100 == 2 || n % 100 == 22 || n % 100 == 42 || n % 100 == 62 || n % 100 == 82) || n % 1000 == 0 && (n % 100000 >= 1000 && n % 100000 <= 20000 || n % 100000 == 40000 || n % 100000 == 60000 || n % 100000 == 80000) || n != 0 && n % 1000000 == 100000) ? 2 : ((n % 100 == 3 || n % 100 == 23 || n % 100 == 43 || n % 100 == 63 || n % 100 == 83) ? 3 : ((n != 1 && (n % 100 == 1 || n % 100 == 21 || n % 100 == 41 || n % 100 == 61 || n % 100 == 81)) ? 4 : 5))))' ),
+			'cs'    => array( 3, '(n == 1) ? 0 : ((n >= 2 && n <= 4) ? 1 : 2)' ),
+			'csb'   => array( 3, 'n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2' ),
+			'cy'    => array( 4, '(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3' ),
+			'dsb'   => array( 4, '(n % 100 == 1) ? 0 : ((n % 100 == 2) ? 1 : ((n % 100 == 3 || n % 100 == 4) ? 2 : 3))' ),
+			'ga'    => array( 5, '(n == 1) ? 0 : ((n == 2) ? 1 : ((n >= 3 && n <= 6) ? 2 : ((n >= 7 && n <= 10) ? 3 : 4)))' ),
+			'gd'    => array( 4, '(n == 1 || n == 11) ? 0 : ((n == 2 || n == 12) ? 1 : ((n >= 3 && n <= 10 || n >= 13 && n <= 19) ? 2 : 3))' ),
+			'ike'   => array( 3, '(n == 1) ? 0 : ((n == 2) ? 1 : 2)' ),
+			'is'    => array( 2, 'n % 10 != 1 || n % 100 == 11' ),
+			'lt'    => array( 3, '(n % 10 == 1 && (n % 100 < 11 || n % 100 > 19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? 1 : 2)' ),
+			'lv'    => array( 3, '(n % 10 == 0 || n % 100 >= 11 && n % 100 <= 19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2)' ),
+			'me'    => array( 3, '(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)' ),
+			'mlt'   => array( 4, '(n == 1) ? 0 : ((n == 0 || n % 100 >= 2 && n % 100 <= 10) ? 1 : ((n % 100 >= 11 && n % 100 <= 19) ? 2 : 3))' ),
+			'pl'    => array( 3, '(n == 1) ? 0 : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 1 : 2)' ),
+			'ro'    => array( 3, '(n == 1) ? 0 : ((n == 0 || n % 100 >= 2 && n % 100 <= 19) ? 1 : 2)' ),
+			'szl'   => array( 3, '(n==1 ? 0 : n%10>=2 && n%10<=4 && n%100==20 ? 1 : 2)' ),
+			'zgh'   => array( 2, 'n >= 2 && (n < 11 || n > 99)' ),
+		);
 	}
 
 	/**
@@ -224,7 +228,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$mock->expects( $this->once() )
 			->method( 'execute' )
 			->with( $this->identicalTo( 2 ) )
-			->will( $this->returnValue( 1 ) );
+			->willReturn( 1 );
 
 		$first  = $mock->get( 2 );
 		$second = $mock->get( 2 );

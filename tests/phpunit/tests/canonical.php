@@ -10,9 +10,45 @@
  */
 class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
+	public static $private_cpt_post;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		// Set up fixtures in WP_Canonical_UnitTestCase.
+		parent::wpSetUpBeforeClass( $factory );
+
+		self::set_up_custom_post_types();
+		self::$private_cpt_post = $factory->post->create(
+			array(
+				'post_type'  => 'wp_tests_private',
+				'post_title' => 'private-cpt-post',
+			)
+		);
+	}
+
 	public function set_up() {
 		parent::set_up();
 		wp_set_current_user( self::$author_id );
+		self::set_up_custom_post_types();
+
+		update_option( 'wp_attachment_pages_enabled', 1 );
+	}
+
+	/**
+	 * Register custom post type for tests.
+	 *
+	 * Register non publicly queryable post type with public set to true.
+	 *
+	 * These arguments are intentionally contradictory for the test associated
+	 * with ticket #59795.
+	 */
+	public static function set_up_custom_post_types() {
+		register_post_type(
+			'wp_tests_private',
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
 	}
 
 	/**
@@ -204,6 +240,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/?author=%d', '/author/canonical-author/' ),
 			// array( '/?author=%d&year=2008', '/2008/?author=3'),
 			// array( '/author/canonical-author/?year=2008', '/2008/?author=3'), // Either or, see previous testcase.
+			array( '/author/canonical-author/?author[1]=hello', '/author/canonical-author/?author[1]=hello', 60059 ),
 
 			// Feeds.
 			array( '/?feed=atom', '/feed/atom/' ),
@@ -247,7 +284,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		// Test short-circuit filter.
 		add_filter(
 			'pre_redirect_guess_404_permalink',
-			static function() {
+			static function () {
 				return 'wp';
 			}
 		);
@@ -340,20 +377,157 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * Ensure multiple post types do not throw a notice.
 	 *
 	 * @ticket 43056
+	 * @ticket 59795
+	 *
+	 * @dataProvider data_redirect_guess_404_permalink_post_types
 	 */
-	public function test_redirect_guess_404_permalink_post_types() {
-		/*
-		 * Sample-page is intentionally missspelt as sample-pag to ensure
-		 * the 404 post permalink guessing runs.
-		 *
-		 * Please do not correct the apparent typo.
-		 */
+	public function test_redirect_guess_404_permalink_post_types( $original_url, $expected ) {
+		$this->assertCanonical( $original_url, $expected );
+	}
 
-		// String format post type.
-		$this->assertCanonical( '/?name=sample-pag&post_type=page', '/sample-page/' );
-		// Array formatted post type or types.
-		$this->assertCanonical( '/?name=sample-pag&post_type[]=page', '/sample-page/' );
-		$this->assertCanonical( '/?name=sample-pag&post_type[]=page&post_type[]=post', '/sample-page/' );
+	/**
+	 * Data provider for test_redirect_guess_404_permalink_post_types().
+	 *
+	 * In the original URLs the post names are intentionally misspelled
+	 * to test the redirection.
+	 *
+	 * Please do not correct the apparent typos.
+	 *
+	 * @return array[]
+	 */
+	public function data_redirect_guess_404_permalink_post_types() {
+		return array(
+			'single string formatted post type'    => array(
+				'original_url' => '/?name=sample-pag&post_type=page',
+				'expected'     => '/sample-page/',
+			),
+			'single array formatted post type'     => array(
+				'original_url' => '/?name=sample-pag&post_type[]=page',
+				'expected'     => '/sample-page/',
+			),
+			'multiple array formatted post type'   => array(
+				'original_url' => '/?name=sample-pag&post_type[]=page&post_type[]=post',
+				'expected'     => '/sample-page/',
+			),
+			'do not redirect to private post type' => array(
+				'original_url' => '/?name=private-cpt-po&post_type[]=wp_tests_private',
+				'expected'     => '/?name=private-cpt-po&post_type[]=wp_tests_private',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-cache',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-cach' );
+
+		$first_run = redirect_guess_404_permalink();
+		$this->assertSame( get_permalink( $post ), $first_run, 'Did not guess the correct permalink on first run.' );
+
+		$start_num_queries = get_num_queries();
+		$second_run        = redirect_guess_404_permalink();
+		$this->assertSame( $first_run, $second_run, 'Result changed between cached and uncached run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_misses_are_cached() {
+		$this->go_to( 'redirect-guess-404-permalink-no-such-post' );
+
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug.' );
+
+		$start_num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug on second run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached "not found" result performed an additional database query.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_new_matching_post() {
+		$this->go_to( 'redirect-guess-404-permalink-new-post' );
+
+		// Prime a "not found" cache entry.
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match before the matching post exists.' );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-new-post',
+			)
+		);
+
+		$start_num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Newly created matching post was not found after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_post_delete() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-delete-me',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-delete-m' );
+
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Did not guess the correct permalink before deletion.' );
+
+		wp_delete_post( $post, true );
+
+		$start_num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink(), 'Deleted post should no longer be guessed after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated by deletion.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_keys_do_not_collide() {
+		$post_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'post',
+			)
+		);
+		$page_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'page',
+			)
+		);
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Setting post type to post did not return the post permalink.' );
+
+		// Re-run without navigating away (go_to() flushes the object cache) to confirm the cached result is reused.
+		$start_num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Result changed between cached and uncached run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
+		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Setting post type to page did not return the page permalink.' );
 	}
 
 	/**
@@ -370,10 +544,11 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		$url = redirect_canonical( add_query_arg( '%D0%BA%D0%BE%D0%BA%D0%BE%D0%BA%D0%BE', 1, site_url( '/' ) ), false );
-		$this->assertNull( $url );
+		$redirect = redirect_canonical( add_query_arg( '%D0%BA%D0%BE%D0%BA%D0%BE%D0%BA%D0%BE', 1, site_url( '/' ) ), false );
 
 		delete_option( 'page_on_front' );
+
+		$this->assertNull( $redirect );
 	}
 
 	/**
@@ -396,10 +571,92 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		$url = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+		$redirect = redirect_canonical( get_term_feed_link( self::$terms['/category/parent/'] ), false );
+
 		// Restore original global.
 		$GLOBALS['wp_query'] = $global_query;
 
-		$this->assertNull( $url );
+		$this->assertNull( $redirect );
+	}
+
+	/**
+	 * Test canonical redirects for attachment pages when the option is disabled.
+	 *
+	 * @ticket 57913
+	 * @ticket 59866
+	 *
+	 * @dataProvider data_canonical_attachment_page_redirect_with_option_disabled
+	 */
+	public function test_canonical_attachment_page_redirect_with_option_disabled( $expected, $user = null, $parent_post_status = '' ) {
+		update_option( 'wp_attachment_pages_enabled', 0 );
+
+		if ( '' !== $parent_post_status ) {
+			$parent_post_id = self::factory()->post->create(
+				array(
+					'post_status' => $parent_post_status,
+				)
+			);
+		} else {
+			$parent_post_id = 0;
+		}
+
+		$filename = DIR_TESTDATA . '/images/test-image.jpg';
+		$contents = file_get_contents( $filename );
+		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
+
+		$attachment_id   = $this->_make_attachment( $upload, $parent_post_id );
+		$attachment_url  = wp_get_attachment_url( $attachment_id );
+		$attachment_page = get_permalink( $attachment_id );
+
+		// Set as anonymous/logged out user.
+		if ( null !== $user ) {
+			wp_set_current_user( $user );
+		}
+
+		$this->go_to( $attachment_page );
+
+		$url = redirect_canonical( $attachment_page, false );
+		if ( is_string( $expected ) ) {
+			$expected = str_replace( '%%attachment_url%%', $attachment_url, $expected );
+		}
+
+		$this->assertSame( $expected, $url );
+	}
+
+	/**
+	 * Data provider for test_canonical_attachment_page_redirect_with_option_disabled().
+	 *
+	 * @return array[]
+	 */
+	public function data_canonical_attachment_page_redirect_with_option_disabled() {
+		return array(
+			'logged out user, no parent'      => array(
+				'%%attachment_url%%',
+				0,
+			),
+			'logged in user, no parent'       => array(
+				'%%attachment_url%%',
+			),
+			'logged out user, private parent' => array(
+				null,
+				0,
+				'private',
+			),
+			'logged in user, private parent'  => array(
+				'%%attachment_url%%',
+				null,
+				'private',
+			),
+			'logged out user, public parent'  => array(
+				'%%attachment_url%%',
+				0,
+				'publish',
+			),
+			'logged in user, public parent'   => array(
+				'%%attachment_url%%',
+				null,
+				'publish',
+			),
+		);
 	}
 }

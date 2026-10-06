@@ -18,6 +18,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	tagName:   'div',
 	className: 'media-toolbar',
 
+	/**
+	 * Initializes the toolbar view.
+	 */
 	initialize: function() {
 		var state = this.controller.state(),
 			selection = this.selection = state.get('selection'),
@@ -28,10 +31,12 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		// The toolbar is composed of two `PriorityList` views.
 		this.primary   = new wp.media.view.PriorityList();
 		this.secondary = new wp.media.view.PriorityList();
+		this.tertiary  = new wp.media.view.PriorityList();
 		this.primary.$el.addClass('media-toolbar-primary search-form');
 		this.secondary.$el.addClass('media-toolbar-secondary');
+		this.tertiary.$el.addClass('media-bg-overlay');
 
-		this.views.set([ this.secondary, this.primary ]);
+		this.views.set([ this.secondary, this.primary, this.tertiary ]);
 
 		if ( this.options.items ) {
 			this.set( this.options.items, { silent: true });
@@ -50,7 +55,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		}
 	},
 	/**
-	 * @return {wp.media.view.Toolbar} Returns itsef to allow chaining
+	 * Disposes of the toolbar view.
+	 *
+	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining
 	 */
 	dispose: function() {
 		if ( this.selection ) {
@@ -66,14 +73,19 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return View.prototype.dispose.apply( this, arguments );
 	},
 
+	/**
+	 * Prepares the data for rendering.
+	 */
 	ready: function() {
 		this.refresh();
 	},
 
 	/**
-	 * @param {string} id
-	 * @param {Backbone.View|Object} view
-	 * @param {Object} [options={}]
+	 * Sets a view by its ID.
+	 *
+	 * @param {string}               id           The ID of the view to set.
+	 * @param {Backbone.View|Object} view         The view to set.
+	 * @param {Object}               [options={}] The options for setting the view.
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
@@ -107,21 +119,26 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this;
 	},
 	/**
-	 * @param {string} id
-	 * @return {wp.media.view.Button}
+	 * Retrieves a view by its ID.
+	 *
+	 * @param {string} id The ID of the view to retrieve.
+	 * @return {wp.media.view.Button} The view associated with the given ID, or undefined if no view is found.
 	 */
 	get: function( id ) {
 		return this._views[ id ];
 	},
 	/**
-	 * @param {string} id
-	 * @param {Object} options
+	 * Unsets a view by its ID.
+	 *
+	 * @param {string} id           The ID of the view to unset.
+	 * @param {Object} [options={}] The options for unsetting the view.
 	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	unset: function( id, options ) {
 		delete this._views[ id ];
 		this.primary.unset( id, options );
 		this.secondary.unset( id, options );
+		this.tertiary.unset( id, options );
 
 		if ( ! options || ! options.silent ) {
 			this.refresh();
@@ -129,6 +146,9 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		return this;
 	},
 
+	/**
+	 * Refreshes the toolbar view.
+	 */
 	refresh: function() {
 		var state = this.controller.state(),
 			library = state.get('library'),
@@ -140,13 +160,17 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 			}
 
 			var requires = button.options.requires,
-				disabled = false;
+				disabled = false,
+				modelsUploading = library && ! _.isEmpty( library.findWhere( { 'uploading': true } ) );
 
 			// Prevent insertion of attachments if any of them are still uploading.
 			if ( selection && selection.models ) {
 				disabled = _.some( selection.models, function( attachment ) {
 					return attachment.get('uploading') === true;
 				});
+			}
+			if ( requires.uploadingComplete && modelsUploading ) {
+				disabled = true;
 			}
 
 			if ( requires.selection && selection && ! selection.length ) {

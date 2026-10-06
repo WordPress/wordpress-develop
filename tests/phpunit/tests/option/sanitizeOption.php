@@ -20,7 +20,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_option() {
+	public static function data_sanitize_option() {
 		return array(
 			array( 'admin_email', 'mail@example.com', 'mail@example.com' ),
 			array( 'admin_email', get_option( 'admin_email' ), 'invalid' ),
@@ -36,15 +36,18 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'blogname', '&lt;i&gt;My Site&lt;/i&gt;', '<i>My Site</i>' ),
 			array( 'blog_charset', 'UTF-8', 'UTF-8' ),
 			array( 'blog_charset', 'charset', '">charset<"' ),
+			array( 'blog_charset', '', null ),
 			array( 'blog_public', 1, null ),
 			array( 'blog_public', 1, '1' ),
 			array( 'blog_public', -2, '-2' ),
 			array( 'date_format', 'F j, Y', 'F j, Y' ),
 			array( 'date_format', 'F j, Y', 'F j, <strong>Y</strong>' ),
 			array( 'ping_sites', 'http://rpc.pingomatic.com/', 'http://rpc.pingomatic.com/' ),
+			array( 'ping_sites', 'https://rpc.pingomatic.com/', 'https://rpc.pingomatic.com/' ),
 			array( 'ping_sites', "http://www.example.com\nhttp://example.org", "www.example.com \n\texample.org\n\n" ),
 			array( 'gmt_offset', '0', 0 ),
 			array( 'gmt_offset', '1.5', '1.5' ),
+			array( 'gmt_offset', '', null ),
 			array( 'siteurl', 'http://example.org', 'http://example.org' ),
 			array( 'siteurl', 'http://example.org/subdir', 'http://example.org/subdir' ),
 			array( 'siteurl', get_option( 'siteurl' ), '' ),
@@ -102,7 +105,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
 	}
 
-	public function data_sanitize_option_upload_path() {
+	public static function data_sanitize_option_upload_path() {
 		return array(
 			array( '<a href="http://www.example.com">Link</a>', 'Link' ),
 			array( '<scr' . 'ipt>url</scr' . 'ipt>', 'url' ),
@@ -155,10 +158,11 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
 		}
 
+		// Keep assertEquals() because get_option( 'permalink_structure' ) returns false on single site and empty string on multisite.
 		$this->assertEquals( $expected, $actual );
 	}
 
-	public function data_sanitize_option_permalink_structure() {
+	public static function data_sanitize_option_permalink_structure() {
 		return array(
 			array( '', '', true ),
 			array( '%postname', false, false ),
@@ -172,5 +176,4 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( new WP_Error( 'wpdb_get_table_charset_failure' ), false, false ), // @ticket 53986
 		);
 	}
-
 }

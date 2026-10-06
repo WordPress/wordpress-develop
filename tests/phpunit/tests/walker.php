@@ -31,7 +31,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li>', $output );
-
 	}
 
 	public function test_single_item_flat() {
@@ -46,7 +45,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li>', $output );
-
 	}
 
 	public function test_single_item_depth_1() {
@@ -61,7 +59,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li>', $output );
-
 	}
 
 	public function test_multiple_items_single_level() {
@@ -81,7 +78,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 2, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li><li>2</li>', $output );
-
 	}
 
 	public function test_multiple_items_multiple_levels() {
@@ -101,7 +97,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
-
 	}
 
 	public function test_multiple_items_multiple_levels_flat() {
@@ -121,7 +116,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li><li>2</li>', $output );
-
 	}
 
 	public function test_multiple_items_multiple_levels_depth_1() {
@@ -141,7 +135,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li>', $output );
-
 	}
 
 	public function test_multiple_items_multiple_levels_depth_2() {
@@ -165,7 +158,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 1, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
-
 	}
 
 	public function test_multiple_items_recursive() {
@@ -185,7 +177,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1<ul><li>2</li></ul></li>', $output );
-
 	}
 
 	public function test_single_item_child() {
@@ -201,7 +192,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>1</li>', $output );
-
 	}
 
 	public function test_single_item_missing_parent_depth_1() {
@@ -224,7 +214,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		// But as we've only asked for the first depth maybe nothing should be returned?
 		// $this->assertSame( '', $output );
-
 	}
 
 	public function test_multiple_items_missing_parents() {
@@ -248,7 +237,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		$this->assertSame( 0, $this->walker->get_number_of_root_elements( $items ) );
 		$this->assertSame( '<li>4</li><li>5</li><li>6</li>', $output );
-
 	}
 
 	public function test_multiple_items_missing_parents_depth_1() {
@@ -282,7 +270,6 @@ class Tests_Walker extends WP_UnitTestCase {
 
 		// Or maybe all items which are missing parents should simply be treat top level?
 		// $this->assertSame( '<li>4</li><li>5</li><li>6</li>', $output );
-
 	}
 
 	/**
@@ -312,9 +299,7 @@ class Tests_Walker extends WP_UnitTestCase {
 		$output = $this->walker->paged_walk( $items, 0, 2, 1 );
 
 		$this->assertSame( '<li>2</li>', $output );
-
 	}
-
 }
 
 class Walker_Test extends Walker {
@@ -340,5 +325,4 @@ class Walker_Test extends Walker {
 	public function end_el( &$output, $page, $depth = 0, $args = array() ) {
 		$output .= '</li>';
 	}
-
 }

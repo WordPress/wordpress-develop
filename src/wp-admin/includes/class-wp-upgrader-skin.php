@@ -20,7 +20,6 @@ class WP_Upgrader_Skin {
 	 * Holds the upgrader data.
 	 *
 	 * @since 2.8.0
-	 *
 	 * @var WP_Upgrader
 	 */
 	public $upgrader;
@@ -29,7 +28,6 @@ class WP_Upgrader_Skin {
 	 * Whether header is done.
 	 *
 	 * @since 2.8.0
-	 *
 	 * @var bool
 	 */
 	public $done_header = false;
@@ -38,7 +36,6 @@ class WP_Upgrader_Skin {
 	 * Whether footer is done.
 	 *
 	 * @since 2.8.0
-	 *
 	 * @var bool
 	 */
 	public $done_footer = false;
@@ -47,7 +44,6 @@ class WP_Upgrader_Skin {
 	 * Holds the result of an upgrade.
 	 *
 	 * @since 2.8.0
-	 *
 	 * @var string|bool|WP_Error
 	 */
 	public $result = false;
@@ -56,7 +52,6 @@ class WP_Upgrader_Skin {
 	 * Holds the options of an upgrade.
 	 *
 	 * @since 2.8.0
-	 *
 	 * @var array
 	 */
 	public $options = array();
@@ -82,6 +77,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Sets the relationship between the skin being used and the upgrader.
+	 *
 	 * @since 2.8.0
 	 *
 	 * @param WP_Upgrader $upgrader
@@ -94,6 +91,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Sets up the strings used in the update process.
+	 *
 	 * @since 3.0.0
 	 */
 	public function add_strings() {
@@ -141,6 +140,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Displays the header before the update process.
+	 *
 	 * @since 2.8.0
 	 */
 	public function header() {
@@ -153,6 +154,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Displays the footer following the update process.
+	 *
 	 * @since 2.8.0
 	 */
 	public function footer() {
@@ -164,6 +167,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Displays an error message about the update.
+	 *
 	 * @since 2.8.0
 	 *
 	 * @param string|WP_Error $errors Errors.
@@ -186,6 +191,8 @@ class WP_Upgrader_Skin {
 	}
 
 	/**
+	 * Displays a message about the update.
+	 *
 	 * @since 2.8.0
 	 * @since 5.9.0 Renamed `$string` (a PHP reserved keyword) to `$feedback` for PHP 8 named parameter support.
 	 *
@@ -218,7 +225,7 @@ class WP_Upgrader_Skin {
 	public function before() {}
 
 	/**
-	 * Performs and action following an update.
+	 * Performs an action following an update.
 	 *
 	 * @since 2.8.0
 	 */
@@ -228,6 +235,8 @@ class WP_Upgrader_Skin {
 	 * Outputs JavaScript that calls function to decrement the update counts.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Prints the script through wp_print_inline_script_tag() so it can carry
+	 *              attributes, such as a per-request nonce, added via wp_inline_script_attributes.
 	 *
 	 * @param string $type Type of update count to decrement. Likely values include 'plugin',
 	 *                     'theme', 'translation', etc.
@@ -238,28 +247,49 @@ class WP_Upgrader_Skin {
 		}
 
 		if ( defined( 'IFRAME_REQUEST' ) ) {
-			echo '<script type="text/javascript">
-					if ( window.postMessage && JSON ) {
-						window.parent.postMessage( JSON.stringify( { action: "decrementUpdateCount", upgradeType: "' . $type . '" } ), window.location.protocol + "//" + window.location.hostname );
-					}
-				</script>';
+			// language=JavaScript
+			$js_function = <<<'JAVASCRIPT'
+				( upgradeType ) => {
+					window.parent.postMessage(
+						JSON.stringify( {
+							action: "decrementUpdateCount",
+							upgradeType
+						} ),
+						window.location.protocol + "//" + window.location.hostname
+							+ ( "" !== window.location.port ? ":" + window.location.port : "" )
+					);
+				}
+				JAVASCRIPT;
 		} else {
-			echo '<script type="text/javascript">
-					(function( wp ) {
-						if ( wp && wp.updates && wp.updates.decrementCount ) {
-							wp.updates.decrementCount( "' . $type . '" );
-						}
-					})( window.wp );
-				</script>';
+			$js_function = <<<'JS'
+				( upgradeType ) => {
+					const wp = window.wp;
+					if ( wp && wp.updates && wp.updates.decrementCount ) {
+						wp.updates.decrementCount( upgradeType );
+					}
+				}
+				JS;
 		}
+
+		wp_print_inline_script_tag(
+			sprintf(
+				'( %s )( %s );',
+				$js_function,
+				wp_json_encode( $type, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
+			)
+		);
 	}
 
 	/**
+	 * Displays the header before the bulk update process.
+	 *
 	 * @since 3.0.0
 	 */
 	public function bulk_header() {}
 
 	/**
+	 * Displays the footer following the bulk update process.
+	 *
 	 * @since 3.0.0
 	 */
 	public function bulk_footer() {}

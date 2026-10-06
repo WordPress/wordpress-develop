@@ -6,6 +6,15 @@
  * @covers ::wp_list_comments
  */
 class Tests_Comment_WpListComments extends WP_UnitTestCase {
+
+	/**
+	 * Performs setup tasks for every test.
+	 */
+	public function set_up() {
+		parent::set_up();
+		switch_theme( 'default' );
+	}
+
 	/**
 	 * @ticket 35175
 	 */

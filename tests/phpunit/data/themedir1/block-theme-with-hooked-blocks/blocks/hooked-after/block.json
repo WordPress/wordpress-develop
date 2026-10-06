@@ -1,0 +1,9 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"title": "Hooked Block (after)",
+	"name": "tests/hooked-after",
+	"blockHooks": {
+		"core/post-content": "after"
+	},
+	"render": "file:render.php"
+}

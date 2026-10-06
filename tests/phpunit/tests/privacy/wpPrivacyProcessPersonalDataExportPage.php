@@ -358,7 +358,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_id( $send_as_email ) {
 		$response           = array(
@@ -388,7 +388,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_send_error_when_invalid_request_action_name( $send_as_email ) {
 		$response = array(
@@ -420,8 +420,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
-	 *
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_raw_data_post_meta( $send_as_email ) {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
@@ -461,7 +460,7 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @dataProvider data_send_as_email_options
 	 *
-	 * @param bool Whether the final results of the export should be emailed to the user.
+	 * @param bool $send_as_email Whether the final results of the export should be emailed to the user.
 	 */
 	public function test_add_post_meta_with_groups_data_only_available_when_export_file_generated( $send_as_email ) {
 		// Adds post meta when processing data, given the first exporter on the first page and send as email.
@@ -626,12 +625,12 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @string string $expected_status The expected post status after calling the function.
-	 *         @string string $response_page   The exporter page to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @string string $exporter_index  The exporter index to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @string string $page_index      The page index to pass. Options are 'first' and 'last'. Default 'first'.
-	 *         @bool   bool   $send_as_email   If the response should be sent as an email.
-	 *         @string string $exporter_key    The slug (key) of the exporter to pass.
+	 *         @type string $expected_status The expected post status after calling the function.
+	 *         @type string $response_page   The exporter page to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type string $exporter_index  The exporter index to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type string $page_index      The page index to pass. Options are 'first' and 'last'. Default 'first'.
+	 *         @type bool   $send_as_email   If the response should be sent as an email.
+	 *         @type string $exporter_key    The slug (key) of the exporter to pass.
 	 *     }
 	 * }
 	 */

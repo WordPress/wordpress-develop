@@ -194,5 +194,4 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 		$this->assertSame( wp_unslash( self::SLASH_2 ), $comment->comment_author );
 		$this->assertSame( wp_unslash( self::SLASH_4 ), $comment->comment_content );
 	}
-
 }

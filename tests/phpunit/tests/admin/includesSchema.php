@@ -24,6 +24,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$sitemeta = self::$sitemeta;
 
 		require_once ABSPATH . 'wp-admin/includes/schema.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate  = $wpdb->get_charset_collate();
 		$max_index_length = 191;
@@ -123,7 +124,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(
@@ -137,7 +138,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '1',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(
@@ -151,7 +152,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
-					'mailserver_pass'  => 'password',
+					'mailserver_pass'  => '',
 				),
 			),
 			array(
@@ -192,7 +193,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		// Set the "default" value for the timezone to a deprecated timezone.
 		add_filter(
 			'gettext_with_context',
-			static function( $translation, $text, $context ) {
+			static function ( $translation, $text, $context ) {
 				if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
 					return 'America/Buenos_Aires';
 				}

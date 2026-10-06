@@ -15,7 +15,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$home    = get_option( 'home' );
 		$siteurl = get_option( 'siteurl' );
 		$sfn     = $_SERVER['SCRIPT_FILENAME'];
-		$this->assertSame( str_replace( '\\', '/', ABSPATH ), get_home_path() );
+		$this->assertSamePathIgnoringDirectorySeparators( ABSPATH, get_home_path() );
 
 		update_option( 'home', 'http://localhost' );
 		update_option( 'siteurl', 'http://localhost/wp' );
@@ -43,6 +43,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ), 10, 3 );
 
 		$error = download_url( 'test_download_url_non_200' );
+
 		$this->assertWPError( $error );
 		$this->assertSame(
 			array(
@@ -55,6 +56,10 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter( 'download_url_error_max_body_size', array( $this, '__return_5' ) );
 
 		$error = download_url( 'test_download_url_non_200' );
+
+		remove_filter( 'download_url_error_max_body_size', array( $this, '__return_5' ) );
+		remove_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ) );
+
 		$this->assertWPError( $error );
 		$this->assertSame(
 			array(
@@ -63,9 +68,6 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 			),
 			$error->get_error_data()
 		);
-
-		remove_filter( 'download_url_error_max_body_size', array( $this, '__return_5' ) );
-		remove_filter( 'pre_http_request', array( $this, '_fake_download_url_non_200_response_code' ) );
 	}
 
 	public function _fake_download_url_non_200_response_code( $response, $parsed_args, $url ) {
@@ -94,11 +96,13 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
 
 		$filename = download_url( 'url_with_content_disposition_header' );
-		$this->assertStringContainsString( 'filename-from-content-disposition-header', $filename );
+
+		remove_filter( 'pre_http_request', array( $this, $filter ) );
+
 		$this->assertFileExists( $filename );
 		$this->unlink( $filename );
 
-		remove_filter( 'pre_http_request', array( $this, $filter ) );
+		$this->assertStringContainsString( 'filename-from-content-disposition-header', $filename );
 	}
 
 	/**
@@ -126,10 +130,12 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
 
 		$filename = download_url( 'url_with_content_disposition_header' );
-		$this->assertStringContainsString( get_temp_dir(), $filename );
-		$this->unlink( $filename );
 
 		remove_filter( 'pre_http_request', array( $this, $filter ) );
+
+		$this->unlink( $filename );
+
+		$this->assertStringContainsString( get_temp_dir(), $filename );
 	}
 
 	/**
@@ -209,10 +215,12 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, $filter ), 10, 3 );
 
 		$filename = download_url( 'url_with_content_disposition_header' );
-		$this->assertStringContainsString( 'url_with_content_disposition_header', $filename );
-		$this->unlink( $filename );
 
 		remove_filter( 'pre_http_request', array( $this, $filter ) );
+
+		$this->unlink( $filename );
+
+		$this->assertStringContainsString( 'url_with_content_disposition_header', $filename );
 	}
 
 	/**
@@ -294,7 +302,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		$error = download_url( $url );
 		$this->assertWPError( $error );
 		$this->assertSame( 'http_no_url', $error->get_error_code() );
-		$this->assertSame( 'Invalid URL Provided.', $error->get_error_message() );
+		$this->assertSame( 'No URL Provided.', $error->get_error_message() );
 	}
 
 	/**
@@ -343,7 +351,7 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_signature_hosts',
-			static function( $urls ) {
+			static function ( $urls ) {
 				$urls[] = 'example.com';
 				return $urls;
 			}
@@ -380,5 +388,134 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Test that `download_url()` properly handles setting the file name when set using
+	 * the content type header on URLs with no file extension.
+	 *
+	 * @dataProvider data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @covers ::download_url
+	 * @ticket 54738
+	 *
+	 * @param callable $filter    A callback containing a fake Content-Type header.
+	 * @param string   $extension The expected file extension to match.
+	 */
+	public function test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined( $filter, $extension ) {
+		add_filter( 'pre_http_request', $filter );
+
+		$filename = download_url( 'url_with_content_type_header' );
+		$this->assertStringEndsWith( $extension, $filename );
+		$this->assertFileExists( $filename );
+		$this->unlink( $filename );
+	}
+
+	/**
+	 * Data provider for test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined
+	 *
+	 * @see test_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined()
+	 *
+	 * @ticket 54738
+	 *
+	 * @return Generator
+	 */
+	public function data_download_url_should_use_the_content_type_header_to_set_extension_of_a_file_if_extension_was_not_determined() {
+		yield 'Content-Type header in the response' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/jpeg',
+					),
+				);
+			},
+			'.jpg',
+		);
+
+		yield 'Invalid Content-Type header' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => '../../filename-from-content-disposition-header.txt',
+					),
+				);
+			},
+			'.tmp',
+		);
+
+		yield 'Valid content type but not supported mime type' => array(
+			function () {
+				return array(
+					'response' => array(
+						'code' => 200,
+					),
+					'headers'  => array(
+						'content-type' => 'image/x-xbm',
+					),
+				);
+			},
+			'.tmp',
+		);
+	}
+
+	/**
+	 * @ticket 66129
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_edit_theme_plugin_file
+	 */
+	public function test_wp_edit_theme_plugin_file_runs_loopback_check_for_network_active_plugin() {
+		$user_id = self::factory()->user->create();
+		grant_super_admin( $user_id );
+		wp_set_current_user( $user_id );
+
+		$plugin = 'hello.php';
+		$this->assertNull( activate_plugin( $plugin, '', true ) );
+
+		$loopback_requested = false;
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $parsed_args, string $url ) use ( &$loopback_requested ) {
+				$query_string = wp_parse_url( $url, PHP_URL_QUERY );
+				if ( ! is_string( $query_string ) ) {
+					return $preempt;
+				}
+				wp_parse_str( $query_string, $query_args );
+				if ( ! isset( $query_args['wp_scrape_key'] ) || ! is_string( $query_args['wp_scrape_key'] ) ) {
+					return $preempt;
+				}
+
+				$loopback_requested = true;
+				return array(
+					'body'     => sprintf( '###### wp_scraping_result_start:%1$s ######true###### wp_scraping_result_end:%1$s ######', $query_args['wp_scrape_key'] ),
+					'response' => array( 'code' => 200 ),
+				);
+			},
+			10,
+			3
+		);
+
+		$content = file_get_contents( WP_PLUGIN_DIR . '/' . $plugin );
+		$this->assertIsString( $content, "Expected $plugin to exist on disk." );
+
+		$this->assertTrue(
+			wp_edit_theme_plugin_file(
+				array(
+					'plugin'     => $plugin,
+					'file'       => $plugin,
+					'newcontent' => $content,
+					'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+				)
+			)
+		);
+
+		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
 	}
 }

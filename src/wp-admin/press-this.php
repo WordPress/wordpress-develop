@@ -22,8 +22,8 @@ function wp_load_press_this() {
 			403
 		);
 	} elseif ( is_plugin_active( $plugin_file ) ) {
-		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
-		$wp_press_this = new WP_Press_This_Plugin();
+		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php'; // @phpstan-ignore include.fileNotFound
+		$wp_press_this = new WP_Press_This_Plugin(); // @phpstan-ignore class.notFound
 		$wp_press_this->html();
 	} elseif ( current_user_can( 'activate_plugins' ) ) {
 		if ( file_exists( WP_PLUGIN_DIR . '/' . $plugin_file ) ) {
@@ -60,7 +60,7 @@ function wp_load_press_this() {
 					'<a href="%1$s" class="install-now" data-slug="%2$s" data-name="%2$s" aria-label="%3$s">%3$s</a>',
 					esc_url( $url ),
 					esc_attr( $plugin_slug ),
-					__( 'Install Now' )
+					_x( 'Install Now', 'plugin' )
 				);
 			} else {
 				$action = sprintf(

@@ -37,7 +37,7 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$GLOBALS['post'] = self::$post_id;
+		$GLOBALS['post'] = get_post( self::$post_id );
 	}
 
 	public function test_get_the_modified_author() {
@@ -55,5 +55,45 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 		update_post_meta( self::$post_id, '_edit_last', -1 );
 
 		$this->assertSame( '', get_the_modified_author() );
+	}
+
+	/**
+	 * @ticket 64104
+	 */
+	public function test_get_the_modified_author_when_post_global_does_not_exist() {
+		$GLOBALS['post'] = null;
+		$this->assertNull( get_the_modified_author() );
+	}
+
+	/**
+	 * @ticket 64104
+	 */
+	public function test_get_the_modified_author_when_invalid_post() {
+		$this->assertNull( get_the_modified_author( -1 ) );
+	}
+
+	/**
+	 * @ticket 64104
+	 */
+	public function test_get_the_modified_author_for_another_post() {
+		$expected_display_name = 'Test Editor';
+
+		$editor_id = self::factory()->user->create(
+			array(
+				'role'         => 'editor',
+				'user_login'   => 'test_editor',
+				'display_name' => $expected_display_name,
+				'description'  => 'test_editor',
+			)
+		);
+
+		$another_post_id = self::factory()->post->create();
+
+		$this->assertNull( get_the_modified_author( $another_post_id ) );
+		$this->assertNull( get_the_modified_author( get_post( $another_post_id ) ) );
+
+		add_post_meta( $another_post_id, '_edit_last', $editor_id );
+		$this->assertSame( $expected_display_name, get_the_modified_author( $another_post_id ) );
+		$this->assertSame( $expected_display_name, get_the_modified_author( get_post( $another_post_id ) ) );
 	}
 }

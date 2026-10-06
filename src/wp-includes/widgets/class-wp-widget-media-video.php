@@ -199,8 +199,8 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 			$handle,
 			sprintf(
 				'wp.mediaWidgets.modelConstructors[ %s ].prototype.schema = %s;',
-				wp_json_encode( $this->id_base ),
-				wp_json_encode( $exported_schema )
+				wp_json_encode( $this->id_base, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $exported_schema, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 
@@ -211,9 +211,9 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 					wp.mediaWidgets.controlConstructors[ %1$s ].prototype.mime_type = %2$s;
 					wp.mediaWidgets.controlConstructors[ %1$s ].prototype.l10n = _.extend( {}, wp.mediaWidgets.controlConstructors[ %1$s ].prototype.l10n, %3$s );
 				',
-				wp_json_encode( $this->id_base ),
-				wp_json_encode( $this->widget_options['mime_type'] ),
-				wp_json_encode( $this->l10n )
+				wp_json_encode( $this->id_base, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $this->widget_options['mime_type'], JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ),
+				wp_json_encode( $this->l10n, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES )
 			)
 		);
 	}
@@ -228,17 +228,35 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 		?>
 		<script type="text/html" id="tmpl-wp-media-widget-video-preview">
 			<# if ( data.error && 'missing_attachment' === data.error ) { #>
-				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p><?php echo $this->l10n['missing_attachment']; ?></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					$this->l10n['missing_attachment'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
+					)
+				);
+				?>
 			<# } else if ( data.error && 'unsupported_file_type' === data.error ) { #>
-				<div class="notice notice-error notice-alt notice-missing-attachment">
-					<p><?php echo $this->l10n['unsupported_file_type']; ?></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					$this->l10n['unsupported_file_type'],
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt', 'notice-missing-attachment' ),
+					)
+				);
+				?>
 			<# } else if ( data.error ) { #>
-				<div class="notice notice-error notice-alt">
-					<p><?php _e( 'Unable to preview media due to an unknown error.' ); ?></p>
-				</div>
+				<?php
+				wp_admin_notice(
+					__( 'Unable to preview media due to an unknown error.' ),
+					array(
+						'type'               => 'error',
+						'additional_classes' => array( 'notice-alt' ),
+					)
+				);
+				?>
 			<# } else if ( data.is_oembed && data.model.poster ) { #>
 				<a href="{{ data.model.src }}" target="_blank" class="media-widget-video-link">
 					<img src="{{ data.model.poster }}" />

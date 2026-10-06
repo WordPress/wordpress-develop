@@ -26,15 +26,7 @@ class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 	 * @param string $needle   The substring to search for at the start of `$haystack`.
 	 */
 	public function test_str_starts_with( $expected, $haystack, $needle ) {
-		if ( ! function_exists( 'str_starts_with' ) ) {
-			$this->markTestSkipped( 'str_starts_with() is not available.' );
-		} else {
-			$this->assertSame(
-				$expected,
-				str_starts_with( $haystack, $needle )
-			);
-		}
-
+		$this->assertSame( $expected, str_starts_with( $haystack, $needle ) );
 	}
 
 	/**

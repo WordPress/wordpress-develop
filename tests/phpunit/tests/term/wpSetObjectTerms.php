@@ -302,7 +302,6 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// Make sure the term taxonomy ID for 'bar' matches.
 		$this->assertSame( $tt_1[1], $tt_2[0] );
-
 	}
 
 	/**
@@ -345,8 +344,8 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		$this->assertSame( $terms_2, $terms );
 
 		// Make sure the term taxonomy ID for 'bar' matches.
+		// Keep assertEquals() because wp_set_object_terms() may return term taxonomy IDs as numeric strings or integers.
 		$this->assertEquals( $tt_1[1], $tt_2[0] );
-
 	}
 
 	public function test_should_create_term_that_does_not_exist() {

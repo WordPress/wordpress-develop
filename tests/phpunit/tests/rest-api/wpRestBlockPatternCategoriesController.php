@@ -63,9 +63,11 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		// Setup an empty testing instance of `WP_Block_Pattern_Categories_Registry` and save the original.
 		self::$orig_registry              = WP_Block_Pattern_Categories_Registry::get_instance();
 		self::$registry_instance_property = new ReflectionProperty( 'WP_Block_Pattern_Categories_Registry', 'instance' );
-		self::$registry_instance_property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( true );
+		}
 		$test_registry = new WP_Block_Pattern_Categories_Registry();
-		self::$registry_instance_property->setValue( $test_registry );
+		self::$registry_instance_property->setValue( null, $test_registry );
 
 		// Register some categories in the test registry.
 		$test_registry->register(
@@ -88,8 +90,11 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::delete_user( self::$admin_id );
 
 		// Restore the original registry instance.
-		self::$registry_instance_property->setValue( self::$orig_registry );
-		self::$registry_instance_property->setAccessible( false );
+		self::$registry_instance_property->setValue( null, self::$orig_registry );
+
+		if ( PHP_VERSION_ID < 80100 ) {
+			self::$registry_instance_property->setAccessible( false );
+		}
 		self::$registry_instance_property = null;
 		self::$orig_registry              = null;
 	}
@@ -124,6 +129,33 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
+	 * @ticket 56481
+	 */
+	public function test_get_items_with_head_request_should_not_prepare_block_pattern_categories_data() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+		$this->assertSame( array(), $response->get_data(), 'The server should not generate a body in response to a HEAD request.' );
+	}
+
+	/**
+	 * @ticket 56481
+	 */
+	public function test_head_request_with_specified_fields_returns_success_response() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'HEAD', static::REQUEST_ROUTE );
+		$request->set_param( '_fields', 'name' );
+		$server   = rest_get_server();
+		$response = $server->dispatch( $request );
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
+		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+
+		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
+	}
+
+	/**
 	 * Verify capability check for unauthorized request (not logged in).
 	 */
 	public function test_get_items_unauthorized() {
@@ -152,10 +184,20 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block pattern categories endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $data['endpoints'] );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
@@ -194,9 +236,19 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Block_Pattern_Categories_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
-		// Controller does not implement get_item_schema().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$properties = $data['schema']['properties'];
+		$this->assertCount( 3, $properties, 'The schema should contain 3 properties.' );
+		$this->assertArrayHasKey( 'name', $properties, 'The schema should contain a name property.' );
+		$this->assertArrayHasKey( 'label', $properties, 'The schema should contain a label property.' );
+		$this->assertArrayHasKey( 'description', $properties, 'The schema should contain a description property.' );
 	}
 }
