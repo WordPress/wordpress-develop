@@ -65,6 +65,16 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
 		do_action( 'wp_abilities_api_init' );
+
+		/*
+		 * Restore the hooks right away instead of after the class. The first test of a run
+		 * snapshots the hooks and every test resets them to that snapshot, so changes left
+		 * here would leak into every later test whenever this class runs first.
+		 */
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
 	}
 
 	/**
@@ -73,9 +83,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
