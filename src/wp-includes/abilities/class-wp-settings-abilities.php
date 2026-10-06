@@ -76,7 +76,12 @@ final class WP_Settings_Abilities {
 		 * re-registering them again later on `rest_api_init` is harmless.
 		 */
 		if ( ! did_action( 'rest_api_init' ) || doing_action( 'rest_api_init' ) ) {
+			$prev_new_allowed_options = $GLOBALS['new_allowed_options'] ?? null;
+
 			register_initial_settings();
+
+			// Restore $new_allowed_options so early registration doesn't pollute options.php.
+			$GLOBALS['new_allowed_options'] = $prev_new_allowed_options;
 		}
 
 		$this->register_get_settings();

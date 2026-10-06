@@ -97,6 +97,27 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * Registers the core/settings-get ability again inside a faked init action.
+	 *
+	 * The class setup has already registered it through wp_register_core_abilities(), so
+	 * the existing copy is unregistered first.
+	 */
+	private function register_ability(): void {
+		global $wp_current_filter;
+
+		if ( wp_has_ability( 'core/settings-get' ) ) {
+			wp_unregister_ability( 'core/settings-get' );
+		}
+
+		$wp_current_filter[] = 'wp_abilities_api_init';
+		try {
+			( new WP_Settings_Abilities() )->register();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
+	}
+
+	/**
 	 * Logs in as an administrator so abilities gated behind `manage_options` can run.
 	 */
 	private function become_admin(): void {
@@ -121,6 +142,40 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = $ability->execute( array( 'fields' => array( 'blogname' ) ) );
 
 		$this->assertArrayHasKey( 'blogname', $result );
+	}
+
+	/**
+	 * Tests that registering initial settings for abilities does not pollute $new_allowed_options.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_register_preserves_new_allowed_options(): void {
+		global $new_allowed_options;
+
+		$prev_actions_count  = $GLOBALS['wp_actions']['rest_api_init'] ?? null;
+		$prev_allowed_backup = $new_allowed_options;
+		unset( $GLOBALS['wp_actions']['rest_api_init'] );
+
+		// Simulate an existing custom setting already in $new_allowed_options.
+		$new_allowed_options = array(
+			'general' => array( 'my_custom_option' ),
+		);
+
+		try {
+			$this->register_ability();
+
+			// 'admin_email' must NOT be in $new_allowed_options['general'].
+			$this->assertNotContains( 'admin_email', $new_allowed_options['general'] );
+			// Prior allowed options must be preserved.
+			$this->assertContains( 'my_custom_option', $new_allowed_options['general'] );
+		} finally {
+			$new_allowed_options = $prev_allowed_backup;
+			if ( null === $prev_actions_count ) {
+				unset( $GLOBALS['wp_actions']['rest_api_init'] );
+			} else {
+				$GLOBALS['wp_actions']['rest_api_init'] = $prev_actions_count;
+			}
+		}
 	}
 
 	/**
