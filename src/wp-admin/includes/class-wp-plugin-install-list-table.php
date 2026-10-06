@@ -50,7 +50,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	/**
 	 * Error returned by the Plugin Installation API, if any.
 	 *
-	 * @since 4.2.0
+	 * @since 4.0.0
+	 * @since 4.2.0 Declared as a private property.
 	 *
 	 * @var WP_Error|null
 	 */
