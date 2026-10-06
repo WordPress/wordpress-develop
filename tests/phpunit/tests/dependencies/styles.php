@@ -364,7 +364,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test to make sure that inline styles attached to conditional
 	 * stylesheets are also conditional.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
