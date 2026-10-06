@@ -147,7 +147,7 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global string $role The user role to filter by.
 	 *
-	 * @return array<string, string> An associative array of views.
+	 * @return string[] An array of view links keyed by view.
 	 */
 	protected function get_views() {
 		global $role;

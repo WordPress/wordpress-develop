@@ -360,7 +360,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global array<string, string> $tabs The tabs shown on the Add Plugins screen.
 	 * @global string                $tab  The current active tab.
 	 *
-	 * @return array<string, string> Array of view links keyed by their ID.
+	 * @return string[] Array of view links keyed by their ID.
 	 */
 	protected function get_views() {
 		global $tabs, $tab;
