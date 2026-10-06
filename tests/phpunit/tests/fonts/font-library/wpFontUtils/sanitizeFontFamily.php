@@ -84,7 +84,31 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			),
 			'quoted basic name'                         => array(
 				'font_family' => '"Inter"',
-				'expected'    => 'Inter',
+				'expected'    => '"Inter"',
+			),
+			'quoted browser keyword'                    => array(
+				'font_family' => '"-webkit-body"',
+				'expected'    => '"-webkit-body"',
+			),
+			'unquoted browser keyword'                  => array(
+				'font_family' => '-webkit-body',
+				'expected'    => '-webkit-body',
+			),
+			'quoted Apple system keyword'               => array(
+				'font_family' => '"-apple-system"',
+				'expected'    => '"-apple-system"',
+			),
+			'quoted Chromium system keyword'            => array(
+				'font_family' => '"BlinkMacSystemFont"',
+				'expected'    => '"BlinkMacSystemFont"',
+			),
+			'escaped browser keyword'                   => array(
+				'font_family' => '"\\2d webkit-body"',
+				'expected'    => '"-webkit-body"',
+			),
+			'quoted and unquoted browser keywords'      => array(
+				'font_family' => '\'-webkit-body\', -webkit-body',
+				'expected'    => '"-webkit-body", -webkit-body',
 			),
 			'system font keywords'                      => array(
 				'font_family' => '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -237,7 +261,7 @@ class Tests_Fonts_WpFontUtils_SanitizeFontFamily extends WP_UnitTestCase {
 			),
 			'escape before hexadecimal characters'      => array(
 				'font_family' => '"\\41 BC"',
-				'expected'    => 'ABC',
+				'expected'    => '"ABC"',
 			),
 			'NUL becomes the replacement character'     => array(
 				'font_family' => "\"A\0B\"",

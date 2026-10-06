@@ -100,6 +100,11 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 				'descriptor'   => '"A  B"',
 				'decoded_name' => 'A  B',
 			),
+			'a browser keyword'    => array(
+				'font_family'  => '"-webkit-body", serif',
+				'descriptor'   => '"-webkit-body"',
+				'decoded_name' => '-webkit-body',
+			),
 			'a literal entity'     => array(
 				'font_family'  => 'Tom &amp; Jerry',
 				'descriptor'   => '"Tom \\26 amp\\3b  Jerry"',
@@ -299,6 +304,108 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A face with an earlier title format remains a duplicate.
+	 *
+	 * @dataProvider data_legacy_font_faces
+	 *
+	 * @param string $font_family Stored font family value.
+	 * @param string $old_title   Title from the earlier slug format.
+	 * @param string $requested   Font family value of the request.
+	 */
+	public function test_legacy_font_faces_remain_duplicates( $font_family, $old_title, $requested ) {
+		$family_id = $this->create_font_family( 'legacy', $font_family );
+		$this->create_legacy_font_face( $family_id, $font_family, $old_title );
+
+		$response = $this->request_font_face( $family_id, $requested );
+
+		$this->assertSame( 400, $response->get_status(), 'The earlier record should remain a duplicate.' );
+		$this->assertSame( 'rest_duplicate_font_face', $response->as_error()->get_error_code() );
+	}
+
+	/**
+	 * Supplies saved settings and literal titles from the earlier slug format.
+	 *
+	 * @return array[] Test cases.
+	 */
+	public function data_legacy_font_faces() {
+		return array(
+			'an ampersand' => array( '"Tom & Jerry"', 'tom & jerry;normal;400;100%;U+0-10FFFF', '"Tom & Jerry"' ),
+			'an escape'    => array( '"Tom & Jerry"', 'tom & jerry;normal;400;100%;U+0-10FFFF', '"Tom \\26  Jerry"' ),
+			'a percentage' => array( '"50% Gray"', '50% gray;normal;400;100%;U+0-10FFFF', '"50% Gray"' ),
+			'a CSS escape' => array( '"\\54 om & Jerry"', '\\54 om & jerry;normal;400;100%;U+0-10FFFF', '"Tom & Jerry"' ),
+		);
+	}
+
+	/**
+	 * A legacy face in another family still prevents a duplicate.
+	 */
+	public function test_legacy_duplicate_check_includes_other_families() {
+		$family_id = $this->create_font_family( 'legacy', '"Tom & Jerry"' );
+		$this->create_legacy_font_face( $family_id, '"Tom & Jerry"', 'tom & jerry;normal;400;100%;U+0-10FFFF' );
+		$other_id = $this->create_font_family( 'other', '"Tom & Jerry"' );
+
+		$response = $this->request_font_face( $other_id, '"Tom & Jerry"' );
+
+		$this->assertSame( 400, $response->get_status(), 'The other family should still prevent a duplicate.' );
+		$this->assertSame( 'rest_duplicate_font_face', $response->as_error()->get_error_code() );
+	}
+
+	/**
+	 * The compatibility check also reads posts after the first batch.
+	 */
+	public function test_legacy_duplicate_check_reads_later_batches() {
+		$family_id      = $this->create_font_family( 'legacy', '"Tom & Jerry"' );
+		$this->post_ids = array_merge(
+			$this->post_ids,
+			self::factory()->post->create_many(
+				100,
+				array(
+					'post_type'    => 'wp_font_face',
+					'post_status'  => 'publish',
+					'post_parent'  => $family_id,
+					'post_content' => wp_json_encode( array( 'fontFamily' => 'Other' ) ),
+				)
+			)
+		);
+		$this->create_legacy_font_face( $family_id, '"Tom & Jerry"', 'tom & jerry;normal;400;100%;U+0-10FFFF' );
+
+		$response = $this->request_font_face( $family_id, '"Tom & Jerry"' );
+
+		$this->assertSame( 400, $response->get_status(), 'The later batch should prevent a duplicate.' );
+		$this->assertSame( 'rest_duplicate_font_face', $response->as_error()->get_error_code() );
+	}
+
+	/**
+	 * The compatibility check permits a face with a different weight.
+	 */
+	public function test_legacy_duplicate_check_permits_a_different_weight() {
+		$family_id              = $this->create_font_family( 'legacy', '"Tom & Jerry"' );
+		$face_id                = $this->create_legacy_font_face( $family_id, '"Tom & Jerry"', 'tom & jerry;normal;900;100%;U+0-10FFFF' );
+		$settings               = json_decode( get_post( $face_id )->post_content, true );
+		$settings['fontWeight'] = '900';
+		wp_update_post(
+			wp_slash(
+				array(
+					'ID'           => $face_id,
+					'post_content' => wp_json_encode( $settings, JSON_HEX_TAG | JSON_HEX_AMP ),
+				)
+			)
+		);
+
+		$this->create_font_face( $family_id, '"Tom & Jerry"' );
+	}
+
+	/**
+	 * A title match with different saved settings still permits a new face.
+	 */
+	public function test_legacy_title_collision_permits_a_different_name() {
+		$family_id = $this->create_font_family( 'legacy', '"Tom & Jerry"' );
+		$this->create_legacy_font_face( $family_id, '"Tom %26 Jerry"', 'tom %26 jerry;normal;400;100%;U+0-10FFFF' );
+
+		$this->create_font_face( $family_id, '"Tom & Jerry"' );
+	}
+
+	/**
 	 * A name with a comma is not the same face as a list of two families.
 	 */
 	public function test_a_comma_in_a_name_is_not_a_list() {
@@ -369,8 +476,9 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'type'  => 'name',
-					'value' => $font_family,
+					'type'   => 'name',
+					'value'  => $font_family,
+					'quoted' => true,
 				),
 			),
 			$entries,
@@ -594,8 +702,9 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'type'  => 'name',
-					'value' => $expected,
+					'type'   => 'name',
+					'value'  => $expected,
+					'quoted' => true,
 				),
 			),
 			$preset,
@@ -652,8 +761,9 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array(
-					'type'  => 'name',
-					'value' => $raw_name,
+					'type'   => 'name',
+					'value'  => $raw_name,
+					'quoted' => true,
 				),
 			),
 			self::parse_list( $stored ),
@@ -889,6 +999,41 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$id               = $response->get_data()['id'];
 		$this->post_ids[] = $id;
+
+		return $id;
+	}
+
+	/**
+	 * Creates a face with a title from the earlier slug format.
+	 *
+	 * @param int    $family_id   Parent font family post ID.
+	 * @param string $font_family Stored font family value.
+	 * @param string $old_title   Earlier font face title.
+	 * @return int Font face post ID.
+	 */
+	private function create_legacy_font_face( $family_id, $font_family, $old_title ) {
+		$id               = self::factory()->post->create(
+			wp_slash(
+				array(
+					'post_type'    => 'wp_font_face',
+					'post_status'  => 'publish',
+					'post_parent'  => $family_id,
+					'post_title'   => $old_title,
+					'post_content' => wp_json_encode(
+						array(
+							'fontFamily' => $font_family,
+							'fontStyle'  => 'normal',
+							'fontWeight' => '400',
+							'src'        => home_url( '/wp-content/fonts/legacy.woff2' ),
+						),
+						JSON_HEX_TAG | JSON_HEX_AMP
+					),
+				)
+			)
+		);
+		$this->post_ids[] = $id;
+
+		$this->assertSame( $font_family, json_decode( get_post( $id )->post_content, true )['fontFamily'], 'The fixture should keep the saved font name.' );
 
 		return $id;
 	}

@@ -67,10 +67,10 @@ class WP_Font_Utils {
 	 * Sanitizes and formats font family names.
 	 *
 	 * The method reads the value with the CSS `font-family` grammar and writes
-	 * it back in a canonical form. It writes each named family as a quoted CSS
-	 * string, except a name that is one identifier of letters and hyphens, such
-	 * as `-apple-system`. It keeps each generic family as a keyword. The decoded
-	 * name does not change, so a name can contain a comma, an apostrophe, a
+	 * it back in a canonical form. It keeps explicit quotes. It writes each other
+	 * named family as a quoted CSS string, except one identifier of letters and
+	 * hyphens, such as `-apple-system`. It keeps each generic family as a keyword.
+	 * The decoded name does not change, so a name can contain a comma, an apostrophe, a
 	 * quotation mark, or a CSS escape.
 	 *
 	 * For compatibility, the method also accepts a plain font name that is not
@@ -187,7 +187,7 @@ class WP_Font_Utils {
 	 *
 	 * The method returns the decoded font names, separated by commas. As in
 	 * WordPress 6.5.0, it removes the quotation marks and the apostrophes from
-	 * each name, so that the slug of an existing font face does not change.
+	 * each name to keep the earlier comparison rule for those characters.
 	 * Each name then replaces a small set of characters with a percent sequence:
 	 *
 	 * - `;` and `,` cannot change the field boundaries of the slug.
@@ -413,8 +413,9 @@ class WP_Font_Utils {
 	/**
 	 * Serializes a list of parsed entries as a CSS `font-family` value.
 	 *
-	 * A name that is one identifier of letters and hyphens stays unquoted, such
-	 * as `Arial` or `-apple-system`. Some browsers read a system font keyword,
+	 * An explicitly quoted name keeps its quotes. Each other name that is one
+	 * identifier of letters and hyphens stays unquoted, such as `Arial` or
+	 * `-apple-system`. Some browsers read a system font keyword,
 	 * such as `-apple-system`, only when it has no quotes. Each other name is a
 	 * quoted CSS string.
 	 *
@@ -427,7 +428,7 @@ class WP_Font_Utils {
 		$parts = array();
 
 		foreach ( $entries as $entry ) {
-			if ( 'name' !== $entry['type'] || self::is_unquoted_font_family_name( $entry['value'] ) ) {
+			if ( 'name' !== $entry['type'] || ( empty( $entry['quoted'] ) && self::is_unquoted_font_family_name( $entry['value'] ) ) ) {
 				$parts[] = $entry['value'];
 			} else {
 				$parts[] = self::serialize_font_family_name( $entry['value'] );
@@ -451,6 +452,7 @@ class WP_Font_Utils {
 	 *     @type string $type  One of 'name', 'generic', or 'keyword'.
 	 *     @type string $value For 'name', the decoded font name. For 'generic' and
 	 *                         'keyword', the canonical CSS text.
+	 *     @type bool   $quoted Optional. True if a CSS string explicitly quotes the name.
 	 *
 	 * @since 7.2.0
 	 *
@@ -620,8 +622,9 @@ class WP_Font_Utils {
 			}
 
 			return array(
-				'type'  => 'name',
-				'value' => $name,
+				'type'   => 'name',
+				'value'  => $name,
+				'quoted' => true,
 			);
 		}
 

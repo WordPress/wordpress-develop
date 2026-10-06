@@ -60,8 +60,9 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 				'value'    => '"Inter"',
 				'expected' => array(
 					array(
-						'type'  => 'name',
-						'value' => 'Inter',
+						'type'   => 'name',
+						'value'  => 'Inter',
+						'quoted' => true,
 					),
 				),
 			),
@@ -78,8 +79,9 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 				'value'    => '"ACME, Sans", sans-serif',
 				'expected' => array(
 					array(
-						'type'  => 'name',
-						'value' => 'ACME, Sans',
+						'type'   => 'name',
+						'value'  => 'ACME, Sans',
+						'quoted' => true,
 					),
 					array(
 						'type'  => 'generic',
@@ -91,8 +93,9 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 				'value'    => '"serif", serif',
 				'expected' => array(
 					array(
-						'type'  => 'name',
-						'value' => 'serif',
+						'type'   => 'name',
+						'value'  => 'serif',
+						'quoted' => true,
 					),
 					array(
 						'type'  => 'generic',
@@ -442,6 +445,9 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	public function data_serialize_name_round_trip() {
 		return array(
 			'a plain name'           => array( 'Inter' ),
+			'a browser keyword'      => array( '-webkit-body' ),
+			'an Apple keyword'       => array( '-apple-system' ),
+			'a Chromium keyword'     => array( 'BlinkMacSystemFont' ),
 			'a name with spaces'     => array( 'Open Sans' ),
 			'an apostrophe'          => array( "O'Reilly Sans" ),
 			'a double quote'         => array( 'O"Reilly Sans' ),
