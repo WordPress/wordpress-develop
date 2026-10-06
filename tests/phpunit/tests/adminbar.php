@@ -957,7 +957,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$node = $admin_bar->get_node( 'get-shortlink' );
 
-		$this->assertNull( $node, 'The Shortlink node should not be added when shortlink is empty' );
+		$this->assertNull( $node, 'The Shortlink node should not be added when shortlink is empty.' );
 	}
 
 	/**
@@ -977,16 +977,16 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		wp_admin_bar_shortlink_menu( $admin_bar );
 		$node = $admin_bar->get_node( 'get-shortlink' );
 
-		$this->assertNotNull( $node, 'The Shortlink node should be added when shortlink exists' );
+		$this->assertNotNull( $node, 'The Shortlink node should be added when shortlink exists.' );
 		$this->assertSame( $expected, $node->href, 'The node href should be the post shortlink.' );
-		$this->assertSame( 'Shortlink', $node->title, 'The node title should be "Shortlink"' );
+		$this->assertSame( 'Shortlink', $node->title, 'The node title should be "Shortlink".' );
 		$this->assertStringContainsString(
 			'value="' . esc_attr( $expected ) . '"',
 			$node->meta['html'],
 			'The node HTML should contain the shortlink as the input value.'
 		);
 		$this->assertStringContainsString(
-			'arial-label="Shortlink"',
+			'aria-label="Shortlink"',
 			$node->meta['html'],
 			'The node HTML should contain "Shortlink" as the aria label.'
 		);
@@ -1000,31 +1000,25 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	 * @covers ::wp_admin_bar_shortlink_menu
 	 */
 	public function test_wp_admin_bar_shortlink_menu_escapes_shortlink_in_input_value() {
-		$escaped_shortlink = home_url( '?test=&quot;first&quot;&amp;coverage=&quot;second&quot;' );
+		$expected = home_url( '?test=&quot;first&quot;&amp;coverage=&quot;second&quot;' );
 
-		add_filter( 'pre_get_shortlink', array( $this, 'filter_pre_get_shortlink_with_special_chars' ) );
+		add_filter(
+			'pre_get_shortlink',
+			static function () {
+				return home_url( '?test="first"&coverage="second"' );
+			}
+		);
 
 		$admin_bar = new WP_Admin_Bar();
 		wp_admin_bar_shortlink_menu( $admin_bar );
-
-		remove_filter( 'pre_get_shortlink', array( $this, 'filter_pre_get_shortlink_with_special_chars' ) );
 
 		$node = $admin_bar->get_node( 'get-shortlink' );
 
 		$this->assertNotNull( $node, 'The Shortlink node should be added when a shortlink exists.' );
 		$this->assertStringContainsString(
-			'value="' . $escaped_shortlink . '"',
+			'value="' . $expected . '"',
 			$node->meta['html'],
 			'The node HTML should contain the properly escaped shortlink in the input value.'
 		);
-	}
-
-	/**
-	 * Helper function to return a link containing special characters query args.
-	 *
-	 * @return string
-	 */
-	public function filter_pre_get_shortlink_with_special_chars() {
-		return home_url( '?test="first"&coverage="second"' );
 	}
 }
