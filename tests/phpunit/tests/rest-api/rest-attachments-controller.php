@@ -2235,6 +2235,35 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Creates a JPEG attachment with static metadata for image quality tests.
+	 *
+	 * Quality reporting uses the MIME type, full-size dimensions, and registered
+	 * image sizes, so no upload or generated thumbnails are needed.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_quality_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+				'file'           => 'canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+			)
+		);
+
+		return $attachment_id;
+	}
+
+	/**
 	 * Tests the image_output_format / image_save_progressive schema properties.
 	 *
 	 * @ticket 65367
