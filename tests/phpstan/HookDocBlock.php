@@ -173,8 +173,9 @@ class HookDocBlock {
 		$this->fileTypeMapper = $file_type_mapper;
 		$this->wordpressRoot  = rtrim( $wordpress_root ?? dirname( __DIR__, 2 ) . '/src', '/' );
 
-		$canonical_root               = str_replace( '\\', '/', realpath( $this->wordpressRoot ) );
+		$canonical_root               = realpath( $this->wordpressRoot );
 		$this->canonicalWordpressRoot = false === $canonical_root ? $this->wordpressRoot : $canonical_root;
+		$this->canonicalWordpressRoot = str_replace( '\\', '/', $this->canonicalWordpressRoot );
 	}
 
 	/**
@@ -837,11 +838,13 @@ class HookDocBlock {
 			return null;
 		}
 
-		$canonical = str_replace( '\\', '/', realpath( $candidate ) );
+		$canonical = realpath( $candidate );
 
 		if ( false === $canonical ) {
 			return null;
 		}
+
+		$canonical = str_replace( '\\', '/', $canonical );
 
 		return str_starts_with( $canonical, $this->canonicalWordpressRoot . '/' ) ? $canonical : null;
 	}
