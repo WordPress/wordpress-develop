@@ -1145,6 +1145,17 @@ $_old_files = array(
 	'wp-includes/images/icon-library/video.svg',
 	'wp-includes/images/icon-library/widget.svg',
 	'wp-includes/images/icon-library/word-count.svg',
+	'wp-admin/images/about-header-credits.webp',
+	'wp-admin/images/about-header-credits-rtl.webp',
+	'wp-admin/images/about-header-default.webp',
+	'wp-admin/images/about-header-default-rtl.webp',
+	'wp-admin/images/about-header-freedoms.webp',
+	'wp-admin/images/about-header-freedoms-rtl.webp',
+	'wp-admin/images/about-header-get-involved.webp',
+	'wp-admin/images/about-header-get-involved-rtl.webp',
+	'wp-admin/images/about-header-privacy.webp',
+	'wp-admin/images/about-header-privacy-rtl.webp',
+	'wp-admin/images/about-release-logo.svg',
 	/*
 	 * Restored in WordPress 7.2.
 	 *
@@ -1159,17 +1170,6 @@ $_old_files = array(
 	 * 'wp-includes/images/icon-library/update.svg',
 	 * 'wp-includes/images/icon-library/wordpress.svg',
 	 */
-	'wp-admin/images/about-header-credits.webp',
-	'wp-admin/images/about-header-credits-rtl.webp',
-	'wp-admin/images/about-header-default.webp',
-	'wp-admin/images/about-header-default-rtl.webp',
-	'wp-admin/images/about-header-freedoms.webp',
-	'wp-admin/images/about-header-freedoms-rtl.webp',
-	'wp-admin/images/about-header-get-involved.webp',
-	'wp-admin/images/about-header-get-involved-rtl.webp',
-	'wp-admin/images/about-header-privacy.webp',
-	'wp-admin/images/about-header-privacy-rtl.webp',
-	'wp-admin/images/about-release-logo.svg',
 );
 
 /**
