@@ -173,7 +173,7 @@ class HookDocBlock {
 		$this->fileTypeMapper = $file_type_mapper;
 		$this->wordpressRoot  = rtrim( $wordpress_root ?? dirname( __DIR__, 2 ) . '/src', '/' );
 
-		$canonical_root               = realpath( $this->wordpressRoot );
+		$canonical_root               = str_replace( '\\', '/', realpath( $this->wordpressRoot ) );
 		$this->canonicalWordpressRoot = false === $canonical_root ? $this->wordpressRoot : $canonical_root;
 	}
 
@@ -837,7 +837,7 @@ class HookDocBlock {
 			return null;
 		}
 
-		$canonical = realpath( $candidate );
+		$canonical = str_replace( '\\', '/', realpath( $candidate ) );
 
 		if ( false === $canonical ) {
 			return null;
