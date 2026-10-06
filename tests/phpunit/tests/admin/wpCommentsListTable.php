@@ -196,6 +196,43 @@ OPTIONS;
 	}
 
 	/**
+	 * @covers WP_Comments_List_Table::get_views
+	 */
+	public function test_get_views_should_hide_empty_status_links() {
+		$this->table->prepare_items();
+
+		$views = $this->table->get_views();
+
+		$this->assertArrayHasKey( 'all', $views, 'The "All" view should always be shown.' );
+		$this->assertArrayNotHasKey( 'moderated', $views, 'Views with a zero count should be hidden.' );
+		$this->assertArrayNotHasKey( 'approved', $views, 'Views with a zero count should be hidden.' );
+		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should be hidden.' );
+		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should be hidden.' );
+	}
+
+	/**
+	 * @covers WP_Comments_List_Table::get_views
+	 */
+	public function test_get_views_should_show_status_link_with_nonzero_count() {
+		$post_id = self::factory()->post->create();
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+
+		$this->table->prepare_items();
+
+		$views = $this->table->get_views();
+
+		$this->assertArrayHasKey( 'approved', $views, 'A view with a nonzero count should be shown.' );
+		$this->assertArrayNotHasKey( 'moderated', $views, 'Views with a zero count should still be hidden.' );
+		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should still be hidden.' );
+		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should still be hidden.' );
+	}
+
+	/**
 	 * Verify that the comments table never shows the note comment_type.
 	 *
 	 * @ticket 64198
