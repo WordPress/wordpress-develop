@@ -6312,9 +6312,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$schema   = $response->get_data()['schema']['properties']['edit_root'];
 
-		$this->assertSame( 'integer', $schema['type'] );
-		$this->assertSame( array( 'edit' ), $schema['context'] );
-		$this->assertTrue( $schema['readonly'] );
+		$this->assertSame( 'integer', $schema['type'], 'The edit root should be typed as an integer.' );
+		$this->assertSame( array( 'edit' ), $schema['context'], 'The edit root should be exposed in the edit context only.' );
+		$this->assertTrue( $schema['readonly'], 'The edit root should be read only.' );
 	}
 
 	/**
@@ -6371,8 +6371,8 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayHasKey( 'edit_root', $data );
-		$this->assertSame( $attachment, $data['edit_root'] );
+		$this->assertArrayHasKey( 'edit_root', $data, 'An edited image should report an edit root.' );
+		$this->assertSame( $attachment, $data['edit_root'], 'The edit root should be the image that was edited.' );
 	}
 
 	/**
@@ -6393,7 +6393,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		$links = $response->get_links();
-		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links, 'An edited image should carry an edit root link.' );
 		$this->assertCount(
 			1,
 			$links['https://api.w.org/edit-root'],
@@ -6401,14 +6401,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		);
 
 		$link = $links['https://api.w.org/edit-root'][0];
-		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'] );
-		$this->assertTrue( $link['attributes']['embeddable'] );
+		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'], 'The link should point at the edit root.' );
+		$this->assertTrue( $link['attributes']['embeddable'], 'The link should be embeddable.' );
 
 		// Requesting `_embed` hydrates the edit root alongside the edited image.
 		$embedded = rest_get_server()->response_to_data( $response, true );
 		$this->assertSame(
 			$attachment,
-			$embedded['_embedded']['wp:edit-root'][0]['id']
+			$embedded['_embedded']['wp:edit-root'][0]['id'],
+			'Embedding should hydrate the edit root alongside the edited image.'
 		);
 	}
 
@@ -6440,7 +6441,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$response = rest_do_request( $request );
 
-		$this->assertSame( 0, $response->get_data()['edit_root'] );
+		$this->assertSame( 0, $response->get_data()['edit_root'], 'An uploaded image should report no edit root.' );
 		$this->assertArrayNotHasKey(
 			'https://api.w.org/edit-root',
 			$response->get_links(),
@@ -6480,9 +6481,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( '_fields', 'id,edit_root' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayHasKey( 'edit_root', $data );
+		$this->assertArrayHasKey( 'edit_root', $data, 'The edit root should be returned when it is the only field requested.' );
 		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
-		$this->assertSame( $attachment, $data['edit_root'] );
+		$this->assertSame( $attachment, $data['edit_root'], 'Limiting the fields should not change the reported edit root.' );
 	}
 
 	/**
@@ -6583,7 +6584,11 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'context', 'edit' );
 		$response = rest_do_request( $request );
 
-		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $response->get_data()['edit_root'] );
+		$this->assertSame(
+			REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			$response->get_data()['edit_root'],
+			'The field should report the recorded ID even when the edit root is gone.'
+		);
 		$this->assertArrayNotHasKey(
 			'https://api.w.org/edit-root',
 			$response->get_links(),
