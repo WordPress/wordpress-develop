@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Abilities API
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 declare( strict_types = 1 );
@@ -34,7 +34,7 @@ declare( strict_types = 1 );
  * not part of the public API. It may be changed or removed at any time without notice.
  * Do not use it directly or rely on its existence.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @access private
  */
@@ -43,7 +43,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * The ability category used for settings abilities.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var string
 	 */
 	private const CATEGORY = 'site';
@@ -54,7 +54,7 @@ final class WP_Settings_Abilities {
 	 * Cached so the input/output schema and the executed result derive from the exact same
 	 * structure, and {@see get_registered_settings()} is only walked once per request.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>|null
 	 */
 	private $exposed_settings = null;
@@ -64,7 +64,7 @@ final class WP_Settings_Abilities {
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public function register(): void {
 		/*
@@ -97,7 +97,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * Registers the read-only `core/settings-get` ability.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	private function register_get_settings(): void {
 		// Compute once; execute_get_settings() reuses this exact structure.
@@ -145,7 +145,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * Executes the `core/settings-get` ability.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed> Map of exposed setting name to current value.
@@ -184,7 +184,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * Checks whether the current user may use the settings abilities.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return bool True if the current user can manage options.
 	 */
@@ -198,7 +198,7 @@ final class WP_Settings_Abilities {
 	 * Both `group` and `fields` are optional; supplying both narrows the response to their
 	 * intersection, and supplying neither returns every exposed setting.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param list<string> $groups      Available settings groups.
 	 * @param list<string> $field_names Available exposed setting names.
@@ -236,7 +236,7 @@ final class WP_Settings_Abilities {
 	 * underlying option name, the settings group, the registration default, and a JSON Schema
 	 * describing the value.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}> Settings keyed by exposed name.
 	 */
@@ -266,7 +266,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * Builds the JSON Schema describing a single setting's value.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed>      $args The setting registration arguments.
 	 * @param bool|array<string, mixed> $show The setting's `show_in_abilities` value.
@@ -294,7 +294,7 @@ final class WP_Settings_Abilities {
 	/**
 	 * Casts a stored option value to the type declared in its settings registration.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param mixed  $value The raw option value.
 	 * @param string $type  The registered setting type.

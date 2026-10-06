@@ -34,7 +34,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * that uses the Abilities API before the REST server loads. The ability must
 	 * self-register core's initial settings (see WP_Settings_Abilities::register()).
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
@@ -72,7 +72,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	/**
 	 * Tear down after the class.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
 		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );

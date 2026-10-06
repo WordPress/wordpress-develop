@@ -2744,7 +2744,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
  * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
- * @since 7.1.0 Added `show_in_abilities` support for the exposed settings.
+ * @since 7.2.0 Added `show_in_abilities` support for the exposed settings.
  */
 function register_initial_settings() {
 	register_setting(
@@ -3019,7 +3019,7 @@ function register_initial_settings() {
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
  * @since 6.6.0 Added the `label` argument.
- * @since 7.1.0 Added the `show_in_abilities` argument.
+ * @since 7.2.0 Added the `show_in_abilities` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -3253,7 +3253,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  * Retrieves an array of registered settings.
  *
  * @since 4.7.0
- * @since 7.1.0 Registered setting data includes the `show_in_abilities` argument.
+ * @since 7.2.0 Registered setting data includes the `show_in_abilities` argument.
  *
  * @global array $wp_registered_settings
  *
