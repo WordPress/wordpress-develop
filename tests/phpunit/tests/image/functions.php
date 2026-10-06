@@ -1187,4 +1187,71 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that _flip_image_resource() mirrors every pixel for each flip mode.
+	 *
+	 * A small non-square image with a distinct color per pixel is used so that
+	 * mixed up axes, off-by-one shifts and duplicated edges are all detected.
+	 *
+	 * @ticket 66113
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @dataProvider data_flip_image_resource
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
+			}
+		}
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( is_gd_image( $flipped ), 'A GD image should be returned.' );
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Data provider for test_flip_image_resource().
+	 *
+	 * @return array[]
+	 */
+	public function data_flip_image_resource() {
+		return array(
+			'no flip'         => array( false, false ),
+			'vertical flip'   => array( true, false ),
+			'horizontal flip' => array( false, true ),
+			'both'            => array( true, true ),
+		);
+	}
 }
