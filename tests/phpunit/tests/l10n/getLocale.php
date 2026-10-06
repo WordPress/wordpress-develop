@@ -7,38 +7,6 @@
  * @covers ::get_locale
  */
 class Tests_L10n_GetLocale extends WP_UnitTestCase {
-
-	/**
-	 * The value of the `$locale` global before the current test ran.
-	 */
-	private ?string $original_locale = null;
-
-	/**
-	 * Saves the locale global, which these tests overwrite.
-	 *
-	 * @global string $locale The current locale.
-	 */
-	public function set_up(): void {
-		parent::set_up();
-
-		global $locale;
-
-		$this->original_locale = $locale;
-	}
-
-	/**
-	 * Restores the locale global, including after a test fails part way through.
-	 *
-	 * @global string $locale The current locale.
-	 */
-	public function tear_down(): void {
-		global $locale;
-
-		$locale = $this->original_locale;
-
-		parent::tear_down();
-	}
-
 	/**
 	 * @global string $locale The current locale.
 	 */
