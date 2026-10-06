@@ -88,11 +88,11 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @global array  $tabs  The tabs shown on the Add Plugins screen.
-	 * @global string $tab   The current active tab.
-	 * @global int    $paged The current page number.
-	 * @global string $type  The type of search being performed.
-	 * @global string $term  The search term.
+	 * @global array<string, string> $tabs  The tabs shown on the Add Plugins screen.
+	 * @global string                $tab   The current active tab.
+	 * @global int                   $paged The current page number.
+	 * @global string                $type  The type of search being performed.
+	 * @global string                $term  The search term.
 	 */
 	public function prepare_items() {
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
