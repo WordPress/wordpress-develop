@@ -36,11 +36,6 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-internal-pointers.php
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
 			count: 2
 			path: ../../../src/wp-admin/post.php
 		-
