@@ -17,10 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 global $hook_suffix;
 ?>
 
-<div class="clear"></div></div><!-- wpbody-content -->
-<div class="clear"></div></div><!-- wpbody -->
-<div class="clear"></div></div><!-- wpcontent -->
-
 <div id="wpfooter" role="contentinfo">
 	<?php
 	/**
@@ -67,6 +63,9 @@ global $hook_suffix;
 	</p>
 	<div class="clear"></div>
 </div>
+<div class="clear"></div></div><!-- wpbody-content -->
+<div class="clear"></div></div><!-- wpbody -->
+<div class="clear"></div></div><!-- wpcontent -->
 <?php
 /**
  * Prints scripts or data before the default footer scripts.
