@@ -240,7 +240,9 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return array<string, array{0: string, 1: bool, 2: string, 3: string, 4?: string}> Sortable columns.
+	 * @return array<string, array<int, string|bool>> Sortable columns.
+	 *
+	 * @phpstan-return array<string, array{0: string, 1: bool, 2: string, 3: string, 4?: string}>
 	 */
 	protected function get_sortable_columns() {
 		return array(
