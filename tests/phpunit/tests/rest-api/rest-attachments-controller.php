@@ -2209,11 +2209,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
 	 *
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_honors_jpeg_quality_filter() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$filter = static function () {
 			return 70;
