@@ -2155,11 +2155,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_default_in_response() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
 		$request->set_param( 'context', 'edit' );
