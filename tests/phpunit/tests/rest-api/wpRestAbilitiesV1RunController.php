@@ -1918,4 +1918,58 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( array( 'include' => array( '1', '01' ) ), $response->get_data()['value'] );
 	}
+
+	/**
+	 * Data provider for an empty array result sent for different output schema types.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: string}> Output schema, and the
+	 *                                                                  expected JSON response.
+	 */
+	public function data_empty_array_result(): array {
+		return array(
+			'object'          => array( array( 'type' => 'object' ), '{}' ),
+			'nullable object' => array( array( 'type' => array( 'object', 'null' ) ), '{}' ),
+			'array'           => array( array( 'type' => 'array' ), '[]' ),
+			'object or array' => array( array( 'type' => array( 'object', 'array' ) ), '[]' ),
+			'no type'         => array( array(), '[]' ),
+		);
+	}
+
+	/**
+	 * Tests that an empty array result is sent as an empty object when the output schema
+	 * describes an object.
+	 *
+	 * @ticket 64605
+	 *
+	 * @dataProvider data_empty_array_result
+	 *
+	 * @param array<string, mixed> $output_schema Output schema for the ability.
+	 * @param string               $expected_json Expected JSON response.
+	 */
+	public function test_empty_array_result_matches_the_output_schema( array $output_schema, string $expected_json ): void {
+		$this->register_test_ability(
+			'test/empty-result',
+			array(
+				'label'               => 'Empty Result',
+				'description'         => 'Returns an empty array.',
+				'category'            => 'general',
+				'output_schema'       => $output_schema,
+				'execute_callback'    => static function (): array {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'annotations'  => array(
+						'readonly' => true,
+					),
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		$response = $this->dispatch_run( 'GET', 'test/empty-result' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected_json, wp_json_encode( $this->server->response_to_data( $response, false ) ) );
+	}
 }

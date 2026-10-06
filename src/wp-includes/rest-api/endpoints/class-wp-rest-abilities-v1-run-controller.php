@@ -75,6 +75,8 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 * Executes an ability.
 	 *
 	 * @since 6.9.0
+	 * @since 7.2.0 An empty array result is sent as an empty object when the output schema
+	 *              describes an object.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -95,7 +97,30 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $result;
 		}
 
+		/*
+		 * An empty PHP array is encoded as a JSON array (`[]`). When the output schema
+		 * describes an object, send an empty object (`{}`) instead, so the response matches
+		 * the schema. Abilities can keep returning plain arrays to PHP callers.
+		 */
+		if ( array() === $result && $this->is_object_schema( $ability->get_output_schema() ) ) {
+			$result = (object) array();
+		}
+
 		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Determines whether a schema describes an object rather than an array.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $schema The JSON Schema to check.
+	 * @return bool True if the schema type allows an object but not an array.
+	 */
+	private function is_object_schema( array $schema ): bool {
+		$types = (array) ( $schema['type'] ?? array() );
+
+		return in_array( 'object', $types, true ) && ! in_array( 'array', $types, true );
 	}
 
 	/**
