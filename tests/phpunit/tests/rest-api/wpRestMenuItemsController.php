@@ -184,6 +184,38 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 	}
 
 	/**
+	 * @ticket 63670
+	 *
+	 * @covers ::get_available_actions
+	 */
+	public function test_get_item_has_no_trash_action_link() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/menu-items/%d', $this->menu_item_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayHasKey( 'self', $links, 'The response should have a self link.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links, 'The response should not have a trash action link.' );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers ::get_schema_links
+	 */
+	public function test_trash_action_ldo_not_registered() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/menu-items' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$trash = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-trash' ) );
+
+		$this->assertCount( 0, $trash, 'LDO found on schema.' );
+	}
+
+	/**
 	 * @ticket 54304
 	 * @covers ::get_items
 	 */

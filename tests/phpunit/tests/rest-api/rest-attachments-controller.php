@@ -2609,6 +2609,27 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-publish', $links );
 	}
 
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_without_media_trash() {
+		$this->assertFalse( MEDIA_TRASH, 'The test expects the default MEDIA_TRASH value.' );
+
+		wp_set_current_user( self::$editor_id );
+
+		$post = self::factory()->attachment->create( array( 'post_author' => self::$editor_id ) );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$post}" );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
 	protected function check_post_data( $attachment, $data, $context = 'view', $links = array() ) {
 		parent::check_post_data( $attachment, $data, $context, $links );
 
