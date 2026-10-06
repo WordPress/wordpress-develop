@@ -139,6 +139,49 @@ class Tests_General_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the site icon URL scheme is upgraded for the current request, but never downgraded.
+	 *
+	 * The site icon is display chrome that also renders in wp-admin and on the
+	 * login screen, where wp_get_attachment_image_url() does not correct the scheme.
+	 *
+	 * On an HTTPS request with an http:// siteurl the icon must still be served
+	 * over HTTPS to avoid a broken, mixed-content image.
+	 *
+	 * @ticket 65696
+	 *
+	 * @group site_icon
+	 *
+	 * @covers ::get_site_icon_url
+	 *
+	 * @requires function imagejpeg
+	 */
+	public function test_get_site_icon_url_scheme() {
+		$this->set_site_icon();
+
+		set_current_screen( 'dashboard' );
+		$this->assertTrue( is_admin(), 'Test should run in the admin context.' );
+		$this->assertFalse( is_ssl(), 'Baseline request should not be detected as SSL.' );
+		$this->assertStringStartsWith( 'http://', get_site_icon_url(), 'Baseline icon URL should use the HTTP scheme.' );
+
+		$_SERVER['HTTPS'] = 'on';
+		$this->assertTrue( is_ssl(), 'Request should now be detected as SSL.' );
+		$this->assertStringStartsWith( 'https://', get_site_icon_url(), 'Site icon URL should use the HTTPS scheme on an SSL admin request.' );
+
+		add_filter(
+			'upload_dir',
+			static function ( $uploads ) {
+				$uploads['url']     = set_url_scheme( $uploads['url'], 'https' );
+				$uploads['baseurl'] = set_url_scheme( $uploads['baseurl'], 'https' );
+				return $uploads;
+			}
+		);
+
+		unset( $_SERVER['HTTPS'] );
+		$this->assertFalse( is_ssl(), 'Request should no longer be detected as SSL.' );
+		$this->assertStringStartsWith( 'https://', get_site_icon_url(), 'Site icon URL should preserve the HTTPS scheme on a non-SSL request.' );
+	}
+
+	/**
 	 * @group site_icon
 	 * @covers ::site_icon_url
 	 * @requires function imagejpeg
@@ -641,12 +684,12 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
 	 */
 	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined( $url, $attribute_expected ) {
-		// Set up pretty permalinks.
-		update_option( 'permalink_structure', '/%postname%/' );
-
 		// Set posts to show on a static page.
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
+
+		// Set up pretty permalinks.
+		$this->set_permalink_structure( '/%postname%/' );
 
 		// Set the custom logo.
 		$this->set_custom_logo();
@@ -669,7 +712,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_without_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
-			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog index'  => array( home_url( '/blog/' ), false ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
 			'Sample page' => array( home_url( '/?page_id=2' ), false ),
 		);
@@ -688,13 +731,13 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @param bool   $attribute_expected Whether the aria-current attribute is expected.
 	 */
 	public function test_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined( $url, $attribute_expected ) {
-		// Set up pretty permalinks.
-		update_option( 'permalink_structure', '/%postname%/' );
-
 		// Set posts to show on a static page, show static page on front.
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', self::$blog_page_id );
 		update_option( 'page_on_front', self::$home_page_id );
+
+		// Set up pretty permalinks.
+		$this->set_permalink_structure( '/%postname%/' );
 
 		// Set the custom logo.
 		$this->set_custom_logo();
@@ -717,7 +760,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	public function data_get_custom_logo_aria_current_attribute_blog_set_to_page_with_front_page_defined() {
 		return array(
 			'Front page'  => array( home_url(), true ),
-			'Blog index'  => array( home_url( '/blog/' ), true ),
+			'Blog index'  => array( home_url( '/blog/' ), false ),
 			'Blog post'   => array( home_url( '/?p=1' ), false ),
 			'Sample page' => array( home_url( '/?page_id=2' ), false ),
 		);

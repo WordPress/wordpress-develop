@@ -21,6 +21,13 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	protected $backup_registered_sidebars;
 
 	/**
+	 * Theme support state before the test runs.
+	 *
+	 * @var array
+	 */
+	protected $backup_theme_features;
+
+	/**
 	 * ID of the administrator user.
 	 *
 	 * @var int
@@ -40,6 +47,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		parent::set_up();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
+		$this->backup_theme_features = $GLOBALS['_wp_theme_features'];
 		add_theme_support( 'customize-selective-refresh-widgets' );
 		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 
@@ -110,6 +118,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_customize'] );
 		unset( $GLOBALS['wp_scripts'] );
 		$GLOBALS['wp_registered_sidebars'] = $this->backup_registered_sidebars;
+		$GLOBALS['_wp_theme_features']     = $this->backup_theme_features;
 		parent::tear_down();
 	}
 
@@ -397,8 +406,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 		$this->assertSame( 'WIDGET_FOO[2]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
@@ -411,8 +420,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$args = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
@@ -443,8 +452,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
-		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
-		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_callback'], 'sanitize_callback is callable' );
+		$this->assertIsCallable( $args['sanitize_js_callback'], 'sanitize_js_callback is callable' );
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
@@ -515,6 +524,8 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( '', $sanitized_for_js['title'] );
 		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
 		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( (object) $block_instance, $sanitized_for_js['raw_instance'] );
 
 		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );

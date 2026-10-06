@@ -364,7 +364,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test to make sure that inline styles attached to conditional
 	 * stylesheets are also conditional.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -607,6 +607,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group assets
+	 *
 	 * @ticket 58394
 	 * @ticket 63887
 	 *
@@ -745,6 +747,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * wp_filesize should be only be called once, as on the second run of wp_maybe_inline_styles,
 	 * src will be set to false and filesize will not be requested.
 	 *
+	 * @group assets
+	 *
 	 * @ticket 58394
 	 *
 	 * @covers ::wp_maybe_inline_styles
@@ -853,6 +857,8 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group assets
+	 *
 	 * @ticket 64447
 	 *
 	 * @covers ::wp_maybe_inline_styles

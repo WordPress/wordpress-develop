@@ -101,11 +101,11 @@ JS;
 		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
 		$find_id_tag_processor->next_token();
 		$id = $find_id_tag_processor->get_attribute( 'id' );
-		assert( is_string( $id ) );
+		$this->assertIsString( $id, 'The expected SCRIPT tag must have an ID attribute.' );
 
 		$processor = ( new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 			public function get_script_html() {
-				assert( 'SCRIPT' === $this->get_tag() );
+				assert( 'SCRIPT' === $this->get_tag(), 'The processor must be paused on a SCRIPT tag.' );
 				$this->set_bookmark( 'here' );
 				$span = $this->bookmarks['_here'];
 				return substr( $this->html, $span->start, $span->length );
@@ -227,6 +227,38 @@ JS;
 		return array(
 			'defer' => array( 'defer' ),
 			'async' => array( 'async' ),
+		);
+	}
+
+	/**
+	 * Tests that inline scripts do not include a false entry when no data exists yet.
+	 *
+	 * @ticket 52320
+	 * @dataProvider data_inline_script_positions
+	 *
+	 * @param string $position Inline script position.
+	 */
+	public function test_add_inline_script_does_not_store_false_for_empty_existing_data( $position ): void {
+		$handle = 'test-inline-script-' . $position;
+
+		wp_register_script( $handle, '/test.js', array(), null );
+		wp_add_inline_script( $handle, 'console.log( "test" );', $position );
+
+		$this->assertSame(
+			array( 'console.log( "test" );' ),
+			wp_scripts()->get_data( $handle, $position )
+		);
+	}
+
+	/**
+	 * Data provider for inline script positions.
+	 *
+	 * @return array<string, array{0: string}> Inline script positions.
+	 */
+	public function data_inline_script_positions(): array {
+		return array(
+			'before' => array( 'before' ),
+			'after'  => array( 'after' ),
 		);
 	}
 
@@ -557,9 +589,8 @@ JS;
 	 *
 	 * @dataProvider get_data_to_filter_eligible_strategies
 	 *
-	 * @param callable $set_up     Set up.
-	 * @param bool     $async_only Async only.
-	 * @param bool     $expected   Expected return value.
+	 * @param callable $set_up   Set up.
+	 * @param string[] $expected Expected return value.
 	 */
 	public function test_filter_eligible_strategies( $set_up, $expected ) {
 		$handle = $set_up();
@@ -2319,7 +2350,7 @@ HTML;
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
@@ -2739,7 +2770,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 14853
 	 * @ticket 63821
@@ -2790,7 +2821,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 36392
 	 * @ticket 63821
@@ -3072,7 +3103,7 @@ HTML;
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualHTML( $expected_tag, ob_get_clean() );
-		$this->assertEquals( $expected_data, $output );
+		$this->assertSame( $expected_data, $output );
 	}
 
 	/**
@@ -3860,7 +3891,7 @@ HTML;
 		$this->assertEqualHTML( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
 		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
-		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+		$this->assertSame( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
 	}
 
 	/**
@@ -4141,6 +4172,7 @@ HTML;
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
+	 * @ticket 60478
 	 *
 	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
@@ -4202,6 +4234,7 @@ HTML;
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'jquery-migrate'                   => array( 'jquery-migrate' ),
 			'htmlhint'                         => array( 'htmlhint' ),
 			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),
