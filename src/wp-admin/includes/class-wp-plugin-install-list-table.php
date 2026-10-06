@@ -517,8 +517,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param object $plugin_a The first plugin object.
-	 * @param object $plugin_b The second plugin object.
+	 * @param array<string, mixed> $plugin_a The first plugin data.
+	 * @param array<string, mixed> $plugin_b The second plugin data.
 	 * @return int Comparison result.
 	 */
 	private function order_callback( $plugin_a, $plugin_b ) {
