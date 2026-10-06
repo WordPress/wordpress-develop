@@ -463,6 +463,8 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	 * @global string $tab The current active tab.
 	 *
 	 * @param string $which The location of the navigation: Either 'top' or 'bottom'.
+	 *
+	 * @phpstan-param 'top'|'bottom' $which
 	 */
 	protected function display_tablenav( $which ) {
 		if ( 'featured' === $GLOBALS['tab'] ) {
