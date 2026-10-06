@@ -3052,7 +3052,7 @@ function wp_prefetch_admin_assets(): void {
 			}
 
 			const prefetch = () => {
-				for ( const link of document.querySelectorAll( 'link[rel~="prefetch"][href]' ) ) {
+				for ( const link of /** @type {NodeListOf<HTMLLinkElement>} */ ( document.querySelectorAll( 'link[rel~="prefetch"][href]' ) ) ) {
 					fetch( link.href, { mode: 'no-cors', credentials: 'include', priority: 'low' } )
 						.then( ( response ) => response.blob() )
 						.catch( () => {} );
