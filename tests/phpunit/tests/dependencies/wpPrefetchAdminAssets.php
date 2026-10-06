@@ -466,6 +466,10 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	 * @ticket 57548
 	 */
 	public function test_login_prefetches_for_admin_with_explicit_default_port(): void {
+		// Serve the site without a port of its own, as the test environment may not, so the redirect can name the default one.
+		update_option( 'home', preg_replace( '#^(https?://[^/:]+):\d+#', '$1', home_url() ) );
+		update_option( 'siteurl', preg_replace( '#^(https?://[^/:]+):\d+#', '$1', site_url() ) );
+
 		$scheme = (string) wp_parse_url( admin_url(), PHP_URL_SCHEME );
 		$host   = (string) wp_parse_url( admin_url(), PHP_URL_HOST );
 		$path   = (string) wp_parse_url( admin_url( 'post-new.php' ), PHP_URL_PATH );
