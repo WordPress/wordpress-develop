@@ -1,6 +1,6 @@
 <?php
 /**
- * Abilities API: WP_Settings_Abilities class.
+ * Abilities API: WP_Abilities_Settings class.
  *
  * @package WordPress
  * @subpackage Abilities API
@@ -38,7 +38,7 @@ declare( strict_types = 1 );
  *
  * @access private
  */
-final class WP_Settings_Abilities {
+final class WP_Abilities_Settings {
 
 	/**
 	 * The ability category used for settings abilities.

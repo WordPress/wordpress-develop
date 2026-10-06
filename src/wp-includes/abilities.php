@@ -9,7 +9,7 @@
 
 declare( strict_types = 1 );
 
-require_once __DIR__ . '/abilities/class-wp-settings-abilities.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
 
 /**
  * Registers the core ability categories.
@@ -364,5 +364,5 @@ function wp_register_core_abilities(): void {
 	);
 
 	// Register the settings abilities (currently the read-only `core/settings-get`).
-	( new WP_Settings_Abilities() )->register();
+	( new WP_Abilities_Settings() )->register();
 }

@@ -6,7 +6,7 @@ declare( strict_types=1 );
  * Tests for the core/settings-get ability shipped with the Abilities API.
  *
  * @covers wp_register_core_abilities
- * @covers WP_Settings_Abilities
+ * @covers WP_Abilities_Settings
  *
  * @group abilities-api
  */
@@ -32,7 +32,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * The ability is registered under the ordering that used to break it: no settings
 	 * registered yet and `rest_api_init` never fired, as on cron, WP-CLI, or any request
 	 * that uses the Abilities API before the REST server loads. The ability must
-	 * self-register core's initial settings (see WP_Settings_Abilities::register()).
+	 * self-register core's initial settings (see WP_Abilities_Settings::register()).
 	 *
 	 * @since 7.2.0
 	 */
@@ -111,7 +111,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		$wp_current_filter[] = 'wp_abilities_api_init';
 		try {
-			( new WP_Settings_Abilities() )->register();
+			( new WP_Abilities_Settings() )->register();
 		} finally {
 			array_pop( $wp_current_filter );
 		}
