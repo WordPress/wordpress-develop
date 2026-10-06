@@ -1425,7 +1425,13 @@ final class WP_Content_Abilities {
 		 * filter cannot leave them attached for the rest of the request.
 		 */
 		try {
-			return get_the_title( $post );
+			$title = get_the_title( $post );
+
+			/*
+			 * A title filter that returns a non-string would fail the return type, so guard
+			 * it as the excerpt and content are.
+			 */
+			return is_string( $title ) ? $title : '';
 		} finally {
 			remove_filter( 'protected_title_format', $strip );
 			remove_filter( 'private_title_format', $strip );
