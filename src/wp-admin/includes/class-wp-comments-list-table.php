@@ -327,6 +327,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$num_comments->$status = 10;
 			}
 
+			// Don't show statuses (other than "All") with zero comments, as on the Posts list table.
+			if ( 'all' !== $status && empty( $num_comments->$status ) ) {
+				continue;
+			}
+
 			$link = add_query_arg( 'comment_status', $status, $link );
 
 			if ( $post_id ) {
