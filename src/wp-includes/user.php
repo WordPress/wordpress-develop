@@ -2351,16 +2351,18 @@ function wp_insert_user( $userdata ) {
 		return new WP_Error( 'user_login_too_long', __( 'Username may not be longer than 60 characters.' ) );
 	}
 
-	// Check additional restrictions for new users.
+	/*
+	 * The username can only be set when creating a user, so these checks never
+	 * run on update. This keeps existing users editable even if their username
+	 * already matches another user's email address.
+	 */
 	if ( ! $update ) {
-
-		// Username must be unique.
 		if ( username_exists( $user_login ) ) {
 			return new WP_Error( 'existing_user_login', __( 'Sorry, that username already exists!' ) );
 		}
 
-		// Username must not match an existing user email.
-		if ( email_exists( $user_login ) ) {
+		// Username must not match another user's email address.
+		if ( ! defined( 'WP_IMPORTING' ) && email_exists( $user_login ) ) {
 			return new WP_Error( 'existing_user_email_as_login', __( 'Sorry, that username is not available.' ) );
 		}
 	}
@@ -2432,15 +2434,21 @@ function wp_insert_user( $userdata ) {
 	$user_email = apply_filters( 'pre_user_email', $raw_user_email );
 
 	/*
-	 * If there is no update, just check for `email_exists`. If there is an update,
-	 * check if current email and new email are the same, and check `email_exists`
-	 * accordingly.
+	 * Only validate the email address when creating a user or when the email
+	 * address is changing, so that existing users can always be updated.
 	 */
-	if ( ( ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $user_email, $old_user_data->user_email ) ) )
-		&& ! defined( 'WP_IMPORTING' )
-		&& email_exists( $user_email )
-	) {
-		return new WP_Error( 'existing_user_email', __( 'Sorry, that email address is already used!' ) );
+	$is_new_email = ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $user_email, $old_user_data->user_email ) );
+
+	if ( $is_new_email && ! defined( 'WP_IMPORTING' ) ) {
+		if ( email_exists( $user_email ) ) {
+			return new WP_Error( 'existing_user_email', __( 'Sorry, that email address is already used!' ) );
+		}
+
+		// Email address must not match another user's username.
+		$login_owner_id = username_exists( $user_email );
+		if ( $login_owner_id && ( ! $update || (int) $login_owner_id !== $user_id ) ) {
+			return new WP_Error( 'existing_user_login_as_email', __( 'Sorry, that email address is not available.' ) );
+		}
 	}
 
 	$raw_user_url = empty( $userdata['user_url'] ) ? '' : $userdata['user_url'];
@@ -3631,6 +3639,8 @@ function register_new_user( $user_login, $user_email ) {
 				esc_url( wp_login_url() )
 			)
 		);
+	} elseif ( username_exists( $user_email ) ) {
+		$errors->add( 'email_exists_as_username', __( '<strong>Error:</strong> This email address is not available. Please choose another one.' ) );
 	}
 
 	/**
@@ -3936,7 +3946,9 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 			return;
 		}
 
-		if ( email_exists( $_POST['email'] ) ) {
+		$login_owner_id = username_exists( $_POST['email'] );
+
+		if ( email_exists( $_POST['email'] ) || ( $login_owner_id && (int) $login_owner_id !== $current_user->ID ) ) {
 			$errors->add(
 				'user_email',
 				__( '<strong>Error:</strong> The email address is already used.' ),
