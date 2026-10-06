@@ -25,7 +25,7 @@
 
 .media-modal label {
 	font-size: 13px;
-}	
+}
 
 .media-modal .legend-inline {
 	position: absolute;
@@ -136,8 +136,7 @@
 .media-frame textarea:focus,
 .media-frame select:focus {
 	border-color: var(--wp-admin-theme-color, #3858e9);
-	/* Expand border by 0.5px for total 1.5px effect */
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	outline: 2px solid transparent;
 }
 
@@ -146,7 +145,7 @@
 .media-frame input[readonly],
 .media-frame textarea[readonly] {
 	background-color: #f0f0f0;
-	border-color: #cccccc;
+	border-color: #ccc;
 	color: #949494;
 }
 
@@ -230,7 +229,7 @@
 	z-index: 1000;
 	cursor: pointer;
 	outline: none;
-	transition: color .1s ease-in-out, background .1s ease-in-out;
+	transition: color 0.1s ease-in-out, background 0.1s ease-in-out;
 }
 
 .media-modal-close:hover,
@@ -250,10 +249,10 @@
 	background-image: none;
 }
 
-.media-modal-close .media-modal-icon:before {
+.media-modal-close .media-modal-icon::before {
 	content: "\f158";
-	content: "\f158" / '';
-	font: normal 20px/1 dashicons;
+	content: "\f158" / "";
+	font: 400 20px/1 dashicons;
 	vertical-align: middle;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -270,13 +269,6 @@
 	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
 	background: #fff;
 	-webkit-font-smoothing: subpixel-antialiased;
-}
-
-.media-modal-content .button,
-.media-modal-content .button.button-large {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 .media-toolbar input[type="text"],
@@ -327,8 +319,8 @@
 
 .media-frame-toolbar .media-toolbar-primary > .media-button,
 .media-frame-toolbar .media-toolbar-primary > .media-button-group {
-	margin-top: 14px;
-	margin-bottom: 14px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 .media-toolbar-primary {
@@ -340,34 +332,41 @@
 .media-toolbar-secondary {
 	float: left;
 	height: 100%;
-	position: relative;
 	display: grid;
-	grid-template-columns: repeat( 2, 1fr );
-	grid-template-rows: repeat( 2, 1fr );
+	grid-template-columns: repeat(2, 1fr);
+	grid-template-rows: repeat(2, 1fr);
 	grid-column-gap: 12px;
-	grid-row-gap: 0px;
+	grid-row-gap: 0;
 	align-items: end;
 }
 
-label[for="media-attachment-filters"] { 
-	grid-area: 1 / 1 / 2 / 2; 
+label[for="media-attachment-filters"] {
+	grid-area: 1 / 1 / 2 / 2;
 }
 
-select#media-attachment-filters { 
-	grid-area: 2 / 1 / 3 / 2; 
+select#media-attachment-filters {
+	grid-area: 2 / 1 / 3 / 2;
 }
 
-label[for="media-attachment-date-filters"] { 
-	grid-area: 1 / 2 / 2 / 3; 
+label[for="media-attachment-date-filters"] {
+	grid-area: 1 / 1 / 2 / 2;
 }
 
-select#media-attachment-date-filters { 
-	grid-area: 2 / 2 / 3 / 3; 
-} 
+select#media-attachment-date-filters {
+	grid-area: 2 / 1 / 3 / 2;
+}
 
-.media-toolbar-secondary > .spinner {
+select#media-attachment-filters ~ label[for="media-attachment-date-filters"] {
+	grid-area: 1 / 2 / 2 / 3;
+}
+
+select#media-attachment-filters ~ select#media-attachment-date-filters {
+	grid-area: 2 / 2 / 3 / 3;
+}
+
+.media-modal .media-toolbar-secondary > .spinner {
 	position: absolute;
-	left: calc( 100% + 2px );
+	right: -30px;
 	top: 50%;
 	margin: 0;
 }
@@ -514,7 +513,7 @@ select#media-attachment-date-filters {
 .attachment-details .copy-to-clipboard-container {
 	flex-wrap: wrap;
 	margin-top: 10px;
-	margin-left: calc( 35% - 1px );
+	margin-left: calc(35% - 1px);
 	padding-top: 10px;
 }
 
@@ -565,7 +564,7 @@ select#media-attachment-date-filters {
 	width: 16px;
 	height: 16px;
 	font-size: 16px;
-	margin-top: 0px;
+	margin-top: 0;
 }
 
 .media-sidebar .setting .value,
@@ -780,7 +779,7 @@ select#media-attachment-date-filters {
 	border-bottom: none;
 }
 
-.media-router .active:after {
+.media-router .active::after {
 	display: none;
 }
 
@@ -1015,7 +1014,7 @@ select#media-attachment-date-filters {
 	content: attr(aria-label);
 	position: absolute;
 	bottom: 8px;
-	width: calc( 100% - 16px );
+	width: calc(100% - 16px);
 	left: 8px;
 	font-size: 12px;
 	background-color: rgba(255, 255, 255, 0.8);
@@ -1038,9 +1037,8 @@ select#media-attachment-date-filters {
 .wp-core-ui .attachment:focus,
 .wp-core-ui .selected.attachment:focus,
 .wp-core-ui .attachment.details:focus {
-	box-shadow:
-		inset 0 0 2px 3px #fff,
-		inset 0 0 0 7px var(--wp-admin-theme-color, #3858e9);
+	/* Keep this box-shadow consistent between media.css and media-views.css. */
+	box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -6px;
@@ -1067,7 +1065,7 @@ select#media-attachment-date-filters {
 	cursor: pointer;
 }
 
-.wp-core-ui .attachment-preview:before {
+.wp-core-ui .attachment-preview::before {
 	content: "";
 	display: block;
 	padding-top: 100%;
@@ -1086,7 +1084,7 @@ select#media-attachment-date-filters {
 	bottom: 0;
 	left: 0;
 	opacity: 1;
-	transition: opacity .1s;
+	transition: opacity 0.1s;
 }
 
 .wp-core-ui .attachment .portrait img {
@@ -1097,7 +1095,7 @@ select#media-attachment-date-filters {
 	max-height: 100%;
 }
 
-.wp-core-ui .attachment .thumbnail:after {
+.wp-core-ui .attachment .thumbnail::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -1110,6 +1108,7 @@ select#media-attachment-date-filters {
 }
 
 .wp-core-ui .attachment .thumbnail img {
+	position: absolute;
 	top: 0;
 	left: 0;
 }
@@ -1120,15 +1119,15 @@ select#media-attachment-date-filters {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	transform: translate( 50%, 50% );
+	transform: translate(50%, 50%);
 }
 
 .wp-core-ui .attachment .thumbnail .centered img {
-	transform: translate( -50%, -50% );
+	transform: translate(-50%, -50%);
 }
 
 .wp-core-ui .attachments-browser .attachment .thumbnail .centered img.icon {
-	transform: translate( -50%, -70% );
+	transform: translate(-50%, -70%);
 }
 
 .wp-core-ui .attachment .filename {
@@ -1147,10 +1146,6 @@ select#media-attachment-date-filters {
 
 .wp-core-ui .attachment .filename div {
 	padding: 5px 10px;
-}
-
-.wp-core-ui .attachment .thumbnail img {
-	position: absolute;
 }
 
 .wp-core-ui .attachment-close {
@@ -1294,13 +1289,13 @@ select#media-attachment-date-filters {
 }
 
 .attachments-browser .media-toolbar-primary {
-	max-width: calc( 33% - 20px );
+	max-width: calc(33% - 20px);
 }
 
 .mode-grid .attachments-browser .media-toolbar-primary {
 	display: flex;
 	align-items: center;
-	column-gap: .5rem;
+	column-gap: 0.5rem;
 	margin: 11px 0;
 }
 
@@ -1310,6 +1305,7 @@ select#media-attachment-date-filters {
 
 .attachments-browser .media-toolbar-secondary {
 	max-width: 66%;
+	position: relative;
 }
 
 .uploader-inline .close {
@@ -1327,12 +1323,12 @@ select#media-attachment-date-filters {
 	z-index: 1;
 }
 
-.uploader-inline .close:before {
-	font: normal 30px/1 dashicons !important;
+.uploader-inline .close::before {
+	font: 400 30px/1 dashicons !important;
 	color: #50575e;
 	display: inline-block;
 	content: "\f335";
-	content: "\f335" / '';
+	content: "\f335" / "";
 	font-weight: 300;
 	margin-top: 1px;
 }
@@ -1398,6 +1394,7 @@ select#media-attachment-date-filters {
 .load-more-wrapper::after {
 	content: "";
 	min-width: 100%;
+	/* stylelint-disable-next-line property-disallowed-list -- Used for an invisible element likely not really needed. */
 	order: 1;
 }
 
@@ -1406,7 +1403,11 @@ select#media-attachment-date-filters {
 }
 
 .attachment.new-media {
-	outline: 2px dotted #c3c4c7;
+	/* Dotted outline for the first added item when Infinite scrolling is disabled. */
+	/* Contrast ratio must be at least 3:1 against the #dcdcde background for added items when Infinite scrolling is disabled. */
+	outline: 2px dotted #757575;
+	/* Prevent the border from being obscured by adjacent items. */
+	outline-offset: -2px;
 }
 
 /**
@@ -1784,7 +1785,7 @@ select#media-attachment-date-filters {
 		0 0 0 3px var(--wp-admin-theme-color, #3858e9);
 }
 
-.media-selection:after {
+.media-selection::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -1792,7 +1793,7 @@ select#media-attachment-date-filters {
 	right: 0;
 	bottom: 0;
 	width: 25px;
-	background-image: linear-gradient(to left,#fff,rgba(255, 255, 255, 0));
+	background-image: linear-gradient(to left, #fff, rgba(255, 255, 255, 0));
 }
 
 .media-selection .attachment .filename {
@@ -1852,6 +1853,7 @@ select#media-attachment-date-filters {
 	text-align: right;
 	text-transform: none;
 	font-weight: 400;
+	display: flex;
 }
 
 .attachment-details .settings-save-status .spinner {
@@ -1915,7 +1917,7 @@ select#media-attachment-date-filters {
 	margin-top: 35px;
 }
 
-.attachment-info .thumbnail-image:after {
+.attachment-info .thumbnail-image::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -2083,9 +2085,9 @@ select#media-attachment-date-filters {
 	margin-top: -2px;
 }
 
-.media-modal .imgedit-help-toggled span.dashicons:before {
+.media-modal .imgedit-help-toggled span.dashicons::before {
 	content: "\f142";
-	content: "\f142" / '';
+	content: "\f142" / "";
 }
 
 .media-modal .imgedit-thumbnail-preview {
@@ -2262,20 +2264,20 @@ select#media-attachment-date-filters {
 	color: #646970;
 }
 
-.image-details .advanced-toggle:after {
-	font: normal 20px/1 dashicons;
+.image-details .advanced-toggle::after {
+	font: 400 20px/1 dashicons;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	content: "\f140";
-	content: "\f140" / '';
+	content: "\f140" / "";
 	display: inline-block;
 	margin-top: -2px;
 }
 
-.image-details .advanced-visible .advanced-toggle:after {
+.image-details .advanced-visible .advanced-toggle::after {
 	content: "\f142";
-	content: "\f142" / '';
+	content: "\f142" / "";
 }
 
 .image-details .custom-size label, /* Back-compat for pre-5.3 */
@@ -2313,7 +2315,7 @@ select#media-attachment-date-filters {
 	display: block;
 }
 
-.media-embed .thumbnail:after {
+.media-embed .thumbnail::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -2457,11 +2459,11 @@ select#media-attachment-date-filters {
 /**
  * Button groups fix: can be removed together with the Back-compat for pre-5.3
  */
- .media-frame .setting .button-group {
-	 display: flex;
-	 margin: 0 !important;
-	 max-width: none !important;
- }
+.media-frame .setting .button-group {
+	display: flex;
+	margin: 0 !important;
+	max-width: none !important;
+}
 
 /**
  * Localization
@@ -2632,6 +2634,7 @@ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.attachments-browser .attachments-wrapper,
@@ -2640,13 +2643,14 @@ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .media-toolbar {
-		height: 74px;
+		height: 117px;
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.media-frame-content .attachments-browser .attachments-wrapper {
-		top: 90px;
+		top: 131px;
 	}
 
 	.media-sidebar .setting,
@@ -2726,10 +2730,6 @@ select#media-attachment-date-filters {
 		width: 98%;
 		max-width: none;
 		height: auto;
-	}
-
-	.media-frame .media-toolbar input[type="search"] {
-		line-height: 2.25; /* 36px */
 	}
 
 	.media-toolbar-secondary,
@@ -2823,7 +2823,7 @@ select#media-attachment-date-filters {
 		min-width: 120px;
 	}
 
-	.media-selection:after {
+	.media-selection::after {
 		background: none;
 	}
 
@@ -2837,8 +2837,8 @@ select#media-attachment-date-filters {
 		float: right;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
-		top: calc( 50% - 8px );
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
+		top: calc(50% - 8px);
 	}
 
 	.media-modal .attachments-browser .media-toolbar .attachment-filters {
@@ -2872,10 +2872,6 @@ select#media-attachment-date-filters {
 		bottom: -60px;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
-		top: 0;
-	}
-
 	.mode-grid .attachments-browser .media-toolbar-primary {
 		display: grid;
 		grid-template-columns: auto 1fr;
@@ -2895,19 +2891,16 @@ select#media-attachment-date-filters {
 		position: unset;
 	}
 
-	.media-frame .media-toolbar-secondary .spinner {
-		position: absolute;
+	.media-modal .media-frame .media-toolbar-secondary .spinner {
 		top: 0;
 		bottom: 0;
 		margin: auto;
-		left: calc( 100% + 2px );
-		right: 0;
 		z-index: 9;
 	}
 
 	.media-bg-overlay {
-		content: '';
-		background: #ffffff;
+		content: "";
+		background: #fff;
 		width: 100%;
 		height: 100%;
 		display: none;
@@ -2953,6 +2946,7 @@ select#media-attachment-date-filters {
 	}
 
 	.attachments-browser .attachments,
+	.attachments-browser:not(.has-load-more) .attachments,
 	.attachments-browser .uploader-inline,
 	.attachments-browser .media-toolbar,
 	.media-frame-content .attachments-browser .attachments-wrapper {
@@ -3012,8 +3006,7 @@ select#media-attachment-date-filters {
  * HiDPI Displays
  */
 @media print,
-  (min-resolution: 120dpi) {
-
+	(min-resolution: 120dpi) {
 	.wp-core-ui .media-modal-icon {
 		background-image: url(../images/uploader-icons-2x.png);
 		background-size: 134px 15px;

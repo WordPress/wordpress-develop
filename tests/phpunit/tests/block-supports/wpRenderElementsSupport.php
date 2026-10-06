@@ -160,6 +160,70 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that duplicate blocks get distinct elements class names
+	 * on their rendered markup to avoid CSS cascade conflicts.
+	 *
+	 * @ticket 65435
+	 *
+	 * @covers ::wp_get_elements_class_name
+	 */
+	public function test_elements_block_support_class_with_duplicate_blocks(): void {
+		$this->test_block_name = 'test/element-block-supports';
+
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'color' => array(
+						'link' => true,
+					),
+				),
+			)
+		);
+
+		$block = array(
+			'blockName' => $this->test_block_name,
+			'attrs'     => array(
+				'style' => array(
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => 'var:preset|color|vivid-red',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$block_markup         = '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>';
+		$elements_class_names = array();
+		$count                = 2;
+		for ( $i = 0; $i < $count; $i++ ) {
+			$rendered_block = wp_render_elements_class_name( $block_markup, wp_render_elements_support_styles( $block ) );
+
+			$processor = new WP_HTML_Tag_Processor( $rendered_block );
+			$this->assertTrue( $processor->next_tag( 'P' ), "Expected paragraph in block #$i." );
+			$elements_class_name = array_first(
+				array_filter(
+					iterator_to_array( $processor->class_list() ),
+					fn( string $class_name ) => (bool) preg_match( '/^wp-elements-\d+$/', $class_name )
+				)
+			);
+			$this->assertIsString( $elements_class_name, "Expected wp-elements class in block #$i." );
+			$elements_class_names[] = $elements_class_name;
+		}
+
+		$this->assertSame( $count, count( array_unique( $elements_class_names ) ), 'Expected each rendered block to have a unique wp-elements class name.' );
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array
@@ -238,7 +302,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'button' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'link element styles apply class to wrapper'   => array(
 				'color_settings'  => array( 'link' => true ),
@@ -246,7 +310,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'heading element styles apply class to wrapper' => array(
 				'color_settings'  => array( 'heading' => true ),
@@ -254,7 +318,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'heading' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p>Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other classes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -262,7 +326,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p class="has-dark-gray-background-color has-background">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-[a-f0-9]{32}">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="has-dark-gray-background-color has-background wp-elements-\d+">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 			'element styles apply class to wrapper when it has other attributes' => array(
 				'color_settings'  => array( 'link' => true ),
@@ -270,7 +334,7 @@ class Tests_Block_Supports_WpRenderElementsSupport extends WP_UnitTestCase {
 					'link' => array( 'color' => $color_styles ),
 				),
 				'block_markup'    => '<p id="anchor">Hello <a href="http://www.wordpress.org/">WordPress</a>!</p>',
-				'expected_markup' => '/^<p class="wp-elements-[a-f0-9]{32}" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
+				'expected_markup' => '/^<p class="wp-elements-\d+" id="anchor">Hello <a href="http:\/\/www.wordpress.org\/">WordPress<\/a>!<\/p>$/',
 			),
 		);
 	}

@@ -541,12 +541,14 @@ function wp_network_dashboard_right_now() {
  * Displays the Quick Draft widget.
  *
  * @since 3.8.0
+ * @since 7.1.0 Added $notice_type parameter.
  *
  * @global int $post_ID
  *
- * @param string|false $error_msg Optional. Error message. Default false.
+ * @param string|false $message     Optional. Error or success message. Default false.
+ * @param string       $notice_type Optional. Admin notice type. Default 'error'.
  */
-function wp_dashboard_quick_press( $error_msg = false ) {
+function wp_dashboard_quick_press( $message = false, $notice_type = 'error' ) {
 	global $post_ID;
 
 	if ( ! current_user_can( 'edit_posts' ) ) {
@@ -566,11 +568,13 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 			$post->post_title = ''; // Remove the auto draft title.
 		}
 	} else {
-		$post    = get_default_post_to_edit( 'post', true );
-		$user_id = get_current_user_id();
+		$post            = get_default_post_to_edit( 'post', true );
+		$user_id         = get_current_user_id();
+		$user_blogs      = get_blogs_of_user( $user_id );
+		$current_blog_id = get_current_blog_id();
 
 		// Don't create an option if this is a super admin who does not belong to this site.
-		if ( in_array( get_current_blog_id(), array_keys( get_blogs_of_user( $user_id ) ), true ) ) {
+		if ( isset( $user_blogs[ $current_blog_id ] ) ) {
 			update_user_option( $user_id, 'dashboard_quick_press_last_post_id', (int) $post->ID ); // Save post_ID.
 		}
 	}
@@ -578,14 +582,17 @@ function wp_dashboard_quick_press( $error_msg = false ) {
 	$post_ID = (int) $post->ID;
 	?>
 
-	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="initial-form hide-if-no-js">
+	<form name="post" action="<?php echo esc_url( admin_url( 'post.php' ) ); ?>" method="post" id="quick-press" class="hide-if-no-js">
 
 		<?php
-		if ( $error_msg ) {
+		if ( $message ) {
 			wp_admin_notice(
-				$error_msg,
+				$message,
 				array(
-					'additional_classes' => array( 'error' ),
+					'type'       => $notice_type,
+					'attributes' => array(
+						'role' => 'alert',
+					),
 				)
 			);
 		}
@@ -649,6 +656,9 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 
 		$drafts = get_posts( $query_args );
 		if ( ! $drafts ) {
+			echo '<div class="no-drafts">';
+			echo '<p>' . __( 'There are no recent drafts.' ) . '</p>';
+			echo '</div>';
 			return;
 		}
 	}
@@ -688,7 +698,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 		$the_content = wp_trim_words( $draft->post_content, $draft_length );
 
 		if ( $the_content ) {
-			echo '<p>' . $the_content . '</p>';
+			echo '<p class="draft-content">' . $the_content . '</p>';
 		}
 		echo "</li>\n";
 	}
@@ -1282,7 +1292,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 		$widget_options[ $widget_id ]           = wp_widget_rss_process( $_POST['widget-rss'][ $number ] );
 		$widget_options[ $widget_id ]['number'] = $number;
 
-		// Title is optional. If black, fill it if possible.
+		// Title is optional. If blank, fill it if possible.
 		if ( ! $widget_options[ $widget_id ]['title'] && isset( $_POST['widget-rss'][ $number ]['title'] ) ) {
 			$rss = fetch_feed( $widget_options[ $widget_id ]['url'] );
 			if ( is_wp_error( $rss ) ) {
@@ -1365,7 +1375,7 @@ function wp_dashboard_events_news() {
  * @since 4.8.0
  */
 function wp_print_community_events_markup() {
-	$community_events_notice  = '<p class="hide-if-js">' . ( 'This widget requires JavaScript.' ) . '</p>';
+	$community_events_notice  = '<p class="hide-if-js">' . __( 'The WordPress Events and News feeds require JavaScript.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-error-occurred" aria-hidden="true">' . __( 'An error occurred. Please try again.' ) . '</p>';
 	$community_events_notice .= '<p class="community-events-could-not-locate" aria-hidden="true"></p>';
 
@@ -1991,7 +2001,7 @@ function wp_dashboard_site_health() {
 	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
 	?>
 	<div class="health-check-widget">
-		<div class="health-check-widget-title-section site-health-progress-wrapper loading hide-if-no-js">
+		<div class="health-check-widget-title-section site-health-progress-wrapper loading">
 			<div class="site-health-progress">
 				<svg aria-hidden="true" focusable="false" width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg">
 					<circle r="90" cx="100" cy="100" fill="transparent" stroke-dasharray="565.48" stroke-dashoffset="0"></circle>
