@@ -45,6 +45,19 @@ function get_header( $name = null, $args = array() ) {
 
 	$templates[] = 'header.php';
 
+	/*
+	 * A block theme has no header.php by design, so locate_template() falls through to
+	 * wp-includes/theme-compat/header.php: markup deprecated since 3.0.0 that opens the
+	 * document with the old default theme's page frame and its site title and description.
+	 * Print the same document opening the template canvas uses instead, so a block theme
+	 * gets its own markup whether the page is rendered by a block template or by a caller
+	 * of this function.
+	 */
+	if ( wp_is_block_theme() && ! _wp_theme_has_template( $templates ) ) {
+		_wp_block_theme_document_start();
+		return;
+	}
+
 	if ( ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
@@ -88,6 +101,12 @@ function get_footer( $name = null, $args = array() ) {
 	}
 
 	$templates[] = 'footer.php';
+
+	// See get_header(): block themes close their document the way the canvas does.
+	if ( wp_is_block_theme() && ! _wp_theme_has_template( $templates ) ) {
+		_wp_block_theme_document_end();
+		return;
+	}
 
 	if ( ! locate_template( $templates, true, true, $args ) ) {
 		return false;
