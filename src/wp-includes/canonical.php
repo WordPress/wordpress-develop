@@ -586,27 +586,12 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			}
 		}
 
-		/*
-		 * Only re-encode the query string if it differs from the original request.
-		 * Re-encoding a semantically identical query (e.g. '+' vs '%20') produces a
-		 * redirect that caches keying on the raw URL can replay as a loop.
-		 * See https://core.trac.wordpress.org/ticket/41712
-		 */
-		parse_str( $original['query'], $_parsed_original_query );
-		$_sorted_query = $_parsed_query;
-		ksort( $_sorted_query );
-		ksort( $_parsed_original_query );
+		$_parsed_query = array_combine(
+			rawurlencode_deep( array_keys( $_parsed_query ) ),
+			rawurlencode_deep( array_values( $_parsed_query ) )
+		);
 
-		if ( $_sorted_query === $_parsed_original_query && ! str_contains( $redirect_url, '?' ) ) {
-			$redirect_url .= '?' . $original['query'];
-		} else {
-			$_parsed_query = array_combine(
-				rawurlencode_deep( array_keys( $_parsed_query ) ),
-				rawurlencode_deep( array_values( $_parsed_query ) )
-			);
-
-			$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
-		}
+		$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
 	}
 
 	if ( $redirect_url ) {
@@ -788,6 +773,34 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( ! $redirect_url || $redirect_url === $requested_url ) {
 		return null;
+	}
+
+	/*
+	 * Don't redirect if the URLs only differ in how the query string is written,
+	 * for example '+' vs '%20', 'a=' vs 'a', or a stray '&'. Both URLs produce the
+	 * same query variables, so a page cache keyed on those could serve this redirect
+	 * for its own target URL, resulting in a redirect loop.
+	 */
+	$_redirect_parts  = parse_url( $redirect_url );
+	$_requested_parts = parse_url( $requested_url );
+
+	if ( is_array( $_redirect_parts ) && is_array( $_requested_parts ) ) {
+		$_redirect_query  = $_redirect_parts['query'] ?? '';
+		$_requested_query = $_requested_parts['query'] ?? '';
+
+		unset( $_redirect_parts['query'], $_redirect_parts['fragment'] );
+		unset( $_requested_parts['query'], $_requested_parts['fragment'] );
+
+		if ( $_redirect_parts === $_requested_parts ) {
+			parse_str( $_redirect_query, $_redirect_query_vars );
+			parse_str( $_requested_query, $_requested_query_vars );
+			ksort( $_redirect_query_vars );
+			ksort( $_requested_query_vars );
+
+			if ( $_redirect_query_vars === $_requested_query_vars ) {
+				return null;
+			}
+		}
 	}
 
 	// Hex-encoded octets are case-insensitive.
