@@ -151,7 +151,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 		 * Check that the font family value is valid CSS, or a plain font name.
 		 * A value with control characters is an error.
 		 */
-		if ( isset( $settings['fontFamily'] ) && null === WP_Font_Utils::parse_font_family_list_with_plain_names( $settings['fontFamily'] ) ) {
+		if ( isset( $settings['fontFamily'] ) && '' === WP_Font_Utils::sanitize_font_family( $settings['fontFamily'] ) ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: Name of the font family setting parameter: "font_family_settings[fontFamily]". */

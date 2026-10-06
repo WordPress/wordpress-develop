@@ -210,7 +210,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 		 * Check that the font family value names one font family. The value can
 		 * be valid CSS, or a plain font name.
 		 */
-		if ( null === WP_Font_Utils::parse_font_family_descriptor_name( $settings['fontFamily'] ) ) {
+		if ( '' === WP_Font_Utils::get_font_face_family( $settings['fontFamily'] ) ) {
 			return new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: Name of the font face setting parameter: "font_face_settings[fontFamily]". */

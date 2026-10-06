@@ -119,13 +119,7 @@ class WP_Font_Face_Resolver {
 	 * @return string Font-family name.
 	 */
 	private static function maybe_parse_name_from_comma_separated_list( $font_family ) {
-		$name = WP_Font_Utils::parse_font_family_descriptor_name( $font_family );
-
-		if ( null === $name || '' === $name ) {
-			return '';
-		}
-
-		return WP_Font_Utils::serialize_font_family_name( $name );
+		return WP_Font_Utils::get_font_face_family( $font_family );
 	}
 
 	/**

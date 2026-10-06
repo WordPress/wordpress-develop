@@ -2968,7 +2968,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 				 * in a name as a CSS escape, because the split above does not read
 				 * quoted strings.
 				 */
-				if ( 'font-family' === $css_selector && null !== WP_Font_Utils::parse_font_family_list( trim( $parts[1] ) ) ) {
+				if ( 'font-family' === $css_selector && WP_Font_Utils::is_valid_css_font_family( trim( $parts[1] ) ) ) {
 					$css_test_string = '';
 				}
 			}

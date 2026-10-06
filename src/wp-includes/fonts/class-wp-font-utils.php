@@ -28,7 +28,7 @@ class WP_Font_Utils {
 	 *
 	 * @var string[]
 	 */
-	const GENERIC_FONT_FAMILIES = array(
+	private const GENERIC_FONT_FAMILIES = array(
 		'serif',
 		'sans-serif',
 		'cursive',
@@ -54,7 +54,7 @@ class WP_Font_Utils {
 	 *
 	 * @var string[]
 	 */
-	const RESERVED_FONT_FAMILY_KEYWORDS = array(
+	private const RESERVED_FONT_FAMILY_KEYWORDS = array(
 		'inherit',
 		'initial',
 		'unset',
@@ -85,14 +85,12 @@ class WP_Font_Utils {
 	 *              value returns an empty string.
 	 * @access private
 	 *
-	 * @see WP_Font_Utils::parse_font_family_list_with_plain_names()
-	 *
 	 * @param string $font_family Font family name(s), comma-separated.
 	 * @return string Sanitized and formatted font family name(s), or an empty
 	 *                string if the value is invalid.
 	 */
 	public static function sanitize_font_family( $font_family ) {
-		$entries = self::parse_font_family_list_with_plain_names( $font_family );
+		$entries = self::parse_font_family_list( $font_family, true );
 
 		if ( null === $entries ) {
 			return '';
@@ -208,7 +206,7 @@ class WP_Font_Utils {
 	 * @return string The font family comparison key.
 	 */
 	private static function get_font_family_comparison_key( $font_family ) {
-		$entries = self::parse_font_family_list_with_plain_names( $font_family );
+		$entries = self::parse_font_family_list( $font_family, true );
 
 		if ( null === $entries ) {
 			// Keep the WordPress 6.5.0 behavior for a value that the parser rejects.
@@ -328,72 +326,48 @@ class WP_Font_Utils {
 	}
 
 	/**
-	 * Parses a CSS `font-family` property value.
+	 * Checks whether a value is a valid CSS `font-family` property value.
 	 *
-	 * The parser requires valid CSS. It consumes the complete value and
-	 * rejects a value with extra tokens. It returns the decoded font names, so
-	 * that other code can compare and store a name without CSS syntax.
-	 *
-	 * A parsed value is a list of entries. Each entry is an array with these keys:
-	 *
-	 *     @type string $type  One of 'name', 'generic', or 'keyword'.
-	 *     @type string $value For 'name', the decoded font name. For 'generic' and
-	 *                         'keyword', the canonical CSS text.
+	 * The check requires valid CSS. The value must hold a list of font names and
+	 * generic families, or one CSS-wide keyword, and no other tokens. Thus a
+	 * value that passes the check cannot hold a function such as `url()`, or a
+	 * second declaration.
 	 *
 	 * @since 7.2.0
+	 * @access private
 	 *
 	 * @link https://www.w3.org/TR/css-fonts-4/#font-family-prop
-	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
 	 *
 	 * @param string $value CSS `font-family` value.
-	 * @return array[]|null List of parsed entries, or null if the value is invalid.
+	 * @return bool True if the value is valid.
 	 */
-	public static function parse_font_family_list( $value ) {
-		return self::parse_font_family_entries( $value, false );
+	public static function is_valid_css_font_family( $value ) {
+		return null !== self::parse_font_family_list( $value, false );
 	}
 
 	/**
-	 * Parses a CSS `font-family` value and accepts an established plain name.
-	 *
-	 * Use this method at font input boundaries, such as the REST API, theme
-	 * settings, and direct calls to {@see wp_print_font_faces()}. It reads each
-	 * entry of the list as CSS. If an entry is not valid CSS, it reads the text
-	 * up to the next comma as a plain name, which earlier WordPress versions
-	 * accepted. It ignores an empty entry, such as the one after a trailing comma.
-	 *
-	 * The plain name path accepts any text except control characters, such as
-	 * `Bodoni*` or `Font (Display)`. Use
-	 * {@see WP_Font_Utils::parse_font_family_list()} where the input must be valid CSS.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $value CSS `font-family` value, or a plain font name.
-	 * @return array[]|null List of parsed entries, or null if the value is invalid.
-	 */
-	public static function parse_font_family_list_with_plain_names( $value ) {
-		return self::parse_font_family_entries( $value, true );
-	}
-
-	/**
-	 * Parses the font name for an `@font-face` `font-family` descriptor.
+	 * Returns the `font-family` descriptor for an `@font-face` rule.
 	 *
 	 * The descriptor names one font family. It cannot hold a fallback list.
-	 * For compatibility with existing data, this method selects the first
-	 * entry of a list and returns its name.
+	 * For compatibility with existing data, the method selects the first entry
+	 * of a list. The value can be CSS, such as `"ACME, Sans", serif`, or a plain
+	 * name, such as `O'Reilly Sans`. The method always returns a quoted CSS string.
 	 *
 	 * @since 7.2.0
+	 * @access private
 	 *
 	 * @param string $value CSS `font-family` value, or a plain font name.
-	 * @return string|null The decoded font name, or null if the value is invalid.
+	 * @return string The font name as a quoted CSS string, or an empty string if
+	 *                the value names no font.
 	 */
-	public static function parse_font_family_descriptor_name( $value ) {
-		$entries = self::parse_font_family_list_with_plain_names( $value );
+	public static function get_font_face_family( $value ) {
+		$entries = self::parse_font_family_list( $value, true );
 
-		if ( null === $entries || 'keyword' === $entries[0]['type'] ) {
-			return null;
+		if ( null === $entries || 'keyword' === $entries[0]['type'] || '' === $entries[0]['value'] ) {
+			return '';
 		}
 
-		return $entries[0]['value'];
+		return self::serialize_font_family_name( $entries[0]['value'] );
 	}
 
 	/**
@@ -419,7 +393,7 @@ class WP_Font_Utils {
 	 * @param string $name Decoded font name.
 	 * @return string The name as a quoted CSS string.
 	 */
-	public static function serialize_font_family_name( $name ) {
+	private static function serialize_font_family_name( $name ) {
 		return '"' . preg_replace_callback(
 			'/[\x00-\x1f\x7f"\\\\<>&;,]/',
 			static function ( $matches ) {
@@ -449,7 +423,7 @@ class WP_Font_Utils {
 	 * @param array[] $entries List of parsed entries.
 	 * @return string The CSS `font-family` value.
 	 */
-	public static function serialize_font_family_list( $entries ) {
+	private static function serialize_font_family_list( $entries ) {
 		$parts = array();
 
 		foreach ( $entries as $entry ) {
@@ -466,13 +440,28 @@ class WP_Font_Utils {
 	/**
 	 * Parses a CSS `font-family` value into a list of entries.
 	 *
+	 * The strict mode requires valid CSS and consumes the complete value. The
+	 * plain name mode reads each entry of the list as CSS. If an entry is not
+	 * valid CSS, it reads the text up to the next comma as a plain name, which
+	 * earlier WordPress versions accepted, such as `O'Reilly Sans` or `Bodoni*`.
+	 * It ignores an empty entry, such as the one after a trailing comma.
+	 *
+	 * Each entry is an array with these keys:
+	 *
+	 *     @type string $type  One of 'name', 'generic', or 'keyword'.
+	 *     @type string $value For 'name', the decoded font name. For 'generic' and
+	 *                         'keyword', the canonical CSS text.
+	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $value             CSS `font-family` value.
+	 * @link https://www.w3.org/TR/css-fonts-4/#font-family-prop
+	 * @link https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
+	 *
+	 * @param string $value             CSS `font-family` value, or a plain font name.
 	 * @param bool   $allow_plain_names Whether to read an entry that is not valid CSS as a plain name.
 	 * @return array[]|null List of parsed entries, or null if the value is invalid.
 	 */
-	private static function parse_font_family_entries( $value, $allow_plain_names ) {
+	private static function parse_font_family_list( $value, $allow_plain_names ) {
 		if ( ! is_string( $value ) || 1 !== preg_match( '//u', $value ) ) {
 			// Reject invalid UTF-8 rather than replace characters in a name.
 			return null;
@@ -515,11 +504,16 @@ class WP_Font_Utils {
 
 				$end    = strpos( $value, ',', $start );
 				$offset = false === $end ? $length : $end;
-				$part   = substr( $value, $start, $offset - $start );
+				$name   = trim( substr( $value, $start, $offset - $start ), " \t\n" );
 
-				if ( '' !== trim( $part, " \t\n" ) ) {
-					$name = self::parse_plain_font_family_name( $part );
-					if ( null === $name ) {
+				if ( '' !== $name ) {
+					/*
+					 * A font file can name its family with any text, such as `Bodoni*` or
+					 * `Font (Display)`, and an upload client can send that text as it is.
+					 * The serializer escapes every character that CSS or HTML reads, so the
+					 * text stays one inert font name. Reject only the control characters.
+					 */
+					if ( 1 === preg_match( '/[\x00-\x1f\x7f]/', $name ) ) {
 						return null;
 					}
 
@@ -863,29 +857,5 @@ class WP_Font_Utils {
 	private static function starts_css_identifier( $value, $offset, $length ) {
 		// Match two hyphens, or an optional hyphen before a name start or valid escape.
 		return $offset < $length && 1 === preg_match( '/\G(?:--|-?(?:[_a-zA-Z\x80-\xff]|\\\\[^\n]))/', $value, $matches, 0, $offset );
-	}
-
-	/**
-	 * Reads one part of a value as an established plain font name.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $part One comma separated part of the input.
-	 * @return string|null The plain name, or null if the part is not a plain name.
-	 */
-	private static function parse_plain_font_family_name( $part ) {
-		$name = trim( $part, " \t\n\r\f" );
-
-		/*
-		 * A font file can name its family with any text, such as `Bodoni*` or
-		 * `Font (Display)`, and an upload client can send that text as it is.
-		 * The serializer escapes every character that CSS or HTML reads, so the
-		 * text stays one inert font name. Reject only the control characters.
-		 */
-		if ( '' === $name || 1 === preg_match( '/[\x00-\x1f\x7f]/', $name ) ) {
-			return null;
-		}
-
-		return $name;
 	}
 }

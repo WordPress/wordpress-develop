@@ -131,7 +131,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$stored = $data['font_family_settings']['fontFamily'];
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $stored ),
+			self::parse_descriptor_name( $stored ),
 			'The first family of the stored value should keep the name.'
 		);
 
@@ -143,7 +143,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status(), 'The face should be readable.' );
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $face['font_face_settings']['fontFamily'] ),
+			self::parse_descriptor_name( $face['font_face_settings']['fontFamily'] ),
 			'The face should keep the name.'
 		);
 
@@ -151,7 +151,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$family_json = json_decode( get_post( $family_id )->post_content, true );
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $family_json['fontFamily'] ),
+			self::parse_descriptor_name( $family_json['fontFamily'] ),
 			'The stored family JSON should keep the name.'
 		);
 
@@ -196,7 +196,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $matches[1] ),
+			self::parse_descriptor_name( $matches[1] ),
 			'The preset CSS should keep the name.'
 		);
 
@@ -224,7 +224,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 			'The list should keep the generic keyword and the quoted name apart.'
 		);
 
-		$entries = WP_Font_Utils::parse_font_family_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
+		$entries = self::parse_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
 
 		$this->assertSame( 'name', $entries[0]['type'], 'The first entry should be a name.' );
 		$this->assertSame( 'generic', $entries[1]['type'], 'The second entry should be a generic family.' );
@@ -280,7 +280,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $previous ),
+			self::parse_descriptor_name( $previous ),
 			'The name should survive three cycles.'
 		);
 	}
@@ -364,7 +364,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$settings = $this->get_settings_for_family( $family_id );
 		$stored   = $settings['typography']['fontFamilies']['theme'][0]['fontFamily'];
-		$entries  = WP_Font_Utils::parse_font_family_list( $stored );
+		$entries  = self::parse_list( $stored );
 
 		$this->assertSame(
 			array(
@@ -387,7 +387,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		}
 
 		$this->assertSame( array( 'STYLE' ), $tags, 'The output should hold one style element only.' );
-		$this->assertStringContainsString( 'font-family:' . WP_Font_Utils::serialize_font_family_name( $font_family ) . ';', $css, 'The output should hold the escaped name.' );
+		$this->assertStringContainsString( 'font-family:' . self::call_font_utils( 'serialize_font_family_name', $font_family ) . ';', $css, 'The output should hold the escaped name.' );
 	}
 
 	/**
@@ -473,7 +473,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			$decoded_name,
-			WP_Font_Utils::parse_font_family_descriptor_name( $safe['settings']['typography']['fontFamilies']['custom'][0]['fontFamily'] ),
+			self::parse_descriptor_name( $safe['settings']['typography']['fontFamilies']['custom'][0]['fontFamily'] ),
 			'The preset should keep the name.'
 		);
 	}
@@ -589,7 +589,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$this->assertSame( $expected, $response->get_data()['font_family_settings']['name'], 'The display name should be trimmed.' );
 
 		$settings = $this->get_settings_for_family( $family_id );
-		$preset   = WP_Font_Utils::parse_font_family_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
+		$preset   = self::parse_list( $settings['typography']['fontFamilies']['theme'][0]['fontFamily'] );
 
 		$this->assertSame(
 			array(
@@ -656,7 +656,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 					'value' => $raw_name,
 				),
 			),
-			WP_Font_Utils::parse_font_family_list( $stored ),
+			self::parse_list( $stored ),
 			'The stored value should keep the name.'
 		);
 	}
@@ -717,7 +717,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		$family_id        = $response->get_data()['id'];
 		$this->post_ids[] = $family_id;
 
-		$entries = WP_Font_Utils::parse_font_family_list( $response->get_data()['font_family_settings']['fontFamily'] );
+		$entries = self::parse_list( $response->get_data()['font_family_settings']['fontFamily'] );
 		$stored  = array_map(
 			static function ( $entry ) {
 				return $entry['type'] . ':' . $entry['value'];
@@ -739,7 +739,7 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 
 		$this->assertSame(
 			$face,
-			WP_Font_Utils::parse_font_family_descriptor_name( $response->get_data()['font_face_settings']['fontFamily'] ),
+			self::parse_descriptor_name( $response->get_data()['font_face_settings']['fontFamily'] ),
 			'The face should use the documented name.'
 		);
 	}
@@ -977,5 +977,42 @@ class Tests_Fonts_FontFamilyDataPath extends WP_UnitTestCase {
 		WP_Theme_JSON_Resolver::clean_cached_data();
 
 		return $fonts;
+	}
+
+	/**
+	 * Calls the private font family parser.
+	 *
+	 * @param string $value             CSS font family value.
+	 * @param bool   $allow_plain_names Whether to accept plain names.
+	 * @return array[]|null Parsed entries, or null if the value is invalid.
+	 */
+	private static function parse_list( $value, $allow_plain_names = false ) {
+		return self::call_font_utils( 'parse_font_family_list', $value, $allow_plain_names );
+	}
+
+	/**
+	 * Returns the decoded name of the first family in a value.
+	 *
+	 * @param string $value CSS font family value, or a plain font name.
+	 * @return string|null The decoded name, or null if the value names no font.
+	 */
+	private static function parse_descriptor_name( $value ) {
+		$entries = self::parse_list( $value, true );
+
+		return null === $entries || 'keyword' === $entries[0]['type'] ? null : $entries[0]['value'];
+	}
+
+	/**
+	 * Calls a private method of WP_Font_Utils.
+	 *
+	 * @param string $name    Method name.
+	 * @param mixed  ...$args Method arguments.
+	 * @return mixed The return value of the method.
+	 */
+	private static function call_font_utils( $name, ...$args ) {
+		$method = new ReflectionMethod( 'WP_Font_Utils', $name );
+		$method->setAccessible( true );
+
+		return $method->invokeArgs( null, $args );
 	}
 }

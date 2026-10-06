@@ -149,13 +149,13 @@ class WP_Font_Face {
 		}
 
 		/*
-		 * Read the font-family descriptor and keep the decoded name. The value
+		 * Write the font-family descriptor as a quoted CSS string. The value
 		 * can be CSS, such as `"ACME, Sans"`, or a plain name, such as
-		 * `O'Reilly Sans`. The serializer writes it back as a quoted CSS string.
+		 * `O'Reilly Sans`. The decoded name does not change.
 		 */
-		$font_family_name = WP_Font_Utils::parse_font_family_descriptor_name( $font_face['font-family'] );
+		$font_face['font-family'] = WP_Font_Utils::get_font_face_family( $font_face['font-family'] );
 
-		if ( null === $font_family_name || '' === $font_family_name ) {
+		if ( '' === $font_face['font-family'] ) {
 			// @todo replace with `wp_trigger_error()`.
 			_doing_it_wrong(
 				__METHOD__,
@@ -164,8 +164,6 @@ class WP_Font_Face {
 			);
 			return false;
 		}
-
-		$font_face['font-family'] = WP_Font_Utils::serialize_font_family_name( $font_family_name );
 
 		// Make sure that local fonts have 'src' defined.
 		if ( empty( $font_face['src'] ) || ( ! is_string( $font_face['src'] ) && ! is_array( $font_face['src'] ) ) ) {

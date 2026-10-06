@@ -23,7 +23,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @param array  $expected Expected parsed entries.
 	 */
 	public function test_parse_list( $value, $expected ) {
-		$this->assertSame( $expected, WP_Font_Utils::parse_font_family_list( $value ) );
+		$this->assertSame( $expected, self::parse_list( $value ) );
 	}
 
 	/**
@@ -35,7 +35,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	public function test_parse_list_accepts_generic_arguments() {
 		foreach ( array( 'kai', 'fangsong', 'khmer-mul', 'nastaliq' ) as $argument ) {
 			$escaped = sprintf( '\\%x ', ord( $argument[0] ) ) . substr( $argument, 1 );
-			$entries = WP_Font_Utils::parse_font_family_list( 'GENERIC(/* before */' . $escaped . '/* after */)' );
+			$entries = self::parse_list( 'GENERIC(/* before */' . $escaped . '/* after */)' );
 
 			$this->assertSame(
 				array(
@@ -157,14 +157,14 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 *
 	 * @ticket 63568
 	 *
-	 * @covers ::parse_font_family_list
+	 * @covers ::is_valid_css_font_family
 	 *
 	 * @dataProvider data_parse_list_rejects
 	 *
 	 * @param string $value CSS font family value.
 	 */
 	public function test_parse_list_rejects( $value ) {
-		$this->assertNull( WP_Font_Utils::parse_font_family_list( $value ) );
+		$this->assertFalse( WP_Font_Utils::is_valid_css_font_family( $value ) );
 	}
 
 	/**
@@ -209,7 +209,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 *
 	 * @ticket 63568
 	 *
-	 * @covers ::parse_font_family_list_with_plain_names
+	 * @covers ::parse_font_family_list
 	 *
 	 * @dataProvider data_parse_list_with_plain_names
 	 *
@@ -217,7 +217,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @param array|null $expected Expected parsed entries.
 	 */
 	public function test_parse_list_with_plain_names( $value, $expected ) {
-		$this->assertSame( $expected, WP_Font_Utils::parse_font_family_list_with_plain_names( $value ) );
+		$this->assertSame( $expected, self::parse_list( $value, true ) );
 	}
 
 	/**
@@ -354,7 +354,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 */
 	public function test_parse_list_reads_an_escaped_css_string() {
 		$css     = '"\\22 Ephesis\\22  font with \\3C special \\5C \\3E  {chars} \\26  things\\2C  ya\'know?"';
-		$entries = WP_Font_Utils::parse_font_family_list( $css );
+		$entries = self::parse_list( $css );
 
 		$this->assertIsArray( $entries, 'The escaped CSS string should be valid.' );
 		$this->assertSame(
@@ -378,7 +378,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 */
 	public function test_equivalent_escapes( $values, $expected ) {
 		foreach ( $values as $value ) {
-			$entries = WP_Font_Utils::parse_font_family_list( $value );
+			$entries = self::parse_list( $value );
 
 			$this->assertIsArray( $entries, "The value $value should be valid." );
 			$this->assertSame( $expected, $entries[0]['value'], "The value $value should decode to $expected." );
@@ -424,14 +424,14 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @param string $name Decoded font name.
 	 */
 	public function test_serialize_name_round_trip( $name ) {
-		$css     = WP_Font_Utils::serialize_font_family_name( $name );
-		$entries = WP_Font_Utils::parse_font_family_list( $css );
+		$css     = self::serialize_name( $name );
+		$entries = self::parse_list( $css );
 
 		$this->assertIsArray( $entries, "The serialized value $css should be valid CSS." );
 		$this->assertCount( 1, $entries, 'The serialized value should hold one entry.' );
 		$this->assertSame( 'name', $entries[0]['type'], 'The entry should be a name.' );
 		$this->assertSame( $name, $entries[0]['value'], 'The decoded name should not change.' );
-		$this->assertSame( $entries, WP_Font_Utils::parse_font_family_list( WP_Font_Utils::serialize_font_family_list( $entries ) ), 'The list serializer should keep the name.' );
+		$this->assertSame( $entries, self::parse_list( self::call_font_utils( 'serialize_font_family_list', $entries ) ), 'The list serializer should keep the name.' );
 	}
 
 	/**
@@ -482,12 +482,12 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @param string $name Decoded font name.
 	 */
 	public function test_serialize_name_survives_safecss_filter_attr( $name ) {
-		$css      = WP_Font_Utils::serialize_font_family_name( $name );
+		$css      = self::serialize_name( $name );
 		$filtered = safecss_filter_attr( 'font-family: ' . $css );
 
 		$this->assertSame( 'font-family: ' . $css, $filtered, 'The CSS filter should not change the value.' );
 
-		$entries = WP_Font_Utils::parse_font_family_list( substr( $filtered, strlen( 'font-family: ' ) ) );
+		$entries = self::parse_list( substr( $filtered, strlen( 'font-family: ' ) ) );
 
 		$this->assertIsArray( $entries, 'The filtered value should still be valid CSS.' );
 		$this->assertSame( $name, $entries[0]['value'], 'The decoded name should not change.' );
@@ -501,7 +501,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @covers ::serialize_font_family_name
 	 */
 	public function test_serialize_name_escapes_angle_bracket() {
-		$css = WP_Font_Utils::serialize_font_family_name( '</STYLE><script>alert(1)</script>' );
+		$css = self::serialize_name( '</STYLE><script>alert(1)</script>' );
 
 		$this->assertStringNotContainsString( '<', $css );
 		$this->assertSame( '"\\3c /STYLE\\3e \\3c script\\3e alert(1)\\3c /script\\3e "', $css );
@@ -516,7 +516,7 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @covers ::serialize_font_family_name
 	 */
 	public function test_serialize_name_escapes_comma() {
-		$css = WP_Font_Utils::serialize_font_family_name( 'ACME, Sans' );
+		$css = self::serialize_name( 'ACME, Sans' );
 
 		$this->assertStringNotContainsString( ',', $css );
 		$this->assertSame( '"ACME\\2c  Sans"', $css );
@@ -527,15 +527,16 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 *
 	 * @ticket 63568
 	 *
-	 * @covers ::parse_font_family_descriptor_name
+	 * @covers ::get_font_face_family
 	 */
-	public function test_parse_descriptor_name_selects_the_first_family() {
-		$this->assertSame( 'ACME, Sans', WP_Font_Utils::parse_font_family_descriptor_name( '"ACME, Sans", sans-serif' ) );
-		$this->assertSame( 'Inter', WP_Font_Utils::parse_font_family_descriptor_name( 'Inter, serif' ) );
-		$this->assertSame( "O'Reilly Sans", WP_Font_Utils::parse_font_family_descriptor_name( "O'Reilly Sans" ) );
-		$this->assertNull( WP_Font_Utils::parse_font_family_descriptor_name( 'inherit' ) );
-		$this->assertSame( '"A"; color:red', WP_Font_Utils::parse_font_family_descriptor_name( '"A"; color:red' ) );
-		$this->assertNull( WP_Font_Utils::parse_font_family_descriptor_name( "A\x01B" ) );
+	public function test_get_font_face_family_selects_the_first_family() {
+		$this->assertSame( '"ACME\\2c  Sans"', WP_Font_Utils::get_font_face_family( '"ACME, Sans", sans-serif' ) );
+		$this->assertSame( '"Inter"', WP_Font_Utils::get_font_face_family( 'Inter, serif' ) );
+		$this->assertSame( '"O\'Reilly Sans"', WP_Font_Utils::get_font_face_family( "O'Reilly Sans" ) );
+		$this->assertSame( '', WP_Font_Utils::get_font_face_family( 'inherit' ) );
+		$this->assertSame( '"\\"A\\"\\3b  color:red"', WP_Font_Utils::get_font_face_family( '"A"; color:red' ) );
+		$this->assertSame( '', WP_Font_Utils::get_font_face_family( "A\x01B" ) );
+		$this->assertSame( '', WP_Font_Utils::get_font_face_family( '""' ) );
 	}
 
 	/**
@@ -546,16 +547,51 @@ class Tests_Fonts_WpFontUtils_ParseFontFamily extends WP_UnitTestCase {
 	 * @covers ::parse_font_family_list
 	 */
 	public function test_parse_list_handles_long_input() {
-		$entries = WP_Font_Utils::parse_font_family_list( '"' . str_repeat( '\\26 ', 20000 ) . '"' );
+		$entries = self::parse_list( '"' . str_repeat( '\\26 ', 20000 ) . '"' );
 		$this->assertIsArray( $entries );
 		$this->assertSame( str_repeat( '&', 20000 ), $entries[0]['value'] );
 
-		$entries = WP_Font_Utils::parse_font_family_list( str_repeat( 'A,', 20000 ) . 'A' );
+		$entries = self::parse_list( str_repeat( 'A,', 20000 ) . 'A' );
 		$this->assertIsArray( $entries );
 		$this->assertCount( 20001, $entries );
 
-		$entries = WP_Font_Utils::parse_font_family_list( str_repeat( '/*x*/', 20000 ) . 'A' );
+		$entries = self::parse_list( str_repeat( '/*x*/', 20000 ) . 'A' );
 		$this->assertIsArray( $entries );
 		$this->assertCount( 1, $entries );
+	}
+
+	/**
+	 * Calls the private font family parser.
+	 *
+	 * @param string $value             CSS font family value.
+	 * @param bool   $allow_plain_names Whether to accept plain names.
+	 * @return array[]|null Parsed entries, or null if the value is invalid.
+	 */
+	private static function parse_list( $value, $allow_plain_names = false ) {
+		return self::call_font_utils( 'parse_font_family_list', $value, $allow_plain_names );
+	}
+
+	/**
+	 * Calls the private font name serializer.
+	 *
+	 * @param string $name Decoded font name.
+	 * @return string The name as a quoted CSS string.
+	 */
+	private static function serialize_name( $name ) {
+		return self::call_font_utils( 'serialize_font_family_name', $name );
+	}
+
+	/**
+	 * Calls a private method of WP_Font_Utils.
+	 *
+	 * @param string $name    Method name.
+	 * @param mixed  ...$args Method arguments.
+	 * @return mixed The return value of the method.
+	 */
+	private static function call_font_utils( $name, ...$args ) {
+		$method = new ReflectionMethod( 'WP_Font_Utils', $name );
+		$method->setAccessible( true );
+
+		return $method->invokeArgs( null, $args );
 	}
 }
