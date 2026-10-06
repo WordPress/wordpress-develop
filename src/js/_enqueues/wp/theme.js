@@ -434,6 +434,16 @@ themes.view.Theme = wp.Backbone.View.extend({
 		if ( this.model.get( 'displayAuthor' ) ) {
 			this.$el.addClass( 'display-author' );
 		}
+
+		// Flags themes that cannot be previewed in the theme installer.
+		if ( themes.isInstall ) {
+			this.$el.toggleClass( 'no-preview', ! this.isPreviewable( this.model ) );
+		}
+	},
+
+	// Whether a theme is compatible with the current WordPress and PHP versions, and can be previewed.
+	isPreviewable: function( model ) {
+		return !! ( model.get( 'compatible_wp' ) && model.get( 'compatible_php' ) );
 	},
 
 	// Adds a class to the currently active theme
@@ -499,6 +509,11 @@ themes.view.Theme = wp.Backbone.View.extend({
 		// Bail if the user scrolled on a touch device.
 		if ( this.touchDrag === true ) {
 			return this.touchDrag = false;
+		}
+
+		// Themes that are incompatible with the current WordPress or PHP version can't be previewed.
+		if ( ! this.isPreviewable( this.model ) ) {
+			return;
 		}
 
 		// Allow direct link path to installing a theme.

@@ -175,6 +175,16 @@ body.js .theme-browser.search-loading {
 	opacity: 0.4;
 }
 
+/* Themes that cannot be previewed in the theme installer */
+.theme-browser .theme.no-preview {
+	cursor: default;
+}
+
+.theme-browser.rendered .theme.no-preview:hover .theme-screenshot img,
+.theme-browser.rendered .theme.no-preview.focus .theme-screenshot img {
+	opacity: 1;
+}
+
 .theme-browser .theme .more-details {
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
 	opacity: 0;
