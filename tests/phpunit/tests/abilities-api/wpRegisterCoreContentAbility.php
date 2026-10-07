@@ -954,6 +954,29 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Query include accepts a single post ID, as the input schema does.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_query_include_accepts_a_single_post_id(): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$post_id = self::$post_ids['published'];
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'post_type' => 'post',
+				'include'   => $post_id,
+				'fields'    => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['posts'], 'id' ), 'A single included post ID should limit the query to that post.' );
+	}
+
+	/**
 	 * Query include still respects row-level permissions.
 	 *
 	 * @ticket 64606
