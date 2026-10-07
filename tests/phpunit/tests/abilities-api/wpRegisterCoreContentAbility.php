@@ -2415,6 +2415,60 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns whole numbers that the integer schema accepts but that are not PHP integers,
+	 * as a page, a page size, and a page past the last one.
+	 *
+	 * @return array<string, array{0: float|string, 1: float|string, 2: float|string}> The values to send.
+	 */
+	public function data_whole_numbers_that_are_not_integers(): array {
+		return array(
+			'floats'               => array( 2.0, 2.0, 99.0 ),
+			'decimal strings'      => array( '2.0', '2.0', '99.0' ),
+			'signed strings'       => array( '+2', '+2', '+99' ),
+			'strings with a space' => array( ' 2', ' 2', ' 99' ),
+		);
+	}
+
+	/**
+	 * A `page` and `per_page` that the integer schema accepts are honored even when they are
+	 * not PHP integers, as when the MCP adapter passes the 2.0 a JSON encoder produced.
+	 *
+	 * Read with parse_filter_int(), they fell back to page 1 and the default page size, so a
+	 * client paging with 2.0, 3.0, and so on got page 1 every time and never reached the error
+	 * for a page past the last one.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_whole_numbers_that_are_not_integers
+	 * @since 7.2.0
+	 *
+	 * @param float|string $page      The page to request.
+	 * @param float|string $per_page  The page size to request.
+	 * @param float|string $past_page A page past the last one.
+	 */
+	public function test_query_honors_a_page_and_per_page_that_are_not_integers( $page, $per_page, $past_page ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$query = array(
+			'post_type' => 'post',
+			'include'   => self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) ),
+			'per_page'  => $per_page,
+			'fields'    => array( 'id' ),
+		);
+
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'page' => $page ) + $query );
+
+		$this->assertIsArray( $result, 'The page should be returned.' );
+		$this->assertCount( 1, $result['posts'], 'The second page of two posts each should hold the third post.' );
+		$this->assertSame( 2, $result['total_pages'], 'The page count should follow the requested page size.' );
+
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'page' => $past_page ) + $query );
+
+		$this->assertWPError( $result, 'A page past the last one should still fail.' );
+		$this->assertSame( 'content_invalid_page_number', $result->get_error_code(), 'A page past the last one should report the out-of-range error.' );
+	}
+
+	/**
 	 * A genuinely empty result set beyond the first page reports zero totals, not an error.
 	 *
 	 * The out-of-range guard only fires when the underlying query actually matched rows.

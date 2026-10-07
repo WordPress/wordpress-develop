@@ -471,8 +471,19 @@ final class WP_Content_Abilities {
 			return $this->invalid_filter_error( __( 'The include filter must list one or more valid post IDs.' ) );
 		}
 
+		/*
+		 * Read `page` and `per_page` with absint(), as the REST posts controller does, not with
+		 * parse_filter_int(). The integer schema also accepts whole floats such as 2.0, which
+		 * JSON encoders and ceil() produce, and strings such as "2.0" or "+2", and callers other
+		 * than the REST run controller pass them on unconverted, such as the MCP adapter or a
+		 * direct WP_Ability::execute() call. parse_filter_int() rejects them, so the query
+		 * would silently fall back to page 1 and the default page size: a client paging with
+		 * 2.0, 3.0, and so on would get page 1 every time and never reach the error for a page
+		 * past the last one. The schema's minimum of 1 keeps out the negative values that
+		 * absint() would turn positive.
+		 */
 		$per_page = $this->normalize_per_page( $input, $include );
-		$page     = $this->parse_filter_int( $input['page'] ?? 1, 1 ) ?? 1;
+		$page     = isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1;
 
 		$prime_post_caches = $this->should_prime_post_caches( $fields );
 
@@ -570,8 +581,9 @@ final class WP_Content_Abilities {
 	 * @return int The clamped per-page value.
 	 */
 	private function normalize_per_page( array $input, array $include_ids ): int {
-		$per_page = $this->parse_filter_int( $input['per_page'] ?? null, 1 );
-		if ( null === $per_page ) {
+		// absint(), not parse_filter_int(): see where execute_content_query() reads `page`.
+		$per_page = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : 0;
+		if ( $per_page < 1 ) {
 			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
 		}
 
