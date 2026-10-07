@@ -135,12 +135,15 @@ same validity rule with the required `--` prefix.
 
 `get_value_tokens()` returns the current declaration's value as a list of CSS
 tokens, or `null` when the cursor is not on a declaration. Each token is an
-array with the keys `type`, `value`, `start`, `length`, and `end`:
+array with the keys `type`, `value`, `unit`, `start`, `length`, and `end`:
 
 - `type` is a `WP_CSS_Token_Processor` `TOKEN_*` constant;
 - `value` is the token value as `WP_CSS_Token_Processor::get_token_value()`
   returns it: decoded, a dimension's number without its unit, a hash's name
   without `#`, and `null` for tokens without a value;
+- `unit` is the decoded unit of a dimension token, as
+  `WP_CSS_Token_Processor::get_token_unit()` returns it, and `null` for every
+  other token type;
 - `start` and `length` are the token's byte offset and byte length in the
   style text, and `end` is `start + length`.
 
@@ -154,8 +157,8 @@ Before any mutation that is the text passed to `create()`. A successful
 mutation reparses the updated text, and the offsets follow it.
 
 Re-tokenizing the source slice from the first token's `start` to the last
-token's `end` with `WP_CSS_Token_Processor` yields the same `type` and `value`
-sequence. Consumers may rely on this to re-serialize a value or to hand the
+token's `end` with `WP_CSS_Token_Processor` yields the same `type`, `value` and
+`unit` sequence. Consumers may rely on this to re-serialize a value or to hand the
 slice to another tokenizer-based check.
 
 Two alternatives were considered. A `WP_CSS_Token_Processor` positioned over the

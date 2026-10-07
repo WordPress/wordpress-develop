@@ -238,12 +238,12 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$expected  = array();
 		$tokenizer = WP_CSS_Token_Processor::create( $slice );
 		while ( $tokenizer->next_token() ) {
-			$expected[] = array( $tokenizer->get_token_type(), $tokenizer->get_token_value() );
+			$expected[] = array( $tokenizer->get_token_type(), $tokenizer->get_token_value(), $tokenizer->get_token_unit() );
 		}
 
 		$actual = array_map(
 			static function ( array $token ): array {
-				return array( $token['type'], $token['value'] );
+				return array( $token['type'], $token['value'], $token['unit'] );
 			},
 			$tokens
 		);
@@ -891,12 +891,13 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	 * @param string|null $value  Token value.
 	 * @param int         $start  Byte offset of the token.
 	 * @param int         $length Byte length of the token.
-	 * @return array{type:string, value:string|null, start:int, length:int, end:int}
+	 * @return array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}
 	 */
-	private static function token( string $type, ?string $value, int $start, int $length ): array {
+	private static function token( string $type, ?string $value, int $start, int $length, ?string $unit = null ): array {
 		return array(
 			'type'   => $type,
 			'value'  => $value,
+			'unit'   => $unit,
 			'start'  => $start,
 			'length' => $length,
 			'end'    => $start + $length,
@@ -918,7 +919,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 				'width: calc(1px + 2%)',
 				array(
 					self::token( WP_CSS_Token_Processor::TOKEN_FUNCTION, 'calc', 7, 5 ),
-					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 12, 3 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 12, 3, 'px' ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 15, 1 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_DELIM, '+', 16, 1 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 17, 1 ),
@@ -945,11 +946,11 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 			'trivia inside the value kept'     => array(
 				'margin: 1px /* a */ 2px',
 				array(
-					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 8, 3 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 8, 3, 'px' ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 11, 1 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_COMMENT, null, 12, 7 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 19, 1 ),
-					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '2', 20, 3 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '2', 20, 3, 'px' ),
 				),
 			),
 			'custom property'                  => array(
@@ -961,6 +962,22 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 8, 1 ),
 					self::token( WP_CSS_Token_Processor::TOKEN_NUMBER, '3', 9, 1 ),
 				),
+			),
+			'dimension unit'                   => array(
+				'width: 10px',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '10', 7, 4, 'px' ) ),
+			),
+			'dimension unit decoded'           => array(
+				'width: 1p\\78',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 7, 5, 'px' ) ),
+			),
+			'number has no unit'               => array(
+				'--x: 10',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_NUMBER, '10', 5, 2 ) ),
+			),
+			'percentage has no unit'           => array(
+				'width: 10%',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_PERCENTAGE, '10', 7, 3 ) ),
 			),
 			'empty value'                      => array( 'color:;', array() ),
 			'only important'                   => array( 'color: !important', array() ),

@@ -46,7 +46,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * CSS token metadata.
 	 *
-	 * @var array<int, array{type:string, value:string|null, start:int, length:int, end:int}>
+	 * @var array<int, array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}>
 	 */
 	private $tokens = array();
 
@@ -192,6 +192,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 *    returns it: a dimension's number without its unit, a hash's name
 	 *    without `#`, a string's decoded contents, and null for tokens
 	 *    without a value.
+	 *  - `unit`: the decoded unit of a dimension token, as
+	 *    {@see WP_CSS_Token_Processor::get_token_unit()} returns it, and null
+	 *    for every other token type.
 	 *  - `start`: byte offset of the token in the style text.
 	 *  - `length`: byte length of the token in the style text.
 	 *  - `end`: byte offset after the token, `start + length`.
@@ -202,7 +205,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<int, array{type:string, value:string|null, start:int, length:int, end:int}>|null
+	 * @return array<int, array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}>|null
 	 *               Value tokens, or null when not on a declaration.
 	 */
 	public function get_value_tokens(): ?array {
@@ -524,6 +527,7 @@ class WP_HTML_Style_Attribute_Processor {
 			$this->tokens[] = array(
 				'type'   => $processor->get_token_type(),
 				'value'  => $processor->get_token_value(),
+				'unit'   => $processor->get_token_unit(),
 				'start'  => $start,
 				'length' => $length,
 				'end'    => $start + $length,
