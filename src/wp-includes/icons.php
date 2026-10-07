@@ -130,7 +130,7 @@ function _wp_register_default_icons() {
 	}
 
 	/**
-	 * @phpstan-var array<lowercase-string&non-falsy-string, array{
+	 * @var array<lowercase-string&non-falsy-string, array{
 	 *     label: string,
 	 *     filePath: non-empty-string,
 	 *     collections: non-empty-list<lowercase-string&non-falsy-string>,
