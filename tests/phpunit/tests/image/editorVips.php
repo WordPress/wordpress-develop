@@ -923,8 +923,11 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the image_strip_meta filter controls whether metadata is stripped
-	 * when the image is resized.
+	 * Tests that the image_strip_meta filter controls whether a resized image keeps
+	 * all of its metadata.
+	 *
+	 * Reducing metadata keeps the colour profile and the descriptive fields rather than
+	 * dropping every field, which is the set the Imagick editor protects.
 	 *
 	 * @requires extension exif
 	 */
@@ -935,21 +938,24 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 			return false;
 		};
 
-		// Metadata is stripped by default.
+		// Descriptive metadata is kept when metadata is reduced.
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
 		$this->assertNotWPError( $vips_image_editor->resize( 25, 25 ) );
 
-		$stripped_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
-		$vips_image_editor->save( $stripped_file );
+		$reduced_file = tempnam( get_temp_dir(), 'vips_meta_' ) . '.jpg';
+		$vips_image_editor->save( $reduced_file );
 
-		$stripped = wp_read_image_metadata( $stripped_file );
-		unlink( $stripped_file );
+		$reduced = wp_read_image_metadata( $reduced_file );
+		unlink( $reduced_file );
 
-		$this->assertEmpty( $stripped['caption'], 'Metadata should be stripped by default.' );
+		$this->assertNotEmpty(
+			$reduced['caption'],
+			'Descriptive metadata should be kept when metadata is reduced.'
+		);
 
-		// The filter can prevent stripping.
+		// The filter can keep everything instead.
 		add_filter( 'image_strip_meta', $strip_meta );
 
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
@@ -969,9 +975,37 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a resize keeps the colour profile when it reduces metadata.
+	 *
+	 * Dropping the profile changes how the image renders anywhere nothing converts from
+	 * the original profile, which is why the Imagick editor protects it.
+	 */
+	public function test_resizing_keeps_the_color_profile() {
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$this->assertNotWPError( $vips_image_editor->resize( 25, 25 ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_profile_' ) . '.jpg';
+		$vips_image_editor->save( $saved_file );
+
+		// The profile is stored in an APP2 segment tagged ICC_PROFILE.
+		$saved = file_get_contents( $saved_file );
+		unlink( $saved_file );
+
+		$this->assertStringContainsString(
+			'ICC_PROFILE',
+			$saved,
+			'The colour profile should survive a resize that reduces metadata.'
+		);
+	}
+
+	/**
 	 * Tests that metadata survives a save that does not resize the image.
 	 *
-	 * Metadata is only stripped when the image is resized or cropped, matching the
+	 * Metadata is only reduced when the image is resized or cropped, matching the
 	 * Imagick editor, so the filter returning true is not enough on its own.
 	 *
 	 * @requires extension exif

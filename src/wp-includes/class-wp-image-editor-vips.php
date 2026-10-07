@@ -999,24 +999,37 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 *
 	 * @param Jcupitt\Vips\Image $image      The image being written.
 	 * @param string             $mime_type  The mime type it is being written as.
-	 * @param bool               $strip_meta Optional. Whether to strip metadata, for the
-	 *                                       encoders that accept the option. Default false.
+	 * @param bool               $strip_meta Optional. Whether to reduce the metadata to the
+	 *                                       colour profile and the descriptive fields.
+	 *                                       Default false.
 	 * @return array Options passed to `writeToBuffer()` or `writeToFile()`.
 	 */
 	protected function get_save_options( $image, $mime_type, $strip_meta = false ) {
 		$options = array();
 
+		/*
+		 * Metadata is handled the same way for every format that stores it. libvips' `strip`
+		 * boolean drops every field, including the colour profile, which changes how the
+		 * image renders once nothing tells the browser how to interpret the samples. The
+		 * `keep` mask drops the rest while preserving the colour profile and the descriptive
+		 * fields, which is the set the Imagick editor keeps.
+		 */
+		if ( $strip_meta ) {
+			$options['keep'] = Jcupitt\Vips\ForeignKeep::ICC
+				| Jcupitt\Vips\ForeignKeep::EXIF
+				| Jcupitt\Vips\ForeignKeep::XMP
+				| Jcupitt\Vips\ForeignKeep::IPTC;
+		}
+
 		switch ( $mime_type ) {
 			case 'image/jpeg':
 				$options['Q']               = $this->get_quality();
-				$options['strip']           = $strip_meta;
 				$options['optimize_coding'] = true;
 				$options['interlace']       = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 				break;
 
 			case 'image/avif':
-				$options['Q']      = $this->get_quality();
-				$options['strip']  = $strip_meta;
+				$options['Q'] = $this->get_quality();
 				/**
 				 * Filters the libvips effort used when encoding AVIF.
 				 *
@@ -1031,8 +1044,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				break;
 
 			case 'image/webp':
-				$options['Q']     = $this->get_quality();
-				$options['strip'] = $strip_meta;
+				$options['Q'] = $this->get_quality();
 
 				// A lossless WebP has no quality to trade away, so it is re-saved losslessly.
 				if ( $this->lossless ) {
@@ -1045,7 +1057,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				// editor saves at maximum deflate compression. Deriving a level from the
 				// quality instead wrote files far larger than the source they came from.
 				$options['compression'] = 9;
-				$options['strip']       = $strip_meta;
 				$options['interlace']   = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 
 				// Asking for a palette back keeps an indexed PNG indexed. Without it the
@@ -1057,7 +1068,6 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				break;
 
 			case 'image/gif':
-				$options['strip']     = $strip_meta;
 				$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 				break;
 		}
