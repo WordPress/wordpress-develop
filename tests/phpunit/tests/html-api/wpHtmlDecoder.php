@@ -81,9 +81,9 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 
 	public static function data_edge_cases() {
 		return array(
-			'Single ampersand' => array( '&', '&' ),
-			'NULL byte'        => array( "\0", "\0" ),
-			'Unknown entity'   => array( '&unknown;', '&unknown;' ),
+			'Single ampersand'                  => array( '&', '&' ),
+			'NULL byte'                         => array( "\0", "\0" ),
+			'Unknown named character reference' => array( '&unknown;', '&unknown;' ),
 		);
 	}
 
@@ -232,6 +232,45 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( '&nbsp£20', "\u{00A0}£20", "\u{00A0}", 5 ),
 			array( '&nbsp🎉', "\u{00A0}🎉", "\u{00A0}", 5 ),
 			array( '&reg™', '®™', '®', 4 ),
+		);
+	}
+
+	/**
+	 * Ensures proper decoding of ambiguous ampersands.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_ambiguous_ampersands
+	 *
+	 * @param string $context  'attribute' or 'data'.
+	 * @param string $raw_text Raw text.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decodes_ambiguous_ampersands( string $context, string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode( $context, $raw_text ),
+			"Failed handling ambiguous ampersand in context '{$context}' for '{$raw_text}'."
+		);
+	}
+
+	/**
+	 * Data provider for ambiguous ampersands.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function data_ambiguous_ampersands(): array {
+		return array(
+			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
+			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
+			'Ambiguous with equals'               => array( 'data', '&not=', '¬=' ),
+			'Ambiguous with equals (attr)'        => array( 'attribute', '&not=', '&not=' ),
+			'Ambiguous with alphanumeric'         => array( 'data', '&notit', '¬it' ),
+			'Ambiguous with alphanumeric (attr)'  => array( 'attribute', '&notit', '&notit' ),
+			'Not ambiguous (semicolon)'           => array( 'data', '&not;', '¬' ),
+			'Not ambiguous (semicolon) (attr)'    => array( 'attribute', '&not;', '¬' ),
+			'Not ambiguous (non-alphanum)'        => array( 'data', '&not ', '¬ ' ),
+			'Not ambiguous (non-alphanum) (attr)' => array( 'attribute', '&not ', '¬ ' ),
 		);
 	}
 
@@ -508,29 +547,29 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures decoding of named entities in attributes.
+	 * Ensures decoding of named character references in attributes.
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_decode_attribute_named_entities
+	 * @dataProvider data_decode_attribute_named_character_references
 	 *
-	 * @param string $raw_text Raw attribute value containing named entity.
+	 * @param string $raw_text Raw attribute value containing named character reference.
 	 * @param string $expected Expected decoded character.
 	 */
-	public function test_decode_attribute_decodes_named_entities( string $raw_text, string $expected ): void {
+	public function test_decode_attribute_decodes_named_character_references( string $raw_text, string $expected ): void {
 		$this->assertSame(
 			$expected,
 			WP_HTML_Decoder::decode_attribute( $raw_text ),
-			"Failed decoding named entity in attribute '{$raw_text}'."
+			"Failed decoding named character reference in attribute '{$raw_text}'."
 		);
 	}
 
 	/**
-	 * Data provider for named entities in attributes.
+	 * Data provider for named character references in attributes.
 	 *
 	 * @return array<string, array{string, string}>
 	 */
-	public static function data_decode_attribute_named_entities(): array {
+	public static function data_decode_attribute_named_character_references(): array {
 		return array(
 			'Ampersand with semicolon'       => array( '&amp;', '&' ),
 			'Ampersand without semicolon'    => array( '&amp', '&' ),
@@ -546,69 +585,79 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensures decoding of decimal numeric entities in attributes.
+	 * Ensures decoding of numeric character references across their syntactic variants.
 	 *
 	 * @ticket 61072
 	 *
-	 * @dataProvider data_decode_attribute_decimal_numeric_entities
+	 * @dataProvider data_numeric_character_references
 	 *
-	 * @param string $raw_text Raw attribute value containing decimal numeric entity.
-	 * @param string $expected Expected decoded character.
+	 * @param string $raw_text Raw numeric character reference.
+	 * @param string $expected Expected decoded string.
 	 */
-	public function test_decode_attribute_decodes_decimal_numeric_entities( string $raw_text, string $expected ): void {
+	public function test_decodes_numeric_character_references( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_text_node( $raw_text ),
+			"Failed decoding numeric character reference in text node: '{$raw_text}'."
+		);
 		$this->assertSame(
 			$expected,
 			WP_HTML_Decoder::decode_attribute( $raw_text ),
-			"Failed decoding decimal numeric entity in attribute '{$raw_text}'."
+			"Failed decoding numeric character reference in attribute: '{$raw_text}'."
 		);
 	}
 
 	/**
-	 * Data provider for decimal numeric entities in attributes.
+	 * Data provider.
 	 *
-	 * @return array<string, array{string, string}>
+	 * Generates, for a representative set of code points, every combination of:
+	 *  - decimal vs. hexadecimal syntax,
+	 *  - `x` vs. `X` introducer and lower vs. upper case hexadecimal digits,
+	 *  - count of leading zeros (which do not count toward the digit limit),
+	 *  - semicolon present or missing.
+	 *
+	 * @return Generator<string, array{string, string}> Test cases.
 	 */
-	public static function data_decode_attribute_decimal_numeric_entities(): array {
-		return array(
-			'Standard decimal'             => array( '&#65;', 'A' ),
-			'Leading zero'                 => array( '&#065;', 'A' ),
-			'Multiple leading zeros'       => array( '&#000065;', 'A' ),
-			'Semicolonless legacy decimal' => array( '&#65', 'A' ),
+	public static function data_numeric_character_references(): Generator {
+		$code_points = array(
+			'ASCII'                 => 0x41,
+			'Two-byte UTF-8'        => 0xE9,
+			'Three-byte UTF-8'      => 0x2603,
+			'Astral plane'          => 0x1F600,
+			'Maximum code point'    => 0x10FFFF,
+			'High surrogate start'  => 0xD800,
+			'High surrogate middle' => 0xDABC,
+			'Low surrogate end'     => 0xDFFF,
+			'Out of range'          => 0x110000,
 		);
-	}
 
-	/**
-	 * Ensures decoding of hex numeric entities in attributes.
-	 *
-	 * @ticket 61072
-	 *
-	 * @dataProvider data_decode_attribute_hex_numeric_entities
-	 *
-	 * @param string $raw_text Raw attribute value containing hex numeric entity.
-	 * @param string $expected Expected decoded character.
-	 */
-	public function test_decode_attribute_decodes_hex_numeric_entities( string $raw_text, string $expected ): void {
-		$this->assertSame(
-			$expected,
-			WP_HTML_Decoder::decode_attribute( $raw_text ),
-			"Failed decoding hex numeric entity in attribute '{$raw_text}'."
-		);
-	}
+		foreach ( $code_points as $label => $code_point ) {
+			// Surrogate halves and code points beyond U+10FFFF decode to U+FFFD.
+			$is_scalar_value = $code_point <= 0x10FFFF && ( $code_point < 0xD800 || $code_point > 0xDFFF );
+			$expected        = $is_scalar_value ? mb_chr( $code_point, 'UTF-8' ) : "\u{FFFD}";
 
-	/**
-	 * Data provider for hex numeric entities in attributes.
-	 *
-	 * @return array<string, array{string, string}>
-	 */
-	public static function data_decode_attribute_hex_numeric_entities(): array {
-		return array(
-			'Standard hex'             => array( '&#x41;', 'A' ),
-			'Leading zero'             => array( '&#x041;', 'A' ),
-			'Multiple leading zeros'   => array( '&#x000041;', 'A' ),
-			'Semicolonless legacy hex' => array( '&#x41', 'A' ),
-			'Uppercase X introducer'   => array( '&#X41;', 'A' ),
-			'4-byte UTF-8 emoji'       => array( '&#x1F600;', '😀' ),
-		);
+			$hex      = dechex( $code_point );
+			$syntaxes = array(
+				array( '#', (string) $code_point ),
+				array( '#x', $hex ),
+				array( '#x', strtoupper( $hex ) ),
+				array( '#X', $hex ),
+				array( '#X', strtoupper( $hex ) ),
+			);
+
+			// Hexadecimal digits without letters have no case variants.
+			$syntaxes = array_unique( $syntaxes, SORT_REGULAR );
+
+			foreach ( $syntaxes as list( $introducer, $digit_string ) ) {
+				foreach ( array( 0, 1, 10 ) as $zero_count ) {
+					foreach ( array( ';', '' ) as $terminator ) {
+						$raw_text = '&' . $introducer . str_repeat( '0', $zero_count ) . $digit_string . $terminator;
+
+						yield "{$label}: {$raw_text}" => array( $raw_text, $expected );
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -642,6 +691,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	public static function data_windows_1252_mapped_characters(): array {
 		return array(
 			'Euro sign'        => array( '&#x80;', '€' ),
+			'Unmapped U+81'    => array( '&#x81;', "\u{81}" ),
 			'Single low-9'     => array( '&#x82;', '‚' ),
 			'F with hook'      => array( '&#x83;', 'ƒ' ),
 			'Double low-9'     => array( '&#x84;', '„' ),
@@ -653,7 +703,10 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'S with caron'     => array( '&#x8A;', 'Š' ),
 			'Less single guil' => array( '&#x8B;', '‹' ),
 			'OE ligature'      => array( '&#x8C;', 'Œ' ),
+			'Unmapped U+8D'    => array( '&#x8D;', "\u{8D}" ),
 			'Z with caron'     => array( '&#x8E;', 'Ž' ),
+			'Unmapped U+8F'    => array( '&#x8F;', "\u{8F}" ),
+			'Unmapped U+90'    => array( '&#x90;', "\u{90}" ),
 			'Left single quot' => array( '&#x91;', '‘' ),
 			'Right single quo' => array( '&#x92;', '’' ),
 			'Left double quot' => array( '&#x93;', '“' ),
@@ -666,6 +719,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			's with caron'     => array( '&#x9A;', 'š' ),
 			'Right single gui' => array( '&#x9B;', '›' ),
 			'oe ligature'      => array( '&#x9C;', 'œ' ),
+			'Unmapped U+9D'    => array( '&#x9D;', "\u{9D}" ),
 			'z with caron'     => array( '&#x9E;', 'ž' ),
 			'Y with diaeresis' => array( '&#x9F;', 'Ÿ' ),
 		);
@@ -695,58 +749,11 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @return array<string, array{string, string}>
 	 */
 	public static function data_invalid_numeric_references(): array {
-		$replacement = "\u{FFFD}";
 		return array(
-			'Null byte'             => array( '&#0;', $replacement ),
-			'Null byte (hex)'       => array( '&#x00;', $replacement ),
-			'High surrogate start'  => array( '&#xD800;', $replacement ),
-			'High surrogate middle' => array( '&#xDABC;', $replacement ),
-			'Low surrogate end'     => array( '&#xDFFF;', $replacement ),
-			'Out of range'          => array( '&#x110000;', $replacement ),
 			'No digits'             => array( '&#;', '&#;' ),
 			'No digits (hex)'       => array( '&#x;', '&#x;' ),
-			'Too many digits'       => array( '&#12345678;', $replacement ), // Limit is 7.
-			'Too many digits (hex)' => array( '&#x10FFFFF;', $replacement ), // Limit is 6.
-			'Only zeros'            => array( '&#0000;', $replacement ),
-		);
-	}
-
-	/**
-	 * Ensures proper decoding of ambiguous ampersands.
-	 *
-	 * @ticket 61072
-	 *
-	 * @dataProvider data_ambiguous_ampersands
-	 *
-	 * @param string $context  'attribute' or 'data'.
-	 * @param string $raw_text Raw text.
-	 * @param string $expected Expected decoded string.
-	 */
-	public function test_decodes_ambiguous_ampersands( string $context, string $raw_text, string $expected ): void {
-		$this->assertSame(
-			$expected,
-			WP_HTML_Decoder::decode( $context, $raw_text ),
-			"Failed handling ambiguous ampersand in context '{$context}' for '{$raw_text}'."
-		);
-	}
-
-	/**
-	 * Data provider for ambiguous ampersands.
-	 *
-	 * @return array<string, array{string, string, string}>
-	 */
-	public static function data_ambiguous_ampersands(): array {
-		return array(
-			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
-			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
-			'Ambiguous with equals'               => array( 'data', '&not=', '¬=' ),
-			'Ambiguous with equals (attr)'        => array( 'attribute', '&not=', '&not=' ),
-			'Ambiguous with alphanumeric'         => array( 'data', '&notit', '¬it' ),
-			'Ambiguous with alphanumeric (attr)'  => array( 'attribute', '&notit', '&notit' ),
-			'Not ambiguous (semicolon)'           => array( 'data', '&not;', '¬' ),
-			'Not ambiguous (semicolon) (attr)'    => array( 'attribute', '&not;', '¬' ),
-			'Not ambiguous (non-alphanum)'        => array( 'data', '&not ', '¬ ' ),
-			'Not ambiguous (non-alphanum) (attr)' => array( 'attribute', '&not ', '¬ ' ),
+			'Too many digits'       => array( '&#12345678;', "\u{FFFD}" ), // Limit is 7.
+			'Too many digits (hex)' => array( '&#x10FFFFF;', "\u{FFFD}" ), // Limit is 6.
 		);
 	}
 }
