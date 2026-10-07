@@ -492,7 +492,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * @param array       $schema   Optional. The `show_in_abilities` schema of the setting. Default empty array.
 	 */
 	public function test_core_settings_get_reads_stored_values( string $type, $stored, ?string $expected, array $schema = array() ): void {
-		$option = 'core_settings_get_ability_value_test_option';
+		// A numeric name, which PHP turns into an integer array key, must still match `fields`.
+		$option = '123';
 
 		register_setting(
 			'general',
