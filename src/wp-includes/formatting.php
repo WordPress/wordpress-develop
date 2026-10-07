@@ -626,6 +626,7 @@ function wp_html_split( $input ) {
  * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
+	/** @var non-falsy-string|null $regex */
 	static $regex;
 
 	if ( ! isset( $regex ) ) {
