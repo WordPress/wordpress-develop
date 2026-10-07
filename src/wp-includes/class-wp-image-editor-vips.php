@@ -114,8 +114,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				return false;
 			}
 
-			// Require libvips 8.7 or later
-			if ( version_compare( $version, '8.7', '<' ) ) {
+			// Require libvips 8.13 or later.
+			if ( version_compare( $version, '8.13', '<' ) ) {
 				return false;
 			}
 		} catch ( Exception $e ) {
