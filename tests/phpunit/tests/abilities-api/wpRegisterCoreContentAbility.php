@@ -3136,9 +3136,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An author_slug filter names only users the current user may see, as in core/users-query:
-	 * a user without published posts is reported like a missing one to a subscriber, but not
-	 * to an editor, who can edit their posts.
+	 * An author_slug filter names only users the current user may see: a user without
+	 * published posts is reported like a missing one to a subscriber, but not to an editor,
+	 * who can edit their posts.
 	 *
 	 * @ticket 64606
 	 * @since 7.2.0
