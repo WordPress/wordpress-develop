@@ -843,6 +843,7 @@ function register_block_type( $block_type, $args = array() ) {
 		return register_block_type_from_metadata( $block_type, $args );
 	}
 
+	/** @var (lowercase-string&non-falsy-string)|WP_Block_Type $block_type A string that is not a path to block metadata should be a block type name. */
 	return WP_Block_Type_Registry::get_instance()->register( $block_type, $args );
 }
 
