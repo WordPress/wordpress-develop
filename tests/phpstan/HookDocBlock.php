@@ -175,6 +175,7 @@ class HookDocBlock {
 
 		$canonical_root               = realpath( $this->wordpressRoot );
 		$this->canonicalWordpressRoot = false === $canonical_root ? $this->wordpressRoot : $canonical_root;
+		$this->canonicalWordpressRoot = str_replace( '\\', '/', $this->canonicalWordpressRoot );
 	}
 
 	/**
@@ -842,6 +843,8 @@ class HookDocBlock {
 		if ( false === $canonical ) {
 			return null;
 		}
+
+		$canonical = str_replace( '\\', '/', $canonical );
 
 		return str_starts_with( $canonical, $this->canonicalWordpressRoot . '/' ) ? $canonical : null;
 	}

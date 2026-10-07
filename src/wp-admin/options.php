@@ -57,7 +57,7 @@ if ( ! current_user_can( $capability ) ) {
 // Handle admin email change requests.
 if ( ! empty( $_GET['adminhash'] ) ) {
 	$new_admin_details = get_option( 'adminhash' );
-	$redirect          = 'options-general.php?updated=false';
+	$redirect          = add_query_arg( array( 'updated' => 'false' ), 'options-general.php' );
 
 	if ( is_array( $new_admin_details )
 		&& hash_equals( $new_admin_details['hash'], $_GET['adminhash'] )
@@ -66,7 +66,13 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 		update_option( 'admin_email', $new_admin_details['newemail'] );
 		delete_option( 'adminhash' );
 		delete_option( 'new_admin_email' );
-		$redirect = 'options-general.php?updated=true';
+		$redirect = add_query_arg(
+			array(
+				'updated'             => 'true',
+				'admin_email_updated' => 'true',
+			),
+			'options-general.php',
+		);
 	}
 
 	wp_redirect( admin_url( $redirect ) );
@@ -396,6 +402,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<input type="hidden" name="option_page" value="options" />
 		<table class="form-table" role="presentation">
 <?php
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 $options = $wpdb->get_results( "SELECT * FROM $wpdb->options ORDER BY option_name" );
 
 foreach ( (array) $options as $option ) :

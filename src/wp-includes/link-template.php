@@ -1560,6 +1560,8 @@ function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $cs
  * @param string      $deprecated   Not used.
  * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
  * @return string|null The delete post link URL for the given post.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -4848,7 +4850,16 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 		$link = sprintf(
 			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
-			esc_html( $page_title )
+			wp_kses(
+				$page_title,
+				array(
+					'strong' => array( 'class' => true ),
+					'em'     => array( 'class' => true ),
+					'b'      => array( 'class' => true ),
+					'i'      => array( 'class' => true ),
+					'span'   => array( 'class' => true ),
+				)
+			)
 		);
 	}
 
