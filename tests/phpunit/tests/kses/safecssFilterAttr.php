@@ -167,6 +167,31 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	/**
 	 * @ticket 65738
 	 */
+	public function test_brace_block_is_rejected_in_standard_property() {
+		$this->assertSame( '', safecss_filter_attr( 'color: {a:b}' ) );
+		$this->assertSame( '', safecss_filter_attr( 'color: {}' ) );
+		$this->assertSame( '', safecss_filter_attr( 'width: {1px}' ) );
+		$this->assertSame( 'color:red;', safecss_filter_attr( 'width: {}; color: red' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_brace_block_is_kept_in_custom_property() {
+		$this->assertSame( '--x:{a:b};', safecss_filter_attr( '--x: {a:b}' ) );
+		$this->assertSame( '--x:{};', safecss_filter_attr( '--x: {}' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_square_bracket_block_is_kept_in_standard_property() {
+		$this->assertSame( 'grid-template-columns:[a] 1fr [b];', safecss_filter_attr( 'grid-template-columns: [a] 1fr [b]' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
 	public function test_bare_parenthesis_block_is_kept_inside_function() {
 		$this->assertSame( 'width:calc(3em + (10px * 2));', safecss_filter_attr( 'width: calc(3em + (10px * 2))' ) );
 	}

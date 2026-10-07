@@ -4198,8 +4198,8 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *    `^--[a-zA-Z0-9_-]+$`.
  *  - Every function at any depth is in the function allowlist.
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
- *  - A non-custom property has no bare parenthesis block at the top level
- *    of its value.
+ *  - A non-custom property has no bare parenthesis block and no brace
+ *    block at the top level of its value.
  *  - The value has no `&`, `<`, `>` or `=` delimiter and no `<!--` or `-->`
  *    token at any depth. Inside strings and URLs these characters are
  *    escaped in the output; no standard property value uses them elsewhere.
@@ -4384,7 +4384,8 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				continue 2;
 
 			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
-				// No standard property accepts a bare `( )` block as a top-level value.
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				// No standard property accepts a bare `( )` or `{ }` block as a top-level value.
 				if ( ! $is_custom && 0 === $depth ) {
 					return false;
 				}
@@ -4392,7 +4393,7 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				continue 2;
 
 			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
-			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				// `[ ]` is valid at the top level, as in `grid-template-columns: [a] 1fr`.
 				++$depth;
 				continue 2;
 

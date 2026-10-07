@@ -122,10 +122,11 @@ helper. A filter result that is not an array is treated as an empty list.
    declaration is dropped. `src()` is treated like `url()`. There is no
    per-property list of URL-bearing properties.
 4. **Structure.** In a non-custom property, the value has no bare `( )` block
-   at its top level. No standard property grammar accepts one. A `( )` block
-   nested in a function, as in `calc(1px + (2px * 3))` or a `var()` fallback,
-   is governed by that function's grammar and is kept. Custom properties
-   keep a bare block.
+   and no `{ }` block at its top level. No standard property grammar accepts
+   either. A `[ ]` block is kept: `grid-template-columns: [a] 1fr` is valid.
+   A `( )` block nested in a function, as in `calc(1px + (2px * 3))` or a
+   `var()` fallback, is governed by that function's grammar and is kept.
+   Custom properties keep every block.
 5. **Delimiters.** The value has no `&`, `<`, `>` or `=` delimiter token and
    no `<!--` or `-->` token at any depth, in every property including custom
    ones. These characters have a meaning in HTML. Inside strings and URLs the
@@ -246,10 +247,12 @@ Open during the prototype, now settled:
   accepted nine inputs the legacy function rejected; callers rely on a
   rejected declaration staying rejected. With the rule, the serializer has no
   block-closing code.
-- **Bare `( )` blocks.** Rejected at the top level of a non-custom property's
-  value; kept when nested in a function and in custom properties. Rejecting at
-  any depth would drop `calc(3em + (10px * 2))`, which the legacy function
-  accepts and which is valid CSS.
+- **Bare `( )` and `{ }` blocks.** Rejected at the top level of a non-custom
+  property's value; kept when nested in a function and in custom properties.
+  Rejecting at any depth would drop `calc(3em + (10px * 2))`, which the legacy
+  function accepts and which is valid CSS. The processor already drops a
+  `{ }` block mixed with other tokens in a non-custom property; this rule
+  covers a value that is only a `{ }` block.
 - **Tokens cut off by the end of the input.** A comment, string or url token
   the input ends inside drops the last accepted declaration, for every
   property including custom ones. An earlier version rejected only strings,
