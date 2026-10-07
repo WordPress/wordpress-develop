@@ -37,7 +37,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$_wp_menu_nopriv    = array();
 		$_wp_submenu_nopriv = array();
 
-		unset( $GLOBALS['plugin_page'], $GLOBALS['admin_page_parent'] );
+		unset( $GLOBALS['plugin_page'] );
 	}
 
 	public static function wpSetUpBeforeClass( $factory ) {
@@ -117,12 +117,11 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
-		global $admin_page_parent, $plugin_page, $_registered_pages;
+		global $plugin_page, $_registered_pages;
 
-		$admin_page_parent = 'options-general.php';
 		$plugin_page       = 'testsettings';
 		$_registered_pages = array(
-			get_plugin_page_hookname( $plugin_page, $admin_page_parent ) => true,
+			get_plugin_page_hookname( $plugin_page, '' ) => true,
 		);
 
 		$this->assertTrue( wp_admin_page_exists() );
@@ -132,9 +131,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_false_for_an_unregistered_page() {
-		global $admin_page_parent, $plugin_page, $_registered_pages;
+		global $plugin_page, $_registered_pages;
 
-		$admin_page_parent = 'options-general.php';
 		$plugin_page       = 'does-not-exist';
 		$_registered_pages = array();
 
@@ -148,7 +146,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page_the_user_cannot_access() {
-		global $admin_page_parent, $plugin_page;
+		global $plugin_page;
 
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::$admin_id );
@@ -159,8 +157,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		add_submenu_page( 'mt-top-level-handle', 'No Priv', 'No Priv', 'do_not_allow', 'mt-no-priv', 'mt_no_priv_page' );
 
-		$admin_page_parent = 'mt-top-level-handle';
-		$plugin_page       = 'mt-no-priv';
+		$plugin_page = 'mt-no-priv';
 
 		$this->assertTrue( wp_admin_page_exists() );
 

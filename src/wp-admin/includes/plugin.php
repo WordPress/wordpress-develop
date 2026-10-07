@@ -2147,7 +2147,6 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @since 7.2.0
  *
- * @global string                             $admin_page_parent  The parent slug of the current admin page.
  * @global string                             $plugin_page        The plugin page slug being loaded.
  * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
  * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
@@ -2156,16 +2155,13 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @return bool True if the admin page exists, false otherwise.
  */
 function wp_admin_page_exists(): bool {
-	global $admin_page_parent, $plugin_page, $_registered_pages,
-		$_wp_menu_nopriv, $_wp_submenu_nopriv;
-
-	$admin_page_parent ??= get_admin_page_parent();
+	global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
 	if ( ! isset( $plugin_page ) ) {
 		return true;
 	}
 
-	$hookname = get_plugin_page_hookname( $plugin_page, $admin_page_parent );
+	$hookname = get_plugin_page_hookname( $plugin_page, get_admin_page_parent() );
 
 	if ( isset( $_registered_pages[ $hookname ] ) ) {
 		return true;
@@ -2230,15 +2226,14 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
  * @global string                             $plugin_page        The plugin page slug being loaded.
  * @global array                              $_registered_pages  Array of all registered admin page hooks.
- * @global string                             $admin_page_parent  The parent slug of the current admin page.
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
 function user_can_access_admin_page(): bool {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
-		$plugin_page, $_registered_pages, $admin_page_parent;
+		$plugin_page, $_registered_pages;
 
-	$parent = $admin_page_parent ?? get_admin_page_parent();
+	$parent = get_admin_page_parent();
 
 	if ( ! isset( $plugin_page ) && isset( $_wp_submenu_nopriv[ $parent ][ $pagenow ] ) ) {
 		return false;
