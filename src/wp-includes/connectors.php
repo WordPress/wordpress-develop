@@ -618,6 +618,34 @@ function _wp_connectors_is_ai_api_key_valid( string $key, string $provider_id ):
 }
 
 /**
+ * Sanitizes a connector API key.
+ *
+ * A value exactly matching the mask that `_wp_connectors_rest_settings_dispatch()`
+ * places in REST responses for the stored key keeps the stored key, so a masked
+ * settings response can be submitted back to the endpoint unchanged. All other
+ * values are sanitized as text, as before, so a new key replaces the stored one
+ * and an empty string clears it.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed  $value  The submitted setting value.
+ * @param string $option The name of the option being sanitized.
+ * @return string The sanitized API key.
+ */
+function wp_connectors_sanitize_api_key( $value, string $option ): string {
+	$value  = sanitize_text_field( $value );
+	$stored = get_option( $option );
+
+	// A masked key means a client resubmitted a masked REST response.
+	if ( is_string( $stored ) && '' !== $stored && _wp_connectors_mask_api_key( $stored ) === $value ) {
+		return $stored;
+	}
+
+	return $value;
+}
+
+/**
  * Sanitizes stored application-password credentials for a connector.
  *
  * Credential fields that are missing or not strings keep their currently
@@ -684,6 +712,7 @@ function wp_connectors_sanitize_application_password_credentials( $value, string
  *
  * On POST or PUT requests, validates each updated AI provider API key before
  * masking. If validation fails, the key is reverted to an empty string.
+ * A key resubmitted as its own mask is not validated, since it is unchanged.
  * Application password values are masked but not validated.
  *
  * @since 7.0.0
@@ -731,11 +760,16 @@ function _wp_connectors_rest_settings_dispatch( WP_REST_Response $response, WP_R
 
 		$value = $data[ $setting_name ];
 
-		// On update, validate AI provider keys submitted in the request before masking.
-		// Non-AI connectors accept keys as-is; the service plugin handles its own validation.
+		/*
+		 * On update, validate AI provider keys submitted in the request before masking.
+		 * A request carrying the mask of the stored key submitted no new key, since
+		 * wp_connectors_sanitize_api_key() kept the stored one, so there is nothing to validate.
+		 * Non-AI connectors accept keys as-is; the service plugin handles its own validation.
+		 */
 		if ( $is_update
 			&& $request->has_param( $setting_name )
 			&& is_string( $value ) && '' !== $value
+			&& _wp_connectors_mask_api_key( $value ) !== $request->get_param( $setting_name )
 			&& 'ai_provider' === $connector_data['type']
 		) {
 			if ( true !== _wp_connectors_is_ai_api_key_valid( $value, $connector_id ) ) {
@@ -802,7 +836,9 @@ function _wp_register_default_connector_settings(): void {
 					),
 					'default'           => '',
 					'show_in_rest'      => true,
-					'sanitize_callback' => 'sanitize_text_field',
+					'sanitize_callback' => static function ( $value ) use ( $setting_name ) {
+						return wp_connectors_sanitize_api_key( $value, $setting_name );
+					},
 				)
 			);
 		} elseif ( 'application_password' === $auth['method'] ) {
