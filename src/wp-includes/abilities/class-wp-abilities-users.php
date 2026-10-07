@@ -21,7 +21,7 @@ declare( strict_types = 1 );
  * @since 7.1.0
  * @access private
  */
-final class WP_Users_Abilities {
+final class WP_Abilities_Users {
 
 	/**
 	 * The ability category used for user abilities.
