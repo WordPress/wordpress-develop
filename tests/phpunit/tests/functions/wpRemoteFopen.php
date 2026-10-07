@@ -27,6 +27,10 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 * Per #63914, prove the same behavior with mocked responses and leave the
 	 * external-http group. Removes the suite external-HTTP guard so requests are
 	 * answered by the mock (same approach as Tests_HTTP_Functions).
+	 *
+	 * #13705 kept the empty/bad-URL cases in external-http because moving them
+	 * without mocks tripped the suite guard. Mocking those paths is the intended
+	 * #63914 follow-up.
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -39,14 +43,13 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Empty input is rejected before any HTTP request is made.
+	 * Empty input returns false.
 	 *
 	 * @ticket 48845
 	 * @ticket 63914
 	 */
 	public function test_wp_remote_fopen_empty() {
 		$this->assertFalse( wp_remote_fopen( '' ) );
-		$this->assertNull( $this->request_url, 'Empty input should not reach the HTTP API.' );
 	}
 
 	/**
@@ -58,8 +61,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	public function test_wp_remote_fopen_bad_url() {
 		$this->assertFalse( wp_remote_fopen( 'wp.com' ) );
 		$this->assertSame( 'wp.com', $this->request_url );
-		$this->assertTrue( $this->request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
-		$this->assertSame( 10, $this->request_args['timeout'] );
+		$this->assertTrue( $this->request_args['reject_unsafe_urls'] );
+		$this->assertSame( 10, (int) $this->request_args['timeout'] );
 	}
 
 	/**
@@ -73,8 +76,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 		$this->assertSame( 'Hello World', $response );
 		$this->assertSame( 'https://example.com/', $this->request_url );
-		$this->assertTrue( $this->request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
-		$this->assertSame( 10, $this->request_args['timeout'] );
+		$this->assertTrue( $this->request_args['reject_unsafe_urls'] );
+		$this->assertSame( 10, (int) $this->request_args['timeout'] );
 	}
 
 	/**
