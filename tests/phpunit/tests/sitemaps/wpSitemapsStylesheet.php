@@ -2,42 +2,38 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Stylesheet
  */
 class Tests_Sitemaps_wpSitemapsStylesheet extends WP_UnitTestCase {
 
 	/**
-	 * Test that stylesheet content can be filtered.
+	 * Tests that the stylesheet methods are deprecated and return an empty string.
+	 *
+	 * @ticket 65593
+	 *
+	 * @dataProvider data_deprecated_methods
+	 *
+	 * @param string $method Deprecated method name.
 	 */
-	public function test_filter_sitemaps_stylesheet_content() {
+	public function test_deprecated_methods( string $method ): void {
+		$this->setExpectedDeprecated( "WP_Sitemaps_Stylesheet::$method" );
+
 		$stylesheet = new WP_Sitemaps_Stylesheet();
 
-		add_filter( 'wp_sitemaps_stylesheet_content', '__return_empty_string' );
-		$content = $stylesheet->get_sitemap_stylesheet();
-
-		$this->assertSame( '', $content, 'Could not filter stylesheet content' );
+		$this->assertSame( '', $stylesheet->$method() );
 	}
 
 	/**
-	 * Test that sitemap index stylesheet content can be filtered.
+	 * Data provider for {@see self::test_deprecated_methods()}.
+	 *
+	 * @return array<non-falsy-string, array{ method: 'get_sitemap_stylesheet'|'get_sitemap_index_stylesheet'|'get_stylesheet_css' }>
 	 */
-	public function test_filter_sitemaps_stylesheet_index_content() {
-		$stylesheet = new WP_Sitemaps_Stylesheet();
-
-		add_filter( 'wp_sitemaps_stylesheet_index_content', '__return_empty_string' );
-		$content = $stylesheet->get_sitemap_index_stylesheet();
-
-		$this->assertSame( '', $content, 'Could not filter sitemap index stylesheet content' );
-	}
-
-	/**
-	 * Test that sitemap stylesheet CSS can be filtered.
-	 */
-	public function test_filter_sitemaps_stylesheet_css() {
-		$stylesheet = new WP_Sitemaps_Stylesheet();
-
-		add_filter( 'wp_sitemaps_stylesheet_css', '__return_empty_string' );
-		$css = $stylesheet->get_stylesheet_css();
-
-		$this->assertSame( '', $css, 'Could not filter sitemap stylesheet CSS' );
+	public function data_deprecated_methods(): array {
+		return array(
+			'sitemap stylesheet' => array( 'method' => 'get_sitemap_stylesheet' ),
+			'index stylesheet'   => array( 'method' => 'get_sitemap_index_stylesheet' ),
+			'stylesheet CSS'     => array( 'method' => 'get_stylesheet_css' ),
+		);
 	}
 }
