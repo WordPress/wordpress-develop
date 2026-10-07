@@ -2173,6 +2173,45 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rendering a field sets up a global post that was not set up before, such as the main
+	 * post before the loop starts, so get_the_content() without a post still works.
+	 *
+	 * Rendering fires `the_post`, after which get_the_content() without a post reads the loop
+	 * globals. Unsetting `$pages` again, as for a post that was never set up, made it throw a
+	 * TypeError.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_rendered_fields
+	 * @since 7.2.0
+	 *
+	 * @param string $field The rendered field to request.
+	 */
+	public function test_rendered_fields_set_up_a_global_post_that_was_not_set_up( string $field ): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			unset( $GLOBALS[ $name ] );
+		}
+
+		// WP::register_globals() sets the main post this way, before the loop sets it up.
+		$main_post = get_post( self::$post_ids['published_content'] );
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a global post that was not set up.
+		$GLOBALS['post'] = $main_post;
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => self::$post_ids['limited_role_content'],
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertArrayHasKey( $field, $result, 'Precondition: the rendered field should be returned.' );
+		$this->assertSame( $main_post->ID, get_the_ID(), 'The main post should be the global post again.' );
+		$this->assertSame( 'Body here.', get_the_content(), 'get_the_content() without a post should return the main post content.' );
+	}
+
+	/**
 	 * Title and permalink filters run with the requested post as the global post, also when
 	 * no post was set up before, as in a REST request.
 	 *
