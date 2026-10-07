@@ -121,7 +121,6 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 		add_filter( 'register_post_type_args', $filter, 10, 2 );
 		create_initial_post_types();
 		$randomable = get_post_type_object( 'page' )->randomable;
-		remove_filter( 'register_post_type_args', $filter, 10 );
 		create_initial_post_types();
 
 		$this->assertTrue( $randomable );

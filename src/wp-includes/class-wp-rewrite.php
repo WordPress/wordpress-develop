@@ -1431,7 +1431,7 @@ class WP_Rewrite {
 		 *
 		 * @since 7.2.0
 		 *
-		 * @param string[] $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
+		 * @param array<string, string> $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
 		 */
 		$random_rewrite = apply_filters( 'random_rewrite_rules', $random_rewrite );
 
@@ -1533,9 +1533,9 @@ class WP_Rewrite {
 	 *
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
-	 * @return string[] Array of rewrite rules for random content redirects, keyed by their regex pattern.
+	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 */
-	public function random_rewrite_rules() {
+	public function random_rewrite_rules(): array {
 		if ( ! wp_is_random_content_redirect_enabled() ) {
 			return array();
 		}

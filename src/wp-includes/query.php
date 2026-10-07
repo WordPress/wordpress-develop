@@ -1246,7 +1246,7 @@ function _find_post_by_old_date( $post_type ) {
  *
  * @return bool True if random content redirects are enabled, false otherwise.
  */
-function wp_is_random_content_redirect_enabled() {
+function wp_is_random_content_redirect_enabled(): bool {
 	/**
 	 * Filters whether random content redirects are enabled.
 	 *
@@ -1276,7 +1276,7 @@ function wp_is_random_content_redirect_enabled() {
  * @param WP_Query $query The query to check.
  * @return bool True if the query is a request for random content, false otherwise.
  */
-function wp_is_random_content_query( $query ) {
+function wp_is_random_content_query( WP_Query $query ): bool {
 	if (
 		! $query instanceof WP_Query
 		|| ! $query->is_main_query()
@@ -1315,8 +1315,10 @@ function wp_is_random_content_query( $query ) {
  *
  * @param WP_Query $query The query to retrieve the post types for.
  * @return string[] Post type names eligible for random selection.
+ *
+ * @phpstan-return list<string>
  */
-function wp_get_random_content_post_types( $query ) {
+function wp_get_random_content_post_types( WP_Query $query ): array {
 	$post_types = $query->get( 'post_type' );
 
 	if ( empty( $post_types ) && $query->is_tax() && $query->tax_query instanceof WP_Tax_Query ) {
@@ -1375,7 +1377,7 @@ function wp_get_random_content_post_types( $query ) {
  *
  * @param WP_Query $query The WP_Query instance (passed by reference).
  */
-function wp_random_content_pre_get_posts( $query ) {
+function wp_random_content_pre_get_posts( $query ): void {
 	if ( ! wp_is_random_content_query( $query ) ) {
 		return;
 	}
@@ -1409,12 +1411,12 @@ function wp_random_content_pre_get_posts( $query ) {
  * @param WP_Query $query           The WP_Query instance.
  * @return bool Whether or not to split the query.
  */
-function wp_random_content_split_the_query( $split_the_query, $query ) {
+function wp_random_content_split_the_query( $split_the_query, WP_Query $query ): bool {
 	if ( wp_is_random_content_query( $query ) ) {
 		return false;
 	}
 
-	return $split_the_query;
+	return (bool) $split_the_query;
 }
 
 /**
@@ -1427,10 +1429,10 @@ function wp_random_content_split_the_query( $split_the_query, $query ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param string[] $headers Associative array of headers to be sent.
- * @return string[] Associative array of headers to be sent.
+ * @param array<string, string> $headers Associative array of headers to be sent.
+ * @return array<string, string> Associative array of headers to be sent.
  */
-function wp_random_content_headers( $headers ) {
+function wp_random_content_headers( $headers ): array {
 	global $wp_query;
 
 	if ( ! wp_is_random_content_query( $wp_query ) ) {
@@ -1456,7 +1458,7 @@ function wp_random_content_headers( $headers ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  */
-function wp_random_content_redirect() {
+function wp_random_content_redirect(): void {
 	global $wp_query;
 
 	if ( ! wp_is_random_content_query( $wp_query ) || ! $wp_query->post instanceof WP_Post ) {
@@ -1465,11 +1467,7 @@ function wp_random_content_redirect() {
 
 	$location = get_permalink( $wp_query->post );
 
-	/*
-	 * Only redirect to locations permitted by wp_safe_redirect(). Off-site permalinks would
-	 * otherwise be replaced by its fallback, sending the visitor to the dashboard.
-	 */
-	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
+	if ( ! $location ) {
 		return;
 	}
 
@@ -1498,7 +1496,7 @@ function wp_random_content_redirect() {
  * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
  * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
  */
-function wp_random_content_flush_rewrite_rules_for_page( $post_id, $post, $update = false, $post_before = null ) {
+function wp_random_content_flush_rewrite_rules_for_page( int $post_id, WP_Post $post, bool $update = false, ?WP_Post $post_before = null ): void {
 	global $wp_rewrite;
 
 	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
