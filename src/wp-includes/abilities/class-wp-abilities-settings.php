@@ -22,14 +22,9 @@ declare( strict_types = 1 );
  * and reused by the input schema, the output schema, and the execute callback, and the
  * same helpers are meant to be shared with the future write ability.
  *
- * The exposed settings are captured when the ability registers on `wp_abilities_api_init`.
- * That hook fires lazily on first use of the abilities registry, which is not ordered
- * relative to `rest_api_init` (where core registers its own settings) and can happen
- * without it entirely, e.g. on cron or WP-CLI. Core therefore also registers its initial
- * settings on that hook, before the core abilities register (see
- * _wp_register_initial_settings_for_abilities()). Plugin settings flagged with
- * `show_in_abilities` must be registered before the abilities registry is first used in
- * a request; registering them on `init` is reliable.
+ * The exposed settings are captured when the ability registers, the first time the abilities
+ * registry is used in a request. Settings registered later in that request are not exposed.
+ * Core registers its own settings in time, see _wp_register_initial_settings_for_abilities().
  *
  * This class is part of WordPress' internal implementation of the core abilities and is
  * not part of the public API. It may be changed or removed at any time without notice.
@@ -43,9 +38,6 @@ final class WP_Abilities_Settings {
 
 	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
-	 *
-	 * Cached so the input/output schema and the executed result derive from the exact same
-	 * structure, and {@see get_registered_settings()} is only walked once per request.
 	 *
 	 * @since 7.2.0
 	 * @var array<string, array{option: string, group: string, schema: array<string, mixed>}>
@@ -61,7 +53,6 @@ final class WP_Abilities_Settings {
 	 * @since 7.2.0
 	 */
 	public function register(): void {
-		// Compute once; execute_get_settings() reuses this exact structure.
 		$this->exposed_settings = $this->get_exposed_settings();
 		if ( empty( $this->exposed_settings ) ) {
 			return;

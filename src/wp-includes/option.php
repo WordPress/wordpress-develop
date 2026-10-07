@@ -3068,7 +3068,7 @@ function _wp_register_initial_settings_for_abilities(): void {
  *                                            When true, it uses the same name and schema as `$show_in_rest`.
  *                                            It may also be an array with 'name' and 'schema' keys, used instead of
  *                                            `$show_in_rest` rather than merged with it.
- *                                            Register the setting on `init` or earlier, before abilities initialize.
+ *                                            Settings registered after abilities initialize are not exposed.
  *     @type mixed         $default           Default value when calling `get_option()`.
  * }
  */
