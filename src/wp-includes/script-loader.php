@@ -689,6 +689,7 @@ function wp_default_packages( $scripts ) {
  * @phpstan-return ''|'.min'
  */
 function wp_scripts_get_suffix( $type = '' ) {
+	/** @var array{ suffix: ''|'.min', dev_suffix: ''|'.min' }|null $suffixes */
 	static $suffixes;
 
 	if ( null === $suffixes ) {
