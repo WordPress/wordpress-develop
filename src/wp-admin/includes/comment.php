@@ -243,7 +243,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$internal_comment_types = wp_get_internal_comment_types();
+	$internal_comment_types = _wp_get_internal_comment_types();
 	$type_placeholders      = implode( ', ', array_fill( 0, count( $internal_comment_types ), '%s' ) );
 	$pending                = $wpdb->get_results(
 		$wpdb->prepare(

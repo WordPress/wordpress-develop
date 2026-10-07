@@ -3672,7 +3672,7 @@ class WP_Query {
 	private function get_comment_feed_internal_types_where() {
 		global $wpdb;
 
-		$internal_types = wp_get_internal_comment_types();
+		$internal_types = _wp_get_internal_comment_types();
 		$placeholders   = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare

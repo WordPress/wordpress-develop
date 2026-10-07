@@ -787,7 +787,7 @@ class WP_Comment_Query {
 
 		// Exclude internal comment types, unless 'all' types or a specific internal type is explicitly requested.
 		if ( ! in_array( 'all', $raw_types['IN'], true ) ) {
-			foreach ( wp_get_internal_comment_types() as $internal_type ) {
+			foreach ( _wp_get_internal_comment_types() as $internal_type ) {
 				if (
 					! in_array( $internal_type, $raw_types['IN'], true ) &&
 					! in_array( $internal_type, $raw_types['NOT IN'], true )

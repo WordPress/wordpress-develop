@@ -359,11 +359,15 @@ function get_comment_statuses() {
  * They should typically be excluded from front-end and admin comment
  * listings, counts, and similar contexts that target user discussion.
  *
+ * This is a private helper and not a public API. It may change or be
+ * replaced once a custom comment types API exists.
+ *
  * @since 7.2.0
+ * @access private
  *
  * @return string[] List of internal comment type slugs.
  */
-function wp_get_internal_comment_types(): array {
+function _wp_get_internal_comment_types(): array {
 	return array( 'note', 'reaction' );
 }
 
@@ -470,7 +474,7 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 	}
 
 	// Exclude internal comment types (notes, reactions, etc.) from the lookup.
-	$internal_types = wp_get_internal_comment_types();
+	$internal_types = _wp_get_internal_comment_types();
 	if ( ! empty( $internal_types ) ) {
 		$placeholders = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
@@ -3263,7 +3267,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$internal_comment_types = wp_get_internal_comment_types();
+		$internal_comment_types = _wp_get_internal_comment_types();
 		$type_placeholders      = implode( ', ', array_fill( 0, count( $internal_comment_types ), '%s' ) );
 		$new                    = (int) $wpdb->get_var(
 			$wpdb->prepare(

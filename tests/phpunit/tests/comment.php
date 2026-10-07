@@ -2277,10 +2277,10 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * @ticket 63191
 	 *
-	 * @covers ::wp_get_internal_comment_types
+	 * @covers ::_wp_get_internal_comment_types
 	 */
 	public function test_wp_get_internal_comment_types() {
-		$types = wp_get_internal_comment_types();
+		$types = _wp_get_internal_comment_types();
 
 		$this->assertContains( 'note', $types );
 		$this->assertContains( 'reaction', $types );

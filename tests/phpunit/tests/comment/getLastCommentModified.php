@@ -157,7 +157,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( wp_get_internal_comment_types() as $comment_type ) {
+		foreach ( _wp_get_internal_comment_types() as $comment_type ) {
 			self::factory()->comment->create(
 				array(
 					'comment_status'   => 1,
@@ -199,7 +199,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 	 * @ticket 63191
 	 */
 	public function test_only_internal_comment_types_returns_false() {
-		foreach ( wp_get_internal_comment_types() as $comment_type ) {
+		foreach ( _wp_get_internal_comment_types() as $comment_type ) {
 			self::factory()->comment->create(
 				array(
 					'comment_status'   => 1,
