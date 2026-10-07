@@ -92,6 +92,7 @@ class WP_Recovery_Mode {
 	public function initialize() {
 		$this->is_initialized = true;
 
+		// @phpstan-ignore return.void (WordPress discards an action callback's return value.)
 		add_action( 'wp_logout', array( $this, 'exit_recovery_mode' ) );
 		add_action( 'login_form_' . self::EXIT_ACTION, array( $this, 'handle_exit_recovery_mode' ) );
 		add_action( 'recovery_mode_clean_expired_keys', array( $this, 'clean_expired_keys' ) );

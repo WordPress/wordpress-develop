@@ -211,9 +211,9 @@ function image_add_caption( $html, $id, $caption, $title, $align, $url, $size, $
 	 * @since 2.6.0
 	 *
 	 * @param bool $bool Whether to disable appending captions. Returning true from the filter
-	 *                   will disable captions. Default empty string.
+	 *                   will disable captions. Default false.
 	 */
-	if ( empty( $caption ) || apply_filters( 'disable_captions', '' ) ) {
+	if ( empty( $caption ) || apply_filters( 'disable_captions', false ) ) {
 		return $html;
 	}
 
