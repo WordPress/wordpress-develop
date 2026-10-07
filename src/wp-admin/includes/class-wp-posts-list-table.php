@@ -1080,7 +1080,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 */
 		if ( apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
 
-			$post_title = _draft_or_post_title();
+			$post_title = _draft_or_post_title( $post );
 
 			// If the post has no title, try adding part of the excerpt.
 			$no_title_excerpt = $this->get_no_title_excerpt( $post );
@@ -1243,7 +1243,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		echo '<strong>';
 
-		$title = _draft_or_post_title();
+		$title = _draft_or_post_title( $post );
 
 		// If the post has no title, try adding part of the excerpt.
 		$no_title_excerpt = $this->get_no_title_excerpt( $post );
@@ -1596,7 +1596,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		$post_type_object = get_post_type_object( $post->post_type );
 		$can_edit_post    = current_user_can( 'edit_post', $post->ID );
 		$actions          = array();
-		$title            = wp_strip_all_tags( _draft_or_post_title() );
+		$title            = wp_strip_all_tags( _draft_or_post_title( $post ) );
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
 			$actions['edit'] = sprintf(

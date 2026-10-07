@@ -455,7 +455,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
-				printf( __( 'Select %s' ), _draft_or_post_title() );
+				printf( __( 'Select %s' ), _draft_or_post_title( $post ) );
 				?>
 				</span>
 			</label>
@@ -483,7 +483,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 		}
 
-		$title      = _draft_or_post_title();
+		$title      = _draft_or_post_title( $post );
 		$thumb      = wp_get_attachment_image( $attachment_id, array( 60, 60 ), true, array( 'alt' => '' ) );
 		$link_start = '';
 		$link_end   = '';
@@ -930,7 +930,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		$att_title = _draft_or_post_title();
+		$att_title = _draft_or_post_title( $post );
 		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );

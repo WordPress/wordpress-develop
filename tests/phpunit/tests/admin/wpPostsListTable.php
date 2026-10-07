@@ -608,7 +608,11 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * @covers WP_Posts_List_Table::get_primary_column_aria_label
 	 */
 	public function test_post_title_formatting_tags_are_rendered_in_list_table() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $user_id );
+		}
+		wp_set_current_user( $user_id );
 
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -619,8 +623,14 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$output = $this->render_column_title( $post, 'list' );
 
-		$this->assertStringContainsString( '<em class="title">page</em>', $output );
-		$this->assertStringNotContainsString( '&lt;em', $output );
+		$this->assertStringContainsString(
+			sprintf( '<a class="row-title" href="%s">The <em class="title">page</em> title</a>', get_edit_post_link( $post->ID ) ),
+			$output
+		);
+		$this->assertStringNotContainsString(
+			sprintf( '<a class="row-title" href="%s">The &lt;em', get_edit_post_link( $post->ID ) ),
+			$output
+		);
 
 		$table  = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
 		$method = new ReflectionMethod( $table, 'get_primary_column_aria_label' );
