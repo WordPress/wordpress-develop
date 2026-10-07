@@ -110,10 +110,8 @@ class MockAction {
 		if ( is_callable( 'current_filter' ) ) {
 			$current_filter = current_filter();
 		} else {
-			$current_filter = array_key_last( $wp_actions );
-			if ( null === $current_filter ) {
-				$current_filter = false;
-			}
+			$current_filter   = array_key_last( $wp_actions );
+			$current_filter ??= false;
 		}
 
 		return $current_filter;
@@ -393,10 +391,8 @@ class TestXMLParser {
 	public function data_handler( $parser, $data ) {
 		$index = count( $this->data ) - 1;
 
-		if ( ! isset( $this->data[ $index ]['content'] ) ) {
-			$this->data[ $index ]['content'] = '';
-		}
-		$this->data[ $index ]['content'] .= $data;
+		$this->data[ $index ]['content'] ??= '';
+		$this->data[ $index ]['content']  .= $data;
 	}
 
 	public function end_handler( $parser, $name ) {
@@ -509,7 +505,11 @@ function get_echo( callable $callback, array $args = array() ): string {
 	return (string) ob_get_clean();
 }
 
-// Recursively generate some quick assertEquals() tests based on an array.
+/*
+ * Recursively generate some quick assertEquals() tests based on an array.
+ * Keep assertEquals() in the generated output: this helper is scaffolding for
+ * exploratory fixtures and is not used by the active test suite.
+ */
 function gen_tests_array( $name, $expected_data ) {
 	$out = array();
 
