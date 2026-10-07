@@ -2402,6 +2402,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = preg_replace( '|-+|', '-', $title );
 	$title = trim( $title, '-' );
 
+	/** @var lowercase-string $title Only lowercase characters remain after the replacements above. */
 	return $title;
 }
 
