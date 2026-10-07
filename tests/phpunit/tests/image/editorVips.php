@@ -801,16 +801,25 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that flipping along the horizontal axis mirrors the image vertically.
+	 * Tests that flipping mirrors the image on the axis it was asked for.
+	 *
+	 * Flipping along the horizontal axis mirrors the image top to bottom, and along the
+	 * vertical axis left to right. Every corner is compared with the corner it should have
+	 * come from, on a fixture whose four corners are all different.
+	 *
+	 * @dataProvider data_flip_axes
+	 *
+	 * @param bool  $horz    Whether to flip along the horizontal axis.
+	 * @param bool  $vert    Whether to flip along the vertical axis.
+	 * @param array $corners Map of result corner to source corner.
 	 */
-	public function test_flip() {
-		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
+	public function test_flip( $horz, $vert, $corners ) {
+		$file = DIR_TESTDATA . '/images/sugarloaf-mountain.jpg';
 
 		// Save a lossless copy of the unmodified image to sample the source pixels from.
 		$original_editor = new WP_Image_Editor_Vips( $file );
 		$original_editor->load();
 
-		$size          = $original_editor->get_size();
 		$original_tmp  = tempnam( get_temp_dir(), 'vips_flip_' );
 		$original_file = $original_tmp . '.png';
 		$original_editor->save( $original_file );
@@ -818,31 +827,57 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
-		$flipped = $vips_image_editor->flip( true, false );
-		$this->assertTrue( $flipped );
+		$this->assertTrue( $vips_image_editor->flip( $horz, $vert ) );
 
 		$flipped_tmp  = tempnam( get_temp_dir(), 'vips_flip_' );
 		$flipped_file = $flipped_tmp . '.png';
 		$vips_image_editor->save( $flipped_file );
 
-		$original_image = imagecreatefrompng( $original_file );
-		$flipped_image  = imagecreatefrompng( $flipped_file );
-
-		// Flipping along the horizontal axis moves the bottom-left pixel to the top-left.
-		$expected = imagecolorsforindex( $original_image, imagecolorat( $original_image, 0, $size['height'] - 1 ) );
-		$actual   = imagecolorsforindex( $flipped_image, imagecolorat( $flipped_image, 0, 0 ) );
-
-		imagedestroy( $original_image );
-		imagedestroy( $flipped_image );
+		$original = $this->get_corner_pixels( $original_file );
+		$flipped  = $this->get_corner_pixels( $flipped_file );
 
 		unlink( $original_tmp );
 		unlink( $original_file );
 		unlink( $flipped_tmp );
 		unlink( $flipped_file );
 
-		$this->assertSame( $expected['red'], $actual['red'] );
-		$this->assertSame( $expected['green'], $actual['green'] );
-		$this->assertSame( $expected['blue'], $actual['blue'] );
+		foreach ( $corners as $corner => $source ) {
+			$this->assertSame(
+				$original[ $source ],
+				$flipped[ $corner ],
+				"Flipping should move the {$source} corner to the {$corner} corner."
+			);
+		}
+	}
+
+	/**
+	 * Data provider for test_flip.
+	 *
+	 * @return array<string,array{0:bool,1:bool,2:array<string,string>}>
+	 */
+	public static function data_flip_axes() {
+		return array(
+			'along the horizontal axis' => array(
+				true,
+				false,
+				array(
+					'TL' => 'BL',
+					'TR' => 'BR',
+					'BR' => 'TR',
+					'BL' => 'TL',
+				),
+			),
+			'along the vertical axis'   => array(
+				false,
+				true,
+				array(
+					'TL' => 'TR',
+					'TR' => 'TL',
+					'BR' => 'BL',
+					'BL' => 'BR',
+				),
+			),
+		);
 	}
 
 	/**
