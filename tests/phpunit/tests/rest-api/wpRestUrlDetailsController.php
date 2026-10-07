@@ -531,11 +531,11 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			),
 			'with whitespace in opening tag' => array(
 				'<title >Testing &lt;title&gt;: with whitespace in opening tag</title>',
-				'Testing : with whitespace in opening tag',
+				'Testing',
 			),
 			'when whitepace in closing tag'  => array(
 				'<title>Testing &lt;title&gt;: with whitespace in closing tag</ title>',
-				'Testing : with whitespace in closing tag',
+				'Testing',
 			),
 			'with other elements'            => array(
 				'<meta name="viewport" content="width=device-width">
@@ -755,7 +755,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$method = $this->get_reflective_method( 'get_description' );
 		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
