@@ -193,7 +193,7 @@ HTML
 				function () {
 					return '<script>alert("Unsafe HTML")</script>';
 				},
-				'<p class="wp-block-paragraph">alert("Unsafe HTML")</p>',
+				'<p class="wp-block-paragraph"></p>',
 			),
 			'symbols and numbers should be rendered correctly' => array(
 				function () {
@@ -234,9 +234,10 @@ HTML;
 		$block         = new WP_Block( $parsed_blocks[0] );
 		$result        = $block->render();
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected,
 			trim( $result ),
+			'<body>',
 			'The block content should be updated with the value returned by the source.'
 		);
 	}
