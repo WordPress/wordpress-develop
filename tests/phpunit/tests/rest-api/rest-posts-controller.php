@@ -110,10 +110,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			)
 		);
 
-		add_role( 'private_reader', 'Private Reader' );
-		$role = get_role( 'private_reader' );
-		$role->add_cap( 'read_private_posts' );
-
 		add_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
 		add_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
 	}
@@ -125,6 +121,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		}
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Sets up the role for tests that require access to private posts.
+	 */
+	private function set_up_private_reader_role() {
+		add_role( 'private_reader', 'Private Reader' );
+		$role = get_role( 'private_reader' );
+		$role->add_cap( 'read_private_posts' );
 	}
 
 	public function wpSetUpBeforeRequest( $result, $server, $request ) {
@@ -841,6 +846,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_multiple_statuses_custom_role_one_invalid_query() {
+		$this->set_up_private_reader_role();
+
 		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( self::$private_reader_id );
@@ -2023,6 +2030,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_status_draft_permissions() {
+		$this->set_up_private_reader_role();
+
 		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
 		// Drafts status query var inaccessible to unauthorized users.
@@ -2053,6 +2062,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 43701
 	 */
 	public function test_get_items_status_private_permissions() {
+		$this->set_up_private_reader_role();
+
 		$private_post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
 
 		wp_set_current_user( 0 );
