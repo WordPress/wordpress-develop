@@ -479,8 +479,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
-	 * Stored values are validated against their schema, left out when it rejects them, and
-	 * sanitized otherwise.
+	 * Stored values are validated against their schema before and after sanitizing, and left out
+	 * when it rejects them.
 	 *
 	 * @ticket 64605
 	 *
@@ -545,6 +545,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			),
 			'a numeric string for an integer'     => array( 'integer', '7', '7' ),
 			'a non-numeric string for an integer' => array( 'integer', 'abc', null ),
+			'an email that sanitizing breaks'     => array( 'string', '%ab@x.co', null, array( 'format' => 'email' ) ),
 		);
 	}
 

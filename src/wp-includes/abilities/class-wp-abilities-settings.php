@@ -126,14 +126,17 @@ final class WP_Abilities_Settings {
 			}
 
 			/*
-			 * Validate the stored value before sanitizing it, and leave out a value its schema
-			 * rejects instead of failing output validation for every setting.
+			 * Leave out a value its schema rejects, before sanitizing (which could make it pass) or
+			 * after (which could make it fail), instead of failing output validation for every setting.
 			 */
 			if ( is_wp_error( rest_validate_value_from_schema( $value, $setting['schema'] ) ) ) {
 				continue;
 			}
 
 			$value = rest_sanitize_value_from_schema( $value, $setting['schema'] );
+			if ( is_wp_error( rest_validate_value_from_schema( $value, $setting['schema'] ) ) ) {
+				continue;
+			}
 
 			// Object (not array()) so an empty object value is serialized as {}, consistent with type:object.
 			$result[ $exposed_name ] = 'object' === $setting['schema']['type'] ? (object) $value : $value;
