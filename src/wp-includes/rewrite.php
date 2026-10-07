@@ -248,7 +248,8 @@ function remove_permastruct( $name ) {
  * @param callable $callback Callback to run on feed display.
  * @return string Feed action name.
  *
- * @phpstan-param callable(bool, string): mixed $callback
+ * @phpstan-param non-empty-string                        $feedname
+ * @phpstan-param callable(bool, non-empty-string): mixed $callback
  */
 function add_feed( $feedname, $callback ) {
 	global $wp_rewrite;
