@@ -324,6 +324,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'required', $user_schema, 'Single-user fields should remain optional.' );
 		$this->assertSame( array( 'users', 'total', 'total_pages' ), $collection_schema['required'], 'Collection responses should require the wrapper fields.' );
 		$this->assertSame( 'date-time', $user_properties['registered_date']['format'], 'The registered_date output schema should use date-time format.' );
+		$this->assertSame( 'uri', $user_properties['link']['format'], 'The link output schema should use uri format.' );
+		$this->assertSame( 'uri', $user_properties['avatar_urls']['additionalProperties']['format'], 'The avatar_urls output schema should use uri format.' );
+		$this->assertArrayNotHasKey( 'format', $user_properties['url'], 'The url output schema must not declare a format, so the empty URL of a user without a website still validates.' );
 		$this->assertSame( 'string', $user_properties['roles']['items']['type'], 'The roles output schema should describe role name strings.' );
 		$this->assertArrayNotHasKey( 'enum', $user_properties['roles']['items'], 'The roles output schema must not pin an enum, so a role registered after the schema snapshot still validates.' );
 	}

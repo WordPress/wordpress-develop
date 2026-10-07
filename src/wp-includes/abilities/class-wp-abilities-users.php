@@ -532,11 +532,16 @@ final class WP_Abilities_Users {
 				'description' => __( 'Description of the user.' ),
 			),
 			'url'             => array(
+				// Unlike the REST users controller, `url` declares no `uri` format. It is
+				// empty for users without a website, and clients that check formats,
+				// such as the abilities JS client when it re-validates the output, would
+				// reject the empty string and fail the whole call.
 				'type'        => 'string',
 				'description' => __( 'URL of the user.' ),
 			),
 			'link'            => array(
 				'type'        => 'string',
+				'format'      => 'uri',
 				'description' => __( 'Author archive URL for the user.' ),
 			),
 			'slug'            => array(
@@ -547,7 +552,8 @@ final class WP_Abilities_Users {
 				'type'                 => 'object',
 				'description'          => __( 'Avatar URLs for the user, keyed by image size in pixels. A size is null when no avatar URL can be resolved for it. Present when the show_avatars option is enabled.' ),
 				'additionalProperties' => array(
-					'type' => array( 'string', 'null' ),
+					'type'   => array( 'string', 'null' ),
+					'format' => 'uri',
 				),
 			),
 			'username'        => array(
