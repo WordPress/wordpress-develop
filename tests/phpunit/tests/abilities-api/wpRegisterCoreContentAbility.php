@@ -55,7 +55,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_UnitTest_Factory $factory The unit test factory.
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( $factory ): void {
 		self::$user_ids = array(
@@ -128,8 +128,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 */
-	public function setUp(): void {
-		parent::setUp();
+	public function set_up(): void {
+		parent::set_up();
 
 		if ( wp_has_ability( 'core/content-query' ) ) {
 			wp_unregister_ability( 'core/content-query' );
@@ -139,11 +139,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Restores ability, ability category, and post type state after each test.
+	 * Removes the ability and its category after each test.
 	 *
 	 * @since 7.2.0
 	 */
-	public function tearDown(): void {
+	public function tear_down(): void {
 		if ( wp_has_ability( 'core/content-query' ) ) {
 			wp_unregister_ability( 'core/content-query' );
 		}
@@ -152,16 +152,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			wp_unregister_ability_category( 'content' );
 		}
 
-		foreach ( array( 'post', 'page' ) as $post_type ) {
-			$object = get_post_type_object( $post_type );
-			if ( $object ) {
-				$object->show_in_abilities = true;
-			}
-		}
-
-		wp_set_current_user( 0 );
-
-		parent::tearDown();
+		parent::tear_down();
 	}
 
 	/**
@@ -429,7 +420,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_exposes_a_post_type_registered_by_another_plugin(): void {
 		register_post_type(
-			'wpai_content_cpt',
+			'content_cpt',
 			array(
 				'public'            => true,
 				'show_in_abilities' => true,
@@ -442,16 +433,16 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		// Query mode is the third `oneOf` branch; its `post_type` enum lists exposed types.
 		$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
-		$this->assertContains( 'wpai_content_cpt', $enum, 'Custom post types marked show_in_abilities should appear in the query enum.' );
+		$this->assertContains( 'content_cpt', $enum, 'Custom post types marked show_in_abilities should appear in the query enum.' );
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => 'wpai_content_cpt',
+				'post_type'   => 'content_cpt',
 				'post_status' => 'publish',
 			)
 		);
 
-		$result = wp_get_ability( 'core/content-query' )->execute( array( 'post_type' => 'wpai_content_cpt' ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'post_type' => 'content_cpt' ) );
 		$ids    = wp_list_pluck( $result['posts'], 'id' );
 
 		$this->assertContains( $post_id, $ids, 'The custom post type should be queryable through the content ability.' );
@@ -472,7 +463,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			}
 
 			foreach ( $args['input_schema']['oneOf'] as $index => $mode ) {
-				$args['input_schema']['oneOf'][ $index ]['properties']['post_type']['enum'][] = 'wpai_late_cpt';
+				$args['input_schema']['oneOf'][ $index ]['properties']['post_type']['enum'][] = 'late_cpt';
 			}
 
 			return $args;
@@ -486,10 +477,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		}
 
 		$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
-		$this->assertContains( 'wpai_late_cpt', $enum, 'The ability args filter should amend the frozen schema enum.' );
+		$this->assertContains( 'late_cpt', $enum, 'The ability args filter should amend the frozen schema enum.' );
 
 		register_post_type(
-			'wpai_late_cpt',
+			'late_cpt',
 			array(
 				'public'            => true,
 				'show_in_abilities' => true,
@@ -499,14 +490,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => 'wpai_late_cpt',
+				'post_type'   => 'late_cpt',
 				'post_status' => 'publish',
 			)
 		);
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'post_type' => 'wpai_late_cpt',
+				'post_type' => 'late_cpt',
 				'fields'    => array( 'id' ),
 			)
 		);
@@ -667,7 +658,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_get_by_id_for_unexposed_post_type_is_denied(): void {
 		register_post_type(
-			'wpai_hidden_cpt',
+			'hidden_cpt',
 			array(
 				'public'       => true,
 				'show_in_rest' => false,
@@ -679,7 +670,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_type'   => 'wpai_hidden_cpt',
+				'post_type'   => 'hidden_cpt',
 				'post_status' => 'publish',
 			)
 		);
@@ -701,7 +692,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_public_non_viewable_status_is_denied_for_read_only_users(): void {
 		register_post_status(
-			'wpai_public_hidden',
+			'public_hidden',
 			array(
 				'label'              => 'Public hidden',
 				'public'             => true,
@@ -711,7 +702,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$post_id = self::factory()->post->create(
 			array(
-				'post_status' => 'wpai_public_hidden',
+				'post_status' => 'public_hidden',
 			)
 		);
 
@@ -732,7 +723,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_public_non_viewable_status_is_readable_with_edit_access(): void {
 		register_post_status(
-			'wpai_public_hidden',
+			'public_hidden',
 			array(
 				'label'              => 'Public hidden',
 				'public'             => true,
@@ -743,7 +734,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title'  => 'Hidden public status',
-				'post_status' => 'wpai_public_hidden',
+				'post_status' => 'public_hidden',
 			)
 		);
 
@@ -765,7 +756,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_inherited_post_is_readable_when_parent_is_readable(): void {
 		register_post_type(
-			'wpai_inherit_cpt',
+			'inherit_cpt',
 			array(
 				'public'            => true,
 				'show_in_abilities' => true,
@@ -776,14 +767,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$parent_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_ids['administrator'],
-				'post_type'   => 'wpai_inherit_cpt',
+				'post_type'   => 'inherit_cpt',
 				'post_status' => 'publish',
 			)
 		);
 		$child_id  = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_ids['administrator'],
-				'post_type'   => 'wpai_inherit_cpt',
+				'post_type'   => 'inherit_cpt',
 				'post_parent' => $parent_id,
 				'post_status' => 'inherit',
 				'post_title'  => 'Inherited child',
@@ -808,7 +799,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_inherited_post_without_parent_is_denied_for_read_only_users(): void {
 		register_post_type(
-			'wpai_inherit_cpt',
+			'inherit_cpt',
 			array(
 				'public'            => true,
 				'show_in_abilities' => true,
@@ -819,7 +810,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_ids['administrator'],
-				'post_type'   => 'wpai_inherit_cpt',
+				'post_type'   => 'inherit_cpt',
 				'post_status' => 'inherit',
 			)
 		);
@@ -1140,7 +1131,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$published = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
-				'post_name'   => 'wpai-slug-not-bounded',
+				'post_name'   => 'slug-not-bounded',
 				'post_date'   => '2026-01-01 10:00:00',
 			)
 		);
@@ -1153,13 +1144,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			self::factory()->post->create(
 				array(
 					'post_status' => 'draft',
-					'post_name'   => 'wpai-slug-not-bounded',
+					'post_name'   => 'slug-not-bounded',
 					'post_date'   => '2026-03-01 10:00:00',
 				)
 			);
 		}
 
-		$sharing = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_name = %s", 'wpai-slug-not-bounded' ) ); // phpcs:ignore WordPress.DB
+		$sharing = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_name = %s", 'slug-not-bounded' ) ); // phpcs:ignore WordPress.DB
 		$this->assertGreaterThan( 100, $sharing, 'Precondition: more posts share the slug than a single page holds.' );
 
 		$this->login_as( 'subscriber' );
@@ -1168,7 +1159,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'post_type' => 'post',
-				'slug'      => 'wpai-slug-not-bounded',
+				'slug'      => 'slug-not-bounded',
 				'fields'    => array( 'id' ),
 			)
 		);
@@ -1748,7 +1739,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_query_mode_rejects_author_filter_for_post_type_without_author_support(): void {
 		register_post_type(
-			'wpai_no_author_cpt',
+			'no_author_cpt',
 			array(
 				'public'            => true,
 				'show_in_abilities' => true,
@@ -1761,7 +1752,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'post_type'   => 'wpai_no_author_cpt',
+				'post_type'   => 'no_author_cpt',
 				'author_slug' => get_userdata( self::$user_ids['author'] )->user_nicename,
 			)
 		);
@@ -2023,7 +2014,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$surrounding   = get_post( self::$post_ids['published'] );
 		$previous_post = $GLOBALS['post'] ?? null;
 
-		$this->assertInstanceOf( \WP_Post::class, $surrounding, 'The surrounding post fixture should exist.' );
+		$this->assertInstanceOf( WP_Post::class, $surrounding, 'The surrounding post fixture should exist.' );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a distinct context to verify the ability restores it.
 		$GLOBALS['post'] = $surrounding;
@@ -2045,7 +2036,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		} finally {
 			remove_filter( 'the_excerpt', $append_context_id, 20 );
 
-			if ( $previous_post instanceof \WP_Post ) {
+			if ( $previous_post instanceof WP_Post ) {
 				// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the context that preceded the test.
 				$GLOBALS['post'] = $previous_post;
 				setup_postdata( $previous_post );
@@ -2901,14 +2892,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param int      $post_id The post ID.
+	 * @param int                  $post_id The post ID.
 	 * @param array<string, mixed> $columns Post column values keyed by column name.
 	 */
 	private function replace_cached_post_date_columns( int $post_id, array $columns ): void {
 		get_post( $post_id );
 
 		$cached = wp_cache_get( $post_id, 'posts' );
-		$this->assertInstanceOf( \stdClass::class, $cached, 'Precondition: the raw post row should be cached.' );
+		$this->assertInstanceOf( stdClass::class, $cached, 'Precondition: the raw post row should be cached.' );
 		$this->assertSame( 'raw', $cached->filter, 'Precondition: the cached row should be unsanitized.' );
 
 		foreach ( $columns as $column => $value ) {
@@ -3084,8 +3075,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function data_author_slugs_that_name_no_single_user(): array {
 		return array(
 			'unknown slug'     => array( 'no-such-user' ),
-			'shared slug'      => array( 'wpai-shared-slug' ),
-			'slug in capitals' => array( 'WPAI-AUTHOR-SLUG' ),
+			'shared slug'      => array( 'shared-slug' ),
+			'slug in capitals' => array( 'AUTHOR-SLUG' ),
 			'not a string'     => array( 5 ),
 		);
 	}
@@ -3104,9 +3095,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		// Core keeps nicenames unique, so give two users the same one through the database.
 		$nicenames = array(
-			self::$user_ids['author']           => 'wpai-author-slug',
-			self::$user_ids['contributor']      => 'wpai-shared-slug',
-			self::$user_ids['author_secondary'] => 'wpai-shared-slug',
+			self::$user_ids['author']           => 'author-slug',
+			self::$user_ids['contributor']      => 'shared-slug',
+			self::$user_ids['author_secondary'] => 'shared-slug',
 		);
 		foreach ( $nicenames as $user_id => $nicename ) {
 			$wpdb->update( $wpdb->users, array( 'user_nicename' => $nicename ), array( 'ID' => $user_id ) );
