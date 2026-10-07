@@ -277,6 +277,97 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_file_stream() {
+		$this->use_mock_transport();
+
+		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
+		$size = WP_Http_Unit_Test_Transport::DASHBOARD_PNG_SIZE;
+		$res  = wp_remote_request(
+			$url,
+			array(
+				'stream'  => true,
+				'timeout' => 30,
+			)
+		);
+
+		$filesize = null;
+
+		// Cleanup before we assert, as it'll return early.
+		if ( ! is_wp_error( $res ) ) {
+			$filesize = filesize( $res['filename'] );
+			unlink( $res['filename'] );
+		}
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( '', $res['body'] ); // The body should be empty.
+		$this->assertSame( (string) $size, $res['headers']['Content-Length'] ); // Check the headers are returned (and the size is the same).
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
+	}
+
+	/**
+	 * @ticket 26726
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_file_stream_limited_size() {
+		$this->use_mock_transport();
+
+		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
+		$size = 10000;
+		$res  = wp_remote_request(
+			$url,
+			array(
+				'stream'              => true,
+				'timeout'             => 30,
+				'limit_response_size' => $size,
+			)
+		);
+
+		$filesize = null;
+
+		// Cleanup before we assert, as it'll return early.
+		if ( ! is_wp_error( $res ) ) {
+			$filesize = filesize( $res['filename'] );
+			unlink( $res['filename'] );
+		}
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+	}
+
+	/**
+	 * Tests limiting the response size when returning strings.
+	 *
+	 * @ticket 31172
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_request_limited_size() {
+		$this->use_mock_transport();
+
+		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
+		$size = 10000;
+
+		$res = wp_remote_request(
+			$url,
+			array(
+				'timeout'             => 30,
+				'limit_response_size' => $size,
+			)
+		);
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( $size, strlen( $res['body'] ) );
+	}
+
+	/**
 	 * @ticket 43231
 	 *
 	 * @covers WP_HTTP_Requests_Response::__construct
