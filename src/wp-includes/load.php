@@ -1526,6 +1526,8 @@ function get_current_blog_id() {
  * @since 4.6.0
  *
  * @return int The ID of the current network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_current_network_id() {
 	if ( ! is_multisite() ) {

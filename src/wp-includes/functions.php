@@ -6697,6 +6697,8 @@ function is_main_network( $network_id = null ) {
  * @since 4.3.0
  *
  * @return int The ID of the main network.
+ *
+ * @phpstan-return non-negative-int
  */
 function get_main_network_id() {
 	if ( ! is_multisite() ) {
@@ -6727,7 +6729,7 @@ function get_main_network_id() {
 	 *
 	 * @param int $main_network_id The ID of the main network.
 	 */
-	return (int) apply_filters( 'get_main_network_id', $main_network_id );
+	return max( 0, (int) apply_filters( 'get_main_network_id', $main_network_id ) );
 }
 
 /**
