@@ -152,18 +152,14 @@ function wp_render_dimensions_support( $block_content, $block ) {
 		$tags = new WP_HTML_Tag_Processor( $block_content );
 
 		if ( $tags->next_tag() ) {
-			$existing_style = $tags->get_attribute( 'style' );
-			$updated_style  = '';
+			$existing_style  = $tags->get_attribute( 'style' );
+			$style_processor = WP_HTML_Style_Attribute_Processor::create( is_string( $existing_style ) ? $existing_style : '' );
 
-			if ( ! empty( $existing_style ) ) {
-				$updated_style = $existing_style;
-				if ( ! str_ends_with( $existing_style, ';' ) ) {
-					$updated_style .= ';';
-				}
+			foreach ( $styles['declarations'] as $property => $value ) {
+				$style_processor->append_declaration( $property, $value );
 			}
 
-			$updated_style .= $styles['css'];
-			$tags->set_attribute( 'style', $updated_style );
+			$tags->set_attribute( 'style', $style_processor->get_updated_style() );
 
 			if ( ! empty( $styles['classnames'] ) ) {
 				foreach ( explode( ' ', $styles['classnames'] ) as $class_name ) {
