@@ -199,4 +199,96 @@ class Tests_Image_Alttext extends WP_UnitTestCase {
 		switch_to_locale( 'ja_JP' );
 		$this->assert_alttext_matches_or_empty_without_dom( 'Default description', wp_get_image_alttext( $file ) );
 	}
+
+	/**
+	 * Tests that pre_wp_get_image_alttext filter short-circuits and returns a custom string.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_pre_wp_get_image_alttext_short_circuits_with_custom_string() {
+		$filter = function () {
+			return 'Overridden custom alt text';
+		};
+		add_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$alt = wp_get_image_alttext( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+		remove_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$this->assertSame( 'Overridden custom alt text', $alt );
+	}
+
+	/**
+	 * Tests that pre_wp_get_image_alttext filter short-circuits with an empty string to disable alt text generation.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_pre_wp_get_image_alttext_short_circuits_with_empty_string() {
+		$filter = '__return_empty_string';
+		add_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$alt = wp_get_image_alttext( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+		remove_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$this->assertSame( '', $alt );
+	}
+
+	/**
+	 * Tests that pre_wp_get_image_alttext returns default parsed alt text when the filter returns null.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_pre_wp_get_image_alttext_returns_default_when_filter_returns_null() {
+		$filter = '__return_null';
+		add_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$alt = wp_get_image_alttext( DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg' );
+		remove_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$this->assert_alttext_matches_or_empty_without_dom(
+			'This is the Alt Text description to support accessibility in 2025.1',
+			$alt
+		);
+	}
+
+	/**
+	 * Tests that pre_wp_get_image_alttext passes the file path parameter to the filter callback.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_pre_wp_get_image_alttext_passes_file_path_parameter() {
+		$target_file = DIR_TESTDATA . '/images/IPTC-PhotometadataRef-Std2025.1.jpg';
+		$passed_args = array();
+
+		$filter = function ( $override, $file ) use ( &$passed_args ) {
+			$passed_args = array(
+				'override' => $override,
+				'file'     => $file,
+			);
+			return $override;
+		};
+		add_filter( 'pre_wp_get_image_alttext', $filter, 10, 2 );
+
+		wp_get_image_alttext( $target_file );
+		remove_filter( 'pre_wp_get_image_alttext', $filter, 10 );
+
+		$this->assertNull( $passed_args['override'] );
+		$this->assertSame( $target_file, $passed_args['file'] );
+	}
+
+	/**
+	 * Tests that pre_wp_get_image_alttext short-circuits without checking file existence or DOM availability.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_pre_wp_get_image_alttext_short_circuits_without_file_access() {
+		$filter = function () {
+			return 'Alt text from database or external API';
+		};
+		add_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$alt = wp_get_image_alttext( '/non/existent/path/to/image.jpg' );
+		remove_filter( 'pre_wp_get_image_alttext', $filter );
+
+		$this->assertSame( 'Alt text from database or external API', $alt );
+	}
 }
