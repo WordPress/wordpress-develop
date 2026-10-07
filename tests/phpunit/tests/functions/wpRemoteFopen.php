@@ -25,7 +25,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 * Set up mocked HTTP responses for all cases in this class.
 	 *
 	 * Per #63914, prove the same behavior with mocked responses and leave the
-	 * external-http group. Pattern matches Tests_HTTP_wpGetHttpHeaders.
+	 * external-http group. Removes the suite external-HTTP guard so requests are
+	 * answered by the mock (same approach as Tests_HTTP_Functions).
 	 */
 	public function set_up() {
 		parent::set_up();
@@ -33,6 +34,7 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 		$this->request_args = null;
 		$this->request_url  = null;
 
+		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
 	}
 
@@ -81,9 +83,11 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 	 * @param array                $parsed_args HTTP request arguments.
 	 * @param string               $url         The request URL.
-	 * @return false|array|WP_Error Response data.
+	 * @return array|WP_Error Response data.
 	 */
 	public function mock_http_request( $response, $parsed_args, $url ) {
+		unset( $response );
+
 		$this->request_url  = $url;
 		$this->request_args = $parsed_args;
 
@@ -100,10 +104,6 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 			);
 		}
 
-		if ( 'wp.com' === $url ) {
-			return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
-		}
-
-		return $response;
+		return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
 	}
 }
