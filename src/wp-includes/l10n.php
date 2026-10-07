@@ -332,6 +332,9 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function __( $text, $domain = 'default' ) {
 	return translate( $text, $domain );
@@ -348,6 +351,9 @@ function __( $text, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text on success, original text on failure.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_attr__( $text, $domain = 'default' ) {
 	return esc_attr( translate( $text, $domain ) );
@@ -365,6 +371,9 @@ function esc_attr__( $text, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_html__( $text, $domain = 'default' ) {
 	return esc_html( translate( $text, $domain ) );
@@ -378,6 +387,9 @@ function esc_html__( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function _e( $text, $domain = 'default' ) {
 	echo translate( $text, $domain );
@@ -396,6 +408,9 @@ function _e( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_attr_e( $text, $domain = 'default' ) {
 	echo esc_attr( translate( $text, $domain ) );
@@ -414,6 +429,9 @@ function esc_attr_e( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_html_e( $text, $domain = 'default' ) {
 	echo esc_html( translate( $text, $domain ) );
@@ -435,6 +453,10 @@ function esc_html_e( $text, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated context string without pipe.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _x( $text, $context, $domain = 'default' ) {
 	return translate_with_gettext_context( $text, $context, $domain );
@@ -449,6 +471,10 @@ function _x( $text, $context, $domain = 'default' ) {
  * @param string $context Context information for the translators.
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _ex( $text, $context, $domain = 'default' ) {
 	echo _x( $text, $context, $domain );
@@ -467,6 +493,10 @@ function _ex( $text, $context, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function esc_attr_x( $text, $context, $domain = 'default' ) {
 	return esc_attr( translate_with_gettext_context( $text, $context, $domain ) );
@@ -485,6 +515,10 @@ function esc_attr_x( $text, $context, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function esc_html_x( $text, $context, $domain = 'default' ) {
 	return esc_html( translate_with_gettext_context( $text, $context, $domain ) );
@@ -509,6 +543,10 @@ function esc_html_x( $text, $context, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string The translated singular or plural form.
+ *
+ * @phpstan-param literal-string $single
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $domain
  */
 function _n( $single, $plural, $number, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
@@ -568,6 +606,11 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string The translated singular or plural form.
+ *
+ * @phpstan-param literal-string $single
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
@@ -634,6 +677,18 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
  *     @type null        $context  Context information for the translators.
  *     @type string|null $domain   Text domain.
  * }
+ *
+ * @phpstan-param literal-string $singular
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string|null $domain
+ * @phpstan-return array{
+ *     0: literal-string,
+ *     1: literal-string,
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: null,
+ *     domain: literal-string|null,
+ * }
  */
 function _n_noop( $singular, $plural, $domain = null ) {
 	return array(
@@ -680,6 +735,20 @@ function _n_noop( $singular, $plural, $domain = null ) {
  *     @type string      $context  Context information for the translators.
  *     @type string|null $domain   Text domain.
  * }
+ *
+ * @phpstan-param literal-string $singular
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string|null $domain
+ * @phpstan-return array{
+ *     0: literal-string,
+ *     1: literal-string,
+ *     2: literal-string,
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: literal-string,
+ *     domain: literal-string|null,
+ * }
  */
 function _nx_noop( $singular, $plural, $context, $domain = null ) {
 	return array(
@@ -719,6 +788,15 @@ function _nx_noop( $singular, $plural, $context, $domain = null ) {
  * @param string $domain        Optional. Text domain. Unique identifier for retrieving translated strings. If $nooped_plural contains
  *                              a text domain passed to _n_noop() or _nx_noop(), it will override this value. Default 'default'.
  * @return string Either $singular or $plural translated text.
+ *
+ * @phpstan-param array{
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: literal-string|null,
+ *     domain: literal-string|null,
+ *     ...
+ * } $nooped_plural
+ * @phpstan-param literal-string $domain
  */
 function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) {
 	if ( $nooped_plural['domain'] ) {
