@@ -1457,6 +1457,52 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A zero registration date is reported as null instead of failing the output.
+	 *
+	 * The zero date is the `user_registered` column default, so rows inserted without a
+	 * date carry it. It formats with a negative year, which the `date-time` output format
+	 * rejects, so passing it through would fail the lookup, and a whole collection page.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_zero_registered_date_is_reported_as_null(): void {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$wpdb->update( $wpdb->users, array( 'user_registered' => '0000-00-00 00:00:00' ), array( 'ID' => $user_id ) );
+		clean_user_cache( $user_id );
+
+		wp_set_current_user( $this->admin_id );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/users-query' );
+
+		$result = $ability->execute(
+			array(
+				'id'     => $user_id,
+				'fields' => array( 'id', 'registered_date' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A user with a zero registration date should still be readable.' );
+		$this->assertArrayHasKey( 'registered_date', $result, 'A viewable registration date should be present even when the stored date is unusable.' );
+		$this->assertNull( $result['registered_date'], 'A zero registration date should be reported as null.' );
+
+		$collection = $ability->execute(
+			array(
+				'include' => array( $user_id, $this->admin_id ),
+				'fields'  => array( 'id', 'registered_date' ),
+			)
+		);
+
+		$this->assertIsArray( $collection, 'One user with a zero registration date should not fail the whole collection.' );
+
+		$registered_dates = wp_list_pluck( $collection['users'], 'registered_date', 'id' );
+		$this->assertNull( $registered_dates[ $user_id ], 'The zero registration date should be reported as null in the collection.' );
+		$this->assertIsString( $registered_dates[ $this->admin_id ], 'A valid registration date in the same collection should still be reported.' );
+	}
+
+	/**
 	 * A suppressed avatar URL does not break the default field set.
 	 *
 	 * get_avatar_url() documents `string|false` as its return type, and plugins that
