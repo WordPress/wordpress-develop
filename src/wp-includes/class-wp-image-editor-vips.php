@@ -369,6 +369,27 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
+	 * Returns the libvips resampling kernel to use when resizing.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string A libvips kernel name.
+	 */
+	protected function get_resampling_kernel() {
+		/**
+		 * Filters the libvips resampling kernel used when resizing.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string $kernel A libvips kernel name. Default 'lanczos3'.
+		 */
+		$kernel  = apply_filters( 'wp_image_editor_vips_resampling_kernel', 'lanczos3' );
+		$allowed = array( 'nearest', 'linear', 'cubic', 'mitchell', 'lanczos2', 'lanczos3', 'mks2013', 'mks2021' );
+
+		return in_array( $kernel, $allowed, true ) ? $kernel : 'lanczos3';
+	}
+
+	/**
 	 * Resizes the image and returns it, leaving `$this->image` alone.
 	 *
 	 * `$this->size` is updated to the destination dimensions because the save
@@ -400,7 +421,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			// Then scale that region to the destination dimensions.
 			if ( (int) $src_w !== $dst_w || (int) $src_h !== $dst_h ) {
-				$image = $image->resize( $dst_w / (int) $src_w, array( 'vscale' => $dst_h / (int) $src_h ) );
+				$image = $image->resize(
+					$dst_w / (int) $src_w,
+					array(
+						'vscale' => $dst_h / (int) $src_h,
+						'kernel' => $this->get_resampling_kernel(),
+					)
+				);
 			}
 
 			$this->update_size( $dst_w, $dst_h );
@@ -548,7 +575,13 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			if ( $actual_src_w !== $dst_w || $actual_src_h !== $dst_h ) {
 				$h_scale = $dst_w / $actual_src_w;
 				$v_scale = $dst_h / $actual_src_h;
-				$cropped = $cropped->resize( $h_scale, array( 'vscale' => $v_scale ) );
+				$cropped = $cropped->resize(
+					$h_scale,
+					array(
+						'vscale' => $v_scale,
+						'kernel' => $this->get_resampling_kernel(),
+					)
+				);
 			}
 
 			$this->image = $cropped;
