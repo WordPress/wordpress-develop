@@ -603,10 +603,12 @@ final class WP_Content_Abilities {
 		}
 
 		/*
-		 * Prime the author caches with a single query instead of one user lookup
-		 * per post, mirroring the REST posts controller. Besides `author_slug`,
+		 * Prime the parent and author caches with a single query each instead of one
+		 * lookup per post, mirroring the REST posts controller. Hierarchical permalinks
+		 * and inherited read permissions read the parent. Besides `author_slug`,
 		 * permalinks read the author when the permalink structure contains `%author%`.
 		 */
+		update_post_parent_caches( $query->posts );
 		$author_fields = array_intersect( array( 'author_slug', 'link' ), $fields );
 		if ( array() !== $author_fields && post_type_supports( $post_type, 'author' ) ) {
 			$query_posts = array_filter(

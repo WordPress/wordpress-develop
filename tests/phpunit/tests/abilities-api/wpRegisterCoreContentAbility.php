@@ -2649,6 +2649,46 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Requesting `link` primes the parents that page permalinks read for the whole page.
+	 *
+	 * @ticket 64606
+	 * @since 7.2.0
+	 */
+	public function test_query_link_primes_the_parents_page_permalinks_read(): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+		$this->set_permalink_structure( '/%postname%/' );
+
+		$ids = array();
+		for ( $i = 0; $i < 3; $i++ ) {
+			$ids[] = self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_parent' => self::factory()->post->create( array( 'post_type' => 'page' ) ),
+				)
+			);
+		}
+
+		$queries = $this->count_queries(
+			'posts',
+			static function () use ( $ids ) {
+				return wp_get_ability( 'core/content-query' )->execute(
+					array(
+						'post_type' => 'page',
+						'include'   => $ids,
+						'fields'    => array( 'id', 'link' ),
+					)
+				);
+			},
+			$result
+		);
+
+		$this->assertCount( 3, $result['posts'], 'Precondition: the query should return the seeded pages.' );
+		// One query finds the matching IDs, one loads those pages, and one loads their parents.
+		$this->assertSame( 3, $queries, 'Page permalinks should read primed parents, not query once per returned page.' );
+	}
+
+	/**
 	 * Counts the queries against a table issued while running the given callback.
 	 *
 	 * Counts during the call rather than checking the cache afterwards: the rendered
