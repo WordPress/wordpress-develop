@@ -47,6 +47,7 @@ function wp_register_core_ability_categories(): void {
  * Registers the default core abilities.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `core/users-query` ability.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */

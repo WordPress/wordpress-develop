@@ -14,7 +14,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Shared fixture IDs.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array<string, int>
 	 */
 	private static $fixture_ids = array();
@@ -22,7 +22,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Administrator user ID.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private $admin_id;
@@ -30,7 +30,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Subscriber user ID.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private $subscriber_id;
@@ -38,7 +38,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Author user ID with a published post.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private $public_author_id;
@@ -46,7 +46,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Author post ID.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var int
 	 */
 	private $public_post_id;
@@ -54,7 +54,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Original show_avatars option.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var mixed
 	 */
 	private $show_avatars;
@@ -62,7 +62,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Set up before the class.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
@@ -152,7 +152,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Tear down after the class.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
 		wp_delete_post( self::$fixture_ids['public_post'], true );
@@ -183,7 +183,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Set up test case.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public function set_up(): void {
 		parent::set_up();
@@ -200,7 +200,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Tear down test case.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	public function tear_down(): void {
 		if ( wp_has_ability( 'core/users-query' ) ) {
@@ -215,7 +215,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Registers the core/users-query ability inside a faked init action.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 */
 	private function register_core_users_ability(): void {
 		if ( wp_has_ability( 'core/users-query' ) ) {
