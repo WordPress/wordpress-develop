@@ -720,6 +720,69 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a truncated image is not saved.
+	 *
+	 * The editor asks the loader to fail on truncation, but libvips reads pixels lazily,
+	 * so an encoder that detects the damage from the header rejects the file at load and
+	 * one that does not only reports it when the pixels are first read. Whichever happens,
+	 * a truncated file must not produce output.
+	 */
+	public function test_truncated_images_are_not_saved() {
+		$data = file_get_contents( DIR_TESTDATA . '/images/transparent.png' );
+
+		$file = tempnam( get_temp_dir(), 'vips_truncated_' ) . '.png';
+		file_put_contents( $file, substr( $data, 0, (int) ( strlen( $data ) * 0.6 ) ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_truncated_out_' ) . '.png';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$saved             = false;
+
+		if ( ! is_wp_error( $vips_image_editor->load() ) ) {
+			$vips_image_editor->resize( 5, 5 );
+
+			$saved = ! is_wp_error( $vips_image_editor->save( $saved_file ) );
+		}
+
+		unlink( $file );
+
+		if ( file_exists( $saved_file ) ) {
+			unlink( $saved_file );
+		}
+
+		$this->assertFalse( $saved, 'A truncated image should not be saved.' );
+	}
+
+	/**
+	 * Tests that a truncated JPEG is filled in rather than rejected.
+	 *
+	 * JPEG is the exception to the truncation check because damage in one is
+	 * recoverable, and the GD and Imagick editors fill it and carry on.
+	 */
+	public function test_truncated_jpeg_is_filled_rather_than_rejected() {
+		$data = file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' );
+
+		$file = tempnam( get_temp_dir(), 'vips_truncated_jpeg_' ) . '.jpg';
+		file_put_contents( $file, substr( $data, 0, (int) ( strlen( $data ) * 0.6 ) ) );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+
+		$this->assertNotWPError( $vips_image_editor->load() );
+		$this->assertNotWPError( $vips_image_editor->resize( 5, 5 ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_truncated_jpeg_out_' ) . '.jpg';
+		$saved      = $vips_image_editor->save( $saved_file );
+
+		unlink( $file );
+
+		if ( file_exists( $saved_file ) ) {
+			unlink( $saved_file );
+		}
+
+		$this->assertNotWPError( $saved );
+	}
+
+	/**
 	 * Tests that WP_Image_Editor_Vips handles extensionless images.
 	 *
 	 * @ticket 39195
