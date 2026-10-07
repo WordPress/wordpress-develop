@@ -175,6 +175,7 @@ class HookDocBlock {
 
 		$canonical_root               = realpath( $this->wordpressRoot );
 		$this->canonicalWordpressRoot = false === $canonical_root ? $this->wordpressRoot : $canonical_root;
+		$this->canonicalWordpressRoot = str_replace( '\\', '/', $this->canonicalWordpressRoot );
 	}
 
 	/**
@@ -216,9 +217,7 @@ class HookDocBlock {
 				// depend on where the checkout lives.
 				$key = $this->getRootRelativePath( $target );
 
-				if ( ! isset( $docs[ $key ] ) ) {
-					$docs[ $key ] = $this->getHookDocs( $target );
-				}
+				$docs[ $key ] ??= $this->getHookDocs( $target );
 			}
 		}
 
@@ -562,9 +561,7 @@ class HookDocBlock {
 	 * @return HookDocs
 	 */
 	private function getHookDocs( string $file ): array {
-		if ( ! isset( $this->fileHookDocs[ $file ] ) ) {
-			$this->fileHookDocs[ $file ] = self::loadHookDocs( $file );
-		}
+		$this->fileHookDocs[ $file ] ??= self::loadHookDocs( $file );
 
 		return $this->fileHookDocs[ $file ];
 	}
@@ -632,8 +629,16 @@ class HookDocBlock {
 			return $docs;
 		}
 
-		// Propagate each docblock down to the nested hook-call node.
+		/*
+		 * Translate hash notation before the docblocks are collected, and propagate each
+		 * docblock down to the nested hook-call node. The file is parsed here rather than
+		 * through PHPStan's parser, so the visitors configured in base.neon have not run
+		 * over it: without the first one, a hook documented with a hash is typed from the
+		 * shape where its docblock is written at the call and from the bare `array` where
+		 * the same docblock is inherited through a reference comment.
+		 */
 		$traverser = new NodeTraverser();
+		$traverser->addVisitor( new HashNotationVisitor() );
 		$traverser->addVisitor( new HookDocsVisitor() );
 		$stmts = $traverser->traverse( $stmts );
 
@@ -663,9 +668,7 @@ class HookDocBlock {
 			$name_expr = $args[0]->value;
 
 			if ( $name_expr instanceof String_ ) {
-				if ( ! isset( $docs['exact'][ $name_expr->value ] ) ) {
-					$docs['exact'][ $name_expr->value ] = $doc->getText();
-				}
+				$docs['exact'][ $name_expr->value ] ??= $doc->getText();
 				continue;
 			}
 
@@ -840,6 +843,8 @@ class HookDocBlock {
 		if ( false === $canonical ) {
 			return null;
 		}
+
+		$canonical = str_replace( '\\', '/', $canonical );
 
 		return str_starts_with( $canonical, $this->canonicalWordpressRoot . '/' ) ? $canonical : null;
 	}

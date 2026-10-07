@@ -10,6 +10,8 @@
  * @since 3.0.0
  *
  * @requires jQuery
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
 	$( function() {
@@ -122,7 +124,7 @@
 			 * @since 3.5.0
 			 *
 			 * @return {void}
- 			 */
+			 */
 			frame.on( 'select', function() {
 				// Grab the selected attachment.
 				var attachment = frame.state().get('selection').first();

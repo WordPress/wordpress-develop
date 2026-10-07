@@ -287,6 +287,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Logs user in.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Returns an error if the `$username` or `$password` argument is not a scalar.
 	 *
 	 * @param string $username User's username.
 	 * @param string $password User's password.
@@ -299,6 +300,16 @@ class wp_xmlrpc_server extends IXR_Server {
 	) {
 		if ( ! $this->is_enabled ) {
 			$this->error = new IXR_Error( 405, __( 'XML-RPC services are disabled on this site.' ) );
+			return false;
+		}
+
+		/*
+		 * Arrays and objects sent by the client would cause a fatal error in
+		 * wp_authenticate(). Other scalar types are tolerated because PHP
+		 * coerces them to strings, which preserves backward compatibility.
+		 */
+		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
+			$this->error = new IXR_Error( 400, __( 'The username and password arguments should be strings.' ) );
 			return false;
 		}
 
@@ -381,8 +392,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 5.7.3
 	 *
-	 * @param IXR_Error|string $error   Error code or an error object.
-	 * @param false            $message Error message. Optional.
+	 * @param IXR_Error|int $error   Error code or an error object.
+	 * @param string|false  $message Error message. Optional. Default false.
 	 */
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
@@ -802,6 +813,25 @@ class wp_xmlrpc_server extends IXR_Server {
 	protected function minimum_args( $args, $count ) {
 		if ( ! is_array( $args ) || count( $args ) < $count ) {
 			$this->error = new IXR_Error( 400, __( 'Insufficient arguments passed to this XML-RPC method.' ) );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Checks that the `$fields` argument received from a client is an array.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $fields The `$fields` argument to check.
+	 * @return bool True if `$fields` is an array, false otherwise.
+	 *
+	 * @phpstan-assert-if-true array $fields
+	 */
+	protected function _is_fields_array( $fields ): bool {
+		if ( ! is_array( $fields ) ) {
+			$this->error = new IXR_Error( 400, __( 'The fields argument must be an array.' ) );
 			return false;
 		}
 
@@ -1462,6 +1492,33 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 403, __( 'Invalid post type.' ) );
 		}
 
+		// Reject writes to internal-only builtin post types (e.g. customize_changeset)
+		// whose intended write path is a dedicated helper, not a generic post API.
+		$is_internal_only = (
+			empty( $post_type->public )
+			&& empty( $post_type->show_in_rest )
+			&& ! empty( $post_type->_builtin )
+		);
+
+		/**
+		 * Filters whether a post type accepts writes via XML-RPC.
+		 *
+		 * Defaults to false for internal-only builtin post types (public=false,
+		 * show_in_rest=false, _builtin=true), such as customize_changeset, whose
+		 * writes are meant to flow through dedicated helpers. Return true to opt
+		 * a post type back in.
+		 *
+		 * @since 7.1.1
+		 *
+		 * @param bool         $allowed   Whether the post type accepts XML-RPC writes.
+		 * @param WP_Post_Type $post_type The post type object.
+		 */
+		$allowed = apply_filters( 'xmlrpc_allow_post_type_writes', ! $is_internal_only, $post_type );
+
+		if ( ! $allowed ) {
+			return new IXR_Error( 403, __( 'Sorry, this post type is not supported over XML-RPC.' ) );
+		}
+
 		$update = ! empty( $post_data['ID'] );
 
 		if ( $update ) {
@@ -1871,6 +1928,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves a post.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * The optional $fields parameter specifies what fields will be included
 	 * in the response array. This should be a list of field names. 'post_id' will
@@ -1928,6 +1986,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_id  = (int) $args[3];
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/**
@@ -1967,6 +2029,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves posts.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * @see wp_get_recent_posts()
 	 * @see wp_getPost() for more on `$fields`
@@ -1997,6 +2060,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$filter   = $args[3] ?? array();
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
@@ -2534,6 +2601,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves a taxonomy.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * @see get_taxonomy()
 	 *
@@ -2562,6 +2630,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$taxonomy = $args[3];
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/**
@@ -2601,6 +2673,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves all taxonomies.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * @see get_taxonomies()
 	 *
@@ -2628,6 +2701,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$filter   = $args[3] ?? array( 'public' => true );
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
@@ -2670,6 +2747,9 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * names can be used to specify multiple fields. The available conceptual
 	 * groups are 'basic' and 'all'.
 	 *
+	 * @since 3.5.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
+	 *
 	 * @uses get_userdata()
 	 *
 	 * @param array $args {
@@ -2707,6 +2787,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$user_id  = (int) $args[3];
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/**
@@ -2751,6 +2835,9 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * The optional $fields parameter specifies what fields will be included
 	 * in the response array.
 	 *
+	 * @since 3.5.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
+	 *
 	 * @uses get_users()
 	 * @see wp_getUser() for more on $fields and return values
 	 *
@@ -2777,6 +2864,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$filter   = $args[3] ?? array();
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
@@ -2834,6 +2925,9 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Retrieves information about the requesting user.
 	 *
+	 * @since 3.5.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
+	 *
 	 * @uses get_userdata()
 	 *
 	 * @param array $args {
@@ -2857,6 +2951,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$password = $args[2];
 
 		if ( isset( $args[3] ) ) {
+			if ( ! $this->_is_fields_array( $args[3] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[3];
 		} else {
 			/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
@@ -3190,7 +3288,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type int    $1 Page ID.
 	 *     @type string $2 Username.
 	 *     @type string $3 Password.
-	 *     @type string $4 Content.
+	 *     @type array  $4 Content struct, with keys documented on {@see self::mw_newPost()}.
 	 *     @type int    $5 Publish flag. 0 for draft, 1 for publish.
 	 * }
 	 * @return array|IXR_Error
@@ -4533,6 +4631,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves a post type.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * @see get_post_type_object()
 	 *
@@ -4568,6 +4667,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_type_name = $args[3];
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/**
@@ -4607,6 +4710,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves post types.
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * @see get_post_types()
 	 *
@@ -4633,6 +4737,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$filter   = $args[3] ?? array( 'public' => true );
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
@@ -4666,6 +4774,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Retrieves revisions for a specific post.
 	 *
 	 * @since 3.5.0
+	 * @since 7.2.0 Returns an error if the `$fields` argument is not an array.
 	 *
 	 * The optional $fields parameter specifies what fields will be included
 	 * in the response array.
@@ -4696,6 +4805,10 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_id  = (int) $args[3];
 
 		if ( isset( $args[4] ) ) {
+			if ( ! $this->_is_fields_array( $args[4] ) ) {
+				return $this->error;
+			}
+
 			$fields = $args[4];
 		} else {
 			/**
@@ -6519,7 +6632,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param bool $error Whether to pre-empt the media upload. Default false.
+		 * @param string|false $error Error message to return instead of uploading, or false to
+		 *                            allow the upload. Default false.
 		 */
 		$upload_err = apply_filters( 'pre_upload_error', false );
 		if ( $upload_err ) {

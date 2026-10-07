@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -138,7 +137,6 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
-			'imagemin',
 			'jshint',
 			'uglify',
 			'watch'
@@ -155,7 +153,11 @@ module.exports = function(grunt) {
 		]
 	};
 
-	// Load grunt-* tasks.
+	/**
+	 * Loads the Grunt tasks for the given dependency.
+	 *
+	 * @param {string} dependency The name of the Grunt task to load.
+	 */
 	function loadGruntTasks( dependency ) {
 		var contrib = key === 'contrib' ? 'contrib-' : '';
 		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
@@ -368,6 +370,8 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
@@ -807,8 +811,8 @@ module.exports = function(grunt) {
 							// Strip the 'library/' prefix from filePath values so they
 							// resolve correctly relative to wp-includes/images/icon-library/.
 							.replace(
-								/'filePath' => 'library\//g,
-								'\'filePath\' => \''
+								/'filePath'(\s+)=> 'library\//g,
+								'\'filePath\'$1=> \''
 							);
 					}
 				},
@@ -926,6 +930,11 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
+									// Alternative text, as in `content: "\f141" / '';`, is not part of the icon.
+									var altText = ( value.match( /\s*\/\s*(?:'[^']*'|"[^"]*")\s*$/ ) || [ '' ] )[ 0 ];
+
+									value = value.slice( 0, value.length - altText.length );
+
 									if ( value === '"\\f141"' ) { // dashicons-arrow-left
 										value = '"\\f139"';
 									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
@@ -939,7 +948,7 @@ module.exports = function(grunt) {
 									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
 										value = '"\\f341"';
 									}
-									return { prop: prop, value: value };
+									return { prop: prop, value: value + altText };
 								}
 							}
 						]
@@ -1069,28 +1078,70 @@ module.exports = function(grunt) {
 					'**/*.js',
 					'!**/*.min.js'
 				],
-				/*
-				 * Limit JSHint's run to a single specified plugin directory:
+				// Prevent traversal into these directories during glob expansion.
+				// This is much faster than using negation patterns alone.
+				ignore: [
+					'**/build/**',
+					'**/dist/**',
+					'**/gutenberg/**',
+					'**/node_modules/**',
+					'**/packages/**',
+					'**/test/**',
+					'**/vendor/**'
+				],
+				/**
+				 * Limits JSHint's run to a single specified plugin directory:
 				 *
-				 *    grunt jshint:plugins --dir=foldername
+				 * Usage example:
+				 * grunt jshint:plugins --dir=foldername
+				 *
+				 * This also automatically skips minified files that may not have
+				 * a filename ending with `.min.js`, specifically when they have
+				 * lines longer than 500 characters.
+				 *
+				 * @param {string} dirpath Directory path.
+				 * @return {boolean} Whether the path is skipped.
 				 */
 				filter: function( dirpath ) {
-					var index, dir = grunt.option( 'dir' );
-
-					// Don't filter when no target folder is specified.
-					if ( ! dir ) {
-						return true;
+					// Bypasses folder targets so fs.readFileSync doesn't throw errors.
+					if ( ! fs.lstatSync( dirpath ).isFile() ) {
+						return false;
 					}
 
-					dirpath = dirpath.replace( /\\/g, '/' );
-					index = dirpath.lastIndexOf( '/' + dir );
+					// If `--dir` is provided.
+					var dir = grunt.option( 'dir' );
+					if ( dir ) {
+						var normalizedPath = dirpath.replace( /\\/g, '/' );
+						var index = normalizedPath.lastIndexOf( '/' + dir );
 
-					// Match only the folder name passed from cli.
-					if ( -1 !== index ) {
-						return true;
+						// If a directory was requested but this file isn't in it, exclude it.
+						if ( -1 === index ) {
+							return false;
+						}
 					}
 
-					return false;
+					// Read the file and inspect line lengths to catch minified/bundled code.
+					var content;
+					try {
+						content = fs.readFileSync( dirpath, 'utf-8' );
+					} catch ( error ) {
+						grunt.log.writeln( 'Could not read file: ' + dirpath + ' (Error: ' + error.message + ')' );
+						return false;
+					}
+
+					var lines = content.split( '\n' );
+
+					// Cap the maximum number of iterations at 5 lines.
+					for ( const line of lines.slice( 0, 5 ) ) {
+						// Exclude files with lines longer than 500 characters.
+						if ( line.length > 500 ) {
+							grunt.log.writeln( 'Skipping minified file: ' + dirpath );
+							return false;
+						}
+					}
+
+					// File passed both independent checks: proceed with JSHint.
+    				return true;
 				}
 			}
 		},
@@ -1554,6 +1605,15 @@ module.exports = function(grunt) {
 					},
 					{
 						expand: true,
+						cwd: BUILD_DIR + 'wp-includes/js/jquery',
+						src: [
+							'jquery-migrate.js',
+							'jquery-migrate.min.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/jquery/'
+					},
+					{
+						expand: true,
 						cwd: BUILD_DIR + 'wp-includes/js/dist/',
 						src: [ '*.js' ],
 						dest: BUILD_DIR + 'wp-includes/js/dist/',
@@ -1744,6 +1804,8 @@ module.exports = function(grunt) {
 		grunt.task.run( '_' + this.nameArgs );
 	} );
 
+	grunt.registerMultiTask( 'imagemin', 'Losslessly optimizes PNG, JPEG and GIF images.', require( './tools/imagemin/task.js' )( grunt ) );
+
 	grunt.registerTask( 'precommit:image', [
 		'imagemin:core'
 	] );
@@ -1751,6 +1813,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'precommit:js', [
 		'webpack:prod',
 		'jshint:corejs',
+		'lint:jsdoc',
 		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1786,6 +1849,11 @@ module.exports = function(grunt) {
 			path.dirname( __dirname ) + '/.svn'
 		] );
 
+		/**
+		 * Searches for the first version control directory in the given set.
+		 *
+		 * @param {string[]} set Array of directory paths to check.
+		 */
 		function find( set ) {
 			var dir;
 
@@ -1798,6 +1866,9 @@ module.exports = function(grunt) {
 			}
 		}
 
+		/**
+		 * Runs all tasks.
+		 */
 		function runAllTasks() {
 			grunt.log.writeln( 'Cannot determine which files are modified as SVN and GIT are not available.' );
 			grunt.log.writeln( 'Running all tasks and all tests.' );
@@ -1813,6 +1884,11 @@ module.exports = function(grunt) {
 			done();
 		}
 
+		/**
+		 * Determines which precommit tasks to run based on modified files detected by version control.
+		 *
+		 * @param {string} type The version control type: 'git' or 'svn'.
+		 */
 		function run( type ) {
 			var command = map[ type ].split( ' ' );
 
@@ -1822,13 +1898,23 @@ module.exports = function(grunt) {
 			}, function( error, result, code ) {
 				var taskList = [];
 
-				// Callback for finding modified paths.
+				/**
+				 * Checks if the given path appears in the version control status output.
+				 *
+				 * @param {string} path The path to check.
+				 * @return {boolean} True if the path is found, false otherwise.
+				 */
 				function testPath( path ) {
 					var regex = new RegExp( ' ' + path + '$', 'm' );
 					return regex.test( result.stdout );
 				}
 
-				// Callback for finding modified files by extension.
+				/**
+				 * Checks if files with the given extension appear in the version control status output.
+				 *
+				 * @param {string} extension The file extension to check for.
+				 * @return {boolean} True if the file with the given extension is found, false otherwise.
+				 */
 				function testExtension( extension ) {
 					var regex = new RegExp( '\.' + extension + '$', 'm' );
 					return regex.test( result.stdout );
@@ -2302,6 +2388,18 @@ module.exports = function(grunt) {
 		grunt.util.spawn( {
 			cmd: 'npm',
 			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'lint:jsdoc', 'Runs JSDoc linting on JavaScript files.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'lint:jsdoc' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
