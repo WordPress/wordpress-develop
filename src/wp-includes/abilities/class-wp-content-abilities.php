@@ -214,12 +214,11 @@ final class WP_Content_Abilities {
 	/**
 	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
 	 *
-	 * Values that are not integers are rejected rather than coerced, so an ID or a parent
-	 * that cannot be honored fails loudly instead of being read as 0: a `parent` filter of
-	 * 0 asks for top-level posts. Accepts native integers and unsigned integer strings.
-	 * Schema validation accepts an integer string, and only the REST run controller
-	 * converts input to the schema types, so callers that bypass it, such as a direct
-	 * WP_Ability::execute() call, can pass one.
+	 * Accepts native integers and unsigned integer strings. Only the REST run controller
+	 * converts input to the schema types, so other callers, such as a direct
+	 * WP_Ability::execute() call, can pass an integer string, which schema validation
+	 * accepts. Anything else is rejected rather than read as 0, which as a `parent`
+	 * filter would ask for top-level posts.
 	 *
 	 * @since 7.2.0
 	 *
@@ -244,10 +243,8 @@ final class WP_Content_Abilities {
 	/**
 	 * Parses a raw list input into a list of strings.
 	 *
-	 * Schema validation accepts a list given as a scalar or comma-separated string, and
-	 * only the REST run controller converts input to the schema types, so callers that
-	 * bypass it, such as a direct WP_Ability::execute() call, can pass one. This parses
-	 * it the same way validation did, with wp_parse_list().
+	 * Like schema validation, it also accepts a scalar or a comma-separated string, and
+	 * parses it the same way, with wp_parse_list().
 	 *
 	 * @since 7.2.0
 	 *
@@ -804,9 +801,8 @@ final class WP_Content_Abilities {
 		}
 
 		/*
-		 * Schema validation also accepts a single ID or a comma-separated string, which
-		 * callers that bypass the REST run controller can pass; wp_parse_id_list() accepts
-		 * every form and yields unique positive IDs.
+		 * wp_parse_id_list() also parses a single ID or a comma-separated string, as
+		 * schema validation does.
 		 */
 		return array_values( array_filter( wp_parse_id_list( $include ) ) );
 	}
