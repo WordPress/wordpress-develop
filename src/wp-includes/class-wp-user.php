@@ -58,6 +58,7 @@ class WP_User {
 	 *
 	 * @since 2.1.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $ID = 0;
 
@@ -185,7 +186,7 @@ class WP_User {
 			$data->ID = 0;
 		}
 		$this->data = $data;
-		$this->ID   = (int) $data->ID;
+		$this->ID   = absint( $data->ID );
 
 		$this->for_site( $site_id );
 	}
@@ -364,7 +365,7 @@ class WP_User {
 					'<code>WP_User->ID</code>'
 				)
 			);
-			$this->ID = (int) $value;
+			$this->ID = absint( $value );
 			return;
 		}
 
