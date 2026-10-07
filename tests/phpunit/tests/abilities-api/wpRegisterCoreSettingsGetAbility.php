@@ -435,6 +435,32 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * A setting shown in the REST API without `show_in_abilities` is not exposed.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_skips_a_setting_only_shown_in_rest(): void {
+		$option = 'core_settings_get_ability_rest_only_test_option';
+
+		register_setting(
+			'general',
+			$option,
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		try {
+			$this->register_ability();
+
+			$this->assertArrayNotHasKey( $option, wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'] );
+		} finally {
+			unregister_setting( 'general', $option );
+			$this->register_ability();
+		}
+	}
+
+	/**
 	 * A value that does not match its schema is left out instead of failing the whole call.
 	 *
 	 * @ticket 64605
