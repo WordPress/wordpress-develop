@@ -2127,6 +2127,52 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rendering a field restores the surrounding loop globals when a calling function binds
+	 * them with `global`, as load_template() and WP_Block::render() do.
+	 *
+	 * Such a binding makes the global a reference, so a saved copy that kept the reference
+	 * would follow the global to the rendered post, and the rendered post would be restored.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_rendered_fields
+	 * @since 7.2.0
+	 *
+	 * @param string $field The rendered field to request.
+	 */
+	public function test_rendered_fields_restore_loop_globals_bound_by_the_caller( string $field ): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$surrounding = get_post( self::$post_ids['published'] );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a surrounding context to verify the ability restores it.
+		$GLOBALS['post'] = $surrounding;
+		setup_postdata( $surrounding );
+
+		$surrounding_globals = $this->get_loop_globals();
+
+		$render_in_template = static function ( string $field ): array {
+			global $post, $id;
+
+			$result = wp_get_ability( 'core/content-query' )->execute(
+				array(
+					'id'     => self::$post_ids['limited_role_content'],
+					'fields' => array( $field ),
+				)
+			);
+
+			return array( $result, $post->ID, $id );
+		};
+
+		list( $result, $bound_post_id, $bound_id ) = $render_in_template( $field );
+
+		$this->assertArrayHasKey( $field, $result, 'Precondition: the rendered field should be returned.' );
+		$this->assertSame( $surrounding->ID, $bound_post_id, 'The caller should see the surrounding post again after rendering.' );
+		$this->assertSame( $surrounding->ID, $bound_id, 'The caller should see the surrounding post ID again after rendering.' );
+		$this->assertSame( $surrounding_globals, $this->get_loop_globals(), 'The surrounding loop globals should be restored as they were.' );
+	}
+
+	/**
 	 * Returns the loop globals that are set, keyed by name.
 	 *
 	 * @since 7.2.0
