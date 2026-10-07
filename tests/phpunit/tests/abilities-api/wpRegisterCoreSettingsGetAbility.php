@@ -406,6 +406,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public static function data_stored_values(): array {
 		return array(
 			'"false" for a boolean'               => array( 'boolean', 'false', 'false' ),
+			'an empty string for a boolean'       => array( 'boolean', '', 'false' ),
 			'a stdClass for an object'            => array( 'object', (object) array( 'a' => 1 ), '{"a":1}' ),
 			'an empty array for an object'        => array( 'object', array(), '{}' ),
 			'a list with gaps for an array'       => array(
