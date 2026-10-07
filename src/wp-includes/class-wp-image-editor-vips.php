@@ -107,6 +107,14 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			return false;
 		}
 
+		/*
+		 * libvips hands a file to whichever loader claims it, and several of them execute
+		 * code or resolve external references (SVG, PDF, DZI). The block is process-wide
+		 * and is read by libvips when it initialises, which the call below does, so it has
+		 * to be set first.
+		 */
+		self::block_untrusted_loaders();
+
 		// Try to get the libvips version to confirm it's working.
 		try {
 			$version = Jcupitt\Vips\Config::version();
@@ -125,6 +133,53 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		$supported = true;
 
 		return true;
+	}
+
+	/**
+	 * Processes the libvips loaders that may be used to decode an image.
+	 *
+	 * `vips-loader` holds the name of the operation libvips chose for the file.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string[] Loader operation names.
+	 */
+	protected static function get_allowed_loaders() {
+		/**
+		 * Filters the libvips loaders the VIPS image editor will decode with.
+		 *
+		 * The allowlist exists because libvips selects a loader from the file's magic
+		 * bytes. Loaders vary in how much trust they require, and some are not usable as
+		 * image editors at all, so the set is limited to the raster image loaders.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[] $loaders Loader operation names.
+		 */
+		return apply_filters(
+			'wp_image_editor_vips_allowed_loaders',
+			array(
+				'jpegload',
+				'pngload',
+				'webpload',
+				'tiffload',
+				'gifload',
+				'heifload',
+			)
+		);
+	}
+
+	/**
+	 * Blocks libvips loaders that are considered untrusted.
+	 *
+	 * The variable is read when libvips initialises, and the caller is the first thing to
+	 * touch the library, so it is set here rather than at load time. This is a second
+	 * layer: get_allowed_loaders() is what the editor relies on.
+	 *
+	 * @since 7.2.0
+	 */
+	protected static function block_untrusted_loaders() {
+		putenv( 'VIPS_BLOCK_UNTRUSTED=1' );
 	}
 
 	/**
@@ -253,6 +308,24 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$this->image = Jcupitt\Vips\Image::newFromBuffer( $file_contents, '', $load_options );
 			} else {
 				$this->image = Jcupitt\Vips\Image::newFromFile( $this->file, $load_options );
+			}
+
+			/*
+			 * libvips picks the loader from the file's magic bytes, which is not necessarily
+			 * the format WordPress believes the file to be. Refuse anything that was decoded
+			 * by a loader the editor does not support, rather than editing it through a code
+			 * path that was never checked.
+			 *
+			 * The operation is named per input variant -- a file is decoded by `jpegload`, a
+			 * buffer by `jpegload_buffer`, a source by `jpegload_source` -- so the suffix is
+			 * dropped and the allowlist names one operation per format.
+			 */
+			$loader = preg_replace( '/_(buffer|source)$/', '', (string) $this->image->get( 'vips-loader' ) );
+
+			if ( ! in_array( $loader, self::get_allowed_loaders(), true ) ) {
+				$this->image = null;
+
+				return new WP_Error( 'invalid_image', __( 'Image type not supported.' ), $this->file );
 			}
 
 			// Get image size.
