@@ -97,12 +97,12 @@ final class WP_Abilities_Users {
 				'execute_callback'    => array( $this, 'execute_get_users' ),
 				'permission_callback' => array( $this, 'check_permission' ),
 				'meta'                => array(
-					'annotations'  => array(
+					'annotations' => array(
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
 					),
-					'show_in_rest' => true,
+					'public'      => true,
 				),
 			)
 		);
