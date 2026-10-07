@@ -1586,7 +1586,7 @@ function _load_textdomain_just_in_time( $domain ) {
  * @global MO[] $l10n An array of all currently loaded text domains.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @return Translations|NOOP_Translations A Translations instance.
+ * @return WP_Translations|Translations|NOOP_Translations A Translations instance.
  */
 function get_translations_for_domain( $domain ) {
 	global $l10n;
