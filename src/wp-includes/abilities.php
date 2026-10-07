@@ -15,7 +15,7 @@ require_once __DIR__ . '/abilities/class-wp-content-abilities.php';
  * Registers the core ability categories.
  *
  * @since 6.9.0
- * @since 7.2.0 Added the `uncategorized` category.
+ * @since 7.2.0 Added the `content` and `uncategorized` categories.
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -55,6 +55,7 @@ function wp_register_core_ability_categories(): void {
  * Registers the default core abilities.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `core/content-query` ability.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
