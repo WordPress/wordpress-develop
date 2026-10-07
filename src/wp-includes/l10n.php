@@ -1701,7 +1701,10 @@ function get_available_languages( $dir = null ) {
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $type What to search for. Accepts 'plugins', 'themes', 'core'.
- * @return array Array of language data.
+ * @return array<string, array<string, string[]>> Array of language data, keyed by text domain and then
+ *                                                 by locale, each value being the translation file headers.
+ *
+ * @phpstan-return ( $type is 'plugins'|'themes'|'core' ? array<string, array<string, string[]>> : array{} )
  */
 function wp_get_installed_translations( $type ) {
 	global $wp_textdomain_registry;
