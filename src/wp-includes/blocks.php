@@ -328,14 +328,17 @@ function register_block_script_handle( $metadata, $field_name, $index = 0 ) {
 /**
  * Finds a style handle for the block metadata field.
  *
- * Detects when a path to a file was provided and registers the style under an
- * automatically generated handle name. It returns the unprocessed style handle
+ * Detects when a path to a file was provided and optionally finds a
+ * corresponding asset file with details necessary to register the style. The
+ * handle is taken from the asset file when it provides one, and is otherwise
+ * generated automatically. It returns the unprocessed style handle
  * otherwise, except for the first style of a core block, which is instead
  * registered from the block's own stylesheet when separate core block assets
  * are loaded. Core blocks accept only handles, not paths.
  *
  * @since 5.5.0
  * @since 6.1.0 Added `$index` parameter.
+ * @since 7.2.0 Added support for asset files (`.asset.php`) providing custom handle, dependencies, and version.
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
@@ -370,12 +373,6 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_handle = $style_handle[ $index ];
 	}
 
-	$style_handle_name = generate_block_asset_handle( $metadata['name'], $field_name, $index );
-	// If the style handle is already registered, skip re-registering.
-	if ( wp_style_is( $style_handle_name, 'registered' ) ) {
-		return $style_handle_name;
-	}
-
 	static $wpinc_path_norm = '';
 	if ( ! $wpinc_path_norm ) {
 		$wpinc_path_norm = wp_normalize_path( realpath( ABSPATH . WPINC ) );
@@ -393,6 +390,7 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 	if ( $is_core_block && ! $is_style_handle ) {
 		return false;
 	}
+
 	// Return the style handle unless it's the first item for every core block that requires special treatment.
 	if ( $is_style_handle && ! ( $is_core_block && 0 === $index ) ) {
 		return $style_handle;
@@ -404,15 +402,39 @@ function register_block_style_handle( $metadata, $field_name, $index = 0 ) {
 		$style_path = ( 'editorStyle' === $field_name ) ? "editor{$suffix}.css" : "style{$suffix}.css";
 	}
 
-	$style_path_norm = wp_normalize_path( realpath( dirname( $metadata['file'] ) . '/' . $style_path ) );
-	$style_uri       = get_block_asset_url( $style_path_norm );
+	$path             = isset( $metadata['file'] ) ? dirname( $metadata['file'] ) : '';
+	$style_asset_path = '';
+	$style_asset      = array();
+	if ( ! $is_core_block && '' !== $path && str_ends_with( $style_path, '.css' ) ) {
+		$style_asset_raw_path = $path . '/' . substr_replace( $style_path, '.asset.php', - strlen( '.css' ) );
+		$style_asset_path     = wp_normalize_path(
+			realpath( $style_asset_raw_path )
+		);
 
-	$block_version = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
-	$version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
-	$result        = wp_register_style(
+		// Asset file for blocks is optional. See https://core.trac.wordpress.org/ticket/60460.
+		/** @var array{ handle?: non-falsy-string, dependencies?: list<non-falsy-string>, version?: string|false|null, ... } $style_asset */
+		$style_asset = ! empty( $style_asset_path ) ? require $style_asset_path : array();
+	}
+
+	$style_handle_name = $style_asset['handle'] ??
+		generate_block_asset_handle( $metadata['name'], $field_name, $index );
+
+	// If the style handle is already registered, skip re-registering.
+	if ( wp_style_is( $style_handle_name, 'registered' ) ) {
+		return $style_handle_name;
+	}
+
+	$style_path_norm    = wp_normalize_path( realpath( $path . '/' . $style_path ) );
+	$style_uri          = get_block_asset_url( $style_path_norm );
+	$style_dependencies = $style_asset['dependencies'] ?? array();
+	$block_version      = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$auto_version       = $style_path_norm && defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? filemtime( $style_path_norm ) : $block_version;
+	$version            = $style_asset['version'] ?? $auto_version;
+
+	$result = wp_register_style(
 		$style_handle_name,
 		$style_uri,
-		array(),
+		$style_dependencies,
 		$version
 	);
 	if ( ! $result ) {
