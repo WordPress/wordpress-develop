@@ -109,7 +109,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 		$actual_link = get_the_privacy_policy_link();
 
 		$this->assertStringEndsWith(
-			'><strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> alert("test")</a>',
+			'><strong class="privacy">Privacy</strong> <em class="policy">Policy</em> <b class="bold">Bold</b> <i class="italic">Italic</i> <span class="page-title">Page</span> </a>',
 			$actual_link
 		);
 	}
