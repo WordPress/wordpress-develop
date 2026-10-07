@@ -88,6 +88,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_customize'] );
 		$_REQUEST                      = array();
 		$GLOBALS['_wp_theme_features'] = self::$theme_features;
+
+		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
+		remove_post_type_support( 'customize_changeset', 'revisions' );
+
 		parent::tear_down();
 	}
 
