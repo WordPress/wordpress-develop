@@ -71,15 +71,18 @@ final class WP_Content_Abilities {
 	);
 
 	/**
-	 * Fields whose rendering may read post meta or terms.
+	 * Fields whose output may read post meta or terms.
 	 *
 	 * Requests that include any of these prime the post meta and term caches for the
-	 * page. Other rendered fields, such as the title, do not need that cache priming.
+	 * page. Rendered excerpts and content may read either, and permalinks read terms
+	 * when the permalink structure contains `%category%`. Other fields, such as the
+	 * rendered title, do not need that cache priming.
 	 *
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
 	private array $cache_priming_fields = array(
+		'link',
 		'excerpt_rendered',
 		'content_rendered',
 	);
@@ -586,9 +589,11 @@ final class WP_Content_Abilities {
 
 		/*
 		 * Prime the author caches with a single query instead of one user lookup
-		 * per post, mirroring the REST posts controller.
+		 * per post, mirroring the REST posts controller. Besides `author_slug`,
+		 * permalinks read the author when the permalink structure contains `%author%`.
 		 */
-		if ( in_array( 'author_slug', $fields, true ) && post_type_supports( $post_type, 'author' ) ) {
+		$author_fields = array_intersect( array( 'author_slug', 'link' ), $fields );
+		if ( array() !== $author_fields && post_type_supports( $post_type, 'author' ) ) {
 			$query_posts = array_filter(
 				$query->posts,
 				static function ( $queried_post ): bool {

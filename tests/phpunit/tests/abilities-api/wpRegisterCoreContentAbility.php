@@ -2386,7 +2386,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$ids = self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) );
 
-		$postmeta_queries = $this->count_post_meta_queries(
+		$postmeta_queries = $this->count_queries(
+			'postmeta',
 			static function () use ( $ids ) {
 				return wp_get_ability( 'core/content-query' )->execute(
 					array(
@@ -2456,24 +2457,91 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Counts the post meta queries issued while running the given callback.
+	 * Returns permalink structures that read data related to each post.
+	 *
+	 * @return array<string, array{permalink_structure: string, table: string}> Permalink test cases.
+	 */
+	public function data_permalink_structures_that_read_related_data(): array {
+		return array(
+			'category permalinks' => array(
+				'permalink_structure' => '/%category%/%postname%/',
+				'table'               => 'term_relationships',
+			),
+			'author permalinks'   => array(
+				'permalink_structure' => '/%author%/%postname%/',
+				'table'               => 'users',
+			),
+		);
+	}
+
+	/**
+	 * Requesting `link` primes the caches that permalinks read for the whole page.
+	 *
+	 * Permalinks read the post's terms for `%category%` and its author for `%author%`,
+	 * so without priming, each returned row runs its own query.
+	 *
+	 * @ticket 64606
+	 * @dataProvider data_permalink_structures_that_read_related_data
+	 *
+	 * @param string $permalink_structure The permalink structure.
+	 * @param string $table               The wpdb property naming the table the permalinks read.
+	 */
+	public function test_query_link_primes_the_caches_permalinks_read( string $permalink_structure, string $table ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+		$this->set_permalink_structure( $permalink_structure );
+
+		$category_id = self::factory()->category->create();
+		$ids         = array();
+		foreach ( array( 'author', 'author_secondary', 'editor' ) as $role ) {
+			$ids[] = self::factory()->post->create(
+				array(
+					'post_author'   => self::$user_ids[ $role ],
+					'post_category' => array( $category_id ),
+					'post_status'   => 'publish',
+				)
+			);
+		}
+
+		$queries = $this->count_queries(
+			$table,
+			static function () use ( $ids ) {
+				return wp_get_ability( 'core/content-query' )->execute(
+					array(
+						'post_type' => 'post',
+						'include'   => $ids,
+						'fields'    => array( 'id', 'link' ),
+					)
+				);
+			},
+			$result
+		);
+
+		$this->assertCount( 3, $result['posts'], 'Precondition: the query should return the seeded posts.' );
+		$this->assertSame( 1, $queries, 'Permalinks should read primed caches, not query once per returned post.' );
+	}
+
+	/**
+	 * Counts the queries against a table issued while running the given callback.
 	 *
 	 * Counts during the call rather than checking the cache afterwards: the rendered
 	 * filter chains prime meta lazily, so an after-the-fact cache check passes either way.
 	 *
 	 * @since 7.2.0
 	 *
+	 * @param string   $table    The wpdb property naming the table, such as `postmeta`.
 	 * @param callable $callback Callback to run.
 	 * @param mixed    $result   Set to the callback's return value.
-	 * @return int Number of post meta queries issued.
+	 * @return int Number of queries issued against the table.
 	 */
-	private function count_post_meta_queries( callable $callback, &$result ): int {
+	private function count_queries( string $table, callable $callback, &$result ): int {
 		global $wpdb;
 
-		$postmeta_queries = 0;
-		$spy              = static function ( $query ) use ( &$postmeta_queries, $wpdb ) {
-			if ( is_string( $query ) && preg_match( '/FROM\s+`?' . preg_quote( $wpdb->postmeta, '/' ) . '`?/i', $query ) ) {
-				++$postmeta_queries;
+		$queries = 0;
+		$pattern = '/(?:FROM|JOIN)\s+`?' . preg_quote( $wpdb->$table, '/' ) . '\b/i';
+		$spy     = static function ( $query ) use ( &$queries, $pattern ) {
+			if ( is_string( $query ) && preg_match( $pattern, $query ) ) {
+				++$queries;
 			}
 
 			return $query;
@@ -2487,7 +2555,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			remove_filter( 'query', $spy );
 		}
 
-		return $postmeta_queries;
+		return $queries;
 	}
 
 	/**
