@@ -2502,6 +2502,11 @@ function sanitize_html_class( $classname, $fallback = '' ) {
  * @return string The sanitized value.
  */
 function sanitize_locale_name( $locale_name ) {
+	// Request values can arrive as arrays, and preg_replace() would map over them.
+	if ( ! is_string( $locale_name ) ) {
+		return '';
+	}
+
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
 	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $locale_name );
 
@@ -2524,6 +2529,8 @@ function sanitize_locale_name( $locale_name ) {
  * @param string $content    String of characters to be converted.
  * @param string $deprecated Not used.
  * @return string Converted string.
+ *
+ * @phpstan-param '' $deprecated
  */
 function convert_chars( $content, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3657,6 +3664,8 @@ function convert_smilies( $text ) {
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
  * @return string|false Valid email address on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function is_email( $email, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {

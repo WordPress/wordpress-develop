@@ -967,6 +967,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -975,6 +976,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 
