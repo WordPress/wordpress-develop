@@ -1415,7 +1415,20 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The previous loop globals, keyed by name, leaving out those that were not set.
 	 */
 	private function set_up_post_context( WP_Post $post ): array {
-		$previous_context = array_intersect_key( $GLOBALS, array_flip( self::LOOP_GLOBALS ) );
+		/*
+		 * Copy each global by value. A calling function that binds a global with `global`,
+		 * as load_template() and WP_Block::render() do, makes it a reference, which
+		 * array_intersect_key( $GLOBALS, ... ) would keep. The saved copy would then follow
+		 * the global to this post, and the restore would put this post back.
+		 */
+		$previous_context = array();
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			if ( ! array_key_exists( $name, $GLOBALS ) ) {
+				continue;
+			}
+
+			$previous_context[ $name ] = $GLOBALS[ $name ];
+		}
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily mirrors REST post context for rendering.
 		$GLOBALS['post'] = $post;
