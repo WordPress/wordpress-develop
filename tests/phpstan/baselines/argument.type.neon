@@ -829,7 +829,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int\<0, max\>, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -1119,7 +1119,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post-template.php
 		-
-			message: '#^Parameter \#2 \$fallback of function sanitize_html_class expects string, int given\.$#'
+			message: '#^Parameter \#2 \$fallback of function sanitize_html_class expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/post-template.php
