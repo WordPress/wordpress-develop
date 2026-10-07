@@ -2804,11 +2804,7 @@ function register_initial_settings() {
 						'format' => 'email',
 					),
 				),
-				'show_in_abilities' => array(
-					'schema' => array(
-						'format' => 'email',
-					),
-				),
+				'show_in_abilities' => true,
 				'type'              => 'string',
 				'description'       => __( 'This address is used for admin purposes, like new user notification.' ),
 			)
@@ -2979,11 +2975,7 @@ function register_initial_settings() {
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'show_in_abilities' => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
-			),
+			'show_in_abilities' => true,
 			'type'              => 'string',
 			'description'       => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
 		)
@@ -2998,11 +2990,7 @@ function register_initial_settings() {
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'show_in_abilities' => array(
-				'schema' => array(
-					'enum' => array( 'open', 'closed' ),
-				),
-			),
+			'show_in_abilities' => true,
 			'type'              => 'string',
 			'label'             => __( 'Allow comments on new posts' ),
 			'description'       => __( 'Allow people to submit comments on new posts.' ),
@@ -3077,7 +3065,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *                                            REST API. When registering complex settings, this argument may
  *                                            optionally be an array with a 'schema' key.
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
- *                                            Like `$show_in_rest`, it may be an array with 'name' and 'schema' keys.
+ *                                            When true, it uses the same name and schema as `$show_in_rest`.
+ *                                            It may also be an array with 'name' and 'schema' keys, used instead.
  *                                            Register the setting on `init` or earlier, before abilities initialize.
  *     @type mixed         $default           Default value when calling `get_option()`.
  * }
@@ -3303,7 +3292,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *                                                REST API. When registering complex settings, this argument may
  *                                                optionally be an array with a 'schema' key.
  *         @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
- *                                                Like `$show_in_rest`, it may be an array with 'name' and 'schema' keys.
+ *                                                When true, it uses the same name and schema as `$show_in_rest`.
+ *                                                It may also be an array with 'name' and 'schema' keys, used instead.
  *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
  *                                                setting was registered with a default.
  *     }

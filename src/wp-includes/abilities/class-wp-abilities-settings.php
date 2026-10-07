@@ -94,12 +94,12 @@ final class WP_Abilities_Settings {
 				'execute_callback'    => array( $this, 'execute_get_settings' ),
 				'permission_callback' => array( $this, 'has_permission' ),
 				'meta'                => array(
-					'annotations'  => array(
+					'annotations' => array(
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
 					),
-					'show_in_rest' => true,
+					'public'      => true,
 				),
 			)
 		);
@@ -215,10 +215,11 @@ final class WP_Abilities_Settings {
 		$settings = array();
 
 		foreach ( get_registered_settings() as $option_name => $args ) {
-			$show = $args['show_in_abilities'] ?? false;
-			if ( empty( $show ) ) {
+			if ( empty( $args['show_in_abilities'] ) ) {
 				continue;
 			}
+
+			$show = $this->get_exposure_args( $args );
 
 			$schema = $this->value_schema( $args, $show );
 			if ( ! in_array( $schema['type'], array( 'number', 'integer', 'string', 'boolean', 'array', 'object' ), true ) ) {
@@ -238,6 +239,26 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
+	 * Returns the name and schema overrides used to expose a setting to abilities.
+	 *
+	 * When `show_in_abilities` is `true`, the setting is exposed the same way as in the
+	 * REST API: it uses the `name` and `schema` from `show_in_rest`. An array is used
+	 * as is.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $args The setting registration arguments.
+	 * @return array<string, mixed> The exposure arguments, with optional `name` and `schema` keys.
+	 */
+	private function get_exposure_args( array $args ): array {
+		if ( is_array( $args['show_in_abilities'] ) ) {
+			return $args['show_in_abilities'];
+		}
+
+		return is_array( $args['show_in_rest'] ) ? $args['show_in_rest'] : array();
+	}
+
+	/**
 	 * Builds the JSON Schema describing a single setting's value.
 	 *
 	 * As in the settings endpoint, objects in the schema reject properties they do not declare,
@@ -245,8 +266,8 @@ final class WP_Abilities_Settings {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<string, mixed>      $args The setting registration arguments.
-	 * @param bool|array<string, mixed> $show The setting's `show_in_abilities` value.
+	 * @param array<string, mixed> $args The setting registration arguments.
+	 * @param array<string, mixed> $show The exposure arguments, see get_exposure_args().
 	 * @return array<string, mixed> The value JSON Schema.
 	 */
 	private function value_schema( array $args, $show ): array {

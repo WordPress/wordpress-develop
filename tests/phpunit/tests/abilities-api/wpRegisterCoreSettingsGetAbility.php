@@ -137,12 +137,12 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public function test_core_settings_get_exposes_initial_settings_without_rest_api_init(): void {
 		$ability = wp_get_ability( 'core/settings-get' );
 
-		$this->assertArrayHasKey( 'blogname', $ability->get_output_schema()['properties'] );
+		$this->assertArrayHasKey( 'title', $ability->get_output_schema()['properties'] );
 
 		$this->become_admin();
-		$result = $ability->execute( array( 'fields' => array( 'blogname' ) ) );
+		$result = $ability->execute( array( 'fields' => array( 'title' ) ) );
 
-		$this->assertArrayHasKey( 'blogname', $result );
+		$this->assertArrayHasKey( 'title', $result );
 	}
 
 	/**
@@ -213,11 +213,76 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$this->assertInstanceOf( WP_Ability::class, $ability );
 		$this->assertSame( 'core/settings-get', $ability->get_name() );
 		$this->assertSame( 'site', $ability->get_category() );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$annotations = $ability->get_meta_item( 'annotations', array() );
 		$this->assertTrue( $annotations['readonly'] );
 		$this->assertFalse( $annotations['destructive'] );
+	}
+
+	/**
+	 * Settings exposed with `show_in_abilities => true` use the same names as in the
+	 * REST API settings endpoint.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_uses_rest_api_setting_names(): void {
+		$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+
+		foreach ( get_registered_settings() as $option_name => $args ) {
+			if ( empty( $args['show_in_abilities'] ) || empty( $args['show_in_rest'] ) ) {
+				continue;
+			}
+
+			$rest_name = is_array( $args['show_in_rest'] ) && ! empty( $args['show_in_rest']['name'] ) ? $args['show_in_rest']['name'] : $option_name;
+			$this->assertArrayHasKey( $rest_name, $properties, "The {$option_name} setting should use its REST API name." );
+		}
+	}
+
+	/**
+	 * A setting exposed with `show_in_abilities => true` reuses its REST API name and schema,
+	 * while an array is used instead of the REST API arguments.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_inherits_rest_api_exposure(): void {
+		register_setting(
+			'general',
+			'core_settings_get_inherit_test_option',
+			array(
+				'show_in_rest'      => array(
+					'name'   => 'inherited_name',
+					'schema' => array( 'enum' => array( 'a', 'b' ) ),
+				),
+				'show_in_abilities' => true,
+			)
+		);
+		register_setting(
+			'general',
+			'core_settings_get_override_test_option',
+			array(
+				'show_in_rest'      => array(
+					'name' => 'rest_name',
+				),
+				'show_in_abilities' => array(
+					'name' => 'ability_name',
+				),
+			)
+		);
+
+		try {
+			$this->register_ability();
+			$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+
+			$this->assertSame( array( 'a', 'b' ), $properties['inherited_name']['enum'] );
+			$this->assertArrayHasKey( 'ability_name', $properties );
+			$this->assertArrayNotHasKey( 'rest_name', $properties );
+		} finally {
+			unregister_setting( 'general', 'core_settings_get_inherit_test_option' );
+			unregister_setting( 'general', 'core_settings_get_override_test_option' );
+			$this->register_ability();
+		}
 	}
 
 	/**
@@ -235,9 +300,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$this->assertContains( 'general', $schema['properties']['group']['enum'] );
 		$this->assertContains( 'reading', $schema['properties']['group']['enum'] );
 
-		$this->assertContains( 'blogname', $schema['properties']['fields']['items']['enum'] );
+		$this->assertContains( 'title', $schema['properties']['fields']['items']['enum'] );
 		$this->assertContains( 'posts_per_page', $schema['properties']['fields']['items']['enum'] );
-		$this->assertContains( 'wp_page_for_privacy_policy', $schema['properties']['fields']['items']['enum'] );
+		$this->assertContains( 'page_for_privacy_policy', $schema['properties']['fields']['items']['enum'] );
 	}
 
 	/**
@@ -255,7 +320,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = wp_get_ability( 'core/settings-get' )->execute( array() );
 
 		$this->assertIsArray( $result );
-		$this->assertSame( 'My Test Site', $result['blogname'] );
+		$this->assertSame( 'My Test Site', $result['title'] );
 		$this->assertSame( 7, $result['posts_per_page'] );
 		$this->assertTrue( $result['use_smilies'] );
 	}
@@ -271,7 +336,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'group' => 'reading' ) );
 
 		$this->assertArrayHasKey( 'posts_per_page', $result );
-		$this->assertArrayNotHasKey( 'blogname', $result );
+		$this->assertArrayNotHasKey( 'title', $result );
 	}
 
 	/**
@@ -282,9 +347,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public function test_core_settings_get_filters_by_fields(): void {
 		$this->become_admin();
 
-		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( 'blogname', 'posts_per_page' ) ) );
+		$result = wp_get_ability( 'core/settings-get' )->execute( array( 'fields' => array( 'title', 'posts_per_page' ) ) );
 
-		$this->assertEqualSets( array( 'blogname', 'posts_per_page' ), array_keys( $result ) );
+		$this->assertEqualSets( array( 'title', 'posts_per_page' ), array_keys( $result ) );
 	}
 
 	/**
@@ -300,7 +365,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = wp_get_ability( 'core/settings-get' )->execute(
 			array(
 				'group'  => 'reading',
-				'fields' => array( 'blogname', 'posts_per_page' ),
+				'fields' => array( 'title', 'posts_per_page' ),
 			)
 		);
 
@@ -318,7 +383,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = wp_get_ability( 'core/settings-get' )->execute( (object) array( 'group' => 'reading' ) );
 
 		$this->assertArrayHasKey( 'posts_per_page', $result );
-		$this->assertArrayNotHasKey( 'blogname', $result );
+		$this->assertArrayNotHasKey( 'title', $result );
 	}
 
 	/**
@@ -370,7 +435,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		$result = wp_get_ability( 'core/settings-get' )->execute( array() );
 
 		$this->assertNotWPError( $result, 'One bad value must not fail the whole ability.' );
-		$this->assertArrayHasKey( 'blogname', $result, 'The other settings should still be returned.' );
+		$this->assertArrayHasKey( 'title', $result, 'The other settings should still be returned.' );
 		$this->assertArrayNotHasKey( 'default_ping_status', $result, 'Only the bad value should be left out.' );
 	}
 
