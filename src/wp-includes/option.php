@@ -3124,7 +3124,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  * @param string   $option_name  The name of the option to unregister.
  * @param callable $deprecated   Optional. Deprecated.
  *
- * @phpstan-param '' $deprecated
+ * @phpstan-param ''|callable $deprecated
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	global $new_allowed_options, $wp_registered_settings;

@@ -955,7 +955,7 @@ function register_deactivation_hook( $file, $callback ) {
  * @param callable $callback The callback to run when the hook is called. Must be
  *                           a static method or function.
  *
- * @phpstan-param callable(): mixed $callback
+ * @phpstan-param (callable-string|array{class-string, non-empty-string})&(callable(): mixed) $callback
  */
 function register_uninstall_hook( $file, $callback ) {
 	if ( is_array( $callback ) && is_object( $callback[0] ) ) {
