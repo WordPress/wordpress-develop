@@ -37,7 +37,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * user, ignoring letter case. Keys are user IDs.
 	 *
 	 * @since 7.2.0
-	 * @var true[]
+	 * @var array<int, true>
 	 */
 	protected $duplicate_email_user_ids = array();
 
