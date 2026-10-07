@@ -1086,6 +1086,26 @@ function wp_read_image_metadata( $file ) {
  * @return string Embedded alternative text, empty when there is no alt text or DOM extension is not installed.
  */
 function wp_get_image_alttext( $file ) {
+	/**
+	 * Filters whether to short-circuit the parsing of alt text from an image.
+	 *
+	 * Returning a non-null value will short-circuit the image parsing,
+	 * returning the passed value instead.
+	 *
+	 * This could be used simply to turn off the alt text generation
+	 * (by returning an empty string from the filter instead of null).
+	 * Or it could be used to run custom code for generating alt text.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|null $override_alt_text Short-circuit return value.
+	 * @param string      $file              File path to the image.
+	 */
+	$override_alt_text = apply_filters( 'pre_wp_get_image_alttext', null, $file );
+	if ( null !== $override_alt_text ) {
+		return $override_alt_text;
+	}
+
 	$alt_text = '';
 
 	if ( ! class_exists( 'DOMDocument', false ) ) {
