@@ -19,8 +19,8 @@ declare( strict_types = 1 );
  * posts the current user can edit.
  *
  * The class is intentionally structured around shared building blocks (exposed post type
- * discovery, schema generation, per-post formatting and permission checks) so a future
- * write-oriented `core/manage-content` ability can reuse them.
+ * discovery, schema generation, per-post formatting and permission checks) so future
+ * write-oriented content abilities can reuse them.
  *
  * This class is part of WordPress' internal implementation of the core abilities and is
  * not part of the public API. It may be changed or removed at any time without notice.
@@ -141,10 +141,8 @@ final class WP_Content_Abilities {
 		$this->register_content_query();
 
 		/*
-		 * A future write-oriented ability can be registered here, reusing the shared
-		 * helpers below (get_exposed_post_type(), format_post(), check_permission()):
-		 *
-		 *     $this->register_manage_content();
+		 * Future write-oriented content abilities can be registered here, reusing the
+		 * shared helpers below (get_exposed_post_type(), format_post(), check_permission()).
 		 */
 	}
 
