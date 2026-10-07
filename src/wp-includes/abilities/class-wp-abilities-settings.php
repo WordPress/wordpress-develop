@@ -240,6 +240,9 @@ final class WP_Abilities_Settings {
 	/**
 	 * Builds the JSON Schema describing a single setting's value.
 	 *
+	 * As in the settings endpoint, objects in the schema reject properties they do not declare,
+	 * unless the schema allows them.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed>      $args The setting registration arguments.
@@ -262,6 +265,6 @@ final class WP_Abilities_Settings {
 			$schema      = array_merge( $schema, $show_schema );
 		}
 
-		return $schema;
+		return rest_default_additional_properties_to_false( $schema );
 	}
 }

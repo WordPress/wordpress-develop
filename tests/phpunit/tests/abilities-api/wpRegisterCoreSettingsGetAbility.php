@@ -371,8 +371,9 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * @param string      $type     The setting type.
 	 * @param mixed       $stored   The stored option value.
 	 * @param string|null $expected The value as JSON, or null when it is left out.
+	 * @param array       $schema   Optional. The `show_in_abilities` schema of the setting. Default empty array.
 	 */
-	public function test_core_settings_get_reads_stored_values_as_the_settings_endpoint( string $type, $stored, ?string $expected ): void {
+	public function test_core_settings_get_reads_stored_values_as_the_settings_endpoint( string $type, $stored, ?string $expected, array $schema = array() ): void {
 		$option = 'core_settings_get_ability_value_test_option';
 
 		register_setting(
@@ -380,7 +381,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 			$option,
 			array(
 				'type'              => $type,
-				'show_in_abilities' => true,
+				'show_in_abilities' => array( 'schema' => $schema ),
 			)
 		);
 		update_option( $option, $stored );
@@ -401,13 +402,19 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: string, 1: mixed, 2: string|null}> Stored values, and the JSON they are read as.
+	 * @return array<string, array{0: string, 1: mixed, 2: string|null, 3?: array<string, mixed>}> Stored values, and the JSON they are read as.
 	 */
 	public static function data_stored_values(): array {
 		return array(
 			'"false" for a boolean'               => array( 'boolean', 'false', 'false' ),
 			'an empty string for a boolean'       => array( 'boolean', '', 'false' ),
-			'a stdClass for an object'            => array( 'object', (object) array( 'a' => 1 ), '{"a":1}' ),
+			'a stdClass for an object'            => array(
+				'object',
+				(object) array( 'a' => 1 ),
+				'{"a":1}',
+				array( 'properties' => array( 'a' => array( 'type' => 'integer' ) ) ),
+			),
+			'an undeclared property in an object' => array( 'object', array( 'a' => 1 ), null ),
 			'an empty array for an object'        => array( 'object', array(), '{}' ),
 			'a list with gaps for an array'       => array(
 				'array',
