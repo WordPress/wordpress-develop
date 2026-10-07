@@ -436,6 +436,83 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The serialized value must re-tokenize to the tokens the filter checked
+	 * and be unchanged by a second filtering.
+	 *
+	 * @ticket 65738
+	 * @covers ::_safecss_filter_attr_serialize_value
+	 * @covers ::_safecss_filter_attr_serialize_hash_value
+	 * @dataProvider data_serialized_tokens
+	 *
+	 * @param string $css Input.
+	 */
+	public function test_serialized_value_retokenizes_to_the_same_tokens( $css ) {
+		$once = safecss_filter_attr( $css );
+
+		$expected   = self::significant_tokens( $css );
+		$expected[] = array( WP_CSS_Token_Processor::TOKEN_SEMICOLON, null, null );
+		$this->assertSame( $expected, self::significant_tokens( $once ) );
+		$this->assertSame( $once, safecss_filter_attr( $once ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_serialized_tokens() {
+		return array(
+			'hash then ident after a comment'      => array( 'color: #a\\62/**/c' ),
+			'hash then number after a comment'     => array( '--x: #a\\6/**/2' ),
+			'dimension then ident after a comment' => array( 'font: 1p\\78/**/serif' ),
+			'dimension then dimension'             => array( 'margin: 1p\\78/**/2px' ),
+			'dimension then number'                => array( '--x: 1p\\78/**/-1' ),
+			'at-keyword then ident'                => array( '--x: @a\\62/**/c' ),
+			'hash with escape at end of input'     => array( 'color:#fff\\' ),
+			'dimension with escape at end'         => array( 'width:10px\\' ),
+			'hash color'                           => array( 'color: #123456' ),
+			'hash name starting with a digit'      => array( '--x: #1a' ),
+			'upper case unit'                      => array( 'width: 10PX' ),
+			'unit read as an exponent'             => array( '--x: 1\\65 3' ),
+			'number'                               => array( '--x: 1e3' ),
+			'hash with null escape'                => array( '--x: #a\\0b' ),
+			'hash with punctuation'                => array( '--x: #a\\2c b' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_serialized_tokens_output() {
+		$this->assertSame( 'color:#ab c;', safecss_filter_attr( 'color: #a\\62/**/c' ) );
+		$this->assertSame( 'font:1px serif;', safecss_filter_attr( 'font: 1p\\78/**/serif' ) );
+		$this->assertSame( '--x:@ab c;', safecss_filter_attr( '--x: @a\\62/**/c' ) );
+		$this->assertSame( 'color:#123456;', safecss_filter_attr( 'color: #123456' ) );
+		$this->assertSame( 'width:10PX;', safecss_filter_attr( 'width: 10PX' ) );
+		$this->assertSame( "color:#fff\u{FFFD};", safecss_filter_attr( 'color:#fff\\' ) );
+		$this->assertSame( "width:10px\u{FFFD};", safecss_filter_attr( 'width:10px\\' ) );
+		$this->assertStringNotContainsString( "\0", safecss_filter_attr( '--x: #a\\0b' ) );
+		$this->assertStringNotContainsString( "\0", safecss_filter_attr( "--x: #a\0b; width: 1\0px" ) );
+	}
+
+	/**
+	 * Non-trivia tokens of a style text as (type, value, unit) triples.
+	 *
+	 * @param string $css CSS text.
+	 * @return array<int, array{string, string|null, string|null}>
+	 */
+	private static function significant_tokens( $css ) {
+		$processor = WP_CSS_Token_Processor::create( $css );
+		$tokens    = array();
+		while ( $processor->next_token() ) {
+			$type = $processor->get_token_type();
+			if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE === $type || WP_CSS_Token_Processor::TOKEN_COMMENT === $type ) {
+				continue;
+			}
+			$tokens[] = array( $type, $processor->get_token_value(), $processor->get_token_unit() );
+		}
+		return $tokens;
+	}
+
+	/**
 	 * @ticket 65738
 	 * @dataProvider data_idempotence
 	 *

@@ -4530,12 +4530,14 @@ function _safecss_filter_attr_is_trivia( $token ) {
  * Serializes a declaration value from its tokens.
  *
  * Whitespace and comment runs become one space. Strings and URLs are
- * re-escaped from their decoded values. Identifiers and function names are
- * re-escaped from their decoded names. A `\` delimiter, which only a
- * backslash before a newline produces, keeps its newline so it does not
- * escape the space that follows. Other tokens are copied from the source.
- * The value has no block open at the end, so the output never absorbs the
- * `;` that follows.
+ * re-escaped from their decoded values. Identifiers, function names,
+ * at-keywords and dimension units are re-escaped from their decoded names.
+ * Hash names are re-escaped with every code point outside the name set
+ * hex-escaped. A `\` delimiter, which only a backslash before a newline
+ * produces, keeps its newline so it does not escape the space that follows.
+ * Numbers, percentages, other delimiters and punctuation are copied from
+ * the source. The value has no block open at the end, so the output never
+ * absorbs the `;` that follows.
  *
  * @since 7.2.0
  * @access private
@@ -4577,6 +4579,23 @@ function _safecss_filter_attr_serialize_value( $css, $tokens ) {
 				$output .= WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] );
 				break;
 
+			case WP_CSS_Token_Processor::TOKEN_AT_KEYWORD:
+				$output .= '@' . WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] );
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_HASH:
+				$output .= '#' . _safecss_filter_attr_serialize_hash_value( (string) $token['value'] );
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_DIMENSION:
+				$unit = WP_CSS_Token_Processor::serialize_ident( (string) $token['unit'] );
+				// A unit that starts with `e` and a digit would read as the number's exponent.
+				if ( preg_match( '/^[eE][+-]?[0-9]/', $unit ) ) {
+					$unit = sprintf( '\\%X ', ord( $unit[0] ) ) . substr( $unit, 1 );
+				}
+				$output .= $token['value'] . $unit;
+				break;
+
 			case WP_CSS_Token_Processor::TOKEN_DELIM:
 				$output .= '\\' === $token['value'] ? "\\\n" : substr( $css, $token['start'], $token['length'] );
 				break;
@@ -4585,6 +4604,53 @@ function _safecss_filter_attr_serialize_value( $css, $tokens ) {
 				$output .= substr( $css, $token['start'], $token['length'] );
 				break;
 		}
+	}
+
+	return $output;
+}
+
+/**
+ * Serializes a decoded hash token name.
+ *
+ * Name code points (`[A-Za-z0-9_-]` and any code point U+0080 or above) are
+ * emitted as they are. Every other code point is hex-escaped with a
+ * trailing space. A NUL byte becomes U+FFFD, as the tokenizer decodes it.
+ * Unlike an identifier, a hash name may start with a digit, so `#123456`
+ * is unchanged.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string $value Decoded hash name, without the `#`.
+ * @return string Serialized hash name.
+ */
+function _safecss_filter_attr_serialize_hash_value( $value ) {
+	$value  = wp_scrub_utf8( $value );
+	$output = '';
+	$length = strlen( $value );
+
+	for ( $i = 0; $i < $length; $i++ ) {
+		$byte = ord( $value[ $i ] );
+
+		if ( 0x00 === $byte ) {
+			$output .= "\u{FFFD}";
+			continue;
+		}
+
+		if (
+			$byte >= 0x80 ||
+			( $byte >= 0x30 && $byte <= 0x39 ) || // 0-9
+			( $byte >= 0x41 && $byte <= 0x5A ) || // A-Z
+			( $byte >= 0x61 && $byte <= 0x7A ) || // a-z
+			0x5F === $byte ||                     // _
+			0x2D === $byte                        // -
+		) {
+			$output .= $value[ $i ];
+			continue;
+		}
+
+		$output .= sprintf( '\\%X ', $byte );
 	}
 
 	return $output;

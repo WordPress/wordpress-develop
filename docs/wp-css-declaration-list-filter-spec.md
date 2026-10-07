@@ -28,11 +28,12 @@ signature and docblock. It builds the allowed property list once, applies
 - `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.2.0 body,
   unchanged except that it receives the list.
 
-The declarations helper uses six further private helpers:
+The declarations helper uses seven further private helpers:
 `_safecss_filter_attr_value_has_open_block()`,
 `_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`,
-`_safecss_filter_attr_ends_inside_token()`, `_safecss_filter_attr_is_trivia()`
-and `_safecss_filter_attr_serialize_value()`. All are `@access private`,
+`_safecss_filter_attr_ends_inside_token()`, `_safecss_filter_attr_is_trivia()`,
+`_safecss_filter_attr_serialize_value()` and
+`_safecss_filter_attr_serialize_hash_value()`. All are `@access private`,
 `@internal`, `@since 7.2.0`.
 
 ## Scope
@@ -69,9 +70,10 @@ The filter reads each value through
 `WP_HTML_Style_Attribute_Processor::get_value_tokens()`, the token view the
 processor exposes: the slice of its own token list covering the value, each
 token as `{type, value, start, length, end}` with offsets into the style text.
-The filter uses the decoded `value` for the checks and for re-escaping strings,
-URLs, identifiers and function names, and copies other tokens from the source
-bytes at `start` and `length`. The input is tokenized a second time, with
+The filter uses the decoded `value` and `unit` for the checks and for
+re-escaping strings, URLs, identifiers, function names, hashes, at-keywords and
+dimensions, and copies numbers, percentages, delimiters and punctuation from
+the source bytes at `start` and `length`. The input is tokenized a second time, with
 `WP_CSS_Token_Processor`, only to read `is_token_terminated()` on its last
 token for rule 0.
 
@@ -140,9 +142,16 @@ The output is built from the accepted declarations, not cut from the input.
 Each declaration is `property:value;` with `!important` preserved as
 ` !important` before the `;`. Property names are the decoded names. Values are
 serialized from their tokens: strings and URLs re-escaped from their decoded
-values with `WP_CSS_Token_Processor::serialize_string()`, identifiers and
-function names re-escaped with `serialize_ident()`, whitespace and comment runs
-reduced to one space. No block is open at the end of a value, by rule 0, so
+values with `WP_CSS_Token_Processor::serialize_string()`; identifiers,
+function names, at-keywords and dimension units re-escaped with
+`serialize_ident()`; hash names re-escaped with every code point outside
+`[A-Za-z0-9_-]` and U+0080 and above hex-escaped, so `#fff` and `#123456` are
+unchanged; a dimension's number copied from the source; numbers, percentages,
+delimiters and punctuation copied from the source; whitespace and comment runs
+reduced to one space. A token copied from the source could end in a hex
+escape and merge with the token after a dropped comment; re-escaping from the
+decoded value puts a space after every escape, so `#a\62/**/c` serializes as
+`#ab c`. No block is open at the end of a value, by rule 0, so
 the output never absorbs the `;` that follows. A `\` delimiter, which
 only a backslash before a newline produces, keeps its newline so it does not
 escape the space that follows.
