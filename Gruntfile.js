@@ -811,8 +811,8 @@ module.exports = function(grunt) {
 							// Strip the 'library/' prefix from filePath values so they
 							// resolve correctly relative to wp-includes/images/icon-library/.
 							.replace(
-								/'filePath' => 'library\//g,
-								'\'filePath\' => \''
+								/'filePath'(\s+)=> 'library\//g,
+								'\'filePath\'$1=> \''
 							);
 					}
 				},
