@@ -40,54 +40,38 @@ test.describe( 'Manage applications passwords', () => {
 		);
 	} );
 
-	test('should correctly create a new application password with expiration', async ( {
+	test( 'should correctly create a new application password with preset expiration', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
-		const expiresDate = new Date();
-		expiresDate.setDate( expiresDate.getDate() + 7 );
-		const expiresString = expiresDate.toISOString().split( 'T' )[ 0 ];
-
-		await applicationPasswords.create( TEST_APPLICATION_NAME, expiresString );
+		await applicationPasswords.create( TEST_APPLICATION_NAME, '7_days' );
 
 		const [ app ] = await applicationPasswords.get();
-		expect( app['name'] ).toBe( TEST_APPLICATION_NAME );
-		expect( app['expires'] ).not.toBeNull();
-		expect( app['expires'].startsWith( expiresString ) ).toBe( true );
+		expect( app.name ).toBe( TEST_APPLICATION_NAME );
+		expect( app.expires ).not.toBeNull();
 
 		const successMessage = page.getByRole( 'alert' );
 		await expect( successMessage ).toHaveClass( /notice-success/ );
 	} );
 
-	test('should correctly update an application password expiration date', async ( {
+	test( 'should correctly create a new application password with custom expiration date', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
-		await applicationPasswords.create();
-
-		const [ app ] = await applicationPasswords.get();
-		expect( app['expires'] ).toBeNull();
-
-		const editButton = page.getByRole( 'button', { name: 'Edit Expiration Date' } );
-		await expect( editButton ).toBeVisible();
-		await editButton.click();
-
-		const expiresInput = page.locator( '.edit-expires-input' );
-		await expect( expiresInput ).toBeVisible();
-
 		const expiresDate = new Date();
-		expiresDate.setDate( expiresDate.getDate() + 10 );
+		expiresDate.setDate( expiresDate.getDate() + 7 );
 		const expiresString = expiresDate.toISOString().split( 'T' )[ 0 ];
-		await expiresInput.fill( expiresString );
 
-		const saveButton = page.getByRole( 'button', { name: 'Save' } );
-		await saveButton.click();
+		await applicationPasswords.create( `${ TEST_APPLICATION_NAME } Custom`, 'custom', expiresString );
 
-		await expect( page.getByRole( 'alert' ) ).toContainText( 'Application password expiration updated.' );
+		const apps = await applicationPasswords.get();
+		const app = apps.find( ( item ) => item.name === `${ TEST_APPLICATION_NAME } Custom` );
+		expect( app ).toBeDefined();
+		expect( app.expires ).not.toBeNull();
+		expect( app.expires.startsWith( expiresString ) ).toBe( true );
 
-		const [ updatedApp ] = await applicationPasswords.get();
-		expect( updatedApp['expires'] ).not.toBeNull();
-		expect( updatedApp['expires'].startsWith( expiresString ) ).toBe( true );
+		const successMessage = page.getByRole( 'alert' );
+		await expect( successMessage ).toHaveClass( /notice-success/ );
 	} );
 
 	test( 'should correctly revoke a single application password', async ( {
@@ -144,17 +128,23 @@ class ApplicationPasswords {
 		this.admin = admin;
 	}
 
-	async create(applicationName = TEST_APPLICATION_NAME, expires = null) {
+	async create(applicationName = TEST_APPLICATION_NAME, preset = null, customDate = null) {
 		await this.admin.visitAdminPage( '/profile.php' );
 
 		const newPasswordField = this.page.getByRole( 'textbox', { name: 'New Application Password Name' } );
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
 
-		if ( expires ) {
-			const newPasswordExpiresField = this.page.getByLabel( 'Expires on' );
-			await expect( newPasswordExpiresField ).toBeVisible();
-			await newPasswordExpiresField.fill( expires );
+		if ( preset ) {
+			const presetSelect = this.page.getByLabel( 'Expiration' );
+			await expect( presetSelect ).toBeVisible();
+			await presetSelect.selectOption( preset );
+
+			if ( 'custom' === preset && customDate ) {
+				const customDateField = this.page.getByLabel( 'Custom expiration date' );
+				await expect( customDateField ).toBeVisible();
+				await customDateField.fill( customDate );
+			}
 		}
 
 		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
