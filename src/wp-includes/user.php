@@ -728,7 +728,7 @@ function get_current_user_id() {
 		return 0;
 	}
 	$user = wp_get_current_user();
-	return (int) ( $user->ID ?? 0 );
+	return (int) $user->ID;
 }
 
 /**
@@ -749,6 +749,8 @@ function get_current_user_id() {
  * @param int    $user       Optional. User ID.
  * @param string $deprecated Use get_option() to check for an option in the options table.
  * @return mixed User option value on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_user_option( $option, $user = 0, $deprecated = '' ) {
 	global $wpdb;
@@ -854,6 +856,8 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  *
  * @param int $user_id User ID.
  * @return WP_User|false WP_User object on success, false on failure.
+ *
+ * @phpstan-return ( $user_id is int<min, 0> ? false : WP_User|false )
  */
 function get_user( $user_id ) {
 	return get_user_by( 'id', $user_id );
@@ -869,6 +873,14 @@ function get_user( $user_id ) {
  * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
  * @return array List of users.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
+ *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
+ *         )
+ *     )
+ * )
  */
 function get_users( $args = array() ) {
 
@@ -1270,6 +1282,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $user_id
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'user', $user_id, $meta_key, $meta_value );

@@ -382,7 +382,9 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
  *
  * @param string $meta_type  Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                           'user', or any other object type with an associated meta table.
- * @param int    $object_id  ID of the object metadata is for.
+ * @param int    $object_id  ID of the object metadata is for. Pass 0 when `$delete_all` is true.
+ *                           The value no longer selects the rows to delete, but is still passed
+ *                           on to the hooks fired below.
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Optional. Metadata value. Must be serializable if non-scalar.
  *                           If specified, only delete metadata entries with this value.
@@ -395,6 +397,8 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
  *                           ignoring the specified object_id. Otherwise, only delete
  *                           matching metadata entries for the specified object_id. Default false.
  * @return bool True on successful delete, false on failure.
+ *
+ * @phpstan-param non-negative-int $object_id
  */
 function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $delete_all = false ) {
 	global $wpdb;
@@ -628,6 +632,7 @@ function get_metadata( $meta_type, $object_id, $meta_key = '', $single = false )
  * Retrieves raw metadata value for the specified object.
  *
  * @since 5.5.0
+ * @since 7.2.0 A cached value that is not an array is now treated as a cache miss.
  *
  * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                          'user', or any other object type with an associated meta table.
@@ -704,7 +709,8 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 
 	$meta_cache = wp_cache_get( $object_id, $meta_type . '_meta' );
 
-	if ( ! $meta_cache ) {
+	// A cached value that is not an array is unusable, treat it as a cache miss.
+	if ( ! $meta_cache || ! is_array( $meta_cache ) ) {
 		$meta_cache = update_meta_cache( $meta_type, array( $object_id ) );
 		$meta_cache = $meta_cache[ $object_id ] ?? null;
 	}
@@ -788,6 +794,7 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
  * Determines if a meta field with the given key exists for the given object ID.
  *
  * @since 3.3.0
+ * @since 7.2.0 A cached value that is not an array is now treated as a cache miss.
  *
  * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
  *                          'user', or any other object type with an associated meta table.
@@ -813,9 +820,10 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
 
 	$meta_cache = wp_cache_get( $object_id, $meta_type . '_meta' );
 
-	if ( ! $meta_cache ) {
+	// A cached value that is not an array is unusable, treat it as a cache miss.
+	if ( ! $meta_cache || ! is_array( $meta_cache ) ) {
 		$meta_cache = update_meta_cache( $meta_type, array( $object_id ) );
-		$meta_cache = $meta_cache[ $object_id ];
+		$meta_cache = $meta_cache[ $object_id ] ?? null;
 	}
 
 	if ( isset( $meta_cache[ $meta_key ] ) ) {
@@ -1161,6 +1169,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
  * Updates the metadata cache for the specified objects.
  *
  * @since 2.9.0
+ * @since 7.2.0 A cached value that is not an array is now treated as a cache miss.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1215,17 +1224,31 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		return (bool) $check;
 	}
 
-	$cache_group    = $meta_type . '_meta';
-	$non_cached_ids = array();
-	$cache          = array();
-	$cache_values   = wp_cache_get_multiple( $object_ids, $cache_group );
+	$cache_group       = $meta_type . '_meta';
+	$non_cached_ids    = array();
+	$invalid_cache_ids = array();
+	$cache             = array();
+	$cache_values      = wp_cache_get_multiple( $object_ids, $cache_group );
 
 	foreach ( $cache_values as $id => $cached_object ) {
 		if ( false === $cached_object ) {
 			$non_cached_ids[] = $id;
+		} elseif ( ! is_array( $cached_object ) ) {
+			// A cached value that is not an array is unusable, treat it as a cache miss.
+			$non_cached_ids[]    = $id;
+			$invalid_cache_ids[] = $id;
 		} else {
 			$cache[ $id ] = $cached_object;
 		}
+	}
+
+	/*
+	 * Remove unusable cached values so that the regenerated values can be added.
+	 * A delete followed by an add is used instead of wp_cache_set_multiple()
+	 * so that wp_suspend_cache_addition() is still respected.
+	 */
+	if ( ! empty( $invalid_cache_ids ) ) {
+		wp_cache_delete_multiple( $invalid_cache_ids, $cache_group );
 	}
 
 	if ( empty( $non_cached_ids ) ) {
@@ -1264,6 +1287,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 		}
 		$data[ $id ] = $cache[ $id ];
 	}
+
 	wp_cache_add_multiple( $data, $cache_group );
 
 	return $cache;
@@ -1466,6 +1490,8 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @return bool True if the meta key was successfully registered in the global array, false if not.
  *              Registering a meta key with distinct sanitize and auth callbacks will fire those callbacks,
  *              but will not add to the global registry.
+ *
+ * @phpstan-param null $deprecated
  */
 function register_meta( $object_type, $meta_key, $args, $deprecated = null ) {
 	global $wp_meta_keys;

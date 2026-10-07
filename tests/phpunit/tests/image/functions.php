@@ -379,10 +379,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id       = $this->_make_attachment( $upload );
+		$id = $this->create_image_editor_test_attachment();
 
 		$filter = new MockAction();
 		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
@@ -410,10 +407,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id       = $this->_make_attachment( $upload );
+		$id = $this->create_image_editor_test_attachment();
 
 		add_filter( 'image_edit_thumbnails_separately', $callback );
 
@@ -452,6 +446,42 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'expected' => false,
 			),
 		);
+	}
+
+	/**
+	 * Creates a minimal image attachment for wp_image_editor() filter tests.
+	 *
+	 * Uses static metadata instead of generating real thumbnails. A thumbnail
+	 * size entry is needed for the imgedit-applyto section to render.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_editor_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => DIR_TESTDATA . '/images/canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+				'sizes'  => array(
+					'thumbnail' => array(
+						'file'      => 'canola-150x150.jpg',
+						'width'     => 150,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			)
+		);
+
+		return $attachment_id;
 	}
 
 	/**
@@ -637,6 +667,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::wp_crop_image
+	 * @group external-http
 	 * @requires function imagejpeg
 	 * @requires extension openssl
 	 */
@@ -1014,12 +1045,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$preview_path = $temp_dir . $metadata['sizes']['full']['file'];
 
 		// PDF preview didn't overwrite PDF.
-		$this->assertNotEquals( $pdf_path, $preview_path );
+		$this->assertNotSame( $pdf_path, $preview_path );
 		// PDF preview didn't overwrite JPG with same name.
-		$this->assertNotEquals( $jpg1_path, $preview_path );
+		$this->assertNotSame( $jpg1_path, $preview_path );
 		$this->assertSame( 'asdf', file_get_contents( $jpg1_path ) );
 		// PDF preview didn't overwrite PDF preview with same name.
-		$this->assertNotEquals( $jpg2_path, $preview_path );
+		$this->assertNotSame( $jpg2_path, $preview_path );
 		$this->assertSame( 'fdsa', file_get_contents( $jpg2_path ) );
 
 		// Cleanup.
