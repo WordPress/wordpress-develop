@@ -4011,6 +4011,10 @@ All at ###SITENAME###
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.2.0 The notice is displayed whenever an email change is pending, not only after updating
+ *              the profile, and includes a link to cancel the request. The function is no longer
+ *              hooked to the `admin_notices`, `user_admin_notices`, and `network_admin_notices`
+ *              actions, and is instead called directly from wp-admin/user-edit.php.
  *
  * @global string $pagenow The filename of the current screen.
  */
