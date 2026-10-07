@@ -894,9 +894,19 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 			$translate_nooped_plural = false;
 		}
 	} elseif ( isset( $args['single_text'] ) && isset( $args['multiple_text'] ) ) {
-		// If no callback exists, look for the old-style single_text and multiple_text arguments.
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] );
+		/*
+		 * If no callback exists, look for the old-style single_text and multiple_text arguments.
+		 * These are runtime values, so they cannot be marked for translation with _n_noop(),
+		 * which requires string literals. The nooped plural is built directly instead.
+		 */
+		$translate_nooped_plural = array(
+			0          => $args['single_text'],
+			1          => $args['multiple_text'],
+			'singular' => $args['single_text'],
+			'plural'   => $args['multiple_text'],
+			'context'  => null,
+			'domain'   => null,
+		);
 	} else {
 		// This is the default for when no callback, plural, or argument is passed in.
 		/* translators: %s: Number of items (tags). */

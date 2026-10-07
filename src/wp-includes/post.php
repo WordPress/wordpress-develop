@@ -1502,8 +1502,18 @@ function register_post_status( $post_status, $args = array() ) {
 	}
 
 	if ( false === $args->label_count ) {
-		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$args->label_count = _n_noop( $args->label, $args->label );
+		/*
+		 * The label is a runtime value, so it cannot be marked for translation with _n_noop(),
+		 * which requires string literals. The nooped plural is built directly instead.
+		 */
+		$args->label_count = array(
+			0          => $args->label,
+			1          => $args->label,
+			'singular' => $args->label,
+			'plural'   => $args->label,
+			'context'  => null,
+			'domain'   => null,
+		);
 	}
 
 	$wp_post_statuses[ $post_status ] = $args;
