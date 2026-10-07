@@ -200,8 +200,8 @@ final class WP_Abilities_Users {
 
 		if ( array() !== $include ) {
 			/*
-			 * The include order is not applied as `orderby`. Keeping the default
-			 * ordering lets WP_User_Query share cached results with other queries.
+			 * The include list filters the results but does not order them, as in the REST
+			 * users controller. Results keep WP_User_Query's default order, by login.
 			 */
 			$query_args['include'] = $include;
 		}
@@ -670,7 +670,7 @@ final class WP_Abilities_Users {
 				'type'    => 'integer',
 				'minimum' => 1,
 			),
-			'description' => __( 'Limit the query to these user IDs. If `per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum. Collection results are limited to users the caller can read, which for callers without permission to list users means only public authors. To read your own account, use a single-user lookup by ID.' ),
+			'description' => __( 'Limit the query to these user IDs. The order of the IDs does not affect the order of the results. If `per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum. Collection results are limited to users the caller can read, which for callers without permission to list users means only public authors. To read your own account, use a single-user lookup by ID.' ),
 		);
 
 		return array(

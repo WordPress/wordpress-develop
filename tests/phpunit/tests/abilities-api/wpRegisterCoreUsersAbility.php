@@ -685,9 +685,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * Collection results keep the default ordering, not the order of the include list.
 	 *
-	 * The query deliberately leaves `orderby` alone rather than setting it to
-	 * `include`, so that queries over the same users can share a WP_User_Query cache
-	 * entry. This test fails if that ordering is ever applied.
+	 * The include list filters the results but does not order them, as in the REST users
+	 * controller, so results stay in WP_User_Query's default order, by login.
 	 *
 	 * @ticket 64657
 	 */
