@@ -45,6 +45,12 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	public function test_wp_style_engine_get_styles( $block_styles, $options, $expected_output ) {
 		$generated_styles = wp_style_engine_get_styles( $block_styles, $options );
 
+		// A declaration list is compared by its declarations; a rule with a selector is compared as text.
+		if ( isset( $expected_output['css'], $generated_styles['css'] ) && empty( $options['selector'] ) ) {
+			$this->assertEqualStyleAttribute( $expected_output['css'], $generated_styles['css'] );
+			unset( $expected_output['css'], $generated_styles['css'] );
+		}
+
 		$this->assertSame( $expected_output, $generated_styles );
 	}
 

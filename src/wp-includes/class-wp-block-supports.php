@@ -215,7 +215,9 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 					rtrim( trim( $extra_attribute ), ';' ),
 				)
 			);
-			return safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
+			$style  = safecss_filter_attr( implode( ';', array_filter( $styles ) ) );
+			// safecss_filter_attr() may end the list with `;`. The merged attribute has none, like its inputs.
+			return str_ends_with( $style, ';' ) ? substr( $style, 0, -1 ) : $style;
 		},
 		'class'      => static function ( $new_attribute, $extra_attribute ) {
 			$classes = array_merge(
