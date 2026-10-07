@@ -208,7 +208,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		}
 
 		update_option( 'show_avatars', $this->show_avatars );
-		wp_set_current_user( 0 );
 
 		parent::tear_down();
 	}
@@ -225,11 +224,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		global $wp_current_filter;
 		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
-		try {
-			( new WP_Abilities_Users() )->register();
-		} finally {
-			array_pop( $wp_current_filter );
-		}
+		( new WP_Abilities_Users() )->register();
 	}
 
 	/**
@@ -358,8 +353,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'The current user should still be readable when avatars are disabled.' );
 		$this->assertArrayNotHasKey( 'avatar_urls', $result, 'The ability result should omit avatar_urls when avatars are disabled.' );
 
-		// Enabling the option after registration takes effect immediately; the
-		// registration-time schema must not reject the field.
+		/*
+		 * Enabling the option after registration takes effect immediately; the
+		 * registration-time schema must not reject the field.
+		 */
 		update_option( 'show_avatars', 1 );
 		$result = $ability->execute( array( 'id' => $this->subscriber_id ) );
 
@@ -663,8 +660,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$ability = wp_get_ability( 'core/users-query' );
 
-		// WP_User_Query orders by user_login ascending by default, and
-		// 'core_users_ability_admin' sorts before 'core_users_ability_subscriber'.
+		/*
+		 * WP_User_Query orders by user_login ascending by default, and
+		 * 'core_users_ability_admin' sorts before 'core_users_ability_subscriber'.
+		 */
 		$expected = array( $this->admin_id, $this->subscriber_id );
 
 		foreach ( array( $expected, array_reverse( $expected ) ) as $include ) {
@@ -721,15 +720,15 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_public_but_not_viewable_post_type_never_exposes_an_author(): void {
 		register_post_type(
-			'wpai_not_viewable_pt',
+			'not_viewable_pt',
 			array(
 				'public'             => true,
 				'publicly_queryable' => false,
 			)
 		);
 
-		$this->assertContains( 'wpai_not_viewable_pt', get_post_types( array( 'public' => true ) ), 'The post type should be in the public set.' );
-		$this->assertFalse( is_post_type_viewable( 'wpai_not_viewable_pt' ), 'The post type should not be publicly viewable.' );
+		$this->assertContains( 'not_viewable_pt', get_post_types( array( 'public' => true ) ), 'The post type should be in the public set.' );
+		$this->assertFalse( is_post_type_viewable( 'not_viewable_pt' ), 'The post type should not be publicly viewable.' );
 
 		$author_id = self::factory()->user->create(
 			array(
@@ -741,7 +740,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			array(
 				'post_author' => $author_id,
 				'post_status' => 'publish',
-				'post_type'   => 'wpai_not_viewable_pt',
+				'post_type'   => 'not_viewable_pt',
 			)
 		);
 
@@ -752,7 +751,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$schema = $ability->get_input_schema();
 		$this->assertNotContains(
-			'wpai_not_viewable_pt',
+			'not_viewable_pt',
 			$schema['oneOf'][4]['properties']['has_published_posts']['oneOf'][1]['items']['enum'],
 			'The post type should not be offered in the has_published_posts enum.'
 		);
@@ -783,8 +782,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertWPError( $result, 'A non-viewable post type should not make its author publicly readable.' );
-
-		unregister_post_type( 'wpai_not_viewable_pt' );
 	}
 
 	/**
@@ -862,14 +859,14 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_collection_mode_for_users_without_list_users_uses_public_post_types(): void {
 		register_post_type(
-			'wpai_public_pt',
+			'public_pt',
 			array(
 				'public'       => true,
 				'show_in_rest' => false,
 			)
 		);
 		register_post_type(
-			'wpai_private_pt',
+			'private_pt',
 			array(
 				'public' => false,
 			)
@@ -877,65 +874,56 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$public_author_id  = self::factory()->user->create( array( 'role' => 'author' ) );
 		$private_author_id = self::factory()->user->create( array( 'role' => 'author' ) );
-		$public_post_id    = self::factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_author' => $public_author_id,
 				'post_status' => 'publish',
-				'post_type'   => 'wpai_public_pt',
+				'post_type'   => 'public_pt',
 			)
 		);
-		$private_post_id   = self::factory()->post->create(
+		self::factory()->post->create(
 			array(
 				'post_author' => $private_author_id,
 				'post_status' => 'publish',
-				'post_type'   => 'wpai_private_pt',
+				'post_type'   => 'private_pt',
 			)
 		);
 
-		try {
-			$this->assertFalse( get_post_type_object( 'wpai_public_pt' )->show_in_rest, 'The public fixture post type should remain hidden from REST.' );
+		$this->assertFalse( get_post_type_object( 'public_pt' )->show_in_rest, 'The public fixture post type should remain hidden from REST.' );
 
-			wp_set_current_user( $this->subscriber_id );
-			$this->register_core_users_ability();
+		wp_set_current_user( $this->subscriber_id );
+		$this->register_core_users_ability();
 
-			$ability = wp_get_ability( 'core/users-query' );
-			$schema  = $ability->get_input_schema();
-			$enum    = $schema['oneOf'][4]['properties']['has_published_posts']['oneOf'][1]['items']['enum'];
+		$ability = wp_get_ability( 'core/users-query' );
+		$schema  = $ability->get_input_schema();
+		$enum    = $schema['oneOf'][4]['properties']['has_published_posts']['oneOf'][1]['items']['enum'];
 
-			$this->assertContains( 'wpai_public_pt', $enum, 'The has_published_posts enum should include public post types even when hidden from REST.' );
-			$this->assertNotContains( 'wpai_private_pt', $enum, 'The has_published_posts enum should omit private post types.' );
+		$this->assertContains( 'public_pt', $enum, 'The has_published_posts enum should include public post types even when hidden from REST.' );
+		$this->assertNotContains( 'private_pt', $enum, 'The has_published_posts enum should omit private post types.' );
 
-			$result = $ability->execute(
-				array(
-					'has_published_posts' => array( 'wpai_public_pt' ),
-					'fields'              => array( 'id' ),
-					'per_page'            => 100,
-				)
-			);
+		$result = $ability->execute(
+			array(
+				'has_published_posts' => array( 'public_pt' ),
+				'fields'              => array( 'id' ),
+				'per_page'            => 100,
+			)
+		);
 
-			$this->assertIsArray( $result, 'A public post type author query should return an array.' );
-			$ids = wp_list_pluck( $result['users'], 'id' );
-			$this->assertContains( $public_author_id, $ids, 'The query should include authors of the requested public post type.' );
-			$this->assertNotContains( $this->public_author_id, $ids, 'The query should exclude authors without posts in the requested public post type.' );
-			$this->assertNotContains( $private_author_id, $ids, 'The query should exclude authors of private post types.' );
+		$this->assertIsArray( $result, 'A public post type author query should return an array.' );
+		$ids = wp_list_pluck( $result['users'], 'id' );
+		$this->assertContains( $public_author_id, $ids, 'The query should include authors of the requested public post type.' );
+		$this->assertNotContains( $this->public_author_id, $ids, 'The query should exclude authors without posts in the requested public post type.' );
+		$this->assertNotContains( $private_author_id, $ids, 'The query should exclude authors of private post types.' );
 
-			$result = $ability->execute(
-				array(
-					'has_published_posts' => array( 'wpai_private_pt' ),
-					'fields'              => array( 'id' ),
-				)
-			);
+		$result = $ability->execute(
+			array(
+				'has_published_posts' => array( 'private_pt' ),
+				'fields'              => array( 'id' ),
+			)
+		);
 
-			$this->assertWPError( $result, 'Private post type filters should fail schema validation.' );
-			$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Private post type filters should use the invalid input error.' );
-		} finally {
-			wp_delete_post( $public_post_id, true );
-			wp_delete_post( $private_post_id, true );
-			wp_delete_user( $public_author_id );
-			wp_delete_user( $private_author_id );
-			unregister_post_type( 'wpai_public_pt' );
-			unregister_post_type( 'wpai_private_pt' );
-		}
+		$this->assertWPError( $result, 'Private post type filters should fail schema validation.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Private post type filters should use the invalid input error.' );
 	}
 
 	/**
@@ -1053,7 +1041,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			$this->assertIsArray( $result, 'A list-only caller should still resolve a public author.' );
 			$this->assertArrayNotHasKey( 'roles', $result, 'A caller who cannot edit a user must not receive that user\'s roles.' );
 		} finally {
-			wp_delete_user( $lister_id );
 			remove_role( 'core_users_ability_list_only' );
 		}
 	}
@@ -1087,7 +1074,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			$this->assertIsArray( $result, 'Reading a user with a role added after registration should not fail output validation.' );
 			$this->assertContains( 'core_users_ability_late_role', $result['roles'], 'The late-registered role should be returned.' );
 		} finally {
-			wp_delete_user( $user_id );
 			remove_role( 'core_users_ability_late_role' );
 		}
 	}
@@ -1254,8 +1240,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertSame( array( $this->subscriber_id ), wp_list_pluck( $result['users'], 'id' ), 'A string include value must limit the query to the included IDs.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['users'][0]['email'], 'A CSV fields value must select the requested fields.' );
 
-		// IDs that are distinct as strings but equal as integers ('7' vs '07')
-		// pass schema validation; they must still collapse to one filtered ID.
+		/*
+		 * IDs that are distinct as strings but equal as integers ('7' vs '07')
+		 * pass schema validation; they must still collapse to one filtered ID.
+		 */
 		$result = $ability->execute(
 			array(
 				'include' => array( (string) $this->subscriber_id, '0' . $this->subscriber_id ),
@@ -1531,8 +1519,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'A partially suppressed avatar set should not fail the lookup.' );
 		$this->assertSame( array( 24, 48, 96 ), array_keys( $result['avatar_urls'] ), 'Every avatar size should still be reported.' );
 		$this->assertNull( $result['avatar_urls'][24], 'A size with no resolvable URL should be null.' );
-		$this->assertIsString( $result['avatar_urls'][48], 'A size that resolves should keep its URL.' );
-		$this->assertIsString( $result['avatar_urls'][96], 'A size that resolves should keep its URL.' );
+		$this->assertIsString( $result['avatar_urls'][48], 'The 48px size resolves, so it should keep its URL.' );
+		$this->assertIsString( $result['avatar_urls'][96], 'The 96px size resolves, so it should keep its URL.' );
 	}
 
 	/**
