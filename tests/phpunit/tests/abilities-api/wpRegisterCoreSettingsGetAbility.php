@@ -21,13 +21,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	private static $registered_settings_backup;
 
 	/**
-	 * Number of times `rest_api_init` had fired before the class ran, or null if never.
-	 *
-	 * @var int|null
-	 */
-	private static $rest_api_init_count;
-
-	/**
 	 * Set up before the class.
 	 *
 	 * The ability is registered under the ordering that used to break it: no settings
@@ -42,7 +35,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		global $wp_registered_settings, $wp_actions;
 		self::$registered_settings_backup = $wp_registered_settings;
-		self::$rest_api_init_count        = $wp_actions['rest_api_init'] ?? null;
+		$rest_api_init_count              = $wp_actions['rest_api_init'] ?? null;
 		$wp_registered_settings           = array();
 		unset( $wp_actions['rest_api_init'] );
 
@@ -68,6 +61,19 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		do_action( 'wp_abilities_api_categories_init' );
 		do_action( 'wp_abilities_api_init' );
+
+		/*
+		 * Restore the hooks and the `rest_api_init` count right away instead of after the class.
+		 * The first test of a run snapshots the hooks and every test resets them to that snapshot,
+		 * so changes left here would leak into every later test whenever this class runs first.
+		 */
+		remove_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
+		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
+		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		if ( null !== $rest_api_init_count ) {
+			$wp_actions['rest_api_init'] = $rest_api_init_count;
+		}
 	}
 
 	/**
@@ -76,9 +82,6 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
@@ -88,11 +91,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 
 		unregister_setting( 'general', 'core_settings_get_ability_test_option' );
 
-		global $wp_registered_settings, $wp_actions;
+		global $wp_registered_settings;
 		$wp_registered_settings = self::$registered_settings_backup;
-		if ( null !== self::$rest_api_init_count ) {
-			$wp_actions['rest_api_init'] = self::$rest_api_init_count;
-		}
 
 		parent::tear_down_after_class();
 	}
