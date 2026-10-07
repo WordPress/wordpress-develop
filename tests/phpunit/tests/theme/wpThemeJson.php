@@ -2100,6 +2100,73 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_get_stylesheet_with_axial_block_gap
+	 *
+	 * @param array  $block_gap           Block gap value.
+	 * @param string $expected_row_gap    Expected row gap value.
+	 * @param string $expected_column_gap Expected column gap value.
+	 */
+	public function test_get_stylesheet_generates_layout_styles_with_axial_block_gap( $block_gap, $expected_row_gap, $expected_column_gap ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'spacing' => array(
+								'blockGap' => $block_gap,
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-flow\) > \*\{margin-block-start:\s*' . preg_quote( $expected_row_gap, '/' ) . ';margin-block-end:\s*0;\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-constrained\) > \*\{margin-block-start:\s*' . preg_quote( $expected_row_gap, '/' ) . ';margin-block-end:\s*0;\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-flex\)\{gap:\s*' . preg_quote( $expected_row_gap, '/' ) . ' ' . preg_quote( $expected_column_gap, '/' ) . ';\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-grid\)\{gap:\s*' . preg_quote( $expected_row_gap, '/' ) . ' ' . preg_quote( $expected_column_gap, '/' ) . ';\}/', $stylesheet );
+	}
+
+	/**
+	 * Data provider for test_get_stylesheet_generates_layout_styles_with_axial_block_gap().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_get_stylesheet_with_axial_block_gap() {
+		return array(
+			'different row and column gaps' => array(
+				array(
+					'top'  => '1em',
+					'left' => '2em',
+				),
+				'1em',
+				'2em',
+			),
+			'row gap only'                  => array(
+				array( 'top' => '1em' ),
+				'1em',
+				'0',
+			),
+			'column gap only'               => array(
+				array( 'left' => '2em' ),
+				'0',
+				'2em',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 56467
 	 * @ticket 58548
 	 * @ticket 58550
