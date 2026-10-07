@@ -211,6 +211,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 			/* missingDefaulted */
 			'undefined'          => 'include',
 			'intendedNull'       => null,
+			'richtext'           => 'rich text content',
 		);
 
 		$block_type = new WP_Block_Type(
@@ -235,6 +236,9 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 						'type'    => array( 'string', 'null' ),
 						'default' => 'wrong',
 					),
+					'richtext'           => array(
+						'type' => 'rich-text',
+					),
 				),
 			)
 		);
@@ -249,6 +253,7 @@ class Tests_Blocks_wpBlockType extends WP_UnitTestCase {
 				'missingDefaulted'   => 'define',
 				'undefined'          => 'include',
 				'intendedNull'       => null,
+				'richtext'           => 'rich text content',
 			),
 			$prepared_attributes
 		);
