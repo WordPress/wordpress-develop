@@ -1478,6 +1478,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @global array $menu
  * @global array $_wp_real_parent_file
  * @global bool  $_wp_submenu_nopriv
+ * @global array $_wp_nopriv_pages
  * @global array $_registered_pages
  * @global array $_parent_pages
  *
@@ -1496,7 +1497,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
-		$_registered_pages, $_parent_pages;
+		$_wp_nopriv_pages, $_registered_pages, $_parent_pages;
 
 	$menu_slug   = plugin_basename( $menu_slug );
 	$parent_slug = plugin_basename( $parent_slug );
@@ -1507,6 +1508,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	if ( ! current_user_can( $capability ) ) {
 		$_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] = true;
+		$_wp_nopriv_pages[ $menu_slug ]                   = true;
 		return false;
 	}
 
@@ -2151,11 +2153,13 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
  * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
  * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ * @global array<string, true>                $_wp_nopriv_pages   Array of page slugs registered for a capability the current user lacks.
  *
  * @return bool True if the admin page exists, false otherwise.
  */
 function wp_admin_page_exists(): bool {
-	global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv;
+	global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv,
+		$_wp_nopriv_pages;
 
 	if ( ! isset( $plugin_page ) ) {
 		return true;
@@ -2168,7 +2172,7 @@ function wp_admin_page_exists(): bool {
 	}
 
 	// The page may be registered for a capability the current user lacks.
-	if ( isset( $_wp_menu_nopriv[ $plugin_page ] ) ) {
+	if ( isset( $_wp_menu_nopriv[ $plugin_page ] ) || isset( $_wp_nopriv_pages[ $plugin_page ] ) ) {
 		return true;
 	}
 
