@@ -17,6 +17,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	public function tear_down() {
 		global $current_site;
 		$current_site->id = 1;
+		wp_installing( false );
 		parent::tear_down();
 	}
 
@@ -238,6 +239,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		}
 		wp_update_network_counts();
 
+		// Keep assertEquals() because get_blog_count() may return a numeric string from the database.
 		$this->assertEquals( $site_count_start, $actual );
 	}
 
@@ -269,6 +271,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 
 		$site_count = get_blog_count( self::$different_network_id );
 
+		// Keep assertEquals() because get_blog_count() may return a numeric string from the database.
 		$this->assertEquals( count( self::$different_site_ids ), $site_count );
 	}
 

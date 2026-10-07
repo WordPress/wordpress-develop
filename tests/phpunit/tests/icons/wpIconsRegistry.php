@@ -23,8 +23,18 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private $temp_file = null;
 
+	/**
+	 * Registry instance in place before the test, restored in tear_down.
+	 *
+	 * @var WP_Icons_Registry|null
+	 */
+	private $original_registry = null;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_registry = WP_Icons_Registry::get_instance();
+		$this->set_registry_instance( null );
 		$this->registry = WP_Icons_Registry::get_instance();
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
@@ -34,12 +44,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$reflection        = new ReflectionClass( WP_Icons_Registry::class );
-		$instance_property = $reflection->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_property->setAccessible( true );
-		}
-		$instance_property->setValue( null, null );
+		$this->set_registry_instance( null );
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
 		if ( $collections->is_registered( 'test-collection' ) ) {
@@ -54,8 +59,23 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		}
 		$this->temp_file = null;
 
-		$this->registry = null;
+		$this->set_registry_instance( $this->original_registry );
+		$this->original_registry = null;
+		$this->registry          = null;
 		parent::tear_down();
+	}
+
+	/**
+	 * Replaces the WP_Icons_Registry singleton instance.
+	 *
+	 * @param WP_Icons_Registry|null $instance The instance to use.
+	 */
+	private function set_registry_instance( $instance ) {
+		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$instance_property->setValue( null, $instance );
 	}
 
 	/**
@@ -521,25 +541,154 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Should reject a `public` property that is not a boolean.
+	 * Should register an icon that provides a valid `keywords` array.
 	 *
-	 * @ticket 66087
-	 *
-	 * @covers ::register
-	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 * @ticket 66158
 	 */
-	public function test_register_rejects_non_boolean_public_property() {
+	public function test_register_icon_with_keywords() {
+		$name = 'test-collection/with-keywords';
+
 		$result = $this->registry->register(
-			'test-collection/invalid-visibility',
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'alpha', 'beta' ),
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertSame( array( 'alpha', 'beta' ), $icon['keywords'] );
+	}
+
+	/**
+	 * Should register an icon that omits `keywords`, since the property is optional.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_register_icon_without_keywords() {
+		$name = 'test-collection/without-keywords';
+
+		$result = $this->registry->register(
+			$name,
 			array(
 				'label'   => 'Icon',
 				'content' => '<svg></svg>',
-				'public'  => 'yes',
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertArrayNotHasKey( 'keywords', $icon );
+	}
+
+	/**
+	 * Provides values that are not an array of strings.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_keywords() {
+		return array(
+			'null'                 => array( null ),
+			'a string'             => array( 'alpha' ),
+			'an integer'           => array( 5 ),
+			'an array of integers' => array( array( 1, 2 ) ),
+			'a mixed array'        => array( array( 'alpha', 5 ) ),
+			'a nested array'       => array( array( array( 'alpha' ) ) ),
+			'an array of null'     => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * Should fail to register an icon whose `keywords` is not an array of strings.
+	 *
+	 * @ticket 66158
+	 *
+	 * @dataProvider data_invalid_keywords
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $keywords Invalid keywords candidate.
+	 */
+	public function test_register_icon_with_invalid_keywords( $keywords ) {
+		$name = 'test-collection/invalid-keywords';
+
+		$result = $this->registry->register(
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => $keywords,
 			)
 		);
 
 		$this->assertFalse( $result );
-		$this->assertFalse( $this->registry->is_registered( 'test-collection/invalid-visibility' ) );
+		$this->assertFalse( $this->registry->is_registered( $name ) );
+	}
+
+	/**
+	 * Should match an icon by keyword when neither its name nor its label match.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		$this->registry->register(
+			'test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		/*
+		 * The search term is deliberately absent from both the name and the label,
+		 * so a match can only come from the keywords.
+		 */
+		$icon = $this->registry->get_registered_icon( 'test-collection/dove' );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['name'] );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['label'] );
+
+		$names = array_column( $this->registry->get_registered_icons( 'peace' ), 'name' );
+
+		$this->assertContains(
+			'test-collection/dove',
+			$names,
+			'Search results should include an icon matched only by its keyword'
+		);
+		$this->assertNotContains(
+			'test-collection/anvil',
+			$names,
+			'Search results should exclude an icon that matches on no property'
+		);
+	}
+
+	/**
+	 * Should match keywords case-insensitively, as names and labels are.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords_case_insensitively() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+
+		$names = array_column( $this->registry->get_registered_icons( 'PEACE' ), 'name' );
+
+		$this->assertContains( 'test-collection/dove', $names );
 	}
 }
