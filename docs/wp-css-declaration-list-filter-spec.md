@@ -114,12 +114,17 @@ still re-serialized.
    standard property grammar accepts either. A `( )` block nested in a
    function, as in `calc(1px + (2px * 3))` or a `var()` fallback, is governed
    by that function's grammar and is kept. Custom properties keep both.
-5. **Escapes and comments.** Checks run on decoded values, so an escaped
+5. **Delimiters.** The value has no `&`, `<`, `>` or `=` delimiter token and
+   no `<!--` or `-->` token at any depth, in every property including custom
+   ones. These characters have a meaning in HTML. Inside strings and URLs the
+   serializer escapes them; outside strings and URLs no standard property
+   value uses them, so a value that has them is rejected.
+6. **Escapes and comments.** Checks run on decoded values, so an escaped
    function name or scheme is checked as what it denotes. Comments are never
    emitted.
 
-Beyond rule 4 the policy checks what a value contains, not whether it is valid
-for its property. Browser grammar is out of scope.
+Beyond rules 4 and 5 the policy checks what a value contains, not whether it
+is valid for its property. Browser grammar is out of scope.
 
 ## Output
 

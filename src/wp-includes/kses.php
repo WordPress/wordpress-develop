@@ -4185,6 +4185,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
  *  - A non-custom property has no bare parenthesis block at the top level
  *    of its value and no string that runs to the end of the input.
+ *  - The value has no `&`, `<`, `>` or `=` delimiter and no `<!--` or `-->`
+ *    token at any depth. Inside strings and URLs these characters are
+ *    escaped in the output; no standard property value uses them elsewhere.
  *
  * Checks run on decoded values. Comments are never emitted. An empty
  * allowed list disables the checks; the output is still re-serialized
@@ -4254,7 +4257,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 }
 
 /**
- * Checks a declaration value's tokens against the function and URL policy.
+ * Checks a declaration value's tokens against the function, URL, structure and delimiter policy.
  *
  * @since 7.2.0
  * @access private
@@ -4336,6 +4339,18 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 		$type  = $token['type'];
 
 		switch ( $type ) {
+			case WP_CSS_Token_Processor::TOKEN_DELIM:
+				// `&`, `<`, `>` and `=` have a meaning in HTML. Strings and URLs escape them; no other value needs them.
+				if ( '&' === $token['value'] || '<' === $token['value'] || '>' === $token['value'] || '=' === $token['value'] ) {
+					return false;
+				}
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_CDO:
+			case WP_CSS_Token_Processor::TOKEN_CDC:
+				// `<!--` and `-->` have a meaning in HTML and none in a declaration value.
+				return false;
+
 			case WP_CSS_Token_Processor::TOKEN_URL:
 				if ( ! _safecss_filter_attr_url_is_allowed( $token['value'], $allowed_protocols ) ) {
 					return false;

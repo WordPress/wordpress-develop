@@ -400,6 +400,66 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @dataProvider data_delimiters_with_html_meaning
+	 *
+	 * @param string $css Input with a `&`, `<`, `>` or `=` delimiter or a `<!--` or `-->` token.
+	 */
+	public function test_delimiters_with_html_meaning_are_rejected( $css ) {
+		$this->assertSame( '', safecss_filter_attr( $css ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_delimiters_with_html_meaning() {
+		return array(
+			'ampersand top level'       => array( 'color: red & blue' ),
+			'less than top level'       => array( 'color: red < blue' ),
+			'greater than top level'    => array( 'color: red > blue' ),
+			'equals top level'          => array( 'color: a = b' ),
+			'ampersand in calc'         => array( 'width: calc(1px & 2px)' ),
+			'less than in calc'         => array( 'width: calc(1px < 2px)' ),
+			'greater than in calc'      => array( 'width: calc(1px > 2px)' ),
+			'equals in calc'            => array( 'width: calc(1px = 2px)' ),
+			'ampersand in custom'       => array( '--x: a & b' ),
+			'less than in custom'       => array( '--x: a < b' ),
+			'greater than in custom'    => array( '--x: a > b' ),
+			'equals in custom'          => array( '--x: a = b' ),
+			'ampersand in var fallback' => array( 'color: var(--x, a&b)' ),
+			'CDO top level'             => array( 'color: red <!--' ),
+			'CDC top level'             => array( 'color: red -->' ),
+			'CDO in custom'             => array( '--x: <!-- a' ),
+			'CDC in calc'               => array( 'width: calc(1px -->)' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_delimiter_with_html_meaning_rejects_only_its_own_declaration() {
+		$this->assertSame( 'color:red;', safecss_filter_attr( 'color: red; width: 1px &' ) );
+		$this->assertSame( 'width:1px;', safecss_filter_attr( 'color: a = b; width: 1px' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_delimiters_with_html_meaning_are_escaped_inside_strings_and_urls() {
+		$this->assertSame( 'font-family:"a\26 b\3C c\3E d=e";', safecss_filter_attr( 'font-family: "a&b<c>d=e"' ) );
+		$this->assertSame( 'background:url("a?x=1\26 y=2");', safecss_filter_attr( 'background: url(a?x=1&y=2)' ) );
+		$this->assertSame( 'background:url("a?x=1\26 y=2");', safecss_filter_attr( 'background: url("a?x=1&y=2")' ) );
+		$this->assertSame( '--x:"\\3C !--";', safecss_filter_attr( '--x: "<!--"' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_kses_rejects_ampersand_delimiter_in_style_attribute() {
+		$this->assertSame( '<p style="width:1px;">x</p>', wp_kses_post( '<p style="color: a &amp; b; width: 1px">x</p>' ) );
+	}
+
+	/**
+	 * @ticket 65738
 	 * @dataProvider data_idempotence
 	 *
 	 * @param string $css Input.
@@ -430,6 +490,8 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 			'null byte'                => array( "color: a\0b" ),
 			'hash'                     => array( 'color: #ff0' ),
 			'square brackets'          => array( 'background-color: var(--wp-var, [pink])' ),
+			'string with delimiters'   => array( 'font-family: "a&b<c>d=e"' ),
+			'url with query string'    => array( 'background: url(a?x=1&y=2)' ),
 		);
 	}
 }
