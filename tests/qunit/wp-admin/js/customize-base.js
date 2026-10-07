@@ -2,6 +2,7 @@
 
 jQuery( function( $ ) {
 	var FooSuperClass, BarSubClass, foo, bar, ConstructorTestClass, newConstructor, constructorTest, $mockElement, mockString,
+	ApplicatorTestClass, ArityTestClass,
 	firstInitialValue, firstValueInstance, valuesInstance, wasCallbackFired, mockValueCallback;
 
 	QUnit.module( 'Customize Base: Class' );
@@ -47,8 +48,64 @@ jQuery( function( $ ) {
 		assert.equal( foo.instanceProp, 'instancePropValue' );
 	});
 
-	// @todo Test Class.applicator?
-	// @todo Do we test object.instance?
+	ApplicatorTestClass = wp.customize.Class.extend({
+		initialize: function( firstArg, secondArg ) {
+			this.firstArg = firstArg;
+			this.secondArg = secondArg;
+
+			// The instance is extended before initialize() runs.
+			this.hadExtraPropDuringInitialize = ( 'extraPropValue' === this.extraProp );
+		}
+	});
+	QUnit.test( 'Class.applicator supplies the array as the initialize() arguments', function( assert ) {
+		var applicatorTest = new ApplicatorTestClass(
+			wp.customize.Class.applicator,
+			[ 'firstArgValue', 'secondArgValue' ]
+		);
+		assert.equal( applicatorTest.firstArg, 'firstArgValue' );
+		assert.equal( applicatorTest.secondArg, 'secondArgValue' );
+	});
+	QUnit.test( 'Class.applicator extends the instance before initialize() runs', function( assert ) {
+		var applicatorTest = new ApplicatorTestClass(
+			wp.customize.Class.applicator,
+			[ 'firstArgValue' ],
+			{ extraProp: 'extraPropValue' }
+		);
+		assert.equal( applicatorTest.firstArg, 'firstArgValue' );
+		assert.equal( applicatorTest.extraProp, 'extraPropValue' );
+		assert.ok( applicatorTest.hadExtraPropDuringInitialize );
+	});
+
+	ArityTestClass = wp.customize.Class.extend({
+		initialize: function( ...initializeArgs ) {
+			this.initializeArgCount = initializeArgs.length;
+		}
+	});
+	QUnit.test( 'Class supplies initialize() with exactly the arguments it was given', function( assert ) {
+		assert.equal( ( new ArityTestClass() ).initializeArgCount, 0 );
+		assert.equal( ( new ArityTestClass( 'a' ) ).initializeArgCount, 1 );
+		assert.equal( ( new ArityTestClass( 'a', 'b' ) ).initializeArgCount, 2 );
+		assert.equal( ( new ArityTestClass( 'a', 'b', 'c' ) ).initializeArgCount, 3 );
+		assert.equal( ( new ArityTestClass( 'a', 'b', 'c', 'd' ) ).initializeArgCount, 4 );
+
+		// The applicator form supplies the arguments as an array instead.
+		assert.equal(
+			( new ArityTestClass( wp.customize.Class.applicator, [ 'a', 'b' ] ) ).initializeArgCount,
+			2
+		);
+	});
+
+	QUnit.test( 'Class instance with an instance() method is callable as a function', function( assert ) {
+		var instanceTest = new wp.customize.Value( 'initialValue' );
+
+		// Calling with no arguments delegates to get().
+		assert.equal( instanceTest(), 'initialValue' );
+
+		// Calling with arguments delegates to set().
+		instanceTest( 'updatedValue' );
+		assert.equal( instanceTest.get(), 'updatedValue' );
+		assert.equal( instanceTest(), 'updatedValue' );
+	});
 
 	QUnit.module( 'Customize Base: Subclass' );
 
@@ -159,6 +216,73 @@ jQuery( function( $ ) {
 		assert.ok( wasCallbackFired );
 	});
 
+	QUnit.test( '.bind() and .unbind() accept multiple callbacks', function( assert ) {
+		var value = new wp.customize.Value( 'firstValue' ),
+			firstCallbackCount = 0,
+			secondCallbackCount = 0,
+			firstCallback = function() {
+				firstCallbackCount++;
+			},
+			secondCallback = function() {
+				secondCallbackCount++;
+			};
+
+		value.bind( firstCallback, secondCallback );
+		value.set( 'secondValue' );
+		assert.equal( firstCallbackCount, 1 );
+		assert.equal( secondCallbackCount, 1 );
+
+		value.unbind( firstCallback, secondCallback );
+		value.set( 'thirdValue' );
+		assert.equal( firstCallbackCount, 1, 'First callback no longer fires once unbound.' );
+		assert.equal( secondCallbackCount, 1, 'Second callback no longer fires once unbound.' );
+	});
+
+	QUnit.test( '.link() follows multiple values, and .unlink() stops following them', function( assert ) {
+		var follower = new wp.customize.Value( 'followerValue' ),
+			firstLeader = new wp.customize.Value( 'firstLeaderValue' ),
+			secondLeader = new wp.customize.Value( 'secondLeaderValue' );
+
+		follower.link( firstLeader, secondLeader );
+
+		firstLeader.set( 'firstLeaderUpdated' );
+		assert.equal( follower.get(), 'firstLeaderUpdated' );
+
+		secondLeader.set( 'secondLeaderUpdated' );
+		assert.equal( follower.get(), 'secondLeaderUpdated' );
+
+		// Linking is one-directional, so the leaders do not follow the follower.
+		follower.set( 'followerUpdated' );
+		assert.equal( firstLeader.get(), 'firstLeaderUpdated' );
+		assert.equal( secondLeader.get(), 'secondLeaderUpdated' );
+
+		follower.unlink( firstLeader, secondLeader );
+		firstLeader.set( 'firstLeaderUpdatedAgain' );
+		secondLeader.set( 'secondLeaderUpdatedAgain' );
+		assert.equal( follower.get(), 'followerUpdated', 'Value stops following once unlinked.' );
+	});
+
+	QUnit.test( '.sync() keeps values updated in both directions, and .unsync() stops them', function( assert ) {
+		var first = new wp.customize.Value( 'firstValue' ),
+			second = new wp.customize.Value( 'secondValue' );
+
+		first.sync( second );
+
+		second.set( 'setOnSecond' );
+		assert.equal( first.get(), 'setOnSecond' );
+
+		first.set( 'setOnFirst' );
+		assert.equal( second.get(), 'setOnFirst' );
+
+		first.unsync( second );
+
+		// Both directions have to stop, so check each of them.
+		second.set( 'setOnSecondAgain' );
+		assert.equal( first.get(), 'setOnFirst', 'First value stops following the second once unsynced.' );
+		first.set( 'setOnFirstAgain' );
+		assert.equal( second.get(), 'setOnSecondAgain', 'Second value stops following the first once unsynced.' );
+	});
+
 	QUnit.module( 'Customize Base: Values Class' );
 
 	valuesInstance = new wp.customize.Values();
@@ -203,6 +327,44 @@ jQuery( function( $ ) {
 		wasEventFiredOnRemoval = false;
 		valuesInstance.remove( 'bar' );
 		assert.ok( ! wasEventFiredOnRemoval );
+	});
+
+	QUnit.test( '.create() passes the extra arguments to the new value\'s initialize()', function( assert ) {
+		var collection = new wp.customize.Values();
+
+		collection.create( 'createdValue', 'suppliedInitialValue', { extraProp: 'extraPropValue' } );
+
+		assert.ok( collection.has( 'createdValue' ) );
+		assert.equal( collection( 'createdValue' ).get(), 'suppliedInitialValue' );
+		assert.equal( collection( 'createdValue' ).extraProp, 'extraPropValue' );
+	});
+
+	QUnit.test( '.when() invokes the callback once every requested value exists', function( assert ) {
+		var collection = new wp.customize.Values(),
+			passedValues = null;
+
+		collection.add( 'existingValue', new wp.customize.Value( 'existingValueContents' ) );
+
+		collection.when( 'existingValue', 'pendingValue', function( existingValue, pendingValue ) {
+			passedValues = [ existingValue.get(), pendingValue.get() ];
+		} );
+
+		assert.equal( passedValues, null, 'Callback waits for the value that does not exist yet.' );
+
+		collection.add( 'pendingValue', new wp.customize.Value( 'pendingValueContents' ) );
+
+		/*
+		 * The promise returned by when() resolves by way of a timer, and this
+		 * suite wraps every test with sinon's fake timers, so the clock has to
+		 * be advanced before the callback runs.
+		 */
+		this.clock.tick( 10 );
+
+		assert.deepEqual(
+			passedValues,
+			[ 'existingValueContents', 'pendingValueContents' ],
+			'Callback is invoked with every requested value.'
+		);
 	});
 
 	QUnit.module( 'Customize Base: Notification' );

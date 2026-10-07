@@ -43,6 +43,8 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password         The password of the site owner, if their user account didn't already exist.
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
+	 *
+	 * @phpstan-param '' $deprecated
 	 */
 	function wp_install(
 		$blog_title,
@@ -621,7 +623,7 @@ https://wordpress.org/
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param array $installed_email {
+		 * @param array   $installed_email {
 		 *     Used to build wp_mail().
 		 *
 		 *     @type string $to      The email address of the recipient.
@@ -629,11 +631,11 @@ https://wordpress.org/
 		 *     @type string $message The content of the email.
 		 *     @type string $headers Headers.
 		 * }
-		 * @param WP_User $user          The site administrator user object.
-		 * @param string  $blog_title    The site title.
-		 * @param string  $blog_url      The site URL.
-		 * @param string  $password      The site administrator's password. Note that a placeholder message
-		 *                               is usually passed instead of the user's actual password.
+		 * @param WP_User $user            The site administrator user object.
+		 * @param string  $blog_title      The site title.
+		 * @param string  $blog_url        The site URL.
+		 * @param string  $password        The site administrator's password. Note that a placeholder message
+		 *                                 is usually passed instead of the user's actual password.
 		 */
 		$installed_email = apply_filters( 'wp_installed_email', $installed_email, $user, $blog_title, $blog_url, $password );
 
@@ -1865,7 +1867,7 @@ function upgrade_340() {
 		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
-			add_option( 'uninstall_plugins', $uninstall_plugins, null, false );
+			add_option( 'uninstall_plugins', $uninstall_plugins, '', false );
 		}
 	}
 }
@@ -2037,24 +2039,14 @@ function upgrade_430_fix_comments() {
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
-	if ( is_wp_error( $content_length ) ) {
-		return;
-	}
-
 	if ( false === $content_length ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( ! is_array( $content_length ) || 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
