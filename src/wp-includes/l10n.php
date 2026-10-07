@@ -832,7 +832,6 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @return bool True on success, false on failure.
  */
 function load_textdomain( $domain, $mofile, $locale = null ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -1107,8 +1106,6 @@ function load_default_textdomain( $locale = null ) {
  * @phpstan-param false $deprecated
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations|MO> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1150,8 +1147,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations|MO> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1191,8 +1186,6 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_theme_textdomain( $domain, $path = false ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations|MO> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1316,7 +1309,6 @@ function load_script_module_textdomain( string $id, string $domain = 'default', 
  * @return string|false The JSON-encoded translated strings on success, false otherwise.
  */
 function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, bool $is_module ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $wp_textdomain_registry;
 
 	$locale = determine_locale();
@@ -1531,7 +1523,6 @@ function load_script_translations( $file, $handle, $domain ) {
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
