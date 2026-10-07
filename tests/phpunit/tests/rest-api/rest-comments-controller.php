@@ -5793,6 +5793,68 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A note on a post the user cannot edit gets the same error whatever its
+	 * status, so a reaction request cannot reveal whether that note is
+	 * trashed, spammed or resolved.
+	 *
+	 * @ticket 63191
+	 *
+	 * @dataProvider data_other_post_note_states
+	 *
+	 * @param string $state The state to put the other post's note in.
+	 */
+	public function test_create_reaction_on_note_from_uneditable_post_does_not_reveal_its_status( $state ) {
+		$own_post_id   = self::factory()->post->create( array( 'post_author' => self::$author_id ) );
+		$other_post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id       = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $other_post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Note on another post',
+			)
+		);
+		if ( 'open' !== $state ) {
+			wp_set_comment_status( $note_id, $state );
+		}
+
+		wp_set_current_user( self::$author_id );
+		$this->assertFalse( current_user_can( 'edit_post', $other_post_id ), 'The user should not be able to edit the other post.' );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $own_post_id,
+					'parent'  => $note_id,
+					'content' => '2764',
+					'type'    => 'reaction',
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_parent', $response, 400 );
+		$this->assertSame( 'A reaction must be attached to a note on the same post.', $response->as_error()->get_error_message() );
+	}
+
+	/**
+	 * Data provider for test_create_reaction_on_note_from_uneditable_post_does_not_reveal_its_status().
+	 *
+	 * @return array[]
+	 */
+	public function data_other_post_note_states() {
+		return array(
+			'open'     => array( 'open' ),
+			'trash'    => array( 'trash' ),
+			'spam'     => array( 'spam' ),
+			'resolved' => array( 'approve' ),
+		);
+	}
+
+	/**
 	 * A reaction can be added to a reply in an open thread.
 	 *
 	 * @ticket 63191

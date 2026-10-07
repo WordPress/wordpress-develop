@@ -759,6 +759,21 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
+			/*
+			 * The parent note must belong to the post the reaction targets.
+			 * create_item_permissions_check() requires `post` and checks that the
+			 * user can edit it, so this runs before the parent's status checks:
+			 * a note on another post gets the same error whatever its status,
+			 * rather than revealing whether it is trashed, spammed or resolved.
+			 */
+			if ( ! empty( $request['post'] ) && (int) $parent_comment->comment_post_ID !== (int) $request['post'] ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction must be attached to a note on the same post.' ),
+					array( 'status' => 400 )
+				);
+			}
+
 			// A reaction under a trashed or spammed note would escape the trash cascade.
 			if ( in_array( $parent_comment->comment_approved, array( 'trash', 'spam' ), true ) ) {
 				return new WP_Error(
@@ -791,15 +806,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return new WP_Error(
 					'rest_comment_invalid_parent',
 					__( 'A reaction cannot be added to a resolved note.' ),
-					array( 'status' => 400 )
-				);
-			}
-
-			// The parent note must belong to the post the reaction targets.
-			if ( ! empty( $request['post'] ) && (int) $parent_comment->comment_post_ID !== (int) $request['post'] ) {
-				return new WP_Error(
-					'rest_comment_invalid_parent',
-					__( 'A reaction must be attached to a note on the same post.' ),
 					array( 'status' => 400 )
 				);
 			}
