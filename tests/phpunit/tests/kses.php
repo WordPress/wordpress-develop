@@ -3334,6 +3334,54 @@ HTML;
 	}
 
 	/**
+	 * Test that wp_kses_one_attr() splits srcset candidates on decoded characters.
+	 *
+	 * Browsers decode character references before parsing srcset, so an encoded
+	 * space or comma separates candidates. Scanning the encoded value would treat
+	 * the whole list as one URL and let a disallowed candidate through.
+	 *
+	 * @ticket 29807
+	 * @covers ::wp_kses_one_attr
+	 * @dataProvider data_wp_kses_one_attr_srcset_encoded_separators
+	 *
+	 * @param string $attr     Attribute to filter.
+	 * @param string $expected Expected filtered attribute.
+	 */
+	public function test_wp_kses_one_attr_srcset_encoded_separators( $attr, $expected ) {
+		$this->assertSame( $expected, wp_kses_one_attr( $attr, 'img' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_one_attr_srcset_encoded_separators() {
+		return array(
+			'encoded spaces hide a second candidate'          => array(
+				' srcset="x/&#32;1x,&#32;javascript:alert(1)"',
+				' srcset="x/ 1x"',
+			),
+			'encoded comma and space after a query string'    => array(
+				' srcset="a.jpg/?v=1&#32;1x&#44;&#32;javascript:alert(1)&#32;2x"',
+				' srcset="a.jpg/?v=1 1x"',
+			),
+			'encoded spaces after a root-relative URL'        => array(
+				' srcset="/a.jpg&#32;1x,&#32;data:text/html,x&#32;2x"',
+				' srcset="/a.jpg 1x"',
+			),
+			'encoded allowed values round-trip unchanged'     => array(
+				' srcset="a.jpg?w=1&amp;h=2 1x, b.jpg?w=2&amp;h=4 2x"',
+				' srcset="a.jpg?w=1&amp;h=2 1x, b.jpg?w=2&amp;h=4 2x"',
+			),
+			'a dropped candidate re-encodes what remains'     => array(
+				' srcset="a.jpg?w=1&amp;h=2 1x, javascript:alert(1) 2x"',
+				' srcset="a.jpg?w=1&amp;h=2 1x"',
+			),
+		);
+	}
+
+	/**
 	 * Test source element attribute handling.
 	 *
 	 * @ticket 29807

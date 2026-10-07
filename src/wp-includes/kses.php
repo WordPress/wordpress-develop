@@ -1039,7 +1039,18 @@ function wp_kses_one_attr( $attr, $element ) {
 		// Sanitize quotes, angle braces, and entities.
 		$value = esc_attr( $value );
 
-		$value = wp_kses_sanitize_uris( $name, $value, $allowed_protocols );
+		/*
+		 * Sanitize URLs as a browser will read them, after character references
+		 * are decoded. Encoded whitespace and commas, such as `&#32;` and `&#44;`,
+		 * separate srcset candidates once decoded, so scanning the encoded value
+		 * would let a disallowed candidate hide inside an allowed one. The value
+		 * is re-encoded only when sanitization changed it.
+		 */
+		$decoded   = WP_HTML_Decoder::decode_attribute( $value );
+		$sanitized = wp_kses_sanitize_uris( $name, $decoded, $allowed_protocols );
+		if ( $sanitized !== $decoded ) {
+			$value = _wp_specialchars( $sanitized, ENT_QUOTES, false, true );
+		}
 
 		$attr  = "$name=$quote$value$quote";
 		$vless = 'n';
