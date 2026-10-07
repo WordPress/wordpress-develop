@@ -12,7 +12,7 @@
 declare( strict_types = 1 );
 
 /**
- * Registers the read-only `core/read-users` ability, which retrieves one or more
+ * Registers the read-only `core/users-query` ability, which retrieves one or more
  * readable WordPress users. Supports fetching a single readable user by ID,
  * email, username, or slug, or querying a paginated collection optionally
  * filtered by roles, published-post authorship, or included IDs. Field-level
@@ -81,15 +81,15 @@ final class WP_Users_Abilities {
 	}
 
 	/**
-	 * Registers the read-only `core/read-users` ability.
+	 * Registers the read-only `core/users-query` ability.
 	 *
 	 * @since 7.1.0
 	 */
 	private function register_get_users(): void {
 		wp_register_ability(
-			'core/read-users',
+			'core/users-query',
 			array(
-				'label'               => __( 'Read Users' ),
+				'label'               => __( 'Users Query' ),
 				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, email, username, or slug, or query a paginated collection optionally filtered by roles, published-post authorship, or included IDs.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_users_input_schema(),
@@ -109,7 +109,7 @@ final class WP_Users_Abilities {
 	}
 
 	/**
-	 * Permission callback for the `core/read-users` ability.
+	 * Permission callback for the `core/users-query` ability.
 	 *
 	 * Performs request-level checks. Single-user requests are checked against
 	 * the target user, while collection requests rely on query arguments in
@@ -140,7 +140,7 @@ final class WP_Users_Abilities {
 	}
 
 	/**
-	 * Executes the `core/read-users` ability.
+	 * Executes the `core/users-query` ability.
 	 *
 	 * @since 7.1.0
 	 *
@@ -723,7 +723,7 @@ final class WP_Users_Abilities {
 	}
 
 	/**
-	 * Builds the input schema for the `core/read-users` ability.
+	 * Builds the input schema for the `core/users-query` ability.
 	 *
 	 * The ability has five mutually exclusive modes, modeled as a `oneOf` so invalid
 	 * combinations are rejected rather than silently ignored:
@@ -873,7 +873,7 @@ final class WP_Users_Abilities {
 	}
 
 	/**
-	 * Builds the output schema for the `core/read-users` ability.
+	 * Builds the output schema for the `core/users-query` ability.
 	 *
 	 * No user field is marked required because the `fields` input lets the caller
 	 * request any subset, and restricted fields are omitted when unavailable.
