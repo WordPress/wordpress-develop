@@ -1437,4 +1437,66 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		unlink( $temp_tmp );
 		unlink( $saved['path'] );
 	}
+
+	/**
+	 * Tests that an image is saved as AVIF, and that the encoding effort is filterable.
+	 *
+	 * The effort is what the encoder trades time for quality with, and its default is
+	 * low enough to stay inside a typical PHP-FPM request limit.
+	 */
+	public function test_saving_as_avif() {
+		if ( ! WP_Image_Editor_Vips::supports_mime_type( 'image/avif' ) ) {
+			$this->markTestSkipped( 'The image editor does not support the AVIF mime type.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$effort = null;
+		$record = static function ( $value ) use ( &$effort ) {
+			$effort = $value;
+
+			return $value;
+		};
+
+		add_filter( 'wp_image_editor_vips_avif_effort', $record );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$this->assertNotWPError( $vips_image_editor->resize( 50, 50 ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_avif_' ) . '.avif';
+		$saved      = $vips_image_editor->save( $saved_file, 'image/avif' );
+
+		// An AVIF file is a box structure, and its first box type is `ftypavif`.
+		$magic = substr( file_get_contents( $saved_file ), 4, 8 );
+		unlink( $saved_file );
+
+		remove_filter( 'wp_image_editor_vips_avif_effort', $record );
+
+		$this->assertNotWPError( $saved );
+		$this->assertSame( 'image/avif', $saved['mime-type'] );
+		$this->assertSame( 3, $effort, 'The encoding effort should default to 3.' );
+		$this->assertSame( 'ftypavif', $magic, 'The saved file should be an AVIF image.' );
+
+		// A filtered effort is what the encoder is given.
+		add_filter(
+			'wp_image_editor_vips_avif_effort',
+			static function () {
+				return 1;
+			}
+		);
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$this->assertNotWPError( $vips_image_editor->resize( 50, 50 ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_avif_' ) . '.avif';
+		$filtered   = $vips_image_editor->save( $saved_file, 'image/avif' );
+
+		unlink( $saved_file );
+
+		$this->assertNotWPError( $filtered );
+	}
 }
