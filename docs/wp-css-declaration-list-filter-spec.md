@@ -86,7 +86,7 @@ neighbour.
 ## Policy
 
 One rule applies to every declaration, for every property including custom
-ones, whether or not the `safe_style_css` list is empty:
+ones:
 
 0. **Open blocks and tokens cut off by the end of the input.** A value with
    a block (a function, `(`, `[` or `{`) still open at the end of the input
@@ -100,9 +100,10 @@ ones, whether or not the `safe_style_css` list is empty:
    drops it. The tokenizer reports the cut-off token through
    `is_token_terminated()`.
 
-The remaining checks run only when the `safe_style_css` list is non-empty. An
-empty list means no further checks, as in the legacy function; the output is
-still re-serialized.
+An empty `safe_style_css` list disables filtering. `safecss_filter_attr()`
+returns the input with NUL bytes and newlines removed, which is what the
+legacy function returns for an empty list, and does not call the declarations
+helper. A filter result that is not an array is treated as an empty list.
 
 1. **Property name.** The decoded, case-folded name is in the `safe_style_css`
    list; or the list contains `--*` and the name matches
@@ -196,7 +197,8 @@ the appended `;`.
 ## Hooks
 
 `safe_style_css` is honoured as today, applied once before dispatch, so both
-paths see the same list.
+paths see the same list. An empty list, or a result that is not an array,
+returns the input before dispatch (see "Policy").
 
 `safecss_filter_attr_use_legacy` is new in 7.2.0. It receives `false` and the
 input CSS; returning `true` selects the legacy helper. It exists for a
@@ -238,8 +240,8 @@ narrowings (`expression()` inside a gradient; an unmatched `)`), 8 widenings,
 
 Open during the prototype, now settled:
 
-- **Open blocks.** Rejected for every property and whether or not the
-  allowed list is empty. The prototype closed them in the output, which
+- **Open blocks.** Rejected for every property. The prototype closed them in
+  the output, which
   accepted nine inputs the legacy function rejected; callers rely on a
   rejected declaration staying rejected. With the rule, the serializer has no
   block-closing code.
@@ -268,9 +270,8 @@ Open during the prototype, now settled:
 ## Tests
 
 `tests/phpunit/tests/kses/safecssFilterAttr.php` covers each policy rule in
-isolation, the open-block rule in standard and custom properties and with the
-empty allowed list, the cut-off token rule for comments, strings and url
-tokens, the structural rule in standard, nested and custom positions,
+isolation, the open-block rule in standard and custom properties, the
+cut-off token rule for comments, strings and url tokens, the structural rule in standard, nested and custom positions,
 `!important`, comments, whitespace, escapes, the empty `safe_style_css` list,
 the two filters, and idempotence over a provider of the inputs that exercise
 the serializer.

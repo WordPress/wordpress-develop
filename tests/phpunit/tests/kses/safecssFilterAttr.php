@@ -332,18 +332,44 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @dataProvider data_empty_allowed_list
+	 *
+	 * @param callable $callback Callback for `safe_style_css` that returns an empty list or a non-array.
 	 */
-	public function test_empty_allowed_list_skips_checks_but_still_serializes() {
+	public function test_empty_allowed_list_returns_the_input( $callback ) {
+		$input = 'color: red /* keep me */; width: calc(1px; foo: bar';
+
+		add_filter( 'safe_style_css', $callback );
+		$actual = safecss_filter_attr( $input );
+		$legacy = safecss_filter_attr( "color:\0 red;\nwidth: 1px" );
+		remove_filter( 'safe_style_css', $callback );
+
+		$this->assertSame( $input, $actual );
+		$this->assertSame( 'color: red;width: 1px', $legacy );
+	}
+
+	/**
+	 * @return array<string, array{callable}>
+	 */
+	public function data_empty_allowed_list() {
+		return array(
+			'empty array' => array( '__return_empty_array' ),
+			'null'        => array( '__return_null' ),
+			'false'       => array( '__return_false' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_empty_allowed_list_returns_the_input_on_the_legacy_path() {
 		add_filter( 'safe_style_css', '__return_empty_array' );
-		$arbitrary  = safecss_filter_attr( 'foo: expression(1); width: (1px)' );
-		$invalid    = safecss_filter_attr( 'color; width: 1px); height: 2px' );
-		$open_block = safecss_filter_attr( 'width: calc(1px' );
+		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		$actual = safecss_filter_attr( 'color: red /* keep me */; width: calc(1px' );
+		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
 		remove_filter( 'safe_style_css', '__return_empty_array' );
 
-		$this->assertSame( 'foo:expression(1);width:(1px);', $arbitrary );
-		$this->assertSame( 'height:2px;', $invalid );
-		// The open-block rule does not depend on the allowed list.
-		$this->assertSame( '', $open_block );
+		$this->assertSame( 'color: red /* keep me */; width: calc(1px', $actual );
 	}
 
 	/**
@@ -383,7 +409,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	public function test_allow_css_filter_does_not_change_the_output() {
 		$this->setExpectedDeprecated( 'safecss_filter_attr_allow_css' );
 
-		$inputs = array( 'margin-top: 2px', 'width: foo(1px)', 'color: red; width: calc(1px' );
+		$inputs  = array( 'margin-top: 2px', 'width: foo(1px)', 'color: red; width: calc(1px' );
 		$without = array_map( 'safecss_filter_attr', $inputs );
 
 		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );

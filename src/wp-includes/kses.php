@@ -3702,6 +3702,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	/**
 	 * Filters the list of allowed CSS attributes.
 	 *
+	 * An empty list disables filtering: the input is returned with NUL bytes
+	 * and newlines removed. A value that is not an array is treated as an
+	 * empty list.
+	 *
 	 * @since 2.8.1
 	 * @since 7.1.0 Added support for SVG presentation attributes.
 	 *
@@ -3942,6 +3946,15 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		)
 	);
 
+	if ( ! is_array( $allowed_attr ) ) {
+		$allowed_attr = array();
+	}
+
+	// An empty list disables filtering. Both implementations return the input.
+	if ( empty( $allowed_attr ) ) {
+		return _safecss_filter_attr_legacy( $css, array() );
+	}
+
 	/**
 	 * Filters whether safecss_filter_attr() uses its legacy implementation.
 	 *
@@ -4178,7 +4191,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * Declarations CSS drops at parse time never reach the policy because
  * the processor does not expose them.
  *
- * The policy, applied when the allowed list is non-empty:
+ * The policy:
  *
  *  - The property name is in the allowed list, or the list contains `--*`
  *    and the name matches `^--[a-zA-Z0-9_-]+$`.
@@ -4190,13 +4203,12 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *    token at any depth. Inside strings and URLs these characters are
  *    escaped in the output; no standard property value uses them elsewhere.
  *
- * Checks run on decoded values. Comments are never emitted. An empty
- * allowed list disables the checks; the output is still re-serialized
- * from the parsed declarations.
+ * Checks run on decoded values. Comments are never emitted. For an empty
+ * allowed list safecss_filter_attr() returns the input and does not call
+ * this function.
  *
- * Whether or not the allowed list is empty, a declaration whose value has
- * a block (a function, `(`, `[` or `{`) still open at the end of the input
- * is dropped, for every property. When the input ends inside a comment,
+ * A declaration whose value has a block (a function, `(`, `[` or `{`)
+ * still open at the end of the input is dropped, for every property. When the input ends inside a comment,
  * string or url token, the last accepted declaration is dropped; such a
  * token runs to the end of the input, so it is in the last declaration or
  * after it. The legacy implementation rejected both, and callers rely on a
@@ -4207,12 +4219,11 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * @internal
  *
  * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
- * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter.
+ * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter. Must be non-empty.
  * @return string Filtered string of CSS rules.
  */
 function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	$css               = (string) $css;
-	$check             = ! empty( $allowed_attr );
 	$allow_custom      = in_array( '--*', $allowed_attr, true );
 	$allowed_protocols = wp_allowed_protocols();
 
@@ -4238,21 +4249,19 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 			continue;
 		}
 
-		if ( $check ) {
-			if ( $is_custom ) {
-				if ( ! $allow_custom || ! preg_match( '/^--[a-zA-Z0-9_-]+$/', $name ) ) {
-					continue;
-				}
-			} elseif ( ! in_array( $name, $allowed_attr, true ) ) {
+		if ( $is_custom ) {
+			if ( ! $allow_custom || ! preg_match( '/^--[a-zA-Z0-9_-]+$/', $name ) ) {
 				continue;
 			}
-
-			if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) ) {
-				continue;
-			}
-
-			// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
+		} elseif ( ! in_array( $name, $allowed_attr, true ) ) {
+			continue;
 		}
+
+		if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) ) {
+			continue;
+		}
+
+		// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
 
 		$declaration = WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
 		if ( $processor->is_important() ) {
@@ -4648,7 +4657,7 @@ function _safecss_filter_attr_serialize_hash_value( $value ) {
 			( $byte >= 0x30 && $byte <= 0x39 ) || // 0-9
 			( $byte >= 0x41 && $byte <= 0x5A ) || // A-Z
 			( $byte >= 0x61 && $byte <= 0x7A ) || // a-z
-			0x5F === $byte ||                     // _
+			0x5F === $byte || // _
 			0x2D === $byte                        // -
 		) {
 			$output .= $value[ $i ];
