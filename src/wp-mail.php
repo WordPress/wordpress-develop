@@ -76,20 +76,23 @@ if ( 0 === $count ) {
 // Always run as an unauthenticated user.
 wp_set_current_user( 0 );
 
+$blog_charset = get_option( 'blog_charset' );
+
 for ( $i = 1; $i <= $count; $i++ ) {
 
 	$message = $pop3->get( $i );
 
 	$bodysignal                = false;
-	$boundary                  = '';
 	$charset                   = '';
 	$content                   = '';
 	$content_type              = '';
 	$content_transfer_encoding = '';
+	$boundary                  = '';
+	$subject                   = '';
 	$post_author               = 1;
 	$author_found              = false;
-	$post_date                 = null;
-	$post_date_gmt             = null;
+	$post_date                 = '';
+	$post_date_gmt             = '';
 
 	foreach ( $message as $line ) {
 		// Body signal.
@@ -125,7 +128,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				$subject = substr( $subject, 9, strlen( $subject ) - 9 );
 				// Captures any text in the subject before $phone_delim as the subject.
 				if ( function_exists( 'iconv_mime_decode' ) ) {
-					$subject = iconv_mime_decode( $subject, 2, get_option( 'blog_charset' ) );
+					$subject = iconv_mime_decode( $subject, 2, $blog_charset );
 				} else {
 					$subject = wp_iso_descrambler( $subject );
 				}
@@ -205,7 +208,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	}
 
 	if ( function_exists( 'iconv' ) && ! empty( $charset ) ) {
-		$content = iconv( $charset, get_option( 'blog_charset' ), $content );
+		$content = iconv( $charset, $blog_charset, $content );
 	}
 
 	// Captures any text in the body after $phone_delim as the body.

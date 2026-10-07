@@ -985,6 +985,86 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * References to presets (`var:preset|type|slug`) are converted using the
+	 * same kebab-cased slug as the custom properties generated from the
+	 * presets, so both sides match for slugs that change when kebab-cased.
+	 */
+	public function test_get_stylesheet_kebab_cases_preset_reference_slugs() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'typography' => array(
+						'fontFamilies' => array(
+							array(
+								'name'       => 'N27',
+								'slug'       => 'n27',
+								'fontFamily' => 'N27, sans-serif',
+							),
+						),
+					),
+					'spacing'    => array(
+						'spacingSizes' => array(
+							array(
+								'name' => 'Small 2',
+								'slug' => 'small2',
+								'size' => '8px',
+							),
+						),
+					),
+					'color'      => array(
+						'duotone' => array(
+							array(
+								'colors' => array( '#000000', '#ffffff' ),
+								'name'   => 'Blue Orange 2',
+								'slug'   => 'blueOrange2',
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'typography' => array(
+						'fontFamily' => 'var:preset|font-family|n27',
+					),
+					'spacing'    => array(
+						'padding' => array(
+							'top' => 'var:preset|spacing|small2',
+						),
+					),
+					'blocks'     => array(
+						'core/image' => array(
+							'filter' => array(
+								'duotone' => 'var:preset|duotone|blueOrange2',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet();
+
+		// The custom properties generated from the presets kebab-case the slug.
+		$this->assertStringContainsString(
+			'--wp--preset--font-family--n-27: N27, sans-serif',
+			$stylesheet
+		);
+		// References resolve to the same kebab-cased custom property names.
+		$this->assertStringContainsString(
+			'font-family: var(--wp--preset--font-family--n-27)',
+			$stylesheet
+		);
+		$this->assertStringContainsString(
+			'padding-top: var(--wp--preset--spacing--small-2)',
+			$stylesheet
+		);
+		$this->assertStringContainsString(
+			'var(--wp--preset--duotone--blue-orange-2)',
+			$stylesheet
+		);
+	}
+
+	/**
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
@@ -3417,7 +3497,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
@@ -3498,7 +3578,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
@@ -5061,7 +5141,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+	public static function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
 		return array(
 			'empty string' => array(
 				'styles' => array(),
@@ -5514,7 +5594,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_for_block_with_style_variations() {
+	public static function data_sanitize_for_block_with_style_variations() {
 		return array(
 			'1 variation with 1 valid property'     => array(
 				'theme_json_variations' => array(
@@ -5734,7 +5814,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_with_invalid_style_variation() {
+	public static function data_sanitize_with_invalid_style_variation() {
 		return array(
 			'empty string variation' => array(
 				array(
@@ -5786,7 +5866,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_styles_for_block_with_style_variations() {
+	public static function data_get_styles_for_block_with_style_variations() {
 		$plain = array(
 			'metadata' => array(
 				'path'     => array( 'styles', 'blocks', 'core/quote', 'variations', 'plain' ),
@@ -6258,7 +6338,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_spacing_sizes() {
+	public static function data_set_spacing_sizes() {
 		return array(
 			'only one value when single step in spacing scale' => array(
 				'spacing_scale'   => array(
@@ -6549,7 +6629,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_spacing_sizes_when_invalid() {
+	public static function data_set_spacing_sizes_when_invalid() {
 		return array(
 			'missing operator value'  => array(
 				'spacing_scale'   => array(
@@ -6642,7 +6722,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_update_separator_declarations() {
+	public static function data_update_separator_declarations() {
 		return array(
 			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
 			'only background'                      => array(
@@ -6742,7 +6822,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_update_button_width_declarations() {
+	public static function data_update_button_width_declarations() {
 		return array(
 			'direct percentage value'                   => array(
 				array(
@@ -7225,7 +7305,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_custom_css_for_user_caps() {
+	public static function data_custom_css_for_user_caps() {
 		return array(
 			'allows custom css for users with caps'     => array(
 				'user_property' => 'administrator_id',
@@ -7290,7 +7370,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_process_blocks_custom_css() {
+	public static function data_process_blocks_custom_css() {
 		return array(
 			// Simple CSS without any nested selectors.
 			'empty css'                    => array(
@@ -7629,7 +7709,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_block_style_variation_selector() {
+	public static function data_get_block_style_variation_selector() {
 		return array(
 			'empty block selector'     => array(
 				'selector' => '',
@@ -8918,7 +8998,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array<string, {selector: string, to_append: string, expeted: string}>
 	 */
-	public function data_append_to_selector() {
+	public static function data_append_to_selector() {
 		return array(
 			'single class selector'                        => array(
 				'selector'  => '.inner',
@@ -9058,7 +9138,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array<string, {selector: string, to_prepend: string, expeted: string}>
 	 */
-	public function data_prepend_to_selector() {
+	public static function data_prepend_to_selector() {
 		return array(
 			'single class selector'                        => array(
 				'selector'   => '.inner',

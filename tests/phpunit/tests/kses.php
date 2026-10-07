@@ -1225,6 +1225,7 @@ EOF;
 	 * @ticket 65457
 	 * @ticket 64974
 	 * @ticket 65832
+	 * @ticket 64972
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1454,6 +1455,23 @@ EOF;
 			array(
 				'css'      => 'white-space: pre-line',
 				'expected' => 'white-space: pre-line',
+			),
+			// `text-shadow` introduced in 7.2.0.
+			array(
+				'css'      => 'text-shadow: none',
+				'expected' => 'text-shadow: none',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+			),
+			array(
+				'css'      => 'text-shadow: var(--wp--preset--text-shadow--soft)',
+				'expected' => 'text-shadow: var(--wp--preset--text-shadow--soft)',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1881,6 +1899,11 @@ EOF;
 			array(
 				'css'      => 'clip-path: url(javascript:alert(1))',
 				'expected' => '',
+			),
+			// CSS anchor positioning properties introduced in 7.2.
+			array(
+				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 			),
 		);
 	}

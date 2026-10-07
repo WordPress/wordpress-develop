@@ -3,12 +3,10 @@
 /**
  * Unit test factory for users.
  *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
+ * Note: The below @method notation is defined solely for the benefit of IDEs,
+ * as a way to indicate the expected return value from the given factory method.
  *
- * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
- * @method WP_User|WP_Error create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
+ * @method WP_User create_and_get( $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 
@@ -25,26 +23,39 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * Inserts an user.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args The user data to insert.
-	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
+	 * @param array<string, mixed> $args The user data to insert.
+	 * @return positive-int The user ID.
+	 * @throws WP_UnitTest_Factory_Exception When the user could not be created.
 	 */
 	public function create_object( $args ) {
-		return wp_insert_user( $args );
+		$user_id = wp_insert_user( $args );
+
+		$this->assert_valid_object_id( $user_id, 'Unable to create the user' );
+
+		return $user_id;
 	}
 
 	/**
 	 * Updates the user data.
 	 *
 	 * @since UT (3.7.0)
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param int   $user_id ID of the user to update.
-	 * @param array $fields  The user data to update.
-	 * @return int|WP_Error The user ID on success, WP_Error object on failure.
+	 * @param int                  $user_id ID of the user to update.
+	 * @param array<string, mixed> $fields  The user data to update.
+	 * @return positive-int The user ID.
+	 * @throws WP_UnitTest_Factory_Exception When the user could not be updated.
 	 */
 	public function update_object( $user_id, $fields ) {
 		$fields['ID'] = $user_id;
-		return wp_update_user( $fields );
+
+		$updated_id = wp_update_user( $fields );
+
+		$this->assert_valid_object_id( $updated_id, 'Unable to update the user' );
+
+		return $updated_id;
 	}
 
 	/**
@@ -56,6 +67,7 @@ class WP_UnitTest_Factory_For_User extends WP_UnitTest_Factory_For_Thing {
 	 * @return WP_User The user object.
 	 */
 	public function get_object_by_id( $user_id ) {
+		// Unlike the other factories, this cannot fail: WP_User is returned even for an unknown ID.
 		return new WP_User( $user_id );
 	}
 }
