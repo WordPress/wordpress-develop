@@ -116,6 +116,7 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $insert_id = 0;
 

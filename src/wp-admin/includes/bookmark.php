@@ -178,7 +178,7 @@ function get_link_to_edit( $link ) {
  * @param bool  $wp_error Optional. Whether to return a WP_Error object on failure. Default false.
  * @return int|WP_Error The link ID on success. The value 0 or WP_Error on failure.
  *
- * @phpstan-return ( $wp_error is false ? int : int|WP_Error )
+ * @phpstan-return ( $wp_error is false ? non-negative-int : non-negative-int|WP_Error )
  */
 function wp_insert_link( $linkdata, $wp_error = false ) {
 	global $wpdb;
@@ -193,7 +193,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	$parsed_args = wp_parse_args( $linkdata, $defaults );
 	$parsed_args = wp_unslash( sanitize_bookmark( $parsed_args, 'db' ) );
 
-	$link_id   = $parsed_args['link_id'];
+	$link_id   = absint( $parsed_args['link_id'] );
 	$link_name = $parsed_args['link_name'];
 	$link_url  = $parsed_args['link_url'];
 
