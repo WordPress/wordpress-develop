@@ -564,11 +564,13 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Normalizes a mixed value into a list of non-empty strings.
+	 * Normalizes a mixed value into a list of strings.
 	 *
-	 * Accepts arrays and CSV strings. Schema validation accepts a CSV string for an
-	 * array, and only the REST run controller converts input to the schema types, so
-	 * callers that bypass it, such as a direct WP_Ability::execute() call, can pass one.
+	 * Accepts arrays and CSV strings, which it parses with wp_parse_list(), as schema
+	 * validation does. Schema validation accepts a CSV string for an array, and only the
+	 * REST run controller converts input to the schema types, so callers that bypass it,
+	 * such as a direct WP_Ability::execute() call, can pass one. Empty and duplicate
+	 * items need no handling here, because validation has already rejected them.
 	 *
 	 * @since 7.2.0
 	 *
@@ -576,24 +578,11 @@ final class WP_Abilities_Users {
 	 * @return string[] Normalized strings.
 	 */
 	private function normalize_string_list( $value ): array {
-		if ( is_string( $value ) ) {
-			$value = wp_parse_list( $value );
-		}
-
-		if ( ! is_array( $value ) ) {
+		if ( ! is_array( $value ) && ! is_string( $value ) ) {
 			return array();
 		}
 
-		$strings = array();
-		foreach ( $value as $item ) {
-			if ( ! is_string( $item ) || '' === $item ) {
-				continue;
-			}
-
-			$strings[] = $item;
-		}
-
-		return array_values( array_unique( $strings ) );
+		return array_values( array_filter( wp_parse_list( $value ), 'is_string' ) );
 	}
 
 	/**
