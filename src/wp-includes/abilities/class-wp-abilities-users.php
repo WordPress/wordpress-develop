@@ -68,6 +68,19 @@ final class WP_Abilities_Users {
 	private const LOOKUP_COLLECTION = 'collection';
 
 	/**
+	 * The get_user_by() field for each single-user lookup type, in the order they are checked.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, string>
+	 */
+	private const LOOKUP_FIELDS = array(
+		'id'       => 'id',
+		'email'    => 'email',
+		'username' => 'login',
+		'slug'     => 'slug',
+	);
+
+	/**
 	 * Default fields returned when the caller does not request a field subset.
 	 *
 	 * @since 7.2.0
@@ -133,7 +146,7 @@ final class WP_Abilities_Users {
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
 	public function check_permission( $input = array() ): bool {
-		$input = $this->to_input_array( $input );
+		$input = rest_sanitize_object( $input );
 
 		if ( ! is_user_logged_in() ) {
 			return false;
@@ -157,10 +170,10 @@ final class WP_Abilities_Users {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
-	 * @return array<string, mixed>|stdClass|WP_Error User data, paginated collection data, or a WP_Error on failure.
+	 * @return array<string, mixed>|WP_Error User data, paginated collection data, or a WP_Error on failure.
 	 */
 	public function execute_users_query( $input = array() ) {
-		$input  = $this->to_input_array( $input );
+		$input  = rest_sanitize_object( $input );
 		$fields = $this->normalize_fields( $input );
 
 		$lookup_type = $this->get_lookup_type( $input );
@@ -176,25 +189,23 @@ final class WP_Abilities_Users {
 			return $this->format_user( $user, $fields );
 		}
 
-		$per_page = $this->normalize_per_page( $input );
-		$page     = isset( $input['page'] ) ? max( 1, $this->input_int( $input['page'] ) ) : 1;
+		$per_page       = $this->normalize_per_page( $input );
+		$can_list_users = current_user_can( 'list_users' );
 
 		$query_args = array(
-			'number'      => $per_page,
-			'offset'      => ( $page - 1 ) * $per_page,
-			'count_total' => true,
+			'number' => $per_page,
+			'paged'  => isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1,
 		);
 
-		$include = $this->normalize_include( $input );
-		if ( array() !== $include ) {
+		if ( ! empty( $input['include'] ) ) {
 			/*
 			 * The include order is not applied as `orderby`. Keeping the default
 			 * ordering lets WP_User_Query share cached results with other queries.
 			 */
-			$query_args['include'] = $include;
+			$query_args['include'] = wp_parse_id_list( $input['include'] );
 		}
 
-		if ( ! empty( $input['roles'] ) && current_user_can( 'list_users' ) ) {
+		if ( ! empty( $input['roles'] ) && $can_list_users ) {
 			$query_args['role__in'] = $this->normalize_string_list( $input['roles'] );
 		}
 
@@ -206,9 +217,7 @@ final class WP_Abilities_Users {
 		 * excludes the caller's own account when they have no published posts. Self is
 		 * read through a single-user lookup (like the REST `/users/me` endpoint) instead.
 		 */
-		$requires_published_posts = ! current_user_can( 'list_users' );
-
-		if ( null !== $has_published_posts || $requires_published_posts ) {
+		if ( null !== $has_published_posts || ! $can_list_users ) {
 			/*
 			 * The post types are always resolved here rather than passed as `true`.
 			 * WP_User_Query reads `true` as `get_post_types( array( 'public' => true ) )`,
@@ -245,66 +254,17 @@ final class WP_Abilities_Users {
 		}
 
 		/*
-		 * `users` and `total`/`total_pages` all derive from the same WP_User_Query,
-		 * so the row count and the reported totals stay in agreement. Collections
-		 * are not post-filtered by site membership, matching the REST users
-		 * controller, whose collection endpoint applies no per-row membership check
-		 * and reports `get_total()` directly. On multisite the collection is still
-		 * scoped to the current site: WP_User_Query adds a capabilities meta clause
-		 * restricting results to members of the queried blog whenever `blog_id`
-		 * (defaulted to the current blog) is set, even for a bare query with no
-		 * roles/has_published_posts. Callers who cannot list users are additionally
-		 * narrowed by the forced `has_published_posts`, which joins the current
-		 * blog's posts table. Single-user lookups remain site-scoped via
-		 * {@see self::is_user_member_of_site()}, matching the controller's
-		 * single-user membership check.
+		 * The rows and the totals come from the same query, so they agree. As in the REST
+		 * users controller, rows are not filtered by site membership afterwards: on
+		 * multisite, WP_User_Query already limits the query to members of the current site.
 		 */
-		$total_users = (int) $query->get_total();
+		$total_users = $query->get_total();
 
 		return array(
 			'users'       => $users,
 			'total'       => $total_users,
 			'total_pages' => (int) ceil( $total_users / $per_page ),
 		);
-	}
-
-	/**
-	 * Casts raw ability input to an array.
-	 *
-	 * Schema validation accepts object input (`rest_is_object()` allows a
-	 * `stdClass`, and the input schema's own `default` is one), so it must be
-	 * treated as equivalent to its array form rather than discarded. Any other
-	 * non-array input is replaced with an empty array.
-	 *
-	 * The Abilities API validates input against the schema but does not coerce
-	 * it, and REST `GET` requests (the only method for read-only abilities)
-	 * deliver every scalar as a string. Each normalizer below therefore accepts
-	 * the string forms validation accepted (`'true'` for `true`, CSV strings
-	 * for arrays, numeric strings for integers).
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed $input The raw ability input.
-	 * @return array<mixed> The input as an array.
-	 */
-	private function to_input_array( $input ): array {
-		if ( $input instanceof stdClass ) {
-			$input = (array) $input;
-		}
-
-		return is_array( $input ) ? $input : array();
-	}
-
-	/**
-	 * Casts a raw input value to a non-negative integer.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed $value The raw input value.
-	 * @return int The value as a non-negative integer, or 0 when not scalar.
-	 */
-	private function input_int( $value ): int {
-		return is_scalar( $value ) ? absint( $value ) : 0;
 	}
 
 	/**
@@ -316,7 +276,7 @@ final class WP_Abilities_Users {
 	 * @return string The lookup type, or {@see self::LOOKUP_COLLECTION}.
 	 */
 	private function get_lookup_type( array $input ): string {
-		foreach ( array( 'id', 'email', 'username', 'slug' ) as $key ) {
+		foreach ( array_keys( self::LOOKUP_FIELDS ) as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
 				return $key;
 			}
@@ -338,7 +298,18 @@ final class WP_Abilities_Users {
 	 * @return WP_User|null The readable user, or null when not found or not readable.
 	 */
 	private function resolve_readable_user( array $input, string $lookup_type ): ?WP_User {
-		$user = $this->find_user( $input );
+		$value = $input[ $lookup_type ];
+
+		// WP_Ability::check_permissions() does not validate the input, so the value may not be a scalar.
+		if ( ! is_scalar( $value ) ) {
+			return null;
+		}
+
+		/*
+		 * get_user_by() sanitizes a login itself, and matches a slug as given, like the REST
+		 * users controller, so a stored nicename that sanitize_title() would change is found.
+		 */
+		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], $value );
 		if ( ! $user instanceof WP_User ) {
 			return null;
 		}
@@ -351,73 +322,11 @@ final class WP_Abilities_Users {
 			return $user;
 		}
 
-		if ( ! $this->is_user_member_of_site( $user ) ) {
+		if ( is_multisite() && ! is_user_member_of_blog( $user->ID ) ) {
 			return null;
 		}
 
 		return $this->can_read_user_for_lookup( $user, $lookup_type ) ? $user : null;
-	}
-
-	/**
-	 * Finds a user by one of the supported unique input identifiers.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $input The ability input.
-	 * @return WP_User|null User object, or null when not found.
-	 */
-	private function find_user( array $input ): ?WP_User {
-		if ( array_key_exists( 'id', $input ) ) {
-			$user = get_userdata( $this->input_int( $input['id'] ) );
-			return $user instanceof WP_User ? $user : null;
-		}
-
-		if ( array_key_exists( 'email', $input ) ) {
-			if ( ! is_string( $input['email'] ) ) {
-				return null;
-			}
-
-			$user = get_user_by( 'email', sanitize_email( $input['email'] ) );
-			return $user instanceof WP_User ? $user : null;
-		}
-
-		if ( array_key_exists( 'username', $input ) ) {
-			if ( ! is_string( $input['username'] ) ) {
-				return null;
-			}
-
-			$user = get_user_by( 'login', sanitize_user( $input['username'] ) );
-			return $user instanceof WP_User ? $user : null;
-		}
-
-		if ( array_key_exists( 'slug', $input ) ) {
-			if ( ! is_string( $input['slug'] ) ) {
-				return null;
-			}
-
-			/*
-			 * Query the raw nicename, matching the REST users controller. Applying
-			 * sanitize_title() here would miss users whose stored user_nicename is
-			 * not a sanitize_title() fixed point (e.g. set via the pre_user_nicename
-			 * filter or an import).
-			 */
-			$user = get_user_by( 'slug', $input['slug'] );
-			return $user instanceof WP_User ? $user : null;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Checks whether a user belongs to the current site.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_User $user User object.
-	 * @return bool Whether the user belongs to the current site.
-	 */
-	private function is_user_member_of_site( WP_User $user ): bool {
-		return ! is_multisite() || is_user_member_of_blog( (int) $user->ID );
 	}
 
 	/**
@@ -453,7 +362,7 @@ final class WP_Abilities_Users {
 	 * @return bool Whether the current user is the target user.
 	 */
 	private function is_current_user( WP_User $user ): bool {
-		return get_current_user_id() === (int) $user->ID;
+		return get_current_user_id() === $user->ID;
 	}
 
 	/**
@@ -478,7 +387,7 @@ final class WP_Abilities_Users {
 			return false;
 		}
 
-		return count_user_posts( (int) $user->ID, $post_types ) > 0;
+		return count_user_posts( $user->ID, $post_types ) > 0;
 	}
 
 	/**
@@ -518,7 +427,7 @@ final class WP_Abilities_Users {
 	private function normalize_fields( array $input ): array {
 		$fields = isset( $input['fields'] ) ? $this->normalize_string_list( $input['fields'] ) : array();
 		if ( array() === $fields ) {
-			$fields = $this->get_default_fields();
+			$fields = self::DEFAULT_FIELDS;
 		}
 
 		if ( ! in_array( 'id', $fields, true ) ) {
@@ -537,9 +446,7 @@ final class WP_Abilities_Users {
 	 * the registered schemas are a registration-time snapshot, so conditional
 	 * availability (such as `avatar_urls` honoring the `show_avatars` option) is
 	 * enforced per call in {@see self::format_user()} instead of here, where the
-	 * option could change between registration and use. Resolved on every call
-	 * rather than cached: it is the single source of truth for the field set and
-	 * inexpensive to rebuild.
+	 * option could change between registration and use.
 	 *
 	 * @since 7.2.0
 	 *
@@ -635,31 +542,6 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Returns the default field list in output order.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return string[] Default field names.
-	 */
-	private function get_default_fields(): array {
-		return array_values( array_intersect( array_keys( $this->get_user_properties() ), self::DEFAULT_FIELDS ) );
-	}
-
-	/**
-	 * Returns registered role names.
-	 *
-	 * Deliberately resolved on every call rather than cached, since roles can be
-	 * registered or unregistered at runtime.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return string[] Role names.
-	 */
-	private function get_role_names(): array {
-		return array_keys( wp_roles()->roles );
-	}
-
-	/**
 	 * Normalizes the requested per-page value to the supported bounds.
 	 *
 	 * @since 7.2.0
@@ -668,7 +550,7 @@ final class WP_Abilities_Users {
 	 * @return int The clamped per-page value.
 	 */
 	private function normalize_per_page( array $input ): int {
-		$per_page = isset( $input['per_page'] ) ? $this->input_int( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
+		$per_page = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
 
 		return max( 1, min( self::MAX_PER_PAGE, $per_page ) );
 	}
@@ -703,32 +585,6 @@ final class WP_Abilities_Users {
 		}
 
 		return array_values( array_unique( $strings ) );
-	}
-
-	/**
-	 * Normalizes collection-mode included user IDs.
-	 *
-	 * Accepts arrays and CSV strings via {@see wp_parse_id_list()}, which also
-	 * deduplicates IDs that only differ as strings (e.g. `'1'` and `'01'`).
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $input The ability input.
-	 * @return int[] User IDs.
-	 */
-	private function normalize_include( array $input ): array {
-		if ( empty( $input['include'] ) ) {
-			return array();
-		}
-
-		$include = $input['include'];
-		if ( is_scalar( $include ) ) {
-			$include = (string) $include;
-		} elseif ( ! is_array( $include ) ) {
-			return array();
-		}
-
-		return array_values( array_filter( wp_parse_id_list( $include ) ) );
 	}
 
 	/**
@@ -782,7 +638,7 @@ final class WP_Abilities_Users {
 		 * ability registration time. This makes the schema a stable contract that
 		 * developers can filter when registering the ability.
 		 */
-		$role_names        = $this->get_role_names();
+		$role_names        = array_keys( wp_roles()->roles );
 		$public_post_types = $this->get_public_post_types();
 		$fields            = array(
 			'type'        => 'array',
@@ -969,26 +825,19 @@ final class WP_Abilities_Users {
 	 *
 	 * @param WP_User  $user   The user object.
 	 * @param string[] $fields The requested field names.
-	 * @return array<string, mixed>|stdClass The formatted user data. An empty
-	 *                                       result is returned as an object so
-	 *                                       it serializes as `{}` rather than
-	 *                                       `[]`; unreachable while `id` is
-	 *                                       ungated, since REST post-processing
-	 *                                       (`_fields`) cannot handle a
-	 *                                       top-level object response.
+	 * @return array<string, mixed> The formatted user data.
 	 */
-	private function format_user( WP_User $user, array $fields ) {
+	private function format_user( WP_User $user, array $fields ): array {
 		$fields_requested = static function ( string $field ) use ( $fields ): bool {
 			return in_array( $field, $fields, true );
 		};
 
-		$user_id            = (int) $user->ID;
-		$can_view_sensitive = $this->is_current_user( $user ) || current_user_can( 'edit_user', $user_id );
+		$can_view_sensitive = $this->is_current_user( $user ) || current_user_can( 'edit_user', $user->ID );
 
 		$data = array();
 
 		if ( $fields_requested( 'id' ) ) {
-			$data['id'] = $user_id;
+			$data['id'] = $user->ID;
 		}
 		if ( $fields_requested( 'name' ) ) {
 			$data['name'] = (string) $user->display_name;
@@ -1000,7 +849,7 @@ final class WP_Abilities_Users {
 			$data['url'] = (string) $user->user_url;
 		}
 		if ( $fields_requested( 'link' ) ) {
-			$data['link'] = (string) get_author_posts_url( $user_id, $user->user_nicename );
+			$data['link'] = (string) get_author_posts_url( $user->ID, $user->user_nicename );
 		}
 		if ( $fields_requested( 'slug' ) ) {
 			$data['slug'] = (string) $user->user_nicename;
@@ -1056,10 +905,9 @@ final class WP_Abilities_Users {
 		 * field and rows the caller cannot edit are dropped from collections.
 		 */
 		if ( $fields_requested( 'roles' ) && $can_view_sensitive ) {
-			$data['roles'] = $this->normalize_string_list( $user->roles );
+			$data['roles'] = array_values( $user->roles );
 		}
 
-		// An empty result must serialize as a JSON object, not an empty array.
-		return array() === $data ? (object) $data : $data;
+		return $data;
 	}
 }
