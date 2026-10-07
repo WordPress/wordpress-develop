@@ -951,6 +951,7 @@ final class WP_Abilities_Users {
 		);
 
 		return array(
+			'type'  => 'object',
 			'oneOf' => array(
 				$user_schema,
 				$collection_schema,

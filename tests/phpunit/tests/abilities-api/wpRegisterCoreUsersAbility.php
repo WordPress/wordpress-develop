@@ -323,6 +323,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$collection_schema = $output_schema['oneOf'][1];
 		$user_properties   = $user_schema['properties'];
 
+		$this->assertSame( 'object', $output_schema['type'], 'The users ability output schema should describe an object.' );
 		$this->assertCount( 2, $output_schema['oneOf'], 'The output schema should describe single-user and collection responses.' );
 		$this->assertArrayNotHasKey( 'required', $user_schema, 'Single-user fields should remain optional.' );
 		$this->assertSame( array( 'users', 'total', 'total_pages' ), $collection_schema['required'], 'Collection responses should require the wrapper fields.' );
