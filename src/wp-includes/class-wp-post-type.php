@@ -376,8 +376,8 @@ final class WP_Post_Type {
 	/**
 	 * Whether this post type should be exposed through the Abilities API.
 	 *
-	 * Default false. If true, the post type's readable posts can be retrieved through
-	 * the read-only `core/content-query` ability, subject to per-post capability checks.
+	 * Default false. If true, the core content abilities can access the post type's
+	 * posts, subject to the current user's capabilities.
 	 *
 	 * @since 7.2.0
 	 * @var bool $show_in_abilities

@@ -1737,9 +1737,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         of $show_in_menu.
  *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
  *                                                         for the post type to be available in the block editor.
- *     @type bool         $show_in_abilities               Whether to expose this post type through the Abilities API, so its
- *                                                         readable posts can be retrieved via the read-only `core/content-query`
- *                                                         ability (subject to per-post capability checks). Default false.
+ *     @type bool         $show_in_abilities               Whether to expose this post type through the Abilities API, so the
+ *                                                         core content abilities can access its posts, subject to the current
+ *                                                         user's capabilities. Default false.
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
  *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.
