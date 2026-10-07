@@ -236,15 +236,23 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		wp_raise_memory_limit( 'image' );
 
 		try {
+			/*
+			 * Reject truncated images, as the Imagick and GD editors do. JPEG is the
+			 * exception: damage there is recoverable, and the other editors fill it, so
+			 * a truncated JPEG still loads.
+			 */
+			$load_mime    = wp_is_stream( $this->file ) ? '' : wp_get_image_mime( $this->file );
+			$load_options = array( 'fail_on' => ( 'image/jpeg' === $load_mime ) ? 'none' : 'truncated' );
+
 			// Load the image.
 			if ( wp_is_stream( $this->file ) ) {
 				$file_contents = file_get_contents( $this->file );
 				if ( false === $file_contents ) {
 					return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
 				}
-				$this->image = Jcupitt\Vips\Image::newFromBuffer( $file_contents );
+				$this->image = Jcupitt\Vips\Image::newFromBuffer( $file_contents, '', $load_options );
 			} else {
-				$this->image = Jcupitt\Vips\Image::newFromFile( $this->file );
+				$this->image = Jcupitt\Vips\Image::newFromFile( $this->file, $load_options );
 			}
 
 			// Get image size.
