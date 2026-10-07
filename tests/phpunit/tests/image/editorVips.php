@@ -621,24 +621,150 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests rotating an image 180 deg.
+	 * Tests that rotating moves the pixels and not just the dimensions.
+	 *
+	 * Each right angle is an exact move of whole pixels, so every corner of the result is
+	 * compared with the corner of the source it should have come from. The source corners
+	 * are read from a lossless copy, so the comparison does not depend on the JPEG being
+	 * decoded the same way twice.
+	 *
+	 * @dataProvider data_rotation_angles
+	 *
+	 * @param float  $angle         Angle in degrees, counter-clockwise.
+	 * @param array  $corners       Map of result corner to source corner.
+	 * @param array  $expected_size Expected width and height after rotating.
 	 */
-	public function test_rotate() {
-		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
+	public function test_rotate( $angle, $corners, $expected_size ) {
+		$file = DIR_TESTDATA . '/images/sugarloaf-mountain.jpg';
+
+		$original_editor = new WP_Image_Editor_Vips( $file );
+		$original_editor->load();
+
+		$original_tmp  = tempnam( get_temp_dir(), 'vips_rotate_' );
+		$original_file = $original_tmp . '.png';
+		$original_editor->save( $original_file );
 
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$vips_image_editor->load();
 
-		$result = $vips_image_editor->rotate( 180 );
+		$this->assertTrue( $vips_image_editor->rotate( $angle ) );
 
-		$this->assertTrue( $result );
-		$this->assertSame(
-			array(
-				'width'  => 100,
-				'height' => 100,
+		$rotated_tmp  = tempnam( get_temp_dir(), 'vips_rotate_' );
+		$rotated_file = $rotated_tmp . '.png';
+		$vips_image_editor->save( $rotated_file );
+
+		$original = $this->get_corner_pixels( $original_file );
+		$rotated  = $this->get_corner_pixels( $rotated_file );
+		$size     = $vips_image_editor->get_size();
+
+		unlink( $original_tmp );
+		unlink( $original_file );
+		unlink( $rotated_tmp );
+		unlink( $rotated_file );
+
+		foreach ( $corners as $corner => $source ) {
+			$this->assertSame(
+				$original[ $source ],
+				$rotated[ $corner ],
+				"Rotating {$angle} degrees should move the {$source} corner to the {$corner} corner."
+			);
+		}
+
+		$this->assertSame( $expected_size, $size );
+	}
+
+	/**
+	 * Data provider for test_rotate.
+	 *
+	 * The source is 300x169, so a quarter turn has to change the dimensions as well as
+	 * move the pixels.
+	 *
+	 * @return array<string,array{0:float,1:array<string,string>,2:array<string,int>}>
+	 */
+	public static function data_rotation_angles() {
+		return array(
+			'90 degrees counter-clockwise'  => array(
+				90,
+				array(
+					'TL' => 'TR',
+					'TR' => 'BR',
+					'BR' => 'BL',
+					'BL' => 'TL',
+				),
+				array(
+					'width'  => 169,
+					'height' => 300,
+				),
 			),
-			$vips_image_editor->get_size()
+			'180 degrees'                   => array(
+				180,
+				array(
+					'TL' => 'BR',
+					'TR' => 'BL',
+					'BR' => 'TL',
+					'BL' => 'TR',
+				),
+				array(
+					'width'  => 300,
+					'height' => 169,
+				),
+			),
+			'270 degrees counter-clockwise' => array(
+				270,
+				array(
+					'TL' => 'BL',
+					'TR' => 'TL',
+					'BR' => 'TR',
+					'BL' => 'BR',
+				),
+				array(
+					'width'  => 169,
+					'height' => 300,
+				),
+			),
+			'negative quarter turn'         => array(
+				-90,
+				array(
+					'TL' => 'BL',
+					'TR' => 'TL',
+					'BR' => 'TR',
+					'BL' => 'BR',
+				),
+				array(
+					'width'  => 169,
+					'height' => 300,
+				),
+			),
 		);
+	}
+
+	/**
+	 * Returns the four corner pixels of a PNG, keyed by corner.
+	 *
+	 * @param string $file Path to a PNG file.
+	 * @return array<string,string> Corner pixels as `red,green,blue`.
+	 */
+	private function get_corner_pixels( $file ) {
+		$image  = imagecreatefrompng( $file );
+		$width  = imagesx( $image );
+		$height = imagesy( $image );
+
+		$pixel = static function ( $x, $y ) use ( $image ) {
+			$colour = imagecolorsforindex( $image, imagecolorat( $image, $x, $y ) );
+
+			return $colour['red'] . ',' . $colour['green'] . ',' . $colour['blue'];
+		};
+
+		$corners = array(
+			'TL' => $pixel( 0, 0 ),
+			'TR' => $pixel( $width - 1, 0 ),
+			'BR' => $pixel( $width - 1, $height - 1 ),
+			'BL' => $pixel( 0, $height - 1 ),
+		);
+
+		imagedestroy( $image );
+
+		return $corners;
 	}
 
 	/**
