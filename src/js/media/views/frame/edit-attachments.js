@@ -268,7 +268,7 @@ EditAttachments = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.EditAtta
 	 * @param {string} which A CSS selector to target the button to focus.
 	 */
 	focusNavButton: function( which ) {
-		$( which ).trigger( 'focus' );
+		$( document ).find( which ).trigger( 'focus' );
 	},
 
 	getCurrentIndex: function() {
