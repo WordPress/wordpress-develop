@@ -352,6 +352,71 @@ HTML;
 	}
 
 	/**
+	 * Tests if the Icon block's icon attribute is updated with the value
+	 * returned by a block bindings source.
+	 *
+	 * @ticket 65725
+	 *
+	 * @covers ::register_block_bindings_source
+	 */
+	public function test_update_icon_block_with_value_from_source() {
+		$get_value_callback = function () {
+			return 'test-icons/test-icon';
+		};
+
+		wp_register_icon_collection(
+			'test-icons',
+			array( 'label' => 'Test Icons' )
+		);
+
+		wp_register_icon(
+			'test-icons/test-icon',
+			array(
+				'label'   => 'Test Icon',
+				'content' => '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="currentColor"/></svg>',
+			)
+		);
+
+		register_block_bindings_source(
+			self::SOURCE_NAME,
+			array(
+				'label'              => self::SOURCE_LABEL,
+				'get_value_callback' => $get_value_callback,
+			)
+		);
+
+		try {
+			$block_content = <<<HTML
+<!-- wp:icon {"metadata":{"bindings":{"icon":{"source":"test/source"}}}} -->
+<div class="wp-block-icon"></div>
+<!-- /wp:icon -->
+HTML;
+			$parsed_blocks = parse_blocks( $block_content );
+			$block         = new WP_Block( $parsed_blocks[0] );
+			$result        = $block->render();
+
+			$this->assertSame(
+				'test-icons/test-icon',
+				$block->attributes['icon'],
+				"The 'icon' attribute should be updated with the value returned by the source."
+			);
+			$this->assertStringContainsString(
+				'<svg',
+				$result,
+				'The rendered output should contain an SVG element.'
+			);
+			$this->assertStringContainsString(
+				'wp-block-icon',
+				$result,
+				'The rendered output should contain the wp-block-icon class.'
+			);
+		} finally {
+			wp_unregister_icon( 'test-icons/test-icon' );
+			wp_unregister_icon_collection( 'test-icons' );
+		}
+	}
+
+	/**
 	 * Tests if the `__default` attribute is replaced with real attributes for
 	 * pattern overrides.
 	 *
