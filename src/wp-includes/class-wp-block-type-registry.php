@@ -23,6 +23,14 @@ final class WP_Block_Type_Registry {
 	private $registered_block_types = array();
 
 	/**
+	 * Number of successful registrations and unregistrations.
+	 *
+	 * @since 7.2.0
+	 * @var int
+	 */
+	private $change_count = 0;
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @since 5.0.0
@@ -98,6 +106,7 @@ final class WP_Block_Type_Registry {
 		}
 
 		$this->registered_block_types[ $name ] = $block_type;
+		++$this->change_count;
 
 		return $block_type;
 	}
@@ -128,6 +137,7 @@ final class WP_Block_Type_Registry {
 
 		$unregistered_block_type = $this->registered_block_types[ $name ];
 		unset( $this->registered_block_types[ $name ] );
+		++$this->change_count;
 
 		return $unregistered_block_type;
 	}
@@ -169,6 +179,21 @@ final class WP_Block_Type_Registry {
 	 */
 	public function is_registered( $name ) {
 		return isset( $name, $this->registered_block_types[ $name ] );
+	}
+
+	/**
+	 * Returns the number of times the registry has changed.
+	 *
+	 * The count increments on every successful registration and unregistration,
+	 * so a caller that stores it can tell whether the set of registered block
+	 * types has changed since then.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return int The number of successful registrations and unregistrations.
+	 */
+	public function get_change_count() {
+		return $this->change_count;
 	}
 
 	public function __wakeup() {

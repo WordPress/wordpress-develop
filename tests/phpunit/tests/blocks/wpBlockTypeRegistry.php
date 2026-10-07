@@ -180,4 +180,48 @@ class Tests_Blocks_wpBlockTypeRegistry extends WP_UnitTestCase {
 		$registered = $this->registry->get_all_registered();
 		$this->assertSameSets( $names, array_keys( $registered ) );
 	}
+
+	/**
+	 * @covers ::get_change_count
+	 */
+	public function test_change_count_starts_at_zero() {
+		$this->assertSame( 0, $this->registry->get_change_count() );
+	}
+
+	/**
+	 * @covers ::get_change_count
+	 */
+	public function test_change_count_increments_on_register_and_unregister() {
+		$this->registry->register( 'core/paragraph', array() );
+		$this->assertSame( 1, $this->registry->get_change_count(), 'Registering a block type should increment the change count' );
+
+		$this->registry->register( 'core/image', array() );
+		$this->assertSame( 2, $this->registry->get_change_count(), 'Registering a second block type should increment the change count' );
+
+		$this->registry->unregister( 'core/paragraph' );
+		$this->assertSame( 3, $this->registry->get_change_count(), 'Unregistering a block type should increment the change count' );
+	}
+
+	/**
+	 * @covers ::get_change_count
+	 *
+	 * @expectedIncorrectUsage WP_Block_Type_Registry::register
+	 */
+	public function test_change_count_unchanged_on_failed_register() {
+		$this->registry->register( 'core/paragraph', array() );
+
+		$this->assertFalse( $this->registry->register( 'core/paragraph', array() ), 'Registering a block type twice should fail' );
+		$this->assertFalse( $this->registry->register( 'paragraph', array() ), 'Registering an invalid block name should fail' );
+		$this->assertSame( 1, $this->registry->get_change_count(), 'A failed registration should not increment the change count' );
+	}
+
+	/**
+	 * @covers ::get_change_count
+	 *
+	 * @expectedIncorrectUsage WP_Block_Type_Registry::unregister
+	 */
+	public function test_change_count_unchanged_on_failed_unregister() {
+		$this->assertFalse( $this->registry->unregister( 'core/unregistered' ), 'Unregistering an unknown block type should fail' );
+		$this->assertSame( 0, $this->registry->get_change_count(), 'A failed unregistration should not increment the change count' );
+	}
 }
