@@ -114,7 +114,7 @@ final class WP_Abilities_Users {
 		wp_register_ability(
 			'core/users-query',
 			array(
-				'label'               => __( 'Users Query' ),
+				'label'               => __( 'Query Users' ),
 				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, email, username, or slug, or query a paginated collection optionally filtered by roles, published-post authorship, or included IDs.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_users_query_input_schema(),
