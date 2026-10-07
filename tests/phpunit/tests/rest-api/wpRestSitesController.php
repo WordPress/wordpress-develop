@@ -234,21 +234,21 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * A non-numeric `user` value casts to `0` via `(int)`, which must not be
-	 * allowed to match a logged-out request's `get_current_user_id()` (also
-	 * `0`) and grant the own-sites-filter bypass.
+	 * A non-numeric `user` value is rejected by validation, so it never reaches
+	 * the permission check, where an `(int)` cast to `0` could match a logged-out
+	 * request's `get_current_user_id()`.
 	 *
 	 * @ticket 40365
-	 * @covers ::get_items_permissions_check
+	 * @covers ::get_user_param_schema
 	 * @group ms-required
 	 */
-	public function test_get_items_non_numeric_user_filter_forbidden_when_logged_out() {
+	public function test_get_items_rejects_a_non_numeric_user() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 		$request->set_param( 'user', 'xyz' );
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
 	/**
@@ -1292,7 +1292,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'domain', WP_TESTS_DOMAIN );
 		$request->set_param( 'path', '/voluptas/' );
 		$request->set_param( 'blogname', 'Voluptas' );
-		$request->set_param( 'user_id', $user_id );
+		$request->set_param( 'user', $user_id );
 
 		$response = rest_get_server()->dispatch( $request );
 
@@ -1318,18 +1318,17 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @covers ::create_item
 	 * @group ms-required
 	 */
-	public function test_create_item_rejects_an_unknown_user_id() {
+	public function test_create_item_rejects_an_unknown_user() {
 		wp_set_current_user( self::$superadmin_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
 		$request->set_param( 'domain', WP_TESTS_DOMAIN );
 		$request->set_param( 'path', '/quisquam/' );
-		$request->set_param( 'user_id', 99999 );
+		$request->set_param( 'user', 99999 );
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 400, $response->get_status() );
-		$this->assertEquals( 'rest_site_invalid_user_id', $response->get_data()['code'] );
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 400 );
 
 		// The check runs before wp_insert_site(), so nothing was created.
 		$this->assertEquals( 0, get_blog_id_from_url( WP_TESTS_DOMAIN, '/quisquam/' ) );
@@ -1354,6 +1353,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$this->assertArrayNotHasKey( 'blogname', $args );
+		$this->assertArrayNotHasKey( 'user', $args );
 		$this->assertArrayNotHasKey( 'user_id', $args );
 		$this->assertArrayNotHasKey( 'network', $args );
 		$this->assertArrayHasKey( 'domain', $args );
@@ -2029,7 +2029,7 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
 		$request->set_param( 'user', (string) $user_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertErrorResponse( 'rest_forbidden_user', $response, 403 );
 	}
 
 	/**
@@ -2870,8 +2870,22 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$this->assertArrayHasKey( 'blogname', $args );
-		$this->assertArrayHasKey( 'user_id', $args );
-		$this->assertSame( 'integer', $args['user_id']['type'] );
+		$this->assertArrayHasKey( 'user', $args );
+		$this->assertSame( array( 'integer', 'string' ), $args['user']['type'] );
+		$this->assertSame(
+			array(
+				array(
+					'type'    => 'integer',
+					'minimum' => 1,
+				),
+				array(
+					'type' => 'string',
+					'enum' => array( 'me' ),
+				),
+			),
+			$args['user']['anyOf']
+		);
+		$this->assertArrayNotHasKey( 'user_id', $args );
 		$this->assertArrayNotHasKey( 'title', $args );
 	}
 
@@ -2895,7 +2909,15 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		foreach ( array( 'POST', 'PUT' ) as $method ) {
 			$request = new WP_REST_Request( $method, '/wp/v2/sites/' . $blog_id );
 			$request->set_param( 'blogname', 'Changed title' );
-			$request->set_param( 'user_id', 99999 );
+			$request->set_param( 'user', 99999 );
+
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertEquals( 200, $response->get_status(), $method );
+			$this->assertSame( 'Kept title', get_blog_option( $blog_id, 'blogname' ), $method );
+
+			// The update route does not register the parameter, so it is not validated either.
+			$request->set_param( 'user', 'xyz' );
 
 			$response = rest_get_server()->dispatch( $request );
 
@@ -3141,5 +3163,249 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertSame( 'https://home.example.org/', $data['home'] );
 		$this->assertSame( 'https://site.example.org/', $data['siteurl'] );
+	}
+
+	/**
+	 * Data provider for user parameter values that are neither a user ID nor "me".
+	 *
+	 * @return array[]
+	 */
+	public function data_invalid_user_params() {
+		return array(
+			'word'          => array( 'xyz' ),
+			'zero'          => array( '0' ),
+			'zero integer'  => array( 0 ),
+			'negative'      => array( -1 ),
+			'me with extra' => array( 'me2' ),
+			'empty'         => array( '' ),
+			'decimal'       => array( '5.5' ),
+			'list'          => array( array( 1 ) ),
+		);
+	}
+
+	/**
+	 * The collection filter only accepts a user ID or "me".
+	 *
+	 * @ticket 40365
+	 * @covers ::get_user_param_schema
+	 * @group ms-required
+	 * @dataProvider data_invalid_user_params
+	 *
+	 * @param mixed $user User parameter value.
+	 */
+	public function test_get_items_rejects_an_invalid_user( $user ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', $user );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Creating a site only accepts a user ID or "me" as the administrator.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_user_param_schema
+	 * @group ms-required
+	 * @dataProvider data_invalid_user_params
+	 *
+	 * @param mixed $user User parameter value.
+	 */
+	public function test_create_item_rejects_an_invalid_user( $user ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+		$request->set_param( 'domain', WP_TESTS_DOMAIN );
+		$request->set_param( 'path', '/invalid-user/' );
+		$request->set_param( 'user', $user );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertEquals( 0, get_blog_id_from_url( WP_TESTS_DOMAIN, '/invalid-user/' ) );
+	}
+
+	/**
+	 * A numeric string is sanitized to an integer, "me" is kept as it is.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_user_param_schema
+	 * @group ms-required
+	 */
+	public function test_get_items_sanitizes_the_user() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$seen    = array();
+		$capture = static function ( $args, $request ) use ( &$seen ) {
+			$seen[] = $request['user'];
+			return $args;
+		};
+
+		add_filter( 'rest_site_query', $capture, 10, 2 );
+
+		foreach ( array( (string) self::$superadmin_id, 'me' ) as $user ) {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+			$request->set_param( 'user', $user );
+
+			$this->assertEquals( 200, rest_get_server()->dispatch( $request )->get_status() );
+		}
+
+		remove_filter( 'rest_site_query', $capture, 10 );
+
+		$this->assertSame( array( self::$superadmin_id, 'me' ), $seen );
+	}
+
+	/**
+	 * "me" resolves to the current user, a numeric value to its integer.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_user_id_from_param
+	 */
+	public function test_get_user_id_from_param() {
+		$method = $this->get_reflective_method( 'get_user_id_from_param' );
+
+		$this->assertSame( 0, $method->invoke( $this->endpoint, 'me' ), 'Logged out, "me" is no user.' );
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$this->assertSame( self::$superadmin_id, $method->invoke( $this->endpoint, 'me' ) );
+		$this->assertSame( 7, $method->invoke( $this->endpoint, '7' ) );
+		$this->assertSame( 7, $method->invoke( $this->endpoint, 7 ) );
+	}
+
+	/**
+	 * Data provider for the ways to name the administrator of a new site.
+	 *
+	 * @return array[]
+	 */
+	public function data_create_item_user_values() {
+		return array(
+			'me'             => array( 'me', false ),
+			'integer'        => array( 'id', false ),
+			'numeric string' => array( 'string', false ),
+			'JSON integer'   => array( 'id', true ),
+			'JSON string'    => array( 'string', true ),
+		);
+	}
+
+	/**
+	 * The administrator can be given as "me", an integer or a numeric string,
+	 * in the query or a JSON body, and the new site then shows up in their list.
+	 *
+	 * @ticket 40365
+	 * @covers ::prepare_item_for_database
+	 * @group ms-required
+	 * @dataProvider data_create_item_user_values
+	 *
+	 * @param string $kind Which value to send: 'me', 'id' or 'string'.
+	 * @param bool   $json Whether to send the parameters as a JSON body.
+	 */
+	public function test_create_item_sets_the_user_as_administrator( $kind, $json ) {
+		wp_set_current_user( self::$superadmin_id );
+
+		$values = array(
+			'me'     => 'me',
+			'id'     => self::$superadmin_id,
+			'string' => (string) self::$superadmin_id,
+		);
+
+		$params = array(
+			'domain' => WP_TESTS_DOMAIN,
+			'path'   => '/administered/',
+			'user'   => $values[ $kind ],
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/sites' );
+
+		if ( $json ) {
+			$request->set_header( 'Content-Type', 'application/json' );
+			$request->set_body( wp_json_encode( $params ) );
+		} else {
+			$request->set_body_params( $params );
+		}
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 201, $response->get_status() );
+
+		$blog_id = $response->get_data()['id'];
+
+		$this->assertTrue( is_user_member_of_blog( self::$superadmin_id, $blog_id ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', 'me' );
+
+		$this->assertContains( $blog_id, wp_list_pluck( rest_get_server()->dispatch( $request )->get_data(), 'id' ) );
+	}
+
+	/**
+	 * Without the capability to manage sites, a user may only filter by their
+	 * own ID or "me", whichever site serves the request.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_another_user_needs_the_capability() {
+		$subsite_id = self::factory()->blog->create( array( 'path' => '/other-user/' ) );
+		$user_id    = self::factory()->user->create();
+		$other_id   = self::factory()->user->create();
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', $other_id );
+
+		$this->assertErrorResponse( 'rest_forbidden_user', rest_get_server()->dispatch( $request ), 403 );
+
+		switch_to_blog( $subsite_id );
+		$response = rest_get_server()->dispatch( $request );
+		restore_current_blog();
+
+		$this->assertErrorResponse( 'rest_forbidden_user', $response, 403 );
+
+		foreach ( array( 'me', $user_id, (string) $user_id ) as $own ) {
+			$request->set_param( 'user', $own );
+
+			$this->assertEquals( 200, rest_get_server()->dispatch( $request )->get_status(), 'A user can list their own sites.' );
+		}
+	}
+
+	/**
+	 * A logged-out request cannot filter by a user ID.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_user_filter_forbidden_when_logged_out() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', self::$superadmin_id );
+
+		$this->assertErrorResponse( 'rest_forbidden_user', rest_get_server()->dispatch( $request ), 401 );
+	}
+
+	/**
+	 * A super admin can list the sites of any user.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_items_super_admin_can_filter_by_another_user() {
+		$blog_id = self::factory()->blog->create( array( 'path' => '/someone-else/' ) );
+		$user_id = self::factory()->user->create();
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+		wp_set_current_user( self::$superadmin_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/sites' );
+		$request->set_param( 'user', $user_id );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains( $blog_id, wp_list_pluck( $response->get_data(), 'id' ) );
 	}
 }

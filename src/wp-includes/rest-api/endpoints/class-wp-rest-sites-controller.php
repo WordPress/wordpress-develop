@@ -53,11 +53,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	public function register_routes() {
 
 		// The administrator reaches wp_initialize_site(), which only runs on creation.
-		$create_args            = $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE );
-		$create_args['user_id'] = array(
-			'description' => __( 'User ID of the site administrator, set when the site is created.' ),
-			'type'        => 'integer',
-		);
+		$create_args         = $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE );
+		$create_args['user'] = $this->get_user_param_schema( __( 'The site administrator, set when the site is created. Accepts a user ID or "me".' ) );
 
 		register_rest_route(
 			$this->namespace,
@@ -143,6 +140,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$can_edit = $this->check_edit_permission();
+		$user     = $request['user'];
+
+		// Only users who can manage sites may list the sites of another user.
+		if ( ! empty( $user ) && 'me' !== $user && get_current_user_id() !== $this->get_user_id_from_param( $user ) && ! $can_edit ) {
+			return new WP_Error( 'rest_forbidden_user', __( 'Sorry, you are not allowed to list the sites of other users.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
 
 		// A user may list their own sites from any site, but only in the view context.
 		if ( 'view' === $context && $this->is_own_user_filter( $request ) ) {
@@ -203,11 +206,45 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		if ( 'me' === $user ) {
-			return is_user_logged_in();
-		}
+		return is_user_logged_in() && get_current_user_id() === $this->get_user_id_from_param( $user );
+	}
 
-		return is_user_logged_in() && get_current_user_id() === (int) $user;
+	/**
+	 * Retrieves the schema of a user parameter, which accepts a user ID or "me".
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $description Parameter description.
+	 * @return array Parameter schema.
+	 */
+	protected function get_user_param_schema( $description ) {
+		return array(
+			'description' => $description,
+			// Without a top-level type the request skips validating and sanitizing the parameter.
+			'type'        => array( 'integer', 'string' ),
+			'anyOf'       => array(
+				array(
+					'type'    => 'integer',
+					'minimum' => 1,
+				),
+				array(
+					'type' => 'string',
+					'enum' => array( 'me' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Resolves a user parameter to a user ID, "me" being the current user.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int|string $user A user ID or "me".
+	 * @return int User ID, 0 for "me" when logged out.
+	 */
+	protected function get_user_id_from_param( $user ) {
+		return 'me' === $user ? get_current_user_id() : (int) $user;
 	}
 
 	/**
@@ -274,7 +311,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$user = $request['user'];
 
 		if ( ! empty( $user ) ) {
-			$user_id  = ( 'me' === $user ) ? get_current_user_id() : (int) $user;
+			$user_id  = $this->get_user_id_from_param( $user );
 			$site_ids = $this->get_user_site_ids( $user_id );
 
 			if ( ! empty( $prepared_args['site__in'] ) ) {
@@ -1083,12 +1120,14 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 				$prepared_site['title'] = wp_slash( $request['blogname'] );
 			}
 
-			if ( isset( $request['user_id'] ) ) {
-				if ( ! get_userdata( (int) $request['user_id'] ) ) {
-					return new WP_Error( 'rest_site_invalid_user_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
+			if ( isset( $request['user'] ) ) {
+				$user_id = $this->get_user_id_from_param( $request['user'] );
+
+				if ( ! get_userdata( $user_id ) ) {
+					return new WP_Error( 'rest_user_invalid_id', __( 'Invalid user ID.' ), array( 'status' => 400 ) );
 				}
 
-				$prepared_site['user_id'] = (int) $request['user_id'];
+				$prepared_site['user_id'] = $user_id;
 			}
 		}
 
@@ -1571,10 +1610,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 				'site__in',
 			),
 		);
-		$query_params['user']    = array(
-			'description' => __( 'Limit result set to the sites a user is a member of. Accepts a user ID or "me".' ),
-			'type'        => 'string',
-		);
+		$query_params['user']    = $this->get_user_param_schema( __( 'Limit result set to the sites a user is a member of. Accepts a user ID or "me".' ) );
 
 		$status_descriptions = array(
 			'public'   => __( 'Limit result set to sites with a specific public status.' ),
