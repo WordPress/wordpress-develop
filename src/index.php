@@ -64,4 +64,4 @@ $die .= '<p>' . sprintf(
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
 ) . '</p>';
 
-wp_die( $die, __( 'WordPress &rsaquo; Error' ) );
+wp_die( $die, '', array( 'heading' => __( 'Error' ) ) );
