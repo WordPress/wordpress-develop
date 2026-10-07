@@ -1106,8 +1106,8 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 			array(
 				'srcset' => array(
 					'name'  => 'srcset',
-					'value' => 'alert(1) 1x, https://example.com/img.jpg 2x',
-					'whole' => 'srcset="alert(1) 1x, https://example.com/img.jpg 2x"',
+					'value' => 'https://example.com/img.jpg 2x',
+					'whole' => 'srcset="https://example.com/img.jpg 2x"',
 					'vless' => 'n',
 				),
 			),

@@ -1256,9 +1256,9 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		$processor->set_attribute( 'srcset', 'javascript:alert(1) 1x, safe.jpg 2x' );
 
 		$this->assertSame(
-			'alert(1) 1x, safe.jpg 2x',
+			'safe.jpg 2x',
 			$processor->get_attribute( 'srcset' ),
-			'set_attribute() must strip disallowed protocols from each srcset candidate'
+			'set_attribute() must drop srcset candidates with disallowed protocols'
 		);
 	}
 

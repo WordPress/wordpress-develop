@@ -2973,15 +2973,15 @@ HTML;
 			),
 			array(
 				'bad://localhost/test.png 1x, http://localhost/test-2x.png 2x',
-				'//localhost/test.png 1x, http://localhost/test-2x.png 2x',
+				'http://localhost/test-2x.png 2x',
 			),
 			array(
 				'http://localhost/test.png 1x, bad://localhost/test-2x.png 2x',
-				'http://localhost/test.png 1x, //localhost/test-2x.png 2x',
+				'http://localhost/test.png 1x',
 			),
 			array(
 				'http://localhost/test.png,big 1x, bad://localhost/test.png,medium 2x',
-				'http://localhost/test.png,big 1x, //localhost/test.png,medium 2x',
+				'http://localhost/test.png,big 1x',
 			),
 			array(
 				'path/to/test.png 1x, path/to/test-2x.png 2x',
@@ -3004,7 +3004,7 @@ HTML;
 
 		// Test bad protocol in srcset.
 		$original = '<picture><source srcset="bad://pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
-		$expected = '<picture><source srcset="//pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$expected = '<picture><source srcset="" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
 		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
 	}
 
@@ -3034,18 +3034,18 @@ HTML;
 			// Test srcset with multiple URIs.
 			array( 'srcset', 'image1.jpg 1x, image2.jpg 2x', 'image1.jpg 1x, image2.jpg 2x' ),
 
-			// Test srcset with bad protocol.
-			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
+			// Test srcset with bad protocol: the whole candidate is dropped.
+			array( 'srcset', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'http://example.com/image.jpg 2x' ),
 
 			// A custom $multi_uri_attrs entry is sanitized per URL even when the attribute
 			// is not registered as a URI attribute (fail-safe: one registration suffices).
-			array( 'custom', 'javascript:alert(1), url2.jpg', 'alert(1), url2.jpg', array( 'custom' ) ),
+			array( 'custom', 'javascript:alert(1), url2.jpg', 'url2.jpg', array( 'custom' ) ),
 
 			// Uppercase attribute name on a single-URI attribute is normalised.
 			array( 'SRC', 'javascript:alert(1)', 'alert(1)' ),
 
 			// Mixed-case attribute name on a multi-URI attribute splits correctly.
-			array( 'SrcSet', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'alert(1) 1x, http://example.com/image.jpg 2x' ),
+			array( 'SrcSet', 'javascript:alert(1) 1x, http://example.com/image.jpg 2x', 'http://example.com/image.jpg 2x' ),
 
 			// Empty $multi_uri falls through to single-URI handling, and srcset is
 			// deliberately not on that list: a caller that empties the multi-URI list
@@ -3076,7 +3076,7 @@ HTML;
 			array( 'data-srcset' )
 		);
 
-		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
+		$this->assertSame( 'https://example.com/img.jpg 2x', $result );
 	}
 
 	/**
@@ -3118,7 +3118,7 @@ HTML;
 	public function test_wp_kses_malicious_input() {
 		global $allowedposttags;
 
-		// A disallowed protocol is stripped from the candidate it appears in.
+		// A candidate with a disallowed protocol is dropped.
 		$original = '<img srcset="javascript:alert(1) 1x, https://example.com/large.jpg 2x" />';
 		$result   = wp_kses( $original, $allowedposttags );
 		$this->assertStringNotContainsString(
@@ -3127,9 +3127,9 @@ HTML;
 			'A disallowed protocol survived srcset sanitization.'
 		);
 		$this->assertSame(
-			'<img srcset="alert(1) 1x, https://example.com/large.jpg 2x" />',
+			'<img srcset="https://example.com/large.jpg 2x" />',
 			$result,
-			'Stripping a protocol should leave the rest of the candidate list intact.'
+			'Dropping a candidate should leave the rest of the candidate list intact.'
 		);
 
 		/*
@@ -3395,7 +3395,7 @@ HTML;
 		// Removing srcset from the single-URI attributes list changes nothing.
 		add_filter( 'wp_kses_uri_attributes', $remove_srcset );
 		$result = wp_kses_sanitize_uris( 'srcset', 'javascript:alert(1) 1x', $allowed_protocols );
-		$this->assertSame( 'alert(1) 1x', $result, 'srcset should remain sanitized while still a multi-URI attribute' );
+		$this->assertSame( '', $result, 'srcset should remain sanitized while still a multi-URI attribute' );
 
 		// Removing it from the multi-URI attributes list disables sanitization.
 		add_filter( 'wp_kses_multi_uri_attributes', $remove_srcset );
@@ -3630,15 +3630,15 @@ HTML;
 		return array(
 			'bad protocol after decimal descriptor'  => array(
 				'good.jpg 1.5x, javascript:alert(1) 2x',
-				'good.jpg 1.5x, alert(1) 2x',
+				'good.jpg 1.5x',
 			),
 			'bad protocol before decimal descriptor' => array(
 				'javascript:alert(1) 1.5x, good.jpg 2x',
-				'alert(1) 1.5x, good.jpg 2x',
+				'good.jpg 2x',
 			),
 			'three entries with middle decimal descriptor and bad middle URL' => array(
 				'image-1x.jpg 1x, javascript:alert(1) 1.5x, image-2x.jpg 2x',
-				'image-1x.jpg 1x, alert(1) 1.5x, image-2x.jpg 2x',
+				'image-1x.jpg 1x, image-2x.jpg 2x',
 			),
 		);
 	}
@@ -3710,15 +3710,15 @@ HTML;
 		return array(
 			'bad protocol in second descriptor-less entry' => array(
 				'safe.jpg, javascript:alert(1)',
-				'safe.jpg, alert(1)',
+				'safe.jpg',
 			),
 			'bad protocol in first descriptor-less entry'  => array(
 				'javascript:alert(1), safe.jpg',
-				'alert(1), safe.jpg',
+				'safe.jpg',
 			),
 			'comma before whitespace separates entries'    => array(
 				'a.jpg ,javascript:alert(1) 2x',
-				'a.jpg ,alert(1) 2x',
+				'a.jpg',
 			),
 			'descriptor-less entries with valid URLs pass through' => array(
 				'small.jpg, large.jpg',
@@ -3769,7 +3769,7 @@ HTML;
 
 		remove_filter( 'wp_kses_multi_uri_attributes', $add_custom );
 
-		$this->assertSame( 'alert(1) 1x, https://example.com/img.jpg 2x', $result );
+		$this->assertSame( 'https://example.com/img.jpg 2x', $result );
 	}
 
 	/**
@@ -3793,54 +3793,71 @@ HTML;
 		return array(
 			'comma in invalid descriptor starts a new candidate' => array(
 				'a.jpg 2q,javascript:alert(1)',
-				'a.jpg 2q,alert(1)',
+				'a.jpg 2q',
 			),
 			'comma in invalid descriptor after a path query starts a new candidate' => array(
 				'a.jpg/?v=1 2q,javascript:alert(1)',
-				'a.jpg/?v=1 2q,alert(1)',
+				'a.jpg/?v=1 2q',
 			),
 		);
 	}
 
 	/**
-	 * Test that URLs without a browser-parseable scheme are left intact.
+	 * Test that protocol sanitization drops candidates rather than rewriting them.
 	 *
 	 * Per the HTML specification, a comma not terminating a run of
 	 * non-whitespace characters belongs to the URL, so `a.jpg,https://…` is a
-	 * single relative URL. Its prefix before the colon (`a.jpg,https`) is not a
-	 * valid URL scheme, so no browser parses a protocol out of it; protocol
-	 * sanitization must leave it alone rather than rewrite the same-origin
-	 * relative URL into a cross-origin one.
+	 * single relative URL. wp_kses_bad_protocol() would strip everything through
+	 * the colon and turn it into the cross-origin URL `//example.com/b.jpg`, so
+	 * a candidate whose URL the protocol check changes is dropped whole, the same
+	 * rule esc_url() applies. URLs starting with "/" cannot carry a scheme and are
+	 * kept, also as in esc_url().
 	 *
 	 * @ticket 29807
 	 * @covers ::wp_kses_sanitize_uris
-	 * @dataProvider data_wp_kses_srcset_schemeless_urls_with_colons
+	 * @dataProvider data_wp_kses_srcset_urls_changed_by_protocol_check
+	 *
+	 * @param string $input    srcset value to sanitize.
+	 * @param string $expected Expected srcset value after sanitization.
 	 */
-	public function test_wp_kses_srcset_schemeless_urls_with_colons( $input, $expected ) {
+	public function test_wp_kses_srcset_urls_changed_by_protocol_check( $input, $expected ) {
 		$this->assertSame( $expected, wp_kses_sanitize_uris( 'srcset', $input, wp_allowed_protocols() ) );
 	}
 
-	public function data_wp_kses_srcset_schemeless_urls_with_colons() {
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_kses_srcset_urls_changed_by_protocol_check() {
 		return array(
-			'tight comma with a colon later stays one relative URL' => array(
-				'a.jpg,https://example.com/b.jpg',
-				'a.jpg,https://example.com/b.jpg',
+			'tight comma with a colon later is not rewritten cross-origin' => array(
+				'a.jpg,https://example.com/b.jpg 1x, c.jpg 2x',
+				'c.jpg 2x',
 			),
-			'relative CDN proxy URL wrapping an absolute URL'       => array(
-				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
-				'cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+			'an entity-encoded comma cannot fake a scheme prefix' => array(
+				'a.jpg&#44;https://example.com/b.jpg 1x, c.jpg 2x',
+				'c.jpg 2x',
 			),
-			'a scheme-shaped prefix is still protocol-checked'      => array(
+			'root-relative CDN proxy URL wrapping an absolute URL is kept' => array(
+				'/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+				'/cdn-cgi/image/format=auto,quality=80/https://bucket.example/img.jpg 1x, b.jpg 2x',
+			),
+			'a disallowed scheme drops the whole URL, commas included' => array(
 				'javascript:alert(1),safe.jpg',
-				'alert(1),safe.jpg',
+				'',
 			),
-			'an entity-encoded colon is still protocol-checked'     => array(
+			'an entity-encoded colon is still protocol-checked' => array(
 				'javascript&#58;alert(1) 1x, safe.jpg 2x',
-				'alert(1) 1x, safe.jpg 2x',
+				'safe.jpg 2x',
 			),
-			'an entity-encoded comma cannot fake a scheme prefix'   => array(
-				'a.jpg&#44;https://example.com/b.jpg',
-				'a.jpg&#44;https://example.com/b.jpg',
+			'scheme stripping that never settles cannot leave a cross-origin remainder' => array(
+				'javascript:a.jpg,https://example.com/b.jpg 2x',
+				'',
+			),
+			'an allowed scheme in uppercase round-trips unchanged' => array(
+				'HTTPS://example.com/a.jpg 1x, Http://example.com/b.jpg 2x',
+				'HTTPS://example.com/a.jpg 1x, Http://example.com/b.jpg 2x',
 			),
 		);
 	}
@@ -3848,8 +3865,8 @@ HTML;
 	/**
 	 * Test that data: URIs in srcset follow the allowed-protocols policy.
 	 *
-	 * `data` is not in wp_allowed_protocols(), so data: URIs are stripped from
-	 * srcset candidates just as they are from src and href. Sites that need
+	 * `data` is not in wp_allowed_protocols(), so srcset candidates with data:
+	 * URIs are dropped, just as esc_url() rejects them in src and href. Sites that need
 	 * data: image placeholders can allow them via the `kses_allowed_protocols`
 	 * filter, which extends to each srcset candidate.
 	 *
@@ -3860,9 +3877,9 @@ HTML;
 		$srcset = 'data:image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x';
 
 		$this->assertSame(
-			'image/gif;base64,R0lGODlhAQABAAAAACw= 1x, real.jpg 2x',
+			'real.jpg 2x',
 			wp_kses_sanitize_uris( 'srcset', $srcset, wp_allowed_protocols() ),
-			'data: URIs should be stripped from srcset candidates by default, consistent with src'
+			'Candidates with data: URIs should be dropped by default rather than rewritten into relative URLs'
 		);
 
 		$this->assertSame(

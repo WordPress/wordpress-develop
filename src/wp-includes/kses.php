@@ -1806,6 +1806,7 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
  * It checks if the attribute name is one that should contain a URI (e.g., 'href', 'src', 'srcset').
  * For attributes that can contain multiple URIs (such as 'srcset'), it splits the value and sanitizes each URI individually.
  * All URI values are passed through {@see wp_kses_bad_protocol()} to remove disallowed protocols (e.g., 'javascript:').
+ * In multi-URI attributes, a candidate whose URL that check would change is dropped in full, as in {@see esc_url()}.
  *
  * @since 7.2.0
  *
@@ -1897,42 +1898,23 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 			$descriptors = substr( $attr_value, $descriptor_start, $at - $descriptor_start );
 
 			/*
-			 * Sanitize the URL's protocol only when the text before its first colon
-			 * could be parsed as a URL scheme: an ASCII letter followed by ASCII
-			 * letters, digits, "+", "-", and "." per RFC 3986. Browsers treat any
-			 * other prefix as part of a schemeless, relative URL, so there is no
-			 * protocol to check, and wp_kses_bad_protocol() would corrupt the URL
-			 * by stripping the text through the colon: it rewrites the relative,
-			 * same-origin URL `a.jpg,https://example.com/b.jpg` into the
-			 * cross-origin URL `//example.com/b.jpg`.
+			 * Keep the candidate only when wp_kses_bad_protocol() leaves its URL
+			 * unchanged, the same rule esc_url() applies to single URLs. Stripping
+			 * a disallowed scheme and keeping the remainder would rewrite the URL
+			 * rather than remove it: `data:image/png;base64,…` would become a
+			 * relative URL the browser requests, and `a.jpg,https://example.com/b.jpg`
+			 * would become the cross-origin URL `//example.com/b.jpg`.
 			 *
-			 * The colon detection and the scheme normalization deliberately mirror
-			 * wp_kses_bad_protocol_once() and wp_kses_bad_protocol_once2() so no
-			 * colon form that wp_kses_bad_protocol() would act on is missed. The
-			 * normalization removes a superset of the characters browsers remove
-			 * from URLs (tab, line feed, and carriage return), so any prefix
-			 * rejected here is also rejected as a scheme by browsers.
+			 * The comparison ignores case because wp_kses_bad_protocol() lowercases
+			 * an allowed scheme; the original URL is kept so allowed values
+			 * round-trip byte for byte. As in esc_url(), a URL starting with "/"
+			 * cannot carry a scheme, so it is kept without a protocol check.
 			 */
-			$prefix = preg_replace( '/(&#0*58(?![;0-9])|&#x0*3a(?![;a-f0-9]))/i', '$1;', $url );
-			$prefix = preg_split( '/:|&#0*58;|&#x0*3a;|&colon;/i', $prefix, 2 );
-
-			$scheme = null;
-			if ( isset( $prefix[1] ) ) {
-				$scheme = wp_kses_decode_entities( $prefix[0] );
-				$scheme = preg_replace( '/\s/', '', $scheme );
-				$scheme = wp_kses_no_null( $scheme );
-			}
-
-			if ( null === $scheme || '' === $scheme || preg_match( '/^[a-z][a-z0-9+.\-]*$/i', $scheme ) ) {
-				$url = wp_kses_bad_protocol( $url, $allowed_protocols );
-			}
-
-			if ( '' === $url ) {
+			if ( '/' !== $url[0] && 0 !== strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url ) ) {
 				/*
-				 * Sanitization emptied the URL, so the candidate is dropped whole.
-				 * Leaving its descriptors behind would shift them into URL position:
-				 * a browser reads the first of them as the next candidate's URL and
-				 * requests it as a relative URL.
+				 * The candidate is dropped whole. Leaving its descriptors behind
+				 * would shift them into URL position: a browser reads the first of
+				 * them as the next candidate's URL and requests it as a relative URL.
 				 */
 				$dropped = true;
 				continue;
@@ -1949,6 +1931,11 @@ function wp_kses_sanitize_uris( $attr_name, $attr_value, $allowed_protocols, $mu
 			}
 
 			$result .= $separator . $url . str_repeat( ',', $trailing_commas ) . $descriptors;
+		}
+
+		if ( $dropped ) {
+			// The last candidate was removed, so trim the separator left dangling before it.
+			$result = rtrim( $result, "{$whitespace}," );
 		}
 
 		return $result;
