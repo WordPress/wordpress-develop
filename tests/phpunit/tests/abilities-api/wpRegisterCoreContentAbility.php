@@ -2173,6 +2173,48 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Title and permalink filters run with the requested post as the global post, also when
+	 * no post was set up before, as in a REST request.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_title_and_link_filters_see_the_requested_post(): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			unset( $GLOBALS[ $name ] );
+		}
+
+		$target_id = self::$post_ids['limited_role_content'];
+
+		add_filter(
+			'the_title',
+			static function ( $title ): string {
+				return (string) $title . '<!-- context:' . get_the_ID() . ' -->';
+			},
+			20
+		);
+		add_filter(
+			'post_link',
+			static function ( $link ): string {
+				return add_query_arg( 'context', get_the_ID(), (string) $link );
+			}
+		);
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => $target_id,
+				'fields' => array( 'title_rendered', 'link' ),
+			)
+		);
+
+		$this->assertStringContainsString( '<!-- context:' . $target_id . ' -->', $result['title_rendered'], 'Title filters should see the requested post as the current post.' );
+		$this->assertStringContainsString( 'context=' . $target_id, $result['link'], 'Permalink filters should see the requested post as the current post.' );
+	}
+
+	/**
 	 * Returns the loop globals that are set, keyed by name.
 	 *
 	 * @since 7.2.0
@@ -2520,6 +2562,50 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		 * row lazily primes its own meta, which is one query per returned post.
 		 */
 		$this->assertSame( 1, $postmeta_queries, 'Rendered field requests should prime post meta with a single batched query, not one per returned post.' );
+	}
+
+	/**
+	 * Requesting rendered fields primes the authors of the whole page.
+	 *
+	 * Rendering sets each post up with setup_postdata(), which reads the post's author, so
+	 * without priming, each author on the page runs its own query.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_rendered_fields
+	 * @since 7.2.0
+	 *
+	 * @param string $field The rendered field to request.
+	 */
+	public function test_query_rendered_fields_prime_the_authors_of_the_page( string $field ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ids = array();
+		foreach ( array( 'author', 'author_secondary', 'editor' ) as $role ) {
+			$ids[] = self::factory()->post->create(
+				array(
+					'post_author' => self::$user_ids[ $role ],
+					'post_status' => 'publish',
+				)
+			);
+		}
+
+		$users_queries = $this->count_queries(
+			'users',
+			static function () use ( $ids, $field ) {
+				return wp_get_ability( 'core/content-query' )->execute(
+					array(
+						'post_type' => 'post',
+						'include'   => $ids,
+						'fields'    => array( 'id', $field ),
+					)
+				);
+			},
+			$result
+		);
+
+		$this->assertCount( 3, $result['posts'], 'Precondition: the query should return the seeded posts.' );
+		$this->assertSame( 1, $users_queries, 'Rendered fields should read primed authors, not query once per author.' );
 	}
 
 	/**
