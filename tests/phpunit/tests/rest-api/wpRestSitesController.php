@@ -432,6 +432,46 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * Unauthorized requests get the same error for existing and unknown IDs,
+	 * so they can't reveal which sites exist.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @covers ::update_item_permissions_check
+	 * @covers ::delete_item_permissions_check
+	 * @group ms-required
+	 *
+	 * @dataProvider data_unauthorized_item_requests
+	 *
+	 * @param string $method        HTTP method.
+	 * @param string $expected_code Expected error code.
+	 */
+	public function test_unauthorized_item_request_does_not_reveal_site_existence( $method, $expected_code ) {
+		$site_id = self::factory()->blog->create();
+		wp_set_current_user( 0 );
+
+		foreach ( array( $site_id, REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) as $id ) {
+			$request  = new WP_REST_Request( $method, '/wp/v2/sites/' . $id );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( $expected_code, $response, 401 );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unauthorized_item_requests() {
+		return array(
+			'read'   => array( 'GET', 'rest_forbidden_context' ),
+			'update' => array( 'PUT', 'rest_cannot_edit' ),
+			'delete' => array( 'DELETE', 'rest_cannot_delete' ),
+		);
+	}
+
+	/**
 	 * @ticket 40365
 	 * @covers ::create_item
 	 * @group ms-required

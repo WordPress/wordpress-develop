@@ -407,6 +407,14 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
+		// Check capabilities before looking up the site, so unauthorized users can't probe which site IDs exist.
+		$context   = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$is_member = in_array( $context, array( 'view', 'embed' ), true ) && is_user_member_of_blog( get_current_user_id(), (int) $request['id'] );
+
+		if ( ! $is_member && ! $this->check_edit_permission() ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
@@ -414,16 +422,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! $this->site_in_network( $site ) ) {
 			return new WP_Error( 'rest_unable_read_from_network', __( 'Sorry, you are not allowed to view sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-
-		if ( in_array( $context, array( 'view', 'embed' ), true ) && is_user_member_of_blog( get_current_user_id(), (int) $site->blog_id ) ) {
-			return true;
-		}
-
-		if ( ! $this->check_edit_permission() ) {
-			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -609,6 +607,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
+		if ( ! $this->check_edit_permission() ) {
+			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this site.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
@@ -616,10 +618,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! $this->site_in_network( $site ) ) {
 			return new WP_Error( 'rest_unable_update_from_network', __( 'Sorry, you are not allowed to edit sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( ! $this->check_edit_permission() ) {
-			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -708,6 +706,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
+		if ( ! $this->check_delete_permission( (int) $request['id'] ) ) {
+			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this site.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$site = $this->get_site( $request['id'] );
 		if ( is_wp_error( $site ) ) {
 			return $site;
@@ -715,10 +717,6 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		if ( ! $this->site_in_network( $site ) ) {
 			return new WP_Error( 'rest_unable_delete_from_network', __( 'Sorry, you are not allowed to delete sites on another network.' ), array( 'status' => rest_authorization_required_code() ) );
-		}
-
-		if ( ! $this->check_delete_permission( $site ) ) {
-			return new WP_Error( 'rest_cannot_delete', __( 'Sorry, you are not allowed to delete this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		if ( get_main_site_id( (int) $site->site_id ) === (int) $site->blog_id ) {
@@ -1576,11 +1574,11 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param object $site Site object.
+	 * @param int $site_id Site ID.
 	 * @return bool Whether the site can be deleted.
 	 */
-	protected function check_delete_permission( $site ) {
-		return current_user_can( 'delete_sites' ) && current_user_can( 'delete_site', $site->blog_id );
+	protected function check_delete_permission( $site_id ) {
+		return current_user_can( 'delete_sites' ) && current_user_can( 'delete_site', $site_id );
 	}
 
 	/**
