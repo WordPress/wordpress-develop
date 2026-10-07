@@ -605,6 +605,84 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Include returns every requested user when `per_page` is omitted.
+	 *
+	 * Without this the default page size silently truncates a batch load: a caller asking
+	 * for a known set of IDs would receive only the first `per_page` of them.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_collection_include_returns_every_requested_user_without_per_page(): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		// More than DEFAULT_PER_PAGE (10) so truncation would be visible.
+		$ids = self::factory()->user->create_many( 15 );
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'include' => $ids,
+				'fields'  => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'An included user query should return an array.' );
+		$this->assertEqualSets( $ids, wp_list_pluck( $result['users'], 'id' ), 'Every requested user ID should be returned on a single page.' );
+		$this->assertSame( 15, $result['total'], 'The total should cover every requested user.' );
+		$this->assertSame( 1, $result['total_pages'], 'Included users should fit on a single page by default.' );
+	}
+
+	/**
+	 * An explicit `per_page` still paginates an include request.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_collection_include_honors_an_explicit_per_page(): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$ids = self::factory()->user->create_many( 5 );
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'include'  => $ids,
+				'per_page' => 2,
+				'fields'   => array( 'id' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'An included user query should return an array.' );
+		$this->assertCount( 2, $result['users'], 'An explicit per_page should paginate included users.' );
+		$this->assertSame( 5, $result['total'], 'The total should still cover every requested user.' );
+		$this->assertSame( 3, $result['total_pages'], 'Page counts should follow the explicit per_page.' );
+	}
+
+	/**
+	 * The include list is capped at the maximum page size.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_collection_include_is_capped_at_the_maximum_page_size(): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$ability    = wp_get_ability( 'core/users-query' );
+		$schema     = $ability->get_input_schema();
+		$collection = $schema['oneOf'][4]['properties'];
+
+		$this->assertSame( $collection['per_page']['maximum'], $collection['include']['maxItems'], 'The include list should be capped at the maximum page size.' );
+
+		$result = $ability->execute(
+			array(
+				'include' => range( 1, $collection['include']['maxItems'] + 1 ),
+			)
+		);
+
+		$this->assertWPError( $result, 'An include list beyond the cap should be rejected as invalid input.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The cap should be enforced by schema validation.' );
+	}
+
+	/**
 	 * Collection results keep the default ordering, not the order of the include list.
 	 *
 	 * The query deliberately leaves `orderby` alone rather than setting it to

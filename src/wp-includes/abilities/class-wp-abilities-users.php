@@ -189,7 +189,8 @@ final class WP_Abilities_Users {
 			return $this->format_user( $user, $fields );
 		}
 
-		$per_page       = $this->normalize_per_page( $input );
+		$include        = ! empty( $input['include'] ) ? wp_parse_id_list( $input['include'] ) : array();
+		$per_page       = $this->normalize_per_page( $input, $include );
 		$can_list_users = current_user_can( 'list_users' );
 
 		$query_args = array(
@@ -197,12 +198,12 @@ final class WP_Abilities_Users {
 			'paged'  => isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1,
 		);
 
-		if ( ! empty( $input['include'] ) ) {
+		if ( array() !== $include ) {
 			/*
 			 * The include order is not applied as `orderby`. Keeping the default
 			 * ordering lets WP_User_Query share cached results with other queries.
 			 */
-			$query_args['include'] = wp_parse_id_list( $input['include'] );
+			$query_args['include'] = $include;
 		}
 
 		if ( ! empty( $input['roles'] ) && $can_list_users ) {
@@ -544,13 +545,20 @@ final class WP_Abilities_Users {
 	/**
 	 * Normalizes the requested per-page value to the supported bounds.
 	 *
+	 * An explicit `per_page` always wins. Otherwise an `include` request pages to the
+	 * number of requested IDs, so a caller loading a known set of users receives all of
+	 * them in one call rather than silently losing the ones past the default page size.
+	 * The input schema caps `include` at {@see self::MAX_PER_PAGE} so it always fits.
+	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $input       The ability input.
+	 * @param int[]        $include_ids Parsed included user IDs; empty when not requested.
 	 * @return int The clamped per-page value.
 	 */
-	private function normalize_per_page( array $input ): int {
-		$per_page = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : self::DEFAULT_PER_PAGE;
+	private function normalize_per_page( array $input, array $include_ids ): int {
+		$default  = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
+		$per_page = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : $default;
 
 		return max( 1, min( self::MAX_PER_PAGE, $per_page ) );
 	}
@@ -657,11 +665,12 @@ final class WP_Abilities_Users {
 			'type'        => 'array',
 			'uniqueItems' => true,
 			'minItems'    => 1,
+			'maxItems'    => self::MAX_PER_PAGE,
 			'items'       => array(
 				'type'    => 'integer',
 				'minimum' => 1,
 			),
-			'description' => __( 'Limit the query to these user IDs. Collection results are limited to users the caller can read, which for callers without permission to list users means only public authors. To read your own account, use a single-user lookup by ID.' ),
+			'description' => __( 'Limit the query to these user IDs. If `per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum. Collection results are limited to users the caller can read, which for callers without permission to list users means only public authors. To read your own account, use a single-user lookup by ID.' ),
 		);
 
 		return array(
