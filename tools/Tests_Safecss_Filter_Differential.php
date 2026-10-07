@@ -1,13 +1,15 @@
 <?php
 /**
- * Differential: legacy safecss_filter_attr() against the prototype list filter.
+ * Differential: the legacy safecss_filter_attr() path against the parser-based default.
+ *
+ * The legacy path is selected through the `safecss_filter_attr_use_legacy` filter.
  *
  * Run: WP_TESTS_SKIP_INSTALL=1 vendor/bin/phpunit tools/Tests_Safecss_Filter_Differential.php
  *
  * Prints every data-provider input whose outputs differ, with a classification:
- * - serialization: legacy and prototype re-parse to the same declarations.
- * - narrowing: the prototype drops everything legacy kept.
- * - widening: the prototype keeps a declaration legacy dropped.
+ * - serialization: legacy and parser re-parse to the same declarations.
+ * - narrowing: the parser drops everything legacy kept.
+ * - widening: the parser keeps a declaration legacy dropped.
  * - defect: anything else; inspect by hand.
  */
 
@@ -33,8 +35,8 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 			'defect'        => 0,
 		);
 		foreach ( $inputs as $input => $expected ) {
-			$legacy    = safecss_filter_attr( $input );
-			$prototype = wp_filter_style_declaration_list( $input );
+			$legacy    = self::legacy( $input );
+			$prototype = safecss_filter_attr( $input );
 
 			if ( $legacy === $prototype ) {
 				++$counts['same'];
@@ -59,7 +61,7 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 
 		usort( $rows, static fn( $a, $b ) => strcmp( $a[0], $b[0] ) );
 
-		$out = "| class | input | legacy | prototype |\n|---|---|---|---|\n";
+		$out = "| class | input | legacy | parser |\n|---|---|---|---|\n";
 		foreach ( $rows as $row ) {
 			$out .= '| ' . implode( ' | ', array_map( static fn( $c ) => str_replace( array( '|', "\n" ), array( '\\|', '\\n' ), '`' . $c . '`' ), $row ) ) . " |\n";
 		}
@@ -68,8 +70,8 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 		// Idempotence: filtering the output again changes nothing.
 		$not_idempotent = array();
 		foreach ( $inputs as $input => $expected ) {
-			$once  = wp_filter_style_declaration_list( $input );
-			$twice = wp_filter_style_declaration_list( $once );
+			$once  = safecss_filter_attr( $input );
+			$twice = safecss_filter_attr( $once );
 			if ( $once !== $twice ) {
 				$not_idempotent[] = array( $input, $once, $twice );
 			}
@@ -79,28 +81,18 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 			$out .= '  ' . json_encode( $row ) . "\n";
 		}
 
-		// Value access: the processor's token view against re-tokenizing get_value_source().
-		$token_view_mismatch = array();
-		foreach ( $inputs as $input => $expected ) {
-			$processor = WP_HTML_Style_Attribute_Processor::create( $input );
-			while ( $processor->next_declaration() ) {
-				$view  = array_map( static fn( $t ) => array( $t['type'], $t['value'] ), $processor->get_value_tokens() );
-				$raw   = array();
-				$again = WP_CSS_Token_Processor::create( (string) $processor->get_value_source() );
-				while ( $again->next_token() ) {
-					$raw[] = array( $again->get_token_type(), $again->get_token_value() );
-				}
-				if ( $view !== $raw ) {
-					$token_view_mismatch[] = array( $input, $processor->get_property_name(), $view, $raw );
-				}
-			}
-		}
-		$out .= 'token view vs re-tokenized raw value mismatches: ' . count( $token_view_mismatch ) . "\n";
-		foreach ( $token_view_mismatch as $row ) {
-			$out .= '  ' . json_encode( $row ) . "\n";
-		}
 		fwrite( STDOUT, "\n" . $out );
 		$this->assertTrue( true );
+	}
+
+	/**
+	 * Runs the legacy path of safecss_filter_attr().
+	 */
+	private static function legacy( string $css ): string {
+		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		$output = safecss_filter_attr( $css );
+		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		return $output;
 	}
 
 	/**
@@ -110,7 +102,7 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 		$processor = WP_HTML_Style_Attribute_Processor::create( $css );
 		$decls     = array();
 		while ( $processor->next_declaration() ) {
-			$value = (string) $processor->get_value_source();
+			$value = implode( '', array_map( static fn( $t ) => substr( $css, $t['start'], $t['length'] ), $processor->get_value_tokens() ) );
 			$value = preg_replace( '/\s+/', ' ', $value );
 			$value = str_replace( array( '"', "'" ), '"', $value );
 			$value = preg_replace_callback( '/url\(\s*"([^"]*)"\s*\)/i', static fn( $m ) => 'url("' . $m[1] . '")', $value );
