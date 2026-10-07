@@ -904,8 +904,19 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				break;
 
 			case 'image/avif':
-				$options['Q']     = $this->get_quality();
-				$options['strip'] = $strip_meta;
+				$options['Q']      = $this->get_quality();
+				$options['strip']  = $strip_meta;
+				/**
+				 * Filters the libvips effort used when encoding AVIF.
+				 *
+				 * A higher effort is more CPU per image, and WordPress's typical 30s
+				 * PHP-FPM limit can be reached on large images at the libvips default.
+				 *
+				 * @since 7.2.0
+				 *
+				 * @param int $effort A value between 0 and 9. Default 3.
+				 */
+				$options['effort'] = max( 0, min( 9, (int) apply_filters( 'wp_image_editor_vips_avif_effort', 3 ) ) );
 				break;
 
 			case 'image/webp':
