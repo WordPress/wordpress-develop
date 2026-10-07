@@ -287,8 +287,6 @@
 }
 
 #adminmenu div.wp-menu-image.svg-icon svg {
-	width: 24px;
-	height: 24px;
 	fill: currentColor;
 }
 
@@ -521,8 +519,6 @@ ul#adminmenu > li.current > a.current::after {
 }
 
 #collapse-button .collapse-button-icon svg {
-	width: 24px;
-	height: 24px;
 	fill: currentColor;
 	position: relative;
 	top: -1px;
@@ -839,11 +835,6 @@ li#wp-admin-bar-menu-toggle {
 		padding: 0;
 		border: none;
 		box-sizing: border-box;
-	}
-
-	#wpadminbar #wp-admin-bar-menu-toggle .ab-icon svg {
-		width: 36px;
-		height: 36px;
 	}
 
 	.wp-responsive-open #wpadminbar #wp-admin-bar-menu-toggle .ab-icon {
