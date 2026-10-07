@@ -119,7 +119,7 @@ function wp_create_categories( $categories, $post_id = 0 ) {
  *                      depending on param `$wp_error`.
  *
  * @phpstan-return (
- *     $wp_error is false ? int : int|WP_Error
+ *     $wp_error is false ? non-negative-int : non-negative-int|WP_Error
  * )
  */
 function wp_insert_category( $catarr, $wp_error = false ) {
