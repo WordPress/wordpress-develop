@@ -1,9 +1,9 @@
 <?php
 
-declare( strict_types = 1 );
+declare( strict_types=1 );
 
 /**
- * Tests for the core/users-query ability.
+ * Tests for the core/users-query ability shipped with the Abilities API.
  *
  * @covers WP_Abilities_Users
  *
@@ -217,7 +217,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 */
-	private function register_core_users_ability(): void {
+	private function register_ability(): void {
 		if ( wp_has_ability( 'core/users-query' ) ) {
 			wp_unregister_ability( 'core/users-query' );
 		}
@@ -233,7 +233,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_core_users_ability_is_registered(): void {
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -253,7 +253,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_core_users_input_schema_exposes_strict_modes(): void {
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$schema = wp_get_ability( 'core/users-query' )->get_input_schema();
 
@@ -338,7 +338,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_avatar_urls_respects_show_avatars_option(): void {
 		update_option( 'show_avatars', 0 );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability       = wp_get_ability( 'core/users-query' );
 		$input_schema  = $ability->get_input_schema();
@@ -371,7 +371,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_omitted_fields_return_lean_defaults(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => $this->subscriber_id ) );
 
@@ -391,7 +391,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_core_users_requires_logged_in_user(): void {
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array() );
 
@@ -406,7 +406,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_current_user_can_read_themselves_by_sensitive_identifiers(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -452,7 +452,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_public_author_can_be_read_by_id_and_slug(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -505,7 +505,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user( self::$fixture_ids['editor'] );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$this->assertFalse( current_user_can( 'list_users' ), 'An editor should not be able to list users.' );
 		$this->assertFalse( current_user_can( 'edit_user', $author_id ), 'An editor should not be able to edit the author.' );
@@ -559,7 +559,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_roles_have_expected_sensitive_identifier_lookup_permissions( string $role, bool $can_resolve ): void {
 		wp_set_current_user( self::$fixture_ids[ $role ] );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -607,7 +607,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_empty_collection_mode_restricts_users_without_list_users_to_public_authors(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array() );
 
@@ -626,7 +626,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_collection_include_limits_results(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -656,7 +656,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_include_order_does_not_control_the_result_order(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -690,7 +690,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_collection_include_respects_read_permissions(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -745,7 +745,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -796,7 +796,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_collection_mode_excludes_self_without_published_posts(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -830,7 +830,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_include_cannot_be_combined_with_single_user_modes(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$by_id = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -892,7 +892,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertFalse( get_post_type_object( 'public_pt' )->show_in_rest, 'The public fixture post type should remain hidden from REST.' );
 
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 		$schema  = $ability->get_input_schema();
@@ -933,7 +933,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_admin_can_query_by_role_and_receive_roles(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -963,7 +963,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_roles_have_expected_field_visibility_for_another_public_author( string $role, bool $can_view_sensitive, bool $can_view_roles ): void {
 		wp_set_current_user( self::$fixture_ids[ $role ] );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1029,7 +1029,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		try {
 			wp_set_current_user( $lister_id );
-			$this->register_core_users_ability();
+			$this->register_ability();
 
 			$result = wp_get_ability( 'core/users-query' )->execute(
 				array(
@@ -1057,7 +1057,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_roles_registered_after_registration_do_not_fail_output_validation(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		// Register the role only after the ability (and its output schema) exist.
 		add_role( 'core_users_ability_late_role', 'Late Role', array( 'read' => true ) );
@@ -1085,7 +1085,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_role_filter_requires_list_users(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array( 'roles' => array( 'author' ) ) );
 
@@ -1100,7 +1100,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_restricted_requested_fields_are_omitted_per_user(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1127,7 +1127,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_fully_redacted_field_request_still_returns_id(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -1172,7 +1172,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_object_input_behaves_like_array_input(): void {
 		wp_set_current_user( $this->subscriber_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			(object) array(
@@ -1199,7 +1199,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_rest_style_string_input_is_coerced(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
@@ -1289,7 +1289,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_unknown_requested_field_fails_schema_validation(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1314,7 +1314,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_unavailable_requested_field_is_omitted(): void {
 		update_option( 'show_avatars', 0 );
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1367,7 +1367,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$user_id = $this->create_user_without_email();
 
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1408,7 +1408,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertFalse( is_email( $stored_email ), 'The stored address should still be rejected by is_email().' );
 
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1433,7 +1433,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$user_id = $this->create_user_without_email();
 
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
@@ -1462,7 +1462,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_suppressed_avatar_url_does_not_fail_output(): void {
 		update_option( 'show_avatars', 1 );
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		add_filter(
 			'pre_get_avatar_data',
@@ -1496,7 +1496,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_partially_suppressed_avatar_urls_keep_the_resolved_sizes(): void {
 		update_option( 'show_avatars', 1 );
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		add_filter(
 			'pre_get_avatar_data',
@@ -1530,7 +1530,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_missing_single_user_lookup_fails_closed(): void {
 		wp_set_current_user( $this->admin_id );
-		$this->register_core_users_ability();
+		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => 999999 ) );
 
