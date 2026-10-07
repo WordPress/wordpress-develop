@@ -1704,7 +1704,16 @@ function get_available_languages( $dir = null ) {
  * @return array<string, array<string, string[]>> Array of language data, keyed by text domain and then
  *                                                 by locale, each value being the translation file headers.
  *
- * @phpstan-return ( $type is 'plugins'|'themes'|'core' ? array<string, array<string, string[]>> : array{} )
+ * @phpstan-return (
+ *     $type is 'plugins'|'themes'|'core'
+ *         ? array<string, array<string, array{
+ *             'POT-Creation-Date': string,
+ *             'PO-Revision-Date': string,
+ *             'Project-Id-Version': string,
+ *             'X-Generator': string,
+ *         }>>
+ *         : array{}
+ * )
  */
 function wp_get_installed_translations( $type ) {
 	global $wp_textdomain_registry;
@@ -1765,6 +1774,13 @@ function wp_get_installed_translations( $type ) {
  *
  * @param string $po_file Path to PO file.
  * @return string[] Array of PO file header values keyed by header name.
+ *
+ * @phpstan-return array{
+ *     'POT-Creation-Date': string,
+ *     'PO-Revision-Date': string,
+ *     'Project-Id-Version': string,
+ *     'X-Generator': string,
+ * }
  */
 function wp_get_pomo_file_data( $po_file ) {
 	$headers = get_file_data(
@@ -1776,11 +1792,29 @@ function wp_get_pomo_file_data( $po_file ) {
 			'X-Generator'        => '"X-Generator',
 		)
 	);
-	foreach ( $headers as $header => $value ) {
-		// Remove possible contextual '\n' and closing double quote.
-		$headers[ $header ] = preg_replace( '~(\\\n)?"$~', '', $value );
+
+	$result = array(
+		'POT-Creation-Date'  => '',
+		'PO-Revision-Date'   => '',
+		'Project-Id-Version' => '',
+		'X-Generator'        => '',
+	);
+
+	foreach ( array_keys( $result ) as $header ) {
+		$value = $headers[ $header ];
+
+		// Remove possible closing double quote and the contextual '\n' preceding it.
+		if ( str_ends_with( $value, '"' ) ) {
+			$value = substr( $value, 0, -1 );
+			if ( str_ends_with( $value, '\n' ) ) {
+				$value = substr( $value, 0, -2 );
+			}
+		}
+
+		$result[ $header ] = $value;
 	}
-	return $headers;
+
+	return $result;
 }
 
 /**
@@ -1790,6 +1824,13 @@ function wp_get_pomo_file_data( $po_file ) {
  *
  * @param string $php_file Path to a `.l10n.php` file.
  * @return string[] Array of file header values keyed by header name.
+ *
+ * @phpstan-return array{
+ *     'POT-Creation-Date': string,
+ *     'PO-Revision-Date': string,
+ *     'Project-Id-Version': string,
+ *     'X-Generator': string,
+ * }
  */
 function wp_get_l10n_php_file_data( $php_file ) {
 	$data = (array) include $php_file;
@@ -1810,7 +1851,7 @@ function wp_get_l10n_php_file_data( $php_file ) {
 	);
 
 	foreach ( $headers as $po_header => $php_header ) {
-		if ( isset( $data[ $php_header ] ) ) {
+		if ( isset( $data[ $php_header ] ) && is_string( $data[ $php_header ] ) ) {
 			$result[ $po_header ] = $data[ $php_header ];
 		}
 	}
