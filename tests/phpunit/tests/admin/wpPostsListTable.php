@@ -634,7 +634,9 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$table  = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
 		$method = new ReflectionMethod( $table, 'get_primary_column_aria_label' );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 
 		$this->assertSame( 'The page title', $method->invoke( $table, $post ) );
 	}
