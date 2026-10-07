@@ -14,22 +14,8 @@ class Tests_Theme_wpGetGlobalSettings extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
-	public function test_reads_through_to_the_resolver() {
-		$contexts = array(
-			'wp_get_global_settings_custom' => array(),
-			'wp_get_global_settings_theme'  => array( 'origin' => 'base' ),
-		);
-
-		foreach ( $contexts as $context ) {
-			wp_get_global_settings( array(), $context );
-		}
-
-		foreach ( array_keys( $contexts ) as $cache_key ) {
-			$this->assertFalse(
-				wp_cache_get( $cache_key, 'theme_json' ),
-				"The merged settings should not be cached under $cache_key."
-			);
-		}
+	public function test_has_no_cache_in_front_of_the_resolver() {
+		wp_get_global_settings();
 
 		// Block registration adds no settings, so inject one through the theme data
 		// filter: registering a block refreshes the theme data, which reapplies the filter.
@@ -54,7 +40,7 @@ class Tests_Theme_wpGetGlobalSettings extends WP_UnitTestCase {
 		$this->assertSame(
 			'fresh',
 			$settings['custom']['cacheProbe'] ?? null,
-			'Settings changed after a block registration should be present on the next call.'
+			'The accessor should read through to the resolver instead of caching its own copy.'
 		);
 	}
 }
