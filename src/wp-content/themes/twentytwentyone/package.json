@@ -80,5 +80,11 @@
 		"watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial",
 		"lint:scss": "stylelint **/*.scss",
 		"lint-fix:scss": "stylelint **/*.scss --fix"
+	},
+	"allowScripts": {
+		"@parcel/watcher": false,
+		"core-js": false,
+		"core-js-pure": false,
+		"fsevents": false
 	}
 }
