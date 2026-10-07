@@ -165,11 +165,6 @@ final class WP_Content_Abilities {
 						'readonly'    => true,
 						'destructive' => false,
 						'idempotent'  => true,
-						/*
-						 * MCP clients assume open-world (may reach external systems) when the
-						 * hint is absent; this ability only reads the local database.
-						 */
-						'open_world'  => false,
 					),
 					'public'      => true,
 				),

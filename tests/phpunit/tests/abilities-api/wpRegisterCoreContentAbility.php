@@ -229,7 +229,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertTrue( $annotations['readonly'], 'The ability should be marked read-only.' );
 		$this->assertFalse( $annotations['destructive'], 'The ability should be marked non-destructive.' );
 		$this->assertTrue( $annotations['idempotent'], 'The ability should be marked idempotent.' );
-		$this->assertFalse( $annotations['open_world'], 'The ability should be marked closed-world; it only reads the local database.' );
 	}
 
 	/**
