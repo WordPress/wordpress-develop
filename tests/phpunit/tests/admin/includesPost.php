@@ -360,6 +360,46 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66232
+	 */
+	public function test_bulk_edit_posts_should_preserve_dates_of_previously_published_drafts() {
+		wp_set_current_user( self::$admin_id );
+
+		$dates    = array( '2020-01-15 12:00:00', '2021-06-20 15:30:00' );
+		$post_ids = array();
+
+		foreach ( $dates as $date ) {
+			$post_id = self::factory()->post->create(
+				array(
+					'post_status' => 'publish',
+					'post_date'   => $date,
+				)
+			);
+			wp_update_post(
+				array(
+					'ID'          => $post_id,
+					'post_status' => 'draft',
+				)
+			);
+			$this->assertNotSame( '0000-00-00 00:00:00', get_post( $post_id )->post_date_gmt );
+			$post_ids[] = $post_id;
+		}
+
+		bulk_edit_posts(
+			array(
+				'_status' => 'publish',
+				'post'    => $post_ids,
+			)
+		);
+
+		foreach ( $post_ids as $index => $post_id ) {
+			$post = get_post( $post_id );
+			$this->assertSame( 'publish', $post->post_status );
+			$this->assertSame( $dates[ $index ], $post->post_date );
+		}
+	}
+
+	/**
 	 * @ticket 41396
 	 */
 	public function test_bulk_edit_posts_should_set_post_format_before_wp_update_post_runs() {
