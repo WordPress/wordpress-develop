@@ -1,17 +1,17 @@
 <?php
 /**
- * Registers core user abilities.
+ * Abilities API: WP_Abilities_Users class.
  *
  * @package WordPress
- * @subpackage Abilities_API
+ * @subpackage Abilities API
  * @since 7.2.0
- *
- * @access private
  */
 
 declare( strict_types = 1 );
 
 /**
+ * Core class used to register user-related abilities.
+ *
  * Registers the read-only `core/users-query` ability, which retrieves one or more
  * readable WordPress users. Supports fetching a single readable user by ID,
  * email, username, or slug, or querying a paginated collection optionally
@@ -25,7 +25,12 @@ declare( strict_types = 1 );
  * input schema, output schema, and field normalization are built from the same
  * field definitions. Future write-oriented user abilities can reuse them as well.
  *
+ * This class is part of WordPress' internal implementation of the core abilities and is
+ * not part of the public API. It may be changed or removed at any time without notice.
+ * Do not use it directly or rely on its existence.
+ *
  * @since 7.2.0
+ *
  * @access private
  */
 final class WP_Abilities_Users {
