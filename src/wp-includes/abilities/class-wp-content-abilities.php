@@ -813,14 +813,14 @@ final class WP_Content_Abilities {
 	 */
 	private function normalize_include( array $input ): array {
 		$include = $input['include'] ?? null;
-		if ( ! is_array( $include ) && ! is_string( $include ) ) {
+		if ( ! is_array( $include ) && ! is_string( $include ) && ! is_int( $include ) ) {
 			return array();
 		}
 
 		/*
-		 * Schema validation also accepts a comma-separated string, which callers that
-		 * bypass the REST run controller can pass; wp_parse_id_list() accepts both forms
-		 * and yields unique positive IDs.
+		 * Schema validation also accepts a single ID or a comma-separated string, which
+		 * callers that bypass the REST run controller can pass; wp_parse_id_list() accepts
+		 * every form and yields unique positive IDs.
 		 */
 		return array_values( array_filter( wp_parse_id_list( $include ) ) );
 	}
