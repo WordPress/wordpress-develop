@@ -339,7 +339,19 @@ final class WP_Abilities_Users {
 	 */
 	private function resolve_readable_user( array $input, string $lookup_type ): ?WP_User {
 		$user = $this->find_user( $input );
-		if ( ! $user instanceof WP_User || ! $this->is_user_member_of_site( $user ) ) {
+		if ( ! $user instanceof WP_User ) {
+			return null;
+		}
+
+		/*
+		 * The current user can always read their own account, like the REST `/users/me`
+		 * endpoint, even on a site they are not a member of.
+		 */
+		if ( $this->is_current_user( $user ) ) {
+			return $user;
+		}
+
+		if ( ! $this->is_user_member_of_site( $user ) ) {
 			return null;
 		}
 
@@ -409,7 +421,7 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Checks whether a single-user lookup may return the target user.
+	 * Checks whether a single-user lookup may return another user.
 	 *
 	 * Email and username are identifier-sensitive lookup modes and do not use the
 	 * public-author fallback.
@@ -421,10 +433,6 @@ final class WP_Abilities_Users {
 	 * @return bool Whether the user can be read for that lookup type.
 	 */
 	private function can_read_user_for_lookup( WP_User $user, string $lookup_type ): bool {
-		if ( $this->is_current_user( $user ) ) {
-			return true;
-		}
-
 		if ( current_user_can( 'edit_user', $user->ID ) || current_user_can( 'list_users' ) ) {
 			return true;
 		}

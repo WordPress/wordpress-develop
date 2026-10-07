@@ -831,6 +831,48 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The current user can read their own account on a site they are not a member of.
+	 *
+	 * A super admin can act on any site of the network without being a member of it. Like
+	 * the REST `/users/me` endpoint, a lookup of their own account succeeds there, while
+	 * other users who are not members of the site stay unreadable.
+	 *
+	 * @ticket 64657
+	 *
+	 * @group ms-required
+	 */
+	public function test_current_user_can_read_themselves_on_a_site_they_are_not_a_member_of(): void {
+		$super_admin_id = self::factory()->user->create();
+		grant_super_admin( $super_admin_id );
+		remove_user_from_blog( $super_admin_id, get_current_blog_id() );
+
+		$non_member_id = self::factory()->user->create();
+		remove_user_from_blog( $non_member_id, get_current_blog_id() );
+
+		$this->assertFalse( is_user_member_of_blog( $super_admin_id ), 'The super admin should not be a member of the current site.' );
+
+		wp_set_current_user( $super_admin_id );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/users-query' );
+
+		$result = $ability->execute(
+			array(
+				'id'     => $super_admin_id,
+				'fields' => array( 'id', 'username' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A super admin should be able to read their own account on a site they are not a member of.' );
+		$this->assertSame( $super_admin_id, $result['id'], 'The self lookup should return the current user.' );
+		$this->assertArrayHasKey( 'username', $result, 'The current user should receive their own sensitive fields.' );
+
+		$result = $ability->execute( array( 'id' => $non_member_id ) );
+
+		$this->assertWPError( $result, 'Another user who is not a member of the current site should stay unreadable.' );
+	}
+
+	/**
 	 * Include is a collection-only option.
 	 *
 	 * @ticket 64657
