@@ -143,6 +143,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( $bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $bookmark, $actual_cache );
 	}
 
@@ -232,6 +234,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
@@ -239,6 +242,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
@@ -290,6 +295,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
 			$this->assertSameSets( $expected, $actual_bookmark );
@@ -297,6 +303,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
