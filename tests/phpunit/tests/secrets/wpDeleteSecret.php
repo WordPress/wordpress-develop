@@ -39,7 +39,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 				$captured = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_delete_secret( 'myplugin/api-key' );

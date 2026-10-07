@@ -150,18 +150,19 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 				$captured = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
 		$this->assertNotNull( $captured );
-		list( $name, $action, $actor_id, $timestamp, $old_fingerprint, $new_fingerprint ) = $captured;
+		list( $name, $action, $actor_id, $timestamp, $old_fingerprint, $new_fingerprint, $network ) = $captured;
 
 		$this->assertSame( 'myplugin/api-key', $name );
 		$this->assertSame( 'created', $action );
 		$this->assertSame( '', $old_fingerprint );
 		$this->assertNotSame( '', $new_fingerprint );
+		$this->assertFalse( $network );
 	}
 
 	public function test_change_hook_fires_on_overwrite_with_updated_action(): void {
@@ -178,7 +179,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 				$captured = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
@@ -218,7 +219,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 				$captured_args = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );

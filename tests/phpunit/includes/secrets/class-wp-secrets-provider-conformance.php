@@ -58,6 +58,48 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Every `wp_secret_changed` call seen since record_changes(), as its arguments.
+	 *
+	 * @var array<int, array<int, mixed>>
+	 */
+	private $recorded_changes = array();
+
+	/**
+	 * Starts recording every `wp_secret_changed` call for the rest of the test.
+	 *
+	 * Asks for all seven arguments, so a provider that passes fewer is caught by
+	 * the count rather than by a missing-argument error.
+	 */
+	private function record_changes(): void {
+		$this->recorded_changes = array();
+
+		add_action(
+			'wp_secret_changed',
+			function ( ...$args ): void {
+				$this->recorded_changes[] = array_values( $args );
+			},
+			10,
+			7
+		);
+	}
+
+	/**
+	 * Whether the provider currently returns a previous version for a name.
+	 *
+	 * Asked before and after retiring, and the answer is expected to differ, so
+	 * this is marked impure to stop static analysis assuming the two agree.
+	 *
+	 * @phpstan-impure
+	 *
+	 * @param WP_Secrets_Provider $provider The provider under test.
+	 * @param string              $name     The secret's name.
+	 * @return bool
+	 */
+	private function has_previous_version( WP_Secrets_Provider $provider, $name ) {
+		return $provider->get( $name, WP_Secret_Version::PREVIOUS ) instanceof WP_Secret;
+	}
+
 	// -- declarations must be coherent ----------------------------------------
 
 	public function test_reports_a_non_empty_label(): void {
@@ -203,6 +245,127 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNotWPError( $provider->delete( $name ) );
 
 		$this->assertNull( $provider->get( $name, WP_Secret_Version::CURRENT ) );
+	}
+
+	// -- every change is reported ----------------------------------------------
+
+	/**
+	 * The API does not fire `wp_secret_changed` on a provider's behalf, so a
+	 * provider that forgets to is a site whose audit log went quiet the day the
+	 * host installed it. Nothing else would notice.
+	 */
+	public function test_a_successful_write_reports_a_change(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$this->record_changes();
+
+		$this->assertNotWPError( $provider->set( $name, 'UNIQUE-CONFORMANCE-CANARY-7c1d' ) );
+
+		$this->assertCount( 1, $this->recorded_changes, 'set() must fire wp_secret_changed exactly once.' );
+
+		$change = $this->recorded_changes[0];
+
+		$this->assertCount( 7, $change, 'wp_secret_changed takes seven arguments, ending with $network.' );
+		$this->assertSame( $name, $change[0] );
+		$this->assertContains( $change[1], array( 'created', 'updated' ) );
+		$this->assertIsInt( $change[2], 'The actor is a user id, or 0.' );
+		$this->assertIsInt( $change[3], 'The timestamp is a Unix timestamp.' );
+		$this->assertIsString( $change[4], "The old fingerprint is a string, '' when there is none." );
+		$this->assertIsString( $change[5], "The new fingerprint is a string, '' when there is none." );
+		$this->assertFalse( $change[6], 'A site-scope write must report $network as false.' );
+		$this->assertNotContains( 'UNIQUE-CONFORMANCE-CANARY-7c1d', $change, 'wp_secret_changed must never be passed a value.' );
+	}
+
+	public function test_an_action_override_is_reported_as_given(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$this->record_changes();
+
+		$this->assertNotWPError( $provider->set( $this->conformance_name(), 'value', false, false, 'imported' ) );
+
+		$this->assertCount( 1, $this->recorded_changes );
+		$this->assertSame( 'imported', $this->recorded_changes[0][1] );
+	}
+
+	/**
+	 * A listener cannot otherwise tell a network secret from a site secret of the
+	 * same name, and on a network those are different credentials.
+	 */
+	public function test_a_network_scope_change_reports_its_scope(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$this->record_changes();
+
+		$this->assertNotWPError( $provider->set( $name, 'value', true ) );
+		$this->assertNotWPError( $provider->delete( $name, true ) );
+
+		$this->assertCount( 2, $this->recorded_changes );
+		$this->assertTrue( $this->recorded_changes[0][6], 'A network-scope write must report $network as true.' );
+		$this->assertTrue( $this->recorded_changes[1][6], 'A network-scope delete must report $network as true.' );
+	}
+
+	public function test_deleting_a_secret_reports_a_change(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$provider->set( $name, 'value' );
+
+		$this->record_changes();
+
+		$this->assertNotWPError( $provider->delete( $name ) );
+
+		$this->assertCount( 1, $this->recorded_changes, 'delete() must fire wp_secret_changed exactly once.' );
+		$this->assertSame( $name, $this->recorded_changes[0][0] );
+		$this->assertSame( 'deleted', $this->recorded_changes[0][1] );
+	}
+
+	/**
+	 * Only asked of a provider that keeps a previous version and clears it on
+	 * request. One with no history, or whose backend manages its own, has nothing
+	 * to report.
+	 */
+	public function test_retiring_a_previous_version_reports_a_change(): void {
+		$provider = $this->provider();
+		$this->require_writable( $provider );
+
+		$name = $this->conformance_name();
+		$provider->set( $name, 'first-value' );
+		$provider->set( $name, 'second-value' );
+
+		if ( ! $this->has_previous_version( $provider, $name ) ) {
+			$this->markTestSkipped( 'Provider keeps no previous version; there is nothing to retire.' );
+		}
+
+		$this->record_changes();
+
+		$this->assertNotWPError( $provider->retire_previous( $name ) );
+
+		if ( $this->has_previous_version( $provider, $name ) ) {
+			$this->markTestSkipped( 'Provider leaves version history to its backend; nothing was cleared.' );
+		}
+
+		$this->assertCount( 1, $this->recorded_changes, 'retire_previous() must fire wp_secret_changed exactly once.' );
+		$this->assertSame( $name, $this->recorded_changes[0][0] );
+		$this->assertSame( 'retired', $this->recorded_changes[0][1] );
+	}
+
+	public function test_a_refused_write_reports_no_change(): void {
+		$provider = $this->provider();
+
+		if ( $provider->is_writable() ) {
+			$this->markTestSkipped( 'Provider accepts writes; this checks that a refused one stays silent.' );
+		}
+
+		$this->record_changes();
+
+		$this->assertWPError( $provider->set( $this->conformance_name(), 'value' ) );
+		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen must not be reported as a change.' );
 	}
 
 	// -- listing never leaks ---------------------------------------------------

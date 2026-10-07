@@ -69,6 +69,39 @@ class Tests_Secrets_NetworkScope extends WP_UnitTestCase {
 		$this->assertNull( wp_get_network_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
 	}
 
+	/**
+	 * A listener is told which scope changed. Without it, a network secret and a
+	 * site secret of the same name are indistinguishable in an audit log.
+	 */
+	public function test_change_hook_reports_network_scope(): void {
+		$scopes = array();
+		add_action(
+			'wp_secret_changed',
+			function ( ...$args ) use ( &$scopes ) {
+				$scopes[] = array( $args[1], $args[6] );
+			},
+			10,
+			7
+		);
+
+		wp_set_network_secret( 'myplugin/api-key', 'first-value' );
+		wp_set_network_secret( 'myplugin/api-key', 'second-value' );
+		wp_retire_network_secret_version( 'myplugin/api-key' );
+		wp_delete_network_secret( 'myplugin/api-key' );
+		wp_set_secret( 'myplugin/api-key', 'site-value' );
+
+		$this->assertSame(
+			array(
+				array( 'created', true ),
+				array( 'updated', true ),
+				array( 'retired', true ),
+				array( 'deleted', true ),
+				array( 'created', false ),
+			),
+			$scopes
+		);
+	}
+
 	public function test_list_returns_network_secrets_only(): void {
 		wp_set_secret( 'myplugin/site-only', 'value' );
 		wp_set_network_secret( 'myplugin/network-only', 'value' );

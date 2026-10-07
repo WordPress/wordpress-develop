@@ -83,7 +83,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 				$captured = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_import_option_as_secret( 'my_plugin_api_key', 'myplugin/api-key' );

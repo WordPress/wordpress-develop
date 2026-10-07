@@ -102,11 +102,13 @@ interface WP_Secrets_Provider {
 	 * WP_SECRETS_ERROR_PROVIDER_READ_ONLY, and reports false from is_writable() so
 	 * that callers can find that out without attempting the write first.
 	 *
-	 * Implementations are responsible for firing the `wp_secret_changed` action. The
-	 * API does not fire it on the provider's behalf, because only the provider knows
-	 * the prior fingerprint without paying for an additional read. An audit hook that
+	 * Implementations are responsible for firing the `wp_secret_changed` action once
+	 * the write has succeeded, with `$network` as its last argument. The API does
+	 * not fire it on the provider's behalf, because only the provider knows the
+	 * prior fingerprint without paying for an additional read. An audit hook that
 	 * stopped firing once a host installed a provider would be unreliable in exactly
-	 * the situation it matters most.
+	 * the situation it matters most, so WP_Secrets_Provider_Conformance checks it.
+	 * A write that fails fires nothing.
 	 *
 	 * @since 7.2.0
 	 *
@@ -132,6 +134,10 @@ interface WP_Secrets_Provider {
 	 *
 	 * Deleting a secret that does not exist is a success.
 	 *
+	 * Fires `wp_secret_changed` with the 'deleted' action once a secret has been
+	 * deleted, for the reason given on set(). A provider that can tell nothing was
+	 * there to delete fires nothing.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $name    The secret's name.
@@ -145,6 +151,10 @@ interface WP_Secrets_Provider {
 	 *
 	 * A provider with no version history treats this as a successful no-op: there
 	 * is nothing to retire, which is the state the caller asked for.
+	 *
+	 * Fires `wp_secret_changed` with the 'retired' action once a previous version
+	 * has been cleared, for the reason given on set(). Nothing fires when there was
+	 * no previous version to clear.
 	 *
 	 * @since 7.2.0
 	 *

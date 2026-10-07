@@ -193,13 +193,13 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 				$captured = $args;
 			},
 			10,
-			6
+			7
 		);
 
 		wp_retire_secret_version( 'myplugin/api-key' );
 
 		$this->assertIsArray( $captured );
-		$this->assertCount( 6, $captured );
+		$this->assertCount( 7, $captured );
 
 		list( $name, $action, , , $old_fingerprint, $new_fingerprint ) = $captured;
 
