@@ -5855,6 +5855,121 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Reactions are an internal comment type and are not world-readable, even
+	 * when approved on a public post. Only the reacting user or a user who can
+	 * edit the comment can read one.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_reaction_is_not_publicly_readable() {
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$editor_id,
+			)
+		);
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'reaction',
+				'comment_parent'   => $note_id,
+				'comment_approved' => 1,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => '2764',
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments/' . $reaction_id );
+
+		wp_set_current_user( 0 );
+		$this->assertErrorResponse( 'rest_cannot_read', rest_get_server()->dispatch( $request ), 401 );
+
+		wp_set_current_user( self::$subscriber_id );
+		$this->assertErrorResponse( 'rest_cannot_read', rest_get_server()->dispatch( $request ), 403 );
+
+		wp_set_current_user( self::$editor_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The reacting user should be able to read their reaction.' );
+		$this->assertSame( $reaction_id, $response->get_data()['id'] );
+
+		wp_set_current_user( self::$admin_id );
+		$this->assertSame( 200, rest_get_server()->dispatch( $request )->get_status(), 'A user who can edit the reaction should be able to read it.' );
+	}
+
+	/**
+	 * A later page of notes summarizes its own notes' reactions with the same
+	 * two queries as the first page, rather than one query per note.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_second_page_of_notes_keeps_reaction_summary_queries_bounded() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id  = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_ids = self::factory()->comment->create_many(
+			4,
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		foreach ( $note_ids as $note_id ) {
+			self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $post_id,
+					'comment_type'     => 'reaction',
+					'comment_parent'   => $note_id,
+					'comment_approved' => 1,
+					'user_id'          => self::$editor_id,
+					'comment_content'  => '2764',
+				)
+			);
+		}
+
+		$summary_queries = 0;
+		$count_queries   = static function ( $query ) use ( &$summary_queries ) {
+			if ( str_contains( $query, "comment_type = 'reaction'" ) ) {
+				++$summary_queries;
+			}
+			return $query;
+		};
+		add_filter( 'query', $count_queries );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/comments' );
+		$request->set_param( 'post', $post_id );
+		$request->set_param( 'type', 'note' );
+		$request->set_param( 'status', 'all' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'per_page', 2 );
+		$request->set_param( 'page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'query', $count_queries );
+
+		$data = $response->get_data();
+		$this->assertCount( 2, $data );
+		foreach ( $data as $note ) {
+			$this->assertSame( 1, $note['reaction_summary']['2764']['count'] );
+			$this->assertGreaterThan( 0, $note['reaction_summary']['2764']['current_user_reaction'] );
+		}
+
+		// One counts query and one current-user query for the whole page.
+		$this->assertSame( 2, $summary_queries );
+	}
+
+	/**
 	 * A reaction can be added to a reply in an open thread.
 	 *
 	 * @ticket 63191
