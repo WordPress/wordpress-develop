@@ -11117,8 +11117,8 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
-                        "title": {
-                            "description": "Site title, set when the site is created. Default is the word \"Site\" followed by the site ID.",
+                        "blogname": {
+                            "description": "Site title, stored in the blogname option. Can only be set when the site is created.",
                             "type": "string",
                             "required": false
                         },

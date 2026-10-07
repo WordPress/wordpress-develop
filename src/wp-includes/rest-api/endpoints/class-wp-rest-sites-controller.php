@@ -52,6 +52,13 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 */
 	public function register_routes() {
 
+		// The administrator reaches wp_initialize_site(), which only runs on creation.
+		$create_args            = $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE );
+		$create_args['user_id'] = array(
+			'description' => __( 'User ID of the site administrator, set when the site is created.' ),
+			'type'        => 'integer',
+		);
+
 		register_rest_route(
 			$this->namespace,
 			'/' . $this->rest_base,
@@ -66,16 +73,16 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'create_item' ),
 					'permission_callback' => array( $this, 'create_item_permissions_check' ),
-					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
+					'args'                => $create_args,
 				),
 				'allow_batch' => $this->allow_batch,
 				'schema'      => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
-		// Title and administrator reach wp_initialize_site(), which only runs on creation.
+		// The site title reaches wp_initialize_site(), which only runs on creation.
 		$update_args = $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE );
-		unset( $update_args['title'], $update_args['user_id'] );
+		unset( $update_args['blogname'] );
 
 		register_rest_route(
 			$this->namespace,
@@ -133,16 +140,52 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
-		if ( $this->check_edit_permission() ) {
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+		$can_edit = $this->check_edit_permission();
+
+		// A user may list their own sites from any site, but only in the view context.
+		if ( 'view' === $context && $this->is_own_user_filter( $request ) ) {
+			if ( ! $can_edit && $this->has_edit_only_filter( $request ) ) {
+				return new WP_Error( 'rest_forbidden_param', __( 'Sorry, you are not allowed to filter or order sites by these parameters.' ), array( 'status' => 403 ) );
+			}
+
 			return true;
 		}
 
-		// Without that capability a user may still ask for their own sites.
-		if ( $this->is_own_user_filter( $request ) ) {
+		if ( ! is_main_site() ) {
+			return new WP_Error( 'rest_cannot_view_not_on_main_site', __( 'Sorry, sites can only be viewed from the main site.' ), array( 'status' => 403 ) );
+		}
+
+		if ( $can_edit ) {
 			return true;
 		}
 
 		return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
+	}
+
+	/**
+	 * Checks whether the request filters or orders by fields outside the view context.
+	 *
+	 * Users listing only their own sites do not see these fields, so filtering
+	 * or ordering by them would give their values away.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return bool Whether the request uses a filter that needs the edit context.
+	 */
+	protected function has_edit_only_filter( $request ) {
+		$params = array( 'archived', 'mature', 'spam', 'deleted', 'lang_id', 'lang_id_exclude', 'before', 'after' );
+
+		foreach ( $params as $param ) {
+			// The language filters default to an empty list, which does not filter.
+			if ( isset( $request[ $param ] ) && array() !== $request[ $param ] ) {
+				return true;
+			}
+		}
+
+		return in_array( $request['orderby'], array( 'registered', 'last_updated' ), true );
 	}
 
 	/**
@@ -297,8 +340,19 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$prepared_args['fields'] = 'ids';
 		}
 
-		$query        = new WP_Site_Query();
-		$query_result = $query->query( $prepared_args );
+		// A user filter that matched no sites leaves an impossible ID, so there is nothing to query.
+		$has_no_sites = isset( $prepared_args['site__in'] ) && array( 0 ) === $prepared_args['site__in'];
+
+		if ( $has_no_sites ) {
+			$query_result = array();
+			$total_sites  = 0;
+			$max_pages    = 0;
+		} else {
+			$query        = new WP_Site_Query();
+			$query_result = $query->query( $prepared_args );
+			$total_sites  = $query->found_sites;
+			$max_pages    = $query->max_num_pages;
+		}
 
 		$sites = array();
 
@@ -309,10 +363,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$total_sites = $query->found_sites;
-		$max_pages   = $query->max_num_pages;
-
-		if ( $total_sites < 1 ) {
+		if ( ! $has_no_sites && $total_sites < 1 ) {
 			// Out-of-bounds, run the query again without LIMIT for total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
 
@@ -409,7 +460,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 
 		// Check capabilities before looking up the site, so unauthorized users can't probe which site IDs exist.
 		$context   = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$is_member = in_array( $context, array( 'view', 'embed' ), true ) && is_user_member_of_blog( get_current_user_id(), (int) $request['id'] );
+		$is_member = 'view' === $context && is_user_member_of_blog( get_current_user_id(), (int) $request['id'] );
+
+		// Members may read their own sites from any site, everything else needs the main site.
+		if ( ! $is_member && ! is_main_site() ) {
+			return new WP_Error( 'rest_cannot_view_not_on_main_site', __( 'Sorry, sites can only be viewed from the main site.' ), array( 'status' => 403 ) );
+		}
 
 		if ( ! $is_member && ! $this->check_edit_permission() ) {
 			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to view sites.' ), array( 'status' => rest_authorization_required_code() ) );
@@ -485,6 +541,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$multisite_support = $this->check_multisite_support();
 		if ( is_wp_error( $multisite_support ) ) {
 			return $multisite_support;
+		}
+
+		if ( ! is_main_site() ) {
+			return new WP_Error( 'rest_cannot_create_not_on_main_site', __( 'Sorry, sites can only be created from the main site.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! current_user_can( 'create_sites' ) ) {
@@ -607,6 +667,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return $multisite_support;
 		}
 
+		if ( ! is_main_site() ) {
+			return new WP_Error( 'rest_cannot_edit_not_on_main_site', __( 'Sorry, sites can only be edited from the main site.' ), array( 'status' => 403 ) );
+		}
+
 		if ( ! $this->check_edit_permission() ) {
 			return new WP_Error( 'rest_cannot_edit', __( 'Sorry, you are not allowed to edit this site.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
@@ -704,6 +768,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$multisite_support = $this->check_multisite_support();
 		if ( is_wp_error( $multisite_support ) ) {
 			return $multisite_support;
+		}
+
+		if ( ! is_main_site() ) {
+			return new WP_Error( 'rest_cannot_delete_not_on_main_site', __( 'Sorry, sites can only be deleted from the main site.' ), array( 'status' => 403 ) );
 		}
 
 		if ( ! $this->check_delete_permission( (int) $request['id'] ) ) {
@@ -815,6 +883,11 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return apply_filters( 'rest_prepare_site', new WP_REST_Response( array() ), $site, $request );
 		}
 
+		// Without a context every field would be prepared, including the ones that switch sites.
+		if ( empty( $request['context'] ) ) {
+			$request['context'] = 'view';
+		}
+
 		$data   = array();
 		$fields = $this->get_fields_for_response( $request );
 
@@ -874,17 +947,21 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			$data['lang_id'] = (int) $site->lang_id;
 		}
 
-		// These four are not columns of the sites table. Reading one switches to the site.
+		// These five are not columns of the sites table. Reading one switches to the site.
 		if ( rest_is_field_included( 'blogname', $fields ) ) {
 			$data['blogname'] = $site->blogname;
 		}
 
 		if ( rest_is_field_included( 'siteurl', $fields ) ) {
-			$data['siteurl'] = $site->siteurl;
+			$data['siteurl'] = get_site_url( (int) $site->blog_id );
 		}
 
 		if ( rest_is_field_included( 'home', $fields ) ) {
-			$data['home'] = $site->home;
+			$data['home'] = get_home_url( (int) $site->blog_id );
+		}
+
+		if ( rest_is_field_included( 'admin_url', $fields ) ) {
+			$data['admin_url'] = get_admin_url( (int) $site->blog_id );
 		}
 
 		if ( rest_is_field_included( 'post_count', $fields ) ) {
@@ -998,10 +1075,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		/*
 		 * Title, administrator and the initial options reach wp_initialize_site()
 		 * through wp_insert_site(), so they only apply while the site is created.
+		 * A POST to an existing site is an update, so the ID tells them apart.
 		 */
-		if ( WP_REST_Server::CREATABLE === $request->get_method() ) {
-			if ( isset( $request['title'] ) ) {
-				$prepared_site['title'] = $request['title'];
+		if ( empty( $request['id'] ) ) {
+			if ( isset( $request['blogname'] ) ) {
+				// wp_initialize_site() unslashes the title before storing it.
+				$prepared_site['title'] = wp_slash( $request['blogname'] );
 			}
 
 			if ( isset( $request['user_id'] ) ) {
@@ -1291,28 +1370,28 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'description' => __( 'When the site was registered, in the site\'s timezone.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'registered_gmt'   => array(
 					'description' => __( 'When the site was registered, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'last_updated'     => array(
 					'description' => __( 'When the site was last updated, in the site\'s timezone.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'last_updated_gmt' => array(
 					'description' => __( 'When the site was last updated, as GMT.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'public'           => array(
@@ -1322,40 +1401,39 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'default'     => true,
 				),
 				'archived'         => array(
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'description' => __( 'Whether the site is archived. Default false.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 				),
 				'mature'           => array(
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'description' => __( 'Whether the site is mature. Default false.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 				),
 				'spam'             => array(
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'description' => __( 'Whether the site is spam. Default false.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 				),
 				'deleted'          => array(
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'description' => __( 'Whether the site is deleted. Default false.' ),
 					'type'        => 'boolean',
 					'default'     => false,
 				),
 				'lang_id'          => array(
-					'context'     => array( 'view', 'edit', 'embed' ),
+					'context'     => array( 'edit' ),
 					'description' => __( 'The site\'s language ID. Currently unused. Default 0.' ),
 					'type'        => 'integer',
 					'default'     => 0,
 				),
 				'blogname'         => array(
-					'description' => __( 'Site name, stored in the blogname option.' ),
+					'description' => __( 'Site title, stored in the blogname option. Can only be set when the site is created.' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'readonly'    => true,
 				),
 				'siteurl'          => array(
 					'description' => __( 'Site address, stored in the siteurl option.' ),
@@ -1371,21 +1449,18 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
+				'admin_url'        => array(
+					'description' => __( 'Admin dashboard address of the site.' ),
+					'type'        => 'string',
+					'format'      => 'uri',
+					'context'     => array( 'view', 'edit', 'embed' ),
+					'readonly'    => true,
+				),
 				'post_count'       => array(
 					'description' => __( 'Number of posts on the site.' ),
 					'type'        => 'integer',
-					'context'     => array( 'view', 'edit' ),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
-				),
-				'title'            => array(
-					'description' => __( 'Site title, set when the site is created. Default is the word "Site" followed by the site ID.' ),
-					'type'        => 'string',
-					'context'     => array(),
-				),
-				'user_id'          => array(
-					'description' => __( 'User ID of the site administrator, set when the site is created.' ),
-					'type'        => 'integer',
-					'context'     => array(),
 				),
 			),
 		);
@@ -1393,6 +1468,9 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		// Not all sites support site meta, do not register if the site does not support it.
 		if ( is_site_meta_supported() ) {
 			$schema['properties']['meta'] = $this->meta->get_field_schema();
+
+			// Registered site meta may hold sensitive data, so it is not shown to site members.
+			$schema['properties']['meta']['context'] = array( 'edit' );
 		}
 
 		$this->schema = $schema;
