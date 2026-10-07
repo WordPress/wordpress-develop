@@ -3699,14 +3699,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		_deprecated_argument( __FUNCTION__, '2.8.1' ); // Never implemented.
 	}
 
-	$css = wp_kses_no_null( $css );
-	$css = str_replace( array( "\n", "\r", "\t" ), '', $css );
-
-	$allowed_protocols = wp_allowed_protocols();
-
-	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
-	$css_array = explode( ';', trim( $css ) );
-
 	/**
 	 * Filters the list of allowed CSS attributes.
 	 *
@@ -3950,6 +3942,52 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		)
 	);
 
+	/**
+	 * Filters whether safecss_filter_attr() uses its legacy implementation.
+	 *
+	 * The default implementation parses the declaration list with
+	 * WP_HTML_Style_Attribute_Processor and filters each declaration. The
+	 * legacy implementation splits the text on `;` and `:` and tests the
+	 * pieces with regular expressions. It exists for a transition period so
+	 * sites can restore the previous output while they adapt.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool   $use_legacy Whether to use the legacy implementation. Default false.
+	 * @param string $css        The CSS declaration list being filtered.
+	 */
+	$use_legacy = apply_filters( 'safecss_filter_attr_use_legacy', false, $css );
+
+	if ( $use_legacy ) {
+		return _safecss_filter_attr_legacy( $css, $allowed_attr );
+	}
+
+	return _safecss_filter_attr_declarations( $css, $allowed_attr );
+}
+
+/**
+ * Filters an inline style attribute by splitting it on `;` and `:`.
+ *
+ * This is the implementation safecss_filter_attr() used before 7.2.0. It
+ * runs when the `safecss_filter_attr_use_legacy` filter returns true.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
+ * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter.
+ * @return string Filtered string of CSS rules.
+ */
+function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
+	$css = wp_kses_no_null( $css );
+	$css = str_replace( array( "\n", "\r", "\t" ), '', $css );
+
+	$allowed_protocols = wp_allowed_protocols();
+
+	/** @todo Parse enough CSS to split rules without breaking on things like quoted strings. */
+	$css_array = explode( ';', trim( $css ) );
+
 	/*
 	 * CSS attributes that accept URL data types.
 	 *
@@ -4128,6 +4166,341 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	}
 
 	return $css;
+}
+
+/**
+ * Filters an inline style attribute by parsing it as a declaration list.
+ *
+ * Parses the list with WP_HTML_Style_Attribute_Processor, drops the
+ * declarations the policy rejects, and serializes the rest as
+ * `property:value;`. The unit of rejection is one declaration.
+ * Declarations CSS drops at parse time never reach the policy because
+ * the processor does not expose them.
+ *
+ * The policy, applied when the allowed list is non-empty:
+ *
+ *  - The property name is in the allowed list, or the list contains `--*`
+ *    and the name matches `^--[a-zA-Z0-9_-]+$`.
+ *  - Every function at any depth is in the function allowlist.
+ *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
+ *
+ * Checks run on decoded values. Comments are never emitted. An empty
+ * allowed list disables the checks; the output is still re-serialized
+ * from the parsed declarations.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
+ * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter.
+ * @return string Filtered string of CSS rules.
+ */
+function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
+	$css               = (string) $css;
+	$check             = ! empty( $allowed_attr );
+	$allow_custom      = in_array( '--*', $allowed_attr, true );
+	$allowed_protocols = wp_allowed_protocols();
+
+	$processor = WP_HTML_Style_Attribute_Processor::create( $css );
+	$output    = '';
+
+	while ( $processor->next_declaration() ) {
+		$name      = $processor->get_property_name();
+		$tokens    = $processor->get_value_tokens();
+		$is_custom = str_starts_with( $name, '--' );
+
+		if ( $check ) {
+			if ( $is_custom ) {
+				if ( ! $allow_custom || ! preg_match( '/^--[a-zA-Z0-9_-]+$/', $name ) ) {
+					continue;
+				}
+			} elseif ( ! in_array( $name, $allowed_attr, true ) ) {
+				continue;
+			}
+
+			if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols ) ) {
+				continue;
+			}
+
+			/*
+			 * The legacy implementation applies the `safecss_filter_attr_allow_css`
+			 * filter here, with a test string stripped of url() and allowed
+			 * functions. This implementation has no such string and does not
+			 * apply the filter.
+			 */
+		}
+
+		$output .= WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
+		if ( $processor->is_important() ) {
+			$output .= ' !important';
+		}
+		$output .= ';';
+	}
+
+	return $output;
+}
+
+/**
+ * Checks a declaration value's tokens against the function and URL policy.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string   $css               CSS text the token offsets index.
+ * @param array[]  $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @param string[] $allowed_protocols Allowed URL protocols.
+ * @return bool Whether the value is allowed.
+ */
+function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols ) {
+	static $allowed_functions = array(
+		// General purpose value functions.
+		'var',
+		'calc',
+		'min',
+		'max',
+		'minmax',
+		'clamp',
+		'repeat',
+		// Transform functions.
+		'matrix',
+		'matrix3d',
+		'perspective',
+		'rotate',
+		'rotate3d',
+		'rotatex',
+		'rotatey',
+		'rotatez',
+		'scale',
+		'scale3d',
+		'scalex',
+		'scaley',
+		'scalez',
+		'skew',
+		'skewx',
+		'skewy',
+		'translate',
+		'translate3d',
+		'translatex',
+		'translatey',
+		'translatez',
+		// Basic shape functions.
+		'circle',
+		'ellipse',
+		'inset',
+		'path',
+		'polygon',
+		'rect',
+		'shape',
+		'xywh',
+		// Gradients.
+		'linear-gradient',
+		'radial-gradient',
+		'conic-gradient',
+		'repeating-linear-gradient',
+		'repeating-radial-gradient',
+		'repeating-conic-gradient',
+		// Color functions.
+		'rgb',
+		'rgba',
+		'hsl',
+		'hsla',
+		'hwb',
+		'lab',
+		'lch',
+		'oklab',
+		'oklch',
+		'color',
+		'color-mix',
+		'light-dark',
+	);
+
+	$count = count( $tokens );
+	$depth = 0;
+	for ( $i = 0; $i < $count; $i++ ) {
+		$token = $tokens[ $i ];
+		$type  = $token['type'];
+
+		switch ( $type ) {
+			case WP_CSS_Token_Processor::TOKEN_URL:
+				if ( ! _safecss_filter_attr_url_is_allowed( $token['value'], $allowed_protocols ) ) {
+					return false;
+				}
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				++$depth;
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+				--$depth;
+				continue 2;
+
+			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				++$depth;
+				break;
+
+			default:
+				continue 2;
+		}
+
+		$function_name = strtolower( (string) $token['value'] );
+
+		if ( 'url' === $function_name || 'src' === $function_name ) {
+			// `url("...")` tokenizes as a function with one string argument. Anything else inside is invalid CSS.
+			$j = $i + 1;
+			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
+				++$j;
+			}
+			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_STRING !== $tokens[ $j ]['type'] ) {
+				return false;
+			}
+			$string = $tokens[ $j ];
+			++$j;
+			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
+				++$j;
+			}
+			if ( $j < $count && WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]['type'] ) {
+				return false;
+			}
+			if ( ! _safecss_filter_attr_url_is_allowed( $string['value'], $allowed_protocols ) ) {
+				return false;
+			}
+			// The `)` was consumed with the argument, or the function is open at the end of the input.
+			--$depth;
+			$i = $j;
+			continue;
+		}
+
+		if ( ! in_array( $function_name, $allowed_functions, true ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Checks a decoded URL against the allowed protocols.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string|null $url               Decoded URL.
+ * @param string[]    $allowed_protocols Allowed URL protocols.
+ * @return bool Whether the URL is non-empty and unchanged by wp_kses_bad_protocol().
+ */
+function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
+	$url = trim( (string) $url );
+	if ( '' === $url ) {
+		return false;
+	}
+
+	return wp_kses_bad_protocol( $url, $allowed_protocols ) === $url;
+}
+
+/**
+ * Checks whether a token is whitespace or a comment.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param array $token Token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @return bool Whether the token is whitespace or a comment.
+ */
+function _safecss_filter_attr_is_trivia( $token ) {
+	return WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token['type'] || WP_CSS_Token_Processor::TOKEN_COMMENT === $token['type'];
+}
+
+/**
+ * Serializes a declaration value from its tokens.
+ *
+ * Whitespace and comment runs become one space. Strings and URLs are
+ * re-escaped from their decoded values. Identifiers and function names are
+ * re-escaped from their decoded names. A `\` delimiter, which only a
+ * backslash before a newline produces, keeps its newline so it does not
+ * escape the space that follows. Other tokens are copied from the source.
+ * Blocks left open at the end of the value are closed, so the output never
+ * absorbs the `;` that follows.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string  $css    CSS text the token offsets index.
+ * @param array[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @return string Serialized value.
+ */
+function _safecss_filter_attr_serialize_value( $css, $tokens ) {
+	$output        = '';
+	$pending_space = false;
+	$open_blocks   = array();
+
+	foreach ( $tokens as $token ) {
+		if ( _safecss_filter_attr_is_trivia( $token ) ) {
+			$pending_space = '' !== $output;
+			continue;
+		}
+
+		if ( $pending_space ) {
+			$output       .= ' ';
+			$pending_space = false;
+		}
+
+		switch ( $token['type'] ) {
+			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				$open_blocks[] = ')';
+				break;
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+				$open_blocks[] = ']';
+				break;
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				$open_blocks[] = '}';
+				break;
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+				// The processor drops values with unmatched closers, so the stack is never empty here.
+				array_pop( $open_blocks );
+				break;
+		}
+
+		switch ( $token['type'] ) {
+			case WP_CSS_Token_Processor::TOKEN_STRING:
+				$output .= WP_CSS_Token_Processor::serialize_string( (string) $token['value'] );
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_URL:
+				$output .= 'url(' . WP_CSS_Token_Processor::serialize_string( (string) $token['value'] ) . ')';
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+				$output .= WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] ) . '(';
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_IDENT:
+				$output .= WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] );
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_DELIM:
+				$output .= '\\' === $token['value'] ? "\\\n" : substr( $css, $token['start'], $token['length'] );
+				break;
+
+			default:
+				$output .= substr( $css, $token['start'], $token['length'] );
+				break;
+		}
+	}
+
+	return $output . implode( '', array_reverse( $open_blocks ) );
 }
 
 /**
