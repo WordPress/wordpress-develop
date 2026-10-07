@@ -158,7 +158,7 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds core data.
 	 */
 	public static function get_core_data() {
-		if ( null !== static::$core && static::has_same_registered_blocks( 'core' ) ) {
+		if ( static::has_same_registered_blocks( 'core' ) && null !== static::$core ) {
 			return static::$core;
 		}
 
@@ -250,7 +250,7 @@ class WP_Theme_JSON_Resolver {
 
 		$options = wp_parse_args( $options, array( 'with_supports' => true ) );
 
-		if ( null === static::$theme || ! static::has_same_registered_blocks( 'theme' ) ) {
+		if ( ! static::has_same_registered_blocks( 'theme' ) || null === static::$theme ) {
 			$wp_theme        = wp_get_theme();
 			$theme_json_file = $wp_theme->get_file_path( 'theme.json' );
 			if ( is_readable( $theme_json_file ) ) {
@@ -395,7 +395,7 @@ class WP_Theme_JSON_Resolver {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$blocks   = $registry->get_all_registered();
 
-		if ( null !== static::$blocks && static::has_same_registered_blocks( 'blocks' ) ) {
+		if ( static::has_same_registered_blocks( 'blocks' ) && null !== static::$blocks ) {
 			return static::$blocks;
 		}
 
@@ -543,7 +543,7 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON Entity that holds styles for user data.
 	 */
 	public static function get_user_data() {
-		if ( null !== static::$user && static::has_same_registered_blocks( 'user' ) ) {
+		if ( static::has_same_registered_blocks( 'user' ) && null !== static::$user ) {
 			return static::$user;
 		}
 

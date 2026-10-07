@@ -114,6 +114,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
 
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'test/seeded' ) ) {
+			unregister_block_type( 'test/seeded' );
+		}
+
 		// Reset data between tests.
 		wp_clean_theme_json_cache();
 		parent::tear_down();
@@ -421,12 +425,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			WP_Theme_JSON_Resolver::get_core_data();
 		}
 
-		// If should cache registered blocks, then set them up before running the tests.
-		if ( $blocks_are_cached ) {
-			$blocks_cache         = static::$property_blocks_cache->getValue();
-			$blocks_cache['core'] = $this->get_registered_block_names();
-			static::$property_blocks_cache->setValue( null, $blocks_cache );
-		}
+		// Set the blocks cache to the registered blocks, or empty it: caching core also fills it.
+		$blocks_cache         = static::$property_blocks_cache->getValue();
+		$blocks_cache['core'] = $blocks_are_cached ? $this->get_registered_block_names() : array();
+		static::$property_blocks_cache->setValue( null, $blocks_cache );
 
 		$expected_filter_count = did_filter( 'wp_theme_json_data_default' );
 		$actual                = WP_Theme_JSON_Resolver::get_core_data();
@@ -462,10 +464,58 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 				'blocks_are_cached'  => false,
 			),
 			'When both caches are not empty' => array(
-				'should_fire_filter' => true,
+				'should_fire_filter' => false,
 				'core_is_cached'     => true,
-				'blocks_are_cached'  => false,
+				'blocks_are_cached'  => true,
 			),
+		);
+	}
+
+	/**
+	 * The first call to an origin getter should record the registered blocks,
+	 * so the second call reuses the data instead of rebuilding it.
+	 *
+	 * @dataProvider data_origin_getters
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_core_data
+	 * @covers WP_Theme_JSON_Resolver::get_block_data
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
+	 * @covers WP_Theme_JSON_Resolver::get_user_data
+	 *
+	 * @param string $getter Resolver method name.
+	 * @param array  $args   Arguments for the method.
+	 * @param string $filter Filter the method applies when it builds the data.
+	 */
+	public function test_origin_data_is_built_once_while_registered_blocks_are_unchanged( $getter, array $args, $filter ) {
+		wp_clean_theme_json_cache();
+		$callback     = array( WP_Theme_JSON_Resolver::class, $getter );
+		$filter_count = did_filter( $filter );
+
+		$first = call_user_func_array( $callback, $args );
+		$this->assertSame( $filter_count + 1, did_filter( $filter ), 'The first call should build the data' );
+
+		$second = call_user_func_array( $callback, $args );
+		$this->assertSame( $filter_count + 1, did_filter( $filter ), 'The second call should not rebuild the data' );
+		$this->assertSame( $first, $second, 'The second call should return the same object' );
+
+		register_block_type( 'test/seeded' );
+
+		$third = call_user_func_array( $callback, $args );
+		$this->assertSame( $filter_count + 2, did_filter( $filter ), 'Registering a block type should rebuild the data' );
+		$this->assertNotSame( $first, $third, 'The rebuilt data should be a new object' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_origin_getters() {
+		return array(
+			'core'   => array( 'get_core_data', array(), 'wp_theme_json_data_default' ),
+			'blocks' => array( 'get_block_data', array(), 'wp_theme_json_data_blocks' ),
+			'theme'  => array( 'get_theme_data', array( array(), array( 'with_supports' => false ) ), 'wp_theme_json_data_theme' ),
+			'user'   => array( 'get_user_data', array(), 'wp_theme_json_data_user' ),
 		);
 	}
 
