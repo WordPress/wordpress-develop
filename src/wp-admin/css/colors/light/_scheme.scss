@@ -1,0 +1,30 @@
+@use "sass:color";
+
+$highlight-color: #007cba;
+$text-color: #333;
+$menu-avatar-frame: #aaa;
+
+@forward "../variables" with (
+	$scheme-name: "light",
+	$base-color: #e5e5e5,
+	$icon-color: #6a6a6a,
+	$text-color: $text-color,
+	$highlight-color: $highlight-color,
+	$notification-color: #c64606,
+
+	$body-background: #f5f5f5,
+
+	$menu-highlight-text: #fff,
+	$menu-highlight-icon: #fff,
+	$menu-highlight-background: #6e6e6e,
+
+	$menu-bubble-text: #fff,
+	$menu-submenu-background: #fff,
+
+	$menu-collapse-text: #777,
+	$menu-collapse-focus-icon: #555,
+
+	$dashboard-accent-1: $highlight-color,
+	$dashboard-accent-2: color.adjust(color.adjust($highlight-color, $lightness: 7%), $saturation: -15%),
+	$dashboard-icon-background: $text-color
+);

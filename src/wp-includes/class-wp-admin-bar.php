@@ -73,12 +73,50 @@ class WP_Admin_Bar {
 		// Prefetched from the login screen by wp_prefetch_admin_assets(), which needs updating if this changes.
 		wp_enqueue_style( 'admin-bar' );
 
+		if ( ! is_admin() ) {
+			$this->add_color_scheme_styles();
+		}
+
 		/**
 		 * Fires after WP_Admin_Bar is initialized.
 		 *
 		 * @since 3.1.0
 		 */
 		do_action( 'admin_bar_init' );
+	}
+
+	/**
+	 * Applies the current user's admin color scheme to the admin bar on the front end.
+	 *
+	 * Inlines the color scheme's admin-bar.css, which only sets the custom properties
+	 * that the admin bar stylesheet reads its colors from. In the admin, the color
+	 * scheme stylesheet already sets them.
+	 *
+	 * @since 7.2.0
+	 */
+	private function add_color_scheme_styles(): void {
+		$color_scheme = get_user_option( 'admin_color' );
+
+		if ( empty( $color_scheme ) ) {
+			$color_scheme = 'modern';
+		}
+
+		if ( ! is_string( $color_scheme ) || sanitize_key( $color_scheme ) !== $color_scheme ) {
+			return;
+		}
+
+		$suffix = SCRIPT_DEBUG ? '' : '.min';
+		$path   = ABSPATH . "wp-admin/css/colors/{$color_scheme}/admin-bar{$suffix}.css";
+
+		if ( ! is_readable( $path ) ) {
+			return;
+		}
+
+		$css = file_get_contents( $path );
+
+		if ( $css ) {
+			wp_add_inline_style( 'admin-bar', $css );
+		}
 	}
 
 	/**
