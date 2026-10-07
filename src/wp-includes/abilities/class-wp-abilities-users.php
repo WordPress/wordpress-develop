@@ -616,9 +616,7 @@ final class WP_Abilities_Users {
 
 		$value = $input['has_published_posts'];
 
-		if ( true === $value || 1 === $value
-			|| ( is_string( $value ) && in_array( strtolower( $value ), array( 'true', '1' ), true ) )
-		) {
+		if ( rest_is_boolean( $value ) && rest_sanitize_boolean( $value ) ) {
 			return true;
 		}
 
