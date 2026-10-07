@@ -436,39 +436,29 @@ final class WP_Content_Abilities {
 		$parent = null;
 		if ( isset( $input['parent'] ) ) {
 			if ( ! is_post_type_hierarchical( $post_type ) ) {
-				return new WP_Error(
-					'content_invalid_filter',
-					__( 'The parent filter is only supported for hierarchical post types.' ),
-					array( 'status' => 400 )
-				);
+				return $this->invalid_filter_error( __( 'The parent filter is only supported for hierarchical post types.' ) );
 			}
 
 			$parent = $this->parse_filter_int( $input['parent'], 0 );
 			if ( null === $parent ) {
-				return new WP_Error(
-					'content_invalid_filter',
-					__( 'The parent filter must be a non-negative integer.' ),
-					array( 'status' => 400 )
-				);
+				return $this->invalid_filter_error( __( 'The parent filter must be a non-negative integer.' ) );
 			}
 		}
 
 		$author = null;
 		if ( isset( $input['author_slug'] ) ) {
 			if ( ! post_type_supports( $post_type, 'author' ) ) {
-				return new WP_Error(
-					'content_invalid_filter',
-					__( 'The author_slug filter is only supported for post types that support authors.' ),
-					array( 'status' => 400 )
+				return $this->invalid_filter_error(
+					/* translators: %s: Parameter. */
+					sprintf( __( 'The %s filter is only supported for post types that support authors.' ), 'author_slug' )
 				);
 			}
 
 			$author = $this->get_author_by_slug( $input['author_slug'], $post_type_object );
 			if ( ! $author ) {
-				return new WP_Error(
-					'content_invalid_filter',
-					__( 'The author_slug filter must be the slug of an existing user.' ),
-					array( 'status' => 400 )
+				return $this->invalid_filter_error(
+					/* translators: %s: Parameter. */
+					sprintf( __( 'The %s filter must be the slug of an existing user.' ), 'author_slug' )
 				);
 			}
 		}
@@ -481,11 +471,7 @@ final class WP_Content_Abilities {
 		 * would return every post of the type — the opposite of the caller's intent.
 		 */
 		if ( isset( $input['include'] ) && array() === $include ) {
-			return new WP_Error(
-				'content_invalid_filter',
-				__( 'The include filter must list one or more valid post IDs.' ),
-				array( 'status' => 400 )
-			);
+			return $this->invalid_filter_error( __( 'The include filter must list one or more valid post IDs.' ) );
 		}
 
 		$per_page = $this->normalize_per_page( $input, $include );
@@ -522,7 +508,7 @@ final class WP_Content_Abilities {
 
 		$query       = new WP_Query( $query_args );
 		$total       = $this->get_query_total( $query, $query_args, $page );
-		$total_pages = $total > 0 ? (int) ceil( $total / $per_page ) : 0;
+		$total_pages = (int) ceil( $total / $per_page );
 
 		/*
 		 * Paging past the last page is a caller error rather than an empty collection, so
@@ -1527,5 +1513,17 @@ final class WP_Content_Abilities {
 			__( 'The requested content was not found.' ),
 			array( 'status' => 404 )
 		);
+	}
+
+	/**
+	 * Builds the error for a query filter that cannot be honored.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $message The error message.
+	 * @return WP_Error The invalid filter error.
+	 */
+	private function invalid_filter_error( string $message ): WP_Error {
+		return new WP_Error( 'content_invalid_filter', $message, array( 'status' => 400 ) );
 	}
 }
