@@ -193,7 +193,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	$parsed_args = wp_parse_args( $linkdata, $defaults );
 	$parsed_args = wp_unslash( sanitize_bookmark( $parsed_args, 'db' ) );
 
-	$link_id   = absint( $parsed_args['link_id'] );
+	$link_id   = max( 0, (int) $parsed_args['link_id'] );
 	$link_name = $parsed_args['link_name'];
 	$link_url  = $parsed_args['link_url'];
 

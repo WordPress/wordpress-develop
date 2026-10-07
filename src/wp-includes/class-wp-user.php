@@ -186,7 +186,7 @@ class WP_User {
 			$data->ID = 0;
 		}
 		$this->data = $data;
-		$this->ID   = absint( $data->ID );
+		$this->ID   = max( 0, (int) $data->ID );
 
 		$this->for_site( $site_id );
 	}
@@ -365,7 +365,7 @@ class WP_User {
 					'<code>WP_User->ID</code>'
 				)
 			);
-			$this->ID = absint( $value );
+			$this->ID = max( 0, (int) $value );
 			return;
 		}
 

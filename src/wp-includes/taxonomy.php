@@ -2801,7 +2801,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		$wpdb->delete( $wpdb->terms, array( 'term_id' => $term_id ) );
 		$wpdb->delete( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => $tt_id ) );
 
-		$term_id = absint( $duplicate_term->term_id );
+		$term_id = max( 0, (int) $duplicate_term->term_id );
 		$tt_id   = (int) $duplicate_term->term_taxonomy_id;
 
 		clean_term_cache( $term_id, $taxonomy );
@@ -2857,7 +2857,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * @param int   $tt_id   Term taxonomy ID.
 	 * @param array $args    Arguments passed to wp_insert_term().
 	 */
-	$term_id = absint( apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
+	$term_id = max( 0, (int) apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
 
 	clean_term_cache( $term_id, $taxonomy );
 
@@ -3618,7 +3618,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	do_action( "edit_{$taxonomy}", $term_id, $tt_id, $args );
 
 	/** This filter is documented in wp-includes/taxonomy.php */
-	$term_id = absint( apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
+	$term_id = max( 0, (int) apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
 
 	clean_term_cache( $term_id, $taxonomy );
 
