@@ -2542,6 +2542,8 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 	 *
 	 * @param string|int $action Scalar value to add context to the nonce.
 	 * @return string The token.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_create_nonce( $action = -1 ) {
 		$user = wp_get_current_user();
@@ -2724,6 +2726,8 @@ if ( ! function_exists( 'wp_hash' ) ) :
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
 	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
 	 * @return string Hash of $data.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
 		$salt = wp_salt( $scheme );
