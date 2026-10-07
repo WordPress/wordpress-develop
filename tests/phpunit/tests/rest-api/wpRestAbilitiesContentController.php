@@ -124,7 +124,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_logged_out_user_receives_401(): void {
 		wp_set_current_user( 0 );
@@ -135,7 +135,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_subscriber_requesting_drafts_receives_403(): void {
 		wp_set_current_user( self::$subscriber_id );
@@ -153,7 +153,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_subscriber_requesting_published_posts_receives_readable_fields(): void {
 		$post_id = self::factory()->post->create(
@@ -189,7 +189,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_subscriber_requesting_raw_fields_receives_403(): void {
 		wp_set_current_user( self::$subscriber_id );
@@ -207,7 +207,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_admin_query_returns_published_posts(): void {
 		$post_id = self::factory()->post->create(
@@ -226,7 +226,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_admin_query_include_limits_results(): void {
 		$first  = self::factory()->post->create(
@@ -266,7 +266,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_get_single_post_by_id(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
@@ -281,7 +281,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_get_single_post_by_slug(): void {
 		$post_id = self::factory()->post->create(
@@ -308,7 +308,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_wrong_http_method_returns_405(): void {
 		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
@@ -322,7 +322,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_pagination_returns_totals_in_body(): void {
 		self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) );
@@ -345,7 +345,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64606
+	 * @ticket 66268
 	 */
 	public function test_out_of_range_page_returns_400(): void {
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
