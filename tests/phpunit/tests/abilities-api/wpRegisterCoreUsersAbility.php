@@ -5,7 +5,7 @@ declare( strict_types = 1 );
 /**
  * Tests for the core/users-query ability.
  *
- * @covers WP_Users_Abilities
+ * @covers WP_Abilities_Users
  *
  * @group abilities-api
  */
@@ -226,7 +226,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		global $wp_current_filter;
 		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
 		try {
-			( new WP_Users_Abilities() )->register();
+			( new WP_Abilities_Users() )->register();
 		} finally {
 			array_pop( $wp_current_filter );
 		}

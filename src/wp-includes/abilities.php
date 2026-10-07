@@ -9,7 +9,7 @@
 
 declare( strict_types = 1 );
 
-require_once __DIR__ . '/abilities/class-wp-users-abilities.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-users.php';
 
 /**
  * Registers the core ability categories.
@@ -54,7 +54,7 @@ function wp_register_core_abilities(): void {
 	$category_site = 'site';
 	$category_user = 'user';
 
-	( new WP_Users_Abilities() )->register();
+	( new WP_Abilities_Users() )->register();
 
 	$site_info_properties = array(
 		'name'        => array(
