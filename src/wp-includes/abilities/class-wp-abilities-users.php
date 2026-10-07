@@ -89,7 +89,7 @@ final class WP_Abilities_Users {
 	 * @since 7.2.0
 	 */
 	public function register(): void {
-		$this->register_get_users();
+		$this->register_users_query();
 	}
 
 	/**
@@ -97,16 +97,16 @@ final class WP_Abilities_Users {
 	 *
 	 * @since 7.2.0
 	 */
-	private function register_get_users(): void {
+	private function register_users_query(): void {
 		wp_register_ability(
 			'core/users-query',
 			array(
 				'label'               => __( 'Users Query' ),
 				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, email, username, or slug, or query a paginated collection optionally filtered by roles, published-post authorship, or included IDs.' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_users_input_schema(),
-				'output_schema'       => $this->get_users_output_schema(),
-				'execute_callback'    => array( $this, 'execute_get_users' ),
+				'input_schema'        => $this->get_users_query_input_schema(),
+				'output_schema'       => $this->get_users_query_output_schema(),
+				'execute_callback'    => array( $this, 'execute_users_query' ),
 				'permission_callback' => array( $this, 'check_permission' ),
 				'meta'                => array(
 					'annotations' => array(
@@ -125,7 +125,7 @@ final class WP_Abilities_Users {
 	 *
 	 * Performs request-level checks. Single-user requests are checked against
 	 * the target user, while collection requests rely on query arguments in
-	 * {@see self::execute_get_users()} for row-level access.
+	 * {@see self::execute_users_query()} for row-level access.
 	 *
 	 * @since 7.2.0
 	 *
@@ -159,7 +159,7 @@ final class WP_Abilities_Users {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|stdClass|WP_Error User data, paginated collection data, or a WP_Error on failure.
 	 */
-	public function execute_get_users( $input = array() ) {
+	public function execute_users_query( $input = array() ) {
 		$input  = $this->to_input_array( $input );
 		$fields = $this->normalize_fields( $input );
 
@@ -768,7 +768,7 @@ final class WP_Abilities_Users {
 	 *
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private function get_users_input_schema(): array {
+	private function get_users_query_input_schema(): array {
 		/*
 		 * Input enums intentionally reflect roles and post types available at
 		 * ability registration time. This makes the schema a stable contract that
@@ -914,7 +914,7 @@ final class WP_Abilities_Users {
 	 *
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
-	private function get_users_output_schema(): array {
+	private function get_users_query_output_schema(): array {
 		$user_schema = array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
