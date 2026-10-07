@@ -308,6 +308,20 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * Input passed as an object is filtered like input passed as an array.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_core_settings_get_filters_object_input(): void {
+		$this->become_admin();
+
+		$result = wp_get_ability( 'core/settings-get' )->execute( (object) array( 'group' => 'reading' ) );
+
+		$this->assertArrayHasKey( 'posts_per_page', $result );
+		$this->assertArrayNotHasKey( 'blogname', $result );
+	}
+
+	/**
 	 * Users without `manage_options` cannot run the ability.
 	 *
 	 * @ticket 64605
