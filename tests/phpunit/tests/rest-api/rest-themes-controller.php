@@ -1405,21 +1405,35 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The create_item() method does not exist for themes.
+	 * Themes is read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', self::$themes_route );
+		$request->set_param( 'stylesheet', 'example' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The update_item() method does not exist for themes.
+	 * Themes is read-only; update requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', self::$themes_route . '/' . get_stylesheet() );
+		$request->set_param( 'name', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -1610,12 +1624,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * The delete_item() method does not exist for themes.
+	 * Themes is read-only; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
