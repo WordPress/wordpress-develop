@@ -49,8 +49,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array[] List of emoji definitions, each with `emoji`, `label`,
-	 *                 and `value` keys.
+	 * @return array<array<string, string>> List of emoji definitions, each with `emoji`, `label`, and `value` keys.
+	 * 
+	 * @phpstan-return non-empty-list<array{ emoji: non-falsy-string, label: non-falsy-string, value: lowercase-string&truthy-string }
 	 */
 	protected static function get_note_reaction_emojis(): array {
 		return array(
