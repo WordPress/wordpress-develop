@@ -28,6 +28,21 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	/**
 	 * @ticket 65738
 	 */
+	public function test_allowed_list_entries_match_case_insensitively() {
+		$add = static function ( $allowed ) {
+			$allowed[] = 'Foo-Bar';
+			return $allowed;
+		};
+		add_filter( 'safe_style_css', $add );
+		$actual = safecss_filter_attr( 'Foo-Bar: baz; foo-bar: baz; FOO-BAR: baz' );
+		remove_filter( 'safe_style_css', $add );
+
+		$this->assertSame( 'foo-bar:baz;foo-bar:baz;foo-bar:baz;', $actual );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
 	public function test_custom_property_name_must_match_grammar() {
 		$this->assertSame( '--a_b-1:red;', safecss_filter_attr( '--a_b-1: red' ) );
 		$this->assertSame( '--miXeD-CAse:red;', safecss_filter_attr( '--miXeD-CAse: red' ) );

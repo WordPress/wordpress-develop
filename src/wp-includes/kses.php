@@ -4193,8 +4193,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *
  * The policy:
  *
- *  - The property name is in the allowed list, or the list contains `--*`
- *    and the name matches `^--[a-zA-Z0-9_-]+$`.
+ *  - The lowercased property name is in the allowed list, whose entries are
+ *    lowercased once, or the list contains `--*` and the name matches
+ *    `^--[a-zA-Z0-9_-]+$`.
  *  - Every function at any depth is in the function allowlist.
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
  *  - A non-custom property has no bare parenthesis block at the top level
@@ -4226,6 +4227,9 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	$css               = (string) $css;
 	$allow_custom      = in_array( '--*', $allowed_attr, true );
 	$allowed_protocols = wp_allowed_protocols();
+
+	// The processor lowercases property names; match the list the same way.
+	$allowed_attr = array_map( 'strtolower', $allowed_attr );
 
 	if ( has_filter( 'safecss_filter_attr_allow_css' ) ) {
 		_deprecated_hook(

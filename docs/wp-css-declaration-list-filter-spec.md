@@ -105,9 +105,10 @@ returns the input with NUL bytes and newlines removed, which is what the
 legacy function returns for an empty list, and does not call the declarations
 helper. A filter result that is not an array is treated as an empty list.
 
-1. **Property name.** The decoded, case-folded name is in the `safe_style_css`
-   list; or the list contains `--*` and the name matches
-   `^--[a-zA-Z0-9_-]+$`. Custom property names are matched case-sensitively.
+1. **Property name.** The decoded, lowercased name is in the `safe_style_css`
+   list, whose entries are lowercased once before matching; or the list
+   contains `--*` and the name matches `^--[a-zA-Z0-9_-]+$`. Custom property
+   names are matched case-sensitively.
 2. **Functions.** Every function in the value, at any nesting depth, is in the
    function allowlist: the legacy function's list, the six gradient functions,
    and the color functions `rgb`, `rgba`, `hsl`, `hsla`, `hwb`, `lab`, `lch`,
