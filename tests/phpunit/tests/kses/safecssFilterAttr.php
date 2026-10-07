@@ -365,14 +365,44 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @expectedDeprecated safecss_filter_attr_allow_css
 	 */
-	public function test_allow_css_filter_is_not_applied() {
+	public function test_allow_css_filter_is_deprecated_and_not_applied() {
 		$calls = new MockAction();
 		add_filter( 'safecss_filter_attr_allow_css', array( $calls, 'filter' ) );
-		safecss_filter_attr( 'margin-top: 2px' );
+		$actual = safecss_filter_attr( 'margin-top: 2px' );
 		remove_filter( 'safecss_filter_attr_allow_css', array( $calls, 'filter' ) );
 
 		$this->assertSame( 0, $calls->get_call_count() );
+		$this->assertSame( 'margin-top:2px;', $actual );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_allow_css_filter_does_not_change_the_output() {
+		$this->setExpectedDeprecated( 'safecss_filter_attr_allow_css' );
+
+		$inputs = array( 'margin-top: 2px', 'width: foo(1px)', 'color: red; width: calc(1px' );
+		$without = array_map( 'safecss_filter_attr', $inputs );
+
+		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+		$allow = array_map( 'safecss_filter_attr', $inputs );
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+
+		add_filter( 'safecss_filter_attr_allow_css', '__return_false' );
+		$deny = array_map( 'safecss_filter_attr', $inputs );
+		remove_filter( 'safecss_filter_attr_allow_css', '__return_false' );
+
+		$this->assertSame( $without, $allow );
+		$this->assertSame( $without, $deny );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_allow_css_filter_is_not_reported_when_no_callback_is_attached() {
+		$this->assertSame( 'margin-top:2px;', safecss_filter_attr( 'margin-top: 2px' ) );
 	}
 
 	/**

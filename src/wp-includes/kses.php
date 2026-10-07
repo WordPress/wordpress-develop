@@ -4148,6 +4148,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
+			 * @deprecated 7.2.0 Use safe_style_css or safecss_filter_attr_use_legacy.
 			 *
 			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
 			 * @param string $css_test_string The CSS string to test.
@@ -4215,6 +4216,15 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	$allow_custom      = in_array( '--*', $allowed_attr, true );
 	$allowed_protocols = wp_allowed_protocols();
 
+	if ( has_filter( 'safecss_filter_attr_allow_css' ) ) {
+		_deprecated_hook(
+			'safecss_filter_attr_allow_css',
+			'7.2.0',
+			'safe_style_css',
+			__( 'The hook only runs when the safecss_filter_attr_use_legacy filter returns true.' )
+		);
+	}
+
 	$processor    = WP_HTML_Style_Attribute_Processor::create( $css );
 	$declarations = array();
 
@@ -4241,12 +4251,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 				continue;
 			}
 
-			/*
-			 * The legacy implementation applies the `safecss_filter_attr_allow_css`
-			 * filter here, with a test string stripped of url() and allowed
-			 * functions. This implementation has no such string and does not
-			 * apply the filter.
-			 */
+			// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
 		}
 
 		$declaration = WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
