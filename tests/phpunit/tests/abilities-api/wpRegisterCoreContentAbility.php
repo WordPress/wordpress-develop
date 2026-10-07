@@ -12,6 +12,27 @@ declare( strict_types=1 );
 class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
+	 * Globals that rendering a post changes: the global post and the globals that
+	 * setup_postdata() populates.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var list<string>
+	 */
+	private const LOOP_GLOBALS = array(
+		'post',
+		'id',
+		'authordata',
+		'currentday',
+		'currentmonth',
+		'page',
+		'pages',
+		'multipage',
+		'more',
+		'numpages',
+	);
+
+	/**
 	 * Shared user IDs keyed by role or fixture name.
 	 *
 	 * @since 7.2.0
@@ -2040,6 +2061,111 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$restored_context_id,
 			'The surrounding post context should be restored after rendering.'
 		);
+	}
+
+	/**
+	 * Returns the rendered fields, whose filters run with the requested post set up as the
+	 * global post.
+	 *
+	 * @return array<string, array{field: string}> Rendered field test cases.
+	 */
+	public function data_rendered_fields(): array {
+		return array(
+			'content_rendered' => array(
+				'field' => 'content_rendered',
+			),
+			'excerpt_rendered' => array(
+				'field' => 'excerpt_rendered',
+			),
+		);
+	}
+
+	/**
+	 * Rendering a field unsets the loop globals that were not set before.
+	 *
+	 * Without a surrounding post, as in a REST request, wp_reset_postdata() cannot restore
+	 * the globals that setup_postdata() populates, because the main query has no post.
+	 *
+	 * @ticket 64606
+	 * @dataProvider data_rendered_fields
+	 * @since 7.2.0
+	 *
+	 * @param string $field The rendered field to request.
+	 */
+	public function test_rendered_fields_unset_loop_globals_that_were_not_set( string $field ): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			unset( $GLOBALS[ $name ] );
+		}
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => self::$post_ids['limited_role_content'],
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertArrayHasKey( $field, $result, 'Precondition: the rendered field should be returned.' );
+		$this->assertSame( array(), $this->get_loop_globals(), 'Loop globals that were not set should be unset again after rendering.' );
+	}
+
+	/**
+	 * Rendering a field restores the surrounding loop globals as they were, rather than as
+	 * setup_postdata() computes them for the surrounding post.
+	 *
+	 * @ticket 64606
+	 * @dataProvider data_rendered_fields
+	 * @since 7.2.0
+	 *
+	 * @param string $field The rendered field to request.
+	 */
+	public function test_rendered_fields_restore_surrounding_loop_globals( string $field ): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$surrounding = get_post( self::$post_ids['published'] );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a surrounding context to verify the ability restores it.
+		$GLOBALS['post'] = $surrounding;
+		setup_postdata( $surrounding );
+
+		/*
+		 * A template can show the full content outside a single post view by setting `$more`,
+		 * which running setup_postdata() for the surrounding post again would undo.
+		 */
+		$GLOBALS['more'] = 1;
+
+		$surrounding_globals = $this->get_loop_globals();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => self::$post_ids['limited_role_content'],
+				'fields' => array( $field ),
+			)
+		);
+
+		$this->assertArrayHasKey( $field, $result, 'Precondition: the rendered field should be returned.' );
+		$this->assertSame( $surrounding_globals, $this->get_loop_globals(), 'The surrounding loop globals should be restored as they were.' );
+	}
+
+	/**
+	 * Returns the loop globals that are set, keyed by name.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The loop globals that are set.
+	 */
+	private function get_loop_globals(): array {
+		$globals = array();
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			if ( array_key_exists( $name, $GLOBALS ) ) {
+				$globals[ $name ] = $GLOBALS[ $name ];
+			}
+		}
+
+		return $globals;
 	}
 
 	/**
