@@ -8,7 +8,7 @@ declare( strict_types=1 );
  * @covers WP_Content_Abilities
  *
  * @group abilities-api
- * @group rest-api
+ * @group restapi
  */
 class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 
