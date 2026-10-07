@@ -376,12 +376,11 @@ final class WP_Post_Type {
 	/**
 	 * Whether this post type should be exposed through the Abilities API.
 	 *
-	 * Default false. When truthy, the post type's readable posts can be retrieved
-	 * through the read-only `core/content-query` ability, subject to per-post capability
-	 * checks. May be an array to enable specific operations in the future.
+	 * Default false. If true, the post type's readable posts can be retrieved through
+	 * the read-only `core/content-query` ability, subject to per-post capability checks.
 	 *
 	 * @since 7.2.0
-	 * @var bool|array $show_in_abilities
+	 * @var bool $show_in_abilities
 	 */
 	public $show_in_abilities;
 
