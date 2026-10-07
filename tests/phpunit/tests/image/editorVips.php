@@ -971,9 +971,41 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 		return array(
 			array( '8.7', false ),
 			array( '8.12.1', false ),
-			array( '8.14.5', false ),
-			array( '8.15', true ),
+			array( '8.13', true ),
+			array( '8.14.1', true ),
 			array( '8.15.1', true ),
+			array( '8.16.1', true ),
+		);
+	}
+
+	/**
+	 * Tests which libvips versions can reduce metadata with the `keep` mask.
+	 *
+	 * The option does not exist below 8.15, and passing it would fail the save, so this
+	 * comparison is what decides whether it can be used.
+	 *
+	 * @dataProvider data_libvips_keep_support
+	 *
+	 * @param string $version  A libvips version.
+	 * @param bool   $expected Whether the `keep` option can be used.
+	 */
+	public function test_uses_keep_option( $version, $expected ) {
+		$method = new ReflectionMethod( 'WP_Image_Editor_Vips', 'uses_keep_option' );
+		$method->setAccessible( true );
+
+		$this->assertSame( $expected, $method->invoke( null, $version ) );
+	}
+
+	/**
+	 * Data provider for test_uses_keep_option.
+	 *
+	 * @return array<array{0:string,1:bool}>
+	 */
+	public static function data_libvips_keep_support() {
+		return array(
+			array( '8.13', false ),
+			array( '8.14.1', false ),
+			array( '8.15', true ),
 			array( '8.16.1', true ),
 		);
 	}

@@ -133,9 +133,9 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	/**
 	 * Checks whether a libvips version is new enough for this editor.
 	 *
-	 * 8.15 is the first version with the `keep` saver option, which is what preserves the
-	 * colour profile when metadata is reduced. Below it the editor reports itself
-	 * unsupported, and image editing falls back to Imagick or GD.
+	 * 8.13 is the floor: it is the first version that can write a palette back to a PNG,
+	 * which is what keeps a resized indexed PNG from ballooning. Below it the editor reports
+	 * itself unsupported, and image editing falls back to Imagick or GD.
 	 *
 	 * @since 7.2.0
 	 *
@@ -143,6 +143,23 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * @return bool
 	 */
 	protected static function is_supported_version( $version ) {
+		return version_compare( $version, '8.13', '>=' );
+	}
+
+	/**
+	 * Checks whether a libvips version can reduce metadata with the `keep` mask.
+	 *
+	 * The mask is what preserves the colour profile while dropping the rest, so the editor
+	 * prefers it where it exists. It arrived in 8.15, and is honoured in full from 8.16.
+	 * Below 8.15 the option does not exist, and passing it would fail the save, so the
+	 * unwanted fields are removed by hand instead.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $version A libvips version, as `Config::version()` reports it.
+	 * @return bool
+	 */
+	protected static function uses_keep_option( $version ) {
 		return version_compare( $version, '8.15', '>=' );
 	}
 
@@ -914,8 +931,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			$strip_meta = $strip_meta && $this->resized;
 
 			/*
-			 * The `keep` mask is only honoured in full from libvips 8.16. Below that, remove
-			 * what it misses, so that the same fields are dropped on every supported version.
+			 * Remove the fields the `keep` mask would have dropped. The mask is only honoured in
+			 * full from libvips 8.16, and does not exist below 8.15, so on those versions this is
+			 * what reduces the metadata. Removing the fields here means the same ones are dropped
+			 * whatever the mask can do.
 			 */
 			if ( $strip_meta && version_compare( Jcupitt\Vips\Config::version(), '8.16', '<' ) ) {
 				foreach ( self::get_unprotected_metadata_fields( $image->getFields() ) as $field ) {
@@ -1033,8 +1052,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		 * image renders once nothing tells the browser how to interpret the samples. The
 		 * `keep` mask drops the rest while preserving the colour profile and the descriptive
 		 * fields, which is the set the Imagick editor keeps.
+		 *
+		 * The mask only exists from libvips 8.15. Below that the caller has already removed the
+		 * fields it would have dropped, so no other option is needed here.
 		 */
-		if ( $strip_meta ) {
+		if ( $strip_meta && self::uses_keep_option( Jcupitt\Vips\Config::version() ) ) {
 			$options['keep'] = Jcupitt\Vips\ForeignKeep::ICC
 				| Jcupitt\Vips\ForeignKeep::EXIF
 				| Jcupitt\Vips\ForeignKeep::XMP
@@ -1092,8 +1114,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				break;
 
 			case 'image/gif':
-				/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
-				$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+				// gifsave gained the interlace option in libvips 8.14.
+				if ( version_compare( Jcupitt\Vips\Config::version(), '8.14', '>=' ) ) {
+					/** This filter is documented in wp-includes/class-wp-image-editor-gd.php */
+					$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+				}
 				break;
 		}
 
