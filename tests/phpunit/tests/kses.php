@@ -969,25 +969,30 @@ EOF;
 				'<div align="\\0left">This should be no big deal.</div>',
 				'<div align="\\0left">This should be no big deal.</div>',
 			),
+			/*
+			 * In a style attribute the CSS escapes are decoded before the checks and
+			 * re-serialized: `\0` is U+FFFD and `\\` is a literal backslash. The
+			 * value is what a browser reads, not `left`.
+			 */
 			array(
 				'This <div style="float:\\0left"> is more of a concern.',
-				'This <div style="float:left"> is more of a concern.',
+				"This <div style=\"float:\u{FFFD}left;\"> is more of a concern.",
 			),
 			array(
 				'This <div style="float:\\0\\0left"> is more of a concern.',
-				'This <div style="float:left"> is more of a concern.',
+				"This <div style=\"float:\u{FFFD}\u{FFFD}left;\"> is more of a concern.",
 			),
 			array(
 				'This <div style="float:\\\\00left"> is more of a concern.',
-				'This <div style="float:left"> is more of a concern.',
+				'This <div style="float:\\5C 00left;"> is more of a concern.',
 			),
 			array(
 				'This <div style="float:\\\\\\\\0000left"> is more of a concern.',
-				'This <div style="float:left"> is more of a concern.',
+				'This <div style="float:\\5C \\5C 0000left;"> is more of a concern.',
 			),
 			array(
 				'This <div style="float:\\0000left"> is more of a concern.',
-				'This <div style="float:left"> is more of a concern.',
+				"This <div style=\"float:\u{FFFD}left;\"> is more of a concern.",
 			),
 			array(
 				'<style type="text/css">div {background-image:\\0}</style>',
@@ -1156,15 +1161,16 @@ EOF;
 				'href="javascript:alert(1)"',
 				'href="alert(1)"',
 			),
+			// A style value with no declaration is dropped.
 			array(
 				'a',
 				'style ="style "',
-				'style="style"',
+				'',
 			),
 			array(
 				'a',
 				'style="style "',
-				'style="style"',
+				'',
 			),
 			array(
 				'a',
@@ -1275,6 +1281,7 @@ EOF;
 	/**
 	 * Testing the safecss_filter_attr() function.
 	 *
+	 * @ticket 65738
 	 * @ticket 37248
 	 * @ticket 42729
 	 * @ticket 48376
@@ -1290,20 +1297,44 @@ EOF;
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
-	 * @param string $css      A string of CSS rules.
-	 * @param string $expected Expected string of CSS rules.
+	 * @param string      $css             A string of CSS rules.
+	 * @param string      $expected        Expected string of CSS rules.
+	 * @param string|null $expected_legacy Optional. Expected string of CSS rules from the legacy
+	 *                                     implementation, when it differs. Default null.
 	 */
-	public function test_safecss_filter_attr( $css, $expected ) {
-		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+	public function test_safecss_filter_attr( $css, $expected, $expected_legacy = null ) {
+		$this->assertEqualStyleAttribute( $expected, safecss_filter_attr( $css ) );
 	}
 
 	/**
-	 * Data provider for test_safecss_filter_attr().
+	 * Tests the legacy implementation of safecss_filter_attr() through the `safecss_filter_attr_use_legacy` filter.
+	 *
+	 * @ticket 65738
+	 *
+	 * @dataProvider data_safecss_filter_attr
+	 *
+	 * @param string      $css             A string of CSS rules.
+	 * @param string      $expected        Expected string of CSS rules.
+	 * @param string|null $expected_legacy Optional. Expected string of CSS rules from the legacy
+	 *                                     implementation, when it differs. Default null.
+	 */
+	public function test_safecss_filter_attr_legacy( $css, $expected, $expected_legacy = null ) {
+		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		$actual = safecss_filter_attr( $css );
+		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+
+		$this->assertSame( $expected_legacy ?? $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_safecss_filter_attr() and test_safecss_filter_attr_legacy().
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @type string $css      A string of CSS rules.
-	 *         @type string $expected Expected string of CSS rules.
+	 *         @type string $css             A string of CSS rules.
+	 *         @type string $expected        Expected string of CSS rules.
+	 *         @type string $expected_legacy Optional. Expected string of CSS rules from the legacy
+	 *                                       implementation, when it differs.
 	 *     }
 	 * }
 	 */
@@ -1324,10 +1355,11 @@ EOF;
 				'css'      => 'margin-top: 2px',
 				'expected' => 'margin-top: 2px',
 			),
-			// Backslash \ isn't supported.
+			// Escapes are decoded and re-serialized.
 			array(
-				'css'      => 'margin-top: \2px',
-				'expected' => '',
+				'css'             => 'margin-top: \2px',
+				'expected'        => 'margin-top:\2 px;',
+				'expected_legacy' => '',
 			),
 			// Curly bracket } isn't supported.
 			array(
@@ -1339,10 +1371,11 @@ EOF;
 				'css'      => 'text-transform: uppercase',
 				'expected' => 'text-transform: uppercase',
 			),
-			// Only lowercase attribute names are supported.
+			// Property names match case-insensitively and serialize in lowercase.
 			array(
-				'css'      => 'Text-transform: capitalize',
-				'expected' => '',
+				'css'             => 'Text-transform: capitalize',
+				'expected'        => 'text-transform:capitalize;',
+				'expected_legacy' => '',
 			),
 			// Uppercase attribute values goes through.
 			array(
@@ -1426,9 +1459,11 @@ EOF;
 				'css'      => 'background-image: linear-gradient(red,yellow);',
 				'expected' => 'background-image: linear-gradient(red,yellow)',
 			),
+			// Gradients are allowed on every property.
 			array(
-				'css'      => 'color: linear-gradient(red,yellow);',
-				'expected' => '',
+				'css'             => 'color: linear-gradient(red,yellow);',
+				'expected'        => 'color:linear-gradient(red,yellow);',
+				'expected_legacy' => '',
 			),
 			array(
 				'css'      => 'background-image: linear-gradient(red,yellow); background: prop( red,yellow); width: 100px;',
@@ -1475,20 +1510,17 @@ EOF;
 				'css'      => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
 				'expected' => 'background-image: linear-gradient(135deg, hsl(0,100%,50%) 0%, hsl(240,100%,50%) 100%)',
 			),
-			// Nesting beyond one level inside a gradient is not supported (unchanged from before).
+			// Functions nest to any depth.
 			array(
-				'css'      => 'background-image: linear-gradient(red 0%, blue calc(50% + var(--x)))',
-				'expected' => '',
+				'css'             => 'background-image: linear-gradient(red 0%, blue calc(50% + var(--x)))',
+				'expected'        => 'background-image:linear-gradient(red 0%, blue calc(50% + var(--x)));',
+				'expected_legacy' => '',
 			),
-			/*
-			 * As of 7.1 (ticket 64974) any single-level nested function is permitted inside a
-			 * gradient, widening the previous rgb()/rgba()-only allowance. This includes the
-			 * legacy expression() form, which is inert in all supported browsers and remains
-			 * escaped when output as an attribute value.
-			 */
+			// A function not on the allowlist is rejected inside a gradient too.
 			array(
-				'css'      => 'background-image: linear-gradient(red, expression(alert))',
-				'expected' => 'background-image: linear-gradient(red, expression(alert))',
+				'css'             => 'background-image: linear-gradient(red, expression(alert))',
+				'expected'        => '',
+				'expected_legacy' => 'background-image: linear-gradient(red, expression(alert))',
 			),
 			// `object-position` introduced in 5.7.1.
 			array(
@@ -1539,15 +1571,16 @@ EOF;
 				'css'      => 'height: expression( body.scrollTop + 50 + "px" )',
 				'expected' => '',
 			),
-			// RGB color values are not allowed.
+			// Color functions are allowed on every property.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100 )',
-				'expected' => '',
+				'css'             => 'color: rgb( 100, 100, 100 )',
+				'expected'        => 'color:rgb( 100, 100, 100 );',
+				'expected_legacy' => '',
 			),
-			// RGBA color values are not allowed.
 			array(
-				'css'      => 'color: rgb( 100, 100, 100, .4 )',
-				'expected' => '',
+				'css'             => 'color: rgb( 100, 100, 100, .4 )',
+				'expected'        => 'color:rgb( 100, 100, 100, .4 );',
+				'expected_legacy' => '',
 			),
 			// Allow min().
 			array(
@@ -1569,10 +1602,11 @@ EOF;
 				'css'      => 'width: clamp(100px, 50%, 100vw)',
 				'expected' => 'width: clamp(100px, 50%, 100vw)',
 			),
-			// Allow two functions in the same CSS.
+			// An unmatched `)` makes the declaration invalid CSS.
 			array(
-				'css'      => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
-				'expected' => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+				'css'             => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
+				'expected'        => '',
+				'expected_legacy' => 'width: clamp(min(100px, 350px), 50%, 500px), 600px)',
 			),
 			// Allow gradient() function.
 			array(
@@ -1624,40 +1658,42 @@ EOF;
 				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 			),
-			// Malformed min, no closing `)`.
+			// A function left open at the end of the input is closed, as CSS closes it.
 			array(
-				'css'      => 'width: min(3em + 10px',
-				'expected' => '',
+				'css'             => 'width: min(3em + 10px',
+				'expected'        => 'width:min(3em + 10px);',
+				'expected_legacy' => '',
 			),
-			// Malformed max, no closing `)`.
 			array(
-				'css'      => 'width: max(3em + 10px',
-				'expected' => '',
+				'css'             => 'width: max(3em + 10px',
+				'expected'        => 'width:max(3em + 10px);',
+				'expected_legacy' => '',
 			),
-			// Malformed minmax, no closing `)`.
 			array(
-				'css'      => 'width: minmax(3em + 10px',
-				'expected' => '',
+				'css'             => 'width: minmax(3em + 10px',
+				'expected'        => 'width:minmax(3em + 10px);',
+				'expected_legacy' => '',
 			),
-			// Malformed calc, no closing `)`.
 			array(
-				'css'      => 'width: calc(3em + 10px',
-				'expected' => '',
+				'css'             => 'width: calc(3em + 10px',
+				'expected'        => 'width:calc(3em + 10px);',
+				'expected_legacy' => '',
 			),
-			// Malformed var, no closing `)`.
 			array(
-				'css'      => 'width: var(--wp-var1',
-				'expected' => '',
+				'css'             => 'width: var(--wp-var1',
+				'expected'        => 'width:var(--wp-var1);',
+				'expected_legacy' => '',
 			),
-			// Malformed calc, mismatching brackets.
+			// Nested blocks left open at the end of the input are all closed.
 			array(
-				'css'      => 'width: calc(3em + (10px * 2)',
-				'expected' => '',
+				'css'             => 'width: calc(3em + (10px * 2)',
+				'expected'        => 'width:calc(3em + (10px * 2));',
+				'expected_legacy' => '',
 			),
-			// Malformed var, mismatching brackets.
 			array(
-				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
-				'expected' => '',
+				'css'             => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
+				'expected'        => 'background-color:var(--wp-var, var(--wp-var-fallback, pink));',
+				'expected_legacy' => '',
 			),
 			// Don't allow expressions outside of a calc().
 			array(
@@ -1721,22 +1757,27 @@ EOF;
 				'css'      => 'aspect-ratio: expression( 16 / 9 );',
 				'expected' => '',
 			),
+			// The `;` is inside the open function, so it is part of the value.
 			array(
-				'css'      => 'aspect-ratio: calc( 16 / 9;',
-				'expected' => '',
+				'css'             => 'aspect-ratio: calc( 16 / 9;',
+				'expected'        => 'aspect-ratio:calc( 16 / 9;);',
+				'expected_legacy' => '',
 			),
 			array(
 				'css'      => 'aspect-ratio: calc( 16 / 9 );',
 				'expected' => 'aspect-ratio: calc( 16 / 9 )',
 			),
+			// url() is allowed on every property.
 			array(
-				'css'      => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
-				'expected' => '',
+				'css'             => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
+				'expected'        => 'aspect-ratio:url("https://wordpress.org/wp-content/uploads/aspect-ratio.jpg");',
+				'expected_legacy' => '',
 			),
 			// URL support for `filter` introduced in 6.3.
 			array(
-				'css'      => 'filter: url( my-file.svg#svg-blur );',
-				'expected' => 'filter: url( my-file.svg#svg-blur )',
+				'css'             => 'filter: url( my-file.svg#svg-blur );',
+				'expected'        => 'filter:url("my-file.svg#svg-blur");',
+				'expected_legacy' => 'filter: url( my-file.svg#svg-blur )',
 			),
 			// Support for `repeat` function.
 			array(
@@ -1747,10 +1788,11 @@ EOF;
 				'css'      => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
 				'expected' => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
 			),
-			// Malformed repeat, no closing `)`.
+			// Open at the end of the input: closed.
 			array(
-				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
-				'expected' => '',
+				'css'             => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
+				'expected'        => 'grid-template-columns:repeat(4, minmax(0, 1fr));',
+				'expected_legacy' => '',
 			),
 			// Malformed repeat, contains unsupported function.
 			array(
@@ -1921,36 +1963,44 @@ EOF;
 			),
 			// SVG url() references for allowlisted properties (ticket #65832).
 			array(
-				'css'      => 'clip-path: url(#myClipper)',
-				'expected' => 'clip-path: url(#myClipper)',
+				'css'             => 'clip-path: url(#myClipper)',
+				'expected'        => 'clip-path:url("#myClipper");',
+				'expected_legacy' => 'clip-path: url(#myClipper)',
 			),
 			array(
-				'css'      => 'fill: url(#gradient1)',
-				'expected' => 'fill: url(#gradient1)',
+				'css'             => 'fill: url(#gradient1)',
+				'expected'        => 'fill:url("#gradient1");',
+				'expected_legacy' => 'fill: url(#gradient1)',
 			),
 			array(
-				'css'      => 'mask: url(#myMask)',
-				'expected' => 'mask: url(#myMask)',
+				'css'             => 'mask: url(#myMask)',
+				'expected'        => 'mask:url("#myMask");',
+				'expected_legacy' => 'mask: url(#myMask)',
 			),
 			array(
-				'css'      => 'marker-start: url(#arrowStart)',
-				'expected' => 'marker-start: url(#arrowStart)',
+				'css'             => 'marker-start: url(#arrowStart)',
+				'expected'        => 'marker-start:url("#arrowStart");',
+				'expected_legacy' => 'marker-start: url(#arrowStart)',
 			),
 			array(
-				'css'      => 'marker-end: url(#arrowEnd)',
-				'expected' => 'marker-end: url(#arrowEnd)',
+				'css'             => 'marker-end: url(#arrowEnd)',
+				'expected'        => 'marker-end:url("#arrowEnd");',
+				'expected_legacy' => 'marker-end: url(#arrowEnd)',
 			),
 			array(
-				'css'      => 'marker-mid: url(#arrowMid)',
-				'expected' => 'marker-mid: url(#arrowMid)',
+				'css'             => 'marker-mid: url(#arrowMid)',
+				'expected'        => 'marker-mid:url("#arrowMid");',
+				'expected_legacy' => 'marker-mid: url(#arrowMid)',
 			),
 			array(
-				'css'      => 'marker: url(#marker1)',
-				'expected' => 'marker: url(#marker1)',
+				'css'             => 'marker: url(#marker1)',
+				'expected'        => 'marker:url("#marker1");',
+				'expected_legacy' => 'marker: url(#marker1)',
 			),
 			array(
-				'css'      => 'stroke: url(#strokeGradient)',
-				'expected' => 'stroke: url(#strokeGradient)',
+				'css'             => 'stroke: url(#strokeGradient)',
+				'expected'        => 'stroke:url("#strokeGradient");',
+				'expected_legacy' => 'stroke: url(#strokeGradient)',
 			),
 			// Disallow javascript: URLs in SVG url() references (security regression).
 			array(
@@ -2113,7 +2163,7 @@ EOF;
 			),
 			'background image URL with query string ampersand' => array(
 				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
-				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
+				'<div style="background-image:url(&quot;https://localhost/image.jpg?a=1\26 b=2&quot;);"></div>',
 			),
 			'background image URL followed by another declaration' => array(
 				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
@@ -2130,20 +2180,44 @@ EOF;
 	 * @ticket 45067
 	 * @ticket 46197
 	 * @ticket 46498
+	 * @ticket 65738
 	 *
-	 * @param $input string The style attribute saved in the editor.
-	 * @param $expected string The sanitized style attribute.
+	 * @param string      $input           The style attribute saved in the editor.
+	 * @param string      $expected        The sanitized style attribute.
+	 * @param string|null $expected_legacy Optional. The sanitized style attribute from the legacy
+	 *                                     implementation, when it differs. Default null.
 	 */
-	public function test_kses_style_attr_with_url( $input, $expected ) {
+	public function test_kses_style_attr_with_url( $input, $expected, $expected_legacy = null ) {
 		$actual = safecss_filter_attr( $input );
 
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualStyleAttribute( $expected, $actual );
+	}
+
+	/**
+	 * Tests URL sanitization in the legacy implementation of safecss_filter_attr().
+	 *
+	 * @ticket 65738
+	 *
+	 * @dataProvider data_kses_style_attr_with_url
+	 *
+	 * @param string      $input           The style attribute saved in the editor.
+	 * @param string      $expected        The sanitized style attribute.
+	 * @param string|null $expected_legacy Optional. The sanitized style attribute from the legacy
+	 *                                     implementation, when it differs. Default null.
+	 */
+	public function test_kses_style_attr_with_url_legacy( $input, $expected, $expected_legacy = null ) {
+		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		$actual = safecss_filter_attr( $input );
+		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+
+		$this->assertSame( $expected_legacy ?? $expected, $actual );
 	}
 
 	/**
 	 * Data provider testing style attribute sanitization.
 	 *
-	 * @return array Nested array of input, expected pairs.
+	 * @return array Nested array of input, expected output and, when the legacy implementation
+	 *               differs, its expected output.
 	 */
 	public function data_kses_style_attr_with_url() {
 		return array(
@@ -2166,6 +2240,7 @@ EOF;
 			// No quotes.
 			array(
 				'background-image: url( http://example.com/valid.gif );',
+				'background-image:url("http://example.com/valid.gif");',
 				'background-image: url( http://example.com/valid.gif )',
 			),
 
@@ -2209,9 +2284,10 @@ EOF;
 			 * Invalid use cases.
 			 */
 
-			// Attribute doesn't support URL properties.
+			// url() is allowed on every property.
 			array(
 				'color: url( "http://example.com/invalid.gif" );',
+				'color:url( "http://example.com/invalid.gif" );',
 				'',
 			),
 
@@ -2282,9 +2358,14 @@ EOF;
 	 * @param string $expected Expected string of CSS rules.
 	 */
 	public function test_safecss_filter_attr_filtered( $css, $expected ) {
+		// The filter is applied by the legacy implementation only.
+		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
 		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
-		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+		$actual = safecss_filter_attr( $css );
 		remove_filter( 'safecss_filter_attr_allow_css', '__return_true' );
+		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
