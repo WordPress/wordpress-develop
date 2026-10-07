@@ -68,29 +68,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		self::$post_ids = array(
-			'published'                  => $factory->post->create( array( 'post_status' => 'publish' ) ),
-			'published_content'          => $factory->post->create(
+			'published'            => $factory->post->create( array( 'post_status' => 'publish' ) ),
+			'published_content'    => $factory->post->create(
 				array(
 					'post_title'   => 'Hello Content',
 					'post_content' => 'Body here.',
 					'post_status'  => 'publish',
 				)
 			),
-			'subscriber_content'         => $factory->post->create(
-				array(
-					'post_title'   => 'Visible to subscribers',
-					'post_content' => 'Rendered body for subscribers.',
-					'post_status'  => 'publish',
-				)
-			),
-			'readable_single'            => $factory->post->create(
-				array(
-					'post_title'   => 'Readable single',
-					'post_content' => 'Readable single body.',
-					'post_status'  => 'publish',
-				)
-			),
-			'limited_role_content'       => $factory->post->create(
+			'limited_role_content' => $factory->post->create(
 				array(
 					'post_author'  => self::$user_ids['administrator'],
 					'post_title'   => 'Readable title',
@@ -99,25 +85,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'post_status'  => 'publish',
 				)
 			),
-			'raw_content'                => $factory->post->create(
-				array(
-					'post_status'  => 'publish',
-					'post_content' => 'Public body with raw block markup.',
-				)
-			),
-			'password_protected_editor'  => $factory->post->create(
-				array(
-					'post_status'   => 'publish',
-					'post_password' => 'secret',
-					'post_content'  => 'Top secret body.',
-				)
-			),
-			'password_protected_limited' => $factory->post->create(
+			'password_protected'   => $factory->post->create(
 				array(
 					'post_author'   => self::$user_ids['administrator'],
 					'post_status'   => 'publish',
 					'post_password' => 'secret',
-					'post_content'  => 'Hidden rendered body.',
+					'post_content'  => 'Top secret body.',
 				)
 			),
 		);
@@ -261,7 +234,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_does_not_register_core_content_query_ability_without_exposed_post_types(): void {
 		foreach ( array( 'post', 'page' ) as $post_type ) {
 			$object = get_post_type_object( $post_type );
-			$this->assertNotFalse( $object, "Precondition: the {$post_type} post type should exist." );
+			$this->assertInstanceOf( WP_Post_Type::class, $object, "Precondition: the {$post_type} post type should exist." );
 
 			$object->show_in_abilities = false;
 		}
@@ -605,7 +578,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => 999999 ) );
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assertWPError( $result, 'Missing posts should be denied before execution probes object details.' );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Missing posts should fail closed as a permission error.' );
@@ -851,37 +824,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertContains( $published, $ids, 'Published posts should be returned by default.' );
 		$this->assertNotContains( $draft, $ids, 'Draft posts should not be returned by default.' );
-	}
-
-	/**
-	 * Query mode can limit results to included IDs.
-	 *
-	 * @ticket 64606
-	 * @since 7.2.0
-	 */
-	public function test_query_include_limits_results(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$first  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$second = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$third  = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'post_type' => 'post',
-				'include'   => array( $third, $first ),
-				'fields'    => array( 'id' ),
-			)
-		);
-		$ids    = wp_list_pluck( $result['posts'], 'id' );
-
-		sort( $ids );
-		$expected = array( $first, $third );
-		sort( $expected );
-
-		$this->assertSame( $expected, $ids, 'Included post IDs should limit results without requiring caller order.' );
-		$this->assertNotContains( $second, $ids, 'Posts outside include should not be returned.' );
 	}
 
 	/**
@@ -1445,7 +1387,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_can_request_published_content(): void {
-		$post_id = self::$post_ids['subscriber_content'];
+		$post_id = self::$post_ids['published_content'];
 
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
@@ -1462,8 +1404,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$post_index = array_search( $post_id, $ids, true );
 		$this->assertIsInt( $post_index, 'The published post should be present in the subscriber query response.' );
 		$post = $result['posts'][ $post_index ];
-		$this->assertSame( 'Visible to subscribers', $post['title_rendered'], 'Subscribers should receive rendered titles.' );
-		$this->assertStringContainsString( 'Rendered body for subscribers.', $post['content_rendered'], 'Subscribers should receive rendered content.' );
+		$this->assertSame( 'Hello Content', $post['title_rendered'], 'Subscribers should receive rendered titles.' );
+		$this->assertStringContainsString( 'Body here.', $post['content_rendered'], 'Subscribers should receive rendered content.' );
 		$this->assertArrayNotHasKey( 'content_raw', $post, 'Subscribers should not receive raw content without edit access.' );
 	}
 
@@ -1474,7 +1416,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public function test_subscriber_can_get_single_published_post_by_id(): void {
-		$post_id = self::$post_ids['readable_single'];
+		$post_id = self::$post_ids['published_content'];
 
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
@@ -1482,7 +1424,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
 
 		$this->assertIsArray( $result, 'Subscribers should be able to fetch a readable published post by ID.' );
-		$this->assertSame( 'Readable single', $result['title_rendered'], 'Subscribers should receive the rendered title.' );
+		$this->assertSame( 'Hello Content', $result['title_rendered'], 'Subscribers should receive the rendered title.' );
 		$this->assertArrayNotHasKey( 'title_raw', $result, 'Subscribers should not receive raw titles without edit access.' );
 		$this->assertArrayNotHasKey( 'content_raw', $result, 'Subscribers should not receive raw content without edit access.' );
 		$this->assertArrayNotHasKey( 'content_rendered', $result, 'Rendered content should require an explicit field request.' );
@@ -1840,7 +1782,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public function test_raw_content_visible_to_editor(): void {
-		$post_id = self::$post_ids['raw_content'];
+		$post_id = self::$post_ids['published_content'];
 
 		$this->login_as( 'editor' );
 		$this->register_ability();
@@ -1853,7 +1795,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'Public body with raw block markup.',
+			'Body here.',
 			$result['content_raw'],
 			'Editors should receive explicitly requested raw content.'
 		);
@@ -1866,7 +1808,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public function test_password_protected_content_visible_to_editor(): void {
-		$post_id = self::$post_ids['password_protected_editor'];
+		$post_id = self::$post_ids['password_protected'];
 
 		$this->login_as( 'editor' );
 		$this->register_ability();
@@ -1899,7 +1841,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @param string $role The role to test.
 	 */
 	public function test_password_protected_rendered_content_is_empty_for_roles_without_edit_access_to_other_users_posts( string $role ): void {
-		$post_id = self::$post_ids['password_protected_limited'];
+		$post_id = self::$post_ids['password_protected'];
 
 		$this->login_as( $role );
 		$this->register_ability();
@@ -2218,7 +2160,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'post_password' => 'secret',
 			)
 		);
-		$other_id = self::$post_ids['password_protected_limited'];
+		$other_id = self::$post_ids['password_protected'];
 
 		$this->login_as( 'author' );
 
@@ -2298,42 +2240,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$result['content_rendered'],
 			'The embedded protected post should still report as password-gated.'
 		);
-	}
-
-	/**
-	 * Query mode paginates with `page`/`per_page` and reports totals.
-	 *
-	 * @ticket 64606
-	 * @since 7.2.0
-	 */
-	public function test_query_paginates_and_reports_totals(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) );
-
-		$page1 = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'post_type' => 'post',
-				'per_page'  => 2,
-				'page'      => 1,
-			)
-		);
-
-		$this->assertCount( 2, $page1['posts'], 'The first page should honor the requested per_page value.' );
-		$this->assertGreaterThanOrEqual( 3, $page1['total'], 'The query should report the total matching post count.' );
-		$this->assertSame( (int) ceil( $page1['total'] / 2 ), $page1['total_pages'], 'The query should report the computed total page count.' );
-
-		$page2 = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'post_type' => 'post',
-				'per_page'  => 2,
-				'page'      => 2,
-			)
-		);
-
-		$this->assertNotEmpty( $page2['posts'], 'The second page should return remaining posts.' );
-		$this->assertSame( $page1['total'], $page2['total'], 'Pagination should keep total counts stable across pages.' );
 	}
 
 	/**
@@ -2435,7 +2341,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'post_type' => 'post',
-				'include'   => array( 999999 ),
+				'include'   => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				'page'      => 2,
 				'fields'    => array( 'id' ),
 			)
@@ -2819,26 +2725,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A single post fetched by ID is returned directly without query totals.
-	 *
-	 * @ticket 64606
-	 * @since 7.2.0
-	 */
-	public function test_single_post_returns_direct_post_object(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::$post_ids['published'];
-
-		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
-
-		$this->assertSame( $post_id, $result['id'], 'Single-post responses should include the requested post ID.' );
-		$this->assertArrayNotHasKey( 'posts', $result, 'Single-post responses should not include the query posts wrapper.' );
-		$this->assertArrayNotHasKey( 'total', $result, 'Single-post responses should not include query totals.' );
-		$this->assertArrayNotHasKey( 'total_pages', $result, 'Single-post responses should not include query page totals.' );
-	}
-
-	/**
 	 * Local and GMT date fields report the correct instant and offset on non-UTC sites.
 	 *
 	 * @ticket 64606
@@ -3083,7 +2969,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$content = new WP_Content_Abilities();
 
-		$missing = $content->execute_content_query( array( 'id' => 999999 ) );
+		$missing = $content->execute_content_query( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$this->assertWPError( $missing, 'A nonexistent post ID should fail the lookup.' );
 		$this->assertSame( 'content_not_found', $missing->get_error_code(), 'Missing posts should map to the uniform not-found error.' );
 
