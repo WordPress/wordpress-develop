@@ -116,14 +116,23 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
-		global $plugin_page, $_registered_pages;
+		global $pagenow, $plugin_page;
 
-		$plugin_page       = 'testsettings';
-		$_registered_pages = array(
-			get_plugin_page_hookname( $plugin_page, '' ) => true,
-		);
+		$current_user = get_current_user_id();
+		wp_set_current_user( self::$admin_id );
 
-		$this->assertTrue( wp_admin_page_exists() );
+		add_options_page( 'Test Settings', 'Test Settings', 'manage_options', 'testsettings', 'mt_settings_page' );
+
+		$original_pagenow = $pagenow;
+		$pagenow          = 'options-general.php';
+		$plugin_page      = 'testsettings';
+
+		$exists = wp_admin_page_exists();
+
+		$pagenow = $original_pagenow;
+		wp_set_current_user( $current_user );
+
+		$this->assertTrue( $exists );
 	}
 
 	/**
