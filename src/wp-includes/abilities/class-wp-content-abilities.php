@@ -1248,7 +1248,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post   The post object.
+	 * @param \WP_Post     $post   The post object.
 	 * @param list<string> $fields The requested field names.
 	 * @return array<string, mixed> The formatted post data.
 	 */
@@ -1289,10 +1289,10 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post         The post object.
+	 * @param \WP_Post     $post         The post object.
 	 * @param list<string> $fields       The requested field names.
-	 * @param bool     $can_edit     Whether the current user can edit the post.
-	 * @param bool     $is_protected Whether rendered fields must be withheld as password-protected.
+	 * @param bool         $can_edit     Whether the current user can edit the post.
+	 * @param bool         $is_protected Whether rendered fields must be withheld as password-protected.
 	 * @return array<string, mixed> The formatted post data.
 	 */
 	private function build_post_fields( WP_Post $post, array $fields, bool $can_edit, bool $is_protected ): array {
