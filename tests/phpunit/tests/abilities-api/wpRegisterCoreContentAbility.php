@@ -2000,13 +2000,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Rendered excerpt filters run with the requested post as the global context and restore
-	 * the context that was active before the ability executed.
+	 * Rendered title and excerpt filters run with the requested post as the global context,
+	 * and the context that was active before the ability executed is restored.
 	 *
 	 * @ticket 64606
 	 * @since 7.2.0
 	 */
-	public function test_excerpt_rendered_uses_and_restores_requested_post_context(): void {
+	public function test_rendered_fields_use_and_restore_requested_post_context(): void {
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
 
@@ -2020,20 +2020,22 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$GLOBALS['post'] = $surrounding;
 		setup_postdata( $surrounding );
 
-		$append_context_id = static function ( $excerpt ): string {
-			return (string) $excerpt . '<!-- excerpt-context:' . get_the_ID() . ' -->';
+		$append_context_id = static function ( $text ): string {
+			return (string) $text . '<!-- context:' . get_the_ID() . ' -->';
 		};
+		add_filter( 'the_title', $append_context_id, 20 );
 		add_filter( 'the_excerpt', $append_context_id, 20 );
 
 		try {
 			$result              = wp_get_ability( 'core/content-query' )->execute(
 				array(
 					'id'     => $target_id,
-					'fields' => array( 'id', 'excerpt_rendered' ),
+					'fields' => array( 'id', 'title_rendered', 'excerpt_rendered' ),
 				)
 			);
 			$restored_context_id = get_the_ID();
 		} finally {
+			remove_filter( 'the_title', $append_context_id, 20 );
 			remove_filter( 'the_excerpt', $append_context_id, 20 );
 
 			if ( $previous_post instanceof WP_Post ) {
@@ -2047,7 +2049,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		}
 
 		$this->assertStringContainsString(
-			'<!-- excerpt-context:' . $target_id . ' -->',
+			'<!-- context:' . $target_id . ' -->',
+			$result['title_rendered'],
+			'Title filters should see the requested post as the current post.'
+		);
+		$this->assertStringContainsString(
+			'<!-- context:' . $target_id . ' -->',
 			$result['excerpt_rendered'],
 			'Excerpt filters should see the requested post as the current post.'
 		);

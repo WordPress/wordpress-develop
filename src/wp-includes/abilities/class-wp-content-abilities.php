@@ -539,14 +539,12 @@ final class WP_Content_Abilities {
 
 		/*
 		 * Prime the parent and author caches with a single query each instead of one
-		 * lookup per post, mirroring the REST posts controller. Hierarchical permalinks
-		 * and inherited read permissions read the parent. Besides `author_slug`,
-		 * permalinks read the author when the permalink structure contains `%author%`.
+		 * lookup per post, as the REST posts controller does. Hierarchical permalinks and
+		 * inherited read permissions read the parent, and format_post() sets up every post
+		 * with setup_postdata(), which reads the author.
 		 */
 		update_post_parent_caches( $query->posts );
-		if ( array() !== array_intersect( array( 'author_slug', 'link' ), $fields ) && post_type_supports( $post_type, 'author' ) ) {
-			update_post_author_caches( $query->posts );
-		}
+		update_post_author_caches( $query->posts );
 
 		$posts = array();
 		foreach ( $query->posts as $post ) {
@@ -1172,8 +1170,10 @@ final class WP_Content_Abilities {
 	/**
 	 * Formats a post into the ability output shape.
 	 *
-	 * For an editor of a password-protected post, the cookie-based password gate is suspended
-	 * while the fields are built so rendered fields resolve to real values instead of
+	 * As the REST posts controller does, the post is set up as the global post while its
+	 * fields are built, so filters that rely on loop globals, including title filters, see
+	 * the requested post. For an editor of a password-protected post, the cookie-based
+	 * password gate is also suspended, so rendered fields resolve to real values instead of
 	 * protected-post placeholders. The field projection itself is delegated to
 	 * {@see self::build_post_fields()}.
 	 *
@@ -1186,28 +1186,32 @@ final class WP_Content_Abilities {
 	private function format_post( WP_Post $post, array $fields ): array {
 		$can_edit          = current_user_can( 'edit_post', $post->ID );
 		$password_required = post_password_required( $post );
-		$protected         = $password_required && ! $can_edit;
+		$unlock_password   = $password_required && $can_edit;
+		$previous_context  = $this->set_up_post_context( $post );
 
 		/*
-		 * Suspend the cookie-based password gate for an editor of this protected post, so
-		 * helpers with their own gate (e.g. get_the_excerpt()) resolve the real values. The
-		 * filter unlocks only posts the current user can edit, mirroring the REST posts
+		 * The filter unlocks only posts the current user can edit, mirroring the REST posts
 		 * controller's check_password_required(): an unconditional bypass (e.g. __return_false)
 		 * would also expose other protected posts that the content filter may render, such as
-		 * posts pulled in by a Query Loop block. The filter is removed in a finally block so a
-		 * throw mid-render cannot leave the gate globally disabled for the rest of the request.
+		 * posts pulled in by a Query Loop block.
 		 */
-		if ( $password_required && $can_edit ) {
+		if ( $unlock_password ) {
 			add_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10, 2 );
-
-			try {
-				return $this->build_post_fields( $post, $fields, $can_edit, $protected );
-			} finally {
-				remove_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10 );
-			}
 		}
 
-		return $this->build_post_fields( $post, $fields, $can_edit, $protected );
+		/*
+		 * Undo both in a finally block, so a throw mid-render cannot leave the password gate
+		 * disabled or the global post pointing at this post for the rest of the request.
+		 */
+		try {
+			return $this->build_post_fields( $post, $fields, $can_edit, $password_required && ! $can_edit );
+		} finally {
+			if ( $unlock_password ) {
+				remove_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10 );
+			}
+
+			$this->restore_post_context( $previous_context );
+		}
 	}
 
 	/**
@@ -1376,10 +1380,8 @@ final class WP_Content_Abilities {
 	/**
 	 * Returns the post excerpt transformed for display.
 	 *
-	 * Mirrors the REST posts controller by preparing post globals before applying
-	 * the `get_the_excerpt` and `the_excerpt` filter chains, then restoring the
-	 * previous global post context. This ensures filters that rely on loop globals
-	 * render against the requested post.
+	 * Applies the `get_the_excerpt` and `the_excerpt` filter chains, as the REST posts
+	 * controller does. {@see self::format_post()} has set the post up as the global post.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1387,31 +1389,20 @@ final class WP_Content_Abilities {
 	 * @return string Rendered post excerpt.
 	 */
 	private function get_rendered_excerpt( WP_Post $post ): string {
-		$previous_context = $this->set_up_post_context( $post );
+		/** This filter is documented in wp-includes/post-template.php */
+		$excerpt = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
 
-		/*
-		 * The global post context is restored in a finally block so a throw from an
-		 * excerpt filter cannot leave it pointing at the rendered post for the rest
-		 * of the request.
-		 */
-		try {
-			/** This filter is documented in wp-includes/post-template.php */
-			$excerpt = apply_filters( 'get_the_excerpt', $post->post_excerpt, $post );
+		/** This filter is documented in wp-includes/post-template.php */
+		$excerpt = apply_filters( 'the_excerpt', $excerpt );
 
-			/** This filter is documented in wp-includes/post-template.php */
-			$excerpt = apply_filters( 'the_excerpt', $excerpt );
-
-			return is_string( $excerpt ) ? $excerpt : '';
-		} finally {
-			$this->restore_post_context( $previous_context );
-		}
+		return is_string( $excerpt ) ? $excerpt : '';
 	}
 
 	/**
 	 * Returns post content transformed for display.
 	 *
-	 * Mirrors the REST posts controller by preparing post globals before applying
-	 * `the_content`, then restoring the previous global post context.
+	 * Applies `the_content`, as the REST posts controller does. {@see self::format_post()}
+	 * has set the post up as the global post.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1419,21 +1410,10 @@ final class WP_Content_Abilities {
 	 * @return string Rendered post content.
 	 */
 	private function get_rendered_content( WP_Post $post ): string {
-		$previous_context = $this->set_up_post_context( $post );
+		/** This filter is documented in wp-includes/post-template.php */
+		$content = apply_filters( 'the_content', $post->post_content );
 
-		/*
-		 * The global post context is restored in a finally block so a throw from a
-		 * content filter cannot leave it pointing at the rendered post for the rest
-		 * of the request.
-		 */
-		try {
-			/** This filter is documented in wp-includes/post-template.php */
-			$content = apply_filters( 'the_content', $post->post_content );
-
-			return is_string( $content ) ? $content : '';
-		} finally {
-			$this->restore_post_context( $previous_context );
-		}
+		return is_string( $content ) ? $content : '';
 	}
 
 	/**
