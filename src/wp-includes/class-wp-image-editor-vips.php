@@ -118,13 +118,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		// Try to get the libvips version to confirm it's working.
 		try {
 			$version = Jcupitt\Vips\Config::version();
-			if ( empty( $version ) ) {
-				return false;
-			}
-
-			// Require libvips 8.15 or later, which is the first version with the `keep`
-			// saver option used to preserve colour profiles when metadata is stripped.
-			if ( version_compare( $version, '8.15', '<' ) ) {
+			if ( empty( $version ) || ! self::is_supported_version( $version ) ) {
 				return false;
 			}
 		} catch ( Exception $e ) {
@@ -134,6 +128,22 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		$supported = true;
 
 		return true;
+	}
+
+	/**
+	 * Checks whether a libvips version is new enough for this editor.
+	 *
+	 * 8.15 is the first version with the `keep` saver option, which is what preserves the
+	 * colour profile when metadata is reduced. Below it the editor reports itself
+	 * unsupported, and image editing falls back to Imagick or GD.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $version A libvips version, as `Config::version()` reports it.
+	 * @return bool
+	 */
+	protected static function is_supported_version( $version ) {
+		return version_compare( $version, '8.15', '>=' );
 	}
 
 	/**

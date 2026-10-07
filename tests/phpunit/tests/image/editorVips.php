@@ -944,6 +944,41 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests which libvips versions the editor accepts.
+	 *
+	 * The floor is what decides whether the editor is used at all, and reaching it through
+	 * test() would need an older libvips than the one running the suite, so the comparison
+	 * is checked directly.
+	 *
+	 * @dataProvider data_libvips_versions
+	 *
+	 * @param string $version  A libvips version.
+	 * @param bool   $expected Whether the editor should accept it.
+	 */
+	public function test_supported_libvips_versions( $version, $expected ) {
+		$method = new ReflectionMethod( 'WP_Image_Editor_Vips', 'is_supported_version' );
+		$method->setAccessible( true );
+
+		$this->assertSame( $expected, $method->invoke( null, $version ) );
+	}
+
+	/**
+	 * Data provider for test_supported_libvips_versions.
+	 *
+	 * @return array<array{0:string,1:bool}>
+	 */
+	public static function data_libvips_versions() {
+		return array(
+			array( '8.7', false ),
+			array( '8.12.1', false ),
+			array( '8.14.5', false ),
+			array( '8.15', true ),
+			array( '8.15.1', true ),
+			array( '8.16.1', true ),
+		);
+	}
+
+	/**
 	 * Tests that WP_Image_Editor_Vips handles extensionless images.
 	 *
 	 * @ticket 39195
