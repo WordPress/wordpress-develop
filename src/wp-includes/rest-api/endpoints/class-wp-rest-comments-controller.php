@@ -709,6 +709,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Creates a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added support for the `reaction` comment type.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or error object on failure.
@@ -754,6 +755,42 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				return new WP_Error(
 					'rest_comment_invalid_parent',
 					__( 'A reaction must be attached to a note.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			// A reaction under a trashed or spammed note would escape the trash cascade.
+			if ( in_array( $parent_comment->comment_approved, array( 'trash', 'spam' ), true ) ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction cannot be added to a trashed or spam note.' ),
+					array( 'status' => 400 )
+				);
+			}
+
+			/*
+			 * Resolving a thread approves its root note, and the editor disables
+			 * reactions from then on. Hold requests from stale editor sessions
+			 * to that too, for the root note and for every reply in its thread.
+			 */
+			$thread_root = $parent_comment;
+			$visited     = array( (int) $thread_root->comment_ID => true );
+			while ( $thread_root->comment_parent ) {
+				$ancestor = get_comment( $thread_root->comment_parent );
+
+				// Stop at a missing ancestor or a corrupt, cyclic chain.
+				if ( ! $ancestor || isset( $visited[ (int) $ancestor->comment_ID ] ) ) {
+					break;
+				}
+
+				$visited[ (int) $ancestor->comment_ID ] = true;
+				$thread_root                            = $ancestor;
+			}
+
+			if ( '1' === $thread_root->comment_approved ) {
+				return new WP_Error(
+					'rest_comment_invalid_parent',
+					__( 'A reaction cannot be added to a resolved note.' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -1291,6 +1328,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * Checks if a given request has access to delete a comment.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 A reaction can only be deleted by the user who added it.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to delete the item, error object otherwise.
@@ -1299,6 +1337,19 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$comment = $this->get_comment( $request['id'] );
 		if ( is_wp_error( $comment ) ) {
 			return $comment;
+		}
+
+		/*
+		 * Anyone who can edit a note's post can edit the note, and the check
+		 * below follows that, but a reaction belongs to the user who added it:
+		 * only they can take it back.
+		 */
+		if ( 'reaction' === $comment->comment_type && get_current_user_id() !== (int) $comment->user_id ) {
+			return new WP_Error(
+				'rest_cannot_delete',
+				__( 'Sorry, you can only remove your own reactions.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		if ( ! $this->check_edit_permission( $comment ) ) {
