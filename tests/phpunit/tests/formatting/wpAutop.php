@@ -392,6 +392,9 @@ Paragraph two.';
 		$content = array();
 
 		foreach ( $blocks as $block ) {
+			if ( 'hr' === $block ) {
+				continue;
+			}
 			$content[] = "<$block>foo</$block>";
 		}
 
@@ -420,6 +423,9 @@ Paragraph two.';
 		$content = array();
 
 		foreach ( $blocks as $block ) {
+			if ( 'hr' === $block ) {
+				continue;
+			}
 			$content[] = "<$block attr='value'>foo</$block>";
 		}
 
@@ -659,5 +665,51 @@ line 2<br/>
 		$expected = '<p>' . $content . '</p>';
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
+	 * Data provider for test_paragraphs_inside_blocks().
+	 *
+	 * @ticket 38656
+	 */
+	public function data_paragraphs_inside_blocks() {
+		$data = array(
+			array(
+				"<div>a\n\nb</div>",
+				"<div>\n<p>a</p>\n<p>b</p>\n</div>",
+			),
+			array(
+				"<h1>a\n\nb</h1>",
+				"<h1>a\n\nb</h1>",
+			),
+			array(
+				"<ul><li>a\n\nb</li></ul>",
+				"<ul>\n<li>\n<p>a</p>\n<p>b</p>\n</li>\n</ul>",
+			),
+			array(
+				"<ul><li>a\n\n<ul><li>b\n\nc</li></ul></li></ul>",
+				"<ul>\n<li>\n<p>a</p>\n<ul>\n<li>\n<p>b</p>\n<p>c</p>\n</li>\n</ul>\n</li>\n</ul>",
+			),
+			array(
+				"<div>a\n\n<hr>\n\nb</div>",
+				"<div>\n<p>a</p>\n<hr>\n<p>b</p>\n</div>",
+			),
+			array(
+				"<table>\n\n<tr>\n\n<td>a\n\nb</td><td>\n\n<ul><li>c\n\n<ul><li>d\n\ne</li></ul>f\n\ng</li></ul>h</td>\n\n</tr>\n\n</table>",
+				"<table>\n<tr>\n<td>\n<p>a</p>\n<p>b</p>\n</td>\n<td>\n<ul>\n<li>\n<p>c</p>\n<ul>\n<li>\n<p>d</p>\n<p>e</p>\n</li>\n</ul>\n<p>f</p>\n<p>g</p>\n</li>\n</ul>\n<p>h</p>\n</td>\n</tr>\n</table>",
+			),
+		);
+
+		return $data;
+	}
+
+	/**
+	 * wpautop() incorrectly handling paragraphs within block elements
+	 *
+	 * @ticket 38656
+	 * @dataProvider data_paragraphs_inside_blocks
+	 */
+	public function test_paragraphs_inside_blocks( $input, $output ) {
+		return $this->assertSame( $output, wpautop( $input ) );
 	}
 }
