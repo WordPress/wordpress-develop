@@ -8,6 +8,35 @@
 class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
+	 * Captured HTTP request arguments from the last mocked request.
+	 *
+	 * @var array|null
+	 */
+	private $request_args = null;
+
+	/**
+	 * Captured HTTP request URL from the last mocked request.
+	 *
+	 * @var string|null
+	 */
+	private $request_url = null;
+
+	/**
+	 * Set up mocked HTTP responses for all cases in this class.
+	 *
+	 * Per #63914, prove the same behavior with mocked responses and leave the
+	 * external-http group. Pattern matches Tests_HTTP_wpGetHttpHeaders.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->request_args = null;
+		$this->request_url  = null;
+
+		add_filter( 'pre_http_request', array( $this, 'mock_http_request' ), 10, 3 );
+	}
+
+	/**
 	 * Empty input is rejected before any HTTP request is made.
 	 *
 	 * @ticket 48845
@@ -15,21 +44,20 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 */
 	public function test_wp_remote_fopen_empty() {
 		$this->assertFalse( wp_remote_fopen( '' ) );
+		$this->assertNull( $this->request_url, 'Empty input should not reach the HTTP API.' );
 	}
 
 	/**
 	 * A schemeless URL returns false when the HTTP API returns a WP_Error.
 	 *
-	 * Per #63914 this covers the failure path with a mocked response instead of
-	 * a live request. Mimics the WP_Error WP_Http returns for an invalid URL.
-	 *
 	 * @ticket 48845
 	 * @ticket 63914
 	 */
 	public function test_wp_remote_fopen_bad_url() {
-		add_filter( 'pre_http_request', array( $this, 'mock_invalid_url_response' ), 10, 3 );
-
 		$this->assertFalse( wp_remote_fopen( 'wp.com' ) );
+		$this->assertSame( 'wp.com', $this->request_url );
+		$this->assertTrue( $this->request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
+		$this->assertSame( 10, $this->request_args['timeout'] );
 	}
 
 	/**
@@ -39,47 +67,43 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 	 * @ticket 63914
 	 */
 	public function test_wp_remote_fopen() {
-		$body         = 'Hello World';
-		$request_args = null;
-
-		add_filter(
-			'pre_http_request',
-			static function ( $response, $parsed_args ) use ( $body, &$request_args ) {
-				$request_args = $parsed_args;
-
-				return array(
-					'headers'  => array(),
-					'body'     => $body,
-					'response' => array(
-						'code'    => 200,
-						'message' => 'OK',
-					),
-					'cookies'  => array(),
-					'filename' => null,
-				);
-			},
-			10,
-			2
-		);
-
 		$response = wp_remote_fopen( 'https://example.com/' );
 
-		$this->assertSame( $body, $response );
-		$this->assertTrue( $request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
-		$this->assertSame( 10, $request_args['timeout'] );
+		$this->assertSame( 'Hello World', $response );
+		$this->assertSame( 'https://example.com/', $this->request_url );
+		$this->assertTrue( $this->request_args['reject_unsafe_urls'], 'The request should use wp_safe_remote_get().' );
+		$this->assertSame( 10, $this->request_args['timeout'] );
 	}
 
 	/**
-	 * Mocks an invalid-URL HTTP API response for wp_remote_fopen().
+	 * Mock the HTTP request response.
 	 *
 	 * @param false|array|WP_Error $response    A preemptive return value of an HTTP request. Default false.
 	 * @param array                $parsed_args HTTP request arguments.
 	 * @param string               $url         The request URL.
-	 * @return WP_Error Mocked error response.
+	 * @return false|array|WP_Error Response data.
 	 */
-	public function mock_invalid_url_response( $response, $parsed_args, $url ) {
-		unset( $response, $parsed_args, $url );
+	public function mock_http_request( $response, $parsed_args, $url ) {
+		$this->request_url  = $url;
+		$this->request_args = $parsed_args;
 
-		return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+		if ( 'https://example.com/' === $url ) {
+			return array(
+				'headers'  => array(),
+				'body'     => 'Hello World',
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'cookies'  => array(),
+				'filename' => null,
+			);
+		}
+
+		if ( 'wp.com' === $url ) {
+			return new WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+		}
+
+		return $response;
 	}
 }
