@@ -900,6 +900,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				$options['Q']               = $this->get_quality();
 				$options['strip']           = $strip_meta;
 				$options['optimize_coding'] = true;
+				$options['interlace']       = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 				break;
 
 			case 'image/avif':
@@ -923,6 +924,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				// quality instead wrote files far larger than the source they came from.
 				$options['compression'] = 9;
 				$options['strip']       = $strip_meta;
+				$options['interlace']   = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 
 				// Asking for a palette back keeps an indexed PNG indexed. Without it the
 				// resized image is written as true colour, which is much larger than the
@@ -934,6 +936,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 			case 'image/gif':
 				$options['strip'] = $strip_meta;
+
+				// gifsave gained the interlace option in libvips 8.14.
+				if ( version_compare( Jcupitt\Vips\Config::version(), '8.14', '>=' ) ) {
+					$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
+				}
 				break;
 		}
 
