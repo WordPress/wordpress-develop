@@ -1829,6 +1829,7 @@ module.exports = function(grunt) {
 
 	grunt.registerTask( 'precommit:php', [
 		'phpstan',
+		'compat:php',
 		'phpunit'
 	] );
 
@@ -2421,7 +2422,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php;
+		var args = changedFiles.php.slice();
 
 		args.unshift( 'format' );
 
@@ -2441,7 +2442,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'lint:php', 'Runs the code linter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
-		var args = changedFiles.php;
+		var args = changedFiles.php.slice();
 
 		args.unshift( 'lint' );
 
@@ -2455,6 +2456,21 @@ module.exports = function(grunt) {
 			} else {
 				done( true );
 			}
+		} );
+	} );
+
+	grunt.registerTask( 'compat:php', 'Runs the PHPCompatibility ruleset on changed files.', function() {
+		var done = this.async();
+		var args = changedFiles.php.slice();
+
+		args.unshift( 'compat' );
+
+		grunt.util.spawn( {
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
 		} );
 	} );
 
