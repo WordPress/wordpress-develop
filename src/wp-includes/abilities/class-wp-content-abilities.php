@@ -813,6 +813,10 @@ final class WP_Content_Abilities {
 	 * requested fields; edit-field requests are gated afterwards on the resolved
 	 * post by {@see self::check_permission()}.
 	 *
+	 * In hierarchical post types, posts under different parents can also share a
+	 * slug. The lookup cannot tell them apart and resolves to one of them by the
+	 * same rules, so callers that need a specific post should look it up by ID.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $post_type The post type.
@@ -1124,7 +1128,7 @@ final class WP_Content_Abilities {
 						'slug'      => array(
 							'type'        => 'string',
 							'minLength'   => 1,
-							'description' => __( 'Retrieve a single readable post by slug. Resolves to the newest readable match, preferring published posts.' ),
+							'description' => __( 'Retrieve a single readable post by slug. Resolves to the newest readable match, preferring published posts. In hierarchical post types, posts under different parents can share a slug; use `id` to get a specific one.' ),
 						),
 						'fields'    => $fields,
 					),
