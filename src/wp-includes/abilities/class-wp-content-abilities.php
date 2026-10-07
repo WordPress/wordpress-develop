@@ -1546,9 +1546,11 @@ final class WP_Content_Abilities {
 	private function set_up_post_context( WP_Post $post ): array {
 		$previous_context = array();
 		foreach ( $this->loop_globals as $name ) {
-			if ( array_key_exists( $name, $GLOBALS ) ) {
-				$previous_context[ $name ] = $GLOBALS[ $name ];
+			if ( ! array_key_exists( $name, $GLOBALS ) ) {
+				continue;
 			}
+
+			$previous_context[ $name ] = $GLOBALS[ $name ];
 		}
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily mirrors REST post context for rendering.

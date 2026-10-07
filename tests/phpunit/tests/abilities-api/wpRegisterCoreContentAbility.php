@@ -2160,9 +2160,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	private function get_loop_globals(): array {
 		$globals = array();
 		foreach ( self::LOOP_GLOBALS as $name ) {
-			if ( array_key_exists( $name, $GLOBALS ) ) {
-				$globals[ $name ] = $GLOBALS[ $name ];
+			if ( ! array_key_exists( $name, $GLOBALS ) ) {
+				continue;
 			}
+
+			$globals[ $name ] = $GLOBALS[ $name ];
 		}
 
 		return $globals;
