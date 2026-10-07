@@ -2547,6 +2547,14 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		};
 
 		wp_cache_flush();
+
+		/*
+		 * On multisite, capability checks load the current user to check whether they are a
+		 * super admin. Load the user again after the flush so only the callback's own queries
+		 * are counted.
+		 */
+		get_userdata( get_current_user_id() );
+
 		add_filter( 'query', $spy );
 		try {
 			$result = $callback();
