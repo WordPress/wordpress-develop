@@ -1452,7 +1452,8 @@ final class WP_Content_Abilities {
 	 * wp_reset_postdata() alone is not enough: it does nothing when the main query has no
 	 * post, which would leave the rendered post's data in the globals. When a post was set
 	 * up before, setup_postdata() first runs for it again, as wp_reset_postdata() would, so
-	 * callbacks on the `the_post` action can restore their own globals too.
+	 * callbacks on the `the_post` action can restore their own globals too. A global post
+	 * that was never set up keeps the loop globals that setup_postdata() gives it.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1464,6 +1465,18 @@ final class WP_Content_Abilities {
 			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the previous global post context.
 			$GLOBALS['post'] = $previous_post;
 			setup_postdata( $previous_post );
+
+			/*
+			 * A global post that was never set up, such as the main post before the loop
+			 * starts, keeps what setup_postdata() just gave it. Do not put back the values
+			 * saved before: `the_post` has fired now, so get_the_content() called without a
+			 * post, as the Post Content block and the_content() outside the loop do, reads the
+			 * loop globals instead of the post, and an unset `$pages` makes it throw a
+			 * TypeError that breaks the page being rendered.
+			 */
+			if ( ! is_array( $previous_context['pages'] ?? null ) ) {
+				return;
+			}
 		}
 
 		foreach ( self::LOOP_GLOBALS as $name ) {
