@@ -290,7 +290,6 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 				'expected' => '<div data-id="wp-admin-notice-%%ID%%" id="wp-admin-notice-%%ID%%" class="notice"><p>A notice with paragraph wrapping as a falsy value rather than (bool) false.</p></div>',
 			),
 		);
-
 	}
 
 	/**
