@@ -3068,41 +3068,34 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns author slugs that do not name exactly one user.
+	 * Returns author slugs that do not name a user.
 	 *
 	 * @return array<string, array{0: mixed}> The author slug filter value.
 	 */
-	public function data_author_slugs_that_name_no_single_user(): array {
+	public function data_author_slugs_that_name_no_user(): array {
 		return array(
 			'unknown slug'     => array( 'no-such-user' ),
-			'shared slug'      => array( 'shared-slug' ),
 			'slug in capitals' => array( 'AUTHOR-SLUG' ),
 			'not a string'     => array( 5 ),
 		);
 	}
 
 	/**
-	 * An author_slug filter that does not name exactly one user is rejected rather than
-	 * silently dropped, which would widen the query to every author's posts.
+	 * An author_slug filter that does not name a user is rejected rather than silently
+	 * dropped, which would widen the query to every author's posts.
 	 *
 	 * @ticket 64606
-	 * @dataProvider data_author_slugs_that_name_no_single_user
+	 * @dataProvider data_author_slugs_that_name_no_user
 	 *
 	 * @param mixed $author_slug The author slug filter value.
 	 */
-	public function test_execute_callback_rejects_an_author_slug_that_names_no_single_user( $author_slug ): void {
-		global $wpdb;
-
-		// Core keeps nicenames unique, so give two users the same one through the database.
-		$nicenames = array(
-			self::$user_ids['author']           => 'author-slug',
-			self::$user_ids['contributor']      => 'shared-slug',
-			self::$user_ids['author_secondary'] => 'shared-slug',
+	public function test_execute_callback_rejects_an_author_slug_that_names_no_user( $author_slug ): void {
+		wp_update_user(
+			array(
+				'ID'            => self::$user_ids['author'],
+				'user_nicename' => 'author-slug',
+			)
 		);
-		foreach ( $nicenames as $user_id => $nicename ) {
-			$wpdb->update( $wpdb->users, array( 'user_nicename' => $nicename ), array( 'ID' => $user_id ) );
-			clean_user_cache( $user_id );
-		}
 
 		$this->login_as( 'administrator' );
 		$content = new WP_Content_Abilities();
@@ -3114,7 +3107,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertWPError( $result, 'An author_slug that names no single user must not silently widen the query to all authors.' );
+		$this->assertWPError( $result, 'An author_slug that names no user must not silently widen the query to all authors.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An unhonorable author_slug filter should fail closed as an invalid filter.' );
 	}
 

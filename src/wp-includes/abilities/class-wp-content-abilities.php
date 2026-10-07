@@ -188,9 +188,9 @@ final class WP_Content_Abilities {
 
 		$requires_edit = $this->has_explicit_edit_fields( $input );
 
-		// Single-post mode (by ID).
-		if ( ! empty( $input['id'] ) ) {
-			$post = $this->get_content_by_id( $input );
+		// Single-post modes, by ID or by post type and slug.
+		if ( isset( $input['id'] ) || isset( $input['slug'] ) ) {
+			$post = $this->get_requested_post( $input );
 			if ( ! $post ) {
 				return false;
 			}
@@ -198,20 +198,10 @@ final class WP_Content_Abilities {
 			return $requires_edit ? current_user_can( 'edit_post', $post->ID ) : $this->check_read_permission( $post );
 		}
 
-		// Single-post mode (by slug) and query mode require an exposed post type.
+		// Query mode requires an exposed post type.
 		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
 		if ( ! $post_type_object ) {
 			return false;
-		}
-
-		$post_type = $post_type_object->name;
-		if ( isset( $input['slug'] ) && is_string( $input['slug'] ) && '' !== $input['slug'] ) {
-			$post = $this->get_post_by_slug( $post_type, $input['slug'] );
-			if ( ! $post ) {
-				return false;
-			}
-
-			return $requires_edit ? current_user_can( 'edit_post', $post->ID ) : $this->check_read_permission( $post );
 		}
 
 		if ( $requires_edit ) {
@@ -222,26 +212,14 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Casts a raw input value to a non-negative integer.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed $value The raw input value.
-	 * @return int The value as a non-negative integer, or 0 when not scalar.
-	 */
-	private function input_int( $value ): int {
-		return is_scalar( $value ) ? absint( $value ) : 0;
-	}
-
-	/**
 	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
 	 *
-	 * Unlike {@see self::input_int()}, which coerces any non-integer to 0, this rejects
-	 * values that are not integers, so an ID or a parent that cannot be honored fails
-	 * loudly instead of being read as 0: a `parent` filter of 0 asks for top-level posts.
-	 * Accepts native integers and unsigned integer strings. Schema validation accepts an
-	 * integer string, and only the REST run controller converts input to the schema types,
-	 * so callers that bypass it, such as a direct WP_Ability::execute() call, can pass one.
+	 * Values that are not integers are rejected rather than coerced, so an ID or a parent
+	 * that cannot be honored fails loudly instead of being read as 0: a `parent` filter of
+	 * 0 asks for top-level posts. Accepts native integers and unsigned integer strings.
+	 * Schema validation accepts an integer string, and only the REST run controller
+	 * converts input to the schema types, so callers that bypass it, such as a direct
+	 * WP_Ability::execute() call, can pass one.
 	 *
 	 * @since 7.2.0
 	 *
@@ -401,11 +379,7 @@ final class WP_Content_Abilities {
 		 * Mirror the REST posts controller's inherited-parent behavior, but keep the
 		 * ability fail-closed for missing parents or parent loops.
 		 */
-		if (
-			'inherit' === $post->post_status &&
-			$post->post_parent > 0 &&
-			(int) $post->post_parent !== (int) $post->ID
-		) {
+		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
 			if ( $parent instanceof WP_Post ) {
 				return $this->check_read_permission( $parent, $checked_post_ids );
@@ -436,32 +410,19 @@ final class WP_Content_Abilities {
 		$fields        = $this->normalize_fields( $input );
 		$requires_edit = $this->has_explicit_edit_fields( $input );
 
-		// Single-post mode (by ID).
-		if ( ! empty( $input['id'] ) ) {
-			$post = $this->get_content_by_id( $input );
-			if ( ! $post ) {
-				return $this->not_found_error();
-			}
+		// Single-post modes, by ID or by post type and slug.
+		if ( isset( $input['id'] ) || isset( $input['slug'] ) ) {
+			$post = $this->get_requested_post( $input );
 
-			return $this->to_output_post( $this->format_post( $post, $fields ) );
+			return $post ? $this->to_output_post( $this->format_post( $post, $fields ) ) : $this->not_found_error();
 		}
 
-		// Single-post mode (by slug) and query mode.
 		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
 		if ( ! $post_type_object ) {
 			return $this->not_found_error();
 		}
 
 		$post_type = $post_type_object->name;
-		if ( isset( $input['slug'] ) && is_string( $input['slug'] ) && '' !== $input['slug'] ) {
-			$post = $this->get_post_by_slug( $post_type, $input['slug'] );
-
-			if ( ! $post ) {
-				return $this->not_found_error();
-			}
-
-			return $this->to_output_post( $this->format_post( $post, $fields ) );
-		}
 
 		/*
 		 * REST only registers the equivalent collection filters for post types that
@@ -528,7 +489,7 @@ final class WP_Content_Abilities {
 		}
 
 		$per_page = $this->normalize_per_page( $input, $include );
-		$page     = isset( $input['page'] ) ? max( 1, $this->input_int( $input['page'] ) ) : 1;
+		$page     = $this->parse_filter_int( $input['page'] ?? 1, 1 ) ?? 1;
 
 		$prime_post_caches = $this->should_prime_post_caches( $fields );
 
@@ -583,15 +544,8 @@ final class WP_Content_Abilities {
 		 * permalinks read the author when the permalink structure contains `%author%`.
 		 */
 		update_post_parent_caches( $query->posts );
-		$author_fields = array_intersect( array( 'author_slug', 'link' ), $fields );
-		if ( array() !== $author_fields && post_type_supports( $post_type, 'author' ) ) {
-			$query_posts = array_filter(
-				$query->posts,
-				static function ( $queried_post ): bool {
-					return $queried_post instanceof WP_Post;
-				}
-			);
-			update_post_author_caches( $query_posts );
+		if ( array() !== array_intersect( array( 'author_slug', 'link' ), $fields ) && post_type_supports( $post_type, 'author' ) ) {
+			update_post_author_caches( $query->posts );
 		}
 
 		$posts = array();
@@ -634,16 +588,13 @@ final class WP_Content_Abilities {
 	 * @param list<int>    $include_ids Normalized included post IDs; empty when not requested.
 	 * @return int The clamped per-page value.
 	 */
-	private function normalize_per_page( array $input, array $include_ids = array() ): int {
-		if ( isset( $input['per_page'] ) ) {
-			return max( 1, min( self::MAX_PER_PAGE, $this->input_int( $input['per_page'] ) ) );
+	private function normalize_per_page( array $input, array $include_ids ): int {
+		$per_page = $this->parse_filter_int( $input['per_page'] ?? null, 1 );
+		if ( null === $per_page ) {
+			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
 		}
 
-		if ( array() !== $include_ids ) {
-			return max( 1, min( self::MAX_PER_PAGE, count( $include_ids ) ) );
-		}
-
-		return self::DEFAULT_PER_PAGE;
+		return min( self::MAX_PER_PAGE, $per_page );
 	}
 
 	/**
@@ -692,34 +643,42 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Looks up the single post an ID request resolves to.
+	 * Looks up the single post an ID or slug request resolves to.
 	 *
-	 * The post must exist, belong to a post type exposed to abilities, and match the
+	 * By ID, the post must exist, belong to a post type exposed to abilities, and match the
 	 * `post_type` guard when one is given. As with the integer filters, only an integer or
 	 * an unsigned integer string is accepted, so a malformed ID or one beyond the integer
-	 * range cannot be coerced onto another post.
+	 * range cannot be coerced onto another post. By slug, the post type must be exposed to
+	 * abilities, and {@see self::get_post_by_slug()} resolves the post.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
 	 * @return WP_Post|null The post, or null when it cannot be resolved.
 	 */
-	private function get_content_by_id( array $input ): ?WP_Post {
-		$post_id = isset( $input['id'] ) ? $this->parse_filter_int( $input['id'], 1 ) : null;
-		$post    = null === $post_id ? null : get_post( $post_id );
+	private function get_requested_post( array $input ): ?WP_Post {
+		if ( isset( $input['id'] ) ) {
+			$post_id = $this->parse_filter_int( $input['id'], 1 );
+			$post    = null === $post_id ? null : get_post( $post_id );
 
-		if ( ! $post instanceof WP_Post || ! $this->get_exposed_post_type( $post->post_type ) ) {
-			return null;
+			if ( ! $post instanceof WP_Post || ! $this->get_exposed_post_type( $post->post_type ) ) {
+				return null;
+			}
+
+			return empty( $input['post_type'] ) || $post->post_type === $input['post_type'] ? $post : null;
 		}
 
-		return empty( $input['post_type'] ) || $post->post_type === $input['post_type'] ? $post : null;
+		$slug             = $input['slug'] ?? null;
+		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
+
+		return is_string( $slug ) && $post_type_object ? $this->get_post_by_slug( $post_type_object->name, $slug ) : null;
 	}
 
 	/**
 	 * Looks up the user an author slug names.
 	 *
-	 * The slug is the user's nicename, which the REST API users endpoint returns as `slug`. It
-	 * must match exactly one user. A user the current user may not see is reported like a
+	 * The slug is the user's nicename, which the REST API users endpoint returns as `slug`, and
+	 * must match it exactly. A user the current user may not see is reported like a
 	 * missing one. The current user can see themselves, any user of the site when they can list
 	 * users, and authors with posts in a publicly viewable post type. A user who can edit others'
 	 * posts of the post type can also see any user of the site, since they may make any of them
@@ -734,34 +693,16 @@ final class WP_Content_Abilities {
 	 *
 	 * @param mixed        $slug             The author slug.
 	 * @param WP_Post_Type $post_type_object The post type the author is looked up for.
-	 * @return WP_User|null The user, or null when the slug does not name exactly one visible user.
+	 * @return WP_User|null The user, or null when the slug does not name a visible user.
 	 */
 	private function get_author_by_slug( $slug, WP_Post_Type $post_type_object ): ?WP_User {
-		if ( ! is_string( $slug ) || '' === $slug ) {
+		$user = is_string( $slug ) ? get_user_by( 'slug', $slug ) : false;
+
+		// The database compares nicenames without regard to case, so keep an exact match only.
+		if ( ! $user || $user->user_nicename !== $slug ) {
 			return null;
 		}
 
-		// The database compares nicenames without regard to case, so keep the exact matches only.
-		$users = array_values(
-			array_filter(
-				get_users(
-					array(
-						'blog_id'     => 0,
-						'nicename'    => $slug,
-						'count_total' => false,
-					)
-				),
-				static function ( $user ) use ( $slug ): bool {
-					return $user instanceof WP_User && $user->user_nicename === $slug;
-				}
-			)
-		);
-
-		if ( 1 !== count( $users ) ) {
-			return null;
-		}
-
-		$user = $users[0];
 		if ( get_current_user_id() === $user->ID ) {
 			return $user;
 		}
@@ -817,31 +758,19 @@ final class WP_Content_Abilities {
 			)
 		);
 
-		$viewable = array();
-		$hidden   = array();
+		// Candidates come newest first; a publicly viewable post is always readable here.
+		$readable = null;
 		foreach ( $query->posts as $candidate ) {
-			if ( ! $candidate instanceof WP_Post ) {
-				continue;
-			}
-
 			if ( is_post_publicly_viewable( $candidate ) ) {
-				$viewable[] = $candidate;
-				continue;
+				return $candidate;
 			}
 
-			$hidden[] = $candidate;
-		}
-
-		// Both groups keep the query's newest-first ordering.
-		foreach ( array_merge( $viewable, $hidden ) as $candidate ) {
-			if ( ! $this->check_read_permission( $candidate ) ) {
-				continue;
+			if ( null === $readable && $this->check_read_permission( $candidate ) ) {
+				$readable = $candidate;
 			}
-
-			return $candidate;
 		}
 
-		return null;
+		return $readable;
 	}
 
 	/**
@@ -1520,14 +1449,7 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> The previous loop globals, keyed by name, leaving out those that were not set.
 	 */
 	private function set_up_post_context( WP_Post $post ): array {
-		$previous_context = array();
-		foreach ( self::LOOP_GLOBALS as $name ) {
-			if ( ! array_key_exists( $name, $GLOBALS ) ) {
-				continue;
-			}
-
-			$previous_context[ $name ] = $GLOBALS[ $name ];
-		}
+		$previous_context = array_intersect_key( $GLOBALS, array_flip( self::LOOP_GLOBALS ) );
 
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily mirrors REST post context for rendering.
 		$GLOBALS['post'] = $post;
@@ -1572,12 +1494,11 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post $post  The post object.
-	 * @param string  $field Either 'date' or 'modified'. Default 'date'.
+	 * @param string  $field Either 'date' or 'modified'.
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
-	private function format_local_date( WP_Post $post, string $field = 'date' ): string {
-		$field    = 'modified' === $field ? 'modified' : 'date';
-		$datetime = get_post_datetime( $post, $field, 'local' );
+	private function format_local_date( WP_Post $post, string $field ): string {
+		$datetime = get_post_datetime( $post, $field );
 
 		return $datetime ? $datetime->format( 'c' ) : '';
 	}
@@ -1585,49 +1506,22 @@ final class WP_Content_Abilities {
 	/**
 	 * Formats a post date field as an ISO 8601 string in GMT.
 	 *
-	 * Reads the stored GMT date directly, deriving it from the local date when missing
-	 * (e.g. drafts), mirroring the REST posts controller. get_post_datetime() is avoided
-	 * here because it reprojects even GMT-sourced dates into the site timezone, which
-	 * would label the returned instant with the site offset instead of UTC.
+	 * Reads the stored GMT date, deriving it from the local date when it is missing
+	 * (e.g. drafts), mirroring the REST posts controller.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post $post  The post object.
-	 * @param string  $field Either 'date' or 'modified'. Default 'date'.
+	 * @param string  $field Either 'date' or 'modified'.
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
-	private function format_gmt_date( WP_Post $post, string $field = 'date' ): string {
-		$field = 'modified' === $field ? 'modified' : 'date';
-		$gmt   = 'modified' === $field ? $post->post_modified_gmt : $post->post_date_gmt;
-
-		if ( ! $this->is_usable_date( $gmt ) ) {
-			$local = 'modified' === $field ? $post->post_modified : $post->post_date;
-			$gmt   = $this->is_usable_date( $local ) ? get_gmt_from_date( $local ) : '';
+	private function format_gmt_date( WP_Post $post, string $field ): string {
+		$datetime = get_post_datetime( $post, $field, 'gmt' );
+		if ( ! $datetime ) {
+			$datetime = get_post_datetime( $post, $field );
 		}
 
-		/*
-		 * Guard the empty string before `strtotime()`: `strtotime( ' UTC' )` resolves to the
-		 * current time, which would report a fabricated date instead of the documented
-		 * empty-string sentinel.
-		 */
-		$timestamp = '' === $gmt ? false : strtotime( $gmt . ' UTC' );
-
-		return false === $timestamp ? '' : gmdate( 'c', $timestamp );
-	}
-
-	/**
-	 * Checks whether a raw post date column holds a usable date.
-	 *
-	 * The columns are `NOT NULL` in core's schema, but a post object can reach this class
-	 * from a filter or an in-memory row where a date is null or a zero date.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed $date The raw date column value.
-	 * @return bool True when the value is a non-empty, non-zero date string.
-	 */
-	private function is_usable_date( $date ): bool {
-		return is_string( $date ) && '' !== $date && '0000-00-00 00:00:00' !== $date;
+		return $datetime ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'c' ) : '';
 	}
 
 	/**
