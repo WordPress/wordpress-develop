@@ -3066,7 +3066,8 @@ function _wp_register_initial_settings_for_abilities(): void {
  *                                            optionally be an array with a 'schema' key.
  *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
  *                                            When true, it uses the same name and schema as `$show_in_rest`.
- *                                            It may also be an array with 'name' and 'schema' keys, used instead.
+ *                                            It may also be an array with 'name' and 'schema' keys, used instead of
+ *                                            `$show_in_rest` rather than merged with it.
  *                                            Register the setting on `init` or earlier, before abilities initialize.
  *     @type mixed         $default           Default value when calling `get_option()`.
  * }
@@ -3293,7 +3294,8 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *                                                optionally be an array with a 'schema' key.
  *         @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
  *                                                When true, it uses the same name and schema as `$show_in_rest`.
- *                                                It may also be an array with 'name' and 'schema' keys, used instead.
+ *                                                It may also be an array with 'name' and 'schema' keys, used
+ *                                                instead of `$show_in_rest` rather than merged with it.
  *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
  *                                                setting was registered with a default.
  *     }
