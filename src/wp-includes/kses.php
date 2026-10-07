@@ -4183,6 +4183,8 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *    and the name matches `^--[a-zA-Z0-9_-]+$`.
  *  - Every function at any depth is in the function allowlist.
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
+ *  - A non-custom property has no bare parenthesis block at the top level
+ *    of its value and no string that runs to the end of the input.
  *
  * Checks run on decoded values. Comments are never emitted. An empty
  * allowed list disables the checks; the output is still re-serialized
@@ -4219,7 +4221,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 				continue;
 			}
 
-			if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols ) ) {
+			if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) ) {
 				continue;
 			}
 
@@ -4251,9 +4253,10 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
  * @param string   $css               CSS text the token offsets index.
  * @param array[]  $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
  * @param string[] $allowed_protocols Allowed URL protocols.
+ * @param bool     $is_custom         Whether the declaration is a custom property.
  * @return bool Whether the value is allowed.
  */
-function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols ) {
+function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) {
 	static $allowed_functions = array(
 		// General purpose value functions.
 		'var',
@@ -4329,7 +4332,21 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				}
 				continue 2;
 
+			case WP_CSS_Token_Processor::TOKEN_STRING:
+				// No standard property accepts a string left open at the end of the input.
+				if ( ! $is_custom && _safecss_filter_attr_string_is_unterminated( $css, $token ) ) {
+					return false;
+				}
+				continue 2;
+
 			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+				// No standard property accepts a bare `( )` block as a top-level value.
+				if ( ! $is_custom && 0 === $depth ) {
+					return false;
+				}
+				++$depth;
+				continue 2;
+
 			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
 			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
 				++$depth;
@@ -4361,6 +4378,9 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				return false;
 			}
 			$string = $tokens[ $j ];
+			if ( ! $is_custom && _safecss_filter_attr_string_is_unterminated( $css, $string ) ) {
+				return false;
+			}
 			++$j;
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
@@ -4403,6 +4423,42 @@ function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
 	}
 
 	return wp_kses_bad_protocol( $url, $allowed_protocols ) === $url;
+}
+
+/**
+ * Checks whether a string token ran to the end of the input without a closing quote.
+ *
+ * CSS closes such a string at the end of the input, so the token view does
+ * not distinguish it. This reads the token's source bytes: the string is
+ * unterminated when the token ends at the end of the input and its last byte
+ * is not an unescaped copy of its opening quote.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param string $css   CSS text the token offsets index.
+ * @param array  $token String token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @return bool Whether the string is unterminated.
+ */
+function _safecss_filter_attr_string_is_unterminated( $css, $token ) {
+	if ( strlen( $css ) !== $token['end'] ) {
+		return false;
+	}
+
+	$source = substr( $css, $token['start'], $token['length'] );
+	$length = strlen( $source );
+	if ( $length < 2 || $source[ $length - 1 ] !== $source[0] ) {
+		return true;
+	}
+
+	// An odd number of backslashes before the last quote escapes it.
+	$backslashes = 0;
+	for ( $i = $length - 2; $i > 0 && '\\' === $source[ $i ]; $i-- ) {
+		++$backslashes;
+	}
+
+	return 1 === $backslashes % 2;
 }
 
 /**
