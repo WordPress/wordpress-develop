@@ -3823,7 +3823,7 @@ class WP_Query {
 	public function have_posts() {
 		if ( $this->current_post + 1 < $this->post_count ) {
 			return true;
-		} elseif ( $this->current_post + 1 === $this->post_count && $this->post_count > 0 ) {
+		} elseif ( $this->current_post + 1 === (int) $this->post_count && $this->post_count > 0 ) {
 			/**
 			 * Fires once the loop has ended.
 			 *
