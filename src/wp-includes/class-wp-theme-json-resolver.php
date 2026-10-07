@@ -21,16 +21,20 @@
 class WP_Theme_JSON_Resolver {
 
 	/**
-	 * Container for keep track of registered blocks.
+	 * Block registry change count seen when each origin's data was last built.
+	 *
+	 * Keyed by origin. Null until the origin's data is first built.
 	 *
 	 * @since 6.1.0
-	 * @var array
+	 * @since 7.2.0 Stores the WP_Block_Type_Registry change count per origin
+	 *              instead of the names of the registered block types.
+	 * @var array<string, int|null>
 	 */
 	protected static $blocks_cache = array(
-		'core'   => array(),
-		'blocks' => array(),
-		'theme'  => array(),
-		'user'   => array(),
+		'core'   => null,
+		'blocks' => null,
+		'theme'  => null,
+		'user'   => null,
 	);
 
 	/**
@@ -191,7 +195,13 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * Checks whether the registered blocks were already processed for this origin.
 	 *
+	 * Records the block registry change count for the origin on a miss, so the
+	 * next call returns true until a block type is registered or unregistered.
+	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Compares the WP_Block_Type_Registry change count instead of
+	 *              the registered block names, so an unregistered block type
+	 *              also invalidates the origin's data.
 	 *
 	 * @param string $origin Data source for which to cache the blocks.
 	 *                       Valid values are 'core', 'blocks', 'theme', and 'user'.
@@ -199,22 +209,17 @@ class WP_Theme_JSON_Resolver {
 	 */
 	protected static function has_same_registered_blocks( $origin ) {
 		// Bail out if the origin is invalid.
-		if ( ! isset( static::$blocks_cache[ $origin ] ) ) {
+		if ( ! array_key_exists( $origin, static::$blocks_cache ) ) {
 			return false;
 		}
 
-		$registry = WP_Block_Type_Registry::get_instance();
-		$blocks   = $registry->get_all_registered();
+		$change_count = WP_Block_Type_Registry::get_instance()->get_change_count();
 
-		// Is there metadata for all currently registered blocks?
-		$block_diff = array_diff_key( $blocks, static::$blocks_cache[ $origin ] );
-		if ( empty( $block_diff ) ) {
+		if ( $change_count === static::$blocks_cache[ $origin ] ) {
 			return true;
 		}
 
-		foreach ( $blocks as $block_name => $block_type ) {
-			static::$blocks_cache[ $origin ][ $block_name ] = true;
-		}
+		static::$blocks_cache[ $origin ] = $change_count;
 
 		return false;
 	}
@@ -392,12 +397,12 @@ class WP_Theme_JSON_Resolver {
 	 * @return WP_Theme_JSON
 	 */
 	public static function get_block_data() {
-		$registry = WP_Block_Type_Registry::get_instance();
-		$blocks   = $registry->get_all_registered();
-
 		if ( null !== static::$blocks && static::has_same_registered_blocks( 'blocks' ) ) {
 			return static::$blocks;
 		}
+
+		$registry = WP_Block_Type_Registry::get_instance();
+		$blocks   = $registry->get_all_registered();
 
 		$config = array( 'version' => WP_Theme_JSON::LATEST_SCHEMA );
 		foreach ( $blocks as $block_name => $block_type ) {
@@ -733,15 +738,16 @@ class WP_Theme_JSON_Resolver {
 	 *              and `$i18n_schema` variables to reset.
 	 * @since 6.1.0 Added the `$blocks` and `$blocks_cache` variables
 	 *              to reset.
+	 * @since 7.2.0 `$blocks_cache` resets to null per origin.
 	 */
 	public static function clean_cached_data() {
 		static::$core                     = null;
 		static::$blocks                   = null;
 		static::$blocks_cache             = array(
-			'core'   => array(),
-			'blocks' => array(),
-			'theme'  => array(),
-			'user'   => array(),
+			'core'   => null,
+			'blocks' => null,
+			'theme'  => null,
+			'user'   => null,
 		);
 		static::$theme                    = null;
 		static::$user                     = null;

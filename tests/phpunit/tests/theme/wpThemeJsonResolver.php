@@ -114,6 +114,10 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
 
+		if ( WP_Block_Type_Registry::get_instance()->is_registered( 'test/counted' ) ) {
+			unregister_block_type( 'test/counted' );
+		}
+
 		// Reset data between tests.
 		wp_clean_theme_json_cache();
 		parent::tear_down();
@@ -273,26 +277,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		);
 	}
 
-	private function get_registered_block_names( $hard_reset = false ) {
-		static $expected_block_names;
-
-		if ( ! $hard_reset && ! empty( $expected_block_names ) ) {
-			return $expected_block_names;
-		}
-
-		$expected_block_names = array();
-		$resolver             = WP_Block_Type_Registry::get_instance();
-		$blocks               = $resolver->get_all_registered();
-		foreach ( array_keys( $blocks ) as $block_name ) {
-			$expected_block_names[ $block_name ] = true;
-		}
-
-		return $expected_block_names;
-	}
-
 	/**
-	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or
-	 * does not match the all registered blocks.
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache holds no block registry
+	 * change count for the origin, or one the registry has moved past.
 	 *
 	 * Though this is a non-public method, it is vital to other functionality.
 	 * Therefore, tests are provided to validate it functions as expected.
@@ -301,22 +288,23 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 56467
 	 *
 	 * @param string $origin The origin to test.
+	 * @param bool   $stale  Whether to seed the cache with an outdated change count.
 	 */
-	public function test_has_same_registered_blocks_when_all_blocks_not_cached( $origin, array $cache = array() ) {
+	public function test_has_same_registered_blocks_when_all_blocks_not_cached( $origin, $stale = false ) {
 		$has_same_registered_blocks = new ReflectionMethod( WP_Theme_JSON_Resolver::class, 'has_same_registered_blocks' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$has_same_registered_blocks->setAccessible( true );
 		}
-		$expected_cache = $this->get_registered_block_names();
+		$change_count = WP_Block_Type_Registry::get_instance()->get_change_count();
 
 		// Set up the blocks cache for the origin.
 		$blocks_cache            = static::$property_blocks_cache->getValue();
-		$blocks_cache[ $origin ] = $cache;
+		$blocks_cache[ $origin ] = $stale ? $change_count - 1 : null;
 		static::$property_blocks_cache->setValue( null, $blocks_cache );
 
-		$this->assertFalse( $has_same_registered_blocks->invoke( null, $origin ), 'WP_Theme_JSON_Resolver::has_same_registered_blocks() should return false when same blocks are not cached' );
+		$this->assertFalse( $has_same_registered_blocks->invoke( null, $origin ), 'WP_Theme_JSON_Resolver::has_same_registered_blocks() should return false when the block registry changed since the origin was cached' );
 		$blocks_cache = static::$property_blocks_cache->getValue();
-		$this->assertSameSets( $expected_cache, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should contain all expected block names for the given origin' );
+		$this->assertSame( $change_count, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should hold the current block registry change count for the given origin' );
 	}
 
 	/**
@@ -326,49 +314,40 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	public static function data_has_same_registered_blocks_when_all_blocks_not_cached() {
 		return array(
-			'origin: core; cache: empty'       => array(
+			'origin: core; cache: empty'   => array(
 				'origin' => 'core',
 			),
-			'origin: blocks; cache: empty'     => array(
+			'origin: blocks; cache: empty' => array(
 				'origin' => 'blocks',
 			),
-			'origin: theme; cache: empty'      => array(
+			'origin: theme; cache: empty'  => array(
 				'origin' => 'theme',
 			),
-			'origin: user; cache: empty'       => array(
+			'origin: user; cache: empty'   => array(
 				'origin' => 'user',
 			),
-			'origin: core; cache: not empty'   => array(
+			'origin: core; cache: stale'   => array(
 				'origin' => 'core',
-				'cache'  => array(
-					'core/block' => true,
-				),
+				'stale'  => true,
 			),
-			'origin: blocks; cache: not empty' => array(
+			'origin: blocks; cache: stale' => array(
 				'origin' => 'blocks',
-				'cache'  => array(
-					'core/block'    => true,
-					'core/comments' => true,
-				),
+				'stale'  => true,
 			),
-			'origin: theme; cache: not empty'  => array(
+			'origin: theme; cache: stale'  => array(
 				'origin' => 'theme',
-				'cache'  => array(
-					'core/cover' => true,
-				),
+				'stale'  => true,
 			),
-			'origin: user; cache: not empty'   => array(
+			'origin: user; cache: stale'   => array(
 				'origin' => 'user',
-				'cache'  => array(
-					'core/gallery' => true,
-				),
+				'stale'  => true,
 			),
 		);
 	}
 
 	/**
-	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache is empty or
-	 * does not match the all registered blocks.
+	 * Tests when WP_Theme_JSON_Resolver::$blocks_cache holds the current block
+	 * registry change count for the origin.
 	 *
 	 * Though this is a non-public method, it is vital to other functionality.
 	 * Therefore, tests are provided to validate it functions as expected.
@@ -383,15 +362,16 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		if ( PHP_VERSION_ID < 80100 ) {
 			$has_same_registered_blocks->setAccessible( true );
 		}
-		$expected_cache = $this->get_registered_block_names();
+		$change_count = WP_Block_Type_Registry::get_instance()->get_change_count();
 
-		// Set up the cache with all registered blocks.
+		// Set up the cache with the current change count.
 		$blocks_cache            = static::$property_blocks_cache->getValue();
-		$blocks_cache[ $origin ] = $this->get_registered_block_names();
+		$blocks_cache[ $origin ] = $change_count;
 		static::$property_blocks_cache->setValue( null, $blocks_cache );
 
 		$this->assertTrue( $has_same_registered_blocks->invoke( null, $origin ), 'WP_Theme_JSON_Resolver::has_same_registered_blocks() should return true when using the cache' );
-		$this->assertSameSets( $expected_cache, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should contain all expected block names for the given origin' );
+		$blocks_cache = static::$property_blocks_cache->getValue();
+		$this->assertSame( $change_count, $blocks_cache[ $origin ], 'WP_Theme_JSON_Resolver::$blocks_cache should keep the block registry change count for the given origin' );
 	}
 
 	/**
@@ -406,6 +386,56 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			'theme'  => array( 'theme' ),
 			'user'   => array( 'user' ),
 		);
+	}
+
+	/**
+	 * Registering a block type after the block data was built refreshes the data.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_block_data
+	 */
+	public function test_get_block_data_refreshes_after_block_registration() {
+		$before = WP_Theme_JSON_Resolver::get_block_data()->get_raw_data();
+		$this->assertArrayNotHasKey( 'test/counted', $before['styles']['blocks'] ?? array(), 'The block data should not include a block type that is not registered' );
+
+		register_block_type( 'test/counted', array( 'supports' => array( '__experimentalStyle' => array( 'color' => array( 'text' => 'red' ) ) ) ) );
+
+		$after = WP_Theme_JSON_Resolver::get_block_data()->get_raw_data();
+		$this->assertSame( array( 'color' => array( 'text' => 'red' ) ), $after['styles']['blocks']['test/counted'] ?? null, 'The block data should be rebuilt after a block type is registered' );
+	}
+
+	/**
+	 * Unregistering a block type after the block data was built refreshes the data.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_block_data
+	 */
+	public function test_get_block_data_refreshes_after_block_unregistration() {
+		register_block_type( 'test/counted', array( 'supports' => array( '__experimentalStyle' => array( 'color' => array( 'text' => 'red' ) ) ) ) );
+
+		$before = WP_Theme_JSON_Resolver::get_block_data()->get_raw_data();
+		$this->assertSame( array( 'color' => array( 'text' => 'red' ) ), $before['styles']['blocks']['test/counted'] ?? null, 'The block data should include the registered block type' );
+
+		unregister_block_type( 'test/counted' );
+
+		$after = WP_Theme_JSON_Resolver::get_block_data()->get_raw_data();
+		$this->assertArrayNotHasKey( 'test/counted', $after['styles']['blocks'] ?? array(), 'The block data should be rebuilt after a block type is unregistered' );
+	}
+
+	/**
+	 * Unregistering a block type after the core data was built rebuilds the core data.
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_core_data
+	 */
+	public function test_get_core_data_refreshes_after_block_unregistration() {
+		register_block_type( 'test/counted' );
+
+		// The first call builds the data; the second records the registry state and rebuilds.
+		WP_Theme_JSON_Resolver::get_core_data();
+		$before = WP_Theme_JSON_Resolver::get_core_data();
+		$this->assertSame( $before, WP_Theme_JSON_Resolver::get_core_data(), 'The core data should be reused while the block registry is unchanged' );
+
+		unregister_block_type( 'test/counted' );
+
+		$this->assertNotSame( $before, WP_Theme_JSON_Resolver::get_core_data(), 'The core data should be rebuilt after a block type is unregistered' );
 	}
 
 	/**
@@ -424,7 +454,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		// If should cache registered blocks, then set them up before running the tests.
 		if ( $blocks_are_cached ) {
 			$blocks_cache         = static::$property_blocks_cache->getValue();
-			$blocks_cache['core'] = $this->get_registered_block_names();
+			$blocks_cache['core'] = WP_Block_Type_Registry::get_instance()->get_change_count();
 			static::$property_blocks_cache->setValue( null, $blocks_cache );
 		}
 
