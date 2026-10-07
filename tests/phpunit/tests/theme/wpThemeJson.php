@@ -2100,6 +2100,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66263
+	 *
 	 * @dataProvider data_get_stylesheet_with_axial_block_gap
 	 *
 	 * @param array  $block_gap           Block gap value.

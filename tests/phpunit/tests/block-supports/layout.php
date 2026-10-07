@@ -84,6 +84,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65667
+	 * @ticket 66263
 	 *
 	 * @dataProvider data_sanitize_block_gap_value
 	 *
@@ -120,6 +121,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66263
+	 *
 	 * @dataProvider data_wp_get_layout_style
 	 *
 	 * @covers ::wp_get_layout_style
