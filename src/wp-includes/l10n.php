@@ -1701,8 +1701,9 @@ function get_available_languages( $dir = null ) {
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $type What to search for. Accepts 'plugins', 'themes', 'core'.
- * @return array<string, array<string, string[]>> Array of language data, keyed by text domain and then
- *                                                 by locale, each value being the translation file headers.
+ * @return array<string, array<string, array<string, string>>> Array of language data, keyed by text domain
+ *                                                             and then by locale, each value being the
+ *                                                             translation file headers.
  *
  * @phpstan-return (
  *     $type is 'plugins'|'themes'|'core'
@@ -1773,7 +1774,7 @@ function wp_get_installed_translations( $type ) {
  * @since 3.7.0
  *
  * @param string $po_file Path to PO file.
- * @return string[] Array of PO file header values keyed by header name.
+ * @return array<string, string> Array of PO file header values keyed by header name.
  *
  * @phpstan-return array{
  *     'POT-Creation-Date': string,
@@ -1823,7 +1824,7 @@ function wp_get_pomo_file_data( $po_file ) {
  * @since 6.6.0
  *
  * @param string $php_file Path to a `.l10n.php` file.
- * @return string[] Array of file header values keyed by header name.
+ * @return array<string, string> Array of file header values keyed by header name.
  *
  * @phpstan-return array{
  *     'POT-Creation-Date': string,
