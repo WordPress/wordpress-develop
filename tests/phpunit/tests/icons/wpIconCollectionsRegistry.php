@@ -287,6 +287,7 @@ class Tests_Icons_WpIconCollectionsRegistry extends WP_UnitTestCase {
 			'string'  => array( 'false' ),
 			'integer' => array( 0 ),
 			'array'   => array( array() ),
+			'null'    => array( null ),
 		);
 	}
 }

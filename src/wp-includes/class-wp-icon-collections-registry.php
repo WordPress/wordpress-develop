@@ -123,7 +123,7 @@ class WP_Icon_Collections_Registry {
 			return false;
 		}
 
-		if ( isset( $collection_properties['public'] ) && ! is_bool( $collection_properties['public'] ) ) {
+		if ( array_key_exists( 'public', $collection_properties ) && ! is_bool( $collection_properties['public'] ) ) {
 			_doing_it_wrong(
 				__METHOD__,
 				__( 'Icon collection public property must be a boolean.' ),
