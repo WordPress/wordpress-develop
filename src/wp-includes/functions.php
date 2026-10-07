@@ -8200,7 +8200,8 @@ function wp_generate_uuid4() {
 		$randomizer = $backup_randomizer;
 	}
 
-	return sprintf(
+	/** @var lowercase-string&non-falsy-string $uuid The %x conversion only produces lowercase hex digits. */
+	$uuid = sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 		$randomizer( 0, 0xffff ),
 		$randomizer( 0, 0xffff ),
@@ -8211,6 +8212,8 @@ function wp_generate_uuid4() {
 		$randomizer( 0, 0xffff ),
 		$randomizer( 0, 0xffff )
 	);
+
+	return $uuid;
 }
 
 /**
