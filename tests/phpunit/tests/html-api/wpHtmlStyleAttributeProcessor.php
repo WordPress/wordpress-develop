@@ -52,6 +52,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	public function test_raw_value_getter_is_not_public_api() {
 		$this->assertFalse( method_exists( WP_HTML_Style_Attribute_Processor::class, 'get_value' ) );
 		$this->assertFalse( method_exists( WP_HTML_Style_Attribute_Processor::class, 'get_raw_value' ) );
+		$this->assertFalse( method_exists( WP_HTML_Style_Attribute_Processor::class, 'get_value_source' ) );
 	}
 
 	/**
@@ -130,6 +131,124 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 		$this->assertTrue( $processor->next_declaration() );
 		$this->assertSame( $important, $processor->is_important() );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::get_value_tokens
+	 */
+	public function test_get_value_tokens_returns_null_when_not_on_a_declaration() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white' );
+
+		$this->assertNull( $processor->get_value_tokens(), 'Expected null before the first declaration.' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertNotNull( $processor->get_value_tokens() );
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertFalse( $processor->next_declaration() );
+
+		$this->assertNull( $processor->get_value_tokens(), 'Expected null after the last declaration.' );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::get_value_tokens
+	 *
+	 * @dataProvider data_value_tokens
+	 *
+	 * @param string $style           Style text.
+	 * @param array  $expected_tokens Expected value tokens.
+	 */
+	public function test_get_value_tokens_covers_only_the_declaration_value( string $style, array $expected_tokens ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( $expected_tokens, $processor->get_value_tokens() );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::get_value_tokens
+	 */
+	public function test_get_value_tokens_decodes_values_and_keeps_source_offsets() {
+		$style     = 'content: "a\\"b"';
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$tokens = $processor->get_value_tokens();
+
+		$this->assertCount( 1, $tokens );
+		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $tokens[0]['type'] );
+		$this->assertSame( 'a"b', $tokens[0]['value'] );
+		$this->assertSame( '"a\\"b"', substr( $style, $tokens[0]['start'], $tokens[0]['length'] ) );
+		$this->assertSame( $tokens[0]['start'] + $tokens[0]['length'], $tokens[0]['end'] );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::get_value_tokens
+	 * @covers ::set_value
+	 * @covers ::remove_declaration
+	 */
+	public function test_get_value_tokens_follow_the_updated_style_after_mutations() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white' );
+
+		$this->assertTrue( $processor->next_declaration( 'color' ) );
+		$this->assertTrue( $processor->set_value( 'green' ) );
+		$this->assertSame(
+			array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'green', 7, 5 ) ),
+			$processor->get_value_tokens()
+		);
+
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertNull( $processor->get_value_tokens() );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( 'background: white', $processor->get_updated_style() );
+		$this->assertSame(
+			array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'white', 12, 5 ) ),
+			$processor->get_value_tokens()
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::get_value_tokens
+	 *
+	 * @dataProvider data_value_tokens_source_slices
+	 *
+	 * @param string $style Style text.
+	 */
+	public function test_get_value_tokens_match_the_retokenized_source_slice( string $style ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$tokens = $processor->get_value_tokens();
+		$this->assertNotEmpty( $tokens );
+
+		$first = $tokens[0];
+		$last  = $tokens[ count( $tokens ) - 1 ];
+		$slice = substr( $style, $first['start'], $last['end'] - $first['start'] );
+
+		$expected  = array();
+		$tokenizer = WP_CSS_Token_Processor::create( $slice );
+		while ( $tokenizer->next_token() ) {
+			$expected[] = array( $tokenizer->get_token_type(), $tokenizer->get_token_value() );
+		}
+
+		$actual = array_map(
+			static function ( array $token ): array {
+				return array( $token['type'], $token['value'] );
+			},
+			$tokens
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -335,6 +454,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	 * @covers ::remove_declaration
 	 * @covers ::get_property_name
 	 * @covers ::is_important
+	 * @covers ::get_value_tokens
 	 */
 	public function test_getters_return_null_after_removing_current_declaration_until_cursor_advances() {
 		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white;' );
@@ -344,6 +464,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 		$this->assertNull( $processor->get_property_name() );
 		$this->assertNull( $processor->is_important() );
+		$this->assertNull( $processor->get_value_tokens() );
 		$this->assertFalse( $processor->remove_declaration() );
 
 		$this->assertTrue( $processor->next_declaration() );
@@ -760,6 +881,109 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertSame(
 			'<div style="color: red; color: color(display-p3 1 0 0); background: white;">Text</div>',
 			$tags->get_updated_html()
+		);
+	}
+
+	/**
+	 * Builds a value token array.
+	 *
+	 * @param string      $type   Token type.
+	 * @param string|null $value  Token value.
+	 * @param int         $start  Byte offset of the token.
+	 * @param int         $length Byte length of the token.
+	 * @return array{type:string, value:string|null, start:int, length:int, end:int}
+	 */
+	private static function token( string $type, ?string $value, int $start, int $length ): array {
+		return array(
+			'type'   => $type,
+			'value'  => $value,
+			'start'  => $start,
+			'length' => $length,
+			'end'    => $start + $length,
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string,array}>
+	 */
+	public static function data_value_tokens(): array {
+		return array(
+			'single ident'                     => array(
+				'color: red',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'red', 7, 3 ) ),
+			),
+			'function with nested tokens'      => array(
+				'width: calc(1px + 2%)',
+				array(
+					self::token( WP_CSS_Token_Processor::TOKEN_FUNCTION, 'calc', 7, 5 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 12, 3 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 15, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DELIM, '+', 16, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 17, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_PERCENTAGE, '2', 18, 2 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN, null, 20, 1 ),
+				),
+			),
+			'hash without number sign'         => array(
+				'color: #fff',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_HASH, 'fff', 7, 4 ) ),
+			),
+			'important excluded'               => array(
+				'color: red !important',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'red', 7, 3 ) ),
+			),
+			'important without space excluded' => array(
+				'color: red!important;',
+				array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'red', 7, 3 ) ),
+			),
+			'leading and trailing trivia'      => array(
+				"color: /* a */ \t red /* b */ ;",
+				array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'red', 17, 3 ) ),
+			),
+			'trivia inside the value kept'     => array(
+				'margin: 1px /* a */ 2px',
+				array(
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '1', 8, 3 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 11, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_COMMENT, null, 12, 7 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 19, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_DIMENSION, '2', 20, 3 ),
+				),
+			),
+			'custom property'                  => array(
+				'--x: 1 2 3',
+				array(
+					self::token( WP_CSS_Token_Processor::TOKEN_NUMBER, '1', 5, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 6, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_NUMBER, '2', 7, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_WHITESPACE, null, 8, 1 ),
+					self::token( WP_CSS_Token_Processor::TOKEN_NUMBER, '3', 9, 1 ),
+				),
+			),
+			'empty value'                      => array( 'color:;', array() ),
+			'only important'                   => array( 'color: !important', array() ),
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_value_tokens_source_slices(): array {
+		return array(
+			'single ident'          => array( 'color: red' ),
+			'function'              => array( 'width: calc(1px + 2%)' ),
+			'string with escape'    => array( 'content: "a\\"b"' ),
+			'trivia and important'  => array( 'color: /* a */ red /* b */ !important;' ),
+			'custom property'       => array( '--x: 1 2 3' ),
+			'custom property block' => array( '--x: { a } b' ),
+			'comma list'            => array( 'font: 12px/1.5 "Foo Bar", sans-serif' ),
+			'urls'                  => array( 'background: url(a.png) no-repeat, image-set("b.png" 2x)' ),
+			'unclosed function'     => array( 'color: var(--x' ),
+			'eof escape'            => array( 'color: red\\' ),
 		);
 	}
 

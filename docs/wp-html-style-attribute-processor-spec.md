@@ -51,7 +51,7 @@ The internal declaration data consists of:
 
 - decoded property name;
 - authored property-name source when available;
-- value component list source range;
+- value component list source range and token index range;
 - `!important` flag;
 - nullable source range for the parsed priority span;
 - source ranges needed for safe mutation and verification.
@@ -67,6 +67,7 @@ public static function create( $decoded_css_text );
 public function next_declaration( ?string $property_name = null ): bool;
 public function get_property_name(): ?string;
 public function is_important(): ?bool;
+public function get_value_tokens(): ?array;
 public function set_value( string $value, ?bool $important = null ): bool;
 public function set_important( bool $important ): bool;
 public function remove_declaration(): bool;
@@ -74,9 +75,10 @@ public function append_declaration( string $property_name, string $value, bool $
 public function get_updated_style(): string;
 ```
 
-The first API does not expose `get_value()` or `get_raw_value()`. Raw CSS values
-are difficult for callers to use safely, and a higher-level value API needs a
-separate design.
+The processor exposes a declaration value as tokens, through
+`get_value_tokens()`, and not as a string: there is no `get_value()` or
+`get_raw_value()`. Consumers that check or re-serialize values need tokens; a
+string would be re-tokenized by every consumer.
 
 Bookmarks, seek, and rewind are out of scope. Callers that need to rescan should
 create a new processor from the updated style text.
@@ -86,7 +88,7 @@ create a new processor from the updated style text.
 `next_declaration()` advances a forward-only cursor over CSS declarations.
 
 All current-declaration getters return `null` when the cursor is not positioned
-on a valid declaration. This includes `is_important()`.
+on a valid declaration. This includes `is_important()` and `get_value_tokens()`.
 
 After `remove_declaration()` succeeds, the cursor becomes invalid until
 `next_declaration()` advances it. A second removal on the same invalid cursor
@@ -128,6 +130,38 @@ authored spelling to preserve. Appended custom properties preserve exact casing.
 Appended property names must be valid plaintext CSS property names. The processor
 does not escape arbitrary strings into identifiers. Custom properties follow the
 same validity rule with the required `--` prefix.
+
+## Value Tokens
+
+`get_value_tokens()` returns the current declaration's value as a list of CSS
+tokens, or `null` when the cursor is not on a declaration. Each token is an
+array with the keys `type`, `value`, `start`, `length`, and `end`:
+
+- `type` is a `WP_CSS_Token_Processor` `TOKEN_*` constant;
+- `value` is the token value as `WP_CSS_Token_Processor::get_token_value()`
+  returns it: decoded, a dimension's number without its unit, a hash's name
+  without `#`, and `null` for tokens without a value;
+- `start` and `length` are the token's byte offset and byte length in the
+  style text, and `end` is `start + length`.
+
+The list covers the value only. Leading and trailing whitespace and comments
+and the `!important` priority are excluded; whitespace and comments between
+value tokens are included. A declaration with no value tokens, such as
+`color:;`, returns an empty list.
+
+Offsets index the current style text, which `get_updated_style()` returns.
+Before any mutation that is the text passed to `create()`. A successful
+mutation reparses the updated text, and the offsets follow it.
+
+Re-tokenizing the source slice from the first token's `start` to the last
+token's `end` with `WP_CSS_Token_Processor` yields the same `type` and `value`
+sequence. Consumers may rely on this to re-serialize a value or to hand the
+slice to another tokenizer-based check.
+
+Two alternatives were considered. A `WP_CSS_Token_Processor` positioned over the
+value's range would need range support in the tokenizer and give consumers a
+forward-only cursor over tokens the processor already holds. A raw string would
+be re-tokenized by every consumer.
 
 ## Value Validation
 
@@ -287,6 +321,8 @@ Tests should cover:
 - declaration traversal, duplicate preservation, and property-name matching;
 - getter `null` behavior off-cursor;
 - absence of public raw value getter in the first API;
+- value token view: `null` off-cursor, trivia and priority exclusion, offsets
+  into the style text, and the re-tokenization invariant;
 - `set_value()` priority preservation, setting, clearing, and empty-value
   removal;
 - `set_important()` setting, clearing, cursor behavior, and safe normalization;

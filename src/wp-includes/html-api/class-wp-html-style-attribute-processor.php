@@ -53,7 +53,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Parsed declarations.
 	 *
-	 * @var array<int, array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}>
+	 * @var array<int, array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
 
@@ -175,6 +175,44 @@ class WP_HTML_Style_Attribute_Processor {
 	public function is_important(): ?bool {
 		$declaration = $this->get_current_declaration();
 		return null === $declaration ? null : $declaration['important'];
+	}
+
+	/**
+	 * Gets the current declaration's value as a list of CSS tokens.
+	 *
+	 * The list covers the declaration value only. Leading and trailing
+	 * whitespace and comments and the `!important` priority are excluded;
+	 * whitespace and comments between value tokens are included. The list is
+	 * empty when the declaration has no value tokens, as in `color:;`.
+	 *
+	 * Each token is an array with these keys:
+	 *
+	 *  - `type`: a {@see WP_CSS_Token_Processor} `TOKEN_*` constant.
+	 *  - `value`: the token value as {@see WP_CSS_Token_Processor::get_token_value()}
+	 *    returns it: a dimension's number without its unit, a hash's name
+	 *    without `#`, a string's decoded contents, and null for tokens
+	 *    without a value.
+	 *  - `start`: byte offset of the token in the style text.
+	 *  - `length`: byte length of the token in the style text.
+	 *  - `end`: byte offset after the token, `start + length`.
+	 *
+	 * Offsets index the current style text, which
+	 * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} returns.
+	 * Before any mutation that is the text passed to `create()`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<int, array{type:string, value:string|null, start:int, length:int, end:int}>|null
+	 *               Value tokens, or null when not on a declaration.
+	 */
+	public function get_value_tokens(): ?array {
+		$declaration = $this->get_current_declaration();
+		if ( null === $declaration ) {
+			return null;
+		}
+
+		list( $start, $end ) = $declaration['value_tokens'];
+		return array_slice( $this->tokens, $start, $end - $start );
 	}
 
 	/**
@@ -686,7 +724,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param int $start_index   First token index in the segment.
 	 * @param int $end_index     Token index after the segment.
 	 * @param int $after         Byte offset after the declaration.
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function parse_declaration_segment( int $leading_start, int $start_index, int $end_index, int $after ): ?array {
 		$index = $this->skip_ignored_tokens( $start_index, $end_index );
@@ -755,6 +793,7 @@ class WP_HTML_Style_Attribute_Processor {
 			'trailing_end'    => $after,
 			'value_start'     => $value_start,
 			'value_end'       => $value_end,
+			'value_tokens'    => array( $value_start_index, $value_end_index ),
 			'important'       => $important,
 			'important_start' => $important_start,
 			'important_end'   => $important_end,
@@ -904,7 +943,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration metadata.
 	 *
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function get_current_declaration(): ?array {
 		if (
@@ -921,12 +960,12 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a replacement preserves the current declaration's structure.
 	 *
-	 * @param array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
-	 * @param int                                                                                                                                                                                   $start              Byte offset at which to start the replacement.
-	 * @param int                                                                                                                                                                                   $length             Number of bytes to replace.
-	 * @param string                                                                                                                                                                                $text               Replacement text.
-	 * @param bool                                                                                                                                                                                  $expected_important Expected important flag after replacement.
-	 * @param string|null                                                                                                                                                                           $expected_value     Optional expected value source after replacement.
+	 * @param array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
+	 * @param int                                                                                                                                                                                                                           $start              Byte offset at which to start the replacement.
+	 * @param int                                                                                                                                                                                                                           $length             Number of bytes to replace.
+	 * @param string                                                                                                                                                                                                                        $text               Replacement text.
+	 * @param bool                                                                                                                                                                                                                          $expected_important Expected important flag after replacement.
+	 * @param string|null                                                                                                                                                                                                                   $expected_value     Optional expected value source after replacement.
 	 * @return bool Whether the replacement is safe.
 	 */
 	private function is_current_declaration_replacement_safe( array $declaration, int $start, int $length, string $text, bool $expected_important, ?string $expected_value = null ): bool {
