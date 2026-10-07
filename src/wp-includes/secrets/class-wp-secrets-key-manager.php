@@ -145,7 +145,7 @@ final class WP_Secrets_Key_Manager {
 	 */
 	public function get_master_key( $scope, $site_id = null ) {
 		if ( ! in_array( $scope, array( 'site', 'network' ), true ) ) {
-			$message = __( 'The scope must be "site" or "network".', 'default' );
+			$message = __( 'The scope must be "site" or "network".' );
 
 			_doing_it_wrong( __METHOD__, $message, '7.2.0' );
 
@@ -159,7 +159,7 @@ final class WP_Secrets_Key_Manager {
 			$subkey_id = null === $site_id ? get_current_blog_id() : $site_id;
 
 			if ( ! is_int( $subkey_id ) || $subkey_id < 1 ) {
-				$message = __( 'The site id must be a positive integer.', 'default' );
+				$message = __( 'The site id must be a positive integer.' );
 
 				_doing_it_wrong( __METHOD__, $message, '7.2.0' );
 
@@ -180,7 +180,7 @@ final class WP_Secrets_Key_Manager {
 
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -208,7 +208,7 @@ final class WP_Secrets_Key_Manager {
 		if ( ! is_string( $wrapped ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'The stored root key is not a string.', 'default' )
+				__( 'The stored root key is not a string.' )
 			);
 		}
 
@@ -245,7 +245,7 @@ final class WP_Secrets_Key_Manager {
 		if ( ! is_string( $wrapped ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-				__( 'No root key exists to rotate.', 'default' )
+				__( 'No root key exists to rotate.' )
 			);
 		}
 
@@ -280,7 +280,7 @@ final class WP_Secrets_Key_Manager {
 
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-				__( 'Could not store the re-wrapped root key.', 'default' )
+				__( 'Could not store the re-wrapped root key.' )
 			);
 		}
 
@@ -364,7 +364,7 @@ final class WP_Secrets_Key_Manager {
 		if ( ! is_string( $existing ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-				__( 'Could not read the root key after losing the creation race.', 'default' )
+				__( 'Could not read the root key after losing the creation race.' )
 			);
 		}
 

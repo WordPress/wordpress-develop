@@ -54,7 +54,7 @@ final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
 	 * @return string
 	 */
 	public function get_key_source() {
-		return __( 'broken secrets.php drop-in', 'default' );
+		return __( 'broken secrets.php drop-in' );
 	}
 
 	/**
@@ -67,7 +67,7 @@ final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
 	private function error() {
 		return new WP_Error(
 			WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-			__( 'The secrets.php drop-in did not provide a usable keyring.', 'default' )
+			__( 'The secrets.php drop-in did not provide a usable keyring.' )
 		);
 	}
 }

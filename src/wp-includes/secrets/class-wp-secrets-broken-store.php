@@ -86,7 +86,7 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	private function error() {
 		return new WP_Error(
 			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-			__( 'The secrets.php drop-in did not provide a usable store.', 'default' )
+			__( 'The secrets.php drop-in did not provide a usable store.' )
 		);
 	}
 }

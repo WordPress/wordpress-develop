@@ -88,14 +88,14 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( ! is_string( $key_material ) || '' === $key_material ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_VALUE,
-				__( 'Key material to wrap must be a non-empty string.', 'default' )
+				__( 'Key material to wrap must be a non-empty string.' )
 			);
 		}
 
 		if ( ! function_exists( 'sodium_crypto_aead_xchacha20poly1305_ietf_encrypt' ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -125,14 +125,14 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( ! is_string( $wrapped ) || '' === $wrapped ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'Nothing to unwrap.', 'default' )
+				__( 'Nothing to unwrap.' )
 			);
 		}
 
 		if ( ! function_exists( 'sodium_crypto_aead_xchacha20poly1305_ietf_decrypt' ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -142,7 +142,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( false === $raw || strlen( $raw ) <= $nonce_length ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'The wrapped key material is malformed.', 'default' )
+				__( 'The wrapped key material is malformed.' )
 			);
 		}
 
@@ -162,7 +162,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( ! is_string( $key_material ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'The wrapped key material could not be decrypted with the configured site key.', 'default' )
+				__( 'The wrapped key material could not be decrypted with the configured site key.' )
 			);
 		}
 
@@ -204,7 +204,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 					WP_SECRETS_ERROR_KEY_UNAVAILABLE,
 					sprintf(
 						/* translators: %s: PHP constant name. */
-						__( '%s is defined but is not a usable string.', 'default' ),
+						__( '%s is defined but is not a usable string.' ),
 						$constant_name
 					)
 				);
@@ -222,7 +222,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( $this->use_previous_key ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'WP_SECRETS_KEY_PREVIOUS is not defined.', 'default' )
+				__( 'WP_SECRETS_KEY_PREVIOUS is not defined.' )
 			);
 		}
 
@@ -232,7 +232,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( ! $this->are_usable_salt_values( $logged_in_key, $logged_in_salt ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'WP_SECRETS_KEY is not defined, and LOGGED_IN_KEY/LOGGED_IN_SALT are not usable (undefined, empty, or left at the wp-config-sample.php placeholder).', 'default' )
+				__( 'WP_SECRETS_KEY is not defined, and LOGGED_IN_KEY/LOGGED_IN_SALT are not usable (undefined, empty, or left at the wp-config-sample.php placeholder).' )
 			);
 		}
 

@@ -226,7 +226,7 @@ function wp_secrets_validate_name( $name ) {
 	if ( ! is_string( $name ) || '' === $name ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_NAME,
-			__( 'Secret names must be non-empty strings.', 'default' )
+			__( 'Secret names must be non-empty strings.' )
 		);
 	}
 
@@ -235,7 +235,7 @@ function wp_secrets_validate_name( $name ) {
 			WP_SECRETS_ERROR_INVALID_NAME,
 			sprintf(
 				/* translators: %d: Maximum allowed length, in characters. */
-				__( 'Secret names must be %d characters or fewer.', 'default' ),
+				__( 'Secret names must be %d characters or fewer.' ),
 				WP_SECRETS_MAX_NAME_LENGTH
 			)
 		);
@@ -246,7 +246,7 @@ function wp_secrets_validate_name( $name ) {
 	if ( $slashes > 1 ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_NAME,
-			__( 'Secret names may contain at most one "/", separating a namespace from a key.', 'default' )
+			__( 'Secret names may contain at most one "/", separating a namespace from a key.' )
 		);
 	}
 
@@ -256,7 +256,7 @@ function wp_secrets_validate_name( $name ) {
 		if ( ! preg_match( $segment_pattern, $name ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_NAME,
-				__( 'Secret names may contain only lowercase letters, numbers, hyphens, and underscores, and must not start or end with a hyphen or underscore.', 'default' )
+				__( 'Secret names may contain only lowercase letters, numbers, hyphens, and underscores, and must not start or end with a hyphen or underscore.' )
 			);
 		}
 
@@ -269,7 +269,7 @@ function wp_secrets_validate_name( $name ) {
 			__FUNCTION__,
 			sprintf(
 				/* translators: %s: The unnamespaced secret name. */
-				__( 'The secret name "%s" has no namespace. Namespaced names ("plugin-slug/secret-name") group secrets by owner so that listings and admin screens can be organized; unnamespaced names are supported only so that code written against the Displace prototype can be ported incrementally.', 'default' ),
+				__( 'The secret name "%s" has no namespace. Namespaced names ("plugin-slug/secret-name") group secrets by owner so that listings and admin screens can be organized; unnamespaced names are supported only so that code written against the Displace prototype can be ported incrementally.' ),
 				$name
 			),
 			'7.2.0'
@@ -285,14 +285,14 @@ function wp_secrets_validate_name( $name ) {
 	if ( '' === $namespace || '' === $key ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_NAME,
-			__( 'Both segments of a secret name must be non-empty.', 'default' )
+			__( 'Both segments of a secret name must be non-empty.' )
 		);
 	}
 
 	if ( ! preg_match( $segment_pattern, $namespace ) || ! preg_match( $segment_pattern, $key ) ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_NAME,
-			__( 'Secret name segments may contain only lowercase letters, numbers, hyphens, and underscores, and must not start or end with a hyphen or underscore.', 'default' )
+			__( 'Secret name segments may contain only lowercase letters, numbers, hyphens, and underscores, and must not start or end with a hyphen or underscore.' )
 		);
 	}
 
@@ -452,7 +452,7 @@ function wp_import_option_as_secret( $option, $name ) {
 	if ( ! is_string( $option ) || '' === $option ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_VALUE,
-			__( 'Option name must be a non-empty string.', 'default' )
+			__( 'Option name must be a non-empty string.' )
 		);
 	}
 
@@ -461,14 +461,14 @@ function wp_import_option_as_secret( $option, $name ) {
 	if ( null === $value ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_VALUE,
-			__( 'The option does not exist.', 'default' )
+			__( 'The option does not exist.' )
 		);
 	}
 
 	if ( ! is_string( $value ) ) {
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_VALUE,
-			__( 'The option value is not a string and cannot be imported as a secret.', 'default' )
+			__( 'The option value is not a string and cannot be imported as a secret.' )
 		);
 	}
 
@@ -745,13 +745,13 @@ function _wp_secrets_get( $name, $version, $network ) {
 	if ( ! in_array( $version, array( WP_Secret_Version::CURRENT, WP_Secret_Version::PREVIOUS ), true ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
-			__( 'The version must be WP_Secret_Version::CURRENT or WP_Secret_Version::PREVIOUS.', 'default' ),
+			__( 'The version must be WP_Secret_Version::CURRENT or WP_Secret_Version::PREVIOUS.' ),
 			'7.2.0'
 		);
 
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_ARGUMENT,
-			__( 'The version must be WP_Secret_Version::CURRENT or WP_Secret_Version::PREVIOUS.', 'default' )
+			__( 'The version must be WP_Secret_Version::CURRENT or WP_Secret_Version::PREVIOUS.' )
 		);
 	}
 
@@ -800,13 +800,13 @@ function _wp_secrets_list( $name_prefix, $network ) {
 	if ( ! is_string( $name_prefix ) ) {
 		_doing_it_wrong(
 			__FUNCTION__,
-			__( 'The namespace must be a string.', 'default' ),
+			__( 'The namespace must be a string.' ),
 			'7.2.0'
 		);
 
 		return new WP_Error(
 			WP_SECRETS_ERROR_INVALID_ARGUMENT,
-			__( 'The namespace must be a string.', 'default' )
+			__( 'The namespace must be a string.' )
 		);
 	}
 

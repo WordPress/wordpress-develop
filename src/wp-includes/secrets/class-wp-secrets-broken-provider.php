@@ -34,7 +34,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	private function error() {
 		return new WP_Error(
 			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-			__( 'The secrets.php drop-in did not load correctly, so no secret can be read or written. Fix or remove the drop-in.', 'default' )
+			__( 'The secrets.php drop-in did not load correctly, so no secret can be read or written. Fix or remove the drop-in.' )
 		);
 	}
 
@@ -115,7 +115,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @return string
 	 */
 	public function get_label() {
-		return __( 'Unavailable: the secrets.php drop-in did not load correctly', 'default' );
+		return __( 'Unavailable: the secrets.php drop-in did not load correctly' );
 	}
 
 	/**

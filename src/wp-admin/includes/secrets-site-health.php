@@ -21,17 +21,17 @@
  */
 function wp_secrets_site_health_tests( $tests ) {
 	$tests['direct']['secrets_api_key_source'] = array(
-		'label' => __( 'Secrets API key source', 'default' ),
+		'label' => __( 'Secrets API key source' ),
 		'test'  => 'wp_secrets_site_health_test_key_source',
 	);
 
 	$tests['direct']['secrets_api_undecryptable'] = array(
-		'label' => __( 'Secrets API: undecryptable secrets', 'default' ),
+		'label' => __( 'Secrets API: undecryptable secrets' ),
 		'test'  => 'wp_secrets_site_health_test_undecryptable',
 	);
 
 	$tests['direct']['secrets_api_needs_rotation'] = array(
-		'label' => __( 'Secrets API: credentials pending rotation', 'default' ),
+		'label' => __( 'Secrets API: credentials pending rotation' ),
 		'test'  => 'wp_secrets_site_health_test_needs_rotation',
 	);
 
@@ -65,7 +65,7 @@ function wp_secrets_site_health_result( $test, $label, $status, $description ) {
 		'label'       => $label,
 		'status'      => $status,
 		'badge'       => array(
-			'label' => __( 'Security', 'default' ),
+			'label' => __( 'Security' ),
 			'color' => isset( $colors[ $status ] ) ? $colors[ $status ] : 'blue',
 		),
 		'description' => $description,
@@ -87,11 +87,11 @@ function wp_secrets_site_health_test_key_source() {
 	if ( false !== strpos( $key_source, 'broken' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
-			__( 'Secrets API key source is broken', 'default' ),
+			__( 'Secrets API key source is broken' ),
 			'critical',
 			sprintf(
 				'<p>%s</p>',
-				esc_html__( 'The active keyring did not load correctly. No secret can be encrypted or decrypted until this is fixed.', 'default' )
+				esc_html__( 'The active keyring did not load correctly. No secret can be encrypted or decrypted until this is fixed.' )
 			)
 		);
 	}
@@ -99,11 +99,11 @@ function wp_secrets_site_health_test_key_source() {
 	if ( false !== strpos( $key_source, 'legacy interpretation' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
-			__( 'Secrets API key should be regenerated', 'default' ),
+			__( 'Secrets API key should be regenerated' ),
 			'recommended',
 			sprintf(
 				'<p>%s</p>',
-				esc_html__( 'WP_SECRETS_KEY is defined, but not in the recommended base64-encoded 32-byte form. Regenerate it with `wp secret generate-key`.', 'default' )
+				esc_html__( 'WP_SECRETS_KEY is defined, but not in the recommended base64-encoded 32-byte form. Regenerate it with `wp secret generate-key`.' )
 			)
 		);
 	}
@@ -111,18 +111,18 @@ function wp_secrets_site_health_test_key_source() {
 	if ( false !== strpos( $key_source, 'LOGGED_IN_KEY' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
-			__( 'Secrets API is using a fallback key', 'default' ),
+			__( 'Secrets API is using a fallback key' ),
 			'recommended',
 			sprintf(
 				'<p>%s</p>',
-				esc_html__( 'No dedicated WP_SECRETS_KEY constant is defined. Secrets are encrypted using a key derived from existing salts, which works but is not the recommended configuration. Define WP_SECRETS_KEY with a value from `wp secret generate-key`.', 'default' )
+				esc_html__( 'No dedicated WP_SECRETS_KEY constant is defined. Secrets are encrypted using a key derived from existing salts, which works but is not the recommended configuration. Define WP_SECRETS_KEY with a value from `wp secret generate-key`.' )
 			)
 		);
 	}
 
 	return wp_secrets_site_health_result(
 		'secrets_api_key_source',
-		__( 'Secrets API is using a dedicated key', 'default' ),
+		__( 'Secrets API is using a dedicated key' ),
 		'good',
 		sprintf( '<p>%s</p>', esc_html( $key_source ) )
 	);
@@ -150,9 +150,9 @@ function wp_secrets_site_health_test_undecryptable() {
 	if ( empty( $broken ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_undecryptable',
-			__( 'All secrets can be decrypted', 'default' ),
+			__( 'All secrets can be decrypted' ),
 			'good',
-			sprintf( '<p>%s</p>', esc_html__( 'Every stored secret decrypted successfully.', 'default' ) )
+			sprintf( '<p>%s</p>', esc_html__( 'Every stored secret decrypted successfully.' ) )
 		);
 	}
 
@@ -164,7 +164,7 @@ function wp_secrets_site_health_test_undecryptable() {
 			esc_html( $entry['name'] ),
 			sprintf(
 				/* translators: %s: A secret's last known fingerprint. */
-				esc_html__( 'fingerprint: %s', 'default' ),
+				esc_html__( 'fingerprint: %s' ),
 				esc_html( $entry['fingerprint'] )
 			)
 		);
@@ -172,13 +172,13 @@ function wp_secrets_site_health_test_undecryptable() {
 
 	return wp_secrets_site_health_result(
 		'secrets_api_undecryptable',
-		__( 'Some secrets cannot be decrypted', 'default' ),
+		__( 'Some secrets cannot be decrypted' ),
 		'critical',
 		sprintf(
 			'<p>%s</p><ul>%s</ul><p>%s</p>',
-			esc_html__( 'The following secrets exist but could not be decrypted with the current key. There is no way to recover the original value -- the credential must be re-entered.', 'default' ),
+			esc_html__( 'The following secrets exist but could not be decrypted with the current key. There is no way to recover the original value -- the credential must be re-entered.' ),
 			$items,
-			esc_html__( 'This can happen after losing WP_SECRETS_KEY, restoring a database backup without its matching key, or a failed key rotation.', 'default' )
+			esc_html__( 'This can happen after losing WP_SECRETS_KEY, restoring a database backup without its matching key, or a failed key rotation.' )
 		)
 	);
 }
@@ -235,15 +235,15 @@ function wp_secrets_site_health_test_needs_rotation() {
 	if ( 0 === $count ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_needs_rotation',
-			__( 'No secrets are pending rotation', 'default' ),
+			__( 'No secrets are pending rotation' ),
 			'good',
-			sprintf( '<p>%s</p>', esc_html__( 'No secret is flagged as needing rotation.', 'default' ) )
+			sprintf( '<p>%s</p>', esc_html__( 'No secret is flagged as needing rotation.' ) )
 		);
 	}
 
 	return wp_secrets_site_health_result(
 		'secrets_api_needs_rotation',
-		__( 'Some secrets are pending rotation', 'default' ),
+		__( 'Some secrets are pending rotation' ),
 		'recommended',
 		sprintf(
 			'<p>%s</p>',
@@ -253,8 +253,7 @@ function wp_secrets_site_health_test_needs_rotation() {
 					_n(
 						'%d secret was imported from an existing option and is flagged for rotation. A credential that sat in a plain option has already been through whatever backups and replication paths that option went through; re-entering it with a new value is recommended.',
 						'%d secrets were imported from existing options and are flagged for rotation. A credential that sat in a plain option has already been through whatever backups and replication paths that option went through; re-entering each with a new value is recommended.',
-						$count,
-						'default'
+						$count
 					),
 					$count
 				)
@@ -306,57 +305,57 @@ function wp_secrets_site_health_debug_info( $info ) {
 
 	$fields = array(
 		'dropin_active'  => array(
-			'label' => __( 'Drop-in active', 'default' ),
-			'value' => wp_using_secrets_dropin() ? __( 'Yes', 'default' ) : __( 'No', 'default' ),
+			'label' => __( 'Drop-in active' ),
+			'value' => wp_using_secrets_dropin() ? __( 'Yes' ) : __( 'No' ),
 		),
 		'provider_class' => array(
-			'label' => __( 'Provider class', 'default' ),
+			'label' => __( 'Provider class' ),
 			'value' => get_class( $provider ),
 		),
 		'protected_by'   => array(
-			'label' => __( 'Secrets protected by', 'default' ),
+			'label' => __( 'Secrets protected by' ),
 			'value' => $provider->get_label(),
 		),
 		'protection_at'  => array(
-			'label' => __( 'Encryption boundary', 'default' ),
+			'label' => __( 'Encryption boundary' ),
 			'value' => WP_Secrets_Provider::BOUNDARY_WORDPRESS === $provider->get_protection_boundary()
-				? __( 'WordPress', 'default' )
-				: __( 'The provider (outside WordPress)', 'default' ),
+				? __( 'WordPress' )
+				: __( 'The provider (outside WordPress)' ),
 		),
 		'writable'       => array(
-			'label' => __( 'Accepts writes', 'default' ),
-			'value' => $provider->is_writable() ? __( 'Yes', 'default' ) : __( 'No', 'default' ),
+			'label' => __( 'Accepts writes' ),
+			'value' => $provider->is_writable() ? __( 'Yes' ) : __( 'No' ),
 		),
 		'keyring_class'  => array(
-			'label' => __( 'Keyring class', 'default' ),
+			'label' => __( 'Keyring class' ),
 			'value' => get_class( $key_manager->get_keyring() ),
 		),
 		'key_source'     => array(
-			'label' => __( 'Key source', 'default' ),
+			'label' => __( 'Key source' ),
 			'value' => $key_manager->get_keyring()->get_key_source(),
 		),
 		'record_version' => array(
-			'label' => __( 'Record format version', 'default' ),
+			'label' => __( 'Record format version' ),
 			'value' => (string) WP_SECRETS_RECORD_VERSION,
 		),
 	);
 
 	$site_secrets                = wp_list_secrets();
 	$fields['site_secret_count'] = array(
-		'label' => __( 'Site secrets', 'default' ),
-		'value' => is_wp_error( $site_secrets ) ? __( 'Unavailable', 'default' ) : (string) count( $site_secrets ),
+		'label' => __( 'Site secrets' ),
+		'value' => is_wp_error( $site_secrets ) ? __( 'Unavailable' ) : (string) count( $site_secrets ),
 	);
 
 	if ( is_multisite() && is_super_admin() ) {
 		$network_secrets                = wp_list_network_secrets();
 		$fields['network_secret_count'] = array(
-			'label' => __( 'Network secrets', 'default' ),
-			'value' => is_wp_error( $network_secrets ) ? __( 'Unavailable', 'default' ) : (string) count( $network_secrets ),
+			'label' => __( 'Network secrets' ),
+			'value' => is_wp_error( $network_secrets ) ? __( 'Unavailable' ) : (string) count( $network_secrets ),
 		);
 	}
 
 	$info['secrets-api'] = array(
-		'label'  => __( 'Secrets API', 'default' ),
+		'label'  => __( 'Secrets API' ),
 		'fields' => $fields,
 	);
 

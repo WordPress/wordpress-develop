@@ -77,14 +77,14 @@ final class WP_Secrets_Cipher {
 		if ( ! is_string( $plaintext ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_VALUE,
-				__( 'Secret values must be strings.', 'default' )
+				__( 'Secret values must be strings.' )
 			);
 		}
 
 		if ( ! function_exists( 'sodium_crypto_aead_xchacha20poly1305_ietf_encrypt' ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -153,7 +153,7 @@ final class WP_Secrets_Cipher {
 		if ( ! function_exists( 'sodium_crypto_aead_xchacha20poly1305_ietf_decrypt' ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -167,7 +167,7 @@ final class WP_Secrets_Cipher {
 		if ( ! is_string( $data_key ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_DECRYPTION_FAILED,
-				__( "The secret's data key could not be decrypted.", 'default' )
+				__( "The secret's data key could not be decrypted." )
 			);
 		}
 
@@ -183,7 +183,7 @@ final class WP_Secrets_Cipher {
 		if ( ! is_string( $plaintext ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_DECRYPTION_FAILED,
-				__( 'The secret value could not be decrypted.', 'default' )
+				__( 'The secret value could not be decrypted.' )
 			);
 		}
 
@@ -210,21 +210,21 @@ final class WP_Secrets_Cipher {
 		if ( ! $this->is_valid_master_key( $master_key ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'A 32-byte master key is required.', 'default' )
+				__( 'A 32-byte master key is required.' )
 			);
 		}
 
 		if ( ! is_string( $plaintext ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_VALUE,
-				__( 'Secret values must be strings.', 'default' )
+				__( 'Secret values must be strings.' )
 			);
 		}
 
 		if ( ! function_exists( 'sodium_crypto_kdf_derive_from_key' ) || ! function_exists( 'sodium_crypto_generichash' ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_CRYPTO_UNAVAILABLE,
-				__( 'No libsodium implementation is available.', 'default' )
+				__( 'No libsodium implementation is available.' )
 			);
 		}
 
@@ -283,21 +283,21 @@ final class WP_Secrets_Cipher {
 	 */
 	private function validate_common( $master_key, $scope, $site_id, $name, $slot ) {
 		if ( ! in_array( $scope, array( 'site', 'network' ), true ) ) {
-			return $this->invalid_argument( __( 'The scope must be "site" or "network".', 'default' ) );
+			return $this->invalid_argument( __( 'The scope must be "site" or "network".' ) );
 		}
 
 		if ( ! is_int( $site_id ) || $site_id < 0 ) {
-			return $this->invalid_argument( __( 'The site id must be a non-negative integer.', 'default' ) );
+			return $this->invalid_argument( __( 'The site id must be a non-negative integer.' ) );
 		}
 
 		if ( ! in_array( $slot, array( WP_Secret_Version::CURRENT, WP_Secret_Version::PREVIOUS ), true ) ) {
-			return $this->invalid_argument( __( 'The slot must be a WP_Secret_Version constant.', 'default' ) );
+			return $this->invalid_argument( __( 'The slot must be a WP_Secret_Version constant.' ) );
 		}
 
 		if ( ! $this->is_valid_master_key( $master_key ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
-				__( 'A 32-byte master key is required.', 'default' )
+				__( 'A 32-byte master key is required.' )
 			);
 		}
 
@@ -351,7 +351,7 @@ final class WP_Secrets_Cipher {
 		if ( ! is_array( $record ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'Secret record slot must be an array.', 'default' )
+				__( 'Secret record slot must be an array.' )
 			);
 		}
 
@@ -363,7 +363,7 @@ final class WP_Secrets_Cipher {
 					WP_SECRETS_ERROR_RECORD_MALFORMED,
 					sprintf(
 						/* translators: %s: Record field name. */
-						__( 'Secret record slot is missing the "%s" field.', 'default' ),
+						__( 'Secret record slot is missing the "%s" field.' ),
 						$field
 					)
 				);
@@ -376,7 +376,7 @@ final class WP_Secrets_Cipher {
 					WP_SECRETS_ERROR_RECORD_MALFORMED,
 					sprintf(
 						/* translators: %s: Record field name. */
-						__( 'Secret record slot field "%s" is not valid base64.', 'default' ),
+						__( 'Secret record slot field "%s" is not valid base64.' ),
 						$field
 					)
 				);
@@ -389,7 +389,7 @@ final class WP_Secrets_Cipher {
 			|| SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES !== strlen( $decoded['nonce'] ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'Secret record slot has a malformed nonce.', 'default' )
+				__( 'Secret record slot has a malformed nonce.' )
 			);
 		}
 

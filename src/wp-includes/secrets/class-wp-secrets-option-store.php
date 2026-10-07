@@ -59,7 +59,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		if ( ! is_array( $value ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'The stored secret record is not an array.', 'default' )
+				__( 'The stored secret record is not an array.' )
 			);
 		}
 
@@ -80,7 +80,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		if ( ! is_array( $record ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'A secret record must be an array.', 'default' )
+				__( 'A secret record must be an array.' )
 			);
 		}
 
@@ -110,7 +110,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 
 		return new WP_Error(
 			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-			__( 'The secret record could not be written.', 'default' )
+			__( 'The secret record could not be written.' )
 		);
 	}
 
@@ -141,7 +141,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 
 		return new WP_Error(
 			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-			__( 'The secret record could not be deleted.', 'default' )
+			__( 'The secret record could not be deleted.' )
 		);
 	}
 
@@ -181,7 +181,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		if ( ! is_array( $option_names ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_STORE_UNAVAILABLE,
-				__( 'Could not list secrets.', 'default' )
+				__( 'Could not list secrets.' )
 			);
 		}
 
