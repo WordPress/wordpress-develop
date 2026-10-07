@@ -33,6 +33,41 @@ class Tests_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_post_counts_for_loop_rewind
+	 *
+	 * @param int|string $post_count Number of posts assigned to the query.
+	 */
+	public function test_have_posts_rewinds_after_loop_with_numeric_post_count( $post_count ) {
+		$query              = new WP_Query();
+		$query->posts       = array( new WP_Post( (object) array( 'ID' => 1 ) ) );
+		$query->post_count  = $post_count;
+		$query->found_posts = 25;
+		$loop_end_count     = did_action( 'loop_end' );
+
+		$this->assertTrue( $query->have_posts() );
+		$query->next_post();
+		$query->in_the_loop = true;
+
+		$this->assertFalse( $query->have_posts() );
+		$this->assertSame( $loop_end_count + 1, did_action( 'loop_end' ) );
+		$this->assertSame( -1, $query->current_post );
+		$this->assertSame( $query->posts[0], $query->post );
+		$this->assertFalse( $query->in_the_loop );
+		$this->assertSame( 25, $query->found_posts );
+		$this->assertTrue( $query->have_posts() );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_post_counts_for_loop_rewind() {
+		return array(
+			'integer'        => array( 1 ),
+			'numeric string' => array( '1' ),
+		);
+	}
+
+	/**
 	 * @ticket 16471
 	 */
 	public function test_default_query_var() {
