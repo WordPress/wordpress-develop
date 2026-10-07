@@ -1003,6 +1003,80 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that PNG text comments do not survive a resize that reduces metadata.
+	 *
+	 * libvips only honours the `keep` mask in full from 8.16, and the comments are one of
+	 * the things it misses below that, so they are also removed by hand.
+	 */
+	public function test_resizing_drops_png_text_comments() {
+		$file = DIR_TESTDATA . '/images/transparent.png';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$this->assertNotWPError( $vips_image_editor->resize( 5, 5 ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_comment_' ) . '.png';
+		$vips_image_editor->save( $saved_file );
+
+		$comments = array_values(
+			array_filter(
+				Jcupitt\Vips\Image::newFromFile( $saved_file )->getFields(),
+				static function ( $field ) {
+					return 0 === strpos( $field, 'png-comment-' );
+				}
+			)
+		);
+		unlink( $saved_file );
+
+		$this->assertSame(
+			array(),
+			$comments,
+			'PNG text comments should not survive a resize that reduces metadata.'
+		);
+	}
+
+	/**
+	 * Tests which metadata fields have to be removed by hand below libvips 8.16.
+	 *
+	 * The `keep` mask is complete from 8.16, so the code that compensates for it is never
+	 * reached on a newer libvips and cannot be exercised through the editor. The list it
+	 * relies on is checked directly instead.
+	 */
+	public function test_unprotected_metadata_fields() {
+		$method = new ReflectionMethod( 'WP_Image_Editor_Vips', 'get_unprotected_metadata_fields' );
+		$method->setAccessible( true );
+
+		$fields = array(
+			// Protected by the `keep` mask.
+			'icc-profile-data',
+			'exif-data',
+			'iptc-data',
+			'xmp-data',
+			// Not protected.
+			'jpeg-thumbnail-data',
+			'png-comment-1-Software',
+			'magickprofile-foo',
+			'image-description',
+			// Not metadata at all.
+			'width',
+			'orientation',
+			'loop',
+			'n-pages',
+		);
+
+		$this->assertSame(
+			array(
+				'jpeg-thumbnail-data',
+				'png-comment-1-Software',
+				'magickprofile-foo',
+				'image-description',
+			),
+			$method->invoke( null, $fields )
+		);
+	}
+
+	/**
 	 * Tests that metadata survives a save that does not resize the image.
 	 *
 	 * Metadata is only reduced when the image is resized or cropped, matching the

@@ -903,6 +903,16 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			// so saving an image that was merely loaded keeps its metadata.
 			$strip_meta = $strip_meta && $this->resized;
 
+			/*
+			 * The `keep` mask is only honoured in full from libvips 8.16. Below that, remove
+			 * what it misses, so that the same fields are dropped on every supported version.
+			 */
+			if ( $strip_meta && version_compare( Jcupitt\Vips\Config::version(), '8.16', '<' ) ) {
+				foreach ( self::get_unprotected_metadata_fields( $image->getFields() ) as $field ) {
+					$image->remove( $field );
+				}
+			}
+
 			$save_options = $this->get_save_options( $image, $mime_type, $strip_meta );
 
 			if ( wp_is_stream( $filename ) ) {
@@ -1081,6 +1091,43 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Returns the metadata fields the `keep` mask fails to drop below libvips 8.16.
+	 *
+	 * The mask is honoured in full from 8.16. Below that, PNG text comments, the profiles
+	 * ImageMagick writes and the image description survive it, as does metadata stored as
+	 * a blob. They are named here so that they can be removed before the image is encoded.
+	 * The fields that hold image structure rather than metadata, such as an animation loop
+	 * count, are not among them and are left to the encoder.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $fields Metadata field names.
+	 * @return string[] Field names to remove.
+	 */
+	protected static function get_unprotected_metadata_fields( $fields ) {
+		// The fields the `keep` mask protects, spelled the way libvips names them.
+		$protected = array( 'icc-profile-data', 'exif-data', 'iptc-data', 'xmp-data' );
+
+		$unprotected = array();
+
+		foreach ( $fields as $field ) {
+			if ( in_array( $field, $protected, true ) ) {
+				continue;
+			}
+
+			if ( '-data' === substr( $field, -5 )
+				|| 0 === strpos( $field, 'png-comment-' )
+				|| 0 === strpos( $field, 'magickprofile-' )
+				|| 'image-description' === $field
+			) {
+				$unprotected[] = $field;
+			}
+		}
+
+		return $unprotected;
 	}
 
 	/**
