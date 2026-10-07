@@ -56,8 +56,6 @@ function wp_register_core_abilities(): void {
 	$category_site = 'site';
 	$category_user = 'user';
 
-	( new WP_Abilities_Users() )->register();
-
 	$site_info_properties = array(
 		'name'        => array(
 			'type'        => 'string',
@@ -369,4 +367,7 @@ function wp_register_core_abilities(): void {
 
 	// Register the settings abilities (currently the read-only `core/settings-get`).
 	( new WP_Abilities_Settings() )->register();
+
+	// Register the user abilities (currently the read-only `core/users-query`).
+	( new WP_Abilities_Users() )->register();
 }
