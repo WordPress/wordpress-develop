@@ -64,11 +64,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private array $edit_fields = array(
-		'title_raw',
-		'excerpt_raw',
-		'content_raw',
-	);
+	private const EDIT_FIELDS = array( 'title_raw', 'excerpt_raw', 'content_raw' );
 
 	/**
 	 * Fields whose output may read post meta or terms.
@@ -81,19 +77,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private array $cache_priming_fields = array(
-		'link',
-		'excerpt_rendered',
-		'content_rendered',
-	);
-
-	/**
-	 * Cached post field definitions, keyed by field name in output order.
-	 *
-	 * @since 7.2.0
-	 * @var array<string, mixed>|null
-	 */
-	private ?array $post_properties = null;
+	private const CACHE_PRIMING_FIELDS = array( 'link', 'excerpt_rendered', 'content_rendered' );
 
 	/**
 	 * Default fields returned when the caller does not request a field subset.
@@ -101,14 +85,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private array $default_fields = array(
-		'id',
-		'post_type',
-		'status',
-		'date',
-		'slug',
-		'title_rendered',
-	);
+	private const DEFAULT_FIELDS = array( 'id', 'post_type', 'status', 'date', 'slug', 'title_rendered' );
 
 	/**
 	 * Globals that rendering a post changes: the global post and the globals that
@@ -117,18 +94,15 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private array $loop_globals = array(
-		'post',
-		'id',
-		'authordata',
-		'currentday',
-		'currentmonth',
-		'page',
-		'pages',
-		'multipage',
-		'more',
-		'numpages',
-	);
+	private const LOOP_GLOBALS = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
+
+	/**
+	 * Cached post field definitions, keyed by field name in output order.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, mixed>|null
+	 */
+	private ?array $post_properties = null;
 
 	/**
 	 * Registers all content abilities.
@@ -171,7 +145,7 @@ final class WP_Content_Abilities {
 		wp_register_ability(
 			'core/content-query',
 			array(
-				'label'               => __( 'Content Query' ),
+				'label'               => __( 'Query Content' ),
 				'description'         => __( 'Reads content from post types exposed to abilities. Single-post lookups by ID or by post type and slug return the post object directly. Query mode returns readable posts filtered by post type, status, author, parent, or included IDs. Requires an authenticated user. Lookups and filters are exact-match only; the ability does not perform full-text search.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_query_input_schema( $post_types, $statuses ),
@@ -324,7 +298,7 @@ final class WP_Content_Abilities {
 	 * @return bool True if edit-context fields were explicitly requested.
 	 */
 	private function has_explicit_edit_fields( array $input ): bool {
-		return array() !== array_intersect( $this->edit_fields, $this->parse_list_input( $input, 'fields' ) );
+		return array() !== array_intersect( self::EDIT_FIELDS, $this->parse_list_input( $input, 'fields' ) );
 	}
 
 	/**
@@ -336,11 +310,11 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed>  $input            The ability input.
-	 * @param \WP_Post_Type $post_type_object The post type object.
+	 * @param array<mixed> $input            The ability input.
+	 * @param WP_Post_Type $post_type_object The post type object.
 	 * @return bool True if the requested statuses may be queried.
 	 */
-	private function can_query_statuses( array $input, \WP_Post_Type $post_type_object ): bool {
+	private function can_query_statuses( array $input, WP_Post_Type $post_type_object ): bool {
 		foreach ( $this->normalize_statuses( $input ) as $status ) {
 			if ( 'publish' === $status ) {
 				continue;
@@ -368,7 +342,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post         $post             Post object.
+	 * @param WP_Post          $post             Post object.
 	 * @param array<int, true> $checked_post_ids Post IDs already checked while walking inherited parents.
 	 * @return bool Whether the post can be read.
 	 */
@@ -402,7 +376,7 @@ final class WP_Content_Abilities {
 		}
 
 		$post_status_object = get_post_status_object( $post_status );
-		if ( ! $post_status_object instanceof \stdClass ) {
+		if ( ! $post_status_object instanceof stdClass ) {
 			return false;
 		}
 
@@ -455,7 +429,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
-	 * @return array<string, mixed>|\stdClass|\WP_Error A single post, a `posts` list with totals in query mode, or a WP_Error.
+	 * @return array<string, mixed>|stdClass|WP_Error A single post, a `posts` list with totals in query mode, or a WP_Error.
 	 */
 	public function execute_content_query( $input = array() ) {
 		$input         = rest_sanitize_object( $input );
@@ -681,7 +655,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Query    $query      The executed query.
+	 * @param WP_Query     $query      The executed query.
 	 * @param array<mixed> $query_args The arguments used for the executed query.
 	 * @param int          $page       The requested page.
 	 * @return int Total matching rows across all pages.
@@ -714,7 +688,7 @@ final class WP_Content_Abilities {
 	 * @return bool True when post meta and term caches should be primed.
 	 */
 	private function should_prime_post_caches( array $fields ): bool {
-		return array() !== array_intersect( $this->cache_priming_fields, $fields );
+		return array() !== array_intersect( self::CACHE_PRIMING_FIELDS, $fields );
 	}
 
 	/**
@@ -728,7 +702,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
-	 * @return \WP_Post|null The post, or null when it cannot be resolved.
+	 * @return WP_Post|null The post, or null when it cannot be resolved.
 	 */
 	private function get_content_by_id( array $input ): ?WP_Post {
 		$post_id = isset( $input['id'] ) ? $this->parse_filter_int( $input['id'], 1 ) : null;
@@ -758,11 +732,11 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param mixed         $slug             The author slug.
-	 * @param \WP_Post_Type $post_type_object The post type the author is looked up for.
-	 * @return \WP_User|null The user, or null when the slug does not name exactly one visible user.
+	 * @param mixed        $slug             The author slug.
+	 * @param WP_Post_Type $post_type_object The post type the author is looked up for.
+	 * @return WP_User|null The user, or null when the slug does not name exactly one visible user.
 	 */
-	private function get_author_by_slug( $slug, \WP_Post_Type $post_type_object ): ?\WP_User {
+	private function get_author_by_slug( $slug, WP_Post_Type $post_type_object ): ?WP_User {
 		if ( ! is_string( $slug ) || '' === $slug ) {
 			return null;
 		}
@@ -778,7 +752,7 @@ final class WP_Content_Abilities {
 					)
 				),
 				static function ( $user ) use ( $slug ): bool {
-					return $user instanceof \WP_User && $user->user_nicename === $slug;
+					return $user instanceof WP_User && $user->user_nicename === $slug;
 				}
 			)
 		);
@@ -823,7 +797,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @param string $post_type The post type.
 	 * @param string $slug      The post slug.
-	 * @return \WP_Post|null The matching readable post, or null when none exists.
+	 * @return WP_Post|null The matching readable post, or null when none exists.
 	 */
 	private function get_post_by_slug( string $post_type, string $slug ): ?WP_Post {
 		$name = sanitize_title( $slug );
@@ -880,9 +854,9 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $post_type The post type name.
-	 * @return \WP_Post_Type|null The post type object, or null when the post type is not exposed.
+	 * @return WP_Post_Type|null The post type object, or null when the post type is not exposed.
 	 */
-	private function get_exposed_post_type( $post_type ): ?\WP_Post_Type {
+	private function get_exposed_post_type( $post_type ): ?WP_Post_Type {
 		$post_type_object = is_string( $post_type ) ? get_post_type_object( $post_type ) : null;
 
 		return empty( $post_type_object->show_in_abilities ) ? null : $post_type_object;
@@ -939,7 +913,7 @@ final class WP_Content_Abilities {
 	private function normalize_fields( array $input ): array {
 		$fields = $this->parse_list_input( $input, 'fields' );
 
-		return array() === $fields ? $this->default_fields : $fields;
+		return array() === $fields ? self::DEFAULT_FIELDS : $fields;
 	}
 
 	/**
@@ -948,7 +922,7 @@ final class WP_Content_Abilities {
 	 * This is the single source of truth for the ability's post fields: the output
 	 * schema uses the definitions directly, while the input schema fields enum uses
 	 * the keys. Read-context fields are returned for readable posts; the edit-context
-	 * fields listed in {@see self::$edit_fields} additionally require edit access.
+	 * fields listed in {@see self::EDIT_FIELDS} additionally require edit access.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1260,7 +1234,7 @@ final class WP_Content_Abilities {
 	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $formatted The formatted post data.
-	 * @return array<string, mixed>|\stdClass The post data, or an empty object when the projection is empty.
+	 * @return array<string, mixed>|stdClass The post data, or an empty object when the projection is empty.
 	 */
 	private function to_output_post( array $formatted ) {
 		return array() === $formatted ? (object) array() : $formatted;
@@ -1276,7 +1250,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post     $post   The post object.
+	 * @param WP_Post      $post   The post object.
 	 * @param list<string> $fields The requested field names.
 	 * @return array<string, mixed> The formatted post data.
 	 */
@@ -1317,7 +1291,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post     $post         The post object.
+	 * @param WP_Post      $post         The post object.
 	 * @param list<string> $fields       The requested field names.
 	 * @param bool         $can_edit     Whether the current user can edit the post.
 	 * @param bool         $is_protected Whether rendered fields must be withheld as password-protected.
@@ -1326,9 +1300,9 @@ final class WP_Content_Abilities {
 	private function build_post_fields( WP_Post $post, array $fields, bool $can_edit, bool $is_protected ): array {
 		$post_type = $post->post_type;
 
-		// Edit-context fields require edit access; drop them so $edit_fields is the single gate.
+		// Edit-context fields require edit access; drop them so EDIT_FIELDS is the single gate.
 		if ( ! $can_edit ) {
-			$fields = array_diff( $fields, $this->edit_fields );
+			$fields = array_diff( $fields, self::EDIT_FIELDS );
 		}
 
 		$requested = array_flip( $fields );
@@ -1433,7 +1407,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post The post object.
+	 * @param WP_Post $post The post object.
 	 * @return string The post title.
 	 */
 	private function get_title( WP_Post $post ): string {
@@ -1480,7 +1454,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post The post object.
+	 * @param WP_Post $post The post object.
 	 * @return string Rendered post excerpt.
 	 */
 	private function get_rendered_excerpt( WP_Post $post ): string {
@@ -1512,7 +1486,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post The post object.
+	 * @param WP_Post $post The post object.
 	 * @return string Rendered post content.
 	 */
 	private function get_rendered_content( WP_Post $post ): string {
@@ -1542,12 +1516,12 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post The post to render.
+	 * @param WP_Post $post The post to render.
 	 * @return array<string, mixed> The previous loop globals, keyed by name, leaving out those that were not set.
 	 */
 	private function set_up_post_context( WP_Post $post ): array {
 		$previous_context = array();
-		foreach ( $this->loop_globals as $name ) {
+		foreach ( self::LOOP_GLOBALS as $name ) {
 			if ( ! array_key_exists( $name, $GLOBALS ) ) {
 				continue;
 			}
@@ -1583,7 +1557,7 @@ final class WP_Content_Abilities {
 			setup_postdata( $previous_post );
 		}
 
-		foreach ( $this->loop_globals as $name ) {
+		foreach ( self::LOOP_GLOBALS as $name ) {
 			if ( array_key_exists( $name, $previous_context ) ) {
 				$GLOBALS[ $name ] = $previous_context[ $name ];
 			} else {
@@ -1597,8 +1571,8 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post  The post object.
-	 * @param string   $field Either 'date' or 'modified'. Default 'date'.
+	 * @param WP_Post $post  The post object.
+	 * @param string  $field Either 'date' or 'modified'. Default 'date'.
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
 	private function format_local_date( WP_Post $post, string $field = 'date' ): string {
@@ -1618,8 +1592,8 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param \WP_Post $post  The post object.
-	 * @param string   $field Either 'date' or 'modified'. Default 'date'.
+	 * @param WP_Post $post  The post object.
+	 * @param string  $field Either 'date' or 'modified'. Default 'date'.
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
 	private function format_gmt_date( WP_Post $post, string $field = 'date' ): string {
@@ -1671,7 +1645,7 @@ final class WP_Content_Abilities {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return \WP_Error The not-found error.
+	 * @return WP_Error The not-found error.
 	 */
 	private function not_found_error(): WP_Error {
 		return new WP_Error(
