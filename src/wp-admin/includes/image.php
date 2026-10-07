@@ -807,7 +807,7 @@ function wp_exif_frac2dec( $str ) {
  * @return DateTimeImmutable|false The parsed date, or false if the date or timezone is invalid.
  */
 function wp_exif_datetime( $str, $timezone = null ) {
-	if ( ! is_string( $str ) || empty( $str ) ) {
+	if ( ! is_string( $str ) || empty( trim( $str ) ) ) {
 
 		return false;
 	}
@@ -854,8 +854,8 @@ function wp_exif_date2ts( $str ) {
 /**
  * Gets extended image metadata, exif or iptc as available.
  *
- * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso
- * created_timestamp, focal_length, shutter_speed, and title.
+ * Retrieves the EXIF metadata aperture, credit, camera, caption, copyright, iso,
+ * created, created_timestamp, focal_length, shutter_speed, and title.
  *
  * The IPTC metadata that is retrieved is APP13, credit, byline, created date
  * and time, caption, copyright, alt, and title. Also includes FNumber, Model,
@@ -863,6 +863,7 @@ function wp_exif_date2ts( $str ) {
  *
  * @todo Try other exif libraries if available.
  * @since 2.5.0
+ * @since 7.2.0 The `$created` value was added to the returned array.
  *
  * @param string $file
  * @return array|false Image metadata array on success, false on failure.
