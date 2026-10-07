@@ -744,12 +744,12 @@ final class WP_Content_Abilities {
 	/**
 	 * Looks up the user an author slug names.
 	 *
-	 * The slug is the user's nicename, which `core/users-query` returns as `slug`. It must match
-	 * exactly one user. A user the current user may not see is reported like a missing one. As
-	 * in `core/users-query`, the current user can see themselves, any user when they can list
-	 * users, and authors with posts in a publicly viewable post type. Unlike there, a user who
-	 * can edit others' posts of the post type can see any user, since they may make any user
-	 * the author, so for them the lookup does tell whether an account exists.
+	 * The slug is the user's nicename, which the REST API users endpoint returns as `slug`. It
+	 * must match exactly one user. A user the current user may not see is reported like a
+	 * missing one. The current user can see themselves, any user when they can list users, and
+	 * authors with posts in a publicly viewable post type. A user who can edit others' posts of
+	 * the post type can also see any user, since they may make any user the author, so for them
+	 * the lookup does tell whether an account exists.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1017,7 +1017,7 @@ final class WP_Content_Abilities {
 			),
 			'author_slug'       => array(
 				'type'        => 'string',
-				'description' => __( "The author's user slug, as core/users-query returns it. Present when the post type supports authors. Empty when the author no longer exists." ),
+				'description' => __( "The author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Present when the post type supports authors. Empty when the author no longer exists." ),
 			),
 			'parent'            => array(
 				'type'        => 'integer',
@@ -1145,7 +1145,7 @@ final class WP_Content_Abilities {
 						'author_slug' => array(
 							'type'        => 'string',
 							'minLength'   => 1,
-							'description' => __( "Filter by the author's user slug, as core/users-query returns it. Only supported for post types that support authors." ),
+							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
 						),
 						'parent'      => array(
 							'type'        => 'integer',
