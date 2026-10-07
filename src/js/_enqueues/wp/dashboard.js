@@ -201,11 +201,6 @@ jQuery( function($) {
 	 * @return {void}
 	 */
 	function autoResizeTextarea() {
-		// When IE8 or older is used to render this document, exit.
-		if ( document.documentMode && document.documentMode < 9 ) {
-			return;
-		}
-
 		// Add a hidden div. We'll copy over the text from the textarea to measure its height.
 		$('body').append( '<div class="quick-draft-textarea-clone" style="display: none;"></div>' );
 
