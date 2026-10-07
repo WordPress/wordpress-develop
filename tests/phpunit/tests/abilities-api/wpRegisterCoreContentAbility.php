@@ -3177,4 +3177,74 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $drafts, 'An editor should filter by an author without published posts.' );
 		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['posts'], 'id' ), 'The filter should return that author\'s drafts.' );
 	}
+
+	/**
+	 * On multisite, an author_slug filter does not tell an editor of one site whether a user
+	 * of another site exists.
+	 *
+	 * @ticket 64606
+	 * @group ms-required
+	 * @since 7.2.0
+	 */
+	public function test_author_slug_filter_hides_users_of_other_sites(): void {
+		$other_user_id = self::factory()->user->create( array( 'user_nicename' => 'other-site-user' ) );
+		$site_id       = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$query = static function ( string $author_slug ) {
+			return ( new WP_Content_Abilities() )->execute_content_query(
+				array(
+					'post_type'   => 'post',
+					'author_slug' => $author_slug,
+				)
+			);
+		};
+
+		$is_member = is_user_member_of_blog( $other_user_id, $site_id );
+		$other     = $query( 'other-site-user' );
+		$missing   = $query( 'no-such-user' );
+
+		restore_current_blog();
+
+		$this->assertFalse( $is_member, 'Precondition: the other user should not be a member of the site.' );
+		$this->assertWPError( $missing, 'Precondition: a slug that names no user should be rejected.' );
+		$this->assertWPError( $other, 'An editor should not learn that a user of another site exists.' );
+		$this->assertSame( $missing->get_error_code(), $other->get_error_code(), 'A user of another site should be reported like a missing one.' );
+	}
+
+	/**
+	 * On multisite, an author_slug filter still names an author who is not a member of the
+	 * site, such as a super admin, when they have published posts there.
+	 *
+	 * @ticket 64606
+	 * @group ms-required
+	 * @since 7.2.0
+	 */
+	public function test_author_slug_filter_names_authors_who_are_not_site_members(): void {
+		$super_admin_id = self::factory()->user->create( array( 'user_nicename' => 'network-author' ) );
+		grant_super_admin( $super_admin_id );
+		$site_id = self::factory()->blog->create();
+
+		switch_to_blog( $site_id );
+		$post_id = self::factory()->post->create( array( 'post_author' => $super_admin_id ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$is_member = is_user_member_of_blog( $super_admin_id, $site_id );
+		$result    = ( new WP_Content_Abilities() )->execute_content_query(
+			array(
+				'post_type'   => 'post',
+				'author_slug' => 'network-author',
+				'fields'      => array( 'id' ),
+			)
+		);
+
+		restore_current_blog();
+		revoke_super_admin( $super_admin_id );
+
+		$this->assertFalse( $is_member, 'Precondition: the super admin should not be a member of the site.' );
+		$this->assertIsArray( $result, 'An author with published posts on the site should be filterable without being a member.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['posts'], 'id' ), 'The filter should return the author\'s posts on the site.' );
+	}
 }
