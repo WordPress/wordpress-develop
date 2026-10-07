@@ -9229,6 +9229,7 @@ function wp_get_wp_version() {
 		require ABSPATH . WPINC . '/version.php';
 	}
 
+	/** @var non-falsy-string $wp_version */
 	return $wp_version;
 }
 
