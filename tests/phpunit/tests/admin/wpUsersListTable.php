@@ -69,7 +69,7 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 
 		remove_filter( 'query', $collect );
 
-		$this->assertSame( array( $original ), array_keys( $flagged ), 'Only the user sharing an address should be flagged, even when the other account is not on the page.' );
+		$this->assertSame( array( $original ), $flagged, 'Only the user sharing an address should be flagged, even when the other account is not on the page.' );
 
 		$lower_queries = preg_grep( '/LOWER\(user_email\)/', $queries );
 		if ( $is_case_sensitive ) {

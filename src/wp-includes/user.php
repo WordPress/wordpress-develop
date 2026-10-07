@@ -2205,20 +2205,18 @@ function email_exists( $email ) {
 function _wp_is_user_email_case_sensitive() {
 	global $wpdb;
 
-	static $is_case_sensitive = array();
+	static $is_case_sensitive = null;
 
-	if ( ! isset( $is_case_sensitive[ $wpdb->users ] ) ) {
-		$result = true;
+	if ( null === $is_case_sensitive ) {
+		$is_case_sensitive = true;
 
 		if ( $wpdb->is_mysql ) {
 			$column = $wpdb->get_row( "SHOW FULL COLUMNS FROM $wpdb->users LIKE 'user_email'" );
 
 			if ( $column && ! empty( $column->Collation ) ) {
-				$result = ! str_ends_with( strtolower( $column->Collation ), '_ci' );
+				$is_case_sensitive = ! str_ends_with( strtolower( $column->Collation ), '_ci' );
 			}
 		}
-
-		$is_case_sensitive[ $wpdb->users ] = $result;
 	}
 
 	/**
@@ -2231,7 +2229,7 @@ function _wp_is_user_email_case_sensitive() {
 	 *
 	 * @param bool $is_case_sensitive Whether the user_email column compares case-sensitively.
 	 */
-	return (bool) apply_filters( 'wp_is_user_email_case_sensitive', $is_case_sensitive[ $wpdb->users ] );
+	return (bool) apply_filters( 'wp_is_user_email_case_sensitive', $is_case_sensitive );
 }
 
 /**

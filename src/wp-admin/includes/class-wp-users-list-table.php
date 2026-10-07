@@ -34,10 +34,10 @@ class WP_Users_List_Table extends WP_List_Table {
 
 	/**
 	 * IDs of users on the current page whose email address is also used by another
-	 * user, ignoring letter case. Keys are user IDs.
+	 * user, ignoring letter case.
 	 *
 	 * @since 7.2.0
-	 * @var array<int, true>
+	 * @var list<int>
 	 */
 	protected $duplicate_email_user_ids = array();
 
@@ -439,7 +439,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param int[] $user_ids IDs of the users to check.
-	 * @return array<int, true> Array keyed by the IDs of users whose email address is shared.
+	 * @return list<int> IDs of the given users whose email address is shared.
 	 */
 	protected function get_duplicate_email_user_ids( array $user_ids ): array {
 		global $wpdb;
@@ -481,14 +481,14 @@ class WP_Users_List_Table extends WP_List_Table {
 			$users_by_email[ strtolower( $match->user_email ) ][] = (int) $match->ID;
 		}
 
-		$duplicates = array();
+		$duplicate_ids = array();
 		foreach ( $users_by_email as $ids ) {
 			if ( count( $ids ) > 1 ) {
-				$duplicates += array_fill_keys( $ids, true );
+				$duplicate_ids = array_merge( $duplicate_ids, $ids );
 			}
 		}
 
-		return array_intersect_key( $duplicates, array_flip( $user_ids ) );
+		return array_values( array_intersect( $user_ids, $duplicate_ids ) );
 	}
 
 	/**
@@ -674,7 +674,7 @@ class WP_Users_List_Table extends WP_List_Table {
 						break;
 					case 'email':
 						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
-						if ( isset( $this->duplicate_email_user_ids[ $user_object->ID ] ) ) {
+						if ( in_array( $user_object->ID, $this->duplicate_email_user_ids, true ) ) {
 							$row .= sprintf(
 								'<p class="duplicate-email"><span class="dashicons dashicons-warning" aria-hidden="true"></span> %s</p>',
 								__( 'Another user has this email address, possibly with different letter case.' )
