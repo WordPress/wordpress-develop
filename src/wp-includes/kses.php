@@ -4190,6 +4190,11 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * allowed list disables the checks; the output is still re-serialized
  * from the parsed declarations.
  *
+ * Whether or not the allowed list is empty, a declaration whose value has
+ * a block (a function, `(`, `[` or `{`) still open at the end of the input
+ * is dropped, for every property. The legacy implementation rejected it,
+ * and callers rely on a rejected declaration staying rejected.
+ *
  * @since 7.2.0
  * @access private
  * @internal
@@ -4211,6 +4216,11 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		$name      = $processor->get_property_name();
 		$tokens    = $processor->get_value_tokens();
 		$is_custom = str_starts_with( $name, '--' );
+
+		// The legacy implementation rejected an unclosed block; callers rely on a rejected declaration staying rejected.
+		if ( _safecss_filter_attr_value_has_open_block( $tokens ) ) {
+			continue;
+		}
 
 		if ( $check ) {
 			if ( $is_custom ) {
@@ -4385,13 +4395,13 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
 			}
-			if ( $j < $count && WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]['type'] ) {
+			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]['type'] ) {
 				return false;
 			}
 			if ( ! _safecss_filter_attr_url_is_allowed( $string['value'], $allowed_protocols ) ) {
 				return false;
 			}
-			// The `)` was consumed with the argument, or the function is open at the end of the input.
+			// The `)` is consumed with the argument.
 			--$depth;
 			$i = $j;
 			continue;
@@ -4403,6 +4413,41 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 	}
 
 	return true;
+}
+
+/**
+ * Checks whether a declaration value has a block still open at the end of the input.
+ *
+ * A function, `(`, `[` or `{` opens a block. CSS closes every open block at
+ * the end of the input, so the token view has no closing token for it.
+ *
+ * @since 7.2.0
+ * @access private
+ * @internal
+ *
+ * @param array[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @return bool Whether a block is open at the end of the value.
+ */
+function _safecss_filter_attr_value_has_open_block( $tokens ) {
+	$depth = 0;
+	foreach ( $tokens as $token ) {
+		switch ( $token['type'] ) {
+			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
+				++$depth;
+				break;
+
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
+			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
+				--$depth;
+				break;
+		}
+	}
+
+	return 0 !== $depth;
 }
 
 /**
@@ -4483,8 +4528,8 @@ function _safecss_filter_attr_is_trivia( $token ) {
  * re-escaped from their decoded names. A `\` delimiter, which only a
  * backslash before a newline produces, keeps its newline so it does not
  * escape the space that follows. Other tokens are copied from the source.
- * Blocks left open at the end of the value are closed, so the output never
- * absorbs the `;` that follows.
+ * The value has no block open at the end, so the output never absorbs the
+ * `;` that follows.
  *
  * @since 7.2.0
  * @access private
@@ -4497,7 +4542,6 @@ function _safecss_filter_attr_is_trivia( $token ) {
 function _safecss_filter_attr_serialize_value( $css, $tokens ) {
 	$output        = '';
 	$pending_space = false;
-	$open_blocks   = array();
 
 	foreach ( $tokens as $token ) {
 		if ( _safecss_filter_attr_is_trivia( $token ) ) {
@@ -4508,25 +4552,6 @@ function _safecss_filter_attr_serialize_value( $css, $tokens ) {
 		if ( $pending_space ) {
 			$output       .= ' ';
 			$pending_space = false;
-		}
-
-		switch ( $token['type'] ) {
-			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
-			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
-				$open_blocks[] = ')';
-				break;
-			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
-				$open_blocks[] = ']';
-				break;
-			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
-				$open_blocks[] = '}';
-				break;
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
-				// The processor drops values with unmatched closers, so the stack is never empty here.
-				array_pop( $open_blocks );
-				break;
 		}
 
 		switch ( $token['type'] ) {
@@ -4556,7 +4581,7 @@ function _safecss_filter_attr_serialize_value( $css, $tokens ) {
 		}
 	}
 
-	return $output . implode( '', array_reverse( $open_blocks ) );
+	return $output;
 }
 
 /**

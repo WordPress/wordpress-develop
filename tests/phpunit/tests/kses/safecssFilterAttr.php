@@ -289,10 +289,35 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @covers ::_safecss_filter_attr_value_has_open_block
 	 */
-	public function test_function_left_open_at_end_of_input_is_closed() {
-		$this->assertSame( 'width:calc(1px);', safecss_filter_attr( 'width: calc(1px' ) );
-		$this->assertSame( 'width:var(--a, var(--b));', safecss_filter_attr( 'width: var(--a, var(--b' ) );
+	public function test_block_left_open_at_end_of_input_is_rejected() {
+		$this->assertSame( '', safecss_filter_attr( 'width: calc(1px' ) );
+		$this->assertSame( '', safecss_filter_attr( 'width: var(--a, var(--b' ) );
+		$this->assertSame( '', safecss_filter_attr( 'width: calc(3em + (10px * 2)' ) );
+		$this->assertSame( '', safecss_filter_attr( 'background: url("a.png"' ) );
+		// The `;` is inside the open function, so there is one declaration and it is rejected.
+		$this->assertSame( '', safecss_filter_attr( 'width: calc(1px; color: red' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 * @covers ::_safecss_filter_attr_value_has_open_block
+	 */
+	public function test_block_left_open_at_end_of_input_is_rejected_in_custom_property() {
+		$this->assertSame( '', safecss_filter_attr( '--x: calc(1px' ) );
+		$this->assertSame( '', safecss_filter_attr( '--x: (1px' ) );
+		$this->assertSame( '', safecss_filter_attr( '--x: [a' ) );
+		$this->assertSame( '', safecss_filter_attr( '--x: {a:b' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 */
+	public function test_closed_block_at_end_of_input_is_kept() {
+		$this->assertSame( 'width:calc(1px);', safecss_filter_attr( 'width: calc(1px)' ) );
+		$this->assertSame( '--x:(1px);', safecss_filter_attr( '--x: (1px)' ) );
+		$this->assertSame( '--x:{a:b};', safecss_filter_attr( '--x: {a:b}' ) );
 	}
 
 	/**
@@ -333,12 +358,15 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	 */
 	public function test_empty_allowed_list_skips_checks_but_still_serializes() {
 		add_filter( 'safe_style_css', '__return_empty_array' );
-		$arbitrary = safecss_filter_attr( 'foo: expression(1); width: (1px)' );
-		$invalid   = safecss_filter_attr( 'color; width: 1px); height: 2px' );
+		$arbitrary  = safecss_filter_attr( 'foo: expression(1); width: (1px)' );
+		$invalid    = safecss_filter_attr( 'color; width: 1px); height: 2px' );
+		$open_block = safecss_filter_attr( 'width: calc(1px' );
 		remove_filter( 'safe_style_css', '__return_empty_array' );
 
 		$this->assertSame( 'foo:expression(1);width:(1px);', $arbitrary );
 		$this->assertSame( 'height:2px;', $invalid );
+		// The open-block rule does not depend on the allowed list.
+		$this->assertSame( '', $open_block );
 	}
 
 	/**
@@ -388,11 +416,9 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		return array(
 			'simple'                   => array( 'margin-top: 2px' ),
 			'escaped ident'            => array( 'margin-top: \2px' ),
-			'open function'            => array( 'width: calc(3em + 10px' ),
-			'open function with ;'     => array( 'aspect-ratio: calc( 16 / 9;' ),
-			'open nested function'     => array( 'background-color: var(--wp-var, var(--wp-var-fallback, pink)' ),
+			'open function, rejected'  => array( 'width: calc(3em + 10px' ),
 			'custom open string'       => array( '--x: "abc' ),
-			'custom bare block'        => array( '--x: (1px' ),
+			'custom bare block'        => array( '--x: (1px)' ),
 			'custom brace block'       => array( '--x: {a:b}' ),
 			'gradient with url'        => array( "background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url('https://example.com/image.jpg')" ),
 			'url with spaces'          => array( "background-image: url( '  http://example.com/valid.gif ' );" ),

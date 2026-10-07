@@ -1658,42 +1658,40 @@ EOF;
 				'css'      => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 				'expected' => 'margin-top: calc(var(--wp-var1) * 3 + 2em)',
 			),
-			// A function left open at the end of the input is closed, as CSS closes it.
+			// Malformed min, no closing `)`.
 			array(
-				'css'             => 'width: min(3em + 10px',
-				'expected'        => 'width:min(3em + 10px);',
-				'expected_legacy' => '',
+				'css'      => 'width: min(3em + 10px',
+				'expected' => '',
 			),
+			// Malformed max, no closing `)`.
 			array(
-				'css'             => 'width: max(3em + 10px',
-				'expected'        => 'width:max(3em + 10px);',
-				'expected_legacy' => '',
+				'css'      => 'width: max(3em + 10px',
+				'expected' => '',
 			),
+			// Malformed minmax, no closing `)`.
 			array(
-				'css'             => 'width: minmax(3em + 10px',
-				'expected'        => 'width:minmax(3em + 10px);',
-				'expected_legacy' => '',
+				'css'      => 'width: minmax(3em + 10px',
+				'expected' => '',
 			),
+			// Malformed calc, no closing `)`.
 			array(
-				'css'             => 'width: calc(3em + 10px',
-				'expected'        => 'width:calc(3em + 10px);',
-				'expected_legacy' => '',
+				'css'      => 'width: calc(3em + 10px',
+				'expected' => '',
 			),
+			// Malformed var, no closing `)`.
 			array(
-				'css'             => 'width: var(--wp-var1',
-				'expected'        => 'width:var(--wp-var1);',
-				'expected_legacy' => '',
+				'css'      => 'width: var(--wp-var1',
+				'expected' => '',
 			),
-			// Nested blocks left open at the end of the input are all closed.
+			// Malformed calc, mismatching brackets.
 			array(
-				'css'             => 'width: calc(3em + (10px * 2)',
-				'expected'        => 'width:calc(3em + (10px * 2));',
-				'expected_legacy' => '',
+				'css'      => 'width: calc(3em + (10px * 2)',
+				'expected' => '',
 			),
+			// Malformed var, mismatching brackets.
 			array(
-				'css'             => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
-				'expected'        => 'background-color:var(--wp-var, var(--wp-var-fallback, pink));',
-				'expected_legacy' => '',
+				'css'      => 'background-color: var(--wp-var, var(--wp-var-fallback, pink)',
+				'expected' => '',
 			),
 			// Don't allow expressions outside of a calc().
 			array(
@@ -1757,11 +1755,9 @@ EOF;
 				'css'      => 'aspect-ratio: expression( 16 / 9 );',
 				'expected' => '',
 			),
-			// The `;` is inside the open function, so it is part of the value.
 			array(
-				'css'             => 'aspect-ratio: calc( 16 / 9;',
-				'expected'        => 'aspect-ratio:calc( 16 / 9;);',
-				'expected_legacy' => '',
+				'css'      => 'aspect-ratio: calc( 16 / 9;',
+				'expected' => '',
 			),
 			array(
 				'css'      => 'aspect-ratio: calc( 16 / 9 );',
@@ -1788,11 +1784,10 @@ EOF;
 				'css'      => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
 				'expected' => 'grid-template-columns: repeat(auto-fill, minmax(min(12rem, 100%), 1fr))',
 			),
-			// Open at the end of the input: closed.
+			// Malformed repeat, no closing `)`.
 			array(
-				'css'             => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
-				'expected'        => 'grid-template-columns:repeat(4, minmax(0, 1fr));',
-				'expected_legacy' => '',
+				'css'      => 'grid-template-columns: repeat(4, minmax(0, 1fr)',
+				'expected' => '',
 			),
 			// Malformed repeat, contains unsupported function.
 			array(
