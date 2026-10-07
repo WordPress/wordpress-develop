@@ -35,19 +35,6 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		parent::set_up();
 
 		/*
-		 * The manifest is synced from `gutenberg/packages/icons` by
-		 * `grunt copy:icon-library-manifest`, so the `collections` property arrives with the
-		 * next Gutenberg hash bump. Until then no core icon is registered. Remove this guard
-		 * once it has.
-		 */
-		$manifest = include ABSPATH . WPINC . '/assets/icon-library-manifest.php';
-		$first    = is_array( $manifest ) ? reset( $manifest ) : false;
-
-		if ( ! is_array( $first ) || empty( $first['collections'] ) ) {
-			$this->markTestSkipped( 'The bundled icon library manifest does not list icon collections yet.' );
-		}
-
-		/*
 		 * Other suites reset the `WP_Icons_Registry` singleton, wiping the collections and
 		 * icons that `init` only registers once. Replay the registration so order-dependent
 		 * tests pass. `_wp_register_default_icon_collections()` registers every default
