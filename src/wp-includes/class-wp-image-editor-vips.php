@@ -122,8 +122,9 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				return false;
 			}
 
-			// Require libvips 8.13 or later.
-			if ( version_compare( $version, '8.13', '<' ) ) {
+			// Require libvips 8.15 or later, which is the first version with the `keep`
+			// saver option used to preserve colour profiles when metadata is stripped.
+			if ( version_compare( $version, '8.15', '<' ) ) {
 				return false;
 			}
 		} catch ( Exception $e ) {
@@ -235,8 +236,7 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 * Returns the extensions libvips can save images to.
 	 *
 	 * This describes the loaded build rather than any particular image, so it is queried
-	 * once. `vips_foreign_get_suffixes()` is only declared to FFI by libvips 8.8 and
-	 * later, and an older build reports an empty list.
+	 * once.
 	 *
 	 * @since 7.2.0
 	 *
@@ -250,20 +250,18 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		self::$save_suffixes = array();
 
 		try {
-			if ( version_compare( Jcupitt\Vips\Config::version(), '8.8', '>=' ) ) {
-				// The returned list is NULL-terminated and owned by the caller.
-				// @phpstan-ignore method.notFound (Declared in the libvips FFI cdef.)
-				$all = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
+			// The returned list is NULL-terminated and owned by the caller.
+			// @phpstan-ignore method.notFound (Declared in the libvips FFI cdef.)
+			$all = Jcupitt\Vips\FFI::vips()->vips_foreign_get_suffixes();
 
-				for ( $i = 0; null !== $all[ $i ]; $i++ ) {
-					self::$save_suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
-				}
-
-				// @phpstan-ignore method.notFound (Declared in the glib FFI cdef.)
-				Jcupitt\Vips\FFI::glib()->g_strfreev( $all );
-
-				self::$save_suffixes = array_values( array_unique( self::$save_suffixes ) );
+			for ( $i = 0; null !== $all[ $i ]; $i++ ) {
+				self::$save_suffixes[] = strtolower( \FFI::string( $all[ $i ] ) );
 			}
+
+			// @phpstan-ignore method.notFound (Declared in the glib FFI cdef.)
+			Jcupitt\Vips\FFI::glib()->g_strfreev( $all );
+
+			self::$save_suffixes = array_values( array_unique( self::$save_suffixes ) );
 		} catch ( Exception $e ) {
 			self::$save_suffixes = array();
 		}
@@ -1052,19 +1050,15 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 				// Asking for a palette back keeps an indexed PNG indexed. Without it the
 				// resized image is written as true colour, which is much larger than the
-				// file it came from. The option requires libvips 8.13.
-				if ( $this->paletted && version_compare( Jcupitt\Vips\Config::version(), '8.13', '>=' ) ) {
+				// file it came from.
+				if ( $this->paletted ) {
 					$options['palette'] = true;
 				}
 				break;
 
 			case 'image/gif':
-				$options['strip'] = $strip_meta;
-
-				// gifsave gained the interlace option in libvips 8.14.
-				if ( version_compare( Jcupitt\Vips\Config::version(), '8.14', '>=' ) ) {
-					$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
-				}
+				$options['strip']     = $strip_meta;
+				$options['interlace'] = (bool) apply_filters( 'image_save_progressive', false, $mime_type );
 				break;
 		}
 
