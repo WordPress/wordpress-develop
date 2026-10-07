@@ -6,12 +6,17 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_valid_names
+	 *
+	 * @param string $name A name that must be accepted.
 	 */
-	public function test_accepts_valid_names( $name ) {
+	public function test_accepts_valid_names( $name ): void {
 		$this->assertTrue( wp_secrets_validate_name( $name ) );
 	}
 
-	public function data_valid_names() {
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function data_valid_names(): array {
 		return array(
 			'simple'                      => array( 'myplugin/api-key' ),
 			'single character segments'   => array( 'a/b' ),
@@ -26,9 +31,11 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_invalid_names
+	 *
+	 * @param mixed $name A value that must be rejected; not always a string.
 	 */
-	public function test_rejects_invalid_names( $name ) {
-		$result = wp_secrets_validate_name( $name );
+	public function test_rejects_invalid_names( $name ): void {
+		$result = wp_secrets_validate_name( $name ); // @phpstan-ignore argument.type (The data provider intentionally includes non-string values.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
@@ -41,14 +48,19 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * See docs/decisions/0005-namespaces-are-not-access-control.md for the consequence.
 	 *
 	 * @dataProvider data_unnamespaced_names
+	 *
+	 * @param string $name An unnamespaced name that must be accepted.
 	 */
-	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ) {
+	public function test_accepts_an_unnamespaced_name_but_reports_it( $name ): void {
 		$this->setExpectedIncorrectUsage( 'wp_secrets_validate_name' );
 
 		$this->assertTrue( wp_secrets_validate_name( $name ) );
 	}
 
-	public function data_unnamespaced_names() {
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function data_unnamespaced_names(): array {
 		return array(
 			'simple'      => array( 'api_key' ),
 			'with hyphen' => array( 'api-key' ),
@@ -62,14 +74,17 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	 * character rules -- an unnamespaced name is still held to the same segment
 	 * pattern as a namespaced one.
 	 */
-	public function test_an_unnamespaced_name_still_obeys_the_character_rules() {
+	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {
 		$result = wp_secrets_validate_name( 'Not_A_Valid_Name' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
-	public function data_invalid_names() {
+	/**
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_names(): array {
 		return array(
 			'empty string'                 => array( '' ),
 			'two slashes'                  => array( 'too/many/slashes' ),

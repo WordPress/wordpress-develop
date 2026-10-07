@@ -138,7 +138,6 @@ final class WP_Secrets_Key_Manager {
 	 * @param string   $scope   'site' or 'network'.
 	 * @param int|null $site_id Blog id for site scope. Defaults to the current blog.
 	 *                          Ignored for network scope.
-	 *
 	 * @return string|WP_Error 32-byte master key on success. WP_Error on failure,
 	 *                         including when a caller passes an invalid scope or
 	 *                         site id -- see WP_Secrets_Cipher::validate_common()
@@ -213,7 +212,7 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		if ( null !== $this->cached_wrapped && $wrapped === $this->cached_wrapped ) {
+		if ( null !== $this->cached_root_key && $wrapped === $this->cached_wrapped ) {
 			return $this->cached_root_key;
 		}
 
@@ -238,7 +237,6 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @param WP_Secrets_Keyring $old_keyring Unwraps the current wrapped root key.
 	 * @param WP_Secrets_Keyring $new_keyring Wraps it again for storage.
-	 *
 	 * @return true|WP_Error
 	 */
 	public function rotate_site_key( WP_Secrets_Keyring $old_keyring, WP_Secrets_Keyring $new_keyring ) {
@@ -251,7 +249,7 @@ final class WP_Secrets_Key_Manager {
 			);
 		}
 
-		if ( $old_keyring === $this->keyring && null !== $this->cached_wrapped && $wrapped === $this->cached_wrapped ) {
+		if ( $old_keyring === $this->keyring && null !== $this->cached_root_key && $wrapped === $this->cached_wrapped ) {
 			$root_key = $this->cached_root_key;
 		} else {
 			$root_key = $old_keyring->unwrap( $wrapped );
@@ -306,7 +304,8 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return string|false The wrapped root key, or false if none exists anywhere.
+	 * @return mixed The wrapped root key, or false if none exists anywhere. Anything
+	 *               but a string or false is a corrupt row, which the caller reports.
 	 */
 	private function get_wrapped_root_key() {
 		$wrapped = get_site_option( self::ROOT_KEY_OPTION );

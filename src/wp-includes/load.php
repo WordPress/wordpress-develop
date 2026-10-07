@@ -845,7 +845,7 @@ function wp_using_ext_object_cache( $using = null ) {
  * @since 7.2.0
  * @access private
  */
-function wp_load_secrets_dropin() {
+function wp_load_secrets_dropin(): void {
 	static $loaded = false;
 
 	if ( $loaded ) {

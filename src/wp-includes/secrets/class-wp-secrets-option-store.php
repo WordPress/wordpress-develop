@@ -46,8 +46,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
-	 * @return array|null|WP_Error
+	 * @return array<mixed>|null|WP_Error
 	 */
 	public function get( $name, $network = false ) {
 		$option_name = $this->option_name( $name, $network );
@@ -72,10 +71,9 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $name    The secret's namespaced name.
-	 * @param array  $record  The record to store.
-	 * @param bool   $network Whether this is a network-scope secret.
-	 *
+	 * @param string       $name    The secret's namespaced name.
+	 * @param array<mixed> $record  The record to store.
+	 * @param bool         $network Whether this is a network-scope secret.
 	 * @return true|WP_Error
 	 */
 	public function set( $name, $record, $network = false ) {
@@ -123,7 +121,6 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return true|WP_Error
 	 */
 	public function delete( $name, $network = false ) {
@@ -153,9 +150,10 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool $network Whether to list network-scope secrets.
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array|WP_Error
+	 * @param bool $network Whether to list network-scope secrets.
+	 * @return string[]|WP_Error
 	 */
 	public function list_names( $network = false ) {
 		global $wpdb;
@@ -190,6 +188,10 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 		$names = array();
 
 		foreach ( $option_names as $option_name ) {
+			if ( ! is_string( $option_name ) ) {
+				continue;
+			}
+
 			$names[] = substr( $option_name, strlen( $prefix ) );
 		}
 
@@ -204,7 +206,6 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return string
 	 */
 	private function option_name( $name, $network ) {

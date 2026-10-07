@@ -28,7 +28,6 @@ final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
 	 * @since 7.2.0
 	 *
 	 * @param string $key_material Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function wrap( $key_material ) {
@@ -41,7 +40,6 @@ final class WP_Secrets_Broken_Keyring implements WP_Secrets_Keyring {
 	 * @since 7.2.0
 	 *
 	 * @param string $wrapped Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function unwrap( $wrapped ) {

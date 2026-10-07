@@ -28,37 +28,49 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_mock_store_with_the_default_keyring_round_trips() {
+	public function test_mock_store_with_the_default_keyring_round_trips(): void {
 		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
 		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
 
 		$GLOBALS['wp_secrets_store'] = new Mock_Store();
 
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
-		$this->assertSame( 'value', wp_get_secret( 'myplugin/api-key' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value', $secret->reveal() );
 	}
 
 	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_mock_keyring_with_the_default_store_round_trips() {
+	public function test_mock_keyring_with_the_default_store_round_trips(): void {
 		$GLOBALS['wp_secrets_keyring'] = new Mock_Keyring();
 
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
-		$this->assertSame( 'value', wp_get_secret( 'myplugin/api-key' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value', $secret->reveal() );
 	}
 
 	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_mock_store_and_mock_keyring_together_round_trip() {
+	public function test_mock_store_and_mock_keyring_together_round_trip(): void {
 		$GLOBALS['wp_secrets_store']   = new Mock_Store();
 		$GLOBALS['wp_secrets_keyring'] = new Mock_Keyring();
 
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
-		$this->assertSame( 'value', wp_get_secret( 'myplugin/api-key' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value', $secret->reveal() );
 	}
 
 	/**
@@ -68,7 +80,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_read_succeeds_while_write_fails() {
+	public function test_read_succeeds_while_write_fails(): void {
 		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
 		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
 
@@ -96,7 +108,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_a_store_that_refuses_writes_still_serves_reads() {
+	public function test_a_store_that_refuses_writes_still_serves_reads(): void {
 		// Isolated, so this test supplies the site key rather than relying on the test config's salts.
 		define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
 
@@ -107,14 +119,18 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 		$store->configure_fail( 'set', true );
 
 		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'another' ) );
-		$this->assertSame( 'value', wp_get_secret( 'myplugin/api-key' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'value', $secret->reveal() );
 	}
 
 	/**
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_unreachable_store_fails_closed_with_no_local_fallback() {
+	public function test_unreachable_store_fails_closed_with_no_local_fallback(): void {
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store->configure_fail( 'get', true )->configure_fail( 'set', true );
 
@@ -133,7 +149,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_unreachable_keyring_fails_closed_with_no_local_fallback() {
+	public function test_unreachable_keyring_fails_closed_with_no_local_fallback(): void {
 		$GLOBALS['wp_secrets_keyring'] = ( new Mock_Keyring() )->configure_fail_wrap( true );
 
 		$result = wp_set_secret( 'myplugin/api-key', 'value' );
@@ -150,7 +166,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_the_store_is_never_handed_a_plaintext() {
+	public function test_the_store_is_never_handed_a_plaintext(): void {
 		$store                       = new Mock_Store();
 		$GLOBALS['wp_secrets_store'] = $store;
 
@@ -174,7 +190,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_a_broken_dropin_state_fails_every_operation_closed() {
+	public function test_a_broken_dropin_state_fails_every_operation_closed(): void {
 		$GLOBALS['wp_secrets_dropin_broken'] = true;
 
 		$this->assertWPError( wp_set_secret( 'myplugin/api-key', 'value' ) );

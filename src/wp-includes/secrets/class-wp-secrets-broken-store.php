@@ -30,7 +30,6 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	 *
 	 * @param string $name    Ignored.
 	 * @param bool   $network Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function get( $name, $network = false ) {
@@ -42,10 +41,9 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $name    Ignored.
-	 * @param array  $record  Ignored.
-	 * @param bool   $network Ignored.
-	 *
+	 * @param string       $name    Ignored.
+	 * @param array<mixed> $record  Ignored.
+	 * @param bool         $network Ignored.
 	 * @return WP_Error
 	 */
 	public function set( $name, $record, $network = false ) {
@@ -59,7 +57,6 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	 *
 	 * @param string $name    Ignored.
 	 * @param bool   $network Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function delete( $name, $network = false ) {
@@ -72,7 +69,6 @@ final class WP_Secrets_Broken_Store implements WP_Secrets_Store {
 	 * @since 7.2.0
 	 *
 	 * @param bool $network Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function list_names( $network = false ) {

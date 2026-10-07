@@ -90,7 +90,6 @@ interface WP_Secrets_Provider {
 	 *                        version history returns null for PREVIOUS, which is
 	 *                        absence rather than an error.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return WP_Secret|null|WP_Error
 	 */
 	public function get( $name, $version, $network = false );
@@ -124,7 +123,6 @@ interface WP_Secrets_Provider {
 	 *                                    `wp_secret_changed`; null means the
 	 *                                    provider decides between 'created' and
 	 *                                    'updated'.
-	 *
 	 * @return true|WP_Error
 	 */
 	public function set( $name, $value, $network = false, $needs_rotation = false, $action = null );
@@ -138,7 +136,6 @@ interface WP_Secrets_Provider {
 	 *
 	 * @param string $name    The secret's name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return true|WP_Error
 	 */
 	public function delete( $name, $network = false );
@@ -153,7 +150,6 @@ interface WP_Secrets_Provider {
 	 *
 	 * @param string $name    The secret's name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return true|WP_Error
 	 */
 	public function retire_previous( $name, $network = false );
@@ -166,9 +162,10 @@ interface WP_Secrets_Provider {
 	 * @param string $name_prefix Restrict to names beginning with this prefix, or
 	 *                            '' for all of them.
 	 * @param bool   $network     Whether to list network-scope secrets.
-	 *
 	 * @return array|WP_Error List of arrays with keys 'name', 'fingerprint',
 	 *                        'created', 'has_previous', 'needs_rotation'.
+	 *
+	 * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>|WP_Error
 	 */
 	public function list_secrets( $name_prefix = '', $network = false );
 

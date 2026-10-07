@@ -205,6 +205,8 @@ final class WP_Secret implements JsonSerializable {
 	 * @since 7.2.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	private function mask() {
 		return '[secret:' . $this->name . ']';
@@ -218,6 +220,8 @@ final class WP_Secret implements JsonSerializable {
 	 * @since 7.2.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function __toString() {
 		return $this->mask();
@@ -234,7 +238,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	public function __debugInfo(): array {
 		return array( 'value' => $this->mask() );
@@ -246,6 +250,8 @@ final class WP_Secret implements JsonSerializable {
 	 * @since 7.2.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	#[\ReturnTypeWillChange]
 	public function jsonSerialize() {
@@ -299,7 +305,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array $data Ignored.
+	 * @param array<mixed> $data Ignored.
 	 *
 	 * @throws LogicException Always.
 	 *

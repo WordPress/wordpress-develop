@@ -31,8 +31,7 @@ interface WP_Secrets_Store {
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
-	 * @return array|null|WP_Error The record array if it exists. Null if it does not.
+	 * @return array<mixed>|null|WP_Error The record array if it exists. Null if it does not.
 	 *                             WP_Error if it could not be determined which.
 	 */
 	public function get( $name, $network = false );
@@ -42,10 +41,9 @@ interface WP_Secrets_Store {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $name    The secret's namespaced name.
-	 * @param array  $record  The record to store.
-	 * @param bool   $network Whether this is a network-scope secret.
-	 *
+	 * @param string       $name    The secret's namespaced name.
+	 * @param array<mixed> $record  The record to store.
+	 * @param bool         $network Whether this is a network-scope secret.
 	 * @return bool|WP_Error True on success. WP_Error on failure, including when the
 	 *                       store does not accept writes.
 	 */
@@ -58,7 +56,6 @@ interface WP_Secrets_Store {
 	 *
 	 * @param string $name    The secret's namespaced name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return bool|WP_Error True on success (including if it did not exist).
 	 *                       WP_Error on failure.
 	 */
@@ -70,8 +67,7 @@ interface WP_Secrets_Store {
 	 * @since 7.2.0
 	 *
 	 * @param bool $network Whether to list network-scope secrets.
-	 *
-	 * @return array|WP_Error Array of secret names on success. WP_Error on failure.
+	 * @return string[]|WP_Error Array of secret names on success. WP_Error on failure.
 	 */
 	public function list_names( $network = false );
 }

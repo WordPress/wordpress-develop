@@ -26,7 +26,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * WP_Secrets_Key_Manager derives the root key from this round trip, so any
 	 * corruption here is a corrupted root key for every secret on the site.
 	 */
-	public function test_wrap_returns_a_non_empty_string_that_unwraps_to_the_same_bytes() {
+	public function test_wrap_returns_a_non_empty_string_that_unwraps_to_the_same_bytes(): void {
 		$keyring      = $this->keyring();
 		$key_material = random_bytes( 32 );
 
@@ -46,7 +46,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * keyring is entitled to learn. A fresh nonce (or equivalent) per call is what
 	 * WP_Secrets_Key_Manager relies on to keep that comparison unavailable.
 	 */
-	public function test_two_wraps_of_the_same_bytes_return_different_strings() {
+	public function test_two_wraps_of_the_same_bytes_return_different_strings(): void {
 		$keyring      = $this->keyring();
 		$key_material = random_bytes( 32 );
 
@@ -62,7 +62,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * WP_Error as usable key material, so a keyring that returns garbage bytes on
 	 * garbage input hands a wrong root key downstream instead of failing.
 	 */
-	public function test_unwrap_of_garbage_is_a_wp_error() {
+	public function test_unwrap_of_garbage_is_a_wp_error(): void {
 		$keyring = $this->keyring();
 		$garbage = 'garbage-' . bin2hex( random_bytes( 16 ) );
 
@@ -74,9 +74,11 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * wrong key -- WP_Secrets_Key_Manager has no way to tell a merely-short key
 	 * from a correctly-derived one except by trusting unwrap()'s success.
 	 */
-	public function test_unwrap_of_a_truncated_value_is_a_wp_error() {
+	public function test_unwrap_of_a_truncated_value_is_a_wp_error(): void {
 		$keyring = $this->keyring();
 		$wrapped = $keyring->wrap( random_bytes( 32 ) );
+
+		$this->assertIsString( $wrapped );
 
 		$truncated = substr( $wrapped, 0, intdiv( strlen( $wrapped ), 2 ) );
 
@@ -88,9 +90,11 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * that is the entire point of authenticated wrapping. Silently accepting it
 	 * would let a corrupted or tampered wrapped root key through as genuine.
 	 */
-	public function test_unwrap_of_a_value_with_one_flipped_byte_is_a_wp_error() {
+	public function test_unwrap_of_a_value_with_one_flipped_byte_is_a_wp_error(): void {
 		$keyring = $this->keyring();
 		$wrapped = $keyring->wrap( random_bytes( 32 ) );
+
+		$this->assertIsString( $wrapped );
 
 		$flip_at             = intdiv( strlen( $wrapped ), 2 );
 		$flipped             = $wrapped;
@@ -103,7 +107,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	 * Site Health renders get_key_source() directly; an empty or non-string value
 	 * there is a blank line on a diagnostics page an operator is depending on.
 	 */
-	public function test_get_key_source_returns_a_non_empty_string() {
+	public function test_get_key_source_returns_a_non_empty_string(): void {
 		$source = $this->keyring()->get_key_source();
 
 		$this->assertIsString( $source );

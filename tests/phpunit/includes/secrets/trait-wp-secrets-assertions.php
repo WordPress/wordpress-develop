@@ -24,7 +24,7 @@ trait WP_Secrets_Assertions {
 	 * @param string|null $expected     Expected plaintext, or null to skip that check.
 	 * @param string      $message      Optional failure message.
 	 */
-	public function assertIsSecret( $maybe_secret, $expected = null, $message = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
+	public function assertIsSecret( $maybe_secret, $expected = null, $message = '' ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
 		$context = '' !== $message ? $message . ' ' : '';
 
 		if ( is_wp_error( $maybe_secret ) ) {
@@ -51,7 +51,7 @@ trait WP_Secrets_Assertions {
 	 * @param string $expected Expected plaintext.
 	 * @param bool   $network  Whether this is a network-scope secret.
 	 */
-	public function assertRecordSlotDecryptsTo( $name, $slot, $expected, $network = false ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
+	public function assertRecordSlotDecryptsTo( $name, $slot, $expected, $network = false ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
 		$secret = $network ? wp_get_network_secret( $name, $slot ) : wp_get_secret( $name, $slot );
 
 		$this->assertIsSecret( $secret, $expected, sprintf( 'Slot "%s" of "%s":', $slot, $name ) );
@@ -68,7 +68,7 @@ trait WP_Secrets_Assertions {
 	 * @param mixed  $haystack  Structure to search.
 	 * @param string $message   Optional failure message.
 	 */
-	public function assertNeverContainsPlaintext( $plaintext, $haystack, $message = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
+	public function assertNeverContainsPlaintext( $plaintext, $haystack, $message = '' ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
 		$this->assertNotSame( '', $plaintext, 'Refusing to search for an empty plaintext; the assertion would be vacuous.' );
 
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r -- Flattening arbitrary structures is the point of this assertion; print_r reaches nested values that a shallow comparison would miss.

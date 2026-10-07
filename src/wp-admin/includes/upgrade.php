@@ -2512,7 +2512,7 @@ function upgrade_700() {
  *
  * @global int $wp_current_db_version The old (current) database version.
  */
-function upgrade_720() {
+function upgrade_720(): void {
 	global $wp_current_db_version;
 
 	// Grant the Secrets API's site-level capability to administrators.

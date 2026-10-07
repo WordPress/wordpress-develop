@@ -46,7 +46,6 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param string $name    The secret's name.
 	 * @param string $version A WP_Secret_Version constant.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return WP_Error
 	 */
 	public function get( $name, $version, $network = false ) {
@@ -63,7 +62,6 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param bool        $network        Whether this is a network-scope secret.
 	 * @param bool        $needs_rotation Ignored.
 	 * @param string|null $action         Ignored.
-	 *
 	 * @return WP_Error
 	 */
 	public function set( $name, $value, $network = false, $needs_rotation = false, $action = null ) {
@@ -77,7 +75,6 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @param string $name    The secret's name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return WP_Error
 	 */
 	public function delete( $name, $network = false ) {
@@ -91,7 +88,6 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @param string $name    The secret's name.
 	 * @param bool   $network Whether this is a network-scope secret.
-	 *
 	 * @return WP_Error
 	 */
 	public function retire_previous( $name, $network = false ) {
@@ -105,7 +101,6 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @param string $name_prefix Restrict to names beginning with this prefix.
 	 * @param bool   $network     Whether to list network-scope secrets.
-	 *
 	 * @return WP_Error
 	 */
 	public function list_secrets( $name_prefix = '', $network = false ) {

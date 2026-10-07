@@ -9,9 +9,32 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 
 	const MARKER = 'mock-wrapped:';
 
-	private $fail_wrap    = false;
-	private $fail_unwrap  = false;
-	private $wrap_calls   = 0;
+	/**
+	 * Whether wrap() should return WP_Error.
+	 *
+	 * @var bool
+	 */
+	private $fail_wrap = false;
+
+	/**
+	 * Whether unwrap() should return WP_Error.
+	 *
+	 * @var bool
+	 */
+	private $fail_unwrap = false;
+
+	/**
+	 * Number of times wrap() has been called.
+	 *
+	 * @var int
+	 */
+	private $wrap_calls = 0;
+
+	/**
+	 * Number of times unwrap() has been called.
+	 *
+	 * @var int
+	 */
 	private $unwrap_calls = 0;
 
 	public function wrap( $key_material ) {

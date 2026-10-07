@@ -8,7 +8,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 	use WP_Secrets_Assertions;
 
-	public function test_set_then_get_round_trips() {
+	public function test_set_then_get_round_trips(): void {
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'sk_live_secret' ) );
 
 		$secret = wp_get_secret( 'myplugin/api-key' );
@@ -19,20 +19,22 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNotSame( '', $secret->fingerprint() );
 	}
 
-	public function test_get_returns_null_for_an_absent_secret() {
+	public function test_get_returns_null_for_an_absent_secret(): void {
 		$this->assertNull( wp_get_secret( 'myplugin/never-set' ) );
 	}
 
-	public function test_get_defaults_to_the_current_version() {
+	public function test_get_defaults_to_the_current_version(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
-		$this->assertSame(
-			wp_get_secret( 'myplugin/api-key' )->reveal(),
-			wp_get_secret( 'myplugin/api-key', WP_Secret_Version::CURRENT )->reveal()
-		);
+		$default = wp_get_secret( 'myplugin/api-key' );
+		$current = wp_get_secret( 'myplugin/api-key', WP_Secret_Version::CURRENT );
+
+		$this->assertInstanceOf( WP_Secret::class, $default );
+		$this->assertInstanceOf( WP_Secret::class, $current );
+		$this->assertSame( $default->reveal(), $current->reveal() );
 	}
 
-	public function test_get_previous_on_a_never_rotated_secret_is_null_not_error() {
+	public function test_get_previous_on_a_never_rotated_secret_is_null_not_error(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 
 		$this->assertNull( wp_get_secret( 'myplugin/api-key', WP_Secret_Version::PREVIOUS ) );
@@ -44,7 +46,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * WP_Error branch of the three-state contract already covers it, so this adds
 	 * no fourth state.
 	 */
-	public function test_an_invalid_version_is_a_wp_error_not_an_exception() {
+	public function test_an_invalid_version_is_a_wp_error_not_an_exception(): void {
 		$this->setExpectedIncorrectUsage( '_wp_secrets_get' );
 
 		$result = wp_get_secret( 'myplugin/api-key', 'not-a-real-version' );
@@ -53,41 +55,49 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
-	public function test_set_rejects_an_invalid_name() {
+	public function test_set_rejects_an_invalid_name(): void {
 		$result = wp_set_secret( 'Not A Valid Name', 'value' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
-	public function test_get_rejects_an_invalid_name() {
+	public function test_get_rejects_an_invalid_name(): void {
 		$result = wp_get_secret( 'Not A Valid Name' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
-	public function test_set_rejects_a_non_string_value() {
-		$result = wp_set_secret( 'myplugin/api-key', array( 'not', 'a', 'string' ) );
+	public function test_set_rejects_a_non_string_value(): void {
+		$result = wp_set_secret( 'myplugin/api-key', array( 'not', 'a', 'string' ) ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
 	}
 
-	public function test_set_accepts_an_empty_string_value() {
+	public function test_set_accepts_an_empty_string_value(): void {
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', '' ) );
-		$this->assertSame( '', wp_get_secret( 'myplugin/api-key' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( '', $secret->reveal() );
 	}
 
 	/**
 	 * Overwriting is the only repair path an operator has through this API, so a
 	 * corrupted existing record must not block a write.
 	 */
-	public function test_a_corrupt_record_can_be_overwritten() {
+	public function test_a_corrupt_record_can_be_overwritten(): void {
 		update_option( '_wp_secret_myplugin/corrupt', 'not a record at all', false );
 
 		$this->assertTrue( wp_set_secret( 'myplugin/corrupt', 'a fresh value' ) );
-		$this->assertSame( 'a fresh value', wp_get_secret( 'myplugin/corrupt' )->reveal() );
+
+		$secret = wp_get_secret( 'myplugin/corrupt' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'a fresh value', $secret->reveal() );
 	}
 
 	/**
@@ -95,8 +105,10 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * the secret's own, since the failure this guards against is a plaintext landing
 	 * somewhere unexpected.
 	 */
-	public function test_the_options_table_contains_no_plaintext_after_a_write() {
+	public function test_the_options_table_contains_no_plaintext_after_a_write(): void {
 		global $wpdb;
+
+		$this->assertInstanceOf( wpdb::class, $wpdb );
 
 		wp_set_secret( 'myplugin/api-key', 'UNIQUE-PLAINTEXT-CANARY-9f3a' );
 
@@ -114,20 +126,23 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	 * that only leaves the vault intact because PHP's copy-on-write splits the two
 	 * references first.
 	 */
-	public function test_reveal_still_works_after_the_internal_memzero() {
+	public function test_reveal_still_works_after_the_internal_memzero(): void {
 		wp_set_secret( 'myplugin/api-key', 'must-survive-memzero' );
 
-		$this->assertSame( 'must-survive-memzero', wp_get_secret( 'myplugin/api-key' )->reveal() );
+		$secret = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $secret );
+		$this->assertSame( 'must-survive-memzero', $secret->reveal() );
 	}
 
-	public function test_no_capability_check_is_applied() {
+	public function test_no_capability_check_is_applied(): void {
 		wp_set_current_user( 0 ); // No logged-in user, no capabilities at all.
 
 		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
 		$this->assertInstanceOf( WP_Secret::class, wp_get_secret( 'myplugin/api-key' ) );
 	}
 
-	public function test_change_hook_fires_on_create_with_created_action() {
+	public function test_change_hook_fires_on_create_with_created_action(): void {
 		$captured = null;
 		add_action(
 			'wp_secret_changed',
@@ -149,9 +164,12 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNotSame( '', $new_fingerprint );
 	}
 
-	public function test_change_hook_fires_on_overwrite_with_updated_action() {
+	public function test_change_hook_fires_on_overwrite_with_updated_action(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
-		$first_fingerprint = wp_get_secret( 'myplugin/api-key' )->fingerprint();
+		$first = wp_get_secret( 'myplugin/api-key' );
+
+		$this->assertInstanceOf( WP_Secret::class, $first );
+		$first_fingerprint = $first->fingerprint();
 
 		$captured = null;
 		add_action(
@@ -165,6 +183,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 
 		wp_set_secret( 'myplugin/api-key', 'second-value' );
 
+		$this->assertIsArray( $captured );
 		list( , $action, , , $old_fingerprint, $new_fingerprint ) = $captured;
 
 		$this->assertSame( 'updated', $action );
@@ -172,7 +191,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertNotSame( $old_fingerprint, $new_fingerprint );
 	}
 
-	public function test_change_hook_reports_the_current_user_as_actor() {
+	public function test_change_hook_reports_the_current_user_as_actor(): void {
 		$user_id = self::factory()->user->create();
 		wp_set_current_user( $user_id );
 
@@ -191,7 +210,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		$this->assertSame( $user_id, $captured_actor );
 	}
 
-	public function test_change_hook_never_receives_a_value() {
+	public function test_change_hook_never_receives_a_value(): void {
 		$captured_args = null;
 		add_action(
 			'wp_secret_changed',
@@ -203,6 +222,8 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 		);
 
 		wp_set_secret( 'myplugin/api-key', 'a-plaintext-value-that-must-not-leak' );
+
+		$this->assertIsArray( $captured_args );
 
 		foreach ( $captured_args as $arg ) {
 			$this->assertIsScalar( $arg );

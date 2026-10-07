@@ -62,9 +62,10 @@ final class WP_Secrets_Cipher {
 	 * @param string $name       The secret's namespaced name.
 	 * @param string $slot       A WP_Secret_Version constant.
 	 * @param string $plaintext  The value to encrypt.
-	 *
 	 * @return array|WP_Error Slot array with keys 'dk', 'dk_nonce', 'ct', 'nonce',
 	 *                        'fingerprint' on success. WP_Error on failure.
+	 *
+	 * @phpstan-return array{dk: string, dk_nonce: string, ct: string, nonce: string, fingerprint: string}|WP_Error
 	 */
 	public function encrypt_value( $master_key, $scope, $site_id, $name, $slot, $plaintext ) {
 		$check = $this->validate_common( $master_key, $scope, $site_id, $name, $slot );
@@ -134,7 +135,6 @@ final class WP_Secrets_Cipher {
 	 * @param string $name       Must match what encrypt_value() was called with.
 	 * @param string $slot       Must match what encrypt_value() was called with.
 	 * @param mixed  $record     The slot array previously returned by encrypt_value().
-	 *
 	 * @return string|WP_Error Plaintext on success. WP_Error on failure.
 	 */
 	public function decrypt_value( $master_key, $scope, $site_id, $name, $slot, $record ) {
@@ -164,7 +164,7 @@ final class WP_Secrets_Cipher {
 			$master_key
 		);
 
-		if ( false === $data_key ) {
+		if ( ! is_string( $data_key ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_DECRYPTION_FAILED,
 				__( "The secret's data key could not be decrypted.", 'default' )
@@ -180,7 +180,7 @@ final class WP_Secrets_Cipher {
 
 		wp_secrets_memzero( $data_key );
 
-		if ( false === $plaintext ) {
+		if ( ! is_string( $plaintext ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_DECRYPTION_FAILED,
 				__( 'The secret value could not be decrypted.', 'default' )
@@ -204,7 +204,6 @@ final class WP_Secrets_Cipher {
 	 *
 	 * @param string $master_key 32-byte master key.
 	 * @param string $plaintext  Value to fingerprint.
-	 *
 	 * @return string|WP_Error 32-character hex string on success. WP_Error on failure.
 	 */
 	public function fingerprint( $master_key, $plaintext ) {
@@ -255,7 +254,6 @@ final class WP_Secrets_Cipher {
 	 * @param int    $site_id Blog id for site scope, 0 for network scope.
 	 * @param string $name    Validated secret name.
 	 * @param string $slot    A WP_Secret_Version constant.
-	 *
 	 * @return string
 	 */
 	private function build_aad( $purpose, $scope, $site_id, $name, $slot ) {
@@ -281,7 +279,6 @@ final class WP_Secrets_Cipher {
 	 * @param int    $site_id    Candidate site id.
 	 * @param string $name       Candidate secret name.
 	 * @param string $slot       Candidate slot.
-	 *
 	 * @return true|WP_Error
 	 */
 	private function validate_common( $master_key, $scope, $site_id, $name, $slot ) {
@@ -322,7 +319,6 @@ final class WP_Secrets_Cipher {
 	 * @since 7.2.0
 	 *
 	 * @param string $message What the caller got wrong.
-	 *
 	 * @return WP_Error
 	 */
 	private function invalid_argument( $message ) {
@@ -337,7 +333,6 @@ final class WP_Secrets_Cipher {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $master_key Candidate master key.
-	 *
 	 * @return bool
 	 */
 	private function is_valid_master_key( $master_key ) {
@@ -350,8 +345,7 @@ final class WP_Secrets_Cipher {
 	 * @since 7.2.0
 	 *
 	 * @param mixed $record Candidate slot array.
-	 *
-	 * @return array|WP_Error Decoded ('dk', 'dk_nonce', 'ct', 'nonce') on success.
+	 * @return array<string, string>|WP_Error Decoded ('dk', 'dk_nonce', 'ct', 'nonce') on success.
 	 */
 	private function decode_record_fields( $record ) {
 		if ( ! is_array( $record ) ) {

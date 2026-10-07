@@ -82,7 +82,6 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @since 7.2.0
 	 *
 	 * @param string $key_material Raw key material to protect.
-	 *
 	 * @return string|WP_Error
 	 */
 	public function wrap( $key_material ) {
@@ -120,7 +119,6 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @since 7.2.0
 	 *
 	 * @param string $wrapped An opaque value previously returned by wrap().
-	 *
 	 * @return string|WP_Error
 	 */
 	public function unwrap( $wrapped ) {
@@ -161,7 +159,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 
 		wp_secrets_memzero( $site_key );
 
-		if ( false === $key_material ) {
+		if ( ! is_string( $key_material ) ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
 				__( 'The wrapped key material could not be decrypted with the configured site key.', 'default' )
@@ -212,8 +210,10 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 				);
 			}
 
-			if ( $this->is_canonical_base64_32( $raw_constant ) ) {
-				return base64_decode( $raw_constant, true );
+			$decoded = $this->decode_canonical_base64_32( $raw_constant );
+
+			if ( null !== $decoded ) {
+				return $decoded;
 			}
 
 			return sodium_crypto_generichash( $raw_constant, '', SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES );
@@ -255,8 +255,10 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 *
 	 * @param mixed $logged_in_key  Candidate value of LOGGED_IN_KEY, or null if undefined.
 	 * @param mixed $logged_in_salt Candidate value of LOGGED_IN_SALT, or null if undefined.
-	 *
 	 * @return bool
+	 *
+	 * @phpstan-assert-if-true non-empty-string $logged_in_key
+	 * @phpstan-assert-if-true non-empty-string $logged_in_salt
 	 */
 	private function are_usable_salt_values( $logged_in_key, $logged_in_salt ) {
 		foreach ( array( $logged_in_key, $logged_in_salt ) as $value ) {
@@ -278,21 +280,32 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $value Candidate value.
-	 *
+	 * @param mixed $value Candidate value.
 	 * @return bool
 	 */
 	private function is_canonical_base64_32( $value ) {
+		return null !== $this->decode_canonical_base64_32( $value );
+	}
+
+	/**
+	 * Decodes $value if it is the canonical base64 encoding of exactly 32 bytes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value Candidate value.
+	 * @return string|null The 32 decoded bytes, or null if $value is anything else.
+	 */
+	private function decode_canonical_base64_32( $value ) {
 		if ( ! is_string( $value ) ) {
-			return false;
+			return null;
 		}
 
 		$decoded = base64_decode( $value, true );
 
 		if ( false === $decoded || SODIUM_CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES !== strlen( $decoded ) ) {
-			return false;
+			return null;
 		}
 
-		return base64_encode( $decoded ) === $value;
+		return base64_encode( $decoded ) === $value ? $decoded : null;
 	}
 }

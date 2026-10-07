@@ -16,9 +16,8 @@
  *
  * @since 7.2.0
  *
- * @param array $tests Existing Site Health tests.
- *
- * @return array
+ * @param array<string, array<string, array<string, mixed>>> $tests Existing Site Health tests.
+ * @return array<string, array<string, array<string, mixed>>>
  */
 function wp_secrets_site_health_tests( $tests ) {
 	$tests['direct']['secrets_api_key_source'] = array(
@@ -50,8 +49,9 @@ add_filter( 'site_status_tests', 'wp_secrets_site_health_tests' );
  * @param string $label       Short label for the test result.
  * @param string $status      One of 'good', 'recommended', 'critical'.
  * @param string $description HTML description, normally one or more <p> elements.
- *
  * @return array
+ *
+ * @phpstan-return array{test: string, label: string, status: string, badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_result( $test, $label, $status, $description ) {
 	$colors = array(
@@ -78,6 +78,8 @@ function wp_secrets_site_health_result( $test, $label, $status, $description ) {
  * @since 7.2.0
  *
  * @return array
+ *
+ * @phpstan-return array{test: string, label: string, status: string, badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_key_source() {
 	$key_source = _wp_secrets_get_key_manager()->get_keyring()->get_key_source();
@@ -135,6 +137,8 @@ function wp_secrets_site_health_test_key_source() {
  * @since 7.2.0
  *
  * @return array
+ *
+ * @phpstan-return array{test: string, label: string, status: string, badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_undecryptable() {
 	$broken = wp_secrets_site_health_find_undecryptable( false );
@@ -185,8 +189,9 @@ function wp_secrets_site_health_test_undecryptable() {
  * @since 7.2.0
  *
  * @param bool $network Whether to check network-scope secrets.
- *
  * @return array List of array( 'name' => ..., 'fingerprint' => ... ).
+ *
+ * @phpstan-return list<array{name: string, fingerprint: string}>
  */
 function wp_secrets_site_health_find_undecryptable( $network ) {
 	$entries = $network ? wp_list_network_secrets() : wp_list_secrets();
@@ -217,6 +222,8 @@ function wp_secrets_site_health_find_undecryptable( $network ) {
  * @since 7.2.0
  *
  * @return array
+ *
+ * @phpstan-return array{test: string, label: string, status: string, badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_needs_rotation() {
 	$count = wp_secrets_site_health_count_needing_rotation( false );
@@ -262,7 +269,6 @@ function wp_secrets_site_health_test_needs_rotation() {
  * @since 7.2.0
  *
  * @param bool $network Whether to check network-scope secrets.
- *
  * @return int
  */
 function wp_secrets_site_health_count_needing_rotation( $network ) {
@@ -291,9 +297,8 @@ function wp_secrets_site_health_count_needing_rotation( $network ) {
  *
  * @since 7.2.0
  *
- * @param array $info Existing debug information sections.
- *
- * @return array
+ * @param array<string, array<string, mixed>> $info Existing debug information sections.
+ * @return array<string, array<string, mixed>>
  */
 function wp_secrets_site_health_debug_info( $info ) {
 	$key_manager = _wp_secrets_get_key_manager();

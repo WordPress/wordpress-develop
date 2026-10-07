@@ -974,7 +974,7 @@ function populate_roles_300() {
  *
  * @since 7.2.0
  */
-function populate_roles_720() {
+function populate_roles_720(): void {
 	$role = get_role( 'administrator' );
 
 	if ( ! empty( $role ) ) {

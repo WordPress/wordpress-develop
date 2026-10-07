@@ -7,13 +7,30 @@
  */
 class Mock_Store implements WP_Secrets_Store {
 
-	private $records          = array();
-	private $fail             = array(
+	/**
+	 * Stored records, keyed by scope and name.
+	 *
+	 * @var array<string, array<mixed>>
+	 */
+	private $records = array();
+
+	/**
+	 * Which operations are configured to fail.
+	 *
+	 * @var array<string, bool>
+	 */
+	private $fail = array(
 		'get'    => false,
 		'set'    => false,
 		'delete' => false,
 		'list'   => false,
 	);
+
+	/**
+	 * Every record ever passed to set(), in call order.
+	 *
+	 * @var array<int, array<mixed>>
+	 */
 	private $received_records = array();
 
 	public function get( $name, $network = false ) {
@@ -82,12 +99,17 @@ class Mock_Store implements WP_Secrets_Store {
 	 * went on to reject, since the assertion this exists for is "was this store
 	 * ever handed a plaintext," not "was a plaintext ever successfully stored."
 	 *
-	 * @return array
+	 * @return array<int, array<mixed>>
 	 */
 	public function get_received_records() {
 		return $this->received_records;
 	}
 
+	/**
+	 * @param string $name    The secret's namespaced name.
+	 * @param bool   $network Whether this is a network-scope secret.
+	 * @return string The key the record is held under.
+	 */
 	private function key( $name, $network ) {
 		return ( $network ? 'network:' : 'site:' ) . $name;
 	}

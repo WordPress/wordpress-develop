@@ -8,6 +8,14 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 	const NAME = 'myplugin/api-key';
 
+	/**
+	 * Invokes a private method through reflection.
+	 *
+	 * @param object            $instance Object to invoke the method on.
+	 * @param string            $method   Method name.
+	 * @param array<int, mixed> $args     Positional arguments.
+	 * @return mixed Whatever the method returns.
+	 */
 	private function invoke_private( $instance, $method, array $args = array() ) {
 		$reflection = new ReflectionMethod( $instance, $method );
 		if ( PHP_VERSION_ID < 80100 ) {
@@ -17,11 +25,17 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		return $reflection->invokeArgs( $instance, $args );
 	}
 
+	/**
+	 * Builds a 32-byte master key out of one repeated byte.
+	 *
+	 * @param int $byte Byte value to repeat.
+	 * @return string
+	 */
 	private function master_key( $byte = 0x11 ) {
 		return str_repeat( chr( $byte ), 32 );
 	}
 
-	public function test_round_trips_a_value() {
+	public function test_round_trips_a_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'sk_live_secret' );
 
@@ -32,7 +46,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( 'sk_live_secret', $plaintext );
 	}
 
-	public function test_round_trips_an_empty_string_value() {
+	public function test_round_trips_an_empty_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, '' );
 
@@ -41,7 +55,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( '', $plaintext );
 	}
 
-	public function test_round_trips_under_network_scope() {
+	public function test_round_trips_under_network_scope(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'network', 0, self::NAME, WP_Secret_Version::CURRENT, 'network-secret' );
 
@@ -50,10 +64,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( 'network-secret', $plaintext );
 	}
 
-	public function test_encrypt_rejects_a_non_string_value() {
+	public function test_encrypt_rejects_a_non_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, array() );
+		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, array() ); // @phpstan-ignore argument.type (Intentionally passing a non-string plaintext.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
@@ -61,16 +75,21 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_bad_master_keys
+	 *
+	 * @param mixed $bad_key Master key the cipher must refuse.
 	 */
-	public function test_encrypt_rejects_a_bad_master_key( $bad_key ) {
+	public function test_encrypt_rejects_a_bad_master_key( $bad_key ): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$result = $cipher->encrypt_value( $bad_key, 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
+		$result = $cipher->encrypt_value( $bad_key, 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid master key, including a non-string.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
+	/**
+	 * @return array<string, array{0: mixed}>
+	 */
 	public function data_bad_master_keys() {
 		return array(
 			'too short'    => array( str_repeat( 'a', 31 ) ),
@@ -80,7 +99,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_encrypt_propagates_an_invalid_name() {
+	public function test_encrypt_propagates_an_invalid_name(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, 'Not A Valid Name', WP_Secret_Version::CURRENT, 'value' );
@@ -89,7 +108,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
 	}
 
-	public function test_encrypt_reports_an_invalid_scope_as_a_wp_error() {
+	public function test_encrypt_reports_an_invalid_scope_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
@@ -100,7 +119,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
-	public function test_encrypt_reports_a_negative_site_id_as_a_wp_error() {
+	public function test_encrypt_reports_a_negative_site_id_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
@@ -111,7 +130,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
 	}
 
-	public function test_encrypt_reports_an_invalid_slot_as_a_wp_error() {
+	public function test_encrypt_reports_an_invalid_slot_as_a_wp_error(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
@@ -127,8 +146,13 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * different one, for any single component of that context.
 	 *
 	 * @dataProvider data_mismatched_context
+	 *
+	 * @param string $scope   Scope to decrypt under.
+	 * @param int    $site_id Site id to decrypt under.
+	 * @param string $name    Secret name to decrypt under.
+	 * @param string $slot    Version slot to decrypt under.
 	 */
-	public function test_decrypt_fails_when_context_does_not_match( $scope, $site_id, $name, $slot ) {
+	public function test_decrypt_fails_when_context_does_not_match( $scope, $site_id, $name, $slot ): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
 
@@ -138,6 +162,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_DECRYPTION_FAILED, $result->get_error_code() );
 	}
 
+	/**
+	 * @return array<string, array{0: string, 1: int, 2: string, 3: string}>
+	 */
 	public function data_mismatched_context() {
 		return array(
 			'different scope'   => array( 'network', 1, self::NAME, WP_Secret_Version::CURRENT ),
@@ -147,7 +174,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_decrypt_fails_under_a_different_master_key() {
+	public function test_decrypt_fails_under_a_different_master_key(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key( 0x11 ), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
 
@@ -159,12 +186,20 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_tamperable_fields
+	 *
+	 * @param string $field Record field to corrupt.
 	 */
-	public function test_decrypt_fails_when_a_field_is_tampered( $field ) {
+	public function test_decrypt_fails_when_a_field_is_tampered( $field ): void {
 		$cipher = new WP_Secrets_Cipher();
 		$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
 
-		$raw              = base64_decode( $record[ $field ], true );
+		$this->assertIsArray( $record );
+		$this->assertArrayHasKey( $field, $record );
+
+		$raw = base64_decode( $record[ $field ], true );
+
+		$this->assertIsString( $raw );
+
 		$last             = strlen( $raw ) - 1;
 		$raw[ $last ]     = chr( ( ord( $raw[ $last ] ) + 1 ) % 256 );
 		$record[ $field ] = base64_encode( $raw );
@@ -174,6 +209,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertWPError( $result );
 	}
 
+	/**
+	 * @return array<string, array{0: string}>
+	 */
 	public function data_tamperable_fields() {
 		return array(
 			'ciphertext'       => array( 'ct' ),
@@ -185,8 +223,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_malformed_records
+	 *
+	 * @param mixed $record Stored record the cipher must refuse.
 	 */
-	public function test_decrypt_rejects_a_malformed_record( $record ) {
+	public function test_decrypt_rejects_a_malformed_record( $record ): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$result = $cipher->decrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, $record );
@@ -195,6 +235,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
 	}
 
+	/**
+	 * @return array<string, array{0: mixed}>
+	 */
 	public function data_malformed_records() {
 		return array(
 			'not an array'       => array( 'just a string' ),
@@ -224,22 +267,28 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_data_key_independence() {
+	public function test_data_key_independence(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$a = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'same-value' );
 		$b = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'same-value' );
 
+		$this->assertIsArray( $a );
+		$this->assertIsArray( $b );
+
 		$this->assertNotSame( $a['dk'], $b['dk'] );
 		$this->assertNotSame( $a['ct'], $b['ct'] );
 	}
 
-	public function test_nonce_uniqueness_across_many_writes() {
+	public function test_nonce_uniqueness_across_many_writes(): void {
 		$cipher = new WP_Secrets_Cipher();
 		$nonces = array();
 
 		for ( $i = 0; $i < 50; $i++ ) {
-			$record   = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
+			$record = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
+
+			$this->assertIsArray( $record );
+
 			$nonces[] = $record['nonce'];
 			$nonces[] = $record['dk_nonce'];
 		}
@@ -247,7 +296,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( count( $nonces ), count( array_unique( $nonces ) ) );
 	}
 
-	public function test_fingerprint_is_stable_for_the_same_inputs() {
+	public function test_fingerprint_is_stable_for_the_same_inputs(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->assertSame(
@@ -256,7 +305,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_fingerprint_differs_across_master_keys() {
+	public function test_fingerprint_differs_across_master_keys(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->assertNotSame(
@@ -265,7 +314,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_fingerprint_differs_across_plaintexts() {
+	public function test_fingerprint_differs_across_plaintexts(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$this->assertNotSame(
@@ -274,7 +323,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		);
 	}
 
-	public function test_fingerprint_rejects_a_bad_master_key() {
+	public function test_fingerprint_rejects_a_bad_master_key(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$result = $cipher->fingerprint( 'too-short', 'value' );
@@ -283,10 +332,10 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
-	public function test_fingerprint_rejects_a_non_string_value() {
+	public function test_fingerprint_rejects_a_non_string_value(): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$result = $cipher->fingerprint( $this->master_key(), array() );
+		$result = $cipher->fingerprint( $this->master_key(), array() ); // @phpstan-ignore argument.type (Intentionally passing a non-string plaintext.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
@@ -299,7 +348,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * primitive, the KDF subkey id, the context string, or the output length is
 	 * caught rather than silently changing every existing fingerprint.
 	 */
-	public function test_fingerprint_known_answer_vector() {
+	public function test_fingerprint_known_answer_vector(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$fingerprint = $cipher->fingerprint( str_repeat( chr( 0x11 ), 32 ), 'sk_live_example_value' );
@@ -312,7 +361,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * commit accidentally dropping the site id or slot, silently weakens the binding
 	 * this whole design leans on -- this test makes that change loud instead.
 	 */
-	public function test_aad_format_known_answer() {
+	public function test_aad_format_known_answer(): void {
 		$cipher = new WP_Secrets_Cipher();
 
 		$aad = $this->invoke_private(
@@ -333,7 +382,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * mismatch that our own round-trip tests, which always encrypt and decrypt with
 	 * the same implementation, would never surface.
 	 */
-	public function test_raw_aead_primitive_known_answer() {
+	public function test_raw_aead_primitive_known_answer(): void {
 		$key    = str_repeat( chr( 0x22 ), 32 );
 		$nonce  = str_repeat( chr( 0x33 ), 24 );
 		$aad    = 'wp-secrets-value-v1|site|1|plugin/key|current';
