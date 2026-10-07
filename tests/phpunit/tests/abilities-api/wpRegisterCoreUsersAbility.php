@@ -1512,11 +1512,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_zero_registered_date_is_reported_as_null(): void {
-		global $wpdb;
-
-		$user_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
-		$wpdb->update( $wpdb->users, array( 'user_registered' => '0000-00-00 00:00:00' ), array( 'ID' => $user_id ) );
-		clean_user_cache( $user_id );
+		$user_id = self::factory()->user->create(
+			array(
+				'role'            => 'subscriber',
+				'user_registered' => '0000-00-00 00:00:00',
+			)
+		);
 
 		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
