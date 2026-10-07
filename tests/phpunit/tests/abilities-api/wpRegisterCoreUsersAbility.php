@@ -1237,17 +1237,17 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * REST-style string input is coerced by the normalizers.
+	 * String input from callers that bypass the REST run controller is normalized.
 	 *
-	 * Read-only abilities run over REST `GET`, where booleans arrive as the
-	 * string 'true', arrays may arrive as CSV strings, and integers arrive as
-	 * numeric strings. Those values pass schema validation, which coerces only
-	 * for the check, so the normalizers must accept the string forms instead
-	 * of silently dropping the filters they carry.
+	 * Schema validation accepts 'true' for a boolean, a CSV string for an array, and
+	 * a numeric string for an integer, but only the REST run controller converts
+	 * them to the schema types. A direct WP_Ability::execute() call passes them as
+	 * given, so the normalizers must accept the string forms instead of silently
+	 * dropping the filters they carry.
 	 *
 	 * @ticket 64657
 	 */
-	public function test_rest_style_string_input_is_coerced(): void {
+	public function test_string_input_from_direct_calls_is_normalized(): void {
 		wp_set_current_user( $this->admin_id );
 		$this->register_ability();
 
@@ -1305,7 +1305,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertSame( array( $this->subscriber_id ), wp_list_pluck( $result['users'], 'id' ), 'String-duplicate IDs must be deduplicated, not silently drop the include filter.' );
 		$this->assertSame( 1, $result['total'], 'String-duplicate IDs should count as one included user.' );
 
-		// Scalars arrive as numeric strings over GET.
+		// Schema validation also accepts numeric strings for integers.
 		$result = $ability->execute(
 			array(
 				'id'     => (string) $this->subscriber_id,
