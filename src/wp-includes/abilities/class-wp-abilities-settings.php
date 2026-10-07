@@ -116,7 +116,7 @@ final class WP_Abilities_Settings {
 	public function execute_get_settings( $input = array() ): array {
 		$input  = rest_sanitize_object( $input );
 		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
-		$fields = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : array();
+		$fields = rest_sanitize_array( $input['fields'] ?? array() );
 
 		$result = array();
 		foreach ( $this->exposed_settings as $exposed_name => $setting ) {
