@@ -33,7 +33,7 @@ class Mock_Store implements WP_Secrets_Store {
 	 */
 	private $received_records = array();
 
-	public function get( $name, $network = false ) {
+	public function get( string $name, bool $network = false ) {
 		if ( $this->fail['get'] ) {
 			return new WP_Error( WP_SECRETS_ERROR_STORE_UNAVAILABLE, 'Mock_Store: get() configured to fail.' );
 		}
@@ -43,7 +43,7 @@ class Mock_Store implements WP_Secrets_Store {
 		return array_key_exists( $key, $this->records ) ? $this->records[ $key ] : null;
 	}
 
-	public function set( $name, $record, $network = false ) {
+	public function set( string $name, array $record, bool $network = false ) {
 		$this->received_records[] = $record;
 
 		if ( $this->fail['set'] ) {
@@ -55,7 +55,7 @@ class Mock_Store implements WP_Secrets_Store {
 		return true;
 	}
 
-	public function delete( $name, $network = false ) {
+	public function delete( string $name, bool $network = false ) {
 		if ( $this->fail['delete'] ) {
 			return new WP_Error( WP_SECRETS_ERROR_STORE_UNAVAILABLE, 'Mock_Store: delete() configured to fail.' );
 		}
@@ -65,7 +65,7 @@ class Mock_Store implements WP_Secrets_Store {
 		return true;
 	}
 
-	public function list_names( $network = false ) {
+	public function list_names( bool $network = false ) {
 		if ( $this->fail['list'] ) {
 			return new WP_Error( WP_SECRETS_ERROR_STORE_UNAVAILABLE, 'Mock_Store: list_names() configured to fail.' );
 		}
@@ -88,7 +88,7 @@ class Mock_Store implements WP_Secrets_Store {
 	 *
 	 * @return $this
 	 */
-	public function configure_fail( $operation, $fail = true ) {
+	public function configure_fail( string $operation, bool $fail = true ): self {
 		$this->fail[ $operation ] = $fail;
 
 		return $this;
@@ -101,7 +101,7 @@ class Mock_Store implements WP_Secrets_Store {
 	 *
 	 * @return array<int, array<mixed>>
 	 */
-	public function get_received_records() {
+	public function get_received_records(): array {
 		return $this->received_records;
 	}
 
@@ -110,7 +110,7 @@ class Mock_Store implements WP_Secrets_Store {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return string The key the record is held under.
 	 */
-	private function key( $name, $network ) {
+	private function key( string $name, bool $network ): string {
 		return ( $network ? 'network:' : 'site:' ) . $name;
 	}
 }

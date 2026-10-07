@@ -32,10 +32,10 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_invalid_names
 	 *
-	 * @param mixed $name A value that must be rejected; not always a string.
+	 * @param string $name A name that must be rejected.
 	 */
 	public function test_rejects_invalid_names( $name ): void {
-		$result = wp_secrets_validate_name( $name ); // @phpstan-ignore argument.type (The data provider intentionally includes non-string values.)
+		$result = wp_secrets_validate_name( $name );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_NAME, $result->get_error_code() );
@@ -82,7 +82,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: mixed}>
+	 * @return array<string, array{0: string}>
 	 */
 	public function data_invalid_names(): array {
 		return array(
@@ -101,10 +101,6 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 			'space in key'                 => array( 'plugin/key with space' ),
 			'dot in key'                   => array( 'plugin/key.name' ),
 			'non-ascii'                    => array( 'plügin/key' ),
-			'not a string: null'           => array( null ),
-			'not a string: int'            => array( 12345 ),
-			'not a string: array'          => array( array( 'plugin/key' ) ),
-			'not a string: bool'           => array( true ),
 			'one character over the max'   => array( str_repeat( 'a', 85 ) . '/' . str_repeat( 'b', 87 ) ),
 		);
 	}

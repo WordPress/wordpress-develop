@@ -63,15 +63,6 @@ class Tests_Secrets_WPSecretsOptionStore extends WP_UnitTestCase {
 		$this->assertSame( $network_record, $store->get( 'myplugin/key', true ) );
 	}
 
-	public function test_set_rejects_a_non_array_record(): void {
-		$store = new WP_Secrets_Option_Store();
-
-		$result = $store->set( 'myplugin/key', 'not an array' ); // @phpstan-ignore argument.type (Intentionally passing a non-array record to exercise the runtime guard.)
-
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_RECORD_MALFORMED, $result->get_error_code() );
-	}
-
 	public function test_get_returns_an_error_when_the_stored_value_is_not_an_array(): void {
 		update_option( '_wp_secret_myplugin/key', 'not an array', false );
 

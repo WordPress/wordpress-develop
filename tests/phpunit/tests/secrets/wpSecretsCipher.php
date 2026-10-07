@@ -76,26 +76,25 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_bad_master_keys
 	 *
-	 * @param mixed $bad_key Master key the cipher must refuse.
+	 * @param string $bad_key Master key the cipher must refuse.
 	 */
 	public function test_encrypt_rejects_a_bad_master_key( $bad_key ): void {
 		$cipher = new WP_Secrets_Cipher();
 
-		$result = $cipher->encrypt_value( $bad_key, 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid master key, including a non-string.)
+		$result = $cipher->encrypt_value( $bad_key, 'site', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );
 	}
 
 	/**
-	 * @return array<string, array{0: mixed}>
+	 * @return array<string, array{0: string}>
 	 */
 	public function data_bad_master_keys() {
 		return array(
-			'too short'    => array( str_repeat( 'a', 31 ) ),
-			'too long'     => array( str_repeat( 'a', 33 ) ),
-			'empty'        => array( '' ),
-			'not a string' => array( 12345 ),
+			'too short' => array( str_repeat( 'a', 31 ) ),
+			'too long'  => array( str_repeat( 'a', 33 ) ),
+			'empty'     => array( '' ),
 		);
 	}
 
@@ -113,7 +112,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
 
-		$result = $cipher->encrypt_value( $this->master_key(), 'bogus-scope', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' );
+		$result = $cipher->encrypt_value( $this->master_key(), 'bogus-scope', 1, self::NAME, WP_Secret_Version::CURRENT, 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
@@ -135,7 +134,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 
 		$this->setExpectedIncorrectUsage( 'WP_Secrets_Cipher::encrypt_value()/decrypt_value()' );
 
-		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, 'not-a-real-slot', 'value' );
+		$result = $cipher->encrypt_value( $this->master_key(), 'site', 1, self::NAME, 'not-a-real-slot', 'value' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
@@ -151,6 +150,9 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	 * @param int    $site_id Site id to decrypt under.
 	 * @param string $name    Secret name to decrypt under.
 	 * @param string $slot    Version slot to decrypt under.
+	 *
+	 * @phpstan-param 'site'|'network' $scope
+	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $slot
 	 */
 	public function test_decrypt_fails_when_context_does_not_match( $scope, $site_id, $name, $slot ): void {
 		$cipher = new WP_Secrets_Cipher();

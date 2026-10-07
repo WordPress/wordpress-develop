@@ -94,20 +94,20 @@ final class WP_Secret implements JsonSerializable {
 	 * @param string $value       The decrypted plaintext.
 	 * @param string $fingerprint Keyed fingerprint of $value.
 	 *
-	 * @throws InvalidArgumentException If any argument is not a non-empty string
-	 *                                  (value may be empty, but must be a string).
+	 * @throws InvalidArgumentException If $name or $fingerprint is empty, or if $value
+	 *                                  is not a string. $value may be empty.
 	 */
-	public function __construct( $name, $value, $fingerprint ) {
-		if ( ! is_string( $name ) || '' === $name ) {
-			throw new InvalidArgumentException( 'WP_Secret requires a non-empty string name.' );
+	public function __construct( string $name, $value, string $fingerprint ) {
+		if ( '' === $name ) {
+			throw new InvalidArgumentException( 'WP_Secret requires a non-empty name.' );
 		}
 
 		if ( ! is_string( $value ) ) {
 			throw new InvalidArgumentException( 'WP_Secret values must be strings.' );
 		}
 
-		if ( ! is_string( $fingerprint ) || '' === $fingerprint ) {
-			throw new InvalidArgumentException( 'WP_Secret requires a non-empty string fingerprint.' );
+		if ( '' === $fingerprint ) {
+			throw new InvalidArgumentException( 'WP_Secret requires a non-empty fingerprint.' );
 		}
 
 		$this->name        = $name;
@@ -158,16 +158,12 @@ final class WP_Secret implements JsonSerializable {
 	 * @param WP_Error $reason      Why the value cannot be produced. Returned
 	 *                              verbatim by reveal().
 	 *
-	 * @throws InvalidArgumentException If $reason is not a WP_Error, or if $name or
-	 *                                  $fingerprint fail the constructor's checks.
+	 * @throws InvalidArgumentException If $name or $fingerprint fail the constructor's
+	 *                                  checks.
 	 *
 	 * @return WP_Secret
 	 */
-	public static function withheld( $name, $fingerprint, $reason ) {
-		if ( ! $reason instanceof WP_Error ) {
-			throw new InvalidArgumentException( 'A withheld WP_Secret requires a WP_Error reason.' );
-		}
-
+	public static function withheld( string $name, string $fingerprint, WP_Error $reason ): WP_Secret {
 		$secret = new self( $name, '', $fingerprint );
 
 		$secret->withheld_reason = $reason;
@@ -184,7 +180,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @return string
 	 */
-	public function fingerprint() {
+	public function fingerprint(): string {
 		return $this->fingerprint;
 	}
 
@@ -195,7 +191,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @return string
 	 */
-	public function get_name() {
+	public function get_name(): string {
 		return $this->name;
 	}
 
@@ -208,7 +204,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @phpstan-return non-falsy-string
 	 */
-	private function mask() {
+	private function mask(): string {
 		return '[secret:' . $this->name . ']';
 	}
 
@@ -223,7 +219,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @phpstan-return non-falsy-string
 	 */
-	public function __toString() {
+	public function __toString(): string {
 		return $this->mask();
 	}
 
@@ -253,8 +249,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @phpstan-return non-falsy-string
 	 */
-	#[\ReturnTypeWillChange]
-	public function jsonSerialize() {
+	public function jsonSerialize(): string {
 		return $this->mask();
 	}
 
@@ -311,7 +306,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * @return void
 	 */
-	public function __unserialize( $data ) {
+	public function __unserialize( array $data ): void {
 		throw new LogicException( 'WP_Secret cannot be unserialized.' );
 	}
 

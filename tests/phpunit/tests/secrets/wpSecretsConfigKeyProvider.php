@@ -45,15 +45,6 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertSame( $material, $unwrapped );
 	}
 
-	public function test_wrap_rejects_a_non_string(): void {
-		$provider = new WP_Secrets_Config_Key_Provider();
-
-		$result = $provider->wrap( 12345 ); // @phpstan-ignore argument.type (Intentionally passing a non-string to exercise the runtime guard.)
-
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_VALUE, $result->get_error_code() );
-	}
-
 	public function test_wrap_rejects_an_empty_string(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
@@ -70,10 +61,10 @@ class Tests_Secrets_WPSecretsConfigKeyProvider extends WP_UnitTestCase {
 		$this->assertNotSame( $provider->wrap( $material ), $provider->wrap( $material ) );
 	}
 
-	public function test_unwrap_rejects_a_non_string(): void {
+	public function test_unwrap_rejects_an_empty_string(): void {
 		$provider = new WP_Secrets_Config_Key_Provider();
 
-		$result = $provider->unwrap( array() ); // @phpstan-ignore argument.type (Intentionally passing a non-string to exercise the runtime guard.)
+		$result = $provider->unwrap( '' );
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_KEY_UNAVAILABLE, $result->get_error_code() );

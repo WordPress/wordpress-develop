@@ -74,7 +74,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		$keyring = $this->key_manager->get_keyring();
 
 		return sprintf(
@@ -90,8 +90,10 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @since 7.2.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-return self::BOUNDARY_*
 	 */
-	public function get_protection_boundary() {
+	public function get_protection_boundary(): string {
 		return self::BOUNDARY_WORDPRESS;
 	}
 
@@ -106,7 +108,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *
 	 * @return bool
 	 */
-	public function is_writable() {
+	public function is_writable(): bool {
 		return true;
 	}
 	/**
@@ -170,7 +172,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *                                    or WP_Error only if the store itself is
 	 *                                    unavailable.
 	 */
-	private function read_prior_record( $store, $name, $network ) {
+	private function read_prior_record( WP_Secrets_Store $store, string $name, bool $network ) {
 		$existing = $store->get( $name, $network );
 
 		if ( is_wp_error( $existing ) ) {
@@ -192,7 +194,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param mixed $record A record previously read from the store, or null.
 	 * @return string The fingerprint, or '' if there is not a usable one.
 	 */
-	private function stored_fingerprint( $record ) {
+	private function stored_fingerprint( $record ): string {
 		if ( ! is_array( $record ) || ! isset( $record['current'] ) || ! is_array( $record['current'] ) ) {
 			return '';
 		}
@@ -208,7 +210,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param mixed $slot A slot previously read from the store.
 	 * @return string The fingerprint, or '' if there is not a usable one.
 	 */
-	private function slot_fingerprint( $slot ) {
+	private function slot_fingerprint( $slot ): string {
 		if ( ! is_array( $slot ) || ! isset( $slot['fingerprint'] ) || ! is_string( $slot['fingerprint'] ) ) {
 			return '';
 		}
@@ -241,8 +243,9 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *                        key are unchanged.
 	 *
 	 * @phpstan-return array{dk: string, dk_nonce: string, ct: string, nonce: string, fingerprint: string, created: int, needs_rotation: bool}|WP_Error
+	 * @phpstan-param 'site'|'network' $scope
 	 */
-	private function demote_slot( $cipher, $master_key, $scope, $site_id, $name, $current_slot ) {
+	private function demote_slot( WP_Secrets_Cipher $cipher, string $master_key, string $scope, int $site_id, string $name, array $current_slot ) {
 		$plaintext = $cipher->decrypt_value( $master_key, $scope, $site_id, $name, WP_Secret_Version::CURRENT, $current_slot );
 
 		if ( is_wp_error( $plaintext ) ) {
@@ -286,7 +289,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *                                     wp_import_option_as_secret() passes 'imported'.
 	 * @return true|WP_Error
 	 */
-	public function set( $name, $value, $network = false, $needs_rotation = false, $action = null ) {
+	public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null ) {
 		$name_check = wp_secrets_validate_name( $name );
 
 		if ( is_wp_error( $name_check ) ) {
@@ -398,7 +401,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 			$new_slot['created'],
 			$old_fingerprint,
 			$new_slot['fingerprint'],
-			(bool) $network
+			$network
 		);
 
 		return true;
@@ -413,8 +416,10 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param string $version A WP_Secret_Version constant.
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return WP_Secret|null|WP_Error
+	 *
+	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $version
 	 */
-	public function get( $name, $version, $network = false ) {
+	public function get( string $name, string $version, bool $network = false ) {
 
 		$name_check = wp_secrets_validate_name( $name );
 
@@ -498,7 +503,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return true|WP_Error
 	 */
-	public function delete( $name, $network = false ) {
+	public function delete( string $name, bool $network = false ) {
 		$name_check = wp_secrets_validate_name( $name );
 
 		if ( is_wp_error( $name_check ) ) {
@@ -529,7 +534,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 				time(),
 				$this->stored_fingerprint( $existing ),
 				'',
-				(bool) $network
+				$network
 			);
 		}
 
@@ -551,7 +556,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return true|WP_Error
 	 */
-	public function retire_previous( $name, $network = false ) {
+	public function retire_previous( string $name, bool $network = false ) {
 		$name_check = wp_secrets_validate_name( $name );
 
 		if ( is_wp_error( $name_check ) ) {
@@ -596,7 +601,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 			time(),
 			$retired_fingerprint,
 			'',
-			(bool) $network
+			$network
 		);
 
 		return true;
@@ -632,7 +637,7 @@ final class WP_Secrets_Libsodium_Provider implements WP_Secrets_Provider {
 	 *
 	 * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>|WP_Error
 	 */
-	public function list_secrets( $name_prefix = '', $network = false ) {
+	public function list_secrets( string $name_prefix = '', bool $network = false ) {
 
 		$store = $this->store;
 

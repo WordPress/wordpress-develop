@@ -24,7 +24,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 			 * @param bool   $network Whether this is a network-scope secret.
 			 * @return WP_Secret|null|WP_Error
 			 */
-			public function get( $name, $version, $network = false ) {
+			public function get( string $name, string $version, bool $network = false ) {
 				return null;
 			}
 
@@ -36,7 +36,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 			 * @param string|null $action         Overrides the action reported to `wp_secret_changed`.
 			 * @return WP_Error Always: this provider is read-only.
 			 */
-			public function set( $name, $value, $network = false, $needs_rotation = false, $action = null ) {
+			public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null ) {
 				return new WP_Error(
 					WP_SECRETS_ERROR_PROVIDER_READ_ONLY,
 					'Credentials are managed in the platform control panel.'
@@ -48,7 +48,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 			 * @param bool   $network Whether this is a network-scope secret.
 			 * @return WP_Error Always: this provider is read-only.
 			 */
-			public function delete( $name, $network = false ) {
+			public function delete( string $name, bool $network = false ) {
 				return new WP_Error( WP_SECRETS_ERROR_PROVIDER_READ_ONLY, 'Read-only.' );
 			}
 
@@ -57,7 +57,7 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 			 * @param bool   $network Whether this is a network-scope secret.
 			 * @return WP_Error Always: this provider is read-only.
 			 */
-			public function retire_previous( $name, $network = false ) {
+			public function retire_previous( string $name, bool $network = false ) {
 				return new WP_Error( WP_SECRETS_ERROR_PROVIDER_READ_ONLY, 'Read-only.' );
 			}
 
@@ -68,28 +68,28 @@ class Tests_Secrets_ReadOnlyProviderConformance extends WP_Secrets_Provider_Conf
 			 *
 			 * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>
 			 */
-			public function list_secrets( $name_prefix = '', $network = false ) {
+			public function list_secrets( string $name_prefix = '', bool $network = false ) {
 				return array();
 			}
 
 			/**
 			 * @return string
 			 */
-			public function get_label() {
+			public function get_label(): string {
 				return 'Example Platform (control panel)';
 			}
 
 			/**
 			 * @return string
 			 */
-			public function get_protection_boundary() {
+			public function get_protection_boundary(): string {
 				return self::BOUNDARY_PROVIDER;
 			}
 
 			/**
 			 * @return bool
 			 */
-			public function is_writable() {
+			public function is_writable(): bool {
 				return false;
 			}
 		};

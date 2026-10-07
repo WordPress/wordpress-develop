@@ -48,7 +48,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return array<mixed>|null|WP_Error
 	 */
-	public function get( $name, $network = false ) {
+	public function get( string $name, bool $network = false ) {
 		$option_name = $this->option_name( $name, $network );
 		$value       = $network ? get_site_option( $option_name, null ) : get_option( $option_name, null );
 
@@ -76,14 +76,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 * @param bool         $network Whether this is a network-scope secret.
 	 * @return true|WP_Error
 	 */
-	public function set( $name, $record, $network = false ) {
-		if ( ! is_array( $record ) ) {
-			return new WP_Error(
-				WP_SECRETS_ERROR_RECORD_MALFORMED,
-				__( 'A secret record must be an array.' )
-			);
-		}
-
+	public function set( string $name, array $record, bool $network = false ) {
 		$option_name = $this->option_name( $name, $network );
 
 		if ( $network ) {
@@ -123,7 +116,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return true|WP_Error
 	 */
-	public function delete( $name, $network = false ) {
+	public function delete( string $name, bool $network = false ) {
 		$option_name = $this->option_name( $name, $network );
 		$deleted     = $network ? delete_site_option( $option_name ) : delete_option( $option_name );
 
@@ -155,7 +148,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 * @param bool $network Whether to list network-scope secrets.
 	 * @return string[]|WP_Error
 	 */
-	public function list_names( $network = false ) {
+	public function list_names( bool $network = false ) {
 		global $wpdb;
 
 		$prefix  = $network ? self::NETWORK_PREFIX : self::SITE_PREFIX;
@@ -208,7 +201,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return string
 	 */
-	private function option_name( $name, $network ) {
+	private function option_name( string $name, bool $network ): string {
 		return ( $network ? self::NETWORK_PREFIX : self::SITE_PREFIX ) . $name;
 	}
 }

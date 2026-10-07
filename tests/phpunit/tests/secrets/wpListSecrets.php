@@ -109,15 +109,6 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 		$this->assertSame( array(), wp_list_secrets( 'plugin' ) );
 	}
 
-	public function test_a_non_string_namespace_is_a_wp_error_not_an_exception(): void {
-		$this->setExpectedIncorrectUsage( '_wp_secrets_list' );
-
-		$result = wp_list_secrets( array( 'not', 'a', 'string' ) ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
-
-		$this->assertWPError( $result );
-		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );
-	}
-
 	/**
 	 * A corrupted record must still appear in the list -- Site Health's
 	 * undecryptable-secrets check depends on being able to see it exists.

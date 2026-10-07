@@ -336,12 +336,6 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertStringContainsString( '[secret:myplugin/signing-key]', (string) $secret );
 	}
 
-	public function test_withheld_requires_a_wp_error_reason(): void {
-		$this->expectException( InvalidArgumentException::class );
-
-		WP_Secret::withheld( 'myplugin/signing-key', 'abc123', 'not an error' ); // @phpstan-ignore argument.type (Intentionally passing a reason that is not a WP_Error.)
-	}
-
 	/**
 	 * An ordinary secret is unaffected: reveal() still returns the plaintext, and
 	 * the widened return type is not a behaviour change for the shipped provider.

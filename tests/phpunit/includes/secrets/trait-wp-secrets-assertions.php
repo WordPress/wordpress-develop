@@ -50,6 +50,8 @@ trait WP_Secrets_Assertions {
 	 * @param string $slot     A WP_Secret_Version constant.
 	 * @param string $expected Expected plaintext.
 	 * @param bool   $network  Whether this is a network-scope secret.
+	 *
+	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $slot
 	 */
 	public function assertRecordSlotDecryptsTo( $name, $slot, $expected, $network = false ): void { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid -- PHPUnit assertion naming, like assertWPError().
 		$secret = $network ? wp_get_network_secret( $name, $slot ) : wp_get_secret( $name, $slot );

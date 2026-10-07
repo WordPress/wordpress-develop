@@ -27,6 +27,8 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 	 * Number of times wrap() has been called.
 	 *
 	 * @var int
+	 *
+	 * @phpstan-var int<0, max>
 	 */
 	private $wrap_calls = 0;
 
@@ -34,10 +36,12 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 	 * Number of times unwrap() has been called.
 	 *
 	 * @var int
+	 *
+	 * @phpstan-var int<0, max>
 	 */
 	private $unwrap_calls = 0;
 
-	public function wrap( $key_material ) {
+	public function wrap( string $key_material ) {
 		++$this->wrap_calls;
 
 		if ( $this->fail_wrap ) {
@@ -50,14 +54,14 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 		return self::MARKER . base64_encode( $nonce . $key_material . $tag );
 	}
 
-	public function unwrap( $wrapped ) {
+	public function unwrap( string $wrapped ) {
 		++$this->unwrap_calls;
 
 		if ( $this->fail_unwrap ) {
 			return new WP_Error( WP_SECRETS_ERROR_KEY_UNAVAILABLE, 'Mock_Keyring: unwrap() configured to fail.' );
 		}
 
-		if ( ! is_string( $wrapped ) || 0 !== strpos( $wrapped, self::MARKER ) ) {
+		if ( 0 !== strpos( $wrapped, self::MARKER ) ) {
 			return new WP_Error( WP_SECRETS_ERROR_KEY_UNAVAILABLE, 'Mock_Keyring: not a value this keyring wrapped.' );
 		}
 
@@ -78,7 +82,7 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 		return $key_material;
 	}
 
-	public function get_key_source() {
+	public function get_key_source(): string {
 		return 'mock keyring';
 	}
 
@@ -87,7 +91,7 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 	 *
 	 * @return $this
 	 */
-	public function configure_fail_wrap( $fail = true ) {
+	public function configure_fail_wrap( bool $fail = true ): self {
 		$this->fail_wrap = $fail;
 
 		return $this;
@@ -98,7 +102,7 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 	 *
 	 * @return $this
 	 */
-	public function configure_fail_unwrap( $fail = true ) {
+	public function configure_fail_unwrap( bool $fail = true ): self {
 		$this->fail_unwrap = $fail;
 
 		return $this;
@@ -106,15 +110,19 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 
 	/**
 	 * @return int Number of times wrap() has been called.
+	 *
+	 * @phpstan-return int<0, max>
 	 */
-	public function wrap_call_count() {
+	public function wrap_call_count(): int {
 		return $this->wrap_calls;
 	}
 
 	/**
 	 * @return int Number of times unwrap() has been called.
+	 *
+	 * @phpstan-return int<0, max>
 	 */
-	public function unwrap_call_count() {
+	public function unwrap_call_count(): int {
 		return $this->unwrap_calls;
 	}
 }

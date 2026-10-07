@@ -49,7 +49,7 @@ class Tests_Secrets_WpSetSecretAndWpGetSecret extends WP_UnitTestCase {
 	public function test_an_invalid_version_is_a_wp_error_not_an_exception(): void {
 		$this->setExpectedIncorrectUsage( '_wp_secrets_get' );
 
-		$result = wp_get_secret( 'myplugin/api-key', 'not-a-real-version' );
+		$result = wp_get_secret( 'myplugin/api-key', 'not-a-real-version' ); // @phpstan-ignore argument.type (Intentionally passing an invalid value.)
 
 		$this->assertWPError( $result );
 		$this->assertSame( WP_SECRETS_ERROR_INVALID_ARGUMENT, $result->get_error_code() );

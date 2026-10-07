@@ -72,8 +72,8 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 *                               WP_SECRETS_KEY. Used only during a site-key
 	 *                               rotation, to unwrap under the outgoing key.
 	 */
-	public function __construct( $use_previous_key = false ) {
-		$this->use_previous_key = (bool) $use_previous_key;
+	public function __construct( bool $use_previous_key = false ) {
+		$this->use_previous_key = $use_previous_key;
 	}
 
 	/**
@@ -84,11 +84,11 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @param string $key_material Raw key material to protect.
 	 * @return string|WP_Error
 	 */
-	public function wrap( $key_material ) {
-		if ( ! is_string( $key_material ) || '' === $key_material ) {
+	public function wrap( string $key_material ) {
+		if ( '' === $key_material ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_INVALID_VALUE,
-				__( 'Key material to wrap must be a non-empty string.' )
+				__( 'Key material to wrap must not be empty.' )
 			);
 		}
 
@@ -121,8 +121,8 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @param string $wrapped An opaque value previously returned by wrap().
 	 * @return string|WP_Error
 	 */
-	public function unwrap( $wrapped ) {
-		if ( ! is_string( $wrapped ) || '' === $wrapped ) {
+	public function unwrap( string $wrapped ) {
+		if ( '' === $wrapped ) {
 			return new WP_Error(
 				WP_SECRETS_ERROR_KEY_UNAVAILABLE,
 				__( 'Nothing to unwrap.' )
@@ -176,7 +176,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 *
 	 * @return string
 	 */
-	public function get_key_source() {
+	public function get_key_source(): string {
 		if ( defined( 'WP_SECRETS_KEY' ) ) {
 			return $this->is_canonical_base64_32( WP_SECRETS_KEY )
 				? 'WP_SECRETS_KEY (base64-encoded 32 bytes)'
@@ -260,7 +260,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @phpstan-assert-if-true non-empty-string $logged_in_key
 	 * @phpstan-assert-if-true non-empty-string $logged_in_salt
 	 */
-	private function are_usable_salt_values( $logged_in_key, $logged_in_salt ) {
+	private function are_usable_salt_values( $logged_in_key, $logged_in_salt ): bool {
 		foreach ( array( $logged_in_key, $logged_in_salt ) as $value ) {
 			if ( ! is_string( $value ) || '' === $value || self::KNOWN_PLACEHOLDER === $value ) {
 				return false;
@@ -283,7 +283,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @param mixed $value Candidate value.
 	 * @return bool
 	 */
-	private function is_canonical_base64_32( $value ) {
+	private function is_canonical_base64_32( $value ): bool {
 		return null !== $this->decode_canonical_base64_32( $value );
 	}
 
@@ -295,7 +295,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * @param mixed $value Candidate value.
 	 * @return string|null The 32 decoded bytes, or null if $value is anything else.
 	 */
-	private function decode_canonical_base64_32( $value ) {
+	private function decode_canonical_base64_32( $value ): ?string {
 		if ( ! is_string( $value ) ) {
 			return null;
 		}

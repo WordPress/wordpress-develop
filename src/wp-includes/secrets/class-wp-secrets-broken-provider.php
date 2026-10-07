@@ -31,7 +31,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @return WP_Error
 	 */
-	private function error() {
+	private function error(): WP_Error {
 		return new WP_Error(
 			WP_SECRETS_ERROR_STORE_UNAVAILABLE,
 			__( 'The secrets.php drop-in did not load correctly, so no secret can be read or written. Fix or remove the drop-in.' )
@@ -47,8 +47,10 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param string $version A WP_Secret_Version constant.
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return WP_Error
+	 *
+	 * @phpstan-param WP_Secret_Version::CURRENT|WP_Secret_Version::PREVIOUS $version
 	 */
-	public function get( $name, $version, $network = false ) {
+	public function get( string $name, string $version, bool $network = false ): WP_Error {
 		return $this->error();
 	}
 
@@ -64,7 +66,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param string|null $action         Ignored.
 	 * @return WP_Error
 	 */
-	public function set( $name, $value, $network = false, $needs_rotation = false, $action = null ) {
+	public function set( string $name, $value, bool $network = false, bool $needs_rotation = false, ?string $action = null ): WP_Error {
 		return $this->error();
 	}
 
@@ -77,7 +79,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return WP_Error
 	 */
-	public function delete( $name, $network = false ) {
+	public function delete( string $name, bool $network = false ): WP_Error {
 		return $this->error();
 	}
 
@@ -90,7 +92,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param bool   $network Whether this is a network-scope secret.
 	 * @return WP_Error
 	 */
-	public function retire_previous( $name, $network = false ) {
+	public function retire_previous( string $name, bool $network = false ): WP_Error {
 		return $this->error();
 	}
 
@@ -103,7 +105,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @param bool   $network     Whether to list network-scope secrets.
 	 * @return WP_Error
 	 */
-	public function list_secrets( $name_prefix = '', $network = false ) {
+	public function list_secrets( string $name_prefix = '', bool $network = false ): WP_Error {
 		return $this->error();
 	}
 
@@ -114,7 +116,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @return string
 	 */
-	public function get_label() {
+	public function get_label(): string {
 		return __( 'Unavailable: the secrets.php drop-in did not load correctly' );
 	}
 
@@ -127,8 +129,10 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 * @since 7.2.0
 	 *
 	 * @return string
+	 *
+	 * @phpstan-return self::BOUNDARY_*
 	 */
-	public function get_protection_boundary() {
+	public function get_protection_boundary(): string {
 		return self::BOUNDARY_PROVIDER;
 	}
 
@@ -139,7 +143,7 @@ final class WP_Secrets_Broken_Provider implements WP_Secrets_Provider {
 	 *
 	 * @return bool
 	 */
-	public function is_writable() {
+	public function is_writable(): bool {
 		return false;
 	}
 }

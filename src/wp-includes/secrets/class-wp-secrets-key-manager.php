@@ -126,7 +126,7 @@ final class WP_Secrets_Key_Manager {
 	 *
 	 * @return WP_Secrets_Keyring
 	 */
-	public function get_keyring() {
+	public function get_keyring(): WP_Secrets_Keyring {
 		return $this->keyring;
 	}
 
@@ -142,8 +142,10 @@ final class WP_Secrets_Key_Manager {
 	 *                         including when a caller passes an invalid scope or
 	 *                         site id -- see WP_Secrets_Cipher::validate_common()
 	 *                         for why that is a WP_Error and not an exception.
+	 *
+	 * @phpstan-param 'site'|'network' $scope
 	 */
-	public function get_master_key( $scope, $site_id = null ) {
+	public function get_master_key( string $scope, ?int $site_id = null ) {
 		if ( ! in_array( $scope, array( 'site', 'network' ), true ) ) {
 			$message = __( 'The scope must be "site" or "network".' );
 
@@ -158,7 +160,7 @@ final class WP_Secrets_Key_Manager {
 		} else {
 			$subkey_id = null === $site_id ? get_current_blog_id() : $site_id;
 
-			if ( ! is_int( $subkey_id ) || $subkey_id < 1 ) {
+			if ( $subkey_id < 1 ) {
 				$message = __( 'The site id must be a positive integer.' );
 
 				_doing_it_wrong( __METHOD__, $message, '7.2.0' );
