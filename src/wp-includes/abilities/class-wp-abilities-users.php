@@ -308,8 +308,9 @@ final class WP_Abilities_Users {
 		/*
 		 * get_user_by() sanitizes a login itself, and matches a slug as given, like the REST
 		 * users controller, so a stored nicename that sanitize_title() would change is found.
+		 * The value is passed as a string because validation also accepts a float ID, like 5.0.
 		 */
-		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], $value );
+		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], (string) $value );
 		if ( ! $user instanceof WP_User ) {
 			return null;
 		}
