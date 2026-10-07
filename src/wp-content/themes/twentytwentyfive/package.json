@@ -14,7 +14,7 @@
 	"homepage": "https://wordpress.org/themes/twentytwentyfive/",
 	"engines": {
 		"node": ">=24.18.0",
-		"npm": ">=11.16.0"
+		"npm": ">=11.18.0"
 	},
 	"devEngines": {
 		"runtime": {
@@ -23,7 +23,7 @@
 		},
 		"packageManager": {
 			"name": "npm",
-			"version": ">=11.16.0",
+			"version": ">=11.18.0",
 			"onFail": "error"
 		}
 	},
