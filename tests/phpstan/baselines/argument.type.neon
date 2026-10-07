@@ -1326,7 +1326,12 @@ parameters:
 		-
 			message: '#^Parameter \#2 \$fallback_title of function sanitize_title expects string, int given\.$#'
 			identifier: argument.type
-			count: 2
+			count: 1
+			path: ../../../src/wp-includes/taxonomy.php
+		-
+			message: '#^Parameter \#2 \$fallback_title of function sanitize_title expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
 		-
 			message: '#^Parameter \#2 \$meta_id of function delete_metadata_by_mid expects int, string\|null given\.$#'
