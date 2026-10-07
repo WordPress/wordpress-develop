@@ -979,34 +979,43 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests which libvips versions can reduce metadata with the `keep` mask.
+	 * Tests how each libvips version reduces an image's metadata.
 	 *
-	 * The option does not exist below 8.15, and passing it would fail the save, so this
-	 * comparison is what decides whether it can be used.
+	 * `keep` says whether the `keep` mask can be passed, and `remove` whether the fields
+	 * also have to be removed by hand. The mask exists from 8.15 and is complete from
+	 * 8.16, so 8.15 needs both.
 	 *
-	 * @dataProvider data_libvips_keep_support
+	 * @dataProvider data_libvips_metadata_strategy
 	 *
-	 * @param string $version  A libvips version.
-	 * @param bool   $expected Whether the `keep` option can be used.
+	 * @param string $version A libvips version.
+	 * @param bool   $keep    Whether the `keep` mask can be passed.
+	 * @param bool   $remove  Whether the unprotected fields have to be removed by hand.
 	 */
-	public function test_uses_keep_option( $version, $expected ) {
-		$method = new ReflectionMethod( 'WP_Image_Editor_Vips', 'uses_keep_option' );
+	public function test_metadata_strategy( $version, $keep, $remove ) {
+		$method = new ReflectionMethod( 'WP_Image_Editor_Vips', 'get_metadata_strategy' );
 		$method->setAccessible( true );
 
-		$this->assertSame( $expected, $method->invoke( null, $version ) );
+		$this->assertSame(
+			array(
+				'keep'   => $keep,
+				'remove' => $remove,
+			),
+			$method->invoke( null, $version )
+		);
 	}
 
 	/**
-	 * Data provider for test_uses_keep_option.
+	 * Data provider for test_metadata_strategy.
 	 *
-	 * @return array<array{0:string,1:bool}>
+	 * @return array<array{0:string,1:bool,2:bool}>
 	 */
-	public static function data_libvips_keep_support() {
+	public static function data_libvips_metadata_strategy() {
 		return array(
-			array( '8.13', false ),
-			array( '8.14.1', false ),
-			array( '8.15', true ),
-			array( '8.16.1', true ),
+			array( '8.13', false, true ),
+			array( '8.14.1', false, true ),
+			array( '8.15', true, true ),
+			array( '8.16', true, false ),
+			array( '8.16.1', true, false ),
 		);
 	}
 

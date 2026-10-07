@@ -147,20 +147,31 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	}
 
 	/**
-	 * Checks whether a libvips version can reduce metadata with the `keep` mask.
+	 * Returns how a libvips version reduces an image's metadata.
 	 *
-	 * The mask is what preserves the colour profile while dropping the rest, so the editor
-	 * prefers it where it exists. It arrived in 8.15, and is honoured in full from 8.16.
-	 * Below 8.15 the option does not exist, and passing it would fail the save, so the
-	 * unwanted fields are removed by hand instead.
+	 * Reducing metadata means keeping the colour profile and the descriptive fields, and
+	 * dropping the rest, which is the set the Imagick editor keeps. libvips offers two ways
+	 * to do it, and which are available depends on the version:
+	 *
+	 * - The `keep` mask names the fields to hold on to and drops everything else. It exists
+	 *   from 8.15, and drops everything it should from 8.16. Passing it to an older libvips
+	 *   fails the save, so it can only be used where it exists.
+	 * - Removing the fields by hand works on every version, but has to name them.
+	 *
+	 * 8.15 needs both: the mask does most of the work, and the removal covers the fields it
+	 * misses. 8.13 and 8.14 have no mask at all, so the removal does all of it.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $version A libvips version, as `Config::version()` reports it.
-	 * @return bool
+	 * @return array{keep:bool,remove:bool} Whether the `keep` mask can be passed, and whether
+	 *                                      the unprotected fields have to be removed by hand.
 	 */
-	protected static function uses_keep_option( $version ) {
-		return version_compare( $version, '8.15', '>=' );
+	protected static function get_metadata_strategy( $version ) {
+		return array(
+			'keep'   => version_compare( $version, '8.15', '>=' ),
+			'remove' => version_compare( $version, '8.16', '<' ),
+		);
 	}
 
 	/**
@@ -931,18 +942,20 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			$strip_meta = $strip_meta && $this->resized;
 
 			/*
-			 * Remove the fields the `keep` mask would have dropped. The mask is only honoured in
-			 * full from libvips 8.16, and does not exist below 8.15, so on those versions this is
-			 * what reduces the metadata. Removing the fields here means the same ones are dropped
-			 * whatever the mask can do.
+			 * The metadata is only reduced on a resized save, and how it is reduced depends on the
+			 * libvips version. See get_metadata_strategy().
 			 */
-			if ( $strip_meta && version_compare( Jcupitt\Vips\Config::version(), '8.16', '<' ) ) {
+			$metadata_strategy = $strip_meta
+				? self::get_metadata_strategy( Jcupitt\Vips\Config::version() )
+				: array();
+
+			if ( ! empty( $metadata_strategy['remove'] ) ) {
 				foreach ( self::get_unprotected_metadata_fields( $image->getFields() ) as $field ) {
 					$image->remove( $field );
 				}
 			}
 
-			$save_options = $this->get_save_options( $image, $mime_type, $strip_meta );
+			$save_options = $this->get_save_options( $image, $mime_type, $metadata_strategy );
 
 			if ( wp_is_stream( $filename ) ) {
 				$buffer = $image->writeToBuffer( '.' . $extension, $save_options );
@@ -1036,14 +1049,15 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param Jcupitt\Vips\Image $image      The image being written.
-	 * @param string             $mime_type  The mime type it is being written as.
-	 * @param bool               $strip_meta Optional. Whether to reduce the metadata to the
-	 *                                       colour profile and the descriptive fields.
-	 *                                       Default false.
+	 * @param Jcupitt\Vips\Image $image             The image being written.
+	 * @param string             $mime_type         The mime type it is being written as.
+	 * @param array              $metadata_strategy Optional. The strategy from
+	 *                                              get_metadata_strategy(), or an empty
+	 *                                              array to write the metadata unchanged.
+	 *                                              Default empty.
 	 * @return array Options passed to `writeToBuffer()` or `writeToFile()`.
 	 */
-	protected function get_save_options( $image, $mime_type, $strip_meta = false ) {
+	protected function get_save_options( $image, $mime_type, $metadata_strategy = array() ) {
 		$options = array();
 
 		/*
@@ -1051,12 +1065,10 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		 * boolean drops every field, including the colour profile, which changes how the
 		 * image renders once nothing tells the browser how to interpret the samples. The
 		 * `keep` mask drops the rest while preserving the colour profile and the descriptive
-		 * fields, which is the set the Imagick editor keeps.
-		 *
-		 * The mask only exists from libvips 8.15. Below that the caller has already removed the
-		 * fields it would have dropped, so no other option is needed here.
+		 * fields, which is the set the Imagick editor keeps, and is passed when
+		 * get_metadata_strategy() says the version supports it.
 		 */
-		if ( $strip_meta && self::uses_keep_option( Jcupitt\Vips\Config::version() ) ) {
+		if ( ! empty( $metadata_strategy['keep'] ) ) {
 			$options['keep'] = Jcupitt\Vips\ForeignKeep::ICC
 				| Jcupitt\Vips\ForeignKeep::EXIF
 				| Jcupitt\Vips\ForeignKeep::XMP
