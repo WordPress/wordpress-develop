@@ -881,20 +881,21 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a truncated image is not saved.
+	 * Tests that a truncated PNG is not saved.
 	 *
-	 * The editor asks the loader to fail on truncation, but libvips reads pixels lazily,
-	 * so an encoder that detects the damage from the header rejects the file at load and
-	 * one that does not only reports it when the pixels are first read. Whichever happens,
-	 * a truncated file must not produce output.
+	 * PNG is rejected by the decoder itself, whether or not `fail_on` is passed, so this
+	 * covers the outcome rather than the option. libvips reads pixels lazily, so the
+	 * failure can surface at load or at the first pixel read; either way nothing is
+	 * written. GIF and JPEG are the formats where `fail_on` is what does the work, and
+	 * they are covered separately.
 	 */
-	public function test_truncated_images_are_not_saved() {
+	public function test_truncated_png_is_not_saved() {
 		$data = file_get_contents( DIR_TESTDATA . '/images/transparent.png' );
 
-		$file = tempnam( get_temp_dir(), 'vips_truncated_' ) . '.png';
+		$file = tempnam( get_temp_dir(), 'vips_truncated_png_' ) . '.png';
 		file_put_contents( $file, substr( $data, 0, (int) ( strlen( $data ) * 0.6 ) ) );
 
-		$saved_file = tempnam( get_temp_dir(), 'vips_truncated_out_' ) . '.png';
+		$saved_file = tempnam( get_temp_dir(), 'vips_truncated_png_out_' ) . '.png';
 
 		$vips_image_editor = new WP_Image_Editor_Vips( $file );
 		$saved             = false;
@@ -911,7 +912,41 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 			unlink( $saved_file );
 		}
 
-		$this->assertFalse( $saved, 'A truncated image should not be saved.' );
+		$this->assertFalse( $saved, 'A truncated PNG should not be saved.' );
+	}
+
+	/**
+	 * Tests that a truncated GIF is not saved.
+	 *
+	 * This is the case that `fail_on` is responsible for. Without it libvips reads a
+	 * truncated GIF, warns, and hands back an image, so a damaged upload would be resized
+	 * and saved; with it the load fails. The test therefore fails if the load options are
+	 * removed from WP_Image_Editor_Vips::load().
+	 */
+	public function test_truncated_gif_is_not_saved() {
+		$data = file_get_contents( DIR_TESTDATA . '/images/test-image.gif' );
+
+		$file = tempnam( get_temp_dir(), 'vips_truncated_gif_' ) . '.gif';
+		file_put_contents( $file, substr( $data, 0, (int) ( strlen( $data ) * 0.6 ) ) );
+
+		$saved_file = tempnam( get_temp_dir(), 'vips_truncated_gif_out_' ) . '.gif';
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$saved             = false;
+
+		if ( ! is_wp_error( $vips_image_editor->load() ) ) {
+			$vips_image_editor->resize( 5, 5 );
+
+			$saved = ! is_wp_error( $vips_image_editor->save( $saved_file ) );
+		}
+
+		unlink( $file );
+
+		if ( file_exists( $saved_file ) ) {
+			unlink( $saved_file );
+		}
+
+		$this->assertFalse( $saved, 'A truncated GIF should not be saved.' );
 	}
 
 	/**

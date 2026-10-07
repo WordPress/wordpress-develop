@@ -328,9 +328,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 		try {
 			/*
-			 * Reject truncated images, as the Imagick and GD editors do. JPEG is the
-			 * exception: damage there is recoverable, and the other editors fill it, so
-			 * a truncated JPEG still loads.
+			 * Reject truncated images, as the Imagick and GD editors do. PNG and WebP
+			 * already fail in the decoder itself; for the other formats this option is
+			 * what turns a partially decoded file into a failure. JPEG is the exception:
+			 * damage there is recoverable, and the other editors fill it, so a truncated
+			 * JPEG still loads.
 			 */
 			$load_mime    = wp_is_stream( $this->file ) ? '' : wp_get_image_mime( $this->file );
 			$load_options = array( 'fail_on' => ( 'image/jpeg' === $load_mime ) ? 'none' : 'truncated' );
