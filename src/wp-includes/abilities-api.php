@@ -654,6 +654,8 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
  * }
  * @return WP_Ability_Category|null The registered ability category instance on success, `null` on failure.
+ *
+ * @phpstan-param lowercase-string&non-empty-string $slug
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
 	if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {
