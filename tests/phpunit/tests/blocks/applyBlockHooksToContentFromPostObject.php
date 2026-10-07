@@ -253,14 +253,8 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 			}
 		}
 
-		$parser_calls = 0;
-		add_filter(
-			'block_parser_class',
-			static function ( $parser_class ) use ( &$parser_calls ) {
-				++$parser_calls;
-				return $parser_class;
-			}
-		);
+		$block_parser_class_filter = new MockAction();
+		add_filter( 'block_parser_class', array( $block_parser_class_filter, 'filter' ) );
 
 		try {
 			$this->assertEmpty( get_hooked_blocks(), 'No blocks should be hooked for this test.' );
@@ -271,7 +265,7 @@ class Tests_Blocks_ApplyBlockHooksToContentFromPostObject extends WP_UnitTestCas
 			$actual  = apply_block_hooks_to_content_from_post_object( $content, self::$post );
 
 			$this->assertSame( $content, $actual, 'Content should be returned unchanged.' );
-			$this->assertSame( 0, $parser_calls, 'Content should not be parsed.' );
+			$this->assertSame( 0, $block_parser_class_filter->get_call_count(), 'Content should not be parsed.' );
 		} finally {
 			foreach ( $block_hooks as $name => $hooks ) {
 				WP_Block_Type_Registry::get_instance()->get_registered( $name )->block_hooks = $hooks;
