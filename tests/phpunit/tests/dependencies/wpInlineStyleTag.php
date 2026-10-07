@@ -74,19 +74,19 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 */
 	public function test_inline_style_tag_attribute_value_types() {
 		$expected = <<<'HTML'
-<style
-	true
-	null
-	empty-string=""
-	0-string="0"
-	1-string="1"
-	0-numeric="0"
-	1-numeric="1"
->
-body { color: #123456; }
-</style>
+			<style
+				true
+				null
+				empty-string=""
+				0-string="0"
+				1-string="1"
+				0-numeric="0"
+				1-numeric="1"
+			>
+			body { color: #123456; }
+			</style>
 
-HTML;
+			HTML;
 
 		$this->assertEqualHTML(
 			$expected,
@@ -116,11 +116,11 @@ HTML;
 	 */
 	public function test_inline_style_tag_repeat_attributes() {
 		$expected = <<<'HTML'
-<style test="test-a">
-body { color: #123456; }
-</style>
+			<style test="test-a">
+			body { color: #123456; }
+			</style>
 
-HTML;
+			HTML;
 
 		$this->assertEqualHTML(
 			$expected,
