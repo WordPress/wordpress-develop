@@ -1005,6 +1005,8 @@ function do_enclose( $content, $post ) {
  * @param string $url        URL to retrieve HTTP headers from.
  * @param bool   $deprecated Not Used.
  * @return \WpOrg\Requests\Utility\CaseInsensitiveDictionary|false Headers on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function wp_get_http_headers( $url, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2953,6 +2955,8 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *                               Not set if there has been an error.
  *     @type string|false $error Error message, if there has been an error.
  * }
+ *
+ * @phpstan-param null $deprecated
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
  *                |array{ error: string, ... }
  */
@@ -7664,6 +7668,7 @@ function wp_auth_check_load() {
 	 * @param WP_Screen $screen The current screen object.
 	 */
 	if ( apply_filters( 'wp_auth_check_load', $show, $screen ) ) {
+		// Prefetched from the login screen by wp_prefetch_admin_assets(), which needs updating if this changes.
 		wp_enqueue_style( 'wp-auth-check' );
 		wp_enqueue_script( 'wp-auth-check' );
 
