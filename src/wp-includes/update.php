@@ -1138,7 +1138,7 @@ function wp_delete_all_temp_backups() {
 }
 
 /**
- * Deletes all contents in the temporary backup directory.
+ * Deletes temporary backups, preserving directory protection files.
  *
  * @since 6.3.0
  *
@@ -1176,7 +1176,7 @@ function _wp_delete_all_temp_backups() {
 	$dirlist         = $dirlist ? $dirlist : array();
 
 	foreach ( array_keys( $dirlist ) as $dir ) {
-		if ( '.' === $dir || '..' === $dir ) {
+		if ( '.' === $dir || '..' === $dir || 'index.php' === $dir || '.htaccess' === $dir ) {
 			continue;
 		}
 

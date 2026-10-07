@@ -368,8 +368,20 @@ class WP_Upgrader {
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
+				if ( 'index.php' === $file['name'] || '.htaccess' === $file['name'] ) {
+					continue;
+				}
+
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
+		}
+
+		// Prevent directory listings without changing the contents of the package.
+		if ( ! $wp_filesystem->is_dir( $upgrade_folder ) ) {
+			$wp_filesystem->mkdir( $upgrade_folder, FS_CHMOD_DIR );
+		}
+		if ( ! $wp_filesystem->exists( $upgrade_folder . 'index.php' ) ) {
+			$wp_filesystem->put_contents( $upgrade_folder . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
 		}
 
 		// We need a working directory - strip off any .tmp or .zip suffixes.
@@ -1153,6 +1165,13 @@ class WP_Upgrader {
 			if ( ! $wp_filesystem->mkdir( $sub_dir, FS_CHMOD_DIR ) ) {
 				// Could not create the backup directory.
 				return new WP_Error( 'fs_temp_backup_mkdir', $this->strings['temp_backup_mkdir_failed'] );
+			}
+		}
+
+		// Keep protection files outside the backup so rollback restores an unchanged copy.
+		foreach ( array( $dest_dir, $sub_dir ) as $directory ) {
+			if ( ! $wp_filesystem->exists( $directory . 'index.php' ) ) {
+				$wp_filesystem->put_contents( $directory . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
 			}
 		}
 

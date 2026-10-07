@@ -156,6 +156,189 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that unpacking protects the upgrade directory before attempting extraction.
+	 *
+	 * @covers WP_Upgrader::unpack_package
+	 *
+	 * @dataProvider data_unpack_package_should_protect_upgrade_directory
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @param bool $directory_exists Whether the upgrade directory exists.
+	 * @param bool $index_exists     Whether its index file exists.
+	 * @param bool $mkdir_result     Whether creating the directory succeeds.
+	 * @param bool $write_result     Whether writing the index file succeeds.
+	 */
+	public function test_unpack_package_should_protect_upgrade_directory( $directory_exists, $index_exists, $mkdir_result, $write_result ) {
+		define( 'FS_CHMOD_DIR', 0755 );
+		define( 'FS_CHMOD_FILE', 0644 );
+
+		self::$instance->generic_strings();
+
+		$upgrade_dir = '/wp-content/upgrade/';
+		$working_dir = $upgrade_dir . basename( __FILE__ );
+		$dirlist     = $directory_exists ? array(
+			'old-package' => array( 'name' => 'old-package' ),
+			'old.zip'     => array( 'name' => 'old.zip' ),
+			'.htaccess'   => array( 'name' => '.htaccess' ),
+		) : array();
+		if ( $index_exists ) {
+			$dirlist['index.php'] = array( 'name' => 'index.php' );
+		}
+
+		self::$wp_filesystem_mock->method( 'wp_content_dir' )->willReturn( '/wp-content/' );
+		self::$wp_filesystem_mock->expects( $this->once() )->method( 'dirlist' )->with( $upgrade_dir )->willReturn( $dirlist );
+		self::$wp_filesystem_mock->method( 'is_dir' )->willReturnCallback(
+			static function ( $path ) use ( $upgrade_dir, $directory_exists ) {
+				return $upgrade_dir === $path && $directory_exists;
+			}
+		);
+		self::$wp_filesystem_mock->expects( $directory_exists ? $this->never() : $this->once() )
+			->method( 'mkdir' )->with( $upgrade_dir, FS_CHMOD_DIR )->willReturn( $mkdir_result );
+		self::$wp_filesystem_mock->expects( $this->once() )->method( 'exists' )
+			->with( $upgrade_dir . 'index.php' )->willReturn( $index_exists );
+		self::$wp_filesystem_mock->expects( $index_exists ? $this->never() : $this->once() )
+			->method( 'put_contents' )
+			->with( $upgrade_dir . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE )
+			->willReturn( $write_result );
+
+		$deleted_paths = array();
+		foreach ( $dirlist as $file ) {
+			if ( 'index.php' !== $file['name'] && '.htaccess' !== $file['name'] ) {
+				$deleted_paths[] = array( $upgrade_dir . $file['name'], true );
+			}
+		}
+		$deleted_paths[] = array( $working_dir, true );
+		self::$wp_filesystem_mock->expects( $this->exactly( count( $deleted_paths ) ) )
+			->method( 'delete' )->withConsecutive( ...$deleted_paths )->willReturn( true );
+
+		add_filter( 'unzip_file_use_ziparchive', '__return_false' );
+
+		// Use a local non-archive, and never unlink the package fixture.
+		$result = self::$instance->unpack_package( __FILE__, false );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'incompatible_archive', $result->get_error_code(), 'Extraction should still be attempted.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_unpack_package_should_protect_upgrade_directory() {
+		return array(
+			'preserve existing index during cleanup' => array( true, true, true, true ),
+			'create missing index'                   => array( true, false, true, true ),
+			'create directory and index'             => array( false, false, true, true ),
+			'index write failure is best effort'     => array( true, false, true, false ),
+			'directory creation is best effort'      => array( false, false, false, false ),
+		);
+	}
+
+	/**
+	 * Tests that backup protection does not write into the item being moved or restored.
+	 *
+	 * @covers WP_Upgrader::move_to_temp_backup_dir
+	 * @covers WP_Upgrader::restore_temp_backup
+	 *
+	 * @dataProvider data_move_to_temp_backup_dir_should_protect_parent_directories
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 *
+	 * @param string $type              The item type.
+	 * @param bool   $directories_exist Whether the backup directories exist.
+	 * @param bool   $root_index_exists Whether the backup root index exists.
+	 * @param bool   $type_index_exists Whether the item type directory index exists.
+	 * @param bool   $write_result      Whether writing index files succeeds.
+	 */
+	public function test_move_to_temp_backup_dir_should_protect_parent_directories( $type, $directories_exist, $root_index_exists, $type_index_exists, $write_result ) {
+		define( 'FS_CHMOD_DIR', 0755 );
+		define( 'FS_CHMOD_FILE', 0644 );
+
+		self::$instance->generic_strings();
+
+		$backup_dir = '/wp-content/upgrade-temp-backup/';
+		$type_dir   = $backup_dir . $type . '/';
+		$source_dir = '/wp-content/' . $type . '/';
+		$args       = array(
+			'slug' => 'test-item',
+			'src'  => $source_dir,
+			'dir'  => $type,
+		);
+		$source     = $source_dir . $args['slug'];
+		$backup     = $type_dir . $args['slug'];
+
+		self::$wp_filesystem_mock->method( 'wp_content_dir' )->willReturn( '/wp-content/' );
+		self::$wp_filesystem_mock->expects( $this->exactly( 2 ) )->method( 'find_folder' )
+			->with( $source_dir )->willReturn( $source_dir );
+
+		$directory_checks  = array( array( $type_dir ) );
+		$directory_results = array( $directories_exist );
+		if ( ! $directories_exist ) {
+			$directory_checks[]  = array( $backup_dir );
+			$directory_results[] = false;
+		}
+		$directory_checks[]  = array( $backup );
+		$directory_results[] = false;
+		$directory_checks[]  = array( $backup );
+		$directory_results[] = true;
+		$directory_checks[]  = array( $source );
+		$directory_results[] = false;
+		self::$wp_filesystem_mock->expects( $this->exactly( count( $directory_checks ) ) )
+			->method( 'is_dir' )->withConsecutive( ...$directory_checks )->willReturnOnConsecutiveCalls( ...$directory_results );
+
+		$mkdir = self::$wp_filesystem_mock->expects( $directories_exist ? $this->never() : $this->exactly( 2 ) )->method( 'mkdir' );
+		if ( ! $directories_exist ) {
+			$mkdir->withConsecutive( array( $backup_dir, FS_CHMOD_DIR ), array( $type_dir, FS_CHMOD_DIR ) )->willReturn( true );
+		}
+
+		self::$wp_filesystem_mock->expects( $this->exactly( 4 ) )->method( 'exists' )
+			->withConsecutive( array( $backup_dir . 'index.php' ), array( $type_dir . 'index.php' ), array( $backup ), array( $source ) )
+			->willReturnOnConsecutiveCalls( $root_index_exists, $type_index_exists, false, false );
+
+		$writes = array();
+		if ( ! $root_index_exists ) {
+			$writes[] = array( $backup_dir . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+		}
+		if ( ! $type_index_exists ) {
+			$writes[] = array( $type_dir . 'index.php', "<?php\n// Silence is golden.\n", FS_CHMOD_FILE );
+		}
+		$put_contents = self::$wp_filesystem_mock->expects( $this->exactly( count( $writes ) ) )->method( 'put_contents' );
+		if ( $writes ) {
+			$put_contents->withConsecutive( ...$writes )->willReturn( $write_result );
+		}
+
+		// Only the parent index files may be written; the item is moved intact in both directions.
+		self::$wp_filesystem_mock->expects( $this->never() )->method( 'delete' );
+		self::$wp_filesystem_mock->expects( $this->never() )->method( 'copy' );
+		self::$wp_filesystem_mock->expects( $this->exactly( 2 ) )->method( 'move' )
+			->withConsecutive( array( $source, $backup ), array( $backup, $source ) )->willReturn( true );
+
+		$this->assertTrue( self::$instance->move_to_temp_backup_dir( $args ) );
+		$this->assertTrue( self::$instance->restore_temp_backup( array( $args ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_move_to_temp_backup_dir_should_protect_parent_directories() {
+		return array(
+			'create plugin backup directories and indexes' => array( 'plugins', false, false, false, true ),
+			'create theme backup directories and indexes'  => array( 'themes', false, false, false, true ),
+			'protect existing directories'                 => array( 'plugins', true, false, false, true ),
+			'do not overwrite existing indexes'            => array( 'themes', true, true, true, true ),
+			'only create missing type index'               => array( 'plugins', true, true, false, true ),
+			'only create missing root index'               => array( 'themes', true, false, true, true ),
+			'index write failures do not prevent moves'    => array( 'plugins', true, false, false, false ),
+		);
+	}
+
+	/**
 	 * Tests that `WP_Upgrader::flatten_dirlist()` returns the expected file list.
 	 *
 	 * @ticket 54245

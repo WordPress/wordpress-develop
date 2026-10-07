@@ -572,4 +572,289 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		// Force autoloading so that WordPress core does not override it. See https://core.trac.wordpress.org/changeset/57920.
 		add_option( 'test_set_autoloaded_option', $heavy_option_string, '', true );
 	}
+
+	/**
+	 * @dataProvider data_update_temp_backup_writable
+	 * @covers ::get_test_update_temp_backup_writable()
+	 */
+	public function test_update_temp_backup_writable( $directories, $unwritable, $expected_status, $expected_label ) {
+		global $wp_filesystem;
+
+		$original_filesystem = $wp_filesystem;
+		add_filter(
+			'request_filesystem_credentials',
+			static function () use ( $directories, $unwritable ) {
+				return array(
+					'directories' => $directories,
+					'unwritable'  => $unwritable,
+				);
+			}
+		);
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'SiteHealthTempBackup';
+			}
+		);
+
+		try {
+			$result = $this->instance->get_test_update_temp_backup_writable();
+
+			$this->assertSame( $expected_status, $result['status'] );
+			$this->assertSame( $expected_label, $result['label'] );
+			$this->assertSame( 'update_temp_backup_writable', $result['test'] );
+			if ( 'recommended' === $expected_status ) {
+				$this->assertNotEmpty( $wp_filesystem->listings, 'Backup warnings should follow a directory inspection.' );
+			}
+
+			foreach ( $wp_filesystem->listings as $listing ) {
+				$this->assertContains( $listing[0], array( 'upgrade-temp-backup/plugins', 'upgrade-temp-backup/themes' ) );
+				$this->assertTrue( $listing[1], 'Directory listings should include hidden entries.' );
+				$this->assertFalse( $listing[2], 'Directory listings should not recurse into backups.' );
+			}
+
+			if ( 'critical' === $expected_status ) {
+				$this->assertSame( array(), $wp_filesystem->listings, 'Writability failures should take precedence over inspecting backups.' );
+			} elseif ( 'good' === $expected_status ) {
+				$expected_directories = array_values( array_intersect( array( 'upgrade-temp-backup/plugins', 'upgrade-temp-backup/themes' ), array_keys( $directories ) ) );
+				$this->assertSame( $expected_directories, array_column( $wp_filesystem->listings, 0 ) );
+			}
+
+			if ( 'Plugin or theme temporary backups are present' === $expected_label ) {
+				$description = wp_strip_all_tags( $result['description'] );
+				$this->assertMatchesRegularExpression( '/may.*(?:in use|used)/i', $description );
+				$this->assertMatchesRegularExpression( '/updates?.*(?:finish|complet)|(?:finish|complet).*updates?/i', $description );
+				$this->assertMatchesRegularExpression( '/host/i', $description );
+				$this->assertMatchesRegularExpression( '/(?:restrict|prevent|block).*web access|web access.*(?:restrict|prevent|block)/i', $description );
+			}
+		} finally {
+			$wp_filesystem = $original_filesystem;
+		}
+	}
+
+	/**
+	 * Data provider for test_update_temp_backup_writable().
+	 *
+	 * @return array[]
+	 */
+	public function data_update_temp_backup_writable() {
+		$good_label    = 'Plugin and theme temporary backup directory is writable';
+		$backup_label  = 'Plugin or theme temporary backups are present';
+		$listing_label = 'Unable to inspect plugin and theme temporary backups';
+		$empty         = array(
+			'upgrade'                     => array(),
+			'upgrade-temp-backup'         => array(),
+			'upgrade-temp-backup/plugins' => array(),
+			'upgrade-temp-backup/themes'  => array(),
+		);
+		$protection    = array(
+			'.'         => array( 'type' => 'd' ),
+			'..'        => array( 'type' => 'd' ),
+			'index.php' => array( 'type' => 'f' ),
+			'.htaccess' => array( 'type' => 'f' ),
+		);
+
+		return array(
+			'missing directories'           => array( array(), array(), 'good', $good_label ),
+			'missing backup directories'    => array( array( 'upgrade' => array() ), array(), 'good', $good_label ),
+			'empty directories'             => array( $empty, array(), 'good', $good_label ),
+			'empty plugins, missing themes' => array( array( 'upgrade-temp-backup/plugins' => array() ), array(), 'good', $good_label ),
+			'empty themes, missing plugins' => array( array( 'upgrade-temp-backup/themes' => array() ), array(), 'good', $good_label ),
+			'protection files only'         => array(
+				array_merge(
+					$empty,
+					array(
+						'upgrade-temp-backup/plugins' => $protection,
+						'upgrade-temp-backup/themes'  => $protection,
+					)
+				),
+				array(),
+				'good',
+				$good_label,
+			),
+			'plugin directory backup'       => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/plugins' => array( 'example-plugin' => array( 'type' => 'd' ) ) ) ),
+				array(),
+				'recommended',
+				$backup_label,
+			),
+			'theme directory backup'        => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/themes' => array( 'example-theme' => array( 'type' => 'd' ) ) ) ),
+				array(),
+				'recommended',
+				$backup_label,
+			),
+			'single-file plugin backup'     => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/plugins' => $protection + array( 'example-plugin.php' => array( 'type' => 'f' ) ) ) ),
+				array(),
+				'recommended',
+				$backup_label,
+			),
+			'hidden backup entry'           => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/plugins' => array( '.example-plugin' => array( 'type' => 'd' ) ) ) ),
+				array(),
+				'recommended',
+				$backup_label,
+			),
+			'failed plugin listing'         => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/plugins' => false ) ),
+				array(),
+				'recommended',
+				$listing_label,
+			),
+			'failed theme listing'          => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/themes' => false ) ),
+				array(),
+				'recommended',
+				$listing_label,
+			),
+			'unwritable plugin directory'   => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/themes' => array( 'example-theme' => array( 'type' => 'd' ) ) ) ),
+				array( 'upgrade-temp-backup/plugins' ),
+				'critical',
+				'Plugin temporary backup directory exists but is not writable',
+			),
+			'unwritable theme directory'    => array(
+				array_merge( $empty, array( 'upgrade-temp-backup/plugins' => false ) ),
+				array( 'upgrade-temp-backup/themes' ),
+				'critical',
+				'Theme temporary backup directory exists but is not writable',
+			),
+			'unwritable both directories'   => array(
+				$empty,
+				array( 'upgrade-temp-backup/plugins', 'upgrade-temp-backup/themes' ),
+				'critical',
+				'Plugin and theme temporary backup directories exist but are not writable',
+			),
+			'unwritable backup parent'      => array(
+				array(
+					'upgrade-temp-backup'         => array(),
+					'upgrade-temp-backup/plugins' => false,
+				),
+				array( 'upgrade-temp-backup' ),
+				'critical',
+				'The temporary backup directory exists but is not writable',
+			),
+			'unwritable upgrade directory'  => array(
+				array( 'upgrade' => array() ),
+				array( 'upgrade' ),
+				'critical',
+				'The upgrade directory exists but is not writable',
+			),
+			'unwritable content directory'  => array(
+				array(),
+				array( '' ),
+				'critical',
+				'The upgrade directory cannot be created',
+			),
+		);
+	}
+
+	/**
+	 * @covers ::get_test_update_temp_backup_writable()
+	 */
+	public function test_update_temp_backup_writable_with_missing_credentials() {
+		add_filter( 'request_filesystem_credentials', '__return_false' );
+		add_filter(
+			'filesystem_method',
+			function () {
+				$this->fail( 'The filesystem should not be initialized without credentials.' );
+			}
+		);
+
+		$result = $this->instance->get_test_update_temp_backup_writable();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertSame( 'Could not access filesystem', $result['label'] );
+		$this->assertSame( 'Unable to connect to the filesystem. Please confirm your credentials.', $result['description'] );
+	}
+
+	/**
+	 * Tests that weekly cleanup leaves directory protection in place.
+	 */
+	public function test_temp_backup_cleanup_preserves_protection_files() {
+		global $wp_filesystem;
+
+		$original_filesystem = $wp_filesystem;
+		add_filter(
+			'request_filesystem_credentials',
+			static function () {
+				return array(
+					'directories' => array(
+						'upgrade-temp-backup' => array_fill_keys( array( '.', '..', 'index.php', '.htaccess', 'plugins', 'themes' ), array() ),
+					),
+					'unwritable'  => array(),
+				);
+			}
+		);
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'SiteHealthTempBackup';
+			}
+		);
+
+		try {
+			_wp_delete_all_temp_backups();
+
+			$this->assertSame(
+				array(
+					array( 'upgrade-temp-backup/plugins', true ),
+					array( 'upgrade-temp-backup/themes', true ),
+				),
+				$wp_filesystem->deletions
+			);
+		} finally {
+			$wp_filesystem = $original_filesystem;
+		}
+	}
+}
+
+/**
+ * Filesystem fixture instantiated by WP_Filesystem() for temporary backup tests.
+ */
+class WP_Filesystem_SiteHealthTempBackup {
+	public $errors    = array();
+	public $listings  = array();
+	public $deletions = array();
+
+	private $directories;
+	private $unwritable;
+
+	public function __construct( $args ) {
+		$this->directories = $args['directories'];
+		$this->unwritable  = $args['unwritable'];
+	}
+
+	public function connect() {
+		return true;
+	}
+
+	public function wp_content_dir() {
+		return '/site-health/wp-content/';
+	}
+
+	public function is_dir( $path ) {
+		return array_key_exists( $this->relative_path( $path ), $this->directories );
+	}
+
+	public function is_writable( $path ) {
+		return ! in_array( $this->relative_path( $path ), $this->unwritable, true );
+	}
+
+	public function dirlist( $path, $include_hidden = true, $recursive = false ) {
+		$path             = $this->relative_path( $path );
+		$this->listings[] = array( $path, $include_hidden, $recursive );
+
+		return isset( $this->directories[ $path ] ) ? $this->directories[ $path ] : false;
+	}
+
+	public function delete( $path, $recursive = false ) {
+		$this->deletions[] = array( $this->relative_path( $path ), $recursive );
+		return true;
+	}
+
+	private function relative_path( $path ) {
+		return trim( substr( $path, strlen( untrailingslashit( $this->wp_content_dir() ) ) ), '/' );
+	}
 }

@@ -1882,7 +1882,7 @@ class WP_Site_Health {
 	}
 
 	/**
-	 * Tests if plugin and theme temporary backup directories are writable or can be created.
+	 * Tests temporary backup directory access and checks for plugin and theme backups.
 	 *
 	 * @since 6.3.0
 	 *
@@ -2013,6 +2013,36 @@ class WP_Site_Health {
 				'<code>wp-content</code>'
 			);
 			return $result;
+		}
+
+		foreach ( array( 'plugins', 'themes' ) as $type ) {
+			$directory = trailingslashit( $wp_content ) . 'upgrade-temp-backup/' . $type;
+			if ( ! $wp_filesystem->is_dir( $directory ) ) {
+				continue;
+			}
+
+			$backups = $wp_filesystem->dirlist( $directory, true, false );
+			if ( false === $backups ) {
+				$result['status']      = 'recommended';
+				$result['label']       = __( 'Unable to inspect plugin and theme temporary backups' );
+				$result['description'] = '<p>' . __( 'The temporary backup directory could not be read. Please ask your hosting provider to check its permissions.' ) . '</p>';
+				return $result;
+			}
+
+			foreach ( array( '.', '..', 'index.php', '.htaccess' ) as $file ) {
+				unset( $backups[ $file ] );
+			}
+
+			if ( $backups ) {
+				$result['status']      = 'recommended';
+				$result['label']       = __( 'Plugin or theme temporary backups are present' );
+				$result['description'] = sprintf(
+					/* translators: %s: wp-content/upgrade-temp-backup */
+					'<p>' . __( 'The %s directory contains temporary plugin or theme backups. These backups may still be in use by an update. Check again after updates have finished. If backups remain, ask your hosting provider to investigate cleanup and restrict web access to this directory. Depending on your server configuration, files in this directory may be accessible to visitors.' ) . '</p>',
+					'<code>wp-content/upgrade-temp-backup</code>'
+				);
+				return $result;
+			}
 		}
 
 		return $result;
