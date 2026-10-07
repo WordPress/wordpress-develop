@@ -336,6 +336,38 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 				return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
 			}
 
+			/**
+			 * Filters the largest image the VIPS image editor will decode, in pixels.
+			 *
+			 * libvips reads pixels lazily, so a small file can announce enormous
+			 * dimensions and only cost the memory it claims once something touches the
+			 * pixels. The dimensions are known before that happens, so an oversized image
+			 * is refused here rather than after a decoding attempt has exhausted memory.
+			 *
+			 * The default is the largest image a JPEG can describe, which is also the
+			 * largest size the other editors handle without special configuration.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param int $max_pixels Maximum number of pixels. Default 16383 * 16383.
+			 */
+			$max_pixels = (int) apply_filters( 'wp_image_editor_vips_max_pixels', 16383 * 16383 );
+
+			if ( $width * $height > $max_pixels ) {
+				$this->image = null;
+
+				return new WP_Error(
+					'invalid_image',
+					sprintf(
+						/* translators: 1: Image width in pixels, 2: Image height in pixels. */
+						__( 'Image is too large to process (%1$d x %2$d pixels).' ),
+						$width,
+						$height
+					),
+					$this->file
+				);
+			}
+
 			// Set the mime type.
 			//
 			// This must not use wp_getimagesize(): for HEIC and AVIF files it falls back
