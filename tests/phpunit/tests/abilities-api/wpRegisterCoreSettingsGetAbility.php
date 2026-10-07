@@ -479,8 +479,8 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
-	 * Stored values are read as the settings endpoint reads them: validated against their schema,
-	 * left out when it rejects them, and sanitized otherwise.
+	 * Stored values are validated against their schema, left out when it rejects them, and
+	 * sanitized otherwise.
 	 *
 	 * @ticket 64605
 	 *
@@ -491,7 +491,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	 * @param string|null $expected The value as JSON, or null when it is left out.
 	 * @param array       $schema   Optional. The `show_in_abilities` schema of the setting. Default empty array.
 	 */
-	public function test_core_settings_get_reads_stored_values_as_the_settings_endpoint( string $type, $stored, ?string $expected, array $schema = array() ): void {
+	public function test_core_settings_get_reads_stored_values( string $type, $stored, ?string $expected, array $schema = array() ): void {
 		$option = 'core_settings_get_ability_value_test_option';
 
 		register_setting(
