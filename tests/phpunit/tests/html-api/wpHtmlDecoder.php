@@ -567,7 +567,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * @dataProvider data_decode_attribute_named_character_references
 	 *
 	 * @param string $raw_text Raw attribute value containing named character reference.
-	 * @param string $expected Expected decoded character.
+	 * @param string $expected Expected decoded string.
 	 */
 	public function test_decode_attribute_decodes_named_character_references( string $raw_text, string $expected ): void {
 		$this->assertSame(
@@ -580,20 +580,39 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	/**
 	 * Data provider for named character references in attributes.
 	 *
+	 * Beyond the main syntax characters, covers references which do and do not
+	 * decode without a trailing semicolon, as well as case-sensitive names.
+	 *
 	 * @return array<string, array{string, string}>
 	 */
 	public static function data_decode_attribute_named_character_references(): array {
 		return array(
-			'Ampersand with semicolon'       => array( '&amp;', '&' ),
-			'Ampersand without semicolon'    => array( '&amp', '&' ),
-			'Less-than with semicolon'       => array( '&lt;', '<' ),
-			'Less-than without semicolon'    => array( '&lt', '<' ),
-			'Greater-than with semicolon'    => array( '&gt;', '>' ),
-			'Greater-than without semicolon' => array( '&gt', '>' ),
-			'Double quote with semicolon'    => array( '&quot;', '"' ),
-			'Double quote without semicolon' => array( '&quot', '"' ),
-			'Copyright with semicolon'       => array( '&copy;', '©' ),
-			'Copyright without semicolon'    => array( '&copy', '©' ),
+			// The main syntax characters.
+			'Ampersand with semicolon'               => array( '&amp;', '&' ),
+			'Ampersand without semicolon'            => array( '&amp', '&' ),
+			'Less-than with semicolon'               => array( '&lt;', '<' ),
+			'Less-than without semicolon'            => array( '&lt', '<' ),
+			'Greater-than with semicolon'            => array( '&gt;', '>' ),
+			'Greater-than without semicolon'         => array( '&gt', '>' ),
+			'Double quote with semicolon'            => array( '&quot;', '"' ),
+			'Double quote without semicolon'         => array( '&quot', '"' ),
+
+			// Legacy references which decode without a semicolon.
+			'Copyright with semicolon'               => array( '&copy;', '©' ),
+			'Copyright without semicolon'            => array( '&copy', '©' ),
+			'Uppercase copyright with semicolon'     => array( '&COPY;', '©' ),
+			'Uppercase copyright without semicolon'  => array( '&COPY', '©' ),
+
+			// References which only decode with a semicolon.
+			'C with dot with semicolon'              => array( '&cdot;', 'ċ' ),
+			'C with dot without semicolon'           => array( '&cdot', '&cdot' ),
+			'Uppercase C with dot with semicolon'    => array( '&Cdot;', 'Ċ' ),
+			'Uppercase C with dot without semicolon' => array( '&Cdot', '&Cdot' ),
+			'Backprime with semicolon'               => array( '&backprime;', '‵' ),
+			'Backprime without semicolon'            => array( '&backprime', '&backprime' ),
+
+			// Names are case-sensitive: only the lowercase form exists.
+			'Non-existent uppercase Backprime'       => array( '&Backprime;', '&Backprime;' ),
 		);
 	}
 
