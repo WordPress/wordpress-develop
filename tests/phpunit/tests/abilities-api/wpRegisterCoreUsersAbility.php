@@ -20,44 +20,79 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	private static $fixture_ids = array();
 
 	/**
-	 * Administrator user ID.
+	 * Creates the shared fixtures.
 	 *
 	 * @since 7.2.0
-	 * @var int
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
-	private $admin_id;
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
+		self::$fixture_ids['administrator'] = $factory->user->create(
+			array(
+				'role'          => 'administrator',
+				'user_login'    => 'core_users_ability_admin',
+				'user_email'    => 'core-users-ability-admin@example.com',
+				'user_nicename' => 'core-users-ability-admin',
+			)
+		);
 
-	/**
-	 * Subscriber user ID.
-	 *
-	 * @since 7.2.0
-	 * @var int
-	 */
-	private $subscriber_id;
+		if ( is_multisite() ) {
+			grant_super_admin( self::$fixture_ids['administrator'] );
+		}
 
-	/**
-	 * Author user ID with a published post.
-	 *
-	 * @since 7.2.0
-	 * @var int
-	 */
-	private $public_author_id;
+		self::$fixture_ids['editor'] = $factory->user->create(
+			array(
+				'role'          => 'editor',
+				'user_login'    => 'core_users_ability_editor',
+				'user_email'    => 'core-users-ability-editor@example.com',
+				'user_nicename' => 'core-users-ability-editor',
+			)
+		);
 
-	/**
-	 * Author post ID.
-	 *
-	 * @since 7.2.0
-	 * @var int
-	 */
-	private $public_post_id;
+		self::$fixture_ids['author'] = $factory->user->create(
+			array(
+				'role'          => 'author',
+				'user_login'    => 'core_users_ability_author_current',
+				'user_email'    => 'core-users-ability-author-current@example.com',
+				'user_nicename' => 'core-users-ability-author-current',
+			)
+		);
 
-	/**
-	 * Original show_avatars option.
-	 *
-	 * @since 7.2.0
-	 * @var mixed
-	 */
-	private $show_avatars;
+		self::$fixture_ids['contributor'] = $factory->user->create(
+			array(
+				'role'          => 'contributor',
+				'user_login'    => 'core_users_ability_contributor',
+				'user_email'    => 'core-users-ability-contributor@example.com',
+				'user_nicename' => 'core-users-ability-contributor',
+			)
+		);
+
+		self::$fixture_ids['subscriber'] = $factory->user->create(
+			array(
+				'role'          => 'subscriber',
+				'user_login'    => 'core_users_ability_subscriber',
+				'user_email'    => 'core-users-ability-subscriber@example.com',
+				'user_nicename' => 'core-users-ability-subscriber',
+			)
+		);
+
+		self::$fixture_ids['public_author'] = $factory->user->create(
+			array(
+				'role'          => 'author',
+				'user_login'    => 'core_users_ability_author',
+				'user_email'    => 'core-users-ability-author@example.com',
+				'user_nicename' => 'core-users-ability-author',
+			)
+		);
+
+		$factory->post->create(
+			array(
+				'post_author' => self::$fixture_ids['public_author'],
+				'post_status' => 'publish',
+				'post_type'   => 'post',
+			)
+		);
+	}
 
 	/**
 	 * Set up before the class.
@@ -91,72 +126,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		remove_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
-		self::$fixture_ids['administrator'] = self::factory()->user->create(
-			array(
-				'role'          => 'administrator',
-				'user_login'    => 'core_users_ability_admin',
-				'user_email'    => 'core-users-ability-admin@example.com',
-				'user_nicename' => 'core-users-ability-admin',
-			)
-		);
-
-		if ( is_multisite() ) {
-			grant_super_admin( self::$fixture_ids['administrator'] );
-		}
-
-		self::$fixture_ids['editor'] = self::factory()->user->create(
-			array(
-				'role'          => 'editor',
-				'user_login'    => 'core_users_ability_editor',
-				'user_email'    => 'core-users-ability-editor@example.com',
-				'user_nicename' => 'core-users-ability-editor',
-			)
-		);
-
-		self::$fixture_ids['author'] = self::factory()->user->create(
-			array(
-				'role'          => 'author',
-				'user_login'    => 'core_users_ability_author_current',
-				'user_email'    => 'core-users-ability-author-current@example.com',
-				'user_nicename' => 'core-users-ability-author-current',
-			)
-		);
-
-		self::$fixture_ids['contributor'] = self::factory()->user->create(
-			array(
-				'role'          => 'contributor',
-				'user_login'    => 'core_users_ability_contributor',
-				'user_email'    => 'core-users-ability-contributor@example.com',
-				'user_nicename' => 'core-users-ability-contributor',
-			)
-		);
-
-		self::$fixture_ids['subscriber'] = self::factory()->user->create(
-			array(
-				'role'          => 'subscriber',
-				'user_login'    => 'core_users_ability_subscriber',
-				'user_email'    => 'core-users-ability-subscriber@example.com',
-				'user_nicename' => 'core-users-ability-subscriber',
-			)
-		);
-
-		self::$fixture_ids['public_author'] = self::factory()->user->create(
-			array(
-				'role'          => 'author',
-				'user_login'    => 'core_users_ability_author',
-				'user_email'    => 'core-users-ability-author@example.com',
-				'user_nicename' => 'core-users-ability-author',
-			)
-		);
-
-		self::$fixture_ids['public_post'] = self::factory()->post->create(
-			array(
-				'post_author' => self::$fixture_ids['public_author'],
-				'post_status' => 'publish',
-				'post_type'   => 'post',
-			)
-		);
 	}
 
 	/**
@@ -165,17 +134,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public static function tear_down_after_class(): void {
-		wp_delete_post( self::$fixture_ids['public_post'], true );
-
 		if ( is_multisite() ) {
 			revoke_super_admin( self::$fixture_ids['administrator'] );
 		}
-
-		foreach ( array( 'administrator', 'editor', 'author', 'contributor', 'subscriber', 'public_author' ) as $fixture_name ) {
-			wp_delete_user( self::$fixture_ids[ $fixture_name ] );
-		}
-
-		self::$fixture_ids = array();
 
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
@@ -185,38 +146,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		}
 
 		parent::tear_down_after_class();
-	}
-
-	/**
-	 * Set up test case.
-	 *
-	 * @since 7.2.0
-	 */
-	public function set_up(): void {
-		parent::set_up();
-
-		$this->show_avatars = get_option( 'show_avatars' );
-		update_option( 'show_avatars', 1 );
-
-		$this->admin_id         = self::$fixture_ids['administrator'];
-		$this->subscriber_id    = self::$fixture_ids['subscriber'];
-		$this->public_author_id = self::$fixture_ids['public_author'];
-		$this->public_post_id   = self::$fixture_ids['public_post'];
-	}
-
-	/**
-	 * Tear down test case.
-	 *
-	 * @since 7.2.0
-	 */
-	public function tear_down(): void {
-		if ( wp_has_ability( 'core/users-query' ) ) {
-			wp_unregister_ability( 'core/users-query' );
-		}
-
-		update_option( 'show_avatars', $this->show_avatars );
-
-		parent::tear_down();
 	}
 
 	/**
@@ -303,7 +232,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$fields = $schema['oneOf'][4]['properties']['fields']['items']['enum'];
 		$this->assertContains( 'roles', $fields, 'The fields enum should expose the roles field.' );
-		$this->assertContains( 'avatar_urls', $fields, 'The fields enum should expose avatar_urls when avatars are enabled.' );
+		$this->assertContains( 'avatar_urls', $fields, 'The fields enum should expose avatar_urls.' );
 		$this->assertSame( 1, $schema['oneOf'][4]['properties']['fields']['minItems'], 'The fields option should require at least one field when provided.' );
 
 		$role_names = $schema['oneOf'][4]['properties']['roles']['items']['enum'];
@@ -355,8 +284,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertContains( 'avatar_urls', $input_schema['oneOf'][0]['properties']['fields']['items']['enum'], 'The fields enum should keep declaring avatar_urls when avatars are disabled.' );
 		$this->assertArrayHasKey( 'avatar_urls', $output_schema['oneOf'][0]['properties'], 'The output schema should keep declaring avatar_urls when avatars are disabled.' );
 
-		wp_set_current_user( $this->subscriber_id );
-		$result = $ability->execute( array( 'id' => $this->subscriber_id ) );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+		$result = $ability->execute( array( 'id' => self::$fixture_ids['subscriber'] ) );
 
 		$this->assertIsArray( $result, 'The current user should still be readable when avatars are disabled.' );
 		$this->assertArrayNotHasKey( 'avatar_urls', $result, 'The ability result should omit avatar_urls when avatars are disabled.' );
@@ -366,7 +295,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		 * registration-time schema must not reject the field.
 		 */
 		update_option( 'show_avatars', 1 );
-		$result = $ability->execute( array( 'id' => $this->subscriber_id ) );
+		$result = $ability->execute( array( 'id' => self::$fixture_ids['subscriber'] ) );
 
 		$this->assertIsArray( $result, 'Default-fields lookups should succeed after avatars are enabled post-registration.' );
 		$this->assertArrayHasKey( 'avatar_urls', $result, 'The ability result should include avatar_urls once avatars are enabled.' );
@@ -378,10 +307,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_omitted_fields_return_lean_defaults(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
-		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => $this->subscriber_id ) );
+		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => self::$fixture_ids['subscriber'] ) );
 
 		$this->assertIsArray( $result, 'A current-user lookup should return an array.' );
 		$this->assertSame(
@@ -413,41 +342,41 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_current_user_can_read_themselves_by_sensitive_identifiers(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
 		$result = $ability->execute(
 			array(
-				'id'     => $this->subscriber_id,
+				'id'     => self::$fixture_ids['subscriber'],
 				'fields' => array( 'id', 'email', 'username', 'roles' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A user should be able to read themselves by ID.' );
-		$this->assertSame( $this->subscriber_id, $result['id'], 'The ID lookup should return the current user.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'The ID lookup should return the current user.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['email'], 'The current user should receive their own email.' );
 		$this->assertSame( 'core_users_ability_subscriber', $result['username'], 'The current user should receive their own username.' );
 		$this->assertContains( 'subscriber', $result['roles'], 'The current user should receive their own roles.' );
 
 		$result = $ability->execute( array( 'email' => 'core-users-ability-subscriber@example.com' ) );
 		$this->assertIsArray( $result, 'A user should be able to read themselves by email.' );
-		$this->assertSame( $this->subscriber_id, $result['id'], 'The email lookup should return the current user.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'The email lookup should return the current user.' );
 
 		$result = $ability->execute( array( 'username' => 'core_users_ability_subscriber' ) );
 		$this->assertIsArray( $result, 'A user should be able to read themselves by username.' );
-		$this->assertSame( $this->subscriber_id, $result['id'], 'The username lookup should return the current user.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'The username lookup should return the current user.' );
 
 		$result = $ability->execute(
 			array(
-				'id'     => $this->subscriber_id,
+				'id'     => self::$fixture_ids['subscriber'],
 				'fields' => array( 'id', 'registered_date' ),
 			)
 		);
 		$this->assertIsArray( $result, 'A user should be able to request their registration date.' );
 		$this->assertSame(
-			gmdate( 'c', strtotime( get_userdata( $this->subscriber_id )->user_registered ) ),
+			gmdate( 'c', strtotime( get_userdata( self::$fixture_ids['subscriber'] )->user_registered ) ),
 			$result['registered_date'],
 			'The registration date should be formatted as an ISO 8601 date-time string.'
 		);
@@ -459,27 +388,27 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_public_author_can_be_read_by_id_and_slug(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
 		$result = $ability->execute(
 			array(
-				'id'     => $this->public_author_id,
+				'id'     => self::$fixture_ids['public_author'],
 				'fields' => array( 'id', 'slug', 'email' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A logged-in user should be able to read a public author by ID.' );
-		$this->assertSame( $this->public_author_id, $result['id'], 'The ID lookup should return the public author.' );
+		$this->assertSame( self::$fixture_ids['public_author'], $result['id'], 'The ID lookup should return the public author.' );
 		$this->assertSame( 'core-users-ability-author', $result['slug'], 'The public author slug should be returned.' );
 		$this->assertArrayNotHasKey( 'email', $result, 'Public-author access should not expose another user email.' );
 
 		$result = $ability->execute( array( 'slug' => 'core-users-ability-author' ) );
 
 		$this->assertIsArray( $result, 'A logged-in user should be able to read a public author by slug.' );
-		$this->assertSame( $this->public_author_id, $result['id'], 'The slug lookup should return the public author.' );
+		$this->assertSame( self::$fixture_ids['public_author'], $result['id'], 'The slug lookup should return the public author.' );
 	}
 
 	/**
@@ -543,7 +472,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertSame( array(), $result['users'], 'Collection mode should omit an author whose posts are all private.' );
 
 		// The lookup is gated on the capability, not merely on being logged in.
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 
 		$result = $ability->execute(
 			array(
@@ -574,7 +503,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = $ability->execute( array( 'email' => 'core-users-ability-author@example.com' ) );
 		if ( $can_resolve ) {
 			$this->assertIsArray( $result, sprintf( 'The %s role should be able to resolve another user by email.', $role ) );
-			$this->assertSame( $this->public_author_id, $result['id'], sprintf( 'The email lookup should return the public author for the %s role.', $role ) );
+			$this->assertSame( self::$fixture_ids['public_author'], $result['id'], sprintf( 'The email lookup should return the public author for the %s role.', $role ) );
 		} else {
 			$this->assertWPError( $result, sprintf( 'The %s role should not be able to resolve another user by email.', $role ) );
 			$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), sprintf( 'Email lookup denial for the %s role should use the invalid permissions error.', $role ) );
@@ -583,7 +512,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = $ability->execute( array( 'username' => 'core_users_ability_author' ) );
 		if ( $can_resolve ) {
 			$this->assertIsArray( $result, sprintf( 'The %s role should be able to resolve another user by username.', $role ) );
-			$this->assertSame( $this->public_author_id, $result['id'], sprintf( 'The username lookup should return the public author for the %s role.', $role ) );
+			$this->assertSame( self::$fixture_ids['public_author'], $result['id'], sprintf( 'The username lookup should return the public author for the %s role.', $role ) );
 			return;
 		}
 
@@ -593,8 +522,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 	/**
 	 * Data provider for role-based sensitive identifier lookup checks.
-	 *
-	 * @ticket 64657
 	 *
 	 * @return array<string, array{0: string, 1: bool}>
 	 */
@@ -614,15 +541,15 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_empty_collection_mode_restricts_users_without_list_users_to_public_authors(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array() );
 
 		$this->assertIsArray( $result, 'Collection mode should return an array for logged-in users.' );
-		$this->assertContains( $this->public_author_id, wp_list_pluck( $result['users'], 'id' ), 'Collection mode should include public authors.' );
-		$this->assertNotContains( $this->admin_id, wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit non-author administrators for users without list_users.' );
-		$this->assertNotContains( $this->subscriber_id, wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit subscribers for users without list_users.' );
+		$this->assertContains( self::$fixture_ids['public_author'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should include public authors.' );
+		$this->assertNotContains( self::$fixture_ids['administrator'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit non-author administrators for users without list_users.' );
+		$this->assertNotContains( self::$fixture_ids['subscriber'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit subscribers for users without list_users.' );
 		$this->assertIsInt( $result['total'], 'Collection mode should include an integer total.' );
 		$this->assertIsInt( $result['total_pages'], 'Collection mode should include an integer total_pages value.' );
 	}
@@ -633,12 +560,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_collection_include_limits_results(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'include'  => array( $this->public_author_id, $this->subscriber_id ),
+				'include'  => array( self::$fixture_ids['public_author'], self::$fixture_ids['subscriber'] ),
 				'fields'   => array( 'id' ),
 				'per_page' => 100,
 			)
@@ -646,7 +573,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'An included user query should return an array.' );
 		$this->assertEqualSets(
-			array( $this->public_author_id, $this->subscriber_id ),
+			array( self::$fixture_ids['public_author'], self::$fixture_ids['subscriber'] ),
 			wp_list_pluck( $result['users'], 'id' ),
 			'Included user queries should return exactly the readable included users.'
 		);
@@ -663,7 +590,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_include_order_does_not_control_the_result_order(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
@@ -672,7 +599,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		 * WP_User_Query orders by user_login ascending by default, and
 		 * 'core_users_ability_admin' sorts before 'core_users_ability_subscriber'.
 		 */
-		$expected = array( $this->admin_id, $this->subscriber_id );
+		$expected = array( self::$fixture_ids['administrator'], self::$fixture_ids['subscriber'] );
 
 		foreach ( array( $expected, array_reverse( $expected ) ) as $include ) {
 			$result = $ability->execute(
@@ -697,12 +624,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_collection_include_respects_read_permissions(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'include'  => array( $this->admin_id, $this->public_author_id ),
+				'include'  => array( self::$fixture_ids['administrator'], self::$fixture_ids['public_author'] ),
 				'fields'   => array( 'id' ),
 				'per_page' => 100,
 			)
@@ -710,7 +637,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'An included user query should return an array.' );
 		$this->assertSame(
-			array( $this->public_author_id ),
+			array( self::$fixture_ids['public_author'] ),
 			wp_list_pluck( $result['users'], 'id' ),
 			'Included user queries should omit users the current user cannot read.'
 		);
@@ -752,7 +679,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			)
 		);
 
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
@@ -780,7 +707,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		// The same author stays hidden from the single-user lookup used for public authors.
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 
 		$result = $ability->execute(
 			array(
@@ -803,14 +730,14 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_collection_mode_excludes_self_without_published_posts(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
 		$collection = $ability->execute(
 			array(
-				'include'  => array( $this->subscriber_id ),
+				'include'  => array( self::$fixture_ids['subscriber'] ),
 				'fields'   => array( 'id' ),
 				'per_page' => 100,
 			)
@@ -822,13 +749,13 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$single = $ability->execute(
 			array(
-				'id'     => $this->subscriber_id,
+				'id'     => self::$fixture_ids['subscriber'],
 				'fields' => array( 'id' ),
 			)
 		);
 
 		$this->assertIsArray( $single, 'A single-user self lookup should return an array.' );
-		$this->assertSame( $this->subscriber_id, $single['id'], 'Single-user mode should still let the caller read themselves.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $single['id'], 'Single-user mode should still let the caller read themselves.' );
 	}
 
 	/**
@@ -879,20 +806,20 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_include_cannot_be_combined_with_single_user_modes(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$by_id = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'      => $this->subscriber_id,
-				'include' => array( $this->subscriber_id ),
+				'id'      => self::$fixture_ids['subscriber'],
+				'include' => array( self::$fixture_ids['subscriber'] ),
 			)
 		);
 
 		$by_username = wp_get_ability( 'core/users-query' )->execute(
 			array(
 				'username' => 'core_users_ability_subscriber',
-				'include'  => array( $this->subscriber_id ),
+				'include'  => array( self::$fixture_ids['subscriber'] ),
 			)
 		);
 
@@ -941,7 +868,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertFalse( get_post_type_object( 'public_pt' )->show_in_rest, 'The public fixture post type should remain hidden from REST.' );
 
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
@@ -962,7 +889,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'A public post type author query should return an array.' );
 		$ids = wp_list_pluck( $result['users'], 'id' );
 		$this->assertContains( $public_author_id, $ids, 'The query should include authors of the requested public post type.' );
-		$this->assertNotContains( $this->public_author_id, $ids, 'The query should exclude authors without posts in the requested public post type.' );
+		$this->assertNotContains( self::$fixture_ids['public_author'], $ids, 'The query should exclude authors without posts in the requested public post type.' );
 		$this->assertNotContains( $private_author_id, $ids, 'The query should exclude authors of private post types.' );
 
 		$result = $ability->execute(
@@ -982,7 +909,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_admin_can_query_by_role_and_receive_roles(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
@@ -994,7 +921,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'An administrator role query should return an array.' );
-		$this->assertContains( $this->public_author_id, wp_list_pluck( $result['users'], 'id' ), 'The author role query should include the public author.' );
+		$this->assertContains( self::$fixture_ids['public_author'], wp_list_pluck( $result['users'], 'id' ), 'The author role query should include the public author.' );
 		foreach ( $result['users'] as $user ) {
 			$this->assertContains( 'author', $user['roles'], 'Each user returned by an author role query should include the author role.' );
 		}
@@ -1017,13 +944,13 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'     => $this->public_author_id,
+				'id'     => self::$fixture_ids['public_author'],
 				'fields' => array( 'id', 'email', 'roles' ),
 			)
 		);
 
 		$this->assertIsArray( $result, sprintf( 'The %s role should be able to execute a public-author lookup.', $role ) );
-		$this->assertSame( $this->public_author_id, $result['id'], sprintf( 'The %s role should receive the requested public author.', $role ) );
+		$this->assertSame( self::$fixture_ids['public_author'], $result['id'], sprintf( 'The %s role should receive the requested public author.', $role ) );
 		$this->assertSame( $can_view_sensitive, array_key_exists( 'email', $result ), sprintf( 'The %s role email visibility should match expectations.', $role ) );
 		$this->assertSame( $can_view_roles, array_key_exists( 'roles', $result ), sprintf( 'The %s role roles visibility should match expectations.', $role ) );
 
@@ -1040,8 +967,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 	/**
 	 * Data provider for role-based field visibility checks.
-	 *
-	 * @ticket 64657
 	 *
 	 * @return array<string, array{0: string, 1: bool, 2: bool}>
 	 */
@@ -1083,7 +1008,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 			$result = wp_get_ability( 'core/users-query' )->execute(
 				array(
-					'id'     => $this->public_author_id,
+					'id'     => self::$fixture_ids['public_author'],
 					'fields' => array( 'id', 'roles' ),
 				)
 			);
@@ -1106,7 +1031,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_roles_registered_after_registration_do_not_fail_output_validation(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		// Register the role only after the ability (and its output schema) exist.
@@ -1134,7 +1059,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_role_filter_requires_list_users(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array( 'roles' => array( 'author' ) ) );
@@ -1149,19 +1074,19 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_restricted_requested_fields_are_omitted_per_user(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'     => $this->public_author_id,
+				'id'     => self::$fixture_ids['public_author'],
 				'fields' => array( 'id', 'email', 'roles' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A public-author lookup should return an array.' );
 		$this->assertSame( array( 'id' ), array_keys( $result ), 'Restricted requested fields should be omitted instead of failing the request.' );
-		$this->assertSame( $this->public_author_id, $result['id'], 'The public-author lookup should still return unrestricted fields.' );
+		$this->assertSame( self::$fixture_ids['public_author'], $result['id'], 'The public-author lookup should still return unrestricted fields.' );
 	}
 
 	/**
@@ -1176,36 +1101,36 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_fully_redacted_field_request_still_returns_id(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
 
 		$result = $ability->execute(
 			array(
-				'id'     => $this->public_author_id,
+				'id'     => self::$fixture_ids['public_author'],
 				'fields' => array( 'email', 'roles' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A fully redacted field request should still succeed.' );
-		$this->assertSame( array( 'id' => $this->public_author_id ), $result, 'A fully redacted field request should return only the user ID.' );
+		$this->assertSame( array( 'id' => self::$fixture_ids['public_author'] ), $result, 'A fully redacted field request should return only the user ID.' );
 		$this->assertSame(
-			sprintf( '{"id":%d}', $this->public_author_id ),
+			sprintf( '{"id":%d}', self::$fixture_ids['public_author'] ),
 			wp_json_encode( $result ),
 			'A fully redacted field request should serialize as a JSON object.'
 		);
 
 		$collection = $ability->execute(
 			array(
-				'include' => array( $this->public_author_id ),
+				'include' => array( self::$fixture_ids['public_author'] ),
 				'fields'  => array( 'email' ),
 			)
 		);
 
 		$this->assertIsArray( $collection, 'A collection with redacted fields should return the wrapper.' );
 		$this->assertSame(
-			array( 'id' => $this->public_author_id ),
+			array( 'id' => self::$fixture_ids['public_author'] ),
 			$collection['users'][0],
 			'Redacted collection entries should still contain the user ID.'
 		);
@@ -1221,18 +1146,18 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_object_input_behaves_like_array_input(): void {
-		wp_set_current_user( $this->subscriber_id );
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			(object) array(
-				'id'     => $this->subscriber_id,
+				'id'     => self::$fixture_ids['subscriber'],
 				'fields' => array( 'id', 'email' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'Object input should execute the single-user lookup.' );
-		$this->assertSame( $this->subscriber_id, $result['id'], 'Object input must resolve the requested user, not fall back to collection mode.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'Object input must resolve the requested user, not fall back to collection mode.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['email'], 'Object input should honor the requested fields.' );
 	}
 
@@ -1248,7 +1173,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_string_input_from_direct_calls_is_normalized(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
@@ -1263,8 +1188,8 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'A string boolean published-posts filter should execute.' );
 		$ids = wp_list_pluck( $result['users'], 'id' );
-		$this->assertContains( $this->public_author_id, $ids, 'The published-posts filter should include public authors.' );
-		$this->assertNotContains( $this->subscriber_id, $ids, 'A string "true" must enable the published-posts filter rather than being silently dropped.' );
+		$this->assertContains( self::$fixture_ids['public_author'], $ids, 'The published-posts filter should include public authors.' );
+		$this->assertNotContains( self::$fixture_ids['subscriber'], $ids, 'A string "true" must enable the published-posts filter rather than being silently dropped.' );
 
 		$result = $ability->execute(
 			array(
@@ -1277,17 +1202,17 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'A CSV roles filter should execute.' );
 		$ids = wp_list_pluck( $result['users'], 'id' );
 		$this->assertContains( self::$fixture_ids['editor'], $ids, 'The roles filter should include editors.' );
-		$this->assertNotContains( $this->subscriber_id, $ids, 'A CSV roles value must filter by role rather than being silently dropped.' );
+		$this->assertNotContains( self::$fixture_ids['subscriber'], $ids, 'A CSV roles value must filter by role rather than being silently dropped.' );
 
 		$result = $ability->execute(
 			array(
-				'include' => (string) $this->subscriber_id,
+				'include' => (string) self::$fixture_ids['subscriber'],
 				'fields'  => 'id,email',
 			)
 		);
 
 		$this->assertIsArray( $result, 'A CSV include filter should execute.' );
-		$this->assertSame( array( $this->subscriber_id ), wp_list_pluck( $result['users'], 'id' ), 'A string include value must limit the query to the included IDs.' );
+		$this->assertSame( array( self::$fixture_ids['subscriber'] ), wp_list_pluck( $result['users'], 'id' ), 'A string include value must limit the query to the included IDs.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['users'][0]['email'], 'A CSV fields value must select the requested fields.' );
 
 		/*
@@ -1296,25 +1221,25 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		 */
 		$result = $ability->execute(
 			array(
-				'include' => array( (string) $this->subscriber_id, '0' . $this->subscriber_id ),
+				'include' => array( (string) self::$fixture_ids['subscriber'], '0' . self::$fixture_ids['subscriber'] ),
 				'fields'  => array( 'id' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A string-duplicate include filter should execute.' );
-		$this->assertSame( array( $this->subscriber_id ), wp_list_pluck( $result['users'], 'id' ), 'String-duplicate IDs must be deduplicated, not silently drop the include filter.' );
+		$this->assertSame( array( self::$fixture_ids['subscriber'] ), wp_list_pluck( $result['users'], 'id' ), 'String-duplicate IDs must be deduplicated, not silently drop the include filter.' );
 		$this->assertSame( 1, $result['total'], 'String-duplicate IDs should count as one included user.' );
 
 		// Schema validation also accepts numeric strings for integers.
 		$result = $ability->execute(
 			array(
-				'id'     => (string) $this->subscriber_id,
+				'id'     => (string) self::$fixture_ids['subscriber'],
 				'fields' => array( 'id' ),
 			)
 		);
 
 		$this->assertIsArray( $result, 'A numeric-string ID lookup should execute.' );
-		$this->assertSame( $this->subscriber_id, $result['id'], 'A numeric-string ID must resolve the single-user lookup.' );
+		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'A numeric-string ID must resolve the single-user lookup.' );
 
 		$result = $ability->execute(
 			array(
@@ -1338,12 +1263,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_unknown_requested_field_fails_schema_validation(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'     => $this->admin_id,
+				'id'     => self::$fixture_ids['administrator'],
 				'fields' => array( 'id', 'bogus_field' ),
 			)
 		);
@@ -1363,12 +1288,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 */
 	public function test_unavailable_requested_field_is_omitted(): void {
 		update_option( 'show_avatars', 0 );
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'     => $this->admin_id,
+				'id'     => self::$fixture_ids['administrator'],
 				'fields' => array( 'id', 'avatar_urls' ),
 			)
 		);
@@ -1383,8 +1308,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * WordPress allows this: wp_insert_user() rejects an empty login and an empty
 	 * nicename, but never an empty email. Imports and single sign-on plugins can
 	 * leave such rows behind.
-	 *
-	 * @ticket 64657
 	 *
 	 * @return int The new user ID.
 	 */
@@ -1416,7 +1339,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_empty_stored_email_does_not_fail_single_user_output(): void {
 		$user_id = $this->create_user_without_email();
 
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
@@ -1434,10 +1357,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	/**
 	 * A stored email that is_email() rejects is reported as null.
 	 *
-	 * WordPress runs sanitize_email() when saving. Depending on the WordPress
-	 * version, saving `a@@b.c` either stores an empty string or repairs it to
-	 * `a@b.c`, which is one character too short for is_email(). The declared
-	 * `email` format only holds because such values become null.
+	 * WordPress runs sanitize_email() when saving, which repairs `a@@b.c` to `a@b.c`,
+	 * one character too short for is_email(). The declared `email` format only holds
+	 * because such values become null.
 	 *
 	 * @ticket 64657
 	 */
@@ -1454,10 +1376,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$stored_email = get_userdata( $user_id )->user_email;
 
-		$this->assertContains( $stored_email, array( '', 'a@b.c' ), 'WordPress should either discard or repair the invalid address.' );
+		$this->assertSame( 'a@b.c', $stored_email, 'WordPress should repair the invalid address.' );
 		$this->assertFalse( is_email( $stored_email ), 'The stored address should still be rejected by is_email().' );
 
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
@@ -1482,7 +1404,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_empty_stored_email_does_not_fail_collection_output(): void {
 		$user_id = $this->create_user_without_email();
 
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
@@ -1495,7 +1417,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'One user with an empty stored email should not fail the whole collection.' );
 
 		$ids = wp_list_pluck( $result['users'], 'id' );
-		$this->assertContains( $this->admin_id, $ids, 'Users with valid emails should still be returned.' );
+		$this->assertContains( self::$fixture_ids['administrator'], $ids, 'Users with valid emails should still be returned.' );
 		$this->assertContains( $user_id, $ids, 'The user with an empty stored email should still be returned.' );
 	}
 
@@ -1515,7 +1437,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$wpdb->update( $wpdb->users, array( 'user_registered' => '0000-00-00 00:00:00' ), array( 'ID' => $user_id ) );
 		clean_user_cache( $user_id );
 
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/users-query' );
@@ -1533,7 +1455,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$collection = $ability->execute(
 			array(
-				'include' => array( $user_id, $this->admin_id ),
+				'include' => array( $user_id, self::$fixture_ids['administrator'] ),
 				'fields'  => array( 'id', 'registered_date' ),
 			)
 		);
@@ -1542,7 +1464,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$registered_dates = wp_list_pluck( $collection['users'], 'registered_date', 'id' );
 		$this->assertNull( $registered_dates[ $user_id ], 'The zero registration date should be reported as null in the collection.' );
-		$this->assertIsString( $registered_dates[ $this->admin_id ], 'A valid registration date in the same collection should still be reported.' );
+		$this->assertIsString( $registered_dates[ self::$fixture_ids['administrator'] ], 'A valid registration date in the same collection should still be reported.' );
 	}
 
 	/**
@@ -1556,8 +1478,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_suppressed_avatar_url_does_not_fail_output(): void {
-		update_option( 'show_avatars', 1 );
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		add_filter(
@@ -1569,10 +1490,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 			}
 		);
 
-		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => $this->admin_id ) );
+		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => self::$fixture_ids['administrator'] ) );
 
 		$this->assertIsArray( $result, 'A suppressed avatar URL should not fail a default-fields lookup.' );
-		$this->assertSame( $this->admin_id, $result['id'], 'The lookup should still resolve the requested user.' );
+		$this->assertSame( self::$fixture_ids['administrator'], $result['id'], 'The lookup should still resolve the requested user.' );
 		$this->assertSame(
 			array(
 				24 => null,
@@ -1590,8 +1511,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_partially_suppressed_avatar_urls_keep_the_resolved_sizes(): void {
-		update_option( 'show_avatars', 1 );
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
 		add_filter(
@@ -1607,7 +1527,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( 'core/users-query' )->execute(
 			array(
-				'id'     => $this->admin_id,
+				'id'     => self::$fixture_ids['administrator'],
 				'fields' => array( 'id', 'avatar_urls' ),
 			)
 		);
@@ -1625,10 +1545,10 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_missing_single_user_lookup_fails_closed(): void {
-		wp_set_current_user( $this->admin_id );
+		wp_set_current_user( self::$fixture_ids['administrator'] );
 		$this->register_ability();
 
-		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => 999999 ) );
+		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assertWPError( $result, 'Missing single-user lookups should fail closed.' );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Missing single-user lookups should use the invalid permissions error.' );
