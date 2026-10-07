@@ -139,6 +139,50 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an empty `default` on an object schema is sent as a JSON object.
+	 *
+	 * Abilities can declare `'default' => array()` for an object input schema,
+	 * and clients still receive `{}` instead of `[]`.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_wp_prepare_json_schema_for_client_converts_empty_object_default_to_object() {
+		$prepared = wp_prepare_json_schema_for_client(
+			array(
+				'type'    => 'object',
+				'default' => array(),
+			)
+		);
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertEquals( new stdClass(), $prepared['default'] );
+		$this->assertSame( '{}', wp_json_encode( $prepared['default'] ) );
+	}
+
+	/**
+	 * Tests that only an empty `default` on an object schema is converted.
+	 *
+	 * @ticket 64605
+	 */
+	public function test_wp_prepare_json_schema_for_client_keeps_other_defaults() {
+		$non_empty = wp_prepare_json_schema_for_client(
+			array(
+				'type'    => 'object',
+				'default' => array( 'a' => 1 ),
+			)
+		);
+		$array     = wp_prepare_json_schema_for_client(
+			array(
+				'type'    => 'array',
+				'default' => array(),
+			)
+		);
+
+		$this->assertSame( array( 'a' => 1 ), $non_empty['default'] );
+		$this->assertSame( array(), $array['default'] );
+	}
+
+	/**
 	 * @ticket 64955
 	 */
 	public function test_wp_prepare_json_schema_for_client_strips_keywords_from_nested_sub_schemas() {
