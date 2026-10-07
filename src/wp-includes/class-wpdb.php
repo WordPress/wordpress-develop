@@ -2306,6 +2306,7 @@ class wpdb {
 
 		// User has reached 'max_questions' stop retrying
 		if ( 1226 === $mysql_errno ) {
+			wp_load_translations_early();
 			$message = '<h1>' . __( 'Cannot query database' ) . "</h1>\n";
 			$message .= '<p>' . __( 'The database server could be connected to (which means username and password is okay) but the query could not be performed.' ) . '<br>';
 			$message .= sprintf( $this->last_error );
