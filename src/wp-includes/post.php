@@ -1453,6 +1453,8 @@ function _wp_privacy_statuses() {
  *                                                  Default to false.
  * }
  * @return object
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_status
  */
 function register_post_status( $post_status, $args = array() ) {
 	global $wp_post_statuses;
