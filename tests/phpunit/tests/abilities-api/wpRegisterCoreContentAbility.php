@@ -139,7 +139,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Removes the ability and its category after each test.
+	 * Removes the ability and its category, and resets the post types, after each test.
 	 *
 	 * @since 7.2.0
 	 */
@@ -151,6 +151,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		if ( wp_has_ability_category( 'content' ) ) {
 			wp_unregister_ability_category( 'content' );
 		}
+
+		/*
+		 * Keep this reset even though the parent set_up() also resets the post types. A test
+		 * may turn off `show_in_abilities` on `post` and `page`, and the next class's
+		 * set_up_before_class() runs before the next set_up(). A class that registers the core
+		 * abilities there, such as Tests_REST_API_WpRestAbilitiesContentController, would then
+		 * register no content ability, and all of its tests would fail.
+		 */
+		$this->reset_post_types();
 
 		parent::tear_down();
 	}
