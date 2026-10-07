@@ -39,5 +39,8 @@
   "scripts": {
     "build": "postcss style.css --use cssnano -o style.min.css --no-map",
     "watch": "postcss style.css --use cssnano -o style.min.css --no-map --watch"
+  },
+  "allowScripts": {
+    "fsevents": false
   }
 }
