@@ -204,8 +204,9 @@ OPTIONS;
 		$views = $this->table->get_views();
 
 		$this->assertArrayHasKey( 'all', $views, 'The "All" view should always be shown.' );
-		$this->assertArrayNotHasKey( 'moderated', $views, 'Views with a zero count should be hidden.' );
-		$this->assertArrayNotHasKey( 'approved', $views, 'Views with a zero count should be hidden.' );
+		$this->assertArrayHasKey( 'moderated', $views, '"Pending" should always be shown, even at zero.' );
+		$this->assertArrayHasKey( 'approved', $views, '"Approved" should always be shown, even at zero.' );
+		$this->assertArrayNotHasKey( 'mine', $views, 'Views with a zero count should be hidden.' );
 		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should be hidden.' );
 		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should be hidden.' );
 	}
@@ -227,9 +228,25 @@ OPTIONS;
 		$views = $this->table->get_views();
 
 		$this->assertArrayHasKey( 'approved', $views, 'A view with a nonzero count should be shown.' );
-		$this->assertArrayNotHasKey( 'moderated', $views, 'Views with a zero count should still be hidden.' );
+		$this->assertArrayHasKey( 'moderated', $views, '"Pending" should always be shown, even at zero.' );
 		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should still be hidden.' );
 		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should still be hidden.' );
+	}
+
+	/**
+	 * @covers WP_Comments_List_Table::get_views
+	 */
+	public function test_get_views_should_not_hide_the_currently_active_status() {
+		$_REQUEST['comment_status'] = 'spam';
+
+		$this->table->prepare_items();
+
+		$views = $this->table->get_views();
+
+		$this->assertArrayHasKey( 'spam', $views, 'The currently active view must never be hidden, even at zero count.' );
+		$this->assertStringContainsString( 'class="current"', $views['spam'], 'The currently active view should be marked current.' );
+
+		unset( $_REQUEST['comment_status'] );
 	}
 
 	/**

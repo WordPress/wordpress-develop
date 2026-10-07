@@ -327,8 +327,18 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$num_comments->$status = 10;
 			}
 
-			// Don't show statuses (other than "All") with zero comments, as on the Posts list table.
-			if ( 'all' !== $status && empty( $num_comments->$status ) ) {
+			/*
+			 * Don't show "Mine", "Spam", or "Trash" when they have zero comments, to avoid
+			 * cluttering the moderation queue with filters that return no results. "All",
+			 * "Pending", and "Approved" always stay visible: pending is an active task queue
+			 * where "(0)" is reassuring confirmation, and approved is the default working view.
+			 * The currently requested view is never hidden, regardless of its count, so the
+			 * admin always has a visual indicator of what's being filtered (e.g. landing on
+			 * ?comment_status=moderated from a notification after it's already been cleared).
+			 */
+			$always_visible = array( 'all', 'moderated', 'approved' );
+
+			if ( ! in_array( $status, $always_visible, true ) && empty( $num_comments->$status ) && $status !== $comment_status ) {
 				continue;
 			}
 
