@@ -107,9 +107,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_when_no_plugin_page_is_set() {
-		global $plugin_page;
-
-		unset( $plugin_page );
+		unset( $GLOBALS['plugin_page'] );
 
 		$this->assertTrue( wp_admin_page_exists() );
 	}
