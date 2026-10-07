@@ -36,51 +36,20 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected $reaction_summaries = null;
 
 	/**
-	 * Retrieves the curated list of emoji reactions allowed for note comments.
+	 * Retrieves the hex keys of the emoji a note reaction accepts.
 	 *
-	 * Each entry is an associative array with:
-	 * - `emoji` (string) The emoji character.
-	 * - `label` (string) A human-readable label.
-	 * - `value` (string) The slug used as the storage key in `comment_content`.
-	 *
-	 * Reactions submitted to the REST API may also use a lowercase
-	 * hex-codepoint sequence (e.g. `1f44d`) to represent emojis outside the
-	 * curated set; see create_item().
+	 * Each key is the emoji's lowercase code points, padded to four digits,
+	 * matching the client's `emojiToHexKey()`. A reaction stores its key in
+	 * `comment_content`.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<array<string, string>> List of emoji definitions, each with `emoji`, `label`, and `value` keys.
-	 * 
-	 * @phpstan-return non-empty-list<array{ emoji: non-falsy-string, label: string, value: lowercase-string&truthy-string }>
+	 * @return string[] Hex keys for heart, celebration, smile, eyes and rocket.
+	 *
+	 * @phpstan-return non-empty-list<lowercase-string&non-falsy-string>
 	 */
-	protected static function get_note_reaction_emojis(): array {
-		return array(
-			array(
-				'emoji' => '❤️',
-				'label' => __( 'Heart' ),
-				'value' => 'heart',
-			),
-			array(
-				'emoji' => '🎉',
-				'label' => __( 'Celebration' ),
-				'value' => 'celebration',
-			),
-			array(
-				'emoji' => '😄',
-				'label' => __( 'Smile' ),
-				'value' => 'smile',
-			),
-			array(
-				'emoji' => '👀',
-				'label' => __( 'Eyes' ),
-				'value' => 'eyes',
-			),
-			array(
-				'emoji' => '🚀',
-				'label' => __( 'Rocket' ),
-				'value' => 'rocket',
-			),
-		);
+	private static function get_note_reaction_keys(): array {
+		return array( '2764', '1f389', '1f604', '1f440', '1f680' );
 	}
 
 	/**
@@ -763,10 +732,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * The canonical reaction slug, populated once validated below so the
+		 * The canonical reaction key, populated once validated below so the
 		 * stored content matches what was validated (not the raw input).
 		 */
-		$reaction_slug = null;
+		$reaction_key = null;
 
 		// Validate reaction-specific constraints.
 		if ( ! empty( $request['type'] ) && 'reaction' === $request['type'] ) {
@@ -799,21 +768,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/*
-			 * Validate the reaction content. Two shapes are accepted:
+			 * Validate the reaction content: the hex key of one of the curated
+			 * reaction emoji, as listed by self::get_note_reaction_keys() (e.g.
+			 * `2764` for the heart). Raw emoji bytes are rejected because the
+			 * comments table is not guaranteed to be utf8mb4 across all WordPress
+			 * installs; clients are expected to normalize before submitting.
 			 *
-			 * - A curated slug (e.g. `heart`) from self::get_note_reaction_emojis().
-			 * - A lowercase hex-codepoint sequence joined by `-` (e.g. `1f44d`
-			 *   for 👍 or `1f468-200d-1f4bb` for 👨‍💻), which is how a client
-			 *   offering a full emoji picker stores a pick outside the curated
-			 *   list. The client decodes the sequence back into the emoji.
-			 *
-			 * Raw emoji bytes are rejected because the comments table is not
-			 * guaranteed to be utf8mb4 across all WordPress installs; clients
-			 * are expected to normalize before submitting. Variation selector
-			 * U+FE0F is dropped on the client so visually-equivalent
-			 * presentations collapse onto a single key.
-			 */
-			/*
 			 * Read the content the same two ways prepare_item_for_database()
 			 * does, so `content` and `content.raw` are both accepted.
 			 */
@@ -824,28 +784,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				$raw_content = $request['content']['raw'];
 			}
 
-			$valid_slugs = wp_list_pluck( self::get_note_reaction_emojis(), 'value' );
-			$emoji_slug  = trim( wp_strip_all_tags( $raw_content ) );
+			$emoji_key = trim( wp_strip_all_tags( $raw_content ) );
 
-			$is_curated_slug = in_array( $emoji_slug, $valid_slugs, true );
-			$is_hex_key      = (bool) preg_match( '/^[0-9a-f]{2,6}(-[0-9a-f]{2,6}){0,15}$/', $emoji_slug );
-
-			/*
-			 * A hex-shaped slug must still be made of assignable Unicode code
-			 * points: reject anything above U+10FFFF or in the UTF-16 surrogate
-			 * range (U+D800–U+DFFF).
-			 */
-			if ( $is_hex_key ) {
-				foreach ( explode( '-', $emoji_slug ) as $codepoint ) {
-					$value = hexdec( $codepoint );
-					if ( $value > 0x10FFFF || ( $value >= 0xD800 && $value <= 0xDFFF ) ) {
-						$is_hex_key = false;
-						break;
-					}
-				}
-			}
-
-			if ( '' === $emoji_slug || ( ! $is_curated_slug && ! $is_hex_key ) ) {
+			if ( ! in_array( $emoji_key, self::get_note_reaction_keys(), true ) ) {
 				return new WP_Error(
 					'rest_comment_invalid_reaction',
 					__( 'Invalid reaction emoji.' ),
@@ -884,7 +825,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 
 			foreach ( $existing as $existing_reaction ) {
-				if ( wp_strip_all_tags( $existing_reaction->comment_content ) === $emoji_slug ) {
+				if ( wp_strip_all_tags( $existing_reaction->comment_content ) === $emoji_key ) {
 					return new WP_Error(
 						'rest_comment_duplicate_reaction',
 						__( 'You have already reacted with this emoji.' ),
@@ -893,7 +834,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				}
 			}
 
-			$reaction_slug = $emoji_slug;
+			$reaction_key = $emoji_key;
 		}
 
 		$prepared_comment = $this->prepare_item_for_database( $request );
@@ -904,12 +845,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$prepared_comment['comment_type'] = $request['type'];
 
 		/*
-		 * Persist the validated, canonical reaction slug rather than the raw
+		 * Persist the validated, canonical reaction key rather than the raw
 		 * request content, so stored values stay consistent for grouping and
-		 * counting (e.g. "<b>heart</b>" is stored as "heart").
+		 * counting (e.g. "<b>2764</b>" is stored as "2764").
 		 */
-		if ( null !== $reaction_slug ) {
-			$prepared_comment['comment_content'] = $reaction_slug;
+		if ( null !== $reaction_key ) {
+			$prepared_comment['comment_content'] = $reaction_key;
 		}
 
 		if ( ! isset( $prepared_comment['comment_content'] ) ) {
@@ -954,7 +895,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * carried. Author fields alone leave `user_id` at 0, which the uniqueness
 		 * check and the reaction summary both key on.
 		 */
-		if ( null !== $reaction_slug ) {
+		if ( null !== $reaction_key ) {
 			$user = wp_get_current_user();
 
 			$prepared_comment['user_id']              = $user->ID;
@@ -1063,7 +1004,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * all settle on the same surviving row. If this request's own row lost
 		 * the race, repoint the response to the survivor.
 		 */
-		if ( null !== $reaction_slug ) {
+		if ( null !== $reaction_key ) {
 			$matching   = get_comments(
 				array(
 					'parent'  => $request['parent'],
@@ -1076,7 +1017,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			);
 			$duplicates = array();
 			foreach ( $matching as $candidate ) {
-				if ( wp_strip_all_tags( $candidate->comment_content ) === $reaction_slug ) {
+				if ( wp_strip_all_tags( $candidate->comment_content ) === $reaction_key ) {
 					$duplicates[] = (int) $candidate->comment_ID;
 				}
 			}
@@ -1101,7 +1042,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * Skipping them here also keeps a request from changing the status of a
 		 * row that the race cleanup above may have handed it from another request.
 		 */
-		if ( isset( $request['status'] ) && null === $reaction_slug ) {
+		if ( isset( $request['status'] ) && null === $reaction_key ) {
 			$this->handle_status_param( $request['status'], $comment_id );
 		}
 
@@ -1177,11 +1118,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		/*
 		 * Reactions are immutable. create_item() validates the author, parent
-		 * note, target post and canonical emoji slug as a set, and none of that
+		 * note, target post and canonical emoji hex key as a set, and none of that
 		 * is re-checked here. Allowing an update would let anyone who can edit
 		 * the note's post reattribute a reaction to another user, move it to a
 		 * note on a post they cannot edit, or store a duplicate or invalid
-		 * slug. Removing a reaction is a delete.
+		 * key. Removing a reaction is a delete.
 		 */
 		if ( 'reaction' === $comment->comment_type ) {
 			return new WP_Error(
@@ -1977,32 +1918,8 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 					'default'     => 'comment',
 				),
-				'reaction_emojis'   => array(
-					'description' => __( 'Allowed emoji reactions for notes.' ),
-					'type'        => 'array',
-					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true,
-					'items'       => array(
-						'type'       => 'object',
-						'properties' => array(
-							'emoji' => array(
-								'description' => __( 'The emoji character.' ),
-								'type'        => 'string',
-							),
-							'label' => array(
-								'description' => __( 'A human-readable label for the emoji.' ),
-								'type'        => 'string',
-							),
-							'value' => array(
-								'description' => __( 'The slug used as the storage key.' ),
-								'type'        => 'string',
-							),
-						),
-					),
-					'default'     => self::get_note_reaction_emojis(),
-				),
 				'reaction_summary'  => array(
-					'description'          => __( 'Aggregated reaction counts for this note, keyed by emoji slug.' ),
+					'description'          => __( 'Aggregated reaction counts for this note, keyed by emoji hex key.' ),
 					'type'                 => 'object',
 					'context'              => array( 'view', 'edit' ),
 					'readonly'             => true,
@@ -2386,11 +2303,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		foreach ( $counts as $row ) {
-			$note_id = (int) $row->comment_parent;
-			$slug    = wp_strip_all_tags( $row->comment_content );
-			$key     = $note_id . ':' . $slug;
+			$note_id   = (int) $row->comment_parent;
+			$emoji_key = wp_strip_all_tags( $row->comment_content );
+			$key       = $note_id . ':' . $emoji_key;
 
-			$this->reaction_summaries[ $note_id ][ $slug ] = array(
+			$this->reaction_summaries[ $note_id ][ $emoji_key ] = array(
 				'count'                 => (int) $row->reaction_count,
 				'current_user_reaction' => $my_reactions[ $key ] ?? 0,
 			);
@@ -2522,7 +2439,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		// Reactions always have content (the emoji slug), so allow them.
+		// Reactions always have content (the emoji hex key), so allow them.
 		if ( isset( $check['comment_type'] ) && 'reaction' === $check['comment_type'] ) {
 			return true;
 		}

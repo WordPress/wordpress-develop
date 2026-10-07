@@ -2013,17 +2013,17 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Creates an approved reaction on a note.
 	 *
 	 * @param int    $note_id Parent note comment ID.
-	 * @param string $slug    Reaction storage slug.
+	 * @param string $key     Reaction hex key.
 	 * @return int Reaction comment ID.
 	 */
-	private function create_reaction_on_note( $note_id, $slug = 'heart' ) {
+	private function create_reaction_on_note( $note_id, $key = '2764' ) {
 		return self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_id,
 				'comment_type'     => 'reaction',
 				'comment_parent'   => $note_id,
 				'comment_approved' => '1',
-				'comment_content'  => $slug,
+				'comment_content'  => $key,
 			)
 		);
 	}
@@ -2050,7 +2050,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$reaction_1 = $this->create_reaction_on_note( $note_id );
-		$reaction_2 = $this->create_reaction_on_note( $note_id, 'rocket' );
+		$reaction_2 = $this->create_reaction_on_note( $note_id, '1f680' );
 
 		wp_delete_comment( $note_id, true );
 
@@ -2265,7 +2265,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$approved = $this->create_reaction_on_note( $note_id );
-		$trashed  = $this->create_reaction_on_note( $note_id, 'rocket' );
+		$trashed  = $this->create_reaction_on_note( $note_id, '1f680' );
 		wp_trash_comment( $trashed );
 
 		wp_delete_comment( $note_id, true );
@@ -2302,7 +2302,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$heart  = $this->create_reaction_on_note( $note_id );
-		$rocket = $this->create_reaction_on_note( $note_id, 'rocket' );
+		$rocket = $this->create_reaction_on_note( $note_id, '1f680' );
 
 		// A reply is a child of the note, but it is not a reaction.
 		self::factory()->comment->create(
@@ -2332,7 +2332,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$approved = $this->create_reaction_on_note( $note_id );
-		$trashed  = $this->create_reaction_on_note( $note_id, 'rocket' );
+		$trashed  = $this->create_reaction_on_note( $note_id, '1f680' );
 		wp_trash_comment( $trashed );
 
 		$this->assertSame( array( $approved ), array_map( 'intval', wp_get_note_reaction_ids( $note_id, 'approve' ) ), 'Only the approved reaction was expected.' );

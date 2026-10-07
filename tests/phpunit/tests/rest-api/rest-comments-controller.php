@@ -3335,7 +3335,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 19, $properties );
+		$this->assertCount( 18, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_avatar_urls', $properties );
@@ -3351,7 +3351,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'post', $properties );
-		$this->assertArrayHasKey( 'reaction_emojis', $properties );
 		$this->assertArrayHasKey( 'reaction_summary', $properties );
 		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
@@ -4330,7 +4329,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4342,7 +4341,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$data        = $response->get_data();
 		$new_comment = get_comment( $data['id'] );
-		$this->assertSame( 'heart', $new_comment->comment_content );
+		$this->assertSame( '2764', $new_comment->comment_content );
 		$this->assertSame( 'reaction', $new_comment->comment_type );
 		$this->assertSame( (string) $note_id, $new_comment->comment_parent );
 	}
@@ -4371,7 +4370,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $comment_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4396,7 +4395,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			wp_json_encode(
 				array(
 					'post'    => $post_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4467,7 +4466,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -4479,7 +4478,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4515,7 +4514,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4533,7 +4532,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'rocket',
+					'content' => '1f680',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4568,7 +4567,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 				)
 			)
@@ -4579,18 +4578,16 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * A hex-codepoint sequence (e.g. `1f44d` for 👍) is accepted as a
-	 * reaction slug, supporting emojis outside the curated set. It is the
-	 * storage format a client offering a full emoji picker submits, and the
-	 * one it decodes back into the emoji.
+	 * Each curated reaction emoji is accepted by its hex key: the emoji's
+	 * lowercase code points, padded to four digits.
 	 *
 	 * @ticket 63191
 	 *
-	 * @dataProvider data_hex_codepoint_slugs
+	 * @dataProvider data_curated_reaction_keys
 	 *
-	 * @param string $slug The hex-codepoint slug to submit.
+	 * @param string $key The reaction hex key to submit.
 	 */
-	public function test_create_reaction_accepts_hex_codepoint_slug( $slug ) {
+	public function test_create_reaction_accepts_curated_key( $key ) {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -4611,7 +4608,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => $slug,
+					'content' => $key,
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4622,21 +4619,22 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 201, $response->get_status() );
 
 		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( $slug, $new_comment->comment_content );
+		$this->assertSame( $key, $new_comment->comment_content );
 	}
 
-	public function data_hex_codepoint_slugs() {
+	public function data_curated_reaction_keys() {
 		return array(
-			'single codepoint'  => array( '1f44d' ),
-			'ZWJ sequence'      => array( '1f468-200d-1f4bb' ),
-			'assignable ASCII'  => array( '41' ),
-			'skin-tone variant' => array( '270b-1f3ff' ),
+			'2764'        => array( '2764' ),
+			'celebration' => array( '1f389' ),
+			'smile'       => array( '1f604' ),
+			'eyes'        => array( '1f440' ),
+			'1f680'       => array( '1f680' ),
 		);
 	}
 
 	/**
-	 * Raw emoji bytes must be rejected — clients are expected to normalize
-	 * to a curated slug or hex-codepoint sequence before submitting.
+	 * Raw emoji bytes must be rejected - clients are expected to normalize
+	 * to a curated hex key before submitting.
 	 *
 	 * @ticket 63191
 	 */
@@ -4701,7 +4699,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 'trash',
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -4712,7 +4710,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4750,7 +4748,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4763,17 +4761,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 
 	/**
-	 * A hex-shaped slug must be made of assignable Unicode code points:
-	 * values above U+10FFFF or in the UTF-16 surrogate range are rejected,
-	 * as is a sequence that is not lowercase.
+	 * Only the curated hex keys are accepted. Other emoji, even when
+	 * submitted as well-formed hex keys, are rejected, as are the slugs an
+	 * earlier version of the API accepted and keys that are not lowercase.
 	 *
 	 * @ticket 63191
 	 *
-	 * @dataProvider data_invalid_codepoint_slugs
+	 * @dataProvider data_uncurated_reaction_keys
 	 *
-	 * @param string $slug The invalid hex-codepoint slug to submit.
+	 * @param string $key The reaction content to submit.
 	 */
-	public function test_create_reaction_rejects_invalid_codepoints( $slug ) {
+	public function test_create_reaction_rejects_uncurated_key( $key ) {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -4794,7 +4792,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => $slug,
+					'content' => $key,
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4805,25 +4803,25 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
 	}
 
-	public function data_invalid_codepoint_slugs() {
+	public function data_uncurated_reaction_keys() {
 		return array(
-			'above U+10FFFF'               => array( 'ffffff' ),
-			'lead surrogate U+D800'        => array( 'd800' ),
-			'trail surrogate U+DFFF'       => array( 'dfff' ),
-			'surrogate inside a sequence'  => array( '1f44d-d9ab' ),
-			'above U+10FFFF in a sequence' => array( '1f468-200d-110000' ),
-			'uppercase hex'                => array( '1F44D' ),
+			'uncurated emoji'         => array( '1f44d' ),
+			'ZWJ sequence'            => array( '1f468-200d-1f4bb' ),
+			'with variation selector' => array( '2764-fe0f' ),
+			'uppercase key'           => array( '1F680' ),
+			'slug'                    => array( 'heart' ),
+			'empty'                   => array( '' ),
 		);
 	}
 
 	/**
-	 * The stored reaction content is the validated, canonical slug — markup
-	 * around the slug must not reach the database, or `reaction_summary`
+	 * The stored reaction content is the validated, canonical key - markup
+	 * around the key must not reach the database, or `reaction_summary`
 	 * grouping would split visually identical reactions.
 	 *
 	 * @ticket 63191
 	 */
-	public function test_create_reaction_stores_canonical_slug() {
+	public function test_create_reaction_stores_canonical_key() {
 		wp_set_current_user( self::$editor_id );
 
 		$post_id = self::factory()->post->create();
@@ -4844,7 +4842,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => '<b>heart</b>',
+					'content' => '<b>2764</b>',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -4855,7 +4853,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 201, $response->get_status() );
 
 		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( 'heart', $new_comment->comment_content );
+		$this->assertSame( '2764', $new_comment->comment_content );
 	}
 
 	/**
@@ -4884,7 +4882,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => array( 'raw' => 'rocket' ),
+					'content' => array( 'raw' => '1f680' ),
 					'type'    => 'reaction',
 				)
 			)
@@ -4894,7 +4892,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 201, $response->get_status() );
 
 		$new_comment = get_comment( $response->get_data()['id'] );
-		$this->assertSame( 'rocket', $new_comment->comment_content );
+		$this->assertSame( '1f680', $new_comment->comment_content );
 	}
 
 	/**
@@ -4931,7 +4929,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'status'  => $status,
 				)
@@ -5009,7 +5007,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 						'comment_post_ID'  => $post_id,
 						'comment_parent'   => $note_id,
 						'comment_type'     => 'reaction',
-						'comment_content'  => 'heart',
+						'comment_content'  => '2764',
 						'comment_approved' => 1,
 						'user_id'          => self::$editor_id,
 					)
@@ -5027,7 +5025,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					array(
 						'post'    => $post_id,
 						'parent'  => $note_id,
-						'content' => 'heart',
+						'content' => '2764',
 						'type'    => 'reaction',
 						'author'  => self::$editor_id,
 					)
@@ -5052,7 +5050,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			array_filter(
 				$remaining,
 				static function ( $comment ) {
-					return 'heart' === $comment->comment_content;
+					return '2764' === $comment->comment_content;
 				}
 			)
 		);
@@ -5109,7 +5107,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 						'comment_post_ID'  => $post_id,
 						'comment_parent'   => $note_id,
 						'comment_type'     => 'reaction',
-						'comment_content'  => 'heart',
+						'comment_content'  => '2764',
 						'comment_approved' => 1,
 						'user_id'          => self::$editor_id,
 					)
@@ -5128,7 +5126,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					array(
 						'post'    => $post_id,
 						'parent'  => $note_id,
-						'content' => 'heart',
+						'content' => '2764',
 						'type'    => 'reaction',
 						'author'  => self::$editor_id,
 					)
@@ -5151,17 +5149,17 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @param int    $post_id Post the parent note belongs to.
 	 * @param int    $note_id Parent note comment ID.
 	 * @param int    $user_id Reacting user ID.
-	 * @param string $slug    Reaction storage slug.
+	 * @param string $key     Reaction hex key.
 	 * @return int Reaction comment ID.
 	 */
-	private function create_reaction_for_update_tests( $post_id, $note_id, $user_id, $slug = 'heart' ) {
+	private function create_reaction_for_update_tests( $post_id, $note_id, $user_id, $key = '2764' ) {
 		return self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_parent'   => $note_id,
 				'comment_type'     => 'reaction',
 				'comment_approved' => 1,
-				'comment_content'  => $slug,
+				'comment_content'  => $key,
 				'user_id'          => $user_id,
 			)
 		);
@@ -5169,7 +5167,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * Reactions are validated as a set on create - author, parent note, target
-	 * post and canonical slug - and the generic update route re-validates none
+	 * post and canonical key - and the generic update route re-validates none
 	 * of it, so updating a reaction is not allowed at all.
 	 *
 	 * @ticket 63191
@@ -5190,11 +5188,11 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$editor_id );
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/comments/' . $reaction_id );
 		$request->add_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'content' => 'rocket' ) ) );
+		$request->set_body( wp_json_encode( array( 'content' => '1f680' ) ) );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_comment_update_not_allowed', $response, 403 );
-		$this->assertSame( 'heart', get_comment( $reaction_id )->comment_content );
+		$this->assertSame( '2764', get_comment( $reaction_id )->comment_content );
 	}
 
 	/**
@@ -5303,7 +5301,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * The note response exposes a `reaction_summary` field aggregating
-	 * counts per emoji slug, plus the current user's reaction ID as
+	 * counts per emoji hex key, plus the current user's reaction ID as
 	 * `current_user_reaction`.
 	 *
 	 * @ticket 63191
@@ -5329,7 +5327,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5340,7 +5338,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$subscriber_id,
-				'comment_content'  => 'rocket',
+				'comment_content'  => '1f680',
 			)
 		);
 
@@ -5350,29 +5348,13 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'reaction_summary', $data );
-		$this->assertArrayHasKey( 'heart', $data['reaction_summary'] );
-		$this->assertSame( 1, $data['reaction_summary']['heart']['count'] );
-		$this->assertSame( $heart_id, $data['reaction_summary']['heart']['current_user_reaction'] );
+		$this->assertArrayHasKey( '2764', $data['reaction_summary'] );
+		$this->assertSame( 1, $data['reaction_summary']['2764']['count'] );
+		$this->assertSame( $heart_id, $data['reaction_summary']['2764']['current_user_reaction'] );
 
-		$this->assertArrayHasKey( 'rocket', $data['reaction_summary'] );
-		$this->assertSame( 1, $data['reaction_summary']['rocket']['count'] );
-		$this->assertSame( 0, $data['reaction_summary']['rocket']['current_user_reaction'] );
-	}
-
-	/**
-	 * Comment schema exposes the curated reaction emoji list so clients
-	 * can discover which slugs the server accepts.
-	 *
-	 * @ticket 63191
-	 */
-	public function test_comment_schema_exposes_reaction_emojis() {
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/comments' );
-		$response = rest_get_server()->dispatch( $request );
-		$schema   = $response->get_data()['schema'];
-
-		$this->assertArrayHasKey( 'reaction_emojis', $schema['properties'] );
-		$slugs = wp_list_pluck( $schema['properties']['reaction_emojis']['default'], 'value' );
-		$this->assertSame( array( 'heart', 'celebration', 'smile', 'eyes', 'rocket' ), $slugs );
+		$this->assertArrayHasKey( '1f680', $data['reaction_summary'] );
+		$this->assertSame( 1, $data['reaction_summary']['1f680']['count'] );
+		$this->assertSame( 0, $data['reaction_summary']['1f680']['current_user_reaction'] );
 	}
 
 	/**
@@ -5404,7 +5386,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5460,7 +5442,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				array(
 					'post'    => $post_id,
 					'parent'  => $note_id,
-					'content' => 'heart',
+					'content' => '2764',
 					'type'    => 'reaction',
 					'author'  => self::$editor_id,
 				)
@@ -5509,7 +5491,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			array(
 				'post'         => $post_id,
 				'parent'       => $note_id,
-				'content'      => 'heart',
+				'content'      => '2764',
 				'type'         => 'reaction',
 				'author_name'  => 'Someone Else',
 				'author_email' => 'someone@example.com',
@@ -5562,7 +5544,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5598,7 +5580,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5640,7 +5622,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 					'comment_parent'   => $note_id,
 					'comment_approved' => 1,
 					'user_id'          => self::$editor_id,
-					'comment_content'  => 'heart',
+					'comment_content'  => '2764',
 				)
 			);
 		}
@@ -5661,8 +5643,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		foreach ( $data as $note ) {
 			$this->assertArrayHasKey( 'reaction_summary', $note );
-			$this->assertSame( 1, $note['reaction_summary']['heart']['count'] );
-			$this->assertGreaterThan( 0, $note['reaction_summary']['heart']['current_user_reaction'] );
+			$this->assertSame( 1, $note['reaction_summary']['2764']['count'] );
+			$this->assertGreaterThan( 0, $note['reaction_summary']['2764']['current_user_reaction'] );
 		}
 
 		/*
@@ -5699,7 +5681,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5734,7 +5716,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$admin_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 		$my_reaction_id    = self::factory()->comment->create(
@@ -5744,7 +5726,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
@@ -5753,9 +5735,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/comments/' . $note_id ) );
 		$summary  = $response->get_data()['reaction_summary'];
 
-		$this->assertSame( 2, $summary['heart']['count'], 'Both users should be counted under the same emoji.' );
-		$this->assertSame( $my_reaction_id, $summary['heart']['current_user_reaction'] );
-		$this->assertNotSame( $their_reaction_id, $summary['heart']['current_user_reaction'] );
+		$this->assertSame( 2, $summary['2764']['count'], 'Both users should be counted under the same emoji.' );
+		$this->assertSame( $my_reaction_id, $summary['2764']['current_user_reaction'] );
+		$this->assertNotSame( $their_reaction_id, $summary['2764']['current_user_reaction'] );
 	}
 
 	/**
@@ -5782,7 +5764,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				'comment_parent'   => $note_id,
 				'comment_approved' => 1,
 				'user_id'          => self::$editor_id,
-				'comment_content'  => 'heart',
+				'comment_content'  => '2764',
 			)
 		);
 
