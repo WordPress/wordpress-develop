@@ -215,4 +215,34 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
 		$this->assertNotWPError( $created, 'Second attempt to create an application password should not return an error' );
 	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_create_application_password_rejects_past_expiration() {
+		$result = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'Past Expire App',
+				'expires' => time() - DAY_IN_SECONDS,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'application_password_past_expiration', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_get_expiry_presets() {
+		$presets = WP_Application_Passwords::get_expiry_presets();
+
+		$this->assertIsArray( $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_7_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_30_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_90_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_NO_EXPIRY, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_CUSTOM, $presets );
+	}
 }

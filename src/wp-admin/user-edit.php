@@ -34,6 +34,14 @@ wp_enqueue_script( 'user-profile' );
 
 if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
 	wp_enqueue_script( 'application-passwords' );
+	wp_localize_script(
+		'application-passwords',
+		'wpApplicationPasswordsSettings',
+		array(
+			'currentDate' => wp_date( 'Y-m-d' ),
+			'todayEndIso' => wp_date( 'c', strtotime( 'today 23:59:59', current_datetime()->getTimestamp() ) ),
+		)
+	);
 }
 
 if ( IS_PROFILE_PAGE ) {
@@ -848,10 +856,26 @@ switch ( $action ) {
 											<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
 										</div>
 
+										<?php
+											/**
+											 * Expires field added @since 7.2.0
+											 */
+										?>
 										<div class="form-field">
-											<label for="new_application_password_expires"><?php _e( 'Expires on' ); ?></label>
-											<input type="date" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" />
-											<p class="description"><?php _e( 'Optional. Set an expiration date for this password.' ); ?></p>
+											<label for="new_application_password_expiration_preset"><?php _e( 'Expiration' ); ?></label>
+											<select id="new_application_password_expiration_preset" name="new_application_password_expiration_preset">
+												<?php foreach ( WP_Application_Passwords::get_expiry_presets() as $preset_key => $preset_label ) : ?>
+													<option value="<?php echo esc_attr( $preset_key ); ?>" <?php selected( $preset_key, WP_Application_Passwords::EXPIRY_30_DAYS ); ?>>
+														<?php echo esc_html( $preset_label ); ?>
+													</option>
+												<?php endforeach; ?>
+											</select>
+										</div>
+
+										<div class="form-field hidden" id="new_application_password_custom_expires_wrap">
+											<label for="new_application_password_expires"><?php _e( 'Custom expiration date' ); ?></label>
+											<input type="date" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" min="<?php echo esc_attr( wp_date( 'Y-m-d' ) ); ?>" />
+											<p class="description"><?php _e( 'The password will expire at the end of the selected day in your site timezone.' ); ?></p>
 										</div>
 
 										<?php

@@ -105,7 +105,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	/**
 	 * Handles the expires column output.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param array $item The current application password item.
 	 */
@@ -118,17 +118,12 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 				printf(
 					'%s',
 					/* translators: %s: Expiration date for the Application Password. */
-					sprintf( __( 'Expired on %s' ), $date )
+					sprintf( esc_html__( 'Expired on %s' ), esc_html( $date ) )
 				);
 			} else {
-				echo $date;
+				echo esc_html( $date );
 			}
 		}
-		printf(
-			'<br><button type="button" class="button-link edit-expires" aria-label="%s">%s</button>',
-			esc_attr__( 'Edit Application Password Expiration Date' ),
-			esc_html__( 'Edit Expiry' )
-		);
 	}
 
 	/**
@@ -281,7 +276,6 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					<# } else { #>
 						—
 					<# } #>
-					<br><button type="button" class="button-link edit-expires" aria-label="<?php esc_attr_e( 'Edit Expiration Date' ); ?>"><?php esc_html_e( 'Edit Expiry' ); ?></button>
 					<?php
 					break;
 				case 'revoke':
