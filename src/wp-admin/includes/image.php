@@ -834,7 +834,7 @@ function wp_exif_datetime( $str, $timezone = null ) {
 }
 
 /**
- * Converts the exif date format to an unix timestamp.
+ * Converts the exif date format to a Unix timestamp.
  *
  * @since 2.5.0
  * @since 7.2.0 Uses wp_exif_datetime() to generate the timestamp.
@@ -963,7 +963,7 @@ function wp_read_image_metadata( $file ) {
 				$datetime = wp_exif_datetime( $iptc['2#055'][0] . ' ' . $iptc['2#060'][0], 'UTC' );
 
 				if ( $datetime instanceof DateTimeImmutable ) {
-					// Store as a RFC3339 formatted timestring as this includes both date, time, and timezone.
+					// Store as an RFC3339 formatted timestring as this includes both date, time, and timezone.
 					$meta['created'] = $datetime->format( DATE_RFC3339 );
 					// Retain the original created timestamp for backcompat.
 					$meta['created_timestamp'] = $datetime->getTimestamp();
