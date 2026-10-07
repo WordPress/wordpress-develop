@@ -140,19 +140,24 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 		$can_edit = $this->check_edit_permission();
-		$user     = $request['user'];
+		$is_own   = $this->is_own_user_filter( $request );
+
+		if ( 'edit' === $context && ! $can_edit ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
 
 		// Only users who can manage sites may list the sites of another user.
-		if ( ! empty( $user ) && 'me' !== $user && get_current_user_id() !== $this->get_user_id_from_param( $user ) && ! $can_edit ) {
+		if ( ! empty( $request['user'] ) && ! $is_own && ! $can_edit ) {
 			return new WP_Error( 'rest_forbidden_user', __( 'Sorry, you are not allowed to list the sites of other users.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
-		// A user may list their own sites from any site, but only in the view context.
-		if ( 'view' === $context && $this->is_own_user_filter( $request ) ) {
-			if ( ! $can_edit && $this->has_edit_only_filter( $request ) ) {
-				return new WP_Error( 'rest_forbidden_param', __( 'Sorry, you are not allowed to filter or order sites by these parameters.' ), array( 'status' => 403 ) );
-			}
+		// Fields outside the view context must not be inferable through filters or ordering either.
+		if ( ! $can_edit && $this->has_edit_only_filter( $request ) ) {
+			return new WP_Error( 'rest_forbidden_param', __( 'Sorry, you are not allowed to filter or order sites by these parameters.' ), array( 'status' => 403 ) );
+		}
 
+		// A user may list their own sites from any site, but only in the view context.
+		if ( 'view' === $context && $is_own ) {
 			return true;
 		}
 
@@ -496,7 +501,12 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		}
 
 		// Check capabilities before looking up the site, so unauthorized users can't probe which site IDs exist.
-		$context   = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
+
+		if ( 'edit' === $context && ! $this->check_edit_permission() ) {
+			return new WP_Error( 'rest_forbidden_context', __( 'Sorry, you are not allowed to edit sites.' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
 		$is_member = 'view' === $context && is_user_member_of_blog( get_current_user_id(), (int) $request['id'] );
 
 		// Members may read their own sites from any site, everything else needs the main site.

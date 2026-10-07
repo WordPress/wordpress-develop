@@ -230,7 +230,8 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_forbidden_context', $response, 401 );
+		// Logged out, "me" is no one, so it is treated like another user's ID.
+		$this->assertErrorResponse( 'rest_forbidden_user', $response, 401 );
 	}
 
 	/**
@@ -2709,8 +2710,12 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertTrue( $check( $member_id, $target_id, 'view' ), 'A member may read the site in the view context.' );
 
+		$result = $check( $member_id, $target_id, 'edit' );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'rest_forbidden_context', $result->get_error_code(), 'The edit context needs the capability before the site matters.' );
+
 		$denied = array(
-			'member in edit context'  => array( $member_id, $target_id, 'edit' ),
 			'member in embed context' => array( $member_id, $target_id, 'embed' ),
 			'non-member'              => array( $outsider, $target_id, 'view' ),
 			'super admin'             => array( self::$superadmin_id, $target_id, 'view' ),
@@ -3407,5 +3412,90 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertContains( $blog_id, wp_list_pluck( $response->get_data(), 'id' ) );
+	}
+
+	/**
+	 * Data provider for the edit context checks of both read routes.
+	 *
+	 * @return array[]
+	 */
+	public function data_edit_context_permission_checks() {
+		return array(
+			'collection'  => array( 'get_items_permissions_check', false ),
+			'single site' => array( 'get_item_permissions_check', true ),
+		);
+	}
+
+	/**
+	 * The edit context needs the capability to manage sites, even for a member
+	 * reading their own site or listing their own sites.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_items_permissions_check
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 * @dataProvider data_edit_context_permission_checks
+	 *
+	 * @param string $permission_check Permission check method name.
+	 * @param bool   $single           Whether the request is for a single site.
+	 */
+	public function test_edit_context_needs_the_capability( $permission_check, $single ) {
+		$subsite_id = self::factory()->blog->create( array( 'path' => '/edit-context/' ) );
+		$member_id  = self::factory()->user->create();
+		add_user_to_blog( $subsite_id, $member_id, 'administrator' );
+
+		$request = new WP_REST_Request( 'GET', $single ? '/wp/v2/sites/' . $subsite_id : '/wp/v2/sites' );
+		$request->set_param( 'context', 'edit' );
+
+		if ( $single ) {
+			$request->set_param( 'id', $subsite_id );
+		} else {
+			$request->set_param( 'user', 'me' );
+		}
+
+		$assert_forbidden = function ( $result, $status, $message ) {
+			$this->assertWPError( $result, $message );
+			$this->assertSame( 'rest_forbidden_context', $result->get_error_code(), $message );
+			$this->assertSame( $status, $result->get_error_data()['status'], $message );
+		};
+
+		$assert_forbidden( $this->endpoint->$permission_check( $request ), 401, 'Logged out.' );
+
+		// Even an administrator of the site is not allowed to use the edit context.
+		wp_set_current_user( $member_id );
+
+		$assert_forbidden( $this->endpoint->$permission_check( $request ), 403, 'A member on the main site.' );
+
+		switch_to_blog( $subsite_id );
+		$result = $this->endpoint->$permission_check( $request );
+		restore_current_blog();
+
+		$assert_forbidden( $result, 403, 'A member on their own site.' );
+
+		wp_set_current_user( self::$superadmin_id );
+
+		$this->assertTrue( $this->endpoint->$permission_check( $request ), 'A super admin can use the edit context.' );
+	}
+
+	/**
+	 * The edit context is checked before the site is looked up, so it does not
+	 * tell an unknown site apart from an existing one.
+	 *
+	 * @ticket 40365
+	 * @covers ::get_item_permissions_check
+	 * @group ms-required
+	 */
+	public function test_get_item_edit_context_does_not_reveal_site_existence() {
+		$blog_id = self::factory()->blog->create( array( 'path' => '/edit-existence/' ) );
+		$user_id = self::factory()->user->create();
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+		wp_set_current_user( $user_id );
+
+		foreach ( array( $blog_id, REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) as $id ) {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/sites/' . $id );
+			$request->set_param( 'context', 'edit' );
+
+			$this->assertErrorResponse( 'rest_forbidden_context', rest_get_server()->dispatch( $request ), 403 );
+		}
 	}
 }
