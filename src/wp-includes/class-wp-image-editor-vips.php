@@ -897,6 +897,11 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 
 		switch ( $mime_type ) {
 			case 'image/jpeg':
+				$options['Q']               = $this->get_quality();
+				$options['strip']           = $strip_meta;
+				$options['optimize_coding'] = true;
+				break;
+
 			case 'image/avif':
 				$options['Q']     = $this->get_quality();
 				$options['strip'] = $strip_meta;
