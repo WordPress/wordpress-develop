@@ -1223,6 +1223,46 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that resizing an animated GIF saves a single frame.
+	 *
+	 * Core flattens animated GIFs into one frame when generating intermediate sizes,
+	 * and WP_Image_Editor_Imagick::load() selects the first frame to match. The Vips
+	 * editor has to do the same: load the first frame rather than every frame, and
+	 * never write an animation back.
+	 */
+	public function test_resizing_an_animated_gif_saves_a_single_frame() {
+		$file = DIR_TESTDATA . '/images/gif-animated.gif';
+
+		$this->assertSame( 2, $this->count_gif_frames( $file ), 'The fixture should be a two-frame GIF.' );
+
+		$vips_image_editor = new WP_Image_Editor_Vips( $file );
+		$vips_image_editor->load();
+
+		$this->assertSame(
+			array(
+				'width'  => 100,
+				'height' => 75,
+			),
+			$vips_image_editor->get_size(),
+			'The editor should load the first frame, not every frame stacked.'
+		);
+
+		$vips_image_editor->resize( 50, 50 );
+
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.gif';
+
+		$vips_image_editor->save( $save_to_file );
+
+		$this->assertSame(
+			1,
+			$this->count_gif_frames( $save_to_file ),
+			'Saving a resized GIF should not write an animation.'
+		);
+
+		unlink( $save_to_file );
+	}
+
+	/**
 	 * Tests that the image_strip_meta filter controls whether a resized image keeps
 	 * all of its metadata.
 	 *
@@ -1491,6 +1531,79 @@ class Tests_Image_Editor_Vips extends WP_Image_UnitTestCase {
 	 */
 	private function is_lossless_webp( $contents ) {
 		return false !== strpos( $contents, 'VP8L' );
+	}
+
+	/**
+	 * Counts the frames in a GIF by walking its block structure.
+	 *
+	 * Each frame is introduced by an image descriptor, so counting those counts frames
+	 * without relying on the image library that wrote the file.
+	 *
+	 * @param string $file Path to a GIF file.
+	 * @return int The number of frames.
+	 */
+	private function count_gif_frames( $file ) {
+		$data   = file_get_contents( $file );
+		$length = strlen( $data );
+
+		$offset = 13; // 6-byte header plus 7-byte logical screen descriptor.
+		$flags  = ord( $data[10] );
+		if ( $flags & 0x80 ) {
+			$offset += 3 * ( 2 << ( $flags & 0x07 ) ); // Global colour table.
+		}
+
+		$frames = 0;
+		while ( $offset < $length ) {
+			$block = ord( $data[ $offset ] );
+
+			if ( 0x3B === $block ) { // Trailer.
+				break;
+			}
+
+			if ( 0x2C === $block ) { // Image descriptor.
+				$packed  = ord( $data[ $offset + 9 ] );
+				$offset += 10;
+				if ( $packed & 0x80 ) {
+					$offset += 3 * ( 2 << ( $packed & 0x07 ) ); // Local colour table.
+				}
+				++$offset; // LZW minimum code size.
+				$offset = $this->skip_gif_sub_blocks( $data, $offset );
+				++$frames;
+				continue;
+			}
+
+			if ( 0x21 === $block ) { // Extension.
+				$offset += 2; // Introducer plus label.
+				$offset  = $this->skip_gif_sub_blocks( $data, $offset );
+				continue;
+			}
+
+			break; // Unknown block; stop rather than misread.
+		}
+
+		return $frames;
+	}
+
+	/**
+	 * Advances past a run of GIF data sub-blocks.
+	 *
+	 * @param string $data   The GIF file contents.
+	 * @param int    $offset The offset of the first sub-block.
+	 * @return int The offset just past the terminating zero-length sub-block.
+	 */
+	private function skip_gif_sub_blocks( $data, $offset ) {
+		$length = strlen( $data );
+
+		while ( $offset < $length ) {
+			$size = ord( $data[ $offset ] );
+			++$offset;
+			if ( 0 === $size ) {
+				break;
+			}
+			$offset += $size;
+		}
+
+		return $offset;
 	}
 
 	/**
