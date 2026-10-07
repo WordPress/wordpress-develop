@@ -31,7 +31,7 @@ signature and docblock. It builds the allowed property list once, applies
 The declarations helper uses six further private helpers:
 `_safecss_filter_attr_value_has_open_block()`,
 `_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`,
-`_safecss_filter_attr_string_is_unterminated()`, `_safecss_filter_attr_is_trivia()`
+`_safecss_filter_attr_ends_inside_token()`, `_safecss_filter_attr_is_trivia()`
 and `_safecss_filter_attr_serialize_value()`. All are `@access private`,
 `@internal`, `@since 7.2.0`.
 
@@ -71,7 +71,9 @@ processor exposes: the slice of its own token list covering the value, each
 token as `{type, value, start, length, end}` with offsets into the style text.
 The filter uses the decoded `value` for the checks and for re-escaping strings,
 URLs, identifiers and function names, and copies other tokens from the source
-bytes at `start` and `length`. No second tokenization takes place.
+bytes at `start` and `length`. The input is tokenized a second time, with
+`WP_CSS_Token_Processor`, only to read `is_token_terminated()` on its last
+token for rule 0.
 
 ## Rejection Unit
 
@@ -84,11 +86,17 @@ neighbour.
 One rule applies to every declaration, for every property including custom
 ones, whether or not the `safe_style_css` list is empty:
 
-0. **Open blocks.** A value with a block (a function, `(`, `[` or `{`) still
-   open at the end of the input is rejected. The legacy function rejected an
-   unbalanced parenthesis, and callers rely on a rejected declaration staying
-   rejected. CSS would close the block at the end of the input, so the
-   processor exposes the declaration; the filter drops it.
+0. **Open blocks and tokens cut off by the end of the input.** A value with
+   a block (a function, `(`, `[` or `{`) still open at the end of the input
+   is rejected. When the input ends inside a comment, string or url token,
+   the last accepted declaration is dropped: such a token runs to the end of
+   the input, so it is in the last declaration or after it (`color: red; /*`
+   gives an empty result). The legacy function rejected an unbalanced
+   parenthesis and a `/*` comment, and callers rely on a rejected
+   declaration staying rejected. CSS would close the block or token at the
+   end of the input, so the processor exposes the declaration; the filter
+   drops it. The tokenizer reports the cut-off token through
+   `is_token_terminated()`.
 
 The remaining checks run only when the `safe_style_css` list is non-empty. An
 empty list means no further checks, as in the legacy function; the output is
@@ -110,10 +118,10 @@ still re-serialized.
    declaration is dropped. `src()` is treated like `url()`. There is no
    per-property list of URL-bearing properties.
 4. **Structure.** In a non-custom property, the value has no bare `( )` block
-   at its top level and no string that runs to the end of the input. No
-   standard property grammar accepts either. A `( )` block nested in a
-   function, as in `calc(1px + (2px * 3))` or a `var()` fallback, is governed
-   by that function's grammar and is kept. Custom properties keep both.
+   at its top level. No standard property grammar accepts one. A `( )` block
+   nested in a function, as in `calc(1px + (2px * 3))` or a `var()` fallback,
+   is governed by that function's grammar and is kept. Custom properties
+   keep a bare block.
 5. **Delimiters.** The value has no `&`, `<`, `>` or `=` delimiter token and
    no `<!--` or `-->` token at any depth, in every property including custom
    ones. These characters have a meaning in HTML. Inside strings and URLs the
@@ -227,12 +235,15 @@ Open during the prototype, now settled:
   value; kept when nested in a function and in custom properties. Rejecting at
   any depth would drop `calc(3em + (10px * 2))`, which the legacy function
   accepts and which is valid CSS.
-- **Strings that run to EOF.** Rejected in non-custom properties at any depth,
-  including inside `url("...`. Kept in custom properties. Detected from the
-  token view: the token's `end` equals the input length and its source bytes
-  do not end with an unescaped copy of the opening quote. A tokenizer flag for
-  this condition would be the cleaner source; the token processor does not
-  expose one yet.
+- **Tokens cut off by the end of the input.** A comment, string or url token
+  the input ends inside drops the last accepted declaration, for every
+  property including custom ones. An earlier version rejected only strings,
+  only in non-custom properties, and detected them from the token's source
+  bytes. The tokenizer now reports the condition through
+  `is_token_terminated()`, and the rule covers comments and url tokens, which
+  have the same shape: the token runs to the end of the input, and a
+  consumer that emits the original text would have the rest of its
+  stylesheet read as part of the token.
 - **Transition.** The filter is named `safecss_filter_attr_use_legacy`,
   defaults to `false`, and receives the input CSS. Duration is not fixed; the
   filter docblock says it exists for a transition period.
@@ -246,10 +257,11 @@ Open during the prototype, now settled:
 
 `tests/phpunit/tests/kses/safecssFilterAttr.php` covers each policy rule in
 isolation, the open-block rule in standard and custom properties and with the
-empty allowed list, the structural rule in standard, nested and custom positions, the
-unterminated-string helper, `!important`, comments, whitespace, escapes, the
-empty `safe_style_css` list, the two filters, and idempotence over a provider
-of the inputs that exercise the serializer.
+empty allowed list, the cut-off token rule for comments, strings and url
+tokens, the structural rule in standard, nested and custom positions,
+`!important`, comments, whitespace, escapes, the empty `safe_style_css` list,
+the two filters, and idempotence over a provider of the inputs that exercise
+the serializer.
 
 In `tests/phpunit/tests/kses.php`, `data_safecss_filter_attr` and
 `data_kses_style_attr_with_url` serve both paths. The new output is compared

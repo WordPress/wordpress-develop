@@ -4184,7 +4184,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *  - Every function at any depth is in the function allowlist.
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
  *  - A non-custom property has no bare parenthesis block at the top level
- *    of its value and no string that runs to the end of the input.
+ *    of its value.
  *  - The value has no `&`, `<`, `>` or `=` delimiter and no `<!--` or `-->`
  *    token at any depth. Inside strings and URLs these characters are
  *    escaped in the output; no standard property value uses them elsewhere.
@@ -4195,8 +4195,11 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *
  * Whether or not the allowed list is empty, a declaration whose value has
  * a block (a function, `(`, `[` or `{`) still open at the end of the input
- * is dropped, for every property. The legacy implementation rejected it,
- * and callers rely on a rejected declaration staying rejected.
+ * is dropped, for every property. When the input ends inside a comment,
+ * string or url token, the last accepted declaration is dropped; such a
+ * token runs to the end of the input, so it is in the last declaration or
+ * after it. The legacy implementation rejected both, and callers rely on a
+ * rejected declaration staying rejected.
  *
  * @since 7.2.0
  * @access private
@@ -4212,8 +4215,8 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	$allow_custom      = in_array( '--*', $allowed_attr, true );
 	$allowed_protocols = wp_allowed_protocols();
 
-	$processor = WP_HTML_Style_Attribute_Processor::create( $css );
-	$output    = '';
+	$processor    = WP_HTML_Style_Attribute_Processor::create( $css );
+	$declarations = array();
 
 	while ( $processor->next_declaration() ) {
 		$name      = $processor->get_property_name();
@@ -4246,14 +4249,19 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 			 */
 		}
 
-		$output .= WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
+		$declaration = WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
 		if ( $processor->is_important() ) {
-			$output .= ' !important';
+			$declaration .= ' !important';
 		}
-		$output .= ';';
+		$declarations[] = $declaration . ';';
 	}
 
-	return $output;
+	// A token cut off by the end of the input is in the last declaration or after it.
+	if ( ! empty( $declarations ) && _safecss_filter_attr_ends_inside_token( $css ) ) {
+		array_pop( $declarations );
+	}
+
+	return implode( '', $declarations );
 }
 
 /**
@@ -4357,13 +4365,6 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				}
 				continue 2;
 
-			case WP_CSS_Token_Processor::TOKEN_STRING:
-				// No standard property accepts a string left open at the end of the input.
-				if ( ! $is_custom && _safecss_filter_attr_string_is_unterminated( $css, $token ) ) {
-					return false;
-				}
-				continue 2;
-
 			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
 				// No standard property accepts a bare `( )` block as a top-level value.
 				if ( ! $is_custom && 0 === $depth ) {
@@ -4403,9 +4404,6 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				return false;
 			}
 			$string = $tokens[ $j ];
-			if ( ! $is_custom && _safecss_filter_attr_string_is_unterminated( $css, $string ) ) {
-				return false;
-			}
 			++$j;
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
@@ -4486,39 +4484,32 @@ function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
 }
 
 /**
- * Checks whether a string token ran to the end of the input without a closing quote.
+ * Checks whether the input ends inside a comment, string or url token.
  *
- * CSS closes such a string at the end of the input, so the token view does
- * not distinguish it. This reads the token's source bytes: the string is
- * unterminated when the token ends at the end of the input and its last byte
- * is not an unescaped copy of its opening quote.
+ * Such a token has a closing delimiter (`*\/`, the matching quote or `)`).
+ * CSS closes the token at the end of the input, so the declaration parses.
+ * This reads the tokenizer's flag for the last token.
  *
  * @since 7.2.0
  * @access private
  * @internal
  *
- * @param string $css   CSS text the token offsets index.
- * @param array  $token String token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
- * @return bool Whether the string is unterminated.
+ * @param string $css CSS text.
+ * @return bool Whether the last token is a comment, string or url token cut off by the end of the input.
  */
-function _safecss_filter_attr_string_is_unterminated( $css, $token ) {
-	if ( strlen( $css ) !== $token['end'] ) {
-		return false;
+function _safecss_filter_attr_ends_inside_token( $css ) {
+	$processor = WP_CSS_Token_Processor::create( $css );
+	$type      = null;
+	while ( $processor->next_token() ) {
+		$type       = $processor->get_token_type();
+		$terminated = $processor->is_token_terminated();
 	}
 
-	$source = substr( $css, $token['start'], $token['length'] );
-	$length = strlen( $source );
-	if ( $length < 2 || $source[ $length - 1 ] !== $source[0] ) {
-		return true;
-	}
-
-	// An odd number of backslashes before the last quote escapes it.
-	$backslashes = 0;
-	for ( $i = $length - 2; $i > 0 && '\\' === $source[ $i ]; $i-- ) {
-		++$backslashes;
-	}
-
-	return 1 === $backslashes % 2;
+	return (
+		WP_CSS_Token_Processor::TOKEN_COMMENT === $type ||
+		WP_CSS_Token_Processor::TOKEN_STRING === $type ||
+		WP_CSS_Token_Processor::TOKEN_URL === $type
+	) && ! $terminated;
 }
 
 /**

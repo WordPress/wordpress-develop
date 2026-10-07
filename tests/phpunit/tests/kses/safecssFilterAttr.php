@@ -165,73 +165,50 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
-	 */
-	public function test_unterminated_string_is_rejected_in_standard_property() {
-		$this->assertSame( '', safecss_filter_attr( 'color: "abc' ) );
-	}
-
-	/**
-	 * @ticket 65738
-	 */
-	public function test_unterminated_string_is_kept_in_custom_property() {
-		$this->assertSame( '--x:"abc";', safecss_filter_attr( '--x: "abc' ) );
-	}
-
-	/**
-	 * @ticket 65738
-	 */
-	public function test_terminated_string_at_end_of_input_is_kept() {
-		$this->assertSame( 'font-family:"abc";', safecss_filter_attr( 'font-family: "abc"' ) );
-	}
-
-	/**
-	 * @ticket 65738
-	 * @dataProvider data_string_is_unterminated
-	 * @covers ::_safecss_filter_attr_string_is_unterminated
+	 * @covers ::_safecss_filter_attr_ends_inside_token
+	 * @dataProvider data_input_ending_inside_a_token
 	 *
-	 * @param string $source   String token source bytes.
-	 * @param bool   $expected Whether the string is unterminated.
+	 * @param string $css      Input whose last token is a comment, string or url token cut off by the end of the input.
+	 * @param string $expected Expected output.
 	 */
-	public function test_string_is_unterminated( $source, $expected ) {
-		$token = array(
-			'type'   => WP_CSS_Token_Processor::TOKEN_STRING,
-			'value'  => null,
-			'start'  => 0,
-			'length' => strlen( $source ),
-			'end'    => strlen( $source ),
-		);
-		$this->assertSame( $expected, _safecss_filter_attr_string_is_unterminated( $source, $token ) );
+	public function test_input_ending_inside_a_token_drops_the_last_declaration( $css, $expected ) {
+		$this->assertSame( $expected, safecss_filter_attr( $css ) );
 	}
 
 	/**
-	 * @return array<string, array{string, bool}>
+	 * @return array<string, array{string, string}>
 	 */
-	public function data_string_is_unterminated() {
+	public function data_input_ending_inside_a_token() {
 		return array(
-			'no closing quote'             => array( '"abc', true ),
-			'closing quote'                => array( '"abc"', false ),
-			'lone quote'                   => array( '"', true ),
-			'escaped closing quote'        => array( '"abc\\"', true ),
-			'escaped backslash then quote' => array( '"abc\\\\"', false ),
-			'empty string'                 => array( '""', false ),
-			'single quotes'                => array( "'abc", true ),
+			'comment in the value'               => array( 'color: red /*', '' ),
+			'comment after the last declaration' => array( 'color: red; /*', '' ),
+			'comment in the second value'        => array( 'color: red; width: 1px /*', 'color:red;' ),
+			'comment "/*/"'                      => array( 'color: red; width: 1px /*/', 'color:red;' ),
+			'string in the second value'         => array( 'color: red; width: "abc', 'color:red;' ),
+			'string in a standard property'      => array( 'color: "abc', '' ),
+			'string with escaped quote'          => array( 'color: red; font-family: "a\\"', 'color:red;' ),
+			'url token'                          => array( 'background: url(http://x/a.png', '' ),
+			'url token with trailing whitespace' => array( 'background: url(http://x/a.png ', '' ),
+			'url token in the second value'      => array( 'color: red; background: url(http://x/a.png', 'color:red;' ),
+			'string in a custom property'        => array( '--x: "abc', '' ),
+			'comment in a custom property'       => array( '--x: red /*', '' ),
+			'url token in a custom property'     => array( '--x: url(a', '' ),
+			'string after a rejected value'      => array( 'color: red; foo: "abc', '' ),
 		);
 	}
 
 	/**
 	 * @ticket 65738
-	 * @covers ::_safecss_filter_attr_string_is_unterminated
 	 */
-	public function test_string_not_at_end_of_input_is_terminated() {
-		$source = '"abc" red';
-		$token  = array(
-			'type'   => WP_CSS_Token_Processor::TOKEN_STRING,
-			'value'  => 'abc',
-			'start'  => 0,
-			'length' => 5,
-			'end'    => 5,
-		);
-		$this->assertFalse( _safecss_filter_attr_string_is_unterminated( $source, $token ) );
+	public function test_token_terminated_at_end_of_input_is_kept() {
+		$this->assertSame( 'color:red;', safecss_filter_attr( 'color: red /* ok */' ) );
+		$this->assertSame( 'color:red;', safecss_filter_attr( 'color: red /**/' ) );
+		$this->assertSame( 'color:red;', safecss_filter_attr( 'color: red; /**/' ) );
+		$this->assertSame( 'font-family:"abc";', safecss_filter_attr( 'font-family: "abc"' ) );
+		$this->assertSame( 'font-family:"a\\5C ";', safecss_filter_attr( 'font-family: "a\\\\"' ) );
+		$this->assertSame( '--x:"abc";', safecss_filter_attr( '--x: "abc"' ) );
+		$this->assertSame( 'background:url("http://x/a.png");', safecss_filter_attr( 'background: url(http://x/a.png)' ) );
+		$this->assertSame( 'background:url("http://x/a.png");', safecss_filter_attr( 'background: url(http://x/a.png )' ) );
 	}
 
 	/**
