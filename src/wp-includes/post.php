@@ -3528,9 +3528,11 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 * be served from another source, such as a value pre-computed in the
 	 * background, when an exact real-time count is not required.
 	 *
-	 * The returned value is not cached. It is still passed through the
-	 * {@see 'wp_count_posts'} filter, and any registered post status missing
-	 * from it is set to 0.
+	 * Any registered post status missing from the filtered value are added
+	 * to the result and set to zero.
+	 *
+	 * The returned value is not cached and passed through the
+	 * {@see 'wp_count_posts'} filter.
 	 *
 	 * @since 7.2.0
 	 *
