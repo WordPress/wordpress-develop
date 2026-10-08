@@ -210,6 +210,10 @@ class WP_User {
 			$field = 'id';
 		}
 
+		if ( ! $value ) {
+			return false;
+		}
+
 		if ( 'id' === $field ) {
 			// Make sure the value is numeric to avoid casting objects, for example, to int 1.
 			if ( ! is_numeric( $value ) ) {
@@ -221,10 +225,6 @@ class WP_User {
 			}
 		} else {
 			$value = trim( $value );
-		}
-
-		if ( ! $value ) {
-			return false;
 		}
 
 		switch ( $field ) {
