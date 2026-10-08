@@ -1189,11 +1189,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/post.php
 		-
-			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:response_to_data\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api.php
-		-
 			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
