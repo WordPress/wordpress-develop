@@ -136,7 +136,7 @@ class ApplicationPasswords {
 		await newPasswordField.fill( applicationName );
 
 		if ( preset ) {
-			const presetSelect = this.page.getByLabel( 'Expiration' );
+			const presetSelect = this.page.getByLabel( 'Expiration', { exact: true } );
 			await expect( presetSelect ).toBeVisible();
 			await presetSelect.selectOption( preset );
 
