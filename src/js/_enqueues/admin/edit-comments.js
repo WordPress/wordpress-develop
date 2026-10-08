@@ -496,6 +496,8 @@ window.setCommentsList = function() {
 			unapproved = commentRow.hasClass( 'unapproved' ),
 			spammed = commentRow.hasClass( 'spam' ),
 			trashed = commentRow.hasClass( 'trash' ),
+			isMine = !! adminCommentsSettings.currentUserId &&
+				parseInt( commentRow.data( 'comment-user-id' ), 10 ) === adminCommentsSettings.currentUserId,
 			undoing = false; // Ticket #35904.
 
 		updateDashboardText( newTotal );
@@ -627,11 +629,19 @@ window.setCommentsList = function() {
 		if ( pendingDiff ) {
 			updatePending( pendingDiff, commentPostId );
 			updateCountText( 'span.all-count', pendingDiff );
+
+			if ( isMine ) {
+				updateCountText( 'span.mine-count', pendingDiff );
+			}
 		}
 
 		if ( approvedDiff ) {
 			updateApproved( approvedDiff, commentPostId );
 			updateCountText( 'span.all-count', approvedDiff );
+
+			if ( isMine ) {
+				updateCountText( 'span.mine-count', approvedDiff );
+			}
 		}
 
 		if ( spamDiff ) {

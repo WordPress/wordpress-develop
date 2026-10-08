@@ -89,6 +89,27 @@ class Tests_Admin_wpCommentsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Comments_List_Table::single_row
+	 */
+	public function test_single_row_includes_comment_user_id_for_mine_count_tracking() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+				'user_id'          => $user_id,
+			)
+		);
+
+		$output = get_echo( array( $this->table, 'single_row' ), array( get_comment( $comment_id ) ) );
+
+		$this->assertStringContainsString( "data-comment-user-id='$user_id'", $output );
+	}
+
+	/**
 	 * @ticket 19278
 	 *
 	 * @covers WP_Comments_List_Table::bulk_actions

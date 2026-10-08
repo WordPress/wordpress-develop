@@ -1434,6 +1434,7 @@ function wp_default_scripts( $scripts ) {
 			array(
 				'hotkeys_highlight_first' => isset( $_GET['hotkeys_highlight_first'] ),
 				'hotkeys_highlight_last'  => isset( $_GET['hotkeys_highlight_last'] ),
+				'currentUserId'           => get_current_user_id(),
 			)
 		);
 
