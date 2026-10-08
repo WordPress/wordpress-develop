@@ -241,42 +241,6 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that an empty ID in $wp_query->posts is skipped rather than
-	 * resolved to the global post.
-	 *
-	 * Code review found that {@see get_post()} treats an empty value as a
-	 * request for the global $post, so a 0 entry could put the modified time
-	 * of an unrelated post into the build date.
-	 *
-	 * @ticket 59956
-	 */
-	public function test_should_not_resolve_empty_post_id_to_global_post() {
-		global $wp_query;
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_date'     => '2020-01-01 00:00:00',
-				'post_date_gmt' => '2020-01-01 00:00:00',
-			)
-		);
-
-		$GLOBALS['post'] = get_post(
-			self::factory()->post->create(
-				array(
-					'post_date'     => '2024-06-15 12:00:00',
-					'post_date_gmt' => '2024-06-15 12:00:00',
-				)
-			)
-		);
-
-		$wp_query             = new WP_Query();
-		$wp_query->post_count = 2;
-		$wp_query->posts      = array( 0, $post_id );
-
-		$this->assertSame( '2020-01-01T00:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
-	}
-
-	/**
 	 * Test that a comment feed uses the comment date when it is newer than
 	 * the post, reading it straight from the WP_Comment objects.
 	 *

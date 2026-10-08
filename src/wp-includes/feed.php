@@ -867,20 +867,13 @@ function get_feed_build_date( $format ) {
 		foreach ( $wp_query->posts as $post ) {
 			if ( $post instanceof WP_Post ) {
 				$modified_times[] = $post->post_modified_gmt;
-			} elseif ( is_numeric( $post ) ) {
-				$post_ids[] = (int) $post;
-			} elseif ( is_object( $post ) && isset( $post->ID ) && is_numeric( $post->ID ) ) {
-				$post_ids[] = (int) $post->ID;
+			} elseif ( is_int( $post ) ) {
+				$post_ids[] = $post;
+			} elseif ( is_object( $post ) && isset( $post->ID ) && is_int( $post->ID ) ) {
+				$post_ids[] = $post->ID;
 			}
 		}
 
-		// Skip non-positive IDs, as get_post() would resolve an empty ID to the global post.
-		$post_ids = array_filter(
-			$post_ids,
-			static function ( int $post_id ): bool {
-				return $post_id > 0;
-			}
-		);
 		if ( $post_ids ) {
 			_prime_post_caches( $post_ids, false, false );
 			foreach ( $post_ids as $post_id ) {
