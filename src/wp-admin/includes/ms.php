@@ -890,7 +890,8 @@ function confirm_delete_users( $users ) {
 						/* translators: %s: User login. */
 						__( 'Warning! User %s cannot be deleted.' ),
 						$delete_user->user_login
-					)
+					),
+					403
 				);
 			}
 
@@ -900,7 +901,8 @@ function confirm_delete_users( $users ) {
 						/* translators: %s: User login. */
 						__( 'Warning! User cannot be deleted. The user %s is a network administrator.' ),
 						'<em>' . $delete_user->user_login . '</em>'
-					)
+					),
+					403
 				);
 			}
 
