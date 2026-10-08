@@ -509,6 +509,87 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A caller who can assign posts to other users reads only the author fields of a user
+	 * of the site without public posts.
+	 *
+	 * An editor can make any user of the site the author of a post, so a lookup by ID or slug
+	 * finds a user whose only post is pending review. It returns the fields that identify the
+	 * user, but not their profile or sensitive fields. Lookups by email or username still
+	 * require permission to list or edit users, and a caller who cannot assign posts to other
+	 * users still cannot read such a user.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_caller_who_can_assign_authors_reads_author_fields_of_site_users(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'          => 'author',
+				'user_login'    => 'core_users_ability_pending_author',
+				'user_email'    => 'core-users-ability-pending-author@example.com',
+				'user_nicename' => 'core-users-ability-pending-author',
+				'display_name'  => 'Pending Author',
+				'description'   => 'Writes posts that wait for review.',
+				'user_url'      => 'https://example.com/pending-author',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_status' => 'pending',
+			)
+		);
+
+		wp_set_current_user( self::$fixture_ids['editor'] );
+		$this->register_ability();
+
+		$this->assertFalse( current_user_can( 'list_users' ), 'An editor should not be able to list users.' );
+		$this->assertFalse( current_user_can( 'edit_user', $user_id ), 'An editor should not be able to edit the user.' );
+		$this->assertTrue( current_user_can( 'edit_others_posts' ), 'An editor should be able to assign posts to other users.' );
+
+		$ability = wp_get_ability( 'core/users-query' );
+		$fields  = array( 'id', 'name', 'slug', 'link', 'description', 'url', 'username', 'email', 'roles' );
+
+		$by_slug = $ability->execute(
+			array(
+				'slug'   => 'core-users-ability-pending-author',
+				'fields' => $fields,
+			)
+		);
+
+		$this->assertIsArray( $by_slug, 'An editor should resolve a user of the site without public posts by slug.' );
+		$this->assertSame( array( 'id', 'name', 'link', 'slug' ), array_keys( $by_slug ), 'Only the requested author fields should be returned.' );
+		$this->assertSame( $user_id, $by_slug['id'], 'The slug lookup should return the requested user.' );
+		$this->assertSame( 'Pending Author', $by_slug['name'], 'The display name should be returned.' );
+
+		$by_id = $ability->execute(
+			array(
+				'id'     => $user_id,
+				'fields' => $fields,
+			)
+		);
+
+		$this->assertSame( $by_slug, $by_id, 'An ID lookup should return the same author fields.' );
+
+		$defaults = $ability->execute( array( 'id' => $user_id ) );
+
+		$this->assertIsArray( $defaults, 'A default-fields lookup should succeed.' );
+		$this->assertSame( array( 'id', 'name', 'link', 'slug', 'avatar_urls' ), array_keys( $defaults ), 'Every default field should be an author field.' );
+
+		$by_email = $ability->execute( array( 'email' => 'core-users-ability-pending-author@example.com' ) );
+		$this->assertWPError( $by_email, 'An email lookup should still require permission to list or edit users.' );
+
+		$by_username = $ability->execute( array( 'username' => 'core_users_ability_pending_author' ) );
+		$this->assertWPError( $by_username, 'A username lookup should still require permission to list or edit users.' );
+
+		wp_set_current_user( self::$fixture_ids['author'] );
+
+		$this->assertFalse( current_user_can( 'edit_others_posts' ), 'An author should not be able to assign posts to other users.' );
+
+		$result = $ability->execute( array( 'slug' => 'core-users-ability-pending-author' ) );
+		$this->assertWPError( $result, 'A caller who cannot assign posts to other users should not resolve a user without public posts.' );
+	}
+
+	/**
 	 * Email and username lookups for another user require list or edit permissions across roles.
 	 *
 	 * @ticket 64657
