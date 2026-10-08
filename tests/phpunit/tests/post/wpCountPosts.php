@@ -36,8 +36,10 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		self::factory()->post->create_many( 3 );
 
 		add_filter( 'pre_wp_count_posts', '__return_null' );
+		$start_num_queries = get_num_queries();
 
-		$this->assertSame( '3', wp_count_posts()->publish );
+		$this->assertSame( '3', wp_count_posts()->publish, 'Published post count is expected to be set.' );
+		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'wp_count_posts() is expected to trigger database queries.' );
 	}
 
 	/**
@@ -75,12 +77,29 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 			}
 		);
 
-		$counts = wp_count_posts();
+		$counts            = wp_count_posts();
+		$expected_statuses = get_post_stati();
+		$actual_statuses   = array_keys( get_object_vars( $counts ) );
 
-		foreach ( get_post_stati() as $status ) {
-			$this->assertObjectHasProperty( $status, $counts, "The '{$status}' status should be present in the counts." );
-		}
+		$this->assertSameSets( $expected_statuses, $actual_statuses, 'Counts for all statuses should be returned' );
 		$this->assertSame( 0, $counts->draft, 'A status missing from the filtered value should default to 0.' );
+	}
+
+	/**
+	 * @ticket 66098
+	 */
+	public function test_pre_filtered_post_count_returns_same_statuses_as_unfiltered_post_count() {
+		$expected_statuses = array_keys( get_object_vars( wp_count_posts() ) );
+
+		add_filter(
+			'pre_wp_count_posts',
+			static function () {
+				return (object) array( 'publish' => 5 );
+			}
+		);
+
+		$actual_statuses = array_keys( get_object_vars( wp_count_posts() ) );
+		$this->assertSameSets( $expected_statuses, $actual_statuses, 'Pre filtered and unfiltered post counts should return the same set of statuses' );
 	}
 
 	/**
