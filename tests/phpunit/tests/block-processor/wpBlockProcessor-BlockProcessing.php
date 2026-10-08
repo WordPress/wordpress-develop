@@ -35,6 +35,111 @@ class Tests_Blocks_BlockProcessor_BlockProcessing extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Verifies that void blocks and HTML spans appear in the breadcrumbs
+	 * and depth only while the processor is paused on them.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::get_breadcrumbs
+	 * @covers ::get_depth
+	 */
+	public function test_breadcrumbs_and_depth_for_void_blocks_and_html_spans(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:a -->x<!-- wp:b /--><!-- wp:c /-->y<!-- wp:d --><!-- /wp:d --><!-- /wp:a -->z<!-- wp:e /-->' );
+
+		$expected = array(
+			array( 'core/a' ),
+			array( 'core/a', '#html' ),
+			array( 'core/a', 'core/b' ),
+			array( 'core/a', 'core/c' ),
+			array( 'core/a', '#html' ),
+			array( 'core/a', 'core/d' ),
+			array( 'core/a' ),
+			array(),
+			array( '#html' ),
+			array( 'core/e' ),
+		);
+
+		foreach ( $expected as $i => $breadcrumbs ) {
+			$this->assertTrue(
+				$processor->next_token(),
+				"Should have found token #{$i}: check test setup."
+			);
+
+			$this->assertSame(
+				$breadcrumbs,
+				$processor->get_breadcrumbs(),
+				"Should have reported the proper breadcrumbs for token #{$i}."
+			);
+
+			$this->assertSame(
+				count( $breadcrumbs ),
+				$processor->get_depth(),
+				"Should have reported the proper depth for token #{$i}."
+			);
+		}
+
+		$this->assertFalse(
+			$processor->next_token(),
+			'Should have found no more tokens: check test setup.'
+		);
+
+		$this->assertSame(
+			array(),
+			$processor->get_breadcrumbs(),
+			'Should have reported no open blocks after the last void block.'
+		);
+
+		$this->assertSame(
+			0,
+			$processor->get_depth(),
+			'Should have reported no depth after the last void block.'
+		);
+	}
+
+	/**
+	 * Verifies that blocks left open at the end of a document remain on the stack
+	 * after the trailing HTML span is visited.
+	 *
+	 * @ticket 66138
+	 *
+	 * @covers ::get_breadcrumbs
+	 * @covers ::get_depth
+	 */
+	public function test_breadcrumbs_and_depth_for_unclosed_blocks(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:a --><!-- wp:my/b -->inner' );
+
+		$processor->next_token();
+		$processor->next_token();
+		$this->assertTrue(
+			$processor->next_token(),
+			'Should have found the trailing inner HTML: check test setup.'
+		);
+
+		$this->assertSame(
+			array( 'core/a', 'my/b', '#html' ),
+			$processor->get_breadcrumbs(),
+			'Should have reported the inner HTML inside both open blocks.'
+		);
+
+		$this->assertFalse(
+			$processor->next_token(),
+			'Should have found no more tokens: check test setup.'
+		);
+
+		$this->assertSame(
+			array( 'core/a', 'my/b' ),
+			$processor->get_breadcrumbs(),
+			'Should have left the unclosed blocks open at the end of the document.'
+		);
+
+		$this->assertSame(
+			2,
+			$processor->get_depth(),
+			'Should have reported the depth of the unclosed blocks.'
+		);
+	}
+
 	public function test_get_depth() {
 		// Create a deeply-nested stack of blocks.
 		$html      = '';
