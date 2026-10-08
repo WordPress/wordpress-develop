@@ -95,6 +95,23 @@ final class WP_Abilities_Users {
 	);
 
 	/**
+	 * Fields a single-user lookup returns for a user the current user can only see as an author.
+	 *
+	 * They only identify the user. The profile fields (`description` and `url`), which a user
+	 * writes to show next to their published posts, are left out.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private const AUTHOR_FIELDS = array(
+		'id',
+		'name',
+		'link',
+		'slug',
+		'avatar_urls',
+	);
+
+	/**
 	 * Registers all user abilities.
 	 *
 	 * Must run on the `wp_abilities_api_init` hook.
@@ -161,7 +178,9 @@ final class WP_Abilities_Users {
 			return true;
 		}
 
-		return $this->resolve_readable_user( $input, $lookup_type ) instanceof WP_User;
+		$user = $this->find_user( $input, $lookup_type );
+
+		return $user instanceof WP_User && null !== $this->get_readable_fields( $user, $lookup_type );
 	}
 
 	/**
@@ -178,12 +197,17 @@ final class WP_Abilities_Users {
 
 		$lookup_type = $this->get_lookup_type( $input );
 		if ( self::LOOKUP_COLLECTION !== $lookup_type ) {
-			$user = $this->resolve_readable_user( $input, $lookup_type );
+			$user = $this->find_user( $input, $lookup_type );
 			if ( ! $user instanceof WP_User ) {
 				return $this->not_found_error();
 			}
 
-			return $this->format_user( $user, $fields );
+			$readable_fields = $this->get_readable_fields( $user, $lookup_type );
+			if ( null === $readable_fields ) {
+				return $this->not_found_error();
+			}
+
+			return $this->format_user( $user, array_values( array_intersect( $fields, $readable_fields ) ) );
 		}
 
 		$include        = ! empty( $input['include'] ) ? wp_parse_id_list( $input['include'] ) : array();
@@ -299,18 +323,18 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Resolves the target of a single-user lookup when the current user may read it.
+	 * Finds the user a single-user lookup asks for.
 	 *
-	 * Shared by the permission and execute callbacks so the single-user
-	 * authorization decision has exactly one implementation.
+	 * Whether the current user may read that user is decided separately, by
+	 * {@see self::get_readable_fields()}.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input       The ability input.
 	 * @param string       $lookup_type The single-user lookup type.
-	 * @return WP_User|null The readable user, or null when not found or not readable.
+	 * @return WP_User|null The user, or null when no user matches.
 	 */
-	private function resolve_readable_user( array $input, string $lookup_type ): ?WP_User {
+	private function find_user( array $input, string $lookup_type ): ?WP_User {
 		$value = $input[ $lookup_type ];
 
 		// WP_Ability::check_permissions() does not validate the input, so the value may not be a scalar.
@@ -324,49 +348,89 @@ final class WP_Abilities_Users {
 		 * The value is passed as a string because validation also accepts a float ID, like 5.0.
 		 */
 		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], (string) $value );
-		if ( ! $user instanceof WP_User ) {
-			return null;
-		}
+
+		return $user instanceof WP_User ? $user : null;
+	}
+
+	/**
+	 * Returns the fields a single-user lookup may return for a user.
+	 *
+	 * Shared by the permission and execute callbacks so the single-user
+	 * authorization decision has exactly one implementation. The per-field checks in
+	 * {@see self::format_user()}, such as the ones for sensitive fields, still apply.
+	 *
+	 * Email and username are identifier-sensitive lookup modes: another user can only be
+	 * found by them with permission to list or edit users. Collections do not list the
+	 * users that the author fields are returned for, because they only list public
+	 * authors to callers who cannot list users.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_User $user        User object.
+	 * @param string  $lookup_type Lookup type.
+	 * @return string[]|null The field names the lookup may return, or null when the user cannot be read.
+	 */
+	private function get_readable_fields( WP_User $user, string $lookup_type ): ?array {
+		$all_fields = array_keys( $this->get_user_properties() );
 
 		/*
 		 * The current user can always read their own account, like the REST `/users/me`
 		 * endpoint, even on a site they are not a member of.
 		 */
 		if ( $this->is_current_user( $user ) ) {
-			return $user;
+			return $all_fields;
 		}
 
-		return $this->can_read_user_for_lookup( $user, $lookup_type ) ? $user : null;
-	}
-
-	/**
-	 * Checks whether a single-user lookup may return another user.
-	 *
-	 * Email and username are identifier-sensitive lookup modes and do not use the
-	 * public-author fallback.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_User $user        User object.
-	 * @param string  $lookup_type Lookup type.
-	 * @return bool Whether the user can be read for that lookup type.
-	 */
-	private function can_read_user_for_lookup( WP_User $user, string $lookup_type ): bool {
 		// The capabilities only reveal users of the site, not of the whole network.
 		$is_site_member = ! is_multisite() || is_user_member_of_blog( $user->ID );
 		if ( $is_site_member && ( current_user_can( 'edit_user', $user->ID ) || current_user_can( 'list_users' ) ) ) {
-			return true;
+			return $all_fields;
 		}
 
 		if ( 'email' === $lookup_type || 'username' === $lookup_type ) {
-			return false;
+			return null;
 		}
 
 		/*
 		 * Public authors are visible on the front end, so they can be read even when they
 		 * are not members of the site, such as a super admin who published posts on it.
 		 */
-		return $this->is_public_author( $user );
+		if ( $this->is_public_author( $user ) ) {
+			return $all_fields;
+		}
+
+		/*
+		 * A caller who can assign posts to other users can make any user of the site an
+		 * author, so they may identify those users, but not read their profiles.
+		 */
+		if ( $is_site_member && $this->can_assign_authors() ) {
+			return self::AUTHOR_FIELDS;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Checks whether the current user can assign posts to other users.
+	 *
+	 * A user who can edit others' posts of a post type that supports authors can make any
+	 * user of the site the author of such a post.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether the current user can assign posts to other users.
+	 */
+	private function can_assign_authors(): bool {
+		foreach ( get_post_types_by_support( 'author' ) as $post_type ) {
+			$post_type_object = get_post_type_object( $post_type );
+			if ( ! $post_type_object || ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
+				continue;
+			}
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -479,7 +543,7 @@ final class WP_Abilities_Users {
 			),
 			'description'     => array(
 				'type'        => 'string',
-				'description' => __( 'Description of the user.' ),
+				'description' => __( 'Description of the user. Present when the current user can view it.' ),
 			),
 			'url'             => array(
 				/*
@@ -489,7 +553,7 @@ final class WP_Abilities_Users {
 				 * reject the empty string and fail the whole call.
 				 */
 				'type'        => 'string',
-				'description' => __( 'URL of the user.' ),
+				'description' => __( 'URL of the user. Present when the current user can view it.' ),
 			),
 			'link'            => array(
 				'type'        => 'string',

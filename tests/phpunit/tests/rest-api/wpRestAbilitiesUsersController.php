@@ -193,6 +193,41 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * @ticket 64657
 	 */
+	public function test_editor_reading_a_user_without_public_posts_receives_author_fields(): void {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'          => 'author',
+				'user_nicename' => 'rest-users-pending-author',
+				'description'   => 'Pending REST author biography.',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_status' => 'pending',
+			)
+		);
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$response = $this->server->dispatch(
+			$this->run_request(
+				array(
+					'slug'   => 'rest-users-pending-author',
+					'fields' => array( 'id', 'name', 'description', 'email' ),
+				)
+			)
+		);
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'An editor should be able to look up a user of the site without public posts.' );
+		$this->assertSame( $user_id, $data['id'], 'The lookup should return the requested user.' );
+		$this->assertSame( array( 'id', 'name' ), array_keys( $data ), 'Only the author fields should be returned.' );
+	}
+
+	/**
+	 * @ticket 64657
+	 */
 	public function test_subscriber_looking_up_a_public_author_by_email_receives_403(): void {
 		$this->create_public_author( array( 'user_email' => 'rest-users-email-lookup@example.org' ) );
 
