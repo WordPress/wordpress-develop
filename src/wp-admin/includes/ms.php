@@ -176,6 +176,8 @@ function wpmu_delete_user( $id ) {
 	$blogs = get_blogs_of_user( $id );
 
 	if ( ! empty( $blogs ) ) {
+		$original_state = get_site_state();
+
 		foreach ( $blogs as $blog ) {
 			switch_to_blog( $blog->userblog_id );
 			remove_user_from_blog( $id, $blog->userblog_id );
@@ -193,9 +195,10 @@ function wpmu_delete_user( $id ) {
 					wp_delete_link( $link_id );
 				}
 			}
-
-			restore_current_blog();
 		}
+
+		// Restore the original site state once after processing all sites.
+		$original_state->restore();
 	}
 
 	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
