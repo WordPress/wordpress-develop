@@ -13981,7 +13981,7 @@ mockedApiResponse.TypesCollection = {
         "has_archive": false,
         "name": "Posts",
         "slug": "post",
-        "icon": "core-admin/pin",
+        "icon": "dashicons-admin-post",
         "taxonomies": [
             "category",
             "post_tag"
@@ -14016,7 +14016,7 @@ mockedApiResponse.TypesCollection = {
         "has_archive": false,
         "name": "Pages",
         "slug": "page",
-        "icon": "core-admin/page",
+        "icon": "dashicons-admin-page",
         "taxonomies": [],
         "rest_base": "pages",
         "rest_namespace": "wp/v2",
@@ -14048,7 +14048,7 @@ mockedApiResponse.TypesCollection = {
         "has_archive": false,
         "name": "Media",
         "slug": "attachment",
-        "icon": "core-admin/media",
+        "icon": "dashicons-admin-media",
         "taxonomies": [],
         "rest_base": "media",
         "rest_namespace": "wp/v2",
@@ -14342,7 +14342,7 @@ mockedApiResponse.TypeModel = {
     "has_archive": false,
     "name": "Posts",
     "slug": "post",
-    "icon": "core-admin/pin",
+    "icon": "dashicons-admin-post",
     "taxonomies": [
         "category",
         "post_tag"

@@ -143,7 +143,14 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 	$post_type_for_id        = sanitize_html_class( $post_type );
 
 	$menu_icon = 'core-admin/pin';
-	if ( is_string( $post_type_obj->menu_icon ) ) {
+	if ( 'page' === $post_type ) {
+		$menu_icon = 'core-admin/page';
+	}
+
+	// Built-in post types keep their Dashicons `menu_icon` for backward compatibility, and use the icons above.
+	$is_builtin_default = in_array( $post_type, $builtin, true ) && 'dashicons-admin-' . $post_type === $post_type_obj->menu_icon;
+
+	if ( is_string( $post_type_obj->menu_icon ) && ! $is_builtin_default ) {
 		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and registered icons.
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
@@ -154,8 +161,6 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 		} else {
 			$menu_icon = esc_url( $post_type_obj->menu_icon );
 		}
-	} elseif ( 'page' === $post_type ) {
-		$menu_icon = 'core-admin/page';
 	}
 
 	$menu_class = 'menu-top menu-icon-' . $post_type_for_id;
@@ -201,7 +206,7 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 	}
 }
 
-unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, $menu_icon, $submenu_index, $taxonomy, $post_new_file );
+unset( $post_type, $post_type_obj, $post_type_for_id, $post_type_menu_position, $menu_icon, $is_builtin_default, $submenu_index, $taxonomy, $post_new_file );
 
 $menu[59] = array( '', 'read', 'separator2', '', 'wp-menu-separator' );
 
