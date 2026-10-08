@@ -1070,31 +1070,63 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/example' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details has no item route; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$route = static::REQUEST_ROUTE . '/example';
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details has no item route; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE . '/example' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
