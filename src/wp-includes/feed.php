@@ -868,8 +868,14 @@ function get_feed_build_date( $format ) {
 			if ( $post instanceof WP_Post ) {
 				$modified_times[] = $post->post_modified_gmt;
 			} elseif ( is_int( $post ) ) {
+				// A post ID, from a query with fields => 'ids'.
 				$post_ids[] = $post;
 			} elseif ( is_object( $post ) && isset( $post->ID ) && is_int( $post->ID ) ) {
+				/*
+				 * A partial post object of shape object{ ID: int, post_parent: int },
+				 * from a query with fields => 'id=>parent'. It lacks post_modified_gmt,
+				 * so the post is looked up by its ID.
+				 */
 				$post_ids[] = $post->ID;
 			}
 		}
