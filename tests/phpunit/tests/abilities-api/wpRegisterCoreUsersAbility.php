@@ -978,6 +978,75 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A public author who is not a member of the site can be read.
+	 *
+	 * A super admin can publish posts on a site without being a member of it. The posts show
+	 * them as an author on the front end, so lookups by ID or slug find them, with the fields
+	 * of a public author. Lookups by email or username still only find users of the site.
+	 *
+	 * @ticket 64657
+	 *
+	 * @group ms-required
+	 */
+	public function test_public_author_who_is_not_a_site_member_can_be_read(): void {
+		$super_admin_id = self::factory()->user->create(
+			array(
+				'user_login'    => 'core_users_ability_network_author',
+				'user_email'    => 'core-users-ability-network-author@example.com',
+				'user_nicename' => 'core-users-ability-network-author',
+				'description'   => 'Publishes posts across the network.',
+			)
+		);
+		grant_super_admin( $super_admin_id );
+		remove_user_from_blog( $super_admin_id, get_current_blog_id() );
+		self::factory()->post->create(
+			array(
+				'post_author' => $super_admin_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertFalse( is_user_member_of_blog( $super_admin_id ), 'The super admin should not be a member of the current site.' );
+
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/users-query' );
+
+		$result = $ability->execute(
+			array(
+				'slug'   => 'core-users-ability-network-author',
+				'fields' => array( 'id', 'description', 'email' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'id'          => $super_admin_id,
+				'description' => 'Publishes posts across the network.',
+			),
+			$result,
+			'A slug lookup should return the fields of a public author.'
+		);
+
+		$result = $ability->execute(
+			array(
+				'id'     => $super_admin_id,
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( array( 'id' => $super_admin_id ), $result, 'An ID lookup should find the public author.' );
+
+		// The administrator fixture is a super admin, who can list and edit every user of the network.
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+
+		$result = $ability->execute( array( 'email' => 'core-users-ability-network-author@example.com' ) );
+
+		$this->assertWPError( $result, 'An email lookup should not find a user who is not a member of the site.' );
+	}
+
+	/**
 	 * Include is a collection-only option.
 	 *
 	 * @ticket 64657
