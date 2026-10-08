@@ -103,7 +103,7 @@ function wptexturize( $text, $reset = false ) {
 		/* translators: Em dash. */
 		$em_dash = _x( '&#8212;', 'em dash' );
 
-		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' );
+		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt', 'mark' );
 		$default_no_texturize_shortcodes = array( 'code' );
 
 		// If a plugin has provided an autocorrect array, use it.
