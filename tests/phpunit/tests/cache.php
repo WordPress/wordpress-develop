@@ -250,6 +250,79 @@ class Tests_Cache extends WP_UnitTestCase {
 		$this->assertSame( 'bravo', $object_a->foo );
 	}
 
+	/**
+	 *
+	 * @ticket 30430
+	 */
+	public function test_array_with_objects_deep_copy() {
+		if ( wp_using_ext_object_cache() ) {
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
+		}
+
+		$key = __FUNCTION__;
+
+		$shallow_object      = new stdClass();
+		$shallow_object->foo = 'alpha';
+
+		$deep_object        = new stdClass();
+		$deep_object->value = 'deep_original';
+
+		$array_with_objects = array(
+			'shallow_obj' => $shallow_object,
+			'string'      => 'gamma',
+			'nested'      => array(
+				'level2' => array(
+					'deep_obj'  => $deep_object,
+					'primitive' => 'unchanged',
+				),
+			),
+		);
+
+		$this->cache->set( $key, $array_with_objects );
+
+		$shallow_object->foo = 'modified_alpha';
+		$deep_object->value  = 'deep_modified';
+
+		$cached_array = $this->cache->get( $key );
+
+		$this->assertSame( 'alpha', $cached_array['shallow_obj']->foo, 'Shallow cached object should not be affected by changes to original object' );
+		$this->assertSame( 'deep_original', $cached_array['nested']['level2']['deep_obj']->value, 'Deep cached object should not be affected by changes to original object' );
+		$this->assertSame( 'gamma', $cached_array['string'], 'String values should remain unchanged' );
+		$this->assertSame( 'unchanged', $cached_array['nested']['level2']['primitive'], 'Primitive values should remain unchanged' );
+
+		$cached_array['shallow_obj']->foo                    = 'modified_from_cache';
+		$cached_array['nested']['level2']['deep_obj']->value = 'modified_from_cache';
+
+		// Retreiving again should not affect the cached data
+		$cached_array_again = $this->cache->get( $key );
+		$this->assertSame( 'alpha', $cached_array_again['shallow_obj']->foo, 'Cached data should not be affected by modifications to retrieved objects' );
+		$this->assertSame( 'deep_original', $cached_array_again['nested']['level2']['deep_obj']->value, 'Deep cached data should not be affected by modifications to retrieved objects' );
+	}
+
+	/**
+	 *
+	 * @ticket 30430
+	 */
+	public function test_primitive_arrays_unchanged() {
+		$key = __FUNCTION__;
+
+		$primitive_array = array(
+			'string'  => 'test',
+			'number'  => 123,
+			'boolean' => false,
+			'nested'  => array(
+				'nested_string' => 'nested_test',
+				'nested_number' => 456,
+			),
+		);
+
+		$this->cache->set( $key, $primitive_array );
+
+		$cached_array = $this->cache->get( $key );
+
+		$this->assertSame( $primitive_array, $cached_array, 'Primitive arrays should be cached correctly' );
+	}
+
 	public function test_incr() {
 		$key = __FUNCTION__;
 
