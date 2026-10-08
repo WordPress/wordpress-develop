@@ -723,7 +723,7 @@ themes.view.Details = wp.Backbone.View.extend({
 
 	// Set initial focus and constrain tabbing within the theme browser modal.
 	containFocus: function( $el ) {
-		// Set initial focus on the theme overlay, only on first render.
+		// Set initial focus on the theme overlay modal dialog, only on first render.
 		var $themeOverlay = $( '.theme-overlay' );
 		if ( $themeOverlay.hasClass( 'theme-overlay-initial' ) ) {
 			_.delay( function() {
@@ -1360,7 +1360,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
-			// Move focus to the 'Next' navigation button after the view fully re-rendeers.
+			// Set focus again to the 'Next' navigation button after the view fully re-rendeers.
 			$( '.theme-header .right' ).trigger( 'focus' );
 			themes.announceThemeDebounced( nextModel );
 		}
@@ -1397,7 +1397,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
-			// Move focus to the 'Previous' navigation button after the view fully re-rendeers.
+			// Set focus again to the 'Previous' navigation button after the view fully re-rendeers.
 			$( '.theme-header .left' ).trigger( 'focus' );
 			themes.announceThemeDebounced( previousModel );
 		}
