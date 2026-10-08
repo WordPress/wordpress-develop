@@ -933,7 +933,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$id       = $user->ID;
 		$reassign = false === $request['reassign'] ? null : absint( $request['reassign'] );
-		$force    = isset( $request['force'] ) ? (bool) $request['force'] : false;
+		$force    = isset( $request['force'] ) && $request['force'];
 
 		// We don't support trashing for users.
 		if ( ! $force ) {
