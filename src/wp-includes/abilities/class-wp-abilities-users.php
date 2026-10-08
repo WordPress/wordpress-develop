@@ -132,7 +132,7 @@ final class WP_Abilities_Users {
 			'core/users-query',
 			array(
 				'label'               => __( 'Query Users' ),
-				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, email, username, or slug, or query a paginated collection optionally filtered by roles, published-post authorship, or included IDs.' ),
+				'description'         => __( 'Retrieves one or more readable WordPress users. Fetch a single readable user by ID, email, username, or slug, or query a paginated collection optionally filtered by roles, published-post authorship, or included IDs. Requires an authenticated user.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_users_query_input_schema(),
 				'output_schema'       => $this->get_users_query_output_schema(),
@@ -210,9 +210,19 @@ final class WP_Abilities_Users {
 			return $this->format_user( $user, array_values( array_intersect( $fields, $readable_fields ) ) );
 		}
 
-		$include        = ! empty( $input['include'] ) ? wp_parse_id_list( $input['include'] ) : array();
+		$include = $this->normalize_include( $input );
+
+		/*
+		 * An include filter that was supplied but parsed to no valid IDs must not fall
+		 * through to an unrestricted query: WP_User_Query ignores an empty `include`, which
+		 * would return every user — the opposite of the caller's intent.
+		 */
+		if ( isset( $input['include'] ) && array() === $include ) {
+			return $this->invalid_filter_error( __( 'The include filter must list one or more valid user IDs.' ) );
+		}
+
 		$per_page       = $this->normalize_per_page( $input, $include );
-		$page           = isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1;
+		$page           = $this->parse_filter_int( $input['page'] ?? 1, 1 ) ?? 1;
 		$can_list_users = current_user_can( 'list_users' );
 
 		$query_args = array(
@@ -228,11 +238,37 @@ final class WP_Abilities_Users {
 			$query_args['include'] = $include;
 		}
 
-		if ( ! empty( $input['roles'] ) && $can_list_users ) {
-			$query_args['role__in'] = $this->normalize_string_list( $input['roles'] );
+		/*
+		 * On transports that skip schema validation, a filter that cannot be honored must
+		 * not be dropped, which would silently widen the query. Reject it instead, so the
+		 * query fails closed, as the content query does with its filters.
+		 */
+		if ( isset( $input['roles'] ) ) {
+			$roles = $this->normalize_string_list( $input['roles'] );
+			if ( array() === $roles ) {
+				return $this->invalid_filter_error( __( 'The roles filter must list one or more role names.' ) );
+			}
+
+			/*
+			 * The permission callback already refuses a role filter to callers who cannot
+			 * list users. Refuse it here too, rather than dropping the filter, which would
+			 * widen the query to every public author, so a direct call fails closed.
+			 */
+			if ( ! $can_list_users ) {
+				return new WP_Error(
+					'users_cannot_filter_by_role',
+					__( 'Sorry, you are not allowed to filter users by role.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+
+			$query_args['role__in'] = $roles;
 		}
 
 		$has_published_posts = $this->normalize_has_published_posts( $input );
+		if ( array_key_exists( 'has_published_posts', $input ) && null === $has_published_posts ) {
+			return $this->invalid_filter_error( __( 'The has_published_posts filter must be true or list one or more post type names.' ) );
+		}
 
 		/*
 		 * Callers who cannot list users only see public authors in a collection,
@@ -276,15 +312,15 @@ final class WP_Abilities_Users {
 		$total_pages = (int) ceil( $total_users / $per_page );
 
 		/*
-		 * Paging past the last page is a caller error rather than an empty collection, so
-		 * report it instead of returning a bare empty list, as the REST posts controller
-		 * does. A genuinely empty result set still returns zero totals and no error.
+		 * A page past the last one does not exist, so report it as not found instead of
+		 * returning a bare empty list. A genuinely empty result set still returns zero
+		 * totals and no error.
 		 */
 		if ( $total_users > 0 && $page > $total_pages ) {
 			return new WP_Error(
 				'users_invalid_page_number',
 				__( 'The page number requested is larger than the number of pages available.' ),
-				array( 'status' => 400 )
+				array( 'status' => 404 )
 			);
 		}
 
@@ -337,6 +373,17 @@ final class WP_Abilities_Users {
 	private function find_user( array $input, string $lookup_type ): ?WP_User {
 		$value = $input[ $lookup_type ];
 
+		if ( 'id' === $lookup_type ) {
+			/*
+			 * The ID is read with parse_filter_int(), so a malformed ID or one beyond the
+			 * integer range cannot be coerced onto another user.
+			 */
+			$user_id = $this->parse_filter_int( $value, 1 );
+			$user    = null === $user_id ? false : get_user_by( 'id', $user_id );
+
+			return $user instanceof WP_User ? $user : null;
+		}
+
 		// WP_Ability::check_permissions() does not validate the input, so the value may not be a scalar.
 		if ( ! is_scalar( $value ) ) {
 			return null;
@@ -345,11 +392,51 @@ final class WP_Abilities_Users {
 		/*
 		 * get_user_by() sanitizes a login itself, and matches a slug as given, like the REST
 		 * users controller, so a stored nicename that sanitize_title() would change is found.
-		 * The value is passed as a string because validation also accepts a float ID, like 5.0.
 		 */
 		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], (string) $value );
 
 		return $user instanceof WP_User ? $user : null;
+	}
+
+	/**
+	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
+	 *
+	 * Accepts the whole numbers that the integer schema accepts: native integers, floats such
+	 * as the 2.0 that JSON encoders produce, and integer strings such as "2", "2.0", or "+2".
+	 * Only the REST run controller converts input to the schema types, so other callers, such
+	 * as the MCP adapter or a direct WP_Ability::execute() call, pass them on unconverted.
+	 * Anything else, such as a fraction, is rejected rather than coerced: a malformed ID would
+	 * otherwise resolve to another user.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value The raw input value.
+	 * @param int   $min   The smallest acceptable value.
+	 * @return int|null The parsed integer, or null when the value is not an integer >= $min.
+	 */
+	private function parse_filter_int( $value, int $min ): ?int {
+		if ( is_int( $value ) ) {
+			return $value >= $min ? $value : null;
+		}
+
+		if ( is_string( $value ) && '' !== $value && ctype_digit( $value ) ) {
+			$int = (int) $value;
+
+			return $int >= $min ? $int : null;
+		}
+
+		if ( ! rest_is_integer( $value ) ) {
+			return null;
+		}
+
+		/*
+		 * Other whole numbers are read as floats, which hold every integer only up to 2 ** 53.
+		 * Past that, the value may not be the one that was sent, and casting a float beyond the
+		 * integer range wraps it to an arbitrary integer, such as the ID of another user.
+		 */
+		$number = (float) $value;
+
+		return $number >= $min && $number <= 2 ** 53 ? (int) $number : null;
 	}
 
 	/**
@@ -631,14 +718,37 @@ final class WP_Abilities_Users {
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input       The ability input.
-	 * @param int[]        $include_ids Parsed included user IDs; empty when not requested.
+	 * @param int[]        $include_ids Normalized included user IDs; empty when not requested.
 	 * @return int The clamped per-page value.
 	 */
 	private function normalize_per_page( array $input, array $include_ids ): int {
-		$default  = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
-		$per_page = isset( $input['per_page'] ) ? absint( $input['per_page'] ) : $default;
+		$per_page = $this->parse_filter_int( $input['per_page'] ?? null, 1 );
+		if ( null === $per_page ) {
+			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
+		}
 
-		return max( 1, min( self::MAX_PER_PAGE, $per_page ) );
+		return min( self::MAX_PER_PAGE, $per_page );
+	}
+
+	/**
+	 * Normalizes collection-mode included user IDs.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $input The ability input.
+	 * @return int[] Unique positive user IDs.
+	 */
+	private function normalize_include( array $input ): array {
+		$include = $input['include'] ?? null;
+		if ( ! is_array( $include ) && ! is_string( $include ) && ! is_int( $include ) ) {
+			return array();
+		}
+
+		/*
+		 * wp_parse_id_list() also parses a single ID or a comma-separated string, as
+		 * schema validation does.
+		 */
+		return array_values( array_filter( wp_parse_id_list( $include ) ) );
 	}
 
 	/**
@@ -739,7 +849,7 @@ final class WP_Abilities_Users {
 
 		return array(
 			'type'    => 'object',
-			'default' => (object) array(),
+			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'                => __( 'Get a single readable user by ID' ),
@@ -1005,5 +1115,17 @@ final class WP_Abilities_Users {
 			__( 'The requested user was not found.' ),
 			array( 'status' => 404 )
 		);
+	}
+
+	/**
+	 * Builds the error for a collection filter that cannot be honored.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $message The error message.
+	 * @return WP_Error The invalid filter error.
+	 */
+	private function invalid_filter_error( string $message ): WP_Error {
+		return new WP_Error( 'users_invalid_filter', $message, array( 'status' => 400 ) );
 	}
 }
