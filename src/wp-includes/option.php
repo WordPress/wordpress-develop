@@ -236,7 +236,7 @@ function get_option( $option, $default_value = false ) {
 		return get_option( 'siteurl' );
 	}
 
-	if ( in_array( $option, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
+	if ( in_array( $option, array( 'siteurl', 'home', 'category_base', 'tag_base', 'random_base' ), true ) ) {
 		$value = untrailingslashit( $value );
 	}
 

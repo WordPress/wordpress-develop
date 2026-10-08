@@ -701,6 +701,30 @@ function is_sitemap(): bool {
 }
 
 /**
+ * Determines whether the query is for random content.
+ *
+ * True for a blog home, archive or search request that includes the `random` query
+ * variable, for example `example.com/random/` or `example.com/random/category/news/`.
+ *
+ * @since 7.2.0
+ *
+ * @see wp_is_random_content_query()
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @return bool Whether the query is for random content.
+ */
+function is_random(): bool {
+	global $wp_query;
+
+	if ( ! isset( $wp_query ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'Conditional query tags do not work before the query is run. Before then, they always return false.' ), '7.2.0' );
+		return false;
+	}
+
+	return $wp_query->is_random();
+}
+
+/**
  * Determines whether the query is for a search.
  *
  * For more information on this and similar theme functions, check out
@@ -1278,25 +1302,16 @@ function wp_is_random_content_redirect_enabled(): bool {
  */
 function wp_is_random_content_query( WP_Query $query ): bool {
 	if (
-		! $query instanceof WP_Query
+		! $query->is_random()
 		|| ! $query->is_main_query()
-		|| ! isset( $query->query_vars['random'] )
 		|| is_admin()
 		|| ! wp_is_random_content_redirect_enabled()
 	) {
 		return false;
 	}
 
-	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
+	$request_method = isset( $_SERVER['REQUEST_METHOD'] ) && is_string( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( $_SERVER['REQUEST_METHOD'] ) : '';
 	if ( 'GET' !== $request_method && 'HEAD' !== $request_method ) {
-		return false;
-	}
-
-	if ( $query->is_feed() ) {
-		return false;
-	}
-
-	if ( ! $query->is_home() && ! $query->is_archive() && ! $query->is_search() ) {
 		return false;
 	}
 
@@ -1343,6 +1358,11 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
 	$random_post_types = array();
 
 	foreach ( (array) $post_types as $post_type ) {
+		// Plugins may set invalid values on the `post_type` query variable.
+		if ( ! is_string( $post_type ) ) {
+			continue;
+		}
+
 		$post_type_object = get_post_type_object( $post_type );
 
 		if ( $post_type_object && $post_type_object->randomable && is_post_type_viewable( $post_type_object ) ) {
@@ -1354,7 +1374,7 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
 }
 
 /**
- * Modifies the main query to select a single random post for random content requests.
+ * Limits the main query to posts eligible for random content requests.
  *
  * The main query is used to select the random post so the request runs the same
  * query, and the same filters, as the archive it is randomizing. As such, callbacks
@@ -1370,8 +1390,13 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
  *         }
  *     );
  *
- * Runs late on the {@see 'pre_get_posts'} action to prevent other callbacks
- * modifying the order or number of posts on archives from affecting the selection.
+ * Only randomable post types and published posts without a password are eligible.
+ * The number and order of posts are enforced by wp_random_content_post_limits() and
+ * wp_random_content_posts_orderby(), so callbacks modifying them on archives do not
+ * affect the selection.
+ *
+ * Added to the {@see 'pre_get_posts'} action by WP::handle_random() while the
+ * random content query runs, so it runs after other callbacks.
  *
  * @since 7.2.0
  *
@@ -1383,19 +1408,57 @@ function wp_random_content_pre_get_posts( $query ): void {
 	}
 
 	$query->set( 'post_type', wp_get_random_content_post_types( $query ) );
-	$query->set( 'orderby', 'rand' );
-	$query->set( 'posts_per_page', 1 );
-	$query->set( 'posts_per_archive_page', 1 );
-	$query->set( 'showposts', '' );
-	$query->set( 'nopaging', false );
-	$query->set( 'paged', 1 );
-	$query->set( 'offset', '' );
 	$query->set( 'post_status', 'publish' );
 	$query->set( 'has_password', false );
 	$query->set( 'ignore_sticky_posts', true );
 	$query->set( 'no_found_rows', true );
 	$query->set( 'update_post_meta_cache', false );
 	$query->set( 'update_post_term_cache', false );
+	// The order and number of posts are enforced by filters, which a suppressed query skips.
+	$query->set( 'suppress_filters', false );
+}
+
+/**
+ * Orders the random content query randomly.
+ *
+ * Added to the {@see 'posts_orderby'} filter by WP::handle_random() while the random
+ * content query runs. Enforcing the order in SQL prevents {@see 'pre_get_posts'}
+ * callbacks setting the order of posts on archives from affecting the selection.
+ *
+ * @since 7.2.0
+ *
+ * @param string   $orderby The ORDER BY clause of the query.
+ * @param WP_Query $query   The WP_Query instance.
+ * @return string The ORDER BY clause of the query.
+ */
+function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
+	if ( wp_is_random_content_query( $query ) ) {
+		return 'RAND()';
+	}
+
+	return $orderby;
+}
+
+/**
+ * Limits the random content query to a single post.
+ *
+ * Added to the {@see 'post_limits'} filter by WP::handle_random() while the random
+ * content query runs. Enforcing the limit in SQL prevents {@see 'pre_get_posts'}
+ * callbacks setting the number of posts, offset or page on archives from affecting
+ * the selection.
+ *
+ * @since 7.2.0
+ *
+ * @param string   $limits The LIMIT clause of the query.
+ * @param WP_Query $query  The WP_Query instance.
+ * @return string The LIMIT clause of the query.
+ */
+function wp_random_content_post_limits( $limits, WP_Query $query ): string {
+	if ( wp_is_random_content_query( $query ) ) {
+		return 'LIMIT 0, 1';
+	}
+
+	return $limits;
 }
 
 /**
@@ -1429,17 +1492,23 @@ function wp_random_content_split_the_query( $split_the_query, WP_Query $query ):
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @param array<string, string> $headers Associative array of headers to be sent.
- * @return array<string, string> Associative array of headers to be sent.
+ * @param array<string, string|false> $headers Associative array of headers to be sent. A `false`
+ *                                             value prevents the header being sent.
+ * @return array<string, string|false> Associative array of headers to be sent.
  */
-function wp_random_content_headers( $headers ): array {
+function wp_random_content_headers( array $headers ): array {
 	global $wp_query;
 
 	if ( ! wp_is_random_content_query( $wp_query ) ) {
 		return $headers;
 	}
 
-	$headers                 = array_merge( $headers, wp_get_nocache_headers() );
+	foreach ( wp_get_nocache_headers() as $name => $value ) {
+		if ( is_string( $name ) && ( is_string( $value ) || false === $value ) ) {
+			$headers[ $name ] = $value;
+		}
+	}
+
 	$headers['X-Robots-Tag'] = 'noindex, follow';
 
 	return $headers;
@@ -1448,11 +1517,14 @@ function wp_random_content_headers( $headers ): array {
 /**
  * Redirects random content requests to the randomly selected post.
  *
- * Runs on the {@see 'send_headers'} action, immediately after the main query
- * selects the random post, to avoid unnecessary processing before the redirect.
+ * Called by WP::handle_random() immediately after the main query selects the
+ * random post, to avoid unnecessary processing before the redirect. As the redirect
+ * is sent before WP::send_headers(), the headers preventing the redirect being
+ * cached or indexed are sent with it, see wp_random_content_headers().
  *
- * If no post is selected, for example on an empty archive, or the post's permalink
- * is on another site, the request is handled as a regular archive request.
+ * If no post is selected, for example on an empty archive, WP::handle_random()
+ * handles the request as a 404. If the post's permalink is on another site, the
+ * request is handled as a regular archive request.
  *
  * @since 7.2.0
  *
@@ -1467,8 +1539,15 @@ function wp_random_content_redirect(): void {
 
 	$location = get_permalink( $wp_query->post );
 
-	if ( ! $location ) {
+	// Only consider redirecting permitted locations so wp_safe_redirect doesn't redirect to the fallback.
+	if ( ! $location || ! wp_validate_redirect( $location, '' ) ) {
 		return;
+	}
+
+	nocache_headers();
+
+	if ( ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, follow' );
 	}
 
 	if ( wp_safe_redirect( $location, 302 ) ) {
@@ -1477,12 +1556,14 @@ function wp_random_content_redirect(): void {
 }
 
 /**
- * Flushes the rewrite rules when a page at the random content base changes.
+ * Flushes the rewrite rules when a page or post at the random content base changes.
  *
  * A published page at the random base, for example `example.com/random/`, takes
- * precedence over random content redirects. As the rewrite rules account for the
- * page, they need to be regenerated when it is published, unpublished, renamed,
- * moved or deleted.
+ * precedence over random content redirects. So does a published post when the
+ * permalink structure places posts at the same URL, for example `/%postname%/`,
+ * see WP_Rewrite::post_permalinks_share_random_base(). As the rewrite rules account
+ * for the page or post, they need to be regenerated when it is published,
+ * unpublished, renamed, moved or deleted.
  *
  * Runs on the {@see 'wp_after_insert_post'} and {@see 'after_delete_post'} actions.
  *
@@ -1496,7 +1577,7 @@ function wp_random_content_redirect(): void {
  * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
  * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
  */
-function wp_random_content_flush_rewrite_rules_for_page( int $post_id, WP_Post $post, bool $update = false, ?WP_Post $post_before = null ): void {
+function wp_random_content_flush_rewrite_rules_for_post( int $post_id, WP_Post $post, bool $update = false, ?WP_Post $post_before = null ): void {
 	global $wp_rewrite;
 
 	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
@@ -1506,9 +1587,11 @@ function wp_random_content_flush_rewrite_rules_for_page( int $post_id, WP_Post $
 	foreach ( array( $post, $post_before ) as $page ) {
 		if (
 			$page instanceof WP_Post
-			&& 'page' === $page->post_type
-			&& 0 === (int) $page->post_parent
-			&& $wp_rewrite->random_base === $page->post_name
+			&& $wp_rewrite->get_random_base() === $page->post_name
+			&& (
+				( 'page' === $page->post_type && 0 === (int) $page->post_parent )
+				|| ( 'post' === $page->post_type && $wp_rewrite->post_permalinks_share_random_base() )
+			)
 		) {
 			flush_rewrite_rules( false );
 			return;

@@ -162,6 +162,7 @@ if ( ! empty( $messages ) ) {
 				'permalink_structure',
 				'category_base',
 				'tag_base',
+				'random_base',
 				'upload_path',
 				'upload_url_path',
 			);
