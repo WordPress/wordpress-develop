@@ -13,6 +13,11 @@
  *
  * @since 1.0.0
  */
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
+
 define( 'WPINC', 'wp-includes' );
 
 /**
