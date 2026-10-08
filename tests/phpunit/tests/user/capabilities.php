@@ -301,6 +301,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 			'assign_categories'           => array( 'administrator', 'editor', 'author', 'contributor' ),
 			'assign_post_tags'            => array( 'administrator', 'editor', 'author', 'contributor' ),
+			'embed_url'                   => array( 'administrator', 'editor', 'author', 'contributor' ),
 		);
 	}
 
@@ -340,6 +341,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 			'assign_categories'           => array( 'administrator', 'editor', 'author', 'contributor' ),
 			'assign_post_tags'            => array( 'administrator', 'editor', 'author', 'contributor' ),
+			'embed_url'                   => array( 'administrator', 'editor', 'author', 'contributor' ),
 		);
 	}
 
@@ -2590,5 +2592,104 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected_caps, $sally_caps, 'Sally role should include the three expected capabilities.' );
 		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
 		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
+	}
+
+	/**
+	 * @ticket 44399
+	 *
+	 * @covers ::map_meta_cap
+	 */
+	public function test_embed_url_without_post_maps_to_edit_posts() {
+		$this->assertSame( array( 'edit_posts' ), map_meta_cap( 'embed_url', self::$users['contributor']->ID ) );
+		$this->assertTrue( user_can( self::$users['contributor'], 'embed_url' ) );
+		$this->assertFalse( user_can( self::$users['subscriber'], 'embed_url' ) );
+		$this->assertFalse( user_can( self::$users['anonymous'], 'embed_url' ) );
+	}
+
+	/**
+	 * @ticket 44399
+	 *
+	 * @covers ::map_meta_cap
+	 */
+	public function test_embed_url_with_post_maps_to_edit_post() {
+		$others_post = self::factory()->post->create(
+			array(
+				'post_author' => self::$users['editor']->ID,
+				'post_status' => 'publish',
+			)
+		);
+		$own_draft   = self::factory()->post->create(
+			array(
+				'post_author' => self::$users['contributor']->ID,
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame(
+			map_meta_cap( 'edit_post', self::$users['contributor']->ID, $others_post ),
+			map_meta_cap( 'embed_url', self::$users['contributor']->ID, $others_post )
+		);
+
+		$this->assertTrue( user_can( self::$users['contributor'], 'embed_url', $own_draft ) );
+		$this->assertFalse( user_can( self::$users['contributor'], 'embed_url', $others_post ) );
+		$this->assertTrue( user_can( self::$users['editor'], 'embed_url', $others_post ) );
+		$this->assertFalse( user_can( self::$users['editor'], 'embed_url', PHP_INT_MAX ) );
+	}
+
+	/**
+	 * Custom post types with their own capabilities, where the user has no `edit_posts`.
+	 *
+	 * @ticket 44399
+	 *
+	 * @covers ::map_meta_cap
+	 */
+	public function test_embed_url_for_custom_post_type_capabilities() {
+		register_post_type(
+			'ticket_44399',
+			array(
+				'capability_type' => array( 'ticket_44399_item', 'ticket_44399_items' ),
+				'map_meta_cap'    => true,
+			)
+		);
+
+		add_role(
+			'ticket_44399_role',
+			'Ticket 44399 Role',
+			array(
+				'read'                       => true,
+				'edit_ticket_44399_items'    => true,
+				'publish_ticket_44399_items' => true,
+			)
+		);
+
+		$user = self::factory()->user->create_and_get( array( 'role' => 'ticket_44399_role' ) );
+		$post = self::factory()->post->create(
+			array(
+				'post_type'   => 'ticket_44399',
+				'post_author' => $user->ID,
+				'post_status' => 'draft',
+			)
+		);
+
+		// With a post context, the post type capabilities apply.
+		$this->assertTrue( user_can( $user, 'embed_url', $post ) );
+
+		// Without a post context, the default still requires `edit_posts`.
+		$this->assertFalse( user_can( $user, 'embed_url' ) );
+
+		// The meta capability can be remapped without granting `edit_posts`.
+		$remap = static function ( $caps, $cap, $user_id, $args ) {
+			if ( 'embed_url' === $cap && empty( $args ) ) {
+				return array( 'edit_ticket_44399_items' );
+			}
+			return $caps;
+		};
+		add_filter( 'map_meta_cap', $remap, 10, 4 );
+
+		$this->assertTrue( user_can( $user, 'embed_url' ) );
+		$this->assertFalse( user_can( $user, 'edit_posts' ) );
+
+		remove_role( 'ticket_44399_role' );
+		unregister_post_type( 'ticket_44399' );
 	}
 }

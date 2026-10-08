@@ -3806,11 +3806,11 @@ function wp_ajax_parse_embed() {
 	if ( $post_id > 0 ) {
 		$post = get_post( $post_id );
 
-		if ( ! $post || ! current_user_can( 'edit_post', $post->ID ) ) {
+		if ( ! $post || ! current_user_can( 'embed_url', $post->ID ) ) {
 			wp_send_json_error();
 		}
 		setup_postdata( $post );
-	} elseif ( ! current_user_can( 'edit_posts' ) ) { // See WP_oEmbed_Controller::get_proxy_item_permissions_check().
+	} elseif ( ! current_user_can( 'embed_url' ) ) { // See WP_oEmbed_Controller::get_proxy_item_permissions_check().
 		wp_send_json_error();
 	}
 
