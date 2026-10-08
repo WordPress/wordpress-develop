@@ -86,8 +86,8 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'         => esc_html__( 'Follow Blog', 'twentyeleven' ),
 			'categories'    => array( 'twentyeleven' ),
 			'viewportWidth' => 1000,
-			'content'       => '<!-- wp:cover {"overlayColor":"black","minHeight":900,"minHeightUnit":"px","align":"center"} -->
-				<div class="wp-block-cover aligncenter has-black-background-color has-background-dim" style="min-height:900px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":85}}} -->
+			'content'       => '<!-- wp:cover {"overlayColor":"black","textColor":"white","minHeight":900,"minHeightUnit":"px","align":"center"} -->
+				<div class="wp-block-cover aligncenter has-black-background-color has-background-dim has-white-color has-text-color" style="min-height:900px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":85}}} -->
 				<p class="has-text-align-center" style="font-size:85px">' . esc_html__( 'Get In Touch', 'twentyeleven' ) . '</p>
 				<!-- /wp:paragraph -->
 				<!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":25}}} -->
