@@ -255,6 +255,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	align-items: center;
 	justify-content: center;
 	box-sizing: border-box;
+	min-width: 24px;
 	height: 32px;
 	padding: 0;
 }
