@@ -201,8 +201,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is false,
 	 *                          true otherwise.
+	 * @phpstan-return ( $display is true ? true|null : string|null )
 	 */
 	public function print_scripts_l10n( $handle, $display = true ) {
 		_deprecated_function( __FUNCTION__, '3.3.0', 'WP_Scripts::print_extra_script()' );
@@ -217,8 +218,9 @@ class WP_Scripts extends WP_Dependencies {
 	 * @param string $handle  The script's registered handle.
 	 * @param bool   $display Optional. Whether to print the extra script
 	 *                        instead of just returning it. Default true.
-	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is true,
+	 * @return bool|string|null Null if no data exists, extra scripts if `$display` is false,
 	 *                          true otherwise.
+	 * @phpstan-return ( $display is true ? true|null : string|null )
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
@@ -413,39 +415,7 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
-			$src = $this->base_url . $src;
-		}
-
-		$ver_to_add = '';
-		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
-			$ver_to_add = $this->default_version;
-		} elseif ( is_scalar( $obj->ver ) ) {
-			$ver_to_add = (string) $obj->ver;
-		}
-
-		$added_args = (string) ( $this->args[ $handle ] ?? '' );
-
-		if ( '' !== $ver_to_add || '' !== $added_args ) {
-			$fragment = strstr( $src, '#' );
-			if ( false !== $fragment ) {
-				$src = substr( $src, 0, -strlen( $fragment ) );
-			}
-
-			if ( '' !== $ver_to_add ) {
-				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
-			}
-			if ( '' !== $added_args ) {
-				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
-			}
-
-			if ( false !== $fragment ) {
-				$src .= $fragment;
-			}
-		}
-
-		/** This filter is documented in wp-includes/class-wp-scripts.php */
-		$src = esc_url_raw( apply_filters( 'script_loader_src', $src, $handle ) );
+		$src = esc_url_raw( $this->get_src( $handle ) );
 
 		if ( ! $src ) {
 			return true;
@@ -505,6 +475,69 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Gets the URL a registered script is loaded from.
+	 *
+	 * This is the URL printed in the script's `src` attribute, including the version query
+	 * argument and any arguments added to the handle, after the {@see 'script_loader_src'} filter.
+	 * Like {@see WP_Script_Modules::get_src()}, it is neither sanitized nor escaped, so a caller
+	 * can pass it through esc_url_raw(), as WP_Scripts::do_item() does, or esc_url(), once.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $handle Script handle.
+	 * @return string Script URL, or an empty string when the script is not registered, has no
+	 *                source of its own because it only aliases other scripts, or was filtered away.
+	 */
+	public function get_src( string $handle ): string {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return '';
+		}
+
+		$obj = $this->registered[ $handle ];
+		$src = $obj->src;
+
+		if ( ! $src || ! is_string( $src ) ) {
+			return '';
+		}
+
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && str_starts_with( $src, $this->content_url ) ) ) {
+			$src = $this->base_url . $src;
+		}
+
+		$ver_to_add = '';
+		if ( empty( $obj->ver ) && null !== $obj->ver && is_string( $this->default_version ) ) {
+			$ver_to_add = $this->default_version;
+		} elseif ( is_scalar( $obj->ver ) ) {
+			$ver_to_add = (string) $obj->ver;
+		}
+
+		$added_args = (string) ( $this->args[ $handle ] ?? '' );
+
+		if ( '' !== $ver_to_add || '' !== $added_args ) {
+			$fragment = strstr( $src, '#' );
+			if ( false !== $fragment ) {
+				$src = substr( $src, 0, -strlen( $fragment ) );
+			}
+
+			if ( '' !== $ver_to_add ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . 'ver=' . rawurlencode( $ver_to_add );
+			}
+			if ( '' !== $added_args ) {
+				$src .= ( str_contains( $src, '?' ) ? '&' : '?' ) . $added_args;
+			}
+
+			if ( false !== $fragment ) {
+				$src .= $fragment;
+			}
+		}
+
+		/** This filter is documented in wp-includes/class-wp-scripts.php */
+		$src = apply_filters( 'script_loader_src', $src, $handle );
+
+		return is_string( $src ) ? $src : '';
+	}
+
+	/**
 	 * Adds extra code to a registered script.
 	 *
 	 * @since 4.5.0
@@ -525,7 +558,8 @@ class WP_Scripts extends WP_Dependencies {
 			$position = 'before';
 		}
 
-		$script   = (array) $this->get_data( $handle, $position );
+		$script   = $this->get_data( $handle, $position );
+		$script   = false === $script ? array() : (array) $script;
 		$script[] = $data;
 
 		return $this->add_data( $handle, $position, $script );

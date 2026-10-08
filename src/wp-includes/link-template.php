@@ -109,8 +109,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 	) {
 		$sample = true;
 	} else {
-		$post   = get_post( $post );
-		$sample = $sample ?? false;
+		$post     = get_post( $post );
+		$sample ??= false;
 	}
 
 	if ( ! $post ) {
@@ -153,6 +153,8 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_the_permalink( $post = 0, $leavename = false ) {
 	return get_permalink( $post, $leavename );
@@ -166,6 +168,8 @@ function get_the_permalink( $post = 0, $leavename = false ) {
  * @param int|WP_Post $post      Optional. Post ID or post object. Default is the global `$post`.
  * @param bool        $leavename Optional. Whether to keep post name or page name. Default false.
  * @return string|false The permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_permalink( $post = 0, $leavename = false ) {
 	$rewritecode = array(
@@ -320,6 +324,8 @@ function get_permalink( $post = 0, $leavename = false ) {
  * @param bool        $leavename Optional. Whether to keep post name. Default false.
  * @param bool        $sample    Optional. Is it a sample permalink. Default false.
  * @return string|false The post permalink URL. False if the post does not exist.
+ *
+ * @phpstan-return ( $post is WP_Post ? string : string|false )
  */
 function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
@@ -1131,7 +1137,9 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
  * @param string           $after   Optional. Display after edit link. Default empty.
  * @param int|WP_Term|null $term    Optional. Term ID or object. If null, the queried object will be inspected. Default null.
  * @param bool             $display Optional. Whether or not to echo the return. Default true.
- * @return string|null HTML content.
+ * @return string|null|void HTML content when retrieving, null on failure or without the
+ *                          capability to edit the term. Nothing when displaying.
+ * @phpstan-return ( $display is true ? void : string|null )
  */
 function edit_term_link( $link = '', $before = '', $after = '', $term = null, $display = true ) {
 	if ( is_null( $term ) ) {
@@ -1164,11 +1172,11 @@ function edit_term_link( $link = '', $before = '', $after = '', $term = null, $d
 	 */
 	$link = $before . apply_filters( 'edit_term_link', $link, $term->term_id ) . $after;
 
-	if ( $display ) {
-		echo $link;
-	} else {
+	if ( ! $display ) {
 		return $link;
 	}
+
+	echo $link;
 }
 
 /**
@@ -1552,6 +1560,8 @@ function edit_post_link( $text = null, $before = '', $after = '', $post = 0, $cs
  * @param string      $deprecated   Not used.
  * @param bool        $force_delete Optional. Whether to bypass Trash and force deletion. Default false.
  * @return string|null The delete post link URL for the given post.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_delete_post_link( $post = 0, $deprecated = '', $force_delete = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2005,9 +2015,9 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @since 4.9.0 Added the `$order` parameter.
 	 * @since 6.9.0 Adds ID sort to ensure deterministic ordering for posts with identical dates.
 	 *
-	 * @param string $order_by The `ORDER BY` clause in the SQL.
-	 * @param WP_Post $post    WP_Post object.
-	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
+	 * @param string  $order_by The `ORDER BY` clause in the SQL.
+	 * @param WP_Post $post     WP_Post object.
+	 * @param string  $order    Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
 	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order, p.ID $order LIMIT 1", $post, $order );
 
@@ -2530,6 +2540,8 @@ function get_next_posts_page_link( $max_page = 0 ) {
 			return get_pagenum_link( $next_page );
 		}
 	}
+
+	return null;
 }
 
 /**
@@ -2539,17 +2551,19 @@ function get_next_posts_page_link( $max_page = 0 ) {
  *
  * @param int  $max_page Optional. Max pages. Default 0.
  * @param bool $display  Optional. Whether to echo the link. Default true.
- * @return string|null The link URL for next posts page if `$display = false`.
+ * @return string|void The next posts page link when `$display` is false, or an empty
+ *                     string when there is no next page. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function next_posts( $max_page = 0, $display = true ) {
 	$link   = get_next_posts_page_link( $max_page );
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
 }
 
 /**
@@ -2598,6 +2612,8 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -2637,6 +2653,8 @@ function get_previous_posts_page_link() {
 
 		return get_pagenum_link( $previous_page );
 	}
+
+	return null;
 }
 
 /**
@@ -2645,17 +2663,19 @@ function get_previous_posts_page_link() {
  * @since 0.71
  *
  * @param bool $display Optional. Whether to echo the link. Default true.
- * @return string|null The previous posts page link if `$display = false`.
+ * @return string|void The previous posts page link when `$display` is false, or an empty
+ *                     string when there is no previous page. Nothing otherwise.
+ * @phpstan-return ( $display is true ? void : string )
  */
 function previous_posts( $display = true ) {
 	$link   = get_previous_posts_page_link();
 	$output = $link ? esc_url( $link ) : '';
 
-	if ( $display ) {
-		echo $output;
-	} else {
+	if ( ! $display ) {
 		return $output;
 	}
+
+	echo $output;
 }
 
 /**
@@ -2692,6 +2712,8 @@ function get_previous_posts_link( $label = null ) {
 			preg_replace( '/&([^#])(?![a-z]{1,8};)/i', '&#038;$1', $label )
 		);
 	}
+
+	return null;
 }
 
 /**
@@ -3254,16 +3276,23 @@ function previous_comments_link( $label = '' ) {
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string|array $args Optional args. See paginate_links(). Default empty array.
- * @return void|string|array Void if 'echo' argument is true and 'type' is not an array,
- *                           or if the query is not for an existing single post of any post type.
- *                           Otherwise, markup for comment page links or array of comment page links,
- *                           depending on 'type' argument.
+ * @return string|string[]|null|void Markup for comment page links, or an array of them when
+ *                                   the 'type' argument is 'array'. Null if the query is not for
+ *                                   an existing single post of any post type. Nothing when 'echo'
+ *                                   is true and 'type' is not 'array'.
+ * @phpstan-return (
+ *     $args is array{ type: 'array', ... }
+ *         ? string[]|null
+ *         : ( $args is array{ echo: false|0|''|'0', ... }
+ *             ? string|null
+ *             : ( $args is ''|'0'|array ? void : string|string[]|null ) )
+ * )
  */
 function paginate_comments_links( $args = array() ) {
 	global $wp_rewrite;
 
 	if ( ! is_singular() ) {
-		return;
+		return null;
 	}
 
 	$page = get_query_var( 'cpage' );
@@ -3993,7 +4022,7 @@ function get_dashboard_url( $user_id = 0, $path = '', $scheme = 'admin' ) {
 	} else {
 		$current_blog = get_current_blog_id();
 
-		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || in_array( $current_blog, array_keys( $blogs ), true ) ) ) {
+		if ( $current_blog && ( user_can( $user_id, 'manage_network' ) || isset( $blogs[ $current_blog ] ) ) ) {
 			$url = admin_url( $path, $scheme );
 		} else {
 			$active = get_active_blog_for_user( $user_id );
@@ -4411,6 +4440,7 @@ function is_avatar_comment_type( $comment_type ) {
  *                                      false or not set if none was found.
  *     @type string|false $url          The URL of the avatar that was found, or false.
  * }
+ * @phpstan-return array{ found_avatar: bool, url: string|false, ... }
  */
 function get_avatar_data( $id_or_email, $args = null ) {
 	$args = wp_parse_args(
@@ -4820,7 +4850,16 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
 		$link = sprintf(
 			'<a class="privacy-policy-link" href="%s" rel="privacy-policy">%s</a>',
 			esc_url( $privacy_policy_url ),
-			esc_html( $page_title )
+			wp_kses(
+				$page_title,
+				array(
+					'strong' => array( 'class' => true ),
+					'em'     => array( 'class' => true ),
+					'b'      => array( 'class' => true ),
+					'i'      => array( 'class' => true ),
+					'span'   => array( 'class' => true ),
+				)
+			)
 		);
 	}
 
@@ -4859,8 +4898,11 @@ function get_the_privacy_policy_link( $before = '', $after = '' ) {
  * @since 6.2.0
  *
  * @return string[] An array of URL hosts.
+ *
+ * @phpstan-return list<lowercase-string>
  */
 function wp_internal_hosts() {
+	/** @var list<lowercase-string>|null $internal_hosts */
 	static $internal_hosts;
 
 	if ( empty( $internal_hosts ) ) {
@@ -4877,8 +4919,10 @@ function wp_internal_hosts() {
 				wp_parse_url( home_url(), PHP_URL_HOST ),
 			)
 		);
-		$internal_hosts = array_unique(
-			array_map( 'strtolower', (array) $internal_hosts )
+		$internal_hosts = array_values(
+			array_unique(
+				array_map( 'strtolower', (array) $internal_hosts )
+			)
 		);
 	}
 

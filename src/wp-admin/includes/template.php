@@ -316,11 +316,13 @@ function get_inline_data( $post ) {
 
 	$title = esc_textarea( trim( $post->post_title ) );
 
+	/** This filter is documented in wp-admin/edit-tag-form.php */
+	$editable_slug = apply_filters( 'editable_slug', $post->post_name, $post );
+
 	echo '
 <div class="hidden" id="inline_' . $post->ID . '">
-	<div class="post_title">' . $title . '</div>' .
-	/** This filter is documented in wp-admin/edit-tag-form.php */
-	'<div class="post_name">' . apply_filters( 'editable_slug', $post->post_name, $post ) . '</div>
+	<div class="post_title">' . $title . '</div>
+	<div class="post_name">' . $editable_slug . '</div>
 	<div class="post_author">' . $post->post_author . '</div>
 	<div class="comment_status">' . esc_html( $post->comment_status ) . '</div>
 	<div class="ping_status">' . esc_html( $post->ping_status ) . '</div>
@@ -1806,7 +1808,7 @@ function do_settings_sections( $page ) {
  *
  * @global array $wp_settings_fields Storage array of settings fields and their pages/sections.
  *
- * @param string $page Slug title of the admin page whose settings fields you want to show.
+ * @param string $page    Slug title of the admin page whose settings fields you want to show.
  * @param string $section Slug title of the settings section whose fields you want to show.
  */
 function do_settings_fields( $page, $section ) {
@@ -1972,6 +1974,8 @@ function get_settings_errors( $setting = '', $sanitize = false ) {
  * @since 3.0.0
  * @since 5.3.0 Legacy `error` and `updated` CSS classes are mapped to
  *              `notice-error` and `notice-success`.
+ * @since 7.2.0 Uses `wp_admin_notice()` to echo the notices so that the CSS
+ *              classes, filters, and hooks are handled consistently.
  *
  * @param string $setting        Optional slug title of a specific setting whose errors you want.
  * @param bool   $sanitize       Whether to re-sanitize the setting value before returning errors.
@@ -1990,32 +1994,49 @@ function settings_errors( $setting = '', $sanitize = false, $hide_on_update = fa
 		return;
 	}
 
-	$output = '';
-
 	foreach ( $settings_errors as $key => $details ) {
-		if ( 'updated' === $details['type'] ) {
-			$details['type'] = 'success';
+		$type = trim( $details['type'] );
+
+		if ( 'updated' === $type ) {
+			$type = 'success';
 		}
 
-		if ( in_array( $details['type'], array( 'error', 'success', 'warning', 'info' ), true ) ) {
-			$details['type'] = 'notice-' . $details['type'];
+		$additional_classes = array( 'settings-error' );
+
+		/*
+		 * Backward compatibility: `wp_admin_notice()` generates the admin notice
+		 * CSS classes based on the passed message type. For example, 'error',
+		 * 'success', 'warning', 'info'. Custom types will be treated as
+		 * additional classes and appended to the end of the CSS classes.
+		 */
+		if ( ! in_array( $type, array( 'error', 'success', 'warning', 'info' ), true ) ) {
+			$additional_classes = array_merge( $additional_classes, explode( ' ', $type ) );
+			$type               = '';
 		}
 
-		$css_id    = sprintf(
+		/*
+		 * Note that the setting error code contains underscores, for example:
+		 * `settings_updated`. This will build a CSS ID selector that contains
+		 * underscores, which are currently not allowed by the WordPress CSS
+		 * Coding Standards. Kept for backwards compatibility.
+		 */
+		$css_id = sprintf(
 			'setting-error-%s',
-			esc_attr( $details['code'] )
-		);
-		$css_class = sprintf(
-			'notice %s settings-error is-dismissible',
-			esc_attr( $details['type'] )
+			$details['code'],
 		);
 
-		$output .= "<div id='$css_id' class='$css_class'> \n";
-		$output .= "<p><strong>{$details['message']}</strong></p>";
-		$output .= "</div> \n";
+		wp_admin_notice(
+			"<strong>{$details['message']}</strong>",
+			array(
+				'type'               => $type,
+				'code'               => $details['code'],
+				'id'                 => $css_id,
+				'paragraph_wrap'     => true,
+				'dismissible'        => true,
+				'additional_classes' => $additional_classes,
+			)
+		);
 	}
-
-	echo $output;
 }
 
 /**
@@ -2122,6 +2143,8 @@ function _admin_search_query() {
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
 function iframe_header( $title = '', $deprecated = false ) {
 	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
@@ -2138,19 +2161,50 @@ function iframe_header( $title = '', $deprecated = false ) {
 <title><?php bloginfo( 'name' ); ?> &rsaquo; <?php echo $title; ?> &#8212; <?php _e( 'WordPress' ); ?></title>
 	<?php
 	wp_enqueue_style( 'colors' );
-	?>
-<script>
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(function(){func();});else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-function tb_close(){var win=window.dialogArguments||opener||parent||top;win.tb_remove();}
-var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
-	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
-	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
-	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
-	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-</script>
-	<?php
+
+	// Print the global admin inline scripts through the script tag API so the
+	// `wp_inline_script_attributes` filter (e.g. a CSP nonce) applies.
+	wp_print_inline_script_tag(
+		<<<'JS'
+		function addLoadEvent( func ) {
+			if ( typeof jQuery !== 'undefined' ) {
+				jQuery( function () {
+					func();
+				} );
+			} else if ( typeof wpOnload !== 'function' ) {
+				window.wpOnload = func;
+			} else {
+				const oldOnload = window.wpOnload;
+				window.wpOnload = function () {
+					oldOnload();
+					func();
+				};
+			}
+		}
+
+		function tb_close() {
+			( window.dialogArguments || opener || parent || top ).tb_remove();
+		}
+		JS
+	);
+	wp_print_inline_script_tag(
+		sprintf(
+			'Object.assign( window, %s );',
+			wp_json_encode(
+				array(
+					'ajaxurl'            => admin_url( 'admin-ajax.php', 'relative' ),
+					'pagenow'            => $current_screen->id ?? '',
+					'typenow'            => $current_screen->post_type ?? '',
+					'adminpage'          => $admin_body_class,
+					'thousandsSeparator' => $wp_locale->number_format['thousands_sep'],
+					'decimalPoint'       => $wp_locale->number_format['decimal_point'],
+					'isRtl'              => (int) is_rtl(),
+				),
+				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES
+			)
+		)
+	);
+
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', $hook_suffix );
 
@@ -2189,14 +2243,12 @@ var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?
 	$admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 	?>
 <body <?php echo $admin_body_id; ?>class="wp-admin wp-core-ui no-js iframe <?php echo esc_attr( $admin_body_classes ); ?>">
-<script>
-(function(){
-var c = document.body.className;
-c = c.replace(/no-js/, 'js');
-document.body.className = c;
-})();
-</script>
 	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		document.body.className = document.body.className.replace( 'no-js', 'js' );
+		JS
+	);
 }
 
 /**
@@ -2228,7 +2280,15 @@ function iframe_footer() {
 	do_action( 'admin_print_footer_scripts' );
 	?>
 	</div>
-<script>if(typeof wpOnload==='function')wpOnload();</script>
+	<?php
+	wp_print_inline_script_tag(
+		<<<'JS'
+		if ( typeof wpOnload === 'function' ) {
+			wpOnload();
+		}
+		JS
+	);
+	?>
 </body>
 </html>
 	<?php
@@ -2594,6 +2654,8 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
  *                                       Default empty string.
  * @return string Submit button HTML.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	if ( ! is_array( $type ) ) {
@@ -2686,7 +2748,9 @@ function _wp_admin_html_begin() {
  *
  * @since 3.0.0
  *
- * @param string $hook_name The hook name (also known as the hook suffix) used to determine the screen.
+ * @param string|WP_Screen|null $hook_name The hook name (also known as the hook suffix) used to determine the screen.
+ *                                         A `WP_Screen` instance is returned as-is. If null, the current
+ *                                         $hook_suffix global is used.
  * @return WP_Screen Screen object.
  */
 function convert_to_screen( $hook_name ) {
