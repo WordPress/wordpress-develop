@@ -520,10 +520,6 @@ a:hover {
 	outline: 2px dotted var(--wp--style--color--link, var(--global--color-primary));
 }
 
-.has-background .has-link-color a,
-.has-background.has-link-color a {
-	color: var(--wp--style--color--link, var(--global--color-primary));
-}
 
 .wp-block-button__link {
 	border: var(--button--border-width) solid transparent;
@@ -2372,11 +2368,6 @@ body {
 .wp-block a:focus {
 	outline: 2px solid var(--wp--style--color--link, var(--global--color-primary));
 	text-decoration: none;
-}
-
-.has-background .has-link-color a,
-.has-background.has-link-color a {
-	color: var(--wp--style--color--link, var(--global--color-primary));
 }
 
 button,
