@@ -84,9 +84,10 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * when $wp_query->posts is an array of post IDs (from fields => 'ids')
 	 * instead of WP_Post objects.
 	 *
-	 * Before this test, the function would fall back to get_lastpostmodified()
-	 * and silently return the site-wide latest modified time instead of the
-	 * latest modified time of the posts actually in the feed.
+	 * Before this fix, {@see wp_list_pluck()} could not read post_modified_gmt
+	 * from the integer IDs, so it triggered {@see _doing_it_wrong()} for each
+	 * one and returned an empty array, on which {@see max()} threw a
+	 * ValueError on PHP 8.
 	 *
 	 * @ticket 59956
 	 */
