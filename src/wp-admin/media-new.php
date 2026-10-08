@@ -13,7 +13,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'upload_files' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
+	wp_die( __( 'Sorry, you are not allowed to upload files.' ), 403 );
 }
 
 wp_enqueue_script( 'plupload-handlers' );
