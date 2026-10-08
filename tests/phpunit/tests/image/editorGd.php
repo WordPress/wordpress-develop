@@ -674,4 +674,39 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $loaded );
 	}
+
+	/**
+	 * Tests that GD can convert a palette image to WebP.
+	 *
+	 * @ticket 63773
+	 */
+	public function test_convert_palette_image_to_webp() {
+		if ( ! ( imagetypes() & IMG_WEBP ) ) {
+			$this->markTestSkipped( 'This test requires WEBP support.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/png-tests/dice-palette.png';
+
+		// Use the `image_editor_output_format` filter to set the output to WebP.
+		add_filter(
+			'image_editor_output_format',
+			function () {
+				return array(
+					'image/png' => 'image/webp',
+				);
+			}
+		);
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+
+		$gd_image_editor->load();
+
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.webp';
+
+		$gd_image_editor->save( $save_to_file );
+
+		$this->assertFileExists( $save_to_file );
+
+		unlink( $save_to_file );
+	}
 }
