@@ -488,60 +488,27 @@ class WP_Block_Processor {
 	private $type;
 
 	/**
-	 * Whether the last-matched delimiter acts like a void block and should be
-	 * popped from the stack of open blocks as soon as the parser advances.
-	 *
-	 * This applies to void block delimiters and to HTML spans.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @var bool
-	 */
-	private $was_void = false;
-
-	/**
 	 * For every open block, in hierarchical order, this stores the byte offset
-	 * into the source text where the block type starts, including for HTML spans.
+	 * into the source text where the block type starts.
 	 *
 	 * To avoid allocating and normalizing block names when they aren’t requested,
-	 * the stack of open blocks is stored as the byte offsets and byte lengths of
-	 * each open block’s block type. This allows for minimal tracking and quick
-	 * reading or comparison of block types when requested.
+	 * the stack of open blocks is stored as the byte offsets of each open block’s
+	 * block type. This allows for minimal tracking and quick reading or comparison
+	 * of block types when requested.
+	 *
+	 * Void blocks and HTML spans contain no other tokens, so they are not stored
+	 * on this stack. While the processor is paused on one, it counts as one more
+	 * level of depth. {@see self::get_depth()}.
+	 *
+	 * Since HTML spans are discovered after matching the block delimiter which
+	 * follows them, the stack is not updated for that delimiter until the
+	 * processor advances from the HTML span onto the delimiter.
 	 *
 	 * @since 6.9.0
-	 *
-	 * @see self::$open_blocks_length
 	 *
 	 * @var int[]
 	 */
 	private $open_blocks_at = array();
-
-	/**
-	 * For every open block, in hierarchical order, this stores the byte length
-	 * of the block’s block type in the source text. For HTML spans this is 0.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @see self::$open_blocks_at
-	 *
-	 * @var int[]
-	 */
-	private $open_blocks_length = array();
-
-	/**
-	 * Indicates which operation should apply to the stack of open blocks after
-	 * processing any pending spans of HTML.
-	 *
-	 * Since HTML spans are discovered after matching block delimiters, those
-	 * delimiters need to defer modifying the stack of open blocks. This value,
-	 * if set, indicates what operation should be applied. The properties
-	 * associated with token boundaries still point to the delimiters even
-	 * when processing HTML spans, so there’s no need to track them independently.
-	 *
-	 * @since 6.9.0
-	 * @var 'push'|'void'|'pop'|null
-	 */
-	private $next_stack_op = null;
 
 	/**
 	 * Creates a new block processor.
@@ -739,13 +706,6 @@ class WP_Block_Processor {
 			return false;
 		}
 
-		// Void tokens automatically pop off the stack of open blocks.
-		if ( $this->was_void ) {
-			array_pop( $this->open_blocks_at );
-			array_pop( $this->open_blocks_length );
-			$this->was_void = false;
-		}
-
 		$text = $this->source_text;
 		$end  = strlen( $text );
 
@@ -762,26 +722,13 @@ class WP_Block_Processor {
 				return false;
 			}
 
-			switch ( $this->next_stack_op ) {
-				case 'void':
-					$this->was_void             = true;
-					$this->open_blocks_at[]     = $this->namespace_at;
-					$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
-					break;
-
-				case 'push':
-					$this->open_blocks_at[]     = $this->namespace_at;
-					$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
-					break;
-
-				case 'pop':
-					array_pop( $this->open_blocks_at );
-					array_pop( $this->open_blocks_length );
-					break;
+			if ( self::OPENER === $this->type ) {
+				$this->open_blocks_at[] = $this->namespace_at;
+			} elseif ( self::CLOSER === $this->type ) {
+				array_pop( $this->open_blocks_at );
 			}
 
-			$this->next_stack_op = null;
-			$this->state         = self::MATCHED;
+			$this->state = self::MATCHED;
 			return true;
 		}
 
@@ -829,9 +776,6 @@ class WP_Block_Processor {
 					$this->after_previous_delimiter = $after_prev_delimiter;
 					$this->matched_delimiter_at     = $end - $backup;
 					$this->matched_delimiter_length = $backup;
-					$this->open_blocks_at[]         = $after_prev_delimiter;
-					$this->open_blocks_length[]     = 0;
-					$this->was_void                 = true;
 
 					if ( $backup > 0 ) {
 						$this->last_error = self::INCOMPLETE_INPUT;
@@ -1083,9 +1027,6 @@ class WP_Block_Processor {
 				$this->after_previous_delimiter = $after_prev_delimiter;
 				$this->matched_delimiter_at     = $end;
 				$this->matched_delimiter_length = 0;
-				$this->open_blocks_at[]         = $after_prev_delimiter;
-				$this->open_blocks_length[]     = 0;
-				$this->was_void                 = true;
 
 				return true;
 			}
@@ -1116,53 +1057,35 @@ class WP_Block_Processor {
 		 * they shall be interpreted as void blocks, per the spec parser.
 		 */
 		if ( $has_void_flag ) {
-			$this->type          = self::VOID;
-			$this->next_stack_op = 'void';
+			$this->type = self::VOID;
 		} elseif ( $has_closer ) {
-			$this->type          = self::CLOSER;
-			$this->next_stack_op = 'pop';
+			$this->type = self::CLOSER;
 
 			/*
 			 * @todo Check if the name matches and bail according to the spec parser.
 			 *       The default parser doesn’t examine the names.
 			 */
 		} else {
-			$this->type          = self::OPENER;
-			$this->next_stack_op = 'push';
+			$this->type = self::OPENER;
 		}
 
 		$this->has_closing_flag = $has_closer;
 
-		// HTML spans are visited before the delimiter that follows them.
+		/*
+		 * HTML spans are visited before the delimiter that follows them,
+		 * and the stack of open blocks is updated once the processor
+		 * advances onto that delimiter.
+		 */
 		if ( $comment_opening_at > $after_prev_delimiter ) {
-			$this->state                = self::HTML_SPAN;
-			$this->open_blocks_at[]     = $after_prev_delimiter;
-			$this->open_blocks_length[] = 0;
-			$this->was_void             = true;
-
+			$this->state = self::HTML_SPAN;
 			return true;
 		}
 
-		// If there were no HTML spans then flush the enqueued stack operations immediately.
-		switch ( $this->next_stack_op ) {
-			case 'void':
-				$this->was_void             = true;
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'push':
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'pop':
-				array_pop( $this->open_blocks_at );
-				array_pop( $this->open_blocks_length );
-				break;
+		if ( self::OPENER === $this->type ) {
+			$this->open_blocks_at[] = $namespace_at;
+		} elseif ( self::CLOSER === $this->type ) {
+			array_pop( $this->open_blocks_at );
 		}
-
-		$this->next_stack_op = null;
 
 		return true;
 
@@ -1181,7 +1104,7 @@ class WP_Block_Processor {
 	 *     // Freeform HTML content is an HTML span.
 	 *     $processor = new WP_Block_Processor( 'Just text' );
 	 *     $processor->next_token();
-	 *     array( '#text' ) === $processor->get_breadcrumbs();
+	 *     array( '#html' ) === $processor->get_breadcrumbs();
 	 *
 	 *     $processor = new WP_Block_Processor( '<!-- wp:a --><!-- wp:b --><!-- wp:c /--><!-- /wp:b --><!-- /wp:a -->' );
 	 *     $processor->next_token();
@@ -1208,20 +1131,18 @@ class WP_Block_Processor {
 	 * @return string[]
 	 */
 	public function get_breadcrumbs(): array {
-		$breadcrumbs = array_fill( 0, count( $this->open_blocks_at ), null );
+		$breadcrumbs = array();
 
-		/*
-		 * Since HTML spans can only be at the very end, set the normalized block name for
-		 * each open element and then work backwards after creating the array. This allows
-		 * for the elimination of a conditional on each iteration of the loop.
-		 */
-		foreach ( $this->open_blocks_at as $i => $at ) {
-			$block_type        = substr( $this->source_text, $at, $this->open_blocks_length[ $i ] );
-			$breadcrumbs[ $i ] = self::normalize_block_type( $block_type );
+		foreach ( $this->open_blocks_at as $at ) {
+			// A block type is always followed by whitespace, which ends this span.
+			$length        = strspn( $this->source_text, 'abcdefghijklmnopqrstuvwxyz0123456789-_/', $at );
+			$breadcrumbs[] = self::normalize_block_type( substr( $this->source_text, $at, $length ) );
 		}
 
-		if ( isset( $i ) && 0 === $this->open_blocks_length[ $i ] ) {
-			$breadcrumbs[ $i ] = '#html';
+		if ( self::HTML_SPAN === $this->state ) {
+			$breadcrumbs[] = '#html';
+		} elseif ( self::MATCHED === $this->state && self::VOID === $this->type ) {
+			$breadcrumbs[] = $this->get_block_type();
 		}
 
 		return $breadcrumbs;
@@ -1238,7 +1159,14 @@ class WP_Block_Processor {
 	 * @return int
 	 */
 	public function get_depth(): int {
-		return count( $this->open_blocks_at );
+		$depth = count( $this->open_blocks_at );
+
+		// Void blocks and HTML spans are open only while visiting them.
+		if ( self::HTML_SPAN === $this->state || ( self::MATCHED === $this->state && self::VOID === $this->type ) ) {
+			++$depth;
+		}
+
+		return $depth;
 	}
 
 	/**
@@ -1494,7 +1422,7 @@ class WP_Block_Processor {
 
 		if ( $this->is_html() ) {
 			// This is a core/freeform text block, it’s special.
-			if ( 0 === ( $this->open_blocks_length[0] ?? null ) ) {
+			if ( array() === $this->open_blocks_at ) {
 				return (
 					'core/freeform' === $block_type ||
 					'freeform' === $block_type
@@ -1621,7 +1549,7 @@ class WP_Block_Processor {
 	 */
 	public function opens_block( string ...$block_type ): bool {
 		// HTML spans only open implicit freeform content at the top level.
-		if ( self::HTML_SPAN === $this->state && 1 !== count( $this->open_blocks_at ) ) {
+		if ( self::HTML_SPAN === $this->state && array() !== $this->open_blocks_at ) {
 			return false;
 		}
 
@@ -1810,7 +1738,7 @@ class WP_Block_Processor {
 
 		// This is a core/freeform text block, it’s special.
 		if ( $this->is_html() ) {
-			return 1 === count( $this->open_blocks_at )
+			return array() === $this->open_blocks_at
 				? 'core/freeform'
 				: '#innerHTML';
 		}

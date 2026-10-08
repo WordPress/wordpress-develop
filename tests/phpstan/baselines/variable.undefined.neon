@@ -691,17 +691,17 @@ parameters:
 		-
 			message: '#^Variable \$name_at might not be defined\.$#'
 			identifier: variable.undefined
-			count: 3
+			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
 			message: '#^Variable \$name_length might not be defined\.$#'
 			identifier: variable.undefined
-			count: 3
+			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
 			message: '#^Variable \$namespace_at might not be defined\.$#'
 			identifier: variable.undefined
-			count: 5
+			count: 2
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
 			message: '#^Variable \$filter_id might not be defined\.$#'
