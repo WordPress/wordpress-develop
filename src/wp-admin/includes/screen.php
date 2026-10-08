@@ -28,7 +28,9 @@ function get_column_headers( $screen ) {
 		 * The dynamic portion of the hook name, `$screen->id`, refers to the
 		 * ID of a specific screen. For example, the screen ID for the Posts
 		 * list table is edit-post, so the filter for that screen would be
-		 * manage_edit-post_columns.
+		 * manage_edit-post_columns. We need to care while using manage_{$screen->id}_columns
+		 * hook for media screen because it is conflicting with manage_media_columns hook
+		 * so we need to pass two arguments in this case.
 		 *
 		 * @since 3.0.0
 		 *
