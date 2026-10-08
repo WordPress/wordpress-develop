@@ -74,10 +74,10 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result['comment_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['parent'] );
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );
-		$this->assertEquals( self::$parent_comment_id, $result['comment_id'] );
-		$this->assertEquals( 0, $result['parent'] );
+		$this->assertSame( (string) self::$parent_comment_id, $result['comment_id'] );
+		$this->assertSame( '0', $result['parent'] );
 		$this->assertSame( self::$parent_comment_data['comment_content'], $result['content'] );
-		$this->assertEquals( self::$post_id, $result['post_id'] );
+		$this->assertSame( (string) self::$post_id, $result['post_id'] );
 		$this->assertSame( self::$parent_comment_data['comment_author'], $result['author'] );
 		$this->assertSame( self::$parent_comment_data['comment_author_url'], $result['author_url'] );
 		$this->assertSame( self::$parent_comment_data['comment_author_email'], $result['author_email'] );
@@ -89,8 +89,8 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', self::$child_comment_id ) );
 		$this->assertNotIXRError( $result );
 
-		$this->assertEquals( self::$child_comment_id, $result['comment_id'] );
-		$this->assertEquals( self::$parent_comment_id, $result['parent'] );
+		$this->assertSame( (string) self::$child_comment_id, $result['comment_id'] );
+		$this->assertSame( (string) self::$parent_comment_id, $result['parent'] );
 	}
 
 	public function test_invalid_id() {

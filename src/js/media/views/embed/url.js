@@ -39,7 +39,9 @@ EmbedUrl = View.extend(/** @lends wp.media.view.EmbedUrl.prototype */{
 		}
 	},
 	/**
-	 * @return {wp.media.view.EmbedUrl} Returns itself to allow chaining.
+	 * Renders the view.
+	 *
+	 * @return {void|wp.media.view.EmbedUrl} Returns itself to allow chaining.
 	 */
 	render: function() {
 		var $input = this.$input;

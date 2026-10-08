@@ -77,7 +77,7 @@ if ( ! function_exists( 'get_userdata' ) ) :
 	 *
 	 * @since 0.71
 	 *
-	 * @param int $user_id User ID
+	 * @param int $user_id User ID.
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_userdata( $user_id ) {
@@ -97,6 +97,12 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
 	 * @return WP_User|false WP_User object on success, false on failure.
+	 *
+	 * @phpstan-return (
+	 *     $field is 'id'|'ID'
+	 *         ? ( $value is int<min, 0> ? false : WP_User|false )
+	 *         : WP_User|false
+	 * )
 	 */
 	function get_user_by( $field, $value ) {
 		$userdata = WP_User::get_data_by( $field, $value );
@@ -120,7 +126,7 @@ if ( ! function_exists( 'cache_users' ) ) :
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int[] $user_ids User ID numbers list
+	 * @param int[] $user_ids User ID numbers list.
 	 */
 	function cache_users( $user_ids ) {
 		global $wpdb;
@@ -2090,7 +2096,8 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
 					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-					$notify_message .= __( 'Trackback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+					/* translators: %s: Trackback excerpt text. */
+					$notify_message .= sprintf( __( 'Trackback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
 
 				case 'pingback':
@@ -2101,7 +2108,8 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 					$notify_message .= sprintf( __( 'Website: %1$s (IP address: %2$s, %3$s)' ), $comment->comment_author, $comment->comment_author_IP, $comment_author_domain ) . "\r\n";
 					/* translators: %s: Trackback/pingback/comment author URL. */
 					$notify_message .= sprintf( __( 'URL: %s' ), $comment->comment_author_url ) . "\r\n";
-					$notify_message .= __( 'Pingback excerpt: ' ) . "\r\n" . $comment_content . "\r\n\r\n";
+					/* translators: %s: Pingback excerpt text. */
+					$notify_message .= sprintf( __( 'Pingback excerpt: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					break;
 
 				default: // Comments.
@@ -2209,6 +2217,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 
 			/* translators: %s: User name. */
 			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
+
 			/*
 			 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 			 * We want to reverse this for the plain text arena of emails.
@@ -2376,7 +2385,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 		$switched_locale = switch_to_user_locale( $user_id );
 
-		$message  = __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
+		$message = __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
 
 		/*
 		 * Since some user login names end in a period, this could produce ambiguous URLs that
@@ -2531,6 +2540,8 @@ if ( ! function_exists( 'wp_create_nonce' ) ) :
 	 *
 	 * @param string|int $action Scalar value to add context to the nonce.
 	 * @return string The token.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_create_nonce( $action = -1 ) {
 		$user = wp_get_current_user();
@@ -2707,12 +2718,14 @@ if ( ! function_exists( 'wp_hash' ) ) :
 	 * @since 2.0.3
 	 * @since 6.8.0 The `$algo` parameter was added.
 	 *
-	 * @throws InvalidArgumentException if the hashing algorithm is not supported.
+	 * @throws InvalidArgumentException If the hashing algorithm is not supported.
 	 *
 	 * @param string $data   Plain text to hash.
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce).
 	 * @param string $algo   Hashing algorithm to use. Default: 'md5'.
 	 * @return string Hash of $data.
+	 *
+	 * @phpstan-return lowercase-string&non-falsy-string
 	 */
 	function wp_hash( $data, $scheme = 'auth', $algo = 'md5' ) {
 		$salt = wp_salt( $scheme );

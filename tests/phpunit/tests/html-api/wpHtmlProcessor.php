@@ -1107,7 +1107,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 			continue;
 		}
 
-		$this->assertEquals( $expected_token_counts, $processor->token_seen_count, 'Snapshot: ' . var_export( $processor->token_seen_count, true ) );
+		$this->assertSame( $expected_token_counts, $processor->token_seen_count, 'Snapshot: ' . var_export( $processor->token_seen_count, true ) );
 	}
 
 	/**

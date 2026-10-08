@@ -421,8 +421,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts - 2, $data );
-			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-			$this->assertNotEquals( self::$author_id, $data[0]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[0]['author'] );
+			$this->assertNotSame( self::$author_id, $data[0]['author'] );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
@@ -438,8 +438,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data = $response->get_data();
 		if ( $request->is_method( 'get' ) ) {
 			$this->assertCount( $total_posts - 1, $data );
-			$this->assertNotEquals( self::$editor_id, $data[0]['author'] );
-			$this->assertNotEquals( self::$editor_id, $data[1]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[0]['author'] );
+			$this->assertNotSame( self::$editor_id, $data[1]['author'] );
 		} else {
 			$this->assertSame( array(), $response->get_data(), 'Failed asserting that response data is null for HEAD request.' );
 			$headers = $response->get_headers();
@@ -880,7 +880,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertNotEmpty( $all_data );
 
 		foreach ( $all_data as $post ) {
-			$this->assertNotEquals( $draft_id, $post['id'] );
+			$this->assertNotSame( $draft_id, $post['id'] );
 		}
 	}
 
@@ -1210,6 +1210,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$request->set_param( 'tags_exclude', array( $tag['term_id'] ) );
+		$request->set_param( 'orderby', 'id' );
 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -3044,7 +3045,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$data = $response->get_data();
 		$post = get_post( $data['id'] );
 		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
-		$this->assertNotEquals( '0000-00-00T00:00:00', $data['date_gmt'] );
+		$this->assertNotSame( '0000-00-00T00:00:00', $data['date_gmt'] );
 
 		$this->check_create_post_response( $response );
 
@@ -3720,7 +3721,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}
@@ -3825,8 +3826,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		// Verify the post is set to the future date.
 		$this->assertSame( $new_data['date_gmt'], $future_date );
 		$this->assertSame( $new_data['date'], $future_date );
-		$this->assertNotEquals( $new_data['date_gmt'], $new_data['modified_gmt'] );
-		$this->assertNotEquals( $new_data['date'], $new_data['modified'] );
+		$this->assertNotSame( $new_data['date_gmt'], $new_data['modified_gmt'] );
+		$this->assertNotSame( $new_data['date'], $new_data['modified'] );
 
 		// Update post with a blank field (date or date_gmt).
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', $post_id ) );
@@ -3845,12 +3846,12 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->check_update_post_response( $response );
 		$new_data = $response->get_data();
 		$this->assertSame( $new_data['date_gmt'], $new_data['date'] );
-		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
+		$this->assertNotSame( $new_data['date_gmt'], $future_date );
 
 		$post = get_post( $post_id, 'ARRAY_A' );
 		$this->assertSame( $post['post_date_gmt'], '0000-00-00 00:00:00' );
-		$this->assertNotEquals( $new_data['date_gmt'], $future_date );
-		$this->assertNotEquals( $new_data['date'], $future_date );
+		$this->assertNotSame( $new_data['date_gmt'], $future_date );
+		$this->assertNotSame( $new_data['date'], $future_date );
 	}
 
 	public function test_rest_update_post_raw() {
@@ -4454,7 +4455,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ), 10, 4 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_assign_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_assign_term', $response, 403 );
 	}
@@ -4665,16 +4666,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				// Expected returned values.
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -4717,16 +4718,16 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 				),
 				array(
 					'title'   => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'content' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'excerpt' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);
@@ -5094,7 +5095,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		);
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_post_meta( $post_id, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_post_meta( $post_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
 		$request->set_body_params(
@@ -5106,7 +5107,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
@@ -5671,7 +5672,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 
 		$this->assertEqualsWithDelta( strtotime( mysql_to_rfc3339( $new_time ) ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
 
-		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+		$this->assertNotSame( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
 	/**
@@ -5713,7 +5714,7 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertEqualsWithDelta( strtotime( $get_body['date'] ), strtotime( $body['date'] ), 2, 'The dates should be equal' );
 		$this->assertEqualsWithDelta( strtotime( $get_body['date_gmt'] ), strtotime( $body['date_gmt'] ), 2, 'The dates should be equal' );
 
-		$this->assertNotEquals( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
+		$this->assertNotSame( '0000-00-00 00:00:00', get_post( $post->ID )->post_date_gmt );
 	}
 
 	/**

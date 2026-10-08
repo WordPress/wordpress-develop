@@ -22,12 +22,26 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 		return array(
 			// Invalid values.
 			array( array(), 0, false ),
+			array( array( 'baba' ), 0, false ),
+			array( new stdClass(), 0, false ),
 			array( 'baba', 0, false ),
 			array( '', 0, false ),
+			array( '0x1A', 0, false ),
+			array( null, 0, false ),
+			array( true, 0, false ),
+			array( false, 0, false ),
 			array( '-1', 0, false ),
 			array( -1, 0, false ),
-			// Bytes.
+			array( -1.0, 0, false ),
+			// Zero bytes, in every numeric representation.
 			array( 0, 0, '0 B' ),
+			array( 0.0, 0, '0 B' ),
+			array( 0.0, 2, '0.00 B' ),
+			array( '0', 0, '0 B' ),
+			array( '0.0', 0, '0 B' ),
+			array( 0.0e3, 0, '0 B' ),
+			array( -0.0, 0, '0 B' ),
+			// Bytes.
 			array( 1, 0, '1 B' ),
 			array( 1023, 0, '1,023 B' ),
 			// Kilobytes.

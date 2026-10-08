@@ -55,12 +55,12 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$lastrevision = end( $revisions );
 		$this->assertSame( 'I cant spel werds.', $lastrevision->post_content );
 		// #16215
-		$this->assertEquals( self::$author_user_id, $lastrevision->post_author );
+		$this->assertSame( (string) self::$author_user_id, $lastrevision->post_author );
 
 		wp_restore_post_revision( $lastrevision->ID );
 
 		// Is post_meta correctly set to revision author after restoring user?
-		$this->assertEquals( self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) );
+		$this->assertSame( (string) self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) );
 	}
 
 	/**
@@ -644,15 +644,10 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 30009
 	 */
 	public function test_wp_save_post_revision_error() {
-		$post = self::factory()->post->create_and_get(
-			array(
-				'ID' => PHP_INT_MAX,
-			)
-		);
-
-		$revision = _wp_put_post_revision( $post );
+		$revision = _wp_put_post_revision( PHP_INT_MAX );
 
 		$this->assertWPError( $revision );
+		$this->assertSame( 'invalid_post', $revision->get_error_code() );
 	}
 
 	/**

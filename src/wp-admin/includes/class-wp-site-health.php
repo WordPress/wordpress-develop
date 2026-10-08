@@ -77,9 +77,7 @@ class WP_Site_Health {
 	 * @return WP_Site_Health|null
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new WP_Site_Health();
-		}
+		self::$instance ??= new WP_Site_Health();
 
 		return self::$instance;
 	}
@@ -2212,9 +2210,6 @@ class WP_Site_Health {
 			'Cache-Control' => 'no-cache',
 			'X-WP-Nonce'    => wp_create_nonce( 'wp_rest' ),
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
-
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
@@ -2229,6 +2224,9 @@ class WP_Site_Health {
 			),
 			$url
 		);
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
@@ -2759,20 +2757,20 @@ class WP_Site_Health {
 	 */
 	public function get_test_search_engine_visibility() {
 		$result = array(
-			'label'       => __( 'Search engine indexing is enabled.', 'default' ),
+			'label'       => __( 'Search engine indexing is enabled.' ),
 			'status'      => 'good',
 			'badge'       => array(
-				'label' => __( 'Privacy', 'default' ),
+				'label' => __( 'Privacy' ),
 				'color' => 'blue',
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'Search engines can crawl and index your site. No action needed.', 'default' )
+				__( 'Search engines can crawl and index your site. No action needed.' )
 			),
 			'actions'     => sprintf(
 				'<p><a href="%1$s">%2$s</a></p>',
 				esc_url( admin_url( 'options-reading.php#blog_public' ) ),
-				__( 'Review your visibility settings', 'default' )
+				__( 'Review your visibility settings' )
 			),
 			'test'        => 'search_engine_visibility',
 		);
@@ -2780,11 +2778,11 @@ class WP_Site_Health {
 		// If indexing is discouraged, flip to “recommended”:
 		if ( ! get_option( 'blog_public' ) ) {
 			$result['status']         = 'recommended';
-			$result['label']          = __( 'Search engines are discouraged from indexing this site.', 'default' );
+			$result['label']          = __( 'Search engines are discouraged from indexing this site.' );
 			$result['badge']['color'] = 'blue';
 			$result['description']    = sprintf(
 				'<p>%s</p>',
-				__( 'Your site is hidden from search engines. Consider enabling indexing if this is a public site.', 'default' )
+				__( 'Your site is hidden from search engines. Consider enabling indexing if this is a public site.' )
 			);
 		}
 
@@ -3279,8 +3277,6 @@ class WP_Site_Health {
 		$headers = array(
 			'Cache-Control' => 'no-cache',
 		);
-		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
 
 		// Include Basic auth in loopback requests.
 		if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
@@ -3288,6 +3284,9 @@ class WP_Site_Health {
 		}
 
 		$url = site_url( 'wp-cron.php' );
+
+		/** This filter is documented in wp-includes/class-wp-http-streams.php */
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 
 		/*
 		 * A post request is used for the wp-cron.php loopback test to cause the file
@@ -3611,7 +3610,7 @@ class WP_Site_Health {
 	private function check_for_page_caching() {
 
 		/** This filter is documented in wp-includes/class-wp-http-streams.php */
-		$sslverify = apply_filters( 'https_local_ssl_verify', false );
+		$sslverify = apply_filters( 'https_local_ssl_verify', false, home_url( '/' ) );
 
 		$headers = array();
 

@@ -306,6 +306,7 @@ add_filter( 'tiny_mce_before_init', '_mce_set_direction' );
 add_filter( 'teeny_mce_before_init', '_mce_set_direction' );
 add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
 add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
+add_filter( 'wp_kses_force_legacy_parser', '__return_false' );
 add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
@@ -344,6 +345,9 @@ add_action( 'application_password_failed_authentication', 'rest_application_pass
 add_action( 'application_password_did_authenticate', 'rest_application_password_collect_status', 10, 2 );
 add_filter( 'rest_authentication_errors', 'rest_application_password_check_errors', 90 );
 add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
+
+// Application password notifications.
+add_action( 'wp_create_application_password', 'wp_application_password_created_notification', 10, 2 );
 
 // Actions.
 add_action( 'wp_head', '_wp_render_title_tag', 1 );
@@ -395,6 +399,7 @@ add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
 add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
+add_action( 'login_footer', 'wp_prefetch_admin_assets', 21 ); // By the footer, the login screen has enqueued everything it loads, so those are skipped.
 add_action( 'login_init', 'send_frame_options_header', 10, 0 );
 add_action( 'login_init', 'wp_admin_headers' );
 
@@ -536,6 +541,7 @@ add_action( 'wp_update_comment_type_batch', '_wp_batch_update_comment_type' );
 add_action( 'comment_post', 'wp_new_comment_notify_moderator' );
 add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'rest_insert_comment', 'wp_new_comment_via_rest_notify_postauthor' );
+add_action( 'rest_insert_comment', 'wp_notify_note_mentions', 10, 3 );
 add_action( 'after_password_reset', 'wp_password_change_notification' );
 add_action( 'register_new_user', 'wp_send_new_user_notifications' );
 add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
@@ -544,6 +550,7 @@ add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
 add_action( 'init', 'rest_api_init' );
 add_action( 'rest_api_init', 'rest_api_default_filters', 10, 1 );
 add_action( 'rest_api_init', 'register_initial_settings', 10 );
+add_filter( 'rest_pre_update_setting', 'rest_restrict_privacy_policy_page_setting_update', 10, 2 );
 add_action( 'rest_api_init', 'create_initial_rest_routes', 99 );
 add_action( 'parse_request', 'rest_api_loaded' );
 
@@ -691,6 +698,7 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
 add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings' );
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
+add_action( 'delete_attachment', '_wp_delete_edit_root_attachment_id' );
 
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
@@ -827,10 +835,11 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
 	add_filter(
-		"get_entity_view_config_postType_{$post_type}",
-		"_wp_get_entity_view_config_post_type_{$post_type}",
+		"get_entity_view_config_posttype_{$post_type}",
+		"_wp_get_entity_view_config_posttype_{$post_type}",
 		5
 	);
 }
+add_filter( 'get_entity_view_config_root_site', '_wp_get_entity_view_config_root_site', 5 );
 
 unset( $filter, $action, $post_type );

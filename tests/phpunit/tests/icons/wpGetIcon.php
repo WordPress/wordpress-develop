@@ -55,9 +55,11 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 	 * @ticket 64847
 	 */
 	public function test_wp_get_icon_size_null_leaves_dimensions_untouched() {
-		$output = wp_get_icon( 'core/plus', array( 'size' => null ) );
-		$this->assertStringNotContainsString( 'width=', $output );
-		$this->assertStringNotContainsString( 'height=', $output );
+		$output    = wp_get_icon( 'core/plus', array( 'size' => null ) );
+		$processor = new WP_HTML_Tag_Processor( $output );
+		$this->assertTrue( $processor->next_tag( 'svg' ) );
+		$this->assertNull( $processor->get_attribute( 'width' ) );
+		$this->assertNull( $processor->get_attribute( 'height' ) );
 	}
 
 	/**
