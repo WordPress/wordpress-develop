@@ -3127,8 +3127,6 @@ function wp_get_password_hint() {
  *
  * @param WP_User $user User to retrieve password reset key for.
  * @return string|WP_Error Password reset key on success. WP_Error on error.
- *
- * @phpstan-impure
  */
 function get_password_reset_key( $user ) {
 	if ( ! ( $user instanceof WP_User ) ) {

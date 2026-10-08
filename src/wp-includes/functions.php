@@ -1616,7 +1616,6 @@ function get_num_queries() {
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
  *
- * @phpstan-pure
  * @phpstan-return ( $yn is 'y'|'Y' ? true : false )
  */
 function bool_from_yn( $yn ) {
@@ -5445,7 +5444,6 @@ function _wp_to_kebab_case( $input_string ) {
  *
  * @phpstan-assert-if-true array<int, mixed> $data
  *
- * @phpstan-pure
  * @phpstan-return ( $data is array<int, mixed> ? true : false )
  */
 function wp_is_numeric_array( $data ): bool {
@@ -8190,7 +8188,6 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * @return string UUID.
  *
  * @phpstan-return lowercase-string&non-falsy-string
- * @phpstan-impure
  */
 function wp_generate_uuid4() {
 	static $backup_randomizer = false;
@@ -8267,7 +8264,6 @@ function wp_is_uuid( $uuid, $version = null ) {
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
  *
- * @phpstan-impure
  * @phpstan-return (
  *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string
@@ -8293,7 +8289,6 @@ function wp_unique_id( $prefix = '' ) {
  * @param string $prefix Optional. Prefix for the returned ID. Default empty string.
  * @return string Incremental ID per prefix.
  *
- * @phpstan-impure
  * @phpstan-return (
  *     ( $prefix is ''|numeric-string ? numeric-string : string )
  *     & non-falsy-string

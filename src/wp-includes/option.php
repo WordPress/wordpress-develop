@@ -1429,8 +1429,6 @@ function delete_transient( $transient ) {
  *
  * @param string $transient Transient name. Expected to not be SQL-escaped.
  * @return mixed Value of transient.
- *
- * @phpstan-impure
  */
 function get_transient( $transient ) {
 

@@ -2855,8 +2855,6 @@ function zeroise( $number, $threshold ) {
  *
  * @param string $value Value to which backslashes will be added.
  * @return string String with backslashes inserted.
- *
- * @phpstan-pure
  */
 function backslashit( $value ) {
 	if ( isset( $value[0] ) && $value[0] >= '0' && $value[0] <= '9' ) {
@@ -2880,7 +2878,6 @@ function backslashit( $value ) {
  * @return string String with trailing slash added.
  *
  * @phpstan-return non-falsy-string
- * @phpstan-pure
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -2896,8 +2893,6 @@ function trailingslashit( $value ) {
  *
  * @param string $value Value from which trailing slashes will be removed.
  * @return string String without the trailing slashes.
- *
- * @phpstan-pure
  */
 function untrailingslashit( $value ) {
 	return rtrim( $value, '/\\' );
@@ -5950,8 +5945,6 @@ function sanitize_trackback_urls( $to_ping ) {
  *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
  *     )
  * )
- *
- * @phpstan-pure
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
