@@ -453,7 +453,7 @@
 		/**
 		 * Checks whether meta box reordering is enabled.
 		 *
-		 * @since 7.1.0
+		 * @since 7.2.0
 		 *
 		 * @return {boolean} Whether meta box reordering is enabled.
 		 */
@@ -470,7 +470,7 @@
 		/**
 		 * Enables or disables the meta box reordering UI.
 		 *
-		 * @since 7.1.0
+		 * @since 7.2.0
 		 *
 		 * @param {boolean} enabled Whether reordering should be enabled.
 		 * @return {void}
@@ -478,7 +478,7 @@
 		setMetaBoxReordering: function( enabled ) {
 			var $sortables = $( '.meta-box-sortables' );
 
-			this.metaBoxReorderingEnabled = !! enabled;
+			this.metaBoxReorderingEnabled = enabled;
 
 			$( document.body ).toggleClass( 'meta-box-reordering-disabled', ! this.metaBoxReorderingEnabled );
 
@@ -537,14 +537,12 @@
 		/**
 		 * Saves the meta box reordering setting to the server.
 		 *
-		 * @since 7.1.0
-		 *
-		 * @memberof postboxes
+		 * @since 7.2.0
 		 *
 		 * @param {boolean} enabled Whether meta box reordering is enabled.
 		 * @return {void}
 		 */
-		save_meta_box_reordering_state : function( enabled ) {
+		save_meta_box_reordering_state: function( enabled ) {
 			$.post(
 				ajaxurl,
 				{
@@ -553,7 +551,11 @@
 					screenoptionnonce: $( '#screenoptionnonce' ).val()
 				},
 				function() {
-					wp.a11y.speak( __( 'Screen Options updated.' ) );
+					wp.a11y.speak(
+						enabled ?
+							__( 'Rearranging screen elements enabled.' ) :
+							__( 'Rearranging screen elements disabled.' )
+					);
 				}
 			);
 		},

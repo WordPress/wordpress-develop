@@ -1877,7 +1877,7 @@ function wp_ajax_hidden_columns() {
 /**
  * Handles the meta box reordering setting via Ajax.
  *
- * @since 7.1.0
+ * @since 7.2.0
  */
 function wp_ajax_meta_box_reordering() {
 	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );

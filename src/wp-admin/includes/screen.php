@@ -197,7 +197,7 @@ function get_hidden_meta_boxes( $screen ) {
 /**
  * Determines whether meta box reordering is enabled.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return bool Whether meta box reordering is enabled.
  */

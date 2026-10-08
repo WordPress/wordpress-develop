@@ -295,13 +295,63 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'id="meta-box-reordering"', $output );
 		$this->assertStringContainsString( 'Additional settings', $output );
-		$this->assertStringContainsString( 'Allow boxes to be rearranged', $output );
+		$this->assertStringContainsString( '<label for="meta-box-reordering">Allow screen elements to be rearranged</label>', $output );
 		$this->assertStringContainsString( 'Some screen elements can be shown or hidden by using the checkboxes.', $output );
 		$this->assertStringContainsString( 'Expand or collapse the elements by clicking on their headings, and arrange them by dragging their headings or by clicking on the up and down arrows.', $output );
-		$this->assertStringContainsString( 'Use the setting below to control whether boxes can be rearranged.', $output );
+		$this->assertStringContainsString( 'Use the setting below to control whether screen elements can be rearranged.', $output );
 	}
 
-	public function test_meta_box_reordering_option_does_not_render_empty_additional_settings() {
+	public function test_meta_box_reordering_and_editor_expand_options_share_additional_settings_fieldset() {
+		global $wp_meta_boxes;
+
+		$old_wp_meta_boxes = $wp_meta_boxes;
+
+		// WP_Screen caches its settings per screen, so use a different post screen than the other tests.
+		set_current_screen( 'page' );
+		$screen = get_current_screen();
+
+		add_meta_box( 'testbox1', 'Test Metabox', '__return_false', $screen );
+
+		try {
+			$screen->show_screen_options();
+
+			ob_start();
+			$screen->render_screen_options();
+			$output = ob_get_clean();
+		} finally {
+			$wp_meta_boxes = $old_wp_meta_boxes;
+		}
+
+		$this->assertSame( 1, substr_count( $output, '<legend>Additional settings</legend>' ) );
+		$this->assertStringContainsString( '<fieldset class="metabox-prefs additional-settings-prefs">', $output );
+		$this->assertStringContainsString( '<label for="meta-box-reordering">Allow screen elements to be rearranged</label>', $output );
+		$this->assertStringContainsString( '<label for="editor-expand-toggle">Enable full-height editor and distraction-free functionality.</label>', $output );
+	}
+
+	public function test_meta_box_reordering_option_is_not_rendered_for_screens_without_meta_boxes() {
+		global $wp_meta_boxes;
+
+		$old_wp_meta_boxes = $wp_meta_boxes;
+		set_current_screen( 'edit.php' );
+		$screen = get_current_screen();
+
+		unset( $wp_meta_boxes[ $screen->id ] );
+
+		try {
+			$screen->show_screen_options();
+
+			ob_start();
+			$screen->render_screen_options();
+			$output = ob_get_clean();
+		} finally {
+			$wp_meta_boxes = $old_wp_meta_boxes;
+		}
+
+		$this->assertStringNotContainsString( 'id="meta-box-reordering"', $output );
+		$this->assertStringNotContainsString( 'Additional settings', $output );
+	}
+
+	public function test_additional_settings_fieldset_is_hidden_when_editor_expand_is_the_only_option() {
 		global $wp_meta_boxes;
 
 		$old_wp_meta_boxes = $wp_meta_boxes;
@@ -320,8 +370,8 @@ class Tests_Admin_IncludesScreen extends WP_UnitTestCase {
 			$wp_meta_boxes = $old_wp_meta_boxes;
 		}
 
-		$this->assertStringNotContainsString( 'additional-settings-prefs', $output );
-		$this->assertStringContainsString( '<fieldset class="editor-expand hidden">', $output );
+		$this->assertStringNotContainsString( 'id="meta-box-reordering"', $output );
+		$this->assertStringContainsString( '<fieldset class="metabox-prefs additional-settings-prefs editor-expand hidden">', $output );
 		$this->assertStringContainsString( 'Enable full-height editor and distraction-free functionality.', $output );
 	}
 

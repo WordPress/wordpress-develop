@@ -1986,6 +1986,10 @@ p.auto-update-status {
 	line-height: 2.35;
 }
 
+.additional-settings-prefs {
+	margin-top: 14px;
+}
+
 /* This ID appears to be unused in Core. */
 #number-of-columns {
 	display: inline-block;
