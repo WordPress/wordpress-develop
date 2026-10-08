@@ -767,8 +767,10 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'common' );
 
 	$bulk_action_observer_ids = array(
-		'bulk_action' => 'action',
-		'changeit'    => 'new_role',
+		'bulk_action'       => 'action',
+		'changeit'          => 'new_role',
+		'filter_action'     => 'filter_action',
+		'post-query-submit' => 'post-query-submit',
 	);
 	did_action( 'init' ) && $scripts->localize(
 		'common',
@@ -777,12 +779,15 @@ function wp_default_scripts( $scripts ) {
 		 * Filters the array of field name attributes for bulk actions.
 		 *
 		 * @since 6.8.1
+		 * @since 7.2.0 Added 'filter_action' and 'post-query-submit' keys.
 		 *
 		 * @param array $bulk_action_observer_ids {
 		 *      An array of field name attributes for bulk actions.
 		 *
-		 *      @type string $bulk_action The bulk action field name. Default 'action'.
-		 *      @type string $changeit    The new role field name. Default 'new_role'.
+		 *      @type string $bulk_action       The bulk action field name. Default 'action'.
+		 *      @type string $changeit          The new role field name. Default 'new_role'.
+		 *      @type string $filter_action     The list table Filter button field name. Default 'filter_action'.
+		 *      @type string $post-query-submit The media library Filter button field name. Default 'post-query-submit'.
 		 * }
 		 */
 		apply_filters( 'bulk_action_observer_ids', $bulk_action_observer_ids )
