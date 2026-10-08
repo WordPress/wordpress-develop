@@ -1328,12 +1328,21 @@ function wp_clone( $input_object ) {
  * Determines whether the current request is for the login screen.
  *
  * @since 6.1.0
+ * @since 7.2.0 Checks the default location first
  *
  * @see wp_login_url()
  *
  * @return bool True if inside WordPress login screen, false otherwise.
  */
 function is_login() {
+	// Always check the default location first.
+	if (
+		isset( $_SERVER['SCRIPT_NAME'] )
+		&& str_ends_with( strtolower( $_SERVER['SCRIPT_NAME'] ), '/wp-login.php' )
+	) {
+		return true;
+	}
+
 	return false !== stripos( wp_login_url(), $_SERVER['SCRIPT_NAME'] );
 }
 
