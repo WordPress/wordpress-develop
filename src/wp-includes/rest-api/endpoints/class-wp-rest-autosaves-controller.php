@@ -398,10 +398,30 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		// Check if meta values have changed.
 		if ( ! empty( $meta ) ) {
 			$revisioned_meta_keys = wp_post_revision_meta_keys( $post->post_type );
+			$registered_meta      = array_merge(
+				get_registered_meta_keys( 'post' ),
+				get_registered_meta_keys( 'post', $post->post_type )
+			);
+
+			/*
+			 * Meta keys registered with 'single' => false store each of their values in a
+			 * separate row, so they must be read, compared, and stored as a list of values.
+			 * Keys without a registration are treated as single, matching previous behavior.
+			 */
+			$is_single_meta = array();
+
+			foreach ( $revisioned_meta_keys as $meta_key ) {
+				$is_single_meta[ $meta_key ] = ! isset( $registered_meta[ $meta_key ]['single'] ) || $registered_meta[ $meta_key ]['single'];
+			}
+
 			foreach ( $revisioned_meta_keys as $meta_key ) {
 				// get_metadata_raw is used to avoid retrieving the default value.
-				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, true );
-				$new_meta = $meta[ $meta_key ] ?? '';
+				$old_meta = get_metadata_raw( 'post', $post_id, $meta_key, $is_single_meta[ $meta_key ] );
+				$new_meta = $meta[ $meta_key ] ?? ( $is_single_meta[ $meta_key ] ? '' : array() );
+
+				if ( ! $is_single_meta[ $meta_key ] && null === $old_meta ) {
+					$old_meta = array();
+				}
 
 				if ( $new_meta !== $old_meta ) {
 					$autosave_is_different = true;
@@ -441,8 +461,23 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		// Attached any passed meta values that have revisions enabled.
 		if ( ! empty( $meta ) ) {
 			foreach ( $revisioned_meta_keys as $meta_key ) {
-				if ( isset( $meta[ $meta_key ] ) ) {
+				if ( ! isset( $meta[ $meta_key ] ) ) {
+					continue;
+				}
+
+				if ( $is_single_meta[ $meta_key ] ) {
 					update_metadata( 'post', $revision_id, $meta_key, wp_slash( $meta[ $meta_key ] ) );
+					continue;
+				}
+
+				/*
+				 * update_metadata() would overwrite every row sharing the meta key with the
+				 * same value, so replace the stored values instead, as _wp_copy_post_meta() does.
+				 */
+				delete_metadata( 'post', $revision_id, $meta_key );
+
+				foreach ( (array) $meta[ $meta_key ] as $meta_value ) {
+					add_metadata( 'post', $revision_id, $meta_key, wp_slash( $meta_value ) );
 				}
 			}
 		}
