@@ -716,6 +716,8 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
+	$default_blavatar = '<div class="blavatar">' . wp_get_icon( 'core-admin/wordpress', array( 'size' => 16 ) ) . '</div>';
+
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
@@ -727,7 +729,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
 			);
 		} else {
-			$blavatar = '<div class="blavatar">' . wp_get_icon( 'core-admin/wordpress', array( 'size' => 16 ) ) . '</div>';
+			$blavatar = $default_blavatar;
 		}
 
 		$blogname = $blog->blogname;
