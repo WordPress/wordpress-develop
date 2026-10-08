@@ -642,6 +642,18 @@ window.setCommentsList = function() {
 			updateCountText( 'span.trash-count', trashDiff );
 		}
 
+		/*
+		 * Status links (e.g. "Trash") are hidden entirely when their count is
+		 * zero, so the count updates above have nothing to show/hide. Replace
+		 * the whole view tabs list with a freshly rendered, authoritative copy
+		 * from the server so a status that just went from zero to non-zero
+		 * (or vice versa) appears or disappears immediately. This must run
+		 * after the count updates above, since it supersedes them.
+		 */
+		if ( response.supplemental && response.supplemental.comment_status_links ) {
+			$( '.subsubsub' ).replaceWith( response.supplemental.comment_status_links );
+		}
+
 		if (
 			( ( 'trash' === settings.data.comment_status ) && !getCount( $( 'span.trash-count' ) ) ) ||
 			( ( 'spam' === settings.data.comment_status ) && !getCount( $( 'span.spam-count' ) ) )
