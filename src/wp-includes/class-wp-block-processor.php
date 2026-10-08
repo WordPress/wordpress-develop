@@ -605,6 +605,8 @@ class WP_Block_Processor {
 	 * @param string|null $block_type Optional. If provided, advance until a block of this type is found.
 	 *                                Default is to stop at any block regardless of its type.
 	 * @return bool Whether an opening delimiter for a block was found.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_block( ?string $block_type = null ): bool {
 		while ( $this->next_delimiter( $block_type ) ) {
@@ -656,6 +658,8 @@ class WP_Block_Processor {
 	 * @param string|null $block_name Optional. Keep searching until a block of this name is found.
 	 *                                Defaults to visit every block regardless of type.
 	 * @return bool Whether a block delimiter was matched.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_delimiter( ?string $block_name = null ): bool {
 		// Only the wildcard and the freeform block types match HTML spans.
@@ -717,6 +721,8 @@ class WP_Block_Processor {
 	 * @since 6.9.0
 	 *
 	 * @return bool Whether a token was matched or the end of the document was reached without finding any.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		if ( $this->last_error || self::COMPLETE === $this->state || self::INCOMPLETE_INPUT === $this->state ) {
@@ -1261,6 +1267,8 @@ class WP_Block_Processor {
 	 *                                         inner blocks were found.
 	 *     }
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function extract_full_block_and_advance(): ?array {
 		if ( $this->is_html() ) {
