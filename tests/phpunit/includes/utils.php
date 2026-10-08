@@ -505,7 +505,11 @@ function get_echo( callable $callback, array $args = array() ): string {
 	return (string) ob_get_clean();
 }
 
-// Recursively generate some quick assertEquals() tests based on an array.
+/*
+ * Recursively generate some quick assertEquals() tests based on an array.
+ * Keep assertEquals() in the generated output: this helper is scaffolding for
+ * exploratory fixtures and is not used by the active test suite.
+ */
 function gen_tests_array( $name, $expected_data ) {
 	$out = array();
 

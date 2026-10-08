@@ -611,7 +611,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		return 'even';
 	}
 
-	public function data_get_default_data() {
+	public static function data_get_default_data() {
 		return array(
 			'single string key with single ask '          => array(
 				array(
@@ -953,7 +953,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_get_invalid_default_data() {
+	public static function data_get_invalid_default_data() {
 		return array(
 			array(
 				array(
@@ -1106,7 +1106,7 @@ class Tests_Meta_Register_Meta extends WP_UnitTestCase {
 		);
 	}
 
-	public function data_get_types_and_subtypes() {
+	public static function data_get_types_and_subtypes() {
 		return array(
 			array( 'post', 'page' ),
 			array( 'term', 'category' ),

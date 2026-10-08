@@ -1702,13 +1702,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( current_user_can_for_site( $blog_id, 'edit_posts' ) );
 		$this->assertFalse( current_user_can_for_site( $blog_id, 'foo_the_bar' ) );
 
 		$another_blog_id = self::factory()->blog->create( array( 'user_id' => self::$users['author']->ID ) );
-
-		$this->assertNotWPError( $another_blog_id );
 
 		// Verify the user doesn't have a capability
 		$this->assertFalse( current_user_can_for_site( $another_blog_id, 'edit_posts' ) );
@@ -1739,7 +1736,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user->ID ) );
 
-		$this->assertNotWPError( $blog_id );
 		$this->assertTrue( user_can_for_site( $user->ID, $blog_id, 'edit_posts' ) );
 		$this->assertFalse( user_can_for_site( $user->ID, $blog_id, 'foo_the_bar' ) );
 
@@ -2138,6 +2134,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $role );
 		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}
