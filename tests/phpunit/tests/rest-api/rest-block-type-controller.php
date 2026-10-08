@@ -940,10 +940,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_create_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/block-types' );
-		$request->set_param( 'name', 'fake/created' );
-		$request->set_param( 'title', 'Created' );
-
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/block-types' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -957,9 +954,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/block-types/fake/test' );
-		$request->set_param( 'title', 'Updated' );
-
+		$request  = new WP_REST_Request( 'POST', '/wp/v2/block-types/fake/test' );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
