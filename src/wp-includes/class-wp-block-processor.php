@@ -678,9 +678,31 @@ class WP_Block_Processor {
 		if ( ! isset( $block_name ) ) {
 			$found = $this->next_token();
 		} else {
+			// A block type in the document without a namespace is in the implicit `core` namespace.
+			$text       = $this->source_text;
+			$block_type = self::normalize_block_type( $block_name );
+			$core_name  = str_starts_with( $block_type, 'core/' ) ? substr( $block_type, 5 ) : null;
+
 			do {
 				$found = $this->next_token();
-			} while ( $found && ! $this->is_block_type( $block_name ) );
+				if ( ! $found ) {
+					break;
+				}
+
+				if ( $this->namespace_at === $this->name_at ) {
+					$matches = (
+						isset( $core_name ) &&
+						strlen( $core_name ) === $this->name_length &&
+						0 === substr_compare( $text, $core_name, $this->name_at, $this->name_length )
+					);
+				} else {
+					$length  = $this->name_at + $this->name_length - $this->namespace_at;
+					$matches = (
+						strlen( $block_type ) === $length &&
+						0 === substr_compare( $text, $block_type, $this->namespace_at, $length )
+					);
+				}
+			} while ( ! $matches );
 		}
 
 		$this->skip_html_spans = false;

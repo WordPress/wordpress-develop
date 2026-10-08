@@ -1717,9 +1717,10 @@ HTML
 			'Ends in <!-'           => 'text<!-',
 			'Block, then ends in <' => '<!-- wp:group -->text<',
 			'Ends in delimiter'     => 'text<!-- wp:paragraph /-->',
+			'Explicit namespaces'   => '<!-- wp:core/paragraph --><!-- wp:paragraph /--><!-- wp:my/paragraph /--><!-- /wp:core/paragraph -->',
 		);
 
-		$block_types = array( null, 'paragraph', 'core/group', 'my/block', '*', 'freeform', 'core/freeform' );
+		$block_types = array( null, 'paragraph', 'core/paragraph', 'core/group', 'my/block', 'my/paragraph', '*', 'freeform', 'core/freeform', 'core/', 'core/my/paragraph' );
 
 		$data = array();
 		foreach ( $documents as $document_name => $html ) {
