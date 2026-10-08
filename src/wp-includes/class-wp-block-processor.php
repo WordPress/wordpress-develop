@@ -1267,7 +1267,7 @@ class WP_Block_Processor {
 	 * @phpstan-impure
 	 */
 	public function extract_full_block_and_advance(): ?array {
-		if ( $this->is_html() ) {
+		if ( self::HTML_SPAN === $this->state ) {
 			$chunk = $this->get_html_content();
 
 			return array(
@@ -1293,7 +1293,7 @@ class WP_Block_Processor {
 
 		$depth = $this->get_depth();
 		while ( $this->next_token() && $this->get_depth() > $depth ) {
-			if ( $this->is_html() ) {
+			if ( self::HTML_SPAN === $this->state ) {
 				$chunk                   = $this->get_html_content();
 				$block['innerHTML']     .= $chunk;
 				$block['innerContent'][] = $chunk;
@@ -1458,7 +1458,7 @@ class WP_Block_Processor {
 			return true;
 		}
 
-		if ( $this->is_html() ) {
+		if ( self::HTML_SPAN === $this->state ) {
 			// This is a core/freeform text block, it’s special.
 			if ( array() === $this->open_blocks_at ) {
 				return (
@@ -1597,7 +1597,7 @@ class WP_Block_Processor {
 		 * following delimiter. Therefore the HTML case is handled by checking
 		 * the state and depth of the stack of open block.
 		 */
-		if ( self::CLOSER === $this->type && ! $this->is_html() ) {
+		if ( self::CLOSER === $this->type && self::HTML_SPAN !== $this->state ) {
 			return false;
 		}
 
@@ -1641,7 +1641,7 @@ class WP_Block_Processor {
 	 *              span containing non-whitespace text.
 	 */
 	public function is_non_whitespace_html(): bool {
-		if ( ! $this->is_html() ) {
+		if ( self::HTML_SPAN !== $this->state ) {
 			return false;
 		}
 
@@ -1665,7 +1665,7 @@ class WP_Block_Processor {
 	 * @return string|null Raw HTML content, or `null` if not currently matched on HTML.
 	 */
 	public function get_html_content(): ?string {
-		if ( ! $this->is_html() ) {
+		if ( self::HTML_SPAN !== $this->state ) {
 			return null;
 		}
 
@@ -1714,21 +1714,14 @@ class WP_Block_Processor {
 	 *                     if matched on an explicit delimiter, otherwise `null`.
 	 */
 	public function get_block_type(): ?string {
-		if (
-			self::READY === $this->state ||
-			self::COMPLETE === $this->state ||
-			self::INCOMPLETE_INPUT === $this->state
-		) {
-			return null;
-		}
-
-		// This is a core/freeform text block, it’s special.
-		if ( $this->is_html() ) {
+		if ( self::MATCHED !== $this->state ) {
 			return null;
 		}
 
 		$block_type = substr( $this->source_text, $this->namespace_at, $this->name_at - $this->namespace_at + $this->name_length );
-		return self::normalize_block_type( $block_type );
+
+		// The name starts where the namespace would when the namespace is the implicit “core”.
+		return $this->namespace_at === $this->name_at ? "core/{$block_type}" : $block_type;
 	}
 
 	/**
@@ -1768,23 +1761,14 @@ class WP_Block_Processor {
 	 *                     if matched on an explicit delimiter or freeform block, otherwise `null`.
 	 */
 	public function get_printable_block_type(): ?string {
-		if (
-			self::READY === $this->state ||
-			self::COMPLETE === $this->state ||
-			self::INCOMPLETE_INPUT === $this->state
-		) {
-			return null;
-		}
-
 		// This is a core/freeform text block, it’s special.
-		if ( $this->is_html() ) {
+		if ( self::HTML_SPAN === $this->state ) {
 			return array() === $this->open_blocks_at
 				? 'core/freeform'
 				: '#innerHTML';
 		}
 
-		$block_type = substr( $this->source_text, $this->namespace_at, $this->name_at - $this->namespace_at + $this->name_length );
-		return self::normalize_block_type( $block_type );
+		return $this->get_block_type();
 	}
 
 	/**
@@ -1879,7 +1863,7 @@ class WP_Block_Processor {
 	public function allocate_and_return_parsed_attributes(): ?array {
 		$this->last_json_error = JSON_ERROR_NONE;
 
-		if ( self::CLOSER === $this->type || $this->is_html() || 0 === $this->json_length ) {
+		if ( self::CLOSER === $this->type || self::HTML_SPAN === $this->state || 0 === $this->json_length ) {
 			return null;
 		}
 
