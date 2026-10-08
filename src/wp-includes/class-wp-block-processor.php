@@ -181,7 +181,7 @@
  * Example:
  *
  *     $depth = $processor->get_depth();
- *     while ( $processor->next_token() && $processor->get_depth() > $depth ) {
+ *     while ( $processor->next_token() && $processor->get_depth() >= $depth ) {
  *         continue
  *     }
  *     // Processor is now paused at the block’s closing delimiter, or at the end of the document.
