@@ -482,7 +482,11 @@ class WP_User_Query {
 		$caps_with_roles = array();
 
 		foreach ( $available_roles as $role => $role_data ) {
-			$role_caps = array_keys( array_filter( $role_data['capabilities'] ) );
+			$role_caps = array();
+
+			if ( isset( $role_data['capabilities'] ) ) {
+				$role_caps = array_keys( array_filter( $role_data['capabilities'] ) );
+			}
 
 			foreach ( $capabilities as $cap ) {
 				if ( in_array( $cap, $role_caps, true ) ) {
