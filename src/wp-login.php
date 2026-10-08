@@ -966,7 +966,7 @@ switch ( $action ) {
 
 		// Check if password is one or all empty spaces.
 		if ( ! empty( $_POST['pass1'] ) ) {
-			$_POST['pass1'] = trim( $_POST['pass1'] );
+			$_POST['pass1'] = trim( wp_unslash( $_POST['pass1'] ) );
 
 			if ( empty( $_POST['pass1'] ) ) {
 				$errors->add( 'password_reset_empty_space', __( 'The password cannot be a space or all spaces.' ) );
@@ -974,7 +974,7 @@ switch ( $action ) {
 		}
 
 		// Check if password fields do not match.
-		if ( ! empty( $_POST['pass1'] ) && trim( $_POST['pass2'] ) !== $_POST['pass1'] ) {
+		if ( ! empty( $_POST['pass1'] ) && trim( wp_unslash( $_POST['pass2'] ) ) !== $_POST['pass1'] ) {
 			$errors->add( 'password_reset_mismatch', __( '<strong>Error:</strong> The passwords do not match.' ) );
 		}
 
