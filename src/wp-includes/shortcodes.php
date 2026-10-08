@@ -576,6 +576,8 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
  *
  * @param string $content Content to search for placeholders.
  * @return string Content with placeholders removed.
+ *
+ * @phpstan-pure
  */
 function unescape_invalid_shortcodes( $content ) {
 	// Clean up entire string, avoids re-parsing HTML.

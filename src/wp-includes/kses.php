@@ -2313,6 +2313,8 @@ function wp_kses_hook( $content, $allowed_html, $allowed_protocols ) {
  * @since 1.0.0
  *
  * @return string KSES version number.
+ *
+ * @phpstan-pure
  */
 function wp_kses_version() {
 	return '0.2.2';
@@ -3113,6 +3115,8 @@ function wp_kses_stripslashes( $content ) {
  *
  * @param array $inarray Unfiltered array.
  * @return array Fixed array with all lowercase keys.
+ *
+ * @phpstan-pure
  */
 function wp_kses_array_lc( $inarray ) {
 	$outarray = array();
@@ -3388,6 +3392,8 @@ function wp_kses_normalize_entities3( $matches ) {
  *
  * @param int $i Unicode codepoint.
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
+ *
+ * @phpstan-pure
  */
 function valid_unicode( $i ) {
 	$i = (int) $i;

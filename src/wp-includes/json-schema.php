@@ -102,6 +102,8 @@ function wp_prepare_json_schema_for_client( array $schema, string $schema_profil
  * @param array<string, mixed> $schema           The schema array.
  * @param array<string, true>  $allowed_keywords Lookup map of allowed JSON Schema keywords.
  * @return array<string, mixed> The prepared schema.
+ *
+ * @phpstan-pure
  */
 function _wp_prepare_json_schema_for_client_with_allowed_keywords( array $schema, array $allowed_keywords ): array {
 	if ( isset( $schema['type'] ) && 'object' === $schema['type'] && isset( $schema['default'] ) ) {

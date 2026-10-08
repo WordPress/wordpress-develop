@@ -862,6 +862,8 @@ function wp_register_plugin_realpath( $file ) {
  *
  * @param string $file The filename of the plugin (__FILE__).
  * @return string the filesystem path of the directory that contains the plugin.
+ *
+ * @phpstan-pure
  */
 function plugin_dir_path( $file ) {
 	return trailingslashit( dirname( $file ) );

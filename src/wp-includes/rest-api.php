@@ -927,6 +927,8 @@ function rest_send_allow_header( $response, $server, $request ) {
  * @param array $array2 An array to compare keys against.
  * @return array An associative array containing all the entries of array1 which have keys
  *               that are present in all arguments.
+ *
+ * @phpstan-pure
  */
 function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 	$array1 = array_intersect_key( $array1, $array2 );
@@ -1561,6 +1563,8 @@ function rest_sanitize_boolean( $value ) {
  *
  * @param bool|string $maybe_bool The value being evaluated.
  * @return bool True if a boolean, otherwise false.
+ *
+ * @phpstan-pure
  */
 function rest_is_boolean( $maybe_bool ) {
 	if ( is_bool( $maybe_bool ) ) {
@@ -2174,6 +2178,8 @@ function rest_validate_enum( $value, $args, $param ) {
  * @since 5.6.0
  *
  * @return string[] All valid JSON schema properties.
+ *
+ * @phpstan-pure
  */
 function rest_get_allowed_schema_keywords() {
 	return array(
@@ -3197,6 +3203,8 @@ function rest_filter_response_by_context( $response_data, $schema, $context ) {
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
+ *
+ * @phpstan-pure
  */
 function rest_default_additional_properties_to_false( $schema ) {
 	$type = (array) $schema['type'];

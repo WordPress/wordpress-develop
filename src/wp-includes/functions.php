@@ -1313,6 +1313,7 @@ function wp_removable_query_args() {
  * @param array $input_array Array to walk while sanitizing contents.
  * @return array Sanitized $input_array.
  *
+ * @phpstan-pure
  * @phpstan-template T of array
  * @phpstan-param T $input_array
  * @phpstan-return array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )>
@@ -5166,6 +5167,7 @@ function wp_parse_slug_list( $input_list ): array {
  * @param string[]             $keys        The list of keys.
  * @return array<string, mixed> The array slice.
  *
+ * @phpstan-pure
  * @phpstan-template TKey of string
  * @phpstan-template TValue
  * @phpstan-param array<string, TValue> $input_array
@@ -5231,6 +5233,8 @@ function wp_recursive_ksort( &$input_array ) {
  * @param mixed $default_value Optional. The return value if the path does not exist within the array,
  *                             or if `$input_array` or `$path` are not arrays. Default null.
  * @return mixed The value from the path specified.
+ *
+ * @phpstan-pure
  */
 function _wp_array_get( $input_array, $path, $default_value = null ) {
 	// Confirm $path is valid.
@@ -7928,6 +7932,8 @@ function reset_mbstring_encoding() {
  *
  * @param mixed $value Boolean value to validate.
  * @return bool Whether the value is validated.
+ *
+ * @phpstan-pure
  */
 function wp_validate_boolean( $value ) {
 	if ( is_bool( $value ) ) {
@@ -9297,6 +9303,8 @@ function is_php_version_compatible( $required ) {
  * @param int|float $actual    The actual number.
  * @param int|float $precision Optional. The allowed variation. Default 1.
  * @return bool Whether the numbers match within the specified precision.
+ *
+ * @phpstan-pure
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
@@ -9461,6 +9469,8 @@ function wp_admin_notice( $message, $args = array() ) {
  *
  * @param string $mime_type The mime type to check.
  * @return bool Whether the mime type is for a HEIC/HEIF image.
+ *
+ * @phpstan-pure
  */
 function wp_is_heic_image_mime_type( $mime_type ) {
 	$heic_mime_types = array(

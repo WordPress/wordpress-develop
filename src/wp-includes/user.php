@@ -4043,6 +4043,8 @@ function new_user_email_admin_notice() {
  * @access private
  *
  * @return string[] List of core privacy action types.
+ *
+ * @phpstan-pure
  */
 function _wp_privacy_action_request_types() {
 	return array(

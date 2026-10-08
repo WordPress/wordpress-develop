@@ -397,6 +397,8 @@ function _wp_get_iframed_editor_assets() {
  * @param array  $blocks     Array of blocks.
  * @param string $block_name Name of the block to find.
  * @return array Found block, or empty array if none found.
+ *
+ * @phpstan-pure
  */
 function wp_get_first_block( $blocks, $block_name ) {
 	foreach ( $blocks as $block ) {
