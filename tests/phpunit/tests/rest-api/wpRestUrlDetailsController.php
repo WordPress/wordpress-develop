@@ -558,26 +558,24 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_icon
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_icon
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html       Given HTML string.
-	 * @param string $expected   Expected found icon.
-	 * @param string $target_url Optional. Target URL. Default 'https://wordpress.org'.
 	 */
-	public function test_get_icon( $html, $expected, $target_url = 'https://wordpress.org' ) {
-		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_icon' );
+	public function test_get_icon() {
+		foreach ( $this->data_get_icon() as $case_name => $data ) {
+			list( $html, $expected, $target_url ) = array_pad( $data, 3, 'https://wordpress.org' );
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html ),
-			$target_url
-		);
-		$this->assertSame( $expected, $actual );
+			$controller = new WP_REST_URL_Details_Controller();
+			$method     = $this->get_reflective_method( 'get_icon' );
+
+			$actual = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html ),
+				$target_url
+			);
+			$this->assertSame( $expected, $actual, $case_name );
+		}
 	}
 
 	/**
