@@ -398,6 +398,34 @@ function wp_functionality_constants() {
 	if ( ! defined( 'WP_CRON_LOCK_TIMEOUT' ) ) {
 		define( 'WP_CRON_LOCK_TIMEOUT', MINUTE_IN_SECONDS );
 	}
+
+	if ( ! defined( 'DISABLE_WP_CRON' ) ) {
+		/**
+		 * Filters whether the wp-cron.php endpoint spawns the WP-Cron process.
+		 *
+		 * Use the filter to disable the wp-cron.php endpoint from spawning cron jobs. This
+		 * filter must only be used if an alternative approach to firing cron jobs is enabled
+		 * on the server.
+		 *
+		 * When disabling the wp-cron.php endpoint, you must ensure that cron jobs are still
+		 * fired by using an alternative method such as WP CLI.
+		 *
+		 * For single site installs, the following WP CLI command can be scheduled via a system
+		 * cron job: `wp cron event run --due-now`. For multisite installs, the command must be
+		 * run for each site by specifying the global `--url` parameter.
+		 *
+		 * When disabling the wp-cron.php endpoint via the filter, the filter must be added on
+		 * or prior to the `plugins_loaded` hook to ensure it takes effect.
+		 *
+		 * @since x.x.x
+		 *
+		 * @link https://developer.wordpress.org/cli/commands/cron/event/
+		 *
+		 * @param bool $wp_cron_endpoint_enabled Whether to enable the wp-cron.php endpoint. Default true.
+		 */
+		$wp_cron_endpoint_enabled = (bool) apply_filters( 'wp_cron_endpoint_enabled', true );
+		define( 'DISABLE_WP_CRON', ! $wp_cron_endpoint_enabled );
+	}
 }
 
 /**
