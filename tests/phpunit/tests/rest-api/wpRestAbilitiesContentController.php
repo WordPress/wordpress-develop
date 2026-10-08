@@ -44,12 +44,12 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 * Sets up users and registers the core abilities.
 	 *
 	 * @since 7.2.0
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
-	public static function set_up_before_class(): void {
-		parent::set_up_before_class();
-
-		self::$admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		self::$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+	public static function wpSetUpBeforeClass( $factory ): void {
+		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -82,15 +82,13 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 */
-	public static function tear_down_after_class(): void {
+	public static function wpTearDownAfterClass(): void {
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
 		foreach ( wp_get_ability_categories() as $ability_category ) {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
-
-		parent::tear_down_after_class();
 	}
 
 	public function set_up(): void {
@@ -129,7 +127,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	public function test_logged_out_user_receives_401(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'post_type' => 'post' ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'type' => 'post' ) ) );
 
 		$this->assertSame( 401, $response->get_status() );
 	}
@@ -143,8 +141,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'status'    => array( 'draft' ),
+					'type'   => 'post',
+					'status' => array( 'draft' ),
 				)
 			)
 		);
@@ -169,8 +167,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'fields'    => array( 'id', 'title_rendered', 'content_rendered' ),
+					'type'   => 'post',
+					'fields' => array( 'id', 'title_rendered', 'content_rendered' ),
 				)
 			)
 		);
@@ -197,8 +195,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'fields'    => array( 'content_raw' ),
+					'type'   => 'post',
+					'fields' => array( 'content_raw' ),
 				)
 			)
 		);
@@ -217,7 +215,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 			)
 		);
 
-		$response = $this->server->dispatch( $this->run_request( array( 'post_type' => 'post' ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'type' => 'post' ) ) );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'An administrator should be able to query published posts.' );
@@ -251,10 +249,10 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
+					'type'    => 'post',
 					// Deliberately pass IDs in the opposite of the expected date order.
-					'include'   => array( $first, $third ),
-					'fields'    => array( 'id' ),
+					'include' => array( $first, $third ),
+					'fields'  => array( 'id' ),
 				)
 			)
 		);
@@ -294,8 +292,8 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'slug'      => 'rest-content-slug',
+					'type' => 'post',
+					'slug' => 'rest-content-slug',
 				)
 			)
 		);
@@ -313,7 +311,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	public function test_wrong_http_method_returns_405(): void {
 		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array( 'post_type' => 'post' ) ) ) );
+		$request->set_body( wp_json_encode( array( 'input' => array( 'type' => 'post' ) ) ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -330,9 +328,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'per_page'  => 2,
-					'page'      => 1,
+					'type'     => 'post',
+					'per_page' => 2,
+					'page'     => 1,
 				)
 			)
 		);
@@ -347,20 +345,20 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * @ticket 66268
 	 */
-	public function test_out_of_range_page_returns_400(): void {
+	public function test_out_of_range_page_returns_404(): void {
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'post_type' => 'post',
-					'per_page'  => 1,
-					'page'      => 999,
+					'type'     => 'post',
+					'per_page' => 1,
+					'page'     => 999,
 				)
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status(), 'Requesting a page past the last one should return a 400 error.' );
+		$this->assertSame( 404, $response->get_status(), 'Requesting a page past the last one should return a 404 error.' );
 		$this->assertSame( 'content_invalid_page_number', $response->get_data()['code'], 'The error should identify the invalid page number.' );
 	}
 }
