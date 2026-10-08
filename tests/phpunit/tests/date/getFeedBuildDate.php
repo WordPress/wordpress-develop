@@ -50,12 +50,10 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function test_should_not_error_when_modified_times_is_empty() {
 		global $wp_query;
 
-		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
-		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
-
 		self::factory()->post->create(
 			array(
-				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
+				'post_date'     => '2024-06-15 12:00:00',
+				'post_date_gmt' => '2024-06-15 12:00:00',
 			)
 		);
 
@@ -68,13 +66,9 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		$wp_query->post_count = 1;
 		$wp_query->posts      = array( PHP_INT_MAX ); // Non-existent post ID.
 
-		$result = get_feed_build_date( DATE_RFC3339 );
-		$this->assertIsString( $result );
-
-		$this->assertEqualsWithDelta(
-			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
-			strtotime( $result ),
-			2,
+		$this->assertSame(
+			'2024-06-15T12:00:00+00:00',
+			get_feed_build_date( DATE_RFC3339 ),
 			'Should fall back to last post modified when modified_times is empty.'
 		);
 	}
@@ -93,12 +87,10 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	public function test_should_not_error_when_posts_is_empty() {
 		global $wp_query;
 
-		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
-		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
-
 		self::factory()->post->create(
 			array(
-				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
+				'post_date'     => '2024-06-15 12:00:00',
+				'post_date_gmt' => '2024-06-15 12:00:00',
 			)
 		);
 
@@ -106,13 +98,9 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		$wp_query->post_count = 1;
 		$wp_query->posts      = array();
 
-		$result = get_feed_build_date( DATE_RFC3339 );
-		$this->assertIsString( $result );
-
-		$this->assertEqualsWithDelta(
-			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
-			strtotime( $result ),
-			2,
+		$this->assertSame(
+			'2024-06-15T12:00:00+00:00',
+			get_feed_build_date( DATE_RFC3339 ),
 			'Should fall back to last post modified when posts is empty.'
 		);
 	}
@@ -163,6 +151,53 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			'2020-01-01T00:00:00+00:00',
 			get_feed_build_date( DATE_RFC3339 ),
 			'Build date should match the modified time of the post in the feed, not the site-wide latest.'
+		);
+	}
+
+	/**
+	 * Cold ID-only and partial results must retain the feed's latest date.
+	 *
+	 * @ticket 59956
+	 * @dataProvider data_cold_post_query_fields
+	 */
+	public function test_should_return_correct_build_date_for_cold_query_fields( $fields ) {
+		global $wp_query;
+
+		$post_ids = array();
+		foreach ( array( '2020-01-01 00:00:00', '2022-01-01 00:00:00' ) as $date ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_date'     => $date,
+					'post_date_gmt' => $date,
+				)
+			);
+		}
+		self::factory()->post->create(
+			array(
+				'post_date'     => '2024-06-15 12:00:00',
+				'post_date_gmt' => '2024-06-15 12:00:00',
+			)
+		);
+		$wp_query = new WP_Query(
+			array(
+				'post__in' => $post_ids,
+				'fields'   => $fields,
+			)
+		);
+		$this->assertSame( 2, $wp_query->post_count );
+		foreach ( $post_ids as $post_id ) {
+			wp_cache_delete( $post_id, 'posts' );
+		}
+		$num_queries = get_num_queries();
+
+		$this->assertSame( '2022-01-01T00:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected one bulk post query and no metadata or term queries.' );
+	}
+
+	public function data_cold_post_query_fields() {
+		return array(
+			'IDs'     => array( 'ids' ),
+			'partial' => array( 'id=>parent' ),
 		);
 	}
 
