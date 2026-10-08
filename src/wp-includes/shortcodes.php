@@ -597,6 +597,7 @@ function unescape_invalid_shortcodes( $content ) {
  * @return string The shortcode attribute regular expression.
  *
  * @phpstan-return non-falsy-string
+ * @phpstan-pure
  */
 function get_shortcode_atts_regex() {
 	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';

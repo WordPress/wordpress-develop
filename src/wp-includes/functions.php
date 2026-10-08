@@ -1616,6 +1616,7 @@ function get_num_queries() {
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
  *
+ * @phpstan-pure
  * @phpstan-return ( $yn is 'y'|'Y' ? true : false )
  */
 function bool_from_yn( $yn ) {
@@ -5444,6 +5445,7 @@ function _wp_to_kebab_case( $input_string ) {
  *
  * @phpstan-assert-if-true array<int, mixed> $data
  *
+ * @phpstan-pure
  * @phpstan-return ( $data is array<int, mixed> ? true : false )
  */
 function wp_is_numeric_array( $data ): bool {
