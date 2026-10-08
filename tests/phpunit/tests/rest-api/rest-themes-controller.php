@@ -1412,9 +1412,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_create_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'POST', self::$themes_route );
-		$request->set_param( 'stylesheet', 'example' );
-
+		$request  = new WP_REST_Request( 'POST', self::$themes_route );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -1428,12 +1426,17 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request = new WP_REST_Request( 'POST', self::$themes_route . '/' . get_stylesheet() );
-		$request->set_param( 'name', 'Updated' );
+		$route = self::$themes_route . '/' . get_stylesheet();
 
-		$response = rest_get_server()->dispatch( $request );
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
 
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
@@ -1631,7 +1634,12 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request  = new WP_REST_Request( 'DELETE', self::$themes_route . '/' . get_stylesheet() );
+		$route = self::$themes_route . '/' . get_stylesheet();
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
