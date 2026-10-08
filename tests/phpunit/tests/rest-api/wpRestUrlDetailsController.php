@@ -731,28 +731,27 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_description
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_description
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html     Given HTML string.
-	 * @param string $expected Expected found icon.
 	 */
-	public function test_get_description( $html, $expected ) {
-		$controller = new WP_REST_URL_Details_Controller();
+	public function test_get_description() {
+		foreach ( $this->data_get_description() as $case_name => $data ) {
+			list( $html, $expected ) = $data;
 
-		// Parse the meta elements from the given HTML.
-		$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
-		$meta_elements = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
+			$controller = new WP_REST_URL_Details_Controller();
 
-		$method = $this->get_reflective_method( 'get_description' );
-		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertEqualHTML( $expected, $actual );
+			// Parse the meta elements from the given HTML.
+			$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
+			$meta_elements = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html )
+			);
+
+			$method = $this->get_reflective_method( 'get_description' );
+			$actual = $method->invoke( $controller, $meta_elements );
+			$this->assertEqualHTML( $expected, $actual, '<body>', $case_name );
+		}
 	}
 
 	/**
