@@ -497,7 +497,7 @@ window.setCommentsList = function() {
 			spammed = commentRow.hasClass( 'spam' ),
 			trashed = commentRow.hasClass( 'trash' ),
 			isMine = !! adminCommentsSettings.currentUserId &&
-				parseInt( commentRow.data( 'comment-user-id' ), 10 ) === adminCommentsSettings.currentUserId,
+				parseInt( commentRow.data( 'comment-user-id' ), 10 ) === parseInt( adminCommentsSettings.currentUserId, 10 ),
 			undoing = false; // Ticket #35904.
 
 		updateDashboardText( newTotal );
