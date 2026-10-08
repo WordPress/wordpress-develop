@@ -227,12 +227,24 @@ Intended:
   passed through unchecked.
 - Escapes are accepted, decoded for the checks, and re-escaped in the output.
 - A `\0` escape decodes to U+FFFD instead of being deleted from the text.
+- A `<` or `>` delimiter and a `<!--` or `-->` token are rejected. The legacy
+  function rejected `&` and `=` and kept `<` and `>`.
+- A string or url token cut off by the end of the input drops the last
+  declaration, in every property. The legacy function kept an unclosed
+  string and an unclosed `url(` with no `(` in its test string.
+- A lone `{ }` block in a standard property is rejected, as the legacy
+  function rejected `}`.
+- An allowed-list entry with capitals matches, since entries and names are
+  lowercased before matching.
+- `safecss_filter_attr_allow_css` is deprecated and not applied.
 
 Formatting only: no space after the colon, double-quoted strings with
 hex-escaped punctuation, URLs as `url("...")`, trailing `;`.
 
-Unchanged: a block left open at EOF is rejected, as the legacy function
-rejected an unbalanced parenthesis.
+Unchanged: a block left open at the end of the input is rejected, as the
+legacy function rejected an unbalanced parenthesis; a comment left open at
+the end of the input drops the declaration, as the legacy function rejected
+`/*`; an empty `safe_style_css` list returns the input.
 
 On the 156 legacy test vectors: 31 identical, 115 formatting only, 2
 narrowings (`expression()` inside a gradient; an unmatched `)`), 8 widenings,
