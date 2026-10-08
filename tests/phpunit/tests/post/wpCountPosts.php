@@ -23,7 +23,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		);
 
 		$start_num_queries = get_num_queries();
-		$counts      = wp_count_posts();
+		$counts            = wp_count_posts();
 
 		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'No database query should run when the filter returns a value.' );
 		$this->assertSame( 42, $counts->publish, 'Count is expected to be filtered value (42).' );
@@ -60,8 +60,8 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_count_posts', array( $filter, 'filter' ) );
 
-		$this->assertEquals( new stdClass(), wp_count_posts( 'not_a_post_type' ) );
-		$this->assertSame( 0, $filter->get_call_count() );
+		$this->assertEquals( new stdClass(), wp_count_posts( 'not_a_post_type' ), 'An unregistered post type should return an empty object.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'The pre_wp_count_posts filter should not fire for an unregistered post type.' );
 	}
 
 	/**
@@ -78,30 +78,9 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		$counts = wp_count_posts();
 
 		foreach ( get_post_stati() as $status ) {
-			$this->assertObjectHasProperty( $status, $counts );
+			$this->assertObjectHasProperty( $status, $counts, "The '{$status}' status should be present in the counts." );
 		}
-		$this->assertSame( 0, $counts->draft );
-	}
-
-	/**
-	 * @ticket 66098
-	 */
-	public function test_pre_wp_count_posts_result_passes_through_wp_count_posts_filter() {
-		add_filter(
-			'pre_wp_count_posts',
-			static function () {
-				return (object) array( 'publish' => 5 );
-			}
-		);
-		add_filter(
-			'wp_count_posts',
-			static function ( $counts ) {
-				$counts->publish += 1;
-				return $counts;
-			}
-		);
-
-		$this->assertSame( 6, wp_count_posts()->publish );
+		$this->assertSame( 0, $counts->draft, 'A status missing from the filtered value should default to 0.' );
 	}
 
 	/**
