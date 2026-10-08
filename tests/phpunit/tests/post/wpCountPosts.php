@@ -13,8 +13,6 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 	 * @ticket 66098
 	 */
 	public function test_pre_wp_count_posts_short_circuits_query() {
-		global $wpdb;
-
 		self::factory()->post->create_many( 3 );
 
 		add_filter(
