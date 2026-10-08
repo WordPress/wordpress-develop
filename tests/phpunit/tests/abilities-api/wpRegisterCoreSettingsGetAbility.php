@@ -360,7 +360,7 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	public function test_core_settings_get_combines_group_and_fields_filters(): void {
 		$this->become_admin();
 
-		// `blogname` is in the `general` group and `posts_per_page` in `reading`; only the
+		// `title` is in the `general` group and `posts_per_page` in `reading`; only the
 		// latter satisfies both filters.
 		$result = wp_get_ability( 'core/settings-get' )->execute(
 			array(
