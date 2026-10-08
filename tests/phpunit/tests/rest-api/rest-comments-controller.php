@@ -4816,6 +4816,92 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * The `wp_note_reaction_emojis` filter decides which emoji the REST API
+	 * accepts: an added emoji is accepted and a removed one is not.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_create_reaction_respects_reaction_emojis_filter() {
+		add_filter(
+			'wp_note_reaction_emojis',
+			static function ( $emojis ) {
+				// Drop the heart, add a unicorn.
+				$emojis   = array_slice( $emojis, 1 );
+				$emojis[] = array(
+					'hexKey' => '1F984',
+					'label'  => 'unicorn',
+				);
+				return $emojis;
+			}
+		);
+
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$params = array(
+			'post'    => $post_id,
+			'parent'  => $note_id,
+			'content' => '1f984',
+			'type'    => 'reaction',
+			'author'  => self::$editor_id,
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 201, $response->get_status(), 'An emoji added by the filter should be accepted.' );
+
+		$params['content'] = '2764';
+		$request           = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
+	}
+
+	/**
+	 * A reaction whose emoji the site stopped offering can still be removed
+	 * by its author.
+	 *
+	 * @ticket 63191
+	 */
+	public function test_delete_reaction_after_its_emoji_is_filtered_out() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+		$note_id     = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+		$reaction_id = $this->create_reaction_for_update_tests( $post_id, $note_id, self::$editor_id );
+
+		add_filter( 'wp_note_reaction_emojis', '__return_empty_array' );
+
+		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id );
+		$request->set_param( 'force', true );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( get_comment( $reaction_id ) );
+	}
+
+	/**
 	 * The stored reaction content is the validated, canonical key - markup
 	 * around the key must not reach the database, or `reaction_summary`
 	 * grouping would split visually identical reactions.

@@ -36,23 +36,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	protected $reaction_summaries = null;
 
 	/**
-	 * Retrieves the hex keys of the emoji a note reaction accepts.
-	 *
-	 * Each key is the emoji's lowercase code points, padded to four digits,
-	 * matching the client's `emojiToHexKey()`. A reaction stores its key in
-	 * `comment_content`.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return string[] Hex keys for heart, celebration, smile, eyes and rocket.
-	 *
-	 * @phpstan-return non-empty-list<lowercase-string&non-falsy-string>
-	 */
-	private static function get_note_reaction_keys(): array {
-		return array( '2764', '1f389', '1f604', '1f440', '1f680' );
-	}
-
-	/**
 	 * Constructor.
 	 *
 	 * @since 4.7.0
@@ -811,11 +794,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/*
-			 * Validate the reaction content: the hex key of one of the curated
-			 * reaction emoji, as listed by self::get_note_reaction_keys() (e.g.
-			 * `2764` for the heart). Raw emoji bytes are rejected because the
-			 * comments table is not guaranteed to be utf8mb4 across all WordPress
-			 * installs; clients are expected to normalize before submitting.
+			 * Validate the reaction content: the hex key of one of the reaction
+			 * emoji, as listed by wp_get_note_reaction_keys() (e.g. `2764` for
+			 * the heart). Raw emoji bytes are rejected because the comments
+			 * table is not guaranteed to be utf8mb4 across all WordPress installs;
+			 * clients are expected to normalize before submitting.
 			 *
 			 * Read the content the same two ways prepare_item_for_database()
 			 * does, so `content` and `content.raw` are both accepted.
@@ -829,7 +812,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 			$emoji_key = trim( wp_strip_all_tags( $raw_content ) );
 
-			if ( ! in_array( $emoji_key, self::get_note_reaction_keys(), true ) ) {
+			if ( ! in_array( $emoji_key, wp_get_note_reaction_keys(), true ) ) {
 				return new WP_Error(
 					'rest_comment_invalid_reaction',
 					__( 'Invalid reaction emoji.' ),
