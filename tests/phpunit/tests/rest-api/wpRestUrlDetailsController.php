@@ -508,7 +508,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * Data provider.
+	 * Returns title parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -579,7 +579,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * Data provider.
+	 * Returns icon parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -755,7 +755,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * Data provider.
+	 * Returns description parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -905,7 +905,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * Data provider.
+	 * Returns image parsing test cases.
 	 *
 	 * @return array
 	 */
