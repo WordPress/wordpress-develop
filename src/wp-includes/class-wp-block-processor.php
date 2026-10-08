@@ -208,6 +208,10 @@
  *
  *     $gallery_at    = $processor->get_span()->start;
  *     $gallery_block = $processor->extract_full_block_and_advance();
+ *     if ( null !== $processor->get_last_error() ) {
+ *         return $post_content;
+ *     }
+ *
  *     $last_token    = $processor->get_span();
  *     $after_gallery = isset( $last_token )
  *         ? $last_token->start + $last_token->length
@@ -1255,7 +1259,9 @@ class WP_Block_Processor {
 	 * Once this function returns, the processor is matched on the last token of the given
 	 * block: the closing delimiter of a block with inner content, the delimiter of a void
 	 * block, or the span of freeform HTML. If the document ends before the block closes,
-	 * {@see self::get_span()} returns `null`.
+	 * {@see self::get_span()} returns `null`, unless {@see self::get_last_error()} reports
+	 * incomplete input. In that case the extracted block may omit content at the end of
+	 * the document and the processor may remain on the final HTML span.
 	 *
 	 * The return type of this method is compatible with the return of {@see \parse_blocks()}.
 	 *
@@ -1268,6 +1274,10 @@ class WP_Block_Processor {
 	 *
 	 *     $gallery_at  = $processor->get_span()->start;
 	 *     $gallery     = $processor->extract_full_block_and_advance();
+	 *     if ( null !== $processor->get_last_error() ) {
+	 *         return $post_content;
+	 *     }
+	 *
 	 *     $last_token  = $processor->get_span();
 	 *     $ends_before = isset( $last_token )
 	 *         ? $last_token->start + $last_token->length

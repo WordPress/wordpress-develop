@@ -1608,11 +1608,13 @@ HTML
 	 */
 	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block() {
 		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
-		$processor->next_block( 'g' );
+		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
 		$group = $processor->extract_full_block_and_advance();
 
 		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
 		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
+		$this->assertSame( WP_Block_Processor::INCOMPLETE_INPUT, $processor->get_last_error(), 'Failed to report incomplete input.' );
+		$this->assertSame( 'y', $processor->get_html_content(), 'Stopped on the wrong token after extracting a block from incomplete input.' );
 	}
 
 	/**
