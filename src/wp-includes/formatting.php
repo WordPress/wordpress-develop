@@ -727,6 +727,8 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
  *
  * @param string[] $tagnames Array of shortcodes to find.
  * @return string The regular expression.
+ *
+ * @phpstan-pure
  */
 function _get_wptexturize_shortcode_regex( $tagnames ) {
 	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );

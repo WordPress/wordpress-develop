@@ -5089,6 +5089,7 @@ function wp_parse_args( $args, $defaults = array() ): array {
  * @param mixed[]|string|int $input_list List of values.
  * @return array Array of scalar values. A string is split into a list, while an array
  *               keeps its keys, so the result is not necessarily a list.
+ * @phpstan-pure
  * @phpstan-return (
  *     $input_list is string|int ? list<string> : (
  *         $input_list is array<string> ? array<string> : array<scalar>
@@ -5120,6 +5121,7 @@ function wp_parse_list( $input_list ): array {
  * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
  *               from the input and `array_unique()` may leave gaps, so the
  *               result is not necessarily a list.
+ * @phpstan-pure
  * @phpstan-return array<non-negative-int>
  */
 function wp_parse_id_list( $input_list ): array {
@@ -9287,6 +9289,8 @@ function is_wp_version_compatible( $required ) {
  *
  * @param string $required Minimum required PHP version.
  * @return bool True if required version is compatible or empty, false if not.
+ *
+ * @phpstan-pure
  */
 function is_php_version_compatible( $required ) {
 	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
