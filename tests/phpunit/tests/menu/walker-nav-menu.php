@@ -439,4 +439,76 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that modifications to `$args` in the `nav_menu_item_args` filter do not leak between menu items.
+	 *
+	 * @ticket 37344
+	 *
+	 * @covers Walker_Nav_Menu::start_el
+	 */
+	public function test_walker_nav_menu_start_el_should_not_leak_nav_menu_item_args_filter_changes_between_items() {
+		add_filter( 'nav_menu_item_args', array( $this, 'filter_nav_menu_item_args_append_marker' ), 10, 3 );
+
+		$item1 = array(
+			'ID'      => 1,
+			'title'   => 'Item 1',
+			'classes' => array(),
+			'current' => false,
+			'target'  => '',
+			'xfn'     => '',
+			'url'     => 'http://example.com/item1',
+		);
+
+		$item2 = array(
+			'ID'      => 2,
+			'title'   => 'Item 2',
+			'classes' => array(),
+			'current' => false,
+			'target'  => '',
+			'xfn'     => '',
+			'url'     => 'http://example.com/item2',
+		);
+
+		$args = array(
+			'before'      => '',
+			'after'       => '',
+			'link_before' => '',
+			'link_after'  => '',
+		);
+
+		$original_args = (object) $args;
+
+		$output1 = '';
+		$this->walker->start_el( $output1, (object) $item1, 0, (object) $args );
+
+		$output2 = '';
+		$this->walker->start_el( $output2, (object) $item2, 0, (object) $args );
+
+		remove_filter( 'nav_menu_item_args', array( $this, 'filter_nav_menu_item_args_append_marker' ), 10 );
+
+		$this->assertSame( '', $original_args->before, 'start_el() must not mutate the caller\'s $args object.' );
+
+		// Both menu items should have exactly one 'X' marker, not accumulating.
+		$this->assertStringContainsString( '>X<a href="http://example.com/item1">Item 1</a>', $output1 );
+		$this->assertStringContainsString( '>X<a href="http://example.com/item2">Item 2</a>', $output2 );
+
+		// Ensure no accumulation - Item 2 should not contain 'XX'.
+		$this->assertStringNotContainsString( '>XX<a href="http://example.com/item2">Item 2</a>', $output2 );
+	}
+
+	/**
+	 * Filter callback for testing nav_menu_item_args filter side effects.
+	 *
+	 * Appends a marker character to the 'before' argument to test for accumulation.
+	 *
+	 * @param stdClass $args      An object of wp_nav_menu() arguments.
+	 * @param WP_Post  $menu_item Menu item data object.
+	 * @param int      $depth     Depth of menu item. Used for padding.
+	 * @return stdClass Modified arguments object.
+	 */
+	public function filter_nav_menu_item_args_append_marker( $args, $menu_item, $depth ) {
+		$args->before .= 'X';
+		return $args;
+	}
 }
