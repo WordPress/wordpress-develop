@@ -2168,6 +2168,10 @@ function wp_kses_allowed_html( $context = '' ) {
 				$tags = apply_filters( 'wp_kses_allowed_html', $tags, $context );
 			}
 
+			// Allow base64 encoded images in the 'post' context
+            if ( isset( $tags['img'] ) ) {
+                $tags['img']['src'] .= '|^data:image\/(png|jpeg|gif);base64,';
+            }
 			return $tags;
 
 		case 'user_description':
@@ -2193,6 +2197,12 @@ function wp_kses_allowed_html( $context = '' ) {
 			return apply_filters( 'wp_kses_allowed_html', $allowedtags, $context );
 	}
 }
+
+// Allowed data protocols 
+add_filter('kses_allowed_protocols', function ($protocols) {
+    $protocols[] = 'data';
+    return $protocols;
+});
 
 /**
  * Allows the note mention chip markup in comment content.
