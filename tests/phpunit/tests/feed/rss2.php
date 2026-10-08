@@ -347,6 +347,99 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 		remove_filter( 'comments_open', '__return_false' );
 	}
 
+	/**
+	 * Tests that comment feed links do not produce empty elements or affect comment metadata.
+	 *
+	 * @ticket 63843
+	 * @dataProvider data_item_comment_feed_links
+	 *
+	 * @param string      $comment_status Whether comments are open or closed.
+	 * @param int         $comment_count Number of existing comments.
+	 * @param string|null $filtered_url  Filtered URL, or null to keep the default URL.
+	 * @param string|null $expected_url  Expected URL, or null for the default URL.
+	 */
+	public function test_item_comment_feed_links( $comment_status, $comment_count, $filtered_url, $expected_url ) {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'      => '2020-01-01 00:00:00',
+				'comment_status' => $comment_status,
+			)
+		);
+
+		self::factory()->comment->create_post_comments( $post_id, $comment_count );
+		update_option( 'posts_per_rss', 1 );
+
+		if ( null === $expected_url ) {
+			$expected_url = get_post_comments_feed_link( $post_id, 'rss2' );
+		}
+
+		$filter_calls = 0;
+		$filter       = static function ( $url ) use ( $filtered_url, &$filter_calls ) {
+			++$filter_calls;
+			return null === $filtered_url ? $url : $filtered_url;
+		};
+		add_filter( 'post_comments_feed_link', $filter );
+
+		try {
+			$this->go_to( '/?feed=rss2' );
+			$feed = $this->do_rss2();
+		} finally {
+			remove_filter( 'post_comments_feed_link', $filter );
+		}
+
+		$items = xml_find( xml_to_array( $feed ), 'rss', 'channel', 'item' );
+		$this->assertCount( 1, $items, 'The feed should contain only the test post.' );
+
+		$comment_rss   = xml_find( $items[0]['child'], 'wfw:commentRss' );
+		$comments_link = xml_find( $items[0]['child'], 'comments' );
+		$comments      = xml_find( $items[0]['child'], 'slash:comments' );
+
+		if ( 'closed' === $comment_status && 0 === $comment_count ) {
+			$this->assertEmpty( $comment_rss, 'Closed posts without comments should have no comment feed link.' );
+			$this->assertEmpty( $comments_link, 'Closed posts without comments should have no comment link.' );
+			$this->assertEmpty( $comments, 'Closed posts without comments should have no comment count.' );
+			$this->assertSame( 0, $filter_calls, 'Ineligible posts should not request a comment feed URL.' );
+			return;
+		}
+
+		$this->assertSame( 1, $filter_calls, 'The comment feed URL should be filtered once per item.' );
+		$this->assertCount( 1, $comments_link, 'The normal comment link should be preserved.' );
+		$this->assertSame( get_comments_link( $post_id ), $comments_link[0]['content'] );
+		$this->assertCount( 1, $comments, 'The comment count should be preserved.' );
+		$this->assertSame( (string) $comment_count, $comments[0]['content'] );
+
+		if ( '' === $expected_url ) {
+			$this->assertEmpty( $comment_rss, 'An empty escaped URL should not produce a comment feed element.' );
+		} else {
+			$this->assertCount( 1, $comment_rss );
+			$this->assertSame( $expected_url, $comment_rss[0]['content'] );
+		}
+	}
+
+	/**
+	 * Data provider for test_item_comment_feed_links().
+	 *
+	 * @return array[]
+	 */
+	public static function data_item_comment_feed_links() {
+		$custom_url = 'https://example.org/custom-comments/?first=1&second=2';
+
+		return array(
+			'open without comments, empty URL'     => array( 'open', 0, '', '' ),
+			'open with comments, empty URL'        => array( 'open', 2, '', '' ),
+			'closed with comments, empty URL'      => array( 'closed', 2, '', '' ),
+			'open without comments, default URL'   => array( 'open', 0, null, null ),
+			'closed with comments, default URL'    => array( 'closed', 2, null, null ),
+			'open without comments, custom URL'    => array( 'open', 0, $custom_url, $custom_url ),
+			'closed with comments, custom URL'     => array( 'closed', 2, $custom_url, $custom_url ),
+			'open without comments, rejected URL'  => array( 'open', 0, 'javascript:alert(1)', '' ),
+			'closed with comments, rejected URL'   => array( 'closed', 2, 'javascript:alert(1)', '' ),
+			'closed without comments, empty URL'   => array( 'closed', 0, '', '' ),
+			'closed without comments, default URL' => array( 'closed', 0, null, null ),
+			'closed without comments, custom URL'  => array( 'closed', 0, $custom_url, $custom_url ),
+		);
+	}
+
 	/*
 	 * Check to make sure we are rendering feed templates for the home feed.
 	 * e.g. https://example.com/feed/
