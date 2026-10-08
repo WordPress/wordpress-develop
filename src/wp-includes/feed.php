@@ -856,19 +856,40 @@ function get_feed_build_date( $format ) {
 
 	if ( ! empty( $wp_query ) && $wp_query->have_posts() && is_array( $wp_query->posts ) ) {
 		/*
-		 * Resolve each entry to a WP_Post so we can read post_modified_gmt.
-		 * Supports queries using fields => 'ids' where $posts contains
-		 * integers, as well as the default WP_Post objects.
+		 * Collect the post modified times. WP_Post objects are read as-is, since
+		 * passing them through get_post() would look them up again by ID, which
+		 * drops virtual posts and discards in-memory changes. Queries using
+		 * fields => 'ids' (or 'id=>parent') yield post IDs instead, which are
+		 * looked up after priming the post cache to avoid a query per post.
 		 */
-		$modified_times = array_filter(
-			array_map(
-				static function ( $post ) {
-					$post_object = get_post( $post );
-					return $post_object instanceof WP_Post ? $post_object->post_modified_gmt : null;
-				},
-				$wp_query->posts
-			)
+		$modified_times = array();
+		$post_ids       = array();
+		foreach ( $wp_query->posts as $post ) {
+			if ( $post instanceof WP_Post ) {
+				$modified_times[] = $post->post_modified_gmt;
+			} elseif ( is_numeric( $post ) ) {
+				$post_ids[] = (int) $post;
+			} elseif ( is_object( $post ) && isset( $post->ID ) && is_numeric( $post->ID ) ) {
+				$post_ids[] = (int) $post->ID;
+			}
+		}
+
+		// Skip non-positive IDs, as get_post() would resolve an empty ID to the global post.
+		$post_ids = array_filter(
+			$post_ids,
+			static function ( int $post_id ): bool {
+				return $post_id > 0;
+			}
 		);
+		if ( $post_ids ) {
+			_prime_post_caches( $post_ids, false, false );
+			foreach ( $post_ids as $post_id ) {
+				$post = get_post( $post_id );
+				if ( $post instanceof WP_Post ) {
+					$modified_times[] = $post->post_modified_gmt;
+				}
+			}
+		}
 
 		// If this is a comment feed, check those objects too.
 		if ( $wp_query->is_comment_feed() && $wp_query->comment_count && is_array( $wp_query->comments ) ) {

@@ -128,6 +128,166 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get_feed_build_date() returns the correct modified time
+	 * when $wp_query->posts holds objects with only ID and post_parent
+	 * (from fields => 'id=>parent').
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_return_correct_build_date_for_id_parent_query() {
+		global $wp_query;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		self::factory()->post->create(
+			array(
+				'post_date'     => '2024-06-15 12:00:00',
+				'post_date_gmt' => '2024-06-15 12:00:00',
+			)
+		);
+
+		$wp_query = new WP_Query(
+			array(
+				'p'      => $post_id,
+				'fields' => 'id=>parent',
+			)
+		);
+
+		$this->assertSame( '2020-01-01T00:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * Test that post IDs are looked up with a single query rather than one
+	 * query per post.
+	 *
+	 * Code review found that calling {@see get_post()} on each ID from a
+	 * fields => 'ids' query caused an N+1, since WP_Query does not prime the
+	 * post cache for such queries.
+	 *
+	 * @ticket 59956
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
+	 * @global wpdb     $wpdb     WordPress database abstraction object.
+	 */
+	public function test_should_prime_post_caches_for_id_only_query() {
+		global $wp_query, $wpdb;
+
+		$post_ids = self::factory()->post->create_many( 3 );
+
+		$wp_query = new WP_Query(
+			array(
+				'post__in' => $post_ids,
+				'fields'   => 'ids',
+			)
+		);
+
+		foreach ( $post_ids as $post_id ) {
+			clean_post_cache( $post_id );
+		}
+
+		$num_queries = $wpdb->num_queries;
+		get_feed_build_date( DATE_RFC3339 );
+
+		$this->assertSame( 1, $wpdb->num_queries - $num_queries, 'Expected the posts to be fetched in a single query.' );
+	}
+
+	/**
+	 * Test that WP_Post objects in $wp_query->posts are used as-is rather
+	 * than being looked up again by ID.
+	 *
+	 * Code review found that passing every WP_Post through {@see get_post()}
+	 * calls {@see WP_Post::filter()}, which re-fetches any post whose filter
+	 * is not 'raw'. That drops virtual posts which are not in the database,
+	 * and swaps in the database copy of 'display' filtered posts.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_use_virtual_post_objects_as_is() {
+		global $wp_query;
+
+		$virtual_post = new WP_Post(
+			(object) array(
+				'ID'                => -1,
+				'post_modified_gmt' => '2021-03-04 05:06:07',
+			)
+		);
+
+		$wp_query             = new WP_Query();
+		$wp_query->post_count = 1;
+		$wp_query->posts      = array( $virtual_post );
+
+		$this->assertSame( '2021-03-04T05:06:07+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * Test that a 'display' filtered WP_Post in $wp_query->posts is used
+	 * as-is, keeping its in-memory modified time.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_use_display_filtered_post_objects_as_is() {
+		global $wp_query;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		$post = get_post( $post_id, OBJECT, 'display' );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$post->post_modified_gmt = '2021-03-04 05:06:07';
+
+		$wp_query             = new WP_Query();
+		$wp_query->post_count = 1;
+		$wp_query->posts      = array( $post );
+
+		$this->assertSame( '2021-03-04T05:06:07+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * Test that an empty ID in $wp_query->posts is skipped rather than
+	 * resolved to the global post.
+	 *
+	 * Code review found that {@see get_post()} treats an empty value as a
+	 * request for the global $post, so a 0 entry could put the modified time
+	 * of an unrelated post into the build date.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_not_resolve_empty_post_id_to_global_post() {
+		global $wp_query;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		$GLOBALS['post'] = get_post(
+			self::factory()->post->create(
+				array(
+					'post_date'     => '2024-06-15 12:00:00',
+					'post_date_gmt' => '2024-06-15 12:00:00',
+				)
+			)
+		);
+
+		$wp_query             = new WP_Query();
+		$wp_query->post_count = 2;
+		$wp_query->posts      = array( 0, $post_id );
+
+		$this->assertSame( '2020-01-01T00:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
