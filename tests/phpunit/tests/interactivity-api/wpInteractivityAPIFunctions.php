@@ -58,6 +58,10 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	 * Tear down.
 	 */
 	public function tear_down() {
+		global $wp_interactivity;
+
+		$wp_interactivity = null;
+
 		unregister_block_type( 'test/interactive-block' );
 		unregister_block_type( 'test/interactive-block-2' );
 		unregister_block_type( 'test/non-interactive-block' );

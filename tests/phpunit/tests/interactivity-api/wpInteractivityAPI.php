@@ -33,9 +33,16 @@ class Tests_Interactivity_API_WpInteractivityAPI extends WP_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tear_down() {
-		global $wp_script_modules;
-		parent::tear_down();
+		global $wp_script_modules, $wp_interactivity;
+
+		remove_filter( 'script_module_data_@wordpress/interactivity', array( $this->interactivity, 'filter_script_module_interactivity_data' ) );
+		remove_filter( 'script_module_data_@wordpress/interactivity-router', array( $this->interactivity, 'filter_script_module_interactivity_router_data' ) );
+		remove_filter( 'wp_script_attributes', array( $this->interactivity, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
+
+		$wp_interactivity  = null;
 		$wp_script_modules = null;
+
+		parent::tear_down();
 	}
 
 	public function charset_iso_8859_1() {
