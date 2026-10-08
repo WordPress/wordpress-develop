@@ -3636,8 +3636,8 @@ function convert_smilies( $text ) {
 		$content = $textarr[ $i ];
 
 		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')[^>]*>/', $content, $matches ) ) {
-			$ignore_block_element = $matches[1];
+		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')(?:[\s\/][^>]*)?>/i', $content, $matches ) ) {
+			$ignore_block_element = strtolower( $matches[1] );
 		}
 
 		// If it's not a tag and not in ignore block.
@@ -3646,7 +3646,7 @@ function convert_smilies( $text ) {
 		}
 
 		// Did we exit ignore block?
-		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
+		if ( '' !== $ignore_block_element && preg_match( '/^<\/' . $ignore_block_element . '\s*>$/i', $content ) ) {
 			$ignore_block_element = '';
 		}
 
@@ -6262,8 +6262,8 @@ function wp_staticize_emoji( $text ) {
 		$content = $textarr[ $i ];
 
 		// If we're in an ignore block, wait until we find its closing tag.
-		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')>/', $content, $matches ) ) {
-			$ignore_block_element = $matches[1];
+		if ( '' === $ignore_block_element && preg_match( '/^<(' . $tags_to_ignore . ')(?:[\s\/][^>]*)?>/i', $content, $matches ) ) {
+			$ignore_block_element = strtolower( $matches[1] );
 		}
 
 		// If it's not a tag and not in ignore block.
@@ -6283,7 +6283,7 @@ function wp_staticize_emoji( $text ) {
 		}
 
 		// Did we exit ignore block?
-		if ( '' !== $ignore_block_element && '</' . $ignore_block_element . '>' === $content ) {
+		if ( '' !== $ignore_block_element && preg_match( '/^<\/' . $ignore_block_element . '\s*>$/i', $content ) ) {
 			$ignore_block_element = '';
 		}
 
