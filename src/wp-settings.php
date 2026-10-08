@@ -206,6 +206,8 @@ require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/class-wp-view-config-data.php';
 require ABSPATH . WPINC . '/view-config.php';
+require ABSPATH . WPINC . '/class-wp-fields-registry.php';
+require ABSPATH . WPINC . '/fields.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
 require ABSPATH . WPINC . '/class-wp-user-request.php';
@@ -363,6 +365,7 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-co
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-fields-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';
