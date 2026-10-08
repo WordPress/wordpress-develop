@@ -425,13 +425,18 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		}
 	}
 
-	$title = _wp_admin_bar_icon( ( is_admin() || ! current_user_can( 'read' ) ) ? 'core-admin/home' : 'core-admin/dashboard' ) . $title;
+	$links_to_home = is_admin() || ! current_user_can( 'read' );
+	if ( $links_to_home ) {
+		$title = _wp_admin_bar_icon( 'core-admin/home' ) . $title;
+	} else {
+		$title = _wp_admin_bar_icon( 'core-admin/dashboard' ) . $title;
+	}
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
 			'title' => $title,
-			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
+			'href'  => $links_to_home ? home_url( '/' ) : admin_url(),
 			'meta'  => $meta,
 		)
 	);
