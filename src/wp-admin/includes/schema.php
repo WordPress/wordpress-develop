@@ -52,6 +52,13 @@ function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
 	 */
 	$max_index_length = 191;
 
+	/*
+	 * comment_post_ID_parent_content indexes comment_content after two bigint columns.
+	 * Limit the content prefix to floor( ( 767 - 16 - 2 ) / 4 ) = 187 characters,
+	 * keeping the composite key below the 767-byte limit.
+	 */
+	$max_comment_content_index_length = 187;
+
 	// Blog-specific tables.
 	$blog_tables = "CREATE TABLE $wpdb->termmeta (
 	meta_id bigint(20) unsigned NOT NULL auto_increment,
@@ -116,6 +123,7 @@ CREATE TABLE $wpdb->comments (
 	user_id bigint(20) unsigned NOT NULL default '0',
 	PRIMARY KEY  (comment_ID),
 	KEY comment_post_ID (comment_post_ID),
+	KEY comment_post_ID_parent_content (comment_post_ID,comment_parent,comment_content($max_comment_content_index_length)),
 	KEY comment_approved_date_gmt (comment_approved,comment_date_gmt),
 	KEY comment_date_gmt (comment_date_gmt),
 	KEY comment_parent (comment_parent),

@@ -73,6 +73,43 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 26858
+	 */
+	public function test_return_error_as_duplicate_if_comment_author_email_is_empty() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_approved'     => '1',
+				'comment_author'       => 'Anonymous Bob',
+				'comment_author_email' => '',
+				'comment_author_url'   => 'http://example.com',
+				'comment_content'      => 'Still a duplicate.',
+			)
+		);
+
+		$now          = time();
+		$comment_data = array(
+			'comment_post_ID'      => self::$post_id,
+			'comment_author'       => 'Anonymous Bob',
+			'comment_author_email' => '',
+			'comment_author_url'   => 'http://example.com',
+			'comment_content'      => 'Still a duplicate.',
+			'comment_author_IP'    => '192.168.0.1',
+			'comment_parent'       => 0,
+			'comment_date_gmt'     => gmdate( 'Y-m-d H:i:s', $now ),
+			'comment_agent'        => 'Bobbot/2.1',
+			'comment_type'         => '',
+		);
+
+		$result = wp_allow_comment( $comment_data, true );
+
+		wp_delete_comment( $comment_id, true );
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'comment_duplicate', $result->get_error_code() );
+	}
+
+	/**
 	 * @ticket 65016
 	 *
 	 * @dataProvider data_should_approve_a_pingback_only_when_it_comes_from_this_site
