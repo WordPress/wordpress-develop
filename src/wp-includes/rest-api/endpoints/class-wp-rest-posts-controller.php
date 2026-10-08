@@ -2218,6 +2218,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added the `children` and `https://api.w.org/autosaves` links.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
@@ -2273,6 +2274,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$post_type_obj = get_post_type_object( $post->post_type );
+
+		if ( $post_type_obj->get_autosave_rest_controller() instanceof WP_REST_Autosaves_Controller && current_user_can( 'edit_post', $post->ID ) ) {
+			$links['https://api.w.org/autosaves'] = array(
+				'href' => rest_url( sprintf( '/%s/%s/%d/autosaves', $this->namespace, $this->rest_base, $post->ID ) ),
+			);
+		}
 
 		if ( $post_type_obj->hierarchical && ! empty( $post->post_parent ) ) {
 			$links['up'] = array(

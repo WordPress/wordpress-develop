@@ -589,6 +589,18 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 */
+	public function test_get_theme_item_links_include_theme_and_variations() {
+		wp_set_current_user( self::$admin_id );
+		$response = rest_do_request( '/wp/v2/global-styles/themes/' . get_stylesheet() );
+		$this->assertSame( 200, $response->get_status() );
+		$links = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/themes/' . get_stylesheet() ), $links['https://api.w.org/theme'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/themes/' . get_stylesheet() . '/variations' ), $links['https://api.w.org/theme-style-variations'][0]['href'] );
+	}
+
+	/**
 	 * @covers WP_REST_Global_Styles_Controller::prepare_links
 	 */
 	public function test_get_item_links() {

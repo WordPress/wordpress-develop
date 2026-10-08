@@ -1161,7 +1161,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( wp_is_application_passwords_available_for_user( $user ) ) {
+		// Only link to application passwords for viewers who may list them, so availability is not revealed to others.
+		if ( current_user_can( 'list_app_passwords', $user->ID ) && wp_is_application_passwords_available_for_user( $user ) ) {
 			$links['https://api.w.org/application-passwords'] = array(
 				'href' => rest_url( sprintf( '%s/%s/%d/application-passwords', $this->namespace, $this->rest_base, $user->ID ) ),
 			);

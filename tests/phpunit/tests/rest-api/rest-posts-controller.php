@@ -2286,6 +2286,43 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $category_url, $cat_link['href'] );
 	}
 
+	public function test_get_item_links_autosaves_require_permission_and_support() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		wp_set_current_user( 0 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertArrayNotHasKey( 'https://api.w.org/autosaves', $response->get_links() );
+
+		wp_set_current_user( self::$editor_id );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( rest_url( 'wp/v2/posts/' . self::$post_id . '/autosaves' ), $response->get_links()['https://api.w.org/autosaves'][0]['href'] );
+
+		remove_post_type_support( 'post', 'autosave' );
+		try {
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertArrayNotHasKey( 'https://api.w.org/autosaves', $response->get_links() );
+		} finally {
+			add_post_type_support( 'post', 'autosave' );
+		}
+	}
+
+	public function test_get_item_links_autosaves_ignore_filtered_post_route() {
+		wp_set_current_user( self::$editor_id );
+		$filter = static function () {
+			return '/custom/v1/posts/filtered';
+		};
+		add_filter( 'rest_route_for_post', $filter );
+		try {
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 200, $response->get_status() );
+			$links = $response->get_links();
+			$this->assertSame( rest_url( '/custom/v1/posts/filtered' ), $links['self'][0]['href'] );
+			$this->assertSame( rest_url( 'wp/v2/posts/' . self::$post_id . '/autosaves' ), $links['https://api.w.org/autosaves'][0]['href'] );
+		} finally {
+			remove_filter( 'rest_route_for_post', $filter );
+		}
+	}
+
 	public function test_get_item_links_predecessor() {
 		wp_update_post(
 			array(

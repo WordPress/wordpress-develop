@@ -243,7 +243,6 @@ class WP_REST_Template_Autosaves_Controller extends WP_REST_Autosaves_Controller
 	 * @param WP_Block_Template $template Template.
 	 * @return array Links for the given post.
 	 */
-	// @phpstan-ignore method.childParameterType (Template autosaves are prepared from WP_Block_Template objects, not WP_Post.)
 	protected function prepare_links( $template ) {
 		$links = array(
 			'self'       => array(

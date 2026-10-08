@@ -305,13 +305,13 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 6.1.0
-	 * @since 7.2.0 Added the `self` link.
+	 * @since 7.2.0 Added the `self` and `https://api.w.org/post-type` links.
 	 *
 	 * @param WP_Taxonomy $taxonomy The taxonomy.
 	 * @return array Links for the given taxonomy.
 	 */
 	protected function prepare_links( $taxonomy ) {
-		return array(
+		$links = array(
 			'self'                    => array(
 				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $taxonomy->name ) ),
 			),
@@ -322,6 +322,18 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 				'href' => rest_url( rest_get_route_for_taxonomy_items( $taxonomy->name ) ),
 			),
 		);
+
+		foreach ( $taxonomy->object_type as $type ) {
+			$post_type = get_post_type_object( $type );
+			if ( $post_type && $post_type->show_in_rest ) {
+				$links['https://api.w.org/post-type'][] = array(
+					'href'      => rest_url( 'wp/v2/types/' . $post_type->name ),
+					'post_type' => $post_type->name,
+				);
+			}
+		}
+
+		return $links;
 	}
 
 	/**

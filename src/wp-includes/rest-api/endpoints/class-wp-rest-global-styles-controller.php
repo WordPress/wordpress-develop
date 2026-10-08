@@ -610,8 +610,14 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links               = array(
-				'self' => array(
+				'self'                                     => array(
 					'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
+				),
+				'https://api.w.org/theme'                  => array(
+					'href' => rest_url( 'wp/v2/themes/' . $request['stylesheet'] ),
+				),
+				'https://api.w.org/theme-style-variations' => array(
+					'href' => rest_url( sprintf( '%s/%s/themes/%s/variations', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
 				),
 			);
 			$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme );

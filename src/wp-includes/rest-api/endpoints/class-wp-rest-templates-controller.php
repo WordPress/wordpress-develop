@@ -966,7 +966,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.8.0
-	 * @since 7.2.0 Added the `author` link.
+	 * @since 7.2.0 Added the `author`, `https://api.w.org/theme`, and `https://api.w.org/autosaves` links.
 	 *
 	 * @param int $id ID.
 	 * @return array Links for the given post.
@@ -985,6 +985,22 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		);
 
 		$template = get_block_template( $id, $this->post_type );
+
+		if ( $template instanceof WP_Block_Template ) {
+			$theme = wp_get_theme( $template->theme );
+			if ( $theme->exists() ) {
+				$links['https://api.w.org/theme'] = array(
+					'href' => rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ),
+				);
+			}
+
+			$post_type = get_post_type_object( $this->post_type );
+			if ( ! empty( $template->wp_id ) && $post_type->get_autosave_rest_controller() instanceof WP_REST_Template_Autosaves_Controller && current_user_can( 'edit_post', $template->wp_id ) ) {
+				$links['https://api.w.org/autosaves'] = array(
+					'href' => $links['self']['href'] . '/autosaves',
+				);
+			}
+		}
 
 		if ( $template instanceof WP_Block_Template && ! empty( $template->author ) ) {
 			$links['author'] = array(

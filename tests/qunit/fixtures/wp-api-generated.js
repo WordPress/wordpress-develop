@@ -13317,6 +13317,11 @@ mockedApiResponse.PostsCollection = [
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions/6"
                 }
             ],
+            "wp:autosaves": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/autosaves"
+                }
+            ],
             "wp:attachment": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=4"
@@ -13700,6 +13705,11 @@ mockedApiResponse.PagesCollection = [
                 {
                     "embeddable": true,
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fpages&parent=7"
+                }
+            ],
+            "wp:autosaves": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/autosaves"
                 }
             ],
             "wp:attachment": [
@@ -14143,6 +14153,16 @@ mockedApiResponse.TypesCollection = {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts"
                 }
             ],
+            "wp:taxonomy": [
+                {
+                    "taxonomy": "category",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/category"
+                },
+                {
+                    "taxonomy": "post_tag",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/post_tag"
+                }
+            ],
             "curies": [
                 {
                     "name": "wp",
@@ -14271,6 +14291,12 @@ mockedApiResponse.TypesCollection = {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/menu-items"
                 }
             ],
+            "wp:taxonomy": [
+                {
+                    "taxonomy": "nav_menu",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/nav_menu"
+                }
+            ],
             "curies": [
                 {
                     "name": "wp",
@@ -14313,6 +14339,12 @@ mockedApiResponse.TypesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/blocks"
+                }
+            ],
+            "wp:taxonomy": [
+                {
+                    "taxonomy": "wp_pattern_category",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/wp_pattern_category"
                 }
             ],
             "curies": [
@@ -14812,6 +14844,12 @@ mockedApiResponse.TaxonomiesCollection = {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/categories"
                 }
             ],
+            "wp:post-type": [
+                {
+                    "post_type": "post",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/post"
+                }
+            ],
             "curies": [
                 {
                     "name": "wp",
@@ -14850,6 +14888,12 @@ mockedApiResponse.TaxonomiesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/tags"
+                }
+            ],
+            "wp:post-type": [
+                {
+                    "post_type": "post",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/post"
                 }
             ],
             "curies": [
@@ -14892,6 +14936,12 @@ mockedApiResponse.TaxonomiesCollection = {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/menus"
                 }
             ],
+            "wp:post-type": [
+                {
+                    "post_type": "nav_menu_item",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/nav_menu_item"
+                }
+            ],
             "curies": [
                 {
                     "name": "wp",
@@ -14930,6 +14980,12 @@ mockedApiResponse.TaxonomiesCollection = {
             "wp:items": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/wp_pattern_category"
+                }
+            ],
+            "wp:post-type": [
+                {
+                    "post_type": "wp_block",
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_block"
                 }
             ],
             "curies": [

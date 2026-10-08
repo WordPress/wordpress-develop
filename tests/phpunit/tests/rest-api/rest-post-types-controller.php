@@ -145,6 +145,25 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	/**
+	 * @covers WP_REST_Post_Types_Controller::prepare_links
+	 */
+	public function test_get_item_links_include_only_rest_taxonomies() {
+		register_taxonomy( 'hidden_taxonomy', 'post', array( 'show_in_rest' => false ) );
+		try {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/types/post' ) );
+			$hrefs    = wp_list_pluck( $response->get_links()['https://api.w.org/taxonomy'], 'href' );
+			$this->assertContains( rest_url( 'wp/v2/taxonomies/category' ), $hrefs );
+			$this->assertContains( rest_url( 'wp/v2/taxonomies/post_tag' ), $hrefs );
+			$this->assertNotContains( rest_url( 'wp/v2/taxonomies/hidden_taxonomy' ), $hrefs );
+			foreach ( $response->get_links()['https://api.w.org/taxonomy'] as $link ) {
+				$this->assertSame( rest_url( 'wp/v2/taxonomies/' . $link['attributes']['taxonomy'] ), $link['href'] );
+			}
+		} finally {
+			unregister_taxonomy( 'hidden_taxonomy' );
+		}
+	}
+
+	/**
 	 * @ticket 53656
 	 */
 	public function test_get_item_cpt() {

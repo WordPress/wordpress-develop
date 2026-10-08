@@ -153,6 +153,29 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_taxonomy_object_response( 'view', $response );
 	}
 
+	public function test_get_item_links_include_only_rest_post_types() {
+		register_post_type(
+			'hidden_type',
+			array(
+				'show_in_rest' => false,
+				'taxonomies'   => array( 'category' ),
+			)
+		);
+		try {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' ) );
+			$links    = $response->get_links();
+			$this->assertArrayNotHasKey( 'https://api.w.org/post_type', $links );
+			$hrefs = wp_list_pluck( $links['https://api.w.org/post-type'], 'href' );
+			$this->assertContains( rest_url( 'wp/v2/types/post' ), $hrefs );
+			$this->assertNotContains( rest_url( 'wp/v2/types/hidden_type' ), $hrefs );
+			foreach ( $links['https://api.w.org/post-type'] as $link ) {
+				$this->assertSame( rest_url( 'wp/v2/types/' . $link['attributes']['post_type'] ), $link['href'] );
+			}
+		} finally {
+			unregister_post_type( 'hidden_type' );
+		}
+	}
+
 	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
