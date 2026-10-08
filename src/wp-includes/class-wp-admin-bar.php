@@ -109,12 +109,15 @@ class WP_Admin_Bar {
 	 * @since 3.1.0
 	 * @since 4.5.0 Added the ability to pass 'lang' and 'dir' meta data.
 	 * @since 6.5.0 Added the ability to pass 'menu_title' for an ARIA menu name.
+	 * @since 7.2.0 Added the `icon` argument.
 	 *
 	 * @param array $args {
 	 *     Arguments for adding a node.
 	 *
 	 *     @type string $id     ID of the item.
 	 *     @type string $title  Title of the node.
+	 *     @type string $icon   Optional. Namespaced icon name in the form "collection/icon-name",
+	 *                          e.g. 'core/chart-bar'. Rendered before the title.
 	 *     @type string $parent Optional. ID of the parent node.
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
@@ -146,6 +149,7 @@ class WP_Admin_Bar {
 		$defaults = array(
 			'id'     => false,
 			'title'  => false,
+			'icon'   => false,
 			'parent' => false,
 			'href'   => false,
 			'group'  => false,
@@ -597,7 +601,12 @@ class WP_Admin_Bar {
 			}
 		}
 
-		echo ">{$arrow}{$node->title}";
+		$icon = '';
+		if ( ! empty( $node->icon ) && is_string( $node->icon ) ) {
+			$icon = _wp_admin_bar_icon( $node->icon );
+		}
+
+		echo ">{$arrow}{$icon}{$node->title}";
 
 		if ( $has_link ) {
 			echo '</a>';

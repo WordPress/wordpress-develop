@@ -149,7 +149,8 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 
 	$wp_logo_menu_args = array(
 		'id'    => 'wp-logo',
-		'title' => _wp_admin_bar_icon( 'core-admin/wordpress' ) . '<span class="screen-reader-text">' .
+		'icon'  => 'core-admin/wordpress',
+		'title' => '<span class="screen-reader-text">' .
 				/* translators: Hidden accessibility text. */
 				__( 'About WordPress' ) .
 			'</span>',
@@ -255,7 +256,8 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
 		$wp_admin_bar->add_node(
 			array(
 				'id'    => 'menu-toggle',
-				'title' => _wp_admin_bar_icon( 'core-admin/menu' ) . '<span class="screen-reader-text">' .
+				'icon'  => 'core-admin/menu',
+				'title' => '<span class="screen-reader-text">' .
 						/* translators: Hidden accessibility text. */
 						__( 'Menu' ) .
 					'</span>',
@@ -294,7 +296,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => $howdy . ( empty( $avatar ) ? _wp_admin_bar_icon( 'core-admin/people' ) : $avatar ),
+			'icon'   => empty( $avatar ) ? 'core-admin/people' : '',
+			'title'  => $howdy . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
@@ -422,15 +425,11 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	}
 
 	$links_to_home = is_admin() || ! current_user_can( 'read' );
-	if ( $links_to_home ) {
-		$title = _wp_admin_bar_icon( 'core-admin/home' ) . $title;
-	} else {
-		$title = _wp_admin_bar_icon( 'core-admin/dashboard' ) . $title;
-	}
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
+			'icon'  => $links_to_home ? 'core-admin/home' : 'core-admin/dashboard',
 			'title' => $title,
 			'href'  => $links_to_home ? home_url( '/' ) : admin_url(),
 			'meta'  => $meta,
@@ -515,7 +514,8 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
-			'title' => _wp_admin_bar_icon( 'core-admin/brush' ) . __( 'Edit Site' ),
+			'icon'  => 'core-admin/brush',
+			'title' => __( 'Edit Site' ),
 			'href'  => add_query_arg(
 				array(
 					'postType' => 'wp_template',
@@ -570,7 +570,8 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'customize',
-			'title' => _wp_admin_bar_icon( 'core-admin/brush' ) . __( 'Customize' ),
+			'icon'  => 'core-admin/brush',
+			'title' => __( 'Customize' ),
 			'href'  => $customize_url,
 			'meta'  => array(
 				'class' => 'hide-if-no-customize',
@@ -607,7 +608,8 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'my-sites',
-			'title' => _wp_admin_bar_icon( 'core-admin/sites' ) . __( 'My Sites' ),
+			'icon'  => 'core-admin/sites',
+			'title' => __( 'My Sites' ),
 			'href'  => $my_sites_url,
 		)
 	);
@@ -944,7 +946,8 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
-						'title' => _wp_admin_bar_icon( 'core-admin/pencil' ) . $post_type_object->labels->edit_item,
+						'icon'  => 'core-admin/pencil',
+						'title' => $post_type_object->labels->edit_item,
 						'href'  => $edit_post_link,
 					)
 				);
@@ -956,7 +959,8 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
-						'title' => _wp_admin_bar_icon( 'core-admin/pencil' ) . $tax->labels->edit_item,
+						'icon'  => 'core-admin/pencil',
+						'title' => $tax->labels->edit_item,
 						'href'  => $edit_term_link,
 					)
 				);
@@ -967,7 +971,8 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
-						'title' => _wp_admin_bar_icon( 'core-admin/pencil' ) . __( 'Edit User' ),
+						'icon'  => 'core-admin/pencil',
+						'title' => __( 'Edit User' ),
 						'href'  => $edit_user_link,
 					)
 				);
@@ -998,7 +1003,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$apple_pattern   = 'Macintosh|Mac OS X|Mac_PowerPC';
 	$is_apple_os     = (bool) preg_match( "/{$apple_pattern}/i", $_SERVER['HTTP_USER_AGENT'] ?? '' );
 	$shortcut_label  = $is_apple_os ? $shortcut_labels['appleOS'] : $shortcut_labels['default'];
-	$title           = _wp_admin_bar_icon( 'core-admin/search' ) . sprintf(
+	$title           = sprintf(
 		'<span class="ab-label"><kbd>%s</kbd><span class="screen-reader-text"> %s</span></span>',
 		$shortcut_label,
 		/* translators: Hidden accessibility text. */
@@ -1032,6 +1037,7 @@ function wp_admin_bar_command_palette_menu( WP_Admin_Bar $wp_admin_bar ): void {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'command-palette',
+			'icon'  => 'core-admin/search',
 			'title' => $title,
 			'href'  => '#',
 			'meta'  => array(
@@ -1096,11 +1102,12 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		return;
 	}
 
-	$title = _wp_admin_bar_icon( 'core-admin/plus' ) . '<span class="ab-label">' . _x( 'New', 'admin bar menu group label' ) . '</span>';
+	$title = '<span class="ab-label">' . _x( 'New', 'admin bar menu group label' ) . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'new-content',
+			'icon'  => 'core-admin/plus',
 			'title' => $title,
 			'href'  => admin_url( array_key_first( $actions ) ),
 			'meta'  => array(
@@ -1154,14 +1161,14 @@ function wp_admin_bar_comments_menu( $wp_admin_bar ) {
 		number_format_i18n( $awaiting_mod )
 	);
 
-	$icon   = _wp_admin_bar_icon( 'core-admin/comment' );
 	$title  = '<span class="ab-label awaiting-mod pending-count count-' . $awaiting_mod . '" aria-hidden="true">' . number_format_i18n( $awaiting_mod ) . '</span>';
 	$title .= '<span class="screen-reader-text comments-in-moderation-text">' . $awaiting_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'comments',
-			'title' => $icon . $title,
+			'icon'  => 'core-admin/comment',
+			'title' => $title,
 			'href'  => admin_url( 'edit-comments.php' ),
 		)
 	);
@@ -1269,14 +1276,14 @@ function wp_admin_bar_updates_menu( $wp_admin_bar ) {
 		number_format_i18n( $update_data['counts']['total'] )
 	);
 
-	$icon   = _wp_admin_bar_icon( 'core-admin/update' );
 	$title  = '<span class="ab-label" aria-hidden="true">' . number_format_i18n( $update_data['counts']['total'] ) . '</span>';
 	$title .= '<span class="screen-reader-text updates-available-text">' . $updates_text . '</span>';
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'updates',
-			'title' => $icon . $title,
+			'icon'  => 'core-admin/update',
+			'title' => $title,
 			'href'  => network_admin_url( 'update-core.php' ),
 		)
 	);
