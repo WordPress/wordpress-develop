@@ -722,6 +722,12 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 			'Dashes before the closer'         => array( '<!-- wp:a {"k":"x--"} -->', array( 'core/a' ) ),
 			'Dash run before a space closer'   => array( '<!-- wp:a {"k":"x"} --- -->', array() ),
 			'Delimiter after a closed comment' => array( '<!-- x --!><!-- wp:a {"k":1} -->', array( 'core/a' ) ),
+
+			// Dashes in the block type do not end the comment.
+			'Dash run inside the block name'   => array( '<!-- wp:a--b -->', array( 'core/a--b' ) ),
+			'Block type ends in dash runs'     => array( '<!-- wp:my--ns/a-- {"k":1} /-->', array( 'my--ns/a--' ) ),
+			'Comment ends after the name'      => array( '<!-- wp:a--><!-- wp:b -->', array( 'core/b' ) ),
+			'Bang ending after the name'       => array( '<!-- wp:a--!><!-- wp:b -->', array( 'core/b' ) ),
 		);
 	}
 
