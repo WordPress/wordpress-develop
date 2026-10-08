@@ -2282,7 +2282,6 @@ function sanitize_title_for_query( $title ) {
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
  *
- * @phpstan-param 'display'|'save'|'query' $context
  * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
