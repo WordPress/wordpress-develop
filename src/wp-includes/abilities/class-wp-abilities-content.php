@@ -18,9 +18,12 @@ declare( strict_types = 1 );
  * by post type, status, author, parent, or included IDs. Raw fields are only returned for
  * posts the current user can edit.
  *
- * The class is intentionally structured around shared building blocks (exposed post type
- * discovery, schema generation, per-post formatting and permission checks) so future
- * write-oriented content abilities can reuse them.
+ * Unlike the other core abilities, which are self-contained closures registered directly
+ * in wp_register_core_abilities(), the content ability lives in a dedicated class because
+ * its callbacks and schemas share helpers: the permission and execute callbacks resolve and
+ * authorize the requested post through the same code, and the input schema, output schema,
+ * and field projection are built from the same field definitions. Future write-oriented
+ * content abilities can reuse them as well.
  *
  * This class is part of WordPress' internal implementation of the core abilities and is
  * not part of the public API. It may be changed or removed at any time without notice.
@@ -968,7 +971,7 @@ final class WP_Abilities_Content {
 				'type' => 'string',
 				'enum' => array_keys( $this->get_post_properties() ),
 			),
-			'description' => __( 'Limit each returned post to these fields. The `id` is always included. If omitted, a lean set of common read fields is returned. Explicit raw field requests require edit access.' ),
+			'description' => __( 'Limit each returned post to these fields. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Explicit raw field requests require edit access.' ),
 		);
 	}
 
