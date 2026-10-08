@@ -15,6 +15,8 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 	/**
 	 * The REST API route for the edit site export.
 	 *
+	 * @since 5.9.0
+	 *
 	 * @var string
 	 */
 	const REQUEST_ROUTE = '/wp-block-editor/v1/export';
