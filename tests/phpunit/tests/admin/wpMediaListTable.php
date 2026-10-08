@@ -480,6 +480,46 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Media_List_Table::handle_row_actions()` strips HTML from the
+	 * attachment title used within the row action `aria-label` attributes.
+	 *
+	 * The title is escaped by `_draft_or_post_title()`, so any HTML it contains
+	 * survives `esc_attr()` and is announced as literal text by screen readers.
+	 *
+	 * @ticket 65729
+	 *
+	 * @covers WP_Media_List_Table::handle_row_actions
+	 */
+	public function test_handle_row_actions_should_strip_html_from_aria_labels() {
+		wp_set_current_user( self::$admin );
+		self::set_is_trash( false );
+
+		$attachment = self::factory()->attachment->create_and_get(
+			array(
+				'post_title'     => 'my<div>image',
+				'file'           => 'image.jpg',
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		$GLOBALS['post'] = $attachment;
+
+		$handle_row_actions = new ReflectionMethod( self::$list_table, 'handle_row_actions' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$handle_row_actions->setAccessible( true );
+		}
+		$output = $handle_row_actions->invoke( self::$list_table, $attachment, 'title', 'title' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$handle_row_actions->setAccessible( false );
+		}
+
+		unset( $GLOBALS['post'] );
+
+		$this->assertStringNotContainsString( '&lt;div&gt;', $output, 'The escaped HTML was not stripped from the title.' );
+		$this->assertStringContainsString( 'aria-label="Edit &#8220;myimage&#8221;"', $output, 'The "edit" aria-label did not contain the stripped title.' );
+	}
+
+	/**
 	 * Sets the `$is_trash` property.
 	 *
 	 * Helper method.
