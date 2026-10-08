@@ -922,6 +922,12 @@ html:lang(he-il) .rtl #wpadminbar * {
 		border-radius: 50%;
 	}
 
+	#wpadminbar #wp-admin-bar-my-account > .ab-item .ab-icon.svg-icon {
+		position: absolute;
+		top: 0;
+		right: 0;
+	}
+
 	#wpadminbar #wp-admin-bar-user-actions.ab-submenu {
 		padding: 0;
 	}
