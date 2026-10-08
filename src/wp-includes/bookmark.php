@@ -89,10 +89,6 @@ function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
 	$bookmark = (int) $bookmark;
 	$bookmark = get_bookmark( $bookmark );
 
-	if ( is_wp_error( $bookmark ) ) {
-		return $bookmark;
-	}
-
 	if ( ! is_object( $bookmark ) ) {
 		return '';
 	}
