@@ -149,6 +149,44 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 *
+	 * @dataProvider data_math_functions
+	 *
+	 * @param string $css CSS declaration.
+	 */
+	public function test_math_functions_are_allowed( $css ) {
+		$this->assertSame( $css, safecss_filter_attr( $css ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_math_functions() {
+		return array(
+			'abs'   => array( 'width:calc(100% - abs(-10px));' ),
+			'sign'  => array( 'width:calc(10px * sign(-1));' ),
+			'round' => array( 'width:round(up, 10.5px, 1px);' ),
+			'mod'   => array( 'width:mod(18px, 5px);' ),
+			'rem'   => array( 'width:rem(18px, 5px);' ),
+			'pow'   => array( 'width:calc(1px * pow(2, 3));' ),
+			'sqrt'  => array( 'width:calc(1px * sqrt(16));' ),
+			'hypot' => array( 'width:hypot(3px, 4px);' ),
+			'log'   => array( 'width:calc(1px * log(8, 2));' ),
+			'exp'   => array( 'width:calc(1px * exp(1));' ),
+			'sin'   => array( 'transform:rotate(calc(sin(45deg) * 1turn));' ),
+			'cos'   => array( 'width:calc(10px * cos(0deg));' ),
+			'tan'   => array( 'width:calc(10px * tan(45deg));' ),
+			'asin'  => array( 'transform:rotate(asin(1));' ),
+			'acos'  => array( 'transform:rotate(acos(0));' ),
+			'atan'  => array( 'transform:rotate(atan(1));' ),
+			'atan2' => array( 'transform:rotate(atan2(1, 1));' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
 	 */
 	public function test_url_must_be_non_empty() {
 		$this->assertSame( '', safecss_filter_attr( 'background: url()' ) );
