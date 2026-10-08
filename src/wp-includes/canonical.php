@@ -614,6 +614,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		unset( $redirect['port'] );
 	}
 
+	$redirect['path'] = isset( $redirect['path'] ) ? $redirect['path'] : '';
 	// Notice prevention after new parse_url( $redirect_url ) calls
 	$redirect += array(
 		'host'   => '',
@@ -733,6 +734,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['host'] = $original['host'];
 	}
 
+	$original['path'] = isset( $original['path'] ) ? $original['path'] : '';
 	$compare_original = array( $original['host'], $original['path'] );
 
 	if ( ! empty( $original['port'] ) ) {
