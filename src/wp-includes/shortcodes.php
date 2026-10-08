@@ -59,6 +59,8 @@ $shortcode_tags = array();
  *                           including an array of attributes (`$atts`), the shortcode content
  *                           or null if not set (`$content`), and finally the shortcode tag
  *                           itself (`$shortcode_tag`), in that order.
+ *
+ * @phpstan-param non-empty-string $tag
  */
 function add_shortcode( $tag, $callback ) {
 	global $shortcode_tags;
@@ -326,6 +328,8 @@ function _filter_do_shortcode_context() {
  *
  * @param array $tagnames Optional. List of shortcodes to find. Defaults to all registered shortcodes.
  * @return string The shortcode search regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_shortcode_regex( $tagnames = null ) {
 	global $shortcode_tags;
@@ -596,6 +600,7 @@ function unescape_invalid_shortcodes( $content ) {
  *
  * @return string The shortcode attribute regular expression.
  *
+ * @phpstan-return non-falsy-string
  * @phpstan-pure
  */
 function get_shortcode_atts_regex() {
