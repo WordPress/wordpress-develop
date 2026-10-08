@@ -84,13 +84,16 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 		$this->assertSame( array(), $result );
 
 		// Test unreadable file.
-		if ( function_exists( 'posix_getpwuid' ) && 'root' !== posix_getpwuid( posix_geteuid() )['name'] ) {
-			$unreadable_file = DIR_TESTDATA . '/unreadable.json';
-			touch( $unreadable_file );
-			chmod( $unreadable_file, 0000 );
-			$result = @$read_json_file->invoke( null, $unreadable_file );
-			$this->assertSame( array(), $result );
-			unlink( $unreadable_file );
+		if ( function_exists( 'posix_getpwuid' ) && function_exists( 'posix_geteuid' ) ) {
+			$pwuid = posix_getpwuid( posix_geteuid() );
+			if ( is_array( $pwuid ) && isset( $pwuid['name'] ) && 'root' !== $pwuid['name'] ) {
+				$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
+				chmod( $unreadable_file, 0000 );
+				$result = $read_json_file->invoke( null, $unreadable_file );
+				$this->assertSame( array(), $result );
+				chmod( $unreadable_file, 0644 );
+				unlink( $unreadable_file );
+			}
 		}
 
 		// Test invalid JSON.
