@@ -148,56 +148,6 @@ function wp_get_state_declarations_with_background_resets( $declarations ) {
 }
 
 /**
- * Adds fallback dimension styles for aspectRatio and height block-support values.
- *
- * @since 7.1.0
- *
- * @param array $state_style State style object.
- * @return array State style object with fallback dimension styles applied where needed.
- */
-function wp_get_state_style_with_fallback_dimension_styles( $state_style ) {
-	if ( ! is_array( $state_style ) ) {
-		return $state_style;
-	}
-
-	$dimensions = isset( $state_style['dimensions'] ) && is_array( $state_style['dimensions'] )
-		? $state_style['dimensions']
-		: array();
-
-	if ( empty( $dimensions ) ) {
-		return $state_style;
-	}
-
-	if ( wp_is_explicit_aspect_ratio_value( $dimensions['aspectRatio'] ?? null ) ) {
-		return array_replace_recursive(
-			$state_style,
-			array(
-				'dimensions' => array(
-					'minHeight' => 'unset',
-					'height'    => 'unset',
-				),
-			)
-		);
-	}
-
-	$has_min_height = isset( $dimensions['minHeight'] ) && ( is_string( $dimensions['minHeight'] ) || is_numeric( $dimensions['minHeight'] ) ) && '' !== trim( (string) $dimensions['minHeight'] );
-	$has_height     = isset( $dimensions['height'] ) && ( is_string( $dimensions['height'] ) || is_numeric( $dimensions['height'] ) ) && '' !== trim( (string) $dimensions['height'] );
-
-	if ( $has_min_height || $has_height ) {
-		return array_replace_recursive(
-			$state_style,
-			array(
-				'dimensions' => array(
-					'aspectRatio' => 'unset',
-				),
-			)
-		);
-	}
-
-	return $state_style;
-}
-
-/**
  * Adds a style fragment to a selector-keyed state style group.
  *
  * @since 7.1.0
