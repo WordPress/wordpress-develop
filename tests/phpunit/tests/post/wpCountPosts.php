@@ -22,7 +22,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 			}
 		);
 
-		$num_queries = $wpdb->num_queries;
+		$start_num_queries = get_num_queries();
 		$counts      = wp_count_posts();
 
 		$this->assertSame( $num_queries, $wpdb->num_queries, 'No database query should run when the filter returns a value.' );
