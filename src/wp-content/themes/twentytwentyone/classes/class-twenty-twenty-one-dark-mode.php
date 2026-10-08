@@ -87,6 +87,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * Enqueues scripts and styles.
 	 *
 	 * @since Twenty Twenty-One 1.0
+	 * @since Twenty Twenty-One 2.9 Added minified stylesheets.
 	 *
 	 * @return void
 	 */
@@ -94,9 +95,10 @@ class Twenty_Twenty_One_Dark_Mode {
 		if ( ! $this->switch_should_render() ) {
 			return;
 		}
-		$url = get_template_directory_uri() . '/assets/css/style-dark-mode.css';
+		$suffix = ( ! SCRIPT_DEBUG ) ? '.min' : '';
+		$url    = get_template_directory_uri() . "/assets/css/style-dark-mode$suffix.css";
 		if ( is_rtl() ) {
-			$url = get_template_directory_uri() . '/assets/css/style-dark-mode-rtl.css';
+			$url = get_template_directory_uri() . "/assets/css/style-dark-mode-rtl$suffix.css";
 		}
 		wp_enqueue_style( 'tt1-dark-mode', $url, array( 'twenty-twenty-one-style' ), wp_get_theme()->get( 'Version' ) );
 	}
