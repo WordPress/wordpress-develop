@@ -182,7 +182,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 			)
 		);
 
-		$permalink = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'the-attachment' );
+		$permalink = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'da39a3ee5e6b4b0d3255bfef95601890afd80709' );
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();
@@ -216,7 +216,7 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 			)
 		);
 
-		$permalink = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'the-attachment' );
+		$permalink = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'da39a3ee5e6b4b0d3255bfef95601890afd80709' );
 
 		$this->go_to( $old_permalink );
 		wp_old_slug_redirect();

@@ -94,6 +94,8 @@ class Tests_Post_wpUniquePostSlug extends WP_UnitTestCase {
 	 */
 	public function test_wp_unique_post_slug_with_hierarchy_and_attachments() {
 		register_post_type( 'post-type-1', array( 'hierarchical' => true ) );
+		// Enable attachment pages to test the attachment slug generation.
+		update_option( 'wp_attachment_pages_enabled', 1 );
 
 		$args = array(
 			'post_type'   => 'post-type-1',
