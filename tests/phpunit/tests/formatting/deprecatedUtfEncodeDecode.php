@@ -68,9 +68,9 @@ class Tests_DeprecatedUtf8EncodeDecodeTest extends WP_UnitTestCase {
 				 * Since the UTF-16 surrogate halves are not valid Unicode characters,
 				 * these have to be manually constructed as invalid UTF-8.
 				 */
-				$byte1 = 0xE0 | ( $i >> 12 );
-				$byte2 = 0x80 | ( ( $i >> 6 ) & 0x3F );
-				$byte3 = 0x80 | ( $i & 0x3F );
+				$byte1 = chr( 0xE0 | ( $i >> 12 ) );
+				$byte2 = chr( 0x80 | ( ( $i >> 6 ) & 0x3F ) );
+				$byte3 = chr( 0x80 | ( $i & 0x3F ) );
 
 				$c = "{$byte1}{$byte2}{$byte3}";
 			}

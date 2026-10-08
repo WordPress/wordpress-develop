@@ -26,6 +26,11 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 */
 	protected $orig_instance;
 
+	/**
+	 * @var WP_Locale
+	 */
+	protected $orig_wp_locale;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
@@ -43,11 +48,12 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		global $wp_textdomain_registry, $wp_locale_switcher;
+		global $wp_textdomain_registry, $wp_locale_switcher, $wp_locale;
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
-		$this->orig_instance = $wp_locale_switcher;
+		$this->orig_instance  = $wp_locale_switcher;
+		$this->orig_wp_locale = $wp_locale;
 
 		remove_all_filters( 'locale' );
 		remove_all_filters( 'determine_locale' );
@@ -59,7 +65,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	public function tear_down() {
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		global $wp_textdomain_registry, $wp_locale_switcher;
+		global $wp_textdomain_registry, $wp_locale_switcher, $wp_locale;
 
 		$wp_textdomain_registry = new WP_Textdomain_Registry();
 
@@ -71,6 +77,7 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 		remove_all_filters( 'determine_locale' );
 
 		$wp_locale_switcher = $this->orig_instance;
+		$wp_locale          = $this->orig_wp_locale;
 
 		unload_textdomain( 'internationalized-plugin' );
 		unload_textdomain( 'custom-internationalized-theme' );

@@ -14,6 +14,9 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	public function set_up() {
 		parent::set_up();
 		$this->test_block_name = null;
+
+		global $wp_styles;
+		$wp_styles = null;
 	}
 
 	public function tear_down() {
@@ -21,6 +24,10 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 			unregister_block_type( $this->test_block_name );
 		}
 		$this->test_block_name = null;
+
+		global $wp_styles;
+		$wp_styles = null;
+
 		parent::tear_down();
 	}
 
@@ -262,6 +269,62 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 					),
 				),
 			),
+		);
+	}
+
+	/**
+	 * Tests that CSS is enqueued only once when the same block is rendered
+	 * multiple times, as happens inside a Query Loop.
+	 *
+	 * @ticket 65268
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_css_not_duplicated_on_repeated_renders(): void {
+		$this->test_block_name = 'test/custom-css-query-loop-dedup';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array( 'customCSS' => true ),
+			)
+		);
+
+		$parsed_block = array(
+			'blockName' => 'test/custom-css-query-loop-dedup',
+			'attrs'     => array(
+				'style' => array(
+					'css' => 'font-size: 2em; /* query-loop-dedup-test */',
+				),
+			),
+		);
+
+		// Simulate the same block being rendered multiple times inside a Query Loop.
+		$result = wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+		wp_render_custom_css_support_styles( $parsed_block );
+
+		// Extract the generated class name from the first render's result.
+		$this->assertSame( 1, preg_match( '/(?:^|\s)(wp-custom-css-\S+)/', $result['attrs']['className'] ?? '', $matches ) );
+		$class_name = $matches[1];
+
+		// Count how many times the CSS selector for this block appears in the enqueued inline styles.
+		$inline_styles = (array) wp_styles()->get_data( 'wp-block-custom-css', 'after' );
+		$occurrences   = 0;
+		foreach ( $inline_styles as $style ) {
+			$this->assertIsString( $style );
+			$occurrences += substr_count( $style, '.' . $class_name );
+		}
+
+		$this->assertSame(
+			1,
+			$occurrences,
+			'CSS should be enqueued exactly once even when the same block renders multiple times.'
 		);
 	}
 }

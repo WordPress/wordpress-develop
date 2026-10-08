@@ -9,7 +9,11 @@
  * @since Twenty Twenty-One 1.0
  */
 
-// This theme requires WordPress 5.3 or later.
+/**
+ * This theme requires WordPress 5.3 or later.
+ *
+ * @global string $wp_version The WordPress version string.
+ */
 if ( version_compare( $GLOBALS['wp_version'], '5.3', '<' ) ) {
 	require get_template_directory() . '/inc/back-compat.php';
 }
@@ -577,7 +581,7 @@ function twentytwentyone_the_html_classes() {
 	 *
 	 * @since Twenty Twenty-One 1.0
 	 *
-	 * @param string The list of classes. Default empty string.
+	 * @param string $classes The list of classes. Default empty string.
 	 */
 	$classes = apply_filters( 'twentytwentyone_html_classes', '' );
 	if ( ! $classes ) {

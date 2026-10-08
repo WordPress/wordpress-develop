@@ -44,6 +44,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 		}
 
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, maybe_unserialize( $value ) );
 		} else {
 			$this->assertSame( $expected, maybe_unserialize( $value ) );
@@ -222,7 +223,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 			}
 			$callback_value = $property->getValue( $new_value );
 
-			$this->assertSame( null, $callback_value );
+			$this->assertNull( $callback_value );
 		} else {
 			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
 		}

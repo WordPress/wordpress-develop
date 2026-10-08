@@ -1,4 +1,3 @@
-/* Include margin and padding in the width calculation of input and textarea. */
 input,
 select,
 textarea,
@@ -143,10 +142,10 @@ input[type="radio"] {
 	min-width: 1rem;
 	-webkit-appearance: none;
 	box-shadow: none;
-	transition: .05s border-color ease-in-out;
+	transition: 0.05s border-color ease-in-out;
 }
 
-input[type="radio"]:checked + label:before {
+input[type="radio"]:checked + label::before {
 	color: #949494;
 }
 
@@ -189,8 +188,8 @@ input[type="radio"]:checked::before {
 
 input[type="checkbox"]:checked::before {
 	/* Use the "Yes" SVG Dashicon */
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E");
-	content: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E") / '';
+	content: url(data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E);
+	content: url(data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%3E%3Cpath%20d%3D%27M14.83%204.89l1.34.94-5.81%208.38H9.02L5.78%209.67l1.34-1.25%202.57%202.4z%27%20fill%3D%27%23ffffff%27%2F%3E%3C%2Fsvg%3E) / "";
 	margin: -0.1875rem 0 0 -0.25rem;
 	height: 1.3125rem;
 	width: 1.3125rem;
@@ -268,24 +267,24 @@ textarea[readonly] {
 	box-shadow: 0 0 2px rgba(214, 54, 56, 0.8);
 }
 
-.form-table .form-required.form-invalid td:after {
+.form-table .form-required.form-invalid td::after {
 	content: "\f534";
-	content: "\f534" / '';
-	font: normal 20px/1 dashicons;
+	content: "\f534" / "";
+	font: 400 20px/1 dashicons;
 	color: #d63638;
 	margin-left: -25px;
 	vertical-align: middle;
 }
 
 /* Adjust error indicator for password layout */
-.form-table .form-required.user-pass1-wrap.form-invalid td:after {
+.form-table .form-required.user-pass1-wrap.form-invalid td::after {
 	content: "";
 }
 
-.form-table .form-required.user-pass1-wrap.form-invalid .password-input-wrapper:after {
+.form-table .form-required.user-pass1-wrap.form-invalid .password-input-wrapper::after {
 	content: "\f534";
-	content: "\f534" / '';
-	font: normal 20px/1 dashicons;
+	content: "\f534" / "";
+	font: 400 20px/1 dashicons;
 	color: #d63638;
 	margin: 0 6px 0 -29px;
 	vertical-align: middle;
@@ -302,7 +301,7 @@ select.disabled,
 textarea:disabled,
 textarea.disabled {
 	background: #f0f0f0;
-	border-color: #cccccc;
+	border-color: #ccc;
 	box-shadow: none;
 	color: #949494;
 }
@@ -324,17 +323,13 @@ input[type="checkbox"][aria-disabled="true"],
 input[type="radio"]:disabled,
 input[type="radio"].disabled,
 input[type="radio"][aria-disabled="true"],
-input[type="checkbox"]:disabled:checked:before,
-input[type="checkbox"].disabled:checked:before,
-input[type="radio"]:disabled:checked:before,
-input[type="radio"].disabled:checked:before {
+input[type="checkbox"]:disabled:checked::before,
+input[type="checkbox"].disabled:checked::before,
+input[type="radio"]:disabled:checked::before,
+input[type="radio"].disabled:checked::before {
 	opacity: 0.7;
 	cursor: default;
 }
-
-/*------------------------------------------------------------------------------
-  2.0 - Forms
-------------------------------------------------------------------------------*/
 
 /* Select styles are based on the default button in buttons.css */
 .wp-core-ui select {
@@ -349,7 +344,7 @@ input[type="radio"].disabled:checked:before {
 	max-width: 25rem;
 	-webkit-appearance: none;
 	/* The SVG is arrow-down-alt2 from Dashicons. */
-	background: #fff url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E') no-repeat right 8px top 55%;
+	background: #fff url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%231e1e1e%22%2F%3E%3C%2Fsvg%3E) no-repeat right 8px top 55%;
 	background-size: 16px 16px;
 	cursor: pointer;
 	vertical-align: middle;
@@ -377,7 +372,7 @@ input[type="radio"].disabled:checked:before {
 	border-color: #dcdcde;
 	background-color: #f6f7f7;
 	/* The SVG is arrow-down-alt2 from Dashicons. */
-	background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23a0a5aa%22%2F%3E%3C%2Fsvg%3E');
+	background-image: url(data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M5%206l5%205%205-5%202%201-7%207-7-7%202-1z%22%20fill%3D%22%23a0a5aa%22%2F%3E%3C%2Fsvg%3E);
 	box-shadow: none;
 	text-shadow: 0 1px 0 #fff;
 	cursor: default;
@@ -522,9 +517,6 @@ input[type="number"].tiny-text {
 #doaction2,
 #post-query-submit {
 	margin: 0 8px 0 0;
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 /* @since 5.7.0 secondary bulk action controls require JS. */
@@ -581,6 +573,12 @@ input[type="number"].tiny-text {
 	font-size: 20px;
 	line-height: 1;
 	vertical-align: middle;
+}
+
+.button.wp-hide-pw.user-new-password-toggle {
+	display: inline-flex;
+	align-items: center;
+	column-gap: 4px;
 }
 
 .wp-cancel-pw .dashicons-no {
@@ -655,7 +653,7 @@ fieldset label,
 	background: transparent;
 	border-color: var(--wp-admin-theme-color);
 	border-radius: 2px;
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -672,7 +670,7 @@ fieldset label,
 
 #pass-strength-result {
 	background-color: #f0f0f0;
-	border: 1px solid #cccccc;
+	border: 1px solid #ccc;
 	border-radius: 2px;
 	color: #1e1e1e;
 	margin: -1px 1px 5px;
@@ -715,25 +713,30 @@ fieldset label,
 	font-family: Consolas, Monaco, monospace;
 }
 
-#pass1.short, #pass1-text.short {
+#pass1.short,
+#pass1-text.short {
 	border-color: #e65054;
 }
 
-#pass1.bad, #pass1-text.bad {
+#pass1.bad,
+#pass1-text.bad {
 	border-color: #f86368;
 }
 
-#pass1.good, #pass1-text.good {
+#pass1.good,
+#pass1-text.good {
 	border-color: #f0c33c;
 }
 
-#pass1.strong, #pass1-text.strong {
+#pass1.strong,
+#pass1-text.strong {
 	border-color: #68de7c;
 }
 
 #pass1:focus,
 #pass1-text:focus {
-	box-shadow: 0 0 0 0.5px var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -891,10 +894,6 @@ ul#add-to-blog-users {
 	outline: 2px solid transparent;
 }
 
-/*------------------------------------------------------------------------------
-  15.0 - Comments Screen
-------------------------------------------------------------------------------*/
-
 .form-table {
 	border-collapse: collapse;
 	margin-top: 0.5em;
@@ -988,17 +987,13 @@ table.form-table td .updated p {
 	margin: 0.3em 0;
 }
 
-/*------------------------------------------------------------------------------
-  18.0 - Users
-------------------------------------------------------------------------------*/
-
 #profile-page .form-table textarea {
 	width: 500px;
 	margin-bottom: 6px;
 }
 
 #profile-page .form-table #rich_editing {
-	margin-right: 5px
+	margin-right: 5px;
 }
 
 #your-profile legend {
@@ -1020,6 +1015,7 @@ table.form-table td .updated p {
 	padding: 5px 15px 15px;
 	box-sizing: border-box;
 	margin-bottom: 3px;
+	cursor: pointer;
 }
 
 .color-option:hover,
@@ -1033,16 +1029,13 @@ table.form-table td .updated p {
 	border-spacing: 0;
 	border-collapse: collapse;
 }
+
 .color-palette .color-palette-shade,
 .color-palette td {
 	display: table-cell;
 	height: 20px;
 	padding: 0;
 	border: none;
-}
-
-.color-option {
-	cursor: pointer;
 }
 
 .create-application-password .form-field {
@@ -1079,15 +1072,11 @@ table.form-table td .updated p {
 	display: block;
 }
 
-/*------------------------------------------------------------------------------
-  19.0 - Tools
-------------------------------------------------------------------------------*/
-
 .tool-box .title {
 	margin: 8px 0;
 	font-size: 18px;
 	font-weight: 400;
-	line-height: 24px;
+	line-height: 1.3333;
 }
 
 .label-responsive {
@@ -1110,9 +1099,9 @@ table.form-table td .updated p {
 	padding: 16px 24px;
 	min-width: 255px;
 	max-width: 520px;
-	border: 1px solid rgb(0, 0, 0, 0.1);
+	border: 1px solid rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
-	background: #ffffff;
+	background: #fff;
 	box-sizing: border-box;
 }
 
@@ -1150,7 +1139,7 @@ table.form-table td .updated p {
 	border-radius: 5px;
 	border: 1px solid #c3c4c7;
 	font-style: normal;
-	line-height: 16px;
+	line-height: 1.1429;
 	font-size: 14px;
 	text-decoration: none;
 }
@@ -1159,7 +1148,7 @@ table.form-table td .updated p {
 	outline: none;
 }
 
-.pressthis-bookmarklet:after {
+.pressthis-bookmarklet::after {
 	content: "";
 	width: 70%;
 	height: 55%;
@@ -1172,7 +1161,7 @@ table.form-table td .updated p {
 	box-shadow: 0 10px 8px rgba(0, 0, 0, 0.6);
 }
 
-.pressthis-bookmarklet:hover:after {
+.pressthis-bookmarklet:hover::after {
 	transform: skew(20deg) rotate(9deg);
 	box-shadow: 0 10px 8px rgba(0, 0, 0, 0.7);
 }
@@ -1183,11 +1172,11 @@ table.form-table td .updated p {
 	padding: 0 12px 8px 9px;
 }
 
-.pressthis-bookmarklet span:before {
-	color: #787c82;
-	font: normal 20px/1 dashicons;
+.pressthis-bookmarklet span::before {
+	color: #50575e;
+	font: 400 20px/1 dashicons;
 	content: "\f157";
-	content: "\f157" / '';
+	content: "\f157" / "";
 	position: relative;
 	display: inline-block;
 	top: 4px;
@@ -1213,10 +1202,6 @@ table.form-table td .updated p {
 	margin: 5px 8px 6px 7px;
 	color: #50575e;
 }
-
-/*------------------------------------------------------------------------------
-  20.0 - Settings
-------------------------------------------------------------------------------*/
 
 .timezone-info code {
 	white-space: nowrap;
@@ -1293,10 +1278,6 @@ table.form-table td .updated p {
 	display: inline-block;
 }
 
-/*------------------------------------------------------------------------------
-  21.0 - Network Admin
-------------------------------------------------------------------------------*/
-
 .setup-php textarea {
 	max-width: 100%;
 }
@@ -1331,10 +1312,6 @@ table.form-table td .updated p {
 	margin-bottom: 4px;
 }
 
-/*------------------------------------------------------------------------------
-   Credentials check dialog for Install and Updates
-------------------------------------------------------------------------------*/
-
 .request-filesystem-credentials-dialog {
 	display: none;
 	/* The customizer uses visibility: hidden on the body for full-overlays. */
@@ -1357,7 +1334,7 @@ table.form-table td .updated p {
 
 .request-filesystem-credentials-form legend {
 	font-size: 1em;
-	padding: 1.33em 0;
+	padding: 1.33em 0 0;
 	font-weight: 600;
 }
 
@@ -1380,16 +1357,6 @@ table.form-table td .updated p {
 .request-filesystem-credentials-dialog label[for="private_key"] {
 	display: block;
 	margin-bottom: 1em;
-}
-
-.request-filesystem-credentials-dialog .ftp-username,
-.request-filesystem-credentials-dialog .ftp-password {
-	float: left;
-	width: 48%;
-}
-
-.request-filesystem-credentials-dialog .ftp-password {
-	margin-left: 4%;
 }
 
 .request-filesystem-credentials-dialog .request-filesystem-credentials-action-buttons {
@@ -1440,10 +1407,6 @@ table.form-table td .updated p {
 	margin-bottom: 1em;
 }
 
-.request-filesystem-credentials-form legend {
-	padding-bottom: 0;
-}
-
 .request-filesystem-credentials-form #ssh-keys legend {
 	font-size: 1.3em;
 }
@@ -1453,9 +1416,6 @@ table.form-table td .updated p {
 	clear: both;
 }
 
-/*------------------------------------------------------------------------------
-   Privacy Policy settings screen
-------------------------------------------------------------------------------*/
 .tools-privacy-policy-page form {
 	margin-bottom: 1.3em;
 }
@@ -1486,38 +1446,47 @@ table.form-table td .updated p {
 
 .privacy_requests thead td:first-child,
 .privacy_requests tfoot td:first-child {
-	border-left: 4px solid #fff;
+	border-left: 4px solid transparent;
 }
 
-.privacy_requests tbody th {
-	border-left: 4px solid #fff;
-	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-}
-
-.privacy_requests .row-actions {
-	color: #787c82;
+.privacy_requests tbody td.check-column {
+	border-left: 4px solid transparent;
 }
 
 .privacy_requests .row-actions.processing {
 	position: static;
 }
 
-.privacy_requests tbody .has-request-results th {
-	box-shadow: none;
-}
-
 .privacy_requests tbody .request-results th .notice {
 	margin: 0 0 5px;
 }
 
-.privacy_requests tbody td {
-	background: #fff;
-	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+/*
+ * The results row is injected after its request row, so it lands on the opposite
+ * stripe. Invert it to match.
+ */
+.privacy_requests tbody tr.request-results:nth-child(even) {
+	background-color: #f6f7f7;
 }
 
-.privacy_requests tbody .has-request-results td {
-	box-shadow: none;
+.privacy_requests tbody tr.request-results:nth-child(odd) {
+	background-color: transparent;
+}
+
+/*
+ * Where supported, skip the injected rows in the stripe count instead, so they
+ * no longer shift the rows below. The rules above are the fallback.
+ */
+@supports selector(:nth-child(1 of :not(.request-results))) {
+	.privacy_requests tbody > tr:nth-child(odd),
+	.privacy_requests tbody > tr.request-results:nth-child(even) {
+		background-color: transparent;
+	}
+
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)),
+	.privacy_requests tbody > tr:nth-child(odd of :not(.request-results)) + tr.request-results {
+		background-color: #f6f7f7;
+	}
 }
 
 .privacy_requests .next_steps .button {
@@ -1525,16 +1494,12 @@ table.form-table td .updated p {
 	white-space: normal;
 }
 
-.privacy_requests .status-request-confirmed th,
-.privacy_requests .status-request-confirmed td {
-	background-color: #fff;
-	border-left-color: #72aee6;
+.privacy_requests tr.status-request-confirmed td.check-column {
+	border-left-color: #3858e9;
 }
 
-.privacy_requests .status-request-failed th,
-.privacy_requests .status-request-failed td {
-	background-color: #f6f7f7;
-	border-left-color: #d63638;
+.privacy_requests tr.status-request-failed td.check-column {
+	border-left-color: #cc1818;
 }
 
 .privacy_requests .export_personal_data_failed a {
@@ -1569,12 +1534,9 @@ table.form-table td .updated p {
 	margin: 1.5em 0;
 }
 
-.wp-privacy-request-form input {
+.wp-privacy-request-form input[type="text"] {
 	margin: 0;
 }
-
-/* =Media Queries
--------------------------------------------------------------- */
 
 @media screen and (max-width: 782px) {
 	/* Input Elements */
@@ -1617,10 +1579,10 @@ table.form-table td .updated p {
 		margin-bottom: 8px;
 	}
 
-	input[type="checkbox"]:checked:before,
-	.widefat th input[type="checkbox"]:before,
-	.widefat thead td input[type="checkbox"]:before,
-	.widefat tfoot td input[type="checkbox"]:before {
+	input[type="checkbox"]:checked::before,
+	.widefat th input[type="checkbox"]::before,
+	.widefat thead td input[type="checkbox"]::before,
+	.widefat tfoot td input[type="checkbox"]::before {
 		width: 1.875rem;
 		height: 1.875rem;
 		margin: -0.1875rem -0.3125rem;
@@ -1637,7 +1599,7 @@ table.form-table td .updated p {
 		margin-top: -0.1875rem;
 	}
 
-	input[type="radio"]:checked:before {
+	input[type="radio"]:checked::before {
 		vertical-align: middle;
 		width: 0.5625rem;
 		height: 0.5625rem;
@@ -1715,7 +1677,7 @@ table.form-table td .updated p {
 		box-sizing: border-box;
 	}
 
-	.form-table .form-required.form-invalid td:after {
+	.form-table .form-required.form-invalid td::after {
 		float: right;
 		margin: -30px 3px 0 0;
 	}
@@ -1723,7 +1685,6 @@ table.form-table td .updated p {
 	input[type="text"].small-text,
 	input[type="search"].small-text,
 	input[type="password"].small-text,
-	input[type="number"].small-text,
 	input[type="number"].small-text,
 	.form-table input[type="text"].small-text {
 		width: auto;
@@ -1751,6 +1712,29 @@ table.form-table td .updated p {
 		display: block;
 	}
 
+	.wp-core-ui .tablenav input[type="text"],
+	.wp-core-ui .tablenav input[type="password"],
+	.wp-core-ui .tablenav input[type="date"],
+	.wp-core-ui .tablenav input[type="datetime"],
+	.wp-core-ui .tablenav input[type="datetime-local"],
+	.wp-core-ui .tablenav input[type="email"],
+	.wp-core-ui .tablenav input[type="month"],
+	.wp-core-ui .tablenav input[type="number"],
+	.wp-core-ui .tablenav input[type="search"],
+	.wp-core-ui .tablenav input[type="tel"],
+	.wp-core-ui .tablenav input[type="time"],
+	.wp-core-ui .tablenav input[type="url"],
+	.wp-core-ui .tablenav input[type="week"],
+	.wp-core-ui .tablenav select {
+		min-height: 40px;
+	}
+
+	.wp-core-ui .tablenav .button {
+		min-height: 40px;
+		line-height: 2.71428571;
+		padding: 0 14px;
+	}
+
 	p.search-box {
 		float: none;
 		width: 100%;
@@ -1764,12 +1748,19 @@ table.form-table td .updated p {
 		margin-bottom: 10px;
 		vertical-align: middle;
 	}
+
 	.js.plugins-php .search-box .wp-filter-search {
 		width: 100%;
 		margin-bottom: 0;
 	}
 
-	p.search-box input[type="submit"] {
+	p.search-box input[type="search"],
+	p.search-box input[type="text"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	p.search-box input[type="submit"].button {
 		margin-bottom: 10px;
 	}
 
@@ -1913,6 +1904,7 @@ table.form-table td .updated p {
 	.options-general-php input[type="text"].small-text {
 		max-width: 6.25em;
 		margin: 0;
+		min-height: 40px;
 	}
 
 	/* Privacy Policy settings screen */
@@ -1934,13 +1926,9 @@ table.form-table td .updated p {
 		margin-left: 0;
 	}
 
-	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column) {
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) td.column-primary:not(.check-column),
+	.wp-list-table.privacy_requests tr:not(.inline-edit-row):not(.no-items) th.column-primary:not(.check-column) {
 		display: table-cell;
-	}
-
-	.wp-list-table.privacy_requests.widefat th input,
-	.wp-list-table.privacy_requests.widefat thead td input {
-		margin-left: 5px;
 	}
 
 	.wp-privacy-request-form-field input[type="text"] {
@@ -2001,6 +1989,7 @@ table.form-table td .updated p {
 	0% {
 		transform: rotate(0deg);
 	}
+
 	100% {
 		transform: rotate(359deg);
 	}

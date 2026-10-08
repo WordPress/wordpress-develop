@@ -1,7 +1,6 @@
-/*------------------------------------------------------------------------------
-  14.0 - Media Screen
-------------------------------------------------------------------------------*/
-
+/**
+ * Media Screen
+ */
 .media-item .describe {
 	border-collapse: collapse;
 	width: 100%;
@@ -189,7 +188,7 @@
 	height: 22px;
 	margin: 0 6px 7px;
 	width: 200px;
-	line-height: 2em;
+	line-height: 2;
 	padding: 0;
 	overflow: hidden;
 	border-radius: 22px;
@@ -214,7 +213,7 @@
 	padding: 0;
 	color: #fff;
 	text-align: center;
-	line-height: 22px;
+	line-height: 1.6923;
 	font-weight: 400;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -251,10 +250,9 @@
 	margin: 0 10px 0 15px;
 }
 
-/*------------------------------------------------------------------------------
-  14.1 - Media Library
-------------------------------------------------------------------------------*/
-
+/**
+ * Media Library
+ */
 .find-box {
 	background-color: #fff;
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
@@ -351,13 +349,13 @@
 	outline-offset: -2px;
 }
 
-#find-posts-close:before {
-	font: normal 20px/36px dashicons;
+#find-posts-close::before {
+	font: 400 20px/36px dashicons;
 	vertical-align: top;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	content: "\f158";
-	content: "\f158" / '';
+	content: "\f158" / "";
 }
 
 .find-box-buttons {
@@ -374,10 +372,13 @@
 	.find-box-inside {
 		bottom: 57px;
 	}
+
+	#delete_all {
+		margin-bottom: 0;
+	}
 }
 
 @media screen and (max-width: 660px) {
-
 	.find-box {
 		top: 0;
 		bottom: 0;
@@ -445,6 +446,16 @@ border color while dragging a file over the uploader drop area */
 
 .post-type-attachment .wp-filter select {
 	margin: 0 6px 0 0;
+}
+
+/* Match the spacing the grid view toolbar gets from
+   `.attachments-browser .media-toolbar` in media-views.css, so the Media
+   Library filter bar is consistent in both modes. The grid view toolbar is
+   excluded so that rule stays the single source of its own padding: media.css
+   is printed after media-views.css here, so an unscoped rule would override
+   it. */
+.upload-php .wp-filter:not(.media-toolbar) {
+	padding: 12px 16px;
 }
 
 /**
@@ -524,7 +535,8 @@ border color while dragging a file over the uploader drop area */
 .media-frame.mode-grid .attachment:focus,
 .media-frame.mode-grid .selected.attachment:focus,
 .media-frame.mode-grid .attachment.details:focus {
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	/* Keep this box-shadow consistent between media.css and media-views.css. */
+	box-shadow: inset 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -6px;
@@ -553,10 +565,21 @@ border color while dragging a file over the uploader drop area */
 .media-frame.mode-grid .media-toolbar {
 	margin-bottom: 15px;
 	height: auto;
+	min-height: 80px;
 }
 
-.media-frame.mode-grid .media-toolbar label {
-	display: block;
+.media-frame.mode-grid .media-toolbar label:not(.media-search-input-label) {
+	border: 0;
+	clip-path: inset(50%);
+	height: 1px;
+	margin: -1px;
+	overflow: hidden;
+	padding: 0;
+	position: absolute;
+	width: 1px;
+	/* Many screen reader and browser combinations announce broken words as they would appear visually. */
+	word-wrap: normal !important;
+	word-break: normal !important;
 }
 
 .media-frame.mode-grid .media-toolbar select {
@@ -571,11 +594,11 @@ border color while dragging a file over the uploader drop area */
 	padding: 0 8px;
 }
 
-.media-frame.mode-grid .media-toolbar .button {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
-	align-self: end;
+.media-frame.mode-grid .media-toolbar-secondary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
 }
 
 .media-frame.mode-grid.mode-edit .media-toolbar-secondary > .select-mode-toggle-button {
@@ -639,9 +662,9 @@ border color while dragging a file over the uploader drop area */
 	overflow: hidden;
 }
 
-.upload-php .media-modal-close .media-modal-icon:before {
+.upload-php .media-modal-close .media-modal-icon::before {
 	content: "\f335";
-	content: "\f335" / '';
+	content: "\f335" / "";
 	font-size: 22px;
 }
 
@@ -649,7 +672,7 @@ border color while dragging a file over the uploader drop area */
 .edit-attachment-frame .edit-media-header .left,
 .edit-attachment-frame .edit-media-header .right {
 	cursor: pointer;
-	color: #787c82;
+	color: #50575e;
 	background-color: transparent;
 	height: 50px;
 	width: 50px;
@@ -658,7 +681,7 @@ border color while dragging a file over the uploader drop area */
 	text-align: center;
 	border: 0;
 	border-left: 1px solid #dcdcde;
-	transition: color .1s ease-in-out, background .1s ease-in-out;
+	transition: color 0.1s ease-in-out, background 0.1s ease-in-out;
 }
 
 .upload-php .media-modal-close {
@@ -679,9 +702,9 @@ border color while dragging a file over the uploader drop area */
 	right: 150px; /* leave space for prev/next/close */
 }
 
-.edit-attachment-frame .edit-media-header .right:before,
-.edit-attachment-frame .edit-media-header .left:before {
-	font: normal 20px/50px dashicons !important;
+.edit-attachment-frame .edit-media-header .right::before,
+.edit-attachment-frame .edit-media-header .left::before {
+	font: 400 20px/50px dashicons !important;
 	display: inline;
 	font-weight: 300;
 }
@@ -702,28 +725,29 @@ border color while dragging a file over the uploader drop area */
 .upload-php .media-modal-close:focus,
 .edit-attachment-frame .edit-media-header .left:focus,
 .edit-attachment-frame .edit-media-header .right:focus {
-	/* Only visible in Windows High Contrast mode */
-	outline: 2px solid transparent;
-	outline-offset: -2px;
+	/* Always visible also in Windows High Contrast mode */
+	outline: 1px solid #c3c4c7;
+	outline-offset: -1px;
 }
 
-.upload-php .media-modal-close:focus .media-modal-icon:before,
-.upload-php .media-modal-close:hover .media-modal-icon:before {
+.upload-php .media-modal-close:focus .media-modal-icon::before,
+.upload-php .media-modal-close:hover .media-modal-icon::before {
 	color: #000;
 }
 
-.edit-attachment-frame .edit-media-header .left:before {
+.edit-attachment-frame .edit-media-header .left::before {
 	content: "\f341";
-	content: "\f341" / '';
+	content: "\f341" / "";
 }
 
-.edit-attachment-frame .edit-media-header .right:before {
+.edit-attachment-frame .edit-media-header .right::before {
 	content: "\f345";
-	content: "\f345" / '';
+	content: "\f345" / "";
 }
 
-.edit-attachment-frame .edit-media-header [disabled],
-.edit-attachment-frame .edit-media-header [disabled]:hover {
+.edit-attachment-frame .edit-media-header [aria-disabled="true"],
+.edit-attachment-frame .edit-media-header [aria-disabled="true"]:hover,
+.edit-attachment-frame .edit-media-header [aria-disabled="true"]:focus {
 	color: #c3c4c7;
 	background: inherit;
 	cursor: default;
@@ -767,7 +791,7 @@ border color while dragging a file over the uploader drop area */
 	margin: 0 auto 16px;
 	max-width: 100%;
 	max-height: 90%;
-	max-height: calc( 100% - 42px ); /* leave space for actions underneath */
+	max-height: calc(100% - 56px); /* leave space for actions underneath */
 	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
@@ -779,12 +803,6 @@ border color while dragging a file over the uploader drop area */
 
 .edit-attachment-frame .attachment-media-view .attachment-actions {
 	text-align: center;
-}
-
-.edit-attachment-frame .button {
-	min-height: 32px;
-	line-height: 2.30769231; /* 30px for 32px height with 13px font */
-	padding: 0 12px;
 }
 
 .edit-attachment-frame .wp-media-wrapper {
@@ -854,9 +872,9 @@ border color while dragging a file over the uploader drop area */
 	margin-left: 8px;
 }
 
-/*------------------------------------------------------------------------------
-  14.2 - Image Editor
-------------------------------------------------------------------------------*/
+/**
+ * Image Editor
+ */
 .wp_attachment_details .attachment-alt-text {
 	margin-bottom: 5px;
 }
@@ -959,7 +977,7 @@ border color while dragging a file over the uploader drop area */
 	display: none;
 }
 
-.imgedit-wait:before {
+.imgedit-wait::before {
 	content: "";
 	display: block;
 	width: 20px;
@@ -1008,9 +1026,9 @@ border color while dragging a file over the uploader drop area */
 	padding: 1em 0 0;
 }
 
-.imgedit-menu .button:after,
-.imgedit-menu .button:before {
-	font: normal 16px/1 dashicons;
+.imgedit-menu .button::after,
+.imgedit-menu .button::before {
+	font: 400 16px/1 dashicons;
 	margin-right: 8px;
 	vertical-align: middle;
 	position: relative;
@@ -1019,14 +1037,14 @@ border color while dragging a file over the uploader drop area */
 	-moz-osx-font-smoothing: grayscale;
 }
 
-.imgedit-menu .imgedit-rotate.button:after {
-	content: '\f140';
+.imgedit-menu .imgedit-rotate.button::after {
+	content: "\f140";
 	margin-left: 2px;
 	margin-right: 0;
 }
 
-.imgedit-menu .imgedit-rotate.button[aria-expanded="true"]:after {
-	content: '\f142';
+.imgedit-menu .imgedit-rotate.button[aria-expanded="true"]::after {
+	content: "\f142";
 }
 
 .imgedit-menu .button.disabled {
@@ -1039,33 +1057,37 @@ border color while dragging a file over the uploader drop area */
 	transform: none;
 }
 
-.imgedit-crop:before {
+.imgedit-crop::before {
 	content: "\f165";
-	content: "\f165" / '';
+	content: "\f165" / "";
 }
 
-.imgedit-scale:before {
+.imgedit-scale::before {
 	content: "\f211";
-	content: "\f211" / '';
+	content: "\f211" / "";
 }
 
-.imgedit-rotate:before {
+.imgedit-rotate::before {
 	content: "\f167";
-	content: "\f167" / '';
+	content: "\f167" / "";
 }
 
-.imgedit-undo:before {
+.imgedit-undo::before {
 	content: "\f171";
-	content: "\f171" / '';
+	content: "\f171" / "";
 }
 
-.imgedit-redo:before {
+.imgedit-redo::before {
 	content: "\f172";
-	content: "\f172" / '';
+	content: "\f172" / "";
 }
 
 .imgedit-crop-wrap {
 	position: relative;
+	padding: 20px;
+	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
+	background-position: 0 0, 10px 10px;
+	background-size: 20px 20px;
 }
 
 .imgedit-crop-wrap img {
@@ -1073,14 +1095,6 @@ border color while dragging a file over the uploader drop area */
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
 }
-
-.imgedit-crop-wrap {
-	padding: 20px;
-	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
-	background-position: 0 0, 10px 10px;
-	background-size: 20px 20px;
-}
-
 
 .imgedit-crop {
 	margin: 0 8px 0 0;
@@ -1127,7 +1141,7 @@ border color while dragging a file over the uploader drop area */
 
 .imgedit-applyto .imgedit-label {
 	display: block;
-	padding: .5em 0 0;
+	padding: 0.5em 0 0;
 }
 
 .imgedit-popup-menu,
@@ -1144,7 +1158,7 @@ border color while dragging a file over the uploader drop area */
 }
 
 .imgedit-popup-menu {
-	width: calc( 100% - 20px );
+	width: calc(100% - 20px);
 	position: absolute;
 	background: #fff;
 	padding: 10px;
@@ -1177,7 +1191,7 @@ border color while dragging a file over the uploader drop area */
 	margin: -1px 0 0 -1px;
 	padding: 0;
 	background: transparent;
-	color: #2271b1;
+	color: var(--wp-admin-theme-color);
 	font-size: 20px;
 	line-height: 1;
 	cursor: pointer;
@@ -1186,9 +1200,9 @@ border color while dragging a file over the uploader drop area */
 }
 
 .image-editor .imgedit-settings .imgedit-help-toggle:focus {
-	color: #2271b1;
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	color: var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: 0 0 0 1px var(--wp-admin-theme-color);
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 }
@@ -1262,7 +1276,8 @@ span.imgedit-scale-warn {
 	margin-bottom: 0;
 }
 
-audio, video {
+audio,
+video {
 	display: inline-block;
 	max-width: 100%;
 }
@@ -1287,8 +1302,8 @@ audio, video {
  * HiDPI Displays
  */
 @media print,
-  (min-resolution: 120dpi) {
-	.imgedit-wait:before {
+	(min-resolution: 120dpi) {
+	.imgedit-wait::before {
 		background-image: url(../images/spinner-2x.gif);
 	}
 }
@@ -1346,7 +1361,7 @@ audio, video {
 	}
 
 	/* Restructure image editor on narrow viewports. */
-	.imgedit-crop-wrap img{
+	.imgedit-crop-wrap img {
 		width: 100%;
 	}
 
@@ -1386,7 +1401,6 @@ audio, video {
 	.wp-filter p.search-box {
 		float: none;
 		width: 100%;
-		margin-bottom: 20px;
 		display: flex;
 		flex-wrap: nowrap;
 		column-gap: 0;
@@ -1402,6 +1416,20 @@ audio, video {
 	.media-frame.mode-select .attachments-browser.fixed .media-toolbar {
 		top: 46px;
 		right: 10px;
+	}
+
+	.media-frame.mode-grid .media-toolbar select {
+		min-height: 40px;
+		padding: 0 24px 0 12px;
+	}
+
+	.media-frame.mode-grid .media-toolbar input[type="search"] {
+		min-height: 40px;
+		padding: 0 12px;
+	}
+
+	.wp-filter p.search-box {
+		margin-bottom: 0;
 	}
 }
 
@@ -1423,8 +1451,9 @@ audio, video {
 		height: 40px;
 	}
 
-	.edit-attachment-frame .edit-media-header .right:before,
-	.edit-attachment-frame .edit-media-header .left:before {
+	.edit-attachment-frame .edit-media-header .right::before,
+	.edit-attachment-frame .edit-media-header .left::before {
+		/* stylelint-disable-next-line declaration-property-unit-allowed-list -- Used for dashicons. */
 		line-height: 40px !important;
 	}
 
@@ -1453,7 +1482,7 @@ audio, video {
 }
 
 @media only screen and (max-width: 640px), screen and (max-height: 400px) {
-	.upload-php .mode-grid .media-sidebar{
+	.upload-php .mode-grid .media-sidebar {
 		max-width: 100%;
 	}
 }
@@ -1462,6 +1491,7 @@ audio, video {
 	.media-item .attachment-tools {
 		align-items: baseline;
 	}
+
 	.media-item .edit-attachment.copy-to-clipboard-container {
 		flex-direction: column;
 	}

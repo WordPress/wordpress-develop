@@ -24,6 +24,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$sitemeta = self::$sitemeta;
 
 		require_once ABSPATH . 'wp-admin/includes/schema.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate  = $wpdb->get_charset_collate();
 		$max_index_length = 191;

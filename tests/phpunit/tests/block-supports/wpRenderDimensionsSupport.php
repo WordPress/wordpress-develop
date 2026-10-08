@@ -121,7 +121,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 	 */
 	public function data_dimensions_block_support() {
 		return array(
-			'aspect ratio style is applied, with min-height unset' => array(
+			'aspect ratio style is applied, with min-height and height unset' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
 				'block_name'          => 'test/dimensions-rules-are-output',
 				'dimensions_settings' => array(
@@ -130,7 +130,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 				'dimensions_style'    => array(
 					'aspectRatio' => '16/9',
 				),
-				'expected_wrapper'    => '<div class="has-aspect-ratio" style="aspect-ratio:16/9;min-height:unset;">Content</div>',
+				'expected_wrapper'    => '<div class="has-aspect-ratio" style="aspect-ratio:16/9;height:unset;min-height:unset;">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'dimensions style is appended if a style attribute already exists' => array(
@@ -142,7 +142,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 				'dimensions_style'    => array(
 					'aspectRatio' => '16/9',
 				),
-				'expected_wrapper'    => '<div class="wp-block-test has-aspect-ratio" style="color:red;aspect-ratio:16/9;min-height:unset;">Content</div>',
+				'expected_wrapper'    => '<div class="wp-block-test has-aspect-ratio" style="color:red;aspect-ratio:16/9;height:unset;min-height:unset;">Content</div>',
 				'wrapper'             => '<div class="wp-block-test" style="color:red;">Content</div>',
 			),
 			'aspect ratio style is unset if block has min-height set' => array(
@@ -170,5 +170,49 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 				'wrapper'             => '<div>Content</div>',
 			),
 		);
+	}
+
+	/**
+	 * Tests that fallback height styles are not added for the default aspect ratio.
+	 *
+	 * @ticket 65239
+	 *
+	 * @covers ::wp_render_dimensions_support
+	 */
+	public function test_default_aspect_ratio_does_not_unset_height_styles() {
+		$this->test_block_name = 'test/default-aspect-ratio-does-not-unset-height-styles';
+		register_block_type(
+			$this->test_block_name,
+			array(
+				'api_version' => 3,
+				'attributes'  => array(
+					'style' => array(
+						'type' => 'object',
+					),
+				),
+				'supports'    => array(
+					'dimensions' => array(
+						'aspectRatio' => true,
+					),
+				),
+			)
+		);
+
+		$actual = wp_render_dimensions_support(
+			'<div class="wp-block-test">Hello</div>',
+			array(
+				'blockName' => $this->test_block_name,
+				'attrs'     => array(
+					'style' => array(
+						'dimensions' => array(
+							'aspectRatio' => 'auto',
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertStringNotContainsString( 'height:unset', $actual );
+		$this->assertStringNotContainsString( 'min-height:unset', $actual );
 	}
 }

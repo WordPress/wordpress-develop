@@ -104,6 +104,11 @@ if ( is_multisite()
 	wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
 }
 
+/**
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+global $wpdb;
+
 // Execute confirmed email change. See send_confirmation_on_profile_email().
 if ( IS_PROFILE_PAGE && isset( $_GET['newuseremail'] ) && $current_user->ID ) {
 	$new_email = get_user_meta( $current_user->ID, '_new_email', true );
@@ -261,8 +266,14 @@ switch ( $action ) {
 
 		<div class="wrap" id="profile-page">
 			<h1 class="wp-heading-inline">
-					<?php echo esc_html( $title ); ?>
+				<?php echo esc_html( $title ); ?>
 			</h1>
+
+			<?php
+			if ( IS_PROFILE_PAGE ) {
+				new_user_email_admin_notice();
+			}
+			?>
 
 			<?php if ( ! IS_PROFILE_PAGE ) : ?>
 				<?php if ( current_user_can( 'create_users' ) ) : ?>
@@ -375,6 +386,17 @@ switch ( $action ) {
 							</label><br />
 						</td>
 					</tr>
+
+					<?php if ( user_can( $profile_user, 'upload_files' ) ) : ?>
+					<tr class="user-infinite-scrolling-wrap">
+						<th scope="row"><?php _e( 'Infinite Scrolling' ); ?></th>
+						<td>
+							<label for="infinite_scrolling"><input name="infinite_scrolling" type="checkbox" id="infinite_scrolling" value="false" <?php checked( 'false', $profile_user->infinite_scrolling ); ?> />
+								<?php _e( 'Disable infinite scrolling in the Media Library grid view' ); ?>
+							</label>
+						</td>
+					</tr>
+					<?php endif; ?>
 
 					<?php
 					$languages                = get_available_languages();
@@ -580,12 +602,13 @@ switch ( $action ) {
 								$pending_change_message .= sprintf(
 									' <a href="%1$s">%2$s</a>',
 									esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user->ID . '_new_email' ), 'dismiss-' . $current_user->ID . '_new_email' ) ),
-									__( 'Cancel' )
+									_x( 'Cancel request', 'user email change' )
 								);
 								wp_admin_notice(
 									$pending_change_message,
 									array(
-										'additional_classes' => array( 'updated', 'inline' ),
+										'type' => 'info',
+										'additional_classes' => array( 'inline' ),
 									)
 								);
 							endif;
@@ -695,7 +718,7 @@ switch ( $action ) {
 											<input type="password" name="pass1" id="pass1" class="regular-text ltr" value="" autocomplete="new-password" spellcheck="false" data-pw="<?php echo esc_attr( wp_generate_password( 24 ) ); ?>" aria-describedby="pass-strength-result" />
 											<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 										</div>
-										<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
+										<button type="button" class="button wp-hide-pw user-new-password-toggle hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 											<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 											<span class="text"><?php _e( 'Hide' ); ?></span>
 										</button>
@@ -874,9 +897,10 @@ switch ( $action ) {
 								<p>
 									<?php
 									printf(
-										/* translators: %s: Documentation URL. */
-										__( 'If this is a development website, you can <a href="%s">set the environment type accordingly</a> to enable application passwords.' ),
-										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' )
+										/* translators: 1: Documentation URL, 2: local */
+										__( 'If this is a local website, you can <a href="%1$s">set the environment type</a> as %2$s to enable application passwords.' ),
+										__( 'https://developer.wordpress.org/apis/wp-config-php/#wp-environment-type' ),
+										'<code>local</code>'
 									);
 									?>
 								</p>
@@ -920,7 +944,7 @@ switch ( $action ) {
 					 *
 					 * @since 2.8.0
 					 *
-					 * @param bool    $enable      Whether to display the capabilities. Default true.
+					 * @param bool    $enable       Whether to display the capabilities. Default true.
 					 * @param WP_User $profile_user The current WP_User object.
 					 */
 					$display_additional_caps = apply_filters( 'additional_capabilities_display', true, $profile_user );

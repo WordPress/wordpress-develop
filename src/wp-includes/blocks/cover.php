@@ -39,13 +39,13 @@ function render_block_core_cover( $attributes, $content ) {
 				$lower_src = strtolower( $iframe_src );
 				$provider  = null;
 
-				if ( strpos( $lower_src, 'youtube.com' ) !== false || strpos( $lower_src, 'youtu.be' ) !== false ) {
+				if ( str_contains( $lower_src, 'youtube.com' ) || str_contains( $lower_src, 'youtu.be' ) ) {
 					$provider = 'youtube';
-				} elseif ( strpos( $lower_src, 'vimeo.com' ) !== false ) {
+				} elseif ( str_contains( $lower_src, 'vimeo.com' ) ) {
 					$provider = 'vimeo';
-				} elseif ( strpos( $lower_src, 'videopress.com' ) !== false ) {
+				} elseif ( str_contains( $lower_src, 'videopress.com' ) ) {
 					$provider = 'videopress';
-				} elseif ( strpos( $lower_src, 'wordpress.tv' ) !== false ) {
+				} elseif ( str_contains( $lower_src, 'wordpress.tv' ) ) {
 					$provider = 'wordpress-tv';
 				}
 
@@ -134,8 +134,15 @@ function render_block_core_cover( $attributes, $content ) {
 		return $content;
 	}
 
-	$object_position = isset( $attributes['focalPoint'] )
-		? round( $attributes['focalPoint']['x'] * 100 ) . '% ' . round( $attributes['focalPoint']['y'] * 100 ) . '%'
+	$cover_focal_point = $attributes['focalPoint'] ?? null;
+	$focal_point_x     = null;
+	$focal_point_y     = null;
+	if ( is_array( $cover_focal_point ) ) {
+		$focal_point_x = isset( $cover_focal_point['x'] ) && is_numeric( $cover_focal_point['x'] ) ? $cover_focal_point['x'] : null;
+		$focal_point_y = isset( $cover_focal_point['y'] ) && is_numeric( $cover_focal_point['y'] ) ? $cover_focal_point['y'] : null;
+	}
+	$object_position = null !== $focal_point_x && null !== $focal_point_y
+		? round( $focal_point_x * 100 ) . '% ' . round( $focal_point_y * 100 ) . '%'
 		: null;
 
 	if ( ! ( $attributes['hasParallax'] || $attributes['isRepeated'] ) ) {
@@ -154,7 +161,7 @@ function render_block_core_cover( $attributes, $content ) {
 		if ( in_the_loop() ) {
 			update_post_thumbnail_cache();
 		}
-		$current_featured_image = get_the_post_thumbnail_url( null, $attributes['sizeSlug'] ?? null );
+		$current_featured_image = get_the_post_thumbnail_url( null, $attributes['sizeSlug'] ?? 'full' );
 		if ( ! $current_featured_image ) {
 			return $content;
 		}

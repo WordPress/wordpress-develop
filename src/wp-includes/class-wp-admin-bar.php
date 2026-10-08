@@ -70,6 +70,7 @@ class WP_Admin_Bar {
 		add_action( 'wp_head', $header_callback );
 
 		wp_enqueue_script( 'admin-bar' );
+		// Prefetched from the login screen by wp_prefetch_admin_assets(), which needs updating if this changes.
 		wp_enqueue_style( 'admin-bar' );
 
 		/**
@@ -218,10 +219,7 @@ class WP_Admin_Bar {
 			$id = 'root';
 		}
 
-		if ( isset( $this->nodes[ $id ] ) ) {
-			return $this->nodes[ $id ];
-		}
-		return null;
+		return $this->nodes[ $id ] ?? null;
 	}
 
 	/**
@@ -507,7 +505,7 @@ class WP_Admin_Bar {
 	 * @since 3.3.0
 	 * @since 6.5.0 Added `$menu_title` parameter to allow an ARIA menu name.
 	 *
-	 * @param object $node
+	 * @param object      $node
 	 * @param string|bool $menu_title The accessible name of this ARIA menu or false if not provided.
 	 */
 	final protected function _render_group( $node, $menu_title = false ) {

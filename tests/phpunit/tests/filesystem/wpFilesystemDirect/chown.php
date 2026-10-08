@@ -29,4 +29,36 @@ class Tests_Filesystem_WpFilesystemDirect_Chown extends WP_Filesystem_Direct_Uni
 	public function test_should_return_false( $path ) {
 		$this->assertFalse( self::$filesystem->chown( $path, fileowner( __FILE__ ) ) );
 	}
+
+	/**
+	 * Tests that recursive {@see WP_Filesystem_Direct::chown()} descends into subdirectories.
+	 *
+	 * The resulting owner cannot be asserted without elevated privileges, so recursion is
+	 * verified by recording the paths passed to {@see WP_Filesystem_Direct::chown()}. Changing each item to its current
+	 * owner is a permitted no-op that avoids requiring root and its "Operation not permitted" warning.
+	 *
+	 * @ticket 65584
+	 */
+	public function test_should_recurse_into_subdirectories(): void {
+		$directory   = untrailingslashit( self::$file_structure['test_dir']['path'] );
+		$nested_file = self::$file_structure['subfile']['path'];
+
+		$spy = new class( null ) extends WP_Filesystem_Direct {
+			/** @var string[] */
+			public array $visited = array();
+
+			public function chown( $file, $owner, $recursive = false ) {
+				$this->visited[] = $file;
+				return parent::chown( $file, $owner, $recursive );
+			}
+		};
+
+		$spy->chown( $directory, (int) fileowner( $directory ), true );
+
+		$this->assertContains(
+			$nested_file,
+			$spy->visited,
+			'chown() did not recurse into the nested subdirectory.'
+		);
+	}
 }

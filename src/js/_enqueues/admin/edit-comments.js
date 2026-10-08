@@ -1,20 +1,21 @@
-/**
- * Handles updating and editing comments.
- *
- * @file This file contains functionality for the admin comments page.
- * @since 2.1.0
- * @output wp-admin/js/edit-comments.js
- */
-
 /* global adminCommentsSettings, thousandsSeparator, list_args, QTags, ajaxurl, wpAjax */
 /* global commentReply, theExtraList, theList, setCommentsList */
 
+/**
+ * @output wp-admin/js/edit-comments.js
+ */
+
+/**
+ * Handles updating and editing comments.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 (function($) {
 var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	updateHtmlTitle, updateDashboardText, updateInModerationText, adminTitle = document.title,
 	isDashboard = $('#dashboard_right_now').length,
 	titleDiv, titleRegEx,
-	__ = wp.i18n.__;
+	__ = wp.i18n.__, _x = wp.i18n._x;
 
 	/**
 	 * Extracts a number from the content of a jQuery element.
@@ -41,7 +42,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	 * @access private
 	 *
 	 * @param {jQuery} el The jQuery element to update.
-	 * @param {number} n Number to be put in the element.
+	 * @param {number} n  Number to be put in the element.
 	 *
 	 * @return {void}
 	 */
@@ -67,7 +68,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	 * @since 4.4.0
 	 * @access private
 	 *
-	 * @param {number} diff The amount to lower or raise the approved count with.
+	 * @param {number} diff          The amount to lower or raise the approved count with.
 	 * @param {number} commentPostId The ID of the post to be updated.
 	 *
 	 * @return {void}
@@ -121,7 +122,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	 *
 	 * @param {string} selector The jQuery selector for elements to update a count
 	 *                          for.
-	 * @param {number} diff The amount to lower or raise the count with.
+	 * @param {number} diff     The amount to lower or raise the count with.
 	 *
 	 * @return {void}
 	 */
@@ -230,7 +231,7 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 	 * @since 3.2.0
 	 * @access private
 	 *
-	 * @param {number} diff The amount to lower or raise the pending count with.
+	 * @param {number} diff          The amount to lower or raise the pending count with.
 	 * @param {number} commentPostId The ID of the post to be updated.
 	 *
 	 * @return {void}
@@ -321,9 +322,9 @@ window.setCommentsList = function() {
 	 * @since 2.8.0
 	 * @access private
 	 *
-	 * @param {number} total Total number of comments.
-	 * @param {number} time Unix timestamp of response.
- 	 * @param {boolean} setConfidentTime Whether to update the last confident time
+	 * @param {number}  total            Total number of comments.
+	 * @param {number}  time             Unix timestamp of response.
+	 * @param {boolean} setConfidentTime Whether to update the last confident time
 	 *                                   with the given time.
 	 *
 	 * @return {void}
@@ -344,7 +345,7 @@ window.setCommentsList = function() {
 	 * @since 2.5.0
 	 * @access private
 	 *
-	 * @param {Object} r Ajax response object.
+	 * @param {Object} r        Ajax response object.
 	 * @param {Object} settings Settings for the wpList object.
 	 *
 	 * @return {void}
@@ -370,7 +371,8 @@ window.setCommentsList = function() {
 
 		} else {
 			if ( settings.data.id == replyID )
-				replyButton.text( __( 'Reply' ) );
+				/* translators: Comment reply button text. */
+				replyButton.text( _x( 'Reply', 'verb' ) );
 
 			c.find( '.row-actions span.view' ).removeClass( 'hidden' ).end()
 				.find( 'div.comment_status' ).html( '1' );
@@ -396,8 +398,8 @@ window.setCommentsList = function() {
 	 * @since 2.8.0
 	 * @access private
 	 *
-	 * @param {Object} settings Settings for the wpList object.
-	 * @param {HTMLElement} list Comments table element.
+	 * @param {Object}      settings Settings for the wpList object.
+	 * @param {HTMLElement} list     Comments table element.
 	 *
 	 * @return {Object} The settings object.
 	 */
@@ -469,7 +471,7 @@ window.setCommentsList = function() {
 	 * @since 2.5.0
 	 * @access private
 	 *
-	 * @param {Object} r Ajax response object.
+	 * @param {Object} r        Ajax response object.
 	 * @param {Object} settings Settings for the wpList object.
 	 *
 	 * @return {void}
@@ -943,8 +945,8 @@ window.commentReply = {
 	 * @memberof commentReply
 	 *
 	 * @param {number} comment_id The comment ID to open an editor for.
-	 * @param {number} post_id The post ID to open an editor for.
-	 * @param {string} action The action to perform. Either 'edit' or 'replyto'.
+	 * @param {number} post_id    The post ID to open an editor for.
+	 * @param {string} action     The action to perform. Either 'edit' or 'replyto'.
 	 *
 	 * @return {boolean} Always false.
 	 */
@@ -1012,7 +1014,8 @@ window.commentReply = {
 			if ( c.hasClass('unapproved') ) {
 				replyButton.text( __( 'Approve and Reply' ) );
 			} else {
-				replyButton.text( __( 'Reply' ) );
+				/* translators: Comment reply button text. */
+				replyButton.text( _x( 'Reply', 'verb' ) );
 			}
 
 			$('#replyrow').fadeIn(300, function(){ $(this).show(); });

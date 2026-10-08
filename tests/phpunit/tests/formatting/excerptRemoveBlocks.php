@@ -129,4 +129,82 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 		$query->the_post();
 		$this->assertEmpty( do_blocks( '<!-- wp:core/fake /-->' ) );
 	}
+
+	/**
+	 * Tests that a top-level block hidden via the visibility block support
+	 * is removed from the excerpt.
+	 *
+	 * @ticket 65456
+	 */
+	public function test_excerpt_remove_blocks_skips_hidden_block() {
+		$content = '<!-- wp:paragraph {"metadata":{"blockVisibility":false}} -->
+<p>hidden</p>
+<!-- /wp:paragraph -->
+<!-- wp:paragraph --><p>visible</p><!-- /wp:paragraph -->';
+
+		$output = excerpt_remove_blocks( $content );
+
+		$this->assertStringNotContainsString( 'hidden', $output );
+		$this->assertStringContainsString( 'visible', $output );
+	}
+
+	/**
+	 * Tests that a hidden wrapper block (group/columns/column) is removed
+	 * from the excerpt, including its inner blocks.
+	 *
+	 * @ticket 65456
+	 *
+	 * @covers ::_excerpt_render_inner_blocks
+	 */
+	public function test_excerpt_remove_blocks_skips_hidden_wrapper_block() {
+		$content = '<!-- wp:group {"metadata":{"blockVisibility":false}} -->
+<div class="wp-block-group">
+<!-- wp:paragraph --><p>hidden inside group</p><!-- /wp:paragraph -->
+</div>
+<!-- /wp:group -->
+<!-- wp:paragraph --><p>visible</p><!-- /wp:paragraph -->';
+
+		$output = excerpt_remove_blocks( $content );
+
+		$this->assertStringNotContainsString( 'hidden inside group', $output );
+		$this->assertStringContainsString( 'visible', $output );
+	}
+
+	/**
+	 * Tests that a hidden block nested inside a visible wrapper is removed.
+	 *
+	 * @ticket 65456
+	 *
+	 * @covers ::_excerpt_render_inner_blocks
+	 */
+	public function test_excerpt_remove_blocks_skips_hidden_inner_block() {
+		$content = '<!-- wp:group -->
+<div class="wp-block-group">
+<!-- wp:paragraph {"metadata":{"blockVisibility":false}} --><p>hidden inner</p><!-- /wp:paragraph -->
+<!-- wp:paragraph --><p>visible inner</p><!-- /wp:paragraph -->
+</div>
+<!-- /wp:group -->';
+
+		$output = excerpt_remove_blocks( $content );
+
+		$this->assertStringNotContainsString( 'hidden inner', $output );
+		$this->assertStringContainsString( 'visible inner', $output );
+	}
+
+	/**
+	 * Tests that a block hidden only on a specific viewport is kept in the
+	 * excerpt. Viewport visibility only affects the rendered display via CSS,
+	 * so it must not strip the block's text from the excerpt.
+	 *
+	 * @ticket 65456
+	 */
+	public function test_excerpt_remove_blocks_keeps_viewport_hidden_block() {
+		$content = '<!-- wp:paragraph {"metadata":{"blockVisibility":{"viewport":{"desktop":false}}}} -->
+<p>Hello World</p>
+<!-- /wp:paragraph -->';
+
+		$output = excerpt_remove_blocks( $content );
+
+		$this->assertStringContainsString( 'Hello World', $output );
+	}
 }

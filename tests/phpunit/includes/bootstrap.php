@@ -181,7 +181,7 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			'Error: The following required PHP extensions are missing from the testing environment: %s.' . PHP_EOL,
 			implode( ', ', $missing_extensions )
 		);
-		echo 'Please make sure they are installed and enabled.' . PHP_EOL,
+		echo 'Please make sure they are installed and enabled.' . PHP_EOL;
 		exit( 1 );
 	}
 }
@@ -205,7 +205,7 @@ if ( $missing_constants ) {
 		'Error: The following required constants are not defined: %s.' . PHP_EOL,
 		implode( ', ', $missing_constants )
 	);
-	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL,
+	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL;
 	exit( 1 );
 }
 

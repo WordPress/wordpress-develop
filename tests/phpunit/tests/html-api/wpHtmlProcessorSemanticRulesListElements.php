@@ -94,7 +94,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesListElements extends WP_UnitTest
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'LI', 'BLOCKQUOTE', 'LI' ),
 			$processor->get_breadcrumbs(),
-			'LI should have left the BLOCKQOUTE open, but closed it.'
+			'LI should have left the BLOCKQUOTE open, but closed it.'
 		);
 	}
 
@@ -234,7 +234,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesListElements extends WP_UnitTest
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'DD', 'BLOCKQUOTE', 'DD' ),
 			$processor->get_breadcrumbs(),
-			'DD should have left the BLOCKQOUTE open, but closed it.'
+			'DD should have left the BLOCKQUOTE open, but closed it.'
 		);
 	}
 
@@ -370,7 +370,7 @@ class Tests_HtmlApi_WpHtmlProcessorSemanticRulesListElements extends WP_UnitTest
 		$this->assertSame(
 			array( 'HTML', 'BODY', 'DT', 'BLOCKQUOTE', 'DT' ),
 			$processor->get_breadcrumbs(),
-			'DT should have left the BLOCKQOUTE open, but closed it.'
+			'DT should have left the BLOCKQUOTE open, but closed it.'
 		);
 	}
 
