@@ -39,7 +39,7 @@ get_header(); ?>
 						esc_attr( get_the_date( 'c' ) ),
 						esc_html( get_the_date() ),
 						esc_url( get_permalink( $post->post_parent ) ),
-						esc_attr( strip_tags( $post_title ) ),
+						esc_attr( wp_strip_all_tags( $post_title ) ),
 						$post_title
 					);
 
