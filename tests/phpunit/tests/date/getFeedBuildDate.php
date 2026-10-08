@@ -159,8 +159,10 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 *
 	 * @ticket 59956
 	 * @dataProvider data_cold_post_query_fields
+	 *
+	 * @param non-falsy-string $fields Fields arg.
 	 */
-	public function test_should_return_correct_build_date_for_cold_query_fields( $fields ) {
+	public function test_should_return_correct_build_date_for_cold_query_fields( string $fields ) {
 		global $wp_query;
 
 		$post_ids = array();
@@ -194,7 +196,12 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		$this->assertSame( 1, get_num_queries() - $num_queries, 'Expected one bulk post query and no metadata or term queries.' );
 	}
 
-	public function data_cold_post_query_fields() {
+	/**
+	 * Data provider for {@see self::test_should_return_correct_build_date_for_cold_query_fields()}.
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
+	 */
+	public function data_cold_post_query_fields(): array {
 		return array(
 			'IDs'     => array( 'ids' ),
 			'partial' => array( 'id=>parent' ),
