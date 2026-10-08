@@ -599,7 +599,7 @@ function unescape_invalid_shortcodes( $content ) {
  * @phpstan-return non-falsy-string
  */
 function get_shortcode_atts_regex() {
-	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';
+	return '/([\w-]+)\s*=\s*"([^"]*)"|([\w-]+)\s*=\s*\'([^\']*)\'|([\w-]+)\s*=\s*([^\s\'"\]]+)|"([^"]*)"|\'([^\']*)\'|(\S+)/';
 }
 
 /**
