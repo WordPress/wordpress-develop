@@ -151,11 +151,11 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 	$is_builtin_default = in_array( $post_type, $builtin, true ) && 'dashicons-admin-' . $post_type === $post_type_obj->menu_icon;
 
 	if ( is_string( $post_type_obj->menu_icon ) && ! $is_builtin_default ) {
-		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and registered icons.
+		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and namespaced icon names.
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
 			|| str_starts_with( $post_type_obj->menu_icon, 'dashicons-' )
-			|| WP_Icons_Registry::get_instance()->is_registered( $post_type_obj->menu_icon )
+			|| preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#', $post_type_obj->menu_icon )
 		) {
 			$menu_icon = $post_type_obj->menu_icon;
 		} else {

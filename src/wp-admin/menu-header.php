@@ -125,8 +125,8 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases. Any other value is looked up as a registered icon name and, if
-		 * found, rendered as inline SVG; otherwise it is treated as an image URL.
+		 * as special cases. A namespaced icon name is rendered as inline SVG, or leaves the
+		 * menu image empty if the icon is not found. Any other value is treated as an image URL.
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
@@ -141,11 +141,13 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
 				$img       = '<br />';
 				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
-			} else {
+			} elseif ( preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#', $item[6] ) ) {
 				$icon = wp_get_icon( $item[6] );
 				if ( '' !== $icon ) {
 					$img       = $icon;
 					$img_class = ' svg-icon';
+				} else {
+					$img = '<br />';
 				}
 			}
 		}
