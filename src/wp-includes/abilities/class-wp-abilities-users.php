@@ -180,10 +180,7 @@ final class WP_Abilities_Users {
 		if ( self::LOOKUP_COLLECTION !== $lookup_type ) {
 			$user = $this->resolve_readable_user( $input, $lookup_type );
 			if ( ! $user instanceof WP_User ) {
-				return new WP_Error(
-					'ability_invalid_permissions',
-					__( 'The requested user cannot be read.' )
-				);
+				return $this->not_found_error();
 			}
 
 			return $this->format_user( $user, $fields );
@@ -191,11 +188,12 @@ final class WP_Abilities_Users {
 
 		$include        = ! empty( $input['include'] ) ? wp_parse_id_list( $input['include'] ) : array();
 		$per_page       = $this->normalize_per_page( $input, $include );
+		$page           = isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1;
 		$can_list_users = current_user_can( 'list_users' );
 
 		$query_args = array(
 			'number' => $per_page,
-			'paged'  => isset( $input['page'] ) ? max( 1, absint( $input['page'] ) ) : 1,
+			'paged'  => $page,
 		);
 
 		if ( array() !== $include ) {
@@ -245,6 +243,27 @@ final class WP_Abilities_Users {
 
 		$query = new WP_User_Query( $query_args );
 
+		/*
+		 * The rows and the totals come from the same query, so they agree. As in the REST
+		 * users controller, rows are not filtered by site membership afterwards: on
+		 * multisite, WP_User_Query already limits the query to members of the current site.
+		 */
+		$total_users = $query->get_total();
+		$total_pages = (int) ceil( $total_users / $per_page );
+
+		/*
+		 * Paging past the last page is a caller error rather than an empty collection, so
+		 * report it instead of returning a bare empty list, as the REST posts controller
+		 * does. A genuinely empty result set still returns zero totals and no error.
+		 */
+		if ( $total_users > 0 && $page > $total_pages ) {
+			return new WP_Error(
+				'users_invalid_page_number',
+				__( 'The page number requested is larger than the number of pages available.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$users = array();
 		foreach ( $query->get_results() as $user ) {
 			if ( ! $user instanceof WP_User ) {
@@ -254,17 +273,10 @@ final class WP_Abilities_Users {
 			$users[] = $this->format_user( $user, $fields );
 		}
 
-		/*
-		 * The rows and the totals come from the same query, so they agree. As in the REST
-		 * users controller, rows are not filtered by site membership afterwards: on
-		 * multisite, WP_User_Query already limits the query to members of the current site.
-		 */
-		$total_users = $query->get_total();
-
 		return array(
 			'users'       => $users,
 			'total'       => $total_users,
-			'total_pages' => (int) ceil( $total_users / $per_page ),
+			'total_pages' => $total_pages,
 		);
 	}
 
@@ -750,7 +762,7 @@ final class WP_Abilities_Users {
 						'page'                => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Page of results to return.' ),
+							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error. Check `total_pages` before requesting later pages.' ),
 						),
 						'per_page'            => array(
 							'type'        => 'integer',
@@ -907,5 +919,25 @@ final class WP_Abilities_Users {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Builds the error for a single-user lookup that does not resolve to a readable user.
+	 *
+	 * Unreachable through gated transports, which run {@see self::check_permission()}
+	 * first and deny the same lookups. It is kept so that a direct call to the execute
+	 * callback still fails closed. A user the current user cannot read is reported like a
+	 * missing one, so the error does not reveal whether such an account exists.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return WP_Error The not-found error.
+	 */
+	private function not_found_error(): WP_Error {
+		return new WP_Error(
+			'users_not_found',
+			__( 'The requested user was not found.' ),
+			array( 'status' => 404 )
+		);
 	}
 }
