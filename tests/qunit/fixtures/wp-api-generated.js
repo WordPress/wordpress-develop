@@ -11004,7 +11004,22 @@ mockedApiResponse.Schema = {
                         },
                         "user": {
                             "description": "Limit result set to the sites a user is a member of. Accepts a user ID or \"me\".",
-                            "type": "string",
+                            "type": [
+                                "integer",
+                                "string"
+                            ],
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "me"
+                                    ]
+                                }
+                            ],
                             "required": false
                         },
                         "public": {
@@ -11117,14 +11132,29 @@ mockedApiResponse.Schema = {
                             "type": "integer",
                             "required": false
                         },
-                        "title": {
-                            "description": "Site title, set when the site is created. Default is the word \"Site\" followed by the site ID.",
+                        "blogname": {
+                            "description": "Site title, stored in the blogname option. Can only be set when the site is created.",
                             "type": "string",
                             "required": false
                         },
-                        "user_id": {
-                            "description": "User ID of the site administrator, set when the site is created.",
-                            "type": "integer",
+                        "user": {
+                            "description": "The site administrator, set when the site is created. Accepts a user ID or \"me\".",
+                            "type": [
+                                "integer",
+                                "string"
+                            ],
+                            "anyOf": [
+                                {
+                                    "type": "integer",
+                                    "minimum": 1
+                                },
+                                {
+                                    "type": "string",
+                                    "enum": [
+                                        "me"
+                                    ]
+                                }
+                            ],
                             "required": false
                         }
                     }

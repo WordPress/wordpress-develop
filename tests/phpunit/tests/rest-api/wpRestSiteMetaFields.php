@@ -185,7 +185,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_value() {
 		update_site_meta( self::$site_id, 'test_single', 'testvalue' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -205,7 +207,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_multi_value() {
 		add_site_meta( self::$site_id, 'test_multi', 'value1' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -233,7 +237,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_unregistered() {
 		update_site_meta( self::$site_id, 'test_unregistered', 'value1' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -250,7 +256,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_registered_no_api_access() {
 		update_site_meta( self::$site_id, 'test_no_rest', 'for_the_wicked' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -267,7 +275,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_registered_api_disabled() {
 		update_site_meta( self::$site_id, 'test_rest_disabled', 'sleepless_nights' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -316,7 +326,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 		update_site_meta( self::$site_id, 'test_number', '42' );
 		update_site_meta( self::$site_id, 'test_bool', 1 );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -343,7 +355,9 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 	public function test_get_value_custom_name() {
 		update_site_meta( self::$site_id, 'test_custom_name', 'janet' );
 
-		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$request->set_param( 'context', 'edit' );
+
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
@@ -384,6 +398,7 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
 		$request->set_body_params( $data );
+		$request->set_query_params( array( 'context' => 'edit' ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
@@ -458,10 +473,52 @@ class WP_Test_REST_Site_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
 		$request->set_body_params( $data );
+		$request->set_query_params( array( 'context' => 'edit' ) );
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 
 		$this->assertSame( 'test_value', get_site_meta( self::$site_id, 'test_single', true ) );
+	}
+
+	/**
+	 * Registered site meta may hold sensitive data, so site members reading
+	 * their own site in the view context do not get it.
+	 *
+	 * @ticket 40365
+	 * @covers WP_REST_Sites_Controller::prepare_item_for_response
+	 */
+	public function test_site_member_does_not_see_meta_in_view_context() {
+		update_site_meta( self::$site_id, 'test_single', 'testvalue' );
+
+		$member_id = self::factory()->user->create();
+		add_user_to_blog( self::$site_id, $member_id, 'subscriber' );
+		wp_set_current_user( $member_id );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'meta', $response->get_data() );
+	}
+
+	/**
+	 * The meta is only part of the edit context.
+	 *
+	 * @ticket 40365
+	 * @covers WP_REST_Sites_Controller::get_item_schema
+	 */
+	public function test_meta_is_only_in_the_edit_context() {
+		$request    = new WP_REST_Request( 'OPTIONS', '/wp/v2/sites' );
+		$response   = rest_get_server()->dispatch( $request );
+		$properties = $response->get_data()['schema']['properties'];
+
+		$this->assertSame( array( 'edit' ), $properties['meta']['context'] );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/sites/%d', self::$site_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'meta', $response->get_data(), 'Even a super admin does not get meta in the view context.' );
 	}
 }
