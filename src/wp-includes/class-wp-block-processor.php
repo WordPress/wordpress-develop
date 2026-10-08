@@ -184,7 +184,7 @@
  *     while ( $processor->next_token() && $processor->get_depth() > $depth ) {
  *         continue
  *     }
- *     // Processor is now paused at the token immediately following the closed block.
+ *     // Processor is now paused at the block’s closing delimiter, or at the end of the document.
  *
  * #### Extracting blocks
  *
@@ -208,10 +208,13 @@
  *
  *     $gallery_at    = $processor->get_span()->start;
  *     $gallery_block = $processor->extract_full_block_and_advance();
- *     $after_gallery = $processor->get_span()->start;
+ *     $last_token    = $processor->get_span();
+ *     $after_gallery = isset( $last_token )
+ *         ? $last_token->start + $last_token->length
+ *         : strlen( $post_content );
  *     return (
  *         substr( $post_content, 0, $gallery_at ) .
- *         serialize_block( modify_gallery( $gallery_block ) .
+ *         serialize_block( modify_gallery( $gallery_block ) ) .
  *         substr( $post_content, $after_gallery )
  *     );
  *
@@ -1249,8 +1252,10 @@ class WP_Block_Processor {
 	 * one might want to find image galleries, parse them, modify them, and then reserialize
 	 * them in place.
 	 *
-	 * Once this function returns, the parser will be matched on token following the close
-	 * of the given block.
+	 * Once this function returns, the processor is matched on the last token of the given
+	 * block: the closing delimiter of a block with inner content, the delimiter of a void
+	 * block, or the span of freeform HTML. If the document ends before the block closes,
+	 * {@see self::get_span()} returns `null`.
 	 *
 	 * The return type of this method is compatible with the return of {@see \parse_blocks()}.
 	 *
@@ -1263,8 +1268,10 @@ class WP_Block_Processor {
 	 *
 	 *     $gallery_at  = $processor->get_span()->start;
 	 *     $gallery     = $processor->extract_full_block_and_advance();
-	 *     $ends_before = $processor->get_span();
-	 *     $ends_before = $ends_before->start ?? strlen( $post_content );
+	 *     $last_token  = $processor->get_span();
+	 *     $ends_before = isset( $last_token )
+	 *         ? $last_token->start + $last_token->length
+	 *         : strlen( $post_content );
 	 *
 	 *     $new_gallery = update_gallery( $gallery );
 	 *     $new_gallery = serialize_block( $new_gallery );
@@ -1314,6 +1321,11 @@ class WP_Block_Processor {
 			'innerContent' => array(),
 		);
 
+		// A void block is its own last token.
+		if ( self::VOID === $this->type ) {
+			return $block;
+		}
+
 		$depth = $this->get_depth();
 		while ( $this->next_token() && $this->get_depth() > $depth ) {
 			if ( $this->is_html() ) {
@@ -1333,17 +1345,6 @@ class WP_Block_Processor {
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
-			}
-
-			/*
-			 * Because the parser has advanced past the closing block token, it
-			 * may be matched on an HTML span. This needs to be processed before
-			 * moving on to the next token at the start of the next loop iteration.
-			 */
-			if ( $this->is_html() ) {
-				$chunk                   = $this->get_html_content();
-				$block['innerHTML']     .= $chunk;
-				$block['innerContent'][] = $chunk;
 			}
 		}
 

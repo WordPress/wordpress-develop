@@ -1573,6 +1573,66 @@ HTML
 	}
 
 	/**
+	 * Ensures that block extraction leaves the processor matched on the last token of the block.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_extraction_stop_tokens
+	 *
+	 * @param string      $test_document An HTML document containing blocks.
+	 * @param string      $block_type    Block type at which to start extraction.
+	 * @param string|null $stop_token    Token on which extraction should stop, or null if
+	 *                                   extraction should reach the end of the document.
+	 */
+	public function test_extraction_stops_on_last_token_of_block( string $test_document, string $block_type, ?string $stop_token ) {
+		$processor = new WP_Block_Processor( $test_document );
+		$this->assertTrue(
+			$processor->next_block( $block_type ),
+			"Failed to find a block of type '{$block_type}'."
+		);
+
+		$processor->extract_full_block_and_advance();
+		$span = $processor->get_span();
+
+		$this->assertSame(
+			$stop_token,
+			isset( $span ) ? substr( $test_document, $span->start, $span->length ) : null,
+			'Stopped on the wrong token after extracting a block.'
+		);
+	}
+
+	/**
+	 * Ensures that inner HTML at the end of incomplete input appears only in the block containing it.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block() {
+		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
+		$processor->next_block( 'g' );
+		$group = $processor->extract_full_block_and_advance();
+
+		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
+		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_extraction_stop_tokens() {
+		return array(
+			'Block with inner content'        => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Void block'                      => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:a /-->' ),
+			'Void block before freeform HTML' => array( '<!-- wp:a /-->x', 'a', '<!-- wp:a /-->' ),
+			'Void block at end of document'   => array( '<!-- wp:a /-->', 'a', '<!-- wp:a /-->' ),
+			'Inner void block'                => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:v /-->' ),
+			'Freeform HTML'                   => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                  => array( '<!-- wp:a -->x', 'a', null ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return Generator
@@ -1592,6 +1652,26 @@ HTML
 
 		yield 'Group with void inner' => array(
 			'<!-- wp:group --><!-- wp:void /--><!-- /wp:group -->',
+		);
+
+		yield 'Adjacent void blocks' => array( '<!-- wp:a /--><!-- wp:b /-->' );
+
+		yield 'Freeform HTML after void block' => array( '<!-- wp:a /-->x<!-- wp:b /-->' );
+
+		yield 'Block after void block' => array( "<!-- wp:a /-->\n<!-- wp:b -->y<!-- /wp:b -->" );
+
+		yield 'Block directly after void block' => array( '<!-- wp:a /--><!-- wp:b -->y<!-- /wp:b -->' );
+
+		yield 'Void block after group ending in void inner' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- /wp:g --><!-- wp:b /-->',
+		);
+
+		yield 'Adjacent void inner blocks' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->',
+		);
+
+		yield 'Inner block directly after void inner block' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- wp:p -->y<!-- /wp:p --><!-- /wp:g -->',
 		);
 
 		/*
