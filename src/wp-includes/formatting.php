@@ -622,8 +622,11 @@ function wp_html_split( $input ) {
  * @since 4.4.0
  *
  * @return string The regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
+	/** @var non-falsy-string|null $regex */
 	static $regex;
 
 	if ( ! isset( $regex ) ) {
@@ -2278,6 +2281,8 @@ function sanitize_title_for_query( $title ) {
  *                          When set to 'save', additional entities are converted to hyphens
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
+ *
+ * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
@@ -2397,6 +2402,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = preg_replace( '|-+|', '-', $title );
 	$title = trim( $title, '-' );
 
+	/** @var lowercase-string $title Only lowercase characters remain after the replacements above. */
 	return $title;
 }
 
@@ -2870,6 +2876,8 @@ function backslashit( $value ) {
  *
  * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
+ *
+ * @phpstan-return non-falsy-string
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -5318,10 +5326,18 @@ function wp_parse_str( $input_string, &$result ) {
  *
  * @since 2.3.0
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string $content Text to be converted.
  * @return string Converted text.
  */
 function wp_pre_kses_less_than( $content ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
 }
 
@@ -5346,6 +5362,8 @@ function wp_pre_kses_less_than_callback( $matches ) {
  *
  * @since 5.3.1
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string         $content           Content to be run through KSES.
  * @param array[]|string $allowed_html      An array of allowed HTML elements
  *                                          and attributes, or a context name
@@ -5354,6 +5372,12 @@ function wp_pre_kses_less_than_callback( $matches ) {
  * @return string Filtered text to run through KSES.
  */
 function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protocols ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	/*
 	 * `filter_block_content` is expected to call `wp_kses`. Temporarily remove
 	 * the filter to avoid recursion.
