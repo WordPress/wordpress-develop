@@ -947,13 +947,15 @@ class WP_REST_Request implements ArrayAccess {
 				/** @var bool|\WP_Error $valid_check */
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
-				if ( false === $valid_check ) {
-					$invalid_params[ $key ] = __( 'Invalid parameter.' );
-				}
-
 				if ( is_wp_error( $valid_check ) ) {
 					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
 					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
+				} elseif ( $valid_check ) {
+					// The parameter is valid.
+					continue;
+				} else {
+					// Other all falsy parameters are invalid.
+					$invalid_params[ $key ] = __( 'Invalid parameter.' );
 				}
 			}
 		}
