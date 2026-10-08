@@ -3480,7 +3480,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// Non-whitespace would trigger fostering, unsupported at this time.
 					$this->bail( 'Foster parenting is not supported.' );
-					break;
 				}
 				break;
 
