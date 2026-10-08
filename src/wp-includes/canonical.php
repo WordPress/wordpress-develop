@@ -456,8 +456,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$default_feed = get_default_feed();
 
 			if ( is_feed() && in_array( $feed, $wp_rewrite->feeds, true ) ) {
-				$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
-
 				if ( ! is_singular() && get_query_var( 'withcomments' ) ) {
 					$addl_path .= 'comments/';
 				}
@@ -707,9 +705,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	// Remove trailing slash for robots.txt or sitemap requests.
-	if ( is_robots()
-		|| ! empty( get_query_var( 'sitemap' ) ) || ! empty( get_query_var( 'sitemap-stylesheet' ) )
-	) {
+	if ( is_robots() || ! empty( get_query_var( 'sitemap' ) ) ) {
 		$redirect['path'] = untrailingslashit( $redirect['path'] );
 	}
 
@@ -986,7 +982,7 @@ function redirect_guess_404_permalink() {
 				if ( empty( $post_types ) ) {
 					return false;
 				}
-				$where .= " AND post_type IN ('" . join( "', '", esc_sql( $post_types ) ) . "')";
+				$where .= " AND post_type IN ('" . implode( "', '", esc_sql( $post_types ) ) . "')";
 			} else {
 				if ( ! in_array( get_query_var( 'post_type' ), $publicly_viewable_post_types, true ) ) {
 					return false;
@@ -1007,8 +1003,22 @@ function redirect_guess_404_permalink() {
 			$where .= $wpdb->prepare( ' AND DAYOFMONTH(post_date) = %d', get_query_var( 'day' ) );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$post_id = $wpdb->get_var( "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')" );
+		$query = "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')";
+
+		$key          = md5( $query );
+		$last_changed = wp_cache_get_last_changed( 'posts' );
+		$cache_key    = "redirect_guess_404_permalink:$key";
+		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
+
+		if ( false !== $cache ) {
+			$post_id = $cache;
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$post_id = (int) $wpdb->get_var( $query );
+
+			// Cache misses as well as hits.
+			wp_cache_set_salted( $cache_key, $post_id, 'post-queries', $last_changed );
+		}
 
 		if ( ! $post_id ) {
 			return false;

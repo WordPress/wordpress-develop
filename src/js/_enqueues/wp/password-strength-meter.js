@@ -3,9 +3,11 @@
  */
 
 /* global zxcvbn */
+
+/** @namespace wp */
 window.wp = window.wp || {};
 
-(function($){
+( function( $, wp ) {
 	var __ = wp.i18n.__,
 		sprintf = wp.i18n.sprintf;
 
@@ -24,10 +26,10 @@ window.wp = window.wp || {};
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param {string} password1       The subject password.
+		 * @param {string} password1      The subject password.
 		 * @param {Array}  disallowedList An array of words that will lower the entropy of
-		 *                                 the password.
-		 * @param {string} password2       The password confirmation.
+		 *                                the password.
+		 * @param {string} password2      The password confirmation.
 		 *
 		 * @return {number} The password strength score.
 		 */
@@ -146,4 +148,4 @@ window.wp = window.wp || {};
 	 * @type {wp.passwordStrength.meter}
 	 */
 	window.passwordStrength = wp.passwordStrength.meter;
-})(jQuery);
+} )( jQuery, window.wp );

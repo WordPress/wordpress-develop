@@ -1291,16 +1291,16 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		unset( $new_attachment_post->ID );
 
 		// Set new attachment post title with fallbacks.
-		$new_attachment_post->post_title = $new_attachment_post->post_title ?? $original_attachment_post->post_title ?? $image_name;
+		$new_attachment_post->post_title ??= $original_attachment_post->post_title ?? $image_name;
 
 		// Set new attachment post caption (post_excerpt).
-		$new_attachment_post->post_excerpt = $new_attachment_post->post_excerpt ?? $original_attachment_post->post_excerpt ?? '';
+		$new_attachment_post->post_excerpt ??= $original_attachment_post->post_excerpt ?? '';
 
 		// Set new attachment post description (post_content) with fallbacks.
-		$new_attachment_post->post_content = $new_attachment_post->post_content ?? $original_attachment_post->post_content ?? '';
+		$new_attachment_post->post_content ??= $original_attachment_post->post_content ?? '';
 
 		// Set post parent if set in request, else the default of `0` (no parent).
-		$new_attachment_post->post_parent = $new_attachment_post->post_parent ?? 0;
+		$new_attachment_post->post_parent ??= 0;
 
 		// Insert the new attachment post.
 		$new_attachment_id = wp_insert_attachment( wp_slash( (array) $new_attachment_post ), $saved['path'], 0, true );
@@ -1355,6 +1355,20 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			// Path to the originally uploaded image file relative to the uploads directory.
 			'file'          => _wp_relative_upload_path( $image_file ),
 		);
+
+		/*
+		 * Record the attachment this chain of edits started from, so the edit root can be
+		 * found in one lookup from any image later in the chain. The new attachment inherits
+		 * the edit root recorded on the image being edited, or that image itself when it was
+		 * uploaded rather than edited.
+		 */
+		$edit_root_id = wp_get_edit_root_attachment_id( $attachment_id );
+
+		if ( ! $edit_root_id ) {
+			$edit_root_id = (int) $attachment_id;
+		}
+
+		update_post_meta( $new_attachment_id, '_wp_attachment_edit_root_id', $edit_root_id );
 
 		/**
 		 * Filters the meta data for the new image created by editing an existing image.
@@ -1509,6 +1523,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			$data['post'] = ! empty( $post->post_parent ) ? (int) $post->post_parent : null;
 		}
 
+		/*
+		 * ID of the attachment this image's chain of edits started from, or 0.
+		 * Edit context only, since only editors need it.
+		 * Not validated: deleting an attachment clears it from images edited from it.
+		 */
+		if ( in_array( 'edit_root', $fields, true ) && 'edit' === $request['context'] ) {
+			$data['edit_root'] = wp_get_edit_root_attachment_id( $post->ID );
+		}
+
 		if ( in_array( 'source_url', $fields, true ) ) {
 			$data['source_url'] = wp_get_attachment_url( $post->ID );
 		}
@@ -1525,7 +1548,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					$metadata = array();
 				}
 
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				$fallback_sizes = array(
 					'thumbnail',
@@ -1667,6 +1690,31 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 		}
 
+		/*
+		 * Embeddable link to the edit root, like `featured_media`. Added here rather than
+		 * in `prepare_links()`, which cannot see the request, and gated like the parent
+		 * controller's own links so a `_fields` request is not handed a stray `_links`.
+		 * Like `featured_media`, the link is skipped when the edit root no longer exists
+		 * or the user cannot read it, although the `edit_root` field still reports the ID.
+		 */
+		if (
+			'edit' === $request['context'] &&
+			( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) )
+		) {
+			$edit_root_id = wp_get_edit_root_attachment_id( $post->ID );
+
+			if (
+				$edit_root_id &&
+				( 'publish' === get_post_status( $edit_root_id ) || current_user_can( 'read_post', $edit_root_id ) )
+			) {
+				$response->add_link(
+					'https://api.w.org/edit-root',
+					rest_url( rest_get_route_for_post( $edit_root_id ) ),
+					array( 'embeddable' => true )
+				);
+			}
+		}
+
 		/**
 		 * Filters an attachment returned from the REST API.
 		 *
@@ -1803,6 +1851,13 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'description' => __( 'The ID for the associated post of the attachment.' ),
 			'type'        => 'integer',
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema['properties']['edit_root'] = array(
+			'description' => __( 'The ID of the attachment this attachment\'s chain of edits started from, or 0 if none is recorded.' ),
+			'type'        => 'integer',
+			'context'     => array( 'edit' ),
+			'readonly'    => true,
 		);
 
 		$schema['properties']['source_url'] = array(
@@ -3299,7 +3354,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					continue;
 				}
 
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				foreach ( $image_size as $name ) {
 					$metadata['sizes'][ $name ] = array(
@@ -3384,7 +3439,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					continue;
 				}
 
-				$metadata['sizes'] = $metadata['sizes'] ?? array();
+				$metadata['sizes'] ??= array();
 
 				$metadata['sizes'][ $image_size ] = array(
 					'width'     => $sub_size['width'] ?? 0,
@@ -3451,6 +3506,21 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		if ( isset( $request['_fields'] ) ) {
 			$response_request['_fields'] = $request['_fields'];
+		}
+
+		/*
+		 * Re-read the post. The 'wp_generate_attachment_metadata' filter above
+		 * runs long after $post was fetched, and a callback that rewrites the
+		 * post row - an optimizer changing post_mime_type once it has
+		 * converted the file, say - would otherwise be missing from this
+		 * response. The editor stores the response as its copy of the record
+		 * rather than reading the attachment again, so a stale row here is
+		 * what it keeps. A callback that deleted the attachment instead leaves
+		 * nothing to respond with, so that is reported as the error it is.
+		 */
+		$post = $this->get_post( $attachment_id );
+		if ( is_wp_error( $post ) ) {
+			return $post;
 		}
 
 		return $this->prepare_item_for_response( $post, $response_request );

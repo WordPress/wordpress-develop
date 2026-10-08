@@ -120,6 +120,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	public function set_up() {
 		parent::set_up();
 
+		// Avoid DNS lookups when validating URLs used by mocked image downloads.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return 'https://example.com';
+			}
+		);
+
 		// Add an uploader role to test upload capabilities.
 		add_role( 'uploader', 'File upload role' );
 		$role = get_role( 'uploader' );
@@ -185,6 +193,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	public function tear_down() {
 		$this->remove_added_uploads();
+		remove_post_type_support( 'attachment', 'thumbnail' );
 
 		if ( class_exists( WP_Image_Editor_Mock::class ) ) {
 			WP_Image_Editor_Mock::$spy         = array();
@@ -1843,16 +1852,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				// Expected returned values.
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				),
 			),
@@ -1897,16 +1906,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 				),
 				array(
 					'title'       => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => 'div <strong>strong</strong> oh noes',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => 'div <strong>strong</strong>',
 					),
 					'description' => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 					'caption'     => array(
-						'raw'      => '<div>div</div> <strong>strong</strong> oh noes',
-						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> oh noes</p>",
+						'raw'      => '<div>div</div> <strong>strong</strong> ',
+						'rendered' => "<div>div</div>\n<p> <strong>strong</strong> </p>",
 					),
 				)
 			);
@@ -2072,13 +2081,14 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 35, $properties );
+		$this->assertCount( 36, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'exif_orientation', $properties );
 		$this->assertArrayHasKey( 'image_quality', $properties );
 		$this->assertArrayHasKey( 'image_output_format', $properties );
 		$this->assertArrayHasKey( 'image_save_progressive', $properties );
+		$this->assertArrayHasKey( 'edit_root', $properties );
 		$this->assertArrayHasKey( 'filename', $properties );
 		$this->assertArrayHasKey( 'filesize', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );
@@ -2973,10 +2983,15 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_logged_out() {
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -2986,14 +3001,19 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_cannot_upload() {
 		$user = self::factory()->user->create_and_get( array( 'role' => 'editor' ) );
 		$user->add_cap( 'upload_files', false );
 
 		wp_set_current_user( $user->ID );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -3003,11 +3023,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
-	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_returns_error_if_cannot_edit() {
 		wp_set_current_user( self::$uploader_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = self::factory()->attachment->create(
+			array(
+				'file'           => 'canola.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			)
+		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
 		$request->set_body_params( array( 'src' => wp_get_attachment_image_url( $attachment, 'full' ) ) );
@@ -3219,6 +3244,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * @requires function imagejpeg
 	 */
 	public function test_edit_image_rotate_with_unbaked_exif_orientation() {
+		// Only the full-size image dimensions are checked, so no intermediate sizes are needed.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+
 		wp_set_current_user( self::$superadmin_id );
 		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-rotated-90ccw.jpg' );
 
@@ -3658,7 +3686,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_do_request( $request );
 
 		// The edit endpoint creates a new attachment, so we expect a 201 status.
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$data              = $response->get_data();
 		$new_attachment_id = $data['id'];
@@ -5129,6 +5157,204 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that the finalize response carries the generated sub-sizes.
+	 *
+	 * The response is prepared after the sub-size metadata has been written, so
+	 * it is the finished attachment record. The editor stores it as-is instead
+	 * of fetching the attachment again to pick the sizes up.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_response_contains_generated_sub_sizes(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=finalize-response-test.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$response      = rest_get_server()->dispatch( $request );
+		$data          = $response->get_data();
+		$attachment_id = $data['id'];
+
+		// Nothing has generated sub-sizes yet, which is the window in which the
+		// editor's first read of the attachment happens.
+		$this->assertEmpty(
+			(array) $data['media_details']['sizes'],
+			'The create response should not carry sub-sizes yet.'
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=finalize-response-test-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$response       = rest_get_server()->dispatch( $request );
+		$thumbnail_data = $response->get_data();
+		$this->assertSame( 200, $response->get_status(), 'Sideloading the thumbnail should succeed.' );
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $thumbnail_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertArrayHasKey( 'media_details', $data );
+		$this->assertArrayHasKey(
+			'thumbnail',
+			$data['media_details']['sizes'],
+			'The finalize response should list the sideloaded sub-size.'
+		);
+
+		// source_url is what the Image block's Resolution control offers.
+		$this->assertArrayHasKey(
+			'source_url',
+			$data['media_details']['sizes']['thumbnail'],
+			'Each sub-size in the finalize response should carry its URL.'
+		);
+		$this->assertStringEndsWith(
+			'finalize-response-test-150x150.jpg',
+			$data['media_details']['sizes']['thumbnail']['source_url']
+		);
+
+		// The finalize response must match what a later read would return, as
+		// the editor stores it in place of that read.
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment_id}" );
+		$request->set_param( 'context', 'view' );
+		$fetched = rest_get_server()->dispatch( $request )->get_data();
+
+		$this->assertSame(
+			array_keys( (array) $fetched['media_details']['sizes'] ),
+			array_keys( (array) $data['media_details']['sizes'] ),
+			'The finalize response should carry the same sizes a refetch would.'
+		);
+	}
+
+	/**
+	 * Verifies that the finalize response reflects the post row as it stands
+	 * after the metadata has been generated.
+	 *
+	 * finalize_item() applies the 'wp_generate_attachment_metadata' filter
+	 * before preparing its response, and a callback is free to rewrite the
+	 * attachment's post row - an optimizer that converts the file updates
+	 * post_mime_type, for instance. The editor stores this response as its
+	 * copy of the record rather than reading the attachment again, so
+	 * anything stale here is what the block keeps for the session.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_response_reflects_post_row_changed_by_metadata_filter(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=filtered-post-row.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_param( 'title', 'Original title' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$attachment_id = rest_get_server()->dispatch( $request )->get_data()['id'];
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/sideload" );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=filtered-post-row-150x150.jpg' );
+		$request->set_param( 'image_size', 'thumbnail' );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/test-image.jpg' ) );
+
+		$thumbnail_data = rest_get_server()->dispatch( $request )->get_data();
+
+		// Stands in for a plugin that rewrites the post row as the metadata is
+		// generated. Added after the upload so only finalize runs it.
+		add_filter(
+			'wp_generate_attachment_metadata',
+			static function ( $metadata, $id ) {
+				wp_update_post(
+					array(
+						'ID'         => $id,
+						'post_title' => 'Rewritten while generating metadata',
+					)
+				);
+				return $metadata;
+			},
+			10,
+			2
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array( $thumbnail_data ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$this->assertSame(
+			'Rewritten while generating metadata',
+			get_post( $attachment_id )->post_title,
+			'The filter should have rewritten the stored post row.'
+		);
+
+		$this->assertSame(
+			'Rewritten while generating metadata',
+			$response->get_data()['title']['raw'],
+			'The finalize response should carry the rewritten post row, not the row as it was before the metadata was generated.'
+		);
+	}
+
+	/**
+	 * Verifies that finalize fails when the attachment no longer exists by the
+	 * time its response is prepared.
+	 *
+	 * A 'wp_generate_attachment_metadata' callback that rejects the file and
+	 * deletes the attachment must not be answered with a 200 built from the row
+	 * as it was before the callback ran: the editor would store that stale
+	 * record and report the upload as complete.
+	 *
+	 * @ticket 66056
+	 *
+	 * @covers WP_REST_Attachments_Controller::finalize_item
+	 */
+	public function test_finalize_fails_when_metadata_filter_deletes_attachment(): void {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$author_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=deleted-while-finalizing.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+		$request->set_body( (string) file_get_contents( DIR_TESTDATA . '/images/canola.jpg' ) );
+
+		$attachment_id = rest_get_server()->dispatch( $request )->get_data()['id'];
+
+		add_filter(
+			'wp_generate_attachment_metadata',
+			static function ( $metadata, $id ) {
+				wp_delete_attachment( $id, true );
+				return $metadata;
+			},
+			10,
+			2
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/finalize" );
+		$request->set_param( 'sub_sizes', array() );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_post_invalid_id', $response, 404 );
+	}
+
+	/**
 	 * Tests that the sideload route declares `convert_format` as a boolean arg.
 	 *
 	 * Without this declaration, multipart/form-data requests deliver the value as
@@ -6062,5 +6288,436 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->assertSame( 'rest_invalid_url', $result->get_error_code() );
 			$this->assertSame( 400, $result->get_error_data()['status'] );
 		}
+	}
+
+	/**
+	 * Edits an image and returns the ID of the attachment the edit created.
+	 *
+	 * @param int $attachment_id Attachment to edit.
+	 * @return int New attachment ID.
+	 */
+	private function edit_image_and_get_new_id( $attachment_id ) {
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment_id}/edit" );
+		$request->set_body_params(
+			array(
+				'rotation' => 60,
+				'src'      => wp_get_attachment_image_url( $attachment_id, 'full' ),
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertSame( 201, $response->get_status(), 'The image edit should have succeeded.' );
+
+		$data = $response->get_data();
+
+		return $data['id'];
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_edit_root_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/media' );
+		$response = rest_get_server()->dispatch( $request );
+		$schema   = $response->get_data()['schema']['properties']['edit_root'];
+
+		$this->assertSame( 'integer', $schema['type'], 'The edit root should be typed as an integer.' );
+		$this->assertSame( array( 'edit' ), $schema['context'], 'The edit root should be exposed in the edit context only.' );
+		$this->assertTrue( $schema['readonly'], 'The edit root should be read only.' );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_get_edit_root_attachment_id_returns_zero_for_an_upload() {
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$this->assertSame( 0, wp_get_edit_root_attachment_id( $attachment ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_records_the_edited_image_as_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$this->assertSame( $attachment, wp_get_edit_root_attachment_id( $edited ) );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_an_edited_image_keeps_the_first_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'An edit of an edit should still point at the image the chain started from.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edited_image_response_includes_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'edit_root', $data, 'An edited image should report an edit root.' );
+		$this->assertSame( $attachment, $data['edit_root'], 'The edit root should be the image that was edited.' );
+	}
+
+	/**
+	 * The response carries only the ID, so the edit root is offered as an embeddable
+	 * link in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_root_is_embeddable() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links, 'An edited image should carry an edit root link.' );
+		$this->assertCount(
+			1,
+			$links['https://api.w.org/edit-root'],
+			'The link should be added once.'
+		);
+
+		$link = $links['https://api.w.org/edit-root'][0];
+		$this->assertStringEndsWith( '/wp/v2/media/' . $attachment, $link['href'], 'The link should point at the edit root.' );
+		$this->assertTrue( $link['attributes']['embeddable'], 'The link should be embeddable.' );
+
+		// Requesting `_embed` hydrates the edit root alongside the edited image.
+		$embedded = rest_get_server()->response_to_data( $response, true );
+		$this->assertSame(
+			$attachment,
+			$embedded['_embedded']['wp:edit-root'][0]['id'],
+			'Embedding should hydrate the edit root alongside the edited image.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_edit_root_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * @ticket 65987
+	 */
+	public function test_uploaded_image_reports_no_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 0, $response->get_data()['edit_root'], 'An uploaded image should report no edit root.' );
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/edit-root',
+			$response->get_links(),
+			'An image with no edit root should carry no link.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_view_context_omits_the_edit_root() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'view' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayNotHasKey( 'edit_root', $data );
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_edit_root_can_be_requested_on_its_own() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,edit_root' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertArrayHasKey( 'edit_root', $data, 'The edit root should be returned when it is the only field requested.' );
+		$this->assertArrayNotHasKey( 'media_details', $data, 'Only the requested fields should be returned.' );
+		$this->assertSame( $attachment, $data['edit_root'], 'Limiting the fields should not change the reported edit root.' );
+	}
+
+	/**
+	 * Core leaves `_links` out of a response limited with `_fields` by not building
+	 * its own links at all, so this link must not be the one thing that puts the
+	 * member back.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_omits_the_edit_root_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * Asking for the field is not asking for links.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_requesting_the_edit_root_field_without_links_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,edit_root' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * A request that limits the fields but asks for links gets every link, this one
+	 * included, whether or not it asked for the field.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_field_limited_request_keeps_the_edit_root_link_when_links_are_requested() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		$edited = $this->edit_image_and_get_new_id( $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$edited}" );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( '_fields', 'id,_links' );
+		$links = rest_do_request( $request )->get_links();
+
+		$this->assertArrayHasKey( 'https://api.w.org/edit-root', $links );
+	}
+
+	/**
+	 * An attachment recorded as its own edit root is a broken record, not a chain,
+	 * so it reports no edit root.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_attachment_recorded_as_its_own_edit_root_reports_none() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_edit_root_id', $attachment );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$data = rest_do_request( $request )->get_data();
+
+		$this->assertSame(
+			0,
+			wp_get_edit_root_attachment_id( $attachment ),
+			'A record pointing at the attachment itself should resolve to no edit root.'
+		);
+		$this->assertSame( 0, $data['edit_root'], 'The field should report no edit root.' );
+	}
+
+	/**
+	 * The field reports the recorded ID as is, but the link is only offered when the
+	 * edit root exists and can be read, in the same way as a featured image.
+	 *
+	 * @ticket 65987
+	 */
+	public function test_missing_edit_root_keeps_the_field_but_omits_the_link() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+
+		update_post_meta( $attachment, '_wp_attachment_edit_root_id', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
+
+		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_do_request( $request );
+
+		$this->assertSame(
+			REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+			$response->get_data()['edit_root'],
+			'The field should report the recorded ID even when the edit root is gone.'
+		);
+		$this->assertArrayNotHasKey(
+			'https://api.w.org/edit-root',
+			$response->get_links(),
+			'A missing edit root should carry no link.'
+		);
+	}
+
+	/**
+	 * Trashing is not deleting. `delete_attachment` does not fire for a trashed
+	 * attachment, and the record is deliberately left in place so that untrashing
+	 * the edit root restores the relationship intact.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_trashing_an_edit_root_keeps_the_record_on_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_trash_post( $attachment );
+
+		$this->assertSame(
+			'trash',
+			get_post_status( $attachment ),
+			'The edit root should have been trashed rather than deleted.'
+		);
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited ),
+			'Trashing the edit root should leave the record in place.'
+		);
+
+		wp_untrash_post( $attachment );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited ),
+			'Untrashing the edit root should leave the relationship intact.'
+		);
+	}
+
+	/**
+	 * Once the edit root is gone its record is cleared, so a further edit has no
+	 * lineage to inherit and starts a new chain from the image being edited.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_editing_again_after_the_edit_root_is_deleted_starts_a_new_chain() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		wp_delete_attachment( $attachment, true );
+
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		$this->assertSame(
+			$edited,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'The new image should point at the image it was edited from.'
+		);
+	}
+
+	/**
+	 * Deleting an image from the middle of a chain does not orphan the images
+	 * edited from it, because every image records the start of the chain rather
+	 * than the image directly above it.
+	 *
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_a_middle_image_leaves_the_rest_of_the_chain_intact() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment   = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited       = $this->edit_image_and_get_new_id( $attachment );
+		$edited_again = $this->edit_image_and_get_new_id( $edited );
+
+		wp_delete_attachment( $edited, true );
+
+		$this->assertSame(
+			$attachment,
+			wp_get_edit_root_attachment_id( $edited_again ),
+			'The remaining image should still point at the start of the chain.'
+		);
+	}
+
+	/**
+	 * @ticket 65987
+	 * @requires function imagejpeg
+	 */
+	public function test_deleting_an_edit_root_clears_it_from_the_images_edited_from_it() {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$edited     = $this->edit_image_and_get_new_id( $attachment );
+
+		$unrelated        = self::factory()->attachment->create_upload_object( self::$test_file );
+		$unrelated_edited = $this->edit_image_and_get_new_id( $unrelated );
+
+		wp_delete_attachment( $attachment, true );
+
+		$this->assertSame(
+			'',
+			get_post_meta( $edited, '_wp_attachment_edit_root_id', true ),
+			'The record pointing at the deleted attachment should have been cleared.'
+		);
+		$this->assertSame(
+			$unrelated,
+			wp_get_edit_root_attachment_id( $unrelated_edited ),
+			'An unrelated image should have kept its record.'
+		);
 	}
 }

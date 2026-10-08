@@ -24,11 +24,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/class-file-upload-upgrader.php
 		-
-			message: '#^Strict comparison using \=\=\= between ''sticky'' and ''sticky'' will always evaluate to true\.$#'
-			identifier: identical.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/block-supports/position.php
-		-
 			message: '#^Strict comparison using \=\=\= between ''404'' and ''404'' will always evaluate to true\.$#'
 			identifier: identical.alwaysTrue
 			count: 1

@@ -35,8 +35,21 @@ function wp_normalize_state_preset_vars( $value ) {
 		return $value;
 	}
 
-	$unwrapped_name = str_replace( '|', '--', substr( $value, strlen( 'var:' ) ) );
-	return "var(--wp--$unwrapped_name)";
+	$parts = explode( '|', substr( $value, strlen( 'var:' ) ) );
+
+	/*
+	 * The slug is kebab-cased when the preset's custom property is generated,
+	 * so a reference has to be converted the same way or it points at a
+	 * property that does not exist (`--wp--preset--font-size--3xl` for a preset
+	 * generated as `--wp--preset--font-size--3-xl`). Mirrors
+	 * `WP_Theme_JSON::convert_custom_properties()` and the JavaScript style
+	 * engine's `getCSSValueFromRawStyle()`.
+	 */
+	if ( 3 === count( $parts ) ) {
+		$parts[2] = _wp_to_kebab_case( $parts[2] );
+	}
+
+	return 'var(--wp--' . implode( '--', $parts ) . ')';
 }
 
 /**
@@ -399,7 +412,7 @@ function wp_add_block_state_style_rule( &$css_rules, $state, $selector, $style, 
  */
 function wp_get_block_state_style_rules( $state_styles, $block_type, $rules_group = null ) {
 	$css_rules       = array();
-	$block_selectors = isset( $block_type->selectors ) && is_array( $block_type->selectors )
+	$block_selectors = is_array( $block_type->selectors )
 		? $block_type->selectors
 		: array();
 
@@ -542,6 +555,16 @@ function wp_render_block_states_support( $block_content, $block ) {
 		return $block_content;
 	}
 
+	/*
+	 * Every CSS rule this function can produce is keyed off the block's `style`
+	 * attribute. Without it there is nothing to generate, so bail before doing
+	 * any of the lookups below — this runs for every block on every request.
+	 */
+	$style = $block['attrs']['style'] ?? array();
+	if ( empty( $style ) || ! is_array( $style ) ) {
+		return $block_content;
+	}
+
 	$block_name = $block['blockName'];
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block_name );
 	if ( ! $block_type ) {
@@ -549,7 +572,6 @@ function wp_render_block_states_support( $block_content, $block ) {
 	}
 
 	$supported_pseudo_states  = WP_Theme_JSON::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] ?? array();
-	$style                    = $block['attrs']['style'] ?? array();
 	$css_rules                = array();
 	$viewport_settings        = wp_get_global_settings( array( 'viewport' ) );
 	$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( $viewport_settings );

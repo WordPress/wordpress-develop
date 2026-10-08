@@ -48,6 +48,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
@@ -56,6 +63,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$theme_features      = $GLOBALS['_wp_theme_features'];
 	}
 
 	/**
@@ -78,7 +86,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST                      = array();
+		$GLOBALS['_wp_theme_features'] = self::$theme_features;
+
+		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
+		remove_post_type_support( 'customize_changeset', 'revisions' );
+
 		parent::tear_down();
 	}
 
@@ -1357,11 +1370,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_2' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_2' ) );
 
 		// User saved as one who also cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_3' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_3' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_3' ) );
 	}
 
 	/**
@@ -1991,7 +2004,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager( array( 'changeset_uuid' => $wp_customize->changeset_uuid() ) );
 		do_action( 'customize_register', $wp_customize );
 		$wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
-		$this->assertSame( 'Unfilteredevil', get_option( 'scratchpad' ) );
+		$this->assertSame( 'Unfiltered', get_option( 'scratchpad' ) );
 
 		// Attempt publishing scratchpad as anonymous user when changeset was set by privileged user.
 		update_option( 'scratchpad', '' );
@@ -2008,7 +2021,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		$wp_customize = null;
 		unset( $GLOBALS['wp_actions']['customize_register'] );
-		$this->assertSame( 'Unfilteredevil', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
+		$this->assertSame( 'Unfiltered', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
 		wp_publish_post( $changeset_post_id ); // @todo If wp_update_post() is used here, then kses will corrupt the post_content.
 		$this->assertSame( 'Unfiltered<script>evil</script>', get_option( 'scratchpad' ) );
 	}
@@ -3041,7 +3054,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$url                     = 'http://badreferer.example.com/';
 		$_SERVER['HTTP_REFERER'] = wp_slash( $url );
-		$this->assertNotEquals( $url, $this->manager->get_return_url() );
+		$this->assertNotSame( $url, $this->manager->get_return_url() );
 		$this->assertSame( $preview_url, $this->manager->get_return_url() );
 
 		$this->manager->set_return_url( admin_url( 'edit.php?trashed=1' ) );

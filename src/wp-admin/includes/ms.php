@@ -1003,6 +1003,7 @@ function confirm_delete_users( $users ) {
 												'include' => $blog_users,
 												'show'    => 'display_name_with_login',
 												'id'      => "reassign_user_{$details->userblog_id}_{$delete_user->ID}",
+												'blog_id' => $details->userblog_id,
 											)
 										);
 										?>
@@ -1210,6 +1211,8 @@ function get_site_screen_help_tab_args() {
  * @since 4.9.0
  *
  * @return string Help sidebar content.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .

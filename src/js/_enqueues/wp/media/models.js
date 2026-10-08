@@ -17,7 +17,7 @@ window.wp = window.wp || {};
  * @namespace
  *
  * @param {Object} attributes The properties passed to the main media controller.
- * @return {wp.media.view.MediaFrame} A media workflow.
+ * @return {void|wp.media.view.MediaFrame} A media workflow.
  */
 media = wp.media = function( attributes ) {
 	var MediaFrame = media.view.MediaFrame,
@@ -136,8 +136,12 @@ _.extend( media, /** @lends wp.media */{
 	/**
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
-	 * @param {Object} dimensions
-	 * @return {Object}
+	 * @param {Object} dimensions           The dimensions to scale.
+	 * @param {number} dimensions.width     The width to scale.
+	 * @param {number} dimensions.height    The height to scale.
+	 * @param {number} dimensions.maxWidth  The maxWidth to scale.
+	 * @param {number} dimensions.maxHeight The maxHeight to scale.
+	 * @return {Object} The scaled dimensions.
 	 */
 	fit: function( dimensions ) {
 		var width     = dimensions.width,
@@ -182,9 +186,9 @@ _.extend( media, /** @lends wp.media */{
 	 * Truncates a string by injecting an ellipsis into the middle.
 	 * Useful for filenames.
 	 *
-	 * @param {string} string
-	 * @param {number} [length=30]
-	 * @param {string} [replacement=&hellip;]
+	 * @param {string} string                 The string to truncate.
+	 * @param {number} [length=30]            The maximum length of the truncated string.
+	 * @param {string} [replacement=&hellip;] The string to use as the ellipsis replacement.
 	 * @return {string} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
@@ -209,7 +213,7 @@ _.extend( media, /** @lends wp.media */{
  *
  * @static
  * @param {string} id A string used to identify a model.
- * @return {wp.media.model.Attachment}
+ * @return {wp.media.model.Attachment} The attachment model for the given id.
  */
 media.attachment = function( id ) {
 	return Attachment.get( id );
@@ -228,8 +232,8 @@ Attachments.all = new Attachments();
  *
  * Shorthand for creating a new Attachments Query.
  *
- * @param {Object} [props]
- * @return {wp.media.model.Attachments}
+ * @param {Object} [props] The properties to filter the attachments by.
+ * @return {wp.media.model.Attachments} A collection of attachments matching the query.
  */
 media.query = function( props ) {
 	return new Attachments( null, {

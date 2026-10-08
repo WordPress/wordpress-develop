@@ -138,7 +138,8 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return string|null Default return is 'noform'. A subclass may opt to return null.
+	 * @return string|void Default return is 'noform'. A subclass which echoes its own
+	 *                     form returns nothing.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -212,6 +213,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string Name attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
@@ -237,6 +240,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string ID attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_id( $field_name ) {
 		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );

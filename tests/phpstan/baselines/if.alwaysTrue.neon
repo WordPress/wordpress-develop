@@ -32,11 +32,6 @@ parameters:
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 1
-			path: ../../../src/wp-content/themes/twentynineteen/comments.php
-		-
-			message: '#^If condition is always true\.$#'
-			identifier: if.alwaysTrue
-			count: 1
 			path: ../../../src/wp-content/themes/twentynineteen/template-parts/footer/footer-widgets.php
 		-
 			message: '#^If condition is always true\.$#'
