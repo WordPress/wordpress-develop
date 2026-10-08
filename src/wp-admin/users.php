@@ -252,25 +252,9 @@ switch ( $wp_list_table->current_action() ) {
 			exit();
 		}
 
-		$user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
-
-		$reset_count = 0;
-
-		foreach ( $user_ids as $id ) {
-			if ( ! current_user_can( 'edit_user', $id ) ) {
-				wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
-			}
-
-			if ( $id === $current_user->ID ) {
-				$update = 'err_admin_reset';
-				continue;
-			}
-
-			// Send the password reset link.
-			$user = get_userdata( $id );
-			if ( true === retrieve_password( $user->user_login ) ) {
-				++$reset_count;
-			}
+		$reset_count = _wp_send_password_reset_to_users( $_REQUEST['users'] );
+		if ( is_wp_error( $reset_count ) ) {
+			wp_die( $reset_count );
 		}
 
 		$redirect = add_query_arg(
