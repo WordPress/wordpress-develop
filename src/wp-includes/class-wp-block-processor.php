@@ -986,22 +986,19 @@ class WP_Block_Processor {
 			 * The delimiter must also be a single complete HTML comment.
 			 *
 			 * The comment closer, as in {@see self::find_html_comment_end()}, cannot start
-			 * before the JSON span.
+			 * before the JSON span. It ends at the first `>` there which follows `--` or `--!`.
 			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$closer_at = $json_at;
+			$closer_at = $json_at - 1;
 			do {
-				$dashes_at = strpos( $text, '--', $closer_at );
-				if ( false === $dashes_at ) {
+				$closer_at = strpos( $text, '>', $closer_at + 1 );
+				if ( false === $closer_at ) {
 					goto incomplete;
 				}
 
-				$closer_at = $dashes_at + 2 + strspn( $text, '-', $dashes_at + 2 );
-				if ( $closer_at < $end && '!' === $text[ $closer_at ] ) {
-					++$closer_at;
-				}
-			} while ( $closer_at >= $end || '>' !== $text[ $closer_at ] );
+				$dashes_at = '!' === $text[ $closer_at - 1 ] ? $closer_at - 3 : $closer_at - 2;
+			} while ( '-' !== $text[ $dashes_at ] || '-' !== $text[ $dashes_at + 1 ] );
 
 			$after_comment_end = $closer_at + 1;
 
