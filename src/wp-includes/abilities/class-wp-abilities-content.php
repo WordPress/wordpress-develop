@@ -1,6 +1,6 @@
 <?php
 /**
- * Abilities API: WP_Content_Abilities class.
+ * Abilities API: WP_Abilities_Content class.
  *
  * @package WordPress
  * @subpackage Abilities API
@@ -30,7 +30,7 @@ declare( strict_types = 1 );
  *
  * @access private
  */
-final class WP_Content_Abilities {
+final class WP_Abilities_Content {
 
 	/**
 	 * The ability category used for content abilities.
@@ -95,14 +95,6 @@ final class WP_Content_Abilities {
 	 * @var list<string>
 	 */
 	private const LOOP_GLOBALS = array( 'post', 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );
-
-	/**
-	 * Cached post field definitions, keyed by field name in output order.
-	 *
-	 * @since 7.2.0
-	 * @var array<string, mixed>|null
-	 */
-	private ?array $post_properties = null;
 
 	/**
 	 * Registers all content abilities.
@@ -395,7 +387,7 @@ final class WP_Content_Abilities {
 	 * because the gate cannot resolve rows before the query runs.
 	 *
 	 * A post is returned as an empty object when its field projection is empty, so callers
-	 * must not assume array access on a post. See {@see self::to_output_post()}.
+	 * must not assume array access on a post. See {@see self::format_post()}.
 	 *
 	 * @since 7.2.0
 	 *
@@ -411,7 +403,7 @@ final class WP_Content_Abilities {
 		if ( isset( $input['id'] ) || isset( $input['slug'] ) ) {
 			$post = $this->get_requested_post( $input );
 
-			return $post ? $this->to_output_post( $this->format_post( $post, $fields ) ) : $this->not_found_error();
+			return $post ? $this->format_post( $post, $fields ) : $this->not_found_error();
 		}
 
 		$post_type_object = $this->get_exposed_post_type( $input['post_type'] ?? null );
@@ -514,9 +506,20 @@ final class WP_Content_Abilities {
 			$query_args['post_parent'] = $parent;
 		}
 
-		$query       = new WP_Query( $query_args );
-		$total       = $this->get_query_total( $query, $query_args, $page );
-		$total_pages = (int) ceil( $total / $per_page );
+		$query = new WP_Query( $query_args );
+		$total = $this->get_query_total( $query, $query_args, $page );
+
+		/*
+		 * Count the pages with the page size the query ran with, as the REST posts controller
+		 * does, since query filters such as `pre_get_posts` callbacks can change it. Without
+		 * paging, the query returns every post on one page.
+		 */
+		$query_per_page = (int) $query->get( 'posts_per_page' );
+		if ( $query->get( 'nopaging' ) || $query_per_page < 1 ) {
+			$total_pages = $total > 0 ? 1 : 0;
+		} else {
+			$total_pages = (int) ceil( $total / $query_per_page );
+		}
 
 		/*
 		 * Paging past the last page is a caller error rather than an empty collection, so
@@ -542,7 +545,12 @@ final class WP_Content_Abilities {
 
 		$posts = array();
 		foreach ( $query->posts as $post ) {
-			if ( ! $post instanceof WP_Post ) {
+			/*
+			 * Skip posts of other post types, which query filters can add, such as a
+			 * `pre_get_posts` callback that adds post types to the blog home without an
+			 * is_main_query() check.
+			 */
+			if ( ! $post instanceof WP_Post || $post_type !== $post->post_type ) {
 				continue;
 			}
 			if ( $requires_edit && ! current_user_can( 'edit_post', $post->ID ) ) {
@@ -552,12 +560,12 @@ final class WP_Content_Abilities {
 				continue;
 			}
 			// Keep rows whose field projection is empty so a caller can still count them.
-			$posts[] = $this->to_output_post( $this->format_post( $post, $fields ) );
+			$posts[] = $this->format_post( $post, $fields );
 		}
 
 		/*
 		 * Mirror the REST posts controller: totals come from the underlying WP_Query,
-		 * while row-level permission checks above may withhold individual returned rows.
+		 * while the row-level checks above may withhold individual returned rows.
 		 */
 		return array(
 			'posts'       => $posts,
@@ -754,6 +762,15 @@ final class WP_Content_Abilities {
 		// Candidates come newest first; a publicly viewable post is always readable here.
 		$readable = null;
 		foreach ( $query->posts as $candidate ) {
+			/*
+			 * Skip posts of other post types, which query filters can add, such as a
+			 * `pre_get_posts` callback that adds post types to single views without an
+			 * is_main_query() check, since a `name` query is a single view.
+			 */
+			if ( ! $candidate instanceof WP_Post || $post_type !== $candidate->post_type ) {
+				continue;
+			}
+
 			if ( is_post_publicly_viewable( $candidate ) ) {
 				return $candidate;
 			}
@@ -850,11 +867,7 @@ final class WP_Content_Abilities {
 	 * @return array<string, mixed> Post field definitions.
 	 */
 	private function get_post_properties(): array {
-		if ( null !== $this->post_properties ) {
-			return $this->post_properties;
-		}
-
-		$this->post_properties = array(
+		return array(
 			'id'                => array(
 				'type'        => 'integer',
 				'description' => __( 'The post ID.' ),
@@ -932,8 +945,6 @@ final class WP_Content_Abilities {
 				'description' => __( 'The parent post ID. Present for hierarchical post types.' ),
 			),
 		);
-
-		return $this->post_properties;
 	}
 
 	/**
@@ -1142,26 +1153,6 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Prepares a formatted post for output.
-	 *
-	 * A field projection can legitimately be empty, for example when the only requested
-	 * field is one the post type does not support. An empty PHP array encodes as `[]`,
-	 * which would break the `object` output schema, so return an empty object instead.
-	 *
-	 * This deliberately improves on the REST posts controller, which encodes the same
-	 * case as `[]` even though it types the response as an object
-	 * (`GET /wp/v2/posts/<id>?_fields=parent` on a non-hierarchical post type).
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<string, mixed> $formatted The formatted post data.
-	 * @return array<string, mixed>|stdClass The post data, or an empty object when the projection is empty.
-	 */
-	private function to_output_post( array $formatted ) {
-		return array() === $formatted ? (object) array() : $formatted;
-	}
-
-	/**
 	 * Formats a post into the ability output shape.
 	 *
 	 * As the REST posts controller does, the post is set up as the global post while its
@@ -1171,13 +1162,18 @@ final class WP_Content_Abilities {
 	 * protected-post placeholders. The field projection itself is delegated to
 	 * {@see self::build_post_fields()}.
 	 *
+	 * A field projection can legitimately be empty, for example when the only requested
+	 * field is one the post type does not support. An empty PHP array encodes as `[]`,
+	 * which would break the `object` output schema, so an empty object is returned instead.
+	 * The REST posts controller returns `[]` in that case.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post      $post   The post object.
 	 * @param list<string> $fields The requested field names.
-	 * @return array<string, mixed> The formatted post data.
+	 * @return array<string, mixed>|stdClass The formatted post data, or an empty object when the projection is empty.
 	 */
-	private function format_post( WP_Post $post, array $fields ): array {
+	private function format_post( WP_Post $post, array $fields ) {
 		$can_edit          = current_user_can( 'edit_post', $post->ID );
 		$password_required = post_password_required( $post );
 		$unlock_password   = $password_required && $can_edit;
@@ -1198,7 +1194,7 @@ final class WP_Content_Abilities {
 		 * disabled or the global post pointing at this post for the rest of the request.
 		 */
 		try {
-			return $this->build_post_fields( $post, $fields, $can_edit, $password_required && ! $can_edit );
+			$data = $this->build_post_fields( $post, $fields, $can_edit, $password_required && ! $can_edit );
 		} finally {
 			if ( $unlock_password ) {
 				remove_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10 );
@@ -1206,6 +1202,8 @@ final class WP_Content_Abilities {
 
 			$this->restore_post_context( $previous_context );
 		}
+
+		return array() === $data ? (object) array() : $data;
 	}
 
 	/**
@@ -1245,16 +1243,16 @@ final class WP_Content_Abilities {
 			$data['status'] = $post->post_status;
 		}
 		if ( isset( $requested['date'] ) ) {
-			$data['date'] = $this->format_local_date( $post, 'date' );
+			$data['date'] = $this->format_date( $post, 'date', false );
 		}
 		if ( isset( $requested['date_gmt'] ) ) {
-			$data['date_gmt'] = $this->format_gmt_date( $post, 'date' );
+			$data['date_gmt'] = $this->format_date( $post, 'date', true );
 		}
 		if ( isset( $requested['modified'] ) ) {
-			$data['modified'] = $this->format_local_date( $post, 'modified' );
+			$data['modified'] = $this->format_date( $post, 'modified', false );
 		}
 		if ( isset( $requested['modified_gmt'] ) ) {
-			$data['modified_gmt'] = $this->format_gmt_date( $post, 'modified' );
+			$data['modified_gmt'] = $this->format_date( $post, 'modified', true );
 		}
 		if ( isset( $requested['slug'] ) ) {
 			$data['slug'] = $post->post_name;
@@ -1338,7 +1336,9 @@ final class WP_Content_Abilities {
 	 * @return string The post title.
 	 */
 	private function get_title( WP_Post $post ): string {
-		$strip = array( $this, 'return_raw_title_format' );
+		$strip = static function (): string {
+			return '%s';
+		};
 		add_filter( 'protected_title_format', $strip );
 		add_filter( 'private_title_format', $strip );
 
@@ -1358,17 +1358,6 @@ final class WP_Content_Abilities {
 			remove_filter( 'protected_title_format', $strip );
 			remove_filter( 'private_title_format', $strip );
 		}
-	}
-
-	/**
-	 * Returns the raw title format, used to strip protected/private title prefixes.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return string The unprefixed title format.
-	 */
-	public function return_raw_title_format(): string {
-		return '%s';
 	}
 
 	/**
@@ -1489,39 +1478,29 @@ final class WP_Content_Abilities {
 	}
 
 	/**
-	 * Formats a post date field as an ISO 8601 string in the site's timezone.
+	 * Formats a post date field as an ISO 8601 string, in the site's timezone or in GMT.
+	 *
+	 * In GMT, it reads the stored GMT date, deriving it from the local date when it is
+	 * missing (e.g. drafts), mirroring the REST posts controller.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post $post  The post object.
 	 * @param string  $field Either 'date' or 'modified'.
+	 * @param bool    $gmt   Whether to format the date in GMT instead of the site's timezone.
 	 * @return string The ISO 8601 date, or an empty string if unavailable.
 	 */
-	private function format_local_date( WP_Post $post, string $field ): string {
-		$datetime = get_post_datetime( $post, $field );
-
-		return $datetime ? $datetime->format( 'c' ) : '';
-	}
-
-	/**
-	 * Formats a post date field as an ISO 8601 string in GMT.
-	 *
-	 * Reads the stored GMT date, deriving it from the local date when it is missing
-	 * (e.g. drafts), mirroring the REST posts controller.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_Post $post  The post object.
-	 * @param string  $field Either 'date' or 'modified'.
-	 * @return string The ISO 8601 date, or an empty string if unavailable.
-	 */
-	private function format_gmt_date( WP_Post $post, string $field ): string {
-		$datetime = get_post_datetime( $post, $field, 'gmt' );
+	private function format_date( WP_Post $post, string $field, bool $gmt ): string {
+		$datetime = $gmt ? get_post_datetime( $post, $field, 'gmt' ) : false;
 		if ( ! $datetime ) {
 			$datetime = get_post_datetime( $post, $field );
 		}
 
-		return $datetime ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) )->format( 'c' ) : '';
+		if ( ! $datetime ) {
+			return '';
+		}
+
+		return ( $gmt ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) ) : $datetime )->format( 'c' );
 	}
 
 	/**
