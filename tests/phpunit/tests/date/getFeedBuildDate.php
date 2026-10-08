@@ -288,6 +288,43 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a comment feed uses the comment date when it is newer than
+	 * the post, reading it straight from the WP_Comment objects.
+	 *
+	 * Code review found that resolving each comment through
+	 * {@see get_comment()} was unnecessary, since WP_Query always populates
+	 * $comments with WP_Comment objects, and it fired the 'get_comment'
+	 * filter once per comment.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_use_comment_date_in_comment_feed() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_date'     => '2024-06-15 12:00:00',
+				'comment_date_gmt' => '2024-06-15 12:00:00',
+			)
+		);
+
+		$this->go_to( get_post_comments_feed_link( $post_id ) );
+		$this->assertTrue( is_comment_feed(), 'Expected a comment feed.' );
+
+		$get_comment_filter = new MockAction();
+		add_filter( 'get_comment', array( $get_comment_filter, 'filter' ) );
+
+		$this->assertSame( '2024-06-15T12:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+		$this->assertSame( 0, $get_comment_filter->get_call_count(), 'Expected comments to be read without calling get_comment().' );
+	}
+
+	/**
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
