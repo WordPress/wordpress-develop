@@ -280,6 +280,10 @@ figcaption,
 	@include font-family( $font__heading );
 }
 
+:where(.editor-styles-wrapper table:not(:last-child)) {
+	margin-bottom: 1.375rem;
+}
+
 /** === Cover === */
 
 .wp-block-cover {
