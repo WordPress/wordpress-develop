@@ -322,14 +322,9 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Unlike the content ability, a page past the last one is not an error,
-	 * matching the REST users controller.
-	 *
 	 * @ticket 64657
 	 */
-	public function test_out_of_range_page_returns_no_users(): void {
-		$first_page = $this->server->dispatch( $this->run_request( array( 'per_page' => 1 ) ) )->get_data();
-
+	public function test_out_of_range_page_returns_400(): void {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
@@ -338,11 +333,9 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 				)
 			)
 		);
-		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status(), 'Requesting a page past the last one should succeed.' );
-		$this->assertSame( array(), $data['users'], 'A page past the last one should hold no users.' );
-		$this->assertSame( $first_page['total'], $data['total'], 'The total should still count every matching user.' );
+		$this->assertSame( 400, $response->get_status(), 'Requesting a page past the last one should return a 400 error.' );
+		$this->assertSame( 'users_invalid_page_number', $response->get_data()['code'], 'The error should identify the invalid page number.' );
 	}
 
 	/**

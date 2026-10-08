@@ -707,6 +707,58 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Paging past the last page reports an error rather than an empty collection.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_page_past_the_last_one_is_rejected(): void {
+		wp_set_current_user( self::$fixture_ids['administrator'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'include'  => array( self::$fixture_ids['editor'], self::$fixture_ids['subscriber'] ),
+				'per_page' => 1,
+				'page'     => 3,
+				'fields'   => array( 'id' ),
+			)
+		);
+
+		$this->assertWPError( $result, 'A page past the last one should fail rather than return an empty list.' );
+		$this->assertSame( 'users_invalid_page_number', $result->get_error_code(), 'A page past the last one should report a dedicated error code.' );
+		$this->assertSame( 400, $result->get_error_data()['status'], 'A page past the last one is a caller error.' );
+	}
+
+	/**
+	 * A genuinely empty result set beyond the first page reports zero totals, not an error.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_empty_result_set_beyond_the_first_page_is_not_an_error(): void {
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+		$this->register_ability();
+
+		// A subscriber only sees public authors in a collection, and the administrator has no posts.
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'include' => array( self::$fixture_ids['administrator'] ),
+				'page'    => 2,
+				'fields'  => array( 'id' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'users'       => array(),
+				'total'       => 0,
+				'total_pages' => 0,
+			),
+			$result,
+			'An empty result set should report zero totals on any page.'
+		);
+	}
+
+	/**
 	 * Collection results keep the default ordering, not the order of the include list.
 	 *
 	 * The include list filters the results but does not order them, as in the REST users
@@ -1735,5 +1787,30 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'Missing single-user lookups should fail closed.' );
 		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Missing single-user lookups should use the invalid permissions error.' );
+	}
+
+	/**
+	 * The execute callback fails closed with a not-found error when invoked directly.
+	 *
+	 * Gated transports never reach this branch, because check_permission() denies the same
+	 * lookups first. A user the current user cannot read is reported like a missing one.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_execute_callback_returns_not_found_for_unresolved_lookups(): void {
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+
+		$users = new WP_Abilities_Users();
+
+		$missing = $users->execute_users_query( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+
+		$this->assertWPError( $missing, 'A nonexistent user ID should fail the lookup.' );
+		$this->assertSame( 'users_not_found', $missing->get_error_code(), 'A missing user should map to the not-found error.' );
+		$this->assertSame( 404, $missing->get_error_data()['status'], 'A missing user should be reported as not found.' );
+
+		$unreadable = $users->execute_users_query( array( 'id' => self::$fixture_ids['administrator'] ) );
+
+		$this->assertWPError( $unreadable, 'A user the current user cannot read should fail the lookup.' );
+		$this->assertSame( 'users_not_found', $unreadable->get_error_code(), 'A user the current user cannot read should be reported like a missing one.' );
 	}
 }
