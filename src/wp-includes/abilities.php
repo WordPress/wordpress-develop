@@ -9,7 +9,7 @@
 
 declare( strict_types = 1 );
 
-require_once __DIR__ . '/abilities/class-wp-content-abilities.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-content.php';
 
 /**
  * Registers the core ability categories.
@@ -373,5 +373,5 @@ function wp_register_core_abilities(): void {
 	);
 
 	// Register the content abilities (currently the read-only `core/content-query`).
-	( new WP_Content_Abilities() )->register();
+	( new WP_Abilities_Content() )->register();
 }

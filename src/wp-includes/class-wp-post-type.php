@@ -595,6 +595,9 @@ final class WP_Post_Type {
 			$args['rest_namespace'] = 'wp/v2';
 		}
 
+		// Only `true` exposes the post type, so other values, such as arrays, can be given a meaning later.
+		$args['show_in_abilities'] = true === $args['show_in_abilities'];
+
 		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];

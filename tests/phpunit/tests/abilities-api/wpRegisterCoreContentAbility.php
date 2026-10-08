@@ -5,7 +5,7 @@ declare( strict_types=1 );
 /**
  * Tests for the core/content-query ability shipped with the Abilities API.
  *
- * @covers WP_Content_Abilities
+ * @covers WP_Abilities_Content
  *
  * @group abilities-api
  */
@@ -168,7 +168,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	private function register_ability(): void {
 		global $wp_current_filter;
 		$wp_current_filter[] = 'wp_abilities_api_init'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Faking the action context to register within it.
-		( new WP_Content_Abilities() )->register();
+		( new WP_Abilities_Content() )->register();
 	}
 
 	/**
@@ -428,6 +428,65 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$ids    = wp_list_pluck( $result['posts'], 'id' );
 
 		$this->assertContains( $post_id, $ids, 'The custom post type should be queryable through the content ability.' );
+	}
+
+	/**
+	 * Returns `show_in_abilities` values other than `true`.
+	 *
+	 * @return array<string, array{value: mixed}> Non-boolean `show_in_abilities` test cases.
+	 */
+	public function data_show_in_abilities_values_other_than_true(): array {
+		return array(
+			'array of operations' => array(
+				'value' => array( 'create' ),
+			),
+			'string "false"'      => array(
+				'value' => 'false',
+			),
+			'integer 1'           => array(
+				'value' => 1,
+			),
+		);
+	}
+
+	/**
+	 * Only a `show_in_abilities` value of `true` exposes a post type, so other values, such as
+	 * arrays, can be given a meaning later.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_show_in_abilities_values_other_than_true
+	 * @since 7.2.0
+	 *
+	 * @param mixed $value The `show_in_abilities` value to register the post type with.
+	 */
+	public function test_does_not_expose_a_post_type_with_a_show_in_abilities_value_other_than_true( $value ): void {
+		register_post_type(
+			'content_cpt',
+			array(
+				'public'            => true,
+				'show_in_abilities' => $value,
+			)
+		);
+
+		$this->assertFalse( get_post_type_object( 'content_cpt' )->show_in_abilities, 'The post type object should hold false.' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'content_cpt',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		// Query mode is the third `oneOf` branch; its `post_type` enum lists exposed types.
+		$enum = wp_get_ability( 'core/content-query' )->get_input_schema()['oneOf'][2]['properties']['post_type']['enum'];
+		$this->assertNotContains( 'content_cpt', $enum, 'The post type should not appear in the query enum.' );
+
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'id' => $post_id ) );
+		$this->assertWPError( $result, 'A post of the post type should not be readable by ID.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'The by-ID lookup should be denied.' );
 	}
 
 	/**
@@ -1285,6 +1344,99 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns field sets that a request is checked against with read or with edit access.
+	 *
+	 * @return array<string, array{fields: list<string>}> Field set test cases.
+	 */
+	public function data_read_and_edit_fields(): array {
+		return array(
+			'read fields' => array(
+				'fields' => array( 'id' ),
+			),
+			'edit fields' => array(
+				'fields' => array( 'id', 'content_raw' ),
+			),
+		);
+	}
+
+	/**
+	 * A slug lookup resolves only posts of the requested post type, also when a query filter
+	 * adds post types to single views.
+	 *
+	 * WP_Query treats the lookup's `name` query as a single view, so a `pre_get_posts`
+	 * callback without an is_main_query() check also runs for it. The newest post sharing
+	 * the slug would otherwise win, even from a post type that is not exposed.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_read_and_edit_fields
+	 * @since 7.2.0
+	 *
+	 * @param list<string> $fields The fields to request.
+	 */
+	public function test_slug_lookup_skips_posts_of_other_post_types( array $fields ): void {
+		register_post_type(
+			'hidden_cpt',
+			array(
+				'public'   => true,
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_name'   => 'shared-slug',
+				'post_status' => 'publish',
+				'post_date'   => '2026-01-01 10:00:00',
+			)
+		);
+		$other_ids = array(
+			self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_name'   => 'shared-slug',
+					'post_status' => 'publish',
+					'post_date'   => '2026-03-01 10:00:00',
+				)
+			),
+			self::factory()->post->create(
+				array(
+					'post_type'   => 'hidden_cpt',
+					'post_name'   => 'shared-slug',
+					'post_status' => 'publish',
+					'post_date'   => '2026-06-01 10:00:00',
+				)
+			),
+		);
+
+		foreach ( $other_ids as $other_id ) {
+			$this->assertSame( 'shared-slug', get_post( $other_id )->post_name, 'Precondition: newer posts of other types should share the slug.' );
+		}
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_single() ) {
+					$query->set( 'post_type', array( 'post', 'page', 'hidden_cpt' ) );
+				}
+			}
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'post_type' => 'post',
+				'slug'      => 'shared-slug',
+				'fields'    => $fields,
+			)
+		);
+
+		$this->assertIsArray( $result, 'The slug lookup should succeed.' );
+		$this->assertSame( $post_id, $result['id'], 'The slug lookup should resolve to the post of the requested type.' );
+	}
+
+	/**
 	 * Include is a query-only option and cannot be combined with single-post modes.
 	 *
 	 * @ticket 66268
@@ -1773,6 +1925,65 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertContains( $mine_id, $ids, 'The author_slug filter should include the author\'s posts.' );
 		$this->assertNotContains( $other_id, $ids, 'The author_slug filter should exclude other authors\' posts.' );
 		$this->assertSame( array( $author_slug ), array_unique( wp_list_pluck( $result['posts'], 'author_slug' ) ), 'Each post should return its author\'s slug.' );
+	}
+
+	/**
+	 * Query mode returns only posts of the requested post type, also when a query filter adds
+	 * post types to the blog home.
+	 *
+	 * WP_Query treats the ability's query as the blog home, so a `pre_get_posts` callback
+	 * without an is_main_query() check also runs for it. The read check would let through
+	 * posts of other exposed post types, and the edit check posts of any post type.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_read_and_edit_fields
+	 * @since 7.2.0
+	 *
+	 * @param list<string> $fields The fields to request.
+	 */
+	public function test_query_mode_skips_posts_of_other_post_types( array $fields ): void {
+		register_post_type(
+			'hidden_cpt',
+			array(
+				'public'   => true,
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+
+		// With several post types, an editable query keeps only the current user's posts.
+		$ids = array();
+		foreach ( array( 'post', 'page', 'hidden_cpt' ) as $post_type ) {
+			$ids[] = self::factory()->post->create(
+				array(
+					'post_author' => self::$user_ids['administrator'],
+					'post_type'   => $post_type,
+					'post_status' => 'publish',
+				)
+			);
+		}
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_home() ) {
+					$query->set( 'post_type', array( 'post', 'page', 'hidden_cpt' ) );
+				}
+			}
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'post_type' => 'post',
+				'include'   => $ids,
+				'fields'    => $fields,
+			)
+		);
+
+		$this->assertSame( 3, $result['total'], 'Precondition: the query filter should add the other post types.' );
+		$this->assertSame( array( $ids[0] ), wp_list_pluck( $result['posts'], 'id' ), 'Query mode should return only posts of the requested type.' );
 	}
 
 	/**
@@ -2291,7 +2502,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->login_as( 'author' );
 
-		$ability = new WP_Content_Abilities();
+		$ability = new WP_Abilities_Content();
 
 		$this->assertFalse(
 			$ability->allow_password_content( true, get_post( $owned_id ) ),
@@ -2532,6 +2743,81 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( array(), $result['posts'], 'No posts match the query.' );
 		$this->assertSame( 0, $result['total'], 'An empty result set reports a zero total.' );
 		$this->assertSame( 0, $result['total_pages'], 'An empty result set reports zero pages.' );
+	}
+
+	/**
+	 * Returns page sizes that a query filter can set, with the pages they make of five posts.
+	 *
+	 * @return array<string, array{posts_per_page: int, total_pages: int, last_page_count: int}> Page size test cases.
+	 */
+	public function data_page_sizes_set_by_a_query_filter(): array {
+		return array(
+			'smaller page size' => array(
+				'posts_per_page'  => 2,
+				'total_pages'     => 3,
+				'last_page_count' => 1,
+			),
+			'no paging'         => array(
+				'posts_per_page'  => -1,
+				'total_pages'     => 1,
+				'last_page_count' => 5,
+			),
+		);
+	}
+
+	/**
+	 * Query mode counts the pages with the page size the query ran with.
+	 *
+	 * WP_Query treats the ability's query as the blog home, so a `pre_get_posts` callback
+	 * without an is_main_query() check can change its page size. Counting the pages with the
+	 * requested page size would then report the wrong number of pages, and reject pages that
+	 * hold posts or serve the same posts again.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_page_sizes_set_by_a_query_filter
+	 * @since 7.2.0
+	 *
+	 * @param int $posts_per_page  The page size the query filter sets.
+	 * @param int $total_pages     The expected number of pages.
+	 * @param int $last_page_count The expected number of posts on the last page.
+	 */
+	public function test_query_counts_pages_with_the_page_size_the_query_ran_with( int $posts_per_page, int $total_pages, int $last_page_count ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ids = self::factory()->post->create_many( 5, array( 'post_status' => 'publish' ) );
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ) use ( $posts_per_page ): void {
+				if ( $query->is_home() ) {
+					$query->set( 'posts_per_page', $posts_per_page );
+				}
+			}
+		);
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$input   = array(
+			'post_type' => 'post',
+			'include'   => $ids,
+			'per_page'  => 4,
+			'fields'    => array( 'id' ),
+		);
+
+		$first_page = $ability->execute( $input );
+
+		$this->assertSame( 5, $first_page['total'], 'The total should count every matching post.' );
+		$this->assertSame( $total_pages, $first_page['total_pages'], 'The page count should follow the page size the query ran with.' );
+
+		$last_page = $ability->execute( array_merge( $input, array( 'page' => $total_pages ) ) );
+
+		$this->assertIsArray( $last_page, 'The last page should be served.' );
+		$this->assertCount( $last_page_count, $last_page['posts'], 'The last page should return the remaining posts.' );
+
+		$past_last_page = $ability->execute( array_merge( $input, array( 'page' => $total_pages + 1 ) ) );
+
+		$this->assertWPError( $past_last_page, 'The page after the last one should be rejected.' );
+		$this->assertSame( 'content_invalid_page_number', $past_last_page->get_error_code(), 'Paging past the last page should report the page number error.' );
 	}
 
 	/**
@@ -3192,7 +3478,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_execute_callback_returns_not_found_for_structural_lookup_failures(): void {
 		$this->login_as( 'administrator' );
 
-		$content = new WP_Content_Abilities();
+		$content = new WP_Abilities_Content();
 
 		$missing = $content->execute_content_query( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 		$this->assertWPError( $missing, 'A nonexistent post ID should fail the lookup.' );
@@ -3248,7 +3534,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'administrator' );
-		$content = new WP_Content_Abilities();
+		$content = new WP_Abilities_Content();
 
 		$result = $content->execute_content_query(
 			array(
@@ -3274,7 +3560,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function test_execute_callback_rejects_non_integer_parent_filter(): void {
 		$this->login_as( 'administrator' );
-		$content = new WP_Content_Abilities();
+		$content = new WP_Abilities_Content();
 
 		$result = $content->execute_content_query(
 			array(
@@ -3302,7 +3588,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
-		$content = new WP_Content_Abilities();
+		$content = new WP_Abilities_Content();
 
 		$result = $content->execute_content_query(
 			array(
@@ -3333,7 +3619,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$query = static function ( array $statuses, int $user_id ) {
-			return ( new WP_Content_Abilities() )->execute_content_query(
+			return ( new WP_Abilities_Content() )->execute_content_query(
 				array(
 					'post_type'   => 'post',
 					'status'      => $statuses,
@@ -3374,7 +3660,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
 		$query = static function ( string $author_slug ) {
-			return ( new WP_Content_Abilities() )->execute_content_query(
+			return ( new WP_Abilities_Content() )->execute_content_query(
 				array(
 					'post_type'   => 'post',
 					'author_slug' => $author_slug,
@@ -3412,7 +3698,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
 		$is_member = is_user_member_of_blog( $super_admin_id, $site_id );
-		$result    = ( new WP_Content_Abilities() )->execute_content_query(
+		$result    = ( new WP_Abilities_Content() )->execute_content_query(
 			array(
 				'post_type'   => 'post',
 				'author_slug' => 'network-author',
