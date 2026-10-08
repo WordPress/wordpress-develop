@@ -1677,7 +1677,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_html_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -1699,7 +1698,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto before_html_anything_else;
-				break;
 		}
 
 		/*
@@ -1759,7 +1757,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1804,7 +1801,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 				goto before_head_anything_else;
-				break;
 		}
 
 		if ( $is_closer ) {
@@ -1860,7 +1856,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1992,7 +1987,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
@@ -2085,7 +2079,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_noscript_anything_else;
-				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -2189,7 +2182,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 				goto after_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -2278,7 +2270,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto after_head_anything_else;
-				break;
 		}
 
 		/*
@@ -3820,7 +3811,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_column_group_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4381,7 +4371,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4704,7 +4693,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
-				break;
 		}
 
 		/*
