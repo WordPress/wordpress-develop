@@ -801,7 +801,12 @@ function stream_preview_image( $post_id ) {
 		return false;
 	}
 
-	return wp_stream_image( $img, $post->post_mime_type, $post_id );
+	$mime_type = $post->post_mime_type;
+	if ( method_exists( $img, 'get_mime_type' ) ) {
+		$mime_type = $img->get_mime_type();
+	}
+
+	return wp_stream_image( $img, $mime_type, $post_id );
 }
 
 /**
