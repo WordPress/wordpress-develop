@@ -511,6 +511,16 @@ class WP_Block_Processor {
 	private $open_blocks_at = array();
 
 	/**
+	 * Whether {@see self::next_token()} should pass over HTML spans instead
+	 * of pausing on them, for searches which cannot match an HTML span.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var bool
+	 */
+	private $skip_html_spans = false;
+
+	/**
 	 * Creates a new block processor.
 	 *
 	 * Example:
@@ -648,9 +658,10 @@ class WP_Block_Processor {
 	 * @return bool Whether a block delimiter was matched.
 	 */
 	public function next_delimiter( ?string $block_name = null ): bool {
-		if ( ! isset( $block_name ) ) {
+		// Only the wildcard and the freeform block types match HTML spans.
+		if ( '*' === $block_name || 'core/freeform' === $block_name || 'freeform' === $block_name ) {
 			while ( $this->next_token() ) {
-				if ( ! $this->is_html() ) {
+				if ( $this->is_block_type( $block_name ) ) {
 					return true;
 				}
 			}
@@ -658,13 +669,19 @@ class WP_Block_Processor {
 			return false;
 		}
 
-		while ( $this->next_token() ) {
-			if ( $this->is_block_type( $block_name ) ) {
-				return true;
-			}
+		$this->skip_html_spans = true;
+
+		if ( ! isset( $block_name ) ) {
+			$found = $this->next_token();
+		} else {
+			do {
+				$found = $this->next_token();
+			} while ( $found && ! $this->is_block_type( $block_name ) );
 		}
 
-		return false;
+		$this->skip_html_spans = false;
+
+		return $found;
 	}
 
 	/**
@@ -777,8 +794,15 @@ class WP_Block_Processor {
 					$this->matched_delimiter_at     = $end - $backup;
 					$this->matched_delimiter_length = $backup;
 
+					// No token follows this HTML span.
 					if ( $backup > 0 ) {
 						$this->last_error = self::INCOMPLETE_INPUT;
+						return ! $this->skip_html_spans;
+					}
+
+					if ( $this->skip_html_spans ) {
+						$this->state = self::COMPLETE;
+						return false;
 					}
 
 					return true;
@@ -1028,7 +1052,9 @@ class WP_Block_Processor {
 				$this->matched_delimiter_at     = $end;
 				$this->matched_delimiter_length = 0;
 
-				return true;
+				if ( ! $this->skip_html_spans ) {
+					return true;
+				}
 			}
 
 			$this->state = self::COMPLETE;
@@ -1076,7 +1102,7 @@ class WP_Block_Processor {
 		 * and the stack of open blocks is updated once the processor
 		 * advances onto that delimiter.
 		 */
-		if ( $comment_opening_at > $after_prev_delimiter ) {
+		if ( $comment_opening_at > $after_prev_delimiter && ! $this->skip_html_spans ) {
 			$this->state = self::HTML_SPAN;
 			return true;
 		}

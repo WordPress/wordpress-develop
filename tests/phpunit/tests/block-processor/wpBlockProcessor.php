@@ -1549,6 +1549,89 @@ HTML
 	}
 
 	/**
+	 * Verifies that next_delimiter() visits the same tokens, with the same state,
+	 * as calling next_token() and skipping tokens which don't match.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_documents_and_delimiter_searches
+	 *
+	 * @covers ::next_delimiter
+	 *
+	 * @param string      $html       Input document.
+	 * @param string|null $block_type Block type to search for, or `null` for any delimiter.
+	 */
+	public function test_next_delimiter_visits_same_tokens_as_next_token( string $html, ?string $block_type ): void {
+		$describe = static function ( WP_Block_Processor $processor ) {
+			$span = $processor->get_span();
+
+			return array(
+				'span'        => isset( $span ) ? array( $span->start, $span->length ) : null,
+				'type'        => $processor->get_delimiter_type(),
+				'block_type'  => $processor->get_printable_block_type(),
+				'attributes'  => $processor->allocate_and_return_parsed_attributes(),
+				'depth'       => $processor->get_depth(),
+				'breadcrumbs' => $processor->get_breadcrumbs(),
+				'last_error'  => $processor->get_last_error(),
+			);
+		};
+
+		$processor = new WP_Block_Processor( $html );
+		$expected  = array();
+		while ( $processor->next_token() ) {
+			if ( isset( $block_type ) ? $processor->is_block_type( $block_type ) : ! $processor->is_html() ) {
+				$expected[] = $describe( $processor );
+			}
+		}
+		$expected[] = $describe( $processor );
+
+		$processor = new WP_Block_Processor( $html );
+		$actual    = array();
+		while ( $processor->next_delimiter( $block_type ) ) {
+			$actual[] = $describe( $processor );
+		}
+		$actual[] = $describe( $processor );
+
+		$this->assertSame(
+			$expected,
+			$actual,
+			'Should have visited the same tokens as next_token(), and stopped in the same state.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string|null}>
+	 */
+	public static function data_documents_and_delimiter_searches(): array {
+		$documents = array(
+			'Empty'                 => '',
+			'Only HTML'             => '<p>Not a block.</p>',
+			'Basic block'           => '<!-- wp:paragraph --><p>Text</p><!-- /wp:paragraph -->',
+			'Nested blocks'         => "\n<!-- wp:group -->\n<div><!-- wp:paragraph -->\n<p>Text</p>\n<!-- /wp:paragraph --><!-- wp:my/block {\"a\":1} /--></div>\n<!-- /wp:group -->\ntrailing",
+			'HTML comments'         => '<!-- x --><!-- wp:my/block {"a":1} /--><!-- y -->tail',
+			'Unclosed block'        => '<!-- wp:paragraph -->unclosed',
+			'Ends in <!-'           => 'text<!-',
+			'Block, then ends in <' => '<!-- wp:group -->text<',
+			'Ends in delimiter'     => 'text<!-- wp:paragraph /-->',
+		);
+
+		$block_types = array( null, 'paragraph', 'core/group', 'my/block', '*', 'freeform', 'core/freeform' );
+
+		$data = array();
+		foreach ( $documents as $document_name => $html ) {
+			foreach ( $block_types as $block_type ) {
+				$block_type_name = $block_type ?? 'any delimiter';
+
+				$data[ "{$document_name}: {$block_type_name}" ] = array( $html, $block_type );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Ensures that block extraction matches the behavior of the default block parser.
 	 *
 	 * @ticket 64537
