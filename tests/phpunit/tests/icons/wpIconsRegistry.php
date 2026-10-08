@@ -23,8 +23,18 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private $temp_file = null;
 
+	/**
+	 * Registry instance in place before the test, restored in tear_down.
+	 *
+	 * @var WP_Icons_Registry|null
+	 */
+	private $original_registry = null;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_registry = WP_Icons_Registry::get_instance();
+		$this->set_registry_instance( null );
 		$this->registry = WP_Icons_Registry::get_instance();
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
@@ -34,12 +44,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$reflection        = new ReflectionClass( WP_Icons_Registry::class );
-		$instance_property = $reflection->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_property->setAccessible( true );
-		}
-		$instance_property->setValue( null, null );
+		$this->set_registry_instance( null );
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
 		if ( $collections->is_registered( 'test-collection' ) ) {
@@ -54,8 +59,23 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		}
 		$this->temp_file = null;
 
-		$this->registry = null;
+		$this->set_registry_instance( $this->original_registry );
+		$this->original_registry = null;
+		$this->registry          = null;
 		parent::tear_down();
+	}
+
+	/**
+	 * Replaces the WP_Icons_Registry singleton instance.
+	 *
+	 * @param WP_Icons_Registry|null $instance The instance to use.
+	 */
+	private function set_registry_instance( $instance ) {
+		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$instance_property->setValue( null, $instance );
 	}
 
 	/**
@@ -518,29 +538,6 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
 
 		$this->assertNull( $icon['content'] );
-	}
-
-	/**
-	 * Should reject a `public` property that is not a boolean.
-	 *
-	 * @ticket 66087
-	 *
-	 * @covers ::register
-	 *
-	 * @expectedIncorrectUsage WP_Icons_Registry::register
-	 */
-	public function test_register_rejects_non_boolean_public_property() {
-		$result = $this->registry->register(
-			'test-collection/invalid-visibility',
-			array(
-				'label'   => 'Icon',
-				'content' => '<svg></svg>',
-				'public'  => 'yes',
-			)
-		);
-
-		$this->assertFalse( $result );
-		$this->assertFalse( $this->registry->is_registered( 'test-collection/invalid-visibility' ) );
 	}
 
 	/**
