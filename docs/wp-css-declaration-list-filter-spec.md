@@ -124,8 +124,9 @@ helper. A filter result that is not an array is treated as an empty list.
    `url("...")` with a string argument, is non-empty after trimming and is
    returned unchanged by `wp_kses_bad_protocol()` with `wp_allowed_protocols()`.
    `url()` with anything other than one string argument is invalid CSS and the
-   declaration is dropped. `src()` is treated like `url()`. There is no
-   per-property list of URL-bearing properties.
+   declaration is dropped. There is no per-property list of URL-bearing
+   properties. `src()` is not in the function allowlist: it exists so `var()`
+   can supply a URL, which the filter cannot check.
 4. **Structure.** In a non-custom property, the value has no bare `( )` block
    and no `{ }` block at its top level. No standard property grammar accepts
    either. A `[ ]` block is kept: `grid-template-columns: [a] 1fr` is valid.

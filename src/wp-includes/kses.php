@@ -4446,7 +4446,7 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 
 		$function_name = strtolower( (string) $token['value'] );
 
-		if ( 'url' === $function_name || 'src' === $function_name ) {
+		if ( 'url' === $function_name ) {
 			// `url("...")` tokenizes as a function with one string argument. Anything else inside is invalid CSS.
 			$j = $i + 1;
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {

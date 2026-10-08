@@ -258,6 +258,16 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The src() function exists so var() can supply a URL, which the filter cannot check.
+	 *
+	 * @ticket 65738
+	 */
+	public function test_src_function_is_rejected() {
+		$this->assertSame( '', safecss_filter_attr( 'background-image: src("https://example.com/a.png")' ) );
+		$this->assertSame( '', safecss_filter_attr( 'background-image: src(var(--x))' ) );
+	}
+
+	/**
 	 * @ticket 65738
 	 */
 	public function test_bare_parenthesis_block_is_rejected_in_standard_property() {
