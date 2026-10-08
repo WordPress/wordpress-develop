@@ -193,8 +193,65 @@ function install_themes_dashboard() {
  * @since 2.8.0
  */
 function install_themes_upload() {
+	wp_enqueue_script( 'plupload-handlers' );
+	wp_enqueue_script( 'theme-upload' );
+	add_thickbox();
+	$max_upload_size = wp_max_upload_size();
+	if ( ! $max_upload_size ) {
+		$max_upload_size = 0;
+	}
+	$upload_theme_nonce           = wp_create_nonce( 'upload-theme' );
+	$cancel_theme_overwrite_nonce = wp_create_nonce( 'theme-upload-cancel-overwrite' );
+	$plupload_init                = array(
+		'browse_button'    => 'plupload-browse-button',
+		'container'        => 'plupload-upload-ui',
+		'drop_element'     => 'drag-drop-area',
+		'file_data_name'   => 'themezip',
+		'url'              => admin_url( 'admin-ajax.php' ),
+		'filters'          => array(
+			'max_file_size'      => $max_upload_size . 'b',
+			'prevent_duplicates' => true,
+			'mime_types'         => array( array( 'extensions' => 'zip' ) ),
+		),
+		'multipart_params' => array(
+			'post_id'  => 0,
+			'action'   => 'upload-theme',
+			'_wpnonce' => $upload_theme_nonce,
+		),
+	);
 	?>
-<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ?></p>
+	<script type="text/javascript">
+		const theme_upload_intl = {
+			activate  : '<?php _e( 'Activate' ); ?>',
+			downgrade  : '<?php _e( 'Downgrade' ); ?>',
+			upgrade  : '<?php _e( 'Upgrade' ); ?>',
+			generic_error : '<?php _e( 'An error occurred while uploading this zip' ); ?>',
+			by : '<?php _e( 'By' ); ?>',
+			current : '<?php _e( 'Current' ); ?>',
+			uploaded : '<?php _e( 'Uploaded' ); ?>',
+			theme_name : '<?php _e( 'Theme name' ); ?>',
+			version : '<?php _e( 'Version' ); ?>',
+			author : '<?php _e( 'Author' ); ?>',
+			required_wordpress_version : '<?php _e( 'Required WordPress version' ); ?>',
+			required_php_version : '<?php _e( 'Required PHP version' ); ?>',
+			details : '<?php _e( 'Details' ); ?>',
+			processing : '<?php _e( 'Processing' ); ?>',
+			activated : '<?php _e( 'Activated' ); ?>',
+			updated : '<?php _e( 'Updated' ); ?>',
+			activation_failed : '<?php _e( 'Activation failed' ); ?>',
+			cancel_failed : '<?php _e( 'Failed to cancel' ); ?>',
+			cancel : '<?php _e( 'Cancel' ); ?>',
+			live_preview : '<?php _e( 'Live Preview' ); ?>',
+		};
+		const themeUploaderInit = <?php echo wp_json_encode( $plupload_init, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
+		const upload_theme_nonce = '<?php echo $upload_theme_nonce; ?>';
+		const cancel_theme_overwrite_nonce = '<?php echo $cancel_theme_overwrite_nonce; ?>';
+		const customize_url = '<?php echo admin_url( 'customize.php' ); ?>';
+		const theme_url = '<?php echo admin_url( 'themes.php' ); ?>';
+	</script>
+	<div class="hide-if-js">
+
+	<p class="install-help"><?php _e( 'If you have a theme in a .zip format, you may install or update it by uploading it here.' ); ?></p>
 <form method="post" enctype="multipart/form-data" class="wp-upload-form" action="<?php echo esc_url( self_admin_url( 'update.php?action=upload-theme' ) ); ?>">
 	<?php wp_nonce_field( 'theme-upload' ); ?>
 	<label class="screen-reader-text" for="themezip">
@@ -206,6 +263,22 @@ function install_themes_upload() {
 	<input type="file" id="themezip" name="themezip" accept=".zip" />
 	<?php submit_button( _x( 'Install Now', 'theme' ), '', 'install-theme-submit', false ); ?>
 </form>
+	</div>
+	<div id="plupload-upload-ui" class="hide-if-no-js">
+		<div class="drag-drop">
+			<div id="drag-drop-area">
+				<div class="drag-drop-inside">
+					<p class="drag-drop-info"><?php _e( 'Drop .zip files to upload' ); ?></p>
+					<p><?php _ex( 'or', 'Uploader: Drop files here - or - Select Files' ); ?></p>
+					<p class="drag-drop-buttons"><input id="plupload-browse-button" type="button" value="<?php esc_attr_e( 'Select Files' ); ?>" class="button" /></p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="theme-browser" style="margin-top: 20px">
+		<div id="theme-upload-list"></div>
+	</div>
 	<?php
 }
 
