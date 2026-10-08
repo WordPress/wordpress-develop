@@ -1080,7 +1080,9 @@ function wp_read_image_metadata( $file ) {
 		if ( empty( $meta['created_timestamp'] ) && ! empty( $exif['DateTimeDigitized'] ) ) {
 			// Default to UTC, matching the previous wp_exif_date2ts() based timestamp.
 			$timezone = 'UTC';
-			if ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
+			if ( ! empty( $exif['OffsetTimeDigitized'] ) ) {
+				$timezone = $exif['OffsetTimeDigitized'];
+			} elseif ( ! empty( $exif['UndefinedTag:0x9012'] ) ) {
 				$timezone = $exif['UndefinedTag:0x9012'];
 			}
 
