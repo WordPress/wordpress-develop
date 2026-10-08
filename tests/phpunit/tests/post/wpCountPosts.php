@@ -26,7 +26,7 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 		$counts      = wp_count_posts();
 
 		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'No database query should run when the filter returns a value.' );
-		$this->assertSame( 42, $counts->publish );
+		$this->assertSame( 42, $counts->publish, 'Count is expected to be filtered value (42).' );
 	}
 
 	/**
