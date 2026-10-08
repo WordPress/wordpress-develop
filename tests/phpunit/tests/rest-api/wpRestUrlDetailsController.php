@@ -488,24 +488,23 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_title
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_title
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html     Given HTML string.
-	 * @param string $expected Expected found title.
 	 */
-	public function test_get_title( $html, $expected ) {
-		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_title' );
+	public function test_get_title() {
+		foreach ( $this->data_get_title() as $case_name => $data ) {
+			list( $html, $expected ) = $data;
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
-		$this->assertSame( $expected, $actual );
+			$controller = new WP_REST_URL_Details_Controller();
+			$method     = $this->get_reflective_method( 'get_title' );
+
+			$actual = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html )
+			);
+			$this->assertSame( $expected, $actual, $case_name );
+		}
 	}
 
 	/**
