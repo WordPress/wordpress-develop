@@ -1400,6 +1400,7 @@ function uninstall_plugin( $plugin ) {
  * @param int|float $position   Optional. The position in the menu order this item should appear.
  * @return string The resulting page's hook_suffix.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '', $position = null ) {
@@ -1497,6 +1498,7 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @param int|float $position    Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1612,6 +1614,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_management_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1638,6 +1641,7 @@ function add_management_page( $page_title, $menu_title, $capability, $menu_slug,
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1664,6 +1668,7 @@ function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $c
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1690,6 +1695,7 @@ function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1716,6 +1722,7 @@ function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $c
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1747,6 +1754,7 @@ function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1773,6 +1781,7 @@ function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, 
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1799,6 +1808,7 @@ function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1825,6 +1835,7 @@ function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1851,6 +1862,7 @@ function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -1877,6 +1889,7 @@ function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
  *
+ * @phpstan-param non-falsy-string  $menu_slug
  * @phpstan-param Optional_Callback $callback
  */
 function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
@@ -2173,6 +2186,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @param string $parent_page The slug name for the parent menu (or the file name of a standard
  *                            WordPress admin page).
  * @return string Hook name for the plugin page.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	global $admin_page_hooks;

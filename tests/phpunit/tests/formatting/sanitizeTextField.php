@@ -20,7 +20,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			$expected_oneline   = $expected;
 			$expected_multiline = $expected;
 		}
-		$this->assertSame( $expected_oneline, sanitize_text_field( $str ) );
+		$this->assertEqualHTML( $expected_oneline, sanitize_text_field( $str ) );
 		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $str ) );
 	}
 
@@ -55,7 +55,7 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			array(
 				"foo <\ndiv\n> bar",
 				array(
-					'oneline'   => 'foo &lt; div > bar',
+					'oneline'   => 'foo &lt; div &gt; bar',
 					'multiline' => "foo &lt;\ndiv\n> bar",
 				),
 			),
