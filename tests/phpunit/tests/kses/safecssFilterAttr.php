@@ -404,9 +404,9 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	 */
 	public function test_empty_allowed_list_returns_the_input_on_the_legacy_path() {
 		add_filter( 'safe_style_css', '__return_empty_array' );
-		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		add_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
 		$actual = safecss_filter_attr( 'color: red /* keep me */; width: calc(1px' );
-		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		remove_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
 		remove_filter( 'safe_style_css', '__return_empty_array' );
 
 		$this->assertSame( 'color: red /* keep me */; width: calc(1px', $actual );
@@ -415,18 +415,18 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	/**
 	 * @ticket 65738
 	 */
-	public function test_use_legacy_filter_selects_legacy_output() {
+	public function test_force_legacy_css_parser_filter_selects_legacy_output() {
 		$seen   = array();
-		$legacy = static function ( $use_legacy, $css ) use ( &$seen ) {
-			$seen[] = array( $use_legacy, $css );
+		$legacy = static function ( $force_legacy_css_parser ) use ( &$seen ) {
+			$seen[] = $force_legacy_css_parser;
 			return true;
 		};
-		add_filter( 'safecss_filter_attr_use_legacy', $legacy, 10, 2 );
+		add_filter( 'wp_kses_force_legacy_css_parser', $legacy );
 		$actual = safecss_filter_attr( 'margin-top: 2px; color: rgb(1,2,3)' );
-		remove_filter( 'safecss_filter_attr_use_legacy', $legacy );
+		remove_filter( 'wp_kses_force_legacy_css_parser', $legacy );
 
 		$this->assertSame( 'margin-top: 2px', $actual );
-		$this->assertSame( array( array( false, 'margin-top: 2px; color: rgb(1,2,3)' ) ), $seen );
+		$this->assertSame( array( false ), $seen );
 	}
 
 	/**

@@ -2,7 +2,7 @@
 /**
  * Differential: the legacy safecss_filter_attr() path against the parser-based default.
  *
- * The legacy path is selected through the `safecss_filter_attr_use_legacy` filter.
+ * The legacy path is selected through the `wp_kses_force_legacy_css_parser` filter.
  *
  * Run: WP_TESTS_SKIP_INSTALL=1 vendor/bin/phpunit tools/Tests_Safecss_Filter_Differential.php
  *
@@ -89,9 +89,9 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 	 * Runs the legacy path of safecss_filter_attr().
 	 */
 	private static function legacy( string $css ): string {
-		add_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		add_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
 		$output = safecss_filter_attr( $css );
-		remove_filter( 'safecss_filter_attr_use_legacy', '__return_true' );
+		remove_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
 		return $output;
 	}
 

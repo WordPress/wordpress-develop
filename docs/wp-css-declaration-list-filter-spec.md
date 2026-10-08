@@ -202,16 +202,17 @@ the appended `;`.
 paths see the same list. An empty list, or a result that is not an array,
 returns the input before dispatch (see "Policy").
 
-`safecss_filter_attr_use_legacy` is new in 7.2.0. It receives `false` and the
-input CSS; returning `true` selects the legacy helper. It exists for a
-transition period so a site can restore the previous output while it adapts.
+`wp_kses_force_legacy_css_parser` is new in 7.2.0. It receives `false`;
+returning `true` selects the legacy helper. It matches the form of
+`wp_kses_force_legacy_parser` and exists for a transition period so a site
+can restore the previous output while it adapts.
 
 `safecss_filter_attr_allow_css` is deprecated in 7.2.0 and applied by the
 legacy helper only. It exposed a regex test string that has no equivalent
 here. When a callback is attached, the declarations helper calls
 `_deprecated_hook()` once per call, naming `safe_style_css` as the
 replacement, and does not apply the hook. A site that needs the hook can
-select the legacy helper through `safecss_filter_attr_use_legacy`.
+select the legacy helper through `wp_kses_force_legacy_css_parser`.
 
 ## Differences From The Legacy Function
 
@@ -274,9 +275,10 @@ Open during the prototype, now settled:
   have the same shape: the token runs to the end of the input, and a
   consumer that emits the original text would have the rest of its
   stylesheet read as part of the token.
-- **Transition.** The filter is named `safecss_filter_attr_use_legacy`,
-  defaults to `false`, and receives the input CSS. Duration is not fixed; the
-  filter docblock says it exists for a transition period.
+- **Transition.** The filter is named `wp_kses_force_legacy_css_parser`,
+  after `wp_kses_force_legacy_parser`, defaults to `false`, and receives no
+  other argument. Duration is not fixed; the filter docblock says it exists
+  for a transition period.
 - **Shared property list.** `safecss_filter_attr()` builds the list once and
   passes it to both helpers. The prototype's copy is deleted.
 - **Value access.** The token view, as bare arrays, as PR 2 ships it. The
@@ -296,7 +298,7 @@ In `tests/phpunit/tests/kses.php`, `data_safecss_filter_attr` and
 `data_kses_style_attr_with_url` serve both paths. The new output is compared
 with `assertEqualStyleAttribute()`, so a row whose output changes only in form
 keeps its expectation. A row whose output changes otherwise also lists the
-pre-7.2.0 output, which the `_legacy` tests assert through `safecss_filter_attr_use_legacy`.
+pre-7.2.0 output, which the `_legacy` tests assert through `wp_kses_force_legacy_css_parser`.
 `tools/Tests_Safecss_Filter_Differential.php` compares the two paths over both
 providers and classifies each difference.
 

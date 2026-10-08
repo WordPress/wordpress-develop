@@ -3688,6 +3688,8 @@ function kses_init() {
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
  *
+ * @see 'wp_kses_force_legacy_css_parser' to opt-out of the new parser-based implementation.
+ *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
  * @return string Filtered string of CSS rules, needing HTML escaping before sending back to a `style` attribute.
@@ -3956,7 +3958,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	}
 
 	/**
-	 * Filters whether safecss_filter_attr() uses its legacy implementation.
+	 * Filters whether to rely on the legacy parsing inside `safecss_filter_attr()`.
 	 *
 	 * The default implementation parses the declaration list with
 	 * WP_HTML_Style_Attribute_Processor and filters each declaration. The
@@ -3966,12 +3968,10 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool   $use_legacy Whether to use the legacy implementation. Default false.
-	 * @param string $css        The CSS declaration list being filtered.
+	 * @param bool $force_legacy_css_parser Whether to force using the legacy implementation
+	 *                                      instead of relying on the CSS API.
 	 */
-	$use_legacy = apply_filters( 'safecss_filter_attr_use_legacy', false, $css );
-
-	if ( $use_legacy ) {
+	if ( apply_filters( 'wp_kses_force_legacy_css_parser', false ) ) {
 		return _safecss_filter_attr_legacy( $css, $allowed_attr );
 	}
 
@@ -3982,7 +3982,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
  * Filters an inline style attribute by splitting it on `;` and `:`.
  *
  * This is the implementation safecss_filter_attr() used before 7.2.0. It
- * runs when the `safecss_filter_attr_use_legacy` filter returns true.
+ * runs when the `wp_kses_force_legacy_css_parser` filter returns true.
  *
  * @since 7.2.0
  * @access private
@@ -4161,7 +4161,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
-			 * @deprecated 7.2.0 Use safe_style_css or safecss_filter_attr_use_legacy.
+			 * @deprecated 7.2.0 Use safe_style_css or wp_kses_force_legacy_css_parser.
 			 *
 			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
 			 * @param string $css_test_string The CSS string to test.
@@ -4236,7 +4236,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 			'safecss_filter_attr_allow_css',
 			'7.2.0',
 			'safe_style_css',
-			__( 'The hook only runs when the safecss_filter_attr_use_legacy filter returns true.' )
+			__( 'The hook only runs when the wp_kses_force_legacy_css_parser filter returns true.' )
 		);
 	}
 
