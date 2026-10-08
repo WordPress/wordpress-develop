@@ -122,14 +122,10 @@ function wp_admin_bar_render() {
  * @access private
  *
  * @param string $icon_name Namespaced icon name, e.g. 'core-admin/wordpress'.
- * @return string Admin bar icon markup, or empty string if the icon is not found.
+ * @return string Admin bar icon markup. The wrapper is empty if the icon is not found.
  */
 function _wp_admin_bar_icon( $icon_name ) {
-	$svg = wp_get_icon( $icon_name );
-	if ( '' === $svg ) {
-		return '';
-	}
-	return '<span class="ab-icon svg-icon" aria-hidden="true">' . $svg . '</span>';
+	return '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( $icon_name ) . '</span>';
 }
 
 /**
