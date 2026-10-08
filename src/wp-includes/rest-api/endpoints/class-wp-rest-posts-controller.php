@@ -2281,6 +2281,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		if ( $post_type_obj->hierarchical ) {
+			$links['children'] = array(
+				'href'       => add_query_arg( 'parent', $post->ID, $links['collection']['href'] ),
+				'embeddable' => true,
+			);
+		}
+
 		// If we have a featured media, add that.
 		$featured_media = get_post_thumbnail_id( $post->ID );
 		if ( $featured_media && ( 'publish' === get_post_status( $featured_media ) || current_user_can( 'read_post', $featured_media ) ) ) {

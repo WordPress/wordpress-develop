@@ -305,12 +305,16 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 6.1.0
+	 * @since 7.2.0 Added the `self` link.
 	 *
 	 * @param WP_Taxonomy $taxonomy The taxonomy.
 	 * @return array Links for the given taxonomy.
 	 */
 	protected function prepare_links( $taxonomy ) {
 		return array(
+			'self'                    => array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $taxonomy->name ) ),
+			),
 			'collection'              => array(
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),

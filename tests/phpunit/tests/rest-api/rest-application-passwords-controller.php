@@ -223,6 +223,22 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @covers WP_REST_Application_Passwords_Controller::prepare_links
+	 */
+	public function test_get_item_links() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $item['uuid'] ) );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( sprintf( 'wp/v2/users/%d/application-passwords/%s', self::$admin, $item['uuid'] ) ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( sprintf( 'wp/v2/users/%d/application-passwords', self::$admin ) ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( sprintf( 'wp/v2/users/%d', self::$admin ) ), $links['up'][0]['href'] );
+		$this->assertTrue( $links['up'][0]['attributes']['embeddable'] );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_get_item_self_user_id_admin() {

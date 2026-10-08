@@ -13420,9 +13420,30 @@ mockedApiResponse.postRevisions = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions/6",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13452,9 +13473,30 @@ mockedApiResponse.postRevisions = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions/5",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/revisions"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13513,9 +13555,30 @@ mockedApiResponse.postAutosaves = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/autosaves/6",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4/autosaves"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts/4"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13633,6 +13696,12 @@ mockedApiResponse.PagesCollection = [
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions/9"
                 }
             ],
+            "children": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fpages&parent=7"
+                }
+            ],
             "wp:attachment": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&parent=7"
@@ -13718,9 +13787,30 @@ mockedApiResponse.pageRevisions = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions/9",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13750,9 +13840,30 @@ mockedApiResponse.pageRevisions = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions/8",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/revisions"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13811,9 +13922,30 @@ mockedApiResponse.pageAutosaves = [
             "meta_key": ""
         },
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/autosaves/9",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7/autosaves"
+                }
+            ],
             "parent": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/pages/7"
+                }
+            ],
+            "author": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2"
                 }
             ]
         }
@@ -13991,6 +14123,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/post",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14023,6 +14165,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/page",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14055,6 +14207,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/attachment",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14089,6 +14251,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/nav_menu_item",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14123,6 +14295,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_block",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14155,6 +14337,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_template",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14187,6 +14379,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_template_part",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14219,6 +14421,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_global_styles",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14251,6 +14463,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_navigation",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14283,6 +14505,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_font_family",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14315,6 +14547,16 @@ mockedApiResponse.TypesCollection = {
         "template": [],
         "template_lock": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/types/wp_font_face",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/types"
@@ -14361,6 +14603,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "publish",
         "date_floating": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/publish",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/posts"
@@ -14375,6 +14632,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "future",
         "date_floating": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/future",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=future"
@@ -14389,6 +14661,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "draft",
         "date_floating": true,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/draft",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=draft"
@@ -14403,6 +14690,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "pending",
         "date_floating": true,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/pending",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=pending"
@@ -14417,6 +14719,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "private",
         "date_floating": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/private",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=private"
@@ -14431,6 +14748,21 @@ mockedApiResponse.StatusesCollection = {
         "slug": "trash",
         "date_floating": false,
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses/trash",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
+            "collection": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/statuses"
+                }
+            ],
             "archives": [
                 {
                     "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&status=trash"
@@ -14460,6 +14792,16 @@ mockedApiResponse.TaxonomiesCollection = {
         "rest_base": "categories",
         "rest_namespace": "wp/v2",
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/category",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
@@ -14490,6 +14832,16 @@ mockedApiResponse.TaxonomiesCollection = {
         "rest_base": "tags",
         "rest_namespace": "wp/v2",
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/post_tag",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
@@ -14520,6 +14872,16 @@ mockedApiResponse.TaxonomiesCollection = {
         "rest_base": "menus",
         "rest_namespace": "wp/v2",
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/nav_menu",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
@@ -14550,6 +14912,16 @@ mockedApiResponse.TaxonomiesCollection = {
         "rest_base": "wp_pattern_category",
         "rest_namespace": "wp/v2",
         "_links": {
+            "self": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/wp_pattern_category",
+                    "targetHints": {
+                        "allow": [
+                            "GET"
+                        ]
+                    }
+                }
+            ],
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies"
@@ -14622,6 +14994,12 @@ mockedApiResponse.CategoriesCollection = [
             "about": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/taxonomies/category"
+                }
+            ],
+            "children": [
+                {
+                    "embeddable": true,
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fcategories&parent=1"
                 }
             ],
             "wp:post_type": [
@@ -14765,6 +15143,32 @@ mockedApiResponse.UsersCollection = [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/users"
                 }
+            ],
+            "wp:application-passwords": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/1/application-passwords"
+                }
+            ],
+            "wp:post_type": [
+                {
+                    "post_type": "post",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&author=1"
+                },
+                {
+                    "post_type": "page",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fpages&author=1"
+                },
+                {
+                    "post_type": "attachment",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&author=1"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
+                }
             ]
         }
     },
@@ -14801,6 +15205,32 @@ mockedApiResponse.UsersCollection = [
             "collection": [
                 {
                     "href": "http://example.org/index.php?rest_route=/wp/v2/users"
+                }
+            ],
+            "wp:application-passwords": [
+                {
+                    "href": "http://example.org/index.php?rest_route=/wp/v2/users/2/application-passwords"
+                }
+            ],
+            "wp:post_type": [
+                {
+                    "post_type": "post",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fposts&author=2"
+                },
+                {
+                    "post_type": "page",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fpages&author=2"
+                },
+                {
+                    "post_type": "attachment",
+                    "href": "http://example.org/index.php?rest_route=%2Fwp%2Fv2%2Fmedia&author=2"
+                }
+            ],
+            "curies": [
+                {
+                    "name": "wp",
+                    "href": "https://api.w.org/{rel}",
+                    "templated": true
                 }
             ]
         }

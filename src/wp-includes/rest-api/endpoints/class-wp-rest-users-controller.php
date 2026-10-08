@@ -1146,6 +1146,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * Prepares links for the user request.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Added the `https://api.w.org/application-passwords` and `https://api.w.org/post_type` links.
 	 *
 	 * @param WP_User $user User object.
 	 * @return array Links for the given user.
@@ -1159,6 +1160,38 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
+
+		if ( wp_is_application_passwords_available_for_user( $user ) ) {
+			$links['https://api.w.org/application-passwords'] = array(
+				'href' => rest_url( sprintf( '%s/%s/%d/application-passwords', $this->namespace, $this->rest_base, $user->ID ) ),
+			);
+		}
+
+		$post_type_links = array();
+
+		foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+			// Only the posts controller supports filtering a collection by author.
+			if ( ! post_type_supports( $post_type->name, 'author' )
+				|| ! $post_type->get_rest_controller() instanceof WP_REST_Posts_Controller
+			) {
+				continue;
+			}
+
+			$rest_path = rest_get_route_for_post_type_items( $post_type->name );
+
+			if ( empty( $rest_path ) ) {
+				continue;
+			}
+
+			$post_type_links[] = array(
+				'href'      => add_query_arg( 'author', $user->ID, rest_url( $rest_path ) ),
+				'post_type' => $post_type->name,
+			);
+		}
+
+		if ( ! empty( $post_type_links ) ) {
+			$links['https://api.w.org/post_type'] = $post_type_links;
+		}
 
 		return $links;
 	}

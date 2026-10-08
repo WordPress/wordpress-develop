@@ -806,4 +806,32 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$args['type'] = 'page';
 		return $args;
 	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::prepare_links
+	 */
+	public function test_get_item_links_include_children() {
+		$page_id  = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$child_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_parent' => $page_id,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( add_query_arg( 'parent', $page_id, rest_url( 'wp/v2/pages' ) ), $links['children'][0]['href'] );
+		$this->assertTrue( $links['children'][0]['attributes']['embeddable'] );
+		$this->assertArrayNotHasKey( 'up', $links );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $child_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( sprintf( 'wp/v2/pages/%d', $page_id ) ), $links['up'][0]['href'] );
+		$this->assertSame( add_query_arg( 'parent', $child_id, rest_url( 'wp/v2/pages' ) ), $links['children'][0]['href'] );
+	}
 }

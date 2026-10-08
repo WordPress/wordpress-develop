@@ -387,8 +387,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( $tax_obj->hierarchical, $data['hierarchical'] );
 		$this->assertSame( $tax_obj->rest_base, $data['rest_base'] );
 		$this->assertSame( $tax_obj->rest_namespace, $data['rest_namespace'] );
+		$this->assertSame( rest_url( 'wp/v2/taxonomies/' . $tax_obj->name ), $links['self'][0]['href'] );
 		$this->assertSame( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
+		$this->assertSame( rest_url( rest_get_route_for_taxonomy_items( $tax_obj->name ) ), $links['https://api.w.org/items'][0]['href'] );
 		if ( 'edit' === $context ) {
 			$this->assertSame( $tax_obj->cap, $data['capabilities'] );
 			$this->assertSame( $tax_obj->labels, $data['labels'] );

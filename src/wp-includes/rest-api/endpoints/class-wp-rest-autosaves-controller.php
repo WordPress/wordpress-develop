@@ -45,9 +45,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 * The base of the parent controller's route.
 	 *
 	 * @since 5.0.0
+	 * @since 7.2.0 Changed from private to protected.
 	 * @var string
 	 */
-	private $parent_base;
+	protected $parent_base;
 
 	/**
 	 * Constructor.
@@ -471,6 +472,17 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		}
 		$response = $this->revisions_controller->prepare_item_for_response( $post, $request );
 		$fields   = $this->get_fields_for_response( $request );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			// The revisions controller links to the revisions routes; point them at the autosaves routes instead.
+			$links = $this->prepare_links( $post );
+
+			foreach ( array_keys( $links ) as $rel ) {
+				$response->remove_link( $rel );
+			}
+
+			$response->add_links( $links );
+		}
 
 		if ( in_array( 'preview_link', $fields, true ) ) {
 			$parent_id          = wp_is_post_autosave( $post );

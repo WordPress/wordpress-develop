@@ -35,9 +35,10 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 * The base of the parent controller's route.
 	 *
 	 * @since 6.4.0
+	 * @since 7.2.0 Changed from private to protected.
 	 * @var string
 	 */
-	private $parent_base;
+	protected $parent_base;
 
 	/**
 	 * Constructor.
@@ -268,16 +269,21 @@ class WP_REST_Template_Revisions_Controller extends WP_REST_Revisions_Controller
 	 * Prepares links for the request.
 	 *
 	 * @since 6.4.0
+	 * @since 7.2.0 Added the `collection` link.
 	 *
 	 * @param WP_Block_Template $template Template.
 	 * @return array Links for the given post.
 	 */
+	// @phpstan-ignore method.childParameterType (Template revisions are prepared from WP_Block_Template objects, not WP_Post.)
 	protected function prepare_links( $template ) {
 		$links = array(
-			'self'   => array(
+			'self'       => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s/%s/%d', $this->namespace, $this->parent_base, $template->id, $this->rest_base, $template->wp_id ) ),
 			),
-			'parent' => array(
+			'collection' => array(
+				'href' => rest_url( sprintf( '/%s/%s/%s/%s', $this->namespace, $this->parent_base, $template->id, $this->rest_base ) ),
+			),
+			'parent'     => array(
 				'href' => rest_url( sprintf( '/%s/%s/%s', $this->namespace, $this->parent_base, $template->id ) ),
 			),
 		);

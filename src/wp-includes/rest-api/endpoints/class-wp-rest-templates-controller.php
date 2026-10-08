@@ -966,6 +966,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.8.0
+	 * @since 7.2.0 Added the `author` link.
 	 *
 	 * @param int $id ID.
 	 * @return array Links for the given post.
@@ -983,8 +984,16 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$template = get_block_template( $id, $this->post_type );
+
+		if ( $template instanceof WP_Block_Template && ! empty( $template->author ) ) {
+			$links['author'] = array(
+				'href'       => rest_url( 'wp/v2/users/' . $template->author ),
+				'embeddable' => true,
+			);
+		}
+
 		if ( post_type_supports( $this->post_type, 'revisions' ) ) {
-			$template = get_block_template( $id, $this->post_type );
 			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
 				$revisions       = wp_get_latest_revision_id_and_total_count( $template->wp_id );
 				$revisions_count = ! is_wp_error( $revisions ) ? $revisions['count'] : 0;

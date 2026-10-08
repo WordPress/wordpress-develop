@@ -1269,4 +1269,38 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 			'The hooked block was not injected into the anchor block\'s ignoredHookedBlocks metadata.'
 		);
 	}
+
+	/**
+	 * @covers WP_REST_Templates_Controller::prepare_links
+	 */
+	public function test_get_item_links_include_author() {
+		wp_set_current_user( self::$admin_id );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type'    => 'wp_template',
+				'post_name'    => 'authored_template',
+				'post_title'   => 'Authored Template',
+				'post_content' => 'Content',
+				'post_author'  => self::$admin_id,
+				'tax_input'    => array(
+					'wp_theme' => array( get_stylesheet() ),
+				),
+			)
+		);
+		wp_set_post_terms( $post->ID, get_stylesheet(), 'wp_theme' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/' . get_stylesheet() . '//authored_template' );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( 'wp/v2/users/' . self::$admin_id ), $links['author'][0]['href'] );
+		$this->assertTrue( $links['author'][0]['attributes']['embeddable'] );
+
+		// A template without an author should not link to one.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'author', $response->get_links() );
+	}
 }

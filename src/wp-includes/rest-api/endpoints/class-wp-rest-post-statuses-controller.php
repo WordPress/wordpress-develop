@@ -264,6 +264,9 @@ class WP_REST_Post_Statuses_Controller extends WP_REST_Controller {
 
 		$response = rest_ensure_response( $data );
 
+		$response->add_link( 'self', rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $status->name ) ) );
+		$response->add_link( 'collection', rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ) );
+
 		$rest_url = rest_url( rest_get_route_for_post_type_items( 'post' ) );
 		if ( 'publish' === $status->name ) {
 			$response->add_link( 'archives', $rest_url );

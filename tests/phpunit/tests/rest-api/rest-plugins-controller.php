@@ -942,6 +942,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertSame( rest_url( self::BASE . '/' . self::PLUGIN ), $links['self'][0]['href'] );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertSame( rest_url( self::BASE ), $links['collection'][0]['href'] );
 	}
 
 	/**

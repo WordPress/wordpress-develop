@@ -44,9 +44,10 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * The base of the parent controller's route.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Changed from private to protected.
 	 * @var string
 	 */
-	private $parent_base;
+	protected $parent_base;
 
 	/**
 	 * Constructor.
@@ -596,6 +597,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 5.9.0 Renamed `$post` to `$item` to match parent class for PHP 8 named parameter support.
 	 * @since 7.1.0 The global post is now restored to its previous value before returning.
+	 * @since 7.2.0 Added the `self`, `collection`, and `author` links.
 	 *
 	 * @global WP_Post|null $post Global post object.
 	 *
@@ -721,8 +723,8 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$data     = $this->filter_response_by_context( $data, $context );
 		$response = rest_ensure_response( $data );
 
-		if ( ! empty( $data['parent'] ) ) {
-			$response->add_link( 'parent', rest_url( rest_get_route_for_post( $data['parent'] ) ) );
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $post ) );
 		}
 
 		/**
@@ -741,6 +743,42 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		$this->restore_post_data( $previous_post );
 
 		return $response;
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_Post $post Post revision object.
+	 * @return array Links for the given revision.
+	 */
+	protected function prepare_links( $post ) {
+		$collection = sprintf( '/%s/%s/%d/%s', $this->namespace, $this->parent_base, $post->post_parent, $this->rest_base );
+
+		$links = array(
+			'self'       => array(
+				'href' => rest_url( $collection . '/' . $post->ID ),
+			),
+			'collection' => array(
+				'href' => rest_url( $collection ),
+			),
+		);
+
+		if ( ! empty( $post->post_parent ) ) {
+			$links['parent'] = array(
+				'href' => rest_url( rest_get_route_for_post( $post->post_parent ) ),
+			);
+		}
+
+		if ( ! empty( $post->post_author ) ) {
+			$links['author'] = array(
+				'href'       => rest_url( 'wp/v2/users/' . $post->post_author ),
+				'embeddable' => true,
+			);
+		}
+
+		return $links;
 	}
 
 	/**

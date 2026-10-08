@@ -1010,6 +1010,13 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		$taxonomy_obj = get_taxonomy( $term->taxonomy );
 
+		if ( $taxonomy_obj->hierarchical ) {
+			$links['children'] = array(
+				'href'       => add_query_arg( 'parent', $term->term_id, $links['collection']['href'] ),
+				'embeddable' => true,
+			);
+		}
+
 		if ( empty( $taxonomy_obj->object_type ) ) {
 			return $links;
 		}

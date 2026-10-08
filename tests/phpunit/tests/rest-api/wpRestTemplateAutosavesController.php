@@ -623,6 +623,12 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 
 		$this->assertStringEndsWith(
+			$template_id . '/autosaves',
+			$links['collection'][0]['href'],
+			"Failed asserting that the collection link ends with $template_id/autosaves."
+		);
+
+		$this->assertStringEndsWith(
 			$template_id,
 			$links['parent'][0]['href'],
 			"Failed asserting that the parent link ends with %$template_id."

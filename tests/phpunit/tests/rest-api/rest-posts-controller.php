@@ -2255,6 +2255,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $links['version-history'][0]['attributes']['count'] );
 		$this->assertArrayNotHasKey( 'predecessor-version', $links );
 
+		// Only hierarchical post types link to their children.
+		$this->assertArrayNotHasKey( 'children', $links );
+
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
 		$this->assertSame( $attachments_url, $links['https://api.w.org/attachment'][0]['href'] );

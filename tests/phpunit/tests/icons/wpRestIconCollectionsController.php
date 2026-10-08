@@ -114,6 +114,11 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$this->assertSame( 'REST Test', $data['label'] );
 		$this->assertSame( 'A REST test collection.', $data['description'] );
 
+		$links = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/icon-collections/rest-test-collection' ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/icon-collections' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/icons/rest-test-collection' ), $links['https://api.w.org/items'][0]['href'] );
+
 		wp_unregister_icon_collection( 'rest-test-collection' );
 	}
 

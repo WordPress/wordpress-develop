@@ -1234,6 +1234,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 			'self',
 			'collection',
 			'about',
+			'children',
 			'https://api.w.org/post_type',
 		);
 
@@ -1243,6 +1244,8 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 		$this->assertSameSets( $relations, array_keys( $links ) );
 		$this->assertStringContainsString( 'wp/v2/taxonomies/' . $term->taxonomy, $links['about'][0]['href'] );
+		$this->assertSame( add_query_arg( 'parent', $term->term_id, rest_url( 'wp/v2/categories' ) ), $links['children'][0]['href'] );
+		$this->assertTrue( $links['children'][0]['attributes']['embeddable'] );
 		$this->assertSame( add_query_arg( 'categories', $term->term_id, rest_url( 'wp/v2/posts' ) ), $links['https://api.w.org/post_type'][0]['href'] );
 	}
 

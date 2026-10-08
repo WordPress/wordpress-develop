@@ -614,7 +614,8 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'self', $links );
 		$this->assertArrayHasKey( 'collection', $links );
-		$this->assertArrayHasKey( 'wp:action-run', $links );
+		$this->assertArrayHasKey( 'up', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-run', $links );
 
 		// Verify link URLs
 		$self_link = $links['self'][0]['href'];
@@ -623,8 +624,16 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$collection_link = $links['collection'][0]['href'];
 		$this->assertStringContainsString( '/wp-abilities/v1/abilities', $collection_link );
 
-		$run_link = $links['wp:action-run'][0]['href'];
+		$this->assertSame( rest_url( 'wp-abilities/v1/categories/math' ), $links['up'][0]['href'] );
+		$this->assertTrue( $links['up'][0]['attributes']['embeddable'] );
+
+		$run_link = $links['https://api.w.org/action-run'][0]['href'];
 		$this->assertStringContainsString( '/wp-abilities/v1/abilities/test/calculator/run', $run_link );
+
+		// The custom relation should be compacted to the `wp:` CURIE in the response body.
+		$data = rest_get_server()->response_to_data( $response, false );
+		$this->assertArrayHasKey( 'wp:action-run', $data['_links'] );
+		$this->assertArrayHasKey( 'curies', $data['_links'] );
 	}
 
 	/**

@@ -380,6 +380,12 @@ class Tests_REST_WpRestIconsController extends WP_Test_REST_Controller_Testcase 
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( 'SVG', $processor->get_tag(), 'Icon content should match the actual SVG asset' );
 		$this->assertSame( 'http://www.w3.org/2000/svg', $processor->get_attribute( 'xmlns' ), 'Icon content should match the actual SVG asset' );
+
+		$links = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/icons/core/arrow-left' ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/icons' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/icon-collections/core' ), $links['up'][0]['href'] );
+		$this->assertTrue( $links['up'][0]['attributes']['embeddable'] );
 	}
 
 	/**
