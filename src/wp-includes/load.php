@@ -611,7 +611,18 @@ function wp_debug_mode() {
 	}
 
 	if ( WP_DEBUG ) {
-		error_reporting( E_ALL );
+		if ( WP_DEBUG_LEVEL ) {
+
+			$wp_debug_level = WP_DEBUG_LEVEL;
+			// In the main function:
+			if ( ! wp_is_valid_error_level( $wp_debug_level ) ) {
+				$wp_debug_level = E_ALL;
+			}
+
+			error_reporting( $wp_debug_level );
+		} else {
+			error_reporting( E_ALL );
+		}
 
 		if ( WP_DEBUG_DISPLAY ) {
 			ini_set( 'display_errors', 1 );
@@ -646,6 +657,60 @@ function wp_debug_mode() {
 		ini_set( 'display_errors', 0 );
 	}
 }
+
+/**
+ * Returns all valid error reporting constants.
+ *
+ * @since 6.8.0
+ *
+ * @return array Array of valid error reporting constants.
+ */
+function wp_get_valid_error_constants() {
+	$valid_constants = array();
+
+	foreach ( get_defined_constants( true )['Core'] as $name => $value ) {
+		if ( 0 === strpos( $name, 'E_' ) && is_int( $value ) ) {
+			$valid_constants[] = $value;
+		}
+	}
+
+	return $valid_constants;
+}
+
+/**
+ * Check if the given error level is valid.
+ *
+ * @since 6.8.0
+
+ * @param int $level Error reporting level to check.
+ *
+ * @return bool True if valid, false otherwise.
+ */
+function wp_is_valid_error_level( $level ) {
+
+	if ( is_string( $level ) ) {
+
+		return false;
+	}
+	// Check if the level is a valid integer and not negative.
+	if ( ! is_int( $level ) || $level < 0 ) {
+
+		return false;
+	}
+
+	$valid_constants = wp_get_valid_error_constants();
+	// Check if the level is a valid combination of constants.
+	$bitmask = array_reduce(
+		$valid_constants,
+		function ( $carry, $item ) {
+			return $carry | $item;
+		},
+		0
+	);
+
+	return ( $level & ~$bitmask ) === 0;
+}
+
 
 /**
  * Sets the location of the language directory.
