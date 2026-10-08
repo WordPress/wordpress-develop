@@ -120,6 +120,15 @@ helper. A filter result that is not an array is treated as an empty list.
    functions `cubic-bezier`, `steps`, `linear`. Names are decoded and
    matched case-insensitively. There is no per-property list: a gradient or a
    color function is allowed on every property.
+
+   A function is added to the allowlist when it passes two tests. Security:
+   its result depends only on its arguments; it loads no resource and reads
+   no document, layout, scroll, input, author-defined code or condition.
+   Stability: Blink, Gecko and WebKit ship it without a prefix or a flag, as
+   MDN's browser-compat-data records. This is the CSS Working Group's rule
+   for shipping a pre-CR feature unprefixed, counted in engines rather than
+   browsers. Spec maturity is not a test: `min()`, `max()` and `clamp()` are
+   in a Working Draft and have shipped in every engine since 2020.
 3. **URLs.** Every URL in the value, at any depth, whether a `url()` token or
    `url("...")` with a string argument, is non-empty after trimming and is
    returned unchanged by `wp_kses_bad_protocol()` with `wp_allowed_protocols()`.
@@ -228,7 +237,13 @@ Intended:
 - Color functions, gradients and `url()` are allowed on every property.
 - Functions may nest to any depth.
 - A function not on the allowlist is rejected wherever it appears, including
-  inside a gradient.
+  inside a gradient, `calc()` or `minmax()`. The legacy function removed
+  `calc()` and `minmax()` with everything inside them, so it kept
+  `minmax(fit-content(200px), 1fr)`; the parser rejects it until
+  `fit-content()` is added.
+- The filter, math and easing functions are allowed. The legacy function
+  rejected the filter functions, except `hue-rotate()`, which passed because
+  its pattern for `rotate(` matched inside the name.
 - A declaration CSS would drop is dropped, even when the legacy function kept
   its text. This includes an item with no colon, which the legacy function
   passed through unchecked.
@@ -243,7 +258,11 @@ Intended:
   function rejected `}`.
 - An allowed-list entry with capitals matches, since entries and names are
   lowercased before matching.
-- `safecss_filter_attr_allow_css` is deprecated and not applied.
+- `safecss_filter_attr_allow_css` is deprecated and not applied. Most
+  plugins and themes in the WordPress.org directories that attach a callback
+  use it only to allow color, filter, math, easing or transform functions,
+  which the parser accepts by default. The remaining uses are `data:` URLs
+  and functions this policy excludes, such as `attr()`.
 
 Formatting only: no space after the colon, double-quoted strings with
 hex-escaped punctuation, URLs as `url("...")`, trailing `;`.

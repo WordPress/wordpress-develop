@@ -4296,6 +4296,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
  * @return bool Whether the value is allowed.
  */
 function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) {
+	// A function is listed when its result depends only on its arguments and Blink, Gecko and WebKit ship it unprefixed.
 	static $allowed_functions = array(
 		// General purpose value functions.
 		'var',
