@@ -957,18 +957,25 @@ class WP_Block_Processor {
 			 *
 			 * The delimiter must also be a single complete HTML comment.
 			 *
+			 * The comment closer, as in {@see self::find_html_comment_end()}, cannot start
+			 * before the JSON span.
+			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$after_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+			$closer_at = $json_at;
+			do {
+				$dashes_at = strpos( $text, '--', $closer_at );
+				if ( false === $dashes_at ) {
+					goto incomplete;
+				}
 
-			/*
-			 * The reported end of the comment could be after the end of the document if
-			 * no actual end was found, so differentiate a comment ending at the end of
-			 * the document from documents with missing comment ends.
-			 */
-			if ( $after_comment_end >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
-				goto incomplete;
-			}
+				$closer_at = $dashes_at + 2 + strspn( $text, '-', $dashes_at + 2 );
+				if ( $closer_at < $end && '!' === $text[ $closer_at ] ) {
+					++$closer_at;
+				}
+			} while ( $closer_at >= $end || '>' !== $text[ $closer_at ] );
+
+			$after_comment_end = $closer_at + 1;
 
 			/*
 			 * Only normative comment closers are recognized block delimiters,
