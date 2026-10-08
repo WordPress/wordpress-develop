@@ -1585,7 +1585,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto initial_anything_else;
-				break;
 
 			/*
 			 * > A comment token
