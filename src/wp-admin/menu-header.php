@@ -55,6 +55,41 @@ $submenu_file = apply_filters( 'submenu_file', $submenu_file, $parent_file );
 get_admin_page_parent();
 
 /**
+ * Returns the name of the registered icon that a menu icon value is drawn with.
+ *
+ * Dashicons that have a replacement are drawn as inline SVG icons instead,
+ * so that the menu data keeps its Dashicons values.
+ *
+ * @access private
+ * @since 7.2.0
+ *
+ * @param string $menu_icon The menu icon value.
+ * @return string Namespaced icon name, or an empty string if the value is not drawn with a registered icon.
+ */
+function _wp_menu_icon_name( $menu_icon ) {
+	$dashicon_replacements = array(
+		'dashicons-dashboard'        => 'core-admin/dashboard',
+		'dashicons-admin-post'       => 'core-admin/pin',
+		'dashicons-admin-media'      => 'core-admin/media',
+		'dashicons-admin-links'      => 'core-admin/link',
+		'dashicons-admin-page'       => 'core-admin/page',
+		'dashicons-admin-comments'   => 'core-admin/comment',
+		'dashicons-admin-appearance' => 'core-admin/brush',
+		'dashicons-admin-plugins'    => 'core-admin/plugins',
+		'dashicons-admin-users'      => 'core-admin/people',
+		'dashicons-admin-tools'      => 'core-admin/tool',
+		'dashicons-admin-settings'   => 'core-admin/settings',
+		'dashicons-admin-multisite'  => 'core-admin/sites',
+	);
+
+	if ( isset( $dashicon_replacements[ $menu_icon ] ) ) {
+		return $dashicon_replacements[ $menu_icon ];
+	}
+
+	return wp_is_icon_name( $menu_icon ) ? $menu_icon : '';
+}
+
+/**
  * Display menu.
  *
  * @access private
@@ -125,11 +160,13 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 * If the string 'none' (previously 'div') is passed instead of a URL, don't output
 		 * the default menu image so an icon can be added to div.wp-menu-image as background
 		 * with CSS. Dashicons and base64-encoded data:image/svg_xml URIs are also handled
-		 * as special cases. A namespaced icon name is rendered as inline SVG, or leaves the
-		 * menu image empty if the icon is not found. Any other value is treated as an image URL.
+		 * as special cases. Dashicons that have a replacement, and namespaced icon names, are
+		 * rendered as inline SVG, or leave the menu image empty if the icon is not found.
+		 * Any other value is treated as an image URL.
 		 */
 		if ( ! empty( $item[6] ) ) {
-			$img = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
+			$icon_name = _wp_menu_icon_name( $item[6] );
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
@@ -138,17 +175,27 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
-			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
-				$img       = '<br />';
-				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
-			} elseif ( preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#', $item[6] ) ) {
-				$icon = wp_get_icon( $item[6] );
+			} elseif ( '' !== $icon_name ) {
+				$img  = '<br />';
+				$icon = wp_get_icon( $icon_name );
 				if ( '' !== $icon ) {
 					$img       = $icon;
 					$img_class = ' svg-icon';
-				} else {
-					$img = '<br />';
+				} elseif ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
+					_doing_it_wrong(
+						__FUNCTION__,
+						sprintf(
+							/* translators: 1: Icon name, 2: Admin menu item slug. */
+							__( 'The icon "%1$s" of the admin menu item "%2$s" is not registered.' ),
+							$icon_name,
+							$item[2]
+						),
+						'7.2.0'
+					);
 				}
+			} elseif ( str_starts_with( $item[6], 'dashicons-' ) ) {
+				$img       = '<br />';
+				$img_class = ' dashicons-before ' . sanitize_html_class( $item[6] );
 			}
 		}
 
