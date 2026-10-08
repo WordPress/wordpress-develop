@@ -484,6 +484,57 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that a `!--` which does not follow a `<` opens no comment.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_exclamation_marks_outside_of_comment_openers
+	 *
+	 * @covers ::next_token()
+	 *
+	 * @param string   $html        Input document.
+	 * @param string[] $block_types Printable block type of every delimiter in the document, in order.
+	 */
+	public function test_finds_delimiters_around_exclamation_marks( string $html, array $block_types ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		$found = array();
+		while ( $processor->next_delimiter() ) {
+			$found[] = $processor->get_printable_block_type();
+		}
+
+		$this->assertSame(
+			$block_types,
+			$found,
+			'Should have found every delimiter in the document.'
+		);
+
+		$this->assertNull(
+			$processor->get_last_error(),
+			'Should have reached the end of the document without an error.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_exclamation_marks_outside_of_comment_openers(): array {
+		return array(
+			'Document starts with !--'     => array( '!--<!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- in text before a block'   => array( 'Wow!-- <!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- inside of a block'        => array( '<!-- wp:a -->Hi!!--!<!-- /wp:a -->', array( 'core/a', 'core/a' ) ),
+			'<! immediately before opener' => array( '<!<!-- wp:a /-->', array( 'core/a' ) ),
+			'Doctype before a block'       => array( '<!DOCTYPE html><!-- wp:a /-->', array( 'core/a' ) ),
+			'!-- right after a delimiter'  => array( '<!-- wp:a /-->!--<!-- wp:b /-->', array( 'core/a', 'core/b' ) ),
+			'< right after a delimiter'    => array( '<!-- wp:a /--><!-- wp:b /-->', array( 'core/a', 'core/b' ) ),
+			'Only exclamation marks'       => array( '!!--!-- !', array() ),
+			'!-- at the end of a document' => array( '<!-- wp:a /-->x!--', array( 'core/a' ) ),
+		);
+	}
+
+	/**
 	 * Verifies that block delimiters are matched even with malformed
 	 * JSON attributes as long as they start and end with curly brackets.
 	 *
