@@ -361,9 +361,10 @@ class WP_Block_Type {
 	 *                                      provided, the variations or uses context arrays for those two names,
 	 *                                      null when value not found or when unknown property name provided.
 	 */
-	public function __get( $name ) {
+	public function &__get( $name ) {
 		if ( 'variations' === $name ) {
-			return $this->get_variations();
+			$this->variations = $this->get_variations();
+			return $this->variations;
 		}
 
 		if ( 'uses_context' === $name ) {
