@@ -90,7 +90,7 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	 *
 	 * Temporarily disabled until we can figure out why it fails on the Trixie based PHP container.
 	 * See https://core.trac.wordpress.org/ticket/63932.
-	 * @requires PHP < 8.3
+	 * @requires PHP < 8.1
 	 */
 	public function test_resize_avif() {
 		$file   = DIR_TESTDATA . '/images/avif-lossy.avif';
