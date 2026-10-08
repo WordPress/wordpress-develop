@@ -6,7 +6,7 @@
  * @package WordPress
  * @subpackage Theme
  *
- * @group theme
+ * @group themes
  *
  * @covers WP_Theme_JSON_Resolver::read_json_file
  */
