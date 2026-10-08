@@ -210,8 +210,8 @@ can restore the previous output while it adapts.
 `safecss_filter_attr_allow_css` is deprecated in 7.2.0 and applied by the
 legacy helper only. It exposed a regex test string that has no equivalent
 here. When a callback is attached, the declarations helper calls
-`_deprecated_hook()` once per call, naming `safe_style_css` as the
-replacement, and does not apply the hook. A site that needs the hook can
+`_deprecated_hook()` once per call, naming no replacement, and does not
+apply the hook. A site that needs the hook can
 select the legacy helper through `wp_kses_force_legacy_css_parser`.
 
 ## Differences From The Legacy Function

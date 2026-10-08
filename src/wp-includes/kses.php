@@ -4161,7 +4161,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
-			 * @deprecated 7.2.0 Use safe_style_css or wp_kses_force_legacy_css_parser.
+			 * @deprecated 7.2.0 Applied only when the wp_kses_force_legacy_css_parser filter returns true.
 			 *
 			 * @param bool   $allow_css       Whether the CSS in the test string is considered safe.
 			 * @param string $css_test_string The CSS string to test.
@@ -4235,7 +4235,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		_deprecated_hook(
 			'safecss_filter_attr_allow_css',
 			'7.2.0',
-			'safe_style_css',
+			'',
 			__( 'The hook only runs when the wp_kses_force_legacy_css_parser filter returns true.' )
 		);
 	}
