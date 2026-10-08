@@ -307,7 +307,13 @@ class WP_Roles {
 		$this->role_objects = array();
 		$this->role_names   = array();
 		foreach ( array_keys( $this->roles ) as $role ) {
-			$this->role_objects[ $role ] = new WP_Role( $role, $this->roles[ $role ]['capabilities'] );
+			$role_capabilities = $this->roles[ $role ]['capabilities'] ?? array();
+
+			if ( ! is_array( $role_capabilities ) ) {
+				$role_capabilities = array();
+			}
+
+			$this->role_objects[ $role ] = new WP_Role( $role, $role_capabilities );
 			$this->role_names[ $role ]   = $this->roles[ $role ]['name'];
 		}
 
