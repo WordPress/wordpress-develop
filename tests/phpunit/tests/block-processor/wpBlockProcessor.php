@@ -886,6 +886,51 @@ class Tests_Blocks_BlockProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies that no block type is reported unless matched on a token.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_unmatched_processor_positions
+	 *
+	 * @covers ::get_block_type
+	 * @covers ::get_printable_block_type
+	 *
+	 * @param string $html        Input document.
+	 * @param int    $token_count How many times to call next_token() before checking.
+	 */
+	public function test_reports_no_block_type_when_not_matched( string $html, int $token_count ): void {
+		$processor = new WP_Block_Processor( $html );
+
+		for ( $i = 0; $i < $token_count; $i++ ) {
+			$processor->next_token();
+		}
+
+		$this->assertNull(
+			$processor->get_block_type(),
+			'Should not have returned a block type.'
+		);
+
+		$this->assertNull(
+			$processor->get_printable_block_type(),
+			'Should not have returned a printable block type.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: int}>
+	 */
+	public static function data_unmatched_processor_positions(): array {
+		return array(
+			'Before scanning'               => array( '<!-- wp:any/content -->', 0 ),
+			'After the last delimiter'      => array( '<!-- wp:any/content -->', 2 ),
+			'After the last HTML span'      => array( '<!-- wp:paragraph -->text', 3 ),
+			'After an incomplete delimiter' => array( '<!-- wp:incomplete/blo', 1 ),
+		);
+	}
+
+	/**
 	 * Verifies that the appropriate block type is reported for a matched delimiter.
 	 *
 	 * @ticket 61401
