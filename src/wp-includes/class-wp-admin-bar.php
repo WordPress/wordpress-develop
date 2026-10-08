@@ -579,6 +579,24 @@ class WP_Admin_Bar {
 			$menuclass = ' class="' . esc_attr( trim( $menuclass ) ) . '"';
 		}
 
+		$icon = '';
+		if ( wp_is_icon_name( $node->icon ) ) {
+			$icon = _wp_admin_bar_icon( $node->icon );
+
+			if ( ! WP_Icons_Registry::get_instance()->is_registered( $node->icon ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Icon name, 2: Admin bar node ID. */
+						__( 'The icon "%1$s" of the admin bar node "%2$s" is not registered.' ),
+						$node->icon,
+						$node->id
+					),
+					'7.2.0'
+				);
+			}
+		}
+
 		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
@@ -599,11 +617,6 @@ class WP_Admin_Bar {
 			} else {
 				echo " $attribute='" . esc_attr( $node->meta[ $attribute ] ) . "'";
 			}
-		}
-
-		$icon = '';
-		if ( ! empty( $node->icon ) && is_string( $node->icon ) ) {
-			$icon = _wp_admin_bar_icon( $node->icon );
 		}
 
 		echo ">{$arrow}{$icon}{$node->title}";

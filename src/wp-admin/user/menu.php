@@ -12,11 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$menu[2] = array( __( 'Dashboard' ), 'exist', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'core-admin/dashboard' );
+$menu[2] = array( __( 'Dashboard' ), 'exist', 'index.php', '', 'menu-top menu-top-first menu-icon-dashboard', 'menu-dashboard', 'dashicons-dashboard' );
 
 $menu[4] = array( '', 'exist', 'separator1', '', 'wp-menu-separator' );
 
-$menu[70] = array( __( 'Profile' ), 'exist', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'core-admin/people' );
+$menu[70] = array( __( 'Profile' ), 'exist', 'profile.php', '', 'menu-top menu-icon-users', 'menu-users', 'dashicons-admin-users' );
 
 $menu[99] = array( '', 'exist', 'separator-last', '', 'wp-menu-separator' );
 
