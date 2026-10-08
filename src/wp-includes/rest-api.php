@@ -1587,6 +1587,29 @@ function rest_is_boolean( $maybe_bool ) {
 }
 
 /**
+ * Encodes request query parameters for use in a URL.
+ *
+ * Works like {@see urlencode_deep()}, but converts boolean values to `1` and `0` first.
+ * `urlencode()` turns `false` into an empty string, which fails boolean validation when
+ * the URL is requested, for example when following a pagination link.
+ *
+ * @since 7.2.0
+ *
+ * @param array $query_params Query parameters to encode.
+ * @return array Encoded query parameters.
+ */
+function rest_urlencode_query_params( $query_params ) {
+	$query_params = map_deep(
+		$query_params,
+		static function ( $value ) {
+			return is_bool( $value ) ? (int) $value : $value;
+		}
+	);
+
+	return urlencode_deep( $query_params );
+}
+
+/**
  * Determines if a given value is integer-like.
  *
  * This reports whether the value represents an integer; it does not guarantee that the
