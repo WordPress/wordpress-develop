@@ -812,7 +812,7 @@ p.search-box {
 	column-gap: 0.5rem;
 	position: relative;
 	float: right;
-	margin: 11px 0;
+	margin: 6px 0;
 }
 
 p.search-box input[type="search"],
