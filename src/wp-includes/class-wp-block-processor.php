@@ -1292,9 +1292,16 @@ class WP_Block_Processor {
 		);
 
 		$depth = $this->get_depth();
-		while ( $this->next_token() && $this->get_depth() > $depth ) {
-			if ( self::HTML_SPAN === $this->state ) {
-				$chunk                   = $this->get_html_content();
+		while ( $this->next_token() ) {
+			$is_html = self::HTML_SPAN === $this->state;
+
+			// Equivalent to `$this->get_depth() <= $depth`.
+			if ( count( $this->open_blocks_at ) + ( $is_html || self::VOID === $this->type ? 1 : 0 ) <= $depth ) {
+				break;
+			}
+
+			if ( $is_html ) {
+				$chunk                   = substr( $this->source_text, $this->after_previous_delimiter, $this->matched_delimiter_at - $this->after_previous_delimiter );
 				$block['innerHTML']     .= $chunk;
 				$block['innerContent'][] = $chunk;
 				continue;
@@ -1306,7 +1313,7 @@ class WP_Block_Processor {
 			 * @todo This is a decent place to call {@link \render_block()}
 			 * @todo Use iteration instead of recursion, or at least refactor to tail-call form.
 			 */
-			if ( $this->opens_block() ) {
+			if ( self::CLOSER !== $this->type ) {
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
@@ -1318,7 +1325,7 @@ class WP_Block_Processor {
 			 * moving on to the next token at the start of the next loop iteration.
 			 */
 			if ( self::HTML_SPAN === $this->state ) {
-				$chunk                   = $this->get_html_content();
+				$chunk                   = substr( $this->source_text, $this->after_previous_delimiter, $this->matched_delimiter_at - $this->after_previous_delimiter );
 				$block['innerHTML']     .= $chunk;
 				$block['innerContent'][] = $chunk;
 			}
