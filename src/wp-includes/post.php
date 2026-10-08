@@ -1453,6 +1453,8 @@ function _wp_privacy_statuses() {
  *                                                  Default to false.
  * }
  * @return object
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_status
  */
 function register_post_status( $post_status, $args = array() ) {
 	global $wp_post_statuses;
@@ -1503,7 +1505,7 @@ function register_post_status( $post_status, $args = array() ) {
 
 	if ( false === $args->label_count ) {
 		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$args->label_count = _n_noop( $args->label, $args->label );
+		$args->label_count = _n_noop( $args->label, $args->label ); // @phpstan-ignore argument.type, argument.type (The label is a runtime value, so there is nothing to extract for translation.)
 	}
 
 	$wp_post_statuses[ $post_status ] = $args;
@@ -1828,6 +1830,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_type
  */
 function register_post_type( $post_type, $args = array() ) {
 	global $wp_post_types;
@@ -3654,6 +3658,18 @@ function wp_count_attachments( $mime_type = '' ) {
  *                                                              value is a three-item array: the plural name of the
  *                                                              group, the label for its "Manage" screen, and the
  *                                                              translatable count strings returned by _n_noop().
+ *
+ * @phpstan-return array<string, array{
+ *     0: string,
+ *     1: string,
+ *     2: array{
+ *         singular: literal-string,
+ *         plural: literal-string,
+ *         context: literal-string|null,
+ *         domain: literal-string|null,
+ *         ...
+ *     },
+ * }>
  */
 function get_post_mime_types() {
 	$post_mime_types = array(   // array( adj, noun )
@@ -3748,6 +3764,18 @@ function get_post_mime_types() {
 	 *
 	 * @param array<string, array{0: string, 1: string, 2: array}> $post_mime_types Default list of post mime types.
 	 *                                                                              See {@see get_post_mime_types()}.
+	 *
+	 * @phpstan-param array<string, array{
+	 *     0: string,
+	 *     1: string,
+	 *     2: array{
+	 *         singular: literal-string,
+	 *         plural: literal-string,
+	 *         context: literal-string|null,
+	 *         domain: literal-string|null,
+	 *         ...
+	 *     },
+	 * }> $post_mime_types
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }
@@ -6003,63 +6031,71 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 */
 	do_action( 'transition_post_status', $new_status, $old_status, $post );
 
-	/**
-	 * Fires when a post is transitioned from one status to another.
-	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
-	 * refer to the old and new post statuses, respectively.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `draft_to_publish`
-	 *  - `publish_to_trash`
-	 *  - `pending_to_draft`
-	 *
-	 * @since 2.3.0
-	 *
-	 * @param WP_Post $post Post object.
-	 */
-	do_action( "{$old_status}_to_{$new_status}", $post );
+	$new_status_object = get_post_status_object( $new_status );
+	$old_status_valid  = get_post_status_object( $old_status ) || 'new' === $old_status;
+	$post_type_object  = get_post_type_object( $post->post_type );
 
-	/**
-	 * Fires when a post is transitioned from one status to another.
-	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
-	 * refer to the new post status and post type, respectively.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `draft_post`
-	 *  - `future_post`
-	 *  - `pending_post`
-	 *  - `private_post`
-	 *  - `publish_post`
-	 *  - `trash_post`
-	 *  - `draft_page`
-	 *  - `future_page`
-	 *  - `pending_page`
-	 *  - `private_page`
-	 *  - `publish_page`
-	 *  - `trash_page`
-	 *  - `publish_attachment`
-	 *  - `trash_attachment`
-	 *
-	 * Please note: When this action is hooked using a particular post status (like
-	 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
-	 * first transitioned to that status from something else, as well as upon
-	 * subsequent post updates (old and new status are both the same).
-	 *
-	 * Therefore, if you are looking to only fire a callback when a post is first
-	 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
-	 *
-	 * @since 2.3.0
-	 * @since 5.9.0 Added `$old_status` parameter.
-	 *
-	 * @param int     $post_id    Post ID.
-	 * @param WP_Post $post       Post object.
-	 * @param string  $old_status Old post status.
-	 */
-	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
+	if ( $new_status_object && $old_status_valid ) {
+		/**
+		 * Fires when a post is transitioned from one status to another.
+		 *
+		 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
+		 * refer to the old and new post statuses, respectively.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `draft_to_publish`
+		 *  - `publish_to_trash`
+		 *  - `pending_to_draft`
+		 *
+		 * @since 2.3.0
+		 *
+		 * @param WP_Post $post Post object.
+		 */
+		do_action( "{$old_status}_to_{$new_status}", $post );
+	}
+
+	if ( $new_status_object && $post_type_object ) {
+		/**
+		 * Fires when a post is transitioned from one status to another.
+		 *
+		 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
+		 * refer to the new post status and post type, respectively.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `draft_post`
+		 *  - `future_post`
+		 *  - `pending_post`
+		 *  - `private_post`
+		 *  - `publish_post`
+		 *  - `trash_post`
+		 *  - `draft_page`
+		 *  - `future_page`
+		 *  - `pending_page`
+		 *  - `private_page`
+		 *  - `publish_page`
+		 *  - `trash_page`
+		 *  - `publish_attachment`
+		 *  - `trash_attachment`
+		 *
+		 * Please note: When this action is hooked using a particular post status (like
+		 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
+		 * first transitioned to that status from something else, as well as upon
+		 * subsequent post updates (old and new status are both the same).
+		 *
+		 * Therefore, if you are looking to only fire a callback when a post is first
+		 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
+		 *
+		 * @since 2.3.0
+		 * @since 5.9.0 Added `$old_status` parameter.
+		 *
+		 * @param int     $post_id    Post ID.
+		 * @param WP_Post $post       Post object.
+		 * @param string  $old_status Old post status.
+		 */
+		do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
+	}
 }
 
 /**
