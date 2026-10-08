@@ -17,6 +17,11 @@ use WpOrg\Requests\Requests;
 use WpOrg\Requests\Transport;
 use WpOrg\Requests\Utility\InputValidator;
 
+// Don't load directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    die( '-1' );
+}
+
 /**
  * cURL HTTP transport
  *
