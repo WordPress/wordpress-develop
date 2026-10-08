@@ -406,6 +406,21 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The note reaction menu offers the same emoji the REST API accepts.
+	 *
+	 * @ticket 63191
+	 *
+	 * @covers ::get_block_editor_settings
+	 */
+	public function test_get_block_editor_settings_includes_note_reaction_emojis() {
+		add_filter( 'wp_note_reaction_emojis', '__return_empty_array' );
+
+		$settings = get_block_editor_settings( array(), new WP_Block_Editor_Context() );
+
+		$this->assertSame( array(), $settings['noteReactionEmojis'] );
+	}
+
+	/**
 	 * @ticket 52920
 	 */
 	public function test_get_block_editor_settings_overrides_default_settings_all_editors() {

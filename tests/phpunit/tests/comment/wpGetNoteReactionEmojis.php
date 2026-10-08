@@ -147,17 +147,4 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 			'empty'              => array( '', '' ),
 		);
 	}
-
-	/**
-	 * @ticket 63191
-	 *
-	 * @covers ::get_block_editor_settings
-	 */
-	public function test_passes_the_emoji_to_the_editor() {
-		add_filter( 'wp_note_reaction_emojis', '__return_empty_array' );
-
-		$settings = get_block_editor_settings( array(), new WP_Block_Editor_Context() );
-
-		$this->assertSame( array(), $settings['noteReactionEmojis'] );
-	}
 }
