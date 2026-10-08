@@ -854,7 +854,7 @@ function get_feed_build_date( $format ) {
 	$max_modified_time = false;
 	$utc               = new DateTimeZone( 'UTC' );
 
-	if ( ! empty( $wp_query ) && $wp_query->have_posts() ) {
+	if ( ! empty( $wp_query ) && $wp_query->have_posts() && is_array( $wp_query->posts ) ) {
 		/*
 		 * Resolve each entry to a WP_Post so we can read post_modified_gmt.
 		 * Supports queries using fields => 'ids' where $posts contains
@@ -871,7 +871,7 @@ function get_feed_build_date( $format ) {
 		);
 
 		// If this is a comment feed, check those objects too.
-		if ( $wp_query->is_comment_feed() && $wp_query->comment_count ) {
+		if ( $wp_query->is_comment_feed() && $wp_query->comment_count && is_array( $wp_query->comments ) ) {
 			/*
 			 * Resolve each entry to a WP_Comment so we can read
 			 * comment_date_gmt. Supports comment queries using
