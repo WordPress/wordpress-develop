@@ -117,6 +117,38 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 *
+	 * @dataProvider data_filter_functions
+	 *
+	 * @param string $css CSS declaration.
+	 */
+	public function test_filter_functions_are_allowed( $css ) {
+		$this->assertSame( $css, safecss_filter_attr( $css ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_filter_functions() {
+		return array(
+			'blur'        => array( 'filter:blur(5px);' ),
+			'brightness'  => array( 'filter:brightness(0.4);' ),
+			'contrast'    => array( 'filter:contrast(200%);' ),
+			'drop-shadow' => array( 'filter:drop-shadow(16px 16px 20px rgb(0 0 255 / 50%));' ),
+			'grayscale'   => array( 'filter:grayscale(50%);' ),
+			'hue-rotate'  => array( 'filter:hue-rotate(90deg);' ),
+			'invert'      => array( 'filter:invert(75%);' ),
+			'opacity'     => array( 'filter:opacity(25%);' ),
+			'saturate'    => array( 'filter:saturate(30%);' ),
+			'sepia'       => array( 'filter:sepia(60%);' ),
+			'chained'     => array( 'filter:blur(5px) brightness(0.4);' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
 	 */
 	public function test_url_must_be_non_empty() {
 		$this->assertSame( '', safecss_filter_attr( 'background: url()' ) );

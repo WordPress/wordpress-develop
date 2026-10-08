@@ -111,8 +111,10 @@ helper. A filter result that is not an array is treated as an empty list.
    names are matched case-sensitively.
 2. **Functions.** Every function in the value, at any nesting depth, is in the
    function allowlist: the legacy function's list, the six gradient functions,
-   and the color functions `rgb`, `rgba`, `hsl`, `hsla`, `hwb`, `lab`, `lch`,
-   `oklab`, `oklch`, `color`, `color-mix`, `light-dark`. Names are decoded and
+   the color functions `rgb`, `rgba`, `hsl`, `hsla`, `hwb`, `lab`, `lch`,
+   `oklab`, `oklch`, `color`, `color-mix`, `light-dark`, and the filter
+   functions `blur`, `brightness`, `contrast`, `drop-shadow`, `grayscale`,
+   `hue-rotate`, `invert`, `opacity`, `saturate`, `sepia`. Names are decoded and
    matched case-insensitively. There is no per-property list: a gradient or a
    color function is allowed on every property.
 3. **URLs.** Every URL in the value, at any depth, whether a `url()` token or

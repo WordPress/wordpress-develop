@@ -4356,6 +4356,17 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 		'color',
 		'color-mix',
 		'light-dark',
+		// Filter functions.
+		'blur',
+		'brightness',
+		'contrast',
+		'drop-shadow',
+		'grayscale',
+		'hue-rotate',
+		'invert',
+		'opacity',
+		'saturate',
+		'sepia',
 	);
 
 	$count = count( $tokens );
