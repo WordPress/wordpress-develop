@@ -71,7 +71,7 @@ if ( ! empty( $_GET['adminhash'] ) ) {
 				'updated'             => 'true',
 				'admin_email_updated' => 'true',
 			),
-			'options-general.php'
+			'options-general.php',
 		);
 	}
 

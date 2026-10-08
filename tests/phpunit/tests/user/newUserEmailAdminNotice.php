@@ -22,6 +22,11 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	 */
 	private $original_pagenow;
 
+	/**
+	 * Creates a test user.
+	 *
+	 * @param WP_UnitTest_Factory $factory Test factory.
+	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
@@ -31,6 +36,9 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * Set up before each test.
+	 */
 	public function set_up() {
 		parent::set_up();
 
@@ -38,6 +46,9 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_id );
 	}
 
+	/**
+	 * Tear down after each test.
+	 */
 	public function tear_down() {
 		$GLOBALS['pagenow'] = $this->original_pagenow;
 		unset( $_GET['updated'] );
@@ -60,6 +71,8 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the notice is displayed when an email change is pending.
+	 *
 	 * @ticket 66173
 	 */
 	public function test_should_display_notice_when_email_change_is_pending() {
@@ -73,17 +86,24 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the notice is displayed regardless of the "updated" query arg.
+	 *
 	 * @ticket 66173
 	 */
-	public function test_should_display_notice_without_updated_query_arg() {
+	public function test_should_display_notice_regardless_of_updated_query_arg() {
 		$GLOBALS['pagenow'] = 'profile.php';
 		$this->set_pending_email_change();
 
-		$this->assertArrayNotHasKey( 'updated', $_GET, 'The "updated" query arg should not be set.' );
-		$this->assertNotEmpty( get_echo( 'new_user_email_admin_notice' ), 'The notice should be displayed.' );
+		unset( $_GET['updated'] );
+		$this->assertNotEmpty( get_echo( 'new_user_email_admin_notice' ), 'The notice should display when the "updated" query arg is absent.' );
+
+		$_GET['updated'] = 'true';
+		$this->assertNotEmpty( get_echo( 'new_user_email_admin_notice' ), 'The notice should display when the "updated" query arg is present.' );
 	}
 
 	/**
+	 * Tests that the notice includes a nonced link to cancel the email change request.
+	 *
 	 * @ticket 66173
 	 */
 	public function test_should_include_cancel_request_link() {
@@ -98,6 +118,8 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the notice is not displayed when no email change is pending.
+	 *
 	 * @ticket 66173
 	 */
 	public function test_should_not_display_notice_without_pending_email_change() {
@@ -107,6 +129,8 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the notice is not displayed outside the profile screen.
+	 *
 	 * @ticket 66173
 	 */
 	public function test_should_not_display_notice_outside_profile_screen() {
@@ -117,6 +141,8 @@ class Tests_User_NewUserEmailAdminNotice extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the notice is not hooked to multisite admin notice actions.
+	 *
 	 * Ensures the notice is not output a second time through the multisite
 	 * admin notice actions, since wp-admin/user-edit.php renders it directly.
 	 *
