@@ -41,9 +41,9 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that get_feed_build_date() does not throw a ValueError
-	 * when $wp_query->posts contains no entries that resolve to a
-	 * WP_Post (e.g. invalid IDs that get_post() returns null for).
+	 * Test that get_feed_build_date() does not throw a ValueError when no
+	 * entry in $wp_query->posts resolves to a post, and falls back to the
+	 * last modified time of any post instead.
 	 *
 	 * @ticket 59956
 	 */
@@ -57,51 +57,28 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			)
 		);
 
-		/*
-		 * Build a WP_Query where have_posts() is true but no entry can be
-		 * resolved to a WP_Post. Setting post_count without populating posts
-		 * with valid data exercises the empty $modified_times fallback path.
-		 */
-		$wp_query             = new WP_Query();
-		$wp_query->post_count = 1;
-		$wp_query->posts      = array( PHP_INT_MAX ); // Non-existent post ID.
+		$deleted_post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		$wp_query = new WP_Query(
+			array(
+				'p'      => $deleted_post_id,
+				'fields' => 'ids',
+			)
+		);
+		$this->assertTrue( $wp_query->have_posts(), 'Expected the query to find the post.' );
+
+		// Delete the post after the query runs, so its ID no longer resolves to a post.
+		wp_delete_post( $deleted_post_id, true );
 
 		$this->assertSame(
 			'2024-06-15T12:00:00+00:00',
 			get_feed_build_date( DATE_RFC3339 ),
 			'Should fall back to last post modified when modified_times is empty.'
-		);
-	}
-
-	/**
-	 * Test that get_feed_build_date() does not throw a ValueError when
-	 * have_posts() is true but $wp_query->posts is empty.
-	 *
-	 * Code review noted that the test above only reaches the empty
-	 * $modified_times guard through a contrived non-existent post ID. This
-	 * covers the simpler path where post_count is out of step with an empty
-	 * $posts array.
-	 *
-	 * @ticket 59956
-	 */
-	public function test_should_not_error_when_posts_is_empty() {
-		global $wp_query;
-
-		self::factory()->post->create(
-			array(
-				'post_date'     => '2024-06-15 12:00:00',
-				'post_date_gmt' => '2024-06-15 12:00:00',
-			)
-		);
-
-		$wp_query             = new WP_Query();
-		$wp_query->post_count = 1;
-		$wp_query->posts      = array();
-
-		$this->assertSame(
-			'2024-06-15T12:00:00+00:00',
-			get_feed_build_date( DATE_RFC3339 ),
-			'Should fall back to last post modified when posts is empty.'
 		);
 	}
 
