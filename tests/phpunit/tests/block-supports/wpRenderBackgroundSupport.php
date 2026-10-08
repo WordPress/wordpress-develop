@@ -71,6 +71,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 * @ticket 61858
 	 * @ticket 64974
 	 * @ticket 66094
+	 * @ticket 66269
 	 *
 	 * @covers ::wp_render_background_support
 	 *
@@ -267,6 +268,23 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 					'gradient'        => 'linear-gradient(135deg,hsl(0,100%,50%) 0%,hsl(240,100%,50%) 100%)',
 				),
 				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,hsl(0,100%,50%) 0%,hsl(240,100%,50%) 100%), url(&apos;https://example.com/image.jpg&apos;);background-size:cover;">Content</div>',
+				'wrapper'             => '<div>Content</div>',
+			),
+			'background gradient is applied without the image when the image skips serialization' => array(
+				'theme_name'          => 'block-theme-child-with-fluid-typography',
+				'block_name'          => 'test/background-image-skipped-gradient-applied',
+				'background_settings' => array(
+					'backgroundImage'                 => true,
+					'gradient'                        => true,
+					'__experimentalSkipSerialization' => array( 'backgroundImage' ),
+				),
+				'background_style'    => array(
+					'backgroundImage' => array(
+						'url' => 'https://example.com/image.jpg',
+					),
+					'gradient'        => 'linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%)',
+				),
+				'expected_wrapper'    => '<div class="has-background" style="background-image:linear-gradient(135deg,rgb(255,0,0) 0%,rgb(0,0,255) 100%);">Content</div>',
 				'wrapper'             => '<div>Content</div>',
 			),
 			'background image style is not applied if the block does not support background image' => array(
