@@ -3399,7 +3399,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_links() {
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
-		wp_set_current_user( self::$user );
+		wp_set_current_user( self::$superadmin );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
 		$response = rest_get_server()->dispatch( $request );
@@ -3427,7 +3427,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_links_without_application_passwords() {
 		add_filter( 'wp_is_application_passwords_available', '__return_false' );
-		wp_set_current_user( self::$user );
+		wp_set_current_user( self::$superadmin );
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
 		$response = rest_get_server()->dispatch( $request );
@@ -3440,6 +3440,16 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_get_item_links_application_passwords_require_permission() {
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		if ( is_multisite() ) {
+			wp_set_current_user( self::$user );
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertArrayNotHasKey( 'https://api.w.org/application-passwords', $response->get_links() );
+		}
+
 		wp_set_current_user( self::$editor );
 
 		// A user who cannot edit the requested user must not learn whether application passwords are available for them.
