@@ -902,10 +902,8 @@ CSS;
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
 	 * @ticket 64418
-	 *
-	 * @dataProvider data_custom_css_allowed
 	 */
-	public function test_validate_custom_css_allowed( string $custom_css ) {
+	public function test_validate_custom_css_allowed() {
 		$controller = new WP_REST_Global_Styles_Controller();
 		$validate   = Closure::bind(
 			function ( $css ) {
@@ -915,11 +913,13 @@ CSS;
 			$controller
 		);
 
-		$this->assertTrue( $validate( $custom_css ) );
+		foreach ( self::data_custom_css_allowed() as $name => $case ) {
+			$this->assertTrue( $validate( $case[0] ), $name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns custom CSS validation test cases.
 	 *
 	 * @return array<string, string[]>
 	 */
@@ -939,10 +939,8 @@ CSS;
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
 	 * @ticket 64418
-	 *
-	 * @dataProvider data_custom_css_disallowed
 	 */
-	public function test_validate_custom_css( string $custom_css, string $expected_error_message ) {
+	public function test_validate_custom_css() {
 		$controller = new WP_REST_Global_Styles_Controller();
 		$validate   = Closure::bind(
 			function ( $css ) {
@@ -952,13 +950,15 @@ CSS;
 			$controller
 		);
 
-		$result = $validate( $custom_css );
-		$this->assertWPError( $result );
-		$this->assertSame( $expected_error_message, $result->get_error_message() );
+		foreach ( self::data_custom_css_disallowed() as $name => $case ) {
+			$result = $validate( $case[0] );
+			$this->assertWPError( $result, $name );
+			$this->assertSame( $case[1], $result->get_error_message(), $name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns custom CSS validation test cases.
 	 *
 	 * @return array<string, string[]>
 	 */
@@ -987,12 +987,8 @@ CSS;
 	/**
 	 * @covers WP_REST_Global_Styles_Controller::validate_custom_css
 	 * @ticket 65640
-	 *
-	 * @dataProvider data_custom_css_non_string
-	 *
-	 * @param mixed $custom_css Non-string value to validate.
 	 */
-	public function test_validate_custom_css_non_string( $custom_css ) {
+	public function test_validate_custom_css_non_string() {
 		$controller = new WP_REST_Global_Styles_Controller();
 		$validate   = Closure::bind(
 			function ( $css ) {
@@ -1002,13 +998,15 @@ CSS;
 			$controller
 		);
 
-		$result = $validate( $custom_css );
-		$this->assertWPError( $result );
-		$this->assertSame( 'rest_custom_css_invalid_type', $result->get_error_code() );
+		foreach ( self::data_custom_css_non_string() as $name => $case ) {
+			$result = $validate( $case[0] );
+			$this->assertWPError( $result, $name );
+			$this->assertSame( 'rest_custom_css_invalid_type', $result->get_error_code(), $name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns custom CSS validation test cases.
 	 *
 	 * @return array<string, mixed[]>
 	 */
