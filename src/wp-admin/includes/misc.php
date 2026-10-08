@@ -1177,6 +1177,40 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 }
 
 /**
+ * Checks whether a post list table has changed.
+ *
+ * @since x.x.x
+ *
+ * @param array $response The Heartbeat response.
+ * @param array $data     The $_POST data sent.
+ * @return array The Heartbeat response.
+ */
+function wp_check_post_list_table_changes( $response, $data ) {
+	if ( empty( $data['wp-check-post-list'] ) || ! is_array( $data['wp-check-post-list'] ) ) {
+		return $response;
+	}
+
+	$check = $data['wp-check-post-list'];
+
+	if ( empty( $check['post_type'] ) || ! is_string( $check['post_type'] ) || ! array_key_exists( 'last_changed', $check ) || ! is_string( $check['last_changed'] ) ) {
+		return $response;
+	}
+
+	$post_type        = sanitize_key( $check['post_type'] );
+	$post_type_object = get_post_type_object( $post_type );
+
+	if ( 'attachment' === $post_type || ! $post_type_object || ! $post_type_object->show_ui || ! current_user_can( $post_type_object->cap->edit_posts ) ) {
+		return $response;
+	}
+
+	if ( _wp_get_post_list_table_last_changed( $post_type ) !== $check['last_changed'] ) {
+		$response['wp-refresh-post-list'] = true;
+	}
+
+	return $response;
+}
+
+/**
  * Checks lock status on the New/Edit Post screen and refresh the lock.
  *
  * @since 3.6.0
