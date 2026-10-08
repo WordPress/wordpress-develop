@@ -594,7 +594,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 			$output = ob_get_clean();
 
-			if ( ! empty( $output ) ) {
+			if ( ! empty( $output ) && $this->has_items() ) {
 				echo $output;
 				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
