@@ -956,9 +956,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<span class="add-edit-menu-action">
 			<?php
 			printf(
-				/* translators: %s: URL to create a new menu. */
-				__( 'Edit your menu below, or <a href="%s">create a new menu</a>. Do not forget to save your changes!' ),
-				esc_url(
+				/* translators: No placeholders needed now */
+				__( 'Edit your menu below with necessary details. To create a new menu, click the button below. Don\'t forget to save your changes!' )
+			);
+			?>
+			<br>
+			<a href="
+				<?php
+				print esc_url(
 					add_query_arg(
 						array(
 							'action' => 'edit',
@@ -966,9 +971,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						),
 						admin_url( 'nav-menus.php' )
 					)
-				)
-			);
-			?>
+				);
+				?>
+			" class="button button-primary" style="margin-top: 10px; display: inline-block;">
+				<?php _e( 'Create a new menu' ); ?>
+			</a>
 			<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
