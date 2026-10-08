@@ -80,6 +80,44 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that get_feed_build_date() does not throw a ValueError when
+	 * have_posts() is true but $wp_query->posts is empty.
+	 *
+	 * Code review noted that the test above only reaches the empty
+	 * $modified_times guard through a contrived non-existent post ID. This
+	 * covers the simpler path where post_count is out of step with an empty
+	 * $posts array.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_not_error_when_posts_is_empty() {
+		global $wp_query;
+
+		$datetime     = new DateTimeImmutable( 'now', wp_timezone() );
+		$datetime_utc = $datetime->setTimezone( new DateTimeZone( 'UTC' ) );
+
+		self::factory()->post->create(
+			array(
+				'post_date' => $datetime->format( 'Y-m-d H:i:s' ),
+			)
+		);
+
+		$wp_query             = new WP_Query();
+		$wp_query->post_count = 1;
+		$wp_query->posts      = array();
+
+		$result = get_feed_build_date( DATE_RFC3339 );
+		$this->assertIsString( $result );
+
+		$this->assertEqualsWithDelta(
+			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
+			strtotime( $result ),
+			2,
+			'Should fall back to last post modified when posts is empty.'
+		);
+	}
+
+	/**
 	 * Test that get_feed_build_date() returns the correct modified time
 	 * when $wp_query->posts is an array of post IDs (from fields => 'ids')
 	 * instead of WP_Post objects.
