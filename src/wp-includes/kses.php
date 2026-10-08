@@ -4385,6 +4385,10 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 		'opacity',
 		'saturate',
 		'sepia',
+		// Easing functions.
+		'cubic-bezier',
+		'steps',
+		'linear',
 	);
 
 	$count = count( $tokens );

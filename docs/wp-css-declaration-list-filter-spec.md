@@ -114,9 +114,10 @@ helper. A filter result that is not an array is treated as an empty list.
    `sign`, `round`, `mod`, `rem`, `pow`, `sqrt`, `hypot`, `log`, `exp`, `sin`,
    `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, the six gradient functions,
    the color functions `rgb`, `rgba`, `hsl`, `hsla`, `hwb`, `lab`, `lch`,
-   `oklab`, `oklch`, `color`, `color-mix`, `light-dark`, and the filter
+   `oklab`, `oklch`, `color`, `color-mix`, `light-dark`, the filter
    functions `blur`, `brightness`, `contrast`, `drop-shadow`, `grayscale`,
-   `hue-rotate`, `invert`, `opacity`, `saturate`, `sepia`. Names are decoded and
+   `hue-rotate`, `invert`, `opacity`, `saturate`, `sepia`, and the easing
+   functions `cubic-bezier`, `steps`, `linear`. Names are decoded and
    matched case-insensitively. There is no per-property list: a gradient or a
    color function is allowed on every property.
 3. **URLs.** Every URL in the value, at any depth, whether a `url()` token or

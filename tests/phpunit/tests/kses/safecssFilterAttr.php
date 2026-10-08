@@ -187,6 +187,38 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 *
+	 * @dataProvider data_easing_functions
+	 *
+	 * @param string $css CSS declaration.
+	 */
+	public function test_easing_functions_are_allowed( $css ) {
+		$add = static function ( $allowed ) {
+			$allowed[] = 'transition-timing-function';
+			return $allowed;
+		};
+		add_filter( 'safe_style_css', $add );
+		$actual = safecss_filter_attr( $css );
+		remove_filter( 'safe_style_css', $add );
+
+		$this->assertSame( $css, $actual );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_easing_functions() {
+		return array(
+			'cubic-bezier' => array( 'transition-timing-function:cubic-bezier(0.1, 0.7, 1, 0.1);' ),
+			'steps'        => array( 'transition-timing-function:steps(4, jump-end);' ),
+			'linear'       => array( 'transition-timing-function:linear(0, 0.25 75%, 1);' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
 	 */
 	public function test_url_must_be_non_empty() {
 		$this->assertSame( '', safecss_filter_attr( 'background: url()' ) );
