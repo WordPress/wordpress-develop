@@ -6096,6 +6096,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see https://html.spec.whatwg.org/#adoption-agency-algorithm
 	 */
 	private function run_adoption_agency_algorithm(): void {
+		$budget       = 1000;
 		$subject      = $this->get_tag();
 		$current_node = $this->state->stack_of_open_elements->current_node();
 
@@ -6109,88 +6110,88 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return;
 		}
 
-		/*
-		 * > Let outer loop counter be 0.
-		 * > Outer loop: If outer loop counter is greater than or equal to 8, then return.
-		 *
-		 * Only the first pass through the outer loop is supported. Every path through it
-		 * either returns or bails before reaching the steps that would start another pass,
-		 * so the loop and its counter are left out until those steps are implemented.
-		 */
-
-		/*
-		 * > Let formatting element be the last element in the list of active formatting elements that:
-		 * >   - is between the end of the list and the last marker in the list,
-		 * >     if any, or the start of the list otherwise,
-		 * >   - and has the tag name subject.
-		 */
-		$formatting_element = null;
-		foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
-			if ( 'marker' === $item->node_name ) {
-				break;
+		$outer_loop_counter = 0;
+		while ( $budget-- > 0 ) {
+			if ( $outer_loop_counter++ >= 8 ) {
+				return;
 			}
 
-			if ( $subject === $item->node_name ) {
-				$formatting_element = $item;
-				break;
-			}
-		}
+			/*
+			 * > Let formatting element be the last element in the list of active formatting elements that:
+			 * >   - is between the end of the list and the last marker in the list,
+			 * >     if any, or the start of the list otherwise,
+			 * >   - and has the tag name subject.
+			 */
+			$formatting_element = null;
+			foreach ( $this->state->active_formatting_elements->walk_up() as $item ) {
+				if ( 'marker' === $item->node_name ) {
+					break;
+				}
 
-		// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
-		if ( null === $formatting_element ) {
-			$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
-		}
-
-		// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
-		if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
-			$this->state->active_formatting_elements->remove_node( $formatting_element );
-			return;
-		}
-
-		// > If formatting element is in the stack of open elements, but the element is not in scope, then this is a parse error; return.
-		if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
-			return;
-		}
-
-		/*
-		 * > Let furthest block be the topmost node in the stack of open elements that is lower in the stack
-		 * > than formatting element, and is an element in the special category. There might not be one.
-		 */
-		$is_above_formatting_element = true;
-		$furthest_block              = null;
-		foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
-			if ( $is_above_formatting_element && $formatting_element->bookmark_name !== $item->bookmark_name ) {
-				continue;
-			}
-
-			if ( $is_above_formatting_element ) {
-				$is_above_formatting_element = false;
-				continue;
-			}
-
-			if ( self::is_special( $item ) ) {
-				$furthest_block = $item;
-				break;
-			}
-		}
-
-		/*
-		 * > If there is no furthest block, then the UA must first pop all the nodes from the bottom of the
-		 * > stack of open elements, from the current node up to and including formatting element, then
-		 * > remove formatting element from the list of active formatting elements, and finally return.
-		 */
-		if ( null === $furthest_block ) {
-			foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
-				$this->state->stack_of_open_elements->pop();
-
-				if ( $formatting_element->bookmark_name === $item->bookmark_name ) {
-					$this->state->active_formatting_elements->remove_node( $formatting_element );
-					return;
+				if ( $subject === $item->node_name ) {
+					$formatting_element = $item;
+					break;
 				}
 			}
+
+			// > If there is no such element, then return and instead act as described in the "any other end tag" entry above.
+			if ( null === $formatting_element ) {
+				$this->bail( 'Cannot run adoption agency when "any other end tag" is required.' );
+			}
+
+			// > If formatting element is not in the stack of open elements, then this is a parse error; remove the element from the list, and return.
+			if ( ! $this->state->stack_of_open_elements->contains_node( $formatting_element ) ) {
+				$this->state->active_formatting_elements->remove_node( $formatting_element );
+				return;
+			}
+
+			// > If formatting element is in the stack of open elements, but the element is not in scope, then this is a parse error; return.
+			if ( ! $this->state->stack_of_open_elements->has_element_in_scope( $formatting_element->node_name ) ) {
+				return;
+			}
+
+			/*
+			 * > Let furthest block be the topmost node in the stack of open elements that is lower in the stack
+			 * > than formatting element, and is an element in the special category. There might not be one.
+			 */
+			$is_above_formatting_element = true;
+			$furthest_block              = null;
+			foreach ( $this->state->stack_of_open_elements->walk_down() as $item ) {
+				if ( $is_above_formatting_element && $formatting_element->bookmark_name !== $item->bookmark_name ) {
+					continue;
+				}
+
+				if ( $is_above_formatting_element ) {
+					$is_above_formatting_element = false;
+					continue;
+				}
+
+				if ( self::is_special( $item ) ) {
+					$furthest_block = $item;
+					break;
+				}
+			}
+
+			/*
+			 * > If there is no furthest block, then the UA must first pop all the nodes from the bottom of the
+			 * > stack of open elements, from the current node up to and including formatting element, then
+			 * > remove formatting element from the list of active formatting elements, and finally return.
+			 */
+			if ( null === $furthest_block ) {
+				foreach ( $this->state->stack_of_open_elements->walk_up() as $item ) {
+					$this->state->stack_of_open_elements->pop();
+
+					if ( $formatting_element->bookmark_name === $item->bookmark_name ) {
+						$this->state->active_formatting_elements->remove_node( $formatting_element );
+						return;
+					}
+				}
+			}
+
+			$this->bail( 'Cannot extract common ancestor in adoption agency algorithm.' );
 		}
 
-		$this->bail( 'Cannot extract common ancestor in adoption agency algorithm.' );
+		$this->bail( 'Cannot run adoption agency when looping required.' );
 	}
 
 	/**
