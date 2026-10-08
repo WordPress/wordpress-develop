@@ -44,12 +44,12 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * Sets up users and registers the core abilities.
 	 *
 	 * @since 7.2.0
+	 *
+	 * @param WP_UnitTest_Factory $factory The unit test factory.
 	 */
-	public static function set_up_before_class(): void {
-		parent::set_up_before_class();
-
-		self::$admin_id      = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		self::$subscriber_id = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+	public static function wpSetUpBeforeClass( $factory ): void {
+		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 
 		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
 		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
@@ -82,15 +82,13 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 *
 	 * @since 7.2.0
 	 */
-	public static function tear_down_after_class(): void {
+	public static function wpTearDownAfterClass(): void {
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
 		}
 		foreach ( wp_get_ability_categories() as $ability_category ) {
 			wp_unregister_ability_category( $ability_category->get_slug() );
 		}
-
-		parent::tear_down_after_class();
 	}
 
 	public function set_up(): void {
@@ -359,7 +357,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * @ticket 64657
 	 */
-	public function test_out_of_range_page_returns_400(): void {
+	public function test_out_of_range_page_returns_404(): void {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
@@ -369,7 +367,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 400, $response->get_status(), 'Requesting a page past the last one should return a 400 error.' );
+		$this->assertSame( 404, $response->get_status(), 'Requesting a page past the last one should return a 404 error.' );
 		$this->assertSame( 'users_invalid_page_number', $response->get_data()['code'], 'The error should identify the invalid page number.' );
 	}
 
