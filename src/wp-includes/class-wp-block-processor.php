@@ -768,9 +768,17 @@ class WP_Block_Processor {
 			 * comments once they are matched to see if they are also block delimiters. In
 			 * practice, this nuance has not caused any known problems since developing blocks.
 			 *
+			 * Searching for the `!` skips past the many `<` which open HTML tags.
+			 *
 			 * <⃨!⃨-⃨-⃨ /wp:core/paragraph {"dropCap":true} /-->
 			 */
-			$comment_opening_at = strpos( $text, '<!--', $at );
+			$comment_opening_at = false;
+			for ( $bang_at = strpos( $text, '!--', $at + 1 ); false !== $bang_at; $bang_at = strpos( $text, '!--', $bang_at + 1 ) ) {
+				if ( '<' === $text[ $bang_at - 1 ] ) {
+					$comment_opening_at = $bang_at - 1;
+					break;
+				}
+			}
 
 			/*
 			 * Even if the start of a potential block delimiter is not found, the document
