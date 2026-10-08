@@ -888,10 +888,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 		margin-top: 0;
 	}
 
-	#wpadminbar .quicklinks li .blavatar::before {
-		display: none;
-	}
-
 	/* Search */
 	#wpadminbar #wp-admin-bar-search {
 		display: none;
