@@ -2307,9 +2307,14 @@ class wpdb {
 		// User has reached 'max_questions' stop retrying
 		if ( 1226 === $mysql_errno ) {
 			wp_load_translations_early();
-			$message = '<h1>' . __( 'Cannot query database' ) . "</h1>\n";
-			$message .= '<p>' . __( 'The database server could be connected to (which means username and password is okay) but the query could not be performed.' ) . '<br>';
-			$message .= sprintf( $this->last_error );
+			$message  = '<h1>' . __( 'Cannot query database' ) . "</h1>\n";
+			$message .= '<p>';
+			$message .= sprintf(
+				/* translators: %s The error message returned by the database. */
+				__( 'The database server could be connected to (which means username and password is okay) but the query could not be performed. The database returned the error: %s.' ),
+				'<code>' . htmlspecialchars( $this->last_error ) . '</code>'
+			);
+			$message .= '</p>';
 			$message .= '<p>' . sprintf(
 				/* translators: %s: Support forums URL. */
 				__( 'If you are unsure what these terms mean you should probably contact your host. If you still need help you can always visit the <a href="%s">WordPress support forums</a>.' ),
