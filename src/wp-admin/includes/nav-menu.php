@@ -357,7 +357,8 @@ function wp_nav_menu_disabled_check( $nav_menu_selected_id, $display = true ) {
 function wp_nav_menu_item_link_meta_box() {
 	global $_nav_menu_placeholder, $nav_menu_selected_id;
 
-	$_nav_menu_placeholder = 0 > $_nav_menu_placeholder ? $_nav_menu_placeholder - 1 : -1;
+	static $unique_counter = 1000;
+	$_nav_menu_placeholder = $unique_counter++;
 
 	?>
 	<div class="customlinkdiv" id="customlinkdiv">
