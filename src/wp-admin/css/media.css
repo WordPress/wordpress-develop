@@ -1402,7 +1402,7 @@ video {
 		width: 100%;
 		display: flex;
 		flex-wrap: nowrap;
-		column-gap: 0;
+		column-gap: 0.5rem;
 	}
 
 	.wp-filter p.search-box #media-search-input {
