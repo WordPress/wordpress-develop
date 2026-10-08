@@ -259,7 +259,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	padding: 0;
 }
 
-#wpadminbar .ab-icon svg {
+#wpadminbar .ab-icon.svg-icon svg {
 	width: 24px;
 	height: 24px;
 	fill: currentColor;
@@ -754,7 +754,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 		text-align: center;
 	}
 
-	#wpadminbar .ab-icon svg {
+	#wpadminbar .ab-icon.svg-icon svg {
 		width: 32px;
 		height: 32px;
 	}
