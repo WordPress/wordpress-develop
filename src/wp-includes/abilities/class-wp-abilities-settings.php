@@ -37,6 +37,14 @@ declare( strict_types = 1 );
 final class WP_Abilities_Settings {
 
 	/**
+	 * The ability category used for settings abilities.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	private const CATEGORY = 'site';
+
+	/**
 	 * Settings exposed through the Abilities API, computed once at registration.
 	 *
 	 * @since 7.2.0
@@ -58,7 +66,7 @@ final class WP_Abilities_Settings {
 			return;
 		}
 
-		$this->register_get_settings();
+		$this->register_settings_get();
 	}
 
 	/**
@@ -66,24 +74,19 @@ final class WP_Abilities_Settings {
 	 *
 	 * @since 7.2.0
 	 */
-	private function register_get_settings(): void {
+	private function register_settings_get(): void {
 		$groups = array_values( array_unique( array_filter( array_column( $this->exposed_settings, 'group' ) ) ) );
 
 		wp_register_ability(
 			'core/settings-get',
 			array(
-				'label'               => __( 'Settings Get' ),
-				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both. A setting whose value does not match its schema is left out.' ),
-				'category'            => 'site',
-				'input_schema'        => $this->get_settings_input_schema( $groups, array_map( 'strval', array_keys( $this->exposed_settings ) ) ),
-				'output_schema'       => array(
-					'type'                 => 'object',
-					'description'          => __( 'A map of setting name to its current value.' ),
-					'properties'           => wp_list_pluck( $this->exposed_settings, 'schema' ),
-					'additionalProperties' => false,
-				),
-				'execute_callback'    => array( $this, 'execute_get_settings' ),
-				'permission_callback' => array( $this, 'has_permission' ),
+				'label'               => __( 'Get Settings' ),
+				'description'         => __( 'Returns WordPress settings as a flat map of setting name to value. By default returns all settings exposed to abilities, or optionally a subset filtered by settings group, by setting name, or both. A setting whose value does not match its schema is left out. Requires an authenticated user who can manage options.' ),
+				'category'            => self::CATEGORY,
+				'input_schema'        => $this->get_settings_get_input_schema( $groups, array_map( 'strval', array_keys( $this->exposed_settings ) ) ),
+				'output_schema'       => $this->get_settings_get_output_schema(),
+				'execute_callback'    => array( $this, 'execute_settings_get' ),
+				'permission_callback' => array( $this, 'check_permission' ),
 				'meta'                => array(
 					'annotations' => array(
 						'readonly'    => true,
@@ -104,7 +107,7 @@ final class WP_Abilities_Settings {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed> Map of exposed setting name to current value.
 	 */
-	public function execute_get_settings( $input = array() ): array {
+	public function execute_settings_get( $input = array() ): array {
 		$input  = rest_sanitize_object( $input );
 		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
 		$fields = rest_sanitize_array( $input['fields'] ?? array() );
@@ -146,18 +149,21 @@ final class WP_Abilities_Settings {
 	}
 
 	/**
-	 * Checks whether the current user may use the settings abilities.
+	 * Permission callback for the settings abilities.
+	 *
+	 * The settings abilities read site options, so they are gated on the `manage_options`
+	 * capability regardless of the input.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @return bool True if the current user can manage options.
 	 */
-	public function has_permission(): bool {
+	public function check_permission(): bool {
 		return current_user_can( 'manage_options' );
 	}
 
 	/**
-	 * Builds the input schema for the get ability: optional filters by group and/or name.
+	 * Builds the input schema for the `core/settings-get` ability: optional filters by group and/or name.
 	 *
 	 * Both `group` and `fields` are optional; supplying both narrows the response to their
 	 * intersection, and supplying neither returns every exposed setting.
@@ -168,7 +174,7 @@ final class WP_Abilities_Settings {
 	 * @param list<string> $field_names Available exposed setting names.
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
-	private function get_settings_input_schema( array $groups, array $field_names ): array {
+	private function get_settings_get_input_schema( array $groups, array $field_names ): array {
 		return array(
 			'type'                 => 'object',
 			'default'              => array(),
@@ -180,6 +186,7 @@ final class WP_Abilities_Settings {
 				),
 				'fields' => array(
 					'type'        => 'array',
+					'uniqueItems' => true,
 					'items'       => array(
 						'type' => 'string',
 						'enum' => $field_names,
@@ -187,6 +194,25 @@ final class WP_Abilities_Settings {
 					'description' => __( 'Return only the settings with these names.' ),
 				),
 			),
+			'additionalProperties' => false,
+		);
+	}
+
+	/**
+	 * Builds the output schema for the `core/settings-get` ability.
+	 *
+	 * No setting is marked required because the `group` and `fields` inputs let the caller
+	 * request any subset, and a setting whose value does not match its schema is left out.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The output JSON Schema.
+	 */
+	private function get_settings_get_output_schema(): array {
+		return array(
+			'type'                 => 'object',
+			'description'          => __( 'A map of setting name to its current value.' ),
+			'properties'           => wp_list_pluck( $this->exposed_settings, 'schema' ),
 			'additionalProperties' => false,
 		);
 	}
