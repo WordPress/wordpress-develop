@@ -233,7 +233,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$fields = $schema['oneOf'][4]['properties']['fields']['items']['enum'];
 		$this->assertContains( 'roles', $fields, 'The fields enum should expose the roles field.' );
 		$this->assertContains( 'avatar_urls', $fields, 'The fields enum should expose avatar_urls.' );
-		$this->assertSame( 1, $schema['oneOf'][4]['properties']['fields']['minItems'], 'The fields option should require at least one field when provided.' );
+		$this->assertArrayNotHasKey( 'minItems', $schema['oneOf'][4]['properties']['fields'], 'The fields option should accept an empty list, which selects the default fields.' );
 
 		$role_names = $schema['oneOf'][4]['properties']['roles']['items']['enum'];
 		$this->assertEqualSets( array_keys( wp_roles()->roles ), $role_names, 'The roles query enum should expose registered role names.' );
@@ -320,6 +320,30 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 		$this->assertArrayNotHasKey( 'email', $result, 'Default fields should not include sensitive user fields.' );
 		$this->assertArrayNotHasKey( 'description', $result, 'Default fields should omit less common read-context fields.' );
+	}
+
+	/**
+	 * An empty fields list returns the lean default shape, like an omitted one.
+	 *
+	 * @ticket 64657
+	 */
+	public function test_empty_fields_return_lean_defaults(): void {
+		wp_set_current_user( self::$fixture_ids['subscriber'] );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/users-query' )->execute(
+			array(
+				'id'     => self::$fixture_ids['subscriber'],
+				'fields' => array(),
+			)
+		);
+
+		$this->assertIsArray( $result, 'An empty fields list should be accepted.' );
+		$this->assertSame(
+			array( 'id', 'name', 'link', 'slug', 'avatar_urls' ),
+			array_keys( $result ),
+			'An empty fields list should return the lean default field set.'
+		);
 	}
 
 	/**
