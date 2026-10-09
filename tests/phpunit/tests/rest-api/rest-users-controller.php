@@ -2430,7 +2430,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2453,7 +2453,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2512,7 +2512,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'first_name'  => 'div strong',
 				'last_name'   => 'div strong',
 				'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 				'nickname'    => 'div strong',
 				'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 			)

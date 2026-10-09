@@ -282,6 +282,22 @@ body.js .theme-browser.search-loading {
 
 .theme-browser .theme.active .theme-actions .button:not(.button-primary):focus {
 	background: #fff;
+	box-shadow:
+		0 0 0 var(--wp-admin-border-width-focus, 1.5px) #fff,
+		inset 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
+	outline: 1px solid transparent;
+}
+
+/* Active theme card: uses white outer ring against the colored banner. */
+.theme-browser .theme.active .theme-actions .button.disabled:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) #fff, inset 0 0 0 1px var(--wp-admin-theme-color, #3858e9) !important;
+	outline: 1px solid transparent;
+}
+
+/* Other theme cards: standard focus ring on the card white background. */
+.theme-browser .theme:not(.active) .theme-actions .button.disabled:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9) !important;
+	outline: 1px solid transparent;
 }
 
 .theme-browser .theme .theme-author {
@@ -1406,6 +1422,12 @@ body.full-overlay-active {
 	visibility: hidden;
 }
 
+/* Make sure the ARIA live regions are visible, as they inherit the hidden visibility from the body. */
+.a11y-speak-intro-text,
+.a11y-speak-region {
+	visibility: visible;
+}
+
 .wp-full-overlay {
 	background: #1d2327;
 	z-index: 500000;
@@ -1561,6 +1583,14 @@ body.full-overlay-active {
 	box-shadow: none;
 }
 
+.theme-install-overlay .close-full-overlay:focus,
+.theme-install-overlay .previous-theme:focus,
+.theme-install-overlay .next-theme:focus {
+	/* Always visible also in Windows High Contrast mode */
+	outline: 1px solid #c3c4c7;
+	outline-offset: -1px;
+}
+
 .theme-install-overlay .close-full-overlay::before {
 	font: 400 22px/1 dashicons;
 	content: "\f335";
@@ -1597,7 +1627,6 @@ body.full-overlay-active {
 	color: #c3c4c7;
 	background: #f0f0f1;
 	cursor: default;
-	pointer-events: none;
 }
 
 .theme-install-overlay .close-full-overlay::before,
