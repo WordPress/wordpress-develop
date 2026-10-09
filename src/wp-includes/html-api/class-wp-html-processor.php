@@ -3356,6 +3356,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return $this->in_body_any_other_end_tag();
 		}
+
+		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
 	}
 
 	/**

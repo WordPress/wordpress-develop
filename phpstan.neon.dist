@@ -170,7 +170,7 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 14
+			count: 15
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			message: '#^If condition is always true\.$#'
