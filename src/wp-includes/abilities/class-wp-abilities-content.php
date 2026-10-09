@@ -25,9 +25,10 @@ declare( strict_types = 1 );
  * and field projection are built from the same field definitions. Future write-oriented
  * content abilities can reuse them as well.
  *
- * This class is part of WordPress' internal implementation of the core abilities and is
- * not part of the public API. It may be changed or removed at any time without notice.
- * Do not use it directly or rely on its existence.
+ * Only register() is public. The ability callbacks are closures that call private
+ * methods, so callers go through the Abilities API, such as
+ * `wp_get_ability( 'core/content-query' )->execute()`, which validates the input and
+ * checks permissions before running them.
  *
  * @since 7.2.0
  *
@@ -145,8 +146,12 @@ final class WP_Abilities_Content {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_query_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_query_output_schema(),
-				'execute_callback'    => array( $this, 'execute_content_query' ),
-				'permission_callback' => array( $this, 'check_permission' ),
+				'execute_callback'    => function ( $input = array() ) {
+					return $this->execute_content_query( $input );
+				},
+				'permission_callback' => function ( $input = array() ): bool {
+					return $this->check_permission( $input );
+				},
 				'meta'                => array(
 					'annotations' => array(
 						'readonly'    => true,
@@ -174,7 +179,7 @@ final class WP_Abilities_Content {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	public function check_permission( $input = array() ): bool {
+	private function check_permission( $input = array() ): bool {
 		$input = rest_sanitize_object( $input );
 
 		if ( ! is_user_logged_in() ) {
@@ -407,7 +412,7 @@ final class WP_Abilities_Content {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|WP_Error A single post, a `posts` list with totals in query mode, or a WP_Error.
 	 */
-	public function execute_content_query( $input = array() ) {
+	private function execute_content_query( $input = array() ) {
 		$input         = rest_sanitize_object( $input );
 		$fields        = $this->normalize_fields( $input );
 		$requires_edit = $this->has_explicit_edit_fields( $input );
@@ -1196,10 +1201,14 @@ final class WP_Abilities_Content {
 		 * The filter unlocks only posts the current user can edit, mirroring the REST posts
 		 * controller's check_password_required(): an unconditional bypass (e.g. __return_false)
 		 * would also expose other protected posts that the content filter may render, such as
-		 * posts pulled in by a Query Loop block.
+		 * posts pulled in by a Query Loop block. The closure is kept in a variable, so the same
+		 * instance can be removed again.
 		 */
+		$allow_password_content = function ( $required, $checked_post ): bool {
+			return $this->allow_password_content( $required, $checked_post );
+		};
 		if ( $unlock_password ) {
-			add_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10, 2 );
+			add_filter( 'post_password_required', $allow_password_content, 10, 2 );
 		}
 
 		/*
@@ -1210,7 +1219,7 @@ final class WP_Abilities_Content {
 			return $this->build_post_fields( $post, $fields, $can_edit, $password_required && ! $can_edit );
 		} finally {
 			if ( $unlock_password ) {
-				remove_filter( 'post_password_required', array( $this, 'allow_password_content' ), 10 );
+				remove_filter( 'post_password_required', $allow_password_content, 10 );
 			}
 
 			$this->restore_post_context( $previous_context );
@@ -1330,7 +1339,7 @@ final class WP_Abilities_Content {
 	 * @param mixed $post     The post being checked; a WP_Post when invoked by the core filter.
 	 * @return bool Whether the post still requires a password.
 	 */
-	public function allow_password_content( $required, $post ): bool {
+	private function allow_password_content( $required, $post ): bool {
 		if ( ! $required || ! $post instanceof WP_Post ) {
 			return (bool) $required;
 		}
