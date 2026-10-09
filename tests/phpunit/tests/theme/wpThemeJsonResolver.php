@@ -475,6 +475,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * The first call to an origin getter should record the registered blocks,
 	 * so the second call reuses the data instead of rebuilding it.
 	 *
+	 * @ticket 62249
+	 *
 	 * @dataProvider data_origin_getters
 	 *
 	 * @covers WP_Theme_JSON_Resolver::get_core_data
@@ -482,11 +484,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @covers WP_Theme_JSON_Resolver::get_theme_data
 	 * @covers WP_Theme_JSON_Resolver::get_user_data
 	 *
-	 * @param string $getter Resolver method name.
-	 * @param array  $args   Arguments for the method.
-	 * @param string $filter Filter the method applies when it builds the data.
+	 * @param string      $getter Resolver method name.
+	 * @param list<mixed> $args   Arguments for the method.
+	 * @param string      $filter Filter the method applies when it builds the data.
 	 */
-	public function test_origin_data_is_built_once_while_registered_blocks_are_unchanged( $getter, array $args, $filter ) {
+	public function test_origin_data_is_built_once_while_registered_blocks_are_unchanged( string $getter, array $args, string $filter ): void {
 		wp_clean_theme_json_cache();
 		$callback     = array( WP_Theme_JSON_Resolver::class, $getter );
 		$filter_count = did_filter( $filter );
@@ -508,9 +510,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array<string, array{0: string, 1: list<mixed>, 2: string}>
 	 */
-	public static function data_origin_getters() {
+	public static function data_origin_getters(): array {
 		return array(
 			'core'   => array( 'get_core_data', array(), 'wp_theme_json_data_default' ),
 			'blocks' => array( 'get_block_data', array(), 'wp_theme_json_data_blocks' ),
