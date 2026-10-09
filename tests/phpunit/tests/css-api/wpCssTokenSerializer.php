@@ -377,6 +377,43 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that serialize() does not spell a CDO or CDC token from other tokens.
+	 *
+	 * The table in CSS Syntax Level 3 §9 compares token pairs by type. It does
+	 * not cover `<`, `!` and a token that starts with `--`, which spell `<!--`,
+	 * or an ident `--` followed by `>`, which spell `-->`.
+	 *
+	 * @ticket 65738
+	 * @dataProvider data_cdo_and_cdc_sequences
+	 *
+	 * @covers ::serialize
+	 */
+	public function test_cdo_and_cdc_are_not_spelled( string $css, string $expected ): void {
+		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize( self::tokenize( $css ) ) );
+		$this->assertSame( self::significant_tokens( $css ), self::significant_tokens( $expected ), 'The output must read as the same tokens.' );
+	}
+
+	/**
+	 * Data provider for test_cdo_and_cdc_are_not_spelled().
+	 *
+	 * @return array[]
+	 */
+	public static function data_cdo_and_cdc_sequences(): array {
+		return array(
+			'< ! ident'                 => array( '<!/**/--x', '<!/**/--x' ),
+			'< ! ident --'              => array( '<!/**/--', '<!/**/--' ),
+			'< ! function'              => array( '<!/**/--x()', '<!/**/--x()' ),
+			'< ! CDC'                   => array( '<!/**/-->', '<!/**/-->' ),
+			'ident -- >'                => array( '--/**/>', '--/**/>' ),
+			'< space ! ident'           => array( '< !/**/--x', '< !--x' ),
+			'! ident without <'         => array( 'a!/**/--x', 'a!--x' ),
+			'< ! ident without --'      => array( '<!/**/x', '<!x' ),
+			'ident ending in -- then >' => array( 'a--/**/>', 'a-->' ),
+			'ident -- space >'          => array( '-- >', '-- >' ),
+		);
+	}
+
+	/**
 	 * Tests that serialize() closes blocks still open at the end, in reverse order.
 	 *
 	 * @ticket 65738

@@ -212,6 +212,12 @@ class WP_CSS_Token_Serializer {
 	 * Comments are not preserved, so an empty CSS comment is written between
 	 * the tokens of a marked pair when no whitespace is between them.
 	 *
+	 * The table compares token types in pairs, so it misses two sequences that
+	 * the tokenizer reads as a CDO or CDC token: `<`, `!` and a token that
+	 * starts with `--`, which spell `<!--`, and an ident `--` followed by `>`,
+	 * which spell `-->`. An empty CSS comment is written before the last token
+	 * of each.
+	 *
 	 * Bad-string and bad-url tokens have no value. A bad string is written as
 	 * a quote followed by a newline, where the tokenizer ends one; a bad url is
 	 * written as `url(()`.
@@ -243,6 +249,10 @@ class WP_CSS_Token_Serializer {
 		// Pair key of the last token written, or the whitespace type after a space.
 		$last = null;
 
+		// Text of the last two tokens written, or a space after whitespace.
+		$last_text        = '';
+		$before_last_text = '';
+
 		foreach ( $tokens as $token ) {
 			$type = $token->get_type();
 
@@ -252,19 +262,30 @@ class WP_CSS_Token_Serializer {
 
 			if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE === $type ) {
 				if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE !== $last ) {
-					$output .= ' ';
-					$last    = WP_CSS_Token_Processor::TOKEN_WHITESPACE;
+					$output          .= ' ';
+					$last             = WP_CSS_Token_Processor::TOKEN_WHITESPACE;
+					$before_last_text = $last_text;
+					$last_text        = ' ';
 				}
 				continue;
 			}
 
-			$key = WP_CSS_Token_Processor::TOKEN_DELIM === $type ? $token->get_value() : $type;
-			if ( null !== $last && isset( self::MARKED_PAIRS[ $last ] ) && in_array( $key, self::MARKED_PAIRS[ $last ], true ) ) {
+			$key  = WP_CSS_Token_Processor::TOKEN_DELIM === $type ? $token->get_value() : $type;
+			$text = self::serialize_token( $token );
+
+			if (
+				( null !== $last && isset( self::MARKED_PAIRS[ $last ] ) && in_array( $key, self::MARKED_PAIRS[ $last ], true ) ) ||
+				// The table misses `<`, `!`, `--x`, which reads as `<!--`, and `--`, `>`, which reads as `-->`.
+				( '<' === $before_last_text && '!' === $last_text && 0 === strncmp( $text, '--', 2 ) ) ||
+				( '--' === $last_text && '>' === $text )
+			) {
 				$output .= '/**/';
 			}
-			$last = $key;
 
-			$output .= self::serialize_token( $token );
+			$output          .= $text;
+			$last             = $key;
+			$before_last_text = $last_text;
+			$last_text        = $text;
 
 			if ( isset( self::BLOCK_CLOSERS[ $type ] ) ) {
 				$closers[] = self::BLOCK_CLOSERS[ $type ];
