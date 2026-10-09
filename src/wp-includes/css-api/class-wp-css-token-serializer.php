@@ -8,16 +8,16 @@
  */
 
 /**
- * Serializes CSS tokens and values as CSS text.
+ * Writes tokens read by WP_CSS_Token_Processor as CSS text.
  *
- * serialize() writes tokens read by WP_CSS_Token_Processor. serialize_ident()
- * and serialize_string() write a plain PHP string as an identifier or as a
- * quoted string.
+ * This class is not a public API. Its methods are public so other core
+ * classes can call them.
  *
- * Output is valid CSS that reads as the same tokens. Which characters are
+ * The output parses to the same CSS as the tokens. Which characters are
  * escaped may change.
  *
  * @since 7.2.0
+ * @access private
  *
  * @see WP_CSS_Token_Processor
  */
@@ -147,7 +147,7 @@ class WP_CSS_Token_Serializer {
 	);
 
 	/**
-	 * Serializes tokens as CSS text that reads as the same tokens.
+	 * Serializes tokens as CSS text that parses to the same CSS.
 	 *
 	 * This follows CSS Syntax Level 3 §9 Serialization:
 	 *
@@ -220,7 +220,9 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * Bad-string and bad-url tokens have no value. A bad string is written as
 	 * a quote followed by a newline, where the tokenizer ends one; a bad url is
-	 * written as `url(()`.
+	 * written as `url(()`. Both re-tokenize as the same bad token. If a later
+	 * step replaces the newline after a bad string with a space, the quote
+	 * starts a string that includes the text after it.
 	 *
 	 * Strings and urls cut off by the end of the input are written closed.
 	 * Blocks still open at the end are closed in reverse order, so `a(b[c` is
@@ -314,24 +316,24 @@ class WP_CSS_Token_Serializer {
 
 		switch ( $token->get_type() ) {
 			case WP_CSS_Token_Processor::TOKEN_IDENT:
-				return self::serialize_ident( $value );
+				return self::escape_ident( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
-				return self::serialize_ident( $value ) . '(';
+				return self::escape_ident( $value ) . '(';
 
 			case WP_CSS_Token_Processor::TOKEN_AT_KEYWORD:
-				return '@' . self::serialize_ident( $value );
+				return '@' . self::escape_ident( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_HASH:
 				return WP_CSS_Token_Processor::HASH_TOKEN_ID === $token->get_flag()
-					? '#' . self::serialize_ident( $value )
-					: '#' . self::escape_name_code_points( $value );
+					? '#' . self::escape_ident( $value )
+					: '#' . self::escape_name( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_STRING:
-				return self::serialize_string( $value );
+				return self::escape_string( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_URL:
-				return 'url(' . self::serialize_url_value( $value ) . ')';
+				return self::escape_url( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_NUMBER:
 				return $value;
@@ -340,7 +342,7 @@ class WP_CSS_Token_Serializer {
 				return $value . '%';
 
 			case WP_CSS_Token_Processor::TOKEN_DIMENSION:
-				$unit = self::serialize_ident( $token->get_unit() );
+				$unit = self::escape_ident( $token->get_unit() );
 				// A unit that starts with `e`, an optional `-`, and a digit would read as an exponent.
 				if ( 1 === preg_match( '/^[eE]-?[0-9]/', $unit ) ) {
 					$unit = sprintf( '\\%X ', ord( $unit[0] ) ) . substr( $unit, 1 );
@@ -356,25 +358,24 @@ class WP_CSS_Token_Serializer {
 	}
 
 	/**
-	 * Serializes a plain PHP string as CSS identifier text.
+	 * Escapes a decoded value as identifier text.
 	 *
-	 * Characters not valid in CSS identifiers are hex-escaped. This uses
-	 * the same safety escaping as {@see WP_CSS_Token_Serializer::serialize_string()} for HTML
-	 * and CSS-sensitive characters, plus escaping of whitespace and other
-	 * characters not permitted in idents.
+	 * Characters not valid in CSS identifiers are hex-escaped, as are the
+	 * characters escape_string() escapes for HTML and CSS.
 	 *
-	 * An empty string serializes to an empty string. Callers that require an
-	 * ident token must reject an empty value.
+	 * An empty value returns an empty string. Callers that require an ident
+	 * token must reject an empty value.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#escaping
 	 * @see https://www.w3.org/TR/css-syntax-3/#would-start-an-identifier
 	 *
 	 * @since 7.2.0
+	 * @access private
 	 *
-	 * @param string $value Decoded string value to encode as a CSS identifier.
-	 * @return string Serialized CSS identifier text.
+	 * @param string $value Decoded value.
+	 * @return string Identifier text.
 	 */
-	public static function serialize_ident( string $value ): string {
+	public static function escape_ident( string $value ): string {
 		$value  = wp_scrub_utf8( $value );
 		$result = '';
 		$length = strlen( $value );
@@ -441,16 +442,11 @@ class WP_CSS_Token_Serializer {
 	}
 
 	/**
-	 * Creates a quoted CSS string from a plain PHP string value.
+	 * Escapes a decoded value as a quoted string.
 	 *
-	 * Example:
-	 *     $value = 'CSS & a "<style>" tag\'s strings';
-	 *     $css_string = WP_CSS_Token_Serializer::serialize_string( $value );
-	 *     echo "<style>*::before { content: {$css_string}; }</style>";
-	 *
-	 * CSS strings are quoted, and many characters that are problematic in HTML
-	 * or may be complicated for rudimentary CSS or HTML processors to handle
-	 * are encoded using Unicode escape sequences.
+	 * Many characters that are problematic in HTML or may be complicated for
+	 * rudimentary CSS or HTML processors to handle are encoded using Unicode
+	 * escape sequences.
 	 *
 	 * The string reads back as the same value, except that NULL becomes U+FFFD.
 	 * Line endings are not normalized: CR and FF are escaped as `\D ` and `\C `.
@@ -459,10 +455,10 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $value Decoded string value to encode as a quoted CSS string.
-	 * @return string Serialized quoted CSS string text.
+	 * @param string $value Decoded value.
+	 * @return string Quoted string text.
 	 */
-	public static function serialize_string( string $value ): string {
+	private static function escape_string( string $value ): string {
 		$value   = wp_scrub_utf8( $value );
 		$escaped = strtr(
 			$value,
@@ -502,7 +498,7 @@ class WP_CSS_Token_Serializer {
 	 *
 	 * Letters, digits, `-`, `_` and code points U+0080 and above are written
 	 * as they are; every other code point is hex-escaped. Unlike
-	 * serialize_ident(), a leading digit or `-` is not escaped, as the name of
+	 * escape_ident(), a leading digit or `-` is not escaped, as the name of
 	 * a hash token with the "unrestricted" flag requires.
 	 *
 	 * @since 7.2.0
@@ -510,7 +506,7 @@ class WP_CSS_Token_Serializer {
 	 * @param string $value Decoded name.
 	 * @return string Escaped name.
 	 */
-	private static function escape_name_code_points( string $value ): string {
+	private static function escape_name( string $value ): string {
 		$value  = wp_scrub_utf8( $value );
 		$result = '';
 		$length = strlen( $value );
@@ -542,20 +538,20 @@ class WP_CSS_Token_Serializer {
 	}
 
 	/**
-	 * Escapes the value of a url token.
+	 * Escapes a decoded value as an unquoted url.
 	 *
 	 * The code points an unquoted url cannot contain are hex-escaped: quotes,
 	 * parentheses, `\`, whitespace and non-printable code points. So are the
-	 * code points serialize_string() escapes for HTML and CSS: `< > & , ; { }`.
+	 * code points escape_string() escapes for HTML and CSS: `< > & , ; { }`.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-url-token
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $value Decoded url value.
-	 * @return string Escaped url value, without `url(` and `)`.
+	 * @param string $value Decoded value.
+	 * @return string Url text, including `url(` and `)`.
 	 */
-	private static function serialize_url_value( string $value ): string {
+	private static function escape_url( string $value ): string {
 		$value  = wp_scrub_utf8( $value );
 		$result = '';
 		$length = strlen( $value );
@@ -580,6 +576,6 @@ class WP_CSS_Token_Serializer {
 			$result .= $value[ $i ];
 		}
 
-		return $result;
+		return "url({$result})";
 	}
 }

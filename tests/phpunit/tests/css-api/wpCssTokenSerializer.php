@@ -9,99 +9,84 @@
  */
 class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	/**
+	 * Tests that serialize() escapes a string token again from its decoded value.
+	 *
+	 * @ticket 65738
 	 * @dataProvider data_string_escaping
 	 *
-	 * @covers ::serialize_string
+	 * @covers ::serialize
 	 */
-	public function test_string_escaping( string $input, string $expected ): void {
-		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize_string( $input ) );
-
-		/*
-		 * Ensure that a single CSS string with the same value is produced.
-		 * CSS cannot represent NULL, which becomes U+FFFD.
-		 */
-		$processor = WP_CSS_Token_Processor::create( WP_CSS_Token_Serializer::serialize_string( $input ) );
-		$processor->next_token();
-		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
-		$this->assertSame( str_replace( "\0", '�', $input ), $processor->get_token_value() );
-		$this->assertFalse( $processor->next_token() );
+	public function test_string_escaping( string $css, string $expected ): void {
+		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize( self::tokenize( $css ) ) );
+		$this->assertSame( self::significant_tokens( $css ), self::significant_tokens( $expected ), 'The output must read as the same tokens.' );
 	}
 
 	/**
-	 * Data provider for string escaping cases.
+	 * Data provider for test_string_escaping().
 	 *
-	 * @return array
+	 * @return array[]
 	 */
 	public static function data_string_escaping(): array {
 		return array(
 			// Passthrough — no escaping needed, only quoting.
-			'empty string'            => array( '', '""' ),
-			'simple ASCII'            => array( 'Arial', '"Arial"' ),
-			'spaces preserved'        => array( 'Exo 2', '"Exo 2"' ),
-			'leading/trailing spaces' => array( '  Arial  ', '"  Arial  "' ),
-			'whitespace-only'         => array( '   ', '"   "' ),
-			'numbers pass through'    => array( '12345', '"12345"' ),
-			'non-ASCII passthrough'   => array( 'café', '"café"' ),
+			'empty string'            => array( "''", '""' ),
+			'simple ASCII'            => array( "'Arial'", '"Arial"' ),
+			'spaces preserved'        => array( "'Exo 2'", '"Exo 2"' ),
+			'leading/trailing spaces' => array( "'  Arial  '", '"  Arial  "' ),
+			'whitespace-only'         => array( "'   '", '"   "' ),
+			'numbers pass through'    => array( "'12345'", '"12345"' ),
+			'non-ASCII passthrough'   => array( "'café'", '"café"' ),
 
 			// Backslash escaping — must happen first to prevent double-escaping.
-			'backslash'               => array( 'Back\\Slash', '"Back\5C Slash"' ),
-			'double backslash'        => array( '\\\\', '"\5C \5C "' ),
-			'backslash before quote'  => array( "a\\'b", '"a\5C \27 b"' ),
+			'backslash'               => array( '"Back\\\\Slash"', '"Back\\5C Slash"' ),
+			'double backslash'        => array( '"\\\\\\\\"', '"\\5C \\5C "' ),
+			'backslash before quote'  => array( '"a\\\\\'b"', '"a\\5C \\27 b"' ),
 
-			// NULL byte → U+FFFD replacement character.
-			'null byte'               => array( "a\0b", '"a�b"' ),
+			// NULL → U+FFFD replacement character.
+			'null byte'               => array( "\"a\x00b\"", '"a�b"' ),
+			'zero escape'             => array( '"a\\0 b"', '"a�b"' ),
 
-			// Newlines are escaped as they are; CR and FF are not normalized to LF.
-			'LF'                      => array( "a\nb", '"a\A b"' ),
-			'CR'                      => array( "a\rb", '"a\D b"' ),
-			'CRLF'                    => array( "a\r\nb", '"a\D \A b"' ),
-			'form feed'               => array( "a\fb", '"a\C b"' ),
+			// Escaped newlines keep their code points; CR and FF are not normalized to LF.
+			'LF'                      => array( '"a\\A b"', '"a\\A b"' ),
+			'CR'                      => array( '"a\\D b"', '"a\\D b"' ),
+			'CRLF'                    => array( '"a\\D \\A b"', '"a\\D \\A b"' ),
+			'form feed'               => array( '"a\\C b"', '"a\\C b"' ),
 
 			// HTML-problematic characters.
-			'HTML characters < > &'   => array( 'a<b>c&d', '"a\3C b\3E c\26 d"' ),
+			'HTML characters < > &'   => array( '"a<b>c&d"', '"a\\3C b\\3E c\\26 d"' ),
 
 			// CSS-problematic characters.
-			'CSS syntax , ; { }'      => array( 'a,b;c{d}', '"a\2C b\3B c\7B d\7D "' ),
-			'single quote'            => array( "CSS's strings", '"CSS\27 s strings"' ),
-			'double quote'            => array( 'Say "Hi"', '"Say \22 Hi\22 "' ),
+			'CSS syntax , ; { }'      => array( '"a,b;c{d}"', '"a\\2C b\\3B c\\7B d\\7D "' ),
+			'single quote'            => array( '"CSS\'s strings"', '"CSS\\27 s strings"' ),
+			'double quote'            => array( '\'Say "Hi"\'', '"Say \\22 Hi\\22 "' ),
 		);
 	}
 
 	/**
-	 * Tests the example from the class docblock.
+	 * Tests the example in the serialize() docblock.
 	 *
-	 * @covers ::serialize_string
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize
 	 */
 	public function test_docblock_example(): void {
-		$value    = 'CSS & a "<style>" tag\'s strings';
-		$expected = '"CSS \26  a \22 \3C style\3E \22  tag\27 s strings"';
-
-		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize_string( $value ) );
+		$this->assertSame(
+			'url(a\\26 b) calc(1px + 2px)',
+			WP_CSS_Token_Serializer::serialize( self::tokenize( 'url( a&b ) calc(1px  +  2px' ) )
+		);
 	}
 
 	/**
-	 * Tests a string containing mixed newline types.
-	 *
-	 * @covers ::serialize_string
-	 */
-	public function test_mixed_newlines(): void {
-		$input    = "line1\nline2\rline3\r\nline4\fline5";
-		$expected = '"line1\A line2\D line3\D \A line4\C line5"';
-
-		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize_string( $input ) );
-	}
-
-	/**
-	 * Tests WP_CSS_Token_Serializer::serialize_ident() serializes CSS identifiers.
+	 * Tests WP_CSS_Token_Serializer::escape_ident() escapes CSS identifiers.
 	 *
 	 * @ticket 65738
 	 *
 	 * @dataProvider data_ident
 	 *
-	 * @covers ::serialize_ident
+	 * @covers ::escape_ident
 	 */
 	public function test_ident( string $input, string $expected ): void {
-		$serialized = WP_CSS_Token_Serializer::serialize_ident( $input );
+		$serialized = WP_CSS_Token_Serializer::escape_ident( $input );
 		$this->assertSame( $expected, $serialized );
 
 		$processor = WP_CSS_Token_Processor::create( $serialized );
@@ -118,7 +103,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for serialize_ident() tests.
+	 * Data provider for test_ident().
 	 */
 	public static function data_ident(): Generator {
 		yield 'Empty identifier' => array( '', '' );
@@ -343,11 +328,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'hash unrestricted escape'               => array( '#1\\:', '#1\\3A ' ),
 			'hash unrestricted hyphen'               => array( '#-', '#-' ),
 			'string'                                 => array( "'a\"b'", '"a\\22 b"' ),
-			'string ampersand'                       => array( '"a&b"', '"a\\26 b"' ),
 			'string unterminated'                    => array( '"abc', '"abc"' ),
-			'string escaped newline'                 => array( '"a\\A b"', '"a\\A b"' ),
-			'string escaped carriage return'         => array( '"a\\D b"', '"a\\D b"' ),
-			'string escaped form feed'               => array( '"a\\C b"', '"a\\C b"' ),
 			'bad string'                             => array( "'a\nb", "\"\n b" ),
 			'url'                                    => array( 'url( a )', 'url(a)' ),
 			'url empty'                              => array( 'url()', 'url()' ),
