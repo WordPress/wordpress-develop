@@ -109,11 +109,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-header-image-control.php
 		-
-			message: '#^Property WP_HTML_Tag_Processor\:\:\$is_closing_tag \(bool\) does not accept null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Property WP_Translation_File\:\:\$entries \(array\<string, string\>\) does not accept array\<string, array\<string\>\>\.$#'
 			identifier: assign.propertyType
 			count: 1
