@@ -434,7 +434,7 @@ class WP_CSS_Token_Processor {
 				if (
 					$this->consume_ident_codepoint( $this->at + 1 ) > 0 ||
 					// The next two input code points are a valid escape.
-					$this->is_valid_escape( $this->at + 1 )
+					self::is_valid_escape( $this->css, $this->at + 1 )
 				) {
 					// Create a <hash-token>.
 					++$this->at;
@@ -684,7 +684,8 @@ class WP_CSS_Token_Processor {
 			return null;
 		}
 
-		return $this->decode_range(
+		return self::decode_range(
+			$this->css,
 			$this->token_starts_at,
 			$this->token_length,
 			self::TOKEN_STRING === $this->token_type
@@ -737,22 +738,22 @@ class WP_CSS_Token_Processor {
 			switch ( $this->token_type ) {
 				case self::TOKEN_HASH:
 					// Hash value starts after the # character.
-					$this->token_value = $this->decode_range( $this->token_starts_at + 1, $this->token_length - 1 );
+					$this->token_value = self::decode_range( $this->css, $this->token_starts_at + 1, $this->token_length - 1 );
 					break;
 
 				case self::TOKEN_AT_KEYWORD:
 					// At-keyword value starts after the @ character.
-					$this->token_value = $this->decode_range( $this->token_starts_at + 1, $this->token_length - 1 );
+					$this->token_value = self::decode_range( $this->css, $this->token_starts_at + 1, $this->token_length - 1 );
 					break;
 
 				case self::TOKEN_FUNCTION:
 					// Function name is everything except the final (.
-					$this->token_value = $this->decode_range( $this->token_starts_at, $this->token_length - 1 );
+					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length - 1 );
 					break;
 
 				case self::TOKEN_IDENT:
 					// Identifier is the entire token.
-					$this->token_value = $this->decode_range( $this->token_starts_at, $this->token_length );
+					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length );
 					break;
 
 				case self::TOKEN_BAD_STRING:
@@ -761,7 +762,8 @@ class WP_CSS_Token_Processor {
 
 				case self::TOKEN_STRING:
 					if ( null !== $this->token_value_starts_at && null !== $this->token_value_length ) {
-						$this->token_value = $this->decode_range(
+						$this->token_value = self::decode_range(
+							$this->css,
 							$this->token_value_starts_at,
 							$this->token_value_length,
 							true
@@ -774,7 +776,8 @@ class WP_CSS_Token_Processor {
 				case self::TOKEN_URL:
 					// Decode and cache the URL value.
 					if ( null !== $this->token_value_starts_at && null !== $this->token_value_length ) {
-						$this->token_value = $this->decode_range(
+						$this->token_value = self::decode_range(
+							$this->css,
 							$this->token_value_starts_at,
 							$this->token_value_length
 						);
@@ -785,7 +788,7 @@ class WP_CSS_Token_Processor {
 
 				case self::TOKEN_DELIM:
 					// Delim value is the single code point.
-					$this->token_value = $this->decode_range( $this->token_starts_at, $this->token_length );
+					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length );
 					break;
 
 				case self::TOKEN_NUMBER:
@@ -1120,7 +1123,7 @@ class WP_CSS_Token_Processor {
 
 					// Otherwise, (the stream starts with a valid escape) consume an escaped
 					// code point (just to advance position, don't store the result).
-					$this->decode_escape_at( $this->at, $matched_bytes );
+					self::decode_escape_at( $this->css, $this->at, $matched_bytes );
 					$this->at += $matched_bytes;
 					continue 2;
 
@@ -1235,7 +1238,7 @@ class WP_CSS_Token_Processor {
 			// Consume an ident sequence. Set the <dimension-token>'s unit to the returned value.
 			$unit_starts_at = $this->at;
 			$this->consume_ident_sequence();
-			$this->token_unit      = $this->decode_range( $unit_starts_at, $this->at - $unit_starts_at );
+			$this->token_unit      = self::decode_range( $this->css, $unit_starts_at, $this->at - $unit_starts_at );
 			$this->token_type      = self::TOKEN_DIMENSION;
 			$this->token_type_flag = $number_type;
 			$this->token_length    = $this->at - $this->token_starts_at;
@@ -1273,7 +1276,7 @@ class WP_CSS_Token_Processor {
 		// Consume an ident sequence, and let string be the result.
 		$ident_start = $this->at;
 		$decoded     = $this->consume_ident_sequence();
-		$string      = $decoded ?? $this->decode_range( $ident_start, $this->at - $ident_start );
+		$string      = $decoded ?? self::decode_range( $this->css, $ident_start, $this->at - $ident_start );
 
 		// If string's value is an ASCII case-insensitive match for "url",
 		// and the next input code point is U+0028 LEFT PARENTHESIS (().
@@ -1432,9 +1435,9 @@ class WP_CSS_Token_Processor {
 			// U+005C REVERSE SOLIDUS (\)
 			// If the stream starts with a valid escape, consume an escaped code point.
 			if ( '\\' === $this->css[ $this->at ] ) {
-				if ( $this->is_valid_escape( $this->at ) ) {
+				if ( self::is_valid_escape( $this->css, $this->at ) ) {
 					++$this->at;
-					$this->decode_escape_at( $this->at, $matched_bytes );
+					self::decode_escape_at( $this->css, $this->at, $matched_bytes );
 					$this->at += $matched_bytes;
 					continue;
 				}
@@ -1493,8 +1496,8 @@ class WP_CSS_Token_Processor {
 
 			if ( '\\' === $this->css[ $this->at ] ) {
 				++$this->at;
-				if ( $this->is_valid_escape( $this->at - 1 ) ) {
-					$this->decode_escape_at( $this->at, $matched_bytes );
+				if ( self::is_valid_escape( $this->css, $this->at - 1 ) ) {
+					self::decode_escape_at( $this->css, $this->at, $matched_bytes );
 					$this->at += $matched_bytes;
 					continue;
 				}
@@ -1540,10 +1543,10 @@ class WP_CSS_Token_Processor {
 				continue;
 			}
 
-			if ( $this->is_valid_escape( $this->at ) ) {
+			if ( self::is_valid_escape( $this->css, $this->at ) ) {
 				++$this->at;
 
-				$this->decode_escape_at( $this->at, $matched_bytes );
+				self::decode_escape_at( $this->css, $this->at, $matched_bytes );
 				$this->at += $matched_bytes;
 				continue;
 			}
@@ -1625,15 +1628,21 @@ class WP_CSS_Token_Processor {
 	/**
 	 * Decodes and normalizes ident-like or string CSS values from a byte range.
 	 *
-	 * @param int  $start          Start byte offset.
-	 * @param int  $length         Length of the substring to decode.
-	 * @param bool $string_escapes Optional, default false. When true, apply additional escape
-	 *                             rules that apply only to string tokens.
+	 * The cursor and WP_CSS_Token both decode with this method.
+	 *
+	 * @since 7.2.0
+	 * @access private
+	 *
+	 * @param string $css            CSS source the offsets index.
+	 * @param int    $start          Start byte offset.
+	 * @param int    $length         Length of the substring to decode.
+	 * @param bool   $string_escapes Optional, default false. When true, apply additional escape
+	 *                               rules that apply only to string tokens.
 	 * @return string Decoded and normalized string.
 	 */
-	private function decode_range( int $start, int $length, bool $string_escapes = false ): string {
+	public static function decode_range( string $css, int $start, int $length, bool $string_escapes = false ): string {
 		// Fast path: check if any processing is needed.
-		$slice         = wp_scrub_utf8( substr( $this->css, $start, $length ) );
+		$slice         = wp_scrub_utf8( substr( $css, $start, $length ) );
 		$special_chars = "\\\r\f\x00";
 		if ( false === strpbrk( $slice, $special_chars ) ) {
 			// No special chars - return raw substring (almost zero allocations).
@@ -1647,9 +1656,9 @@ class WP_CSS_Token_Processor {
 
 		while ( $at < $end ) {
 			// Find next special character within the token boundary.
-			$normal_len = strcspn( $this->css, $special_chars, $at, $end - $at );
+			$normal_len = strcspn( $css, $special_chars, $at, $end - $at );
 			if ( $normal_len > 0 ) {
-				$decoded .= wp_scrub_utf8( substr( $this->css, $at, $normal_len ) );
+				$decoded .= wp_scrub_utf8( substr( $css, $at, $normal_len ) );
 				$at      += $normal_len;
 			}
 
@@ -1657,7 +1666,7 @@ class WP_CSS_Token_Processor {
 				break;
 			}
 
-			$char = $this->css[ $at ];
+			$char = $css[ $at ];
 
 			// Handle escapes (if enabled).
 			if ( '\\' === $char ) {
@@ -1668,7 +1677,7 @@ class WP_CSS_Token_Processor {
 						continue;
 					}
 
-					$next = $this->css[ $at + 1 ];
+					$next = $css[ $at + 1 ];
 					if ( "\n" === $next || "\f" === $next ) {
 						// Backslash followed by LF or FF is a string line continuation.
 						$at += 2;
@@ -1678,16 +1687,16 @@ class WP_CSS_Token_Processor {
 					if ( "\r" === $next ) {
 						// Backslash followed by CR or CRLF is a string line continuation.
 						$at += 2;
-						if ( $at < $end && "\n" === $this->css[ $at ] ) {
+						if ( $at < $end && "\n" === $css[ $at ] ) {
 							++$at;
 						}
 						continue;
 					}
 				}
 
-				if ( $this->is_valid_escape( $at ) ) {
+				if ( self::is_valid_escape( $css, $at ) ) {
 					++$at;
-					$decoded .= $this->decode_escape_at( $at, $bytes_consumed );
+					$decoded .= self::decode_escape_at( $css, $at, $bytes_consumed );
 					$at      += $bytes_consumed;
 					continue;
 				}
@@ -1702,7 +1711,7 @@ class WP_CSS_Token_Processor {
 				$decoded .= "\n";
 				++$at;
 				// Handle \r\n as single newline.
-				if ( $at < $end && "\n" === $this->css[ $at ] ) {
+				if ( $at < $end && "\n" === $css[ $at ] ) {
 					++$at;
 				}
 				continue;
@@ -1726,8 +1735,7 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
-	 * Decodes an escape sequence starting at the given offset without
-	 * modifying $this->at.
+	 * Decodes an escape sequence starting at the given offset.
 	 *
 	 * Escape sequences are backslash followed by 1-6 hex digits (with optional
 	 * trailing whitespace) or any other character. Invalid code points are
@@ -1735,38 +1743,41 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-escaped-code-point
 	 *
-	 * @param int $offset Byte offset (should point to the character after the backslash).
-	 * @param int &$bytes_consumed Output parameter: number of bytes consumed.
+	 * @param string $css             CSS source.
+	 * @param int    $offset          Byte offset (should point to the character after the backslash).
+	 * @param int    &$bytes_consumed Output parameter: number of bytes consumed.
 	 * @return string The decoded character(s).
 	 */
-	private function decode_escape_at( int $offset, &$bytes_consumed ): string {
+	private static function decode_escape_at( string $css, int $offset, &$bytes_consumed ): string {
+		$css_length = strlen( $css );
+
 		// This method assumes the U+005C REVERSE SOLIDUS (\) has already been consumed
 		// and the next input code point has already been verified to be part of a valid
 		// escape sequence.
 		$at = $offset;
 
 		// EOF.
-		if ( $at >= $this->length ) {
+		if ( $at >= $css_length ) {
 			// This is a parse error. Return U+FFFD REPLACEMENT CHARACTER (�).
 			$bytes_consumed = 0;
 			return "\u{FFFD}";
 		}
 
 		// Hex digits (CSS spec allows at most 6).
-		$hex_len = strspn( $this->css, '0123456789ABCDEFabcdef', $at, 6 );
+		$hex_len = strspn( $css, '0123456789ABCDEFabcdef', $at, 6 );
 		if ( $hex_len > 0 ) {
-			$hex = substr( $this->css, $at, $hex_len );
+			$hex = substr( $css, $at, $hex_len );
 			$at += $hex_len;
 
 			// If the next input code point is whitespace, consume it as well.
-			if ( $at < $this->length ) {
-				$next = $this->css[ $at ];
+			if ( $at < $css_length ) {
+				$next = $css[ $at ];
 				if ( "\t" === $next || "\n" === $next || "\f" === $next || ' ' === $next ) {
 					++$at;
 				} elseif ( "\r" === $next ) {
 					++$at;
 					// Handle \r\n as a single whitespace – the preprocessing phase would replace \r\n with \n.
-					if ( $at < $this->length && "\n" === $this->css[ $at ] ) {
+					if ( $at < $css_length && "\n" === $css[ $at ] ) {
 						++$at;
 					}
 				}
@@ -1789,21 +1800,21 @@ class WP_CSS_Token_Processor {
 		// Anything else.
 		// Return the current input code point.
 		// Null bytes are replaced with U+FFFD during preprocessing.
-		if ( "\x00" === $this->css[ $at ] ) {
+		if ( "\x00" === $css[ $at ] ) {
 			$bytes_consumed = 1;
 			return "\u{FFFD}";
 		}
 
 		$new_at         = $at;
 		$invalid_length = 0;
-		if ( 1 !== _wp_scan_utf8( $this->css, $new_at, $invalid_length, null, 1 ) ) {
+		if ( 1 !== _wp_scan_utf8( $css, $new_at, $invalid_length, null, 1 ) ) {
 			// Consume the invalid subpart and return U+FFFD.
 			$bytes_consumed = $invalid_length;
 			return "\u{FFFD}";
 		}
 
 		$bytes_consumed = $new_at - $at;
-		return substr( $this->css, $at, $bytes_consumed );
+		return substr( $css, $at, $bytes_consumed );
 	}
 
 	/**
@@ -1813,16 +1824,19 @@ class WP_CSS_Token_Processor {
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#starts-with-a-valid-escape
 	 *
-	 * @param int $offset Byte offset.
+	 * @param string $css    CSS source.
+	 * @param int    $offset Byte offset.
 	 * @return bool
 	 */
-	private function is_valid_escape( int $offset ): bool {
+	private static function is_valid_escape( string $css, int $offset ): bool {
+		$css_length = strlen( $css );
+
 		// If the first code point is not U+005C REVERSE SOLIDUS (\), return false.
-		if ( $offset >= $this->length || '\\' !== $this->css[ $offset ] ) {
+		if ( $offset >= $css_length || '\\' !== $css[ $offset ] ) {
 			return false;
 		}
 		// Otherwise, if the second code point is a newline, return false.
-		if ( $offset + 1 >= $this->length ) {
+		if ( $offset + 1 >= $css_length ) {
 			// Second code point is EOF - this is a valid escape per spec (weird!)
 			// Are we sure we're interpreting the spec correctly?
 			return true;
@@ -1830,13 +1844,13 @@ class WP_CSS_Token_Processor {
 
 		// Otherwise, if the second code point is not a newline, return true.
 		return (
-			"\n" !== $this->css[ $offset + 1 ] &&
+			"\n" !== $css[ $offset + 1 ] &&
 
 			// Form feed is normalized to newline during preprocessing.
-			"\f" !== $this->css[ $offset + 1 ] &&
+			"\f" !== $css[ $offset + 1 ] &&
 
 			// Carriage return is normalized to newline during preprocessing.
-			"\r" !== $this->css[ $offset + 1 ]
+			"\r" !== $css[ $offset + 1 ]
 
 			// We don't need to check for \r\n separately here. The \r check alone covers
 			// that scenario.
@@ -1922,7 +1936,7 @@ class WP_CSS_Token_Processor {
 			++$offset;
 		}
 
-		return $this->consume_ident_start_codepoint( $offset ) > 0 || $this->is_valid_escape( $offset );
+		return $this->consume_ident_start_codepoint( $offset ) > 0 || self::is_valid_escape( $this->css, $offset );
 	}
 
 	/**
