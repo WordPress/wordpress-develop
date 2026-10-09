@@ -4963,20 +4963,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 			}
 			return true;
-		}
+		} else {
+			/*
+			 * > An end tag whose name is "script", if the current node is an SVG script element.
+			 */
+			if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
+				$this->state->stack_of_open_elements->pop();
+				return true;
+			}
 
-		/*
-		 * > An end tag whose name is "script", if the current node is an SVG script element.
-		 */
-		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-			$this->state->stack_of_open_elements->pop();
-			return true;
-		}
-
-		/*
-		 * > Any other end tag
-		 */
-		if ( $this->is_tag_closer() ) {
+			/*
+			 * > Any other end tag
+			 */
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
@@ -5076,8 +5074,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
-
-		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
 	}
 
 	/*
