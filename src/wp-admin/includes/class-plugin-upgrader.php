@@ -487,6 +487,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		if ( empty( $this->new_plugin_data ) ) {
+			if ( file_exists( $working_directory . 'style.css' ) ) {
+				return new WP_Error(
+					'incompatible_archive_theme_detected',
+					$this->strings['incompatible_archive'],
+					__( 'The uploaded package appears to be a theme. Please upload it in the Appearance > Themes menu.' )
+				);
+			}
 			return new WP_Error( 'incompatible_archive_no_plugins', $this->strings['incompatible_archive'], __( 'No valid plugins were found.' ) );
 		}
 
