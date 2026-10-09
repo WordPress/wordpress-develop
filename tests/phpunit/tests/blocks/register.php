@@ -847,6 +847,84 @@ class Tests_Blocks_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests registering a block style handle using an asset file with custom handle name, dependencies, and version.
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_success_register_block_style_handle_with_custom_handle_name() {
+		$custom_style_handle = 'tests-my-shared-style';
+		$metadata            = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'tests/sample-block',
+			'style' => 'file:./shared-style.css',
+		);
+		$result              = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( $custom_style_handle, $result );
+		$this->assertTrue( wp_style_is( $custom_style_handle, 'registered' ) );
+		$this->assertStringEndsWith(
+			'shared-style.css',
+			wp_styles()->registered[ $custom_style_handle ]->src
+		);
+		$this->assertSame(
+			array( 'wp-components' ),
+			wp_styles()->registered[ $custom_style_handle ]->deps
+		);
+		$this->assertSame(
+			'test-style-version',
+			wp_styles()->registered[ $custom_style_handle ]->ver
+		);
+	}
+
+	/**
+	 * Tests reusing an already-registered block style handle when custom handle name matches.
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_reuse_registered_block_style_handle_with_custom_handle_name() {
+		$custom_style_handle = 'tests-my-shared-style';
+		$custom_style_src    = 'https://example.com/foo.css';
+		wp_register_style( $custom_style_handle, $custom_style_src );
+
+		$this->assertTrue(
+			wp_style_is( $custom_style_handle, 'registered' )
+		);
+
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'tests/sample-block',
+			'style' => 'file:./shared-style.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( $custom_style_handle, $result );
+		$this->assertSame(
+			$custom_style_src,
+			wp_styles()->registered[ $custom_style_handle ]->src
+		);
+	}
+
+	/**
+	 * Tests registering a block style handle with version from asset file.
+	 *
+	 * @covers ::register_block_style_handle
+	 */
+	public function test_register_block_style_handle_version_from_asset_file() {
+		$metadata = array(
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
+			'name'  => 'tests/version-test-block',
+			'style' => 'file:./block.css',
+		);
+		$result   = register_block_style_handle( $metadata, 'style' );
+
+		$this->assertSame( 'tests-version-test-block-style', $result );
+		$this->assertSame(
+			'test',
+			wp_styles()->registered[ $result ]->ver
+		);
+	}
+
+	/**
 	 * Tests that register_block_style_handle() loads RTL stylesheets when an RTL locale is set.
 	 *
 	 * @ticket 56325
