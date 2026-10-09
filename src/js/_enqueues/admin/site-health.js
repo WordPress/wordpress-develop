@@ -192,8 +192,19 @@ jQuery( function( $ ) {
 			$( '#health-check-issues-critical' ).removeClass( 'hidden' );
 
 			menuCounterWrapper.removeClass( 'count-0' );
+
+			// Keep the menu item's hidden count description in sync.
+			$( '#wp-menu-site-health-count-description' ).text(
+				sprintf(
+					/* translators: %s: Number of critical Site Health checks. */
+					_n( '%s critical issue', '%s critical issues', SiteHealth.site_status.issues.critical ),
+					SiteHealth.site_status.issues.critical
+				)
+			);
 		} else {
 			menuCounterWrapper.addClass( 'count-0' );
+
+			$( '#wp-menu-site-health-count-description' ).text( '' );
 		}
 		if ( 0 < parseInt( SiteHealth.site_status.issues.recommended, 0 ) ) {
 			$( '#health-check-issues-recommended' ).removeClass( 'hidden' );
