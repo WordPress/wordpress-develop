@@ -1,3 +1,6 @@
+
+log_format upstreamlog '[$time_local] $remote_addr - $remote_user - $server_name $host to: $upstream_addr: $request $status upstream_response_time $upstream_response_time msec $msec request_time $request_time';
+log_format upstream_fastcgi '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" upstream_response_time $upstream_response_time request_time $request_time';
 server {
 	index index.php index.html;
 
@@ -7,6 +10,12 @@ server {
 	server_name localhost;
 
 	client_max_body_size 1g;
+
+	proxy_read_timeout 3000;
+    proxy_connect_timeout 3000;
+    proxy_send_timeout 3000;
+    fastcgi_read_timeout 3000;
+    keepalive_timeout 3000;
 
 	error_log  /var/log/nginx/error.log;
 	access_log /var/log/nginx/access.log;
@@ -34,5 +43,12 @@ server {
 		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 		fastcgi_param PATH_INFO $fastcgi_path_info;
 		fastcgi_pass_header Authorization;
+		access_log /var/log/nginx/access.log upstream_fastcgi;
+	}
+
+	location ~* \.(css|gif|ico|jpeg|jpg|js|png)$ {
+		expires max;
+		access_log    off;
+		log_not_found off;
 	}
 }

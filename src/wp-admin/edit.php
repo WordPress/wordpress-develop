@@ -8,7 +8,10 @@
 
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
-
+/*
+var_dump( $_SERVER[ 'REQUEST_URI' ] );
+wp_die( 'src edit.php beginning');
+*/
 /**
  * @global string $typenow The post type of the current screen.
  */
@@ -228,6 +231,11 @@ if ( $doaction ) {
 	wp_redirect( $sendback );
 	exit;
 } elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+	var_dump( $_REQUEST );
+	var_dump( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ) ) );
+	var_dump( $_SERVER['REQUEST_URI'] );
+	var_dump( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	xdebug_break();
 	wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 	exit;
 }
