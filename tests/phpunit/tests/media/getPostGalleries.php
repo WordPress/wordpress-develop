@@ -58,7 +58,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$content = str_replace(
 			array( 'IMAGE_ID', 'IMAGE_URL' ),
@@ -240,7 +240,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
@@ -330,7 +330,7 @@ BLOB;
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id_two );
 
 		// The method can return an empty array.
@@ -379,7 +379,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery -->
@@ -393,7 +393,7 @@ BLOB;
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id_two );
 
 		// The method can return an empty array.
@@ -435,7 +435,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
@@ -461,7 +461,7 @@ BLOB;
 			)
 		);
 
-		$expected  = 'src="http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg"';
+		$expected  = 'src="' . _upload_get_url( 'test.jpg' ) . '"';
 		$galleries = get_post_galleries( $post_id );
 
 		// The method can return an empty array.
@@ -514,7 +514,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -569,7 +569,7 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
@@ -602,7 +602,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -656,7 +656,7 @@ BLOB;
 			)
 		);
 		$metadata       = array_merge( array( 'file' => 'image1.jpg' ), self::IMG_META );
-		$url            = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . 'image1.jpg';
+		$url            = _upload_get_url( 'image1.jpg' );
 		$global_post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'Global Post',
@@ -697,7 +697,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		// Set the global $post context to the other post.
@@ -761,7 +761,7 @@ BLOB;
 			)
 		);
 		$expected_srcs = array(
-			'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg',
+			_upload_get_url( 'test.jpg' ),
 		);
 
 		$galleries = get_post_galleries( $post_id_two, false );
@@ -838,7 +838,7 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
@@ -901,7 +901,7 @@ BLOB;
 			$metadata      = array_merge( array( 'file' => "image$i.jpg" ), self::IMG_META );
 			wp_update_attachment_metadata( $attachment_id, $metadata );
 			$ids[]      = $attachment_id;
-			$url        = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
+			$url        = _upload_get_url( "image$i.jpg" );
 			$ids_srcs[] = $url;
 			$imgs[]     = '<figure><img src="' . $url . '" data-id="' . $i . '" /></figure>';
 
@@ -957,7 +957,7 @@ BLOB;
 			)
 		);
 
-		$image_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/test.jpg';
+		$image_url = _upload_get_url( 'test.jpg' );
 
 		$blob = <<< BLOB
 <!-- wp:gallery -->
