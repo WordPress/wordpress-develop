@@ -2350,7 +2350,7 @@ HTML;
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
@@ -2770,7 +2770,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 14853
 	 * @ticket 63821
@@ -2821,7 +2821,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 36392
 	 * @ticket 63821
@@ -4172,6 +4172,7 @@ HTML;
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
+	 * @ticket 60478
 	 *
 	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
@@ -4233,6 +4234,7 @@ HTML;
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'jquery-migrate'                   => array( 'jquery-migrate' ),
 			'htmlhint'                         => array( 'htmlhint' ),
 			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),

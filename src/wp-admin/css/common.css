@@ -481,6 +481,10 @@ code {
 	text-decoration: none;
 }
 
+.widefat .column-comment a:not(.row-actions a) {
+	text-decoration: underline;
+}
+
 .widefat td,
 .widefat th {
 	padding: 8px 10px;
@@ -3621,10 +3625,6 @@ img {
 	padding: 0;
 }
 
-#template .submit input[type="submit"][disabled] {
-	cursor: not-allowed;
-}
-
 #templateside {
 	float: right;
 	width: 16em;
@@ -4291,7 +4291,6 @@ img {
 	#documentation input[type="button"] {
 		margin-bottom: 0;
 	}
-
 
 	#comments-form .checkforspam {
 		display: none;

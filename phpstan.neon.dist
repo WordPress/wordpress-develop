@@ -24,7 +24,6 @@ includes:
 	# phpstan:baselines start
 	- tests/phpstan/baselines/argument.type.neon
 	- tests/phpstan/baselines/argument.unresolvableType.neon
-	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
@@ -34,7 +33,6 @@ includes:
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
-	- tests/phpstan/baselines/booleanOr.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
@@ -49,7 +47,6 @@ includes:
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
 	- tests/phpstan/baselines/if.alwaysFalse.neon
 	- tests/phpstan/baselines/if.alwaysTrue.neon
-	- tests/phpstan/baselines/instanceof.alwaysTrue.neon
 	- tests/phpstan/baselines/isset.offset.neon
 	- tests/phpstan/baselines/isset.property.neon
 	- tests/phpstan/baselines/method.childParameterType.neon
@@ -153,3 +150,16 @@ parameters:
 			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
 			path: src/wp-includes/html-api/class-wp-html-tag-processor.php
 			reportUnmatched: false
+
+		# HTML API:
+		# These errors are ignored for the sake of making it easier to keep the HTML Processor in sync with the HTML spec.
+		-
+			message: '#^Comparison operation "\>" between 999\|1000 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Comparison operation "\>\=" between 0 and 8 is always false\.$#'
+			identifier: greaterOrEqual.alwaysFalse
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
