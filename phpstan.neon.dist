@@ -33,7 +33,6 @@ includes:
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanOr.alwaysTrue.neon
-	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
 	- tests/phpstan/baselines/empty.offset.neon
@@ -177,4 +176,9 @@ parameters:
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
 			count: 2
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Dead catch \- Exception is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
 			path: src/wp-includes/html-api/class-wp-html-processor.php
