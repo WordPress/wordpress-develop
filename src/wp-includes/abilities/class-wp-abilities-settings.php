@@ -26,9 +26,10 @@ declare( strict_types = 1 );
  * registry is used in a request. Settings registered later in that request are not exposed.
  * Core registers its own settings in time, see _wp_register_initial_settings_for_abilities().
  *
- * This class is part of WordPress' internal implementation of the core abilities and is
- * not part of the public API. It may be changed or removed at any time without notice.
- * Do not use it directly or rely on its existence.
+ * Only register() is public. The ability callbacks are closures that call private
+ * methods, so callers go through the Abilities API, such as
+ * `wp_get_ability( 'core/settings-get' )->execute()`, which validates the input and
+ * checks permissions before running them.
  *
  * @since 7.2.0
  *
@@ -85,8 +86,12 @@ final class WP_Abilities_Settings {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_settings_get_input_schema( $groups, array_map( 'strval', array_keys( $this->exposed_settings ) ) ),
 				'output_schema'       => $this->get_settings_get_output_schema(),
-				'execute_callback'    => array( $this, 'execute_settings_get' ),
-				'permission_callback' => array( $this, 'check_permission' ),
+				'execute_callback'    => function ( $input = array() ): array {
+					return $this->execute_settings_get( $input );
+				},
+				'permission_callback' => function (): bool {
+					return $this->check_permission();
+				},
 				'meta'                => array(
 					'annotations' => array(
 						'readonly'    => true,
@@ -107,7 +112,7 @@ final class WP_Abilities_Settings {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed> Map of exposed setting name to current value.
 	 */
-	public function execute_settings_get( $input = array() ): array {
+	private function execute_settings_get( $input = array() ): array {
 		$input  = rest_sanitize_object( $input );
 		$group  = isset( $input['group'] ) && is_string( $input['group'] ) ? $input['group'] : '';
 		$fields = rest_sanitize_array( $input['fields'] ?? array() );
@@ -158,7 +163,7 @@ final class WP_Abilities_Settings {
 	 *
 	 * @return bool True if the current user can manage options.
 	 */
-	public function check_permission(): bool {
+	private function check_permission(): bool {
 		return current_user_can( 'manage_options' );
 	}
 
