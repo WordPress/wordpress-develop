@@ -1601,6 +1601,8 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
  *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
+ *
+ * @phpstan-pure
  */
 function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
@@ -1658,6 +1660,8 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
+ *
+ * @phpstan-pure
  */
 function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
