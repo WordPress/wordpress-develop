@@ -565,6 +565,38 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertSame( $wpdb->users, $wpdb->get_col_info( 'table', 0 ) );
 	}
 
+	/**
+	 * @ticket 64130
+	 *
+	 * @dataProvider data_get_col_info_without_result_set
+	 *
+	 * @param string $query Query that does not produce a result set.
+	 */
+	public function test_get_col_info_without_result_set( $query ) {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors( true );
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( sprintf( $query, $wpdb->options ) );
+		$wpdb->suppress_errors( $suppress );
+
+		$this->assertNull( $wpdb->get_col_info(), 'get_col_info() should return null.' );
+		$this->assertNull( $wpdb->col_info, 'The col_info property should be null.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public static function data_get_col_info_without_result_set() {
+		return array(
+			'failed query' => array( 'SELECT ID FROM table_that_does_not_exist' ),
+			'update query' => array( "UPDATE %s SET option_value = option_value WHERE option_name = 'blogname'" ),
+			'set query'    => array( 'SET @wp_test_64130 = 1' ),
+		);
+	}
+
 	public function test_query_and_delete() {
 		global $wpdb;
 		$rows = $wpdb->query( "INSERT INTO $wpdb->users (display_name) VALUES ('Walter Sobchak')" );
