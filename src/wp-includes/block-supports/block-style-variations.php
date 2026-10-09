@@ -21,8 +21,20 @@ function wp_get_block_style_variation_name_from_class( $class_string ): ?array {
 		return null;
 	}
 
-	preg_match_all( '/\bis-style-(?!default)(\S+)\b/', $class_string, $matches );
-	return $matches[1];
+	$prefix     = 'is-style-';
+	$variations = array();
+	foreach ( wp_split_space_separated_tokens( $class_string ) as $class_name ) {
+		if ( ! str_starts_with( $class_name, $prefix ) ) {
+			continue;
+		}
+
+		$variation = substr( $class_name, strlen( $prefix ) );
+		if ( '' !== $variation && ! str_starts_with( $variation, 'default' ) ) {
+			$variations[] = $variation;
+		}
+	}
+
+	return $variations;
 }
 
 /**
@@ -227,12 +239,18 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 	}
 
 	/*
-	 * Matches a class prefixed by `is-style`, followed by the
+	 * Finds a class prefixed by `is-style-`, followed by the
 	 * variation slug, then `--`, and finally an instance number.
 	 */
-	preg_match( '/\bis-style-(\S+?--\d+)\b/', $block_class_name, $matches );
+	$instance_class_name = null;
+	foreach ( wp_split_space_separated_tokens( $block_class_name ) as $class_name ) {
+		if ( preg_match( '/^is-style-.+--\d+$/', $class_name ) ) {
+			$instance_class_name = $class_name;
+			break;
+		}
+	}
 
-	if ( empty( $matches ) ) {
+	if ( null === $instance_class_name ) {
 		return $block_content;
 	}
 
@@ -244,7 +262,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 		 * `render_block_data` filter is applied in markup.
 		 * See `wp_render_block_style_variation_support_styles`.
 		 */
-		$tags->add_class( $matches[0] );
+		$tags->add_class( $instance_class_name );
 	}
 
 	return $tags->get_updated_html();

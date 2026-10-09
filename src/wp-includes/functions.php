@@ -5108,6 +5108,47 @@ function wp_parse_list( $input_list ): array {
 }
 
 /**
+ * Splits a string of space-separated tokens into a list of tokens.
+ *
+ * Tokens are separated by one or more ASCII whitespace characters (space, tab,
+ * line feed, form feed, or carriage return), matching how browsers split a
+ * set of space-separated tokens, such as a list of CSS class names.
+ *
+ * This is a purely lexical operation on a plain-text string: no character
+ * references are decoded, and tokens are neither deduplicated nor
+ * case-normalized. To read the class names of an HTML tag, use
+ * {@see WP_HTML_Tag_Processor::class_list()} instead.
+ *
+ * Example:
+ *
+ *     wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" );
+ *     // array( 'wp-block', 'is-style-outline' )
+ *
+ * @since 7.2.0
+ *
+ * @link https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#set-of-space-separated-tokens
+ *
+ * @param string $input Plain-text string of space-separated tokens.
+ * @return string[] Tokens in order of appearance.
+ * @phpstan-return list<non-empty-string>
+ */
+function wp_split_space_separated_tokens( string $input ): array {
+	$tokens     = array();
+	$delimiters = " \t\n\f\r";
+	$length     = strlen( $input );
+	$offset     = strspn( $input, $delimiters );
+
+	while ( $offset < $length ) {
+		$token_length = strcspn( $input, $delimiters, $offset );
+		$tokens[]     = substr( $input, $offset, $token_length );
+		$offset      += $token_length;
+		$offset      += strspn( $input, $delimiters, $offset );
+	}
+
+	return $tokens;
+}
+
+/**
  * Cleans up an array, comma- or space-separated list of IDs.
  *
  * @since 3.0.0
