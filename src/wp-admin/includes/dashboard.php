@@ -1034,7 +1034,7 @@ function wp_dashboard_on_this_day( $posts = null ) {
 
 	foreach ( $posts as $post ) {
 		/* translators: Date format for posts published in a previous year. */
-		$date = get_the_date( __( 'M jS Y' ), $post );
+		$date = get_the_date( __( 'M jS, Y' ), $post );
 
 		$title = get_the_title( $post );
 
