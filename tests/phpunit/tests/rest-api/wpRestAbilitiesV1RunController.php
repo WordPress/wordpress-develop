@@ -87,7 +87,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		// Clean up test abilities.
-		foreach ( wp_get_abilities() as $ability ) {
+		foreach ( wp_get_abilities( array( 'include_deprecated' => true ) ) as $ability ) {
 			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
 				continue;
 			}
@@ -430,6 +430,41 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 8.0, $response->get_data() );
+	}
+
+	/**
+	 * Tests that deprecated abilities remain executable through their exact REST route.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_execute_deprecated_ability_by_exact_name(): void {
+		$this->register_test_ability(
+			'test/deprecated-ability',
+			array(
+				'label'               => 'Deprecated Ability',
+				'description'         => 'A deprecated test ability.',
+				'category'            => 'general',
+				'execute_callback'    => static function (): string {
+					return 'executed';
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'deprecated'   => array(
+						'since'       => '2.0.0',
+						'replacement' => 'test/calculator',
+					),
+				),
+			)
+		);
+
+		$this->setExpectedDeprecated( 'test/deprecated-ability' );
+
+		$request  = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/deprecated-ability/run' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'executed', $response->get_data() );
 	}
 
 	/**

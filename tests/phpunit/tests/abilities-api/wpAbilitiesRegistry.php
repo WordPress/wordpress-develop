@@ -583,6 +583,50 @@ class Tests_Abilities_API_WpAbilitiesRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Should trigger the deprecation notice when retrieving a deprecated ability by name.
+	 *
+	 * @ticket 64209
+	 *
+	 * @covers WP_Abilities_Registry::register
+	 * @covers WP_Abilities_Registry::get_registered
+	 * @covers WP_Ability::_handle_ability_deprecation
+	 */
+	public function test_get_registered_triggers_deprecation_for_deprecated_ability() {
+		$deprecated_args                       = self::$test_ability_args;
+		$deprecated_args['meta']['deprecated'] = array(
+			'since'       => '2.0.0',
+			'replacement' => 'test/one',
+			'message'     => 'Use the new input format.',
+		);
+		$this->registry->register( 'test/one', self::$test_ability_args );
+		$this->registry->register( 'test/deprecated', $deprecated_args );
+
+		$received = null;
+		$listener = static function ( $name, $replacement, $version, $message ) use ( &$received ): void {
+			$received = compact( 'name', 'replacement', 'version', 'message' );
+		};
+
+		$this->setExpectedDeprecated( 'test/deprecated' );
+		add_action( 'deprecated_ability_run', $listener, 10, 4 );
+
+		$result = $this->registry->get_registered( 'test/deprecated' );
+
+		remove_action( 'deprecated_ability_run', $listener, 10 );
+
+		$this->assertSame( 'test/deprecated', $result->get_name() );
+		$this->assertSame(
+			array(
+				'name'        => 'test/deprecated',
+				'replacement' => 'test/one',
+				'version'     => '2.0.0',
+				'message'     => 'Use the new input format.',
+			),
+			$received,
+			'Retrieving a deprecated ability by exact name should emit its structured deprecation details.'
+		);
+	}
+
+	/**
 	 * Unregistering should fail if an ability is not registered.
 	 *
 	 * @ticket 64098
