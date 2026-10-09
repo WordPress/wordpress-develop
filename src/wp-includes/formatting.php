@@ -2895,7 +2895,7 @@ function trailingslashit( $value ) {
  * @return string String without the trailing slashes.
  */
 function untrailingslashit( $value ) {
-	return rtrim( $value, '/\\' );
+	return rtrim( strval( $value ), '/\\' );
 }
 
 /**
