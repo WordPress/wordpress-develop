@@ -229,6 +229,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'orientation'       => '0',
 					'keywords'          => array(),
 					'alt'               => '',
+					'created'           => '2004-07-22T17:14:35+00:00',
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
@@ -247,6 +248,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 					'orientation'       => '1',
 					'keywords'          => array( 'beach', 'baywatch', 'LA', 'sunset' ),
 					'alt'               => '',
+					'created'           => '2011-05-25T09:22:07+00:00',
 				),
 			),
 		);
@@ -269,5 +271,16 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '200', $out['iso'], 'Iso value not equivalent' );
 		$this->assertSame( '2', $out['shutter_speed'], 'Shutter speed value not equivalent' );
 		$this->assertSame( 'Sugarloaf Panorama', $out['title'], 'Title value not the same' );
+	}
+
+	/**
+	 * @ticket 56887
+	 */
+	public function test_exif_offset_time() {
+		// Image tests OffsetTimeDigitized (EXIF tag 0x9012) timezone offset support.
+		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/test-image-offset-time.jpg' );
+
+		$this->assertSame( '2024-03-15T14:30:00+09:00', $out['created'], 'Created RFC3339 date with offset does not match' );
+		$this->assertSame( '1710480600', $out['created_timestamp'], 'Timestamp value not equivalent' );
 	}
 }
