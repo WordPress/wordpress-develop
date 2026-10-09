@@ -307,7 +307,7 @@ class WP_CSS_Token_Serializer {
 					: '#' . self::escape_name_code_points( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_STRING:
-				return self::quote_string( $value );
+				return self::serialize_string( $value );
 
 			case WP_CSS_Token_Processor::TOKEN_URL:
 				return 'url(' . self::serialize_url_value( $value ) . ')';
@@ -431,6 +431,9 @@ class WP_CSS_Token_Serializer {
 	 * or may be complicated for rudimentary CSS or HTML processors to handle
 	 * are encoded using Unicode escape sequences.
 	 *
+	 * The string reads back as the same value, except that NULL becomes U+FFFD.
+	 * Line endings are not normalized: CR and FF are escaped as `\D ` and `\C `.
+	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#escaping
 	 *
 	 * @since 7.2.0
@@ -439,31 +442,6 @@ class WP_CSS_Token_Serializer {
 	 * @return string Serialized quoted CSS string text.
 	 */
 	public static function serialize_string( string $value ): string {
-		// Normalize newlines. https://www.w3.org/TR/css-syntax-3/#input-preprocessing
-		$value = strtr(
-			$value,
-			array(
-				"\r\n" => "\n",
-				"\r"   => "\n",
-				"\f"   => "\n",
-			)
-		);
-
-		return self::quote_string( $value );
-	}
-
-	/**
-	 * Creates a quoted CSS string from a decoded value without normalizing newlines.
-	 *
-	 * A CR or FF in a token value comes from an escape such as `\D `, so it is
-	 * escaped, not written as a newline.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $value Decoded string value to encode as a quoted CSS string.
-	 * @return string Serialized quoted CSS string text.
-	 */
-	private static function quote_string( string $value ): string {
 		$value   = wp_scrub_utf8( $value );
 		$escaped = strtr(
 			$value,
@@ -471,7 +449,7 @@ class WP_CSS_Token_Serializer {
 				// Escape existing backslashes to prevent unintentional escapes in result.
 				'\\' => '\\5C ',
 
-				// Pre-processing replaces NULLs. Replace as necessary.
+				// CSS cannot represent NULL; preprocessing replaces it with U+FFFD.
 				"\0" => "\u{FFFD}",
 
 				// Newlines must be escaped in CSS strings.

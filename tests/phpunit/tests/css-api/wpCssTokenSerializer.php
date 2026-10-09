@@ -16,27 +16,14 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	public function test_string_escaping( string $input, string $expected ): void {
 		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize_string( $input ) );
 
-		/**
-		 * Ensure that a single, equivalent CSS string is produced.
-		 *
-		 * CSS pre-processing normalization is applied to the input to ensure
-		 * a match can be found.
-		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#input-preprocessing
+		/*
+		 * Ensure that a single CSS string with the same value is produced.
+		 * CSS cannot represent NULL, which becomes U+FFFD.
 		 */
 		$processor = WP_CSS_Token_Processor::create( WP_CSS_Token_Serializer::serialize_string( $input ) );
 		$processor->next_token();
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $processor->get_token_type() );
-		$expected_decoded_value = strtr(
-			$input,
-			array(
-				"\r\n" => "\n",
-				"\r"   => "\n",
-				"\f"   => "\n",
-				"\0"   => '�',
-			)
-		);
-		$this->assertSame( $expected_decoded_value, $processor->get_token_value() );
+		$this->assertSame( str_replace( "\0", '�', $input ), $processor->get_token_value() );
 		$this->assertFalse( $processor->next_token() );
 	}
 
@@ -64,11 +51,11 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			// NULL byte → U+FFFD replacement character.
 			'null byte'               => array( "a\0b", '"a�b"' ),
 
-			// Newline normalization — all variants become \A escape.
+			// Newlines are escaped as they are; CR and FF are not normalized to LF.
 			'LF'                      => array( "a\nb", '"a\A b"' ),
-			'CR'                      => array( "a\rb", '"a\A b"' ),
-			'CRLF as single escape'   => array( "a\r\nb", '"a\A b"' ),
-			'form feed'               => array( "a\fb", '"a\A b"' ),
+			'CR'                      => array( "a\rb", '"a\D b"' ),
+			'CRLF'                    => array( "a\r\nb", '"a\D \A b"' ),
+			'form feed'               => array( "a\fb", '"a\C b"' ),
 
 			// HTML-problematic characters.
 			'HTML characters < > &'   => array( 'a<b>c&d', '"a\3C b\3E c\26 d"' ),
@@ -99,7 +86,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	 */
 	public function test_mixed_newlines(): void {
 		$input    = "line1\nline2\rline3\r\nline4\fline5";
-		$expected = '"line1\A line2\A line3\A line4\A line5"';
+		$expected = '"line1\A line2\D line3\D \A line4\C line5"';
 
 		$this->assertSame( $expected, WP_CSS_Token_Serializer::serialize_string( $input ) );
 	}
@@ -126,16 +113,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		$this->assertTrue( $processor->next_token() );
 		$this->assertSame( WP_CSS_Token_Processor::TOKEN_IDENT, $processor->get_token_type() );
 
-		$expected_decoded_value = strtr(
-			$input,
-			array(
-				"\r\n" => "\n",
-				"\r"   => "\n",
-				"\f"   => "\n",
-				"\0"   => '�',
-			)
-		);
-		$this->assertSame( $expected_decoded_value, $processor->get_token_value() );
+		$this->assertSame( str_replace( "\0", '�', $input ), $processor->get_token_value() );
 		$this->assertFalse( $processor->next_token() );
 	}
 
@@ -167,6 +145,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		yield 'Multiple spaces within' => array( 'a b c', 'a\\20 b\\20 c' );
 		yield 'Tab within' => array( "has\ttab", 'has\\9 tab' );
 		yield 'Newline within' => array( "has\nnewline", 'has\\A newline' );
+		yield 'Carriage return within' => array( "has\rreturn", 'has\\D return' );
 		yield 'NULL byte within' => array( "has\0null", 'has�null' );
 		yield 'DEL within' => array( "has\x7Fdelete", 'has\\7F delete' );
 
