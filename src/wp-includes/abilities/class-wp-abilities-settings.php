@@ -49,7 +49,7 @@ final class WP_Abilities_Settings {
 	 * Settings exposed through the Abilities API, computed once at registration.
 	 *
 	 * @since 7.2.0
-	 * @var array<string, array{option: string, group: string, schema: array<string, mixed>}>
+	 * @var array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}>
 	 */
 	private $exposed_settings = array();
 
@@ -126,7 +126,15 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
-			$value = get_option( $setting['option'] );
+			/*
+			 * As the settings endpoint does, read a setting that was never saved as its registered
+			 * default, or leave it out when it has none: get_option() would return false, which a
+			 * boolean schema accepts as a value and an array schema reads as an empty list.
+			 */
+			$value = get_option( $setting['option'], $setting['default'] );
+			if ( null === $value ) {
+				continue;
+			}
 
 			// WordPress stores false as '', which the boolean schema rejects.
 			if ( '' === $value && 'boolean' === $setting['schema']['type'] ) {
@@ -228,13 +236,13 @@ final class WP_Abilities_Settings {
 	 * Reads {@see get_registered_settings()} and keeps only settings flagged with a truthy
 	 * `show_in_abilities` argument, of a type the settings endpoint supports. Each entry is
 	 * keyed by its exposed name and carries the underlying option name, the settings group,
-	 * and a JSON Schema describing the value.
+	 * the registered default (null when there is none), and a JSON Schema describing the value.
 	 *
 	 * Two settings exposed under the same name trigger a notice, and the later one is exposed.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<string, array{option: string, group: string, schema: array<string, mixed>}> Settings keyed by exposed name.
+	 * @return array<string, array{option: string, group: string, default: mixed, schema: array<string, mixed>}> Settings keyed by exposed name.
 	 */
 	private function get_exposed_settings(): array {
 		$settings = array();
@@ -269,9 +277,10 @@ final class WP_Abilities_Settings {
 			}
 
 			$settings[ $exposed_name ] = array(
-				'option' => $option_name,
-				'group'  => $args['group'] ?? '',
-				'schema' => $schema,
+				'option'  => $option_name,
+				'group'   => $args['group'] ?? '',
+				'default' => $args['default'] ?? null,
+				'schema'  => $schema,
 			);
 		}
 
