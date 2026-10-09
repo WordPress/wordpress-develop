@@ -46,12 +46,6 @@ class Tests_WP_QueryPosts extends WP_UnitTestCase {
 		// The query_vars["p"] should have effect on the query if category page does not contain posts
 		$route_vars_mock['paged'] = 3;
 		$this->wp->main( $route_vars_mock );
-		$this->assertTrue( $wp_the_query->is_single );
-		$this->assertSame( $wp_the_query->posts[0]->ID, $post_ids[5] );
-
-		// If category page does not contain posts and query_vars["p"] is not a valid post ID, it should return 404
-		$route_vars_mock['p'] = $post_ids[11] + 1;
-		$this->wp->main( $route_vars_mock );
 		$this->assertTrue( $wp_the_query->is_404 );
 	}
 }

@@ -699,17 +699,7 @@ class WP {
 	public function query_posts() {
 		global $wp_the_query;
 		$this->build_query_string();
-		// trying get paged result while ignoring "p" query_var. See https://core.trac.wordpress.org/ticket/23602.
-		if ( isset( $this->query_vars['paged'] ) && isset( $this->query_vars['p'] ) ) {
-			$test = $this->query_vars;
-			unset( $test['p'] );
-			$wp_the_query->query( $test );
-			if ( ! $wp_the_query->post_count ) {
-				$wp_the_query->query( $this->query_vars );
-			}
-		} else {
-			$wp_the_query->query( $this->query_vars );
-		}
+		$wp_the_query->query( $this->query_vars );
 	}
 
 	/**
