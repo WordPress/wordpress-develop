@@ -567,6 +567,11 @@ function install_plugin_information() {
 			'alt'   => array(),
 		),
 		'blockquote' => array( 'cite' => true ),
+		'iframe'     => array(
+			'src'    => array(),
+			'height' => array(),
+			'width'  => array(),
+		),
 	);
 
 	$plugins_section_titles = array(
