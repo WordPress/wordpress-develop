@@ -6,6 +6,10 @@
  * @subpackage Administration
  */
 
+require_once ABSPATH . 'wp-admin/includes/menu-functions.php';
+// Preserve the submenu order established before menu callbacks run.
+$wp_submenu_before_admin_menu = isset( $GLOBALS['submenu'] ) ? $GLOBALS['submenu'] : array();
+
 if ( is_network_admin() ) {
 
 	/**
@@ -167,6 +171,8 @@ if ( is_network_admin() ) {
 	 */
 	do_action( 'admin_menu', '' );
 }
+
+_wp_sort_submenu_items( $submenu, $wp_submenu_before_admin_menu );
 
 /*
  * Remove menus that have no accessible submenus and require privileges
