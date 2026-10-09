@@ -152,6 +152,57 @@ class Tests_CssApi_WpCssTokenProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that preprocessing replaces NUL in the token value and keeps the source bytes.
+	 *
+	 * NUL becomes U+FFFD before tokenization, so it is valid inside an unquoted
+	 * URL. Other control bytes still produce a bad-url token.
+	 *
+	 * @ticket 65738
+	 * @dataProvider data_preprocessed_token_keeps_source_bytes
+	 */
+	public function test_preprocessed_token_keeps_source_bytes( string $css, string $expected_type, ?string $expected_value ): void {
+		$processor = WP_CSS_Token_Processor::create( $css );
+
+		$this->assertTrue( $processor->next_token() );
+		$this->assertSame( $expected_type, $processor->get_token_type() );
+		$this->assertSame( $expected_value, $processor->get_token_value() );
+		$this->assertSame( $css, $processor->get_unnormalized_token() );
+		$this->assertSame( 0, $processor->get_token_start() );
+		$this->assertSame( strlen( $css ), $processor->get_token_length() );
+		$this->assertFalse( $processor->next_token() );
+	}
+
+	/**
+	 * Data provider for test_preprocessed_token_keeps_source_bytes().
+	 *
+	 * @return Generator
+	 */
+	public static function data_preprocessed_token_keeps_source_bytes(): Generator {
+		yield 'NUL as the URL' => array( "url(\x00)", WP_CSS_Token_Processor::TOKEN_URL, "\u{FFFD}" );
+		yield 'NUL before text' => array( "url(\x00a)", WP_CSS_Token_Processor::TOKEN_URL, "\u{FFFD}a" );
+		yield 'NUL inside text' => array( "url(a\x00b)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}b" );
+		yield 'NUL before closing parenthesis' => array( "url(a\x00)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}" );
+		yield 'NUL before EOF' => array( "url(a\x00", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}" );
+		yield 'consecutive NUL bytes' => array( "url(a\x00\x00b)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}\u{FFFD}b" );
+		yield 'escaped literal NUL' => array( "url(a\\\x00b)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}b" );
+		yield 'zero escape' => array( 'url(a\0 b)', WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}b" );
+		yield 'zero escape followed by CRLF' => array( "url(a\\0\r\nb)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}b" );
+		yield 'NUL followed by trailing CRLF' => array( "url(a\x00\r\n)", WP_CSS_Token_Processor::TOKEN_URL, "a\u{FFFD}" );
+		yield 'NUL in a string' => array( "\"a\x00b\"", WP_CSS_Token_Processor::TOKEN_STRING, "a\u{FFFD}b" );
+		yield 'NUL in a name' => array( "a\x00b", WP_CSS_Token_Processor::TOKEN_IDENT, "a\u{FFFD}b" );
+		yield 'NUL after trailing whitespace' => array( "url(a \x00)", WP_CSS_Token_Processor::TOKEN_BAD_URL, null );
+		yield 'NUL after a forbidden control' => array( "url(a\x01\x00b)", WP_CSS_Token_Processor::TOKEN_BAD_URL, null );
+
+		foreach ( array( "\t", "\n", "\r", "\f", "\r\n" ) as $whitespace ) {
+			yield 'internal whitespace ' . bin2hex( $whitespace ) => array( "url(a{$whitespace}b)", WP_CSS_Token_Processor::TOKEN_BAD_URL, null );
+		}
+
+		foreach ( array_merge( range( 0x01, 0x08 ), array( 0x0B ), range( 0x0E, 0x1F ), array( 0x7F ) ) as $byte ) {
+			yield 'forbidden control ' . dechex( $byte ) => array( 'url(a' . chr( $byte ) . 'b)', WP_CSS_Token_Processor::TOKEN_BAD_URL, null );
+		}
+	}
+
+	/**
 	 * Tests that backslash-newline stops an ident sequence.
 	 *
 	 * @ticket 65738
