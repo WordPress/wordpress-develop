@@ -179,6 +179,14 @@ function wp_print_media_templates() {
 	<?php // Template for the media frame: used both in the media grid and in the media modal. ?>
 	<script type="text/html" id="tmpl-media-frame">
 		<div class="media-frame-title"></div>
+		<# if ( data.modal ) { #>
+			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">
+				<?php
+				/* translators: Hidden accessibility text. */
+				_e( 'Close' );
+				?>
+			</span></button>
+		<# } #>
 		<h2 class="media-frame-menu-heading"><?php _ex( 'Actions', 'media modal menu actions' ); ?></h2>
 		<button type="button" class="button button-link media-frame-menu-toggle" aria-expanded="false">
 			<?php _ex( 'Menu', 'media modal menu' ); ?>
@@ -368,12 +376,12 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Attachment Details layout in the media browser. ?>
 	<script type="text/html" id="tmpl-edit-attachment-frame">
+		<div class="media-frame-title"></div>
 		<div class="edit-media-header">
 			<button class="left dashicons"<# if ( ! data.hasPrevious ) { #> aria-disabled='true'<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _ex( 'Previous', 'media item' ); ?></span></button>
 			<button class="right dashicons"<# if ( ! data.hasNext ) { #> aria-disabled='true'<# } #>><span class="screen-reader-text"><?php /* translators: Hidden accessibility text. */ _ex( 'Next', 'media item' ); ?></span></button>
 			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text"><?php _e( 'Close' ); ?></span></button>
 		</div>
-		<div class="media-frame-title"></div>
 		<div class="media-frame-content"></div>
 	</script>
 
