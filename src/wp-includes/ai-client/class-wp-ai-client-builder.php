@@ -27,7 +27,9 @@ use WordPress\AiClient\Providers\ProviderRegistry;
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a generating method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned. The
+ * support check methods are the exception to the no-op behavior: they return
+ * false rather than the error state instance.
  *
  * @since 7.1.0
  */
@@ -65,9 +67,9 @@ abstract class WP_AI_Client_Builder {
 	public function __construct( ProviderRegistry $registry, $input = null ) {
 		try {
 			$this->builder = $this->create_sdk_builder( $registry, $input );
-		} catch ( Exception $e ) {
+		} catch ( Throwable $e ) {
 			$this->builder = $this->create_sdk_builder( $registry, null );
-			$this->error   = $this->exception_to_wp_error( $e );
+			$this->error   = $this->throwable_to_wp_error( $e );
 		}
 
 		$default_timeout = 30.0;
@@ -104,6 +106,23 @@ abstract class WP_AI_Client_Builder {
 				)
 			)
 		);
+	}
+
+	/**
+	 * Clones the wrapped builder alongside this instance.
+	 *
+	 * The wrapped builder mutates its own state, so without this a clone would
+	 * share that state with the original and any change made to one would be
+	 * visible in the other.
+	 *
+	 * @since 7.2.0
+	 */
+	public function __clone() {
+		$this->builder = clone $this->builder;
+
+		if ( null !== $this->error ) {
+			$this->error = clone $this->error;
+		}
 	}
 
 	/**
@@ -174,7 +193,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * This allows WordPress developers to use snake_case naming conventions. It catches
 	 * any exceptions thrown, stores them, and returns a WP_Error when a terminate method
-	 * is called.
+	 * is called, or false when a support check method is called.
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
@@ -243,47 +262,50 @@ abstract class WP_AI_Client_Builder {
 			}
 
 			return $result;
-		} catch ( Exception $e ) {
-			$this->error = $this->exception_to_wp_error( $e );
+		} catch ( Throwable $e ) {
+			$this->error = $this->throwable_to_wp_error( $e );
 
 			if ( $this->is_generating_method( $name ) ) {
 				return $this->error;
+			}
+			if ( $this->is_support_check_method( $name ) ) {
+				return false;
 			}
 			return $this;
 		}
 	}
 
 	/**
-	 * Converts an exception into a WP_Error with a structured error code and message.
+	 * Converts a throwable into a WP_Error with a structured error code and message.
 	 *
-	 * This method maps different exception types to specific WP_Error codes and HTTP status codes.
+	 * This method maps different throwable types to specific WP_Error codes and HTTP status codes.
 	 * The presence of the status codes means these WP_Error objects can be easily used in REST API responses
 	 * or other contexts where HTTP semantics are relevant.
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
-	 * @param Exception $e The exception to convert.
+	 * @param Throwable $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error object.
 	 */
-	protected function exception_to_wp_error( Exception $e ): WP_Error {
+	protected function throwable_to_wp_error( Throwable $throwable ): WP_Error {
 		$prefix = $this->get_error_code_prefix();
 
-		if ( $e instanceof NetworkException ) {
+		if ( $throwable instanceof NetworkException ) {
 			$error_code  = $prefix . '_network_error';
 			$status_code = 503;
-		} elseif ( $e instanceof ClientException ) {
+		} elseif ( $throwable instanceof ClientException ) {
 			// `ClientException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = $prefix . '_client_error';
-			$status_code = $e->getCode() ? $e->getCode() : 400;
-		} elseif ( $e instanceof ServerException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 400;
+		} elseif ( $throwable instanceof ServerException ) {
 			// `ServerException` uses HTTP status codes as exception codes, so we can rely on them.
 			$error_code  = $prefix . '_upstream_server_error';
-			$status_code = $e->getCode() ? $e->getCode() : 500;
-		} elseif ( $e instanceof TokenLimitReachedException ) {
+			$status_code = $throwable->getCode() ? $throwable->getCode() : 500;
+		} elseif ( $throwable instanceof TokenLimitReachedException ) {
 			$error_code  = $prefix . '_token_limit_reached';
 			$status_code = 400;
-		} elseif ( $e instanceof InvalidArgumentException ) {
+		} elseif ( $throwable instanceof InvalidArgumentException ) {
 			$error_code  = $prefix . '_invalid_argument';
 			$status_code = 400;
 		} else {
@@ -293,10 +315,10 @@ abstract class WP_AI_Client_Builder {
 
 		return new WP_Error(
 			$error_code,
-			$e->getMessage(),
+			$throwable->getMessage(),
 			array(
 				'status'          => $status_code,
-				'exception_class' => get_class( $e ),
+				'exception_class' => get_class( $throwable ),
 			)
 		);
 	}

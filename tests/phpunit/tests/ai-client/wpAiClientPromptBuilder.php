@@ -2938,7 +2938,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private throwable_to_wp_error method via reflection.
+	 * Invokes the protected throwable_to_wp_error method via reflection.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
 	 * @param Throwable                   $throwable The throwable to convert.
