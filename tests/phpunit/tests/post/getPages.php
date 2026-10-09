@@ -1204,4 +1204,171 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 			'Check that ORDER is post modified when using modified_gmt.'
 		);
 	}
+
+	/**
+	 * Test that get_pages() accepts 'any' as a post_status value.
+	 *
+	 * @ticket 40650
+	 */
+	public function test_get_pages_post_status_any() {
+		$published_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$draft_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+
+		$private_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'private',
+			)
+		);
+
+		$trash_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'trash',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'post_status' => 'any',
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+
+		// Published, draft, and private pages should be included.
+		$this->assertContains( $published_page, $page_ids );
+		$this->assertContains( $draft_page, $page_ids );
+		$this->assertContains( $private_page, $page_ids );
+
+		// Trash pages should not be included.
+		$this->assertNotContains( $trash_page, $page_ids );
+	}
+
+	/**
+	 * Test that get_pages() handles 'any' with different input formats and combinations.
+	 *
+	 * @ticket 40650
+	 */
+	public function test_get_pages_post_status_any_combinations() {
+		$pages = array(
+			'published' => self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'publish',
+				)
+			),
+			'draft'     => self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'draft',
+				)
+			),
+			'private'   => self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'private',
+				)
+			),
+			'trash'     => self::factory()->post->create(
+				array(
+					'post_type'   => 'page',
+					'post_status' => 'trash',
+				)
+			),
+		);
+
+		// Test 1: 'any' combined with 'trash' using array format.
+		$result   = get_pages(
+			array(
+				'post_status' => array( 'any', 'trash' ),
+			)
+		);
+		$page_ids = wp_list_pluck( $result, 'ID' );
+
+		$this->assertContains( $pages['published'], $page_ids );
+		$this->assertContains( $pages['draft'], $page_ids );
+		$this->assertContains( $pages['private'], $page_ids );
+		$this->assertContains( $pages['trash'], $page_ids );
+
+		// Test 2: 'any' with comma-separated string.
+		$result   = get_pages(
+			array(
+				'post_status' => 'any,draft',
+			)
+		);
+		$page_ids = wp_list_pluck( $result, 'ID' );
+
+		$this->assertContains( $pages['published'], $page_ids );
+		$this->assertContains( $pages['draft'], $page_ids );
+	}
+
+	/**
+	 * Test that get_pages() with 'any' includes custom post statuses with exclude_from_search => false.
+	 *
+	 * @ticket 40650
+	 */
+	public function test_get_pages_post_status_any_with_custom_status() {
+		register_post_status(
+			'custom_searchable',
+			array(
+				'public'                    => false,
+				'exclude_from_search'       => false,
+				'show_in_admin_status_list' => true,
+			)
+		);
+
+		register_post_status(
+			'custom_hidden',
+			array(
+				'public'                    => false,
+				'exclude_from_search'       => true,
+				'show_in_admin_status_list' => true,
+			)
+		);
+
+		$published_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
+		);
+
+		$custom_searchable_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'custom_searchable',
+			)
+		);
+
+		$custom_hidden_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'custom_hidden',
+			)
+		);
+
+		$pages = get_pages(
+			array(
+				'post_status' => 'any',
+			)
+		);
+
+		$page_ids = wp_list_pluck( $pages, 'ID' );
+
+		$this->assertContains( $published_page, $page_ids );
+		$this->assertContains( $custom_searchable_page, $page_ids );
+		$this->assertNotContains( $custom_hidden_page, $page_ids );
+	}
 }
