@@ -491,9 +491,15 @@ figcaption,
 	footer,
 	.wp-block-quote__citation {
 		@include font-family( $font__heading );
-		font-size: $font__size-xs;
-		line-height: 1.6;
 		color: inherit;
+
+		&:not([style*="font-size"]) {
+			font-size: $font__size-xs;
+		}
+
+		&:not([style*="line-height"]) {
+			line-height: 1.6;
+		}
 	}
 }
 
