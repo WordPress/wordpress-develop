@@ -282,6 +282,22 @@ body.js .theme-browser.search-loading {
 
 .theme-browser .theme.active .theme-actions .button:not(.button-primary):focus {
 	background: #fff;
+	box-shadow:
+		0 0 0 var(--wp-admin-border-width-focus, 1.5px) #fff,
+		inset 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
+	outline: 1px solid transparent;
+}
+
+/* Active theme card: uses white outer ring against the colored banner. */
+.theme-browser .theme.active .theme-actions .button.disabled:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) #fff, inset 0 0 0 1px var(--wp-admin-theme-color, #3858e9) !important;
+	outline: 1px solid transparent;
+}
+
+/* Other theme cards: standard focus ring on the card white background. */
+.theme-browser .theme:not(.active) .theme-actions .button.disabled:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9) !important;
+	outline: 1px solid transparent;
 }
 
 .theme-browser .theme .theme-author {
@@ -1879,8 +1895,8 @@ body.full-overlay-active {
 .theme-install-overlay iframe {
 	height: 100%;
 	width: 100%;
-	z-index: 20;
 	transition: opacity 0.3s;
+	isolation: isolate; /* Creates a new stacking context to make the iframe sit on top of the spinner. */
 }
 
 #customize-controls {
@@ -1982,7 +1998,6 @@ body.full-overlay-active {
 
 .theme-install-overlay .wp-full-overlay-main {
 	position: absolute;
-	z-index: 0;
 	background-color: #f0f0f1;
 }
 
@@ -2001,7 +2016,6 @@ body.full-overlay-active {
 	position: absolute;
 	left: 50%;
 	top: 50%;
-	z-index: -1;
 	margin: -10px 0 0 -10px;
 	transform: translateZ(0);
 	background: transparent url(../images/spinner.gif) no-repeat center center;
