@@ -25,6 +25,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wpdb;
 		$wpdb->suppress_errors( $this->suppress );
+		wp_installing( false );
 		parent::tear_down();
 	}
 
@@ -140,7 +141,6 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		$blog_id = self::factory()->blog->create();
 
-		$this->assertIsInt( $blog_id );
 		$prefix = $wpdb->get_blog_prefix( $blog_id );
 
 		// $get_all = false, only retrieve details from the blogs table.
@@ -149,6 +149,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		// Combine domain and path for a site specific cache key.
 		$key = md5( $details->domain . $details->path );
 
+		// Keep assertEquals() because the cached object is intentionally compared by value.
 		$this->assertEquals( $details, wp_cache_get( $blog_id . 'short', 'blog-details' ) );
 
 		// get_blogaddress_by_name().
@@ -160,6 +161,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 
 		// $get_all = true, populate the full blog-details cache and the blog slug lookup cache.
 		$details = get_blog_details( $blog_id, true );
+		// Keep assertEquals() because the cached objects are intentionally compared by value.
 		$this->assertEquals( $details, wp_cache_get( $blog_id, 'blog-details' ) );
 		$this->assertEquals( $details, wp_cache_get( $key, 'blog-lookup' ) );
 
@@ -438,6 +440,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		$blog = get_blog_details( $blog_id );
 
 		// When the cache is refreshed, it should now equal the site data.
+		// Keep assertEquals() because the cached object is intentionally compared by value.
 		$this->assertEquals( $blog, wp_cache_get( $blog_id, 'blog-details' ) );
 	}
 
@@ -599,6 +602,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		switch_to_blog( $blog_id );
 
 		// The post created and retrieved on the main site should match the one retrieved "remotely".
+		// Keep assertEquals() because the WP_Post objects are intentionally compared by value.
 		$this->assertEquals( $post, get_blog_post( 1, $post_id ) );
 
 		restore_current_blog();
@@ -610,6 +614,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	public function test_get_blog_post_from_same_site() {
 		$post_id = self::factory()->post->create();
 
+		// Keep assertEquals() because the WP_Post objects are intentionally compared by value.
 		$this->assertEquals( get_blog_post( 1, $post_id ), get_post( $post_id ) );
 	}
 
@@ -2052,7 +2057,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 41333
 	 */
 	public function test_wp_initialize_site_invalid_id() {
-		$result = wp_initialize_site( 123 );
+		$result = wp_initialize_site( PHP_INT_MAX );
 		$this->assertWPError( $result );
 		$this->assertSame( 'site_invalid_id', $result->get_error_code() );
 	}
@@ -2090,7 +2095,7 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 	 * @ticket 41333
 	 */
 	public function test_wp_uninitialize_site_invalid_id() {
-		$result = wp_uninitialize_site( 123 );
+		$result = wp_uninitialize_site( PHP_INT_MAX );
 		$this->assertWPError( $result );
 		$this->assertSame( 'site_invalid_id', $result->get_error_code() );
 	}

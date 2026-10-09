@@ -913,7 +913,10 @@ final class _WP_Editors {
 
 		self::enqueue_scripts( true );
 
-		// Also add wp-includes/css/editor.css.
+		/*
+		 * Also add wp-includes/css/editor.css. It is prefetched for the block editor by
+		 * wp_prefetch_admin_assets(), which needs updating if this changes.
+		 */
 		wp_enqueue_style( 'editor-buttons' );
 
 		if ( is_admin() ) {
@@ -937,10 +940,9 @@ final class _WP_Editors {
 		if ( $user_can_richedit ) {
 			$settings = self::default_settings();
 
-			$settings['toolbar1']    = 'bold,italic,bullist,numlist,link';
-			$settings['wpautop']     = false;
-			$settings['indent']      = true;
-			$settings['elementpath'] = false;
+			$settings['toolbar1'] = 'bold,italic,bullist,numlist,link';
+			$settings['wpautop']  = false;
+			$settings['indent']   = true;
 
 			if ( is_rtl() ) {
 				$settings['directionality'] = 'rtl';

@@ -56,15 +56,10 @@ parameters:
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
-			count: 31
+			count: 12
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			message: '#^Unreachable statement \- code above always terminates\.$#'
 			identifier: deadCode.unreachable
 			count: 1
 			path: ../../../src/wp-includes/pluggable.php
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: ../../../src/wp-includes/sitemaps/class-wp-sitemaps.php

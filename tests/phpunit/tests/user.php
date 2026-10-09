@@ -218,6 +218,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_user_properties() {
 		$user = new WP_User( self::$author_id );
 
+		// Keep assertEquals() because the public ID is an integer while data->ID may be a numeric string.
 		foreach ( $user->data as $key => $data ) {
 			$this->assertEquals( $data, $user->$key );
 		}
@@ -449,6 +450,7 @@ class Tests_User extends WP_UnitTestCase {
 		wp_update_user( $user_data );
 
 		$user = new WP_User( self::$author_id );
+		// Keep assertEquals() because integer preference flags and the user ID may be retrieved as numeric strings.
 		foreach ( $user_data as $key => $value ) {
 			$this->assertEquals( $value, $user->get( $key ), $key );
 		}
@@ -1497,7 +1499,13 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_wp_insert_user_with_empty_data() {
 		add_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 
-		$u = self::factory()->user->create();
+		$u = wp_insert_user(
+			array(
+				'user_login' => 'user_empty_data',
+				'user_pass'  => 'password',
+				'user_email' => 'user_empty_data@example.org',
+			)
+		);
 
 		remove_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 

@@ -370,6 +370,8 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
@@ -753,42 +755,6 @@ module.exports = function(grunt) {
 				} ],
 			},
 			'gutenberg-styles': {
-				options: {
-					process: function( content, srcpath ) {
-						if ( path.basename( srcpath ) !== 'registry.php' ) {
-							return content;
-						}
-
-						/*
-						 * Gutenberg's generated style registry does not currently
-						 * meet Core's PHP coding standards. Format its known keys
-						 * while copying it so build jobs do not require PHP tooling.
-						 *
-						 * @ticket 65278
-						 */
-						const longestKey = 'dependencies';
-
-						return content.replace(
-							/^(\t\t)'(handle|path|dependencies)'\s*=>\s*([^\r\n]*)$/gm,
-							function( match, indentation, key, value ) {
-								const padding = ' '.repeat( longestKey.length - key.length + 1 );
-
-								if ( key === 'dependencies' ) {
-									value = value.replace(
-										/^array\((.*)\),$/,
-										function( array, dependencies ) {
-											dependencies = dependencies.trim();
-
-											return dependencies ? 'array( ' + dependencies + ' ),' : 'array(),';
-										}
-									);
-								}
-
-								return indentation + '\'' + key + '\'' + padding + '=> ' + value;
-							}
-						);
-					}
-				},
 				files: [ {
 					expand: true,
 					cwd: 'gutenberg/build/styles',
@@ -845,8 +811,8 @@ module.exports = function(grunt) {
 							// Strip the 'library/' prefix from filePath values so they
 							// resolve correctly relative to wp-includes/images/icon-library/.
 							.replace(
-								/'filePath' => 'library\//g,
-								'\'filePath\' => \''
+								/'filePath'(\s+)=> 'library\//g,
+								'\'filePath\'$1=> \''
 							);
 					}
 				},
@@ -1636,6 +1602,15 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/js/underscore.js'
 						],
 						dest: BUILD_DIR + 'wp-includes/js/'
+					},
+					{
+						expand: true,
+						cwd: BUILD_DIR + 'wp-includes/js/jquery',
+						src: [
+							'jquery-migrate.js',
+							'jquery-migrate.min.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/jquery/'
 					},
 					{
 						expand: true,

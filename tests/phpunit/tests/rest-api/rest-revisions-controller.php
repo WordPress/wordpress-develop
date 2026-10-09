@@ -17,8 +17,6 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 
 	private int $total_revisions;
 
-	private $revisions;
-
 	private WP_Post $revision_1;
 	private int $revision_id1;
 	private WP_Post $revision_2;
@@ -93,7 +91,6 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		// Set first post revision vars.
 		$revisions             = wp_get_post_revisions( self::$post_id );
 		$this->total_revisions = count( $revisions );
-		$this->revisions       = $revisions;
 		$this->revision_1      = array_pop( $revisions );
 		$this->revision_id1    = $this->revision_1->ID;
 		$this->revision_2      = array_pop( $revisions );

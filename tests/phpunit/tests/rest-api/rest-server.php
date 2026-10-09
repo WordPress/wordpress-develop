@@ -23,8 +23,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
-		self::$icon_id  = $factory->attachment->create_upload_object( $filename );
+		self::$icon_id  = $factory->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => 'rest-server-site-icon/test-image-large.jpg',
+			)
+		);
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -54,6 +58,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
+		unset( $GLOBALS['wp_rest_auth_cookie'] );
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
@@ -1214,7 +1219,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_get_index_should_include_media_processing_settings(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		$this->assertIsInt( $user_id );
 		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
@@ -1259,7 +1263,6 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 */
 	public function test_get_index_should_honor_media_processing_filters(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		$this->assertIsInt( $user_id );
 		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 		add_filter( 'image_strip_meta', '__return_false' );

@@ -749,6 +749,8 @@ function get_current_user_id() {
  * @param int    $user       Optional. User ID.
  * @param string $deprecated Use get_option() to check for an option in the options table.
  * @return mixed User option value on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_user_option( $option, $user = 0, $deprecated = '' ) {
 	global $wpdb;
@@ -854,6 +856,8 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  *
  * @param int $user_id User ID.
  * @return WP_User|false WP_User object on success, false on failure.
+ *
+ * @phpstan-return ( $user_id is int<min, 0> ? false : WP_User|false )
  */
 function get_user( $user_id ) {
 	return get_user_by( 'id', $user_id );
@@ -869,6 +873,14 @@ function get_user( $user_id ) {
  * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
  * @return array List of users.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
+ *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
+ *         )
+ *     )
+ * )
  */
 function get_users( $args = array() ) {
 
@@ -3999,19 +4011,29 @@ All at ###SITENAME###
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.2.0 The notice is displayed whenever an email change is pending, not only after updating
+ *              the profile, and includes a link to cancel the request. The function is no longer
+ *              hooked to the `admin_notices`, `user_admin_notices`, and `network_admin_notices`
+ *              actions, and is instead called directly from wp-admin/user-edit.php.
  *
  * @global string $pagenow The filename of the current screen.
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
 
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
-		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+	if ( 'profile.php' === $pagenow ) {
+		$current_user_id = get_current_user_id();
+		$email           = get_user_meta( $current_user_id, '_new_email', true );
 		if ( $email ) {
 			$message = sprintf(
 				/* translators: %s: New email address. */
 				__( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ),
 				'<code>' . esc_html( $email['newemail'] ) . '</code>'
+			);
+			$message .= sprintf(
+				' <a href="%1$s">%2$s</a>',
+				esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user_id . '_new_email' ), 'dismiss-' . $current_user_id . '_new_email' ) ),
+				_x( 'Cancel request', 'user email change' )
 			);
 			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}

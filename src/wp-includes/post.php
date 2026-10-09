@@ -1453,6 +1453,8 @@ function _wp_privacy_statuses() {
  *                                                  Default to false.
  * }
  * @return object
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_status
  */
 function register_post_status( $post_status, $args = array() ) {
 	global $wp_post_statuses;
@@ -1503,7 +1505,7 @@ function register_post_status( $post_status, $args = array() ) {
 
 	if ( false === $args->label_count ) {
 		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$args->label_count = _n_noop( $args->label, $args->label );
+		$args->label_count = _n_noop( $args->label, $args->label ); // @phpstan-ignore argument.type, argument.type (The label is a runtime value, so there is nothing to extract for translation.)
 	}
 
 	$wp_post_statuses[ $post_status ] = $args;
@@ -1828,6 +1830,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_type
  */
 function register_post_type( $post_type, $args = array() ) {
 	global $wp_post_types;
@@ -3520,6 +3524,43 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return new stdClass();
 	}
 
+	/**
+	 * Filters the post counts before the query is run.
+	 *
+	 * Returning a non-null value short-circuits wp_count_posts(), skipping both
+	 * the object cache lookup and the database query. This allows the counts to
+	 * be served from another source, such as a value pre-computed in the
+	 * background, when an exact real-time count is not required.
+	 *
+	 * Any registered post status missing from the filtered value are added
+	 * to the result and set to zero.
+	 *
+	 * The returned value is not cached and passed through the
+	 * {@see 'wp_count_posts'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param stdClass|null $counts An object containing the post counts by status,
+	 *                              or null to run the default query. Default null.
+	 * @param string        $type   Post type.
+	 * @param string        $perm   The permission to determine if the posts are 'readable'
+	 *                              by the current user.
+	 */
+	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
+
+	if ( null !== $counts ) {
+		$counts = (object) $counts;
+
+		foreach ( get_post_stati() as $status ) {
+			if ( ! isset( $counts->{$status} ) ) {
+				$counts->{$status} = 0;
+			}
+		}
+
+		/** This filter is documented in wp-includes/post.php */
+		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
+	}
+
 	$cache_key = _count_posts_cache_key( $type, $perm );
 
 	$counts = wp_cache_get( $cache_key, 'counts' );
@@ -3654,6 +3695,18 @@ function wp_count_attachments( $mime_type = '' ) {
  *                                                              value is a three-item array: the plural name of the
  *                                                              group, the label for its "Manage" screen, and the
  *                                                              translatable count strings returned by _n_noop().
+ *
+ * @phpstan-return array<string, array{
+ *     0: string,
+ *     1: string,
+ *     2: array{
+ *         singular: literal-string,
+ *         plural: literal-string,
+ *         context: literal-string|null,
+ *         domain: literal-string|null,
+ *         ...
+ *     },
+ * }>
  */
 function get_post_mime_types() {
 	$post_mime_types = array(   // array( adj, noun )
@@ -3748,6 +3801,18 @@ function get_post_mime_types() {
 	 *
 	 * @param array<string, array{0: string, 1: string, 2: array}> $post_mime_types Default list of post mime types.
 	 *                                                                              See {@see get_post_mime_types()}.
+	 *
+	 * @phpstan-param array<string, array{
+	 *     0: string,
+	 *     1: string,
+	 *     2: array{
+	 *         singular: literal-string,
+	 *         plural: literal-string,
+	 *         context: literal-string|null,
+	 *         domain: literal-string|null,
+	 *         ...
+	 *     },
+	 * }> $post_mime_types
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }
@@ -6003,63 +6068,71 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 */
 	do_action( 'transition_post_status', $new_status, $old_status, $post );
 
-	/**
-	 * Fires when a post is transitioned from one status to another.
-	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
-	 * refer to the old and new post statuses, respectively.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `draft_to_publish`
-	 *  - `publish_to_trash`
-	 *  - `pending_to_draft`
-	 *
-	 * @since 2.3.0
-	 *
-	 * @param WP_Post $post Post object.
-	 */
-	do_action( "{$old_status}_to_{$new_status}", $post );
+	$new_status_object = get_post_status_object( $new_status );
+	$old_status_valid  = get_post_status_object( $old_status ) || 'new' === $old_status;
+	$post_type_object  = get_post_type_object( $post->post_type );
 
-	/**
-	 * Fires when a post is transitioned from one status to another.
-	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
-	 * refer to the new post status and post type, respectively.
-	 *
-	 * Possible hook names include:
-	 *
-	 *  - `draft_post`
-	 *  - `future_post`
-	 *  - `pending_post`
-	 *  - `private_post`
-	 *  - `publish_post`
-	 *  - `trash_post`
-	 *  - `draft_page`
-	 *  - `future_page`
-	 *  - `pending_page`
-	 *  - `private_page`
-	 *  - `publish_page`
-	 *  - `trash_page`
-	 *  - `publish_attachment`
-	 *  - `trash_attachment`
-	 *
-	 * Please note: When this action is hooked using a particular post status (like
-	 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
-	 * first transitioned to that status from something else, as well as upon
-	 * subsequent post updates (old and new status are both the same).
-	 *
-	 * Therefore, if you are looking to only fire a callback when a post is first
-	 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
-	 *
-	 * @since 2.3.0
-	 * @since 5.9.0 Added `$old_status` parameter.
-	 *
-	 * @param int     $post_id    Post ID.
-	 * @param WP_Post $post       Post object.
-	 * @param string  $old_status Old post status.
-	 */
-	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
+	if ( $new_status_object && $old_status_valid ) {
+		/**
+		 * Fires when a post is transitioned from one status to another.
+		 *
+		 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
+		 * refer to the old and new post statuses, respectively.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `draft_to_publish`
+		 *  - `publish_to_trash`
+		 *  - `pending_to_draft`
+		 *
+		 * @since 2.3.0
+		 *
+		 * @param WP_Post $post Post object.
+		 */
+		do_action( "{$old_status}_to_{$new_status}", $post );
+	}
+
+	if ( $new_status_object && $post_type_object ) {
+		/**
+		 * Fires when a post is transitioned from one status to another.
+		 *
+		 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
+		 * refer to the new post status and post type, respectively.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `draft_post`
+		 *  - `future_post`
+		 *  - `pending_post`
+		 *  - `private_post`
+		 *  - `publish_post`
+		 *  - `trash_post`
+		 *  - `draft_page`
+		 *  - `future_page`
+		 *  - `pending_page`
+		 *  - `private_page`
+		 *  - `publish_page`
+		 *  - `trash_page`
+		 *  - `publish_attachment`
+		 *  - `trash_attachment`
+		 *
+		 * Please note: When this action is hooked using a particular post status (like
+		 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
+		 * first transitioned to that status from something else, as well as upon
+		 * subsequent post updates (old and new status are both the same).
+		 *
+		 * Therefore, if you are looking to only fire a callback when a post is first
+		 * transitioned to a status, use the {@see 'transition_post_status'} hook instead.
+		 *
+		 * @since 2.3.0
+		 * @since 5.9.0 Added `$old_status` parameter.
+		 *
+		 * @param int     $post_id    Post ID.
+		 * @param WP_Post $post       Post object.
+		 * @param string  $old_status Old post status.
+		 */
+		do_action( "{$new_status}_{$post->post_type}", $post->ID, $post, $old_status );
+	}
 }
 
 /**
@@ -6391,6 +6464,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 		FROM $wpdb->posts
 		WHERE post_name IN ($in_string)
 		AND post_type IN ($post_type_in_string)
+		ORDER BY
+			post_status = 'publish' DESC,
+			post_status IN ('draft', 'pending', 'auto-draft') ASC, ID ASC
 	";
 
 	/** @var array<object{ ID: string, post_name: string, post_parent: string, post_type: string }> $pages */
@@ -6422,7 +6498,17 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 				&& $p->post_name === $revparts[ $count ]
 			) {
 				$found_id = $page->ID;
-				if ( $page->post_type === $post_type ) {
+
+				/*
+				 * A string like 'page' also searches attachments: /about/photo/ could be
+				 * a child page or an attachment page, and this lookup handles both.
+				 * Keep an attachment as a fallback, but keep looking for the requested
+				 * type so an attachment cannot hide a page with the same path.
+				 *
+				 * An array is the exact list of types to search; no extra types are added.
+				 * SQL already checks that list, so stop at the first full-path match.
+				 */
+				if ( is_array( $post_type ) || $page->post_type === $post_type ) {
 					break;
 				}
 			}
@@ -8827,6 +8913,66 @@ function wp_get_original_image_url( $attachment_id ) {
 	 * @param int    $attachment_id      Attachment ID.
 	 */
 	return apply_filters( 'wp_get_original_image_url', $original_image_url, $attachment_id );
+}
+
+/**
+ * Retrieves the edit root of an attachment: the attachment its chain of edits started from.
+ *
+ * Editing an image through the `wp/v2/media/<id>/edit` REST endpoint does not change the
+ * image that was edited. It saves the result as a brand new attachment, so a site can end
+ * up with a chain of attachments: an upload, a crop of it, a crop of that crop, and so on.
+ *
+ * Every attachment created that way stores the ID of the attachment at the top of its chain,
+ * so this function can find the edit root in one lookup no matter how long the chain is.
+ *
+ * Attachments that were uploaded rather than created by editing have no chain of their own,
+ * and this returns 0 for them.
+ *
+ * @since 7.2.0
+ *
+ * @param int $attachment_id Attachment ID.
+ * @return int ID of the attachment the chain of edits started from, or 0 when none is recorded.
+ */
+function wp_get_edit_root_attachment_id( $attachment_id ) {
+	$edit_root_id = (int) get_post_meta( $attachment_id, '_wp_attachment_edit_root_id', true );
+
+	// An attachment recorded as its own edit root is a broken record rather than a chain.
+	if ( $edit_root_id <= 0 || $edit_root_id === (int) $attachment_id ) {
+		return 0;
+	}
+
+	return $edit_root_id;
+}
+
+/**
+ * Clears the recorded edit root ID from any attachment pointing at a deleted one.
+ *
+ * Without this, attachments created by editing the deleted image would keep pointing at an
+ * ID that no longer exists, and could later point at an unrelated attachment if WordPress
+ * reuses that ID.
+ *
+ * This only runs when an attachment is deleted for good. On sites where media goes to the
+ * trash first, attachments keep pointing at the trashed edit root until the trash is emptied.
+ *
+ * @since 7.2.0
+ *
+ * @access private
+ *
+ * @param int $post_id Attachment ID being deleted.
+ */
+function _wp_delete_edit_root_attachment_id( $post_id ) {
+	$post_id = (int) $post_id;
+
+	if ( $post_id <= 0 ) {
+		return;
+	}
+
+	/*
+	 * Deletes the meta from every attachment recording this ID as its edit root. The meta key
+	 * is indexed, so this only scans the rows for attachments created by editing an image,
+	 * and it avoids searching the serialized attachment metadata for the ID.
+	 */
+	delete_metadata( 'post', 0, '_wp_attachment_edit_root_id', $post_id, true );
 }
 
 /**
