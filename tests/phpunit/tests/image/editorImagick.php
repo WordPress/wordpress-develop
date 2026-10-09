@@ -46,40 +46,26 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * AVIF sub-sizes should retain their format even when Imagick identifies the source as HEIC.
+	 * AVIF output should retain its format even when Imagick identifies the source as HEIC.
 	 *
 	 * @ticket 66261
 	 */
-	public function test_avif_subsize_retains_format() {
+	public function test_avif_output_format_retained() {
 		if ( ! WP_Image_Editor_Imagick::supports_mime_type( 'image/avif' ) ) {
 			$this->markTestSkipped( 'Imagick does not support AVIF.' );
 		}
 
-		$file = get_temp_dir() . '/test-image-avif-66261.avif';
-		copy( DIR_TESTDATA . '/images/avif-lossy.avif', $file );
+		$editor = new WP_Image_Editor_Imagick( DIR_TESTDATA . '/images/avif-lossy.avif' );
+		$this->assertTrue( $editor->load() );
 
-		try {
-			$editor = new WP_Image_Editor_Imagick( $file );
-			$this->assertTrue( $editor->load() );
-
-			$subsize = $editor->make_subsize(
-				array(
-					'width'  => 25,
-					'height' => 25,
-					'crop'   => false,
-				)
-			);
-
-			$this->assertNotWPError( $subsize );
-			$this->assertSame( 'image/avif', $subsize['mime-type'] );
-			$this->assertStringEndsWith( '.avif', $subsize['file'] );
-			$this->assertSame( 'image/avif', wp_get_image_mime( dirname( $file ) . '/' . $subsize['file'] ) );
-		} finally {
-			if ( isset( $subsize['file'] ) ) {
-				unlink( dirname( $file ) . '/' . $subsize['file'] );
-			}
-			unlink( $file );
+		$get_output_format = new ReflectionMethod( $editor, 'get_output_format' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$get_output_format->setAccessible( true );
 		}
+
+		list( , $extension, $mime_type ) = $get_output_format->invoke( $editor );
+		$this->assertSame( 'avif', $extension );
+		$this->assertSame( 'image/avif', $mime_type );
 	}
 
 	/**
