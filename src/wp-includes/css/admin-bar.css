@@ -24,7 +24,21 @@ html {
 	-moz-osx-font-smoothing: auto; /* Prevent Firefox from inheriting from themes that use other values */
 }
 
-#wpadminbar svg * {
+/*
+ * Guard SVG icons from the above reset and third-party styles,
+ * so each element falls back to its own SVG attributes.
+ */
+#wpadminbar .ab-icon.svg-icon svg,
+#wpadminbar .ab-icon.svg-icon svg *,
+#wpadminbar .quicklinks li div.blavatar svg,
+#wpadminbar .quicklinks li div.blavatar svg * {
+	stroke: revert-layer;
+	stroke-width: revert-layer;
+}
+
+#wpadminbar .ab-icon.svg-icon svg *,
+#wpadminbar .quicklinks li div.blavatar svg * {
+	fill: revert-layer;
 	width: revert-layer;
 	height: revert-layer;
 }
