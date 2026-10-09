@@ -2733,11 +2733,7 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
 	 * plain text arena of emails. Decoding a second time would go too far and
 	 * resolve entities the author meant to be read literally.
 	 */
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title  = wp_resolve_site_title();
 	$post_title  = $post ? wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ) : '';
 	$author_name = $comment->comment_author ? $comment->comment_author : __( 'Someone' );
 	$content     = wp_specialchars_decode( wp_strip_all_tags( $comment->comment_content ) );

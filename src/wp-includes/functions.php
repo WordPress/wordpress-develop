@@ -8349,12 +8349,7 @@ All at ###SITENAME###
 		'headers' => '',
 	);
 
-	// Get site name.
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_name = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	/**
 	 * Filters the contents of the email notification sent when the site admin email address is changed.
@@ -8381,14 +8376,14 @@ All at ###SITENAME###
 
 	$email_change_email['message'] = str_replace( '###OLD_EMAIL###', $old_email, $email_change_email['message'] );
 	$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $new_email, $email_change_email['message'] );
-	$email_change_email['message'] = str_replace( '###SITENAME###', $site_name, $email_change_email['message'] );
+	$email_change_email['message'] = str_replace( '###SITENAME###', $site_title, $email_change_email['message'] );
 	$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
 
 	wp_mail(
 		$email_change_email['to'],
 		sprintf(
 			$email_change_email['subject'],
-			$site_name
+			$site_title
 		),
 		$email_change_email['message'],
 		$email_change_email['headers']

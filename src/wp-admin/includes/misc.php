@@ -1506,11 +1506,7 @@ All at ###SITENAME###
 	 */
 	$content = apply_filters( 'new_admin_email_content', $email_text, $new_admin_email );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	$current_user = wp_get_current_user();
 	$content      = str_replace( '###USERNAME###', $current_user->user_login, $content );

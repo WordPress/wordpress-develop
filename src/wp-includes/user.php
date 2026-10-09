@@ -2806,11 +2806,7 @@ function wp_update_user( $userdata ) {
 		return $user_id;
 	}
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	$switched_locale = false;
 	if ( ! empty( $send_password_change_email ) || ! empty( $send_email_change_email ) ) {
@@ -3371,20 +3367,14 @@ function retrieve_password( $user_login = '' ) {
 	$switched_locale = switch_to_user_locale( $user_data->ID );
 
 	if ( is_multisite() ) {
-		$site_name = get_network()->site_name;
-	} elseif ( '' !== get_option( 'blogname' ) ) {
-		/*
-		 * The blogname option is escaped with esc_html on the way into the database
-		 * in sanitize_option. We want to reverse this for the plain text arena of emails.
-		 */
-		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$site_title = get_network()->site_name;
 	} else {
-		$site_name = parse_url( home_url(), PHP_URL_HOST );
+		$site_title = wp_resolve_site_title();
 	}
 
 	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
 	/* translators: %s: Site name. */
-	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
+	$message .= sprintf( __( 'Site Name: %s' ), $site_title ) . "\r\n\r\n";
 	/* translators: %s: User login. */
 	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
 	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
@@ -3411,7 +3401,7 @@ function retrieve_password( $user_login = '' ) {
 	}
 
 	/* translators: Password reset notification email subject. %s: Site title. */
-	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
+	$title = sprintf( __( '[%s] Password Reset' ), $site_title );
 
 	/**
 	 * Filters the subject of the password reset email.

@@ -117,11 +117,7 @@ if ( isset( $_REQUEST['action'] ) && 'adduser' === $_REQUEST['action'] ) {
 
 			$switched_locale = switch_to_user_locale( $user_id );
 
-			if ( '' !== get_option( 'blogname' ) ) {
-				$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-			} else {
-				$site_title = parse_url( home_url(), PHP_URL_HOST );
-			}
+			$site_title = wp_resolve_site_title();
 
 			/* translators: 1: Site title, 2: Site URL, 3: User role, 4: Activation URL. */
 			$message = __(
