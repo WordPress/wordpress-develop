@@ -9422,21 +9422,21 @@ function wp_verify_fast_hash(
 }
 
 /**
- * Resolve the site name
+ * Resolve the site title
  *
- * If the site name is empty set the host as site name.
+ * If the site title is empty then set the host as site title.
  *
  * @since 7.2.0
- * @return string Site name.
+ * @return string Site title.
  */
-function wp_resolve_site_name(): string {
-	$site_name = get_option( 'blogname' );
+function wp_resolve_site_title(): string {
+	$site_title = get_option( 'blogname' );
 
-	if ( '' !== $site_name ) {
-		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	if ( '' !== $site_title ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	} else {
-		$site_name = wp_parse_url( home_url(), PHP_URL_HOST );
+		$site_title = wp_parse_url( home_url(), PHP_URL_HOST );
 	}
 
-	return $site_name;
+	return $site_title;
 }
