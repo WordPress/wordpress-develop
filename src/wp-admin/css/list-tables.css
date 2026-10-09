@@ -89,6 +89,15 @@
 	border-top-color: #3858e9;
 }
 
+/*
+ * Comment status views ("Mine", "Spam", "Trash") with zero comments start
+ * CSS-hidden rather than omitted from the DOM, so edit-comments.js can
+ * reveal or re-hide them after an AJAX action by toggling this class.
+ */
+.subsubsub li.is-empty-view {
+	display: none;
+}
+
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
 .column-response .post-com-count-pending,
 .column-comments .post-com-count-pending {

@@ -570,38 +570,6 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 	$comment = get_comment( $comment_id );
 	$counts  = wp_count_comments();
 
-	/*
-	 * Re-render the comment status view tabs so that a status link which just
-	 * went from zero to non-zero comments (e.g. "Trash" after trashing the
-	 * first comment) shows up immediately, instead of only after a full page
-	 * reload. Status links are hidden entirely when their count is zero (see
-	 * WP_Comments_List_Table::get_views()), so updating a count in place via
-	 * JS has nothing to update if the link was never rendered.
-	 */
-	$parsed_url = parse_url( $url );
-	$query_vars = array();
-
-	if ( ! empty( $parsed_url['query'] ) ) {
-		parse_str( $parsed_url['query'], $query_vars );
-	}
-
-	$valid_comment_statuses = array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' );
-	$current_comment_status = ! empty( $query_vars['comment_status'] ) ? $query_vars['comment_status'] : 'all';
-
-	if ( ! in_array( $current_comment_status, $valid_comment_statuses, true ) ) {
-		$current_comment_status = 'all';
-	}
-
-	$wp_list_table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
-
-	global $post_id, $comment_status;
-	$post_id        = ! empty( $query_vars['p'] ) ? (int) $query_vars['p'] : 0;
-	$comment_status = $current_comment_status;
-
-	ob_start();
-	$wp_list_table->views();
-	$comment_status_links = ob_get_clean();
-
 	$response = new WP_Ajax_Response(
 		array(
 			'what'         => 'comment',
@@ -621,7 +589,6 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 					_n( '%s Comment in moderation', '%s Comments in moderation', $counts->moderated ),
 					number_format_i18n( $counts->moderated )
 				),
-				'comment_status_links' => $comment_status_links,
 			),
 		)
 	);

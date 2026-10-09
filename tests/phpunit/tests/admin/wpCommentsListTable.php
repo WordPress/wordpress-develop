@@ -198,53 +198,74 @@ OPTIONS;
 	/**
 	 * @covers WP_Comments_List_Table::get_views
 	 */
-	public function test_get_views_should_hide_empty_status_links() {
+	public function test_get_views_should_always_include_every_status_key() {
 		$this->table->prepare_items();
 
 		$views = $this->table->get_views();
 
-		$this->assertArrayHasKey( 'all', $views, 'The "All" view should always be shown.' );
-		$this->assertArrayHasKey( 'moderated', $views, '"Pending" should always be shown, even at zero.' );
-		$this->assertArrayHasKey( 'approved', $views, '"Approved" should always be shown, even at zero.' );
-		$this->assertArrayNotHasKey( 'mine', $views, 'Views with a zero count should be hidden.' );
-		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should be hidden.' );
-		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should be hidden.' );
+		foreach ( array( 'all', 'mine', 'moderated', 'approved', 'spam', 'trash' ) as $status ) {
+			$this->assertArrayHasKey( $status, $views, "The \"$status\" view should always be present in get_views(), even at zero, so its markup (and anything a plugin attached to it) stays in the DOM." );
+		}
 	}
 
 	/**
 	 * @covers WP_Comments_List_Table::get_views
+	 * @covers WP_Comments_List_Table::views
 	 */
-	public function test_get_views_should_show_status_link_with_nonzero_count() {
+	public function test_views_should_mark_empty_status_links_as_hidden() {
+		$this->table->prepare_items();
+
+		$output = get_echo( array( $this->table, 'views' ) );
+
+		$this->assertStringNotContainsString( "class='all is-empty-view'", $output, 'The "All" view should never be marked hidden.' );
+		$this->assertStringNotContainsString( "class='moderated is-empty-view'", $output, '"Pending" should never be marked hidden, even at zero.' );
+		$this->assertStringNotContainsString( "class='approved is-empty-view'", $output, '"Approved" should never be marked hidden, even at zero.' );
+		$this->assertStringContainsString( "class='mine is-empty-view'", $output, '"Mine" should be marked hidden at zero.' );
+		$this->assertStringContainsString( "class='spam is-empty-view'", $output, '"Spam" should be marked hidden at zero.' );
+		$this->assertStringContainsString( "class='trash is-empty-view'", $output, '"Trash" should be marked hidden at zero.' );
+	}
+
+	/**
+	 * @covers WP_Comments_List_Table::get_views
+	 * @covers WP_Comments_List_Table::views
+	 */
+	public function test_views_should_unhide_status_link_with_nonzero_count() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $user_id );
+
 		$post_id = self::factory()->post->create();
 		self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post_id,
 				'comment_approved' => '1',
+				'user_id'          => $user_id,
 			)
 		);
 
 		$this->table->prepare_items();
 
-		$views = $this->table->get_views();
+		$output = get_echo( array( $this->table, 'views' ) );
 
-		$this->assertArrayHasKey( 'approved', $views, 'A view with a nonzero count should be shown.' );
-		$this->assertArrayHasKey( 'moderated', $views, '"Pending" should always be shown, even at zero.' );
-		$this->assertArrayNotHasKey( 'spam', $views, 'Views with a zero count should still be hidden.' );
-		$this->assertArrayNotHasKey( 'trash', $views, 'Views with a zero count should still be hidden.' );
+		$this->assertStringNotContainsString( "class='mine is-empty-view'", $output, 'A view with a nonzero count should not be marked hidden.' );
+		$this->assertStringContainsString( "class='spam is-empty-view'", $output, 'Views with a zero count should still be marked hidden.' );
+		$this->assertStringContainsString( "class='trash is-empty-view'", $output, 'Views with a zero count should still be marked hidden.' );
 	}
 
 	/**
 	 * @covers WP_Comments_List_Table::get_views
+	 * @covers WP_Comments_List_Table::views
 	 */
-	public function test_get_views_should_not_hide_the_currently_active_status() {
+	public function test_views_should_not_hide_the_currently_active_status() {
 		$_REQUEST['comment_status'] = 'spam';
 
 		$this->table->prepare_items();
 
-		$views = $this->table->get_views();
+		$views  = $this->table->get_views();
+		$output = get_echo( array( $this->table, 'views' ) );
 
-		$this->assertArrayHasKey( 'spam', $views, 'The currently active view must never be hidden, even at zero count.' );
+		$this->assertArrayHasKey( 'spam', $views );
 		$this->assertStringContainsString( 'class="current"', $views['spam'], 'The currently active view should be marked current.' );
+		$this->assertStringNotContainsString( "class='spam is-empty-view'", $output, 'The currently active view must never be marked hidden, even at zero count.' );
 
 		unset( $_REQUEST['comment_status'] );
 	}

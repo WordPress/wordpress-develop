@@ -217,47 +217,6 @@ class Tests_Ajax_wpAjaxDeleteComment extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Trashing the only trashable comment should make the previously-hidden
-	 * "Trash" status link appear in the same response, rather than only
-	 * after a full page reload.
-	 *
-	 * @covers ::_wp_ajax_delete_comment_response
-	 */
-	public function test_trashing_only_trashed_comment_includes_trash_link_in_response() {
-		$this->_setRole( 'administrator' );
-
-		$comment_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_approved' => '1',
-			)
-		);
-
-		$_POST['id']          = $comment_id;
-		$_POST['_ajax_nonce'] = wp_create_nonce( 'delete-comment_' . $comment_id );
-		$_POST['trash']       = '1';
-		$_POST['_total']      = '1';
-		$_POST['_per_page']   = '20';
-		$_POST['_page']       = '1';
-		$_POST['_url']        = admin_url( 'edit-comments.php' );
-
-		try {
-			$this->_handleAjax( 'delete-comment' );
-		} catch ( WPAjaxDieContinueException $e ) {
-			unset( $e );
-		}
-
-		$xml                   = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
-		$comment_status_links  = (string) $xml->response[0]->comment[0]->supplemental[0]->comment_status_links[0];
-
-		$this->assertStringContainsString(
-			'comment_status=trash',
-			$comment_status_links,
-			'The "Trash" status link should appear once a comment has actually been trashed.'
-		);
-	}
-
-	/**
 	 * Tests doubling the action (e.g. trash a trashed comment).
 	 *
 	 * Expects test to fail.

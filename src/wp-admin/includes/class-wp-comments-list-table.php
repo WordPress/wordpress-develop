@@ -25,6 +25,16 @@ class WP_Comments_List_Table extends WP_List_Table {
 	private $user_can;
 
 	/**
+	 * Status keys of views that should be rendered CSS-hidden by views().
+	 *
+	 * Populated by get_views() and consumed by the views() override below.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private $empty_views = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 3.1.0
@@ -250,8 +260,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 	protected function get_views() {
 		global $post_id, $comment_status, $comment_type;
 
-		$status_links = array();
-		$num_comments = ( $post_id ) ? wp_count_comments( $post_id ) : wp_count_comments();
+		$status_links      = array();
+		$this->empty_views = array();
+		$num_comments      = ( $post_id ) ? wp_count_comments( $post_id ) : wp_count_comments();
 
 		$statuses = array(
 			/* translators: %s: Number of comments. */
@@ -328,18 +339,21 @@ class WP_Comments_List_Table extends WP_List_Table {
 			}
 
 			/*
-			 * Don't show "Mine", "Spam", or "Trash" when they have zero comments, to avoid
-			 * cluttering the moderation queue with filters that return no results. "All",
-			 * "Pending", and "Approved" always stay visible: pending is an active task queue
-			 * where "(0)" is reassuring confirmation, and approved is the default working view.
-			 * The currently requested view is never hidden, regardless of its count, so the
-			 * admin always has a visual indicator of what's being filtered (e.g. landing on
-			 * ?comment_status=moderated from a notification after it's already been cleared).
+			 * "Mine", "Spam", and "Trash" are marked for CSS-only hiding when they have
+			 * zero comments, to avoid cluttering the moderation queue with filters that
+			 * return no results, while keeping their markup (and any event handlers a
+			 * plugin may have attached to it) in the DOM. "All", "Pending", and
+			 * "Approved" always stay visible: pending is an active task queue where
+			 * "(0)" is reassuring confirmation, and approved is the default working
+			 * view. The currently requested view is never marked hidden, even at zero
+			 * count, so the admin always has a visual indicator of what's being
+			 * filtered (e.g. landing on ?comment_status=moderated from a notification
+			 * after it's already been cleared). See self::views().
 			 */
 			$always_visible = array( 'all', 'moderated', 'approved' );
 
 			if ( ! in_array( $status, $always_visible, true ) && empty( $num_comments->$status ) && $status !== $comment_status ) {
-				continue;
+				$this->empty_views[] = $status;
 			}
 
 			$link = add_query_arg( 'comment_status', $status, $link );
@@ -378,6 +392,40 @@ class WP_Comments_List_Table extends WP_List_Table {
 		 *                              'Pending', 'Approved', 'Spam', and 'Trash'.
 		 */
 		return apply_filters( 'comment_status_links', $this->get_views_links( $status_links ) );
+	}
+
+	/**
+	 * Displays the list of comment status views available on this table.
+	 *
+	 * Overrides WP_List_Table::views() only to add an `is-empty-view` class to
+	 * views get_views() flagged as having zero comments, rather than omitting
+	 * their markup entirely. Keeping every view in the DOM at all times (merely
+	 * hidden via CSS when empty) means edit-comments.js can reveal or re-hide a
+	 * view after an AJAX moderation action by toggling that class, without ever
+	 * having to replace markup a plugin may have already attached handlers or
+	 * data to.
+	 *
+	 * @since 7.2.0
+	 */
+	public function views() {
+		$views = $this->get_views();
+
+		/** This filter is documented in wp-admin/includes/class-wp-list-table.php */
+		$views = apply_filters( "views_{$this->screen->id}", $views );
+
+		if ( empty( $views ) ) {
+			return;
+		}
+
+		$this->screen->render_screen_reader_content( 'heading_views' );
+
+		echo "<ul class='subsubsub'>\n";
+		foreach ( $views as $class => $view ) {
+			$li_class        = in_array( $class, $this->empty_views, true ) ? "$class is-empty-view" : $class;
+			$views[ $class ] = "\t<li class='$li_class'>$view";
+		}
+		echo implode( " |</li>\n", $views ) . "</li>\n";
+		echo '</ul>';
 	}
 
 	/**

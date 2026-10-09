@@ -11,7 +11,7 @@
  * @param {JQueryStatic} $ The jQuery object.
  */
 (function($) {
-var getCount, updateCount, updateCountText, updatePending, updateApproved,
+var getCount, updateCount, updateCountText, updatePending, updateApproved, toggleEmptyView,
 	updateHtmlTitle, updateDashboardText, updateInModerationText, adminTitle = document.title,
 	isDashboard = $('#dashboard_right_now').length,
 	titleDiv, titleRegEx,
@@ -134,6 +134,31 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 			}
 			updateCount( a, n );
 		});
+	};
+
+	/**
+	 * Shows or re-hides a comment status view tab based on its current count.
+	 *
+	 * Status views with zero comments are rendered with an `is-empty-view`
+	 * class (see WP_Comments_List_Table::views()) that hides them via CSS,
+	 * rather than being omitted from the DOM, so that any handlers or data a
+	 * plugin has attached to them survive. This keeps that class in sync
+	 * after an AJAX moderation action changes a count, without replacing any
+	 * markup. The currently active view is never hidden, even at zero count.
+	 *
+	 * @since 7.2.0
+	 * @access private
+	 *
+	 * @param {string} status The comment status view to check (e.g. 'spam', 'trash').
+	 *
+	 * @return {void}
+	 */
+	toggleEmptyView = function( status ) {
+		var view = $( '.subsubsub li.' + status ),
+			count = getCount( view.find( 'span.' + status + '-count' ) ),
+			isCurrent = view.find( 'a.current' ).length > 0;
+
+		view.toggleClass( 'is-empty-view', 0 === count && ! isCurrent );
 	};
 
 	/**
@@ -636,22 +661,12 @@ window.setCommentsList = function() {
 
 		if ( spamDiff ) {
 			updateCountText( 'span.spam-count', spamDiff );
+			toggleEmptyView( 'spam' );
 		}
 
 		if ( trashDiff ) {
 			updateCountText( 'span.trash-count', trashDiff );
-		}
-
-		/*
-		 * Status links (e.g. "Trash") are hidden entirely when their count is
-		 * zero, so the count updates above have nothing to show/hide. Replace
-		 * the whole view tabs list with a freshly rendered, authoritative copy
-		 * from the server so a status that just went from zero to non-zero
-		 * (or vice versa) appears or disappears immediately. This must run
-		 * after the count updates above, since it supersedes them.
-		 */
-		if ( response.supplemental && response.supplemental.comment_status_links ) {
-			$( '.subsubsub' ).replaceWith( response.supplemental.comment_status_links );
+			toggleEmptyView( 'trash' );
 		}
 
 		if (
