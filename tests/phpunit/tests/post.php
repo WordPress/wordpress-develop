@@ -187,6 +187,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $count );
 	}
 
@@ -273,7 +274,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_draft_counts = wp_count_posts();
 		$this->assertSame( '1', $after_draft_counts->draft );
@@ -294,7 +295,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$post = get_post( $post_ids[ $key ] );
 		$this->assertSame( 'trash', $post->post_status );
-		$this->assertNotEquals( 'publish', $post->post_status );
+		$this->assertNotSame( 'publish', $post->post_status );
 
 		$after_trash_counts = wp_count_posts();
 		$this->assertSame( '1', $after_trash_counts->trash );
@@ -522,7 +523,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 		$this->assertSame( 'override-slug-' . $post->post_type, $post->post_name );
 
-		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ), 10, 6 );
+		remove_filter( 'pre_wp_unique_post_slug', array( $this, 'filter_pre_wp_unique_post_slug' ) );
 	}
 
 	public function filter_pre_wp_unique_post_slug( $override_slug, $slug, $post_id, $post_status, $post_type, $post_parent ) {

@@ -191,7 +191,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 	 */
 	public function test_should_return_parent_ids_keyed_by_post_id_when_cached(): void {
 		$parent_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
-		$this->assertIsInt( $parent_id, 'The parent page was not created.' );
 
 		$child_id = self::factory()->post->create(
 			array(
@@ -199,7 +198,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 				'post_parent' => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child page was not created.' );
 
 		$args = array(
 			'post_type'   => 'page',

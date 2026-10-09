@@ -32,7 +32,7 @@ var Embed = wp.media.View.extend(/** @lends wp.media.view.Embed.prototype */{
 	/**
 	 * Sets the settings for the embed view.
 	 *
-	 * @param {Object} view
+	 * @param {Object} view The view object to be set as the settings for the embed view.
 	 */
 	settings: function( view ) {
 		if ( this._settings ) {

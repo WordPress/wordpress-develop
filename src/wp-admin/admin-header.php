@@ -95,6 +95,10 @@ _wp_admin_html_begin();
 <title><?php echo esc_html( $admin_title ); ?></title>
 <?php
 
+/*
+ * The dependencies of `colors` and the `utils` script are prefetched from the login screen by
+ * wp_prefetch_admin_assets(), which needs updating if these change.
+ */
 wp_enqueue_style( 'colors' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
@@ -273,6 +277,8 @@ unset( $error_get_last );
  *    and no-js cannot be removed.
  *
  * @since 2.3.0
+ * @since 7.2.0 Also applied in the Customizer context, where the body tag does not
+ *              have the wp-admin class.
  *
  * @param string $classes Space-separated list of CSS classes.
  */

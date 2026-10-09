@@ -48,6 +48,7 @@ add_action( 'admin_init', 'send_frame_options_header', 10, 0 );
 add_action( 'admin_head', 'wp_admin_canonical_url' );
 add_action( 'admin_head', 'wp_site_icon' );
 add_action( 'admin_head', 'wp_admin_viewport_meta' );
+add_action( 'admin_head', 'wp_prefetch_admin_assets' );
 add_action( 'customize_controls_head', 'wp_admin_viewport_meta' );
 add_filter( 'nav_menu_meta_box_object', '_wp_nav_menu_meta_box_object' );
 
@@ -120,7 +121,6 @@ add_action( 'install_themes_pre_theme-information', 'install_theme_information' 
 add_action( 'admin_init', 'default_password_nag_handler' );
 
 add_action( 'admin_notices', 'default_password_nag' );
-add_action( 'admin_notices', 'new_user_email_admin_notice' );
 
 add_action( 'profile_update', 'default_password_nag_edit_user', 10, 2 );
 

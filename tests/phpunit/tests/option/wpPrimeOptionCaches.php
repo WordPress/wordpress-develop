@@ -427,7 +427,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_option_types() {
+	public static function data_option_types() {
 		return array(
 			'null'                              => array( null ),
 			'(bool) false'                      => array( false ),

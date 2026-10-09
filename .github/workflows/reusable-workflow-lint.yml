@@ -1,3 +1,8 @@
+##
+# A reusable workflow that lints GitHub Actions workflow files.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
+##
 name: Lint GitHub Actions workflows
 on:
   workflow_call:

@@ -68,6 +68,7 @@ on:
       - 'composer.*'
       - '**.jshintrc'
       - 'phpcs.xml.dist'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/coding-standards.yml'
       - '.github/workflows/reusable-coding-standards-*.yml'
   workflow_dispatch:

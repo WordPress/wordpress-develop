@@ -319,8 +319,8 @@ function _get_block_templates_paths( $base_directory ) {
  * @param string $template_type Template type. Either 'wp_template' or 'wp_template_part'.
  * @param string $slug          Template slug.
  * @return array|null {
- *     Array with template metadata if $template_type is one of 'wp_template' or 'wp_template_part',
- *     null otherwise.
+ *     Array with template metadata, or null if `$template_type` is neither 'wp_template' nor
+ *     'wp_template_part', or if the theme has no template file for `$slug`.
  *
  *     @type string   $slug      Template slug.
  *     @type string   $path      Template file path.
@@ -342,11 +342,22 @@ function _get_block_template_file( $template_type, $slug ) {
 	);
 	foreach ( $themes as $theme_slug => $theme_dir ) {
 		$template_base_paths = get_block_theme_folders( $theme_slug );
-		$file_path           = $theme_dir . '/' . $template_base_paths[ $template_type ] . '/' . $slug . '.html';
-		if ( file_exists( $file_path ) ) {
+		$template_dir        = $theme_dir . '/' . $template_base_paths[ $template_type ];
+		$file_path           = $template_dir . '/' . $slug . '.html';
+		$template_file       = realpath( $file_path );
+		$template_root       = realpath( $template_dir );
+
+		if (
+			false !== $template_file &&
+			false !== $template_root &&
+			str_starts_with(
+				wp_normalize_path( $template_file ),
+				trailingslashit( wp_normalize_path( $template_root ) )
+			)
+		) {
 			$new_template_item = array(
 				'slug'  => $slug,
-				'path'  => $file_path,
+				'path'  => $template_file,
 				'theme' => $theme_slug,
 				'type'  => $template_type,
 			);
@@ -381,6 +392,10 @@ function _get_block_template_file( $template_type, $slug ) {
  * }
  *
  * @return array|null Template files on success, null if `$template_type` is not matched.
+ *
+ * @phpstan-return (
+ *     $template_type is 'wp_template'|'wp_template_part' ? list<array<array-key, mixed>> : null
+ * )
  */
 function _get_block_templates_files( $template_type, $query = array() ) {
 	if ( 'wp_template' !== $template_type && 'wp_template_part' !== $template_type ) {
@@ -1476,6 +1491,8 @@ function wp_is_theme_directory_ignored( $path ) {
  * @since 6.0.0 Adds the whole theme to the export archive.
  *
  * @return WP_Error|string Path of the ZIP file or error on failure.
+ *
+ * @phpstan-return non-falsy-string|WP_Error
  */
 function wp_generate_block_templates_export_file() {
 	$wp_version = wp_get_wp_version();
@@ -1696,6 +1713,8 @@ function get_template_hierarchy( $slug, $is_custom = false, $template_prefix = '
  *                                    prepared for inserting or updating the database.
  * @param WP_REST_Request $deprecated Deprecated. Not used.
  * @return stdClass|WP_Error The updated object representing a template or template part.
+ *
+ * @phpstan-param null $deprecated
  */
 function inject_ignored_hooked_blocks_metadata_attributes( $changes, $deprecated = null ) {
 	if ( null !== $deprecated ) {

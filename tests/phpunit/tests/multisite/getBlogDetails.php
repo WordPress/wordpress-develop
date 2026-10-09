@@ -45,7 +45,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 
 	public function test_get_blog_details_with_no_arguments_returns_current_site() {
 		$site = get_blog_details();
-		$this->assertEquals( get_current_blog_id(), $site->blog_id );
+		$this->assertSame( (string) get_current_blog_id(), $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_site_name_string_subdirectory() {
@@ -54,7 +54,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		}
 
 		$site = get_blog_details( 'foo' );
-		$this->assertEquals( self::$site_ids[ WP_TESTS_DOMAIN . '/foo/' ], $site->blog_id );
+		$this->assertSame( (string) self::$site_ids[ WP_TESTS_DOMAIN . '/foo/' ], $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_site_name_string_subdomain() {
@@ -63,7 +63,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 		}
 
 		$site = get_blog_details( 'foo' );
-		$this->assertEquals( self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
+		$this->assertSame( (string) self::$site_ids[ 'foo.' . WP_TESTS_DOMAIN . '/' ], $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_invalid_site_name_string() {
@@ -73,7 +73,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 
 	public function test_get_blog_details_with_site_id_int() {
 		$site = get_blog_details( self::$site_ids['wordpress.org/'] );
-		$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
+		$this->assertSame( (string) self::$site_ids['wordpress.org/'], $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_invalid_site_id_int() {
@@ -83,7 +83,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 
 	public function test_get_blog_details_with_blog_id_in_fields() {
 		$site = get_blog_details( array( 'blog_id' => self::$site_ids['wordpress.org/'] ) );
-		$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
+		$this->assertSame( (string) self::$site_ids['wordpress.org/'], $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_invalid_blog_id_in_fields() {
@@ -98,7 +98,7 @@ class Tests_Multisite_GetBlogDetails extends WP_UnitTestCase {
 				'path'   => '/',
 			)
 		);
-		$this->assertEquals( self::$site_ids['wordpress.org/'], $site->blog_id );
+		$this->assertSame( (string) self::$site_ids['wordpress.org/'], $site->blog_id );
 	}
 
 	public function test_get_blog_details_with_domain_and_invalid_path_in_fields() {

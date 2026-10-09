@@ -33,14 +33,22 @@ class Tests_Theme extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Theme features registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
-		$this->orig_theme_dir = $wp_theme_directories;
-		$wp_theme_directories = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_dir      = $wp_theme_directories;
+		$wp_theme_directories      = array( WP_CONTENT_DIR . '/themes', realpath( DIR_TESTDATA . '/themedir1' ) );
+		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
 
 		add_filter( 'extra_theme_headers', array( $this, 'theme_data_extra_headers' ) );
 		wp_clean_themes_cache();
@@ -56,7 +64,12 @@ class Tests_Theme extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			// Restore after the parent removes HTML5 theme support.
+			$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
+		}
 	}
 
 	public function test_wp_get_themes_default() {
@@ -66,6 +79,7 @@ class Tests_Theme extends WP_UnitTestCase {
 
 		$single_theme = wp_get_theme( $this->theme_slug );
 		$this->assertSame( $single_theme->get( 'Name' ), $themes[ $this->theme_slug ]->get( 'Name' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $themes[ $this->theme_slug ], $single_theme );
 	}
 
@@ -113,6 +127,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			$_theme = wp_get_theme( $theme->get_stylesheet() );
 			// This primes internal WP_Theme caches for the next assertion (headers_sanitized, textdomain_loaded).
 			$this->assertSame( $theme->get( 'Name' ), $_theme->get( 'Name' ) );
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $theme, $_theme );
 		}
 	}

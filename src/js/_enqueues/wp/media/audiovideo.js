@@ -7,7 +7,6 @@ var media = wp.media,
 	l10n = window._wpMediaViewsL10n || {};
 
 /**
- *
  * Defines the wp.media.mixin object.
  *
  * @mixin
@@ -82,7 +81,6 @@ wp.media.mixin = {
 	},
 
 	/**
-	 *
 	 * Removes and resets all players.
 	 *
 	 * Allows any class that has set 'player' to a MediaElementPlayer
@@ -197,8 +195,8 @@ wp.media.audio = {
 /**
  * Shortcode modeling for video.
  *
- *  `edit()` prepares the shortcode for the media modal.
- *  `shortcode()` builds the new shortcode after update.
+ * `edit()` prepares the shortcode for the media modal.
+ * `shortcode()` builds the new shortcode after update.
  *
  * @since 4.2.0
  *

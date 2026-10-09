@@ -187,7 +187,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$expected_annotations = array_merge(
 			self::$test_ability_args['meta']['annotations'],
 			array(
-				'idempotent' => false,
+				'idempotent' => null,
 			)
 		);
 		$expected_meta        = array_merge(
@@ -205,7 +205,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		$this->assertSame( self::$test_ability_args['description'], $result->get_description() );
 		$this->assertSame( self::$test_ability_args['input_schema'], $result->get_input_schema() );
 		$this->assertSame( self::$test_ability_args['output_schema'], $result->get_output_schema() );
-		$this->assertEquals( $expected_meta, $result->get_meta() );
+		$this->assertSame( $expected_meta, $result->get_meta() );
 		$this->assertTrue(
 			$result->check_permissions(
 				array(
@@ -519,6 +519,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_unregister_ability( self::$test_ability_name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( self::$test_ability_name, self::$test_ability_args ),
 			$result
@@ -581,6 +582,7 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( $name );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals(
 			new WP_Ability( $name, $args ),
 			$result,
@@ -699,6 +701,8 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		);
 
 		$result = wp_get_abilities();
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $result );
 	}
 }

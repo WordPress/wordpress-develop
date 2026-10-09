@@ -281,7 +281,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$terms = $query->get_terms();
-
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $t1, $t2 ), $terms );
 	}
 
@@ -468,7 +468,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		$num_queries = get_num_queries();
 
@@ -480,7 +480,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
@@ -501,7 +501,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		wp_delete_term( $terms[0], 'wptests_tax_1' );
 
@@ -513,7 +513,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
 	}
 
 	/**
@@ -959,7 +959,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ) );
 
 		// Make sure no queries were executed.
 		$this->assertSame( $num_queries, get_num_queries() );
@@ -1225,7 +1225,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax_hierarchical', 'post', array( 'hierarchical' => true ) );
 
 		$parent_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_hierarchical' ) );
-		$this->assertIsInt( $parent_id, 'The parent term was not created.' );
 
 		$child_id = self::factory()->term->create(
 			array(
@@ -1233,7 +1232,6 @@ class Tests_Term_Query extends WP_UnitTestCase {
 				'parent'   => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child term was not created.' );
 
 		$query_args = array(
 			'taxonomy'   => 'wptests_tax_hierarchical',
