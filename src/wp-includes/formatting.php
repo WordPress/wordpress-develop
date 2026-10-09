@@ -3662,6 +3662,7 @@ function convert_smilies( $text ) {
  * Does not grok i18n domains. Not RFC compliant.
  *
  * @since 0.71
+ * @since 7.2.0 Accepts 'localhost' as a domain.
  *
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
@@ -3728,8 +3729,8 @@ function is_email( $email, $deprecated = false ) {
 	// Split the domain into subs.
 	$subs = explode( '.', $domain );
 
-	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
+	// Assume the domain will have at least two subs, unless it is the localhost domain.
+	if ( 2 > count( $subs ) && 'localhost' !== strtolower( $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'is_email', false, $email, 'domain_no_periods' );
 	}
@@ -3883,6 +3884,7 @@ function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
  * Strips out all characters that are not allowable in an email.
  *
  * @since 1.5.0
+ * @since 7.2.0 Accepts 'localhost' as a domain.
  *
  * @param string $email Email address to filter.
  * @return string Filtered email address.
@@ -3945,8 +3947,8 @@ function sanitize_email( $email ) {
 	// Split the domain into subs.
 	$subs = explode( '.', $domain );
 
-	// Assume the domain will have at least two subs.
-	if ( 2 > count( $subs ) ) {
+	// Assume the domain will have at least two subs, unless it is the localhost domain.
+	if ( 2 > count( $subs ) && 'localhost' !== strtolower( $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_no_periods' );
 	}
@@ -3969,7 +3971,7 @@ function sanitize_email( $email ) {
 	}
 
 	// If there aren't 2 or more valid subs.
-	if ( 2 > count( $new_subs ) ) {
+	if ( 2 > count( $new_subs ) && 'localhost' !== strtolower( $domain ) ) {
 		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_email', '', $email, 'domain_no_valid_subs' );
 	}
