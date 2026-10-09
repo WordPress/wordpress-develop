@@ -759,7 +759,7 @@ function wp_is_authorize_application_redirect_url_valid( $url ) {
  * @param string $url The redirect URL.
  * @return string The destination to display, or an empty string if the URL has no host.
  */
-function wp_get_authorize_application_redirect_url_display( string $url ) : string {
+function wp_get_authorize_application_redirect_url_display( string $url ): string {
 	if ( empty( $url ) ) {
 		return '';
 	}
