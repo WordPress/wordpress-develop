@@ -718,6 +718,28 @@ class WP_Upgrader {
 
 		$this->result = compact( 'source', 'source_files', 'destination', 'destination_name', 'local_destination', 'remote_destination', 'clear_destination' );
 
+		// Reactivate plugin if it was previously active and the plugin slug changed.
+		if ( ! empty( $args['hook_extra']['plugin'] ) ) {
+
+			$old_plugin = $args['hook_extra']['plugin'];
+			$old_slug   = dirname( $old_plugin );
+			$new_slug   = $this->result['destination_name'];
+
+			if ( $new_slug && $new_slug !== $old_slug ) {
+
+				wp_clean_plugins_cache( true );
+
+				$plugins = get_plugins( '/' . $new_slug );
+
+				if ( ! empty( $plugins ) ) {
+					$new_main_file = array_key_first( $plugins );
+					$new_plugin    = $new_slug . '/' . $new_main_file;
+
+					activate_plugins( array( $new_plugin ), '', false, true );
+				}
+			}
+		}
+
 		/**
 		 * Filters the installation response after the installation has finished.
 		 *
