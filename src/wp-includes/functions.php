@@ -9420,3 +9420,23 @@ function wp_verify_fast_hash(
 
 	return hash_equals( $hash, wp_fast_hash( $message ) );
 }
+
+/**
+ * Resolve the site name
+ *
+ * If the site name is empty set the host as site name.
+ *
+ * @since 7.2.0
+ * @return string Site name.
+ */
+function wp_resolve_site_name(): string {
+	$site_name = get_option( 'blogname' );
+
+	if ( '' !== $site_name ) {
+		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_name = wp_parse_url( home_url(), PHP_URL_HOST );
+	}
+
+	return $site_name;
+}
