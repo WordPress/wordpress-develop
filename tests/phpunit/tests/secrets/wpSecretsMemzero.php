@@ -18,7 +18,7 @@ class Tests_Secrets_WpSecretsMemzero extends WP_UnitTestCase {
 
 		wp_secrets_memzero( $value ); // @phpstan-ignore argument.type (Intentionally passing a non-string value.)
 
-		$this->assertSame( 42, $value ); // @phpstan-ignore method.impossibleType (The by-reference parameter is documented as a string; this checks a non-string comes back untouched.)
+		$this->assertSame( 42, $value );
 	}
 
 	public function test_leaves_an_empty_string_untouched(): void {
