@@ -2029,6 +2029,36 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 }
 
 /**
+ * Retrieves user info by user ID, deferring the loading of capability and role data.
+ *
+ * This is a lighter-weight alternative to get_userdata() for contexts that mainly need
+ * display data (name, avatar, bio, etc.), such as author archives and the `$authordata`
+ * global set up in the Loop.
+ *
+ * The `caps`, `roles`, and `allcaps` properties of the returned WP_User are loaded on
+ * first access, including when calling has_cap() or any of the role or capability methods.
+ * Until then, they are not included by get_object_vars(), array casts, var_export(), or
+ * print_r(). Use get_userdata() if that is required.
+ *
+ * @since 7.2.0
+ *
+ * @param int $user_id User ID.
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_authordata( $user_id ) {
+	$userdata = WP_User::get_data_by( 'id', $user_id );
+
+	if ( ! $userdata ) {
+		return false;
+	}
+
+	$user = new WP_User();
+	$user->init( $userdata, 0, true );
+
+	return $user;
+}
+
+/**
  * Updates all user caches.
  *
  * @since 3.0.0

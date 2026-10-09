@@ -2591,4 +2591,61 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $emcee_caps, $sally_caps, 'Emcee and Sally roles should have the same capabilities after update.' );
 		$this->assertLessThan( $emcee_queries, $sally_queries, 'Updating roles via update_option should be more efficient than WP_Roles using the database.' );
 	}
+
+	/**
+	 * Ensure get_object_vars includes allcaps.
+	 *
+	 * @ticket 58001
+	 *
+	 * @dataProvider data_single_site_roles_to_check
+	 */
+	public function test_get_object_vars_includes_roles( $role ) {
+		$user_id = self::$users[ $role ]->ID;
+		$user    = new WP_User( $user_id );
+
+		/*
+		 * allcaps holds the capabilities granted by the user's roles, which are the same on
+		 * single site and multisite. The multisite list holds the effective capabilities after
+		 * map_meta_cap(), which removes some capabilities that roles grant.
+		 */
+		$primitive_caps = $this->_getSingleSitePrimitiveCaps();
+
+		$vars = get_object_vars( $user );
+
+		$expected = array();
+		foreach ( $primitive_caps as $cap => $roles ) {
+			if ( in_array( $role, $roles, true ) ) {
+				$expected[] = $cap;
+			}
+		}
+
+		$this->assertArrayHasKey( 'allcaps', $vars, 'WP_User object vars should include allcaps key.' );
+		$this->assertArrayHasKey( 'caps', $vars, 'WP_User object vars should include caps key.' );
+		$this->assertArrayHasKey( 'roles', $vars, 'WP_User object vars should include roles key.' );
+
+		$actual = array_keys( $vars['allcaps'] );
+
+		// Remove special cases.
+		$special_cases = array(
+			// Role names.
+			'administrator',
+			'editor',
+			'author',
+			'subscriber',
+			'contributor',
+
+			// Granted via `user_has_cap`.
+			'resume_plugins',
+			'resume_themes',
+			'view_site_health_checks',
+
+			// Other capabilities.
+			'manage_links',
+			'unfiltered_upload',
+		);
+
+		$actual   = array_diff( $actual, $special_cases );
+		$expected = array_diff( $expected, $special_cases );
+		$this->assertSameSets( $expected, $actual, "User with the {$role} role should have the correct primitive capabilities in allcaps." );
+	}
 }

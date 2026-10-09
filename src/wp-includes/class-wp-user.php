@@ -13,6 +13,8 @@
  * @since 2.0.0
  * @since 6.8.0 The `user_pass` property is now hashed using bcrypt by default instead of phpass.
  *              Existing passwords may still be hashed using phpass.
+ * @since 7.2.0 The `caps`, `roles`, and `allcaps` properties can be lazy-loaded on first access,
+ *              see WP_User::init() and get_authordata(). Implements the JsonSerializable interface.
  *
  * @property string     $nickname
  * @property string     $description
@@ -44,7 +46,7 @@
  * @phpstan-property int|numeric-string|'' $user_level
  */
 #[AllowDynamicProperties]
-class WP_User {
+class WP_User implements JsonSerializable {
 	/**
 	 * User data container.
 	 *
@@ -112,6 +114,29 @@ class WP_User {
 	private $site_id = 0;
 
 	/**
+	 * Whether the capability data has yet to be loaded.
+	 *
+	 * While true, the `caps`, `roles`, and `allcaps` properties are unset so that
+	 * the first access to any of them is routed through the magic methods, which
+	 * load the data on demand.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $capability_data_pending = false;
+
+	/**
+	 * Whether this instance was initialized without loading capability data.
+	 *
+	 * When true, WP_User::for_site() defers loading the `caps`, `roles`, and `allcaps`
+	 * properties until they are first accessed.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $short_init = false;
+
+	/**
 	 * @since 3.3.0
 	 * @var array
 	 */
@@ -176,16 +201,21 @@ class WP_User {
 	 * Sets up object properties, including capabilities.
 	 *
 	 * @since 3.3.0
+	 * @since 7.2.0 Added the `$short_init` parameter.
 	 *
-	 * @param object $data    User DB row object.
-	 * @param int    $site_id Optional. The site ID to initialize for.
+	 * @param object $data       User DB row object.
+	 * @param int    $site_id    Optional. The site ID to initialize for.
+	 * @param bool   $short_init Optional. Whether to defer loading the capability data until
+	 *                           the `caps`, `roles`, or `allcaps` properties are first accessed.
+	 *                           Default false.
 	 */
-	public function init( $data, $site_id = 0 ) {
+	public function init( $data, $site_id = 0, $short_init = false ) {
 		if ( ! isset( $data->ID ) ) {
 			$data->ID = 0;
 		}
-		$this->data = $data;
-		$this->ID   = (int) $data->ID;
+		$this->data       = $data;
+		$this->ID         = (int) $data->ID;
+		$this->short_init = $short_init;
 
 		$this->for_site( $site_id );
 	}
@@ -293,6 +323,11 @@ class WP_User {
 			$key = 'ID';
 		}
 
+		if ( $this->is_capability_property( $key ) ) {
+			$this->load_capability_data();
+			return isset( $this->$key );
+		}
+
 		if ( isset( $this->data->$key ) ) {
 			return true;
 		}
@@ -308,11 +343,13 @@ class WP_User {
 	 * Magic method for accessing custom fields.
 	 *
 	 * @since 3.3.0
+	 * @since 7.2.0 Returns by reference, so that the lazily loaded `caps`, `roles`, and `allcaps`
+	 *              properties can be modified in place, e.g. `$user->roles[] = 'editor'`.
 	 *
 	 * @param string $key User meta key to retrieve.
 	 * @return mixed Value of the given user meta key (if set). If `$key` is 'id', the user ID.
 	 */
-	public function __get( $key ) {
+	public function &__get( $key ) {
 		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
@@ -324,6 +361,18 @@ class WP_User {
 				)
 			);
 			return $this->ID;
+		}
+
+		if ( $this->is_capability_property( $key ) ) {
+			$this->load_capability_data();
+
+			if ( isset( $this->$key ) ) {
+				return $this->$key;
+			}
+
+			// The property was unset after loading. Only variables can be returned by reference.
+			$value = null;
+			return $value;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -368,6 +417,12 @@ class WP_User {
 			return;
 		}
 
+		if ( $this->is_capability_property( $key ) ) {
+			$this->load_capability_data();
+			$this->$key = $value;
+			return;
+		}
+
 		$this->data->$key = $value;
 	}
 
@@ -389,6 +444,12 @@ class WP_User {
 					'<code>WP_User->ID</code>'
 				)
 			);
+		}
+
+		if ( $this->is_capability_property( $key ) ) {
+			$this->load_capability_data();
+			unset( $this->$key );
+			return;
 		}
 
 		if ( isset( $this->data->$key ) ) {
@@ -511,6 +572,12 @@ class WP_User {
 	 *                and boolean values represent whether the user has that capability.
 	 */
 	public function get_role_caps() {
+		// Loading the capability data calls this method again, once the data is in place.
+		if ( $this->capability_data_pending ) {
+			$this->load_capability_data();
+			return $this->allcaps;
+		}
+
 		$switch_site = false;
 		if ( is_multisite() && get_current_blog_id() !== $this->site_id ) {
 			$switch_site = true;
@@ -867,6 +934,8 @@ class WP_User {
 	 * Sets the site to operate on. Defaults to the current site.
 	 *
 	 * @since 4.9.0
+	 * @since 7.2.0 For instances initialized with `$short_init`, the capability data is loaded
+	 *              on first access of the `caps`, `roles`, or `allcaps` properties.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -882,6 +951,18 @@ class WP_User {
 		}
 
 		$this->cap_key = $wpdb->get_blog_prefix( $this->site_id ) . 'capabilities';
+
+		if ( $this->short_init ) {
+			/*
+			 * Unset the capability properties so that the first access to any of them
+			 * goes through the magic methods, which load the data on demand.
+			 */
+			unset( $this->caps, $this->roles, $this->allcaps );
+			$this->capability_data_pending = true;
+			return;
+		}
+
+		$this->capability_data_pending = false;
 
 		$this->caps = $this->get_caps_data();
 
@@ -915,5 +996,81 @@ class WP_User {
 		}
 
 		return $caps;
+	}
+
+	/**
+	 * Loads the capability data, if it has not been loaded yet.
+	 *
+	 * Populates the `caps`, `roles`, and `allcaps` properties.
+	 *
+	 * @since 7.2.0
+	 */
+	private function load_capability_data() {
+		if ( ! $this->capability_data_pending ) {
+			return;
+		}
+
+		// Clear the flag first, as populating the properties below re-enters the magic methods.
+		$this->capability_data_pending = false;
+
+		$this->caps = $this->get_caps_data();
+
+		$this->get_role_caps();
+	}
+
+	/**
+	 * Determines whether a property name is one of the lazily loaded capability properties.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $key Property name.
+	 * @return bool Whether the property is `caps`, `roles`, or `allcaps`.
+	 */
+	private function is_capability_property( $key ) {
+		return in_array( $key, array( 'caps', 'roles', 'allcaps' ), true );
+	}
+
+	/**
+	 * Specifies the data which should be serialized to JSON.
+	 *
+	 * Ensures the lazily loaded capability data is included.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> Data to be serialized to JSON.
+	 */
+	#[ReturnTypeWillChange]
+	public function jsonSerialize() {
+		$this->load_capability_data();
+
+		return array(
+			'data'    => $this->data,
+			'ID'      => $this->ID,
+			'caps'    => $this->caps,
+			'cap_key' => $this->cap_key,
+			'roles'   => $this->roles,
+			'allcaps' => $this->allcaps,
+			'filter'  => $this->filter,
+		);
+	}
+
+	/**
+	 * Returns the data to serialize.
+	 *
+	 * Ensures the lazily loaded capability data is included.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> Object properties to serialize, keyed in the same
+	 *                              format as native object serialization.
+	 */
+	public function __serialize() {
+		$this->load_capability_data();
+
+		/*
+		 * The array cast keeps the null byte delimited scope of non-public property names,
+		 * including those of subclasses, which is the format native unserialization expects.
+		 */
+		return (array) $this;
 	}
 }

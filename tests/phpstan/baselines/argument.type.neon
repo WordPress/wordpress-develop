@@ -794,11 +794,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-query.php
-		-
 			message: '#^Parameter \#1 \$pages of function get_page_hierarchy expects array\<WP_Post\>, list\<stdClass\>\|null given\.$#'
 			identifier: argument.type
 			count: 1
@@ -993,11 +988,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
-		-
-			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/link-template.php
 		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, array\<int, mixed\> given\.$#'
 			identifier: argument.type
