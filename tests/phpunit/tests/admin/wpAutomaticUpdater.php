@@ -66,6 +66,182 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `WP_Automatic_Updater::send_plugin_theme_email()` uses the
+	 * expected subject for plugin and theme updates.
+	 *
+	 * @ticket 66075
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 *
+	 * @dataProvider data_send_plugin_theme_email_subjects
+	 *
+	 * @param string $type       The type of email to send.
+	 * @param array  $successful A list of successful updates.
+	 * @param array  $failed     A list of failed updates.
+	 * @param string $expected   The expected subject.
+	 */
+	public function test_send_plugin_theme_email_subjects( $type, $successful, $failed, $expected ) {
+		update_option( 'blogname', 'Test Site' );
+
+		add_filter(
+			'wp_mail',
+			function ( $args ) use ( $expected ) {
+				$this->assertSame( $expected, $args['subject'] );
+			}
+		);
+
+		self::$send_plugin_theme_email->invokeArgs(
+			self::$updater,
+			array( $type, $successful, $failed )
+		);
+	}
+
+	/**
+	 * Data provider for test_send_plugin_theme_email_subjects().
+	 *
+	 * @return array
+	 */
+	public function data_send_plugin_theme_email_subjects() {
+		$plugin = static function ( $name ) {
+			return (object) array(
+				'name' => $name,
+				'item' => (object) array(
+					'current_version' => '1.0.0',
+					'new_version'     => '2.0.0',
+					'plugin'          => 'example/example.php',
+				),
+			);
+		};
+
+		$theme = static function ( $name ) {
+			return (object) array(
+				'name' => $name,
+				'item' => (object) array(
+					'current_version' => '1.0.0',
+					'new_version'     => '2.0.0',
+					'theme'           => 'example-theme',
+				),
+			);
+		};
+
+		return array(
+			'one plugin success'            => array(
+				'success',
+				array( 'plugin' => array( $plugin( 'Example Plugin' ) ) ),
+				array(),
+				'[Test Site] Example Plugin was automatically updated',
+			),
+			'multiple plugins success'      => array(
+				'success',
+				array( 'plugin' => array( $plugin( 'One' ), $plugin( 'Two' ) ) ),
+				array(),
+				'[Test Site] 2 plugins were automatically updated',
+			),
+			'one theme success'             => array(
+				'success',
+				array( 'theme' => array( $theme( 'Example Theme' ) ) ),
+				array(),
+				'[Test Site] Example Theme was automatically updated',
+			),
+			'multiple themes success'       => array(
+				'success',
+				array( 'theme' => array( $theme( 'One' ), $theme( 'Two' ) ) ),
+				array(),
+				'[Test Site] 2 themes were automatically updated',
+			),
+			'one plugin failure'            => array(
+				'fail',
+				array(),
+				array( 'plugin' => array( $plugin( 'Example Plugin' ) ) ),
+				'[Test Site] Example Plugin failed to update',
+			),
+			'multiple plugins failure'      => array(
+				'fail',
+				array(),
+				array( 'plugin' => array( $plugin( 'One' ), $plugin( 'Two' ) ) ),
+				'[Test Site] 2 plugins have failed to update',
+			),
+			'one theme failure'             => array(
+				'fail',
+				array(),
+				array( 'theme' => array( $theme( 'Example Theme' ) ) ),
+				'[Test Site] Example Theme failed to update',
+			),
+			'multiple themes failure'       => array(
+				'fail',
+				array(),
+				array( 'theme' => array( $theme( 'One' ), $theme( 'Two' ) ) ),
+				'[Test Site] 2 themes have failed to update',
+			),
+			'long plugin name is truncated' => array(
+				'success',
+				array( 'plugin' => array( $plugin( 'A plugin name that is longer than thirty-five characters' ) ) ),
+				array(),
+				'[Test Site] A plugin name that is longer than t… was automatically updated',
+			),
+			'mixed plugin and theme success remains unchanged' => array(
+				'success',
+				array(
+					'plugin' => array( $plugin( 'Plugin' ) ),
+					'theme'  => array( $theme( 'Theme' ) ),
+				),
+				array(),
+				'[Test Site] Some plugins and themes have automatically updated',
+			),
+			'single update without a name uses the singular count' => array(
+				'success',
+				array( 'plugin' => array( $plugin( '' ) ) ),
+				array(),
+				'[Test Site] 1 plugin was automatically updated',
+			),
+		);
+	}
+
+	/**
+	 * Tests that the `auto_plugin_theme_update_email` filter receives the
+	 * successful and failed updates alongside the built subject.
+	 *
+	 * @ticket 66075
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 */
+	public function test_send_plugin_theme_email_should_pass_updates_to_filter() {
+		update_option( 'blogname', 'Test Site' );
+
+		$successful = array(
+			'plugin' => array(
+				(object) array(
+					'name' => 'Example Plugin',
+					'item' => (object) array(
+						'current_version' => '1.0.0',
+						'new_version'     => '2.0.0',
+						'plugin'          => 'example/example.php',
+					),
+				),
+			),
+		);
+
+		add_filter(
+			'auto_plugin_theme_update_email',
+			function ( $email, $type, $successful_updates, $failed_updates ) use ( $successful ) {
+				$this->assertSame( 'success', $type );
+				$this->assertSame( $successful, $successful_updates );
+				$this->assertSame( array(), $failed_updates );
+				$this->assertSame( '[Test Site] Example Plugin was automatically updated', $email['subject'] );
+
+				return $email;
+			},
+			10,
+			4
+		);
+
+		self::$send_plugin_theme_email->invokeArgs(
+			self::$updater,
+			array( 'success', $successful, array() )
+		);
+	}
+
+	/**
 	 * Tests that `WP_Automatic_Updater::send_plugin_theme_email()` appends
 	 * plugin URLs.
 	 *
