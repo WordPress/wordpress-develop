@@ -85,8 +85,21 @@ class WP_CSS_Token_Processor {
 	 * @see https://www.w3.org/TR/css-syntax-3/#tokenization
 	 */
 	public const TOKEN_WHITESPACE = 'whitespace-token';
-	public const TOKEN_COMMENT    = 'comment';
-	public const TOKEN_STRING     = 'string-token';
+
+	/**
+	 * Comment tokens, such as `/* a *\/`.
+	 *
+	 * The specification's tokenizer produces no comment tokens. This processor
+	 * does, so callers can find comments by their byte offsets. CSS Syntax
+	 * Level 3 §9 allows this:
+	 *
+	 * > Implementations may preserve the contents of comments and their location in the token stream.
+	 * > If they do, this preserved information must have no effect on the parsing step.
+	 *
+	 * @link https://www.w3.org/TR/css-syntax-3/#serialization
+	 */
+	public const TOKEN_COMMENT = 'comment';
+	public const TOKEN_STRING  = 'string-token';
 
 	/**
 	 * BAD-STRING tokens occur when a string contains an unescaped newline.
