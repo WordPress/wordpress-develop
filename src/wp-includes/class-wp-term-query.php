@@ -158,6 +158,9 @@ class WP_Term_Query {
 	 *                                                   (even if `$hide_empty` is set to true). Default true.
 	 *     @type string          $search                 Search criteria to match terms. Will be SQL-formatted with
 	 *                                                   wildcards before and after. Default empty.
+	 *     @type string[]        $search_columns         Array of column names to be searched. Accepts 'name', 'slug',
+	 *                                                   and 'description'. Default empty array, which searches 'name'
+	 *                                                   and 'slug' only (for backward compatibility).
 	 *     @type string          $name__like             Retrieve terms with criteria by which a term is LIKE
 	 *                                                   `$name__like`. Default empty.
 	 *     @type string          $description__like      Retrieve terms where the description is LIKE
@@ -211,6 +214,7 @@ class WP_Term_Query {
 			'term_taxonomy_id'       => '',
 			'hierarchical'           => true,
 			'search'                 => '',
+			'search_columns'         => array(),
 			'name__like'             => '',
 			'description__like'      => '',
 			'pad_counts'             => false,
@@ -656,7 +660,7 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['search'] ) ) {
-			$this->sql_clauses['where']['search'] = $this->get_search_sql( $args['search'] );
+			$this->sql_clauses['where']['search'] = $this->get_search_sql( $args['search'], $args['search_columns'] );
 		}
 
 		// Meta query support.
@@ -1115,18 +1119,56 @@ class WP_Term_Query {
 	 * Used internally to generate a SQL string related to the 'search' parameter.
 	 *
 	 * @since 4.6.0
+	 * @since 7.2.0 Added the `$search_columns` parameter, allowing 'description' to be searched
+	 *              in addition to the default 'name' and 'slug'.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $search Search string.
+	 * @param string   $search         Search string.
+	 * @param string[] $search_columns Columns to search. Accepts 'name', 'slug', and 'description'.
+	 *                                 Default empty array, which searches 'name' and 'slug' only.
 	 * @return string Search SQL.
 	 */
-	protected function get_search_sql( $search ) {
+	protected function get_search_sql( $search, $search_columns = array() ) {
 		global $wpdb;
+
+		$column_sql = array(
+			'name'        => 't.name',
+			'slug'        => 't.slug',
+			'description' => 'tt.description',
+		);
+
+		$search_columns = array_intersect( (array) $search_columns, array_keys( $column_sql ) );
+
+		if ( empty( $search_columns ) ) {
+			$search_columns = array( 'name', 'slug' );
+		}
+
+		/**
+		 * Filters the columns to search in a WP_Term_Query search.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[] $search_columns Array of column names to be searched.
+		 * @param string   $search         Text being searched.
+		 * @param WP_Term_Query $this      The current WP_Term_Query instance.
+		 */
+		$search_columns = apply_filters( 'term_search_columns', $search_columns, $search, $this );
 
 		$like = '%' . $wpdb->esc_like( $search ) . '%';
 
-		return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		$searches = array();
+		foreach ( $search_columns as $search_column ) {
+			if ( isset( $column_sql[ $search_column ] ) ) {
+				$searches[] = $wpdb->prepare( '(' . $column_sql[ $search_column ] . ' LIKE %s)', $like );
+			}
+		}
+
+		if ( empty( $searches ) ) {
+			return '';
+		}
+
+		return '(' . implode( ' OR ', $searches ) . ')';
 	}
 
 	/**
