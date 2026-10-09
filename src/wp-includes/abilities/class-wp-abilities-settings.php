@@ -230,6 +230,8 @@ final class WP_Abilities_Settings {
 	 * keyed by its exposed name and carries the underlying option name, the settings group,
 	 * and a JSON Schema describing the value.
 	 *
+	 * Two settings exposed under the same name trigger a notice, and the later one is exposed.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @return array<string, array{option: string, group: string, schema: array<string, mixed>}> Settings keyed by exposed name.
@@ -249,9 +251,24 @@ final class WP_Abilities_Settings {
 				continue;
 			}
 
-			$option_name = (string) $option_name;
+			$option_name  = (string) $option_name;
+			$exposed_name = empty( $show['name'] ) ? $option_name : (string) $show['name'];
 
-			$settings[ empty( $show['name'] ) ? $option_name : $show['name'] ] = array(
+			if ( isset( $settings[ $exposed_name ] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: 1: Option name, 2: Setting name exposed to abilities, 3: Option name. */
+						__( 'The "%1$s" setting is exposed to abilities as "%2$s", a name already used by the "%3$s" setting, which is no longer exposed.' ),
+						esc_html( $option_name ),
+						esc_html( $exposed_name ),
+						esc_html( $settings[ $exposed_name ]['option'] )
+					),
+					'7.2.0'
+				);
+			}
+
+			$settings[ $exposed_name ] = array(
 				'option' => $option_name,
 				'group'  => $args['group'] ?? '',
 				'schema' => $schema,

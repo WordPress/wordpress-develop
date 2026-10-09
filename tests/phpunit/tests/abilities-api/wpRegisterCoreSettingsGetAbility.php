@@ -278,6 +278,43 @@ class Tests_Abilities_API_WpRegisterCoreSettingsGetAbility extends WP_UnitTestCa
 	}
 
 	/**
+	 * Two settings exposed under the same name trigger a notice, and the later one is exposed.
+	 *
+	 * @ticket 64605
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Settings::get_exposed_settings
+	 */
+	public function test_core_settings_get_warns_about_a_duplicate_exposed_name(): void {
+		register_setting(
+			'general',
+			'core_settings_get_ability_duplicate_test_option_a',
+			array(
+				'type'              => 'string',
+				'show_in_abilities' => array( 'name' => 'core_settings_get_ability_duplicate_name' ),
+			)
+		);
+		register_setting(
+			'general',
+			'core_settings_get_ability_duplicate_test_option_b',
+			array(
+				'type'              => 'integer',
+				'show_in_abilities' => array( 'name' => 'core_settings_get_ability_duplicate_name' ),
+			)
+		);
+
+		try {
+			$this->register_ability();
+			$properties = wp_get_ability( 'core/settings-get' )->get_output_schema()['properties'];
+
+			$this->assertSame( 'integer', $properties['core_settings_get_ability_duplicate_name']['type'], 'The setting registered later should be the one exposed under the shared name.' );
+		} finally {
+			unregister_setting( 'general', 'core_settings_get_ability_duplicate_test_option_a' );
+			unregister_setting( 'general', 'core_settings_get_ability_duplicate_test_option_b' );
+			$this->register_ability();
+		}
+	}
+
+	/**
 	 * The input schema exposes optional `group` and `fields` filters.
 	 *
 	 * @ticket 64605
