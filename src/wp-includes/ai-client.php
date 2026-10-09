@@ -72,7 +72,7 @@ function wp_ai_client_prompt( $prompt = null ): WP_AI_Client_Prompt_Builder {
  * complex types. Pass multiple arguments to embed multiple inputs at once, each
  * producing its own embedding vector.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param string|MessagePart|File|array ...$input Optional. Initial input(s) to embed.
  *                                                A string for simple text inputs,

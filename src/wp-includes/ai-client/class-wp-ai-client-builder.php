@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 use WordPress\AiClient\Common\Exception\InvalidArgumentException;
@@ -31,7 +31,7 @@ use WordPress\AiClient\Providers\ProviderRegistry;
  * support check methods are the exception to the no-op behavior: they return
  * false rather than the error state instance.
  *
- * @since 7.1.0
+ * @since 7.2.0
  */
 abstract class WP_AI_Client_Builder {
 
@@ -39,7 +39,7 @@ abstract class WP_AI_Client_Builder {
 	 * Wrapped builder instance from the PHP AI Client SDK.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var object
 	 */
 	protected object $builder;
@@ -48,7 +48,7 @@ abstract class WP_AI_Client_Builder {
 	 * WordPress error instance, if any error occurred during method calls.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var WP_Error|null
 	 */
 	protected ?WP_Error $error = null;
@@ -57,7 +57,7 @@ abstract class WP_AI_Client_Builder {
 	 * Constructor.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $input    Optional. Initial input content for the builder.
@@ -78,7 +78,7 @@ abstract class WP_AI_Client_Builder {
 		 * Filters the default request timeout in seconds for AI Client HTTP requests.
 		 *
 		 * @since 7.0.0
-		 * @since 7.1.0 Added the `$builder_type` parameter.
+		 * @since 7.2.0 Added the `$builder_type` parameter.
 		 *
 		 * @param float  $default_timeout The default timeout in seconds.
 		 * @param string $builder_type    The class name of the builder the timeout applies to,
@@ -128,7 +128,7 @@ abstract class WP_AI_Client_Builder {
 	/**
 	 * Creates the wrapped builder instance from the PHP AI Client SDK.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param mixed            $input    Initial input content for the builder, or null.
@@ -139,7 +139,7 @@ abstract class WP_AI_Client_Builder {
 	/**
 	 * Retrieves the prefix used for WP_Error codes created by this builder.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The error code prefix, e.g. 'prompt' or 'embedding'.
 	 */
@@ -148,7 +148,7 @@ abstract class WP_AI_Client_Builder {
 	/**
 	 * Retrieves the error message to use when execution is prevented by a filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The translated error message.
 	 */
@@ -160,7 +160,7 @@ abstract class WP_AI_Client_Builder {
 	 * Child classes apply their specific filter, passing a clone of the builder
 	 * instance for read-only inspection.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return bool Whether execution is prevented.
 	 */
@@ -171,7 +171,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * Structured as a map of method name to true for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
@@ -182,7 +182,7 @@ abstract class WP_AI_Client_Builder {
 	 *
 	 * Structured as a map of method name to true for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */
@@ -196,7 +196,7 @@ abstract class WP_AI_Client_Builder {
 	 * is called, or false when a support check method is called.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string            $name      The method name in snake_case.
 	 * @param array<int, mixed> $arguments The method arguments.
@@ -283,7 +283,7 @@ abstract class WP_AI_Client_Builder {
 	 * or other contexts where HTTP semantics are relevant.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param Throwable $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error object.
@@ -327,7 +327,7 @@ abstract class WP_AI_Client_Builder {
 	 * Checks if a method name is a support check method (is_supported*).
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
 	 *              and changed from static to instance method.
 	 *
 	 * @param string $name The method name.
@@ -342,7 +342,7 @@ abstract class WP_AI_Client_Builder {
 	 * Checks if a method name is a generating method (generate_*, convert_text_to_speech*).
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class,
 	 *              and changed from static to instance method.
 	 *
 	 * @param string $name The method name.
@@ -357,7 +357,7 @@ abstract class WP_AI_Client_Builder {
 	 * Retrieves a callable for a given PHP AI Client SDK builder method name.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string $name The method name in snake_case.
 	 * @return callable The callable for the specified method.
@@ -386,7 +386,7 @@ abstract class WP_AI_Client_Builder {
 	 * Converts snake_case to camelCase.
 	 *
 	 * @since 7.0.0
-	 * @since 7.1.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
+	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 *
 	 * @param string $snake_case The snake_case string.
 	 * @return string The camelCase string.

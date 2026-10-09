@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage AI
- * @since 7.1.0
+ * @since 7.2.0
  */
 
 use WordPress\AiClient\AiClient;
@@ -30,7 +30,7 @@ use WordPress\AiClient\Results\DTO\EmbeddingResult;
  * calls will be no-ops that just return the same error state instance. Only
  * when a generating method is called, the WP_Error will be returned.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @see WP_AI_Client_Builder
  *
@@ -55,7 +55,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * Structured as a map for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array<string, bool>
 	 */
 	private static array $generating_methods = array(
@@ -69,7 +69,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	 *
 	 * Structured as a map for faster lookups.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 * @var array<string, bool>
 	 */
 	private static array $support_check_methods = array(
@@ -79,7 +79,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Creates the wrapped embedding builder instance from the PHP AI Client SDK.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param ProviderRegistry                         $registry The provider registry for finding suitable models.
 	 * @param EmbeddingInput|list<EmbeddingInput>|null $input    Initial input(s) to embed, or null.
@@ -98,7 +98,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the prefix used for WP_Error codes created by this builder.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The error code prefix.
 	 */
@@ -109,7 +109,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the error message to use when the embedding generation is prevented by a filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The translated error message.
 	 */
@@ -120,7 +120,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Checks whether the embedding generation is prevented by the `wp_ai_client_prevent_embedding` filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return bool Whether the embedding generation is prevented.
 	 */
@@ -128,7 +128,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 		/**
 		 * Filters whether to prevent the embedding generation from being executed.
 		 *
-		 * @since 7.1.0
+		 * @since 7.2.0
 		 *
 		 * @param bool                           $prevent Whether to prevent the embedding generation. Default false.
 		 * @param WP_AI_Client_Embedding_Builder $builder A clone of the embedding builder instance (read-only).
@@ -139,7 +139,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the methods that generate embeddings from the inputs.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
@@ -150,7 +150,7 @@ class WP_AI_Client_Embedding_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the methods that check whether the embedding generation is supported.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */

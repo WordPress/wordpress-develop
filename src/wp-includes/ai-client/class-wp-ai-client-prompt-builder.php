@@ -43,7 +43,7 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
  * false rather than the error state instance.
  *
  * @since 7.0.0
- * @since 7.1.0 Now extends the `WP_AI_Client_Builder` base class.
+ * @since 7.2.0 Now extends the `WP_AI_Client_Builder` base class.
  *
  * @see WP_AI_Client_Builder
  *
@@ -209,7 +209,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Creates the wrapped prompt builder instance from the PHP AI Client SDK.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
 	 * @param Prompt           $prompt   Initial prompt content, or null.
@@ -228,7 +228,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the prefix used for WP_Error codes created by this builder.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The error code prefix.
 	 */
@@ -239,7 +239,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the error message to use when the prompt is prevented by a filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return string The translated error message.
 	 */
@@ -250,7 +250,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Checks whether the prompt is prevented by the `wp_ai_client_prevent_prompt` filter.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return bool Whether the prompt is prevented.
 	 */
@@ -269,7 +269,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the methods that generate a result from the prompt.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The generating methods map.
 	 */
@@ -280,7 +280,7 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	/**
 	 * Retrieves the methods that check whether the prompt is supported.
 	 *
-	 * @since 7.1.0
+	 * @since 7.2.0
 	 *
 	 * @return array<string, bool> The support check methods map.
 	 */
