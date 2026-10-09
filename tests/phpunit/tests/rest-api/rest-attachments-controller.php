@@ -2156,11 +2156,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_default_in_response() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$request = new WP_REST_Request( 'GET', "/wp/v2/media/{$attachment}" );
 		$request->set_param( 'context', 'edit' );
@@ -2176,11 +2175,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_with_size_aware_filter() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		// Lower the quality for small images (e.g. thumbnails) only.
 		$filter = static function ( $quality, $mime_type, $size ) {
@@ -2212,11 +2210,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 * way WP_Image_Editor::set_quality() applies it for JPEG output.
 	 *
 	 * @ticket 65262
-	 * @requires function imagejpeg
 	 */
 	public function test_image_quality_honors_jpeg_quality_filter() {
 		wp_set_current_user( self::$editor_id );
-		$attachment = self::factory()->attachment->create_upload_object( self::$test_file );
+		$attachment = $this->create_image_quality_test_attachment();
 
 		$filter = static function () {
 			return 70;
@@ -2233,6 +2230,35 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 200, $response->get_status() );
 		// JPEG output, so the jpeg_quality filter overrides the 82 default.
 		$this->assertSame( 70, $data['image_quality']['default'] );
+	}
+
+	/**
+	 * Creates a JPEG attachment with static metadata for image quality tests.
+	 *
+	 * Quality reporting uses the MIME type, full-size dimensions, and registered
+	 * image sizes, so no upload or generated thumbnails are needed.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_quality_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+				'file'           => 'canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+			)
+		);
+
+		return $attachment_id;
 	}
 
 	/**
