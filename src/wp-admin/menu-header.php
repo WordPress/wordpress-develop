@@ -160,7 +160,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		$count_description = '';
 		if ( ! empty( $item['count_description']['id'] ) ) {
 			$describedby       = ' aria-describedby="' . esc_attr( $item['count_description']['id'] ) . '"';
-			$count_description = $item['count_description']['html'];
+			$count_description = $item['count_description']['html'] ?? '';
 		}
 
 		// Hide separators from screen readers.
@@ -288,7 +288,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				$sub_count_description = '';
 				if ( ! empty( $sub_item['count_description']['id'] ) ) {
 					$sub_describedby       = ' aria-describedby="' . esc_attr( $sub_item['count_description']['id'] ) . '"';
-					$sub_count_description = $sub_item['count_description']['html'];
+					$sub_count_description = $sub_item['count_description']['html'] ?? '';
 				}
 
 				if ( ! empty( $menu_hook )

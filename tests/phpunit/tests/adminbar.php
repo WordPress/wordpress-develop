@@ -374,6 +374,11 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertStringContainsString( "aria-describedby='wp-admin-bar-comments-count-description'", $html );
 		$this->assertStringContainsString( 'id="wp-admin-bar-comments-count-description"', $html );
 		$this->assertStringContainsString( '<span class="screen-reader-text">Comments</span>', $html );
+		$this->assertLessThan(
+			strpos( $html, 'ab-label' ),
+			strpos( $html, '<span class="screen-reader-text">Comments</span>' ),
+			'The name should precede the count.'
+		);
 	}
 
 	/**
@@ -407,6 +412,11 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( "aria-describedby='wp-admin-bar-updates-count-description'", $html );
 		$this->assertStringContainsString( '<span class="screen-reader-text">Updates</span>', $html );
+		$this->assertLessThan(
+			strpos( $html, 'ab-label' ),
+			strpos( $html, '<span class="screen-reader-text">Updates</span>' ),
+			'The name should precede the count.'
+		);
 	}
 
 	/**

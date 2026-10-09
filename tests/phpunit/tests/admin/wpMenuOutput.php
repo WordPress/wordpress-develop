@@ -178,4 +178,34 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( 'aria-describedby', $output );
 	}
+
+	/**
+	 * A count description without an 'html' key still sets aria-describedby
+	 * and does not raise a warning.
+	 *
+	 * @ticket 65793
+	 */
+	public function test_count_description_without_html_key() {
+		$menu = array(
+			array( 'Orders', 'read', 'orders.php', '', 'menu-top', 'menu-orders', 'dashicons-cart' ),
+		);
+
+		$menu[0]['count_description'] = array( 'id' => 'orders-count-description' );
+
+		$submenu = array(
+			'orders.php' => array(
+				5 => array(
+					'All Orders',
+					'read',
+					'orders.php',
+					'count_description' => array( 'id' => 'all-orders-count-description' ),
+				),
+			),
+		);
+
+		$output = get_echo( '_wp_menu_output', array( $menu, $submenu ) );
+
+		$this->assertStringContainsString( 'aria-describedby="orders-count-description"', $output );
+		$this->assertStringContainsString( 'aria-describedby="all-orders-count-description"', $output );
+	}
 }
