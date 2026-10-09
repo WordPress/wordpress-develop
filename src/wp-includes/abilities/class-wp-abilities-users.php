@@ -25,9 +25,10 @@ declare( strict_types = 1 );
  * input schema, output schema, and field normalization are built from the same
  * field definitions. Future write-oriented user abilities can reuse them as well.
  *
- * This class is part of WordPress' internal implementation of the core abilities and is
- * not part of the public API. It may be changed or removed at any time without notice.
- * Do not use it directly or rely on its existence.
+ * Only register() is public. The ability callbacks are closures that call private
+ * methods, so callers go through the Abilities API, such as
+ * `wp_get_ability( 'core/users-query' )->execute()`, which validates the input and
+ * checks permissions before running them.
  *
  * @since 7.2.0
  *
@@ -139,8 +140,12 @@ final class WP_Abilities_Users {
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_users_query_input_schema(),
 				'output_schema'       => $this->get_users_query_output_schema(),
-				'execute_callback'    => array( $this, 'execute_users_query' ),
-				'permission_callback' => array( $this, 'check_permission' ),
+				'execute_callback'    => function ( $input = array() ) {
+					return $this->execute_users_query( $input );
+				},
+				'permission_callback' => function ( $input = array() ): bool {
+					return $this->check_permission( $input );
+				},
 				'meta'                => array(
 					'annotations' => array(
 						'readonly'    => true,
@@ -165,7 +170,7 @@ final class WP_Abilities_Users {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return bool True if the request may proceed, false otherwise.
 	 */
-	public function check_permission( $input = array() ): bool {
+	private function check_permission( $input = array() ): bool {
 		$input = rest_sanitize_object( $input );
 
 		if ( ! is_user_logged_in() ) {
@@ -194,7 +199,7 @@ final class WP_Abilities_Users {
 	 * @param mixed $input Optional. The ability input. Default empty array.
 	 * @return array<string, mixed>|WP_Error User data, paginated collection data, or a WP_Error on failure.
 	 */
-	public function execute_users_query( $input = array() ) {
+	private function execute_users_query( $input = array() ) {
 		$input  = rest_sanitize_object( $input );
 		$fields = $this->normalize_fields( $input );
 

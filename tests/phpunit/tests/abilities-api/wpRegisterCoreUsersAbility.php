@@ -153,6 +153,40 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Registers the core/users-query ability and returns the callbacks it was registered with.
+	 *
+	 * The callbacks call private methods, so tests that skip input validation or the
+	 * permission check capture them from the registration arguments.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, callable> The permission and execute callbacks, keyed by argument name.
+	 */
+	private function get_ability_callbacks(): array {
+		$callbacks = array();
+
+		add_filter(
+			'wp_register_ability_args',
+			static function ( array $args, string $name ) use ( &$callbacks ): array {
+				if ( 'core/users-query' === $name ) {
+					$callbacks = array(
+						'permission_callback' => $args['permission_callback'],
+						'execute_callback'    => $args['execute_callback'],
+					);
+				}
+
+				return $args;
+			},
+			10,
+			2
+		);
+
+		$this->register_ability();
+
+		return $callbacks;
+	}
+
+	/**
 	 * The ability is registered in the `user` category and flagged read-only.
 	 *
 	 * @ticket 64657
@@ -1939,15 +1973,15 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_execute_callback_returns_not_found_for_unresolved_lookups(): void {
 		wp_set_current_user( self::$fixture_ids['subscriber'] );
 
-		$users = new WP_Abilities_Users();
+		$execute = $this->get_ability_callbacks()['execute_callback'];
 
-		$missing = $users->execute_users_query( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
+		$missing = $execute( array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ) );
 
 		$this->assertWPError( $missing, 'A nonexistent user ID should fail the lookup.' );
 		$this->assertSame( 'users_not_found', $missing->get_error_code(), 'A missing user should map to the not-found error.' );
 		$this->assertSame( 404, $missing->get_error_data()['status'], 'A missing user should be reported as not found.' );
 
-		$unreadable = $users->execute_users_query( array( 'id' => self::$fixture_ids['administrator'] ) );
+		$unreadable = $execute( array( 'id' => self::$fixture_ids['administrator'] ) );
 
 		$this->assertWPError( $unreadable, 'A user the current user cannot read should fail the lookup.' );
 		$this->assertSame( 'users_not_found', $unreadable->get_error_code(), 'A user the current user cannot read should be reported like a missing one.' );
@@ -1966,17 +2000,17 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_execute_callback_rejects_filters_it_cannot_honor(): void {
 		wp_set_current_user( self::$fixture_ids['administrator'] );
 
-		$users = new WP_Abilities_Users();
+		$execute = $this->get_ability_callbacks()['execute_callback'];
 
-		$result = $users->execute_users_query( array( 'include' => array( 0 ) ) );
+		$result = $execute( array( 'include' => array( 0 ) ) );
 		$this->assertWPError( $result, 'An include filter with no valid IDs must not fall through to an unrestricted query.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An empty-after-parsing include should fail closed as an invalid filter.' );
 
-		$result = $users->execute_users_query( array( 'roles' => array( 5 ) ) );
+		$result = $execute( array( 'roles' => array( 5 ) ) );
 		$this->assertWPError( $result, 'A roles filter with no role names must not fall through to an unfiltered query.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An empty-after-parsing roles filter should fail closed as an invalid filter.' );
 
-		$result = $users->execute_users_query( array( 'has_published_posts' => false ) );
+		$result = $execute( array( 'has_published_posts' => false ) );
 		$this->assertWPError( $result, 'A has_published_posts value that is neither true nor a list of post types must not be dropped.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An unhonorable has_published_posts filter should fail closed as an invalid filter.' );
 	}
@@ -1993,7 +2027,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_execute_callback_refuses_a_role_filter_without_list_users(): void {
 		wp_set_current_user( self::$fixture_ids['subscriber'] );
 
-		$result = ( new WP_Abilities_Users() )->execute_users_query( array( 'roles' => array( 'author' ) ) );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute( array( 'roles' => array( 'author' ) ) );
 
 		$this->assertWPError( $result, 'A subscriber must not filter users by role through a direct call.' );
 		$this->assertSame( 'users_cannot_filter_by_role', $result->get_error_code(), 'The refusal should name the role filter.' );
@@ -2011,12 +2047,12 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_fractional_id_does_not_resolve_a_user(): void {
 		wp_set_current_user( self::$fixture_ids['administrator'] );
 
-		$users = new WP_Abilities_Users();
-		$input = array( 'id' => self::$fixture_ids['subscriber'] + 0.5 );
+		$callbacks = $this->get_ability_callbacks();
+		$input     = array( 'id' => self::$fixture_ids['subscriber'] + 0.5 );
 
-		$this->assertFalse( $users->check_permission( $input ), 'The permission callback should not resolve a fractional ID.' );
+		$this->assertFalse( $callbacks['permission_callback']( $input ), 'The permission callback should not resolve a fractional ID.' );
 
-		$result = $users->execute_users_query( $input );
+		$result = $callbacks['execute_callback']( $input );
 		$this->assertWPError( $result, 'The execute callback should not resolve a fractional ID.' );
 		$this->assertSame( 'users_not_found', $result->get_error_code(), 'A fractional ID should be reported as not found.' );
 	}
@@ -2030,7 +2066,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	public function test_execute_callback_defaults_pagination_it_cannot_parse(): void {
 		wp_set_current_user( self::$fixture_ids['administrator'] );
 
-		$result = ( new WP_Abilities_Users() )->execute_users_query(
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
 			array(
 				'page'     => 'last',
 				'per_page' => 1.5,
