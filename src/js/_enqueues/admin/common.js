@@ -2236,6 +2236,118 @@ $( function( $ ) {
 }( jQuery, window ));
 
 /**
+ * Manages overflow indicators and keyboard access for list tables.
+ *
+ * @since 7.2.0
+ */
+jQuery( function() {
+	const content = document.getElementById( 'wpbody-content' );
+	if (
+		! content ||
+		! content.querySelector( '.wp-list-table-scroll' ) ||
+		! window.ResizeObserver
+	) {
+		return;
+	}
+
+	const tables = new Map();
+
+	/**
+	 * Tracks a table's scroll position and dimensions.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {HTMLTableElement} table The table inside a scroll wrapper.
+	 *
+	 * @return {void}
+	 */
+	function observeTableOverflow( table ) {
+		const wrapper = table.parentElement;
+		const tabIndex = wrapper.getAttribute( 'tabindex' );
+
+		/**
+		 * Updates the overflow indicators and the wrapper's place in the Tab order.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @return {void}
+		 */
+		function update() {
+			const style = window.getComputedStyle( wrapper );
+			const isRTL = style.direction === 'rtl';
+			const scrollLeft = isRTL ? -wrapper.scrollLeft : wrapper.scrollLeft;
+			const maxScroll = Math.max( 0, wrapper.scrollWidth - wrapper.clientWidth );
+			const position = Math.min( maxScroll, Math.max( 0, scrollLeft ) );
+
+			// Skip non-scrolling wrappers without moving focus if the wrapper is already focused.
+			wrapper.tabIndex = maxScroll > 0 &&
+				( style.overflowX === 'auto' || style.overflowX === 'scroll' ) ? 0 : -1;
+
+			// Allow for fractional scroll positions at either end of the table.
+			wrapper.classList.toggle( 'has-scroll-overflow-start', position > 1 );
+			wrapper.classList.toggle( 'has-scroll-overflow-end', maxScroll - position > 1 );
+		}
+
+		const observer = new window.ResizeObserver( update );
+		observer.observe( wrapper );
+		observer.observe( table );
+		wrapper.addEventListener( 'scroll', update, { passive: true } );
+		update();
+
+		tables.set( table, {
+			wrapper: wrapper,
+
+			/**
+			 * Releases overflow tracking and restores the wrapper's original Tab order.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @return {void}
+			 */
+			cleanup: function() {
+				observer.disconnect();
+				wrapper.removeEventListener( 'scroll', update );
+				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
+				if ( tabIndex === null ) {
+					wrapper.removeAttribute( 'tabindex' );
+				} else {
+					wrapper.setAttribute( 'tabindex', tabIndex );
+				}
+			},
+		} );
+	}
+
+	/**
+	 * Initializes added tables and releases observers for removed tables.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return {void}
+	 */
+	function refreshTables() {
+		tables.forEach( function( state, table ) {
+			if ( ! content.contains( table ) || table.parentElement !== state.wrapper ) {
+				state.cleanup();
+				tables.delete( table );
+			}
+		} );
+
+		content.querySelectorAll( '.wp-list-table-scroll > .wp-list-table' )
+			.forEach( function( table ) {
+				if ( ! tables.has( table ) ) {
+					observeTableOverflow( table );
+				}
+			} );
+	}
+
+	refreshTables();
+
+	// Plugins live search replaces the table and its wrapper.
+	const observer = new window.MutationObserver( refreshTables );
+	observer.observe( content, { childList: true, subtree: true } );
+} );
+
+/**
  * Freeze animated plugin icons when reduced motion is enabled.
  *
  * When the user has enabled the 'prefers-reduced-motion' setting, this module
