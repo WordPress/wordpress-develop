@@ -464,6 +464,10 @@ code {
 	white-space: nowrap;
 }
 
+.subsubsub li:not(:last-child)::after {
+	content: "|";
+}
+
 /* .widefat - main style for tables */
 .widefat {
 	border-spacing: 0;
