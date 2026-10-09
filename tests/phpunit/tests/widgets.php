@@ -839,42 +839,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @see wp_widget_control()
 	 */
 	public function test_wp_widget_control() {
-		global $wp_registered_widgets;
-
-		update_option(
-			'widget_search',
-			array(
-				2              => array( 'title' => '' ),
-				'_multiwidget' => 1,
-			)
-		);
-		update_option(
-			'sidebars_widgets',
-			array(
-				'wp_inactive_widgets' => array(),
-				'sidebar-1'           => array( 'search-2' ),
-				'sidebar-2'           => array(),
-				'array_version'       => 3,
-			)
-		);
-
-		wp_widgets_init();
-		require_once ABSPATH . 'wp-admin/includes/widgets.php';
-		$widget_id    = 'search-2';
-		$widget       = $wp_registered_widgets[ $widget_id ];
-		$params       = array(
-			'widget_id'   => $widget['id'],
-			'widget_name' => $widget['name'],
-		);
-		$control_args = array(
-			0 => $params,
-			1 => $widget['params'][0],
-		);
-		$sidebar_args = wp_list_widget_controls_dynamic_sidebar( $control_args );
-
-		ob_start();
-		wp_widget_control( ...$sidebar_args );
-		$control = ob_get_clean();
+		$control = $this->render_search_widget_control();
 		$this->assertNotEmpty( $control );
 
 		$this->assertStringContainsString( '<div class="widget-top">', $control );
@@ -897,16 +862,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			'before_widget_content' => '<!-- before_widget_content -->',
 			'after_widget_content'  => '<!-- after_widget_content -->',
 		);
-		$params          = array_merge( $params, $param_overrides );
-		$control_args    = array(
-			0 => $params,
-			1 => $widget['params'][0],
-		);
-		$sidebar_args    = wp_list_widget_controls_dynamic_sidebar( $control_args );
-
-		ob_start();
-		wp_widget_control( ...$sidebar_args );
-		$control = ob_get_clean();
+		$control         = $this->render_search_widget_control( $param_overrides );
 		$this->assertNotEmpty( $control );
 		$this->assertStringNotContainsString( '<form method="post">', $control );
 		$this->assertStringNotContainsString( '<div class="widget-content">', $control );
@@ -914,6 +870,64 @@ class Tests_Widgets extends WP_UnitTestCase {
 		foreach ( $param_overrides as $contained ) {
 			$this->assertStringContainsString( $contained, $control );
 		}
+	}
+
+	/**
+	 * @ticket 52399
+	 * @see wp_widget_control()
+	 */
+	public function test_wp_widget_control_edit_link_is_not_hidden_from_js() {
+		$control = $this->render_search_widget_control();
+
+		$this->assertStringContainsString( 'class="widget-control-edit"', $control, 'The Edit/Add text link should remain visible when JavaScript is available, as a plain-text path to the accessible single-widget edit screen.' );
+		$this->assertStringNotContainsString( 'widget-control-edit hide-if-js', $control );
+	}
+
+	/**
+	 * Registers a `search-2` widget in `sidebar-1` and renders its control markup via wp_widget_control().
+	 *
+	 * @param array $param_overrides Optional. Extra values merged into the sidebar params passed to wp_widget_control().
+	 * @return string The rendered control markup.
+	 */
+	private function render_search_widget_control( array $param_overrides = array() ) {
+		global $wp_registered_widgets;
+
+		update_option(
+			'widget_search',
+			array(
+				2              => array( 'title' => '' ),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'sidebar-2'           => array(),
+				'array_version'       => 3,
+			)
+		);
+
+		wp_widgets_init();
+		require_once ABSPATH . 'wp-admin/includes/widgets.php';
+		$widget       = $wp_registered_widgets['search-2'];
+		$params       = array_merge(
+			array(
+				'widget_id'   => $widget['id'],
+				'widget_name' => $widget['name'],
+			),
+			$param_overrides
+		);
+		$control_args = array(
+			0 => $params,
+			1 => $widget['params'][0],
+		);
+		$sidebar_args = wp_list_widget_controls_dynamic_sidebar( $control_args );
+
+		ob_start();
+		wp_widget_control( ...$sidebar_args );
+		return ob_get_clean();
 	}
 
 	public function test_the_widget_custom_before_title_arg() {
