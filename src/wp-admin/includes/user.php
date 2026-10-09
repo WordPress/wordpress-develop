@@ -110,7 +110,7 @@ function edit_user( $user_id = 0 ) {
 	}
 
 	if ( isset( $_POST['description'] ) ) {
-		$user->description = trim( $_POST['description'] );
+		$user->description = wp_kses_post( trim( $_POST['description'] ) );
 	}
 
 	foreach ( wp_get_user_contact_methods( $user ) as $method => $name ) {
