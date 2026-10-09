@@ -617,7 +617,15 @@ function wp_load_alloptions( $force_cache = false ) {
 	}
 
 	if ( ! wp_installing() || ! is_multisite() ) {
-		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+		if ( wp_using_ext_object_cache() ) {
+			$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+		} else {
+			$alloptionskeys = wp_cache_get( 'alloptionskeys', 'options', $force_cache );
+			$alloptions     = false;
+			if ( is_array( $alloptionskeys ) ) {
+				$alloptions = wp_cache_get_multiple( $alloptionskeys, 'options' );
+			}
+		}
 	} else {
 		$alloptions = false;
 	}
@@ -646,7 +654,12 @@ function wp_load_alloptions( $force_cache = false ) {
 			 */
 			$alloptions = apply_filters( 'pre_cache_alloptions', $alloptions );
 
-			wp_cache_add( 'alloptions', $alloptions, 'options' );
+			if ( wp_using_ext_object_cache() ) {
+				wp_cache_add( 'alloptions', $alloptions, 'options' );
+			} else {
+				wp_cache_set_multiple( $alloptions, '', 'options' );
+				wp_cache_set( 'alloptionskeys', array_keys( $alloptions ), 'options' );
+			}
 		}
 	}
 
