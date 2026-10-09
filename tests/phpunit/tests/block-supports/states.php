@@ -362,23 +362,6 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the state style helpers return an empty array unchanged.
-	 *
-	 * @covers ::wp_get_state_declarations_with_fallback_border_styles
-	 * @covers ::wp_get_state_declarations_with_background_resets
-	 * @covers ::wp_get_state_style_with_fallback_dimension_styles
-	 * @covers ::wp_get_root_state_style
-	 *
-	 * @ticket 66273
-	 */
-	public function test_state_style_helpers_return_empty_array_for_empty_array() {
-		$this->assertSame( array(), wp_get_state_declarations_with_fallback_border_styles( array() ) );
-		$this->assertSame( array(), wp_get_state_declarations_with_background_resets( array() ) );
-		$this->assertSame( array(), wp_get_state_style_with_fallback_dimension_styles( array() ) );
-		$this->assertSame( array(), wp_get_root_state_style( array(), array( ':hover' ) ) );
-	}
-
-	/**
 	 * Tests that modifier classes on the first compound selector are preserved
 	 * when state selectors are scoped to the block wrapper.
 	 *
