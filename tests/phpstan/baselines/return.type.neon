@@ -41,7 +41,7 @@ parameters:
 		-
 			message: '#^Method WP_Block_Processor\:\:extract_full_block_and_advance\(\) should return array\<array\>\|null but returns array\<string, array\|string\|null\>\.$#'
 			identifier: return.type
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
 			message: '#^Method WP_Block_Processor\:\:extract_full_block_and_advance\(\) should return array\<array\>\|null but returns array\<string, list\<string\|null\>\|string\|null\>\.$#'

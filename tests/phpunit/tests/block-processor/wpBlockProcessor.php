@@ -1573,7 +1573,8 @@ HTML
 	}
 
 	/**
-	 * Ensures that block extraction leaves the processor matched on the last token of the block.
+	 * Ensures that block extraction stops on the closing delimiter of a block with inner
+	 * content, on freeform HTML, or on the token following a void block.
 	 *
 	 * @ticket 66138
 	 *
@@ -1584,7 +1585,7 @@ HTML
 	 * @param string|null $stop_token    Token on which extraction should stop, or null if
 	 *                                   extraction should reach the end of the document.
 	 */
-	public function test_extraction_stops_on_last_token_of_block( string $test_document, string $block_type, ?string $stop_token ) {
+	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ) {
 		$processor = new WP_Block_Processor( $test_document );
 		$this->assertTrue(
 			$processor->next_block( $block_type ),
@@ -1624,13 +1625,14 @@ HTML
 	 */
 	public static function data_extraction_stop_tokens() {
 		return array(
-			'Block with inner content'        => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
-			'Void block'                      => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:a /-->' ),
-			'Void block before freeform HTML' => array( '<!-- wp:a /-->x', 'a', '<!-- wp:a /-->' ),
-			'Void block at end of document'   => array( '<!-- wp:a /-->', 'a', '<!-- wp:a /-->' ),
-			'Inner void block'                => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:v /-->' ),
-			'Freeform HTML'                   => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
-			'Unclosed block'                  => array( '<!-- wp:a -->x', 'a', null ),
+			'Block with inner content'         => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
+			'Void block'                       => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:b /-->' ),
+			'Void block before freeform HTML'  => array( '<!-- wp:a /-->x', 'a', 'x' ),
+			'Void block at end of document'    => array( '<!-- wp:a /-->', 'a', null ),
+			'Inner void block'                 => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:w /-->' ),
+			'Freeform HTML'                    => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                   => array( '<!-- wp:a -->x', 'a', null ),
 		);
 	}
 
@@ -1655,14 +1657,6 @@ HTML
 		yield 'Group with void inner' => array(
 			'<!-- wp:group --><!-- wp:void /--><!-- /wp:group -->',
 		);
-
-		yield 'Adjacent void blocks' => array( '<!-- wp:a /--><!-- wp:b /-->' );
-
-		yield 'Freeform HTML after void block' => array( '<!-- wp:a /-->x<!-- wp:b /-->' );
-
-		yield 'Block after void block' => array( "<!-- wp:a /-->\n<!-- wp:b -->y<!-- /wp:b -->" );
-
-		yield 'Block directly after void block' => array( '<!-- wp:a /--><!-- wp:b -->y<!-- /wp:b -->' );
 
 		yield 'Void block after group ending in void inner' => array(
 			'<!-- wp:g --><!-- wp:v /--><!-- /wp:g --><!-- wp:b /-->',

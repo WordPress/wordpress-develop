@@ -206,18 +206,20 @@
  *         return $post_content;
  *     }
  *
- *     $gallery_at    = $processor->get_span()->start;
+ *     $delimiter     = $processor->get_span();
+ *     $is_void       = WP_Block_Processor::VOID === $processor->get_delimiter_type();
  *     $gallery_block = $processor->extract_full_block_and_advance();
  *     if ( null !== $processor->get_last_error() ) {
  *         return $post_content;
  *     }
  *
- *     $last_token    = $processor->get_span();
+ *     // Extracting a void block moves to the token after it.
+ *     $last_token    = $is_void ? $delimiter : $processor->get_span();
  *     $after_gallery = isset( $last_token )
  *         ? $last_token->start + $last_token->length
  *         : strlen( $post_content );
  *     return (
- *         substr( $post_content, 0, $gallery_at ) .
+ *         substr( $post_content, 0, $delimiter->start ) .
  *         serialize_block( modify_gallery( $gallery_block ) ) .
  *         substr( $post_content, $after_gallery )
  *     );
@@ -1256,9 +1258,9 @@ class WP_Block_Processor {
 	 * one might want to find image galleries, parse them, modify them, and then reserialize
 	 * them in place.
 	 *
-	 * Once this function returns, the processor is matched on the last token of the given
-	 * block: the closing delimiter of a block with inner content, the delimiter of a void
-	 * block, or the span of freeform HTML. If the document ends before the block closes,
+	 * Once this function returns, the processor is matched on the closing delimiter of a
+	 * block with inner content, on the span of freeform HTML, or on the token following a
+	 * void block. If the document ends before the block closes or after a void block,
 	 * {@see self::get_span()} returns `null`, unless {@see self::get_last_error()} reports
 	 * incomplete input. In that case the extracted block may omit content at the end of
 	 * the document and the processor may remain on the final HTML span.
@@ -1272,13 +1274,15 @@ class WP_Block_Processor {
 	 *         return $post_content;
 	 *     }
 	 *
-	 *     $gallery_at  = $processor->get_span()->start;
+	 *     $delimiter   = $processor->get_span();
+	 *     $is_void     = WP_Block_Processor::VOID === $processor->get_delimiter_type();
 	 *     $gallery     = $processor->extract_full_block_and_advance();
 	 *     if ( null !== $processor->get_last_error() ) {
 	 *         return $post_content;
 	 *     }
 	 *
-	 *     $last_token  = $processor->get_span();
+	 *     // Extracting a void block moves to the token after it.
+	 *     $last_token  = $is_void ? $delimiter : $processor->get_span();
 	 *     $ends_before = isset( $last_token )
 	 *         ? $last_token->start + $last_token->length
 	 *         : strlen( $post_content );
@@ -1287,7 +1291,7 @@ class WP_Block_Processor {
 	 *     $new_gallery = serialize_block( $new_gallery );
 	 *
 	 *     return (
-	 *         substr( $post_content, 0, $gallery_at ) .
+	 *         substr( $post_content, 0, $delimiter->start ) .
 	 *         $new_gallery .
 	 *         substr( $post_content, $ends_before )
 	 *     );
@@ -1331,13 +1335,10 @@ class WP_Block_Processor {
 			'innerContent' => array(),
 		);
 
-		// A void block is its own last token.
-		if ( self::VOID === $this->type ) {
-			return $block;
-		}
-
-		$depth = $this->get_depth();
-		while ( $this->next_token() && $this->get_depth() > $depth ) {
+		$depth          = $this->get_depth();
+		$should_advance = true;
+		while ( ( ! $should_advance || $this->next_token() ) && $this->get_depth() > $depth ) {
+			$should_advance = true;
 			if ( $this->is_html() ) {
 				$chunk                   = $this->get_html_content();
 				$block['innerHTML']     .= $chunk;
@@ -1352,6 +1353,8 @@ class WP_Block_Processor {
 			 * @todo Use iteration instead of recursion, or at least refactor to tail-call form.
 			 */
 			if ( $this->opens_block() ) {
+				// Void extraction already advances to the next token.
+				$should_advance          = self::VOID !== $this->type;
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
