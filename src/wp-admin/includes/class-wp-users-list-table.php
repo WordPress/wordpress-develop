@@ -429,7 +429,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
 		}
 
-		$this->duplicate_email_user_ids = $this->get_duplicate_email_user_ids( array_keys( $this->items ) );
+		$this->duplicate_email_user_ids = $this->get_duplicate_email_user_ids( $this->items );
 
 		foreach ( $this->items as $userid => $user_object ) {
 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
@@ -447,22 +447,19 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param int[] $user_ids IDs of the users to check.
+	 * @param WP_User[] $users IDs of the users to check.
 	 * @return list<int> IDs of the given users whose email address is shared.
 	 */
-	protected function get_duplicate_email_user_ids( array $user_ids ): array {
+	protected function get_duplicate_email_user_ids( array $users ): array {
 		global $wpdb;
 
-		$user_ids = array_filter( array_map( 'intval', $user_ids ) );
-		if ( empty( $user_ids ) ) {
-			return array();
-		}
-
-		$emails = array();
-		foreach ( $user_ids as $user_id ) {
-			$user = get_userdata( $user_id );
-			if ( $user && '' !== $user->user_email ) {
+		$emails   = array();
+		$user_ids = array();
+		foreach ( $users as $user ) {
+			if ( '' !== $user->user_email ) {
 				$emails[ strtolower( $user->user_email ) ] = true;
+
+				$user_ids[] = (int) $user->ID;
 			}
 		}
 
