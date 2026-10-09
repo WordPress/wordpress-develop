@@ -171,6 +171,123 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
 }
 
 /**
+ * Adds multiple items of metadata for the specified object.
+ *
+ * This function is more performant than calling `add_metadata()` multiple times because it queries the database only
+ * once and clears the meta cache only once.
+ *
+ * This function will always insert all of the provided metadata even if matching keys already exist. This behaviour
+ * matches that of add_metadata() when its `$unique` parameter is set to false.
+ *
+ * If the insert fails, no metadata will be inserted. It's not possible for a subset of the rows to be inserted.
+ *
+ * Examples:
+ *
+ *     bulk_add_metadata(
+ *         'post',
+ *         $post_id,
+ *         array(
+ *             'meta_key_1' => 'value_1',
+ *             'meta_key_2' => 'value_2',
+ *         )
+ *     );
+ *
+ * For historical reasons both the meta key and the meta value are expected to be "slashed" (slashes escaped) on input.
+ *
+ * @since x.y.z
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string              $meta_type   Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                         'blog', or any other object type with an associated meta table.
+ * @param int                 $object_id   ID of the object metadata is for.
+ * @param array<string,mixed> $meta_fields Metadata values keyed by their meta key. Values must be serializable if non-scalar.
+ * @return array<string,int>|false Array of meta IDs keyed by their meta key on success, false on failure.
+ */
+function bulk_add_metadata( string $meta_type, int $object_id, array $meta_fields ) {
+	global $wpdb;
+
+	if ( ! $meta_type || ! $meta_fields ) {
+		return false;
+	}
+
+	$object_id = absint( $object_id );
+	if ( ! $object_id ) {
+		return false;
+	}
+
+	$table = _get_meta_table( $meta_type );
+	if ( ! $table ) {
+		return false;
+	}
+
+	$meta_subtype = get_object_subtype( $meta_type, $object_id );
+	$column       = sanitize_key( $meta_type . '_id' );
+	$data         = array();
+	$return       = array();
+	$added_keys   = array();
+
+	foreach ( $meta_fields as $meta_key => $meta_value ) {
+		// expected_slashed ($meta_key, $meta_value)
+		$meta_key   = wp_unslash( $meta_key );
+		$meta_value = wp_unslash( $meta_value );
+		$meta_value = sanitize_meta( $meta_key, $meta_value, $meta_type, $meta_subtype );
+
+		/** This filter is documented in wp-includes/meta.php */
+		$check = apply_filters( "add_{$meta_type}_metadata", null, $object_id, $meta_key, $meta_value, false );
+		if ( null !== $check ) {
+			$return[ $meta_key ] = $check;
+			continue;
+		}
+
+		/** This action is documented in wp-includes/meta.php */
+		do_action( "add_{$meta_type}_meta", $object_id, $meta_key, $meta_value );
+
+		$added_keys[] = $meta_key;
+
+		$data[] = array(
+			$object_id,
+			$meta_key,
+			maybe_serialize( $meta_value ),
+		);
+	}
+
+	// If there is no data to save, don't attempt to save it.
+	if ( ! $data ) {
+		return $return;
+	}
+
+	$inserted = $wpdb->insert_multiple(
+		$table,
+		array(
+			$column,
+			'meta_key',
+			'meta_value',
+		),
+		$data
+	);
+
+	if ( ! $inserted ) {
+		return false;
+	}
+
+	$first_mid     = (int) $wpdb->insert_id;
+	$inserted_mids = range( $first_mid, $first_mid + $inserted - 1 );
+	$keyed_mids    = array_combine( $added_keys, $inserted_mids );
+	$all_mids      = array_merge( $return, $keyed_mids );
+
+	wp_cache_delete( $object_id, $meta_type . '_meta' );
+
+	foreach ( $data as $datum ) {
+		list( $row_object_id, $meta_key, $meta_value ) = $datum;
+		/** This action is documented in wp-includes/meta.php */
+		do_action( "added_{$meta_type}_meta", $all_mids[ $meta_key ], $row_object_id, $meta_key, $meta_value );
+	}
+
+	return $all_mids;
+}
+
+/**
  * Updates metadata for the specified object. If no value already exists for the specified object
  * ID and metadata key, the metadata will be added.
  *
