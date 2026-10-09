@@ -76,6 +76,89 @@ class Tests_Functions_WpTriggerError extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the caller's file and line number are appended to the message
+	 * when called indirectly via _doing_it_wrong(), pointing to the caller of
+	 * _doing_it_wrong() rather than to wp-includes/functions.php.
+	 *
+	 * @ticket 64561
+	 */
+	public function test_caller_info_is_appended_when_called_via_doing_it_wrong() {
+		$triggered_message = null;
+
+		/*
+		 * The test framework adds __return_false to 'doing_it_wrong_trigger_error' so that
+		 * _doing_it_wrong() calls are tracked without actually triggering errors.
+		 * Remove it temporarily so wp_trigger_error() is actually called.
+		 */
+		remove_all_filters( 'doing_it_wrong_trigger_error' );
+
+		// Declare the expected incorrect usage so tearDown() does not flag it as unexpected.
+		$this->setExpectedIncorrectUsage( 'some_function' );
+
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$triggered_message ) {
+				$triggered_message = $errstr;
+				return true;
+			}
+		);
+
+		$caller_line = __LINE__ + 1;
+		_doing_it_wrong( 'some_function', 'indirect call message', '1.0' );
+
+		restore_error_handler();
+
+		// Restore the suppression filter for any subsequent calls in this test.
+		add_filter( 'doing_it_wrong_trigger_error', '__return_false' );
+
+		$this->assertNotNull( $triggered_message, 'No error was triggered.' );
+		$this->assertStringContainsString(
+			sprintf( '(Called from %s on line %d.)', __FILE__, $caller_line ),
+			$triggered_message,
+			'The caller info must point to the caller of _doing_it_wrong(), not to wp-includes/functions.php.'
+		);
+		$this->assertStringNotContainsString(
+			'wp-includes/functions.php',
+			$triggered_message,
+			'The caller info must not point to wp-includes/functions.php.'
+		);
+	}
+
+	/**
+	 * Tests that the caller's file and line number are appended to the message
+	 * when wp_trigger_error() is called directly, and that the info points to
+	 * the calling file rather than to wp-includes/functions.php.
+	 *
+	 * @ticket 64561
+	 */
+	public function test_caller_info_is_not_from_wp_includes_functions_php() {
+		$triggered_message = null;
+
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$triggered_message ) {
+				$triggered_message = $errstr;
+				return true;
+			}
+		);
+
+		$caller_line = __LINE__ + 1;
+		wp_trigger_error( 'test_fn', 'test message' );
+
+		restore_error_handler();
+
+		$this->assertNotNull( $triggered_message, 'No error was triggered.' );
+		$this->assertStringNotContainsString(
+			'wp-includes/functions.php',
+			$triggered_message,
+			'The caller info must not point to wp-includes/functions.php.'
+		);
+		$this->assertStringContainsString(
+			sprintf( '(Called from %s on line %d.)', __FILE__, $caller_line ),
+			$triggered_message,
+			'The caller info must point to this test file and the correct line.'
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return array[]
