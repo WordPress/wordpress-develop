@@ -1625,14 +1625,16 @@ HTML
 	 */
 	public static function data_extraction_stop_tokens() {
 		return array(
-			'Block with inner content'         => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
-			'Block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
-			'Void block'                       => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:b /-->' ),
-			'Void block before freeform HTML'  => array( '<!-- wp:a /-->x', 'a', 'x' ),
-			'Void block at end of document'    => array( '<!-- wp:a /-->', 'a', null ),
-			'Inner void block'                 => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:w /-->' ),
-			'Freeform HTML'                    => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
-			'Unclosed block'                   => array( '<!-- wp:a -->x', 'a', null ),
+			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
+			'Void block'                                => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:b /-->' ),
+			'Void block before freeform HTML'           => array( '<!-- wp:a /-->x', 'a', 'x' ),
+			'Void block at end of document'             => array( '<!-- wp:a /-->', 'a', null ),
+			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:w /-->' ),
+			'Freeform HTML'                             => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                            => array( '<!-- wp:a -->x', 'a', null ),
+			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->', 'g', null ),
+			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->x<', 'g', 'x' ),
 		);
 	}
 
