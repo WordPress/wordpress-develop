@@ -31,7 +31,10 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertNotWPError( $t );
 		$this->assertGreaterThan( 0, $t['term_id'] );
 		$this->assertGreaterThan( 0, $t['term_taxonomy_id'] );
-		$this->assertEquals( $initial_count + 1, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
+		$this->assertSame(
+			(string) ( $initial_count + 1 ),
+			wp_count_terms( array( 'taxonomy' => $taxonomy ) )
+		);
 
 		// Make sure the term exists.
 		$this->assertGreaterThan( 0, term_exists( $term ) );
@@ -778,6 +781,8 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		$this->assertNotEmpty( $found['term_id'] );
 		$this->assertNotEmpty( $found['term_taxonomy_id'] );
 		$this->assertNotEmpty( $term_by_id );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $term_by_id, $term_by_slug );
 		$this->assertEquals( $term_by_id, $term_by_ttid );
 	}
@@ -961,7 +966,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		// Pesky string $this->assertIsInt( $tt_id );
 		$this->assertSame( $term, $deleted_term->term_id );
 		$this->assertSame( $taxonomy, $deleted_term->taxonomy );
-		$this->assertEquals( $tt_id, $deleted_term->term_taxonomy_id );
+		$this->assertSame( (int) $tt_id, $deleted_term->term_taxonomy_id );
 		$this->assertEmpty( $object_ids );
 	}
 

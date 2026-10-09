@@ -53,15 +53,6 @@ services:
 		tags:
 			- phpstan.rules.rule
 
-	# Docblocks inherited from another file, and the sources above that read them,
-	# are invisible to PHPStan's dependency graph, so both are folded into the result
-	# cache key. Without this, editing a canonical hook docblock leaves the cached
-	# results of every call site inheriting it in place.
-	-
-		class: WordPress\PHPStan\HookDocsResultCacheMetaExtension
-		tags:
-			- phpstan.resultCacheMetaExtension
-
 	# Runs the visitors above over every file PHPStan parses, not only the ones it
 	# analyzes.
 	#
@@ -215,7 +206,6 @@ parameters:
 		- ApplyFiltersDynamicFunctionReturnTypeExtension.php
 		- HookDocumentationRule.php
 		- HookParamCountRule.php
-		- HookDocsResultCacheMetaExtension.php
 	bootstrapFiles:
 		- bootstrap.php
 	scanFiles:
@@ -224,6 +214,10 @@ parameters:
 	excludePaths:
 		analyseAndScan:
 			- ../../src/wp-admin/includes/noop.php
+			# Locally installed npm dependencies, such as in bundled themes, which may include PHP files.
+			- */node_modules/*
+			# Composer dependencies of themes and plugins, which are not part of core.
+			- ../../src/wp-content/*/vendor/*
 		analyse:
 			# These files are deprecated.
 			- ../../src/wp-admin/includes/deprecated.php

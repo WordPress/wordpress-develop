@@ -281,7 +281,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$terms = $query->get_terms();
-
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $t1, $t2 ), $terms );
 	}
 
@@ -468,7 +468,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		$num_queries = get_num_queries();
 
@@ -480,7 +480,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 		$this->assertSame( $num_queries, get_num_queries() );
 	}
 
@@ -501,7 +501,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 2, $count );
+		$this->assertSame( '2', $count );
 
 		wp_delete_term( $terms[0], 'wptests_tax_1' );
 
@@ -513,7 +513,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$count = $query->get_terms();
-		$this->assertEquals( 1, $count );
+		$this->assertSame( '1', $count );
 	}
 
 	/**

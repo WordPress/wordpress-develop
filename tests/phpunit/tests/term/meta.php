@@ -453,13 +453,12 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$expected = array(
 			'meta_key'   => 'foo',
 			'meta_value' => 'bar',
-			'meta_id'    => $term_meta_id,
-			'term_id'    => $t,
+			'meta_id'    => (string) $term_meta_id,
+			'term_id'    => (string) $t,
 		);
 
 		$found = $meta[0];
-
-		$this->assertEquals( $expected, $found );
+		$this->assertSame( $expected, $found );
 	}
 
 	/**
