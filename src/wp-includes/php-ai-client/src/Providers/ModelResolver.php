@@ -19,6 +19,12 @@ use WordPress\AiClient\Providers\Models\DTO\ModelRequirements;
  * selection behaves identically regardless of what is being generated.
  *
  * @since 1.4.0
+ *
+ * A ProviderModelTuple is a two-element list identifying a model by its provider: index 0 is
+ * the provider ID or provider class name, index 1 is the model ID. For example,
+ * ['google', 'gemini-embedding-001'].
+ *
+ * @phpstan-type ProviderModelTuple array{0: string, 1: string}
  */
 class ModelResolver
 {
@@ -96,7 +102,7 @@ class ModelResolver
      *
      * @since 1.4.0
      *
-     * @param string|ModelInterface|array{0:string,1:string} ...$preferredModels The preferred models as model IDs,
+     * @param string|ModelInterface|ProviderModelTuple ...$preferredModels The preferred models as model IDs,
      * model instances, or [provider ID, model ID] tuples. For broader compatibility, it is recommended you specify
      * only model IDs or model instances, as that will allow for different providers that expose the same model to be
      * considered.
@@ -277,7 +283,7 @@ class ModelResolver
      * @since 1.4.0
      *
      * @param ModelRequirements $requirements The requirements derived from the prompt.
-     * @return array<string, array{0:string,1:string}> Map of preference keys to [providerId, modelId] tuples.
+     * @return array<string, ProviderModelTuple> Map of preference keys to [providerId, modelId] tuples.
      */
     private function getCandidateModelsMap(ModelRequirements $requirements): array
     {
@@ -306,7 +312,7 @@ class ModelResolver
      *
      * @param string $providerId The provider ID.
      * @param list<ModelMetadata> $modelsMetadata The models metadata to map.
-     * @return array<string, array{0:string,1:string}> Map of preference keys to [providerId, modelId] tuples.
+     * @return array<string, ProviderModelTuple> Map of preference keys to [providerId, modelId] tuples.
      */
     private function generateMapFromCandidates(string $providerId, array $modelsMetadata): array
     {
