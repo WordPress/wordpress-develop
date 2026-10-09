@@ -5487,7 +5487,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64145
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
 	 * @dataProvider data_internal_comment_type_exclusion
 	 *
@@ -5572,7 +5572,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64145
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers WP_Comment_Query::get_comment_ids
 	 */
 	public function test_internal_comment_types_not_duplicated_in_type__not_in() {
@@ -5603,7 +5603,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 64145
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::get_comment_count
 	 */
 	public function test_get_comment_count_excludes_internal_comment_types() {

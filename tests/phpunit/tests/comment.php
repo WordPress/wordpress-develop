@@ -2036,7 +2036,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * it would survive as an approved top-level row still carrying the
 	 * reactor's identity.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::wp_delete_comment
 	 */
 	public function test_wp_delete_comment_deletes_note_reactions() {
@@ -2073,7 +2073,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that deleting a note reply takes only that reply's reactions.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::wp_delete_comment
 	 */
 	public function test_wp_delete_comment_deletes_note_reply_reactions() {
@@ -2109,7 +2109,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 *
 	 * The reaction cascade must not change how any other comment type behaves.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::wp_delete_comment
 	 */
 	public function test_wp_delete_comment_still_reparents_non_note_children() {
@@ -2144,7 +2144,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * Core cascades a trashed note to its `note` children only, so without this
 	 * a reaction stays approved under a trashed note.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::wp_trash_comment
 	 */
 	public function test_wp_trash_comment_trashes_note_reactions() {
@@ -2170,7 +2170,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Tests that trashing a note reply carries that reply's reactions along.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 * @covers ::wp_trash_comment
 	 */
 	public function test_wp_trash_comment_trashes_note_reply_reactions() {
@@ -2209,7 +2209,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * A reaction the user already removed is trashed, not deleted, so deleting
 	 * its note must take it along too rather than leave it orphaned.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_delete_comment
 	 */
@@ -2237,7 +2237,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	 * trashed note must take those reactions along, as well as any the user
 	 * removed earlier.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_delete_comment
 	 */
@@ -2266,7 +2266,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_get_note_reaction_ids
 	 */
@@ -2296,7 +2296,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_get_note_reaction_ids
 	 */
@@ -2322,7 +2322,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * Only notes carry reactions.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_get_note_reaction_ids
 	 *
@@ -2358,7 +2358,7 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::wp_get_note_reaction_ids
 	 */

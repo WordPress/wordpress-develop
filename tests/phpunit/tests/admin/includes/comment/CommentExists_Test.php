@@ -87,7 +87,7 @@ class Admin_Includes_Comment_CommentExists_Test extends WP_UnitTestCase {
 	 * Internal comment types are not awaiting moderation, so they must not be
 	 * counted as pending.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::get_pending_comments_num
 	 */
@@ -117,7 +117,7 @@ class Admin_Includes_Comment_CommentExists_Test extends WP_UnitTestCase {
 	/**
 	 * The array form of the count excludes internal comment types too.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @covers ::get_pending_comments_num
 	 */
