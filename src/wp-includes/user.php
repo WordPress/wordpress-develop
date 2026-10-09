@@ -2211,6 +2211,7 @@ function _wp_is_user_email_case_sensitive() {
 		$is_case_sensitive = true;
 
 		if ( $wpdb->is_mysql ) {
+			/** @var object{ Collation: string } $column */
 			$column = $wpdb->get_row( "SHOW FULL COLUMNS FROM $wpdb->users LIKE 'user_email'" );
 
 			if ( $column && ! empty( $column->Collation ) ) {

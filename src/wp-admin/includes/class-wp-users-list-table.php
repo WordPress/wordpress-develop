@@ -17,6 +17,15 @@
 class WP_Users_List_Table extends WP_List_Table {
 
 	/**
+	 * The current list of items.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @var array<int, WP_User>
+	 */
+	public $items;
+
+	/**
 	 * Site ID to generate the Users list table for.
 	 *
 	 * @since 3.1.0
@@ -471,6 +480,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		 */
 		$email_column = _wp_is_user_email_case_sensitive() ? 'LOWER(user_email)' : 'user_email';
 
+		/** @var list<object{ ID: numeric-string, user_email: string }> $matches */
 		$matches = $wpdb->get_results(
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 			$wpdb->prepare( "SELECT ID, user_email FROM $wpdb->users WHERE $email_column IN ($placeholders)", $emails )
@@ -507,6 +517,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 */
 	public function single_row( $user_object, $style = '', $role = '', $numposts = 0 ) {
 		if ( ! ( $user_object instanceof WP_User ) ) {
+			/** @var WP_User $user_object */
 			$user_object = get_userdata( (int) $user_object );
 		}
 		$user_object->filter = 'display';
