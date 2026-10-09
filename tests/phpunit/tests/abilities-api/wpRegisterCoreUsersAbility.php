@@ -277,7 +277,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 'object', $output_schema['type'], 'The users ability output schema should describe an object.' );
 		$this->assertCount( 2, $output_schema['oneOf'], 'The output schema should describe single-user and collection responses.' );
-		$this->assertArrayNotHasKey( 'required', $user_schema, 'Single-user fields should remain optional.' );
+		$this->assertSame( array( 'id' ), $user_schema['required'], 'Only the always-returned id should be required in a user.' );
 		$this->assertSame( array( 'users', 'total', 'total_pages' ), $collection_schema['required'], 'Collection responses should require the wrapper fields.' );
 		$this->assertSame( 'date-time', $user_properties['registered_date']['format'], 'The registered_date output schema should use date-time format.' );
 		$this->assertSame( 'uri', $user_properties['link']['format'], 'The link output schema should use uri format.' );
@@ -2005,14 +2005,29 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = $execute( array( 'include' => array( 0 ) ) );
 		$this->assertWPError( $result, 'An include filter with no valid IDs must not fall through to an unrestricted query.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An empty-after-parsing include should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'include' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the include filter to the error message.'
+		);
 
 		$result = $execute( array( 'roles' => array( 5 ) ) );
 		$this->assertWPError( $result, 'A roles filter with no role names must not fall through to an unfiltered query.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An empty-after-parsing roles filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'roles' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the roles filter to the error message.'
+		);
 
 		$result = $execute( array( 'has_published_posts' => false ) );
 		$this->assertWPError( $result, 'A has_published_posts value that is neither true nor a list of post types must not be dropped.' );
 		$this->assertSame( 'users_invalid_filter', $result->get_error_code(), 'An unhonorable has_published_posts filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'has_published_posts' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the has_published_posts filter to the error message.'
+		);
 	}
 
 	/**

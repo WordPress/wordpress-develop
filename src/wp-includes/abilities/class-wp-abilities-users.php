@@ -226,7 +226,7 @@ final class WP_Abilities_Users {
 		 * would return every user — the opposite of the caller's intent.
 		 */
 		if ( isset( $input['include'] ) && array() === $include ) {
-			return $this->invalid_filter_error( __( 'The include filter must list one or more valid user IDs.' ) );
+			return $this->invalid_filter_error( 'include', __( 'The include filter must list one or more valid user IDs.' ) );
 		}
 
 		$per_page       = $this->normalize_per_page( $input, $include );
@@ -254,7 +254,7 @@ final class WP_Abilities_Users {
 		if ( isset( $input['roles'] ) ) {
 			$roles = $this->normalize_string_list( $input['roles'] );
 			if ( array() === $roles ) {
-				return $this->invalid_filter_error( __( 'The roles filter must list one or more role names.' ) );
+				return $this->invalid_filter_error( 'roles', __( 'The roles filter must list one or more role names.' ) );
 			}
 
 			/*
@@ -275,7 +275,7 @@ final class WP_Abilities_Users {
 
 		$has_published_posts = $this->normalize_has_published_posts( $input );
 		if ( array_key_exists( 'has_published_posts', $input ) && null === $has_published_posts ) {
-			return $this->invalid_filter_error( __( 'The has_published_posts filter must be true or list one or more post type names.' ) );
+			return $this->invalid_filter_error( 'has_published_posts', __( 'The has_published_posts filter must be true or list one or more post type names.' ) );
 		}
 
 		/*
@@ -963,10 +963,10 @@ final class WP_Abilities_Users {
 	/**
 	 * Builds the output schema for the `core/users-query` ability.
 	 *
-	 * No user field is marked required because the `fields` input lets the caller
-	 * request any subset, and restricted fields are omitted when unavailable.
-	 * Single-user mode returns the user object directly, while collection mode returns
-	 * a paginated wrapper.
+	 * Only `id` is required in a user, because it is always returned. The other fields
+	 * are optional because the `fields` input lets the caller request any subset, and
+	 * restricted fields are omitted when unavailable. Single-user mode returns the user
+	 * object directly, while collection mode returns a paginated wrapper.
 	 *
 	 * @since 7.2.0
 	 *
@@ -976,6 +976,7 @@ final class WP_Abilities_Users {
 		$user_schema = array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
+			'required'             => array( 'id' ),
 			'properties'           => $this->get_user_properties(),
 		);
 
@@ -1128,12 +1129,24 @@ final class WP_Abilities_Users {
 	/**
 	 * Builds the error for a collection filter that cannot be honored.
 	 *
+	 * As in the REST API's `rest_invalid_param` errors, the error data maps the filter to
+	 * the message under `params`, so callers can tell which filter failed without parsing
+	 * the translated message.
+	 *
 	 * @since 7.2.0
 	 *
+	 * @param string $filter  The filter's input name.
 	 * @param string $message The error message.
 	 * @return WP_Error The invalid filter error.
 	 */
-	private function invalid_filter_error( string $message ): WP_Error {
-		return new WP_Error( 'users_invalid_filter', $message, array( 'status' => 400 ) );
+	private function invalid_filter_error( string $filter, string $message ): WP_Error {
+		return new WP_Error(
+			'users_invalid_filter',
+			$message,
+			array(
+				'status' => 400,
+				'params' => array( $filter => $message ),
+			)
+		);
 	}
 }
