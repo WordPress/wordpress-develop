@@ -3372,6 +3372,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function in_body_any_other_end_tag(): bool {
+		$node       = null;
 		$token_name = $this->get_token_name();
 
 		/*
