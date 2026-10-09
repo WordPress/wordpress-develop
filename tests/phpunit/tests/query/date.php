@@ -5,6 +5,8 @@
  *
  * @group query
  * @group date
+ *
+ * @covers WP_Query
  */
 class Tests_Query_Date extends WP_UnitTestCase {
 

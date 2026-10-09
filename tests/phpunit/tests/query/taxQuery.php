@@ -3,6 +3,7 @@
 /**
  * @group query
  * @group taxonomy
+ * @covers WP_Query
  */
 class Tests_Query_TaxQuery extends WP_UnitTestCase {
 	public function test_tax_query_single_query_single_term_field_slug() {

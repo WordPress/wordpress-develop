@@ -1,6 +1,8 @@
 <?php
 /**
  * @group query
+ *
+ * @covers WP_Query
  */
 class Tests_Query_CommentCount extends WP_UnitTestCase {
 	public static $post_ids = array();

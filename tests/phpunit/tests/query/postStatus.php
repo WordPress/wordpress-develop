@@ -2,6 +2,8 @@
 
 /**
  * @group query
+ *
+ * @covers WP_Query
  */
 class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public static $editor_user_id;
