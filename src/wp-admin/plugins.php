@@ -280,12 +280,6 @@ if ( $action ) {
 				exit;
 			}
 
-			$plugins = array_filter( $plugins, 'is_plugin_inactive' ); // Do not allow to delete activated plugins.
-			if ( empty( $plugins ) ) {
-				wp_redirect( self_admin_url( "plugins.php?error=true&main=true&plugin_status=$status&paged=$page&s=$s" ) );
-				exit;
-			}
-
 			// Bail on all if any paths are invalid.
 			// validate_file() returns truthy for invalid files.
 			$invalid_plugin_files = array_filter( $plugins, 'validate_file' );
@@ -373,14 +367,21 @@ if ( $action ) {
 
 						$data_to_delete = false;
 
-						foreach ( $plugin_info as $plugin ) {
+						foreach ( $plugin_info as $plugin_file => $plugin ) {
+							$is_active = is_network_admin() ? is_plugin_active_for_network( $plugin_file ) : is_plugin_active( $plugin_file );
+
+							$active_notice = '';
+							if ( $is_active ) {
+								$active_notice = ' <strong>' . __( '(is active and will be deactivated)' ) . '</strong>';
+							}
+
 							if ( $plugin['is_uninstallable'] ) {
 								/* translators: 1: Plugin name, 2: Plugin author. */
-								echo '<li>', sprintf( __( '%1$s by %2$s (will also <strong>delete its data</strong>)' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] . '</em>' ), '</li>';
+								echo '<li>', sprintf( __( '%1$s by %2$s (will also <strong>delete its data</strong>)' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] . '</em>' ), $active_notice, '</li>';
 								$data_to_delete = true;
 							} else {
 								/* translators: 1: Plugin name, 2: Plugin author. */
-								echo '<li>', sprintf( _x( '%1$s by %2$s', 'plugin' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] ) . '</em>', '</li>';
+								echo '<li>', sprintf( _x( '%1$s by %2$s', 'plugin' ), '<strong>' . $plugin['Name'] . '</strong>', '<em>' . $plugin['AuthorName'] ) . '</em>', $active_notice, '</li>';
 							}
 						}
 
@@ -426,6 +427,18 @@ if ( $action ) {
 			} else {
 				$plugins_to_delete = count( $plugins );
 			} // End if verify-delete.
+
+			// Deactivate active plugins before deleting them.
+			$active_plugins = array();
+			foreach ( $plugins as $plugin ) {
+				if ( is_network_admin() ? is_plugin_active_for_network( $plugin ) : is_plugin_active( $plugin ) ) {
+					$active_plugins[] = $plugin;
+				}
+			}
+
+			if ( ! empty( $active_plugins ) ) {
+				deactivate_plugins( $active_plugins, false, is_network_admin() );
+			}
 
 			$delete_result = delete_plugins( $plugins );
 
