@@ -266,6 +266,36 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a comment feed skips comments that a 'get_comment' filter
+	 * returned null for, using the post date instead.
+	 *
+	 * @ticket 59956
+	 */
+	public function test_should_skip_null_comments_in_comment_feed() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-01-01 00:00:00',
+				'post_date_gmt' => '2020-01-01 00:00:00',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_date'     => '2024-06-15 12:00:00',
+				'comment_date_gmt' => '2024-06-15 12:00:00',
+			)
+		);
+
+		add_filter( 'get_comment', '__return_null' );
+
+		$this->go_to( get_post_comments_feed_link( $post_id ) );
+		$this->assertTrue( is_comment_feed(), 'Expected a comment feed.' );
+
+		$this->assertSame( '2020-01-01T00:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
