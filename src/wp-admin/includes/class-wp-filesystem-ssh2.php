@@ -547,6 +547,13 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 			return false;
 		}
 
+		if ( $source === $destination ) {
+			return false;
+		}
+
+		if ( $overwrite && $this->exists( $destination ) && ! $this->delete( $destination ) ) {
+			return false;
+		}
 		$content = $this->get_contents( $source );
 
 		if ( false === $content ) {
@@ -635,7 +642,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool Whether $path exists or not.
 	 */
 	public function exists( $path ) {
-		return file_exists( $this->sftp_path( $path ) );
+		$path = $this->sftp_path( $path );
+
+		return file_exists( $path ) || is_link( $path );
 	}
 
 	/**
@@ -647,7 +656,9 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 * @return bool Whether $file is a file.
 	 */
 	public function is_file( $file ) {
-		return is_file( $this->sftp_path( $file ) );
+		$file = $this->sftp_path( $file );
+
+		return is_file( $file ) || is_link( $file );
 	}
 
 	/**
