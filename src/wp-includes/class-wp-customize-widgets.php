@@ -879,6 +879,7 @@ final class WP_Customize_Widgets {
 						'name'        => $source->name,
 						'label'       => $source->label,
 						'usesContext' => $source->uses_context,
+						'args'        => $source->args,
 					);
 				}
 				$script = sprintf( 'for ( const source of %s ) { wp.blocks.registerBlockBindingsSource( source ); }', wp_json_encode( $filtered_sources, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
