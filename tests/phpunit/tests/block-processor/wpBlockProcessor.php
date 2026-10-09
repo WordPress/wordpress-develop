@@ -1585,7 +1585,7 @@ HTML
 	 * @param string|null $stop_token    Token on which extraction should stop, or null if
 	 *                                   extraction should reach the end of the document.
 	 */
-	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ) {
+	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ): void {
 		$processor = new WP_Block_Processor( $test_document );
 		$this->assertTrue(
 			$processor->next_block( $block_type ),
@@ -1607,7 +1607,7 @@ HTML
 	 *
 	 * @ticket 66138
 	 */
-	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block() {
+	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block(): void {
 		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
 		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
 		$group = $processor->extract_full_block_and_advance();
@@ -1621,9 +1621,9 @@ HTML
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{0: string, 1: string, 2: string|null}>
 	 */
-	public static function data_extraction_stop_tokens() {
+	public static function data_extraction_stop_tokens(): array {
 		return array(
 			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
 			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
