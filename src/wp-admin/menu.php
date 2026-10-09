@@ -23,6 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     5: ID.
  *     6: Icon for top level menu.
  *
+ * The Dashicons values of the icons are kept for backward compatibility. They are
+ * replaced with SVG icons at render time, see _wp_replace_menu_dashicon().
+ *
  * @global array $menu
  */
 
