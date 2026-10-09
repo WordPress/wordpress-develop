@@ -854,7 +854,7 @@ function get_feed_build_date( $format ) {
 	$max_modified_time = false;
 	$utc               = new DateTimeZone( 'UTC' );
 
-	if ( ! empty( $wp_query ) && $wp_query->have_posts() && is_array( $wp_query->posts ) ) {
+	if ( $wp_query instanceof WP_Query && $wp_query->have_posts() && is_array( $wp_query->posts ) ) {
 		/*
 		 * Collect the post modified times. WP_Post objects are read as-is, since
 		 * passing them through get_post() would look them up again by ID, which
