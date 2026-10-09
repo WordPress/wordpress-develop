@@ -141,7 +141,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 	 * Internal comment types are not user-facing discussion, so they must not
 	 * move the last comment modified date.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_internal_comment_types_are_excluded
 	 *
@@ -196,7 +196,7 @@ class Tests_Comment_GetLastCommentModified extends WP_UnitTestCase {
 	/**
 	 * With nothing but internal comment types stored there is no last modified date.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_only_internal_comment_types_returns_false() {
 		foreach ( array( 'note', 'reaction' ) as $comment_type ) {

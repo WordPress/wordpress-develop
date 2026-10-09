@@ -4306,7 +4306,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction() {
 		wp_set_current_user( self::$editor_id );
@@ -4348,7 +4348,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_invalid_parent() {
 		wp_set_current_user( self::$editor_id );
@@ -4383,7 +4383,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_no_parent() {
 		wp_set_current_user( self::$editor_id );
@@ -4408,7 +4408,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_invalid_emoji() {
 		wp_set_current_user( self::$editor_id );
@@ -4443,7 +4443,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_duplicate() {
 		wp_set_current_user( self::$editor_id );
@@ -4491,7 +4491,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_different_reactions_on_same_note() {
 		wp_set_current_user( self::$editor_id );
@@ -4545,7 +4545,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_requires_login() {
 		wp_set_current_user( 0 );
@@ -4582,7 +4582,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Each curated reaction emoji is accepted by its hex key: the emoji's
 	 * lowercase code points, padded to four digits.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_curated_reaction_keys
 	 *
@@ -4637,7 +4637,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Raw emoji bytes must be rejected - clients are expected to normalize
 	 * to a curated hex key before submitting.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_rejects_raw_emoji() {
 		wp_set_current_user( self::$editor_id );
@@ -4676,7 +4676,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * to the same note. Trashed reactions are invisible and must not block
 	 * re-adding.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_after_trashing_previous_one() {
 		wp_set_current_user( self::$editor_id );
@@ -4725,7 +4725,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction whose parent note belongs to a different post is rejected.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_on_note_from_different_post() {
 		wp_set_current_user( self::$editor_id );
@@ -4766,7 +4766,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * submitted as well-formed hex keys, are rejected, as are the slugs an
 	 * earlier version of the API accepted and keys that are not lowercase.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_uncurated_reaction_keys
 	 *
@@ -4820,7 +4820,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * around the key must not reach the database, or `reaction_summary`
 	 * grouping would split visually identical reactions.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_stores_canonical_key() {
 		wp_set_current_user( self::$editor_id );
@@ -4860,7 +4860,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction can be sent in the object form of `content`, like any comment.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_accepts_raw_content_object() {
 		wp_set_current_user( self::$editor_id );
@@ -4902,7 +4902,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Held, spammed or trashed reactions are invisible to the uniqueness check
 	 * and the reaction summary, so repeated requests could pile them up.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_create_reaction_status
 	 *
@@ -4979,7 +4979,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * request's check but before its own insert — and assert the post-insert
 	 * cleanup converges on a single surviving row.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_concurrent_duplicate_reaction_converges_to_single_row() {
 		wp_set_current_user( self::$editor_id );
@@ -5066,7 +5066,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * a competing request has already deleted this request's own row - the
 	 * losing side of the same race the test above covers from the winner.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_concurrent_cleanup_deleting_own_row_still_returns_survivor() {
 		wp_set_current_user( self::$editor_id );
@@ -5171,7 +5171,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * post and canonical key - and the generic update route re-validates none
 	 * of it, so updating a reaction is not allowed at all.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_update_reaction_content_is_not_allowed() {
 		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5199,7 +5199,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * The reactor's identity must not be reassignable through the update route.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_update_reaction_author_is_not_allowed() {
 		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5227,7 +5227,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction must not be movable onto a note on a post the user cannot edit.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_update_reaction_cannot_move_to_note_on_another_post() {
 		$editable_post = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5277,7 +5277,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Only reactions are locked down; notes stay editable.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_update_note_is_still_allowed() {
 		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5305,7 +5305,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * counts per emoji hex key, plus the current user's reaction ID as
 	 * `current_user_reaction`.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_note_response_includes_reaction_summary() {
 		wp_set_current_user( self::$editor_id );
@@ -5364,7 +5364,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Reactions are summarized in `reaction_summary`, so they neither change
 	 * where the link points nor make a note without replies advertise one.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_note_children_link_ignores_reactions() {
 		wp_set_current_user( self::$editor_id );
@@ -5420,7 +5420,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction may only be added on the current user's own behalf.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_cannot_be_attributed_to_another_user() {
 		wp_set_current_user( self::$admin_id );
@@ -5472,7 +5472,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A reaction stored with `user_id` 0 is invisible to the uniqueness check and
 	 * to `reaction_summary`, so it could be added repeatedly and never removed.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_ignores_request_author_fields() {
 		wp_set_current_user( self::$editor_id );
@@ -5522,7 +5522,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Removing a reaction takes it out of the note's summary.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_delete_reaction() {
 		wp_set_current_user( self::$editor_id );
@@ -5561,7 +5561,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A user who cannot edit the note's post cannot remove a reaction on it.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_delete_reaction_requires_edit_permission() {
 		$post_id     = self::factory()->post->create();
@@ -5597,7 +5597,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Only the user who added a reaction can remove it, even though other
 	 * users who can edit the post can edit the note it belongs to.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_delete_reaction_of_another_user_is_not_allowed() {
 		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5635,7 +5635,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction's author can remove it from a note somebody else wrote.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_delete_own_reaction_on_another_users_note() {
 		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
@@ -5673,7 +5673,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A reaction cannot be added to a trashed or spammed note, where it would
 	 * escape the trash cascade.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_hidden_note_statuses
 	 *
@@ -5728,7 +5728,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * reactions from then on, so the server rejects them too, on the root
 	 * note and on its replies.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_resolved_thread_targets
 	 *
@@ -5797,7 +5797,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * status, so a reaction request cannot reveal whether that note is
 	 * trashed, spammed or resolved.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_other_post_note_states
 	 *
@@ -5859,7 +5859,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * when approved on a public post. Only the reacting user or a user who can
 	 * edit the comment can read one.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_reaction_is_not_publicly_readable() {
 		$post_id     = self::factory()->post->create(
@@ -5909,7 +5909,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A later page of notes summarizes its own notes' reactions with the same
 	 * two queries as the first page, rather than one query per note.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_second_page_of_notes_keeps_reaction_summary_queries_bounded() {
 		wp_set_current_user( self::$editor_id );
@@ -5972,7 +5972,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A reaction can be added to a reply in an open thread.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_create_reaction_on_reply_in_open_thread() {
 		wp_set_current_user( self::$editor_id );
@@ -6018,7 +6018,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Listing notes returns each note's reaction summary without a per-note query.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_note_collection_includes_reaction_summary() {
 		wp_set_current_user( self::$editor_id );
@@ -6085,7 +6085,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A note is not readable, and so neither is its reaction summary, without permission.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_reaction_summary_is_not_exposed_to_logged_out_users() {
 		$note_id = self::factory()->comment->create(
@@ -6119,7 +6119,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * Reactions from several users are counted together, and the current user's
 	 * own row is the one reported back.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_reaction_summary_counts_reactions_from_multiple_users() {
 		$note_id = self::factory()->comment->create(
@@ -6166,7 +6166,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * A trashed reaction drops out of the summary.
 	 *
-	 * @ticket 63191
+	 * @ticket 64638
 	 */
 	public function test_reaction_summary_excludes_trashed_reactions() {
 		wp_set_current_user( self::$editor_id );

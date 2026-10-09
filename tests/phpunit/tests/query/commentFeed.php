@@ -88,7 +88,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65613
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_internal_comment_types
 	 *
@@ -121,7 +121,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65613
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_internal_comment_types
 	 *
@@ -155,7 +155,7 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65613
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_internal_comment_types
 	 *

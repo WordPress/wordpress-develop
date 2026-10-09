@@ -219,7 +219,7 @@ OPTIONS;
 	 *
 	 * @ticket 64198
 	 * @ticket 64474
-	 * @ticket 63191
+	 * @ticket 64638
 	 *
 	 * @dataProvider data_comment_type
 	 *
