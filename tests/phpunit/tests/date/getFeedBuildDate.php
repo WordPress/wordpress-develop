@@ -205,9 +205,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			)
 		);
 
-		$wp_query             = new WP_Query();
-		$wp_query->post_count = 1;
-		$wp_query->posts      = array( $virtual_post );
+		$wp_query        = new WP_Query();
+		$wp_query->posts = array( $virtual_post );
 
 		$this->assertSame( '2021-03-04T05:06:07+00:00', get_feed_build_date( DATE_RFC3339 ) );
 	}
@@ -232,9 +231,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_Post::class, $post );
 		$post->post_modified_gmt = '2021-03-04 05:06:07';
 
-		$wp_query             = new WP_Query();
-		$wp_query->post_count = 1;
-		$wp_query->posts      = array( $post );
+		$wp_query        = new WP_Query();
+		$wp_query->posts = array( $post );
 
 		$this->assertSame( '2021-03-04T05:06:07+00:00', get_feed_build_date( DATE_RFC3339 ) );
 	}
