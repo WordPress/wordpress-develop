@@ -568,6 +568,48 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that response data which is not an array is returned unchanged when request['_fields'] is present.
+	 *
+	 * @ticket 66230
+	 *
+	 * @dataProvider data_rest_filter_response_fields_non_array_data
+	 *
+	 * @param mixed $data Response data.
+	 */
+	public function test_rest_filter_response_fields_non_array_data( $data ) {
+		$response = new WP_REST_Response( $data );
+		$request  = array(
+			'_fields' => 'name,slug',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertSame( $data, $response->get_data() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_rest_filter_response_fields_non_array_data() {
+		$json_serializable = new class() implements JsonSerializable {
+			#[ReturnTypeWillChange]
+			public function jsonSerialize() {
+				return array( 'name' => 'a' );
+			}
+		};
+
+		return array(
+			'empty object'     => array( new stdClass() ),
+			'object'           => array( (object) array( 'name' => 'a' ) ),
+			'JsonSerializable' => array( $json_serializable ),
+			'string'           => array( 'string' ),
+			'boolean'          => array( true ),
+			'null'             => array( null ),
+		);
+	}
+
+	/**
 	 * Ensure that result fields are allowed if request['_fields'] is present.
 	 */
 	public function test_rest_filter_response_fields_single_field_filter() {

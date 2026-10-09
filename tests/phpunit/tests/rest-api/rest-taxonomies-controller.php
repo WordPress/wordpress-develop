@@ -157,13 +157,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'type', 'wingding' );
 		$request->set_param( '_fields', 'name,slug' );
 		$server   = rest_get_server();
-		$response = $server->dispatch( $request );
-		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
-		$response = apply_filters( 'rest_post_dispatch', $response, $server, $request );
-		remove_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10 );
+		$response = rest_filter_response_fields( $server->dispatch( $request ), $server, $request );
 
-		$this->assertSame( 200, $response->get_status(), 'The response status should be 200.' );
-		$this->assertSame( '{}', json_encode( $response->get_data() ), 'The empty collection should still be returned as a JSON object.' );
+		$this->assertSame( '{}', wp_json_encode( $response->get_data() ) );
 	}
 
 	public function test_get_item() {

@@ -955,8 +955,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$data = $response->get_data();
 
-	// Objects, such as an empty collection returned as a JSON object, have no fields to filter.
-	if ( is_object( $data ) ) {
+	// Only array data has fields to filter, e.g. an empty collection may be an object so it is encoded as `{}`.
+	if ( ! is_array( $data ) ) {
 		return $response;
 	}
 
