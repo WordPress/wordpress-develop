@@ -376,69 +376,18 @@ class WP_CSS_Token_Serializer {
 	 * @return string Identifier text.
 	 */
 	public static function escape_ident( string $value ): string {
-		$value  = wp_scrub_utf8( $value );
-		$result = '';
-		$length = strlen( $value );
-
-		for ( $i = 0; $i < $length; $i++ ) {
-			$byte = ord( $value[ $i ] );
-
-			// NULL → U+FFFD REPLACEMENT CHARACTER.
-			if ( 0x00 === $byte ) {
-				$result .= "\u{FFFD}";
-				continue;
-			}
-
-			// Non-ASCII bytes (≥ 0x80): valid in idents, pass through.
-			if ( $byte >= 0x80 ) {
-				$result .= $value[ $i ];
-				continue;
-			}
-
-			// ASCII letters and underscore: always valid in idents.
-			if (
-				( $byte >= 0x41 && $byte <= 0x5A ) || // A-Z
-				( $byte >= 0x61 && $byte <= 0x7A ) || // a-z
-				0x5F === $byte                         // _
-			) {
-				$result .= $value[ $i ];
-				continue;
-			}
-
-			// Hyphen: valid in idents, but check for hyphen-digit at start.
-			if ( 0x2D === $byte ) {
-				// A hyphen standing alone must be escaped to form an ident token.
-				if ( 0 === $i && 1 === $length ) {
-					$result .= '\\2D ';
-					continue;
-				}
-
-				// Hyphen at position 0 followed by a digit at position 1: escape the digit.
-				if ( 0 === $i && $i + 1 < $length && ord( $value[ $i + 1 ] ) >= 0x30 && ord( $value[ $i + 1 ] ) <= 0x39 ) {
-					$result .= '-';
-					++$i;
-					$result .= sprintf( '\\%X ', ord( $value[ $i ] ) );
-					continue;
-				}
-				$result .= '-';
-				continue;
-			}
-
-			// Digits: valid except at position 0.
-			if ( $byte >= 0x30 && $byte <= 0x39 ) {
-				if ( 0 === $i ) {
-					$result .= sprintf( '\\%X ', $byte );
-				} else {
-					$result .= $value[ $i ];
-				}
-				continue;
-			}
-
-			// Everything else: hex-escape.
-			$result .= sprintf( '\\%X ', $byte );
+		// A lone `-` cannot start an identifier.
+		if ( '-' === $value ) {
+			return '\\2D ';
 		}
 
-		return $result;
+		// Neither can a digit or a `-` followed by a digit, so the digit is escaped.
+		$digit_at = ( isset( $value[0] ) && '-' === $value[0] ) ? 1 : 0;
+		if ( isset( $value[ $digit_at ] ) && $value[ $digit_at ] >= '0' && $value[ $digit_at ] <= '9' ) {
+			return substr( $value, 0, $digit_at ) . sprintf( '\\%X ', ord( $value[ $digit_at ] ) ) . self::escape_name( substr( $value, $digit_at + 1 ) );
+		}
+
+		return self::escape_name( $value );
 	}
 
 	/**
