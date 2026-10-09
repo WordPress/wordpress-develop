@@ -1347,6 +1347,18 @@ class WP_CSS_Token_Processor {
 
 		// Repeatedly consume the next input code point from the stream.
 		while ( $this->at < $this->length ) {
+			// Scan runs such as https://example.com/photo.png in native code rather
+			// than one PHP iteration per byte. These ASCII bytes need no special
+			// handling in an unquoted URL. Quotes, parentheses, whitespace, escapes,
+			// and non-ASCII bytes fall through to the rules below.
+			// Only the cursor advances; source bytes stay unchanged.
+			// This set only selects the fast path; it does not validate the URL or
+			// reject other bytes, which still reach the CSS token rules below.
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~:/?#[]@!$&*+,;=%', $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			// U+0029 RIGHT PARENTHESIS ())
 			// Return the <url-token>.
 			if ( ')' === $this->css[ $this->at ] ) {
@@ -1511,6 +1523,17 @@ class WP_CSS_Token_Processor {
 	 */
 	private function consume_ident_sequence() {
 		while ( $this->at < $this->length ) {
+			// Scan ASCII name characters, as in margin-top or item_2, in native
+			// code rather than one PHP iteration per byte. Letters, digits, "-",
+			// and "_" can continue a name; deciding whether an identifier may
+			// start here is a separate check, not the purpose of this byte list.
+			// Non-ASCII bytes, NULL, and escapes use the rules below. Advancing
+			// only the cursor preserves the source spelling for later decoding.
+			$plain = strspn( $this->css, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_', $this->at );
+			if ( $plain > 0 ) {
+				$this->at += $plain;
+				continue;
+			}
 			$codepoint_bytes = $this->consume_ident_codepoint( $this->at );
 			if ( $codepoint_bytes > 0 ) {
 				$this->at += $codepoint_bytes;
