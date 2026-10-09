@@ -891,7 +891,7 @@ function get_feed_build_date( $format ) {
 		}
 
 		// If this is a comment feed, check those objects too.
-		if ( $wp_query->is_comment_feed() && $wp_query->comment_count && is_array( $wp_query->comments ) ) {
+		if ( $wp_query->is_comment_feed() && is_array( $wp_query->comments ) ) {
 			foreach ( $wp_query->comments as $comment ) {
 				$modified_times[] = $comment->comment_date_gmt;
 			}
