@@ -62,7 +62,6 @@ function hello_dolly() {
 	if ( 'en_' !== substr( get_user_locale(), 0, 3 ) ) {
 		$lang = ' lang="en"';
 	}
-
 	printf(
 		'<p id="dolly"><span class="screen-reader-text">%s </span><span dir="ltr"%s>%s</span></p>',
 		__( 'Quote from Hello Dolly song, by Jerry Herman:' ),
@@ -102,5 +101,4 @@ function dolly_css() {
 	</style>
 	";
 }
-
 add_action( 'admin_head', 'dolly_css' );
