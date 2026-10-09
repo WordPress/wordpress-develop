@@ -249,7 +249,7 @@ function wp_cache_incr( $key, $offset = 1, $group = '' ) {
 function wp_cache_decr( $key, $offset = 1, $group = '' ) {
 	global $wp_object_cache;
 
-	return $wp_object_cache->decr( $key, $offset, $group );
+	return $wp_object_cache->incr( $key, ( (int) $offset ) * -1, $group );
 }
 
 /**
