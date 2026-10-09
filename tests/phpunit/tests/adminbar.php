@@ -20,6 +20,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		// is_admin_bar_showing() caches its result, so an earlier logged-out test can leave it false.
+		unset( $GLOBALS['show_admin_bar'] );
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
@@ -808,6 +815,100 @@ class Tests_AdminBar extends WP_UnitTestCase {
 			array( 'network-admin-p', 'manage_network_plugins' ),
 			array( 'network-admin-o', 'manage_network_options' ),
 		);
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 */
+	public function test_site_name_menu_has_no_site_icon_when_unset() {
+		wp_set_current_user( self::$editor_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_includes_site_icon_when_set() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringContainsString( '<img class="site-icon"', $node_site_name->title );
+		$this->assertStringContainsString( esc_url( get_site_icon_url( 32 ) ), $node_site_name->title );
+		$this->assertSame( 'has-site-icon', $node_site_name->meta['class'] );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_respects_show_site_icons_filter() {
+		wp_set_current_user( self::$editor_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		add_filter( 'wp_admin_bar_show_site_icons', '__return_false' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_has_no_site_icon_in_network_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		set_current_screen( 'dashboard-network' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertTrue( is_network_admin() );
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @covers ::wp_admin_bar_site_menu
+	 * @group multisite
+	 * @group ms-required
+	 * @requires function imagejpeg
+	 */
+	public function test_site_name_menu_has_no_site_icon_in_user_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.jpg' );
+		update_option( 'site_icon', $attachment_id );
+
+		set_current_screen( 'dashboard-user' );
+
+		$wp_admin_bar   = $this->get_standard_admin_bar();
+		$node_site_name = $wp_admin_bar->get_node( 'site-name' );
+
+		$this->assertTrue( is_user_admin() );
+		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
+		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
 	}
 
 	/**

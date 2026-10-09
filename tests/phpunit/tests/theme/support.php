@@ -5,6 +5,40 @@
  */
 class Tests_Theme_Support extends WP_UnitTestCase {
 
+	/**
+	 * Theme features registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
+	/**
+	 * Nav menu locations registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_registered_nav_menus;
+
+	public function set_up() {
+		parent::set_up();
+
+		$this->orig_theme_features       = $GLOBALS['_wp_theme_features'];
+		$this->orig_registered_nav_menus = $GLOBALS['_wp_registered_nav_menus'] ?? array();
+
+		// Start without support from the bootstrapped theme.
+		$GLOBALS['_wp_theme_features'] = array();
+	}
+
+	public function tear_down() {
+		try {
+			parent::tear_down();
+		} finally {
+			// Restore after the parent removes HTML5 theme support.
+			$GLOBALS['_wp_theme_features']       = $this->orig_theme_features;
+			$GLOBALS['_wp_registered_nav_menus'] = $this->orig_registered_nav_menus;
+		}
+	}
+
 	public function test_the_basics() {
 		add_theme_support( 'automatic-feed-links' );
 		$this->assertTrue( current_theme_supports( 'automatic-feed-links' ) );

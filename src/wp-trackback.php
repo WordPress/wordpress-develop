@@ -24,8 +24,11 @@ wp_set_current_user( 0 );
  * @since 0.71
  *
  * @param int|bool $error         Whether there was an error.
- *                                Default '0'. Accepts '0' or '1', true or false.
+ *                                Default 0. Accepts 0 or 1, true or false.
  * @param string   $error_message Error message if an error occurred. Default empty string.
+ * @return void Never returns if `$error` is truthy, as the function dies after
+ *              sending the error response.
+ * @phpstan-return ( $error is 0|false ? void : never )
  */
 function trackback_response( $error = 0, $error_message = '' ) {
 	header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );
@@ -47,7 +50,7 @@ function trackback_response( $error = 0, $error_message = '' ) {
 
 if ( ! isset( $_GET['tb_id'] ) || ! $_GET['tb_id'] ) {
 	$post_id = explode( '/', $_SERVER['REQUEST_URI'] );
-	$post_id = (int) $post_id[ count( $post_id ) - 1 ];
+	$post_id = (int) array_last( $post_id );
 }
 
 $trackback_url = isset( $_POST['url'] ) ? sanitize_url( $_POST['url'] ) : '';
@@ -87,6 +90,12 @@ if ( function_exists( 'mb_convert_encoding' ) ) {
 $title     = wp_slash( $title );
 $excerpt   = wp_slash( $excerpt );
 $blog_name = wp_slash( $blog_name );
+
+/**
+ * @global wpdb      $wpdb  WordPress database abstraction object.
+ * @global WP_Post[] $posts Array of post objects.
+ */
+global $wpdb, $posts;
 
 if ( is_single() || is_page() ) {
 	$post_id = $posts[0]->ID;

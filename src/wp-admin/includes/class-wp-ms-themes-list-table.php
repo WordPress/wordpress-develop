@@ -73,6 +73,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * Gets the list of CSS classes for the table tag.
 	 *
 	 * @return string[] The list of CSS classes.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		// @todo Remove and add CSS for .themes.
@@ -724,7 +726,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$pre . $theme->errors()->get_error_message(),
 				array(
 					'type'               => 'error',
-					'additional_classes' => 'inline',
+					'additional_classes' => array( 'inline' ),
 				)
 			);
 		}
@@ -940,11 +942,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 			switch ( $column_name ) {
 				case 'cb':
-					echo '<th scope="row" class="check-column">';
+					echo '<td class="check-column">';
 
 					$this->column_cb( $item );
 
-					echo '</th>';
+					echo '</td>';
 					break;
 
 				case 'name':
@@ -966,11 +968,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 						}
 					}
 
-					echo "<td class='theme-title column-primary{$extra_classes}'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
+					echo "<th scope='row' class='theme-title column-primary{$extra_classes}' aria-label='" . esc_attr( $item->display( 'Name' ) ) . "'><strong>" . $item->display( 'Name' ) . $active_theme_label . '</strong>';
 
 					$this->column_name( $item );
 
-					echo '</td>';
+					echo '</th>';
 					break;
 
 				case 'description':

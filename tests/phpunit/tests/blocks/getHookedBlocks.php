@@ -17,6 +17,18 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 	const TEST_THEME_NAME = 'block-theme-with-hooked-blocks';
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	/**
 	 * Tear down after each test.
 	 *
 	 * @since 6.4.0
@@ -41,6 +53,10 @@ class Tests_Blocks_GetHookedBlocks extends WP_UnitTestCase {
 			if ( str_starts_with( $pattern_name, self::TEST_THEME_NAME ) ) {
 				unregister_block_pattern( $pattern_name );
 			}
+		}
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
 		}
 
 		parent::tear_down();

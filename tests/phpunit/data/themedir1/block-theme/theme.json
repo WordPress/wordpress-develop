@@ -96,6 +96,11 @@
 						}
 					}
 				}
+			},
+			"my/unregistered-third-party-block": {
+				"color": {
+					"background": "hotpink"
+				}
 			}
 		},
 		"elements": {

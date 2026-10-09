@@ -242,12 +242,12 @@ class WP_Media_List_Table extends WP_List_Table {
 			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
 			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
 
-			submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+			submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
 			if ( $this->is_trash && $this->has_items()
 				&& current_user_can( 'edit_others_posts' )
 			) {
-				submit_button( __( 'Empty Trash' ), 'apply button-compact', 'delete_all', false );
+				submit_button( __( 'Empty Trash' ), 'apply compact', 'delete_all', false );
 			}
 			?>
 		</div>
@@ -931,5 +931,24 @@ class WP_Media_List_Table extends WP_List_Table {
 		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );
+	}
+
+	/**
+	 * Returns a clean label for the primary (File) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the attachment title as the row header
+	 * name, preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Post $post The current WP_Post object.
+	 * @return string The attachment title.
+	 */
+	protected function get_primary_column_aria_label( $post ) {
+		// The title may contain HTML. The printed aria-label uses esc_attr() later.
+		$attachment_title = html_entity_decode( _draft_or_post_title( $post ), ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$attachment_title = wp_strip_all_tags( $attachment_title );
+
+		return $attachment_title;
 	}
 }

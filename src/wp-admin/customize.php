@@ -185,6 +185,12 @@ do_action( 'customize_controls_print_scripts' );
  * @since 5.5.0
  */
 do_action( 'customize_controls_head' );
+
+/** This filter is documented in wp-admin/admin-header.php */
+$additional_body_class = apply_filters( 'admin_body_class', '' );
+if ( is_string( $additional_body_class ) && '' !== $additional_body_class ) {
+	$body_class .= ' ' . $additional_body_class;
+}
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
@@ -198,7 +204,7 @@ do_action( 'customize_controls_head' );
 			<?php if ( $compatible_wp && $compatible_php ) : ?>
 				<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
 				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
-					<?php submit_button( $save_text, 'primary button-compact save', 'save', false ); ?>
+					<?php submit_button( $save_text, 'primary compact save', 'save', false ); ?>
 					<button id="publish-settings" class="publish-settings button-primary button-compact button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
 				</div>
 			<?php else : ?>
@@ -275,7 +281,7 @@ do_action( 'customize_controls_head' );
 			</button>
 			<?php $previewable_devices = $wp_customize->get_previewable_devices(); ?>
 			<?php if ( ! empty( $previewable_devices ) ) : ?>
-			<div class="devices-wrapper">
+			<div class="devices-wrapper" role="group" aria-label="<?php echo esc_attr_x( 'Responsive Views', 'label for responsive previews group' ); ?>">
 				<div class="devices">
 					<?php foreach ( (array) $previewable_devices as $device => $settings ) : ?>
 						<?php
@@ -288,8 +294,8 @@ do_action( 'customize_controls_head' );
 							$class .= ' active';
 						}
 						?>
-						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo esc_attr( $active ); ?>" data-device="<?php echo esc_attr( $device ); ?>">
-							<span class="screen-reader-text"><?php echo esc_html( $settings['label'] ); ?></span>
+						<button type="button" class="<?php echo esc_attr( $class ); ?>" aria-pressed="<?php echo $active ? 'true' : 'false'; ?>" data-device="<?php echo esc_attr( $device ); ?>">
+							<span class="devices__preview-label"><?php echo esc_html( $settings['label'] ); ?></span>
 						</button>
 					<?php endforeach; ?>
 				</div>

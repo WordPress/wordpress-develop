@@ -70,13 +70,17 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 	public function test_valid_term() {
 		$this->make_user_by_role( 'editor' );
 
-		$term                  = get_term( self::$term_id, 'category', ARRAY_A );
-		$term['custom_fields'] = array();
+		$term                     = get_term( self::$term_id, 'category', ARRAY_A );
+		$term['term_id']          = (string) $term['term_id'];
+		$term['term_group']       = (string) $term['term_group'];
+		$term['term_taxonomy_id'] = (string) $term['term_taxonomy_id'];
+		$term['parent']           = (string) $term['parent'];
+		$term['custom_fields']    = array();
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', self::$term_id ) );
 
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $result, $term );
+		$this->assertSame( $term, $result );
 
 		// Check data types.
 		$this->assertIsString( $result['name'] );
@@ -86,6 +90,10 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertIsInt( $result['count'] );
 
 		// We expect all ID's to be strings not integers so we don't return something larger than an XMLRPC integer can describe.
+		$this->assertIsString( $result['term_id'] );
+		$this->assertIsString( $result['term_group'] );
+		$this->assertIsString( $result['term_taxonomy_id'] );
+		$this->assertIsString( $result['parent'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_group'] );
 		$this->assertStringMatchesFormat( '%d', $result['term_taxonomy_id'] );

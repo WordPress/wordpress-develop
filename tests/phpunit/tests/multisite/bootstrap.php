@@ -207,7 +207,7 @@ class Tests_Multisite_Bootstrap extends WP_UnitTestCase {
 		$site = get_site_by_path( $domain, $path, $segments );
 
 		if ( $expected_key ) {
-			$this->assertEquals( self::$site_ids[ $expected_key ], $site->blog_id );
+			$this->assertSame( (string) self::$site_ids[ $expected_key ], $site->blog_id );
 		} else {
 			$this->assertFalse( $site );
 		}

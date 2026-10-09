@@ -703,7 +703,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( ! empty( $request['sticky'] ) && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -914,7 +914,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( isset( $request['sticky'] ) && is_sticky( $post->ID ) !== (bool) $request['sticky'] && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -2393,6 +2393,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-return array{
+	 *     title: non-empty-string,
+	 *     type: non-empty-string,
+	 *     properties: array<string, array<string, mixed>>,
+	 *     ...
+	 * }
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {

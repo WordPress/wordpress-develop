@@ -260,9 +260,10 @@ class Tests_Block_Bindings_Post_Meta_Source extends WP_UnitTestCase {
 
 		$content = $this->get_modified_post_content( '<!-- wp:paragraph {"metadata":{"bindings":{"content":{"source":"core/post-meta","args":{"key":"tests_unsafe_html_field"}}}}} --><p>Fallback value</p><!-- /wp:paragraph -->' );
 
-		$this->assertSame(
-			'<p class="wp-block-paragraph">alert(&#8220;Unsafe HTML&#8221;)</p>',
+		$this->assertEqualHTML(
+			'<p class="wp-block-paragraph"></p>',
 			$content,
+			'<body>',
 			'The post content should not include the script tag.'
 		);
 	}
