@@ -5098,7 +5098,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
-		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
+		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
 		}
