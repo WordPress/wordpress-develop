@@ -4400,16 +4400,11 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 
 		switch ( $type ) {
 			case WP_CSS_Token_Processor::TOKEN_DELIM:
-				// `&`, `<`, `>` and `=` have a meaning in HTML. Strings and URLs escape them; no other value needs them.
-				if ( '&' === $token['value'] || '<' === $token['value'] || '>' === $token['value'] || '=' === $token['value'] ) {
+				// The output contains no `&`: other tokens escape it, and no property value uses a bare `&`.
+				if ( '&' === $token['value'] ) {
 					return false;
 				}
 				continue 2;
-
-			case WP_CSS_Token_Processor::TOKEN_CDO:
-			case WP_CSS_Token_Processor::TOKEN_CDC:
-				// `<!--` and `-->` have a meaning in HTML and none in a declaration value.
-				return false;
 
 			case WP_CSS_Token_Processor::TOKEN_URL:
 				if ( ! _safecss_filter_attr_url_is_allowed( $token['value'], $allowed_protocols ) ) {

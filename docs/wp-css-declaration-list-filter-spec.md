@@ -142,11 +142,11 @@ helper. A filter result that is not an array is treated as an empty list.
    A `( )` block nested in a function, as in `calc(1px + (2px * 3))` or a
    `var()` fallback, is governed by that function's grammar and is kept.
    Custom properties keep every block.
-5. **Delimiters.** The value has no `&`, `<`, `>` or `=` delimiter token and
-   no `<!--` or `-->` token at any depth, in every property including custom
-   ones. These characters have a meaning in HTML. Inside strings and URLs the
-   serializer escapes them; outside strings and URLs no standard property
-   value uses them, so a value that has them is rejected.
+5. **Ampersand.** The value has no `&` delimiter token at any depth, in every
+   property including custom ones. The output contains no `&`: the serializer
+   escapes it in every other token, and no standard property value uses a
+   bare `&`, so a value that has one is rejected. `<`, `>`, `=`, `<!--` and
+   `-->` are kept; encoding the output for HTML is the caller's task.
 6. **Escapes and comments.** Checks run on decoded values, so an escaped
    function name or scheme is checked as what it denotes. Comments are never
    emitted.
@@ -249,8 +249,8 @@ Intended:
   passed through unchecked.
 - Escapes are accepted, decoded for the checks, and re-escaped in the output.
 - A `\0` escape decodes to U+FFFD instead of being deleted from the text.
-- A `<` or `>` delimiter and a `<!--` or `-->` token are rejected. The legacy
-  function rejected `&` and `=` and kept `<` and `>`.
+- A `=` delimiter is kept. The legacy function rejected it. Both reject a
+  bare `&`.
 - A string or url token cut off by the end of the input drops the last
   declaration, in every property. The legacy function kept an unclosed
   string and an unclosed `url(` with no `(` in its test string.

@@ -585,51 +585,90 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
-	 * @dataProvider data_delimiters_with_html_meaning
+	 * @dataProvider data_ampersand_delimiters
 	 *
-	 * @param string $css Input with a `&`, `<`, `>` or `=` delimiter or a `<!--` or `-->` token.
+	 * @param string $css Input with a `&` delimiter.
 	 */
-	public function test_delimiters_with_html_meaning_are_rejected( $css ) {
+	public function test_ampersand_delimiter_is_rejected( $css ) {
 		$this->assertSame( '', safecss_filter_attr( $css ) );
 	}
 
 	/**
 	 * @return array<string, array{string}>
 	 */
-	public function data_delimiters_with_html_meaning() {
+	public function data_ampersand_delimiters() {
 		return array(
-			'ampersand top level'       => array( 'color: red & blue' ),
-			'less than top level'       => array( 'color: red < blue' ),
-			'greater than top level'    => array( 'color: red > blue' ),
-			'equals top level'          => array( 'color: a = b' ),
-			'ampersand in calc'         => array( 'width: calc(1px & 2px)' ),
-			'less than in calc'         => array( 'width: calc(1px < 2px)' ),
-			'greater than in calc'      => array( 'width: calc(1px > 2px)' ),
-			'equals in calc'            => array( 'width: calc(1px = 2px)' ),
-			'ampersand in custom'       => array( '--x: a & b' ),
-			'less than in custom'       => array( '--x: a < b' ),
-			'greater than in custom'    => array( '--x: a > b' ),
-			'equals in custom'          => array( '--x: a = b' ),
-			'ampersand in var fallback' => array( 'color: var(--x, a&b)' ),
-			'CDO top level'             => array( 'color: red <!--' ),
-			'CDC top level'             => array( 'color: red -->' ),
-			'CDO in custom'             => array( '--x: <!-- a' ),
-			'CDC in calc'               => array( 'width: calc(1px -->)' ),
+			'top level' => array( 'color: red & blue' ),
+			'in calc'   => array( 'width: calc(1px & 2px)' ),
+			'in custom' => array( '--x: a & b' ),
+			'in var'    => array( 'color: var(--x, a&b)' ),
 		);
 	}
 
 	/**
 	 * @ticket 65738
 	 */
-	public function test_delimiter_with_html_meaning_rejects_only_its_own_declaration() {
+	public function test_ampersand_delimiter_rejects_only_its_own_declaration() {
 		$this->assertSame( 'color:red;', safecss_filter_attr( 'color: red; width: 1px &' ) );
-		$this->assertSame( 'width:1px;', safecss_filter_attr( 'color: a = b; width: 1px' ) );
+		$this->assertSame( 'width:1px;', safecss_filter_attr( 'color: a & b; width: 1px' ) );
+	}
+
+	/**
+	 * @ticket 65738
+	 * @dataProvider data_output_without_ampersand
+	 *
+	 * @param string $css Input with a `&` in a token other than a delimiter.
+	 */
+	public function test_output_contains_no_ampersand( $css ) {
+		$output = safecss_filter_attr( $css );
+
+		$this->assertNotSame( '', $output );
+		$this->assertStringNotContainsString( '&', $output );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_output_without_ampersand() {
+		return array(
+			'string'        => array( 'font-family: "a&b"' ),
+			'quoted url'    => array( 'background: url("a?x=1&y=2")' ),
+			'unquoted url'  => array( 'background: url(a?x=1&y=2)' ),
+			'escaped ident' => array( 'font-family: a\26 b' ),
+			'escaped hash'  => array( 'color: #a\26 b' ),
+			'custom string' => array( '--x: "&amp;"' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 * @dataProvider data_delimiters_kept
+	 *
+	 * @param string $css      Input with a `<`, `>` or `=` delimiter or a `<!--` or `-->` token.
+	 * @param string $expected Filtered output.
+	 */
+	public function test_delimiters_other_than_ampersand_are_kept( $css, $expected ) {
+		$this->assertSame( $expected, safecss_filter_attr( $css ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string}>
+	 */
+	public function data_delimiters_kept() {
+		return array(
+			'less than'    => array( '--x: a < b', '--x:a < b;' ),
+			'greater than' => array( '--x: a > b', '--x:a > b;' ),
+			'equals'       => array( '--x: a = b', '--x:a = b;' ),
+			'CDO'          => array( '--x: <!-- a', '--x:<!-- a;' ),
+			'CDC'          => array( '--x: a -->', '--x:a -->;' ),
+			'in calc'      => array( 'width: calc(1px < 2px)', 'width:calc(1px < 2px);' ),
+		);
 	}
 
 	/**
 	 * @ticket 65738
 	 */
-	public function test_delimiters_with_html_meaning_are_escaped_inside_strings_and_urls() {
+	public function test_delimiters_are_escaped_inside_strings_and_urls() {
 		$this->assertSame( 'font-family:"a\26 b\3C c\3E d=e";', safecss_filter_attr( 'font-family: "a&b<c>d=e"' ) );
 		$this->assertSame( 'background:url("a?x=1\26 y=2");', safecss_filter_attr( 'background: url(a?x=1&y=2)' ) );
 		$this->assertSame( 'background:url("a?x=1\26 y=2");', safecss_filter_attr( 'background: url("a?x=1&y=2")' ) );
