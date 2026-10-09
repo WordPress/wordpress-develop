@@ -796,7 +796,7 @@ class WP_Debug_Data {
 
 		// Get Ghostscript information, if available.
 		if ( function_exists( 'exec' ) ) {
-			$gs = exec( 'gs --version' );
+			$gs = exec( 'command -v gs >/dev/null && gs --version' );
 
 			if ( empty( $gs ) ) {
 				$gs       = $not_available;
