@@ -36,6 +36,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_concatenate_scripts;
 
 	/**
+	 * @var mixed
+	 */
+	protected $old_compress_scripts;
+
+	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -54,6 +59,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
 		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
 		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
+		$this->old_compress_scripts    = $GLOBALS['compress_scripts'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -77,6 +83,7 @@ JS;
 		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
 		$GLOBALS['wp_styles']           = $this->old_wp_styles;
 		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
+		$GLOBALS['compress_scripts']    = $this->old_compress_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -3838,6 +3845,65 @@ HTML;
 
 		$this->assertStringNotContainsString( 'async', $actual, 'TinyMCE should not have an async attribute.' );
 		$this->assertStringNotContainsString( 'defer', $actual, 'TinyMCE should not have a defer attribute.' );
+	}
+
+	/**
+	 * Tests that TinyMCE is registered as separate files, never as the `wp-tinymce.js` bundle.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers ::wp_register_tinymce_scripts
+	 *
+	 * @dataProvider data_register_tinymce_scripts_unbundled
+	 *
+	 * @param bool $concatenate Value of the `$concatenate_scripts` global.
+	 * @param bool $compress    Value of the `$compress_scripts` global.
+	 */
+	public function test_register_tinymce_scripts_unbundled( bool $concatenate, bool $compress ): void {
+		global $concatenate_scripts, $compress_scripts;
+
+		$concatenate_scripts = $concatenate;
+		$compress_scripts    = $compress;
+
+		$wp_scripts = wp_scripts();
+		wp_register_tinymce_scripts( $wp_scripts );
+
+		$root = $wp_scripts->query( 'wp-tinymce-root' );
+		$this->assertInstanceOf( _WP_Dependency::class, $root, 'Expected TinyMCE core to be registered.' );
+		$this->assertIsString( $root->src );
+		$this->assertMatchesRegularExpression( '#/js/tinymce/tinymce(\.min)?\.js$#', $root->src );
+
+		$tinymce = $wp_scripts->query( 'wp-tinymce' );
+		$this->assertInstanceOf( _WP_Dependency::class, $tinymce, 'Expected the wp-tinymce handle to be registered.' );
+		$this->assertIsString( $tinymce->src );
+		$this->assertMatchesRegularExpression( '#/js/tinymce/plugins/compat3x/plugin(\.min)?\.js$#', $tinymce->src );
+		$this->assertSame( array( 'wp-tinymce-root' ), $tinymce->deps );
+	}
+
+	/**
+	 * Data provider for test_register_tinymce_scripts_unbundled().
+	 *
+	 * @return array<non-falsy-string, array{ concatenate: bool, compress: bool }>
+	 */
+	public function data_register_tinymce_scripts_unbundled(): array {
+		return array(
+			'concatenated and compressed' => array(
+				'concatenate' => true,
+				'compress'    => true,
+			),
+			'concatenated only'           => array(
+				'concatenate' => true,
+				'compress'    => false,
+			),
+			'compressed only'             => array(
+				'concatenate' => false,
+				'compress'    => true,
+			),
+			'neither'                     => array(
+				'concatenate' => false,
+				'compress'    => false,
+			),
+		);
 	}
 
 	/**

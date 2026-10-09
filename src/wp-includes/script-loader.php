@@ -37,35 +37,35 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
 /**
  * Registers TinyMCE scripts.
  *
+ * TinyMCE core and the compat3x plugin are registered as separate files. TinyMCE loads its theme
+ * and any other plugins itself when an editor is initialized. The `wp-tinymce.js` bundle of all of
+ * them is no longer registered, but it can still be registered in their place under the
+ * `wp-tinymce` handle.
+ *
  * @since 5.0.0
+ * @since 7.2.0 The `wp-tinymce.js` bundle is no longer registered, regardless of whether scripts
+ *              are concatenated or compressed, and the `$force_uncompressed` parameter is unused.
  *
  * @global string $tinymce_version
- * @global bool   $concatenate_scripts
- * @global bool   $compress_scripts
  *
  * @param WP_Scripts $scripts            WP_Scripts object.
- * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
+ * @param bool       $force_uncompressed Unused.
  */
 function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
-	global $tinymce_version, $concatenate_scripts, $compress_scripts;
+	global $tinymce_version;
 
 	$suffix     = wp_scripts_get_suffix();
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
 
+	/*
+	 * This no longer depends on the concatenation settings, but it is where an admin screen has
+	 * settled them until now, which the 'wp_should_concatenate_admin_scripts' filter documents.
+	 */
 	script_concat_settings();
 
-	$compressed = $compress_scripts && $concatenate_scripts && ! $force_uncompressed;
-
-	/*
-	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js (in production)
-	 * or tinymce.min.js (when SCRIPT_DEBUG is true).
-	 */
-	if ( $compressed ) {
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . 'wp-tinymce.js', array(), $tinymce_version );
-	} else {
-		$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
-	}
+	// Load tinymce.js when running from /src, otherwise tinymce.min.js.
+	$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
+	$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
 
 	$scripts->add( 'wp-tinymce-lists', includes_url( "js/tinymce/plugins/lists/plugin$suffix.js" ), array( 'wp-tinymce' ), $tinymce_version );
 }
