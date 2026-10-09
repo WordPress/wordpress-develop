@@ -101,7 +101,7 @@ class Admin_Includes_Comment_CommentExists_Test extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( _wp_get_internal_comment_types() as $internal_type ) {
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
 			self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $post_id,
@@ -132,7 +132,7 @@ class Admin_Includes_Comment_CommentExists_Test extends WP_UnitTestCase {
 			)
 		);
 
-		foreach ( _wp_get_internal_comment_types() as $internal_type ) {
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
 			self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $notes_only,

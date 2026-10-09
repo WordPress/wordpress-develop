@@ -2801,15 +2801,13 @@ class WP_Query {
 
 		// Comments feeds.
 		if ( $this->is_comment_feed && ! $this->is_singular ) {
-			$internal_types_where = $this->get_comment_feed_internal_types_where();
-
 			if ( $this->is_archive || $this->is_search ) {
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID ) $join ";
-				$cwhere   = "WHERE comment_approved = '1' AND $internal_types_where $where";
+				$cwhere   = "WHERE comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' ) $where";
 				$cgroupby = "{$wpdb->comments}.comment_id";
 			} else { // Other non-singular, e.g. front.
 				$cjoin    = "JOIN {$wpdb->posts} ON ( {$wpdb->comments}.comment_post_ID = {$wpdb->posts}.ID )";
-				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1' AND $internal_types_where";
+				$cwhere   = "WHERE ( post_status = 'publish' OR ( post_status = 'inherit' AND post_type = 'attachment' ) ) AND comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' )";
 				$cgroupby = '';
 			}
 
@@ -3526,7 +3524,7 @@ class WP_Query {
 			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1' AND " . $this->get_comment_feed_internal_types_where(), &$this ) );
+			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1' AND {$wpdb->comments}.comment_type NOT IN ( 'note', 'reaction' )", &$this ) );
 
 			/** This filter is documented in wp-includes/class-wp-query.php */
 			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
@@ -3655,28 +3653,6 @@ class WP_Query {
 		}
 
 		return $this->posts;
-	}
-
-	/**
-	 * Builds the SQL condition that keeps internal comment types out of comment feeds.
-	 *
-	 * Notes and reactions are stored approved, so without this condition they
-	 * would be published in the site and post comment feeds.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @global wpdb $wpdb WordPress database abstraction object.
-	 *
-	 * @return string SQL condition, without a leading `AND`.
-	 */
-	private function get_comment_feed_internal_types_where() {
-		global $wpdb;
-
-		$internal_types = _wp_get_internal_comment_types();
-		$placeholders   = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
-
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-		return $wpdb->prepare( "{$wpdb->comments}.comment_type NOT IN ( $placeholders )", $internal_types );
 	}
 
 	/**

@@ -2268,19 +2268,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	/**
 	 * @ticket 63191
 	 *
-	 * @covers ::_wp_get_internal_comment_types
-	 */
-	public function test_wp_get_internal_comment_types() {
-		$types = _wp_get_internal_comment_types();
-
-		$this->assertContains( 'note', $types );
-		$this->assertContains( 'reaction', $types );
-		$this->assertNotContains( 'comment', $types, 'Discussion comments are not an internal type.' );
-	}
-
-	/**
-	 * @ticket 63191
-	 *
 	 * @covers ::wp_get_note_reaction_ids
 	 */
 	public function test_wp_get_note_reaction_ids_returns_reactions_oldest_first() {

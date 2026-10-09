@@ -5592,7 +5592,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertNotContains( $comments['note'], $found );
 		$this->assertNotContains( $comments['reaction'], $found );
 
-		foreach ( _wp_get_internal_comment_types() as $internal_type ) {
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
 			$this->assertSame(
 				1,
 				substr_count( $wpdb->last_query, "'" . $internal_type . "'" ),

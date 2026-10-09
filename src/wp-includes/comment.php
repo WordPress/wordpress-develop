@@ -352,26 +352,6 @@ function get_comment_statuses() {
 }
 
 /**
- * Retrieves the list of internal comment types.
- *
- * Internal comment types are used by core features (such as block notes
- * and emoji reactions) and are not user-authored discussion comments.
- * They should typically be excluded from front-end and admin comment
- * listings, counts, and similar contexts that target user discussion.
- *
- * This is a private helper and not a public API. It may change or be
- * replaced once a custom comment types API exists.
- *
- * @since 7.2.0
- * @access private
- *
- * @return string[] List of internal comment type slugs.
- */
-function _wp_get_internal_comment_types(): array {
-	return array( 'note', 'reaction' );
-}
-
-/**
  * Retrieves the IDs of a note's reaction comments.
  *
  * Reactions hang off a note as child comments, so they have to be trashed
@@ -589,7 +569,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 1.5.0
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
- * @since 7.2.0 Internal comment types are excluded from the query.
+ * @since 7.2.0 The 'note' and 'reaction' comment types are excluded from the query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -607,30 +587,17 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 		return $comment_modified_date;
 	}
 
-	// Exclude internal comment types (notes, reactions, etc.) from the lookup.
-	$internal_types = _wp_get_internal_comment_types();
-	if ( ! empty( $internal_types ) ) {
-		$placeholders = implode( ', ', array_fill( 0, count( $internal_types ), '%s' ) );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-		$type_not_in = $wpdb->prepare( " AND comment_type NOT IN ( $placeholders )", $internal_types );
-	} else {
-		$type_not_in = '';
-	}
-
 	switch ( $timezone ) {
 		case 'gmt':
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1'{$type_not_in} ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
 			break;
 	}
 
@@ -3387,14 +3354,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$internal_comment_types = _wp_get_internal_comment_types();
-		$type_placeholders      = implode( ', ', array_fill( 0, count( $internal_comment_types ), '%s' ) );
-		$new                    = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( $type_placeholders )", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				array_merge( array( $post_id ), $internal_comment_types )
-			)
-		);
+		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' )", $post_id ) );
 	} else {
 		$new = (int) $new;
 	}
