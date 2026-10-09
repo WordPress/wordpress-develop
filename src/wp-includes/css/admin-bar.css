@@ -268,10 +268,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-sizing: border-box;
 	min-width: 24px;
-	height: 32px;
-	padding: 0;
 }
 
 #wpadminbar .ab-icon.svg-icon svg {
@@ -548,20 +545,18 @@ html:lang(he-il) .rtl #wpadminbar * {
 	color: #72aee6;
 }
 
-#wpadminbar .quicklinks li img.blavatar,
-#wpadminbar .quicklinks li div.blavatar svg {
+#wpadminbar .quicklinks li img.blavatar {
 	height: 16px;
 	width: 16px;
 	margin: 0 8px 2px -2px;
-}
-
-#wpadminbar .quicklinks li img.blavatar {
 	border-radius: 2px;
 }
 
 #wpadminbar .quicklinks li div.blavatar svg {
 	display: inline-block;
-	margin-bottom: 0;
+	height: 16px;
+	width: 16px;
+	margin: 0 8px 0 -2px;
 	fill: currentColor;
 	position: relative;
 	top: -2px;
@@ -759,8 +754,7 @@ html:lang(he-il) .rtl #wpadminbar * {
 		width: auto;
 	}
 
-	#wpadminbar .ab-icon,
-	#wpadminbar .ab-icon.svg-icon {
+	#wpadminbar .ab-icon {
 		font: 40px/1 dashicons !important;
 		margin: 0;
 		padding: 0;
