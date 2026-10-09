@@ -17,6 +17,9 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
+		add_shortcode( 'gallery', fn () => '' );
+		add_shortcode( 'caption', fn () => '' );
+
 		foreach ( $this->shortcodes as $shortcode ) {
 			add_shortcode( $shortcode, array( $this, 'shortcode_' . str_replace( '-', '_', $shortcode ) ) );
 		}
