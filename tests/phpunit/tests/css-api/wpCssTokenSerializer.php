@@ -352,6 +352,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'dimension unit e'                       => array( '1e', '1e' ),
 			'backslash delim keeps newline'          => array( "a\\\nb", "a\\\n b" ),
 			'delim'                                  => array( '!', '!' ),
+			'DEL delim'                              => array( "a\x7Fb", "a\x7Fb" ),
 			'CDO and CDC'                            => array( '<!-- -->', '<!-- -->' ),
 			'punctuation'                            => array( 'a:b;c,d', 'a:b;c,d' ),
 		);
@@ -428,19 +429,53 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	 * Tests that the hash type flag is preserved.
 	 *
 	 * @ticket 65738
+	 * @dataProvider data_hash_flag_round_trips
 	 *
 	 * @covers ::serialize
 	 */
-	public function test_hash_flag_round_trips(): void {
-		foreach ( array( '#\\31 a', '#1a', '#a1', '#-1', '#--' ) as $css ) {
-			$tokens     = self::tokenize( $css );
-			$serialized = WP_CSS_Token_Serializer::serialize( $tokens );
-			$reparsed   = self::tokenize( $serialized );
+	public function test_hash_flag_round_trips( string $css, string $expected_flag ): void {
+		$tokens     = self::tokenize( $css );
+		$serialized = WP_CSS_Token_Serializer::serialize( $tokens );
+		$reparsed   = self::tokenize( $serialized );
 
-			$this->assertCount( 1, $reparsed, "{$css} must serialize as one token." );
-			$this->assertSame( $tokens[0]->get_value(), $reparsed[0]->get_value(), "The value of {$css} changed." );
-			$this->assertSame( $tokens[0]->get_flag(), $reparsed[0]->get_flag(), "The type flag of {$css} changed." );
-		}
+		$this->assertSame( $expected_flag, $tokens[0]->get_flag(), 'The input has the wrong type flag.' );
+		$this->assertCount( 1, $reparsed, 'The hash must serialize as one token.' );
+		$this->assertSame( $tokens[0]->get_value(), $reparsed[0]->get_value(), 'The value changed.' );
+		$this->assertSame( $expected_flag, $reparsed[0]->get_flag(), 'The type flag changed.' );
+	}
+
+	/**
+	 * Data provider for test_hash_flag_round_trips().
+	 *
+	 * @return array[]
+	 */
+	public static function data_hash_flag_round_trips(): array {
+		return array(
+			'id with an escaped digit' => array( '#\\31 a', WP_CSS_Token_Processor::HASH_TOKEN_ID ),
+			'id'                       => array( '#a1', WP_CSS_Token_Processor::HASH_TOKEN_ID ),
+			'id starting with --'      => array( '#--', WP_CSS_Token_Processor::HASH_TOKEN_ID ),
+			'unrestricted digit'       => array( '#1a', WP_CSS_Token_Processor::HASH_TOKEN_UNRESTRICTED ),
+			'unrestricted - and digit' => array( '#-1', WP_CSS_Token_Processor::HASH_TOKEN_UNRESTRICTED ),
+			'unrestricted lone -'      => array( '#-', WP_CSS_Token_Processor::HASH_TOKEN_UNRESTRICTED ),
+		);
+	}
+
+	/**
+	 * Tests that serialize() accepts any iterable, such as a generator.
+	 *
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize
+	 */
+	public function test_serialize_accepts_a_generator(): void {
+		$generator = ( static function ( string $css ): Generator {
+			$processor = WP_CSS_Token_Processor::create( $css );
+			while ( $processor->next_token() ) {
+				yield $processor->get_token();
+			}
+		} )( 'a /* x */ b(' );
+
+		$this->assertSame( 'a b()', WP_CSS_Token_Serializer::serialize( $generator ) );
 	}
 
 	/**
