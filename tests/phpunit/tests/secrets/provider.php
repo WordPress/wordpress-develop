@@ -8,7 +8,7 @@
 class Tests_Secrets_Provider extends WP_UnitTestCase {
 
 	/**
-	 * A provider whose credentials are managed elsewhere -- a control panel, host
+	 * A provider whose credentials are managed elsewhere – a control panel, host
 	 * tooling, a KMS with its own access policy. Reads work, writes are refused.
 	 *
 	 * @return WP_Secrets_Provider
@@ -92,7 +92,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 		};
 	}
 
-	// -- the shipped provider -------------------------------------------------
+	// – the shipped provider -------------------------------------------------
 
 	public function test_the_default_provider_is_the_libsodium_one(): void {
 		$this->assertInstanceOf( 'WP_Secrets_Libsodium_Provider', _wp_secrets_get_provider() );
@@ -124,7 +124,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 		);
 	}
 
-	// -- a platform provider, which is what the seam exists for ----------------
+	// – a platform provider, which is what the seam exists for ----------------
 
 	/**
 	 * @runInSeparateProcess
@@ -160,7 +160,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Reads still work on a read-only provider -- "read-only" is about writes, not
+	 * Reads still work on a read-only provider – "read-only" is about writes, not
 	 * about being broken. Absence is still absence.
 	 *
 	 * @runInSeparateProcess
@@ -172,7 +172,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 		$this->assertNull( wp_get_secret( 'myplugin/api-key' ) );
 	}
 
-	// -- fail closed -----------------------------------------------------------
+	// – fail closed -----------------------------------------------------------
 
 	/**
 	 * A broken drop-in must not quietly revert to the default provider: that would
@@ -220,7 +220,7 @@ class Tests_Secrets_Provider extends WP_UnitTestCase {
 
 	/**
 	 * A provider global set to something that is not a provider fails closed, the
-	 * same posture the store and keyring globals take -- for those two,
+	 * same posture the store and keyring globals take – for those two,
 	 * wp_load_secrets_dropin() marks the drop-in broken on a type mismatch and
 	 * both getters return their Broken_* sentinel.
 	 *

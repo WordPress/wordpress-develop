@@ -1,7 +1,7 @@
 <?php
 /**
  * Pins the exact error-code strings so a later commit can't accidentally rename
- * one -- these are part of the API's public error contract.
+ * one – these are part of the API's public error contract.
  *
  * @group secrets
  */

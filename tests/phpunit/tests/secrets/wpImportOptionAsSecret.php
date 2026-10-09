@@ -97,7 +97,7 @@ class Tests_Secrets_WpImportOptionAsSecret extends WP_UnitTestCase {
 
 	/**
 	 * An import onto an existing secret behaves like any other write, including
-	 * demotion -- there is nothing special about the destination just because the
+	 * demotion – there is nothing special about the destination just because the
 	 * new value's source happens to be an option.
 	 */
 	public function test_importing_over_an_existing_secret_demotes_it_like_any_write(): void {

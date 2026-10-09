@@ -43,8 +43,8 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
 	 * An unnamespaced name is accepted, but reports through _doing_it_wrong().
-	 * It exists so code written against the Displace prototype -- whose keyspace
-	 * was flat -- can be ported one call site at a time rather than all at once.
+	 * It exists so code written against the Displace prototype – whose keyspace
+	 * was flat – can be ported one call site at a time rather than all at once.
 	 * See docs/decisions/0005-namespaces-are-not-access-control.md for the consequence.
 	 *
 	 * @dataProvider data_unnamespaced_names
@@ -71,7 +71,7 @@ class Tests_Secrets_WpSecretsValidateName extends WP_UnitTestCase {
 
 	/**
 	 * The unnamespaced form relaxes the "exactly one slash" rule, not the
-	 * character rules -- an unnamespaced name is still held to the same segment
+	 * character rules – an unnamespaced name is still held to the same segment
 	 * pattern as a namespaced one.
 	 */
 	public function test_an_unnamespaced_name_still_obeys_the_character_rules(): void {

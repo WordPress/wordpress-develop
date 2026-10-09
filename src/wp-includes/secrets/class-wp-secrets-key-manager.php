@@ -28,7 +28,7 @@
  *
  * One unwrapped copy of the root key lives in this object for the rest of the
  * request, in memory only, never in the object cache. It is replaced whenever the
- * stored wrapped value changes -- a rotation, a re-wrap, a restore -- so it is never
+ * stored wrapped value changes – a rotation, a re-wrap, a restore – so it is never
  * stale. Callers of get_root_key() still receive a copy and must zero it themselves;
  * this object's own copy is not theirs to zero. The practical effect: a remote
  * keyring (a KMS or HSM call) is invoked once per request, not once per secret.
@@ -140,7 +140,7 @@ final class WP_Secrets_Key_Manager {
 	 *                          Ignored for network scope.
 	 * @return string|WP_Error 32-byte master key on success. WP_Error on failure,
 	 *                         including when a caller passes an invalid scope or
-	 *                         site id -- see WP_Secrets_Cipher::validate_common()
+	 *                         site id – see WP_Secrets_Cipher::validate_common()
 	 *                         for why that is a WP_Error and not an exception.
 	 *
 	 * @phpstan-param 'site'|'network' $scope
@@ -271,7 +271,7 @@ final class WP_Secrets_Key_Manager {
 
 		/*
 		 * update_site_option() returns false both on genuine failure and when the
-		 * new value equals the old one -- a documented ambiguity shared with
+		 * new value equals the old one – a documented ambiguity shared with
 		 * update_option(). In practice this never collides here: wrap() draws a
 		 * fresh random nonce every call, so the re-wrapped value is only equal to
 		 * the old one if this call somehow re-wrapped under the exact same nonce,

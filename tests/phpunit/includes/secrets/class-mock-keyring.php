@@ -1,6 +1,6 @@
 <?php
 /**
- * Configurable WP_Secrets_Keyring test double. Not real cryptography -- a
+ * Configurable WP_Secrets_Keyring test double. Not real cryptography – a
  * non-deterministic transform with an integrity tag, just enough to stand in for
  * a real keyring under the conformance suite without needing that code to also
  * exercise libsodium.

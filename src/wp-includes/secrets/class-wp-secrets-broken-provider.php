@@ -11,7 +11,7 @@
  * The provider installed when a secrets.php drop-in did not load correctly.
  *
  * Every operation returns WP_Error. It exists so that a broken drop-in cannot be
- * mistaken for a working site with no secrets in it yet -- which is the failure
+ * mistaken for a working site with no secrets in it yet – which is the failure
  * mode that turns "my credential backend is misconfigured" into "my credentials
  * appear to have been deleted," and is precisely what this API's three-state return
  * exists to prevent.

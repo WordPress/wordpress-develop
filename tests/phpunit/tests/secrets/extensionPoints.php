@@ -6,8 +6,8 @@
  * defaults.
  *
  * Every test here injects its override via $GLOBALS['wp_secrets_store'] /
- * $GLOBALS['wp_secrets_keyring'] -- the same globals a secrets.php drop-in would
- * set -- rather than actually placing a drop-in file on disk. _wp_secrets_get_store()
+ * $GLOBALS['wp_secrets_keyring'] – the same globals a secrets.php drop-in would
+ * set – rather than actually placing a drop-in file on disk. _wp_secrets_get_store()
  * and _wp_secrets_get_key_manager() cache what they resolve to in a static local the
  * first time either is called in a process, and by the time any test method runs,
  * dozens of earlier tests have already triggered that caching with the defaults.
@@ -159,7 +159,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The store must never be handed a plaintext, under any circumstance -- this is
+	 * The store must never be handed a plaintext, under any circumstance – this is
 	 * the whole point of the envelope. Mock_Store records every record it is
 	 * given; this asserts the plaintext appears nowhere in any of them.
 	 *
@@ -181,7 +181,7 @@ class Tests_Secrets_ExtensionPoints extends WP_UnitTestCase {
 
 	/**
 	 * Simulates the state a broken secrets.php drop-in leaves behind
-	 * ($GLOBALS['wp_secrets_dropin_broken'] set by wp_load_secrets_dropin() --
+	 * ($GLOBALS['wp_secrets_dropin_broken'] set by wp_load_secrets_dropin() –
 	 * see that function's docblock in secrets-api.php for why the drop-in's own file
 	 * loading cannot be driven the same way this simulates its aftermath) and
 	 * confirms every operation fails closed with WP_Error rather than a fatal error

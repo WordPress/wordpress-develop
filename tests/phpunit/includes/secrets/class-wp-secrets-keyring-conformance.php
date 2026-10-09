@@ -4,7 +4,7 @@
  *
  * Extend this, return a keyring from keyring(), and the contract every keyring is
  * held to gets checked against it. "implements WP_Secrets_Keyring" is a claim PHP
- * can verify about method names and nothing else -- it cannot tell you that
+ * can verify about method names and nothing else – it cannot tell you that
  * wrap() is non-deterministic, that unwrap() rejects tampering instead of
  * silently returning garbage bytes, or that failure is reported as WP_Error
  * rather than an exception or a falsy string. Those are the properties that
@@ -22,7 +22,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	abstract protected function keyring();
 
 	/**
-	 * Wrap() followed by unwrap() has to return exactly the bytes that went in --
+	 * Wrap() followed by unwrap() has to return exactly the bytes that went in –
 	 * WP_Secrets_Key_Manager derives the root key from this round trip, so any
 	 * corruption here is a corrupted root key for every secret on the site.
 	 */
@@ -42,7 +42,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 
 	/**
 	 * A deterministic wrap() leaks, via ciphertext comparison, whether two wrapped
-	 * values protect the same key material -- something nothing outside the
+	 * values protect the same key material – something nothing outside the
 	 * keyring is entitled to learn. A fresh nonce (or equivalent) per call is what
 	 * WP_Secrets_Key_Manager relies on to keep that comparison unavailable.
 	 */
@@ -58,7 +58,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 
 	/**
 	 * Unwrap() never throws and never returns a plausible-looking string for input
-	 * it did not produce -- WP_Secrets_Key_Manager treats anything other than
+	 * it did not produce – WP_Secrets_Key_Manager treats anything other than
 	 * WP_Error as usable key material, so a keyring that returns garbage bytes on
 	 * garbage input hands a wrong root key downstream instead of failing.
 	 */
@@ -71,7 +71,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 
 	/**
 	 * A truncated wrapped value must fail closed rather than decode to a short,
-	 * wrong key -- WP_Secrets_Key_Manager has no way to tell a merely-short key
+	 * wrong key – WP_Secrets_Key_Manager has no way to tell a merely-short key
 	 * from a correctly-derived one except by trusting unwrap()'s success.
 	 */
 	public function test_unwrap_of_a_truncated_value_is_a_wp_error(): void {
@@ -86,7 +86,7 @@ abstract class WP_Secrets_Keyring_Conformance extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A single flipped bit anywhere in the wrapped value has to be caught --
+	 * A single flipped bit anywhere in the wrapped value has to be caught –
 	 * that is the entire point of authenticated wrapping. Silently accepting it
 	 * would let a corrupted or tampered wrapped root key through as genuine.
 	 */

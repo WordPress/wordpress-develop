@@ -69,7 +69,7 @@ class Tests_Secrets_BrokenDropinFallbacks extends WP_UnitTestCase {
 	 */
 	public function test_wp_using_secrets_dropin_reports_true_once_the_loader_flag_is_set(): void {
 		// Simulates what wp_load_secrets_dropin() sets when a drop-in file is
-		// found, without depending on an actual file on disk -- see
+		// found, without depending on an actual file on disk – see
 		// tests/phpunit/test-secrets-extension-points.php for why.
 		$GLOBALS['wp_secrets_dropin_loaded'] = true;
 

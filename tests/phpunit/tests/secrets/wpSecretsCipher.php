@@ -361,7 +361,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * Pins the exact AAD format. A reviewer reordering these fields, or a future
 	 * commit accidentally dropping the site id or slot, silently weakens the binding
-	 * this whole design leans on -- this test makes that change loud instead.
+	 * this whole design leans on – this test makes that change loud instead.
 	 */
 	public function test_aad_format_known_answer(): void {
 		$cipher = new WP_Secrets_Cipher();

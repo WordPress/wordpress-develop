@@ -70,7 +70,7 @@ class Tests_Secrets_WpDeleteSecret extends WP_UnitTestCase {
 
 	/**
 	 * A corrupted record must still be removable. Refusing here would leave a secret
-	 * permanently stuck -- unreadable, unrepairable, and undeletable without editing
+	 * permanently stuck – unreadable, unrepairable, and undeletable without editing
 	 * the database by hand.
 	 */
 	public function test_a_corrupt_record_is_still_deletable(): void {

@@ -15,7 +15,7 @@
  *
  * Site-scope secrets live under '_wp_secret_{name}' via get_option()/update_option().
  * Network-scope secrets live under '_wp_network_secret_{name}' via the *_site_option()
- * functions, which on a non-multisite install are themselves backed by wp_options --
+ * functions, which on a non-multisite install are themselves backed by wp_options –
  * so on a single site, site- and network-scope secrets differ only by prefix, in the
  * same table; on a real network, network-scope rows live in wp_sitemeta instead.
  *
@@ -91,7 +91,7 @@ final class WP_Secrets_Option_Store implements WP_Secrets_Store {
 
 		/*
 		 * update_option()/update_site_option() return false both on genuine
-		 * failure and when the new value already equals the stored one -- a
+		 * failure and when the new value already equals the stored one – a
 		 * documented ambiguity in the Options API. Read back and compare rather
 		 * than treating every false as a failure.
 		 */

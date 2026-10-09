@@ -2,7 +2,7 @@
 /**
  * Version slot behaviour: demotion on overwrite, PREVIOUS retrieval, and
  * wp_retire_secret_version(). PREVIOUS retrieval is
- * "the single most important new test in the suite" -- the prior proof-of-concept
+ * "the single most important new test in the suite" – the prior proof-of-concept
  * could not do this at all.
  *
  * @group secrets
@@ -129,7 +129,7 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 	/**
 	 * If the outgoing current slot is already undecryptable (corrupted, or
 	 * orphaned by a botched rotation), the write must still succeed rather than
-	 * inheriting the old corruption -- refusing here would be the exact
+	 * inheriting the old corruption – refusing here would be the exact
 	 * corrupted-record-blocks-everything failure this API is built to avoid.
 	 */
 	public function test_a_write_succeeds_even_if_the_outgoing_current_slot_cannot_be_decrypted(): void {

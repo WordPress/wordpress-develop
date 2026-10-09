@@ -202,7 +202,7 @@ final class WP_Secrets_Cipher {
 	 * plaintext fingerprints differently under a different master key. Callers
 	 * verifying a value against a previously stored fingerprint (for example, a
 	 * migration's verify-before-delete step) must recompute this from freshly
-	 * decrypted plaintext and compare -- never trust a fingerprint read back from a
+	 * decrypted plaintext and compare – never trust a fingerprint read back from a
 	 * record, which sits outside the AAD and is not authenticated.
 	 *
 	 * @since 7.2.0
@@ -249,7 +249,7 @@ final class WP_Secrets_Cipher {
 	 *
 	 * Centralized in one place rather than inlined at each call site, and only ever
 	 * called after validate_common() has confirmed $name passes
-	 * wp_secrets_validate_name() -- the validated character set contains no '|', which
+	 * wp_secrets_validate_name() – the validated character set contains no '|', which
 	 * is what makes this delimiter safe to join on.
 	 *
 	 * @since 7.2.0
@@ -271,8 +271,8 @@ final class WP_Secrets_Cipher {
 	/**
 	 * Validates the parameters shared by encrypt_value() and decrypt_value().
 	 *
-	 * $scope, $site_id, and $slot are never influenced by external input -- every
-	 * call site in this API supplies them internally -- so a bad value here means
+	 * $scope, $site_id, and $slot are never influenced by external input – every
+	 * call site in this API supplies them internally – so a bad value here means
 	 * the calling code is wrong, not that a runtime condition failed. That still
 	 * reports as a WP_Error rather than an exception: WordPress functions return
 	 * WP_Error or false, they do not throw. The _doing_it_wrong() notice is what

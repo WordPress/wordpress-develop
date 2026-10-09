@@ -68,8 +68,8 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 	/**
 	 * A record's AAD binds it to the specific name it was encrypted under. Storing a
-	 * legitimately-encrypted record under a different name's option row -- as if it
-	 * had been copied or corrupted -- must fail decryption, not silently succeed
+	 * legitimately-encrypted record under a different name's option row – as if it
+	 * had been copied or corrupted – must fail decryption, not silently succeed
 	 * under the wrong context or crash.
 	 */
 	public function test_aad_mismatch_from_a_copied_record_is_wp_error_not_null(): void {
@@ -121,7 +121,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 
 	/**
 	 * Written under the ambient salt-fallback key, then read back after the stored
-	 * wrapped root key has been corrupted -- simulating the option row being
+	 * wrapped root key has been corrupted – simulating the option row being
 	 * damaged after secrets already exist. get_master_key() must fail before
 	 * decryption is ever attempted, since a usable root key was never obtained.
 	 */
@@ -142,7 +142,7 @@ class Tests_Secrets_ThreeStateContract extends WP_UnitTestCase {
 	 * 'fingerprint' field has been removed still decrypts, and must return a
 	 * WP_Secret rather than throwing. Regression test: this previously handed an
 	 * empty fingerprint to WP_Secret's constructor, which rejects one, producing an
-	 * uncaught InvalidArgumentException -- a fatal, and a fourth state the contract
+	 * uncaught InvalidArgumentException – a fatal, and a fourth state the contract
 	 * does not allow.
 	 */
 	public function test_record_missing_its_fingerprint_field_still_returns_a_secret(): void {

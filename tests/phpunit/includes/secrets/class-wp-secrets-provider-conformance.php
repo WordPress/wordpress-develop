@@ -5,7 +5,7 @@
  * Extend this, return a provider from provider(), and the contract every provider
  * is held to gets checked against it. The point is that "implements
  * WP_Secrets_Provider" is a claim PHP can verify about method names and nothing
- * else -- it cannot tell you that absence is reported as null rather than false, or
+ * else – it cannot tell you that absence is reported as null rather than false, or
  * that an unreachable backend fails closed instead of looking empty, and those are
  * the properties that actually matter.
  *
@@ -33,7 +33,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	/**
 	 * A name this provider will accept, unique per test run.
 	 *
-	 * Overridable because a platform may have its own naming rules -- a provider
+	 * Overridable because a platform may have its own naming rules – a provider
 	 * backed by an AWS Parameter Store path, say, is entitled to want something
 	 * that looks like a path.
 	 *
@@ -46,8 +46,8 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 	/**
 	 * Skips the current test when the provider does not accept writes.
 	 *
-	 * Read-only is a legitimate shape -- it is the whole reason is_writable()
-	 * exists -- so the round-trip checks below do not apply to it. They are
+	 * Read-only is a legitimate shape – it is the whole reason is_writable()
+	 * exists – so the round-trip checks below do not apply to it. They are
 	 * skipped rather than quietly passing, so the report says what was not proven.
 	 *
 	 * @param WP_Secrets_Provider $provider The provider under test.
@@ -100,7 +100,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		return $provider->get( $name, WP_Secret_Version::PREVIOUS ) instanceof WP_Secret;
 	}
 
-	// -- declarations must be coherent ----------------------------------------
+	// – declarations must be coherent ----------------------------------------
 
 	public function test_reports_a_non_empty_label(): void {
 		$label = $this->provider()->get_label();
@@ -142,11 +142,11 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		);
 	}
 
-	// -- absence is null, and only null ---------------------------------------
+	// – absence is null, and only null ---------------------------------------
 
 	/**
 	 * The single most important property in the whole API. A name that was never
-	 * set is null -- not false, not an empty WP_Secret, not a WP_Error. Reporting
+	 * set is null – not false, not an empty WP_Secret, not a WP_Error. Reporting
 	 * absence as an error makes every caller treat a missing optional credential
 	 * as an outage; reporting an outage as absence makes them treat it as deleted.
 	 */
@@ -194,7 +194,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNotWPError( $provider->retire_previous( $name ) );
 	}
 
-	// -- the round trip --------------------------------------------------------
+	// – the round trip --------------------------------------------------------
 
 	public function test_a_stored_value_comes_back_intact(): void {
 		$provider = $this->provider();
@@ -247,7 +247,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertNull( $provider->get( $name, WP_Secret_Version::CURRENT ) );
 	}
 
-	// -- every change is reported ----------------------------------------------
+	// – every change is reported ----------------------------------------------
 
 	/**
 	 * The API does not fire `wp_secret_changed` on a provider's behalf, so a
@@ -368,7 +368,7 @@ abstract class WP_Secrets_Provider_Conformance extends WP_UnitTestCase {
 		$this->assertCount( 0, $this->recorded_changes, 'A write that did not happen must not be reported as a change.' );
 	}
 
-	// -- listing never leaks ---------------------------------------------------
+	// – listing never leaks ---------------------------------------------------
 
 	public function test_listing_returns_an_array_or_an_error_and_never_a_value(): void {
 		$provider = $this->provider();

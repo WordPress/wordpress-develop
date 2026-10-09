@@ -19,12 +19,12 @@
  *    those decoded bytes are used raw. This is the documented, recommended form;
  *    `wp secret generate-key` emits it.
  * 2. WP_SECRETS_KEY is defined in any other shape: the literal constant string is
- *    hashed with a keyed BLAKE2b to 32 bytes. This is the legacy interpretation --
+ *    hashed with a keyed BLAKE2b to 32 bytes. This is the legacy interpretation –
  *    sites arriving from a prior plugin with a constant of arbitrary shape are not
  *    locked out of their own credentials by a hard failure here.
  * 3. WP_SECRETS_KEY is undefined: LOGGED_IN_KEY . LOGGED_IN_SALT is hashed the same
  *    way. Deliberately byte-identical to the legacy interpretation's hashing, not a
- *    coincidence -- it is what makes salt-fallback sites migrate with zero
+ *    coincidence – it is what makes salt-fallback sites migrate with zero
  *    credential re-entry.
  *
  * WP_SECRETS_KEY_PREVIOUS follows the same three rules and exists only so a site-key
@@ -180,7 +180,7 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 		if ( defined( 'WP_SECRETS_KEY' ) ) {
 			return $this->is_canonical_base64_32( WP_SECRETS_KEY )
 				? 'WP_SECRETS_KEY (base64-encoded 32 bytes)'
-				: 'WP_SECRETS_KEY (legacy interpretation -- hashed as an opaque string)';
+				: 'WP_SECRETS_KEY (legacy interpretation, hashed as an opaque string)';
 		}
 
 		return 'derived from LOGGED_IN_KEY and LOGGED_IN_SALT';
@@ -243,12 +243,12 @@ final class WP_Secrets_Config_Key_Provider implements WP_Secrets_Keyring {
 	 * Whether a pair of candidate salt values are usable as key material.
 	 *
 	 * Both must be non-empty strings, and neither may be the literal
-	 * wp-config-sample.php placeholder -- which every unconfigured install shares,
+	 * wp-config-sample.php placeholder – which every unconfigured install shares,
 	 * making it a publicly known value rather than a secret.
 	 *
 	 * Takes explicit arguments rather than reading LOGGED_IN_KEY/LOGGED_IN_SALT
 	 * directly so the decision logic is testable without touching real constants,
-	 * which -- once WordPress has bootstrapped once in a process -- can never be
+	 * which – once WordPress has bootstrapped once in a process – can never be
 	 * redefined to a different value for a test.
 	 *
 	 * @since 7.2.0

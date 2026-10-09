@@ -95,7 +95,7 @@ class Mock_Store implements WP_Secrets_Store {
 	}
 
 	/**
-	 * Every record ever passed to set(), in call order -- including ones set()
+	 * Every record ever passed to set(), in call order – including ones set()
 	 * went on to reject, since the assertion this exists for is "was this store
 	 * ever handed a plaintext," not "was a plaintext ever successfully stored."
 	 *

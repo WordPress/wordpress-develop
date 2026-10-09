@@ -183,7 +183,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * Invoked directly via reflection, rather than through serialize()/unserialize(),
 	 * because __serialize() alone shadows __sleep() and vice versa depending on which
-	 * pair PHP's engine prefers -- this proves each of the four refuses independently.
+	 * pair PHP's engine prefers – this proves each of the four refuses independently.
 	 *
 	 * @dataProvider data_refusing_magic_methods
 	 *
@@ -257,7 +257,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	 * The independent second layer, not a restatement of the test above.
 	 *
 	 * Verified by neutering __clone() and __serialize() and re-running: the test
-	 * above fails, this one still passes. That is the point -- this holds because
+	 * above fails, this one still passes. That is the point – this holds because
 	 * the plaintext is not a property of the object, so even a clone or a
 	 * serialization that somehow got through would carry nothing to leak. It is a
 	 * regression guard against a future change that moves the plaintext back into a
@@ -290,12 +290,12 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 		$this->assertSame( 'value-b', $b->reveal() );
 	}
 
-	// -- withheld secrets (provider does not release the value) ---------------
+	// – withheld secrets (provider does not release the value) ---------------
 
 	/**
 	 * A secret a provider can name and fingerprint but will not hand to PHP: an
 	 * HSM signing key, a brokered credential. Everything except reveal() behaves
-	 * normally, which is the point -- it still lists, still fingerprints, and
+	 * normally, which is the point – it still lists, still fingerprints, and
 	 * still masks itself everywhere.
 	 */
 	public function test_withheld_reveal_returns_the_providers_reason(): void {

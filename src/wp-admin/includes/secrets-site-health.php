@@ -10,7 +10,7 @@
 /**
  * Registers the Secrets API's Site Health tests.
  *
- * No settings screen -- the proposal defers that to 7.3 -- but the health signal an
+ * No settings screen – the proposal defers that to 7.3 – but the health signal an
  * operator needs to notice a broken key, a weak key source, or a pending rotation is
  * in scope now.
  *
@@ -45,7 +45,7 @@ add_filter( 'site_status_tests', 'wp_secrets_site_health_tests' );
  * @since 7.2.0
  *
  * @param string $test        The test's own identifier, matching the key registered
- *                             in wp_secrets_site_health_tests().
+ *                            in wp_secrets_site_health_tests().
  * @param string $label       Short label for the test result.
  * @param string $status      One of 'good', 'recommended', 'critical'.
  * @param string $description HTML description, normally one or more <p> elements.
@@ -132,7 +132,7 @@ function wp_secrets_site_health_test_key_source(): array {
 /**
  * Site Health test: does every stored secret still decrypt?
  *
- * Network secrets are included only for a super admin on a multisite install --
+ * Network secrets are included only for a super admin on a multisite install –
  * never shown to a site administrator who is not one.
  *
  * @since 7.2.0
@@ -177,7 +177,7 @@ function wp_secrets_site_health_test_undecryptable(): array {
 		'critical',
 		sprintf(
 			'<p>%s</p><ul>%s</ul><p>%s</p>',
-			esc_html__( 'The following secrets exist but could not be decrypted with the current key. There is no way to recover the original value -- the credential must be re-entered.' ),
+			esc_html__( 'The following secrets exist but could not be decrypted with the current key. There is no way to recover the original value. The credential must be re-entered.' ),
 			$items,
 			esc_html__( 'This can happen after losing WP_SECRETS_KEY, restoring a database backup without its matching key, or a failed key rotation.' )
 		)
@@ -294,7 +294,7 @@ function wp_secrets_site_health_count_needing_rotation( bool $network ): int {
 /**
  * Adds a Secrets API section to Site Health's debug information.
  *
- * Counts and class names only -- no secret values, and no fingerprints. Network
+ * Counts and class names only – no secret values, and no fingerprints. Network
  * scope figures are included only for a super admin on a multisite install.
  *
  * @since 7.2.0

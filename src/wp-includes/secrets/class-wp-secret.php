@@ -11,7 +11,7 @@
  * A decrypted secret value, returned by wp_get_secret().
  *
  * Masking is total and unconditional. Every representation short of an explicit call
- * to reveal() yields the placeholder '[secret:{name}]' -- printing, logging, JSON
+ * to reveal() yields the placeholder '[secret:{name}]' – printing, logging, JSON
  * encoding, or dumping an instance never exposes the plaintext.
  *
  * The plaintext is never a declared property of this class. It lives in a private
@@ -30,7 +30,7 @@ final class WP_Secret implements JsonSerializable {
 	 *
 	 * Deliberately not an SplObjectStorage keyed by the instance itself: that holds a
 	 * strong reference to its keys, which would keep every WP_Secret ever constructed
-	 * alive -- and its plaintext un-zeroed -- for the life of the request. Keying by
+	 * alive – and its plaintext un-zeroed – for the life of the request. Keying by
 	 * the integer id instead leaves an instance's own reference count to govern its
 	 * lifetime normally, so __destruct() fires and zeroes the value the moment nothing
 	 * else references the instance.
@@ -62,7 +62,7 @@ final class WP_Secret implements JsonSerializable {
 	/**
 	 * Why this secret's value is unavailable to PHP, or null when it is available.
 	 *
-	 * Set only for a secret a provider can prove exists but will not hand over --
+	 * Set only for a secret a provider can prove exists but will not hand over –
 	 * an HSM that will sign with a key but never export it, a broker that releases
 	 * a credential to a subsystem rather than to WordPress. Such a secret is still
 	 * a real secret with a real name and fingerprint; what it is not is readable,
@@ -80,7 +80,7 @@ final class WP_Secret implements JsonSerializable {
 	 * That is not an inconsistency to be tidied up later: a constructor has no
 	 * return channel, so the only alternatives are throwing or building a
 	 * half-valid WP_Secret and letting it fail somewhere less obvious. Every
-	 * function that *can* return WP_Error does -- see
+	 * function that *can* return WP_Error does – see
 	 * this file's own reasoning below. The same rule covers the serialization
 	 * and clone refusals below, which are magic methods with the same problem
 	 * and an additional one: silently permitting them would leak a plaintext.
@@ -122,7 +122,7 @@ final class WP_Secret implements JsonSerializable {
 	 * This is the only path to the stored plaintext anywhere in the API.
 	 *
 	 * Returns WP_Error for a secret whose provider will not release the value to
-	 * PHP at all -- see withheld(). That case does not arise for the provider
+	 * PHP at all – see withheld(). That case does not arise for the provider
 	 * WordPress ships, which decrypts eagerly and therefore always has a value in
 	 * hand, so most callers will never see it. It is in the signature because a
 	 * return type cannot be widened after adoption: leaving reveal() as
@@ -146,7 +146,7 @@ final class WP_Secret implements JsonSerializable {
 	 * Builds a secret whose value exists but is not available to PHP.
 	 *
 	 * For a provider that can prove a credential exists, and can name and
-	 * fingerprint it, but will not release it -- typically because releasing it
+	 * fingerprint it, but will not release it – typically because releasing it
 	 * would defeat the point of where it is held. Everything except reveal()
 	 * behaves normally, so such a secret still lists, still reports a stable
 	 * fingerprint, and still masks itself in every output path.
@@ -314,7 +314,7 @@ final class WP_Secret implements JsonSerializable {
 	 * Refuses cloning outright.
 	 *
 	 * A clone would be a second, unaudited reference to the same plaintext with an
-	 * independent lifetime -- and, since the vault is keyed by object id rather than
+	 * independent lifetime – and, since the vault is keyed by object id rather than
 	 * copied, a bare `clone` would otherwise leave the clone's reveal() silently
 	 * reading nothing.
 	 *

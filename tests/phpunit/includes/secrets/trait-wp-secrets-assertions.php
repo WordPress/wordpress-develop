@@ -28,7 +28,7 @@ trait WP_Secrets_Assertions {
 		$context = '' !== $message ? $message . ' ' : '';
 
 		if ( is_wp_error( $maybe_secret ) ) {
-			$this->fail( $context . 'Expected a WP_Secret, got WP_Error: ' . $maybe_secret->get_error_code() . ' -- ' . $maybe_secret->get_error_message() );
+			$this->fail( $context . 'Expected a WP_Secret, got WP_Error: ' . $maybe_secret->get_error_code() . ': ' . $maybe_secret->get_error_message() );
 		}
 
 		$this->assertInstanceOf(

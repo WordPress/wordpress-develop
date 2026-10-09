@@ -130,7 +130,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 	/**
 	 * The root key is shared network-wide (one row via update_site_option()), so a
-	 * master key derived on one blog must be derivable identically on another --
+	 * master key derived on one blog must be derivable identically on another –
 	 * this is the entire reason network secrets can be read from any blog. Requires
 	 * the multisite suite; skips under single-site since there is only one blog to
 	 * compare against.
@@ -307,7 +307,7 @@ class Tests_Secrets_WPSecretsKeyManager extends WP_UnitTestCase {
 
 	/**
 	 * A site-key rotation re-wraps the root key without changing its raw bytes, so
-	 * every derived master key -- and therefore every stored secret -- is unaffected.
+	 * every derived master key – and therefore every stored secret – is unaffected.
 	 * This is the whole point of the envelope design, so it gets an end-to-end proof
 	 * rather than just testing rotate_site_key() in isolation.
 	 *

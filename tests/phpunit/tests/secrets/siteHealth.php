@@ -218,7 +218,7 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Network secret counts appear only for a super admin on a multisite install --
+	 * Network secret counts appear only for a super admin on a multisite install –
 	 * never for a site administrator who is not one.
 	 */
 	public function test_debug_info_includes_network_fields_only_for_a_super_admin(): void {

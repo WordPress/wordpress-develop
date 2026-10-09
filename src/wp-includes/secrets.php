@@ -535,7 +535,7 @@ function wp_retire_secret_version( string $name ) {
  * @since 7.2.0
  *
  * @param string $namespace Only secrets whose name starts with "{$namespace}/" are
- *                           returned. Default '' returns every secret.
+ *                          returned. Default '' returns every secret.
  * @return array|WP_Error Array of associative arrays, each with keys 'name',
  *                        'fingerprint', 'created', 'has_previous', and
  *                        'needs_rotation'.
@@ -609,7 +609,7 @@ function wp_retire_network_secret_version( string $name ) {
  * @since 7.2.0
  *
  * @param string $namespace Only secrets whose name starts with "{$namespace}/" are
- *                           returned. Default '' returns every network-scope secret.
+ *                          returned. Default '' returns every network-scope secret.
  * @return array|WP_Error
  *
  * @phpstan-return list<array{name: string, fingerprint: string, created: int, has_previous: bool, needs_rotation: bool}>|WP_Error

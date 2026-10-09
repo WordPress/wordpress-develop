@@ -25,7 +25,7 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Never a value, under any circumstance -- the entire justification for this
+	 * Never a value, under any circumstance – the entire justification for this
 	 * function existing depends on it.
 	 */
 	public function test_never_returns_a_value(): void {
@@ -103,14 +103,14 @@ class Tests_Secrets_WpListSecrets extends WP_UnitTestCase {
 	}
 
 	public function test_namespace_does_not_match_a_prefix_of_a_different_namespace(): void {
-		// 'plugin' must not match 'pluginone/key' -- only a full "namespace/" prefix.
+		// 'plugin' must not match 'pluginone/key' – only a full "namespace/" prefix.
 		wp_set_secret( 'pluginone/key', 'value' );
 
 		$this->assertSame( array(), wp_list_secrets( 'plugin' ) );
 	}
 
 	/**
-	 * A corrupted record must still appear in the list -- Site Health's
+	 * A corrupted record must still appear in the list – Site Health's
 	 * undecryptable-secrets check depends on being able to see it exists.
 	 */
 	public function test_a_corrupt_record_is_still_listed_with_blank_metadata(): void {
