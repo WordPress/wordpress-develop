@@ -424,6 +424,32 @@ class Theme_Upgrader extends WP_Upgrader {
 
 		$results = array();
 
+		$packages_to_download = array();
+		foreach ( $themes as $theme ) {
+			if ( ! isset( $current->response[ $theme ] ) ) {
+				continue;
+			}
+
+			$upgrade_data = $current->response[ $theme ];
+
+			if ( isset( $upgrade_data['requires'] ) && ! is_wp_version_compatible( $upgrade_data['requires'] ) ) {
+				continue;
+			}
+
+			if ( isset( $upgrade_data['requires_php'] ) && ! is_php_version_compatible( $upgrade_data['requires_php'] ) ) {
+				continue;
+			}
+
+			if ( ! empty( $upgrade_data['package'] ) ) {
+				$packages_to_download[ $theme ] = $upgrade_data['package'];
+			}
+		}
+
+		$downloaded_packages = array();
+		if ( ! empty( $packages_to_download ) ) {
+			$downloaded_packages = download_url_multiple( $packages_to_download );
+		}
+
 		$this->update_count   = count( $themes );
 		$this->update_current = 0;
 		foreach ( $themes as $theme ) {
@@ -472,10 +498,16 @@ class Theme_Upgrader extends WP_Upgrader {
 				$this->skin->error( $result );
 				$this->skin->after();
 			} else {
+				$package = $upgrade_data['package'];
+				if ( ! empty( $downloaded_packages[ $theme ] ) && ! is_wp_error( $downloaded_packages[ $theme ] ) ) {
+					$package = $downloaded_packages[ $theme ];
+					unset( $downloaded_packages[ $theme ] );
+				}
+
 				add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 				$result = $this->run(
 					array(
-						'package'           => $upgrade_data['package'],
+						'package'           => $package,
 						'destination'       => get_theme_root( $theme ),
 						'clear_destination' => true,
 						'clear_working'     => true,
@@ -500,6 +532,13 @@ class Theme_Upgrader extends WP_Upgrader {
 				break;
 			}
 		} // End foreach $themes.
+
+		// Clean up any pre-downloaded packages that were not consumed.
+		foreach ( $downloaded_packages as $downloaded_package ) {
+			if ( is_string( $downloaded_package ) && file_exists( $downloaded_package ) ) {
+				unlink( $downloaded_package );
+			}
+		}
 
 		$this->maintenance_mode( false );
 

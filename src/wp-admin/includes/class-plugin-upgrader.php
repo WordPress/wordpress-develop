@@ -325,6 +325,32 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$results = array();
 
+		$packages_to_download = array();
+		foreach ( $plugins as $plugin ) {
+			if ( ! isset( $current->response[ $plugin ] ) ) {
+				continue;
+			}
+
+			$upgrade_data = $current->response[ $plugin ];
+
+			if ( isset( $upgrade_data->requires ) && ! is_wp_version_compatible( $upgrade_data->requires ) ) {
+				continue;
+			}
+
+			if ( isset( $upgrade_data->requires_php ) && ! is_php_version_compatible( $upgrade_data->requires_php ) ) {
+				continue;
+			}
+
+			if ( ! empty( $upgrade_data->package ) ) {
+				$packages_to_download[ $plugin ] = $upgrade_data->package;
+			}
+		}
+
+		$downloaded_packages = array();
+		if ( ! empty( $packages_to_download ) ) {
+			$downloaded_packages = download_url_multiple( $packages_to_download );
+		}
+
 		$this->update_count   = count( $plugins );
 		$this->update_current = 0;
 		foreach ( $plugins as $plugin ) {
@@ -374,10 +400,16 @@ class Plugin_Upgrader extends WP_Upgrader {
 				$this->skin->error( $result );
 				$this->skin->after();
 			} else {
+				$package = $upgrade_data->package;
+				if ( ! empty( $downloaded_packages[ $plugin ] ) && ! is_wp_error( $downloaded_packages[ $plugin ] ) ) {
+					$package = $downloaded_packages[ $plugin ];
+					unset( $downloaded_packages[ $plugin ] );
+				}
+
 				add_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 				$result = $this->run(
 					array(
-						'package'           => $upgrade_data->package,
+						'package'           => $package,
 						'destination'       => WP_PLUGIN_DIR,
 						'clear_destination' => true,
 						'clear_working'     => true,
@@ -402,6 +434,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 				break;
 			}
 		} // End foreach $plugins.
+
+		// Clean up any pre-downloaded packages that were not consumed.
+		foreach ( $downloaded_packages as $downloaded_package ) {
+			if ( is_string( $downloaded_package ) && file_exists( $downloaded_package ) ) {
+				unlink( $downloaded_package );
+			}
+		}
 
 		$this->maintenance_mode( false );
 
