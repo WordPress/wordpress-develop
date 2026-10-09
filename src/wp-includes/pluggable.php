@@ -1828,10 +1828,6 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			$comment_author_domain = gethostbyaddr( $comment->comment_author_IP );
 		}
 
-		/*
-		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-		 * We want to reverse this for the plain text arena of emails.
-		 */
 		$site_title      = wp_resolve_site_title();
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
@@ -2043,10 +2039,6 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 
 		$comments_waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_approved = '0'" );
 
-		/*
-		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-		 * We want to reverse this for the plain text arena of emails.
-		 */
 		$site_title      = wp_resolve_site_title();
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 

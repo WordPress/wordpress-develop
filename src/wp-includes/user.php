@@ -3911,11 +3911,7 @@ function send_confirmation_on_profile_email( $user_id = 0 ) {
 		);
 		update_user_meta( $current_user->ID, '_new_email', $new_user_email );
 
-		if ( '' !== get_option( 'blogname' ) ) {
-			$sitename = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-		} else {
-			$sitename = parse_url( home_url(), PHP_URL_HOST );
-		}
+		$site_title = wp_resolve_site_title();
 
 		/* translators: Do not translate USERNAME, ADMIN_URL, EMAIL, SITENAME, SITEURL: those are placeholders. */
 		$email_text = __(
@@ -3963,11 +3959,11 @@ All at ###SITENAME###
 		$content = str_replace( '###USERNAME###', $current_user->user_login, $content );
 		$content = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'profile.php?newuseremail=' . $hash ) ), $content );
 		$content = str_replace( '###EMAIL###', $_POST['email'], $content );
-		$content = str_replace( '###SITENAME###', $sitename, $content );
+		$content = str_replace( '###SITENAME###', $site_title, $content );
 		$content = str_replace( '###SITEURL###', home_url(), $content );
 
 		/* translators: New email address notification email subject. %s: Site title. */
-		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $sitename ), $content );
+		wp_mail( $_POST['email'], sprintf( __( '[%s] Email Change Request' ), $site_title ), $content );
 
 		$_POST['email'] = $current_user->user_email;
 	}
@@ -4307,11 +4303,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 	 */
 	$admin_email = apply_filters( 'user_request_confirmed_email_to', get_site_option( 'admin_email' ), $request );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	$email_data = array(
 		'request'     => $request,
@@ -4519,11 +4511,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 */
 	$user_email = apply_filters( 'user_erasure_fulfillment_email_to', $request->email, $request );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	$email_data = array(
 		'request'            => $request,
@@ -4931,11 +4919,7 @@ function wp_send_user_request( $request_id ) {
 	 */
 	$request->confirm_key = wp_generate_user_request_key( $request_id );
 
-	if ( '' !== get_option( 'blogname' ) ) {
-		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	} else {
-		$site_title = parse_url( home_url(), PHP_URL_HOST );
-	}
+	$site_title = wp_resolve_site_title();
 
 	$email_data = array(
 		'request'     => $request,
