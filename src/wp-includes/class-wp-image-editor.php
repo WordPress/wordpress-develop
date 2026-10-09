@@ -606,7 +606,7 @@ abstract class WP_Image_Editor {
 	 * @param string $extension
 	 * @return string|false
 	 */
-	protected static function get_mime_type( $extension = null ) {
+	public static function get_mime_type( $extension = null ) {
 		if ( ! $extension ) {
 			return false;
 		}
