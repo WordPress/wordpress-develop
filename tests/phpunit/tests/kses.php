@@ -109,6 +109,51 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that repeated runs return the same result.
+	 *
+	 * @ticket 65984
+	 *
+	 * @dataProvider data_wp_kses_idempotent_inputs
+	 *
+	 * @param string $input                 Process this HTML.
+	 * @param array|null $allowed_html      Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @param array|null $allowed_protocols Optional. If provided, will be passed into `wp_kses()`.
+	 *                                      Default is to rely on the WordPress defaults.
+	 * @return void
+	 */
+	public function test_wp_kses_is_idempotent( string $input, ?array $allowed_html = null, ?array $allowed_protocols = null ): void {
+		$output = wp_kses( $input, $allowed_html, $allowed_protocols );
+
+		$this->assertSame(
+			$output,
+			wp_kses( $output, $allowed_html, $allowed_protocols ),
+			'Should have produced the same output after running the given input back through `wp_kses()`'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_wp_kses_idempotent_inputs(): array {
+		return array(
+			array(
+				'<div>a < b</div>',
+			),
+			array(
+				'<div id="a < b">',
+				array(
+					'div' => array(
+						'id' => true,
+					),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Test video tag.
 	 *
 	 * @ticket 50167
@@ -364,106 +409,106 @@ EOF;
 
 			switch ( $attack->name ) {
 				case 'XSS Locator':
-					$this->assertSame( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;alert(String.fromCharCode(88,83,83))=&amp;{}', $result );
+					$this->assertEqualHTML( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;=&amp;{}', $result );
 					break;
 				case 'XSS Quick Test':
-					$this->assertSame( '\'\';!--"=&amp;{()}', $result );
+					$this->assertEqualHTML( '\'\';!--"=&amp;{()}', $result );
 					break;
 				case 'SCRIPT w/Alert()':
-					$this->assertSame( "alert('XSS')", $result );
+					$this->assertEqualHTML( "alert('XSS')", $result );
 					break;
 				case 'SCRIPT w/Char Code':
-					$this->assertSame( 'alert(String.fromCharCode(88,83,83))', $result );
+					$this->assertEqualHTML( 'alert(String.fromCharCode(88,83,83))', $result );
 					break;
 				case 'IMG STYLE w/expression':
-					$this->assertSame( 'exp/*', $result );
+					$this->assertEqualHTML( 'exp/*', $result );
 					break;
 				case 'List-style-image':
-					$this->assertSame( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
+					$this->assertEqualHTML( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
 					break;
 				case 'STYLE':
-					$this->assertSame( "alert('XSS');", $result );
+					$this->assertEqualHTML( "alert('XSS');", $result );
 					break;
 				case 'STYLE w/background-image':
-					$this->assertSame( '.XSS{background-image:url("javascript:alert(\'XSS\')");}<A></A>', $result );
+					$this->assertEqualHTML( '<A></A>', $result );
 					break;
 				case 'STYLE w/background':
-					$this->assertSame( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
+					$this->assertEqualHTML( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
 					break;
 				case 'Remote Stylesheet 2':
-					$this->assertSame( "@import'http://ha.ckers.org/xss.css';", $result );
+					$this->assertEqualHTML( "@import'http://ha.ckers.org/xss.css';", $result );
 					break;
 				case 'Remote Stylesheet 3':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
+					$this->assertEqualHTML( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
 					break;
 				case 'Remote Stylesheet 4':
-					$this->assertSame( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
+					$this->assertEqualHTML( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
 					break;
 				case 'XML data island w/CDATA':
-					$this->assertSame( '&lt;![CDATA[]]&gt;', $result );
+					$this->assertEqualHTML( ']]>', $result );
 					break;
 				case 'XML data island w/comment':
-					$this->assertSame( "<I><B>&lt;IMG SRC=&quot;javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
+					$this->assertEqualHTML( '<I><B></B></I>', $result );
 					break;
 				case 'XML HTML+TIME':
-					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
+					$this->assertEqualHTML( '', $result );
 					break;
 				case 'Commented-out Block':
-					$this->assertSame( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
+					$this->assertEqualHTML( "<!--[if gte IE 4]>\n&lt;SCRIPT>alert('XSS');&lt;/SCRIPT>\n&lt;![endif]-->", $result );
 					break;
 				case 'Cookie Manipulation':
-					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
+					$this->assertEqualHTML( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
 					break;
 				case 'SSI':
-					$this->assertSame( '&lt;!--#exec cmd=&quot;/bin/echo &#039;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;\'"-->', $result );
+					$this->assertEqualHTML( '<!--#exec cmd="/bin/echo \'&lt;SCRIPT SRC\'"--><!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js>&lt;/SCRIPT>\'"-->', $result );
 					break;
 				case 'PHP':
-					$this->assertSame( '&lt;? echo(&#039;alert("XSS")\'); ?&gt;', $result );
+					$this->assertEqualHTML( 'alert("XSS")\'); ?&gt;', $result );
 					break;
 				case 'UTF-7 Encoding':
-					$this->assertSame( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
+					$this->assertEqualHTML( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
 					break;
 				case 'Escaping JavaScript escapes':
-					$this->assertSame( '\";alert(\'XSS\');//', $result );
+					$this->assertEqualHTML( '\";alert(\'XSS\');//', $result );
 					break;
 				case 'STYLE w/broken up JavaScript':
-					$this->assertSame( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
+					$this->assertEqualHTML( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
 					break;
 				case 'Null Chars 2':
-					$this->assertSame( '&amp;alert("XSS")', $result );
+					$this->assertEqualHTML( '&amp;alert("XSS")', $result );
 					break;
 				case 'No Closing Script Tag':
-					$this->assertSame( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
+					$this->assertEqualHTML( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
 					break;
 				case 'Half-Open HTML/JavaScript':
-					$this->assertSame( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
+					$this->assertEqualHTML( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
 					break;
 				case 'Double open angle brackets':
-					$this->assertSame( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
+					$this->assertEqualHTML( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
 					break;
 				case 'Extraneous Open Brackets':
-					$this->assertSame( '&lt;alert("XSS");//&lt;', $result );
+					$this->assertSame( '&lt;', $result );
 					break;
 				case 'Malformed IMG Tags':
-					$this->assertSame( 'alert("XSS")"&gt;', $result );
+					$this->assertEqualHTML( '">', $result );
 					break;
 				case 'No Quotes/Semicolons':
-					$this->assertSame( "a=/XSS/\nalert(a.source)", $result );
+					$this->assertEqualHTML( "a=/XSS/\nalert(a.source)", $result );
 					break;
 				case 'Evade Regex Filter 1':
-					$this->assertSame( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 4':
-					$this->assertSame( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 5':
-					$this->assertSame( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 1':
-					$this->assertSame( 'document.write("&lt;SCRI&quot;);PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( 'PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 2':
-					$this->assertSame( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertEqualHTML( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				default:
 					$this->fail( 'KSES failed on ' . $attack->name . ': ' . $result );
@@ -534,6 +579,227 @@ EOF;
 		remove_filter( 'wp_kses_allowed_html', array( $this, 'wp_kses_allowed_html_filter' ) );
 		$this->assertSame( $allowedposttags, wp_kses_allowed_html( 'post' ) );
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
+	}
+
+	/**
+	 * Tests that the comment content context allows only the mention span beyond the defaults.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_wp_kses_allowed_html_pre_comment_content_allows_only_the_mention_span() {
+		global $allowedtags;
+
+		$allowed = wp_kses_allowed_html( 'pre_comment_content' );
+
+		$this->assertSame(
+			array( 'class' => true ),
+			$allowed['span'],
+			'The mention span should be allowed in comment content.'
+		);
+
+		unset( $allowed['span'] );
+		$this->assertSame(
+			$allowedtags,
+			$allowed,
+			'Nothing beyond the mention span should be allowed on top of the default comment tags.'
+		);
+	}
+
+	/**
+	 * Tests that a note mention survives content sanitization of a `note` comment.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_note_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that the mention markup also survives in regular comment content.
+	 *
+	 * The allowance is always on rather than scoped per comment type: the
+	 * mention markup is inert, so uniform sanitization avoids stateful
+	 * arming and disarming of kses filters around each note write.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_markup_survives_regular_comment_content_sanitization() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		$this->assertSame( $content, wp_unslash( $filtered['comment_content'] ) );
+	}
+
+	/**
+	 * Tests that span classes are reduced to the two mention tokens.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_span_classes_are_reduced_to_the_mention_tokens() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2 is-destructive components-button">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Class tokens beyond `wp-note-mention` and `user-N` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that class tokens are reduced on spans regardless of tag-name casing.
+	 *
+	 * kses preserves tag-name casing, so the class reduction must match `SPAN`
+	 * case-insensitively rather than bail on a `<span` substring check.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_tokens_are_reduced_on_uppercase_span_tags() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <SPAN class="wp-note-mention user-2 is-destructive">@admin</SPAN>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertEqualHTML(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'Class tokens should be reduced on spans regardless of tag-name casing.'
+		);
+	}
+
+	/**
+	 * Tests that the class attribute is removed when no mention tokens remain.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_attribute_removed_when_no_tokens_remain() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="is-destructive user-0 user-x wp-note-mention-foo">there</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'comment', $content ) ) );
+
+		// Markup-equivalence assertion: the HTML API's whitespace handling
+		// when removing the final attribute is not part of its contract.
+		$this->assertEqualHTML(
+			'Hello <span>there</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'<body>',
+			'A span with no valid mention tokens should lose its class attribute entirely.'
+		);
+	}
+
+	/**
+	 * Tests that only the `class` attribute is allowed on mention spans.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_note_mention_allows_only_class_on_mention_spans() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+		$content  = 'Hello <span class="wp-note-mention user-2" data-user-id="2" onclick="alert(1)" style="color:red" id="mention">@admin</span>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <span class="wp-note-mention user-2">@admin</span>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'Attributes beyond `class` should be stripped from spans.'
+		);
+	}
+
+	/**
+	 * Tests that `class` is still stripped from links in comment content.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_allow_note_mention_span
+	 */
+	public function test_class_is_still_stripped_from_links_in_comment_content() {
+		add_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		/*
+		 * The href is external to the test site so that wp_rel_ugc() - which
+		 * applies to notes like any other comment - deterministically appends
+		 * `rel="nofollow ugc"`.
+		 */
+		$content  = 'Hello <a class="wp-note-mention user-2" href="https://example.com/author/admin/">@admin</a>!';
+		$filtered = wp_filter_comment( wp_slash( $this->get_mention_commentdata( 'note', $content ) ) );
+
+		$this->assertSame(
+			'Hello <a href="https://example.com/author/admin/" rel="nofollow ugc">@admin</a>!',
+			wp_unslash( $filtered['comment_content'] ),
+			'The class allowance is scoped to spans; links keep the default sanitization.'
+		);
+	}
+
+	/**
+	 * Tests that the class reduction is skipped while the restrictive comment kses is inactive.
+	 *
+	 * Users with `unfiltered_html` are filtered through `wp_filter_post_kses`
+	 * (or not at all), where arbitrary classes are permitted; the mention
+	 * class reduction must not narrow what they can post.
+	 *
+	 * @ticket 65622
+	 *
+	 * @covers ::_wp_kses_sanitize_note_mention_classes
+	 */
+	public function test_note_mention_class_reduction_skipped_when_restrictive_kses_is_inactive() {
+		// kses_init() hooks wp_filter_kses by default in the test
+		// environment, so detach it to simulate the unfiltered_html setup.
+		// The test framework restores filters after each test.
+		remove_filter( 'pre_comment_content', 'wp_filter_kses' );
+
+		$content = 'Hello <span class="components-button is-destructive">there</span>!';
+
+		$this->assertSame(
+			wp_slash( $content ),
+			_wp_kses_sanitize_note_mention_classes( wp_slash( $content ) ),
+			'Span classes should be left untouched when wp_filter_kses is not active.'
+		);
+	}
+
+	/**
+	 * Builds a complete commentdata array for wp_filter_comment().
+	 *
+	 * @param 'note'|'comment' $comment_type The comment type.
+	 * @param string           $content      The comment content.
+	 * @return array{
+	 *     comment_content: string,
+	 *     ...
+	 * }
+	 */
+	private function get_mention_commentdata( string $comment_type, string $content ): array {
+		return array(
+			'comment_content'      => $content,
+			'comment_type'         => $comment_type,
+			'comment_author'       => 'admin',
+			'comment_author_IP'    => '127.0.0.1',
+			'comment_author_url'   => 'http://example.org',
+			'comment_author_email' => 'admin@example.org',
+			'comment_agent'        => '',
+		);
 	}
 
 	public function test_hyphenated_tag() {
@@ -633,7 +899,8 @@ EOF;
 	public function test_ctrl_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
+		// It also must explicitly escape the C0 control characters.
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	public function data_ctrl_removal() {
@@ -654,9 +921,15 @@ EOF;
 				"\x1Fh\x1Ee\x1Dl\x1Cl\x1Bo\x1A \x19w\x18o\x17r\x16l\x15d\x14.\x13 \x12W\x11O\x10R\x0FD\x0EP\x0CR\x0BE\x08S\x07S\x06 \x05K\x04S\X03E\x02S\x01.\x00/",
 				'hello world. WORDPRESS KSES./',
 			),
+			/*
+			 * When decoding HTML, all "\r\n" grapheme clusters are converted into "\n" and
+			 * then any remaining "\r" characters are also converted into "\n". This is why
+			 * the two yield different outputs after normalization depending on the order in
+			 * which they appear together.
+			 */
 			array(
 				"\t\r\n word \n\r\t",
-				"\t\r\n word \n\r\t",
+				"\t\n word \n\n\t",
 			),
 		);
 	}
@@ -670,7 +943,16 @@ EOF;
 	public function test_slash_zero_removal( $content, $expected ) {
 		global $allowedposttags;
 
-		return $this->assertEqualHTML( $expected, wp_kses( $content, $allowedposttags ) );
+		$with_style = array_merge(
+			$allowedposttags,
+			array(
+				'style' => array(
+					'type' => true,
+				),
+			)
+		);
+
+		return $this->assertEqualHTML( $expected, wp_kses( $content, $with_style ) );
 	}
 
 	public function data_slash_zero_removal() {
@@ -709,7 +991,7 @@ EOF;
 			),
 			array(
 				'<style type="text/css">div {background-image:\\0}</style>',
-				'div {background-image:\\0}',
+				'<style type="text/css">div {background-image:\\0}</style>',
 			),
 		);
 	}
@@ -1003,6 +1285,8 @@ EOF;
 	 * @ticket 64414
 	 * @ticket 65457
 	 * @ticket 64974
+	 * @ticket 65832
+	 * @ticket 64972
 	 *
 	 * @dataProvider data_safecss_filter_attr
 	 *
@@ -1232,6 +1516,23 @@ EOF;
 			array(
 				'css'      => 'white-space: pre-line',
 				'expected' => 'white-space: pre-line',
+			),
+			// `text-shadow` introduced in 7.2.0.
+			array(
+				'css'      => 'text-shadow: none',
+				'expected' => 'text-shadow: none',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000',
+			),
+			array(
+				'css'      => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+				'expected' => 'text-shadow: 1px 1px 2px #000000, 0 0 1em #ff0000',
+			),
+			array(
+				'css'      => 'text-shadow: var(--wp--preset--text-shadow--soft)',
+				'expected' => 'text-shadow: var(--wp--preset--text-shadow--soft)',
 			),
 			// Expressions are not allowed.
 			array(
@@ -1544,6 +1845,126 @@ EOF;
 			array(
 				'css'      => 'text-anchor: middle',
 				'expected' => 'text-anchor: middle',
+			),
+			// SVG transform functions (ticket #65832).
+			array(
+				'css'      => 'transform: rotate(45deg)',
+				'expected' => 'transform: rotate(45deg)',
+			),
+			array(
+				'css'      => 'transform: translate(10px, 20px)',
+				'expected' => 'transform: translate(10px, 20px)',
+			),
+			array(
+				'css'      => 'transform: scale(1.5)',
+				'expected' => 'transform: scale(1.5)',
+			),
+			array(
+				'css'      => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+				'expected' => 'transform: matrix(1, 0, 0, 1, 10, 20)',
+			),
+			array(
+				'css'      => 'transform: skewX(30deg)',
+				'expected' => 'transform: skewX(30deg)',
+			),
+			array(
+				'css'      => 'transform: skewY(30deg)',
+				'expected' => 'transform: skewY(30deg)',
+			),
+			// Multiple transform functions chained.
+			array(
+				'css'      => 'transform: rotate(45deg) scale(1.5)',
+				'expected' => 'transform: rotate(45deg) scale(1.5)',
+			),
+			// transform: none is unchanged (regression control).
+			array(
+				'css'      => 'transform: none',
+				'expected' => 'transform: none',
+			),
+			// SVG clip-path shape functions (ticket #65832).
+			array(
+				'css'      => 'clip-path: inset(10px)',
+				'expected' => 'clip-path: inset(10px)',
+			),
+			array(
+				'css'      => 'clip-path: circle(50%)',
+				'expected' => 'clip-path: circle(50%)',
+			),
+			array(
+				'css'      => 'clip-path: ellipse(25% 40% at 50% 50%)',
+				'expected' => 'clip-path: ellipse(25% 40% at 50% 50%)',
+			),
+			array(
+				'css'      => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+				'expected' => 'clip-path: polygon(50% 0%, 100% 100%, 0% 100%)',
+			),
+			array(
+				'css'      => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+				'expected' => "clip-path: path('M 0 0 L 100 0 L 50 100 Z')",
+			),
+			array(
+				'css'      => 'clip-path: rect(0 100% 100% 0)',
+				'expected' => 'clip-path: rect(0 100% 100% 0)',
+			),
+			array(
+				'css'      => 'clip-path: xywh(0 0 100% 100% round 10px)',
+				'expected' => 'clip-path: xywh(0 0 100% 100% round 10px)',
+			),
+			array(
+				'css'      => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+				'expected' => 'clip-path: shape(from 0 0, line to 100% 0, line to 50% 100%, close)',
+			),
+			// Nested functions within a basic shape are allowed.
+			array(
+				'css'      => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+				'expected' => 'clip-path: inset(calc(10px + 1em) round var(--radius))',
+			),
+			// SVG url() references for allowlisted properties (ticket #65832).
+			array(
+				'css'      => 'clip-path: url(#myClipper)',
+				'expected' => 'clip-path: url(#myClipper)',
+			),
+			array(
+				'css'      => 'fill: url(#gradient1)',
+				'expected' => 'fill: url(#gradient1)',
+			),
+			array(
+				'css'      => 'mask: url(#myMask)',
+				'expected' => 'mask: url(#myMask)',
+			),
+			array(
+				'css'      => 'marker-start: url(#arrowStart)',
+				'expected' => 'marker-start: url(#arrowStart)',
+			),
+			array(
+				'css'      => 'marker-end: url(#arrowEnd)',
+				'expected' => 'marker-end: url(#arrowEnd)',
+			),
+			array(
+				'css'      => 'marker-mid: url(#arrowMid)',
+				'expected' => 'marker-mid: url(#arrowMid)',
+			),
+			array(
+				'css'      => 'marker: url(#marker1)',
+				'expected' => 'marker: url(#marker1)',
+			),
+			array(
+				'css'      => 'stroke: url(#strokeGradient)',
+				'expected' => 'stroke: url(#strokeGradient)',
+			),
+			// Disallow javascript: URLs in SVG url() references (security regression).
+			array(
+				'css'      => 'fill: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			array(
+				'css'      => 'clip-path: url(javascript:alert(1))',
+				'expected' => '',
+			),
+			// CSS anchor positioning properties introduced in 7.2.
+			array(
+				'css'      => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
+				'expected' => 'anchor-name: --tooltip;anchor-scope: all;position-anchor: --tooltip;position-area: top;position-try: flip-block;position-try-fallbacks: --fallback;position-try-order: most-height;position-visibility: anchors-visible',
 			),
 		);
 	}
@@ -1963,6 +2384,18 @@ EOF;
 	}
 
 	/**
+	 * Tests that the autofocus attribute is allowed on dialog elements and removed from other focusable elements.
+	 *
+	 * @ticket 65491
+	 */
+	public function test_wp_kses_dialog_autofocus_attribute() {
+		$html     = '<dialog open autofocus>Content</dialog><button type="button" autofocus>Button</button><textarea autofocus>Some content</textarea><div tabindex="0" autofocus>Some content</div>';
+		$expected = '<dialog open autofocus>Content</dialog><button type="button">Button</button><textarea>Some content</textarea><div tabindex="0">Some content</div>';
+
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
+	}
+
+	/**
 	 * Test that Invoker Commands API attributes are preserved on buttons in post content.
 	 *
 	 * @ticket 64576
@@ -1998,7 +2431,7 @@ EOF;
 			),
 			'invalid value for type'                  => array(
 				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, last invalid'  => array(
 				'<object type="application/pdf" type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
@@ -2014,39 +2447,39 @@ EOF;
 			),
 			'multiple type attributes, first invalid' => array(
 				'<object type="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, first upper case and invalid' => array(
 				'<object TYPE="application/exe" type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple type attributes, first invalid, last uppercase' => array(
 				'<object type="application/exe" TYPE="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'multiple object tags, last invalid'      => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" /><object>',
 			),
 			'multiple object tags, first invalid'     => array(
 				'<object type="application/exe" data="https://' . WP_TESTS_DOMAIN . '/foo.exe" /><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
+				'<object><object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
 			),
 			'type attribute with partially incorrect value' => array(
 				'<object type="application/pdfa" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'type attribute with empty value'         => array(
 				'<object type="" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'type attribute with no value'            => array(
 				'<object type data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'no type attribute'                       => array(
 				'<object data="https://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'different protocol in url'               => array(
 				'<object type="application/pdf" data="http://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
@@ -2054,27 +2487,27 @@ EOF;
 			),
 			'query string on url'                     => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf?lol=.pdf" />',
-				'',
+				'<object>',
 			),
 			'fragment on url'                         => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.pdf#lol.pdf" />',
-				'',
+				'<object>',
 			),
 			'wrong extension'                         => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/foo.php" />',
-				'',
+				'<object>',
 			),
 			'protocol-relative url'                   => array(
 				'<object type="application/pdf" data="//' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'unsupported protocol'                    => array(
 				'<object type="application/pdf" data="ftp://' . WP_TESTS_DOMAIN . '/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'relative url'                            => array(
 				'<object type="application/pdf" data="/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'url with port number-like path'          => array(
 				'<object type="application/pdf" data="https://' . WP_TESTS_DOMAIN . '/cat:8888/foo.pdf" />',
@@ -2113,11 +2546,11 @@ EOF;
 			),
 			'url with wrong port number'             => array(
 				'<object type="application/pdf" data="http://example.org:3333/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 			'url without port number'                => array(
 				'<object type="application/pdf" data="http://example.org/cat/foo.pdf" />',
-				'',
+				'<object>',
 			),
 		);
 	}
@@ -2181,7 +2614,8 @@ HTML;
 	}
 
 	/**
-	 * Ensures that `wp_kses()` preserves various kinds of HTML comments, both valid and invalid.
+	 * Ensures that `wp_kses()` preserves various kinds of HTML comments;
+	 * specifically well-formed comments and “funky comments.”
 	 *
 	 * @ticket 61009
 	 *
@@ -2209,7 +2643,7 @@ HTML;
 		return array(
 			'Normative HTML comment'            => array( 'before<!-- this is a comment -->after', 'before<!-- this is a comment -->after' ),
 			'Closing tag with invalid tag name' => array( 'before<//not a tag>after', 'before<//not a tag>after' ),
-			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'before<!also not a tag>after' ),
+			'Incorrectly opened comment (Markup declaration)' => array( 'before<!also not a tag>after', 'beforeafter' ),
 		);
 	}
 

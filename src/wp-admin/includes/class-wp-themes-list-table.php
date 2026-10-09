@@ -134,7 +134,14 @@ class WP_Themes_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param string $which
+	 * Displays the table navigation, including the pagination.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @param string $which Optional. The location of the navigation: Either 'top' or 'bottom'.
+	 *                      Default 'top'.
+	 *
+	 * @phpstan-param 'top'|'bottom' $which
 	 */
 	public function tablenav( $which = 'top' ) {
 		if ( $this->get_pagination_arg( 'total_pages' ) <= 1 ) {
@@ -340,6 +347,8 @@ class WP_Themes_List_Table extends WP_List_Table {
 	 * Send required variables to JavaScript land
 	 *
 	 * @since 3.4.0
+	 * @since 7.2.0 Prints the script through wp_print_inline_script_tag() so it can carry
+	 *              attributes, such as a per-request nonce, added via wp_inline_script_attributes.
 	 *
 	 * @param array $extra_args
 	 */
@@ -357,7 +366,9 @@ class WP_Themes_List_Table extends WP_List_Table {
 			$args = array_merge( $args, $extra_args );
 		}
 
-		printf( "<script>var theme_list_args = %s;</script>\n", wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) );
+		wp_print_inline_script_tag(
+			sprintf( 'var theme_list_args = %s;', wp_json_encode( $args, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) )
+		);
 		parent::_js_vars();
 	}
 }

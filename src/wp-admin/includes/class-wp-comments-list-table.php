@@ -62,6 +62,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @param string $name       Comment author name.
 	 * @param int    $comment_id Comment ID.
 	 * @return string Avatar with the user name.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function floated_admin_avatar( $name, $comment_id ) {
 		$comment = get_comment( $comment_id );
@@ -442,7 +444,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 			if ( ! empty( $output ) && $this->has_items() ) {
 				echo $output;
-				submit_button( __( 'Filter' ), 'button-compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+				submit_button( __( 'Filter' ), 'compact', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			}
 		}
 

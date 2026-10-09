@@ -356,7 +356,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 					)
 				);
 
-				$this->skin->before( $result );
+				$this->skin->before();
 				$this->skin->error( $result );
 				$this->skin->after();
 			} elseif ( isset( $upgrade_data->requires_php ) && ! is_php_version_compatible( $upgrade_data->requires_php ) ) {
@@ -370,7 +370,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 					)
 				);
 
-				$this->skin->before( $result );
+				$this->skin->before();
 				$this->skin->error( $result );
 				$this->skin->after();
 			} else {
@@ -542,9 +542,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		// Assume the requested plugin is the first in the list.
-		$plugin_files = array_keys( $plugin );
-
-		return $this->result['destination_name'] . '/' . $plugin_files[0];
+		return $this->result['destination_name'] . '/' . array_key_first( $plugin );
 	}
 
 	/**

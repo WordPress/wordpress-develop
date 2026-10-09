@@ -4,6 +4,8 @@
 
 /**
  * Initializes the wp-pointer widget using jQuery UI Widget Factory.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 (function($){
 	var identifier = 0,
@@ -72,7 +74,7 @@
 		 * There are 4 special values that do something extra:
 		 *
 		 * - `document`     will transfer the pointer to the body of the new document
-		 *                  specified by the value.
+		 * specified by the value.
 		 * - `pointerClass` will change the class of the pointer element.
 		 * - `position`     will reposition the pointer.
 		 * - `content`      will update the content of the pointer.
@@ -146,7 +148,7 @@
 		 *
 		 * @param {Object} event The event that caused the update.
 		 *
-		 * @return {Promise} Resolves when the update has been executed.
+		 * @return {Promise|void} Resolves when the update has been executed.
 		 */
 		update: function( event ) {
 			var self = this,

@@ -97,6 +97,37 @@
 		<script src="../../build/wp-includes/js/customize-models.js"></script>
 		<script src="../../build/wp-includes/js/shortcode.js"></script>
 		<script src="../../build/wp-includes/js/wp-sanitize.js"></script>
+		<script>
+			/*
+			 * wp-emoji reads these when it is loaded, and waits for the Twemoji library before doing
+			 * anything, so both have to be in place first. The stand-in for Twemoji records what it
+			 * was handed, which is how the tests reach the callbacks wp-emoji composes.
+			 */
+			window._wpemojiSettings = {
+				"baseUrl": "https://s.w.org/images/core/emoji/17.0.2/72x72/",
+				"ext": ".png",
+				"svgUrl": "https://s.w.org/images/core/emoji/17.0.2/svg/",
+				"svgExt": ".svg",
+				"supports": {
+					"everything": false,
+					"everythingExceptFlag": false,
+					"flag": false,
+					"emoji": false
+				}
+			};
+			window.twemoji = {
+				calls: 0,
+				lastObject: null,
+				lastParams: null,
+				parse: function ( object, params ) {
+					window.twemoji.calls++;
+					window.twemoji.lastObject = object;
+					window.twemoji.lastParams = params;
+					return object;
+				}
+			};
+		</script>
+		<script src="../../build/wp-includes/js/wp-emoji.js"></script>
 		<script src="../../build/wp-admin/js/customize-controls.js"></script>
 		<script src="../../build/wp-includes/js/api-request.js"></script>
 		<script src="../../build/wp-includes/js/wp-api.js"></script>
@@ -152,10 +183,12 @@
 		<script src="wp-admin/js/customize-header.js"></script>
 		<script src="wp-admin/js/dashboard.js"></script>
 		<script src="wp-includes/js/shortcode.js"></script>
+		<script src="wp-includes/js/media/test-media-models.js"></script>
 		<script src="wp-includes/js/api-request.js"></script>
 		<script src="wp-includes/js/jquery.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
 		<script src="wp-includes/js/wp-sanitize.js"></script>
+		<script src="wp-includes/js/wp-emoji.js"></script>
 		<script src="wp-admin/js/customize-controls.js"></script>
 		<script src="wp-admin/js/customize-controls-utils.js"></script>
 		<script src="wp-admin/js/customize-nav-menus.js"></script>
@@ -253,12 +286,14 @@
 
 		<!-- Templates for Customizer Menus -->
 		<script type="text/html" id="tmpl-customize-control-nav_menu-content">
-					<button type="button" class="button add-new-menu-item" aria-label="Add or remove menu items" aria-expanded="false" aria-controls="available-menu-items">
-			Add Items		</button>
-		<button type="button" class="not-a-button reorder-toggle" aria-label="Reorder menu items" aria-describedby="reorder-items-desc-{{ data.menu_id }}">
-			<span class="reorder">Reorder</span>
-			<span class="reorder-done">Done</span>
-		</button>
+		<div class="customize-control-nav_menu-buttons">
+			<button type="button" class="button-link reorder-toggle" aria-label="Reorder menu items" aria-describedby="reorder-items-desc-242">
+				<span class="reorder">Reorder</span>
+				<span class="reorder-done">Done</span>
+			</button>
+			<button type="button" class="button add-new-menu-item" aria-label="Add or remove menu items" aria-expanded="false" aria-controls="available-menu-items">
+				Add Items			</button>
+		</div>
 		<p class="screen-reader-text" id="reorder-items-desc-{{ data.menu_id }}">When in reorder mode, additional controls to reorder menu items will be available in the items list above.</p>
 		<span class="add-menu-item-loading spinner"></span>
 		<span class="menu-delete-item">
@@ -998,7 +1033,7 @@
 	</script>
 	<script type="text/html" id="tmpl-media-modal">
 		<div class="media-modal wp-core-ui">
-			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Close media panel</span></button>
+			<button type="button" class="media-modal-close"><span class="media-modal-icon" aria-hidden="true"></span><span class="screen-reader-text">Close</span></button>
 			<div class="media-modal-content"></div>
 		</div>
 		<div class="media-modal-backdrop"></div>
@@ -1078,8 +1113,8 @@
 
 	<script type="text/html" id="tmpl-edit-attachment-frame">
 		<div class="edit-media-header">
-			<button class="left dashicons <# if ( ! data.hasPrevious ) { #> disabled <# } #>"><span class="screen-reader-text">Edit previous media item</span></button>
-			<button class="right dashicons <# if ( ! data.hasNext ) { #> disabled <# } #>"><span class="screen-reader-text">Edit next media item</span></button>
+			<button class="left dashicons <# if ( ! data.hasPrevious ) { #> disabled <# } #>"><span class="screen-reader-text">Previous</span></button>
+			<button class="right dashicons <# if ( ! data.hasNext ) { #> disabled <# } #>"><span class="screen-reader-text">Next</span></button>
 		</div>
 		<div class="media-frame-title"></div>
 		<div class="media-frame-content"></div>

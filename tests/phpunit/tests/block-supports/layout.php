@@ -83,6 +83,156 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65667
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_sanitize_block_gap_value
+	 *
+	 * @covers ::wp_sanitize_block_gap_value
+	 */
+	public function test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values( $gap_value, $expected ) {
+		$this->assertSame( $expected, wp_sanitize_block_gap_value( $gap_value ) );
+	}
+
+	/**
+	 * Data provider for test_sanitize_block_gap_value_normalizes_zero_and_rejects_other_non_string_values().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_sanitize_block_gap_value() {
+		return array(
+			'string value'           => array( '1rem', '1rem' ),
+			'empty string'           => array( '', null ),
+			'whitespace-only string' => array( " \t\n", null ),
+			'integer zero'           => array( 0, '0' ),
+			'floating-point zero'    => array( 0.0, '0' ),
+			'non-zero integer'       => array( 1, null ),
+			'boolean value'          => array( true, null ),
+			'object value'           => array( new stdClass(), null ),
+			'nested array value'     => array(
+				array(
+					'top'  => array( '1rem' ),
+					'left' => '2rem',
+				),
+				array( 'left' => '2rem' ),
+			),
+			'empty sanitized array'  => array( array( array( '1rem' ) ), null ),
+		);
+	}
+
+	/**
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_wp_get_layout_style
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style( $args, $expected_output ) {
+		$this->assertSame(
+			$expected_output,
+			wp_get_layout_style(
+				$args['selector'],
+				$args['layout'],
+				$args['has_block_gap_support'],
+				$args['gap_value'],
+				false,
+				$args['fallback_gap_value'] ?? '0.5em'
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_wp_get_layout_style().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_wp_get_layout_style() {
+		return array(
+			'flex layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{gap:0.5em 2rem;}',
+			),
+			'flex layout ignores an empty block gap'    => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'flex' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => '',
+				),
+				'expected_output' => '',
+			),
+			'grid layout uses the default for malformed gap values' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array( 'type' => 'grid' ),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'left' => '2rem' ),
+					'fallback_gap_value'    => array(
+						'top'  => array( '1rem' ),
+						'left' => new stdClass(),
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;gap:0.5em 2rem;}',
+			),
+			'grid layout uses horizontal gap for responsive columns' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '3rem',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (3rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 3rem;}',
+			),
+			'grid layout uses fallback when horizontal gap is missing' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array( 'top' => '2rem' ),
+					'fallback_gap_value'    => '1.2rem',
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (1.2rem * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 1.2rem;}',
+			),
+			'grid layout preserves zero horizontal gap' => array(
+				'args'            => array(
+					'selector'              => '.wp-layout',
+					'layout'                => array(
+						'type'               => 'grid',
+						'columnCount'        => 3,
+						'minimumColumnWidth' => '12rem',
+					),
+					'has_block_gap_support' => true,
+					'gap_value'             => array(
+						'top'  => '2rem',
+						'left' => '0',
+					),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(max(min(12rem, 100%), (100% - (0px * (3 - 1))) /3), 1fr));container-type:inline-size;gap:2rem 0;}',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 55505
 	 */
 	public function test_outer_container_not_restored_for_non_aligned_image_block_with_non_themejson_theme() {
@@ -224,6 +374,32 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 						'attrs'        => array(
 							'layout' => array(
 								'type' => 'default',
+							),
+						),
+						'innerBlocks'  => array(),
+						'innerHTML'    => '<div class="wp-block-group"></div>',
+						'innerContent' => array(
+							'<div class="wp-block-group"></div>',
+						),
+					),
+				),
+				'expected_output' => '<div class="wp-block-group is-layout-flow wp-block-group-is-layout-flow"></div>',
+			),
+			'single wrapper block layout with malformed axial block gap' => array(
+				'args'            => array(
+					'block_content' => '<div class="wp-block-group"></div>',
+					'block'         => array(
+						'blockName'    => 'core/group',
+						'attrs'        => array(
+							'layout' => array(
+								'type' => 'default',
+							),
+							'style'  => array(
+								'spacing' => array(
+									'blockGap' => array(
+										'top' => array( '1rem' ),
+									),
+								),
 							),
 						),
 						'innerBlocks'  => array(),
@@ -711,8 +887,8 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_render_layout_support_flag
 	 *
-	 * @param array $block_attrs     Dataset to test.
-	 * @param array $expected_class  Class generated for the passed dataset.
+	 * @param array $block_attrs    Dataset to test.
+	 * @param array $expected_class Class generated for the passed dataset.
 	 */
 	public function test_layout_support_flag_renders_consistent_container_hash( $block_attrs, $expected_class ) {
 		switch_theme( 'default' );
@@ -750,7 +926,7 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_class,
 			$actual_class,
 			'Expected class not found in the rendered output, probably because of a different hash.'
@@ -932,6 +1108,9 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 *
 	 * @ticket 64624
 	 * @covers ::wp_render_layout_support_flag
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_layout_support_flag_uses_variation_block_gap_value() {
 		switch_theme( 'block-theme' );
@@ -1076,6 +1255,368 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 			'<div class="wp-block-group 0 1 is-layout-constrained wp-block-group-is-layout-constrained"></div>',
 			wp_render_layout_support_flag( $block_content, $block ),
 			'Layout support should render the expected markup when className is not a string'
+		);
+	}
+
+	/**
+	 * Tests that layout support returns early, without resolving global settings,
+	 * for a block that cannot produce any layout output.
+	 *
+	 * Resolving global settings reads the user's `wp_global_styles` post with a
+	 * `WP_Query`, which fires `the_posts`. A callback on that hook that renders
+	 * blocks re-enters this filter, so the bail-out has to happen before the
+	 * lookup or the recursion has no base case.
+	 *
+	 * @ticket 65741
+	 *
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_returns_early_before_resolving_global_settings() {
+		$user_data_resolutions = 0;
+		add_filter(
+			'wp_theme_json_data_user',
+			static function ( $theme_json ) use ( &$user_data_resolutions ) {
+				++$user_data_resolutions;
+				return $theme_json;
+			}
+		);
+
+		// A block with no layout support and no child layout, as produced by
+		// parsing content that has no block delimiters.
+		$block_content = '<p>Not a block.</p>';
+		$block         = array(
+			'blockName' => null,
+			'attrs'     => array(),
+		);
+
+		// Start from a cold cache, as on a front-end request.
+		wp_clean_theme_json_cache();
+
+		$this->assertSame(
+			$block_content,
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Block content should be returned unchanged when the block has no layout support.'
+		);
+		$this->assertSame(
+			0,
+			$user_data_resolutions,
+			'Global settings should not be resolved for a block that cannot produce layout output.'
+		);
+
+		// A block that does support layout still resolves global settings, which
+		// confirms the assertion above is not passing because of a warm cache.
+		wp_clean_theme_json_cache();
+
+		wp_render_layout_support_flag(
+			'<div class="wp-block-group"></div>',
+			array(
+				'blockName' => 'core/group',
+				'attrs'     => array( 'layout' => array( 'type' => 'constrained' ) ),
+			)
+		);
+
+		$this->assertGreaterThan(
+			0,
+			$user_data_resolutions,
+			'Global settings should still be resolved for a block that supports layout.'
+		);
+	}
+
+	/**
+	 * Tests that a constrained layout with non-string contentSize/wideSize/justifyContent
+	 * values (e.g. from hand-edited, imported, or AI-generated content) does not cause a
+	 * fatal error in the explode() calls.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_constrained_sizes() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'constrained',
+				'contentSize'    => array( '800px' ),
+				'wideSize'       => array( '1200px' ),
+				'justifyContent' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Constrained layout should not fatal when sizes are not strings.' );
+		$this->assertStringNotContainsString( 'Array', $layout_styles, 'A non-string size value should not leak into the output.' );
+	}
+
+	/**
+	 * Tests that a flex layout with non-string justifyContent/verticalAlignment values
+	 * does not cause a fatal error in the array_key_exists() calls.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_with_non_string_flex_alignment() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'              => 'flex',
+				'orientation'       => 'horizontal',
+				'justifyContent'    => array( 'right' ),
+				'verticalAlignment' => array( 'center' ),
+			)
+		);
+
+		$this->assertIsString( $layout_styles, 'Flex layout should not fatal when alignment values are not strings.' );
+	}
+
+	/**
+	 * Tests that a viewport override switching a vertical flex layout to horizontal
+	 * outputs an explicit `flex-direction: row`, so the base `flex-direction: column`
+	 * no longer applies on that viewport.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_outputs_flex_direction_row_for_horizontal_viewport_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'vertical',
+				'flexWrap'       => 'nowrap',
+				'justifyContent' => 'center',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'orientation'    => 'horizontal',
+					'justifyContent' => 'left',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{flex-direction:row;justify-content:flex-start;}', $layout_styles );
+	}
+
+	/**
+	 * Tests that a viewport override which does not change a horizontal orientation
+	 * keeps relying on the flex default and does not output `flex-direction`.
+	 *
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_wp_get_layout_style_keeps_flex_direction_implicit_without_orientation_override() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'           => 'flex',
+				'orientation'    => 'horizontal',
+				'justifyContent' => 'left',
+			),
+			false,
+			null,
+			false,
+			'0.5em',
+			null,
+			array(
+				'viewport_overrides' => array(
+					'justifyContent' => 'right',
+				),
+			)
+		);
+
+		$this->assertSame( '.wp-layout{justify-content:flex-end;}', $layout_styles );
+	}
+
+	/**
+	 * Tests that a responsive grid child with a non-string parent minimumColumnWidth
+	 * does not cause a fatal error in the explode() call.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_wp_get_child_layout_style_rules_with_non_string_minimum_column_width() {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array( 'columnSpan' => '2' ),
+			array( 'minimumColumnWidth' => array( '12rem' ) ),
+			null
+		);
+
+		$this->assertIsArray( $actual_output, 'Child layout rules should not fatal when minimumColumnWidth is not a string.' );
+	}
+
+	/**
+	 * Tests that layout classname generation does not fatal when the layout type,
+	 * orientation, or justifyContent attributes are not strings.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_render_layout_support_flag
+	 */
+	public function test_layout_support_flag_with_non_string_layout_values() {
+		$block_content = '<div class="wp-block-group"></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'layout' => array(
+					'type'           => array( 'constrained' ),
+					'orientation'    => array( 'horizontal' ),
+					'justifyContent' => array( 'center' ),
+				),
+			),
+		);
+
+		$this->assertIsString(
+			wp_render_layout_support_flag( $block_content, $block ),
+			'Layout support should not fatal when layout values are not strings.'
+		);
+	}
+
+	/**
+	 * Tests that restoring the group inner container does not fatal when the tagName
+	 * attribute is not a string (which would break the preg_quote() calls).
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_restore_group_inner_container
+	 */
+	public function test_restore_group_inner_container_with_non_string_tag_name() {
+		// The "default" theme doesn't have theme.json support, so the preg_quote() path runs.
+		switch_theme( 'default' );
+		$block_content = '<div class="wp-block-group"><p>Test</p></div>';
+		$block         = array(
+			'blockName' => 'core/group',
+			'attrs'     => array(
+				'tagName' => array( 'div' ),
+			),
+		);
+
+		$this->assertIsString(
+			wp_restore_group_inner_container( $block_content, $block ),
+			'Group inner container restore should not fatal when tagName is not a string.'
+		);
+	}
+
+	/**
+	 * Tests that non-numeric grid placement values are dropped rather than being
+	 * interpolated into the `grid-column` and `grid-row` declarations.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_get_child_layout_style_rules_with_non_numeric_grid_placement() {
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array(
+				'columnStart' => array( 2 ),
+				'columnSpan'  => array( 3 ),
+				'rowStart'    => array( 1 ),
+				'rowSpan'     => array( 2 ),
+			),
+			array(),
+			null
+		);
+
+		$this->assertSame(
+			array(),
+			$actual_output,
+			'Non-numeric grid placement values should not produce any child layout rules.'
+		);
+	}
+
+	/**
+	 * Tests that grid placement values saved as numeric strings (WordPress 6.3 to 6.6)
+	 * produce the same declarations as numbers.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_child_layout_style_rules
+	 */
+	public function test_get_child_layout_style_rules_with_numeric_string_grid_placement() {
+		$expected_output = array(
+			array(
+				'selector'     => '.wp-container-content-test',
+				'declarations' => array(
+					'grid-column' => '2 / span 3',
+					'grid-row'    => '1 / span 2',
+				),
+			),
+		);
+
+		$actual_output = wp_get_child_layout_style_rules(
+			'.wp-container-content-test',
+			array(
+				'columnStart' => '2',
+				'columnSpan'  => '3',
+				'rowStart'    => '1',
+				'rowSpan'     => '2',
+			),
+			array( 'columnCount' => '3' ),
+			null
+		);
+
+		$this->assertSame( $expected_output, $actual_output );
+	}
+
+	/**
+	 * Tests that non-numeric grid counts are treated as absent instead of leaking into the
+	 * CSS. The rowCount case keeps columnCount valid, because the row track rule is only
+	 * reached when there is a column count.
+	 *
+	 * @dataProvider data_get_layout_style_with_non_numeric_grid_counts
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 *
+	 * @param array  $layout          Grid layout values.
+	 * @param string $expected_output The expected output.
+	 */
+	public function test_get_layout_style_with_non_numeric_grid_counts( $layout, $expected_output ) {
+		$this->assertSame( $expected_output, wp_get_layout_style( '.wp-layout', $layout ) );
+	}
+
+	/**
+	 * Data provider for test_get_layout_style_with_non_numeric_grid_counts().
+	 *
+	 * @return array
+	 */
+	public function data_get_layout_style_with_non_numeric_grid_counts() {
+		return array(
+			'non-numeric columnCount falls back to the responsive default' => array(
+				'layout'          => array(
+					'type'        => 'grid',
+					'columnCount' => array( 3 ),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(auto-fill, minmax(min(12rem, 100%), 1fr));container-type:inline-size;}',
+			),
+			'non-numeric rowCount drops the row track rule' => array(
+				'layout'          => array(
+					'type'        => 'grid',
+					'columnCount' => 3,
+					'rowCount'    => array( 2 ),
+				),
+				'expected_output' => '.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that grid counts saved as numeric strings (WordPress 6.3 to 6.6) produce the
+	 * same CSS as numbers.
+	 *
+	 * @ticket 65774
+	 * @covers ::wp_get_layout_style
+	 */
+	public function test_get_layout_style_with_numeric_string_grid_counts() {
+		$layout_styles = wp_get_layout_style(
+			'.wp-layout',
+			array(
+				'type'        => 'grid',
+				'columnCount' => '3',
+				'rowCount'    => '2',
+			)
+		);
+
+		$this->assertSame(
+			'.wp-layout{grid-template-columns:repeat(3, minmax(0, 1fr));grid-template-rows:repeat(2, minmax(1rem, auto));}',
+			$layout_styles
 		);
 	}
 }

@@ -21,7 +21,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only officially supports Node.js `20.x` and npm `10.x`.
+**Note:** WordPress currently only officially supports Node.js `24.x` and npm `11.x`.
 
 You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
 
@@ -96,6 +96,17 @@ You can pass extra parameters into the PHP tests by adding `--` and then the [co
 npm run test:php -- --filter <test name>
 npm run test:php -- --group <group name or ticket number>
 ```
+
+To run the JavaScript (QUnit) tests:
+
+```
+npm run grunt qunit:compiled
+```
+
+`qunit:compiled` builds first, then runs the suite. The QUnit runner loads
+scripts from the built `build/` directory, so a plain `npm run grunt qunit`
+requires a completed `npm run build` first without a build, every test fails
+with a `jQuery is not defined` error.
 
 #### To lint the workflow files
 

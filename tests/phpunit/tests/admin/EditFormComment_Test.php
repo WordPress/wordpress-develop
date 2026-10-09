@@ -96,6 +96,12 @@ class Admin_EditFormComment_Test extends WP_UnitTestCase {
 				'comment_approved' => 'trash',
 			)
 		);
+		$pending_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => self::$post_id ) );
 		$child_id   = self::factory()->comment->create(
 			array(
@@ -113,6 +119,29 @@ class Admin_EditFormComment_Test extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( "value='{$child_id}'", $dropdown, 'A reply to the comment being edited should not be listed.' );
 		$this->assertStringNotContainsString( "value='{$spam_id}'", $dropdown, 'A spam comment should not be listed.' );
 		$this->assertStringNotContainsString( "value='{$trash_id}'", $dropdown, 'A trashed comment should not be listed.' );
+		$this->assertStringNotContainsString( "value='{$pending_id}'", $dropdown, 'A pending comment should not be listed for an approved comment.' );
+	}
+
+	/**
+	 * @ticket 65688
+	 */
+	public function test_should_list_pending_parent_for_pending_comment() {
+		$parent_id  = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => self::$post_id,
+				'comment_approved' => '0',
+			)
+		);
+
+		$dropdown = $this->get_parent_dropdown( $comment_id );
+
+		$this->assertStringContainsString( "value='{$parent_id}'", $dropdown, 'A pending comment should be listed for another pending comment.' );
 	}
 
 	/**

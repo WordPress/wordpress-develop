@@ -13,8 +13,9 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 * Test that mb_substr() is always available (either from PHP or WP).
 	 */
 	public function test_mb_substr_availability() {
-		$this->assertTrue(
-			in_array( 'mb_substr', get_defined_functions()['internal'], true ),
+		$this->assertContains(
+			'mb_substr',
+			get_defined_functions()['internal'],
 			'Test runner should have `mbstring` extension active but doesn’t.'
 		);
 	}

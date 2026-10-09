@@ -5,46 +5,6 @@
  */
 class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
-	public function test_get_sitemap_stylesheet_url() {
-		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_stylesheet_url();
-
-		$this->assertStringEndsWith( '/?sitemap-stylesheet=sitemap', $stylesheet_url );
-	}
-
-	public function test_get_sitemap_stylesheet_url_pretty_permalinks() {
-		// Set permalinks for testing.
-		$this->set_permalink_structure( '/%year%/%postname%/' );
-
-		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_stylesheet_url();
-
-		// Clean up permalinks.
-		$this->set_permalink_structure();
-
-		$this->assertStringEndsWith( '/wp-sitemap.xsl', $stylesheet_url );
-	}
-
-	public function test_get_sitemap_index_stylesheet_url() {
-		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_index_stylesheet_url();
-
-		$this->assertStringEndsWith( '/?sitemap-stylesheet=index', $stylesheet_url );
-	}
-
-	public function test_get_sitemap_index_stylesheet_url_pretty_permalinks() {
-		// Set permalinks for testing.
-		$this->set_permalink_structure( '/%year%/%postname%/' );
-
-		$sitemap_renderer = new WP_Sitemaps_Renderer();
-		$stylesheet_url   = $sitemap_renderer->get_sitemap_index_stylesheet_url();
-
-		// Clean up permalinks.
-		$this->set_permalink_structure();
-
-		$this->assertStringEndsWith( '/wp-sitemap-index.xsl', $stylesheet_url );
-	}
-
 	/**
 	 * Test XML output for the sitemap index renderer.
 	 */
@@ -71,7 +31,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_index_xml( $entries );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=index" ?>' .
 					'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 					'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml</loc></sitemap>' .
 					'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml</loc></sitemap>' .
@@ -114,7 +73,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_index_xml( $entries );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-			'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=index" ?>' .
 			'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 			'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml</loc><lastmod>2005-01-01</lastmod></sitemap>' .
 			'<sitemap><loc>http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml</loc><lastmod>2005-01-01</lastmod></sitemap>' .
@@ -153,34 +111,10 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$xpath   = new DOMXPath( $xml_dom );
 		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertEquals(
-			0,
+		$this->assertSame(
+			0.0,
 			$xpath->evaluate( "count( /sitemap:sitemapindex/sitemap:sitemap/*[  namespace-uri() != 'http://www.sitemaps.org/schemas/sitemap/0.9' or not( local-name() = 'loc' or local-name() = 'lastmod' ) ] )" ),
 			'Invalid child of "sitemap:sitemap" in rendered index XML.'
-		);
-	}
-
-	/**
-	 * Test XML output for the sitemap index renderer when stylesheet is disabled.
-	 */
-	public function test_get_sitemap_index_xml_without_stylesheet() {
-		$entries = array(
-			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
-			),
-		);
-
-		add_filter( 'wp_sitemaps_stylesheet_index_url', '__return_false' );
-
-		$renderer = new WP_Sitemaps_Renderer();
-
-		$xml_dom = $this->loadXML( $renderer->get_sitemap_index_xml( $entries ) );
-		$xpath   = new DOMXPath( $xml_dom );
-
-		$this->assertSame(
-			0,
-			$xpath->query( '//processing-instruction( "xml-stylesheet" )' )->length,
-			'Sitemap index incorrectly contains the xml-stylesheet processing instruction.'
 		);
 	}
 
@@ -210,7 +144,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 
 		$actual   = $renderer->get_sitemap_xml( $url_list );
 		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
-					'<?xml-stylesheet type="text/xsl" href="http://' . WP_TESTS_DOMAIN . '/?sitemap-stylesheet=sitemap" ?>' .
 					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
 					'<url><loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-1</loc></url>' .
 					'<url><loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-2</loc></url>' .
@@ -220,30 +153,6 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 					'</urlset>';
 
 		$this->assertXMLEquals( $expected, $actual, 'Sitemap page markup incorrect.' );
-	}
-
-	/**
-	 * Test XML output for the sitemap page renderer when stylesheet is disabled.
-	 */
-	public function test_get_sitemap_xml_without_stylesheet() {
-		$url_list = array(
-			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
-			),
-		);
-
-		add_filter( 'wp_sitemaps_stylesheet_url', '__return_false' );
-
-		$renderer = new WP_Sitemaps_Renderer();
-
-		$xml_dom = $this->loadXML( $renderer->get_sitemap_xml( $url_list ) );
-		$xpath   = new DOMXPath( $xml_dom );
-
-		$this->assertSame(
-			0,
-			$xpath->query( '//processing-instruction( "xml-stylesheet" )' )->length,
-			'Sitemap incorrectly contains the xml-stylesheet processing instruction.'
-		);
 	}
 
 	/**
@@ -275,10 +184,311 @@ class Tests_Sitemaps_wpSitemapsRenderer extends WP_Test_XML_TestCase {
 		$xpath   = new DOMXPath( $xml_dom );
 		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
 
-		$this->assertEquals(
-			0,
+		$this->assertSame(
+			0.0,
 			$xpath->evaluate( "count( /sitemap:urlset/sitemap:url/*[  namespace-uri() != 'http://www.sitemaps.org/schemas/sitemap/0.9' or not( local-name() = 'loc' or local-name() = 'lastmod' or local-name() = 'changefreq' or local-name() = 'priority' ) ] )" ),
 			'Invalid child of "sitemap:url" in rendered XML.'
 		);
+	}
+
+	/**
+	 * Test that the sitemap stylesheet URL filter cannot add a stylesheet.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 */
+	public function test_get_sitemap_stylesheet_url_filter() {
+		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_url' );
+
+		$custom_url = 'https://example.com/custom-sitemap.xsl';
+
+		add_filter(
+			'wp_sitemaps_stylesheet_url',
+			static function () use ( $custom_url ) {
+				return $custom_url;
+			}
+		);
+
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+		$entries          = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+			),
+		);
+
+		$actual = $sitemap_renderer->get_sitemap_xml( $entries );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
+	}
+
+	/**
+	 * Test that the sitemap index stylesheet URL filter cannot add a stylesheet.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 */
+	public function test_get_sitemap_index_stylesheet_url_filter() {
+		$this->setExpectedDeprecated( 'wp_sitemaps_stylesheet_index_url' );
+
+		$custom_url = 'https://example.com/custom-sitemap-index.xsl';
+
+		add_filter(
+			'wp_sitemaps_stylesheet_index_url',
+			static function () use ( $custom_url ) {
+				return $custom_url;
+			}
+		);
+
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+		$entries          = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
+			),
+		);
+
+		$actual = $sitemap_renderer->get_sitemap_index_xml( $entries );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
+	}
+
+	/**
+	 * Tests that a callback on a removed stylesheet filter triggers a deprecation notice.
+	 *
+	 * @ticket 65593
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 *
+	 * @dataProvider data_deprecated_stylesheet_filters
+	 *
+	 * @param string $hook_name Deprecated filter name.
+	 * @param string $method    Renderer method that generates the XML.
+	 */
+	public function test_deprecated_stylesheet_filters( string $hook_name, string $method ): void {
+		$this->setExpectedDeprecated( $hook_name );
+
+		add_filter( $hook_name, '__return_empty_string' );
+
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+		$entries          = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+			),
+		);
+
+		$actual = $sitemap_renderer->$method( $entries );
+		$this->assertIsString( $actual );
+		$this->assertStringNotContainsString( '<?xml-stylesheet', $actual );
+	}
+
+	/**
+	 * Tests that the stylesheet URL methods are deprecated and return an empty string.
+	 *
+	 * @ticket 65593
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 *
+	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_stylesheet_url
+	 * @expectedDeprecated WP_Sitemaps_Renderer::get_sitemap_index_stylesheet_url
+	 */
+	public function test_stylesheet_url_methods_are_deprecated(): void {
+		$sitemap_renderer = new WP_Sitemaps_Renderer();
+
+		$this->assertSame( '', $sitemap_renderer->get_sitemap_stylesheet_url(), 'The sitemap stylesheet URL should be empty.' );
+		$this->assertSame( '', $sitemap_renderer->get_sitemap_index_stylesheet_url(), 'The sitemap index stylesheet URL should be empty.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_deprecated_stylesheet_filters()}.
+	 *
+	 * @return array<non-falsy-string, array{ hook_name: non-falsy-string, method: 'get_sitemap_xml'|'get_sitemap_index_xml' }>
+	 */
+	public function data_deprecated_stylesheet_filters(): array {
+		return array(
+			'stylesheet URL'             => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_url',
+				'method'    => 'get_sitemap_xml',
+			),
+			'stylesheet content'         => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_content',
+				'method'    => 'get_sitemap_xml',
+			),
+			'stylesheet CSS for sitemap' => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_css',
+				'method'    => 'get_sitemap_xml',
+			),
+			'index stylesheet URL'       => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_index_url',
+				'method'    => 'get_sitemap_index_xml',
+			),
+			'index stylesheet content'   => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_index_content',
+				'method'    => 'get_sitemap_index_xml',
+			),
+			'stylesheet CSS for index'   => array(
+				'hook_name' => 'wp_sitemaps_stylesheet_css',
+				'method'    => 'get_sitemap_index_xml',
+			),
+		);
+	}
+
+	/**
+	 * Test XML output for empty sitemap page renderer.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 */
+	public function test_get_sitemap_xml_empty() {
+		$renderer = new WP_Sitemaps_Renderer();
+		$actual   = $renderer->get_sitemap_xml( array() );
+		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
+					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>';
+
+		$this->assertXMLEquals( $expected, $actual, 'Empty sitemap markup incorrect.' );
+	}
+
+	/**
+	 * Test XML output for empty sitemap index renderer.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 */
+	public function test_get_sitemap_index_xml_empty() {
+		$renderer = new WP_Sitemaps_Renderer();
+		$actual   = $renderer->get_sitemap_index_xml( array() );
+		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
+					'<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"/>';
+
+		$this->assertXMLEquals( $expected, $actual, 'Empty sitemap index markup incorrect.' );
+	}
+
+	/**
+	 * Test XML output for the sitemap page renderer with all supported fields.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 */
+	public function test_get_sitemap_xml_with_all_supported_fields() {
+		$url_list = array(
+			array(
+				'loc'        => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+				'lastmod'    => '2020-01-01',
+				'changefreq' => 'monthly',
+				'priority'   => '0.8',
+			),
+			array(
+				'loc'        => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-2',
+				'lastmod'    => '2020-02-02',
+				'changefreq' => 'daily',
+				'priority'   => '1.0',
+			),
+		);
+
+		$renderer = new WP_Sitemaps_Renderer();
+
+		$actual   = $renderer->get_sitemap_xml( $url_list );
+		$expected = '<?xml version="1.0" encoding="UTF-8"?>' .
+					'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' .
+					'<url>' .
+					'<loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-1</loc>' .
+					'<lastmod>2020-01-01</lastmod>' .
+					'<changefreq>monthly</changefreq>' .
+					'<priority>0.8</priority>' .
+					'</url>' .
+					'<url>' .
+					'<loc>http://' . WP_TESTS_DOMAIN . '/2019/10/post-2</loc>' .
+					'<lastmod>2020-02-02</lastmod>' .
+					'<changefreq>daily</changefreq>' .
+					'<priority>1.0</priority>' .
+					'</url>' .
+					'</urlset>';
+
+		$this->assertXMLEquals( $expected, $actual, 'Sitemap page markup with all supported fields incorrect.' );
+	}
+
+	/**
+	 * Test XML escaping for sitemap entries.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_xml
+	 */
+	public function test_get_sitemap_xml_escaping() {
+		$url_list = array(
+			array(
+				'loc'        => 'http://' . WP_TESTS_DOMAIN . '/?foo=1&bar=2',
+				'lastmod'    => '2020-01-01 & "quotes"',
+				'changefreq' => 'weekly < monthly',
+				'priority'   => '0.5 > 0.3',
+			),
+		);
+
+		$renderer = new WP_Sitemaps_Renderer();
+		$xml_dom  = $this->loadXML( $renderer->get_sitemap_xml( $url_list ) );
+		$xpath    = new DOMXPath( $xml_dom );
+		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
+
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/?foo=1&bar=2', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:loc)' ) );
+		$this->assertSame( '2020-01-01 & "quotes"', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:lastmod)' ) );
+		$this->assertSame( 'weekly < monthly', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:changefreq)' ) );
+		$this->assertSame( '0.5 > 0.3', $xpath->evaluate( 'string(/sitemap:urlset/sitemap:url/sitemap:priority)' ) );
+	}
+
+	/**
+	 * Test XML escaping for sitemap index entries.
+	 *
+	 * @covers WP_Sitemaps_Renderer::get_sitemap_index_xml
+	 */
+	public function test_get_sitemap_index_xml_escaping() {
+		$entries = array(
+			array(
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap.php?foo=1&bar=2',
+				'lastmod' => '2020-01-01 & "special"',
+			),
+		);
+
+		$renderer = new WP_Sitemaps_Renderer();
+		$xml_dom  = $this->loadXML( $renderer->get_sitemap_index_xml( $entries ) );
+		$xpath    = new DOMXPath( $xml_dom );
+		$xpath->registerNamespace( 'sitemap', 'http://www.sitemaps.org/schemas/sitemap/0.9' );
+
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap.php?foo=1&bar=2', $xpath->evaluate( 'string(/sitemap:sitemapindex/sitemap:sitemap/sitemap:loc)' ) );
+		$this->assertSame( '2020-01-01 & "special"', $xpath->evaluate( 'string(/sitemap:sitemapindex/sitemap:sitemap/sitemap:lastmod)' ) );
+	}
+
+	/**
+	 * Test render_index() outputs index XML.
+	 *
+	 * @covers WP_Sitemaps_Renderer::render_index
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_render_index() {
+		$entries = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
+			),
+		);
+
+		$renderer     = new WP_Sitemaps_Renderer();
+		$expected_xml = $renderer->get_sitemap_index_xml( $entries );
+
+		$this->expectOutputString( $expected_xml );
+		$renderer->render_index( $entries );
+	}
+
+	/**
+	 * Test render_sitemap() outputs sitemap XML.
+	 *
+	 * @covers WP_Sitemaps_Renderer::render_sitemap
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_render_sitemap() {
+		$url_list = array(
+			array(
+				'loc' => 'http://' . WP_TESTS_DOMAIN . '/2019/10/post-1',
+			),
+		);
+
+		$renderer     = new WP_Sitemaps_Renderer();
+		$expected_xml = $renderer->get_sitemap_xml( $url_list );
+
+		$this->expectOutputString( $expected_xml );
+		$renderer->render_sitemap( $url_list );
 	}
 }

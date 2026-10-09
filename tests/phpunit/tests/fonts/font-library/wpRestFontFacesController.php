@@ -28,7 +28,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 		'fontFamily' => '"Open Sans"',
 		'fontWeight' => '400',
 		'fontStyle'  => 'normal',
-		'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+		'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 	);
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -149,20 +149,15 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @doesNotPerformAssertions
-	 */
-	public function test_context_param() {
-		// See test_get_context_param().
-	}
-
-	/**
+	 * @ticket 40538
+	 *
 	 * @dataProvider data_get_context_param
 	 *
 	 * @covers WP_REST_Font_Faces_Controller::get_context_param
 	 *
 	 * @param bool $single_route Whether to test a single route.
 	 */
-	public function test_get_context_param( $single_route ) {
+	public function test_context_param( $single_route = false ) {
 		$route = '/wp/v2/font-families/' . self::$font_family_id . '/font-faces';
 		if ( $single_route ) {
 			$route .= '/' . self::$font_face_id1;
@@ -551,7 +546,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 					'fontFamily' => '"Open Sans"',
 					'fontWeight' => '200',
 					'fontStyle'  => 'normal',
-					'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+					'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 				)
 			)
 		);
@@ -583,8 +578,8 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'lineGapOverride'       => '10%',
 			'sizeAdjust'            => '90%',
 			'unicodeRange'          => 'U+0025-00FF, U+4??',
-			'preview'               => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
-			'src'                   => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+			'preview'               => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
+			'src'                   => 'https://example.org/wp-content/fonts/open-sans.ttf',
 		);
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/font-families/' . self::$font_family_id . '/font-faces' );
@@ -651,7 +646,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 				array(
 					'fontFamily' => '"Open Sans"',
 					'fontWeight' => '200',
-					'src'        => 'https://fonts.gstatic.com/s/open-sans/v30/KFOkCnqEu92Fr1MmgWxPKTM1K9nz.ttf',
+					'src'        => 'https://example.org/wp-content/fonts/open-sans.ttf',
 				)
 			)
 		);
