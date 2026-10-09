@@ -123,7 +123,8 @@ class WP_User {
 	 * When true, `$caps`, `$roles`, and `$allcaps` have not yet been populated from
 	 * the database. They are populated on first access via `load_capability_data()`,
 	 * called from `has_cap()`, `get_role_caps()`, `add_cap()`, `remove_cap()`,
-	 * `add_role()`, `remove_role()`, and `set_role()`.
+	 * `add_role()`, `remove_role()`, and `set_role()`. They can be loaded explicitly
+	 * with `load_capabilities()`.
 	 *
 	 * @since 7.2.0
 	 * @var bool
@@ -510,10 +511,7 @@ class WP_User {
 			$this->cap_key = $cap_key;
 		}
 
-		$this->short_init = false;
-		$this->caps       = $this->get_caps_data();
-
-		$this->get_role_caps();
+		$this->load_capabilities();
 	}
 
 	/**
@@ -968,7 +966,19 @@ class WP_User {
 			return;
 		}
 
-		// Must be set before get_role_caps(), which also calls load_capability_data().
+		$this->load_capabilities();
+	}
+
+	/**
+	 * Loads the user's capability and role data from the database for the current site.
+	 *
+	 * Capability data is loaded on demand for instances constructed with `$short_init`.
+	 * This method forces it to load immediately, and can also be used to reload it.
+	 *
+	 * @since 7.2.0
+	 */
+	public function load_capabilities() {
+		// Must be set before get_role_caps(), which calls load_capability_data().
 		$this->short_init = false;
 
 		$this->caps = $this->get_caps_data();
