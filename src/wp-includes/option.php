@@ -2788,7 +2788,7 @@ function register_initial_settings() {
 				),
 				'show_in_abilities' => true,
 				'type'              => 'string',
-				'description'       => __( 'Site URL.' ),
+				'description'       => __( 'The URL where WordPress core files are served. May differ from the public site URL.' ),
 			)
 		);
 	}
