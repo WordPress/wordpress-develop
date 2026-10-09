@@ -93,6 +93,40 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the post object is passed to the quick_edit_custom_box action.
+	 *
+	 * @ticket 53195
+	 */
+	public function test_quick_edit_custom_box_receives_post_object() {
+		$received_post = null;
+
+		add_action(
+			'quick_edit_custom_box',
+			static function ( $column_name, $post_type, $taxonomy, $post ) use ( &$received_post ) {
+				if ( 'custom' === $column_name ) {
+					$received_post = $post;
+				}
+			},
+			10,
+			4
+		);
+
+		$table = new class( array( 'screen' => 'edit-page' ) ) extends WP_Posts_List_Table {
+			protected function get_column_info() {
+				$column_info              = parent::get_column_info();
+				$column_info[0]['custom'] = 'Custom';
+				return $column_info;
+			}
+		};
+
+		$table->get_inline_edit_custom_box( self::$top[1] );
+
+		$this->assertInstanceOf( 'WP_Post', $received_post );
+		$this->assertSame( 'page', $received_post->post_type );
+		$this->assertSame( self::$top[1]->ID, $received_post->ID );
+	}
+
+	/**
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
