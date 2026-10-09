@@ -420,11 +420,29 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$this->screen->render_screen_reader_content( 'heading_views' );
 
 		echo "<ul class='subsubsub'>\n";
+
+		/*
+		 * Unlike the parent class, a view hidden via is-empty-view stays in the
+		 * markup, so the " | " separator between views can't be attached to
+		 * whichever one happens to precede it in the array (it may be the one
+		 * getting hidden, or everything after it might be). Instead, prefix it
+		 * to each view except the first one actually rendered visible, so a
+		 * run of hidden views never leaves a dangling separator next to them.
+		 */
+		$rendered_a_visible_view = false;
+
 		foreach ( $views as $class => $view ) {
-			$li_class        = in_array( $class, $this->empty_views, true ) ? "$class is-empty-view" : $class;
-			$views[ $class ] = "\t<li class='$li_class'>$view";
+			$is_hidden = in_array( $class, $this->empty_views, true );
+			$li_class  = $is_hidden ? "$class is-empty-view" : $class;
+			$separator = ( ! $is_hidden && $rendered_a_visible_view ) ? '| ' : '';
+
+			echo "\t<li class='$li_class'>$separator$view</li>\n";
+
+			if ( ! $is_hidden ) {
+				$rendered_a_visible_view = true;
+			}
 		}
-		echo implode( " |</li>\n", $views ) . "</li>\n";
+
 		echo '</ul>';
 	}
 
