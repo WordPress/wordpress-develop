@@ -147,10 +147,12 @@ class WP_List_Util {
 	 * array_column() (PHP 5.5) but also supports objects.
 	 *
 	 * @since 4.7.0
+	 * @since 7.1.0 The `$field` parameter accepts null to return each complete element.
 	 *
-	 * @param int|string $field     Field to fetch from the object or array.
-	 * @param int|string $index_key Optional. Field from the element to use as keys for the new array.
-	 *                              Default null.
+	 * @param int|string|null $field     Field to fetch from the object or array. If null, the whole
+	 *                                   element is returned.
+	 * @param int|string      $index_key Optional. Field from the element to use as keys for the new array.
+	 *                                   Default null.
 	 * @return array Array of found values. If `$index_key` is set, an array of found values with keys
 	 *               corresponding to `$index_key`. If `$index_key` is null, array keys from the original
 	 *               `$list` will be preserved in the results.
@@ -165,9 +167,9 @@ class WP_List_Util {
 			 */
 			foreach ( $this->output as $key => $value ) {
 				if ( is_object( $value ) ) {
-					$newlist[ $key ] = $value->$field;
+					$newlist[ $key ] = null === $field ? $value : $value->$field;
 				} elseif ( is_array( $value ) ) {
-					$newlist[ $key ] = $value[ $field ];
+					$newlist[ $key ] = null === $field ? $value : $value[ $field ];
 				} else {
 					_doing_it_wrong(
 						__METHOD__,
@@ -189,15 +191,15 @@ class WP_List_Util {
 		foreach ( $this->output as $value ) {
 			if ( is_object( $value ) ) {
 				if ( isset( $value->$index_key ) ) {
-					$newlist[ $value->$index_key ] = $value->$field;
+					$newlist[ $value->$index_key ] = null === $field ? $value : $value->$field;
 				} else {
-					$newlist[] = $value->$field;
+					$newlist[] = null === $field ? $value : $value->$field;
 				}
 			} elseif ( is_array( $value ) ) {
 				if ( isset( $value[ $index_key ] ) ) {
-					$newlist[ $value[ $index_key ] ] = $value[ $field ];
+					$newlist[ $value[ $index_key ] ] = null === $field ? $value : $value[ $field ];
 				} else {
-					$newlist[] = $value[ $field ];
+					$newlist[] = null === $field ? $value : $value[ $field ];
 				}
 			} else {
 				_doing_it_wrong(
