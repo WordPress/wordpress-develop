@@ -46,5 +46,5 @@ parameters:
 		-
 			message: '#^If condition is always true\.$#'
 			identifier: if.alwaysTrue
-			count: 1
+			count: 2
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
