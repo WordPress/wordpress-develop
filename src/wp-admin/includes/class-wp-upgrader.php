@@ -1064,6 +1064,22 @@ class WP_Upgrader {
 		// Try to lock.
 		$lock_result = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO `$wpdb->options` ( `option_name`, `option_value`, `autoload` ) VALUES (%s, %s, 'off') /* LOCK */", $lock_option, time() ) );
 
+		/*
+		 * Invalidate the notoptions cache for the lock option.
+		 *
+		 * The lock is created with a direct INSERT IGNORE query, bypassing the
+		 * Options API. This means the notoptions cache may still contain a stale
+		 * entry for this option (added when the option previously did not exist),
+		 * causing get_option() to return false without querying the database.
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/64080
+		 */
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $notoptions ) && isset( $notoptions[ $lock_option ] ) ) {
+			unset( $notoptions[ $lock_option ] );
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
+		}
+
 		if ( ! $lock_result ) {
 			$lock_result = get_option( $lock_option );
 
