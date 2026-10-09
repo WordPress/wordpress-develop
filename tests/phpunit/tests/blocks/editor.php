@@ -408,7 +408,7 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * The note reaction menu offers the same emoji the REST API accepts.
 	 *
-	 * @ticket 63191
+	 * @ticket 66276
 	 *
 	 * @covers ::get_block_editor_settings
 	 */

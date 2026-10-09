@@ -13,7 +13,7 @@
 class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_defaults_to_the_five_quick_reactions() {
 		$this->assertSame(
@@ -23,7 +23,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_filter_can_add_and_remove_emoji() {
 		add_filter(
@@ -44,7 +44,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_filter_can_remove_every_emoji() {
 		add_filter( 'wp_note_reaction_emojis', '__return_empty_array' );
@@ -53,7 +53,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_falls_back_to_the_defaults_when_the_filter_returns_no_list() {
 		add_filter( 'wp_note_reaction_emojis', '__return_null' );
@@ -62,7 +62,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_drops_malformed_and_duplicate_entries() {
 		add_filter(
@@ -121,7 +121,7 @@ class Tests_Comment_WpGetNoteReactionEmojis extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 63191
+	 * @ticket 66276
 	 *
 	 * @dataProvider data_normalize_note_reaction_key
 	 *

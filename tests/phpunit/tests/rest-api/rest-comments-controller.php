@@ -4819,7 +4819,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * The `wp_note_reaction_emojis` filter decides which emoji the REST API
 	 * accepts: an added emoji is accepted and a removed one is not.
 	 *
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_create_reaction_respects_reaction_emojis_filter() {
 		add_filter(
@@ -4874,7 +4874,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * A reaction whose emoji the site stopped offering can still be removed
 	 * by its author.
 	 *
-	 * @ticket 63191
+	 * @ticket 66276
 	 */
 	public function test_delete_reaction_after_its_emoji_is_filtered_out() {
 		wp_set_current_user( self::$editor_id );
