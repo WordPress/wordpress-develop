@@ -1440,8 +1440,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	if ( ! empty( $_POST['menu-item-db-id'] ) ) {
 		foreach ( (array) $_POST['menu-item-db-id'] as $_key => $k ) {
 
-			// Menu item title can't be blank.
-			if ( ! isset( $_POST['menu-item-title'][ $_key ] ) || '' === $_POST['menu-item-title'][ $_key ] ) {
+			// Menu item title should be set, but it can be left empty.
+			if ( ! isset( $_POST['menu-item-title'][ $_key ] ) ) {
 				continue;
 			}
 
