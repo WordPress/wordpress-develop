@@ -44,6 +44,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		parent::set_up();
 
 		$this->registry = $this->createMock( ProviderRegistry::class );
+		$this->registry->method( 'isProviderConfigured' )->willReturn( true );
 	}
 
 	/**
@@ -513,6 +514,70 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
 
 		$this->assertTrue( $builder->using_model( $model )->is_supported() );
+	}
+
+	/**
+	 * Test that is_supported() returns false when no model was specified.
+	 *
+	 * Embeddings are only comparable to other embeddings from the same model, so
+	 * the SDK never selects a model automatically.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_is_supported_returns_false_without_model() {
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
+
+		$this->assertFalse( $builder->is_supported() );
+	}
+
+	/**
+	 * Test that generating without a model returns a WP_Error.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_embeddings_without_model_returns_wp_error() {
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
+
+		$error = $builder->generate_embeddings();
+
+		$this->assertWPError( $error );
+		$this->assertSame( 'embedding_invalid_argument', $error->get_error_code() );
+	}
+
+	/**
+	 * Test that is_supported() returns false when the model's provider is not configured.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_is_supported_returns_false_when_provider_not_configured() {
+		$registry = $this->createMock( ProviderRegistry::class );
+		$registry->method( 'isProviderConfigured' )->willReturn( false );
+
+		$model   = $this->create_mock_embedding_model( $this->create_test_embedding_result( 1 ) );
+		$builder = new WP_AI_Client_Embedding_Builder( $registry, 'Test input' );
+
+		$this->assertFalse( $builder->using_model( $model )->is_supported() );
+	}
+
+	/**
+	 * Test that using_provider_model() retrieves the model from the registry.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_using_provider_model_generates_with_registry_model() {
+		$result = $this->create_test_embedding_result( 1 );
+		$model  = $this->create_mock_embedding_model( $result );
+
+		$this->registry->expects( $this->once() )
+			->method( 'getProviderModel' )
+			->with( 'mock', 'test-embedding-model' )
+			->willReturn( $model );
+
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
+
+		$actual_result = $builder->using_provider_model( 'mock', 'test-embedding-model' )->generate_embedding_result();
+
+		$this->assertSame( $result, $actual_result );
 	}
 
 	/**

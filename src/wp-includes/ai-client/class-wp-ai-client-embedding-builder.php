@@ -24,11 +24,17 @@ use WordPress\AiClient\Results\DTO\EmbeddingResult;
  * adds WordPress-specific behavior including WP_Error handling instead of
  * exceptions and snake_case method naming.
  *
+ * A model must be specified via `using_model()` or `using_provider_model()`.
+ * Embedding vectors are only comparable to other vectors produced by the same
+ * model, so no model is selected automatically.
+ *
  * Only the generating methods will return a WP_Error, to not break the fluent
  * interface. As soon as any exception is caught in a chain of method calls,
  * the returned instance will be in an error state, and all subsequent method
  * calls will be no-ops that just return the same error state instance. Only
- * when a generating method is called, the WP_Error will be returned.
+ * when a generating method is called, the WP_Error will be returned. The
+ * support check methods are the exception to the no-op behavior: they return
+ * false rather than the error state instance.
  *
  * @since 7.2.0
  *
@@ -39,11 +45,10 @@ use WordPress\AiClient\Results\DTO\EmbeddingResult;
  * @method self with_input(...$input) Adds one or more inputs to embed.
  * @method self using_dimensions(int $dimensions) Sets the embedding dimensions.
  * @method self using_model(ModelInterface $model) Sets the model to use for generation.
- * @method self using_model_preference(...$preferredModels) Sets preferred models to evaluate in order.
+ * @method self using_provider_model(string $providerIdOrClassName, string $modelId) Sets the model to use for generation, by provider and model identifier.
  * @method self using_model_config(ModelConfig $config) Sets the model configuration.
- * @method self using_provider(string $providerIdOrClassName) Sets the provider to use for generation.
  * @method self using_request_options(RequestOptions $options) Sets the request options for HTTP transport.
- * @method bool is_supported() Checks whether the current inputs and configuration are supported by an available model.
+ * @method bool is_supported() Checks whether the specified model supports the current inputs and configuration.
  * @method EmbeddingResult|WP_Error generate_embedding_result() Generates an embedding result from the configured inputs.
  * @method Embedding|WP_Error generate_embedding() Generates a single embedding from the configured input.
  * @method list<Embedding>|WP_Error generate_embeddings() Generates embeddings from the configured inputs.

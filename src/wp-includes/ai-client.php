@@ -72,6 +72,10 @@ function wp_ai_client_prompt( $prompt = null ): WP_AI_Client_Prompt_Builder {
  * complex types. Pass multiple arguments to embed multiple inputs at once, each
  * producing its own embedding vector.
  *
+ * A model must be specified on the returned builder via `using_model()` or
+ * `using_provider_model()`. Embedding vectors are only comparable to other
+ * vectors produced by the same model, so no model is selected automatically.
+ *
  * @since 7.2.0
  *
  * @param string|MessagePart|File|array ...$input Optional. Initial input(s) to embed.
