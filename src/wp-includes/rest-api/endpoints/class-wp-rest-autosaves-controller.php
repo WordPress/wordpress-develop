@@ -370,8 +370,10 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 	 *
 	 * @since 5.0.0
 	 * @since 6.4.0 The `$meta` parameter was added.
-	 * @since 7.1.0 Compares incoming data against the existing autosave instead
-	 *              of the published post.
+	 * @since 7.1.0 When an existing autosave is present, compares incoming data
+	 *              against that autosave's fields instead of the published post,
+	 *              so that a field reverted to the published value still overwrites
+	 *              a stale value in the existing autosave.
 	 *
 	 * @param array $post_data Associative array containing the post data.
 	 * @param array $meta      Associative array containing the post meta data.
@@ -414,7 +416,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 
 			if ( ! $autosave_is_different && ! empty( $meta ) ) {
 				foreach ( $revisioned_meta_keys as $meta_key ) {
-					if ( ! array_key_exists( $meta_key, $meta ) ) {
+					if ( ! isset( $meta[ $meta_key ] ) ) {
 						continue;
 					}
 

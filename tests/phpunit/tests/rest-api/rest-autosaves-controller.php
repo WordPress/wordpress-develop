@@ -967,21 +967,32 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		$controller = new WP_REST_Autosaves_Controller( 'post' );
 
-		$controller->create_post_autosave(
+		// Step 1: Create an autosave with a modified title — this makes the autosave stale.
+		$stale_revision_id = $controller->create_post_autosave(
 			array(
 				'ID'         => $post_id,
 				'post_title' => 'Original Title !!',
 			)
 		);
+		$this->assertIsInt( $stale_revision_id, 'First create_post_autosave() should return an integer revision ID.' );
+		$this->assertGreaterThan( 0, $stale_revision_id, 'First autosave revision ID should be positive.' );
 
-		$controller->create_post_autosave(
+		// Verify the autosave is now stale (holds the modified title).
+		$stale_autosave = wp_get_post_autosave( $post_id, self::$editor_id );
+		$this->assertSame( 'Original Title !!', $stale_autosave->post_title, 'Autosave should hold the stale title before the revert.' );
+
+		// Step 2: Revert to the published title — must overwrite the stale autosave.
+		$updated_revision_id = $controller->create_post_autosave(
 			array(
 				'ID'         => $post_id,
 				'post_title' => 'Original Title',
 			)
 		);
+		$this->assertIsInt( $updated_revision_id, 'Second create_post_autosave() should return an integer revision ID.' );
+		$this->assertSame( $stale_revision_id, $updated_revision_id, 'Revert should overwrite the same autosave revision, not create a new one.' );
 
+		// The autosave should now reflect the reverted (published) title.
 		$autosave = wp_get_post_autosave( $post_id, self::$editor_id );
-		$this->assertSame( 'Original Title', $autosave->post_title );
+		$this->assertSame( 'Original Title', $autosave->post_title, 'Autosave should reflect the reverted title, not the stale value.' );
 	}
 }
