@@ -1070,11 +1070,7 @@ class WP_User implements JsonSerializable {
 		/*
 		 * The array cast keeps the null byte delimited scope of non-public property names,
 		 * including those of subclasses, which is the format native unserialization expects.
-		 * The pending flag is left out, so it falls back to its default of false.
 		 */
-		$data = (array) $this;
-		unset( $data[ "\0" . __CLASS__ . "\0capability_data_pending" ] );
-
-		return $data;
+		return (array) $this;
 	}
 }
