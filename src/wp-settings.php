@@ -153,6 +153,7 @@ wp_start_object_cache();
 // Attach the default filters.
 require ABSPATH . WPINC . '/default-filters.php';
 
+require ABSPATH . WPINC . '/ms/turn-into-multisite.php';
 // Initialize multisite if enabled.
 if ( is_multisite() ) {
 	require ABSPATH . WPINC . '/class-wp-site-query.php';
