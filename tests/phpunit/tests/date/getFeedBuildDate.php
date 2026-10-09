@@ -189,10 +189,9 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * Test that WP_Post objects in $wp_query->posts are used as-is rather
 	 * than being looked up again by ID.
 	 *
-	 * Code review found that passing every WP_Post through {@see get_post()}
-	 * calls {@see WP_Post::filter()}, which re-fetches any post whose filter
-	 * is not 'raw'. That drops virtual posts which are not in the database,
-	 * and swaps in the database copy of 'display' filtered posts.
+	 * Passing a WP_Post through {@see get_post()} would re-fetch it by ID when
+	 * its filter is not 'raw', dropping a virtual post that is not in the
+	 * database.
 	 *
 	 * @ticket 59956
 	 */
