@@ -185,6 +185,40 @@ class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 39566
+	 */
+	public function test_should_return_true_when_comment_previously_approved_is_enabled_and_registered_user_has_previously_approved_guest_comment() {
+		self::factory()->user->create(
+			array(
+				'role'       => 'subscriber',
+				'user_email' => 'guest@example.com',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'user_id'              => 0,
+				'comment_approved'     => '1',
+				'comment_author'       => "Guest O'Commenter",
+				'comment_author_email' => 'guest@example.com',
+			)
+		);
+
+		update_option( 'comment_previously_approved', 1 );
+
+		$results = check_comment(
+			wp_slash( "Guest O'Commenter" ),
+			wp_slash( 'guest@example.com' ),
+			'http://example.com',
+			'This is a comment.',
+			'66.155.40.249',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:35.0) Gecko/20100101 Firefox/35.0',
+			'comment'
+		);
+		$this->assertTrue( $results );
+	}
+
+	/**
 	 * @ticket 28603
 	 */
 	public function test_should_return_false_when_comment_previously_approved_is_enabled_and_user_does_not_have_a_previously_approved_comment_with_any_email() {
