@@ -345,7 +345,7 @@ class Walker_Comment extends Walker {
 
 		<div class="comment-meta commentmetadata">
 			<?php
-			printf(
+			$comment_metadata = sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( get_comment_link( $comment, $args ) ),
 				sprintf(
@@ -355,6 +355,17 @@ class Walker_Comment extends Walker {
 					get_comment_time()
 				)
 			);
+
+			/**
+			 * Filters the metadata of a comment.
+			 *
+			 * @since 6.5.0
+			 *
+			 * @param string     $comment_metadata Metadata of the comment.
+			 * @param WP_Comment $comment          The comment object.
+			 * @param array      $args             An array of arguments.
+			 */
+			echo apply_filters( 'comment_metadata', $comment_metadata, $comment, $args );
 
 			edit_comment_link( __( '(Edit)' ), ' &nbsp;&nbsp;', '' );
 			?>
@@ -444,7 +455,7 @@ class Walker_Comment extends Walker {
 
 					<div class="comment-metadata">
 						<?php
-						printf(
+						$comment_metadata = sprintf(
 							'<a href="%s"><time datetime="%s">%s</time></a>',
 							esc_url( get_comment_link( $comment, $args ) ),
 							get_comment_time( 'c' ),
@@ -455,6 +466,9 @@ class Walker_Comment extends Walker {
 								get_comment_time()
 							)
 						);
+
+						/** This filter is documented in wp-includes/class-walker-comment.php */
+						echo apply_filters( 'comment_metadata', $comment_metadata, $comment, $args );
 
 						edit_comment_link( __( 'Edit' ), ' <span class="edit-link">', '</span>' );
 						?>
