@@ -60,6 +60,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		$this->assertSame( $u->ID, $data['authordata']->ID );
 		$this->assertSame( $u->user_login, $data['authordata']->user_login );
 		$this->assertSame( $u->display_name, $data['authordata']->display_name );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_authordata( $u->ID ), $data['authordata'] );
 		$this->assertSame( $u->has_cap( 'read' ), $data['authordata']->has_cap( 'read' ) );
 	}

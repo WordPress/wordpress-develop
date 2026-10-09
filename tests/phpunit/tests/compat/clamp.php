@@ -193,7 +193,7 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 * @param DateTimeImmutable $max      The maximum bound.
 	 */
 	public function test_clamp_with_datetime( DateTimeImmutable $expected, DateTimeImmutable $value, DateTimeImmutable $min, DateTimeImmutable $max ): void {
-		$this->assertEquals( $expected, clamp( $value, $min, $max ) );
+		$this->assertSame( $expected, clamp( $value, $min, $max ) );
 	}
 
 	/**
@@ -202,24 +202,29 @@ class Tests_Compat_clamp extends WP_UnitTestCase {
 	 * @return array<string, array{ expected: DateTimeImmutable, value: DateTimeImmutable, min: DateTimeImmutable, max: DateTimeImmutable }>
 	 */
 	public function data_clamp_datetime(): array {
+		$min = new DateTimeImmutable( '2025-01-01' );
+		$max = new DateTimeImmutable( '2025-01-31' );
+
+		$within_range = new DateTimeImmutable( '2025-01-15' );
+
 		return array(
 			'within range' => array(
-				'expected' => new DateTimeImmutable( '2025-01-15' ),
-				'value'    => new DateTimeImmutable( '2025-01-15' ),
-				'min'      => new DateTimeImmutable( '2025-01-01' ),
-				'max'      => new DateTimeImmutable( '2025-01-31' ),
+				'expected' => $within_range,
+				'value'    => $within_range,
+				'min'      => $min,
+				'max'      => $max,
 			),
 			'below min'    => array(
-				'expected' => new DateTimeImmutable( '2025-01-01' ),
+				'expected' => $min,
 				'value'    => new DateTimeImmutable( '2024-12-01' ),
-				'min'      => new DateTimeImmutable( '2025-01-01' ),
-				'max'      => new DateTimeImmutable( '2025-01-31' ),
+				'min'      => $min,
+				'max'      => $max,
 			),
 			'above max'    => array(
-				'expected' => new DateTimeImmutable( '2025-01-31' ),
+				'expected' => $max,
 				'value'    => new DateTimeImmutable( '2025-03-01' ),
-				'min'      => new DateTimeImmutable( '2025-01-01' ),
-				'max'      => new DateTimeImmutable( '2025-01-31' ),
+				'min'      => $min,
+				'max'      => $max,
 			),
 		);
 	}

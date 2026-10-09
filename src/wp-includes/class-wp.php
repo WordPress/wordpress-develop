@@ -277,10 +277,8 @@ class WP {
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' === $error ) {
-					unset( $error, $_GET['error'] );
-				}
+				// Clear the 404 error var since we found something.
+				unset( $error, $_GET['error'] );
 			}
 
 			// If req_uri is empty or if it is a request for ourself, unset error.
@@ -748,7 +746,7 @@ class WP {
 
 		// Never 404 here for the admin, robots, favicon, or sitemaps.
 		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
-		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() || get_query_var( 'sitemap-stylesheet' ) ) {
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
