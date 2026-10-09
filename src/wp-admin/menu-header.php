@@ -55,18 +55,19 @@ $submenu_file = apply_filters( 'submenu_file', $submenu_file, $parent_file );
 get_admin_page_parent();
 
 /**
- * Returns the name of the registered icon that a menu icon value is drawn with.
+ * Returns the name of the icon that replaces a Dashicon in the admin menu.
  *
- * Dashicons that have a replacement are drawn as inline SVG icons instead,
- * so that the menu data keeps its Dashicons values.
+ * For backward compatibility, the `$menu` global keeps the Dashicons values of
+ * the core menu items. Those Dashicons are only mapped to their replacement
+ * icons here, when the menu is rendered.
  *
  * @access private
  * @since 7.2.0
  *
- * @param string $menu_icon The menu icon value.
- * @return string Namespaced icon name, or an empty string if the value is not drawn with a registered icon.
+ * @param string $dashicon The Dashicon class name, e.g. 'dashicons-admin-post'.
+ * @return string Namespaced icon name of the replacement, or the given value if it has no replacement.
  */
-function _wp_menu_icon_name( $menu_icon ) {
+function _wp_replace_menu_dashicon( $dashicon ) {
 	$dashicon_replacements = array(
 		'dashicons-dashboard'        => 'core-admin/dashboard',
 		'dashicons-admin-post'       => 'core-admin/pin',
@@ -82,11 +83,7 @@ function _wp_menu_icon_name( $menu_icon ) {
 		'dashicons-admin-multisite'  => 'core-admin/sites',
 	);
 
-	if ( isset( $dashicon_replacements[ $menu_icon ] ) ) {
-		return $dashicon_replacements[ $menu_icon ];
-	}
-
-	return wp_is_icon_name( $menu_icon ) ? $menu_icon : '';
+	return $dashicon_replacements[ $dashicon ] ?? $dashicon;
 }
 
 /**
@@ -166,7 +163,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
-			$icon_name = _wp_menu_icon_name( $item[6] );
+			$icon_name = _wp_replace_menu_dashicon( $item[6] );
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';
@@ -175,7 +172,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
-			} elseif ( '' !== $icon_name ) {
+			} elseif ( wp_is_icon_name( $icon_name ) ) {
 				$img  = '<br />';
 				$icon = wp_get_icon( $icon_name );
 				if ( '' !== $icon ) {
