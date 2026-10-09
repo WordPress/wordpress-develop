@@ -387,7 +387,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'object', $schema['type'], 'The output schema should describe object responses.' );
 		$this->assertCount( 2, $schema['oneOf'], 'The output schema should describe single-post and query responses.' );
 		$this->assertSame( 'object', $post_schema['type'], 'The single-post response should be described as an object.' );
-		$this->assertArrayNotHasKey( 'required', $post_schema, 'Individual post fields should remain optional.' );
+		$this->assertSame( array( 'id' ), $post_schema['required'], 'Only the always-returned id should be required in a post.' );
 		$this->assertFalse( $post_schema['additionalProperties'], 'Returned posts should not allow unknown properties.' );
 		$this->assertArrayHasKey( 'type', $post_schema['properties'], 'The post schema should describe the post type as type.' );
 		$this->assertArrayNotHasKey( 'post_type', $post_schema['properties'], 'The post schema should not expose the post type as post_type.' );
@@ -1865,6 +1865,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'The parent filter should be rejected for non-hierarchical post types.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'Unsupported parent filters should return a filter error.' );
+		$this->assertSame(
+			array( 'parent' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the unsupported parent filter to the error message.'
+		);
 	}
 
 	/**
@@ -1930,6 +1935,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'The author_slug filter should be rejected for post types without author support.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'Unsupported author filters should return a filter error.' );
+		$this->assertSame(
+			array( 'author_slug' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the unsupported author_slug filter to the error message.'
+		);
 	}
 
 	/**
@@ -3601,7 +3611,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A post with no usable date at all reports the documented empty-string sentinel.
+	 * A post with no usable date at all reports null.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -3614,7 +3624,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @param string $local_date   Unused. Present to match the shared data provider shape.
 	 * @param string $expected     Unused. Present to match the shared data provider shape.
 	 */
-	public function test_gmt_date_is_empty_when_no_usable_date_exists( string $field, string $gmt_column, string $local_column, string $local_date, string $expected ): void {
+	public function test_gmt_date_is_null_when_no_usable_date_exists( string $field, string $gmt_column, string $local_column, string $local_date, string $expected ): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -3635,7 +3645,71 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '', $result[ $field ], 'An unresolvable GMT date should be the empty-string sentinel.' );
+		$this->assertIsArray( $result, 'An unresolvable GMT date should pass output validation.' );
+		$this->assertArrayHasKey( $field, $result, 'An unresolvable GMT date should still be returned.' );
+		$this->assertNull( $result[ $field ], 'An unresolvable GMT date should be null.' );
+	}
+
+	/**
+	 * Data provider for date fields.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, array{field: string, column: string}>
+	 */
+	public function data_date_fields(): array {
+		return array(
+			'date'         => array(
+				'field'  => 'date',
+				'column' => 'post_date',
+			),
+			'date_gmt'     => array(
+				'field'  => 'date_gmt',
+				'column' => 'post_date_gmt',
+			),
+			'modified'     => array(
+				'field'  => 'modified',
+				'column' => 'post_modified',
+			),
+			'modified_gmt' => array(
+				'field'  => 'modified_gmt',
+				'column' => 'post_modified_gmt',
+			),
+		);
+	}
+
+	/**
+	 * A malformed stored date reports null instead of failing output validation.
+	 *
+	 * A zero month still parses, but formats with a negative year, which the `date-time`
+	 * format of the output schema rejects.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 *
+	 * @dataProvider data_date_fields
+	 *
+	 * @param string $field  The ability output field to request.
+	 * @param string $column The cached post column to corrupt.
+	 */
+	public function test_malformed_date_is_null( string $field, string $column ): void {
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
+		$this->replace_cached_post_date_columns( $post_id, array( $column => '0000-00-01 00:00:00' ) );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'id'     => $post_id,
+				'fields' => array( 'id', $field ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'A malformed date should pass output validation.' );
+		$this->assertArrayHasKey( $field, $result, 'A malformed date should still be returned.' );
+		$this->assertNull( $result[ $field ], 'A malformed date should be null.' );
 	}
 
 	/**
@@ -3717,6 +3791,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'An author_slug that names no user must not silently widen the query to all authors.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An unhonorable author_slug filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'author_slug' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the unmatched author_slug filter to the error message.'
+		);
 	}
 
 	/**
@@ -3789,6 +3868,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'A non-integer parent filter must not silently coerce to a top-level (0) query.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An unhonorable parent filter should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'parent' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the non-integer parent filter to the error message.'
+		);
 	}
 
 	/**
@@ -3817,6 +3901,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'An include filter with no valid IDs must not fall through to an unrestricted query.' );
 		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An empty-after-parsing include should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'include' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the include filter to the error message.'
+		);
 	}
 
 	/**
@@ -3855,6 +3944,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$hidden = $query( array( 'publish' ), self::$user_ids['author_secondary'] );
 		$this->assertWPError( $hidden, 'A subscriber should not learn that an author without published posts exists.' );
 		$this->assertSame( 'content_invalid_filter', $hidden->get_error_code(), 'A hidden author should be reported like a missing one.' );
+		$this->assertSame(
+			array( 'author_slug' => $hidden->get_error_message() ),
+			$hidden->get_error_data()['params'],
+			'The error data should map the hidden author_slug filter to the error message.'
+		);
 
 		$this->login_as( 'editor' );
 		$drafts = $query( array( 'draft' ), self::$user_ids['author_secondary'] );

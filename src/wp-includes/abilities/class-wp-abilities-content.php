@@ -438,12 +438,12 @@ final class WP_Abilities_Content {
 		$parent = null;
 		if ( isset( $input['parent'] ) ) {
 			if ( ! is_post_type_hierarchical( $post_type ) ) {
-				return $this->invalid_filter_error( __( 'The parent filter is only supported for hierarchical post types.' ) );
+				return $this->invalid_filter_error( 'parent', __( 'The parent filter is only supported for hierarchical post types.' ) );
 			}
 
 			$parent = $this->parse_filter_int( $input['parent'], 0 );
 			if ( null === $parent ) {
-				return $this->invalid_filter_error( __( 'The parent filter must be a non-negative integer.' ) );
+				return $this->invalid_filter_error( 'parent', __( 'The parent filter must be a non-negative integer.' ) );
 			}
 		}
 
@@ -451,6 +451,7 @@ final class WP_Abilities_Content {
 		if ( isset( $input['author_slug'] ) ) {
 			if ( ! post_type_supports( $post_type, 'author' ) ) {
 				return $this->invalid_filter_error(
+					'author_slug',
 					/* translators: %s: Parameter. */
 					sprintf( __( 'The %s filter is only supported for post types that support authors.' ), 'author_slug' )
 				);
@@ -459,6 +460,7 @@ final class WP_Abilities_Content {
 			$author = $this->get_author_by_slug( $input['author_slug'], $post_type_object );
 			if ( ! $author ) {
 				return $this->invalid_filter_error(
+					'author_slug',
 					/* translators: %s: Parameter. */
 					sprintf( __( 'The %s filter must be the slug of an existing user.' ), 'author_slug' )
 				);
@@ -473,7 +475,7 @@ final class WP_Abilities_Content {
 		 * would return every post of the type — the opposite of the caller's intent.
 		 */
 		if ( isset( $input['include'] ) && array() === $include ) {
-			return $this->invalid_filter_error( __( 'The include filter must list one or more valid post IDs.' ) );
+			return $this->invalid_filter_error( 'include', __( 'The include filter must list one or more valid post IDs.' ) );
 		}
 
 		$per_page = $this->normalize_per_page( $input, $include );
@@ -890,20 +892,24 @@ final class WP_Abilities_Content {
 				'description' => __( 'The post status.' ),
 			),
 			'date'              => array(
-				'type'        => 'string',
-				'description' => __( "The publication date, in ISO 8601 format using the site's timezone. Empty string when the date cannot be resolved." ),
+				'type'        => array( 'string', 'null' ),
+				'format'      => 'date-time',
+				'description' => __( "The publication date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
 			),
 			'date_gmt'          => array(
-				'type'        => 'string',
-				'description' => __( 'The publication date, in ISO 8601 format as GMT. Empty string when the date cannot be resolved.' ),
+				'type'        => array( 'string', 'null' ),
+				'format'      => 'date-time',
+				'description' => __( 'The publication date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
 			),
 			'modified'          => array(
-				'type'        => 'string',
-				'description' => __( "The last modified date, in ISO 8601 format using the site's timezone. Empty string when the date cannot be resolved." ),
+				'type'        => array( 'string', 'null' ),
+				'format'      => 'date-time',
+				'description' => __( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
 			),
 			'modified_gmt'      => array(
-				'type'        => 'string',
-				'description' => __( 'The last modified date, in ISO 8601 format as GMT. Empty string when the date cannot be resolved.' ),
+				'type'        => array( 'string', 'null' ),
+				'format'      => 'date-time',
+				'description' => __( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
 			),
 			'slug'              => array(
 				'type'        => 'string',
@@ -1102,8 +1108,9 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the output schema of a single post, shared by all content abilities.
 	 *
-	 * No field is marked required because the `fields` input lets the caller request any
-	 * subset, and a field is only present when its post type supports it.
+	 * Only `id` is required, because it is always returned. The other fields are optional
+	 * because the `fields` input lets the caller request any subset, and a field is only
+	 * present when its post type supports it.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1113,6 +1120,7 @@ final class WP_Abilities_Content {
 		return array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
+			'required'             => array( 'id' ),
 			'properties'           => $this->get_post_properties(),
 		);
 	}
@@ -1120,9 +1128,10 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the output schema for the `core/content-query` ability.
 	 *
-	 * No field is marked required because the `fields` input lets the caller request any
-	 * subset, and a field is only present when its post type supports it. Single-post
-	 * mode returns the post object directly, while query mode returns a paginated wrapper.
+	 * Only `id` is required in a post, because it is always returned. The other fields are
+	 * optional because the `fields` input lets the caller request any subset, and a field
+	 * is only present when its post type supports it. Single-post mode returns the post
+	 * object directly, while query mode returns a paginated wrapper.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1490,19 +1499,26 @@ final class WP_Abilities_Content {
 	 * @param WP_Post $post  The post object.
 	 * @param string  $field Either 'date' or 'modified'.
 	 * @param bool    $gmt   Whether to format the date in GMT instead of the site's timezone.
-	 * @return string The ISO 8601 date, or an empty string if unavailable.
+	 * @return string|null The ISO 8601 date, or null if unavailable.
 	 */
-	private function format_date( WP_Post $post, string $field, bool $gmt ): string {
+	private function format_date( WP_Post $post, string $field, bool $gmt ): ?string {
 		$datetime = $gmt ? get_post_datetime( $post, $field, 'gmt' ) : false;
 		if ( ! $datetime ) {
 			$datetime = get_post_datetime( $post, $field );
 		}
 
 		if ( ! $datetime ) {
-			return '';
+			return null;
 		}
 
-		return ( $gmt ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) ) : $datetime )->format( 'c' );
+		/*
+		 * A malformed stored date can still parse: a zero month formats with a negative
+		 * year. The `date-time` format rejects it, which would fail output validation for
+		 * the whole call, so it is reported as null too.
+		 */
+		$date = ( $gmt ? $datetime->setTimezone( new DateTimeZone( 'UTC' ) ) : $datetime )->format( 'c' );
+
+		return rest_parse_date( $date ) ? $date : null;
 	}
 
 	/**
@@ -1533,12 +1549,24 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the error for a query filter that cannot be honored.
 	 *
+	 * As in the REST API's `rest_invalid_param` errors, the error data maps the filter to
+	 * the message under `params`, so callers can tell which filter failed without parsing
+	 * the translated message.
+	 *
 	 * @since 7.2.0
 	 *
+	 * @param string $filter  The filter's input name.
 	 * @param string $message The error message.
 	 * @return WP_Error The invalid filter error.
 	 */
-	private function invalid_filter_error( string $message ): WP_Error {
-		return new WP_Error( 'content_invalid_filter', $message, array( 'status' => 400 ) );
+	private function invalid_filter_error( string $filter, string $message ): WP_Error {
+		return new WP_Error(
+			'content_invalid_filter',
+			$message,
+			array(
+				'status' => 400,
+				'params' => array( $filter => $message ),
+			)
+		);
 	}
 }
