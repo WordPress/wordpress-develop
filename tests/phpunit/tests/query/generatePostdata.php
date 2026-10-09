@@ -54,7 +54,10 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $data['authordata'] );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( $u, $data['authordata'] );
+		// The authordata is a short-init WP_User from get_authordata(), see #58001.
+		$this->assertEquals( get_authordata( $u->ID ), $data['authordata'] );
+		$this->assertSame( $u->display_name, $data['authordata']->display_name );
+		$this->assertSame( $u->roles, $data['authordata']->roles );
 	}
 
 	/**

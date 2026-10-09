@@ -65,7 +65,10 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $GLOBALS['authordata'] );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( $u, $GLOBALS['authordata'] );
+		// The authordata is a short-init WP_User from get_authordata(), see #58001.
+		$this->assertEquals( get_authordata( $u->ID ), $GLOBALS['authordata'] );
+		$this->assertSame( $u->display_name, $GLOBALS['authordata']->display_name );
+		$this->assertSame( $u->roles, $GLOBALS['authordata']->roles );
 	}
 
 	public function test_currentday() {
@@ -113,7 +116,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		// Main loop.
 		$this->assertSame( $post1->ID, $GLOBALS['id'] );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( get_userdata( $users[0] ), $GLOBALS['authordata'] );
+		$this->assertEquals( get_authordata( $users[0] ), $GLOBALS['authordata'] );
 		$this->assertSame( '02.02.12', $GLOBALS['currentday'] );
 		$this->assertSame( '02', $GLOBALS['currentmonth'] );
 
@@ -133,7 +136,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 				// Should refer to the current loop.
 				$this->assertSame( $post2->ID, $GLOBALS['id'] );
 				// Keep assertEquals() because the objects are intentionally compared by value.
-				$this->assertEquals( get_userdata( $users[1] ), $GLOBALS['authordata'] );
+				$this->assertEquals( get_authordata( $users[1] ), $GLOBALS['authordata'] );
 				$this->assertSame( '03.03.13', $GLOBALS['currentday'] );
 				$this->assertSame( '03', $GLOBALS['currentmonth'] );
 			}
@@ -143,7 +146,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		// Should be reset to main loop.
 		$this->assertSame( $post1->ID, $GLOBALS['id'] );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( get_userdata( $users[0] ), $GLOBALS['authordata'] );
+		$this->assertEquals( get_authordata( $users[0] ), $GLOBALS['authordata'] );
 		$this->assertSame( '02.02.12', $GLOBALS['currentday'] );
 		$this->assertSame( '02', $GLOBALS['currentmonth'] );
 	}

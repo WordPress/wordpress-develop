@@ -187,4 +187,27 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $attachment_id ) );
 		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
+
+	/**
+	 * @ticket 58001
+	 *
+	 * @covers ::get_permalink
+	 */
+	public function test_get_permalink_with_author_tag_does_not_load_user_meta() {
+		$this->set_permalink_structure( '/%author%/%postname%/' );
+
+		$user_id = self::factory()->user->create( array( 'user_nicename' => 'permalink-author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => $user_id,
+				'post_name'   => 'permalink-post',
+			)
+		);
+		wp_cache_delete( $user_id, 'user_meta' );
+
+		$permalink = get_permalink( $post_id );
+
+		$this->assertSame( home_url( '/permalink-author/permalink-post/' ), $permalink, 'The permalink should contain the author nicename.' );
+		$this->assertFalse( wp_cache_get( $user_id, 'user_meta' ), 'User meta should not be loaded.' );
+	}
 }

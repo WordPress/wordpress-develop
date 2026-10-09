@@ -86,4 +86,20 @@ class Tests_User_GetTheAuthorPostsLink extends WP_UnitTestCase {
 
 		$this->assertSame( '', get_the_author_posts_link() );
 	}
+
+	/**
+	 * @ticket 58001
+	 *
+	 * @covers ::get_author_posts_url
+	 */
+	public function test_get_author_posts_url_does_not_load_user_meta() {
+		$this->set_permalink_structure( '/%postname%/' );
+		$nicename = get_userdata( self::$author_id )->user_nicename;
+		wp_cache_delete( self::$author_id, 'user_meta' );
+
+		$url = get_author_posts_url( self::$author_id );
+
+		$this->assertSame( home_url( "/author/{$nicename}/" ), $url, 'The author posts URL should contain the nicename.' );
+		$this->assertFalse( wp_cache_get( self::$author_id, 'user_meta' ), 'User meta should not be loaded.' );
+	}
 }

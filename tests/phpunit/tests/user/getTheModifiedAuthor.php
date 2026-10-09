@@ -96,4 +96,14 @@ class Tests_User_GetTheModifiedAuthor extends WP_UnitTestCase {
 		$this->assertSame( $expected_display_name, get_the_modified_author( $another_post_id ) );
 		$this->assertSame( $expected_display_name, get_the_modified_author( get_post( $another_post_id ) ) );
 	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_get_the_modified_author_does_not_load_user_meta() {
+		wp_cache_delete( self::$author_id, 'user_meta' );
+
+		$this->assertSame( 'Test Author', get_the_modified_author(), 'The display name of the last editor should be returned.' );
+		$this->assertFalse( wp_cache_get( self::$author_id, 'user_meta' ), 'User meta should not be loaded.' );
+	}
 }

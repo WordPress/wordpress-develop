@@ -332,4 +332,36 @@ class Tests_User_wpListAuthors extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_wp_list_authors_does_not_load_user_meta() {
+		foreach ( self::$user_ids as $user_id ) {
+			wp_cache_delete( $user_id, 'user_meta' );
+		}
+
+		$list = wp_list_authors( array( 'echo' => false ) );
+
+		$this->assertStringContainsString( '>zack</a>', $list, 'The author display name should be listed.' );
+		foreach ( self::$user_ids as $user_id ) {
+			$this->assertFalse( wp_cache_get( $user_id, 'user_meta' ), "User meta should not be loaded for user {$user_id}." );
+		}
+	}
+
+	/**
+	 * @ticket 58001
+	 */
+	public function test_wp_list_authors_show_fullname_loads_user_meta() {
+		wp_cache_delete( self::$user_ids[0], 'user_meta' );
+
+		$list = wp_list_authors(
+			array(
+				'echo'          => false,
+				'show_fullname' => true,
+			)
+		);
+
+		$this->assertStringContainsString( '>zack moon</a>', $list, 'The author full name should be listed.' );
+	}
 }
