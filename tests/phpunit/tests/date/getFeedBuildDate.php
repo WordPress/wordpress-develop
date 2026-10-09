@@ -271,6 +271,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
+	 *
+	 * @global WP_Query $wp_query WordPress Query object.
 	 */
 	public function test_should_fall_back_to_last_post_modified() {
 		global $wp_query;
@@ -289,23 +291,26 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 			)
 		);
 
+		$feed_build_date = get_feed_build_date( DATE_RFC3339 );
+		$this->assertIsString( $feed_build_date );
 		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
-			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
+			strtotime( $feed_build_date ),
 			2,
 			'Fall back to time of last post modified with no posts'
 		);
 
-		$post_id_broken = self::factory()->post->create();
-		$post_broken    = get_post( $post_id_broken );
+		$post_broken = self::factory()->post->create_and_get();
 
-		$post_broken->post_modified_gmt = 0;
+		$post_broken->post_modified_gmt = '0';
 
 		$wp_query->posts = array( $post_broken );
 
+		$broken_feed_build_date = get_feed_build_date( DATE_RFC3339 );
+		$this->assertIsString( $broken_feed_build_date );
 		$this->assertEqualsWithDelta(
 			strtotime( $datetime_utc->format( DATE_RFC3339 ) ),
-			strtotime( get_feed_build_date( DATE_RFC3339 ) ),
+			strtotime( $broken_feed_build_date ),
 			2,
 			'Fall back to time of last post modified with broken post object'
 		);
