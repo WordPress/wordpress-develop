@@ -1806,6 +1806,8 @@ Thanks! -- The WordPress Team"
 		$sslverify = apply_filters( 'https_local_ssl_verify', false, $url );
 		$response  = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
+		delete_transient( $transient );
+
 		if ( is_wp_error( $response ) ) {
 			if ( $is_debug ) {
 				error_log( 'Loopback request failed: ' . $response->get_error_message() );
@@ -1813,24 +1815,30 @@ Thanks! -- The WordPress Team"
 			return true;
 		}
 
-		// If this outputs `true` in the log, it means there were no fatal errors detected.
-		if ( $is_debug ) {
-			error_log( var_export( substr( $response['body'], strpos( $response['body'], '###### wp_scraping_result_start:' ) ), true ) );
-		}
-
 		$body                   = wp_remote_retrieve_body( $response );
 		$scrape_result_position = strpos( $body, $needle_start );
 		$result                 = null;
 
-		if ( false !== $scrape_result_position ) {
+		if ( false === $scrape_result_position ) {
+			// Error detection is not possible when wp_scraping_result is not found,
+			// e.g. when loopback request is redirected without scraping parameters
+			if ( $is_debug ) {
+				error_log( 'wp_scraping_result is not found, error detection is not possible' );
+			}
+			return false;
+		} else {
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
 			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
+
+			if ( $is_debug ) {
+				// error_output is result of wp_json_encode(),
+				// either with ( true ) or with ( error_get_last() ) when error is detected while scraping
+				error_log( 'Found wp_scraping_result in loopback request: ' . var_export( $error_output, true ) );
+			}
+
+			// Only fatal errors will result in a 'type' key.
+			return isset( $result['type'] );
 		}
-
-		delete_transient( $transient );
-
-		// Only fatal errors will result in a 'type' key.
-		return isset( $result['type'] );
 	}
 }
