@@ -163,3 +163,18 @@ parameters:
 			identifier: greaterOrEqual.alwaysFalse
 			count: 1
 			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 14
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 2
+			path: src/wp-includes/html-api/class-wp-html-processor.php
