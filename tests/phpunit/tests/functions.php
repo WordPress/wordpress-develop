@@ -1752,6 +1752,20 @@ class Tests_Functions extends WP_UnitTestCase {
 							'proper_filename' => false,
 						),
 					),
+					/*
+					 * Audio wrapped in an MP4/ISO-BMFF container (e.g. .m4a from a phone
+					 * recorder) is detected by fileinfo as video/mp4, while the extension
+					 * maps to audio/mpeg. The differing major types must not cause a rejection.
+					 */
+					array(
+						DIR_TESTDATA . '/uploads/audio-in-video-container.m4a',
+						'audio-in-video-container.m4a',
+						array(
+							'ext'             => 'm4a',
+							'type'            => 'audio/mpeg',
+							'proper_filename' => false,
+						),
+					),
 					// Assorted text/* sample files
 					array(
 						DIR_TESTDATA . '/uploads/test.vtt',
