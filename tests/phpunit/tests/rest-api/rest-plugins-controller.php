@@ -422,6 +422,94 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
+	 * @ticket 56221
+	 */
+	public function test_create_item_from_url_and_activate() {
+		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'url'    => 'https://downloads.wordpress.org/plugin/link-manager.zip',
+				'status' => 'active',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( 'Link Manager', $response->get_data()['name'] );
+		$this->assertTrue( is_plugin_active( 'link-manager/link-manager.php' ) );
+	}
+
+	/**
+	 * @ticket 56221
+	 */
+	public function test_create_item_requires_slug_or_url() {
+		wp_set_current_user( self::$super_admin );
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params( array( 'status' => 'inactive' ) );
+
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_missing_plugin_install_source', $response, 400 );
+	}
+
+	/**
+	 * @ticket 56221
+	 */
+	public function test_create_item_rejects_slug_and_url() {
+		wp_set_current_user( self::$super_admin );
+
+		$request = new WP_REST_Request( 'POST', self::BASE );
+		$request->set_body_params(
+			array(
+				'slug' => 'link-manager',
+				'url'  => 'https://downloads.wordpress.org/plugin/link-manager.zip',
+			)
+		);
+
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_too_many_plugin_install_sources', $response, 400 );
+	}
+
+	/**
+	 * @ticket 56221
+	 *
+	 * @dataProvider data_validate_plugin_download_url
+	 *
+	 * @param mixed $url      The plugin download URL.
+	 * @param bool  $expected Whether the URL is valid.
+	 */
+	public function test_validate_plugin_download_url( $url, $expected ) {
+		$controller = new WP_REST_Plugins_Controller();
+
+		$this->assertSame( $expected, $controller->validate_plugin_download_url( $url ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_validate_plugin_download_url() {
+		return array(
+			'wordpress.org plugin zip'    => array( 'https://downloads.wordpress.org/plugin/link-manager.zip', true ),
+			'wordpress.org versioned zip' => array( 'https://downloads.wordpress.org/plugin/link-manager.2.1.zip', true ),
+			'trailing dot host'           => array( 'https://downloads.wordpress.org./plugin/link-manager.zip', true ),
+			'non-string input'            => array( array(), false ),
+			'http URL'                    => array( 'http://downloads.wordpress.org/plugin/link-manager.zip', false ),
+			'URL with user'               => array( 'https://user@downloads.wordpress.org/plugin/link-manager.zip', false ),
+			'URL with port'               => array( 'https://downloads.wordpress.org:443/plugin/link-manager.zip', false ),
+			'URL with query string'       => array( 'https://downloads.wordpress.org/plugin/link-manager.zip?foo=bar', false ),
+			'URL without zip extension'   => array( 'https://downloads.wordpress.org/plugin/link-manager.tar.gz', false ),
+			'wordpress.org subdomain'     => array( 'https://foo.downloads.wordpress.org/plugin/link-manager.zip', false ),
+			'path traversal'              => array( 'https://downloads.wordpress.org/plugin/../../../etc/passwd.zip', false ),
+		);
+	}
+
+	/**
 	 * @ticket 50321
 	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
