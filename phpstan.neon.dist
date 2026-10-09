@@ -182,3 +182,11 @@ parameters:
 			identifier: catch.neverThrown
 			count: 1
 			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			# The early return at the start of step() narrows $last_error to null, and PHPStan does not see that
+			# bookmark_token() sets it to ERROR_EXCEEDED_MAX_BOOKMARKS before throwing. So it reports that the
+			# check in the catch block can never match, when in fact it always does.
+			message: '#^Strict comparison using \=\=\= between ''exceeded\-max…'' and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
