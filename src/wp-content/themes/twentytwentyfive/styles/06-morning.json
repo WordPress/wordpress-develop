@@ -4,6 +4,16 @@
 	"title": "Morning",
 	"settings": {
 		"color": {
+			"duotone": [
+				{
+					"colors": [
+						"#7A9BDB",
+						"#DFDCD7"
+					],
+					"name": "Morning filter",
+					"slug": "morning-filter"
+				}
+			],
 			"palette": [
 				{
 					"color": "#DFDCD7",
