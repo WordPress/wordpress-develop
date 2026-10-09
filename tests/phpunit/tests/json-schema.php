@@ -413,4 +413,173 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'required', $prepared['items']['properties']['id'] );
 		$this->assertArrayNotHasKey( 'required', $prepared['items']['properties']['label'] );
 	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: mixed, 1: array<string, mixed>, 2: string}>
+	 */
+	public static function data_wp_prepare_json_value_for_client() {
+		return array(
+			'empty object'                 => array(
+				array(),
+				array( 'type' => 'object' ),
+				'{}',
+			),
+			'empty nullable object'        => array(
+				array(),
+				array( 'type' => array( 'object', 'null' ) ),
+				'{}',
+			),
+			'empty object or array'        => array(
+				array(),
+				array( 'type' => array( 'object', 'array' ) ),
+				'[]',
+			),
+			'empty array or object'        => array(
+				array(),
+				array( 'type' => array( 'array', 'object' ) ),
+				'[]',
+			),
+			'empty array'                  => array(
+				array(),
+				array( 'type' => 'array' ),
+				'[]',
+			),
+			'non-empty object'             => array(
+				array( 'key' => 'value' ),
+				array( 'type' => 'object' ),
+				'{"key":"value"}',
+			),
+			'sparse mixed object or array' => array(
+				array( 2 => array() ),
+				array(
+					'type'       => array( 'object', 'array' ),
+					'properties' => array(
+						2 => array( 'type' => 'object' ),
+					),
+					'items'      => array( 'type' => 'array' ),
+				),
+				'{"2":{}}',
+			),
+			'list mixed object or array'   => array(
+				array( array() ),
+				array(
+					'type'       => array( 'object', 'array' ),
+					'properties' => array(
+						0 => array( 'type' => 'array' ),
+					),
+					'items'      => array( 'type' => 'object' ),
+				),
+				'[{}]',
+			),
+		);
+	}
+
+	/**
+	 * Tests that JSON values are prepared according to their schema type.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_wp_prepare_json_value_for_client
+	 *
+	 * @param mixed                $value    The value to prepare.
+	 * @param array<string, mixed> $schema   The schema describing the value.
+	 * @param string               $expected The expected encoded value.
+	 */
+	public function test_wp_prepare_json_value_for_client( $value, $schema, $expected ) {
+		$prepared = wp_prepare_json_value_for_client( $value, $schema );
+
+		$this->assertSame( $expected, wp_json_encode( $prepared ) );
+	}
+
+	/**
+	 * Tests that nested JSON values are prepared using their sub-schemas.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_wp_prepare_json_value_for_client_prepares_nested_values() {
+		$object = (object) array( 'nested' => array() );
+		$value  = array(
+			'known'      => array(),
+			'list'       => array( array() ),
+			'empty_list' => array(),
+			'container'  => $object,
+			'extra'      => array(),
+		);
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'known'      => array( 'type' => 'object' ),
+				'list'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'empty_list' => array( 'type' => 'array' ),
+				'container'  => array(
+					'type'       => 'object',
+					'properties' => array(
+						'nested' => array( 'type' => 'object' ),
+					),
+				),
+			),
+			'additionalProperties' => array( 'type' => 'object' ),
+		);
+
+		$prepared = wp_prepare_json_value_for_client( $value, $schema );
+
+		$this->assertSame(
+			'{"known":{},"list":[{}],"empty_list":[],"container":{"nested":{}},"extra":{}}',
+			wp_json_encode( $prepared )
+		);
+		$this->assertSame( '[]', wp_json_encode( $object->nested ), 'The original object should not be modified.' );
+	}
+
+	/**
+	 * Tests that values from JsonSerializable objects are prepared.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_wp_prepare_json_value_for_client_prepares_json_serializable_values() {
+		$value  = new class() implements JsonSerializable {
+			/**
+			 * Returns the value for JSON serialization.
+			 *
+			 * @return array<string, array<mixed>>
+			 */
+			#[\ReturnTypeWillChange]
+			public function jsonSerialize() {
+				return array( 'nested' => array() );
+			}
+		};
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'nested' => array( 'type' => 'object' ),
+			),
+		);
+
+		$prepared = wp_prepare_json_value_for_client( $value, $schema );
+
+		$this->assertSame( '{"nested":{}}', wp_json_encode( $prepared ) );
+	}
+
+	/**
+	 * Tests that pattern properties take precedence over additional properties.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_wp_prepare_json_value_for_client_uses_pattern_properties() {
+		$value  = array( 'item-1' => array() );
+		$schema = array(
+			'type'                 => 'object',
+			'patternProperties'    => array(
+				'^item-' => array( 'type' => 'object' ),
+			),
+			'additionalProperties' => array( 'type' => 'array' ),
+		);
+
+		$prepared = wp_prepare_json_value_for_client( $value, $schema );
+
+		$this->assertSame( '{"item-1":{}}', wp_json_encode( $prepared ) );
+	}
 }

@@ -94,6 +94,74 @@ function wp_prepare_json_schema_for_client( array $schema, string $schema_profil
 }
 
 /**
+ * Prepares a JSON value for clients according to its schema.
+ *
+ * Empty PHP arrays are converted to objects when the schema allows objects but
+ * not arrays. Nested values are prepared using their property or item schemas.
+ *
+ * @since 7.2.0
+ *
+ * @param mixed                $value  The value to prepare.
+ * @param array<string, mixed> $schema The schema describing the value.
+ * @return mixed The prepared value.
+ */
+function wp_prepare_json_value_for_client( $value, array $schema ) {
+	if ( $value instanceof JsonSerializable ) {
+		$value = $value->jsonSerialize();
+	}
+
+	$is_array_value  = is_array( $value );
+	$is_object_value = $value instanceof stdClass;
+	if ( ! $is_array_value && ! $is_object_value ) {
+		return $value;
+	}
+
+	$types         = isset( $schema['type'] ) ? (array) $schema['type'] : array();
+	$allows_object = in_array( 'object', $types, true );
+	$allows_array  = in_array( 'array', $types, true );
+
+	if ( $is_array_value && empty( $value ) && $allows_object && ! $allows_array ) {
+		return (object) $value;
+	}
+
+	$is_object_value = $is_object_value || ( $is_array_value && $allows_object && ( ! $allows_array || ! array_is_list( $value ) ) );
+	if ( $allows_object && $is_object_value ) {
+		if ( $value instanceof stdClass ) {
+			$value = clone $value;
+		}
+
+		foreach ( $value as $property => $property_value ) {
+			$property_schema = null;
+			if ( isset( $schema['properties'][ $property ] ) && is_array( $schema['properties'][ $property ] ) ) {
+				$property_schema = $schema['properties'][ $property ];
+			} else {
+				$property_schema = rest_find_matching_pattern_property_schema( $property, $schema );
+				if ( null === $property_schema && isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+					$property_schema = $schema['additionalProperties'];
+				}
+			}
+
+			if ( null === $property_schema ) {
+				continue;
+			}
+
+			$property_value = wp_prepare_json_value_for_client( $property_value, $property_schema );
+			if ( is_array( $value ) ) {
+				$value[ $property ] = $property_value;
+			} else {
+				$value->$property = $property_value;
+			}
+		}
+	} elseif ( $allows_array && $is_array_value && isset( $schema['items'] ) && is_array( $schema['items'] ) ) {
+		foreach ( $value as $index => $item ) {
+			$value[ $index ] = wp_prepare_json_value_for_client( $item, $schema['items'] );
+		}
+	}
+
+	return $value;
+}
+
+/**
  * Prepares a JSON Schema for clients using a given keyword lookup.
  *
  * @since 7.1.0
