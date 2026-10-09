@@ -83,7 +83,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
  * @return mixed The sanitized field value, or an empty string if the bookmark or field does not exist.
  *
  * @phpstan-param 'link_id'|'link_url'|'link_name'|'link_image'|'link_target'|'link_description'|'link_visible'|'link_owner'|'link_rating'|'link_updated'|'link_rel'|'link_notes'|'link_rss'|'link_category' $field
- * @phpstan-return ($field is 'link_category' ? array<int, non-negative-int>|'' : ($field is 'link_id'|'link_rating' ? int|'' : mixed))
+ * @phpstan-return ( $field is 'link_category' ? array<int, non-negative-int>|'' : ( $field is 'link_id'|'link_rating' ? int|'' : mixed ) )
  */
 function get_bookmark_field( $field, $bookmark, $context = 'display' ) {
 	$bookmark = (int) $bookmark;
