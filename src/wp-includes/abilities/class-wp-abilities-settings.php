@@ -187,7 +187,7 @@ final class WP_Abilities_Settings {
 				'group'  => array(
 					'type'        => 'string',
 					'enum'        => $groups,
-					'description' => __( 'Return only settings that belong to this settings group.' ),
+					'description' => __( 'Return only settings that belong to this settings group. If omitted, settings of every group are returned.' ),
 				),
 				'fields' => array(
 					'type'        => 'array',
@@ -196,7 +196,7 @@ final class WP_Abilities_Settings {
 						'type' => 'string',
 						'enum' => $field_names,
 					),
-					'description' => __( 'Return only the settings with these names.' ),
+					'description' => __( 'Return only the settings with these names. If omitted or empty, all settings allowed by the group filter are returned. When both filters are given, only settings matching both are returned.' ),
 				),
 			),
 			'additionalProperties' => false,
