@@ -1453,6 +1453,8 @@ function _wp_privacy_statuses() {
  *                                                  Default to false.
  * }
  * @return object
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_status
  */
 function register_post_status( $post_status, $args = array() ) {
 	global $wp_post_statuses;
@@ -1503,7 +1505,7 @@ function register_post_status( $post_status, $args = array() ) {
 
 	if ( false === $args->label_count ) {
 		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$args->label_count = _n_noop( $args->label, $args->label );
+		$args->label_count = _n_noop( $args->label, $args->label ); // @phpstan-ignore argument.type, argument.type (The label is a runtime value, so there is nothing to extract for translation.)
 	}
 
 	$wp_post_statuses[ $post_status ] = $args;
@@ -1828,6 +1830,8 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $post_type
  */
 function register_post_type( $post_type, $args = array() ) {
 	global $wp_post_types;
@@ -3520,6 +3524,43 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 		return new stdClass();
 	}
 
+	/**
+	 * Filters the post counts before the query is run.
+	 *
+	 * Returning a non-null value short-circuits wp_count_posts(), skipping both
+	 * the object cache lookup and the database query. This allows the counts to
+	 * be served from another source, such as a value pre-computed in the
+	 * background, when an exact real-time count is not required.
+	 *
+	 * Any registered post status missing from the filtered value are added
+	 * to the result and set to zero.
+	 *
+	 * The returned value is not cached and passed through the
+	 * {@see 'wp_count_posts'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param stdClass|null $counts An object containing the post counts by status,
+	 *                              or null to run the default query. Default null.
+	 * @param string        $type   Post type.
+	 * @param string        $perm   The permission to determine if the posts are 'readable'
+	 *                              by the current user.
+	 */
+	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
+
+	if ( null !== $counts ) {
+		$counts = (object) $counts;
+
+		foreach ( get_post_stati() as $status ) {
+			if ( ! isset( $counts->{$status} ) ) {
+				$counts->{$status} = 0;
+			}
+		}
+
+		/** This filter is documented in wp-includes/post.php */
+		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
+	}
+
 	$cache_key = _count_posts_cache_key( $type, $perm );
 
 	$counts = wp_cache_get( $cache_key, 'counts' );
@@ -3654,6 +3695,18 @@ function wp_count_attachments( $mime_type = '' ) {
  *                                                              value is a three-item array: the plural name of the
  *                                                              group, the label for its "Manage" screen, and the
  *                                                              translatable count strings returned by _n_noop().
+ *
+ * @phpstan-return array<string, array{
+ *     0: string,
+ *     1: string,
+ *     2: array{
+ *         singular: literal-string,
+ *         plural: literal-string,
+ *         context: literal-string|null,
+ *         domain: literal-string|null,
+ *         ...
+ *     },
+ * }>
  */
 function get_post_mime_types() {
 	$post_mime_types = array(   // array( adj, noun )
@@ -3748,6 +3801,18 @@ function get_post_mime_types() {
 	 *
 	 * @param array<string, array{0: string, 1: string, 2: array}> $post_mime_types Default list of post mime types.
 	 *                                                                              See {@see get_post_mime_types()}.
+	 *
+	 * @phpstan-param array<string, array{
+	 *     0: string,
+	 *     1: string,
+	 *     2: array{
+	 *         singular: literal-string,
+	 *         plural: literal-string,
+	 *         context: literal-string|null,
+	 *         domain: literal-string|null,
+	 *         ...
+	 *     },
+	 * }> $post_mime_types
 	 */
 	return apply_filters( 'post_mime_types', $post_mime_types );
 }

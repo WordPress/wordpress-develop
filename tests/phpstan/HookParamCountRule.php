@@ -24,6 +24,7 @@ namespace WordPress\PHPStan;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
+use PHPStan\Analyser\DependencyTracker;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\IdentifierRuleError;
 use PHPStan\Rules\Rule;
@@ -86,8 +87,8 @@ class HookParamCountRule implements Rule {
 	/**
 	 * Processes a function call node.
 	 *
-	 * @param Node  $node  Function call node.
-	 * @param Scope $scope Analysis scope.
+	 * @param Node                    $node  Function call node.
+	 * @param Scope&DependencyTracker $scope Analysis scope.
 	 * @return list<IdentifierRuleError>
 	 * @throws ShouldNotHappenException
 	 */
