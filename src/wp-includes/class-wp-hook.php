@@ -162,6 +162,11 @@ final class WP_Hook implements Iterator, ArrayAccess {
 				}
 			}
 
+			// If the current priority was removed, step back so the next() call in the main loop lands correctly.
+			if ( false !== current( $iteration ) && current( $iteration ) !== $current ) {
+				prev( $iteration );
+			}
+
 			// If we have a new priority that didn't exist, but ::apply_filters() or ::do_action() thinks it's the current priority...
 			if ( $new_priority === $this->current_priority[ $index ] && ! $priority_existed ) {
 				/*

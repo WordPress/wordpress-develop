@@ -292,6 +292,73 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verify that a callback removing itself during execution does not cause
+	 * the next priority to be skipped.
+	 *
+	 * When a callback is the sole entry at its priority and removes itself
+	 * mid-iteration, resort_active_iterations() repositions the internal
+	 * array pointer. Before the fix, the pointer ended up one position too
+	 * far, causing apply_filters()'s next() call to skip the following
+	 * priority entirely.
+	 *
+	 * @ticket 64653
+	 */
+	public function test_self_removing_callback_does_not_skip_next_priority() {
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
+		$log       = array();
+
+		$callback_10 = function () use ( &$log ) {
+			$log[] = 10;
+		};
+
+		// Callback that removes itself -- the only callback at priority 50.
+		$self_removing = function () use ( &$log, &$self_removing, $hook, $hook_name ) {
+			$hook->remove_filter( $hook_name, $self_removing, 50 );
+			$log[] = 50;
+		};
+
+		$callback_100 = function () use ( &$log ) {
+			$log[] = 100;
+		};
+
+		$hook->add_filter( $hook_name, $callback_10, 10, 0 );
+		$hook->add_filter( $hook_name, $self_removing, 50, 0 );
+		$hook->add_filter( $hook_name, $callback_100, 100, 0 );
+
+		$hook->do_action( array() );
+
+		$this->assertSame( array( 10, 50, 100 ), $log, 'Priority 100 should not be skipped when priority 50 removes itself during iteration.' );
+	}
+
+	/**
+	 * Verify the fix when the self-removing callback is at the first priority.
+	 *
+	 * @ticket 64653
+	 */
+	public function test_self_removing_callback_at_lowest_priority() {
+		$hook      = new WP_Hook();
+		$hook_name = __FUNCTION__;
+		$log       = array();
+
+		$self_removing = function () use ( &$log, &$self_removing, $hook, $hook_name ) {
+			$hook->remove_filter( $hook_name, $self_removing, 10 );
+			$log[] = 10;
+		};
+
+		$callback_50 = function () use ( &$log ) {
+			$log[] = 50;
+		};
+
+		$hook->add_filter( $hook_name, $self_removing, 10, 0 );
+		$hook->add_filter( $hook_name, $callback_50, 50, 0 );
+
+		$hook->do_action( array() );
+
+		$this->assertSame( array( 10, 50 ), $log, 'Priority 50 should execute when priority 10 removes itself.' );
+	}
+
+	/**
 	 * Use this rather than MockAction so we can test callbacks with no args
 	 *
 	 * @param mixed ...$args Optional arguments passed to the action.
