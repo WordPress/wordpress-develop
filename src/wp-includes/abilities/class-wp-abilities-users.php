@@ -125,6 +125,9 @@ final class WP_Abilities_Users {
 	/**
 	 * Registers the read-only `core/users-query` ability.
 	 *
+	 * Unlike `core/get-user-info`, which only returns the current user's own profile,
+	 * this ability is generic and reads any user the current user is allowed to see.
+	 *
 	 * @since 7.2.0
 	 */
 	private function register_users_query(): void {
