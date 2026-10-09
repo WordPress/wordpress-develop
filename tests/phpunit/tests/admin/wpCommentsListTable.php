@@ -227,7 +227,7 @@ OPTIONS;
 	 */
 	public function test_comments_list_table_does_not_show_internal_comment_types( string $comment_type ) {
 		$post_id = self::factory()->post->create();
-		foreach ( _wp_get_internal_comment_types() as $internal_type ) {
+		foreach ( array( 'note', 'reaction' ) as $internal_type ) {
 			self::factory()->comment->create(
 				array(
 					'comment_post_ID'  => $post_id,

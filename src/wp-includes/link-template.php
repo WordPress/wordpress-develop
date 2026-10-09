@@ -4383,7 +4383,7 @@ function is_avatar_comment_type( $comment_type ) {
 	 * @param array $types An array of content types. Default contains 'comment', 'note',
 	 *                     and 'reaction'.
 	 */
-	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array_merge( array( 'comment' ), _wp_get_internal_comment_types() ) );
+	$allowed_comment_types = apply_filters( 'get_avatar_comment_types', array( 'comment', 'note', 'reaction' ) );
 
 	return in_array( $comment_type, (array) $allowed_comment_types, true );
 }
