@@ -7,11 +7,13 @@ const { execSync } = require( 'child_process' );
 const { readFileSync, writeFileSync } = require( 'fs' );
 const local_env_utils = require( './utils' );
 
+local_env_utils.ensure_env_file();
+
 dotenvExpand.expand( dotenv.config() );
 
-// Create wp-config.php. This verifies the database connection, so retrying it doubles as the
-// readiness probe: the mysql healthcheck pings the container's own socket, which the temporary
-// server used to initialise a cold volume answers before the real server listens on TCP.
+// Create wp-config.php. This verifies the database connection, so retrying it keeps
+// `env:install` working on its own, without `env:start` having waited for the mysql
+// container to report healthy first.
 wp_cli_retry(
 	`config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --force --config-file="wp-config.php"`,
 	{

@@ -1,3 +1,8 @@
+##
+# A reusable workflow that lints GitHub Actions workflow files.
+#
+# This workflow is used by `trunk` and branches >= 6.8.
+##
 name: Lint GitHub Actions workflows
 on:
   workflow_call:
@@ -28,6 +33,10 @@ jobs:
         uses: docker://rhysd/actionlint@sha256:5457037ba91acd225478edac3d4b32e45cf6c10291e0dabbfd2491c63129afe1 # v1.7.11
         with:
           args: "-color -verbose"
+
+      # actionlint shellchecks inline `run:` blocks, but does not read composite actions.
+      - name: Run shellcheck on composite action scripts
+        run: find .github -path '.github/actions/*' -name '*.sh' -print0 | xargs -0 -r shellcheck
 
   # Runs the Zizmor GitHub Action workflow file linter.
   #

@@ -46,19 +46,24 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 The icon name must be namespaced in the form "collection/icon-name".
+	 * @since 7.2.0 Added the `keywords` property.
 	 *
 	 * @param string $icon_name       Namespaced icon name in the form "collection/icon-name"
 	 *                                (e.g. "core/arrow-left").
 	 * @param array  $icon_properties {
 	 *     List of properties for the icon.
 	 *
-	 *     @type string $label     Required. A human-readable label for the icon.
-	 *     @type string $content   Optional. SVG markup for the icon.
-	 *                             If not provided, the content will be retrieved from the `file_path` if set.
-	 *                             If both `content` and `file_path` are not set, the icon will not be registered.
-	 *     @type string $file_path Optional. The full path to the file containing the icon content.
+	 *     @type string   $label     Required. A human-readable label for the icon.
+	 *     @type string   $content   Optional. SVG markup for the icon.
+	 *                               If not provided, the content will be retrieved from the `file_path` if set.
+	 *                               If both `content` and `file_path` are not set, the icon will not be registered.
+	 *     @type string   $file_path Optional. The full path to the file containing the icon content.
+	 *     @type string[] $keywords  Optional. Additional search terms for the icon, matched by
+	 *                               `get_registered_icons()` alongside the name and label.
 	 * }
 	 * @return bool True if the icon was registered with success and false otherwise.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $icon_name
 	 */
 	public function register( $icon_name, $icon_properties ) {
 		if ( ! isset( $icon_name ) || ! is_string( $icon_name ) ) {
@@ -101,7 +106,7 @@ class WP_Icons_Registry {
 			return false;
 		}
 
-		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path' ), 1 );
+		$allowed_keys = array_fill_keys( array( 'label', 'content', 'file_path', 'keywords' ), 1 );
 		foreach ( array_keys( $icon_properties ) as $key ) {
 			if ( ! array_key_exists( $key, $allowed_keys ) ) {
 				_doing_it_wrong(
@@ -137,6 +142,28 @@ class WP_Icons_Registry {
 				'7.0.0'
 			);
 			return false;
+		}
+
+		if ( array_key_exists( 'keywords', $icon_properties ) ) {
+			if ( ! is_array( $icon_properties['keywords'] ) ) {
+				_doing_it_wrong(
+					__METHOD__,
+					__( 'Icon keywords must be an array of strings.' ),
+					'7.2.0'
+				);
+				return false;
+			}
+
+			foreach ( $icon_properties['keywords'] as $keyword ) {
+				if ( ! is_string( $keyword ) ) {
+					_doing_it_wrong(
+						__METHOD__,
+						__( 'Icon keywords must be an array of strings.' ),
+						'7.2.0'
+					);
+					return false;
+				}
+			}
 		}
 
 		if (
@@ -226,10 +253,19 @@ class WP_Icons_Registry {
 	}
 
 	/**
-	 * Sanitizes the icon SVG content.
+	 * Builds the allowed attribute list for wp_kses() from attribute names.
 	 *
-	 * Logic borrowed from twentytwenty.
-	 * @see twentytwenty_get_theme_svg
+	 * @since 7.2.0
+	 *
+	 * @param non-falsy-string ...$attribute_names Attribute names to allow.
+	 * @return array<non-falsy-string, true> Attribute names mapped to true.
+	 */
+	private function get_allowed_attribute_list( ...$attribute_names ): array {
+		return array_fill_keys( $attribute_names, true );
+	}
+
+	/**
+	 * Sanitizes the icon SVG content.
 	 *
 	 * @since 7.0.0
 	 *
@@ -237,29 +273,81 @@ class WP_Icons_Registry {
 	 * @return string The sanitized icon SVG content.
 	 */
 	protected function sanitize_icon_content( $icon_content ) {
+		$stroke_attributes = $this->get_allowed_attribute_list(
+			'style',
+			'stroke',
+			'stroke-width',
+			'stroke-linecap',
+			'stroke-linejoin',
+			'stroke-miterlimit',
+			'vector-effect',
+		);
+
 		$allowed_tags = array(
-			'svg'     => array(
-				'class'       => true,
-				'xmlns'       => true,
-				'width'       => true,
-				'height'      => true,
-				'viewbox'     => true,
-				'aria-hidden' => true,
-				'role'        => true,
-				'focusable'   => true,
+			'svg'     => array_merge(
+				$this->get_allowed_attribute_list(
+					'class',
+					'xmlns',
+					'width',
+					'height',
+					'viewbox',
+					'aria-hidden',
+					'role',
+					'focusable',
+					'fill',
+					'fill-rule',
+					'clip-rule',
+				),
+				$stroke_attributes
 			),
-			'path'    => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'd'         => true,
-				'transform' => true,
+			'path'    => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'd',
+					'opacity',
+					'transform',
+				),
+				$stroke_attributes
 			),
-			'polygon' => array(
-				'fill'      => true,
-				'fill-rule' => true,
-				'points'    => true,
-				'transform' => true,
-				'focusable' => true,
+			'polygon' => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'points',
+					'transform',
+					'focusable',
+				),
+				$stroke_attributes
+			),
+			'rect'    => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'x',
+					'y',
+					'width',
+					'height',
+					'rx',
+					'ry',
+					'transform',
+				),
+				$stroke_attributes
+			),
+			'circle'  => array_merge(
+				$this->get_allowed_attribute_list(
+					'fill',
+					'fill-rule',
+					'clip-rule',
+					'cx',
+					'cy',
+					'r',
+					'transform',
+				),
+				$stroke_attributes
 			),
 		);
 		return wp_kses( $icon_content, $allowed_tags );
@@ -320,10 +408,40 @@ class WP_Icons_Registry {
 			return null;
 		}
 
-		$icon            = $this->registered_icons[ $icon_name ];
-		$icon['content'] = $icon['content'] ?? $this->get_content( $icon_name );
+		$icon              = $this->registered_icons[ $icon_name ];
+		$icon['content'] ??= $this->get_content( $icon_name );
 
 		return $icon;
+	}
+
+	/**
+	 * Determines whether an icon matches a search term.
+	 *
+	 * The term is matched case-insensitively against the icon's name, its label,
+	 * and any of its keywords.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array  $icon   Registered icon properties.
+	 * @param string $search Search term.
+	 * @return bool True if the icon matches the search term, false otherwise.
+	 */
+	protected function icon_matches_search( $icon, $search ) {
+		if ( false !== stripos( $icon['name'], $search ) ) {
+			return true;
+		}
+
+		if ( false !== stripos( $icon['label'], $search ) ) {
+			return true;
+		}
+
+		foreach ( $icon['keywords'] ?? array() as $keyword ) {
+			if ( false !== stripos( $keyword, $search ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -331,23 +449,23 @@ class WP_Icons_Registry {
 	 *
 	 * @since 7.0.0
 	 * @since 7.1.0 Search also matches icon labels.
+	 * @since 7.2.0 Search also matches icon keywords.
 	 *
-	 * @param string $search Optional. Search term by which to filter the icons.
+	 * @param string $search Optional. Search term matched against each icon's name,
+	 *                       label, and keywords. Default empty string, which returns
+	 *                       every registered icon.
 	 * @return array[] Array of arrays containing the registered icon properties.
 	 */
 	public function get_registered_icons( $search = '' ) {
 		$icons = array();
 
 		foreach ( $this->registered_icons as $icon ) {
-			if ( ! empty( $search )
-				&& false === stripos( $icon['name'], $search )
-				&& false === stripos( $icon['label'] ?? '', $search )
-			) {
+			if ( ! empty( $search ) && ! $this->icon_matches_search( $icon, $search ) ) {
 				continue;
 			}
 
-			$icon['content'] = $icon['content'] ?? $this->get_content( $icon['name'] );
-			$icons[]         = $icon;
+			$icon['content'] ??= $this->get_content( $icon['name'] );
+			$icons[]           = $icon;
 		}
 
 		return $icons;
@@ -375,9 +493,7 @@ class WP_Icons_Registry {
 	 * @return WP_Icons_Registry The main instance.
 	 */
 	public static function get_instance() {
-		if ( null === self::$instance ) {
-			self::$instance = new self();
-		}
+		self::$instance ??= new self();
 
 		return self::$instance;
 	}

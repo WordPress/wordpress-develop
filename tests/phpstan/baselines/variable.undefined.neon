@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-activate.php
-		-
 			message: '#^Variable \$pagenow might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -274,11 +269,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/plugin.php
 		-
-			message: '#^Variable \$metakey might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/includes/post.php
-		-
 			message: '#^Variable \$revision might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
@@ -324,11 +314,6 @@ parameters:
 			count: 9
 			path: ../../../src/wp-admin/maint/repair.php
 		-
-			message: '#^Variable \$update_data might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/menu.php
-		-
 			message: '#^Variable \$current_user might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
@@ -353,11 +338,6 @@ parameters:
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-admin/network/admin.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/network/site-new.php
 		-
 			message: '#^Variable \$wpdb might not be defined\.$#'
 			identifier: variable.undefined
@@ -412,11 +392,6 @@ parameters:
 			message: '#^Variable \$options_to_update might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/options.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
 			path: ../../../src/wp-admin/options.php
 		-
 			message: '#^Variable \$page might not be defined\.$#'
@@ -489,11 +464,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/themes.php
 		-
-			message: '#^Variable \$auto_update_notice might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/update-core.php
-		-
 			message: '#^Variable \$wp_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 3
@@ -514,11 +484,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/upgrade.php
 		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/upload.php
-		-
 			message: '#^Variable \$_wp_admin_css_colors might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -534,19 +499,9 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/user-edit.php
 		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 12
-			path: ../../../src/wp-admin/user-edit.php
-		-
 			message: '#^Variable \$blog_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/user-new.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
 			path: ../../../src/wp-admin/user-new.php
 		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
@@ -582,11 +537,6 @@ parameters:
 			message: '#^Variable \$wp_roles might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/users.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 6
 			path: ../../../src/wp-admin/users.php
 		-
 			message: '#^Variable \$title might not be defined\.$#'
@@ -674,11 +624,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-content/themes/twentyten/loop.php
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentyten/loop.php
-		-
 			message: '#^Variable \$next_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -709,11 +654,6 @@ parameters:
 			count: 4
 			path: ../../../src/wp-content/themes/twentytwentyone/image.php
 		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-content/themes/twentytwentyone/search.php
-		-
 			message: '#^Variable \$original_content might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -727,11 +667,6 @@ parameters:
 			message: '#^Variable \$comment_closing_at might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$comment_opening_at might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
 			message: '#^Variable \$has_closer might not be defined\.$#'
@@ -769,11 +704,6 @@ parameters:
 			count: 5
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
-			message: '#^Variable \$section_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-customize-widgets.php
-		-
 			message: '#^Variable \$filter_id might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -793,11 +723,6 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-includes/class-wp-image-editor.php
-		-
-			message: '#^Variable \$network might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-network.php
 		-
 			message: '#^Variable \$cache_found might not be defined\.$#'
 			identifier: variable.undefined
@@ -874,35 +799,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Variable \$cache_key might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/global-styles-and-settings.php
-		-
-			message: '#^Variable \$cached might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/global-styles-and-settings.php
-		-
-			message: '#^Variable \$token_length might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-decoder.php
-		-
 			message: '#^Variable \$node might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
-		-
-			message: '#^Variable \$parts might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/kses.php
-		-
-			message: '#^Variable \$post might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-includes/link-template.php
 		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
 			identifier: variable.undefined
@@ -924,11 +824,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-includes/ms-settings.php
 		-
-			message: '#^Variable \$icon might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/post.php
-		-
 			message: '#^Variable \$wp_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
@@ -949,25 +844,10 @@ parameters:
 			count: 1
 			path: ../../../src/wp-login.php
 		-
-			message: '#^Variable \$rp_key might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-login.php
-		-
-			message: '#^Variable \$rp_login might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-login.php
-		-
 			message: '#^Variable \$user_login might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-login.php
-		-
-			message: '#^Variable \$subject might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-mail.php
 		-
 			message: '#^Variable \$table_prefix might not be defined\.$#'
 			identifier: variable.undefined
@@ -978,18 +858,3 @@ parameters:
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-settings.php
-		-
-			message: '#^Variable \$wp_query might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-signup.php
-		-
-			message: '#^Variable \$posts might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-trackback.php
-		-
-			message: '#^Variable \$wpdb might not be defined\.$#'
-			identifier: variable.undefined
-			count: 4
-			path: ../../../src/wp-trackback.php

@@ -16,6 +16,13 @@ class Tests_Functions_ForceSslAdmin extends WP_UnitTestCase {
 		force_ssl_admin( false );
 	}
 
+	public function tear_down() {
+		// Restore the boot-time value set by wp_ssl_constants().
+		force_ssl_admin( FORCE_SSL_ADMIN );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that force_ssl_admin() returns expected values based on various inputs.
 	 *

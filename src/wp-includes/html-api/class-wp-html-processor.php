@@ -257,6 +257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Context node if created as a fragment parser.
 	 *
+	 * @since 6.6.0
 	 * @var WP_HTML_Token|null
 	 */
 	private $context_node = null;
@@ -1584,7 +1585,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto initial_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1677,7 +1677,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_html_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -1699,7 +1698,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto before_html_anything_else;
-				break;
 		}
 
 		/*
@@ -1759,7 +1757,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1804,7 +1801,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 				goto before_head_anything_else;
-				break;
 		}
 
 		if ( $is_closer ) {
@@ -1860,7 +1856,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1992,7 +1987,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
@@ -2085,7 +2079,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_noscript_anything_else;
-				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -2189,7 +2182,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 				goto after_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -2278,7 +2270,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto after_head_anything_else;
-				break;
 		}
 
 		/*
@@ -2782,28 +2773,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->remove_node( $node );
 					return true;
-				} else {
-					/*
-					 * > If the stack of open elements does not have a form element in scope,
-					 * > then this is a parse error; return and ignore the token.
-					 *
-					 * Note that unlike in the clause above, this is checking for any FORM in scope.
-					 */
-					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
-						// Parse error: ignore the token.
-						return $this->step();
-					}
-
-					$this->generate_implied_end_tags();
-
-					if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
-						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
-					}
-
-					$this->state->stack_of_open_elements->pop_until( 'FORM' );
-					return true;
 				}
-				break;
+
+				/*
+				 * > If the stack of open elements does not have a form element in scope,
+				 * > then this is a parse error; return and ignore the token.
+				 *
+				 * Note that unlike in the clause above, this is checking for any FORM in scope.
+				 */
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+
+				if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
+					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( 'FORM' );
+				return true;
 
 			/*
 			 * > An end tag whose tag name is "p"
@@ -3365,10 +3355,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return $this->in_body_any_other_end_tag();
 		}
-
-		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3417,8 +3403,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of "any other end tag" IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3495,7 +3479,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// Non-whitespace would trigger fostering, unsupported at this time.
 					$this->bail( 'Foster parenting is not supported.' );
-					break;
 				}
 				break;
 
@@ -3820,7 +3803,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_column_group_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4381,7 +4363,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4704,7 +4685,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
-				break;
 		}
 
 		/*
@@ -4983,20 +4963,18 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				$this->state->stack_of_open_elements->pop();
 			}
 			return true;
-		}
+		} else {
+			/*
+			 * > An end tag whose name is "script", if the current node is an SVG script element.
+			 */
+			if ( 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
+				$this->state->stack_of_open_elements->pop();
+				return true;
+			}
 
-		/*
-		 * > An end tag whose name is "script", if the current node is an SVG script element.
-		 */
-		if ( $this->is_tag_closer() && 'SCRIPT' === $this->state->current_token->node_name && 'svg' === $this->state->current_token->namespace ) {
-			$this->state->stack_of_open_elements->pop();
-			return true;
-		}
-
-		/*
-		 * > Any other end tag
-		 */
-		if ( $this->is_tag_closer() ) {
+			/*
+			 * > Any other end tag
+			 */
 			$node = $this->state->stack_of_open_elements->current_node();
 			if ( $tag_name !== $node->node_name ) {
 				// @todo Indicate a parse error once it's possible.
@@ -5096,10 +5074,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					$this->bail( "Unaware of the requested parsing mode: '{$this->state->insertion_mode}'." );
 			}
 		}
-
-		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/*
@@ -5132,6 +5106,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates the namespace of the current token, or "html" if there is none.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @return string One of "html", "math", or "svg".
 	 */
@@ -5431,18 +5407,12 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
 	 * ```php interactive
-	 * <?php
-	 * require '/wordpress/wp-load.php';
 	 * $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&gt;\tlang-en'>" );
 	 * $p->next_tag();
 	 * foreach ( $p->class_list() as $class_name ) {
-	 *   var_dump( $class_name );
+	 *   echo "{$class_name} ";
 	 * }
-	 * ```
-	 * ```expected-output
-	 * string(4) "free"
-	 * string(5) "<egg>"
-	 * string(7) "lang-en"
+	 * // Outputs: "free <egg> lang-en "
 	 * ```
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
@@ -6391,8 +6361,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -6657,6 +6625,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This unlock code is used to ensure that anyone calling the constructor is
 	 * doing so with a full understanding that it's intended to be a private API.
 	 *
+	 * @since 6.4.0
 	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::create_fragment() instead of calling the class constructor directly.';

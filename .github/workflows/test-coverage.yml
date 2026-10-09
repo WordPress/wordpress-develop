@@ -6,6 +6,7 @@ on:
     branches:
       - trunk
     paths:
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/test-coverage.yml'
       - '.github/workflows/reusable-phpunit-tests-v3.yml'
       - '.github/workflows/reusable-prepare-gutenberg.yml'
@@ -19,6 +20,7 @@ on:
     branches:
       - trunk
     paths:
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/test-coverage.yml'
       - '.github/workflows/reusable-phpunit-tests-v3.yml'
       - '.github/workflows/reusable-prepare-gutenberg.yml'
@@ -97,7 +99,6 @@ jobs:
       SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
       SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
       SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
-      SLACK_GHA_TIMEOUT_WEBHOOK: ${{ secrets.SLACK_GHA_TIMEOUT_WEBHOOK }}
 
   failed-workflow:
     name: Failed workflow tasks

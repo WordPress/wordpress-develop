@@ -24,7 +24,7 @@ class Tests_WP_Determine_Option_Autoload_Value extends WP_UnitTestCase {
 		$this->assertSame( $expected, $test );
 	}
 
-	public function data_values() {
+	public static function data_values() {
 		return array(
 			'yes'      => array(
 				'autoload' => 'yes',

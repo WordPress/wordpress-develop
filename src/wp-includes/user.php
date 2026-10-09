@@ -728,7 +728,7 @@ function get_current_user_id() {
 		return 0;
 	}
 	$user = wp_get_current_user();
-	return (int) ( $user->ID ?? 0 );
+	return (int) $user->ID;
 }
 
 /**
@@ -749,6 +749,8 @@ function get_current_user_id() {
  * @param int    $user       Optional. User ID.
  * @param string $deprecated Use get_option() to check for an option in the options table.
  * @return mixed User option value on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_user_option( $option, $user = 0, $deprecated = '' ) {
 	global $wpdb;
@@ -854,6 +856,8 @@ function delete_user_option( $user_id, $option_name, $is_global = false ) {
  *
  * @param int $user_id User ID.
  * @return WP_User|false WP_User object on success, false on failure.
+ *
+ * @phpstan-return ( $user_id is int<min, 0> ? false : WP_User|false )
  */
 function get_user( $user_id ) {
 	return get_user_by( 'id', $user_id );
@@ -869,6 +873,14 @@ function get_user( $user_id ) {
  * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
  * @return array List of users.
+ *
+ * @phpstan-return (
+ *     $args is array{ fields: 'all'|'all_with_meta', ... } ? array<int, WP_User> : (
+ *         $args is array{ fields: 'ID'|'id', ... } ? list<numeric-string> : (
+ *             $args is array{ fields: non-empty-string|non-empty-array<array-key, string>, ... } ? array<int, mixed> : array<int, WP_User>
+ *         )
+ *     )
+ * )
  */
 function get_users( $args = array() ) {
 
@@ -907,7 +919,12 @@ function get_users( $args = array() ) {
  *     @type string $exclude       An array, comma-, or space-separated list of user IDs to exclude. Default empty.
  *     @type string $include       An array, comma-, or space-separated list of user IDs to include. Default empty.
  * }
- * @return string|null The output if echo is false. Otherwise null.
+ * @return string|void The output if 'echo' is false, nothing otherwise.
+ * @phpstan-return (
+ *     $args is array{ echo: false|0|''|'0', ... }
+ *         ? string
+ *         : ( $args is ''|'0'|array ? void : string|null )
+ * )
  */
 function wp_list_users( $args = array() ) {
 	$defaults = array(
@@ -1013,6 +1030,7 @@ function wp_list_users( $args = array() ) {
 	if ( ! $parsed_args['echo'] ) {
 		return $return;
 	}
+
 	echo $return;
 }
 
@@ -1264,6 +1282,8 @@ function add_user_meta( $user_id, $meta_key, $meta_value, $unique = false ) {
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $user_id
  */
 function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'user', $user_id, $meta_key, $meta_value );
@@ -1292,6 +1312,18 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers (both integer and float) are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );
@@ -2592,7 +2624,7 @@ function wp_insert_user( $userdata ) {
 	 * @since 4.4.0
 	 * @since 5.8.0 The `$userdata` parameter was added.
 	 *
-	 * @param array $meta {
+	 * @param array   $meta {
 	 *     Default meta values and keys for the user.
 	 *
 	 *     @type string   $nickname             The user's nickname. Default is the user's username.
@@ -3451,7 +3483,7 @@ function retrieve_password( $user_login = '' ) {
 	 *
 	 * @since 6.0.0
 	 *
-	 * @param array $defaults {
+	 * @param array   $defaults {
 	 *     The default notification email arguments. Used to build wp_mail().
 	 *
 	 *     @type string $to      The intended recipient - user email address.
@@ -3975,19 +4007,29 @@ All at ###SITENAME###
  *
  * @since 3.0.0
  * @since 4.9.0 This function was moved from wp-admin/includes/ms.php so it's no longer Multisite specific.
+ * @since 7.2.0 The notice is displayed whenever an email change is pending, not only after updating
+ *              the profile, and includes a link to cancel the request. The function is no longer
+ *              hooked to the `admin_notices`, `user_admin_notices`, and `network_admin_notices`
+ *              actions, and is instead called directly from wp-admin/user-edit.php.
  *
  * @global string $pagenow The filename of the current screen.
  */
 function new_user_email_admin_notice() {
 	global $pagenow;
 
-	if ( 'profile.php' === $pagenow && isset( $_GET['updated'] ) ) {
-		$email = get_user_meta( get_current_user_id(), '_new_email', true );
+	if ( 'profile.php' === $pagenow ) {
+		$current_user_id = get_current_user_id();
+		$email           = get_user_meta( $current_user_id, '_new_email', true );
 		if ( $email ) {
 			$message = sprintf(
 				/* translators: %s: New email address. */
 				__( 'Your email address has not been updated yet. Please check your inbox at %s for a confirmation email.' ),
 				'<code>' . esc_html( $email['newemail'] ) . '</code>'
+			);
+			$message .= sprintf(
+				' <a href="%1$s">%2$s</a>',
+				esc_url( wp_nonce_url( self_admin_url( 'profile.php?dismiss=' . $current_user_id . '_new_email' ), 'dismiss-' . $current_user_id . '_new_email' ) ),
+				_x( 'Cancel request', 'user email change' )
 			);
 			wp_admin_notice( $message, array( 'type' => 'info' ) );
 		}

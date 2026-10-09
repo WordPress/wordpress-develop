@@ -12,6 +12,8 @@
  */
 var selectionSync = {
 	/**
+	 * Syncs the selection in this state with the master selection.
+	 *
 	 * @since 3.5.0
 	 */
 	syncSelection: function() {
