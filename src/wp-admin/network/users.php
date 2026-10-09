@@ -27,7 +27,7 @@ if ( isset( $_GET['action'] ) ) {
 			check_admin_referer( 'deleteuser' );
 
 			$id = (int) $_GET['id'];
-			if ( $id > 1 ) {
+			if ( $id > 0 ) {
 				$_POST['allusers'] = array( $id ); // confirm_delete_users() can only handle arrays.
 
 				// Used in the HTML title tag.
