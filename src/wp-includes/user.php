@@ -622,7 +622,7 @@ function count_user_posts( $userid, $post_type = 'post', $public_only = false ) 
 	$where = get_posts_by_author_sql( $post_type, true, $userid, $public_only );
 	$query = "SELECT COUNT(*) FROM $wpdb->posts $where";
 
-	$last_changed = wp_cache_get_last_changed( 'posts' );
+	$last_changed = wp_cache_get_last_changed( 'post-queries' );
 	$cache_key    = 'count_user_posts:' . md5( $query );
 	$count        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
 	if ( false === $count ) {
@@ -695,7 +695,7 @@ function count_many_users_posts( $users, $post_type = 'post', $public_only = fal
 	$where       = get_posts_by_author_sql( $post_type, true, null, $public_only );
 	$query       = "SELECT post_author, COUNT(*) FROM $wpdb->posts $where AND post_author IN ($userlist) GROUP BY post_author";
 	$cache_key   = 'count_many_users_posts:' . md5( $query );
-	$cache_salts = array( wp_cache_get_last_changed( 'posts' ), wp_cache_get_last_changed( 'users' ) );
+	$cache_salts = array( wp_cache_get_last_changed( 'post-queries' ), wp_cache_get_last_changed( 'users' ) );
 	$count       = wp_cache_get_salted( $cache_key, 'post-queries', $cache_salts );
 
 	if ( false === $count ) {
