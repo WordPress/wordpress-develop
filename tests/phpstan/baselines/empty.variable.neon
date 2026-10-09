@@ -29,11 +29,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/themes.php
 		-
-			message: '#^Variable \$addl_path in empty\(\) always exists and is always falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: ../../../src/wp-includes/canonical.php
-		-
 			message: '#^Variable \$search in empty\(\) always exists and is not falsy\.$#'
 			identifier: empty.variable
 			count: 1
