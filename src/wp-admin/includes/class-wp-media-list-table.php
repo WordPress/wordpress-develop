@@ -455,7 +455,7 @@ class WP_Media_List_Table extends WP_List_Table {
 				<span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. %s: Attachment title. */
-				printf( __( 'Select %s' ), _draft_or_post_title() );
+				printf( __( 'Select %s' ), _draft_or_post_title( $post ) );
 				?>
 				</span>
 			</label>
@@ -483,7 +483,7 @@ class WP_Media_List_Table extends WP_List_Table {
 			}
 		}
 
-		$title      = _draft_or_post_title();
+		$title      = _draft_or_post_title( $post );
 		$thumb      = wp_get_attachment_image( $attachment_id, array( 60, 60 ), true, array( 'alt' => '' ) );
 		$link_start = '';
 		$link_end   = '';
@@ -653,7 +653,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					'<br /><a href="#the-list" onclick="findPosts.open( \'media[]\', \'%s\' ); return false;" class="hide-if-no-js aria-button-if-js" aria-label="%s">%s</a>',
 					$post->ID,
 					/* translators: %s: Attachment title. */
-					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), $title ) ),
+					esc_attr( sprintf( __( 'Attach &#8220;%s&#8221; to existing content' ), wp_strip_all_tags( $title ) ) ),
 					__( 'Attach' )
 				);
 			}
@@ -759,7 +759,7 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$this->comment_pending_count = get_pending_comments_num( $post_ids );
 
-		add_filter( 'the_title', 'esc_html' );
+		add_filter( 'the_title', 'wp_kses_post_title' );
 
 		while ( have_posts() ) :
 			the_post();
@@ -777,6 +777,8 @@ class WP_Media_List_Table extends WP_List_Table {
 			</tr>
 			<?php
 		endwhile;
+
+		remove_filter( 'the_title', 'wp_kses_post_title' );
 	}
 
 	/**
@@ -800,7 +802,8 @@ class WP_Media_List_Table extends WP_List_Table {
 	 * @return array<string, string> An array of row actions.
 	 */
 	private function _get_row_actions( $post, $att_title ) {
-		$actions = array();
+		$att_title = wp_strip_all_tags( $att_title );
+		$actions   = array();
 
 		if ( ! $this->is_trash && current_user_can( 'edit_post', $post->ID ) ) {
 			$actions['edit'] = sprintf(
@@ -927,7 +930,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		// Restores the more descriptive, specific name for use within this method.
 		$post = $item;
 
-		$att_title = _draft_or_post_title();
+		$att_title = _draft_or_post_title( $post );
 		$actions   = $this->_get_row_actions( $post, $att_title );
 
 		return $this->row_actions( $actions );

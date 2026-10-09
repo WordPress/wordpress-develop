@@ -182,6 +182,31 @@ function get_the_title( $post = 0 ) {
 }
 
 /**
+ * Sanitizes a post title for HTML display, allowing limited formatting tags.
+ *
+ * WordPress permits HTML in post titles. `esc_html()` encodes those tags, so a
+ * title such as `The <em>page</em> title` is shown with the tags as text.
+ * This keeps a small set of inline formatting tags and escapes everything else.
+ *
+ * @since 7.2.0
+ *
+ * @param string $title Post title to sanitize.
+ * @return string Sanitized title safe for HTML display.
+ */
+function wp_kses_post_title( $title ) {
+	return wp_kses(
+		$title,
+		array(
+			'strong' => array( 'class' => true ),
+			'em'     => array( 'class' => true ),
+			'b'      => array( 'class' => true ),
+			'i'      => array( 'class' => true ),
+			'span'   => array( 'class' => true ),
+		)
+	);
+}
+
+/**
  * Displays the Post Global Unique Identifier (guid).
  *
  * The guid will appear to be a link, but should not be used as a link to the

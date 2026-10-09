@@ -1123,9 +1123,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			$post_link  = "<a href='" . get_edit_post_link( $post->ID ) . "' class='comments-edit-item-link'>";
-			$post_link .= esc_html( get_the_title( $post->ID ) ) . '</a>';
+			$post_link .= wp_kses_post_title( get_the_title( $post->ID ) ) . '</a>';
 		} else {
-			$post_link = esc_html( get_the_title( $post->ID ) );
+			$post_link = wp_kses_post_title( get_the_title( $post->ID ) );
 		}
 
 		echo '<div class="response-links">';

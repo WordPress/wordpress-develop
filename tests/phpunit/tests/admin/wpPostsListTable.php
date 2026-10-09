@@ -596,4 +596,48 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * Formatting tags in a post title are rendered in the list table title column.
+	 *
+	 * @ticket 66244
+	 *
+	 * @covers ::wp_kses_post_title
+	 * @covers ::_draft_or_post_title
+	 * @covers WP_Posts_List_Table::column_title
+	 * @covers WP_Posts_List_Table::get_primary_column_aria_label
+	 */
+	public function test_post_title_formatting_tags_are_rendered_in_list_table() {
+		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		if ( is_multisite() ) {
+			grant_super_admin( $user_id );
+		}
+		wp_set_current_user( $user_id );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_type'  => 'post',
+				'post_title' => 'The <em class="title">page</em> title',
+			)
+		);
+
+		$output = $this->render_column_title( $post, 'list' );
+
+		$this->assertStringContainsString(
+			sprintf( '<a class="row-title" href="%s">The <em class="title">page</em> title</a>', get_edit_post_link( $post->ID ) ),
+			$output
+		);
+		$this->assertStringNotContainsString(
+			sprintf( '<a class="row-title" href="%s">The &lt;em', get_edit_post_link( $post->ID ) ),
+			$output
+		);
+
+		$table  = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+		$method = new ReflectionMethod( $table, 'get_primary_column_aria_label' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+
+		$this->assertSame( 'The page title', $method->invoke( $table, $post ) );
+	}
 }

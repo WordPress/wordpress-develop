@@ -184,9 +184,9 @@ touch_time( ( 'editcomment' === $action ), 0 );
 $post_id = $comment->comment_post_ID;
 if ( current_user_can( 'edit_post', $post_id ) ) {
 	$post_link  = "<a href='" . esc_url( get_edit_post_link( $post_id ) ) . "'>";
-	$post_link .= esc_html( get_the_title( $post_id ) ) . '</a>';
+	$post_link .= wp_kses_post_title( get_the_title( $post_id ) ) . '</a>';
 } else {
-	$post_link = esc_html( get_the_title( $post_id ) );
+	$post_link = wp_kses_post_title( get_the_title( $post_id ) );
 }
 ?>
 
