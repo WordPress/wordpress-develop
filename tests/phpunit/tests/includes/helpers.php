@@ -288,6 +288,18 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 62490
+	 */
+	public function test_doing_action_shutdown() {
+		$this->expectException( 'WPDieException' );
+
+		add_action( 'foo', 'wp_die', 10, 0 );
+		do_action( 'foo' );
+
+		$this->assertFalse( doing_action( 'foo' ) );
+	}
+
+	/**
 	 * @ticket 45933
 	 * @dataProvider data_die_process_input
 	 */
