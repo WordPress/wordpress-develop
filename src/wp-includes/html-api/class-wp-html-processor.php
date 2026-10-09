@@ -2773,28 +2773,27 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					$this->state->stack_of_open_elements->remove_node( $node );
 					return true;
-				} else {
-					/*
-					 * > If the stack of open elements does not have a form element in scope,
-					 * > then this is a parse error; return and ignore the token.
-					 *
-					 * Note that unlike in the clause above, this is checking for any FORM in scope.
-					 */
-					if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
-						// Parse error: ignore the token.
-						return $this->step();
-					}
-
-					$this->generate_implied_end_tags();
-
-					if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
-						// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
-					}
-
-					$this->state->stack_of_open_elements->pop_until( 'FORM' );
-					return true;
 				}
-				break;
+
+				/*
+				 * > If the stack of open elements does not have a form element in scope,
+				 * > then this is a parse error; return and ignore the token.
+				 *
+				 * Note that unlike in the clause above, this is checking for any FORM in scope.
+				 */
+				if ( ! $this->state->stack_of_open_elements->has_element_in_scope( 'FORM' ) ) {
+					// Parse error: ignore the token.
+					return $this->step();
+				}
+
+				$this->generate_implied_end_tags();
+
+				if ( ! $this->state->stack_of_open_elements->current_node_is( 'FORM' ) ) {
+					// @todo Indicate a parse error once it's possible. This error does not impact the logic here.
+				}
+
+				$this->state->stack_of_open_elements->pop_until( 'FORM' );
+				return true;
 
 			/*
 			 * > An end tag whose tag name is "p"
