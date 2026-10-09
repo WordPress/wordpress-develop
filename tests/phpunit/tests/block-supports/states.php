@@ -884,6 +884,34 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that rendered state CSS includes fallback dimension declarations.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 * @covers ::wp_add_block_state_style_rule
+	 *
+	 * @ticket 65239
+	 */
+	public function test_hover_height_generates_aspect_ratio_unset_in_stylesheet() {
+		$this->ensure_block_registered( 'core/button' );
+
+		$state_styles = array(
+			':hover' => array(
+				'dimensions' => array( 'minHeight' => '300px' ),
+			),
+		);
+		$block        = array(
+			'blockName' => 'core/button',
+			'attrs'     => array( 'style' => $state_styles ),
+		);
+
+		wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+		$this->assertStringContainsString( 'min-height:300px', $actual_stylesheet );
+		$this->assertStringContainsString( 'aspect-ratio:unset', $actual_stylesheet );
+	}
+
+	/**
 	 * Tests that multiple states each generate a separate scoped CSS rule.
 	 *
 	 * @covers ::wp_render_block_states_support

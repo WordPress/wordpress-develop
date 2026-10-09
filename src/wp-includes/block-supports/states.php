@@ -376,6 +376,8 @@ function wp_add_block_state_style_rule( &$css_rules, $state, $selector, $style, 
 		return;
 	}
 
+	$style = wp_get_state_style_with_fallback_dimension_styles( $style );
+
 	$compiled     = wp_style_engine_get_styles(
 		wp_normalize_state_style_for_css_output( $style )
 	);
