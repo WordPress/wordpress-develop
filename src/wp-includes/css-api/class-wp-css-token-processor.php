@@ -276,17 +276,11 @@ class WP_CSS_Token_Processor {
 	private $token_value_length = null;
 
 	/**
-	 * A cache for the decoded and normalized token value.
+	 * The current token, created on the first call to get_token().
 	 *
-	 * - `false` indicates that the value has not been computed.
-	 * - `null` is used for token types without an associated value: whitespace,
-	 *   bad-url, comment, punctuation, etc.
-	 * - `string` is used for token types with an associated value: ident, string,
-	 *   function, url, etc.
-	 *
-	 * @var string|null|false
+	 * @var WP_CSS_Token|null
 	 */
-	private $token_value = false;
+	private $token = null;
 
 	/**
 	 * The unit of the current token, e.g. "px", "em", "deg", etc.
@@ -633,6 +627,49 @@ class WP_CSS_Token_Processor {
 	}
 
 	/**
+	 * Gets the current token.
+	 *
+	 * The token keeps its values after the processor moves on, so callers can
+	 * collect tokens and read them later. Calls for the same token return the
+	 * same object.
+	 *
+	 * Example:
+	 *
+	 *     $processor = WP_CSS_Token_Processor::create( 'a "b"' );
+	 *     $tokens    = array();
+	 *     while ( $processor->next_token() ) {
+	 *         $tokens[] = $processor->get_token();
+	 *     }
+	 *     $tokens[2]->get_value(); // 'b'
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return WP_CSS_Token|null The current token, or null before the first
+	 *                           token and after the last.
+	 */
+	public function get_token(): ?WP_CSS_Token {
+		if ( null === $this->token_type ) {
+			return null;
+		}
+
+		if ( null === $this->token ) {
+			$this->token = new WP_CSS_Token(
+				$this->css,
+				$this->token_type,
+				$this->token_starts_at,
+				$this->token_length,
+				$this->token_type_flag,
+				$this->token_unit,
+				$this->token_value_starts_at,
+				$this->token_value_length,
+				$this->token_is_terminated
+			);
+		}
+
+		return $this->token;
+	}
+
+	/**
 	 * Gets the current token type.
 	 *
 	 * @since 7.2.0
@@ -730,89 +767,8 @@ class WP_CSS_Token_Processor {
 	 * @return string|null
 	 */
 	public function get_token_value(): ?string {
-		if ( false === $this->token_value ) {
-			if ( null === $this->token_starts_at || null === $this->token_length ) {
-				return null;
-			}
-
-			switch ( $this->token_type ) {
-				case self::TOKEN_HASH:
-					// Hash value starts after the # character.
-					$this->token_value = self::decode_range( $this->css, $this->token_starts_at + 1, $this->token_length - 1 );
-					break;
-
-				case self::TOKEN_AT_KEYWORD:
-					// At-keyword value starts after the @ character.
-					$this->token_value = self::decode_range( $this->css, $this->token_starts_at + 1, $this->token_length - 1 );
-					break;
-
-				case self::TOKEN_FUNCTION:
-					// Function name is everything except the final (.
-					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length - 1 );
-					break;
-
-				case self::TOKEN_IDENT:
-					// Identifier is the entire token.
-					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length );
-					break;
-
-				case self::TOKEN_BAD_STRING:
-					$this->token_value = null;
-					break;
-
-				case self::TOKEN_STRING:
-					if ( null !== $this->token_value_starts_at && null !== $this->token_value_length ) {
-						$this->token_value = self::decode_range(
-							$this->css,
-							$this->token_value_starts_at,
-							$this->token_value_length,
-							true
-						);
-					} else {
-						$this->token_value = null;
-					}
-					break;
-
-				case self::TOKEN_URL:
-					// Decode and cache the URL value.
-					if ( null !== $this->token_value_starts_at && null !== $this->token_value_length ) {
-						$this->token_value = self::decode_range(
-							$this->css,
-							$this->token_value_starts_at,
-							$this->token_value_length
-						);
-					} else {
-						$this->token_value = null;
-					}
-					break;
-
-				case self::TOKEN_DELIM:
-					// Delim value is the single code point.
-					$this->token_value = self::decode_range( $this->css, $this->token_starts_at, $this->token_length );
-					break;
-
-				case self::TOKEN_NUMBER:
-					// Return the string representation of the number (not parsed to float).
-					$this->token_value = substr( $this->css, $this->token_starts_at, $this->token_length );
-					break;
-
-				case self::TOKEN_PERCENTAGE:
-					// Return the string representation of the number (without the %).
-					$this->token_value = substr( $this->css, $this->token_starts_at, $this->token_length - 1 );
-					break;
-
-				case self::TOKEN_DIMENSION:
-					// Return the string representation of the number (without the unit).
-					$this->token_value = substr( $this->get_normalized_token(), 0, -strlen( $this->token_unit ) );
-					break;
-
-				default:
-					$this->token_value = null;
-					break;
-			}
-		}
-
-		return $this->token_value;
+		$token = $this->get_token();
+		return null === $token ? null : $token->get_value();
 	}
 
 	/**
@@ -1026,7 +982,7 @@ class WP_CSS_Token_Processor {
 		$this->token_type_flag       = null;
 		$this->token_starts_at       = null;
 		$this->token_length          = null;
-		$this->token_value           = false;
+		$this->token                 = null;
 		$this->token_unit            = null;
 		$this->token_is_terminated   = true;
 		$this->token_value_starts_at = null;
@@ -1275,8 +1231,8 @@ class WP_CSS_Token_Processor {
 	private function consume_ident_like(): bool {
 		// Consume an ident sequence, and let string be the result.
 		$ident_start = $this->at;
-		$decoded     = $this->consume_ident_sequence();
-		$string      = $decoded ?? self::decode_range( $this->css, $ident_start, $this->at - $ident_start );
+		$this->consume_ident_sequence();
+		$string = self::decode_range( $this->css, $ident_start, $this->at - $ident_start );
 
 		// If string's value is an ASCII case-insensitive match for "url",
 		// and the next input code point is U+0028 LEFT PARENTHESIS (().
@@ -1294,9 +1250,6 @@ class WP_CSS_Token_Processor {
 				$next = $this->css[ $this->at + $ws_len ];
 				if ( '"' === $next || "'" === $next ) {
 					// then create a <function-token> with its value set to string and return it.
-					if ( null !== $decoded ) {
-						$this->token_value = $decoded;
-					}
 					$this->token_type   = self::TOKEN_FUNCTION;
 					$this->token_length = $this->at - $this->token_starts_at;
 					return true;
@@ -1313,18 +1266,12 @@ class WP_CSS_Token_Processor {
 			// Consume it.
 			++$this->at;
 			// Create a <function-token> with its value set to string and return it.
-			if ( null !== $decoded ) {
-				$this->token_value = $decoded;
-			}
 			$this->token_type   = self::TOKEN_FUNCTION;
 			$this->token_length = $this->at - $this->token_starts_at;
 			return true;
 		}
 
 		// Otherwise, create an <ident-token> with its value set to string and return it.
-		if ( null !== $decoded ) {
-			$this->token_value = $decoded;
-		}
 		$this->token_type   = self::TOKEN_IDENT;
 		$this->token_length = $this->at - $this->token_starts_at;
 		return true;
@@ -1519,12 +1466,11 @@ class WP_CSS_Token_Processor {
 	 * Identifiers can contain letters, digits, hyphens, underscores, non-ASCII
 	 * characters, and escape sequences. Null bytes are replaced with U+FFFD.
 	 *
-	 * Returns the decoded identifier string if escapes were encountered,
-	 * or null if no decoding was needed (can use raw substring).
+	 * Advances the cursor past the sequence; the caller decodes the bytes.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#consume-name
 	 */
-	private function consume_ident_sequence() {
+	private function consume_ident_sequence(): void {
 		while ( $this->at < $this->length ) {
 			// Scan ASCII name characters, as in margin-top or item_2, in native
 			// code rather than one PHP iteration per byte. Letters, digits, "-",
