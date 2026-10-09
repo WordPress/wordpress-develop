@@ -551,6 +551,10 @@
 
 				greeting.text( display_name );
 			} );
+
+			if ( greeting.text() !== current_name ) {
+				select.trigger( 'change' );
+			}
 		}
 
 		$colorpicker = $( '#color-picker' );
