@@ -449,13 +449,28 @@ function get_allowed_http_origins() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 
-	// @todo Preserve port?
+	/*
+	 * Preserve a non-default port so that origins served on a custom port
+	 * (for example `http://example.com:8080`) are matched against the browser's
+	 * `Origin` request header. The default HTTP and HTTPS ports (80 and 443) are
+	 * omitted because browsers leave them out of the `Origin` header.
+	 */
+	$admin_host = $admin_origin['host'];
+	if ( isset( $admin_origin['port'] ) && 80 !== $admin_origin['port'] && 443 !== $admin_origin['port'] ) {
+		$admin_host .= ':' . $admin_origin['port'];
+	}
+
+	$home_host = $home_origin['host'];
+	if ( isset( $home_origin['port'] ) && 80 !== $home_origin['port'] && 443 !== $home_origin['port'] ) {
+		$home_host .= ':' . $home_origin['port'];
+	}
+
 	$allowed_origins = array_unique(
 		array(
-			'http://' . $admin_origin['host'],
-			'https://' . $admin_origin['host'],
-			'http://' . $home_origin['host'],
-			'https://' . $home_origin['host'],
+			'http://' . $admin_host,
+			'https://' . $admin_host,
+			'http://' . $home_host,
+			'https://' . $home_host,
 		)
 	);
 
