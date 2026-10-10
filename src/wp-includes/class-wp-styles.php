@@ -242,17 +242,17 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
+		if ( $inline_style ) {
+			$tag .= wp_get_inline_style_tag(
+				$inline_style,
+				array( 'id' => "{$handle}-inline-css" )
+			);
+		}
+
 		if ( $this->do_concat ) {
 			$this->print_html .= $tag;
-			if ( $inline_style ) {
-				$this->print_html .= wp_get_inline_style_tag(
-					$inline_style,
-					array( 'id' => "{$handle}-inline-css" )
-				);
-			}
 		} else {
 			echo $tag;
-			$this->print_inline_style( $handle );
 		}
 
 		return true;
