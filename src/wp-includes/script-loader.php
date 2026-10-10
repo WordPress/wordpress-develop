@@ -4662,11 +4662,10 @@ function wp_hoist_late_printed_styles(): void {
 				 * a sourceURL comment after the placeholder above is removed.
 				 */
 				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
-					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
-					$style_processor->next_tag();
-					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
-					$style_processor->set_modifiable_text( $extra_inline_styles );
-					$inserted_after .= "{$style_processor->get_updated_html()}\n";
+					$inserted_after .= wp_get_inline_style_tag(
+						$extra_inline_styles,
+						array( 'id' => 'wp-block-library-inline-css-extra' )
+					);
 				}
 
 				if ( '' !== $inserted_after ) {
