@@ -214,6 +214,9 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 
 			array( '/2008/09/03/non-paged-post-test/3/', '/2008/09/03/non-paged-post-test/' ),
 			array( '/2008/09/03/non-paged-post-test/?page=3', '/2008/09/03/non-paged-post-test/' ),
+			array( '/2008/09/03/non-paged-post-test/3/?x=a|b', '/2008/09/03/non-paged-post-test/?x=a%7Cb', 41712 ), // Extra query vars stay encoded when the path changes.
+			array( '/2008/09/03/non-paged-post-test/?page=3&x=a+b', '/2008/09/03/non-paged-post-test/?x=a%20b', 41712 ),
+			array( '/2008/09/03/non-paged-post-test/?x=1&', '/2008/09/03/non-paged-post-test/?x=1&', 41712 ), // A stray '&' alone doesn't redirect.
 
 			// Comments.
 			array( '/2008/03/03/comment-test/?cpage=2', '/2008/03/03/comment-test/comment-page-2/' ),
@@ -549,6 +552,47 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		delete_option( 'page_on_front' );
 
 		$this->assertNull( $redirect );
+	}
+
+	/**
+	 * @ticket 41712
+	 *
+	 * @dataProvider data_no_redirect_when_query_only_differs_in_encoding
+	 *
+	 * @covers ::redirect_canonical
+	 *
+	 * @param string $query Query string requested on the front page.
+	 */
+	public function test_no_redirect_when_query_only_differs_in_encoding( $query ) {
+		$p = self::factory()->post->create(
+			array(
+				'post_type' => 'page',
+			)
+		);
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $p );
+
+		$url = home_url( '/?' . $query );
+		$this->go_to( $url );
+
+		$this->assertNull( redirect_canonical( $url, false ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_no_redirect_when_query_only_differs_in_encoding() {
+		return array(
+			'plus for space'     => array( 'utm_source=foo+bar' ),
+			'empty value'        => array( 'utm_source=' ),
+			'unencoded pipe'     => array( 'x=a|b' ),
+			'leading ampersand'  => array( '&x=a+b' ),
+			'trailing ampersand' => array( 'x=1&' ),
+			'period in key'      => array( 'a.b=c' ),
+			'array append'       => array( 'a[]=1&a[]=2' ),
+		);
 	}
 
 	/**
