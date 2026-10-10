@@ -1952,7 +1952,7 @@ function wp_post_revision_title( $revision, $link = true ) {
 	$revision = get_post( $revision );
 
 	if ( ! $revision ) {
-		return $revision;
+		return false;
 	}
 
 	if ( ! in_array( $revision->post_type, array( 'post', 'page', 'revision' ), true ) ) {
@@ -1994,7 +1994,7 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
 	$revision = get_post( $revision );
 
 	if ( ! $revision ) {
-		return $revision;
+		return false;
 	}
 
 	if ( ! in_array( $revision->post_type, array( 'post', 'page', 'revision' ), true ) ) {
