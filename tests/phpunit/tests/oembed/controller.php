@@ -799,4 +799,49 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );
 	}
+
+	/**
+	 * @ticket 44399
+	 *
+	 * @covers WP_oEmbed_Controller::get_proxy_item_permissions_check
+	 */
+	public function test_proxy_respects_embed_url_meta_cap() {
+		wp_set_current_user( self::$subscriber );
+
+		$allow = static function ( $caps, $cap ) {
+			return 'embed_url' === $cap ? array( 'read' ) : $caps;
+		};
+		add_filter( 'map_meta_cap', $allow, 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', self::INVALID_OEMBED_URL );
+		$response = rest_get_server()->dispatch( $request );
+
+		// The permission check passes, so the request fails on the URL instead.
+		$this->assertSame( 404, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'oembed_invalid_url', $data['code'] );
+	}
+
+	/**
+	 * @ticket 44399
+	 *
+	 * @covers WP_oEmbed_Controller::get_proxy_item_permissions_check
+	 */
+	public function test_proxy_denied_when_embed_url_meta_cap_is_revoked() {
+		wp_set_current_user( self::$editor );
+
+		$deny = static function ( $caps, $cap ) {
+			return 'embed_url' === $cap ? array( 'do_not_allow' ) : $caps;
+		};
+		add_filter( 'map_meta_cap', $deny, 10, 2 );
+
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', self::INVALID_OEMBED_URL );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 403, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( 'rest_forbidden', $data['code'] );
+	}
 }
