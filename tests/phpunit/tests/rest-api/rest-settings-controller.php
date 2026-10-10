@@ -413,10 +413,26 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Settings has no create_item(); POST on the registered route updates.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$administrator );
+
+		$route = '/wp/v2/settings';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request = new WP_REST_Request( 'POST', $route );
+		$request->set_param( 'title', 'Settings title via POST' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'Settings title via POST', $data['title'] );
+		$this->assertSame( get_option( 'blogname' ), $data['title'] );
 	}
 
 	public function test_update_item() {
@@ -721,11 +737,23 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
 	}
 
+	/**
+	 * Settings route is not deletable; delete requests should not match a route.
+	 *
+	 * @ticket 66073
+	 */
 	public function test_delete_item() {
-		/** Settings can't be deleted */
-		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/settings/title' );
+		wp_set_current_user( self::$administrator );
+
+		$route = '/wp/v2/settings';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 404, $response->get_status() );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
