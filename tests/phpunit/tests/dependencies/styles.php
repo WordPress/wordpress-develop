@@ -245,10 +245,18 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), '1' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 
-		$printed = get_echo( 'wp_print_styles' );
+		$expected = <<<'HTML'
+			<link rel="stylesheet" id="handle-css" href="http://example.com?ver=1" media="all">
+			<style id="handle-inline-css" nonce="test-nonce">
+			body { color: #123456; }
+			/*# sourceURL=handle-inline-css */
+			</style>
 
-		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
+			HTML;
+
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
 		$this->assertSame( 1, $mock_action->get_call_count() );
+		$this->assertSame( array( 'id' => 'handle-inline-css' ), $mock_action->get_args()[0][0] );
 	}
 
 	/**
@@ -268,9 +276,18 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_register_style( 'handle', 'http://example.com' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 
-		$printed = get_echo( array( wp_styles(), 'print_inline_style' ), array( 'handle' ) );
+		$expected = <<<'HTML'
+			<style id="handle-inline-css" nonce="test-nonce">
+			body { color: #123456; }
+			/*# sourceURL=handle-inline-css */
+			</style>
 
-		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
+			HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			get_echo( array( wp_styles(), 'print_inline_style' ), array( 'handle' ) )
+		);
 	}
 
 	/**
@@ -294,10 +311,15 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 		wp_print_styles();
 
-		$this->assertStringContainsString(
-			'<style id="handle-inline-css" nonce="test-nonce">',
-			wp_styles()->print_html
-		);
+		$expected = <<<'HTML'
+			<link rel="stylesheet" id="handle-css" href="http://example.com?ver=1" media="all">
+			<style id="handle-inline-css" nonce="test-nonce">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML( $expected, wp_styles()->print_html );
 	}
 
 	/**
@@ -321,9 +343,29 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 		wp_print_styles();
 
-		$printed = get_echo( '_print_styles' );
+		$processor = new WP_HTML_Tag_Processor( get_echo( '_print_styles' ) );
 
-		$this->assertStringContainsString( '<style nonce="test-nonce">', $printed );
+		$this->assertTrue( $processor->next_tag(), 'Expected the concatenated stylesheet LINK.' );
+		$this->assertSame( 'LINK', $processor->get_tag() );
+		$this->assertSame( 'stylesheet', $processor->get_attribute( 'rel' ) );
+		$href = $processor->get_attribute( 'href' );
+		$this->assertIsString( $href );
+		$this->assertStringContainsString( '/wp-admin/load-styles.php?', $href );
+
+		$this->assertTrue( $processor->next_tag(), 'Expected the concatenated inline STYLE.' );
+		$this->assertSame( 'STYLE', $processor->get_tag() );
+		$this->assertSame(
+			array( 'nonce' ),
+			$processor->get_attribute_names_with_prefix( '' ),
+			'Expected the filtered nonce to be the only attribute.'
+		);
+		$this->assertSame( 'test-nonce', $processor->get_attribute( 'nonce' ) );
+		$this->assertSame(
+			"\nbody { color: #123456; }\n/*# sourceURL=css-inline-concat-handle */\n",
+			$processor->get_modifiable_text()
+		);
+
+		$this->assertFalse( $processor->next_tag(), 'Expected no other tags.' );
 	}
 
 	/**

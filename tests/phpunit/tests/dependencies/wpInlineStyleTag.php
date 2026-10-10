@@ -14,8 +14,15 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_get_inline_style_tag_with_attributes() {
-		$this->assertSame(
-			"<style id=\"test-inline-css\" nonce=\"test-nonce\">\n{$this->get_test_css()}\n</style>\n",
+		$expected = <<<'HTML'
+			<style id="test-inline-css" nonce="test-nonce">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML(
+			$expected,
 			wp_get_inline_style_tag(
 				$this->get_test_css(),
 				array(
@@ -58,10 +65,14 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 			2
 		);
 
-		$this->assertSame(
-			"<style nonce=\"test-nonce\">\n{$this->get_test_css()}\n</style>\n",
-			wp_get_inline_style_tag( $this->get_test_css() )
-		);
+		$expected = <<<'HTML'
+			<style nonce="test-nonce">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML( $expected, wp_get_inline_style_tag( $this->get_test_css() ) );
 		$this->assertSame( "\n{$this->get_test_css()}\n", $filtered_data );
 	}
 
@@ -139,10 +150,15 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_tag_escapes_closing_style_tag() {
-		$this->assertSame(
-			"<style>\nbody::after { content: \"\\3c\\2fstyle>\"; }\n</style>\n",
-			wp_get_inline_style_tag( 'body::after { content: "</style>"; }' )
-		);
+		$css       = 'body::after { content: "</style>"; } body::before { content: "<script>"; }';
+		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( $css ) );
+
+		$this->assertTrue( $processor->next_tag(), 'Expected a STYLE tag.' );
+		$this->assertSame( 'STYLE', $processor->get_tag() );
+		$text = $processor->get_modifiable_text();
+		$this->assertStringNotContainsStringIgnoringCase( '</style', $text, 'Expected the closing STYLE tag to be escaped.' );
+		$this->assertStringContainsString( 'body::before { content: "<script>"; }', $text, 'Expected the rest of the CSS to be preserved.' );
+		$this->assertFalse( $processor->next_tag(), 'Expected the CSS to not break out of the STYLE element.' );
 	}
 
 	/**
