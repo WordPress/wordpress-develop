@@ -2848,6 +2848,64 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Tests that the attachment title derived from the uploaded filename is sanitized
+	 * the same way as uploads through the media library.
+	 *
+	 * @ticket 66226
+	 *
+	 * @covers WP_REST_Attachments_Controller::insert_attachment
+	 * @dataProvider data_rest_upload_filename_title_is_sanitized
+	 *
+	 * @param string $filename The uploaded filename.
+	 * @param string $expected The expected attachment title.
+	 */
+	public function test_rest_upload_filename_title_is_sanitized( $filename, $expected ) {
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file2 ),
+					'name'     => $filename,
+					'size'     => filesize( self::$test_file2 ),
+					'tmp_name' => self::$test_file2,
+				),
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status(), 'The file was not uploaded.' );
+		$this->assertSame( $expected, $data['title']['raw'], 'The attachment title was not sanitized.' );
+	}
+
+	/**
+	 * Data provider for test_rest_upload_filename_title_is_sanitized().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_rest_upload_filename_title_is_sanitized() {
+		return array(
+			'percent-encoded double quotes' => array(
+				'%22Quoted%22.jpg',
+				'Quoted',
+			),
+			'percent-encoded quotes inside' => array(
+				'quote%22in%22middle.jpg',
+				'quoteinmiddle',
+			),
+			'HTML tags'                     => array(
+				'<b>Bold</b> Name.jpg',
+				'Bold Name',
+			),
+			'plain filename unchanged'      => array(
+				'Plain Name.jpg',
+				'Plain Name',
+			),
+		);
+	}
+
+	/**
 	 * Ensure the `rest_after_insert_attachment` and `rest_insert_attachment` hooks only fire
 	 * once when attachments are updated.
 	 *
