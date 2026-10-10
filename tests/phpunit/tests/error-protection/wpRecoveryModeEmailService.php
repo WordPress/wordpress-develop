@@ -80,7 +80,7 @@ class Tests_Error_Protection_wpRecoveryModeEmailService extends WP_UnitTestCase 
 		$sent_email = end( $mailer->mock_sent );
 		$this->assertSame( get_option( 'admin_email' ), $sent_email['to'][0][0] );
 		$this->assertStringContainsString( 'Technical Issue', $sent_email['subject'] );
-		$this->assertStringContainsString( 'action=enter_recovery_mode', $sent_email['body'] );
+		$this->assertStringContainsString( 'https://example.com/wp-login.php?action=enter_recovery_mode&rm_token=testtoken&rm_key=testkey', $sent_email['body'] );
 	}
 
 	/**
