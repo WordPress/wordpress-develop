@@ -811,7 +811,7 @@ switch ( $action ) {
 						</table>
 
 					<?php if ( wp_is_application_passwords_available_for_user( $user_id ) || ! wp_is_application_passwords_supported() ) : ?>
-						<div class="application-passwords hide-if-no-js" id="application-passwords-section">
+						<div class="application-passwords hide-if-no-js" id="application-passwords-section" data-timezone="<?php echo esc_attr( wp_timezone_string() ); ?>">
 							<h2><?php _e( 'Application Passwords' ); ?></h2>
 							<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
 							<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
@@ -862,8 +862,8 @@ switch ( $action ) {
 
 										<div class="form-field">
 											<label for="new_application_password_expires"><?php _e( 'Expires on' ); ?></label>
-											<input type="date" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" />
-											<p class="description"><?php _e( 'Optional. Set an expiration date for this password.' ); ?></p>
+											<input type="datetime-local" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" step="1" aria-describedby="new_application_password_expires_desc application-passwords-timezone" />
+											<p class="description" id="new_application_password_expires_desc"><?php _e( 'Optional. Set an expiration date and time for this password.' ); ?></p>
 										</div>
 
 										<?php
@@ -877,6 +877,12 @@ switch ( $action ) {
 										do_action( 'wp_create_application_password_form', $profile_user );
 										?>
 
+										<p class="description" id="application-passwords-timezone">
+											<?php
+											/* translators: %s: Site timezone. */
+											printf( esc_html__( 'Timezone: %s' ), esc_html( wp_timezone_string() ) );
+											?>
+										</p>
 										<button type="button" name="do_new_application_password" id="do_new_application_password" class="button button-secondary"><?php _e( 'Add Application Password' ); ?></button>
 									</div>
 									<?php

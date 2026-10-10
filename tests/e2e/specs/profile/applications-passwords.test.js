@@ -8,67 +8,75 @@ const TEST_APPLICATION_NAME = 'Test Application';
 test.describe( 'Manage applications passwords', () => {
 	test.use( {
 		applicationPasswords: async ( { requestUtils, admin, page }, use ) => {
-			await use( new ApplicationPasswords( { requestUtils, admin, page } ) );
+			await use(
+				new ApplicationPasswords( { requestUtils, admin, page } )
+			);
 		},
 	} );
 
-	test.beforeEach(async ( { applicationPasswords } ) => {
+	test.beforeEach( async ( { applicationPasswords } ) => {
 		await applicationPasswords.delete();
 	} );
 
-	test('should correctly create a new application password', async ( {
+	test( 'should correctly create a new application password', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
 		await applicationPasswords.create();
 
 		const [ app ] = await applicationPasswords.get();
-		expect( app['name']).toBe( TEST_APPLICATION_NAME );
+		expect( app[ 'name' ] ).toBe( TEST_APPLICATION_NAME );
 
 		const successMessage = page.getByRole( 'alert' );
 
 		await expect( successMessage ).toHaveClass( /notice-success/ );
-		await expect(
-			successMessage
-		).toContainText(
-			`Your new password for ${TEST_APPLICATION_NAME} is:`
+		await expect( successMessage ).toContainText(
+			`Your new password for ${ TEST_APPLICATION_NAME } is:`
 		);
-		await expect(
-			successMessage
-		).toContainText(
+		await expect( successMessage ).toContainText(
 			`Be sure to save this in a safe location. You will not be able to retrieve it.`
 		);
 	} );
 
-	test('should correctly create a new application password with expiration', async ( {
+	test( 'should correctly create a new application password with expiration', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
 		const expiresDate = new Date();
 		expiresDate.setDate( expiresDate.getDate() + 7 );
 		const expiresString = expiresDate.toISOString().split( 'T' )[ 0 ];
 
-		await applicationPasswords.create( TEST_APPLICATION_NAME, expiresString );
+		await applicationPasswords.create(
+			TEST_APPLICATION_NAME,
+			expiresString + 'T09:30'
+		);
+		await expect(
+			page.locator(
+				'.create-application-password #application-passwords-timezone'
+			)
+		).toBeVisible();
 
 		const [ app ] = await applicationPasswords.get();
-		expect( app['name'] ).toBe( TEST_APPLICATION_NAME );
-		expect( app['expires'] ).not.toBeNull();
-		expect( app['expires'].startsWith( expiresString ) ).toBe( true );
+		expect( app[ 'name' ] ).toBe( TEST_APPLICATION_NAME );
+		expect( app[ 'expires' ] ).not.toBeNull();
+		expect( app[ 'expires' ].startsWith( expiresString ) ).toBe( true );
 
 		const successMessage = page.getByRole( 'alert' );
 		await expect( successMessage ).toHaveClass( /notice-success/ );
 	} );
 
-	test('should correctly update an application password expiration date', async ( {
+	test( 'should correctly update an application password expiration date', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
 		await applicationPasswords.create();
 
 		const [ app ] = await applicationPasswords.get();
-		expect( app['expires'] ).toBeNull();
+		expect( app[ 'expires' ] ).toBeNull();
 
-		const editButton = page.getByRole( 'button', { name: 'Edit Expiration Date' } );
+		const editButton = page.getByRole( 'button', {
+			name: 'Edit Expiration Date and Time',
+		} );
 		await expect( editButton ).toBeVisible();
 		await editButton.click();
 
@@ -78,86 +86,277 @@ test.describe( 'Manage applications passwords', () => {
 		const expiresDate = new Date();
 		expiresDate.setDate( expiresDate.getDate() + 10 );
 		const expiresString = expiresDate.toISOString().split( 'T' )[ 0 ];
-		await expiresInput.fill( expiresString );
+		await expiresInput.fill( expiresString + 'T16:45' );
 
 		const saveButton = page.getByRole( 'button', { name: 'Save' } );
 		await saveButton.click();
 
-		await expect( page.getByRole( 'alert' ) ).toContainText( 'Application password expiration updated.' );
+		await expect( page.getByRole( 'alert' ) ).toContainText(
+			'Application password expiration updated.'
+		);
 
 		const [ updatedApp ] = await applicationPasswords.get();
-		expect( updatedApp['expires'] ).not.toBeNull();
-		expect( updatedApp['expires'].startsWith( expiresString ) ).toBe( true );
+		expect( updatedApp[ 'expires' ] ).not.toBeNull();
+		expect( updatedApp[ 'expires' ].startsWith( expiresString ) ).toBe(
+			true
+		);
+	} );
+
+	test.describe( 'Expiration timezone handling', () => {
+		test.use( { timezoneId: 'Australia/Melbourne' } );
+
+		for ( const { timezone, created, updated } of [
+			{
+				timezone: 'UTC',
+				created: '2028-07-15T00:30:00',
+				updated: '2029-01-15T16:45:00',
+			},
+			{
+				timezone: 'Australia/Melbourne',
+				created: '2028-07-14T14:30:00',
+				updated: '2029-01-15T05:45:00',
+			},
+			{
+				timezone: 'America/New_York',
+				created: '2028-07-15T04:30:00',
+				updated: '2029-01-15T21:45:00',
+			},
+			{
+				timezone: 'UTC+5.5',
+				created: '2028-07-14T19:00:00',
+				updated: '2029-01-15T11:15:00',
+			},
+		] ) {
+			test( `should preserve site-local expiry dates in ${ timezone }`, async ( {
+				page,
+				admin,
+				applicationPasswords,
+			} ) => {
+				await admin.visitAdminPage( '/options-general.php' );
+				const originalTimezone = await page
+					.locator( '#timezone_string' )
+					.inputValue();
+				try {
+					await page
+						.locator( '#timezone_string' )
+						.selectOption( timezone );
+					await page
+						.getByRole( 'button', {
+							name: 'Save Changes',
+							exact: true,
+						} )
+						.click();
+					await page.clock.setFixedTime(
+						new Date(
+							new Date( created + 'Z' ).getTime() - 15 * 60 * 1000
+						)
+					);
+					await applicationPasswords.create(
+						TEST_APPLICATION_NAME,
+						'2028-07-15T00:30'
+					);
+
+					const [ app ] = await applicationPasswords.get();
+					expect( app.expires ).toBe( created );
+					const expiresCell = page
+						.locator( '.column-expires' )
+						.filter( { has: page.locator( '.edit-expires' ) } );
+					await expect( expiresCell ).toContainText(
+						'July 15, 2028 12:30 am'
+					);
+					await expect( expiresCell ).not.toContainText(
+						'Expired on'
+					);
+
+					// Both AJAX-rendered and server-rendered rows must reopen with the site date.
+					await page.locator( '.edit-expires' ).click();
+					await expect(
+						page.locator( '.edit-expires-input' )
+					).toHaveValue( '2028-07-15T00:30' );
+					await page
+						.getByRole( 'button', { name: 'Cancel', exact: true } )
+						.click();
+					await page.reload();
+					await expect( expiresCell ).toContainText(
+						'July 15, 2028 12:30 am'
+					);
+					await page.locator( '.edit-expires' ).click();
+					await expect(
+						page.locator( '.edit-expires-input' )
+					).toHaveValue( '2028-07-15T00:30' );
+					await page
+						.locator( '.edit-expires-input' )
+						.fill( '2029-01-15T16:45' );
+					await page
+						.getByRole( 'button', { name: 'Save', exact: true } )
+						.click();
+					await expect( page.getByRole( 'alert' ) ).toContainText(
+						'Application password expiration updated.'
+					);
+
+					const [ updatedApp ] = await applicationPasswords.get();
+					expect( updatedApp.expires ).toBe( updated );
+					await expect( expiresCell ).toContainText(
+						'January 15, 2029 4:45 pm'
+					);
+					await page.locator( '.edit-expires' ).click();
+					await expect(
+						page.locator( '.edit-expires-input' )
+					).toHaveValue( '2029-01-15T16:45' );
+					await page.reload();
+					await expect( expiresCell ).toContainText(
+						'January 15, 2029 4:45 pm'
+					);
+				} finally {
+					await admin.visitAdminPage( '/options-general.php' );
+					await page
+						.locator( '#timezone_string' )
+						.selectOption( originalTimezone );
+					await page
+						.getByRole( 'button', {
+							name: 'Save Changes',
+							exact: true,
+						} )
+						.click();
+				}
+			} );
+		}
+
+		test( 'should preserve an unchanged expiry during the repeated DST hour', async ( {
+			page,
+			admin,
+			requestUtils,
+			applicationPasswords,
+		} ) => {
+			await admin.visitAdminPage( '/options-general.php' );
+			const originalTimezone = await page
+				.locator( '#timezone_string' )
+				.inputValue();
+			try {
+				await page
+					.locator( '#timezone_string' )
+					.selectOption( 'America/New_York' );
+				await page
+					.getByRole( 'button', {
+						name: 'Save Changes',
+						exact: true,
+					} )
+					.click();
+				await applicationPasswords.create(
+					TEST_APPLICATION_NAME,
+					'2028-07-15T00:30:37'
+				);
+				const [ app ] = await applicationPasswords.get();
+				expect( app.expires ).toBe( '2028-07-15T04:30:37' );
+				await requestUtils.rest( {
+					method: 'PUT',
+					path: `/wp/v2/users/me/application-passwords/${ app.uuid }`,
+					data: { expires: '2028-11-05T06:30:37Z' },
+				} );
+				await page.reload();
+				// The later 01:30 during the fallback must not become the earlier 01:30.
+				for ( let i = 0; i < 2; i++ ) {
+					await page.locator( '.edit-expires' ).click();
+					await expect(
+						page.locator( '.edit-expires-input' )
+					).toHaveValue( '2028-11-05T01:30:37' );
+					await page
+						.getByRole( 'button', { name: 'Save', exact: true } )
+						.click();
+					await expect( page.getByRole( 'alert' ) ).toContainText(
+						'Application password expiration updated.'
+					);
+					const [ saved ] = await applicationPasswords.get();
+					expect( saved.expires ).toBe( '2028-11-05T06:30:37' );
+				}
+			} finally {
+				await admin.visitAdminPage( '/options-general.php' );
+				await page
+					.locator( '#timezone_string' )
+					.selectOption( originalTimezone );
+				await page
+					.getByRole( 'button', {
+						name: 'Save Changes',
+						exact: true,
+					} )
+					.click();
+			}
+		} );
 	} );
 
 	test( 'should correctly revoke a single application password', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
 		await applicationPasswords.create();
 
-		const revokeButton = page.getByRole( 'button', { name: `Revoke "${ TEST_APPLICATION_NAME }"` } );
+		const revokeButton = page.getByRole( 'button', {
+			name: `Revoke "${ TEST_APPLICATION_NAME }"`,
+		} );
 		await expect( revokeButton ).toBeVisible();
 
 		// Revoke password.
 		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeButton.click();
 
-		await expect(
-			page.getByRole( 'alert' )
-		).toContainText(
+		await expect( page.getByRole( 'alert' ) ).toContainText(
 			'Application password revoked.'
 		);
 
 		const response = await applicationPasswords.get();
-		expect( response ).toEqual([]);
+		expect( response ).toEqual( [] );
 	} );
 
 	test( 'should correctly revoke all the application passwords', async ( {
 		page,
-		applicationPasswords
+		applicationPasswords,
 	} ) => {
 		await applicationPasswords.create();
 
-		const revokeAllButton = page.getByRole( 'button', { name: 'Revoke all application passwords' } );
+		const revokeAllButton = page.getByRole( 'button', {
+			name: 'Revoke all application passwords',
+		} );
 		await expect( revokeAllButton ).toBeVisible();
 
 		// Confirms revoking action.
 		page.once( 'dialog', ( dialog ) => dialog.accept() );
 		await revokeAllButton.click();
 
-		await expect(
-			page.getByRole( 'alert' )
-		).toContainText(
+		await expect( page.getByRole( 'alert' ) ).toContainText(
 			'All application passwords revoked.'
 		);
 
 		const response = await applicationPasswords.get();
-		expect( response ).toEqual([]);
+		expect( response ).toEqual( [] );
 	} );
 } );
 
 class ApplicationPasswords {
-	constructor( { requestUtils, page, admin }) {
+	constructor( { requestUtils, page, admin } ) {
 		this.requestUtils = requestUtils;
 		this.page = page;
 		this.admin = admin;
 	}
 
-	async create(applicationName = TEST_APPLICATION_NAME, expires = null) {
+	async create( applicationName = TEST_APPLICATION_NAME, expires = null ) {
 		await this.admin.visitAdminPage( '/profile.php' );
 
-		const newPasswordField = this.page.getByRole( 'textbox', { name: 'New Application Password Name' } );
+		const newPasswordField = this.page.getByRole( 'textbox', {
+			name: 'New Application Password Name',
+		} );
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
 
 		if ( expires ) {
-			const newPasswordExpiresField = this.page.getByLabel( 'Expires on' );
+			const newPasswordExpiresField =
+				this.page.getByLabel( 'Expires on' );
 			await expect( newPasswordExpiresField ).toBeVisible();
 			await newPasswordExpiresField.fill( expires );
 		}
 
-		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
+		await this.page
+			.getByRole( 'button', { name: 'Add Application Password' } )
+			.click();
 		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
 	}
 

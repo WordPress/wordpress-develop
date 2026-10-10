@@ -44,11 +44,11 @@
 
 		var expires = $newAppPassExpiresField.val();
 		if ( expires ) {
-		    var expiresDate = new Date( expires );
+			var expiresDate = wp.date.getDate( expires );
 
-		    if ( ! isNaN( expiresDate.getTime() ) ) {
-		        request.expires = expiresDate.toISOString();
-		    }
+			if ( ! isNaN( expiresDate.getTime() ) ) {
+				request.expires = expiresDate.toISOString();
+			}
 		}
 
 		/**
@@ -113,18 +113,27 @@
 		}
 
 		var $form = $( '<div class="edit-expires-form"></div>' );
-		var $input = $( '<input type="date" class="edit-expires-input" />' );
+		var timezoneDescriptionId = 'application-password-timezone-' + uuid;
+		var $input = $( '<input type="datetime-local" class="edit-expires-input" step="1" />' )
+			.attr( 'aria-label', wp.i18n.__( 'Expiration date and time' ) )
+			.attr( 'aria-describedby', timezoneDescriptionId );
 
 		if ( currentExpires ) {
-		    $input.val( currentExpires.split( 'T' )[0] );
+			$input.val( wp.date.date( 'Y-m-d\\TH:i:s', currentExpires + 'Z' ) );
 		}
+		var initialExpires = $input.val();
 
 		var $buttonContainer = $( '<div class="edit-expires-button-group"></div>' );
 		var $saveBtn = $( '<button type="button" class="button button-small button-primary">' + wp.i18n.__( 'Save' ) + '</button>' );
 		var $cancelBtn = $( '<button type="button" class="button button-small">' + wp.i18n.__( 'Cancel' ) + '</button>' );
 
 		$buttonContainer.append( $saveBtn ).append( $cancelBtn );
-		$form.append( $input ).append( $buttonContainer );
+		$form.append( $input )
+			.append( $( '<p class="description"></p>' ).attr( 'id', timezoneDescriptionId ).text(
+				/* translators: %s: Site timezone. */
+				wp.i18n.sprintf( wp.i18n.__( 'Timezone: %s' ), $appPassSection.data( 'timezone' ) )
+			) )
+			.append( $buttonContainer );
 
 		$td.append( $form );
 		$button.hide();
@@ -148,10 +157,14 @@
 
 		$saveBtn.on( 'click', function() {
 			var newExpires = $input.val();
-			var expiresDate = newExpires ? new Date( newExpires ) : null;
+			var expiresDate = newExpires ? wp.date.getDate( newExpires ) : null;
 			var requestData = {
 				expires: ( expiresDate && ! isNaN( expiresDate.getTime() ) ) ? expiresDate.toISOString() : null
 			};
+
+			if ( currentExpires && newExpires === initialExpires ) {
+				requestData.expires = currentExpires + 'Z';
+			}
 
 			clearNotices();
 			$saveBtn.prop( 'disabled', true );

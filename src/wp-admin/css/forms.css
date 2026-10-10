@@ -1072,7 +1072,7 @@ table.form-table td .updated p {
 .edit-expires-input {
 	display: block;
 	width: 100%;
-	max-width: 150px;
+	max-width: 20em;
 	margin-bottom: 5px;
 }
 
