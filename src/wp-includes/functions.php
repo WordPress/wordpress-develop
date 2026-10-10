@@ -6877,7 +6877,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
 			1 => ( isset( $zone[1] ) && $zone[1] ),
 			2 => ( isset( $zone[2] ) && $zone[2] ),
 		);
-		$exists[3] = ( $exists[0] && 'Etc' !== $zone[0] );
+		$exists[3] = $exists[0];
 		$exists[4] = ( $exists[1] && $exists[3] );
 		$exists[5] = ( $exists[2] && $exists[3] );
 
