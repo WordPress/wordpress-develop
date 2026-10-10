@@ -725,6 +725,298 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests if any active plugins or themes are closed, suspended, outdated, or removed for security reasons.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test result.
+	 */
+	public function get_test_closed_plugins_and_themes() {
+		$result = array(
+			'label'       => __( 'Your active plugins and themes are all maintained and available in the directory' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'Plugins and themes extend your site&#8217;s design and functionality. Keeping active plugins and themes that are supported and maintained is essential for site security and reliability.' )
+			),
+			'actions'     => '',
+			'test'        => 'closed_plugins_and_themes',
+		);
+
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$plugins        = get_plugins();
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		if ( is_multisite() ) {
+			$network_active = array_keys( (array) get_site_option( 'active_sitewide_plugins', array() ) );
+			$active_plugins = array_unique( array_merge( $active_plugins, $network_active ) );
+		}
+
+		$plugin_updates = get_site_transient( 'update_plugins' );
+		$theme_updates  = get_site_transient( 'update_themes' );
+
+		$security_issues = array();
+		$other_issues    = array();
+
+		foreach ( $active_plugins as $plugin_file ) {
+			if ( ! isset( $plugins[ $plugin_file ] ) ) {
+				continue;
+			}
+
+			$plugin_data = $plugins[ $plugin_file ];
+			$update_data = null;
+			if ( isset( $plugin_updates->response[ $plugin_file ] ) ) {
+				$update_data = (object) $plugin_updates->response[ $plugin_file ];
+			} elseif ( isset( $plugin_updates->no_update[ $plugin_file ] ) ) {
+				$update_data = (object) $plugin_updates->no_update[ $plugin_file ];
+			}
+
+			if ( ! $update_data ) {
+				continue;
+			}
+
+			$is_closed   = ! empty( $update_data->closed ) || 'closed' === ( $update_data->status ?? '' ) || 'disabled' === ( $update_data->status ?? '' );
+			$is_security = ! empty( $update_data->is_security ) || 'security-issue' === ( $update_data->reason ?? '' ) || 'security-issue' === ( $update_data->closed_reason ?? '' );
+			$is_outdated = ! empty( $update_data->is_outdated );
+
+			if ( ! $is_closed && ! $is_outdated ) {
+				continue;
+			}
+
+			$deactivate_url = wp_nonce_url(
+				admin_url( 'plugins.php?action=deactivate&plugin=' . urlencode( $plugin_file ) ),
+				'deactivate-plugin_' . $plugin_file
+			);
+			$delete_url     = wp_nonce_url(
+				admin_url( 'plugins.php?action=delete-selected&checked[]=' . urlencode( $plugin_file ) ),
+				'bulk-plugins'
+			);
+
+			$item = array(
+				'type'           => 'plugin',
+				'file'           => $plugin_file,
+				'name'           => $plugin_data['Name'],
+				'is_security'    => $is_security,
+				'is_closed'      => $is_closed,
+				'is_outdated'    => $is_outdated,
+				'closed_date'    => $update_data->closed_date ?? '',
+				'reason'         => $update_data->reason_text ?? ( $update_data->closed_reason ?? ( $update_data->reason ?? '' ) ),
+				'deactivate_url' => $deactivate_url,
+				'delete_url'     => $delete_url,
+			);
+
+			if ( $is_closed && $is_security ) {
+				$security_issues[] = $item;
+			} else {
+				$other_issues[] = $item;
+			}
+		}
+
+		$current_theme   = wp_get_theme();
+		$themes_to_check = array( $current_theme->get_stylesheet() => $current_theme );
+		if ( $current_theme->parent() ) {
+			$parent_theme                                       = $current_theme->parent();
+			$themes_to_check[ $parent_theme->get_stylesheet() ] = $parent_theme;
+		}
+
+		foreach ( $themes_to_check as $theme_slug => $theme_obj ) {
+			$update_data = null;
+			if ( isset( $theme_updates->response[ $theme_slug ] ) ) {
+				$update_data = (object) $theme_updates->response[ $theme_slug ];
+			} elseif ( isset( $theme_updates->no_update[ $theme_slug ] ) ) {
+				$update_data = (object) $theme_updates->no_update[ $theme_slug ];
+			}
+
+			if ( ! $update_data ) {
+				continue;
+			}
+
+			$is_closed   = ! empty( $update_data->closed ) || ! empty( $update_data->is_closed ) || 'suspend' === ( $update_data->status ?? '' );
+			$is_security = ! empty( $update_data->is_security ) || 'security-issue' === ( $update_data->reason ?? '' ) || 'security-issue' === ( $update_data->closed_reason ?? '' );
+			$is_outdated = ! empty( $update_data->is_outdated );
+
+			if ( ! $is_closed && ! $is_outdated ) {
+				continue;
+			}
+
+			$item = array(
+				'type'        => 'theme',
+				'slug'        => $theme_slug,
+				'name'        => $theme_obj->display( 'Name' ),
+				'is_security' => $is_security,
+				'is_closed'   => $is_closed,
+				'is_outdated' => $is_outdated,
+				'closed_date' => $update_data->closed_date ?? '',
+				'reason'      => $update_data->reason_text ?? ( $update_data->reason ?? '' ),
+				'themes_url'  => admin_url( 'themes.php' ),
+			);
+
+			if ( $is_closed && $is_security ) {
+				$security_issues[] = $item;
+			} else {
+				$other_issues[] = $item;
+			}
+		}
+
+		if ( ! empty( $security_issues ) ) {
+			$result['status'] = 'critical';
+			$result['badge']  = array(
+				'label' => __( 'Security' ),
+				'color' => 'red',
+			);
+			$result['label']  = __( 'You have plugins/themes installed that were removed from the WordPress directory due to security issues.' );
+
+			$list_html = '<ul>';
+			foreach ( $security_issues as $issue ) {
+				if ( ! empty( $issue['closed_date'] ) ) {
+					$date_str = strtotime( $issue['closed_date'] ) ? wp_date( get_option( 'date_format' ), strtotime( $issue['closed_date'] ) ) : $issue['closed_date'];
+					/* translators: %s: Closure date. */
+					$details = sprintf( __( 'Closed on %s due to a security issue.' ), $date_str );
+				} else {
+					$details = __( 'Closed due to a security issue.' );
+				}
+
+				if ( 'plugin' === $issue['type'] ) {
+					$actions    = sprintf(
+						'<a href="%s">%s</a> | <a href="%s">%s</a>',
+						esc_url( $issue['deactivate_url'] ),
+						__( 'Deactivate' ),
+						esc_url( $issue['delete_url'] ),
+						__( 'Delete' )
+					);
+					$list_html .= sprintf(
+						'<li><strong>%s</strong> (%s) &mdash; %s [%s]</li>',
+						esc_html( $issue['name'] ),
+						__( 'Plugin' ),
+						esc_html( $details ),
+						$actions
+					);
+				} else {
+					$actions    = sprintf(
+						'<a href="%s">%s</a>',
+						esc_url( $issue['themes_url'] ),
+						__( 'Switch Theme' )
+					);
+					$list_html .= sprintf(
+						'<li><strong>%s</strong> (%s) &mdash; %s [%s]</li>',
+						esc_html( $issue['name'] ),
+						__( 'Theme' ),
+						esc_html( $details ),
+						$actions
+					);
+				}
+			}
+			$list_html .= '</ul>';
+
+			$result['description'] = sprintf(
+				'<p>%s</p>%s',
+				__( 'The following items are active on your site but have been removed from the WordPress directory due to security vulnerabilities. They should be deactivated and deleted immediately:' ),
+				$list_html
+			);
+
+			$result['actions'] = sprintf(
+				'<p><a href="%s">%s</a> | <a href="%s">%s</a></p>',
+				esc_url( admin_url( 'plugins.php' ) ),
+				__( 'Manage plugins' ),
+				esc_url( admin_url( 'themes.php' ) ),
+				__( 'Manage themes' )
+			);
+		} elseif ( ! empty( $other_issues ) ) {
+			$result['status'] = 'recommended';
+			$result['badge']  = array(
+				'label' => __( 'Security' ),
+				'color' => 'orange',
+			);
+			$result['label']  = __( 'Some installed plugins or themes are no longer maintained or available in the directory.' );
+
+			$list_html = '<ul>';
+			foreach ( $other_issues as $issue ) {
+				if ( $issue['is_closed'] ) {
+					if ( ! empty( $issue['closed_date'] ) && ! empty( $issue['reason'] ) ) {
+						$date_str = strtotime( $issue['closed_date'] ) ? wp_date( get_option( 'date_format' ), strtotime( $issue['closed_date'] ) ) : $issue['closed_date'];
+						/* translators: 1: Closure date, 2: Closure reason. */
+						$details = sprintf( __( 'Closed on %1$s (%2$s).' ), $date_str, $issue['reason'] );
+					} elseif ( ! empty( $issue['closed_date'] ) ) {
+						$date_str = strtotime( $issue['closed_date'] ) ? wp_date( get_option( 'date_format' ), strtotime( $issue['closed_date'] ) ) : $issue['closed_date'];
+						/* translators: %s: Closure date. */
+						$details = sprintf( __( 'Closed on %s.' ), $date_str );
+					} else {
+						$details = __( 'Closed in directory.' );
+					}
+				} else {
+					$details = __( 'Outdated / abandoned (not updated in over 2 years).' );
+				}
+
+				if ( 'plugin' === $issue['type'] ) {
+					$actions    = sprintf(
+						'<a href="%s">%s</a> | <a href="%s">%s</a>',
+						esc_url( $issue['deactivate_url'] ),
+						__( 'Deactivate' ),
+						esc_url( $issue['delete_url'] ),
+						__( 'Delete' )
+					);
+					$list_html .= sprintf(
+						'<li><strong>%s</strong> (%s) &mdash; %s [%s]</li>',
+						esc_html( $issue['name'] ),
+						__( 'Plugin' ),
+						esc_html( $details ),
+						$actions
+					);
+				} else {
+					$actions    = sprintf(
+						'<a href="%s">%s</a>',
+						esc_url( $issue['themes_url'] ),
+						__( 'Manage Themes' )
+					);
+					$list_html .= sprintf(
+						'<li><strong>%s</strong> (%s) &mdash; %s [%s]</li>',
+						esc_html( $issue['name'] ),
+						__( 'Theme' ),
+						esc_html( $details ),
+						$actions
+					);
+				}
+			}
+			$list_html .= '</ul>';
+
+			$result['description'] = sprintf(
+				'<p>%s</p>%s',
+				__( 'The following items are no longer maintained or have been closed in the WordPress directory. Consider deactivating and removing them in favor of supported alternatives:' ),
+				$list_html
+			);
+
+			$result['actions'] = sprintf(
+				'<p><a href="%s">%s</a> | <a href="%s">%s</a></p>',
+				esc_url( admin_url( 'plugins.php' ) ),
+				__( 'Manage plugins' ),
+				esc_url( admin_url( 'themes.php' ) ),
+				__( 'Manage themes' )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if any active plugins or themes are closed, suspended, outdated, or removed for security reasons.
+	 *
+	 * Alias for get_test_closed_plugins_and_themes().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array The test result.
+	 */
+	public function test_closed_plugins_and_themes() {
+		return $this->get_test_closed_plugins_and_themes();
+	}
+
+	/**
 	 * Tests if the supplied PHP version is supported.
 	 *
 	 * @since 5.2.0
@@ -2861,6 +3153,10 @@ class WP_Site_Health {
 				'theme_version'                => array(
 					'label' => __( 'Theme Versions' ),
 					'test'  => 'theme_version',
+				),
+				'closed_plugins_and_themes'    => array(
+					'label' => __( 'Closed and outdated plugins and themes' ),
+					'test'  => 'closed_plugins_and_themes',
 				),
 				'php_version'                  => array(
 					'label' => __( 'PHP Version' ),

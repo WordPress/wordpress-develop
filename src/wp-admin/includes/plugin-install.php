@@ -210,7 +210,7 @@ function plugins_api( $action, $args = array() ) {
 				);
 			}
 
-			if ( isset( $res->error ) ) {
+			if ( isset( $res->error ) && 'closed' !== $res->error ) {
 				$res = new WP_Error( 'plugins_api_failed', $res->error );
 			}
 		}
@@ -531,6 +531,142 @@ function install_plugin_information() {
 			'slug' => wp_unslash( $_REQUEST['plugin'] ),
 		)
 	);
+
+	$is_closed = false;
+	if ( is_object( $api ) && ( ( isset( $api->error ) && 'closed' === $api->error ) || ! empty( $api->closed ) ) ) {
+		$is_closed = true;
+	} elseif ( is_wp_error( $api ) && 'closed' === $api->get_error_code() ) {
+		$is_closed  = true;
+		$error_data = $api->get_error_data();
+		if ( is_object( $error_data ) || is_array( $error_data ) ) {
+			$api = (object) $error_data;
+		} else {
+			$api = (object) array(
+				'error'       => 'closed',
+				'name'        => sanitize_text_field( wp_unslash( $_REQUEST['plugin'] ) ),
+				'slug'        => sanitize_text_field( wp_unslash( $_REQUEST['plugin'] ) ),
+				'description' => $api->get_error_message(),
+			);
+		}
+	}
+
+	if ( $is_closed ) {
+		iframe_header( __( 'Plugin Installation' ) );
+
+		$plugins_allowedtags = array(
+			'a'       => array(
+				'href'   => array(),
+				'title'  => array(),
+				'target' => array(),
+			),
+			'abbr'    => array( 'title' => array() ),
+			'acronym' => array( 'title' => array() ),
+			'code'    => array(),
+			'pre'     => array(),
+			'em'      => array(),
+			'strong'  => array(),
+			'div'     => array( 'class' => array() ),
+			'span'    => array( 'class' => array() ),
+			'p'       => array(),
+			'br'      => array(),
+			'ul'      => array(),
+			'ol'      => array(),
+			'li'      => array(),
+			'h1'      => array(),
+			'h2'      => array(),
+			'h3'      => array(),
+			'h4'      => array(),
+			'h5'      => array(),
+			'h6'      => array(),
+		);
+
+		$plugin_name = ! empty( $api->name ) ? wp_kses( $api->name, $plugins_allowedtags ) : sanitize_text_field( wp_unslash( $_REQUEST['plugin'] ) );
+		$is_security = ! empty( $api->is_security ) || 'security-issue' === ( $api->reason ?? '' ) || 'security-issue' === ( $api->closed_reason ?? '' );
+		$closed_date = '';
+		if ( ! empty( $api->closed_date ) ) {
+			$closed_timestamp = strtotime( $api->closed_date );
+			$closed_date      = $closed_timestamp ? wp_date( get_option( 'date_format' ), $closed_timestamp ) : $api->closed_date;
+		}
+		$reason      = $api->reason_text ?? ( $api->closed_reason ?? ( $api->reason ?? '' ) );
+		$description = ! empty( $api->description ) ? wp_kses( $api->description, $plugins_allowedtags ) : '';
+
+		echo '<div id="plugin-information-scrollable" class="plugin-information-closed-panel" style="padding: 20px;">';
+		echo '<h2>' . esc_html( $plugin_name ) . '</h2>';
+
+		if ( $is_security ) {
+			if ( $closed_date ) {
+				/* translators: %s: Plugin closure date. */
+				$message = sprintf( __( 'Warning: This plugin was closed on %s due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' ), esc_html( $closed_date ) );
+			} else {
+				$message = __( 'Warning: This plugin was closed due to a security issue and is no longer available for download. It should be uninstalled or replaced immediately.' );
+			}
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		} else {
+			if ( $closed_date && $reason ) {
+				/* translators: 1: Plugin closure date, 2: Plugin closure reason. */
+				$message = sprintf( __( 'Notice: This plugin was closed on %1$s (%2$s) and is no longer available for download.' ), esc_html( $closed_date ), esc_html( $reason ) );
+			} elseif ( $closed_date ) {
+				/* translators: %s: Plugin closure date. */
+				$message = sprintf( __( 'Notice: This plugin was closed on %s and is no longer available for download.' ), esc_html( $closed_date ) );
+			} elseif ( $reason ) {
+				/* translators: %s: Plugin closure reason. */
+				$message = sprintf( __( 'Notice: This plugin was closed (%s) and is no longer available for download.' ), esc_html( $reason ) );
+			} else {
+				$message = __( 'Notice: This plugin was closed and is no longer available for download.' );
+			}
+			wp_admin_notice(
+				$message,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		}
+
+		if ( ! empty( $api->is_outdated ) ) {
+			$outdated_msg = ! empty( $api->outdated_notice ) ? $api->outdated_notice : __( 'This plugin has not been tested with the latest 3 major releases of WordPress and may no longer be maintained.' );
+			wp_admin_notice(
+				$outdated_msg,
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt' ),
+					'paragraph_wrap'     => true,
+				)
+			);
+		}
+
+		if ( $description ) {
+			echo '<div class="plugin-closure-description" style="margin-top: 20px;">' . $description . '</div>';
+		}
+
+		echo '<ul class="plugin-closure-meta" style="margin-top: 20px; list-style: disc; padding-left: 20px;">';
+		if ( $closed_date ) {
+			/* translators: %s: Plugin closure date. */
+			echo '<li>' . sprintf( __( 'Closed Date: %s' ), '<strong>' . esc_html( $closed_date ) . '</strong>' ) . '</li>';
+		}
+		if ( $reason ) {
+			/* translators: %s: Plugin closure reason. */
+			echo '<li>' . sprintf( __( 'Reason: %s' ), '<strong>' . esc_html( $reason ) . '</strong>' ) . '</li>';
+		}
+		if ( ! empty( $api->slug ) ) {
+			/* translators: %s: Plugin slug. */
+			echo '<li>' . sprintf( __( 'Slug: %s' ), '<code>' . esc_html( $api->slug ) . '</code>' ) . '</li>';
+		}
+		echo '</ul>';
+
+		echo '</div>';
+
+		iframe_footer();
+		exit;
+	}
 
 	if ( is_wp_error( $api ) ) {
 		wp_die( $api );

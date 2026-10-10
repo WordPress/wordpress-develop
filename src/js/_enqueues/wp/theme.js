@@ -431,6 +431,10 @@ themes.view.Theme = wp.Backbone.View.extend({
 		// Renders active theme styles.
 		this.activeTheme();
 
+		this.$el.toggleClass( 'closed', !! ( this.model.get( 'closed' ) || this.model.get( 'is_suspended' ) ) );
+		this.$el.toggleClass( 'outdated', !! this.model.get( 'is_outdated' ) );
+		this.$el.toggleClass( 'security-issue', !! this.model.get( 'is_security' ) );
+
 		if ( this.model.get( 'displayAuthor' ) ) {
 			this.$el.addClass( 'display-author' );
 		}
@@ -706,6 +710,10 @@ themes.view.Details = wp.Backbone.View.extend({
 		this.$el.html( this.html( data ) );
 		// Renders active theme styles.
 		this.activeTheme();
+
+		this.$el.toggleClass( 'closed', !! ( this.model.get( 'closed' ) || this.model.get( 'is_suspended' ) ) );
+		this.$el.toggleClass( 'outdated', !! this.model.get( 'is_outdated' ) );
+		this.$el.toggleClass( 'security-issue', !! this.model.get( 'is_security' ) );
 		// Set up navigation events.
 		this.navigation();
 		// Checks screenshot size.

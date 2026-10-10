@@ -503,6 +503,14 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$updates->response     = $response['plugins'];
 		$updates->translations = $response['translations'];
 		$updates->no_update    = $response['no_update'];
+
+		if ( isset( $response['closed'] ) && is_array( $response['closed'] ) ) {
+			foreach ( $response['closed'] as $closed_plugin => $closed_data ) {
+				if ( ! isset( $updates->response[ $closed_plugin ] ) && ! isset( $updates->no_update[ $closed_plugin ] ) ) {
+					$updates->no_update[ $closed_plugin ] = (object) $closed_data;
+				}
+			}
+		}
 	}
 
 	// Support updates for any plugins using the `Update URI` header field.
@@ -599,6 +607,16 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$item = (object) $item;
 
 		unset( $item->translations, $item->compatibility );
+
+		if ( isset( $item->closed ) ) {
+			$item->closed = (bool) $item->closed;
+		}
+		if ( isset( $item->is_outdated ) ) {
+			$item->is_outdated = (bool) $item->is_outdated;
+		}
+		if ( isset( $item->is_security ) ) {
+			$item->is_security = (bool) $item->is_security;
+		}
 
 		return $item;
 	};
@@ -784,6 +802,14 @@ function wp_update_themes( $extra_stats = array() ) {
 		$new_update->response     = $response['themes'];
 		$new_update->no_update    = $response['no_update'];
 		$new_update->translations = $response['translations'];
+
+		if ( isset( $response['closed'] ) && is_array( $response['closed'] ) ) {
+			foreach ( $response['closed'] as $closed_theme => $closed_data ) {
+				if ( ! isset( $new_update->response[ $closed_theme ] ) && ! isset( $new_update->no_update[ $closed_theme ] ) ) {
+					$new_update->no_update[ $closed_theme ] = (array) $closed_data;
+				}
+			}
+		}
 	}
 
 	// Support updates for any themes using the `Update URI` header field.
@@ -870,6 +896,39 @@ function wp_update_themes( $extra_stats = array() ) {
 		} else {
 			$new_update->no_update[ $theme_stylesheet ] = (array) $update;
 		}
+	}
+
+	$sanitize_theme_update_payload = static function ( &$item ) {
+		if ( is_object( $item ) ) {
+			$item = (array) $item;
+		}
+
+		if ( is_array( $item ) ) {
+			if ( isset( $item['closed'] ) ) {
+				$item['closed'] = (bool) $item['closed'];
+			}
+			if ( isset( $item['is_closed'] ) ) {
+				$item['is_closed'] = (bool) $item['is_closed'];
+			}
+			if ( isset( $item['is_suspended'] ) ) {
+				$item['is_suspended'] = (bool) $item['is_suspended'];
+			}
+			if ( isset( $item['is_outdated'] ) ) {
+				$item['is_outdated'] = (bool) $item['is_outdated'];
+			}
+			if ( isset( $item['is_security'] ) ) {
+				$item['is_security'] = (bool) $item['is_security'];
+			}
+		}
+
+		return $item;
+	};
+
+	if ( is_array( $new_update->response ) ) {
+		array_walk( $new_update->response, $sanitize_theme_update_payload );
+	}
+	if ( is_array( $new_update->no_update ) ) {
+		array_walk( $new_update->no_update, $sanitize_theme_update_payload );
 	}
 
 	set_site_transient( 'update_themes', $new_update );

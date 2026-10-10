@@ -1349,6 +1349,33 @@ ul.cat-checklist input[name="post_category[]"]:indeterminate::before {
 	white-space: nowrap;
 }
 
+.plugins .plugin-status-badge {
+	display: inline-block;
+	font-size: 11px;
+	line-height: 1.4;
+	font-weight: 600;
+	padding: 1px 6px;
+	border-radius: 3px;
+	margin-left: 6px;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.plugins .plugin-status-badge-closed {
+	background-color: #d63638;
+	color: #fff;
+}
+
+.plugins .plugin-status-badge-outdated {
+	background-color: #dba617;
+	color: #1d2327;
+}
+
+[dir="rtl"] .plugins .plugin-status-badge {
+	margin-left: 0;
+	margin-right: 6px;
+}
+
 .plugins .plugin-title .dashicons,
 .plugins .plugin-title img.plugin-icon,
 .plugins .plugin-title img.updates-table-screenshot {
