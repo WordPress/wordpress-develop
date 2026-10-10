@@ -128,7 +128,7 @@ class Tests_Admin_Includes_Plugin_ValidatePlugin extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_invalid_plugin_paths() {
+	public static function data_invalid_plugin_paths() {
 		return array(
 			'directory traversal at start' => array( '../outside/plugin.php' ),
 			'nested directory traversal'   => array( 'dir/../../file.php' ),
