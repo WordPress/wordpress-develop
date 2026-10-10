@@ -57,7 +57,7 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
 function wp_register_tinymce_scripts( $scripts, $deprecated = false ): void {
 	global $tinymce_version;
 
-	if ( ! empty( $deprecated ) ) {
+	if ( false !== $deprecated ) {
 		_deprecated_argument( __FUNCTION__, '7.2.0' );
 	}
 
