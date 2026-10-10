@@ -7178,6 +7178,33 @@ EOF;
 	}
 
 	/**
+	 * @ticket 66089
+	 * @covers ::wp_filter_content_tags
+	 * @covers ::wp_remove_auto_sizes_from_cropped_galleries
+	 */
+	public function test_cropped_gallery_images_do_not_have_auto_sizes() {
+		$image   = '<img src="%1$s.jpg" width="600" height="400" loading="lazy" srcset="%1$s.jpg 600w" sizes="(max-width: 600px) 100vw, 600px">';
+		$content = sprintf(
+			'<figure class="wp-block-gallery is-cropped"><figure>%1$s</figure></figure>' .
+			'<figure class="wp-block-gallery"><figure>%2$s</figure></figure>' .
+			'<p>%3$s</p>',
+			sprintf( $image, 'cropped' ),
+			sprintf( $image, 'uncropped' ),
+			sprintf( $image, 'outside' )
+		);
+
+		$processor = WP_HTML_Processor::create_fragment( wp_filter_content_tags( $content ) );
+		$sizes     = array();
+		while ( $processor->next_tag( 'IMG' ) ) {
+			$sizes[ $processor->get_attribute( 'src' ) ] = $processor->get_attribute( 'sizes' );
+		}
+
+		$this->assertSame( '(max-width: 600px) 100vw, 600px', $sizes['cropped.jpg'] );
+		$this->assertSame( 'auto, (max-width: 600px) 100vw, 600px', $sizes['uncropped.jpg'] );
+		$this->assertSame( 'auto, (max-width: 600px) 100vw, 600px', $sizes['outside.jpg'] );
+	}
+
+	/**
 	 * Test content filtered markup without lazy loading does not get auto-sizes.
 	 *
 	 * @ticket 61847
