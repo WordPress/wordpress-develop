@@ -10,7 +10,8 @@
 ( function( $ ) {
 	var $appPassSection = $( '#application-passwords-section' ),
 		$newAppPassForm = $appPassSection.find( '.create-application-password' ),
-		$newAppPassField = $newAppPassForm.find( '.input' ),
+		$newAppPassField = $newAppPassForm.find( '#new_application_password_name' ),
+		$newAppPassExpiresField = $newAppPassForm.find( '#new_application_password_expires' ),
 		$newAppPassButton = $newAppPassForm.find( '.button' ),
 		$appPassTwrapper = $appPassSection.find( '.application-passwords-list-table-wrapper' ),
 		$appPassTbody = $appPassSection.find( 'tbody' ),
@@ -19,6 +20,11 @@
 		tmplNewAppPass = wp.template( 'new-application-password' ),
 		tmplAppPassRow = wp.template( 'application-password-row' ),
 		userId = $( '#user_id' ).val();
+
+	updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+	$newAppPassExpiresField.on( 'focus', function() {
+		updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+	} );
 
 	$newAppPassButton.on( 'click', function( e ) {
 		e.preventDefault();
@@ -34,12 +40,26 @@
 			return;
 		}
 
+		updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+		if ( ! $newAppPassExpiresField[0].reportValidity() ) {
+			return;
+		}
+
 		clearNotices();
 		$newAppPassButton.prop( 'aria-disabled', true ).addClass( 'disabled' );
 
 		var request = {
 			name: name
 		};
+
+		var expires = $newAppPassExpiresField.val();
+		if ( expires ) {
+			var expiresDate = wp.date.getDate( expires );
+
+			if ( ! isNaN( expiresDate.getTime() ) ) {
+				request.expires = expiresDate.toISOString();
+			}
+		}
 
 		/**
 		 * Filters the request data used to create a new Application Password.
@@ -59,6 +79,7 @@
 			$newAppPassButton.removeProp( 'aria-disabled' ).removeClass( 'disabled' );
 		} ).done( function( response ) {
 			$newAppPassField.val( '' );
+			$newAppPassExpiresField.val( '' );
 			$newAppPassButton.prop( 'disabled', false );
 
 			$newAppPassForm.after( tmplNewAppPass( {
@@ -82,6 +103,127 @@
 			 */
 			wp.hooks.doAction( 'wp_application_passwords_created_password', response, request );
 		} ).fail( handleErrorResponse );
+	});
+
+	/**
+	 * Handles the inline editing of an application password expiration date.
+	 * * @since 7.1.0
+	 */
+	$appPassTbody.on( 'click', '.edit-expires', function( e ) {
+		e.preventDefault();
+
+		var $button = $( this ),
+			$tr = $button.closest( 'tr' ),
+			uuid = $tr.data( 'uuid' ),
+			currentExpires = $tr.data( 'expires' ),
+			$td = $button.closest( 'td' );
+
+		if ( $td.find( '.edit-expires-form' ).length ) {
+			return;
+		}
+
+		var $form = $( '<div class="edit-expires-form"></div>' );
+		var timezoneDescriptionId = 'application-password-timezone-' + uuid;
+		var $input = $( '<input type="datetime-local" class="edit-expires-input" step="1" />' )
+			.attr( 'aria-label', wp.i18n.__( 'Expiration date and time' ) )
+			.attr( 'aria-describedby', timezoneDescriptionId );
+
+		if ( currentExpires ) {
+			$input.val( wp.date.date( 'Y-m-d\\TH:i:s', currentExpires + 'Z' ) );
+		}
+		var initialExpires = $input.val();
+		$input.on( 'focus', function() {
+			updateApplicationPasswordExpirationMinimum( $input );
+		} );
+
+		var $buttonContainer = $( '<div class="edit-expires-button-group"></div>' );
+		var $saveBtn = $( '<button type="button" class="button button-small button-primary">' + wp.i18n.__( 'Save' ) + '</button>' );
+		var $cancelBtn = $( '<button type="button" class="button button-small">' + wp.i18n.__( 'Cancel' ) + '</button>' );
+		var $removeBtn = $( '<button type="button" class="button button-small button-link button-link-delete"></button>' ).text( wp.i18n.__( 'Remove expiry' ) );
+
+		$buttonContainer.append( $saveBtn ).append( $cancelBtn );
+		if ( currentExpires ) {
+			$buttonContainer.append( $removeBtn );
+		}
+		$form.append( $input )
+			.append( $( '<p class="description"></p>' ).attr( 'id', timezoneDescriptionId ).text(
+				/* translators: %s: Site timezone. */
+				wp.i18n.sprintf( wp.i18n.__( 'Timezone: %s' ), $appPassSection.data( 'timezone' ) )
+			) )
+			.append( $buttonContainer );
+
+		$td.append( $form );
+		$button.hide();
+		$input.trigger( 'focus' );
+
+		// Close form on Escape key.
+		$input.on( 'keydown', function( e ) {
+			if ( 27 === e.which ) {
+				$cancelBtn.trigger( 'click' );
+			}
+			if ( 13 === e.which ) {
+				e.preventDefault();
+				$saveBtn.trigger( 'click' );
+			}
+		});
+
+		$cancelBtn.on( 'click', function() {
+			if ( $cancelBtn.prop( 'disabled' ) ) {
+				return;
+			}
+
+			$form.remove();
+			$button.show().trigger( 'focus' );
+		} );
+
+		$removeBtn.on( 'click', function() {
+			$input.val( '' ).trigger( 'focus' );
+			$saveBtn.trigger( 'click' );
+		} );
+
+		$saveBtn.on( 'click', function() {
+			if ( $saveBtn.prop( 'disabled' ) ) {
+				return;
+			}
+
+			updateApplicationPasswordExpirationMinimum( $input );
+			var newExpires = $input.val();
+
+			// An existing expired value may be retained, but a newly selected time must be in the future.
+			if ( ! ( currentExpires && newExpires === initialExpires ) && ! $input[0].reportValidity() ) {
+				return;
+			}
+
+			var expiresDate = newExpires ? wp.date.getDate( newExpires ) : null;
+			var requestData = {
+				expires: ( expiresDate && ! isNaN( expiresDate.getTime() ) ) ? expiresDate.toISOString() : null
+			};
+
+			if ( currentExpires && newExpires === initialExpires ) {
+				requestData.expires = currentExpires + 'Z';
+			}
+
+			clearNotices();
+			$saveBtn.prop( 'disabled', true );
+			$cancelBtn.prop( 'disabled', true );
+			$removeBtn.prop( 'disabled', true );
+
+			wp.apiRequest( {
+				path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid + '?_locale=user',
+				method: 'PUT',
+				data: JSON.stringify( requestData ),
+				contentType: 'application/json'
+			} ).always( function() {
+				$saveBtn.prop( 'disabled', false );
+				$cancelBtn.prop( 'disabled', false );
+				$removeBtn.prop( 'disabled', false );
+			} ).done( function( response ) {
+				var $newRow = $( tmplAppPassRow( response ) );
+				$tr.replaceWith( $newRow );
+				$newRow.find( '.edit-expires' ).trigger( 'focus' );
+				addNotice( wp.i18n.__( 'Application password expiration updated.' ), 'success' );
+			} ).fail( handleErrorResponse );
+		} );
 	} );
 
 	$appPassTbody.on( 'click', '.delete', function( e ) {
@@ -184,6 +326,17 @@
 		}
 
 		addNotice( errorMessage, 'error' );
+	}
+
+	/**
+	 * Updates the earliest expiration allowed in an application password input.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {jQuery} $input The expiration input.
+	 */
+	function updateApplicationPasswordExpirationMinimum( $input ) {
+		$input.attr( 'min', wp.date.date( 'Y-m-d\\TH:i:s', new Date( Date.now() + 1000 ) ) );
 	}
 
 	/**
