@@ -25,15 +25,9 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	public function tear_down() {
 		global $wpdb;
 
-		if ( isset( $this->orig_options ) ) {
-			$wpdb->options = $this->orig_options;
-		}
-		if ( isset( $this->orig_blogmeta ) ) {
-			$wpdb->blogmeta = $this->orig_blogmeta;
-		}
-		if ( isset( $this->orig_sitemeta ) ) {
-			$wpdb->sitemeta = $this->orig_sitemeta;
-		}
+		$wpdb->options  = $this->orig_options;
+		$wpdb->blogmeta = $this->orig_blogmeta;
+		$wpdb->sitemeta = $this->orig_sitemeta;
 
 		wp_cache_delete( 'alloptions', 'options' );
 
