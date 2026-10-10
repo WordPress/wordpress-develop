@@ -909,11 +909,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/formatting.php
 		-
-			message: '#^Parameter \#2 \$callback of function preg_replace_callback expects callable\(array\<string\>\)\: string, ''_links_add_target'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/formatting.php
-		-
 			message: '#^Parameter \#1 \$prefix of function uniqid expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
