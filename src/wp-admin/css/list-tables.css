@@ -89,6 +89,27 @@
 	border-top-color: #3858e9;
 }
 
+/*
+ * Comment status views ("Mine", "Spam", "Trash") with zero comments start
+ * CSS-hidden rather than omitted from the DOM, so edit-comments.js can
+ * reveal or re-hide them after an AJAX action by toggling this class.
+ */
+.subsubsub li.is-empty-view {
+	display: none;
+}
+
+/*
+ * The " | " separator between comment status views is generated here,
+ * rather than written as literal text server-side, so it shows or hides
+ * itself together with its own view regardless of which direction
+ * edit-comments.js later toggles that view's visibility in. Scoped to the
+ * Comments screen specifically: every other list table still renders its
+ * separator as literal text and doesn't use is-empty-view.
+ */
+body.edit-comments-php .subsubsub li:not(:first-child)::before {
+	content: "| ";
+}
+
 /* @todo: consider to use a single rule for these counters and the admin menu counters. */
 .column-response .post-com-count-pending,
 .column-comments .post-com-count-pending {
