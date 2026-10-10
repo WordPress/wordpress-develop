@@ -23,6 +23,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     5: ID.
  *     6: Icon for top level menu.
  *
+ * Dashicons back-compat: the Dashicons values of the icons are kept. They are
+ * replaced with SVG icons at render time, see _wp_replace_menu_dashicon().
+ *
  * @global array $menu
  */
 
@@ -144,10 +147,11 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 
 	$menu_icon = 'dashicons-admin-post';
 	if ( is_string( $post_type_obj->menu_icon ) ) {
-		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, and Dashicons.
+		// Special handling for an empty div.wp-menu-image, data:image/svg+xml, Dashicons, and namespaced icon names.
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
 			|| str_starts_with( $post_type_obj->menu_icon, 'dashicons-' )
+			|| wp_is_icon_name( $post_type_obj->menu_icon )
 		) {
 			$menu_icon = $post_type_obj->menu_icon;
 		} else {

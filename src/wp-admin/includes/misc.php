@@ -1090,6 +1090,50 @@ function wp_color_scheme_settings() {
 }
 
 /**
+ * Dashicons back-compat: adds the icon colors of the current admin color scheme to SVG menu icons.
+ *
+ * Color schemes that only color the `::before` pseudo-element of menu icons do
+ * not reach inline SVG icons, so these are colored from the scheme's icon colors.
+ * The stylesheets of the core schemes already color them.
+ *
+ * @since 7.2.0
+ *
+ * @global array $_wp_admin_css_colors
+ */
+function wp_color_scheme_menu_icon_styles() {
+	global $_wp_admin_css_colors;
+
+	$color_scheme = get_user_option( 'admin_color' );
+
+	if ( empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
+		return;
+	}
+
+	// The core schemes have no stylesheet of their own, or one from the core colors directory.
+	$url = $_wp_admin_css_colors[ $color_scheme ]->url;
+	if ( ! is_string( $url ) || '' === $url || str_starts_with( $url, admin_url( 'css/colors/' ) ) ) {
+		return;
+	}
+
+	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
+		return;
+	}
+
+	wp_add_inline_style(
+		'colors',
+		sprintf(
+			'#adminmenu div.wp-menu-image.svg-icon{color:%1$s}' .
+			'#adminmenu li:hover div.wp-menu-image.svg-icon,#adminmenu li a:focus div.wp-menu-image.svg-icon,#adminmenu li.opensub div.wp-menu-image.svg-icon{color:%2$s}' .
+			'#adminmenu li.wp-has-current-submenu div.wp-menu-image.svg-icon,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image.svg-icon,#adminmenu li.current div.wp-menu-image.svg-icon,#adminmenu a.current:hover div.wp-menu-image.svg-icon{color:%3$s}',
+			$icon_colors['base'],
+			$icon_colors['focus'],
+			$icon_colors['current']
+		)
+	);
+}
+
+/**
  * Displays the viewport meta in the admin.
  *
  * @since 5.5.0
