@@ -28,7 +28,8 @@ EditImage = wp.media.controller.State.extend(/** @lends wp.media.controller.Edit
 		menu:    false,
 		toolbar: 'edit-image',
 		content: 'edit-image',
-		url:     ''
+		url:     '',
+		uploader: false
 	},
 
 	/**
