@@ -19,6 +19,20 @@ class Tests_Admin_Includes_Plugin_PluginPausedState extends WP_UnitTestCase {
 	private $orig_paused_plugins;
 
 	/**
+	 * Original recovery mode is_active property.
+	 *
+	 * @var bool
+	 */
+	private $orig_recovery_mode_is_active;
+
+	/**
+	 * Original recovery mode session_id property.
+	 *
+	 * @var string
+	 */
+	private $orig_recovery_mode_session_id;
+
+	/**
 	 * Sets up the environment before each test.
 	 */
 	public function set_up() {
@@ -29,6 +43,9 @@ class Tests_Admin_Includes_Plugin_PluginPausedState extends WP_UnitTestCase {
 		$this->orig_paused_plugins = isset( $GLOBALS['_paused_plugins'] ) ? $GLOBALS['_paused_plugins'] : null;
 
 		$GLOBALS['_paused_plugins'] = array();
+
+		$this->orig_recovery_mode_is_active  = $this->get_recovery_mode_property( 'is_active' );
+		$this->orig_recovery_mode_session_id = $this->get_recovery_mode_property( 'session_id' );
 	}
 
 	/**
@@ -42,9 +59,24 @@ class Tests_Admin_Includes_Plugin_PluginPausedState extends WP_UnitTestCase {
 		}
 
 		delete_option( self::TEST_SESSION_ID . '_paused_extensions' );
-		$this->set_recovery_mode_state( false, '' );
+		$this->set_recovery_mode_state( $this->orig_recovery_mode_is_active, $this->orig_recovery_mode_session_id );
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Gets WP_Recovery_Mode property value using reflection.
+	 *
+	 * @param string $property Property name.
+	 * @return mixed Property value.
+	 */
+	private function get_recovery_mode_property( $property ) {
+		$recovery_mode = wp_recovery_mode();
+		$prop          = new ReflectionProperty( $recovery_mode, $property );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$prop->setAccessible( true );
+		}
+		return $prop->getValue( $recovery_mode );
 	}
 
 	/**
