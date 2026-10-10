@@ -2071,6 +2071,18 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 
 	$is_protected = ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] );
 
+	/*
+	 * Credentials in the request are not proof that the server enforces Basic Auth.
+	 * Under the CGI/FastCGI SAPI, PHP populates these keys from any `Authorization: Basic`
+	 * header the client chooses to send, and browsers keep replaying cached credentials
+	 * for the rest of the session after Basic Auth has been switched off.
+	 *
+	 * Confirm with the server before trusting the request.
+	 */
+	if ( $is_protected ) {
+		$is_protected = wp_is_basic_auth_enforced_by_server();
+	}
+
 	/**
 	 * Filters whether a site is protected by HTTP Basic Auth.
 	 *
@@ -2080,4 +2092,62 @@ function wp_is_site_protected_by_basic_auth( $context = '' ) {
 	 * @param string $context      The context to check for protection. One of 'login', 'admin', or 'front'.
 	 */
 	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
+}
+
+/**
+ * Checks whether the server itself enforces HTTP Basic Auth.
+ *
+ * Makes an unauthenticated loopback request to the home URL and looks for the
+ * `WWW-Authenticate: Basic` challenge a server protected by Basic Auth must send.
+ *
+ * The result is cached briefly. The check only runs when Basic Auth credentials
+ * are present in the current request, so sites that are not affected never make
+ * the request.
+ *
+ * If the loopback request cannot be completed, the server is assumed to enforce
+ * Basic Auth, preserving the behavior from before this check existed.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @return bool Whether the server enforces Basic Auth.
+ */
+function wp_is_basic_auth_enforced_by_server() {
+	$cached = get_transient( 'wp_basic_auth_enforced' );
+
+	if ( false !== $cached ) {
+		return '1' === $cached;
+	}
+
+	$response = wp_remote_head(
+		home_url( '/' ),
+		array(
+			'timeout'     => 3,
+			'redirection' => 0,
+			'sslverify'   => false,
+		)
+	);
+
+	if ( is_wp_error( $response ) ) {
+		// Do not cache a failure to reach the site; the next request can try again.
+		return true;
+	}
+
+	$challenge = wp_remote_retrieve_header( $response, 'www-authenticate' );
+
+	// A server may send more than one challenge.
+	if ( is_array( $challenge ) ) {
+		$challenge = implode( ', ', $challenge );
+	}
+
+	$is_enforced = 401 === wp_remote_retrieve_response_code( $response )
+		&& str_starts_with( strtolower( $challenge ), 'basic' );
+
+	/*
+	 * Kept short: the server's configuration can change at any time, and a stale
+	 * result is wrong in both directions until it expires.
+	 */
+	set_transient( 'wp_basic_auth_enforced', $is_enforced ? '1' : '0', 15 * MINUTE_IN_SECONDS );
+
+	return $is_enforced;
 }
