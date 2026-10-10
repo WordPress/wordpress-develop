@@ -138,7 +138,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			array(
 				2,
 				'Comments (%)',
-				sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ),
+				'Comments (2)',
 			),
 			array(
 				2,
@@ -183,7 +183,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			array(
 				2,
 				__( 'View all % comments', 'twentythirteen' ),
-				sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ),
+				'View all 2 comments',
 			),
 			array(
 				2,
@@ -194,6 +194,16 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 				2,
 				__( '% Comments', 'twentyfifteen' ),
 				sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ),
+			),
+			array(
+				2,
+				' % so far',
+				' 2 so far',
+			),
+			array(
+				2,
+				' and view % comments',
+				' and view 2 comments',
 			),
 		);
 	}
