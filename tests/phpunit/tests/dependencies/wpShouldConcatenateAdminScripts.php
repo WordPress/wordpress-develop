@@ -74,8 +74,7 @@ class Tests_Dependencies_WpShouldConcatenateAdminScripts extends WP_UnitTestCase
 	}
 
 	/**
-	 * Tests the default when `CONCATENATE_SCRIPTS` is not defined, which is to concatenate unless
-	 * `SCRIPT_DEBUG` is on.
+	 * Tests the default when `CONCATENATE_SCRIPTS` is not defined, which is not to concatenate.
 	 *
 	 * @ticket 57548
 	 */
@@ -84,7 +83,7 @@ class Tests_Dependencies_WpShouldConcatenateAdminScripts extends WP_UnitTestCase
 			$this->markTestSkipped( 'CONCATENATE_SCRIPTS is defined.' );
 		}
 
-		$this->assertSame( ! SCRIPT_DEBUG, wp_should_concatenate_admin_scripts() );
+		$this->assertFalse( wp_should_concatenate_admin_scripts() );
 	}
 
 	/**
@@ -96,7 +95,7 @@ class Tests_Dependencies_WpShouldConcatenateAdminScripts extends WP_UnitTestCase
 		$filter = new MockAction();
 		add_filter( 'wp_should_concatenate_admin_scripts', array( $filter, 'filter' ) );
 
-		$this->assertSame( ! SCRIPT_DEBUG && ( ! defined( 'CONCATENATE_SCRIPTS' ) || CONCATENATE_SCRIPTS ), wp_should_concatenate_admin_scripts() );
+		$this->assertSame( ! SCRIPT_DEBUG && defined( 'CONCATENATE_SCRIPTS' ) && CONCATENATE_SCRIPTS, wp_should_concatenate_admin_scripts() );
 		$this->assertSame( 1, $filter->get_call_count() );
 
 		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true', 20 );
