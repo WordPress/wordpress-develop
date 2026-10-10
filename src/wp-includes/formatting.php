@@ -5622,36 +5622,37 @@ function _links_add_base( $m ) {
  *
  * @since 2.7.0
  *
- * @global string $_links_add_target
- *
  * @param string   $content String to search for links in.
  * @param string   $target  The target to add to the links.
  * @param string[] $tags    An array of tags to apply to.
  * @return string The processed content.
  */
 function links_add_target( $content, $target = '_blank', $tags = array( 'a' ) ) {
-	global $_links_add_target;
-	$_links_add_target = $target;
-	$tags              = implode( '|', (array) $tags );
-	return preg_replace_callback( "!<($tags)((\s[^>]*)?)>!i", '_links_add_target', $content );
-}
+	/*
+	 * Special-case finding a single tag, as all existing Core and plugin directory
+	 * calls only attempt to add target attributes to a single kind of tag.
+	 */
+	if ( 1 === count( $tags ) ) {
+		$tag       = strtoupper( $tags[0] );
+		$processor = new WP_HTML_Tag_Processor( $content );
+		while ( $processor->next_tag( $tag ) ) {
+			$processor->set_attribute( 'target', $target );
+		}
+	} else {
+		$tag_set = array();
+		foreach ( $tags as $tag ) {
+			$tag_set[ strtoupper( $tag ) ] = true;
+		}
 
-/**
- * Callback to add a target attribute to all links in passed content.
- *
- * @since 2.7.0
- * @access private
- *
- * @global string $_links_add_target
- *
- * @param string $m The matched link.
- * @return string The processed link.
- */
-function _links_add_target( $m ) {
-	global $_links_add_target;
-	$tag  = $m[1];
-	$link = preg_replace( '|( target=([\'"])(.*?)\2)|i', '', $m[2] );
-	return '<' . $tag . $link . ' target="' . esc_attr( $_links_add_target ) . '">';
+		$processor = new WP_HTML_Tag_Processor( $content );
+		while ( $processor->next_tag() ) {
+			if ( isset( $tag_set[ $processor->get_tag() ] ) ) {
+				$processor->set_attribute( 'target', $target );
+			}
+		}
+	}
+
+	return $processor->get_updated_html();
 }
 
 /**
