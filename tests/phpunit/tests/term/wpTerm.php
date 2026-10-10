@@ -187,4 +187,27 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 			'a WP_Term without term_id'  => array( new WP_Term( new stdClass() ) ),
 		);
 	}
+
+	/**
+	 * Tests that a cache miss is not stored while cache addition is suspended.
+	 *
+	 * @ticket 66006
+	 *
+	 * @covers WP_Term::get_instance
+	 */
+	public function test_get_instance_does_not_cache_a_miss_while_cache_addition_is_suspended(): void {
+		clean_term_cache( self::$term_id, 'wptests_tax' );
+		$this->assertFalse( wp_cache_get( self::$term_id, 'terms' ), 'The term was cached before the test began.' );
+
+		$suspend = wp_suspend_cache_addition();
+		wp_suspend_cache_addition( true );
+
+		$term = WP_Term::get_instance( self::$term_id, 'wptests_tax' );
+
+		wp_suspend_cache_addition( $suspend );
+
+		$this->assertInstanceOf( WP_Term::class, $term, 'A term object was not returned.' );
+		$this->assertSame( self::$term_id, $term->term_id, 'The wrong term was returned.' );
+		$this->assertFalse( wp_cache_get( self::$term_id, 'terms' ), 'The term was added to the cache.' );
+	}
 }
