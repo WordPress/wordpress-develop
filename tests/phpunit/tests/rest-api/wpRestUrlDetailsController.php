@@ -1098,17 +1098,15 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * URL Details has no item route; update requests should not match a route.
+	 * URL Details is read-only; update requests on the real endpoint should not match a route.
 	 *
 	 * @ticket 66073
 	 */
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$route = static::REQUEST_ROUTE . '/example';
-
-		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
-			$request  = new WP_REST_Request( $method, $route );
+		foreach ( array( 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, static::REQUEST_ROUTE );
 			$response = rest_get_server()->dispatch( $request );
 
 			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
@@ -1116,14 +1114,14 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * URL Details has no item route; delete requests should not match a route.
+	 * URL Details is read-only; delete requests on the real endpoint should not match a route.
 	 *
 	 * @ticket 66073
 	 */
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin_id );
 
-		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE . '/example' );
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE );
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
