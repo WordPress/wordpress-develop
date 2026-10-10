@@ -19,7 +19,7 @@
  *
  * @param int|string $cat_name        Category name.
  * @param int        $category_parent Optional. ID of parent category.
- * @return string|null Returns the category ID as a numeric string if the pairing exists, null if not.
+ * @return int|null Returns the category ID if the pairing exists, null if not.
  */
 function category_exists( $cat_name, $category_parent = null ) {
 	$id = term_exists( $cat_name, 'category', $category_parent );
