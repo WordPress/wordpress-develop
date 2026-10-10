@@ -176,6 +176,7 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', $route ) );
 		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $route, $response->get_matched_route() );
 
 		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
 			$request  = new WP_REST_Request( $method, $route );
@@ -200,6 +201,7 @@ class Tests_REST_WpRestEditSiteExportController extends WP_Test_REST_Controller_
 
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', $route ) );
 		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $route, $response->get_matched_route() );
 
 		$request  = new WP_REST_Request( 'DELETE', $route );
 		$response = rest_get_server()->dispatch( $request );
