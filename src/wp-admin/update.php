@@ -26,7 +26,7 @@ if ( isset( $_GET['action'] ) ) {
 
 	if ( 'update-selected' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ), 403 );
 		}
 
 		check_admin_referer( 'bulk-update-plugins' );
@@ -54,7 +54,7 @@ if ( isset( $_GET['action'] ) ) {
 
 	} elseif ( 'upgrade-plugin' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ), 403 );
 		}
 
 		check_admin_referer( 'upgrade-plugin_' . $plugin );
@@ -77,7 +77,7 @@ if ( isset( $_GET['action'] ) ) {
 
 	} elseif ( 'activate-plugin' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ), 403 );
 		}
 
 		check_admin_referer( 'activate-plugin_' . $plugin );
@@ -104,7 +104,7 @@ if ( isset( $_GET['action'] ) ) {
 	} elseif ( 'install-plugin' === $action ) {
 
 		if ( ! current_user_can( 'install_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ), 403 );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/plugin-install.php'; // For plugins_api().
@@ -121,7 +121,7 @@ if ( isset( $_GET['action'] ) ) {
 		);
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api );
+			wp_die( $api, 503 );
 		}
 
 		// Used in the HTML title tag.
@@ -149,13 +149,13 @@ if ( isset( $_GET['action'] ) ) {
 	} elseif ( 'upload-plugin' === $action ) {
 
 		if ( ! current_user_can( 'upload_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ), 403 );
 		}
 
 		check_admin_referer( 'plugin-upload' );
 
 		if ( isset( $_FILES['pluginzip']['name'] ) && ! str_ends_with( strtolower( $_FILES['pluginzip']['name'] ), '.zip' ) ) {
-			wp_die( __( 'Only .zip archives may be uploaded.' ) );
+			wp_die( __( 'Only .zip archives may be uploaded.' ), 415 );
 		}
 
 		$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
@@ -187,7 +187,7 @@ if ( isset( $_GET['action'] ) ) {
 
 	} elseif ( 'upload-plugin-cancel-overwrite' === $action ) {
 		if ( ! current_user_can( 'upload_plugins' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ), 403 );
 		}
 
 		check_admin_referer( 'plugin-upload-cancel-overwrite' );
@@ -208,7 +208,7 @@ if ( isset( $_GET['action'] ) ) {
 	} elseif ( 'upgrade-theme' === $action ) {
 
 		if ( ! current_user_can( 'update_themes' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ), 403 );
 		}
 
 		check_admin_referer( 'upgrade-theme_' . $theme );
@@ -231,7 +231,7 @@ if ( isset( $_GET['action'] ) ) {
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 	} elseif ( 'update-selected-themes' === $action ) {
 		if ( ! current_user_can( 'update_themes' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ), 403 );
 		}
 
 		check_admin_referer( 'bulk-update-themes' );
@@ -259,7 +259,7 @@ if ( isset( $_GET['action'] ) ) {
 	} elseif ( 'install-theme' === $action ) {
 
 		if ( ! current_user_can( 'install_themes' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ), 403 );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php'; // For themes_api().
@@ -277,7 +277,7 @@ if ( isset( $_GET['action'] ) ) {
 		); // Save on a bit of bandwidth.
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api );
+			wp_die( $api, 503 );
 		}
 
 		// Used in the HTML title tag.
@@ -301,13 +301,13 @@ if ( isset( $_GET['action'] ) ) {
 	} elseif ( 'upload-theme' === $action ) {
 
 		if ( ! current_user_can( 'upload_themes' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ), 403 );
 		}
 
 		check_admin_referer( 'theme-upload' );
 
 		if ( isset( $_FILES['themezip']['name'] ) && ! str_ends_with( strtolower( $_FILES['themezip']['name'] ), '.zip' ) ) {
-			wp_die( __( 'Only .zip archives may be uploaded.' ) );
+			wp_die( __( 'Only .zip archives may be uploaded.' ), 415 );
 		}
 
 		$file_upload = new File_Upload_Upgrader( 'themezip', 'package' );
@@ -339,7 +339,7 @@ if ( isset( $_GET['action'] ) ) {
 
 	} elseif ( 'upload-theme-cancel-overwrite' === $action ) {
 		if ( ! current_user_can( 'upload_themes' ) ) {
-			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ), 403 );
 		}
 
 		check_admin_referer( 'theme-upload-cancel-overwrite' );
