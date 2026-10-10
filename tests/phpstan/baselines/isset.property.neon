@@ -159,11 +159,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-partial.php
 		-
-			message: '#^Property WP_HTML_Text_Replacement\:\:\$text \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 2
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
-		-
 			message: '#^Property WP_Post\:\:\$post_status \(string\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
