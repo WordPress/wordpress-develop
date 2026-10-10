@@ -440,6 +440,53 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Ensures the cache key does not contain the per-request `wpdb` placeholder escape.
+	 *
+	 * The placeholder escape string changes on every request, so a cache key derived from
+	 * the escaped query could never be hit in a subsequent request.
+	 *
+	 * @ticket 66282
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_key_excludes_placeholder_escape() {
+		global $wpdb;
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-cache-key',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-cache-ke' );
+
+		// The `query` filter receives the SQL after the placeholder escape has been removed.
+		$queries = array();
+		$filter  = static function ( $query ) use ( &$queries ) {
+			if ( str_contains( $query, 'post_name LIKE' ) ) {
+				$queries[] = $query;
+			}
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+		$guess = redirect_guess_404_permalink();
+		remove_filter( 'query', $filter );
+
+		$this->assertSame( get_permalink( $post ), $guess, 'Did not guess the correct permalink.' );
+		$this->assertCount( 1, $queries, 'Expected exactly one loose-match query to be run.' );
+
+		$cache_key = 'redirect_guess_404_permalink:' . md5( $queries[0] );
+		$cache     = wp_cache_get_salted(
+			$cache_key,
+			'post-queries',
+			wp_cache_get_last_changed( 'posts' )
+		);
+
+		$this->assertSame( $post, $cache, 'The cache key should be generated from the SQL query.' );
+		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $cache_key, 'Cache key should not contain WPDB placeholder.' );
+	}
+
+	/**
 	 * @ticket 64250
 	 *
 	 * @covers ::redirect_guess_404_permalink
