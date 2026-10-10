@@ -190,7 +190,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 				'args'     => array(
 					'id' => array( 'message' ),
 				),
-				'expected' => '<div class="notice"><p>A notice with an ID that is not a string.</p></div>',
+				'expected' => '<div data-id="wp-admin-notice-%%ID%%" id="wp-admin-notice-%%ID%%" class="notice"><p>A notice with an ID that is not a string.</p></div>',
 			),
 			'an ID with only empty space'               => array(
 				'message'  => 'A notice with an ID with only empty space.',

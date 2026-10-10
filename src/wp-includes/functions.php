@@ -9361,6 +9361,9 @@ function wp_get_admin_notice( $message, $args = array() ) {
 		} else {
 			$html_builder->set_attribute( 'id', $unique_id );
 		}
+	} else {
+		$html_builder->set_attribute( 'data-id', $unique_id );
+		$html_builder->set_attribute( 'id', $unique_id );
 	}
 
 	if ( is_string( $args['type'] ) ) {
