@@ -387,6 +387,26 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 	}
 
 	/**
+	 * @covers WP_REST_Global_Styles_Revisions_Controller::prepare_item_for_response
+	 * @covers WP_REST_Revisions_Controller::prepare_links
+	 */
+	public function test_get_item_links() {
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $this->revision_1_id );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$revisions_base = 'wp/v2/global-styles/' . self::$global_styles_id . '/revisions';
+
+		$this->assertSame( rest_url( $revisions_base . '/' . $this->revision_1_id ), $links['self'][0]['href'], 'The self link should point at the revision.' );
+		$this->assertSame( rest_url( $revisions_base ), $links['collection'][0]['href'], 'The collection link should point at the revisions of the global styles post.' );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id ), $links['parent'][0]['href'], 'The parent link should point at the global styles post.' );
+		$this->assertSame( rest_url( 'wp/v2/users/' . $this->revision_1->post_author ), $links['author'][0]['href'], 'The author link should point at the revision author.' );
+		$this->assertTrue( $links['author'][0]['attributes']['embeddable'], 'The author link should be embeddable.' );
+	}
+
+	/**
 	 * @ticket 56481
 	 *
 	 * @covers WP_REST_Global_Styles_Controller::get_item
@@ -468,6 +488,7 @@ class WP_REST_Global_Styles_Revisions_Controller_Test extends WP_Test_REST_Contr
 			'date',
 			'id',
 			'parent',
+			'_links',
 		);
 		$data     = $response->get_data();
 		$this->assertSameSets( $fields, array_keys( $data[0] ) );

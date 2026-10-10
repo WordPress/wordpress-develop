@@ -212,10 +212,14 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$this->assertSame( $status_obj->name, $data['slug'] );
 		$this->assertSameSets(
 			array(
+				'self',
+				'collection',
 				'archives',
 			),
 			array_keys( $links )
 		);
+		$this->assertSame( rest_url( 'wp/v2/statuses/' . $status_obj->name ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/statuses' ), $links['collection'][0]['href'] );
 		$this->assertSame( $status_obj->date_floating, $data['date_floating'] );
 	}
 

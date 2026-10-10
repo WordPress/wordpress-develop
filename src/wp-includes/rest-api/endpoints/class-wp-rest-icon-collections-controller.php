@@ -207,10 +207,38 @@ class WP_REST_Icon_Collections_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
-		$data    = $this->add_additional_fields_to_object( $data, $request );
-		$data    = $this->filter_response_by_context( $data, $context );
-		return rest_ensure_response( $data );
+		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
+		$data     = $this->add_additional_fields_to_object( $data, $request );
+		$data     = $this->filter_response_by_context( $data, $context );
+		$response = rest_ensure_response( $data );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $item ) );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Prepares links for the request.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $item Raw icon collection as registered.
+	 * @return array Links for the given icon collection.
+	 */
+	protected function prepare_links( $item ) {
+		return array(
+			'self'                    => array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $item['slug'] ) ),
+			),
+			'collection'              => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+			),
+			'https://api.w.org/items' => array(
+				'href' => rest_url( sprintf( '%s/icons/%s', $this->namespace, $item['slug'] ) ),
+			),
+		);
 	}
 
 	/**

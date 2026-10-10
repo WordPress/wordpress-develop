@@ -1076,4 +1076,35 @@ class Tests_REST_WpRestMenuItemsController extends WP_Test_REST_Post_Type_Contro
 		$new_data = $response->get_data();
 		$this->assertSame( $params['title'], $new_data['title']['raw'] );
 	}
+
+	/**
+	 * @covers ::prepare_links
+	 */
+	public function test_get_item_links_include_parent_menu_item() {
+		wp_set_current_user( self::$admin_id );
+
+		$child_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'custom',
+				'menu-item-title'     => 'Child',
+				'menu-item-url'       => '#',
+				'menu-item-status'    => 'publish',
+				'menu-item-parent-id' => $this->menu_item_id,
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/menu-items/%d', $child_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( sprintf( 'wp/v2/menu-items/%d', $this->menu_item_id ) ), $links['up'][0]['href'] );
+		$this->assertTrue( $links['up'][0]['attributes']['embeddable'] );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/menu-items/%d', $this->menu_item_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'up', $response->get_links(), 'A top level menu item should not link to a parent.' );
+	}
 }

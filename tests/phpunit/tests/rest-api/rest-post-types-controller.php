@@ -145,6 +145,25 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	/**
+	 * @covers WP_REST_Post_Types_Controller::prepare_links
+	 */
+	public function test_get_item_links_include_only_rest_taxonomies() {
+		register_taxonomy( 'hidden_taxonomy', 'post', array( 'show_in_rest' => false ) );
+		try {
+			$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/types/post' ) );
+			$hrefs    = wp_list_pluck( $response->get_links()['https://api.w.org/taxonomy'], 'href' );
+			$this->assertContains( rest_url( 'wp/v2/taxonomies/category' ), $hrefs );
+			$this->assertContains( rest_url( 'wp/v2/taxonomies/post_tag' ), $hrefs );
+			$this->assertNotContains( rest_url( 'wp/v2/taxonomies/hidden_taxonomy' ), $hrefs );
+			foreach ( $response->get_links()['https://api.w.org/taxonomy'] as $link ) {
+				$this->assertSame( rest_url( 'wp/v2/taxonomies/' . $link['attributes']['taxonomy'] ), $link['href'] );
+			}
+		} finally {
+			unregister_taxonomy( 'hidden_taxonomy' );
+		}
+	}
+
+	/**
 	 * @ticket 53656
 	 */
 	public function test_get_item_cpt() {
@@ -369,8 +388,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( ! empty( $post_type_obj->template_lock ) ? $post_type_obj->template_lock : false, $data['template_lock'] );
 
 		$links = test_rest_expand_compact_links( $links );
+		$this->assertSame( rest_url( 'wp/v2/types/' . $post_type_obj->name ), $links['self'][0]['href'] );
 		$this->assertSame( rest_url( 'wp/v2/types' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
+		$this->assertSame( rest_url( rest_get_route_for_post_type_items( $post_type_obj->name ) ), $links['https://api.w.org/items'][0]['href'] );
 		if ( 'edit' === $context ) {
 			$this->assertSame( $post_type_obj->cap, $data['capabilities'] );
 			$this->assertSame( $post_type_obj->labels, $data['labels'] );

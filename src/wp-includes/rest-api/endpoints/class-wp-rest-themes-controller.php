@@ -392,9 +392,10 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.7.0
+	 * @since 7.2.0 Added the `up`, `https://api.w.org/theme-global-styles`, and `https://api.w.org/theme-style-variations` links.
 	 *
 	 * @param WP_Theme $theme Theme data.
-	 * @return array Links for the given block type.
+	 * @return array Links for the given theme.
 	 */
 	protected function prepare_links( $theme ) {
 		$links = array(
@@ -406,7 +407,22 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			),
 		);
 
+		$parent = $theme->parent();
+		if ( $parent && $parent->exists() ) {
+			$links['up'] = array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $parent->get_stylesheet() ) ),
+			);
+		}
+
 		if ( $this->is_same_theme( $theme, wp_get_theme() ) ) {
+			$styles_url                                        = rest_url( 'wp/v2/global-styles/themes/' . $theme->get_stylesheet() );
+			$links['https://api.w.org/theme-global-styles']    = array(
+				'href' => $styles_url,
+			);
+			$links['https://api.w.org/theme-style-variations'] = array(
+				'href' => $styles_url . '/variations',
+			);
+
 			// This creates a record for the active theme if not existent.
 			$id = WP_Theme_JSON_Resolver::get_user_global_styles_post_id();
 		} else {

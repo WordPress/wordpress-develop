@@ -867,6 +867,15 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 		);
 
 		$this->assertStringEndsWith(
+			$template_id . '/revisions',
+			$links['collection'][0]['href'],
+			sprintf(
+				'Failed asserting that the collection link ends with %s.',
+				$template_id . '/revisions'
+			)
+		);
+
+		$this->assertStringEndsWith(
 			$template_id,
 			$links['parent'][0]['href'],
 			sprintf(

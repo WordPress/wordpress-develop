@@ -289,6 +289,7 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 	 *
 	 * @since 6.3.0
 	 * @since 6.6.0 Added resolved URI links to the response.
+	 * @since 7.2.0 Added the `self`, `collection`, `parent`, and `author` links.
 	 *
 	 * @param WP_Post         $post    Post revision object.
 	 * @param WP_REST_Request $request Request object.
@@ -364,6 +365,10 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 		$data                = $this->filter_response_by_context( $data, $context );
 		$response            = rest_ensure_response( $data );
 		$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme_json );
+
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links( $this->prepare_links( $post ) );
+		}
 
 		if ( ! empty( $resolved_theme_uris ) ) {
 			$response->add_links(

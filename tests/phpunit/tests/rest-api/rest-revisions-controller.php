@@ -922,7 +922,11 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
 		$parent_object     = get_post_type_object( $parent->post_type );
 		$parent_base       = ! empty( $parent_object->rest_base ) ? $parent_object->rest_base : $parent_object->name;
+		$revisions_base    = '/wp/v2/' . $parent_base . '/' . $revision->post_parent . '/revisions';
+		$this->assertSame( rest_url( $revisions_base . '/' . $revision->ID ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( $revisions_base ), $links['collection'][0]['href'] );
 		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $revision->post_parent ), $links['parent'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/users/' . $revision->post_author ), $links['author'][0]['href'] );
 	}
 
 	/**

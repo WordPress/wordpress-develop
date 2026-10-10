@@ -230,7 +230,15 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				),
 			);
 
-			$links['wp:action-run'] = array(
+			$category = $ability->get_category();
+			if ( '' !== $category ) {
+				$links['up'] = array(
+					'href'       => rest_url( sprintf( '%s/categories/%s', $this->namespace, $category ) ),
+					'embeddable' => true,
+				);
+			}
+
+			$links['https://api.w.org/action-run'] = array(
 				'href' => rest_url( sprintf( '%s/%s/%s/run', $this->namespace, $this->rest_base, $ability->get_name() ) ),
 			);
 

@@ -650,22 +650,25 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.6.0
+	 * @since 7.2.0 Added the `collection` and `up` links.
 	 *
 	 * @param WP_User $user The requested user.
 	 * @param array   $item The application password.
 	 * @return array The list of links.
 	 */
 	protected function prepare_links( WP_User $user, $item ) {
+		$collection = sprintf( '%s/users/%d/application-passwords', $this->namespace, $user->ID );
+
 		return array(
-			'self' => array(
-				'href' => rest_url(
-					sprintf(
-						'%s/users/%d/application-passwords/%s',
-						$this->namespace,
-						$user->ID,
-						$item['uuid']
-					)
-				),
+			'self'       => array(
+				'href' => rest_url( $collection . '/' . $item['uuid'] ),
+			),
+			'collection' => array(
+				'href' => rest_url( $collection ),
+			),
+			'up'         => array(
+				'href'       => rest_url( sprintf( '%s/users/%d', $this->namespace, $user->ID ) ),
+				'embeddable' => true,
 			),
 		);
 	}

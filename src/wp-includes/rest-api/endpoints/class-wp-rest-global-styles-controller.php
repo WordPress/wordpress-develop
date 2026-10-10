@@ -387,6 +387,7 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.9.0
 	 * @since 6.3.0 Adds revisions count and rest URL href to version-history.
+	 * @since 7.2.0 Added the `predecessor-version` and `https://api.w.org/theme` links.
 	 *
 	 * @param int $id ID.
 	 * @return array Links for the given post.
@@ -410,6 +411,22 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 			$links['version-history'] = array(
 				'href'  => rest_url( $revisions_base ),
 				'count' => $revisions_count,
+			);
+
+			if ( $revisions_count > 0 ) {
+				$links['predecessor-version'] = array(
+					'href' => rest_url( $revisions_base . '/' . $revisions['latest_id'] ),
+					'id'   => $revisions['latest_id'],
+				);
+			}
+		}
+
+		// The `wp_theme` term name is the stylesheet of the theme the styles belong to.
+		$theme_terms = get_the_terms( $id, 'wp_theme' );
+
+		if ( is_array( $theme_terms ) && ! empty( $theme_terms ) ) {
+			$links['https://api.w.org/theme'] = array(
+				'href' => rest_url( sprintf( 'wp/v2/themes/%s', $theme_terms[0]->name ) ),
 			);
 		}
 
@@ -593,8 +610,14 @@ class WP_REST_Global_Styles_Controller extends WP_REST_Posts_Controller {
 
 		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
 			$links               = array(
-				'self' => array(
+				'self'                                     => array(
 					'href' => rest_url( sprintf( '%s/%s/themes/%s', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
+				),
+				'https://api.w.org/theme'                  => array(
+					'href' => rest_url( 'wp/v2/themes/' . $request['stylesheet'] ),
+				),
+				'https://api.w.org/theme-style-variations' => array(
+					'href' => rest_url( sprintf( '%s/%s/themes/%s/variations', $this->namespace, $this->rest_base, $request['stylesheet'] ) ),
 				),
 			);
 			$resolved_theme_uris = WP_Theme_JSON_Resolver::get_resolved_theme_uris( $theme );

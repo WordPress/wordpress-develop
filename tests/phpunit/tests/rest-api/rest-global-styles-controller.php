@@ -589,6 +589,72 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	}
 
 	/**
+	 * @covers WP_REST_Global_Styles_Controller::get_theme_item
+	 */
+	public function test_get_theme_item_links_include_theme_and_variations() {
+		wp_set_current_user( self::$admin_id );
+		$response = rest_do_request( '/wp/v2/global-styles/themes/' . get_stylesheet() );
+		$this->assertSame( 200, $response->get_status() );
+		$links = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/themes/' . get_stylesheet() ), $links['https://api.w.org/theme'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/themes/' . get_stylesheet() . '/variations' ), $links['https://api.w.org/theme-style-variations'][0]['href'] );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::prepare_links
+	 */
+	public function test_get_item_links() {
+		wp_set_current_user( self::$admin_id );
+
+		// The fixture is created without a current user, so its `tax_input` is not applied.
+		wp_set_post_terms( self::$global_styles_id, 'tt1-blocks', 'wp_theme' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id ), $links['self'][0]['href'], 'The self link should point at the global styles post.' );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_global_styles' ), $links['about'][0]['href'], 'The about link should point at the post type.' );
+		$this->assertSame( rest_url( 'wp/v2/themes/tt1-blocks' ), $links['https://api.w.org/theme'][0]['href'], 'The theme link should point at the theme the styles belong to.' );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id . '/revisions' ), $links['version-history'][0]['href'], 'The version-history link should point at the revisions.' );
+		$this->assertSame( 0, $links['version-history'][0]['attributes']['count'], 'There should be no revisions yet.' );
+		$this->assertArrayNotHasKey( 'predecessor-version', $links, 'There should be no predecessor-version link without revisions.' );
+	}
+
+	/**
+	 * @covers WP_REST_Global_Styles_Controller::prepare_links
+	 */
+	public function test_get_item_links_include_predecessor_version() {
+		wp_set_current_user( self::$admin_id );
+		wp_update_post(
+			array(
+				'ID'           => self::$global_styles_id,
+				'post_content' => wp_json_encode(
+					array(
+						'version'                     => WP_Theme_JSON::LATEST_SCHEMA,
+						'isGlobalStylesUserThemeJSON' => true,
+						'styles'                      => array(
+							'color' => array(
+								'background' => 'hotpink',
+							),
+						),
+					)
+				),
+			)
+		);
+		$revisions = wp_get_latest_revision_id_and_total_count( self::$global_styles_id );
+		$this->assertGreaterThan( 0, $revisions['count'], 'Updating the post should have created a revision.' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/global-styles/' . self::$global_styles_id );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( $revisions['count'], $links['version-history'][0]['attributes']['count'], 'The version-history count should match the number of revisions.' );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/' . self::$global_styles_id . '/revisions/' . $revisions['latest_id'] ), $links['predecessor-version'][0]['href'], 'The predecessor-version link should point at the latest revision.' );
+		$this->assertSame( $revisions['latest_id'], $links['predecessor-version'][0]['attributes']['id'], 'The predecessor-version id should be the latest revision.' );
+	}
+
+	/**
 	 * @doesNotPerformAssertions
 	 */
 	public function test_create_item() {

@@ -776,7 +776,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 				'embeddable' => true,
 			),
 			'https://api.w.org/sidebar' => array(
-				'href' => rest_url( sprintf( 'wp/v2/sidebars/%s/', $prepared['sidebar'] ) ),
+				'href' => rest_url( sprintf( 'wp/v2/sidebars/%s', $prepared['sidebar'] ) ),
 			),
 		);
 	}

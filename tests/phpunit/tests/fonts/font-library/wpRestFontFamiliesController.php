@@ -1065,6 +1065,8 @@ class Tests_REST_WpRestFontFamiliesController extends WP_Test_REST_Controller_Te
 		$this->assertSame( $expected, $links['self'][0]['href'], 'The links URL from the response data should match the post\'s REST endpoint.' );
 		$expected = rest_url( 'wp/v2/font-families' );
 		$this->assertSame( $expected, $links['collection'][0]['href'], 'The links collection URL from the response data should match the REST endpoint.' );
+		$expected = rest_url( 'wp/v2/types/wp_font_family' );
+		$this->assertSame( $expected, $links['about'][0]['href'], 'The links about URL from the response data should match the post type REST endpoint.' );
 
 		if ( ! $font_face_ids ) {
 			return;

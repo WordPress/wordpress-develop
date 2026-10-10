@@ -657,6 +657,7 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.9.0
+	 * @since 7.2.0 Added the `up` link to the parent menu item.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
@@ -664,6 +665,18 @@ class WP_REST_Menu_Items_Controller extends WP_REST_Posts_Controller {
 	protected function prepare_links( $post ) {
 		$links     = parent::prepare_links( $post );
 		$menu_item = $this->get_nav_menu_item( $post->ID );
+
+		// Menu items store their parent in meta rather than `post_parent`, so the posts controller cannot link it.
+		if ( ! empty( $menu_item->menu_item_parent ) ) {
+			$parent_route = rest_get_route_for_post( (int) $menu_item->menu_item_parent );
+
+			if ( $parent_route ) {
+				$links['up'] = array(
+					'href'       => rest_url( $parent_route ),
+					'embeddable' => true,
+				);
+			}
+		}
 
 		if ( empty( $menu_item->object_id ) ) {
 			return $links;

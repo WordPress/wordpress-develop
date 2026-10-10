@@ -796,6 +796,7 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Added the `about` link.
 	 *
 	 * @param WP_Post $post Post object.
 	 * @return array Links for the given post.
@@ -808,6 +809,9 @@ class WP_REST_Font_Faces_Controller extends WP_REST_Posts_Controller {
 			),
 			'collection' => array(
 				'href' => rest_url( $this->namespace . '/font-families/' . $post->post_parent . '/font-faces' ),
+			),
+			'about'      => array(
+				'href' => rest_url( 'wp/v2/types/' . $this->post_type ),
 			),
 			'parent'     => array(
 				'href' => rest_url( $this->namespace . '/font-families/' . $post->post_parent ),

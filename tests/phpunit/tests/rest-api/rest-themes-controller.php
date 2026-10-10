@@ -1478,6 +1478,24 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( $fields_links, array_keys( $links ) );
 	}
 
+	public function test_get_item_links_parent_and_active_theme_styles() {
+		wp_set_current_user( self::$admin_id );
+		$response = rest_do_request( '/wp/v2/themes/block-theme-child' );
+		$this->assertSame( 200, $response->get_status() );
+		$links = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/themes/block-theme' ), $links['up'][0]['href'] );
+		$this->assertArrayNotHasKey( 'https://api.w.org/theme-global-styles', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/theme-style-variations', $links );
+
+		$response = rest_do_request( '/wp/v2/themes/' . get_stylesheet() );
+		$links    = $response->get_links();
+		$this->assertSame( rest_url( 'wp/v2/global-styles/themes/' . get_stylesheet() ), $links['https://api.w.org/theme-global-styles'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/global-styles/themes/' . get_stylesheet() . '/variations' ), $links['https://api.w.org/theme-style-variations'][0]['href'] );
+
+		$response = rest_do_request( '/wp/v2/themes/block-theme' );
+		$this->assertArrayNotHasKey( 'up', $response->get_links() );
+	}
+
 	/**
 	 * @ticket 50152
 	 */

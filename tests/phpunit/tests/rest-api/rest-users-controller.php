@@ -3376,15 +3376,95 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertArrayNotHasKey( 'locale', $data );
 		}
 
-		$this->assertSameSets(
-			array(
-				'self',
-				'collection',
-			),
-			array_keys( $links )
+		$expected_links = array(
+			'self',
+			'collection',
+			'https://api.w.org/post_type',
 		);
 
+		if ( current_user_can( 'list_app_passwords', $user->ID ) && wp_is_application_passwords_available_for_user( $user ) ) {
+			$expected_links[] = 'https://api.w.org/application-passwords';
+		}
+
+		$links = test_rest_expand_compact_links( $links );
+		unset( $links['curies'] );
+
+		$this->assertSameSets( $expected_links, array_keys( $links ) );
+
 		$this->assertArrayNotHasKey( 'password', $data );
+	}
+
+	/**
+	 * @covers WP_REST_Users_Controller::prepare_links
+	 */
+	public function test_get_item_links() {
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+		wp_set_current_user( self::$superadmin );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertSame( rest_url( 'wp/v2/users/' . self::$editor ), $links['self'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/users' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/users/' . self::$editor . '/application-passwords' ), $links['https://api.w.org/application-passwords'][0]['href'] );
+
+		$post_type_links = wp_list_pluck( $links['https://api.w.org/post_type'], 'href', null );
+		$post_types      = array_column( array_column( $links['https://api.w.org/post_type'], 'attributes' ), 'post_type' );
+
+		$this->assertContains( 'post', $post_types, 'Posts support authors so should be linked.' );
+		$this->assertContains( 'page', $post_types, 'Pages support authors so should be linked.' );
+		$this->assertContains( 'attachment', $post_types, 'Attachments support authors so should be linked.' );
+		$this->assertNotContains( 'wp_block', $post_types, 'Post types without author support should not be linked.' );
+		$this->assertNotContains( 'wp_template', $post_types, 'Post types not served by the posts controller should not be linked.' );
+		$this->assertContains( add_query_arg( 'author', self::$editor, rest_url( 'wp/v2/posts' ) ), $post_type_links );
+		$this->assertContains( add_query_arg( 'author', self::$editor, rest_url( 'wp/v2/pages' ) ), $post_type_links );
+		$this->assertContains( add_query_arg( 'author', self::$editor, rest_url( 'wp/v2/media' ) ), $post_type_links );
+	}
+
+	/**
+	 * @covers WP_REST_Users_Controller::prepare_links
+	 */
+	public function test_get_item_links_without_application_passwords() {
+		add_filter( 'wp_is_application_passwords_available', '__return_false' );
+		wp_set_current_user( self::$superadmin );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/application-passwords', $response->get_links() );
+	}
+
+	/**
+	 * @covers WP_REST_Users_Controller::prepare_links
+	 */
+	public function test_get_item_links_application_passwords_require_permission() {
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		if ( is_multisite() ) {
+			wp_set_current_user( self::$user );
+			$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertSame( 200, $response->get_status() );
+			$this->assertArrayNotHasKey( 'https://api.w.org/application-passwords', $response->get_links() );
+		}
+
+		wp_set_current_user( self::$editor );
+
+		// A user who cannot edit the requested user must not learn whether application passwords are available for them.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$authors['r_true_p_true'] );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'https://api.w.org/application-passwords', $response->get_links() );
+
+		// This user may list their own application passwords while the feature is enabled.
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/users/' . self::$editor );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'https://api.w.org/application-passwords', $response->get_links() );
 	}
 
 	protected function check_get_user_response( $response, $context = 'view' ) {

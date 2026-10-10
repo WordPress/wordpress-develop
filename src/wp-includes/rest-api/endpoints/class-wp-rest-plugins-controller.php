@@ -623,13 +623,14 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * Prepares links for the request.
 	 *
 	 * @since 5.5.0
+	 * @since 7.2.0 Added the `collection` link.
 	 *
 	 * @param array $item The plugin item.
 	 * @return array[]
 	 */
 	protected function prepare_links( $item ) {
 		return array(
-			'self' => array(
+			'self'       => array(
 				'href' => rest_url(
 					sprintf(
 						'%s/%s/%s',
@@ -638,6 +639,9 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 						substr( $item['_file'], 0, - 4 )
 					)
 				),
+			),
+			'collection' => array(
+				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
 			),
 		);
 	}
