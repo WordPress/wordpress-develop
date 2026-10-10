@@ -118,7 +118,9 @@ class WP_Locale {
 	 * Default is 'words'.
 	 *
 	 * @since 6.2.0
-	 * @var string
+	 * @var string|null
+	 *
+	 * @phpstan-var 'characters_excluding_spaces'|'characters_including_spaces'|'words'|null
 	 */
 	public $word_count_type;
 
