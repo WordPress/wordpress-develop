@@ -965,9 +965,19 @@ class WP_Automatic_Updater {
 				return;
 		}
 
+		/*
+		 * Use the site title when one is set. If the site title is empty, fall back
+		 * to the site's host to have a meaningful site identifier in email
+		 */
+		if ( '' !== get_option( 'blogname' ) ) {
+			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
+
 		// If the auto-update is not to the latest version, say that the current version of WP is available instead.
 		$version = 'success' === $type ? $core_update->current : $next_user_core_update->current;
-		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $version );
+		$subject = sprintf( $subject, $site_title, $version );
 
 		$body = '';
 

@@ -1838,7 +1838,11 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 		 * We want to reverse this for the plain text arena of emails.
 		 */
-		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		if ( '' !== get_option( 'blogname' ) ) {
+			$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$blogname = parse_url( home_url(), PHP_URL_HOST );
+		}
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
@@ -2053,7 +2057,11 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 		 * We want to reverse this for the plain text arena of emails.
 		 */
-		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		if ( '' !== get_option( 'blogname' ) ) {
+			$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$blogname = parse_url( home_url(), PHP_URL_HOST );
+		}
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		$message_headers = '';
@@ -2222,7 +2230,11 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 			 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 			 * We want to reverse this for the plain text arena of emails.
 			 */
-			$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+			if ( '' !== get_option( 'blogname' ) ) {
+				$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+			} else {
+				$blogname = parse_url( home_url(), PHP_URL_HOST );
+			}
 
 			$wp_password_change_notification_email = array(
 				'to'      => get_option( 'admin_email' ),
@@ -2296,7 +2308,11 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
 		 * We want to reverse this for the plain text arena of emails.
 		 */
-		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		if ( '' !== get_option( 'blogname' ) ) {
+			$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$blogname = parse_url( home_url(), PHP_URL_HOST );
+		}
 
 		/**
 		 * Filters whether the admin is notified of a new user registration.
