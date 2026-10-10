@@ -1274,6 +1274,7 @@ function wp_dropdown_pages( $args = '' ) {
  *
  * @since 1.5.0
  * @since 4.7.0 Added the `item_spacing` argument.
+ * @since 7.2.0 The `exclude` argument now accepts an array of page IDs.
  *
  * @see get_pages()
  *
@@ -1290,8 +1291,8 @@ function wp_dropdown_pages( $args = '' ) {
  *                                           Accepts -1 (any depth), 0 (all pages), 1 (top-level pages only), and n (pages to
  *                                           the given n depth). Default 0.
  *     @type bool              $echo         Whether or not to echo the list of pages. Default true.
- *     @type string            $exclude      Comma-separated list of page IDs to exclude. Default empty.
- *     @type array             $include      Comma-separated list of page IDs to include. Default empty.
+ *     @type int[]             $exclude      Array of page IDs to exclude. Default empty array.
+ *     @type int[]             $include      Array of page IDs to include. Default empty array.
  *     @type string            $link_after   Text or HTML to follow the page link label. Default null.
  *     @type string            $link_before  Text or HTML to precede the page link label. Default null.
  *     @type string            $post_type    Post type to query for. Default 'page'.
@@ -1321,7 +1322,7 @@ function wp_list_pages( $args = '' ) {
 		'show_date'    => '',
 		'date_format'  => get_option( 'date_format' ),
 		'child_of'     => 0,
-		'exclude'      => '',
+		'exclude'      => array(),
 		'title_li'     => __( 'Pages' ),
 		'echo'         => 1,
 		'authors'      => '',
@@ -1342,11 +1343,7 @@ function wp_list_pages( $args = '' ) {
 	$output       = '';
 	$current_page = 0;
 
-	// Sanitize, mostly to keep spaces out.
-	$parsed_args['exclude'] = preg_replace( '/[^0-9,]/', '', $parsed_args['exclude'] );
-
-	// Allow plugins to filter an array of excluded pages (but don't put a nullstring into the array).
-	$exclude_array = ( $parsed_args['exclude'] ) ? explode( ',', $parsed_args['exclude'] ) : array();
+	$exclude_array = array_map( 'strval', wp_parse_id_list( $parsed_args['exclude'] ) );
 
 	/**
 	 * Filters the array of pages to exclude from the pages list.
@@ -1354,6 +1351,7 @@ function wp_list_pages( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string[] $exclude_array An array of page IDs to exclude.
+	 * @phpstan-param numeric-string[] $exclude_array
 	 */
 	$parsed_args['exclude'] = implode( ',', apply_filters( 'wp_list_pages_excludes', $exclude_array ) );
 
