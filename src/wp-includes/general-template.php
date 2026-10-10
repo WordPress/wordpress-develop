@@ -5550,6 +5550,9 @@ function get_the_generator( $type = '' ) {
 		case 'export':
 			$gen = '<!-- generator="WordPress/' . esc_attr( get_bloginfo_rss( 'version' ) ) . '" created="' . gmdate( 'Y-m-d H:i' ) . '" -->';
 			break;
+		default:
+			$gen = null;
+			break;
 	}
 
 	/**
@@ -5569,9 +5572,9 @@ function get_the_generator( $type = '' ) {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $gen  The HTML markup output to wp_head().
-	 * @param string $type The type of generator. Accepts 'html', 'xhtml', 'atom',
-	 *                     'rss2', 'rdf', 'comment', 'export'.
+	 * @param string|null $gen  The HTML markup output to wp_head(). Null for an unsupported type.
+	 * @param string      $type The type of generator. Accepts 'html', 'xhtml', 'atom',
+	 *                          'rss2', 'rdf', 'comment', 'export'.
 	 */
 	return apply_filters( "get_the_generator_{$type}", $gen, $type );
 }
