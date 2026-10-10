@@ -23,6 +23,8 @@ Attachment = View.extend(/** @lends wp.media.view.Attachment.prototype */{
 	 * Factored out of attributes() so render() can refresh the label when a
 	 * model finishes loading after the view was created. See #65852.
 	 *
+	 * @since 7.2.0
+	 *
 	 * @return {string} Accessible name for the attachment.
 	 */
 	getAriaLabel: function() {
