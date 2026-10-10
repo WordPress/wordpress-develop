@@ -922,16 +922,27 @@ function rest_send_allow_header( $response, $server, $request ) {
  * Recursively computes the intersection of arrays using keys for comparison.
  *
  * @since 5.3.0
+ * @since 7.2.0 Object values for `$array1` (and nested object values) are now
+ *              coerced to arrays instead of causing a fatal error, and non-array,
+ *              non-object values for `$array1` now return an empty array.
  *
- * @param array $array1 The array with master keys to check.
+ * @param mixed $array1 The array (or object) with master keys to check.
  * @param array $array2 An array to compare keys against.
  * @return array An associative array containing all the entries of array1 which have keys
  *               that are present in all arguments.
  */
 function _rest_array_intersect_key_recursive( $array1, $array2 ) {
+	if ( is_object( $array1 ) ) {
+		$array1 = (array) $array1;
+	}
+
+	if ( ! is_array( $array1 ) || ! is_array( $array2 ) ) {
+		return array();
+	}
+
 	$array1 = array_intersect_key( $array1, $array2 );
 	foreach ( $array1 as $key => $value ) {
-		if ( is_array( $value ) && is_array( $array2[ $key ] ) ) {
+		if ( is_array( $array2[ $key ] ) && ( is_array( $value ) || is_object( $value ) ) ) {
 			$array1[ $key ] = _rest_array_intersect_key_recursive( $value, $array2[ $key ] );
 		}
 	}
@@ -939,9 +950,48 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
+ * Determines whether response data represents a collection of items keyed by a
+ * non-numeric identifier, such as a taxonomy or post type slug, rather than a
+ * single item.
+ *
+ * This distinguishes collections like the `/wp/v2/taxonomies` or `/wp/v2/types`
+ * response (an object of items keyed by slug) from a single item or object whose
+ * own top-level keys are themselves field names (such as `/wp/v2/settings`).
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array $data             Response data.
+ * @param array $fields_as_keyed Requested fields, as a nested array keyed by field name.
+ * @return bool Whether the data should be treated as a collection of items.
+ */
+function _rest_is_keyed_collection( array $data, array $fields_as_keyed ) {
+	if ( ! $data ) {
+		return false;
+	}
+
+	foreach ( $data as $key => $value ) {
+		if ( ! is_array( $value ) && ! is_object( $value ) ) {
+			return false;
+		}
+
+		if ( isset( $fields_as_keyed[ $key ] ) ) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
+ * @since 7.2.0 Response data that is an object (such as an empty collection
+ *              serialized as a JSON object) no longer causes a fatal error, and
+ *              collections keyed by a non-numeric identifier (such as the
+ *              `/wp/v2/taxonomies` or `/wp/v2/types` responses) now have the
+ *              allowed fields applied per item instead of to the collection itself.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -954,6 +1004,17 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	}
 
 	$data = $response->get_data();
+
+	// An empty collection may be serialized as an object so it is encoded as `{}` rather than `[]`.
+	$data_is_object = is_object( $data );
+
+	if ( $data_is_object ) {
+		$data = (array) $data;
+	}
+
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
 
 	$fields = wp_parse_list( $request['_fields'] );
 
@@ -987,8 +1048,17 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		foreach ( $data as $item ) {
 			$new_data[] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
 		}
+	} elseif ( _rest_is_keyed_collection( $data, $fields_as_keyed ) ) {
+		$new_data = array();
+		foreach ( $data as $key => $item ) {
+			$new_data[ $key ] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
+		}
 	} else {
 		$new_data = _rest_array_intersect_key_recursive( $data, $fields_as_keyed );
+	}
+
+	if ( $data_is_object ) {
+		$new_data = (object) $new_data;
 	}
 
 	$response->set_data( $new_data );
