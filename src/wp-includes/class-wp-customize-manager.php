@@ -50,7 +50,7 @@ final class WP_Customize_Manager {
 	 * Methods and properties dealing with managing widgets in the Customizer.
 	 *
 	 * @since 3.9.0
-	 * @var WP_Customize_Widgets
+	 * @var WP_Customize_Widgets|null
 	 */
 	public $widgets;
 
@@ -58,7 +58,7 @@ final class WP_Customize_Manager {
 	 * Methods and properties dealing with managing nav menus in the Customizer.
 	 *
 	 * @since 4.3.0
-	 * @var WP_Customize_Nav_Menus
+	 * @var WP_Customize_Nav_Menus|null
 	 */
 	public $nav_menus;
 
