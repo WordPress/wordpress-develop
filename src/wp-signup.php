@@ -67,8 +67,8 @@ do_action( 'before_signup_header' );
  * @since MU (3.0.0)
  */
 function wpmu_signup_stylesheet() {
-	?>
-	<style>
+	wp_print_inline_style_tag(
+		<<<'CSS'
 		.mu_register { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
 		.mu_register p { font-size: 18px; }
 		.mu_register form { margin: 24px 0; }
@@ -99,8 +99,8 @@ function wpmu_signup_stylesheet() {
 		.mu_register .privacy-intro .wp-signup-radio-button { margin-right: 0.5em; }
 		.rtl .mu_register .wp-signup-blogname { direction: ltr; text-align: right; }
 		.rtl .mu_register label[for="site-language"] .dashicons { margin-right: 0.5em; margin-left: 0; }
-	</style>
-	<?php
+		CSS
+	);
 }
 add_action( 'wp_head', 'wpmu_signup_stylesheet' );
 
