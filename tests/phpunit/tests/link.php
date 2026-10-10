@@ -187,4 +187,157 @@ class Tests_Link extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $attachment_id ) );
 		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
+
+	/**
+	 * @ticket 32322
+	 */
+	public function test_wp_force_plain_post_permalink_statuses_filter_future_posts_default() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_name'   => 'future-post',
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		// Should return true (force plain permalink) for future posts by default.
+		$this->assertTrue( wp_force_plain_post_permalink( $post ) );
+	}
+
+	/**
+	 * @ticket 32322
+	 */
+	public function test_wp_force_plain_post_permalink_statuses_filter_allows_customization() {
+		// Add filter to allow future posts to use pretty permalinks.
+		add_filter(
+			'wp_force_plain_post_permalink_statuses',
+			function ( $statuses ) {
+				return array_diff( $statuses, array( 'future' ) );
+			}
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_name'   => 'future-post',
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		// Should return false (allow pretty permalink) when filter is applied.
+		$this->assertFalse( wp_force_plain_post_permalink( $post ) );
+
+		// Clean up.
+		remove_all_filters( 'wp_force_plain_post_permalink_statuses' );
+	}
+
+	/**
+	 * @ticket 32322
+	 */
+	public function test_wp_force_plain_post_permalink_statuses_filter_selective_by_status() {
+		// Add filter to allow only future posts to use pretty permalinks.
+		add_filter(
+			'wp_force_plain_post_permalink_statuses',
+			function ( $statuses ) {
+				return array_diff( $statuses, array( 'future' ) );
+			}
+		);
+
+		$future_post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_name'   => 'future-post',
+			)
+		);
+
+		$draft_post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+				'post_name'   => 'draft-post',
+			)
+		);
+
+		$future_post = get_post( $future_post_id );
+		$draft_post  = get_post( $draft_post_id );
+
+		// Future post should use pretty permalink.
+		$this->assertFalse( wp_force_plain_post_permalink( $future_post ) );
+
+		// Draft post should still use plain permalink.
+		$this->assertTrue( wp_force_plain_post_permalink( $draft_post ) );
+
+		// Clean up.
+		remove_all_filters( 'wp_force_plain_post_permalink_statuses' );
+	}
+
+	/**
+	 * @ticket 32322
+	 */
+	public function test_wp_force_plain_post_permalink_statuses_filter_selective_by_post_type() {
+		// Add filter to allow future posts pretty permalinks only for 'post' type.
+		add_filter(
+			'wp_force_plain_post_permalink_statuses',
+			function ( $statuses, $post ) {
+				if ( 'future' === $post->post_status && 'post' === $post->post_type ) {
+					return array_diff( $statuses, array( 'future' ) );
+				}
+				return $statuses;
+			},
+			10,
+			2
+		);
+
+		// Create future post.
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_name'   => 'future-post',
+			)
+		);
+
+		// Create future page.
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'future',
+				'post_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '+1 day' ) ),
+				'post_name'   => 'future-page',
+			)
+		);
+
+		$post = get_post( $post_id );
+		$page = get_post( $page_id );
+
+		// Future post should use pretty permalinks.
+		$this->assertFalse( wp_force_plain_post_permalink( $post ) );
+
+		// Future page should still use plain permalinks.
+		$this->assertTrue( wp_force_plain_post_permalink( $page ) );
+
+		// Clean up.
+		remove_all_filters( 'wp_force_plain_post_permalink_statuses' );
+	}
+
+	/**
+	 * @ticket 32322
+	 */
+	public function test_wp_force_plain_post_permalink_statuses_filter_published_posts_unaffected() {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_name'   => 'published-post',
+			)
+		);
+
+		$post = get_post( $post_id );
+
+		// Should return false (allow pretty permalink) for published posts.
+		$this->assertFalse( wp_force_plain_post_permalink( $post ) );
+	}
 }
