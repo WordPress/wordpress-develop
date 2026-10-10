@@ -13,9 +13,177 @@
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
 	public $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
-	public $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
+
+	/**
+	 * URL of the local stream/size fixture (set in set_up_before_class()).
+	 *
+	 * @var string
+	 */
+	public $file_stream_url = '';
+
+	/**
+	 * Byte size of the local stream/size fixture payload.
+	 *
+	 * @var int
+	 */
+	protected static $file_stream_size = 20000;
+
+	/**
+	 * Directory containing the local fixture payload.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_dir = null;
+
+	/**
+	 * Process resource for the local PHP built-in server.
+	 *
+	 * @var resource|null
+	 */
+	private static $file_stream_fixture_process = null;
+
+	/**
+	 * Local fixture URL shared with instance tests after set_up_before_class().
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_url = null;
 
 	protected $http_request_args;
+
+	/**
+	 * Starts a local HTTP fixture server for stream and response-size tests.
+	 *
+	 * Uses a deterministic payload and the real Requests transports so coverage
+	 * does not depend on a live s.w.org download.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		if ( ! function_exists( 'proc_open' ) ) {
+			return;
+		}
+
+		$fixture_dir = get_temp_dir() . 'wp-http-stream-fixture-' . uniqid( '', true );
+		if ( ! mkdir( $fixture_dir ) && ! is_dir( $fixture_dir ) ) {
+			return;
+		}
+
+		$payload = str_repeat( 'a', self::$file_stream_size );
+		if ( false === file_put_contents( $fixture_dir . '/dashboard.bin', $payload ) ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			return;
+		}
+
+		$socket = @stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
+		if ( ! $socket ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			return;
+		}
+
+		$address = stream_socket_get_name( $socket, false );
+		fclose( $socket );
+
+		$port = (int) substr( strrchr( $address, ':' ), 1 );
+		if ( $port <= 0 ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			return;
+		}
+
+		$command = array(
+			PHP_BINARY,
+			'-S',
+			'127.0.0.1:' . $port,
+			'-t',
+			$fixture_dir,
+		);
+
+		$descriptors = array(
+			0 => array( 'pipe', 'r' ),
+			1 => array( 'pipe', 'w' ),
+			2 => array( 'pipe', 'w' ),
+		);
+
+		$process = proc_open( $command, $descriptors, $pipes, $fixture_dir );
+		if ( ! is_resource( $process ) ) {
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			return;
+		}
+
+		foreach ( $pipes as $pipe ) {
+			if ( is_resource( $pipe ) ) {
+				fclose( $pipe );
+			}
+		}
+
+		$url      = 'http://127.0.0.1:' . $port . '/dashboard.bin';
+		$deadline = microtime( true ) + 5.0;
+		$ready    = false;
+
+		while ( microtime( true ) < $deadline ) {
+			$connection = @fsockopen( '127.0.0.1', $port, $errno, $errstr, 0.1 );
+			if ( $connection ) {
+				fclose( $connection );
+				$ready = true;
+				break;
+			}
+			usleep( 50000 );
+		}
+
+		if ( ! $ready ) {
+			proc_terminate( $process );
+			proc_close( $process );
+			self::remove_file_stream_fixture_dir( $fixture_dir );
+			return;
+		}
+
+		self::$file_stream_fixture_dir     = $fixture_dir;
+		self::$file_stream_fixture_process = $process;
+		self::$file_stream_fixture_url     = $url;
+	}
+
+	/**
+	 * Stops the local HTTP fixture server.
+	 */
+	public static function tear_down_after_class() {
+		if ( is_resource( self::$file_stream_fixture_process ) ) {
+			proc_terminate( self::$file_stream_fixture_process );
+			proc_close( self::$file_stream_fixture_process );
+			self::$file_stream_fixture_process = null;
+		}
+
+		if ( self::$file_stream_fixture_dir ) {
+			self::remove_file_stream_fixture_dir( self::$file_stream_fixture_dir );
+			self::$file_stream_fixture_dir = null;
+		}
+
+		self::$file_stream_fixture_url = null;
+
+		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Deletes a fixture directory and its contents.
+	 *
+	 * @param string $directory Directory path.
+	 */
+	private static function remove_file_stream_fixture_dir( $directory ) {
+		if ( ! is_dir( $directory ) ) {
+			return;
+		}
+
+		foreach ( scandir( $directory ) as $item ) {
+			if ( '.' === $item || '..' === $item ) {
+				continue;
+			}
+			$path = $directory . '/' . $item;
+			if ( is_file( $path ) ) {
+				unlink( $path );
+			}
+		}
+
+		rmdir( $directory );
+	}
 
 	public function set_up() {
 		parent::set_up();
@@ -31,6 +199,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			if ( $t !== $this->transport ) {
 				add_filter( "use_{$t}_transport", '__return_false' ); // ...and add it back if need be.
 			}
+		}
+
+		if ( self::$file_stream_fixture_url ) {
+			$this->file_stream_url = self::$file_stream_fixture_url;
 		}
 	}
 
@@ -248,11 +420,24 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Skips when the local stream fixture server is unavailable.
+	 */
+	private function require_file_stream_fixture() {
+		if ( empty( $this->file_stream_url ) ) {
+			$this->markTestSkipped( 'The local HTTP stream fixture server could not be started.' );
+		}
+	}
+
+	/**
+	 * @ticket 63914
+	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_file_stream() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
-		$size = 153204;
+		$size = self::$file_stream_size;
 		$res  = $this->wp_remote_request(
 			$url,
 			array(
@@ -276,10 +461,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26726
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_file_stream_limited_size() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
 		$size = 10000;
 		$res  = $this->wp_remote_request(
@@ -305,10 +493,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Tests limiting the response size when returning strings.
 	 *
 	 * @ticket 31172
+	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
 	public function test_request_limited_size() {
+		$this->require_file_stream_fixture();
+
 		$url  = $this->file_stream_url;
 		$size = 10000;
 

@@ -66,7 +66,15 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 */
 	public function inject_mock_transport( $url, $headers, $data, $type, &$options ) {
 		$this->captured_requests_options = $options;
-		$options['transport']            = new WP_Http_Unit_Test_Transport();
+
+		/*
+		 * The fake transport returns canned responses and does not stream bodies
+		 * to disk. Clear `filename` after capturing so Requests::parse_response()
+		 * still splits headers from the canned body. Real Curl/Fsockopen streaming
+		 * remains covered by WP_HTTP_UnitTestCase against a local HTTP fixture.
+		 */
+		$options['filename']  = false;
+		$options['transport'] = new WP_Http_Unit_Test_Transport();
 	}
 
 	/**
