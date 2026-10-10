@@ -226,6 +226,17 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 24026
+	 */
+	public function test_wp_get_theme_with_only_non_default_theme_root() {
+		$GLOBALS['wp_theme_directories'] = array( self::THEME_ROOT );
+		wp_clean_themes_cache();
+
+		$this->assertSame( self::THEME_ROOT, get_raw_theme_root( 'sandbox' ) );
+		$this->assertFalse( wp_get_theme( 'sandbox' )->errors() );
+	}
+
+	/**
 	 * @expectedDeprecated get_themes
 	 */
 	public function test_page_templates() {
