@@ -204,12 +204,6 @@ class WP_Sitemaps {
 
 		$url_list = $provider->get_url_list( $paged, $object_subtype );
 
-		// Force a 404 and bail early if no URLs are present.
-		if ( empty( $url_list ) ) {
-			$this->send_404();
-			return;
-		}
-
 		$this->renderer->render_sitemap( $url_list );
 		exit;
 	}
