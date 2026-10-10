@@ -758,4 +758,73 @@ EOT;
 			'The text/html Content-Type header is not present.'
 		);
 	}
+
+	/**
+	 * Tests that reset_phpmailer_instance() restores the mock mailer when the global is unset.
+	 *
+	 * @ticket 28618
+	 */
+	public function test_reset_phpmailer_instance_restores_mock_when_global_is_unset() {
+		unset( $GLOBALS['phpmailer'] );
+
+		$this->assertTrue( reset_phpmailer_instance(), 'reset_phpmailer_instance() should return true.' );
+		$this->assertInstanceOf( 'MockPHPMailer', $GLOBALS['phpmailer'] );
+	}
+
+	/**
+	 * Tests that reset_phpmailer_instance() replaces any non-mock value of the global.
+	 *
+	 * @ticket 28618
+	 *
+	 * @dataProvider data_reset_phpmailer_instance_replaces_non_mock_global
+	 *
+	 * @param string $type The type of value to set the global to.
+	 */
+	public function test_reset_phpmailer_instance_replaces_non_mock_global( $type ) {
+		switch ( $type ) {
+			case 'real mailer':
+				$GLOBALS['phpmailer'] = new WP_PHPMailer( true );
+				break;
+			case 'null':
+				$GLOBALS['phpmailer'] = null;
+				break;
+			case 'false':
+				$GLOBALS['phpmailer'] = false;
+				break;
+		}
+
+		reset_phpmailer_instance();
+
+		$this->assertInstanceOf( 'MockPHPMailer', $GLOBALS['phpmailer'] );
+	}
+
+	/**
+	 * Data provider for test_reset_phpmailer_instance_replaces_non_mock_global().
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_reset_phpmailer_instance_replaces_non_mock_global() {
+		return array(
+			'real mailer' => array( 'real mailer' ),
+			'null'        => array( 'null' ),
+			'false'       => array( 'false' ),
+		);
+	}
+
+	/**
+	 * Tests that wp_mail() sends through the mock mailer after the global was unset and reset.
+	 *
+	 * @ticket 28618
+	 */
+	public function test_wp_mail_uses_mock_mailer_after_global_is_unset_and_reset() {
+		unset( $GLOBALS['phpmailer'] );
+		reset_phpmailer_instance();
+
+		$this->assertTrue( wp_mail( 'user@example.com', 'Test subject', 'Test message' ), 'wp_mail() should succeed.' );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertInstanceOf( 'MockPHPMailer', $mailer, 'wp_mail() should use the mock mailer.' );
+		$this->assertSame( 'Test subject', $mailer->get_sent()->subject, 'The email should be captured by the mock mailer.' );
+	}
 }
