@@ -73,6 +73,27 @@ get_admin_page_parent();
 function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	global $self, $parent_file, $submenu_file, $plugin_page, $typenow;
 
+	/**
+	 * @$allowed_html : We Define at this point, before the foreach loop the list of tags that are allowed for the menu and submenu titles.
+	 * We escape the menu & submenu title with wp_kses.
+	 */
+	$allowed_html = array(
+		'a' => array(
+			'href' => array(),
+			'title' => array(),
+			'class' => array(),
+		),
+		'br' => array(),
+		'em' => array(),
+		'strong' => array(),
+		'span' => array(
+			'class' => array(),
+		),
+		'i' => array(
+			'class' => array(),
+		),
+	);
+
 	$first = true;
 	// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 	foreach ( $menu as $key => $item ) {
@@ -144,6 +165,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		}
 
 		$title = wptexturize( $item[0] );
+		$title = wp_kses( $title, $allowed_html );
 
 		// Hide separators from screen readers.
 		if ( $is_separator ) {
@@ -197,7 +219,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 		if ( ! empty( $submenu_items ) ) {
 			echo "\n\t<ul class='wp-submenu wp-submenu-wrap'>";
-			echo "<li class='wp-submenu-head' aria-hidden='true'>{$item[0]}</li>";
+			echo '<li class="wp-submenu-head" aria-hidden="true">' . wp_kses( $item[0], $allowed_html ) . '</li>';
 
 			$first = true;
 
@@ -257,6 +279,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				}
 
 				$title = wptexturize( $sub_item[0] );
+				$title = wp_kses( $title, $allowed_html );
 
 				if ( ! empty( $menu_hook )
 					|| ( ( 'index.php' !== $sub_item[2] )
