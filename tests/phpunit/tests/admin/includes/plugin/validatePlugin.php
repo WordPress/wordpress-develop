@@ -69,11 +69,13 @@ class Tests_Admin_Includes_Plugin_ValidatePlugin extends WP_UnitTestCase {
 		$dir       = dirname( $full_path );
 
 		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
+			$this->assertTrue( wp_mkdir_p( $dir ), "Failed to create directory: {$dir}" );
 			$this->created_dirs[] = $dir;
 		}
 
-		file_put_contents( $full_path, $content );
+		$this->assertFileDoesNotExist( $full_path, "Plugin fixture already exists: {$full_path}" );
+
+		$this->assertNotFalse( file_put_contents( $full_path, $content ), "Failed to write plugin fixture: {$full_path}" );
 		$this->created_files[] = $full_path;
 
 		wp_cache_delete( 'plugins', 'plugins' );
