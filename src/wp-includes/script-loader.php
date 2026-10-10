@@ -44,15 +44,22 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
  *
  * @since 5.0.0
  * @since 7.2.0 The `wp-tinymce.js` bundle is no longer registered, regardless of whether scripts
- *              are concatenated or compressed, and the `$force_uncompressed` parameter is unused.
+ *              are concatenated or compressed.
+ * @since 7.2.0 The `$force_uncompressed` parameter was deprecated and renamed to `$deprecated`.
  *
  * @global string $tinymce_version
  *
- * @param WP_Scripts $scripts            WP_Scripts object.
- * @param bool       $force_uncompressed Unused.
+ * @param WP_Scripts $scripts    WP_Scripts object.
+ * @param bool       $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
-function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
+function wp_register_tinymce_scripts( $scripts, $deprecated = false ): void {
 	global $tinymce_version;
+
+	if ( ! empty( $deprecated ) ) {
+		_deprecated_argument( __FUNCTION__, '7.2.0' );
+	}
 
 	$suffix     = wp_scripts_get_suffix();
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
