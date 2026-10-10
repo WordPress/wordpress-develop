@@ -273,10 +273,15 @@ class Tests_Block_Bindings_Pattern_Overrides_Source extends WP_UnitTestCase {
 	 */
 	public function data_override_values_and_types() {
 		return array(
-			'string'       => array( 'A customized string' ),
-			'integer'      => array( 12345 ),
-			'boolean true' => array( true ),
-			'array'        => array( array( 'nested' => 'value' ) ),
+			'string'        => array( 'A customized string' ),
+			'empty string'  => array( '' ),
+			'integer'       => array( 12345 ),
+			'zero integer'  => array( 0 ),
+			'zero string'   => array( '0' ),
+			'boolean true'  => array( true ),
+			'boolean false' => array( false ),
+			'array'         => array( array( 'nested' => 'value' ) ),
+			'empty array'   => array( array() ),
 		);
 	}
 }
