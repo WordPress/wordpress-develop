@@ -644,4 +644,35 @@ class Tests_Query_Search extends WP_UnitTestCase {
 	public function filter_posts_search( $sql ) {
 		return $sql . ' /* posts_search */';
 	}
+
+	/**
+	 * @ticket 25585
+	 */
+	public function test_wp_search_term_filter_empty_string_removes_term() {
+		$callback = static function ( $term ) {
+			return 'foo' === $term ? '' : $term;
+		};
+
+		add_filter( 'wp_search_term', $callback );
+		$query = new WP_Query( array( 's' => 'foo bar' ) );
+		remove_filter( 'wp_search_term', $callback );
+
+		$this->assertSame( array( 'bar' ), $query->get( 'search_terms' ) );
+	}
+
+	/**
+	 * @ticket 25585
+	 */
+	public function test_wp_search_term_filter_normalizes_arabic_characters() {
+		$callback = static function ( $term ) {
+			$term = str_replace( array( 'أ', 'إ', 'آ' ), 'ا', $term );
+			return str_replace( array( 'َ', 'ً', 'ُ', 'ٌ', 'ِ', 'ٍ', 'ْ', 'ّ' ), '', $term );
+		};
+
+		add_filter( 'wp_search_term', $callback );
+		$query = new WP_Query( array( 's' => 'أَنْتَ بَيْت' ) );
+		remove_filter( 'wp_search_term', $callback );
+
+		$this->assertSame( array( 'انت', 'بيت' ), $query->get( 'search_terms' ) );
+	}
 }
