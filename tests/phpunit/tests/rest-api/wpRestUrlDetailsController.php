@@ -488,28 +488,27 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_title
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_title
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html     Given HTML string.
-	 * @param string $expected Expected found title.
 	 */
-	public function test_get_title( $html, $expected ) {
-		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_title' );
+	public function test_get_title() {
+		foreach ( $this->data_get_title() as $case_name => $data ) {
+			list( $html, $expected ) = $data;
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
-		$this->assertSame( $expected, $actual );
+			$controller = new WP_REST_URL_Details_Controller();
+			$method     = $this->get_reflective_method( 'get_title' );
+
+			$actual = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html )
+			);
+			$this->assertSame( $expected, $actual, $case_name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns title parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -559,30 +558,28 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_icon
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_icon
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html       Given HTML string.
-	 * @param string $expected   Expected found icon.
-	 * @param string $target_url Optional. Target URL. Default 'https://wordpress.org'.
 	 */
-	public function test_get_icon( $html, $expected, $target_url = 'https://wordpress.org' ) {
-		$controller = new WP_REST_URL_Details_Controller();
-		$method     = $this->get_reflective_method( 'get_icon' );
+	public function test_get_icon() {
+		foreach ( $this->data_get_icon() as $case_name => $data ) {
+			list( $html, $expected, $target_url ) = array_pad( $data, 3, 'https://wordpress.org' );
 
-		$actual = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html ),
-			$target_url
-		);
-		$this->assertSame( $expected, $actual );
+			$controller = new WP_REST_URL_Details_Controller();
+			$method     = $this->get_reflective_method( 'get_icon' );
+
+			$actual = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html ),
+				$target_url
+			);
+			$this->assertSame( $expected, $actual, $case_name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns icon parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -734,32 +731,31 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_description
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_description
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html     Given HTML string.
-	 * @param string $expected Expected found icon.
 	 */
-	public function test_get_description( $html, $expected ) {
-		$controller = new WP_REST_URL_Details_Controller();
+	public function test_get_description() {
+		foreach ( $this->data_get_description() as $case_name => $data ) {
+			list( $html, $expected ) = $data;
 
-		// Parse the meta elements from the given HTML.
-		$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
-		$meta_elements = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
+			$controller = new WP_REST_URL_Details_Controller();
 
-		$method = $this->get_reflective_method( 'get_description' );
-		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertEqualHTML( $expected, $actual );
+			// Parse the meta elements from the given HTML.
+			$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
+			$meta_elements = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html )
+			);
+
+			$method = $this->get_reflective_method( 'get_description' );
+			$actual = $method->invoke( $controller, $meta_elements );
+			$this->assertEqualHTML( $expected, $actual, '<body>', $case_name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns description parsing test cases.
 	 *
 	 * @return array
 	 */
@@ -885,33 +881,31 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @dataProvider data_get_image
-	 *
 	 * @covers WP_REST_URL_Details_Controller::get_image
 	 *
 	 * @ticket 54358
-	 *
-	 * @param string $html       Given HTML string.
-	 * @param string $expected   Expected found image.
-	 * @param string $target_url Optional. Target URL. Default 'https://wordpress.org'.
 	 */
-	public function test_get_image( $html, $expected, $target_url = 'https://wordpress.org' ) {
-		$controller = new WP_REST_URL_Details_Controller();
+	public function test_get_image() {
+		foreach ( $this->data_get_image() as $case_name => $data ) {
+			list( $html, $expected, $target_url ) = array_pad( $data, 3, 'https://wordpress.org' );
 
-		// Parse the meta elements from the given HTML.
-		$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
-		$meta_elements = $method->invoke(
-			$controller,
-			$this->wrap_html_in_doc( $html )
-		);
+			$controller = new WP_REST_URL_Details_Controller();
 
-		$method = $this->get_reflective_method( 'get_image' );
-		$actual = $method->invoke( $controller, $meta_elements, $target_url );
-		$this->assertSame( $expected, $actual );
+			// Parse the meta elements from the given HTML.
+			$method        = $this->get_reflective_method( 'get_meta_with_content_elements' );
+			$meta_elements = $method->invoke(
+				$controller,
+				$this->wrap_html_in_doc( $html )
+			);
+
+			$method = $this->get_reflective_method( 'get_image' );
+			$actual = $method->invoke( $controller, $meta_elements, $target_url );
+			$this->assertSame( $expected, $actual, $case_name );
+		}
 	}
 
 	/**
-	 * Data provider.
+	 * Returns image parsing test cases.
 	 *
 	 * @return array
 	 */
