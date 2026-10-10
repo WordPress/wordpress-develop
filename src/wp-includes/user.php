@@ -2134,16 +2134,42 @@ function username_exists( $username ) {
  * Conditional Tags} article in the Theme Developer Handbook.
  *
  * @since 2.1.0
+ * @since 7.2.0 The comparison is case-insensitive regardless of the database collation.
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $email The email to check for existence.
  * @return int|false The user ID on success, false on failure.
  */
 function email_exists( $email ) {
+	global $wpdb;
+
 	$user = get_user_by( 'email', $email );
 	if ( $user ) {
 		$user_id = $user->ID;
 	} else {
 		$user_id = false;
+
+		/*
+		 * Most mailbox providers treat the local part of an address as case-insensitive.
+		 * The default users table collation already compares emails that way, so the
+		 * lookup above has covered it. Only when the column compares case-sensitively
+		 * (or the collation is unknown) fall back to an explicit case-insensitive lookup.
+		 * That lookup cannot use the user_email index, so it is avoided where possible.
+		 */
+		$trimmed_email = trim( (string) $email );
+		if ( '' !== $trimmed_email && _wp_is_user_email_case_sensitive() ) {
+			$found_id = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM $wpdb->users WHERE LOWER(user_email) = LOWER(%s) LIMIT 1",
+					$trimmed_email
+				)
+			);
+
+			if ( $found_id ) {
+				$user_id = (int) $found_id;
+			}
+		}
 	}
 
 	/**
@@ -2156,6 +2182,55 @@ function email_exists( $email ) {
 	 * @param string    $email   The email to check for existence.
 	 */
 	return apply_filters( 'email_exists', $user_id, $email );
+}
+
+/**
+ * Determines whether the database compares user email addresses case-sensitively.
+ *
+ * The default collation of the users table is case-insensitive, in which case
+ * a plain comparison already matches email addresses that differ only in letter
+ * case, and can use the user_email index. Case-sensitive collations such as
+ * `*_bin` or `*_cs` need an explicit LOWER() comparison instead.
+ *
+ * When the collation cannot be determined, for example on a non-MySQL database,
+ * the comparison is assumed to be case-sensitive.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @return bool True if user email comparisons are case-sensitive, false otherwise.
+ */
+function _wp_is_user_email_case_sensitive() {
+	global $wpdb;
+
+	static $is_case_sensitive = null;
+
+	if ( null === $is_case_sensitive ) {
+		$is_case_sensitive = true;
+
+		if ( $wpdb->is_mysql ) {
+			/** @var object{ Collation: string } $column */
+			$column = $wpdb->get_row( "SHOW FULL COLUMNS FROM $wpdb->users LIKE 'user_email'" );
+
+			if ( $column && ! empty( $column->Collation ) ) {
+				$is_case_sensitive = ! str_ends_with( strtolower( $column->Collation ), '_ci' );
+			}
+		}
+	}
+
+	/**
+	 * Filters whether user email comparisons are case-sensitive in the database.
+	 *
+	 * When true, email lookups that need to ignore letter case use LOWER(), which
+	 * cannot use the user_email index.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $is_case_sensitive Whether the user_email column compares case-sensitively.
+	 */
+	return (bool) apply_filters( 'wp_is_user_email_case_sensitive', $is_case_sensitive );
 }
 
 /**

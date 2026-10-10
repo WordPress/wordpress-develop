@@ -870,6 +870,18 @@ p.pagenav {
 	margin-top: 1px;
 }
 
+.column-email .duplicate-email {
+	margin: 0.3em 0 0;
+	color: #b32d2e;
+}
+
+.column-email .duplicate-email .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	vertical-align: text-bottom;
+}
+
 .row-actions {
 	color: #646970;
 	font-size: 13px;

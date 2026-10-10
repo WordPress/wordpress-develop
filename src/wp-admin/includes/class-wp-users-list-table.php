@@ -17,6 +17,15 @@
 class WP_Users_List_Table extends WP_List_Table {
 
 	/**
+	 * The current list of items.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @var array<int, WP_User>
+	 */
+	public $items;
+
+	/**
 	 * Site ID to generate the Users list table for.
 	 *
 	 * @since 3.1.0
@@ -31,6 +40,15 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @var bool
 	 */
 	public $is_site_users;
+
+	/**
+	 * IDs of users on the current page whose email address is also used by another
+	 * user, ignoring letter case.
+	 *
+	 * @since 7.2.0
+	 * @var list<int>
+	 */
+	protected $duplicate_email_user_ids = array();
 
 	/**
 	 * Constructor.
@@ -411,9 +429,73 @@ class WP_Users_List_Table extends WP_List_Table {
 			$post_counts = count_many_users_posts( array_keys( $this->items ) );
 		}
 
+		$this->duplicate_email_user_ids = $this->get_duplicate_email_user_ids( $this->items );
+
 		foreach ( $this->items as $userid => $user_object ) {
 			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
 		}
+	}
+
+	/**
+	 * Finds which of the given users share an email address with another user,
+	 * ignoring letter case.
+	 *
+	 * Many mailbox providers treat `abc@example.com` and `ABc@example.com` as the
+	 * same mailbox, so such accounts are likely duplicates.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
+	 * @param WP_User[] $users IDs of the users to check.
+	 * @return list<int> IDs of the given users whose email address is shared.
+	 */
+	protected function get_duplicate_email_user_ids( array $users ): array {
+		global $wpdb;
+
+		$emails   = array();
+		$user_ids = array();
+		foreach ( $users as $user ) {
+			if ( '' !== $user->user_email ) {
+				$emails[ strtolower( $user->user_email ) ] = true;
+
+				$user_ids[] = (int) $user->ID;
+			}
+		}
+
+		if ( empty( $emails ) ) {
+			return array();
+		}
+
+		$emails       = array_keys( $emails );
+		$placeholders = implode( ',', array_fill( 0, count( $emails ), '%s' ) );
+
+		/*
+		 * All users whose email matches, ignoring case, the email of a user on this page.
+		 * With the default case-insensitive collation a plain comparison already ignores
+		 * letter case and can use the user_email index; LOWER() is only needed otherwise.
+		 */
+		$email_column = _wp_is_user_email_case_sensitive() ? 'LOWER(user_email)' : 'user_email';
+
+		/** @var list<object{ ID: numeric-string, user_email: string }> $matches */
+		$matches = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$wpdb->prepare( "SELECT ID, user_email FROM $wpdb->users WHERE $email_column IN ($placeholders)", $emails )
+		);
+
+		$users_by_email = array();
+		foreach ( $matches as $match ) {
+			$users_by_email[ strtolower( $match->user_email ) ][] = (int) $match->ID;
+		}
+
+		$duplicate_ids = array();
+		foreach ( $users_by_email as $ids ) {
+			if ( count( $ids ) > 1 ) {
+				$duplicate_ids = array_merge( $duplicate_ids, $ids );
+			}
+		}
+
+		return array_values( array_intersect( $user_ids, $duplicate_ids ) );
 	}
 
 	/**
@@ -432,6 +514,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 */
 	public function single_row( $user_object, $style = '', $role = '', $numposts = 0 ) {
 		if ( ! ( $user_object instanceof WP_User ) ) {
+			/** @var WP_User $user_object */
 			$user_object = get_userdata( (int) $user_object );
 		}
 		$user_object->filter = 'display';
@@ -599,6 +682,12 @@ class WP_Users_List_Table extends WP_List_Table {
 						break;
 					case 'email':
 						$row .= "<a href='" . esc_url( "mailto:$email" ) . "'>$email</a>";
+						if ( in_array( $user_object->ID, $this->duplicate_email_user_ids, true ) ) {
+							$row .= sprintf(
+								'<p class="duplicate-email"><span class="dashicons dashicons-warning" aria-hidden="true"></span> %s</p>',
+								__( 'Another user has this email address, possibly with different letter case.' )
+							);
+						}
 						break;
 					case 'role':
 						$row .= esc_html( $roles_list );
