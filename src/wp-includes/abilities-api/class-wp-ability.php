@@ -124,6 +124,14 @@ class WP_Ability {
 	protected $permission_callback;
 
 	/**
+	 * The optional ability eligibility callback.
+	 *
+	 * @since 7.2.0
+	 * @var callable(array<string, mixed>): bool
+	 */
+	protected $eligibility_callback;
+
+	/**
 	 * The optional ability metadata.
 	 *
 	 * @since 6.9.0
@@ -140,6 +148,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `eligibility_callback` argument.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -154,6 +163,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type callable             $eligibility_callback  Optional. A callback function that decides whether the ability
+	 *                                                       applies in a given usage context. Receives an associative array
+	 *                                                       of context values and must return a boolean.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -211,6 +223,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `eligibility_callback` argument.
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
@@ -224,6 +237,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type callable             $eligibility_callback  Optional. A callback function that decides whether the ability
+	 *                                                       applies in a given usage context. Receives an associative array
+	 *                                                       of context values and must return a boolean.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input. Required if ability accepts an input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -257,6 +273,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *     @type callable             $eligibility_callback  Optional. A callback function that decides whether the ability
+	 *                                                       applies in a given usage context. Receives an associative array
+	 *                                                       of context values and must return a boolean.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -315,6 +334,12 @@ class WP_Ability {
 		}
 
 		// Optional args only need to be of the correct type if they are present.
+		if ( isset( $args['eligibility_callback'] ) && ! is_callable( $args['eligibility_callback'] ) ) {
+			throw new InvalidArgumentException(
+				__( 'The ability properties should provide a valid `eligibility_callback` function.' )
+			);
+		}
+
 		if ( isset( $args['input_schema'] ) && ! is_array( $args['input_schema'] ) ) {
 			throw new InvalidArgumentException(
 				__( 'The ability properties should provide a valid `input_schema` definition.' )
@@ -657,6 +682,67 @@ class WP_Ability {
 		if ( ! is_bool( $result ) && ! is_wp_error( $result ) ) {
 			$result = false;
 		}
+		return $result;
+	}
+
+	/**
+	 * Checks whether the ability applies in the given usage context.
+	 *
+	 * Eligibility is consulted when listing abilities, for example by `wp_get_abilities()`
+	 * when it receives an `eligibility_context` argument. It is not consulted when the
+	 * ability is executed.
+	 *
+	 * Eligibility is not a security boundary. The context values come from the caller and
+	 * are not verified, so nothing security related may depend on them. Permission checks
+	 * belong in the `permission_callback` instead.
+	 *
+	 * An ability without an `eligibility_callback` is always eligible. A callback that
+	 * returns anything other than a boolean is treated as eligible. When the context lacks
+	 * a key the callback cares about, the callback should return true. This way adding
+	 * context keys can only narrow a result, never expand it.
+	 *
+	 * The {@see 'wp_ability_eligibility_result'} filter fires after the registered
+	 * `eligibility_callback` returns, allowing plugins to override the result.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $eligibility_context Optional. An associative array describing the caller's
+	 *                                                  usage context. Default empty array.
+	 * @return bool Whether the ability applies in the given usage context.
+	 */
+	public function is_eligible( array $eligibility_context = array() ): bool {
+		$is_eligible = true;
+		if ( is_callable( $this->eligibility_callback ) ) {
+			$is_eligible = call_user_func( $this->eligibility_callback, $eligibility_context );
+		}
+
+		/**
+		 * Filters the eligibility result for an ability.
+		 *
+		 * Fires after the registered `eligibility_callback` returns, or with `true` when the
+		 * ability does not declare one. Plugins can use this to adjust in which usage contexts
+		 * an ability is listed.
+		 *
+		 * Eligibility is not a security boundary. The context values come from the caller
+		 * and are not verified.
+		 *
+		 * Filters can return `true` to keep the ability eligible or `false` to exclude it.
+		 * Any other return value is treated as eligible.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param mixed                $is_eligible         The eligibility result returned by `eligibility_callback`,
+		 *                                                  or `true` when the ability does not declare one.
+		 * @param string               $ability_name        The name of the ability.
+		 * @param array<string, mixed> $eligibility_context The usage context being evaluated.
+		 * @param WP_Ability           $ability             The ability instance.
+		 */
+		$result = apply_filters( 'wp_ability_eligibility_result', $is_eligible, $this->name, $eligibility_context, $this );
+
+		if ( ! is_bool( $result ) ) {
+			return true;
+		}
+
 		return $result;
 	}
 
