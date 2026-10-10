@@ -75,9 +75,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			return;
 		}
 
-		set_error_handler( static function () {
-			return true;
-		} );
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
 		try {
 			$socket = stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
 		} finally {
@@ -128,9 +130,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$deadline = microtime( true ) + 5.0;
 		$ready    = false;
 
-		set_error_handler( static function () {
-			return true;
-		} );
+		set_error_handler(
+			static function () {
+				return true;
+			}
+		);
 		try {
 			while ( microtime( true ) < $deadline ) {
 				$connection = fsockopen( '127.0.0.1', $port, $errno, $errstr, 0.1 );
