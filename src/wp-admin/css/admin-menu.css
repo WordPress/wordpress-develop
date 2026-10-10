@@ -283,10 +283,17 @@
 #adminmenu div.wp-menu-image.svg-icon {
 	display: flex;
 	align-items: center;
-	justify-content: center;
+	overflow: hidden;
+}
+
+/* Dashicons back-compat: allow `::before` with `content` to fill the slot and push the SVG icon out of view. */
+#adminmenu div.wp-menu-image.svg-icon::before {
+	flex: 0 0 100%;
 }
 
 #adminmenu div.wp-menu-image.svg-icon svg {
+	flex: none;
+	margin: auto;
 	fill: currentColor;
 }
 
@@ -827,7 +834,6 @@ li#wp-admin-bar-menu-toggle {
 	#wpadminbar #wp-admin-bar-menu-toggle .ab-icon {
 		display: flex;
 		align-items: center;
-		justify-content: center;
 		float: left;
 		margin: 0;
 		height: 44px;

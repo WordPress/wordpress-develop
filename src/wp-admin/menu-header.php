@@ -55,11 +55,11 @@ $submenu_file = apply_filters( 'submenu_file', $submenu_file, $parent_file );
 get_admin_page_parent();
 
 /**
- * Returns the name of the icon that replaces a Dashicon in the admin menu.
+ * Dashicons back-compat: returns the name of the icon that replaces a Dashicon in the admin menu.
  *
- * For backward compatibility, the `$menu` global keeps the Dashicons values of
- * the core menu items. Those Dashicons are only mapped to their replacement
- * icons here, when the menu is rendered.
+ * The `$menu` global keeps the Dashicons values of the core menu items. Those
+ * Dashicons are only mapped to their replacement icons here, when the menu is
+ * rendered.
  *
  * @access private
  * @since 7.2.0
@@ -177,7 +177,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				$icon = wp_get_icon( $icon_name );
 				if ( '' !== $icon ) {
 					$img       = $icon;
-					$img_class = ' svg-icon';
+					$img_class = ' dashicons-before svg-icon';
 				} elseif ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {
 					_doing_it_wrong(
 						__FUNCTION__,
