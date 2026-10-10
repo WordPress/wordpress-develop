@@ -603,7 +603,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		if ( $this->is_trash && $this->has_items()
 			&& current_user_can( get_post_type_object( $this->screen->post_type )->cap->edit_others_posts )
 		) {
-			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false, array( 'formmethod' => 'post' ) );
 		}
 		?>
 		</div>
@@ -617,6 +617,20 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 		 */
 		do_action( 'manage_posts_extra_tablenav', $which );
+	}
+
+	/**
+	 * Gets the HTTP method used to submit the bulk actions form.
+	 *
+	 * Bulk actions are submitted with POST so that selecting many posts does not
+	 * exceed the URL length limit of the server.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string Always 'post'.
+	 */
+	protected function get_bulk_actions_method() {
+		return 'post';
 	}
 
 	/**
@@ -2217,7 +2231,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 					<?php wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ?>
 					<button type="button" class="button button-primary save"><?php _e( 'Update' ); ?></button>
 				<?php else : ?>
-					<?php submit_button( __( 'Update' ), 'primary', 'bulk_edit', false ); ?>
+					<?php submit_button( __( 'Update' ), 'primary', 'bulk_edit', false, array( 'formmethod' => 'post' ) ); ?>
 				<?php endif; ?>
 
 				<button type="button" class="button cancel"><?php _e( 'Cancel' ); ?></button>
