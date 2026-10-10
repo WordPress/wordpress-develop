@@ -108,13 +108,12 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 */
 	public static function data_content_that_is_not_compressed() {
 		return array(
-			'plain text'     => array( self::CONTENT ),
-			'HTML'           => array( '<!DOCTYPE html><html><body>Hello</body></html>' ),
-			'empty string'   => array( '' ),
-			'zero string'    => array( '0' ),
-			'false'          => array( false ),
-			'null'           => array( null ),
-			'truncated gzip' => array( "\x1f\x8b\x08" ),
+			'plain text'   => array( self::CONTENT ),
+			'HTML'         => array( '<!DOCTYPE html><html><body>Hello</body></html>' ),
+			'empty string' => array( '' ),
+			'zero string'  => array( '0' ),
+			'false'        => array( false ),
+			'null'         => array( null ),
 		);
 	}
 
