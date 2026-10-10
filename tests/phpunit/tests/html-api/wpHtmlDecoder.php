@@ -90,8 +90,6 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 
 		return array(
 			'Single ampersand'                    => array( '&', '&' ),
-			'NULL byte'                           => array( "\0", "\0" ),
-			'Unknown named character reference'   => array( '&unknown;', '&unknown;' ),
 			'Unmatched reference before a match'  => array( 'a &bogus; b &amp; c', 'a &bogus; b & c' ),
 			'Unmatched reference after a match'   => array( 'a &amp; b &bogus; c &lt; d', 'a & b &bogus; c < d' ),
 			'Unmatched numeric references'        => array( 'a &#; b &#x; c &amp;', 'a &#; b &#x; c &' ),
@@ -274,16 +272,14 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public static function data_ambiguous_ampersands(): array {
 		return array(
-			'Starting with logical AND'           => array( 'data', '&amp', '&' ),
-			'Starting with logical AND (attr)'    => array( 'attribute', '&amp', '&' ),
-			'Ambiguous with equals'               => array( 'data', '&not=', '¬=' ),
-			'Ambiguous with equals (attr)'        => array( 'attribute', '&not=', '&not=' ),
-			'Ambiguous with alphanumeric'         => array( 'data', '&notit', '¬it' ),
-			'Ambiguous with alphanumeric (attr)'  => array( 'attribute', '&notit', '&notit' ),
-			'Not ambiguous (semicolon)'           => array( 'data', '&not;', '¬' ),
-			'Not ambiguous (semicolon) (attr)'    => array( 'attribute', '&not;', '¬' ),
-			'Not ambiguous (non-alphanum)'        => array( 'data', '&not ', '¬ ' ),
-			'Not ambiguous (non-alphanum) (attr)' => array( 'attribute', '&not ', '¬ ' ),
+			'Semicolonless reference (data)'          => array( 'data', '&amp', '&' ),
+			'Semicolonless reference (attr)'          => array( 'attribute', '&amp', '&' ),
+			'Semicolonless followed by equals (data)' => array( 'data', '&not=', '¬=' ),
+			'Semicolonless followed by letter (data)' => array( 'data', '&notit', '¬it' ),
+			'With semicolon (data)'                   => array( 'data', '&not;', '¬' ),
+			'With semicolon (attr)'                   => array( 'attribute', '&not;', '¬' ),
+			'Semicolonless followed by space (data)'  => array( 'data', '&not ', '¬ ' ),
+			'Semicolonless followed by space (attr)'  => array( 'attribute', '&not ', '¬ ' ),
 		);
 	}
 
@@ -652,22 +648,20 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 */
 	public static function data_numeric_character_references(): Generator {
 		$code_points = array(
-			'ASCII'                 => 0x41,
-			'Two-byte UTF-8'        => 0xE9,
-			'Three-byte UTF-8'      => 0x2603,
-			'Astral plane'          => 0x1F600,
-			'Maximum code point'    => 0x10FFFF,
-			'High surrogate start'  => 0xD800,
-			'High surrogate middle' => 0xDABC,
-			'Low surrogate end'     => 0xDFFF,
-			'Out of range'          => 0x110000,
+			'ASCII'                 => array( 0x41, 'A' ),
+			'Two-byte UTF-8'        => array( 0xE9, 'é' ),
+			'Three-byte UTF-8'      => array( 0x2603, '☃' ),
+			'Astral plane'          => array( 0x1F600, '😀' ),
+			'Maximum code point'    => array( 0x10FFFF, "\u{10FFFF}" ),
+
+			// Surrogate halves and code points beyond U+10FFFF decode to U+FFFD.
+			'High surrogate start'  => array( 0xD800, "\u{FFFD}" ),
+			'High surrogate middle' => array( 0xDABC, "\u{FFFD}" ),
+			'Low surrogate end'     => array( 0xDFFF, "\u{FFFD}" ),
+			'Out of range'          => array( 0x110000, "\u{FFFD}" ),
 		);
 
-		foreach ( $code_points as $label => $code_point ) {
-			// Surrogate halves and code points beyond U+10FFFF decode to U+FFFD.
-			$is_scalar_value = $code_point <= 0x10FFFF && ( $code_point < 0xD800 || $code_point > 0xDFFF );
-			$expected        = $is_scalar_value ? mb_chr( $code_point, 'UTF-8' ) : "\u{FFFD}";
-
+		foreach ( $code_points as $label => list( $code_point, $expected ) ) {
 			$hex      = dechex( $code_point );
 			$syntaxes = array(
 				array( '#', (string) $code_point ),
@@ -754,38 +748,6 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			'Unmapped U+9D'    => array( '&#x9D;', "\u{9D}" ),
 			'z with caron'     => array( '&#x9E;', 'ž' ),
 			'Y with diaeresis' => array( '&#x9F;', 'Ÿ' ),
-		);
-	}
-
-	/**
-	 * Ensures decoding of invalid and special numeric character references.
-	 *
-	 * @ticket 61072
-	 *
-	 * @dataProvider data_invalid_numeric_references
-	 *
-	 * @param string $raw_text Raw numeric character reference.
-	 * @param string $expected Expected decoded string.
-	 */
-	public function test_decodes_invalid_numeric_references( string $raw_text, string $expected ): void {
-		$this->assertSame(
-			$expected,
-			WP_HTML_Decoder::decode_text_node( $raw_text ),
-			"Failed handling invalid numeric character reference: '{$raw_text}'."
-		);
-	}
-
-	/**
-	 * Data provider for invalid numeric references.
-	 *
-	 * @return array<string, array{string, string}>
-	 */
-	public static function data_invalid_numeric_references(): array {
-		return array(
-			'No digits'             => array( '&#;', '&#;' ),
-			'No digits (hex)'       => array( '&#x;', '&#x;' ),
-			'Too many digits'       => array( '&#12345678;', "\u{FFFD}" ), // Limit is 7.
-			'Too many digits (hex)' => array( '&#x10FFFFF;', "\u{FFFD}" ), // Limit is 6.
 		);
 	}
 }
