@@ -21,7 +21,7 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-**Note:** WordPress currently only officially supports Node.js `24.x` and npm `11.x`.
+**Note:** WordPress currently only officially supports Node.js `24.x` and npm `12.x`. If your Node.js installation comes with an older npm, install the required version with `npm install --global npm@12`.
 
 You will also need a container environment such as [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running on your computer. The container environment is the virtualization software that powers the local development environment and can be installed just like any other regular application.
 
