@@ -1060,7 +1060,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_reschedule_event_works_with_args() {
+	public static function data_wp_reschedule_event_works_with_args() {
 		return array(
 			'indexed'     => array(
 				array(
