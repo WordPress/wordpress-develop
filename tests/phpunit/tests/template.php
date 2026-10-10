@@ -1808,9 +1808,10 @@ class Tests_Template extends WP_UnitTestCase {
 					$processor = new WP_HTML_Tag_Processor( $filtered_buffer );
 					$found     = false;
 					while ( $processor->next_tag( 'STYLE' ) ) {
-						if ( 'wp-block-library-inline-css-extra' === $processor->get_attribute( 'id' ) ) {
+						$id = $processor->get_attribute( 'id' );
+						$this->assertSame( 'test-nonce', $processor->get_attribute( 'nonce' ), sprintf( 'Expected the STYLE tag with ID "%s" to have the filtered attributes.', is_string( $id ) ? $id : '' ) );
+						if ( 'wp-block-library-inline-css-extra' === $id ) {
 							$found = true;
-							$this->assertSame( 'test-nonce', $processor->get_attribute( 'nonce' ), 'Expected the hoisted extra inline style to have the filtered attributes.' );
 							$this->assertStringContainsString( '.wp-block-separator{ outline:solid 1px lime; }', $processor->get_modifiable_text() );
 						}
 					}

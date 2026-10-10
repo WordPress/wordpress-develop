@@ -55,7 +55,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			return;
 		}
 
-		echo '<style>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>';
+		wp_print_inline_style_tag( '.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}' );
 	}
 
 	/**

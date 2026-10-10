@@ -3934,10 +3934,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	add_action(
 		$action_hook_name,
 		static function () use ( $style ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$processor->set_modifiable_text( $style );
-			echo "{$processor->get_updated_html()}\n";
+			wp_print_inline_style_tag( $style );
 		},
 		$priority
 	);
