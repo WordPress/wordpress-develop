@@ -12,8 +12,9 @@
  *
  * @global WP_Embed $wp_embed
  *
- * @param array $attributes The block attributes.
- *
+ * @param array    $attributes     The block attributes.
+ * @param string   $content        Block default content.
+ * @param WP_Block $block_instance Block instance.
  * @return string Rendered HTML of the referenced block.
  */
 function render_block_core_block( $attributes, $content, $block_instance ) {
