@@ -24,6 +24,19 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 		return '<b>Embedded content</b>';
 	}
 
+	public function _pre_http_request_callback() {
+		return array(
+			'headers'  => array(),
+			'body'     => '',
+			'response' => array(
+				'code'    => 404,
+				'message' => 'Not Found',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
 	/**
 	 * @covers ::maybe_run_ajax_cache
 	 */
@@ -126,20 +139,17 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group external-http
-	 *
 	 * @covers ::autoembed
 	 */
 	public function test_autoembed_should_do_nothing_without_matching_handler() {
 		$content = "\nhttp://example.com/embed/foo\n";
 
+		add_filter( 'pre_http_request', array( $this, '_pre_http_request_callback' ) );
 		$actual = $this->wp_embed->autoembed( $content );
 		$this->assertSame( $content, $actual );
 	}
 
 	/**
-	 * @group external-http
-	 *
 	 * @covers ::autoembed
 	 */
 	public function test_autoembed_should_return_modified_content() {
@@ -372,20 +382,17 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group external-http
-	 *
 	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_get_url_from_src_attribute() {
-		$url    = 'http://example.com/embed/foo';
+		$url = 'http://example.com/embed/foo';
+		add_filter( 'pre_http_request', array( $this, '_pre_http_request_callback' ) );
 		$actual = $this->wp_embed->shortcode( array( 'src' => $url ) );
 
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}
 
 	/**
-	 * @group external-http
-	 *
 	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_return_empty_string_for_missing_url() {
@@ -393,12 +400,11 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group external-http
-	 *
 	 * @covers ::shortcode
 	 */
 	public function test_shortcode_should_make_link_for_unknown_url() {
-		$url    = 'http://example.com/embed/foo';
+		$url = 'http://example.com/embed/foo';
+		add_filter( 'pre_http_request', array( $this, '_pre_http_request_callback' ) );
 		$actual = $this->wp_embed->shortcode( array(), $url );
 
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
@@ -408,7 +414,8 @@ class Tests_oEmbed_WpEmbed extends WP_UnitTestCase {
 	 * @covers ::run_shortcode
 	 */
 	public function test_run_shortcode_url_only() {
-		$url    = 'http://example.com/embed/foo';
+		$url = 'http://example.com/embed/foo';
+		add_filter( 'pre_http_request', array( $this, '_pre_http_request_callback' ) );
 		$actual = $this->wp_embed->run_shortcode( '[embed]' . $url . '[/embed]' );
 		$this->assertSame( '<a href="' . esc_url( $url ) . '">' . esc_html( $url ) . '</a>', $actual );
 	}

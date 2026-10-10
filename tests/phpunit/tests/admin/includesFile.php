@@ -463,4 +463,59 @@ class Tests_Admin_IncludesFile extends WP_UnitTestCase {
 			'.tmp',
 		);
 	}
+
+	/**
+	 * @ticket 66129
+	 * @group multisite
+	 * @group ms-required
+	 *
+	 * @covers ::wp_edit_theme_plugin_file
+	 */
+	public function test_wp_edit_theme_plugin_file_runs_loopback_check_for_network_active_plugin() {
+		$user_id = self::factory()->user->create();
+		grant_super_admin( $user_id );
+		wp_set_current_user( $user_id );
+
+		$plugin = 'hello.php';
+		$this->assertNull( activate_plugin( $plugin, '', true ) );
+
+		$loopback_requested = false;
+		add_filter(
+			'pre_http_request',
+			static function ( $preempt, array $parsed_args, string $url ) use ( &$loopback_requested ) {
+				$query_string = wp_parse_url( $url, PHP_URL_QUERY );
+				if ( ! is_string( $query_string ) ) {
+					return $preempt;
+				}
+				wp_parse_str( $query_string, $query_args );
+				if ( ! isset( $query_args['wp_scrape_key'] ) || ! is_string( $query_args['wp_scrape_key'] ) ) {
+					return $preempt;
+				}
+
+				$loopback_requested = true;
+				return array(
+					'body'     => sprintf( '###### wp_scraping_result_start:%1$s ######true###### wp_scraping_result_end:%1$s ######', $query_args['wp_scrape_key'] ),
+					'response' => array( 'code' => 200 ),
+				);
+			},
+			10,
+			3
+		);
+
+		$content = file_get_contents( WP_PLUGIN_DIR . '/' . $plugin );
+		$this->assertIsString( $content, "Expected $plugin to exist on disk." );
+
+		$this->assertTrue(
+			wp_edit_theme_plugin_file(
+				array(
+					'plugin'     => $plugin,
+					'file'       => $plugin,
+					'newcontent' => $content,
+					'nonce'      => wp_create_nonce( 'edit-plugin_' . $plugin ),
+				)
+			)
+		);
+
+		$this->assertTrue( $loopback_requested, 'Editing a network-active plugin file should trigger the fatal-error loopback check.' );
+	}
 }

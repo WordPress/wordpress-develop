@@ -24,11 +24,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/ajax-actions.php
 		-
-			message: '#^Call to function is_wp_error\(\) with WP_Error will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Call to function method_exists\(\) with ''ParagonIE_Sodium…'' and ''runtime_speed_test'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
@@ -48,11 +43,6 @@ parameters:
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: ../../../src/wp-admin/includes/plugin.php
-		-
-			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
-			identifier: function.alreadyNarrowedType
-			count: 1
-			path: ../../../src/wp-includes/block-editor.php
 		-
 			message: '#^Call to function is_string\(\) with string will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
@@ -99,7 +89,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/ms-functions.php
 		-
-			message: '#^Call to function is_array\(\) with array\{non\-falsy\-string, non\-falsy\-string&numeric\-string, numeric\-string, numeric\-string\} will always evaluate to true\.$#'
+			message: '#^Call to function is_array\(\) with non\-empty\-array\<string\> will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
 			count: 1
 			path: ../../../src/wp-includes/post.php

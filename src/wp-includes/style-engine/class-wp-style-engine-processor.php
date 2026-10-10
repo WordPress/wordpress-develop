@@ -105,7 +105,7 @@ class WP_Style_Engine_Processor {
 	 * @since 6.1.0
 	 * @since 6.4.0 The Optimization is no longer the default.
 	 *
-	 * @param array $options   {
+	 * @param array $options {
 	 *     Optional. An array of options. Default empty array.
 	 *
 	 *     @type bool $optimize Whether to optimize the CSS output, e.g. combine rules.

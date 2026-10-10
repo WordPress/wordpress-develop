@@ -631,9 +631,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Gets a list of CSS classes for the WP_List_Table table tag.
+	 *
+	 * @since 3.1.0
+	 *
 	 * @global string $mode List table view mode.
 	 *
-	 * @return array
+	 * @return string[] Array of CSS classes for the table tag.
+	 *
+	 * @phpstan-return non-empty-list<string>
 	 */
 	protected function get_table_classes() {
 		global $mode;
@@ -1135,7 +1141,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @return string The post title, or 'no title' if no title.
 	 */
 	protected function get_primary_column_aria_label( $item ) {
-		return isset( $item->post_title ) && ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
+		return ! empty( $item->post_title ) ? $item->post_title : __( 'no title' );
 	}
 
 	/**
@@ -1854,7 +1860,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 							 * @see wp_dropdown_users()
 							 *
 							 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
-							 * @param bool $bulk A flag to denote if it's a bulk action.
+							 * @param bool  $bulk      A flag to denote if it's a bulk action.
 							 */
 							$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
 

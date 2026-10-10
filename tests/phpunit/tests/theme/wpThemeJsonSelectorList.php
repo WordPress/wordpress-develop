@@ -15,7 +15,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	 * Invokes a protected static method on WP_Theme_JSON.
 	 *
 	 * @param string $method_name Method name.
-	 * @param mixed ...$args Method arguments.
+	 * @param mixed  ...$args     Method arguments.
 	 * @return mixed Method result.
 	 */
 	private static function invoke_theme_json_method( $method_name, ...$args ) {
@@ -32,7 +32,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_split_selector_list
 	 *
-	 * @param string $selector CSS selector list.
+	 * @param string   $selector CSS selector list.
 	 * @param string[] $expected Expected selectors.
 	 */
 	public function test_split_selector_list( $selector, $expected ) {
@@ -45,7 +45,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{selector: string, expected: string[]}>
 	 */
-	public function data_split_selector_list() {
+	public static function data_split_selector_list() {
 		return array(
 			'single selector'                       => array(
 				'selector' => '.wp-block',
@@ -114,7 +114,7 @@ class Tests_Theme_wpThemeJsonSelectorList extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{selector: string, expected: string}>
 	 */
-	public function data_prepend_to_selector_uses_safe_splitting() {
+	public static function data_prepend_to_selector_uses_safe_splitting() {
 		return array(
 			'fast path for simple selector list' => array(
 				'selector' => 'h1,h2',

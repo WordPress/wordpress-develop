@@ -15,8 +15,8 @@ class Tests_Block_Supports_WpGetBlockStyleVariationNameFromClass extends WP_Unit
 	 *
 	 * @dataProvider data_block_style_variation_name_extraction
 	 *
-	 * @param string     $class_string CSS class string.
-	 * @param array|null $expected     Expected variation names.
+	 * @param string|null   $class_string CSS class string.
+	 * @param string[]|null $expected     Expected variation names.
 	 */
 	public function test_block_style_variation_name_extraction( $class_string, $expected ) {
 		$actual = wp_get_block_style_variation_name_from_class( $class_string );
