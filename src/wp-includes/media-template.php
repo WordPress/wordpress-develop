@@ -1561,11 +1561,15 @@ function wp_print_media_templates() {
 
 	<?php // Template for the Site Icon preview, used for example in the Customizer. ?>
 	<script type="text/html" id="tmpl-site-icon-preview-crop">
-		<style>
+		<?php
+		wp_print_inline_style_tag(
+			<<<'CSS'
 			:root{
 				--site-icon-url: url( "{{ data.url }}" );
 			}
-		</style>
+			CSS
+		);
+		?>
 		<h2><?php _ex( 'Site Icon Preview', 'noun' ); ?></h2>
 		<p><?php _e( 'As an app icon and a browser icon.' ); ?></p>
 		<div class="site-icon-preview crop">
