@@ -267,14 +267,28 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar .ab-icon.svg-icon {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	min-width: 24px;
+	width: 24px;
+	overflow: hidden;
+}
+
+/* Dashicons back-compat: allow `::before` with `content` to fill the slot and push the SVG icon out of view. */
+#wpadminbar .ab-icon.svg-icon::before {
+	flex: 0 0 100%;
+	box-sizing: border-box;
+	text-indent: 0;
 }
 
 #wpadminbar .ab-icon.svg-icon svg {
+	flex: none;
 	width: 24px;
 	height: 24px;
+	margin: auto;
 	fill: currentColor;
+}
+
+/* Dashicons back-compat: hide an empty icon element left in a title next to the SVG icon. */
+#wpadminbar .ab-icon.svg-icon ~ .ab-icon:empty {
+	display: none;
 }
 
 #wpadminbar .ab-icon,
@@ -328,6 +342,15 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar li.hover .ab-item::before,
 #wpadminbar li #adminbarsearch.adminbar-focused .ab-icon {
 	color: #72aee6;
+}
+
+/* Dashicons back-compat: inherit the hover and focus color of the link, so color schemes that only color `::before` still reach SVG icons. */
+@media screen and (min-width: 783px) {
+	#wpadminbar li:hover > .ab-item > :where(.ab-icon.svg-icon),
+	#wpadminbar li.hover > .ab-item > :where(.ab-icon.svg-icon),
+	#wpadminbar li > .ab-item:focus > .ab-icon:where(.svg-icon) {
+		color: inherit;
+	}
 }
 
 #wpadminbar.mobile .quicklinks .ab-icon,
@@ -761,6 +784,15 @@ html:lang(he-il) .rtl #wpadminbar * {
 		width: 52px;
 		height: 46px;
 		text-align: center;
+	}
+
+	#wpadminbar .ab-icon.svg-icon {
+		width: 52px;
+	}
+
+	/* Dashicons back-compat: give `::before` with `content` the size of the SVG icon. */
+	#wpadminbar .ab-icon.svg-icon::before {
+		font-size: 32px;
 	}
 
 	#wpadminbar .ab-icon.svg-icon svg {
