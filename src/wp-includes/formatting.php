@@ -2260,11 +2260,13 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
  *
  * @since 3.1.0
  *
- * @param string $title The string to be sanitized.
+ * @param string $title          The string to be sanitized.
+ * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
+ *                               Changed to resolve Trac ticket: https://core.trac.wordpress.org/ticket/38709
  * @return string The sanitized string.
  */
-function sanitize_title_for_query( $title ) {
-	return sanitize_title( $title, '', 'query' );
+function sanitize_title_for_query( $title, $fallback_title = '' ) {
+	return sanitize_title( $title, $fallback_title, 'query' );
 }
 
 /**

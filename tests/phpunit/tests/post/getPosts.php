@@ -215,4 +215,31 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_posts( $args ), 'The uncached call is not of the expected form.' );
 		$this->assertSame( $expected, get_posts( $args ), 'The cached call is not of the expected form.' );
 	}
+
+	/**
+	 * Verifies that a record with an empty post_name (normally with statuses 'draft' or 'auto-draft')
+	 * and a specified date is not found when searching for a record with a name
+	 * that becomes an empty string after sanitization, using the same date.
+	 *
+	 * @ticket 38709
+	 */
+	public function test_no_posts_with_empty_name_after_sanitization_to_empty_string(): void {
+		self::factory()->post->create(
+			array(
+				'post_name'   => '',
+				'post_status' => 'draft',
+				'post_date'   => '2026-10-05 16:30:00',
+			)
+		);
+
+		$args = array(
+			'name'     => '[',
+			'year'     => 2026,
+			'monthnum' => 10,
+			'day'      => 5,
+		);
+
+		$q = new WP_Query( $args );
+		$this->assertEmpty( $q->query( $args ) );
+	}
 }

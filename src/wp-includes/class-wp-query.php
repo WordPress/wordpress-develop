@@ -2157,8 +2157,8 @@ class WP_Query {
 
 		// Parameters related to 'post_name'.
 		if ( '' !== $query_vars['name'] ) {
-			$query_vars['name'] = sanitize_title_for_query( $query_vars['name'] );
-			$where             .= " AND {$wpdb->posts}.post_name = '" . $query_vars['name'] . "'";
+			$query_vars['name'] = sanitize_title_for_query( $query_vars['name'], ' ' );
+			$where .= " AND {$wpdb->posts}.post_name LIKE '" . $query_vars['name'] . "'";
 		} elseif ( '' !== $query_vars['pagename'] ) {
 			if ( isset( $this->queried_object_id ) ) {
 				$reqpage = $this->queried_object_id;
