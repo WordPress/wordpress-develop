@@ -3670,10 +3670,10 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @since 7.2.0
  *
  * @param string                     $data       CSS for the style tag.
- * @param array<string, string|true> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
  * @return string HTML style tag containing the provided CSS.
  *
- * @phpstan-param array<non-falsy-string, string|true> $attributes
+ * @phpstan-param array<non-falsy-string, string|bool> $attributes
  * @phpstan-return non-falsy-string
  */
 function wp_get_inline_style_tag( string $data, array $attributes = array() ): string {
@@ -3684,7 +3684,7 @@ function wp_get_inline_style_tag( string $data, array $attributes = array() ): s
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<string, string|true> $attributes Key-value pairs representing `<style>` tag attributes.
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
 	 *                                               Only the attribute name is added to the `<style>` tag for
 	 *                                               entries with a boolean value, and that are true.
 	 * @param string                     $data       Inline CSS.
@@ -3729,9 +3729,9 @@ function wp_get_inline_style_tag( string $data, array $attributes = array() ): s
  * @since 7.2.0
  *
  * @param string                     $data       CSS for the style tag.
- * @param array<string, string|true> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
  *
- * @phpstan-param array<non-falsy-string, string|true> $attributes
+ * @phpstan-param array<non-falsy-string, string|bool> $attributes
  */
 function wp_print_inline_style_tag( string $data, array $attributes = array() ): void {
 	echo wp_get_inline_style_tag( $data, $attributes );
