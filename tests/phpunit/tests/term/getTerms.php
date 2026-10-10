@@ -447,6 +447,55 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Term_Query::get_search_sql
+	 */
+	public function test_get_terms_search_does_not_match_description_by_default() {
+		self::factory()->tag->create(
+			array(
+				'name'        => 'Foo',
+				'description' => 'A burrito-themed description.',
+			)
+		);
+
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'hide_empty' => false,
+				'search'     => 'burrito',
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertSame( array(), $terms, 'Searching the description should require opting in via search_columns.' );
+	}
+
+	/**
+	 * @covers WP_Term_Query::get_search_sql
+	 */
+	public function test_get_terms_search_columns_can_include_description() {
+		$term_id1 = self::factory()->tag->create(
+			array(
+				'name'        => 'Foo',
+				'description' => 'A burrito-themed description.',
+			)
+		);
+		$term_id2 = self::factory()->tag->create( array( 'slug' => 'burrito' ) );
+		self::factory()->tag->create( array( 'name' => 'Bar' ) );
+
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'hide_empty'     => false,
+				'search'         => 'burrito',
+				'search_columns' => array( 'name', 'slug', 'description' ),
+				'fields'         => 'ids',
+			)
+		);
+
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms );
+	}
+
+	/**
 	 * @ticket 8214
 	 */
 	public function test_get_terms_like() {
