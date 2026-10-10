@@ -7,6 +7,8 @@
  * @since 5.0.0
  *
  * @group blocks
+ *
+ * @covers ::do_blocks
  */
 class Tests_Blocks_Render extends WP_UnitTestCase {
 	/**

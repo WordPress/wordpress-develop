@@ -7,6 +7,8 @@
  * @since 5.0.0
  *
  * @group blocks
+ *
+ * @covers WP_Block
  */
 class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 	/**
