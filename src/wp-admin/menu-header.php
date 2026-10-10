@@ -258,6 +258,8 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 
 				$title = wptexturize( $sub_item[0] );
 
+				$sub_menu_id = ! empty( $item[5] ) ? ' id="' . esc_attr( sanitize_html_class( $item[5] . '-' . $sub_item[2] ) ) . '"' : '';
+
 				if ( ! empty( $menu_hook )
 					|| ( ( 'index.php' !== $sub_item[2] )
 						&& file_exists( WP_PLUGIN_DIR . "/$sub_file" )
@@ -271,9 +273,9 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 					}
 
 					$sub_item_url = esc_url( $sub_item_url );
-					echo "<li$class><a href='$sub_item_url'$class$aria_attributes>$title</a></li>";
+					echo "<li$class><a href='$sub_item_url'$class$aria_attributes$sub_menu_id>$title</a></li>";
 				} else {
-					echo "<li$class><a href='{$sub_item[2]}'$class$aria_attributes>$title</a></li>";
+					echo "<li$class><a href='{$sub_item[2]}'$class$aria_attributes$sub_menu_id>$title</a></li>";
 				}
 			}
 			echo '</ul>';
