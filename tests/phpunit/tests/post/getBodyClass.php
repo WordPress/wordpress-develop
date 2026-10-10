@@ -286,4 +286,35 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		do_action( 'setup_theme' );
 		do_action( 'after_setup_theme' );
 	}
+
+	/**
+	 * @ticket 39493
+	 */
+	public function test_single_custom_post_type_slug_body_class() {
+		register_post_type(
+			'product',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type' => 'product',
+				'post_name' => 'laptop',
+			)
+		);
+
+		$this->go_to( get_permalink( $post_id ) );
+
+		$class = get_body_class();
+
+		$this->assertContains( 'single-product-laptop', $class );
+		$this->assertContains( 'single', $class );
+		$this->assertContains( 'single-product', $class );
+		$this->assertContains( "postid-{$post_id}", $class );
+
+		_unregister_post_type( 'product' );
+	}
 }
