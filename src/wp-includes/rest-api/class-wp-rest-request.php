@@ -590,12 +590,12 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return array Parameter map of key to value.
 	 *
 	 * @phpstan-return array<string, array{
-	 *                                   name: non-empty-string,
-	 *                                   type: non-empty-string,
-	 *                                   size: non-negative-int,
-	 *                                   tmp_name: non-empty-string,
-	 *                                   error: int<0, 8>,
-	 *                                   full_path?: non-empty-string,
+	 *                                   name: string|array<mixed>,
+	 *                                   type: string|array<mixed>,
+	 *                                   size: non-negative-int|array<mixed>,
+	 *                                   tmp_name: string|array<mixed>,
+	 *                                   error: int<0, 8>|array<mixed>,
+	 *                                   full_path?: string|array<mixed>,
 	 *                               }>
 	 */
 	public function get_file_params() {
@@ -612,12 +612,12 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param array $params Parameter map of key to value.
 	 *
 	 * @phpstan-param array<string, array{
-	 *                                  name: non-empty-string,
-	 *                                  type: non-empty-string,
-	 *                                  size: non-negative-int,
-	 *                                  tmp_name: non-empty-string,
-	 *                                  error: int<0, 8>,
-	 *                                  full_path?: non-empty-string,
+	 *                                  name: string|array<mixed>,
+	 *                                  type: string|array<mixed>,
+	 *                                  size: non-negative-int|array<mixed>,
+	 *                                  tmp_name: string|array<mixed>,
+	 *                                  error: int<0, 8>|array<mixed>,
+	 *                                  full_path?: string|array<mixed>,
 	 *                              }> $params
 	 */
 	public function set_file_params( $params ) {
