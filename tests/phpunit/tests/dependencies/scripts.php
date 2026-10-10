@@ -3837,9 +3837,7 @@ HTML;
 	 * @ticket 58648
 	 */
 	public function test_printing_tinymce_scripts() {
-		global $wp_scripts;
-
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( wp_scripts() );
 
 		$actual = get_echo( 'wp_print_scripts', array( array( 'wp-tinymce' ) ) );
 
