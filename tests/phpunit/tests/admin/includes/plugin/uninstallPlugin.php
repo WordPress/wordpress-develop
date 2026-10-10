@@ -180,6 +180,7 @@ class Tests_Admin_Includes_Plugin_UninstallPlugin extends WP_UnitTestCase {
 		return array(
 			'plugin with an uninstall callback'   => array( 'hello.php' ),
 			'plugin without an uninstall routine' => array( 'other-plugin/other.php' ),
+			'full path to a plugin file'          => array( WP_PLUGIN_DIR . '/hello.php' ),
 		);
 	}
 
