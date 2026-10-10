@@ -9,6 +9,8 @@ wp-tests-config.php
 # Files and folders related to build/test tools
 .phpunit.result.cache
 /phpunit.xml
+/phpunit10.xml
+/phpunit-10.xml
 /.phpcs.xml
 /phpcs.xml
 .cache/*
