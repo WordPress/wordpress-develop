@@ -12,10 +12,45 @@
  */
 class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCase {
 	/**
+	 * Global WP_Interactivity_API instance from before the test class ran.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	private static $wp_interactivity_before_class;
+
+	/**
+	 * Global WP_Interactivity_API instance from before the test.
+	 *
+	 * @var WP_Interactivity_API|null
+	 */
+	private $original_wp_interactivity;
+
+	/**
+	 * Records the global instance that every test must leave in place.
+	 */
+	public static function set_up_before_class() {
+		global $wp_interactivity;
+
+		parent::set_up_before_class();
+
+		self::$wp_interactivity_before_class = $wp_interactivity;
+	}
+
+	/**
 	 * Set up.
 	 */
 	public function set_up() {
+		global $wp_interactivity;
+
 		parent::set_up();
+
+		/*
+		 * The global instance is replaced with a fresh one for the duration of
+		 * the test, so that no state leaks into the original instance.
+		 */
+		$this->original_wp_interactivity = $wp_interactivity;
+		$wp_interactivity                = new WP_Interactivity_API();
+		$wp_interactivity->add_hooks();
 
 		$interactive_block = array(
 			'render_callback' => function ( $attributes, $content ) {
@@ -60,7 +95,11 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 	public function tear_down() {
 		global $wp_interactivity;
 
-		$wp_interactivity = null;
+		/*
+		 * The hooks registered by core are bound to the original instance and are
+		 * restored by the parent method, so the same instance must be restored.
+		 */
+		$wp_interactivity = $this->original_wp_interactivity;
 
 		unregister_block_type( 'test/interactive-block' );
 		unregister_block_type( 'test/interactive-block-2' );
@@ -631,5 +670,63 @@ class Tests_Interactivity_API_wpInteractivityAPIFunctions extends WP_UnitTestCas
 		remove_filter( 'interactivity_process_directives', '__return_false' );
 		unregister_block_type( 'test/custom-directive-block' );
 		$this->assertNull( $input_value );
+	}
+
+	/**
+	 * Tests that state set with the global function reaches the script module data.
+	 *
+	 * @ticket 65893
+	 *
+	 * @covers ::wp_interactivity_state
+	 */
+	public function test_state_is_included_in_script_module_data() {
+		wp_interactivity_state( 'myPlugin', array( 'key' => 'value' ) );
+
+		/** This filter is documented in wp-includes/class-wp-script-modules.php */
+		$data = apply_filters( 'script_module_data_@wordpress/interactivity', array() ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores -- The hook name is defined by core.
+
+		$this->assertSame(
+			array( 'myPlugin' => array( 'key' => 'value' ) ),
+			$data['state'] ?? null,
+			'The state should be present in the script module data.'
+		);
+	}
+
+	/**
+	 * Tests that the original global instance is back in place after a test's tear down.
+	 *
+	 * The two data sets make sure at least one run follows another test in this class.
+	 *
+	 * @ticket 65893
+	 *
+	 * @dataProvider data_original_global_instance_runs
+	 *
+	 * @param string $store_namespace Store namespace to set state for.
+	 */
+	public function test_original_global_instance_is_restored_after_tear_down( $store_namespace ) {
+		$this->assertSame(
+			self::$wp_interactivity_before_class,
+			$this->original_wp_interactivity,
+			'The original global instance should be restored after each test.'
+		);
+		$this->assertSame(
+			array(),
+			wp_interactivity_state( $store_namespace ),
+			'State from a previous test should not be present.'
+		);
+
+		wp_interactivity_state( $store_namespace, array( 'key' => 'value' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ string }>
+	 */
+	public static function data_original_global_instance_runs() {
+		return array(
+			'first run'  => array( 'isolationTest' ),
+			'second run' => array( 'isolationTest' ),
+		);
 	}
 }
