@@ -29,6 +29,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			'created'   => __( 'Created' ),
 			'last_used' => __( 'Last Used' ),
 			'last_ip'   => __( 'Last IP' ),
+			'expires'   => __( 'Expires' ),
 			'revoke'    => __( 'Revoke' ),
 		);
 	}
@@ -98,6 +99,30 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			echo '&mdash;';
 		} else {
 			echo $item['last_ip'];
+		}
+	}
+
+	/**
+	 * Handles the expires column output.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_expires( $item ) {
+		if ( empty( $item['expires'] ) ) {
+			echo '&mdash;';
+		} else {
+			$date = date_i18n( __( 'F j, Y' ), $item['expires'] );
+			if ( time() > $item['expires'] ) {
+				printf(
+					'%s',
+					/* translators: %s: Expiration date for the Application Password. */
+					sprintf( esc_html__( 'Expired on %s' ), esc_html( $date ) )
+				);
+			} else {
+				echo esc_html( $date );
+			}
 		}
 	}
 
@@ -236,6 +261,24 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					break;
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
+					break;
+				case 'expires':
+					?>
+					<# if ( data.expires ) { #>
+						<# var isExpired = new Date().getTime() > new Date( data.expires ).getTime(); #>
+						<# var formattedDate = wp.date.dateI18n( <?php echo wp_json_encode( __( 'F j, Y' ) ); ?>, data.expires ); #>
+						<# if ( isExpired ) { #>
+							<?php
+							/* translators: %s: Expiration date for the Application Password. */
+							printf( esc_html__( 'Expired on %s' ), '{{ formattedDate }}' );
+							?>
+						<# } else { #>
+							{{ formattedDate }}
+						<# } #>
+					<# } else { #>
+						—
+					<# } #>
+					<?php
 					break;
 				case 'revoke':
 					printf(

@@ -40,6 +40,40 @@ test.describe( 'Manage applications passwords', () => {
 		);
 	} );
 
+	test( 'should correctly create a new application password with preset expiration', async ( {
+		page,
+		applicationPasswords,
+	} ) => {
+		await applicationPasswords.create( TEST_APPLICATION_NAME, '7_days' );
+
+		const [ app ] = await applicationPasswords.get();
+		expect( app.name ).toBe( TEST_APPLICATION_NAME );
+		expect( app.expires ).not.toBeNull();
+
+		const successMessage = page.getByRole( 'alert' );
+		await expect( successMessage ).toHaveClass( /notice-success/ );
+	} );
+
+	test( 'should correctly create a new application password with custom expiration date', async ( {
+		page,
+		applicationPasswords,
+	} ) => {
+		const expiresDate = new Date();
+		expiresDate.setDate( expiresDate.getDate() + 7 );
+		const expiresString = expiresDate.toISOString().split( 'T' )[ 0 ];
+
+		await applicationPasswords.create( `${ TEST_APPLICATION_NAME } Custom`, 'custom', expiresString );
+
+		const apps = await applicationPasswords.get();
+		const app = apps.find( ( item ) => item.name === `${ TEST_APPLICATION_NAME } Custom` );
+		expect( app ).toBeDefined();
+		expect( app.expires ).not.toBeNull();
+		expect( app.expires.startsWith( expiresString ) ).toBe( true );
+
+		const successMessage = page.getByRole( 'alert' );
+		await expect( successMessage ).toHaveClass( /notice-success/ );
+	} );
+
 	test( 'should correctly revoke a single application password', async ( {
 		page,
 		applicationPasswords
@@ -94,12 +128,24 @@ class ApplicationPasswords {
 		this.admin = admin;
 	}
 
-	async create(applicationName = TEST_APPLICATION_NAME) {
+	async create(applicationName = TEST_APPLICATION_NAME, preset = null, customDate = null) {
 		await this.admin.visitAdminPage( '/profile.php' );
 
 		const newPasswordField = this.page.getByRole( 'textbox', { name: 'New Application Password Name' } );
 		await expect( newPasswordField ).toBeVisible();
 		await newPasswordField.fill( applicationName );
+
+		if ( preset ) {
+			const presetSelect = this.page.getByLabel( 'Expiration', { exact: true } );
+			await expect( presetSelect ).toBeVisible();
+			await presetSelect.selectOption( preset );
+
+			if ( 'custom' === preset && customDate ) {
+				const customDateField = this.page.getByLabel( 'Custom expiration date' );
+				await expect( customDateField ).toBeVisible();
+				await customDateField.fill( customDate );
+			}
+		}
 
 		await this.page.getByRole( 'button', { name: 'Add Application Password' } ).click();
 		await expect( this.page.getByRole( 'alert' ) ).toBeVisible();
