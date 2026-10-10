@@ -31,6 +31,8 @@ class Tests_Admin_Includes_Plugin_ValidatePluginRequirements extends WP_UnitTest
 		parent::set_up();
 
 		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$this->reset_plugin_dependencies();
 	}
 
 	/**
@@ -103,9 +105,11 @@ class Tests_Admin_Includes_Plugin_ValidatePluginRequirements extends WP_UnitTest
 		$dir       = dirname( $full_path );
 
 		if ( ! is_dir( $dir ) ) {
-			wp_mkdir_p( $dir );
+			$this->assertTrue( wp_mkdir_p( $dir ), "Failed to create directory: {$dir}" );
 			$this->created_dirs[] = $dir;
 		}
+
+		$this->assertFileDoesNotExist( $full_path, "Plugin fixture already exists: {$full_path}" );
 
 		$header_content = "<?php\n/**\n";
 		foreach ( $headers as $header => $value ) {
@@ -113,7 +117,7 @@ class Tests_Admin_Includes_Plugin_ValidatePluginRequirements extends WP_UnitTest
 		}
 		$header_content .= " */\n";
 
-		file_put_contents( $full_path, $header_content );
+		$this->assertNotFalse( file_put_contents( $full_path, $header_content ), "Failed to write plugin fixture: {$full_path}" );
 		$this->created_files[] = $full_path;
 
 		wp_cache_delete( 'plugins', 'plugins' );
