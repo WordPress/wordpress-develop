@@ -710,6 +710,31 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertStringNotContainsString( 'rel="next"', $headers['Link'] );
 	}
 
+	/**
+	 * @ticket 59425
+	 */
+	public function test_get_items_pagination_links_preserve_false_boolean_params() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_query_params( array( 'hide_empty' => 'false' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+
+		$next_link = add_query_arg(
+			array(
+				'hide_empty' => '0',
+				'page'       => 2,
+			),
+			rest_url( 'wp/v2/tags' )
+		);
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
+		$request->set_query_params( array( 'hide_empty' => '0' ) );
+		$request->set_param( 'page', 2 );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Following the next link should not fail boolean validation.' );
+	}
+
 	public function test_get_items_invalid_context() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
 		$request->set_param( 'context', 'banana' );

@@ -2940,4 +2940,58 @@ class Tests_REST_API extends WP_UnitTestCase {
 			throw $e; // Re-throw to satisfy expectException
 		}
 	}
+
+	/**
+	 * @ticket 59425
+	 *
+	 * @covers ::rest_urlencode_query_params
+	 *
+	 * @dataProvider data_rest_urlencode_query_params
+	 *
+	 * @param array $query_params Query parameters to encode.
+	 * @param array $expected     Expected encoded parameters.
+	 */
+	public function test_rest_urlencode_query_params( $query_params, $expected ) {
+		$this->assertSame( $expected, rest_urlencode_query_params( $query_params ) );
+	}
+
+	/**
+	 * Data provider for test_rest_urlencode_query_params().
+	 *
+	 * @return array[]
+	 */
+	public static function data_rest_urlencode_query_params() {
+		return array(
+			'false becomes 0'        => array(
+				array( 'hide_empty' => false ),
+				array( 'hide_empty' => '0' ),
+			),
+			'true becomes 1'         => array(
+				array( 'hide_empty' => true ),
+				array( 'hide_empty' => '1' ),
+			),
+			'nested booleans'        => array(
+				array(
+					'filter' => array(
+						'a' => false,
+						'b' => true,
+					),
+				),
+				array(
+					'filter' => array(
+						'a' => '0',
+						'b' => '1',
+					),
+				),
+			),
+			'strings are encoded'    => array(
+				array( 'search' => 'a b&c' ),
+				array( 'search' => 'a+b%26c' ),
+			),
+			'integers are unchanged' => array(
+				array( 'per_page' => 5 ),
+				array( 'per_page' => '5' ),
+			),
+		);
+	}
 }
