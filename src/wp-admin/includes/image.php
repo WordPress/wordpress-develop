@@ -757,6 +757,8 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
  *
  * @param string $str Fraction string.
  * @return int|float Returns calculated fraction or integer 0 on invalid input.
+ *
+ * @phpstan-pure
  */
 function wp_exif_frac2dec( $str ) {
 	if ( ! is_scalar( $str ) || is_bool( $str ) ) {

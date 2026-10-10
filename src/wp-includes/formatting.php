@@ -727,6 +727,8 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
  *
  * @param string[] $tagnames Array of shortcodes to find.
  * @return string The regular expression.
+ *
+ * @phpstan-pure
  */
 function _get_wptexturize_shortcode_regex( $tagnames ) {
 	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
@@ -2834,6 +2836,7 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
  *
+ * @phpstan-pure
  * @phpstan-return (
  *     $threshold is 0
  *         ? lowercase-string&non-empty-string&numeric-string
@@ -2855,6 +2858,8 @@ function zeroise( $number, $threshold ) {
  *
  * @param string $value Value to which backslashes will be added.
  * @return string String with backslashes inserted.
+ *
+ * @phpstan-pure
  */
 function backslashit( $value ) {
 	if ( isset( $value[0] ) && $value[0] >= '0' && $value[0] <= '9' ) {
@@ -2878,6 +2883,7 @@ function backslashit( $value ) {
  * @return string String with trailing slash added.
  *
  * @phpstan-return non-falsy-string
+ * @phpstan-pure
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -2893,6 +2899,8 @@ function trailingslashit( $value ) {
  *
  * @param string $value Value from which trailing slashes will be removed.
  * @return string String without the trailing slashes.
+ *
+ * @phpstan-pure
  */
 function untrailingslashit( $value ) {
 	return rtrim( $value, '/\\' );
@@ -3306,6 +3314,8 @@ function make_clickable( $text ) {
  * @param string $text   The string to split.
  * @param int    $goal   The desired chunk length.
  * @return array Numeric array of chunks.
+ *
+ * @phpstan-pure
  */
 function _split_str_by_whitespace( $text, $goal ) {
 	$chunks = array();
@@ -5839,6 +5849,8 @@ function _sanitize_text_fields( $str, $keep_newlines = false ) {
  * @param string $path   A path.
  * @param string $suffix If the filename ends in suffix this will also be cut off.
  * @return string The base name of the given path.
+ *
+ * @phpstan-pure
  */
 function wp_basename( $path, $suffix = '' ) {
 	return urldecode( basename( str_replace( array( '%2F', '%5C' ), '/', urlencode( $path ) ), $suffix ) );
@@ -5945,6 +5957,8 @@ function sanitize_trackback_urls( $to_ping ) {
  *         T is array ? array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )> : T
  *     )
  * )
+ *
+ * @phpstan-pure
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
@@ -6374,6 +6388,8 @@ function wp_staticize_emoji_for_email( $mail ) {
  *
  * @param string $type Optional. Which array type to return. Accepts 'partials' or 'entities', default 'entities'.
  * @return array An array to match all emoji that WordPress recognises.
+ *
+ * @phpstan-pure
  */
 function _wp_emoji_list( $type = 'entities' ) {
 	// Do not remove the START/END comments - they're used to find where to insert the arrays.
@@ -6399,6 +6415,8 @@ function _wp_emoji_list( $type = 'entities' ) {
  * @param string $url    URL to shorten.
  * @param int    $length Optional. Maximum length of the shortened URL. Default 35 characters.
  * @return string Shortened URL.
+ *
+ * @phpstan-pure
  */
 function url_shorten( $url, $length = 35 ) {
 	$stripped  = str_replace( array( 'https://', 'http://', 'www.' ), '', $url );

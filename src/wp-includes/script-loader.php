@@ -4655,6 +4655,8 @@ function wp_hoist_late_printed_styles(): void {
  *
  * @param string $html_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if interpretable as a custom data attribute, else `null`.
+ *
+ * @phpstan-pure
  */
 function wp_js_dataset_name( string $html_attribute_name ): ?string {
 	if ( 0 !== substr_compare( $html_attribute_name, 'data-', 0, 5, true ) ) {
@@ -4734,6 +4736,8 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
  * @param string $js_dataset_name Name of JS `dataset` property to transform.
  * @return string|null Corresponding name of an HTML custom data attribute for the given dataset name,
  *                     if possible to represent in HTML, otherwise `null`.
+ *
+ * @phpstan-pure
  */
 function wp_html_custom_data_attribute_name( string $js_dataset_name ): ?string {
 	$end = strlen( $js_dataset_name );

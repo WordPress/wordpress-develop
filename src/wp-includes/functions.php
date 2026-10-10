@@ -1313,6 +1313,7 @@ function wp_removable_query_args() {
  * @param array $input_array Array to walk while sanitizing contents.
  * @return array Sanitized $input_array.
  *
+ * @phpstan-pure
  * @phpstan-template T of array
  * @phpstan-param T $input_array
  * @phpstan-return array<key-of<T>, ( value-of<T> is string ? string : value-of<T> )>
@@ -1616,6 +1617,7 @@ function get_num_queries() {
  * @param string $yn Character string containing either 'y' (yes) or 'n' (no).
  * @return bool True if 'y', false on anything else.
  *
+ * @phpstan-pure
  * @phpstan-return ( $yn is 'y'|'Y' ? true : false )
  */
 function bool_from_yn( $yn ) {
@@ -5087,6 +5089,7 @@ function wp_parse_args( $args, $defaults = array() ): array {
  * @param mixed[]|string|int $input_list List of values.
  * @return array Array of scalar values. A string is split into a list, while an array
  *               keeps its keys, so the result is not necessarily a list.
+ * @phpstan-pure
  * @phpstan-return (
  *     $input_list is string|int ? list<string> : (
  *         $input_list is array<string> ? array<string> : array<scalar>
@@ -5118,6 +5121,7 @@ function wp_parse_list( $input_list ): array {
  * @return int[] Sanitized array of IDs. May include zero. Keys are preserved
  *               from the input and `array_unique()` may leave gaps, so the
  *               result is not necessarily a list.
+ * @phpstan-pure
  * @phpstan-return array<non-negative-int>
  */
 function wp_parse_id_list( $input_list ): array {
@@ -5165,6 +5169,7 @@ function wp_parse_slug_list( $input_list ): array {
  * @param string[]             $keys        The list of keys.
  * @return array<string, mixed> The array slice.
  *
+ * @phpstan-pure
  * @phpstan-template TKey of string
  * @phpstan-template TValue
  * @phpstan-param array<string, TValue> $input_array
@@ -5230,6 +5235,8 @@ function wp_recursive_ksort( &$input_array ) {
  * @param mixed $default_value Optional. The return value if the path does not exist within the array,
  *                             or if `$input_array` or `$path` are not arrays. Default null.
  * @return mixed The value from the path specified.
+ *
+ * @phpstan-pure
  */
 function _wp_array_get( $input_array, $path, $default_value = null ) {
 	// Confirm $path is valid.
@@ -5444,6 +5451,7 @@ function _wp_to_kebab_case( $input_string ) {
  *
  * @phpstan-assert-if-true array<int, mixed> $data
  *
+ * @phpstan-pure
  * @phpstan-return ( $data is array<int, mixed> ? true : false )
  */
 function wp_is_numeric_array( $data ): bool {
@@ -7926,6 +7934,8 @@ function reset_mbstring_encoding() {
  *
  * @param mixed $value Boolean value to validate.
  * @return bool Whether the value is validated.
+ *
+ * @phpstan-pure
  */
 function wp_validate_boolean( $value ) {
 	if ( is_bool( $value ) ) {
@@ -9279,6 +9289,8 @@ function is_wp_version_compatible( $required ) {
  *
  * @param string $required Minimum required PHP version.
  * @return bool True if required version is compatible or empty, false if not.
+ *
+ * @phpstan-pure
  */
 function is_php_version_compatible( $required ) {
 	return empty( $required ) || version_compare( PHP_VERSION, $required, '>=' );
@@ -9295,6 +9307,8 @@ function is_php_version_compatible( $required ) {
  * @param int|float $actual    The actual number.
  * @param int|float $precision Optional. The allowed variation. Default 1.
  * @return bool Whether the numbers match within the specified precision.
+ *
+ * @phpstan-pure
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
@@ -9469,6 +9483,8 @@ function wp_admin_notice( $message, $args = array() ) {
  *
  * @param string $mime_type The mime type to check.
  * @return bool Whether the mime type is for a HEIC/HEIF image.
+ *
+ * @phpstan-pure
  */
 function wp_is_heic_image_mime_type( $mime_type ) {
 	$heic_mime_types = array(

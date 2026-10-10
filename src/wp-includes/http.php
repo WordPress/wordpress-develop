@@ -807,6 +807,7 @@ function wp_parse_url( $url, $component = -1 ) {
  *               doesn't exist in the given URL; a string or - in the case of
  *               PHP_URL_PORT - integer when it does. See parse_url()'s return values.
  *
+ * @phpstan-pure
  * @phpstan-param false|array{
  *     scheme?: string,
  *     host?: string,
@@ -863,6 +864,7 @@ function _get_component_from_parsed_url_array( $url_parts, $component = -1 ) {
  * @param int $constant PHP_URL_* constant.
  * @return string|false The named key or false.
  *
+ * @phpstan-pure
  * @phpstan-param int<-1, 7> $constant
  * @phpstan-return 'scheme'|'host'|'port'|'user'|'pass'|'path'|'query'|'fragment'|false
  */
