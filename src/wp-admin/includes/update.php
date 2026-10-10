@@ -944,6 +944,68 @@ function wp_print_admin_notice_templates() {
 			<# } #>
 		</div>
 	</script>
+	<script id="tmpl-wp-bulk-deletions-admin-notice" type="text/html">
+		<#
+		// Only render the notice if we have successes or errors.
+		if ( data.successes || data.errors ) {
+		#>
+		<div id="{{ data.id }}" class="{{ data.className }} notice <# if ( data.errors ) { #>notice-error<# } else { #>notice-success<# } #>">
+			<p>
+				<# if ( data.successes ) { #>
+					<# if ( 1 === data.successes ) { #>
+						<# if ( 'plugin' === data.type ) { #>
+							<?php
+							/* translators: %s: Number of plugins */
+							printf( __( '%s plugin successfully deleted.' ), '{{ data.successes }}' );
+							?>
+						<# } else { #>
+							<?php
+							/* translators: %s: Number of themes */
+							printf( __( '%s theme successfully deleted.' ), '{{ data.successes }}' );
+							?>
+						<# } #>
+					<# } else { #>
+						<# if ( 'plugin' === data.type ) { #>
+							<?php
+							/* translators: %s: Number of plugins */
+							printf( __( '%s plugins successfully deleted.' ), '{{ data.successes }}' );
+							?>
+						<# } else { #>
+							<?php
+							/* translators: %s: Number of themes */
+							printf( __( '%s themes successfully deleted.' ), '{{ data.successes }}' );
+							?>
+						<# } #>
+					<# } #>
+				<# } #>
+				<# if ( data.errors ) { #>
+					<button class="button-link bulk-action-errors-collapsed" aria-expanded="false">
+						<# if ( 1 === data.errors ) { #>
+							<?php
+							/* translators: %s: Number of failed updates */
+							printf( __( '%s deletion failed.' ), '{{ data.errors }}' );
+							?>
+						<# } else { #>
+							<?php
+							/* translators: %s: Number of failed updates */
+							printf( __( '%s deletions failed.' ), '{{ data.errors }}' );
+							?>
+						<# } #>
+						<span class="screen-reader-text"><?php _e( 'Show more details' ); ?></span>
+						<span class="toggle-indicator" aria-hidden="true"></span>
+					</button>
+				<# } #>
+			</p>
+			<# if ( data.errors ) { #>
+				<ul class="bulk-action-errors hidden">
+					<# _.each( data.errorMessages, function( errorMessage ) { #>
+						<li>{{ errorMessage }}</li>
+					<# } ); #>
+				</ul>
+			<# } #>
+		</div>
+		<# } #>
+	</script>
 	<?php
 }
 
