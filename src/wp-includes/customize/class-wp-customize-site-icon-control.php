@@ -58,11 +58,15 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 		<# if ( data.attachment && data.attachment.id ) { #>
 			<div class="attachment-media-view">
 				<# if ( data.attachment.sizes ) { #>
-					<style>
+					<?php
+					wp_print_inline_style_tag(
+						<<<'CSS'
 						:root{
 							--site-icon-url: url( '{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}' );
 						}
-					</style>
+						CSS
+					);
+					?>
 					<div class="site-icon-preview customizer">
 						<div class="direction-wrap">
 							<img src="{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}" class="app-icon-preview" alt="{{
