@@ -15,6 +15,20 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 43611
+	 *
+	 * @covers ::find_posts_div
+	 */
+	public function test_find_posts_div_has_unique_nonce_field() {
+		ob_start();
+		find_posts_div();
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'id="_ajax_nonce-find-posts"', $output );
+		$this->assertStringNotContainsString( 'id="_ajax_nonce"', $output );
+	}
+
+	/**
 	 * @ticket 51137
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats
 	 */
