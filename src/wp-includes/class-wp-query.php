@@ -1830,6 +1830,35 @@ class WP_Query {
 	}
 
 	/**
+	 * Determines whether an 'orderby' value already puts posts in a fixed sequence.
+	 *
+	 * True for the ID, for an explicit list of IDs, and for random ordering, where
+	 * an ID clause would either change nothing or undo a seeded shuffle.
+	 *
+	 * Not true for 'post_parent__in' or 'post_name__in': several posts can share
+	 * one parent, or one slug across post types, so those orderings can tie.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param string $orderby Single 'orderby' value, before it is parsed into SQL.
+	 * @return bool Whether the ordering is already determinate, making an ID clause unnecessary.
+	 */
+	protected function is_orderby_deterministic( $orderby ) {
+		$deterministic_orderby = array(
+			'ID',
+			'rand',
+			'post__in',
+		);
+
+		if ( in_array( $orderby, $deterministic_orderby, true ) ) {
+			return true;
+		}
+
+		// Random ordering with a seed, for example 'RAND(5)', as parse_orderby() accepts it.
+		return 1 === preg_match( '/RAND\(([0-9]+)\)/i', $orderby );
+	}
+
+	/**
 	 * Sets the 404 property and saves whether query is feed.
 	 *
 	 * @since 2.0.0
@@ -1886,6 +1915,8 @@ class WP_Query {
 	 * database query.
 	 *
 	 * @since 1.5.0
+	 * @since 7.3.0 Adds the post ID to ORDER BY so that paginated queries do not
+	 *              return the same post on more than one page.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -2489,12 +2520,33 @@ class WP_Query {
 			if ( isset( $query_vars['orderby'] ) && ( is_array( $query_vars['orderby'] ) || false === $query_vars['orderby'] ) ) {
 				$orderby = '';
 			} else {
-				$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
+				/*
+				 * Sorting by post_date alone is not determinate: posts sharing a date are
+				 * returned in a different sequence each time the query runs, so a post
+				 * can appear on two pages at once or be missed entirely. The ID clause
+				 * gives every page a fixed sequence.
+				 */
+				$orderby = "{$wpdb->posts}.post_date {$query_vars['order']}, {$wpdb->posts}.ID {$query_vars['order']}";
 			}
 		} elseif ( 'none' === $query_vars['orderby'] ) {
 			$orderby = '';
 		} else {
 			$orderby_array = array();
+
+			/*
+			 * Whether the ordering already puts the posts in a fixed sequence, in which
+			 * case an ID clause would make no difference.
+			 */
+			$orderby_is_deterministic = false;
+
+			/*
+			 * An array 'orderby' gives each column its own direction, so the query's
+			 * 'order' is not necessarily the one the last column used. Track it, so the
+			 * ID sorts the same way as the column above it and reversing the query
+			 * reverses the whole page.
+			 */
+			$last_order = $query_vars['order'];
+
 			if ( is_array( $query_vars['orderby'] ) ) {
 				foreach ( $query_vars['orderby'] as $_orderby => $order ) {
 					$orderby = wp_slash( urldecode( $_orderby ) );
@@ -2504,10 +2556,13 @@ class WP_Query {
 						continue;
 					}
 
-					$orderby_array[] = $parsed . ' ' . $this->parse_order( $order );
-				}
-				$orderby = implode( ', ', $orderby_array );
+					$last_order      = $this->parse_order( $order );
+					$orderby_array[] = $parsed . ' ' . $last_order;
 
+					if ( $this->is_orderby_deterministic( $orderby ) ) {
+						$orderby_is_deterministic = true;
+					}
+				}
 			} else {
 				$query_vars['orderby'] = urldecode( $query_vars['orderby'] );
 				$query_vars['orderby'] = wp_slash( $query_vars['orderby'] );
@@ -2519,16 +2574,38 @@ class WP_Query {
 						continue;
 					}
 
-					$orderby_array[] = $parsed;
-				}
-				$orderby = implode( ' ' . $query_vars['order'] . ', ', $orderby_array );
+					$orderby_array[] = $parsed . ' ' . $query_vars['order'];
 
-				if ( empty( $orderby ) ) {
-					$orderby = "{$wpdb->posts}.post_date " . $query_vars['order'];
-				} elseif ( ! empty( $query_vars['order'] ) ) {
-					$orderby .= " {$query_vars['order']}";
+					if ( $this->is_orderby_deterministic( $orderby ) ) {
+						$orderby_is_deterministic = true;
+					}
+				}
+
+				// If no valid clauses were found, order by post_date.
+				if ( empty( $orderby_array ) ) {
+					$orderby_array[] = "{$wpdb->posts}.post_date " . $query_vars['order'];
 				}
 			}
+
+			/*
+			 * To ensure determinate sorting, always include an ID clause. Posts sharing
+			 * the same value for the requested column are otherwise returned in a
+			 * different sequence each time the query runs, so a post can appear on two
+			 * pages at once or be missed entirely.
+			 *
+			 * An array 'orderby' whose keys all failed to parse stays empty here and
+			 * produces no ORDER BY at all, as it always has.
+			 */
+			if ( ! $orderby_is_deterministic && ! empty( $orderby_array ) ) {
+				/*
+				 * $last_order is already 'ASC', 'DESC', or '' here. Blank stays blank:
+				 * 'order' is forced empty for the FIELD()-based orderings, whose clauses
+				 * sort implicitly ascending, and the ID should sort the same way.
+				 */
+				$orderby_array[] = trim( "{$wpdb->posts}.ID " . $last_order );
+			}
+
+			$orderby = trim( implode( ', ', $orderby_array ) );
 		}
 
 		// Order search results by relevance only when another "orderby" is not specified in the query.
@@ -2948,6 +3025,7 @@ class WP_Query {
 			 * Filters the ORDER BY clause of the query.
 			 *
 			 * @since 1.5.1
+			 * @since 7.3.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string   $orderby The ORDER BY clause of the query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
@@ -2991,6 +3069,7 @@ class WP_Query {
 			 * fields (SELECT), and LIMIT clauses.
 			 *
 			 * @since 3.1.0
+			 * @since 7.3.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string[] $clauses {
 			 *     Associative array of the clauses for the query.
@@ -3074,6 +3153,7 @@ class WP_Query {
 			 * For use by caching plugins.
 			 *
 			 * @since 2.5.0
+			 * @since 7.3.0 The clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string   $orderby The ORDER BY clause of the query.
 			 * @param WP_Query $query   The WP_Query instance (passed by reference).
@@ -3125,6 +3205,7 @@ class WP_Query {
 			 * fields (SELECT), and LIMIT clauses.
 			 *
 			 * @since 3.1.0
+			 * @since 7.3.0 The 'orderby' clause now includes the post ID as a tie-breaker unless the ordering is already unique.
 			 *
 			 * @param string[] $clauses {
 			 *     Associative array of the clauses for the query.
@@ -3243,8 +3324,18 @@ class WP_Query {
 		}
 
 		if ( $query_vars['cache_results'] && $id_query_is_cacheable ) {
-			$new_request = str_replace( $fields, "{$wpdb->posts}.*", $this->request );
-			$cache_key   = $this->generate_cache_key( $query_vars, $new_request );
+			/*
+			 * Normalize the selected columns so that queries differing only in 'fields'
+			 * share a cache key. Only the first occurrence is replaced: the same column
+			 * names also appear in ORDER BY, and rewriting them there would give the
+			 * same query two different keys.
+			 */
+			$pos         = strpos( $this->request, $fields );
+			$new_request = false === $pos
+				? $this->request
+				: substr_replace( $this->request, "{$wpdb->posts}.*", $pos, strlen( $fields ) );
+
+			$cache_key = $this->generate_cache_key( $query_vars, $new_request );
 
 			$cache_found = false;
 			if ( null === $this->posts ) {

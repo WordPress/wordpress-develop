@@ -282,6 +282,44 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * Paging pages that share a menu_order returns each page exactly once.
+	 *
+	 * Pages default to menu_order 0, so a site's pages usually all tie on it.
+	 *
+	 * @ticket 44349
+	 * @ticket 46294
+	 */
+	public function test_get_items_paged_by_menu_order_returns_each_page_once() {
+		$expected = 10;
+		for ( $i = 0; $i < $expected; $i++ ) {
+			self::factory()->post->create(
+				array(
+					'post_status' => 'publish',
+					'post_type'   => 'page',
+					'menu_order'  => 0,
+				)
+			);
+		}
+
+		$seen = array();
+		for ( $page = 1; $page <= 2; $page++ ) {
+			$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+			$request->set_param( 'orderby', 'menu_order' );
+			$request->set_param( 'order', 'asc' );
+			$request->set_param( 'per_page', 5 );
+			$request->set_param( 'page', $page );
+
+			$response = rest_get_server()->dispatch( $request );
+			$this->assertSame( 200, $response->get_status() );
+
+			$seen = array_merge( $seen, wp_list_pluck( $response->get_data(), 'id' ) );
+		}
+
+		$this->assertSameSets( array_unique( $seen ), $seen, 'A page was returned on more than one result page' );
+		$this->assertCount( $expected, array_unique( $seen ), 'The result pages did not add up to every page' );
+	}
+
 	public function test_get_items_min_max_pages_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'per_page', 0 );
