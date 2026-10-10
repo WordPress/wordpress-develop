@@ -1799,6 +1799,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'empty label'                               => array( 'example..org', false ),
 			'port out of range'                         => array( 'example.org:99999', false ),
 			'non numeric port'                          => array( 'example.org:abc', false ),
+			// The wp_blogs.domain column is varchar(200).
+			'domain at max length'                      => array( str_repeat( 'a', 63 ) . '.' . str_repeat( 'b', 63 ) . '.' . str_repeat( 'c', 63 ) . '.' . str_repeat( 'd', 8 ), true ),
+			'domain over max length'                    => array( str_repeat( 'a', 63 ) . '.' . str_repeat( 'b', 63 ) . '.' . str_repeat( 'c', 63 ) . '.' . str_repeat( 'd', 9 ), false ),
 		);
 	}
 
@@ -1888,6 +1891,9 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'path with a query string' => array( '/with?query/', false ),
 			'path with a fragment'     => array( '/with#fragment/', false ),
 			'path with a double quote' => array( '/with"quote/', false ),
+			// The wp_blogs.path column is varchar(100).
+			'path at max length'       => array( '/' . str_repeat( 'a', 98 ) . '/', true ),
+			'path over max length'     => array( '/' . str_repeat( 'a', 99 ) . '/', false ),
 		);
 	}
 

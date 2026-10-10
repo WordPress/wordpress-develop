@@ -11088,12 +11088,14 @@ mockedApiResponse.Schema = {
                             "default": "",
                             "description": "Site domain.",
                             "type": "string",
+                            "maxLength": 200,
                             "required": false
                         },
                         "path": {
                             "default": "/",
                             "description": "Site path.",
                             "type": "string",
+                            "maxLength": 100,
                             "required": false
                         },
                         "public": {
@@ -11216,11 +11218,13 @@ mockedApiResponse.Schema = {
                         "domain": {
                             "description": "Site domain.",
                             "type": "string",
+                            "maxLength": 200,
                             "required": false
                         },
                         "path": {
                             "description": "Site path.",
                             "type": "string",
+                            "maxLength": 100,
                             "required": false
                         },
                         "public": {

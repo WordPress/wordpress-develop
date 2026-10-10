@@ -1240,7 +1240,7 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 		return 1 === preg_match(
 			'/^(?!-)[A-Za-z0-9-]{1,63}(?<!-)(\.(?!-)[A-Za-z0-9-]{1,63}(?<!-))*$/',
 			$host
-		) && strlen( $host ) <= 253;
+		);
 	}
 
 	/**
@@ -1402,6 +1402,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'default'     => '',
+					// The wp_blogs.domain column is varchar(200), port included.
+					'maxLength'   => 200,
 					'arg_options' => array(
 						'validate_callback' => array( $this, 'validate_domain' ),
 					),
@@ -1411,6 +1413,8 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'default'     => '/',
+					// The wp_blogs.path column is varchar(100).
+					'maxLength'   => 100,
 					'arg_options' => array(
 						'validate_callback' => array( $this, 'validate_path' ),
 					),
