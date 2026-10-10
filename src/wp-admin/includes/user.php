@@ -218,6 +218,11 @@ function edit_user( $user_id = 0 ) {
 		if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
 			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
+
+		$username_owner_id = username_exists( $user->user_email );
+		if ( $username_owner_id && ( ! $update || ( $username_owner_id !== $user->ID ) ) ) {
+			$errors->add( 'email_as_username', __( '<strong>Error:</strong> This email address is not available as it matches an existing username.' ), array( 'form-field' => 'email' ) );
+		}
 	}
 
 	/**
