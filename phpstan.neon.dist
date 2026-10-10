@@ -23,7 +23,6 @@ includes:
 	# and the list between the markers. Do not edit that list by hand.
 	# phpstan:baselines start
 	- tests/phpstan/baselines/argument.type.neon
-	- tests/phpstan/baselines/arrayValues.list.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
@@ -150,3 +149,16 @@ parameters:
 			message: '#^Parameter \#4 \$length of function substr_compare expects int, null given\.$#'
 			path: src/wp-includes/html-api/class-wp-html-tag-processor.php
 			reportUnmatched: false
+
+		# HTML API:
+		# These errors are ignored for the sake of making it easier to keep the HTML Processor in sync with the HTML spec.
+		-
+			message: '#^Comparison operation "\>" between 999\|1000 and 0 is always true\.$#'
+			identifier: greater.alwaysTrue
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
+			message: '#^Comparison operation "\>\=" between 0 and 8 is always false\.$#'
+			identifier: greaterOrEqual.alwaysFalse
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
