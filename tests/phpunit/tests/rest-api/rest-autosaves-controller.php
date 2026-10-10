@@ -950,4 +950,45 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'get_items request' => array( '/wp/v2/posts/%d' ),
 		);
 	}
+
+	/**
+	 * @ticket 65694
+	 */
+	public function test_create_post_autosave_updates_stale_field_on_revert() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = $this->factory->post->create(
+			array(
+				'post_title'  => 'Original Title',
+				'post_status' => 'publish',
+				'post_author' => self::$editor_id,
+			)
+		);
+
+		$controller = new WP_REST_Autosaves_Controller( 'post' );
+
+		$stale_revision_id = $controller->create_post_autosave(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Original Title !!',
+			)
+		);
+		$this->assertIsInt( $stale_revision_id, 'First create_post_autosave() should return an integer revision ID.' );
+		$this->assertGreaterThan( 0, $stale_revision_id, 'First autosave revision ID should be positive.' );
+
+		$stale_autosave = wp_get_post_autosave( $post_id, self::$editor_id );
+		$this->assertSame( 'Original Title !!', $stale_autosave->post_title, 'Autosave should hold the stale title before the revert.' );
+
+		$updated_revision_id = $controller->create_post_autosave(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Original Title',
+			)
+		);
+		$this->assertIsInt( $updated_revision_id, 'Second create_post_autosave() should return an integer revision ID.' );
+		$this->assertSame( $stale_revision_id, $updated_revision_id, 'Revert should overwrite the same autosave revision, not create a new one.' );
+
+		$autosave = wp_get_post_autosave( $post_id, self::$editor_id );
+		$this->assertSame( 'Original Title', $autosave->post_title, 'Autosave should reflect the reverted title, not the stale value.' );
+	}
 }
