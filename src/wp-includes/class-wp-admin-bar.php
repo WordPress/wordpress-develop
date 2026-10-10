@@ -597,7 +597,7 @@ class WP_Admin_Bar {
 			}
 		}
 
-		echo ">{$arrow}{$node->title}";
+		echo '>' . $arrow . wp_kses_normalize_entities( $node->title );
 
 		if ( $has_link ) {
 			echo '</a>';
