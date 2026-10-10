@@ -291,7 +291,7 @@ class Tests_Functions_WpGetAdminNotice extends WP_UnitTestCase {
 	 */
 	public function test_should_throw_doing_it_wrong_with_a_type_containing_spaces() {
 		// Replace placeholder %%ID%% in expected string, required for test isolation.
-		$expected = '<div id="wp-admin-notice-%%ID%%" data-id="wp-admin-notice-%%ID%%" class="notice notice-first second third fourth"><p>A type containing spaces.</p></div>';
+		$expected = '<div class="notice notice-first second third fourth" id="wp-admin-notice-%%ID%%" data-id="wp-admin-notice-%%ID%%"><p>A type containing spaces.</p></div>';
 		$next_id  = array_last( explode( '-', wp_unique_prefixed_id( 'wp-admin-notice-' ) ) );
 		++$next_id;
 		$expected = str_replace( '%%ID%%', $next_id, $expected );

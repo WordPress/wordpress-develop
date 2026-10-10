@@ -311,7 +311,7 @@ class Tests_Functions_WpAdminNotice extends WP_UnitTestCase {
 		$actual = ob_get_clean();
 
 		$this->assertSame(
-			'<div data-id="wp-admin-notice-' . $next_id . '" id="wp-admin-notice-' . $next_id . '" class="notice notice-first second third fourth"><p>A type containing spaces.</p></div>',
+			'<div class="notice notice-first second third fourth" data-id="wp-admin-notice-' . $next_id . '" id="wp-admin-notice-' . $next_id . '"><p>A type containing spaces.</p></div>',
 			$actual
 		);
 	}
