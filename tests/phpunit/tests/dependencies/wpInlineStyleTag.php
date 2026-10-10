@@ -11,6 +11,31 @@
 class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 
 	/**
+	 * Theme features before each test, since they are not restored automatically.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $original_theme_features;
+
+	/**
+	 * @global array<string, mixed> $_wp_theme_features
+	 */
+	public function set_up(): void {
+		global $_wp_theme_features;
+		parent::set_up();
+		$this->original_theme_features = $_wp_theme_features;
+	}
+
+	/**
+	 * @global array<string, mixed> $_wp_theme_features
+	 */
+	public function tear_down(): void {
+		global $_wp_theme_features;
+		$_wp_theme_features = $this->original_theme_features;
+		parent::tear_down();
+	}
+
+	/**
 	 * @ticket 51325
 	 */
 	public function test_get_inline_style_tag_with_attributes() {
