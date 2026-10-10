@@ -144,6 +144,21 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 
 		$wp_rewrite->set_tag_base( $tag_base );
 	}
+
+	// Handle custom settings registered through the Settings API.
+	$registered_settings = get_registered_settings();
+
+	foreach ( $registered_settings as $option_name => $option_args ) {
+		if ( isset( $option_args['group'] ) && 'permalink' === $option_args['group'] ) {
+			if ( isset( $_POST[ $option_name ] ) ) {
+				$value = wp_unslash( $_POST[ $option_name ] );
+				if ( isset( $option_args['sanitize_callback'] ) && is_callable( $option_args['sanitize_callback'] ) ) {
+					$value = call_user_func( $option_args['sanitize_callback'], $value );
+				}
+				update_option( $option_name, $value );
+			}
+		}
+	}
 }
 
 if ( $iis7_permalinks ) {
