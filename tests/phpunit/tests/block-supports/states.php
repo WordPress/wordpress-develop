@@ -884,6 +884,40 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that rendered state CSS includes fallback dimension declarations.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 * @covers ::wp_add_block_state_style_rule
+	 *
+	 * @ticket 66275
+	 */
+	public function test_responsive_height_generates_aspect_ratio_unset_in_stylesheet() {
+		$this->ensure_block_registered( 'test/responsive-root-state' );
+
+		$block = array(
+			'blockName' => 'test/responsive-root-state',
+			'attrs'     => array(
+				'style' => array(
+					'@mobile' => array(
+						'dimensions' => array( 'minHeight' => '300px' ),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){.' . $matches[0] . '{',
+			$actual_stylesheet
+		);
+		$this->assertStringContainsString( 'min-height:300px', $actual_stylesheet );
+		$this->assertStringContainsString( 'aspect-ratio:unset', $actual_stylesheet );
+	}
+
+	/**
 	 * Tests that multiple states each generate a separate scoped CSS rule.
 	 *
 	 * @covers ::wp_render_block_states_support
