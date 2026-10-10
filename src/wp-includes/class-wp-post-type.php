@@ -124,6 +124,19 @@ final class WP_Post_Type {
 	public $embeddable = null;
 
 	/**
+	 * Whether posts of this post type can be selected by random content redirects.
+	 *
+	 * Random content redirects send requests such as `example.com/random/` to a
+	 * randomly selected post.
+	 *
+	 * Default is the value of $publicly_queryable.
+	 *
+	 * @since 7.2.0
+	 * @var bool $randomable
+	 */
+	public $randomable = null;
+
+	/**
 	 * Whether to generate and allow a UI for managing this post type in the admin.
 	 *
 	 * Default is the value of $public.
@@ -535,6 +548,7 @@ final class WP_Post_Type {
 			'exclude_from_search'             => null,
 			'publicly_queryable'              => null,
 			'embeddable'                      => null,
+			'randomable'                      => null,
 			'show_ui'                         => null,
 			'show_in_menu'                    => null,
 			'show_in_nav_menus'               => null,
@@ -577,6 +591,9 @@ final class WP_Post_Type {
 
 		// If not set, default to the setting for 'public'.
 		$args['embeddable'] ??= $args['public'];
+
+		// If not set, default to the setting for 'publicly_queryable'.
+		$args['randomable'] ??= $args['publicly_queryable'];
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {

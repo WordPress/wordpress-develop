@@ -121,6 +121,18 @@ class WP_Rewrite {
 	public $feed_base = 'feed';
 
 	/**
+	 * Custom random content permalink base.
+	 *
+	 * Set from the 'random_base' option by WP_Rewrite::init(). Empty when no custom
+	 * base is set, in which case the translated default is used.
+	 * Use WP_Rewrite::get_random_base() to retrieve the base in use.
+	 *
+	 * @since 7.2.0
+	 * @var string
+	 */
+	public $random_base = '';
+
+	/**
 	 * Comments feed permalink structure.
 	 *
 	 * @since 1.5.0
@@ -1407,6 +1419,22 @@ class WP_Rewrite {
 		 */
 		$page_rewrite = apply_filters( 'page_rewrite_rules', $page_rewrite );
 
+		// Random content rewrite rules.
+		$random_rewrite = $this->random_rewrite_rules();
+
+		/**
+		 * Filters rewrite rules used for random content redirects.
+		 *
+		 * Likely random content rules would include `/random/`, as well as
+		 * term, author and post type archives prefixed with the random base,
+		 * for example `/random/category/news/`.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param array<string, string> $random_rewrite Array of rewrite rules for random content redirects, keyed by their regex pattern.
+		 */
+		$random_rewrite = apply_filters( 'random_rewrite_rules', $random_rewrite );
+
 		// Extra permastructs.
 		foreach ( $this->extra_permastructs as $permastructname => $struct ) {
 			if ( is_array( $struct ) ) {
@@ -1455,9 +1483,9 @@ class WP_Rewrite {
 
 		// Put them together.
 		if ( $this->use_verbose_page_rules ) {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $random_rewrite, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $page_rewrite, $post_rewrite, $this->extra_rules );
 		} else {
-			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
+			$this->rules = array_merge( $this->extra_rules_top, $robots_rewrite, $favicon_rewrite, $sitemap_rewrite, $deprecated_files, $registration_pages, $random_rewrite, $root_rewrite, $comments_rewrite, $search_rewrite, $author_rewrite, $date_rewrite, $post_rewrite, $page_rewrite, $this->extra_rules );
 		}
 
 		/**
@@ -1479,6 +1507,112 @@ class WP_Rewrite {
 		$this->rules = apply_filters( 'rewrite_rules_array', $this->rules );
 
 		return $this->rules;
+	}
+
+	/**
+	 * Retrieves the rewrite rules for random content redirects.
+	 *
+	 * Random content URLs are an existing archive path prefixed with the random base.
+	 * A request to one redirects to a randomly selected post from that archive:
+	 *
+	 * - `/random/` for any post.
+	 * - `/random/{taxonomy-slug}/{term}/` for a post in a term archive, for example `/random/category/news/`.
+	 * - `/random/{author-base}/{author}/` for a post by an author.
+	 * - `/random/{post-type-archive}/` for a post of a post type with an archive.
+	 *
+	 * Only post types registered as `randomable`, and taxonomies used by them, receive rules.
+	 *
+	 * If a published page exists at the random base, the page takes precedence and the
+	 * `/random/` rule is omitted. The same applies to a published post when posts share
+	 * the URL, see WP_Rewrite::post_permalinks_share_random_base(). The rules are flushed
+	 * when such a page or post changes, see wp_random_content_flush_rewrite_rules_for_post().
+	 *
+	 * The `random` query variable can be added to any other archive or search URL, for example
+	 * `/2026/?random`, to request a random post from that archive.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_redirect_enabled()
+	 *
+	 * @return string[] Array of rewrite rules for random content redirects, keyed by their regex pattern.
+	 */
+	public function random_rewrite_rules(): array {
+		if ( ! wp_is_random_content_redirect_enabled() ) {
+			return array();
+		}
+
+		$random_slug = $this->get_random_base();
+		$random_base = $this->root . $random_slug;
+
+		$rules = array();
+
+		// A published page or post at the random base, for example example.com/random/, takes precedence.
+		$random_base_posts = array( get_page_by_path( $random_slug ) );
+		if ( $this->post_permalinks_share_random_base() ) {
+			$random_base_posts[] = get_page_by_path( $random_slug, OBJECT, 'post' );
+		}
+
+		$random_base_is_taken = false;
+		foreach ( $random_base_posts as $random_base_post ) {
+			if ( $random_base_post instanceof WP_Post && is_post_publicly_viewable( $random_base_post ) ) {
+				$random_base_is_taken = true;
+			}
+		}
+
+		if ( ! $random_base_is_taken ) {
+			$rules[ $random_base . '/?$' ] = $this->index . '?random=1';
+		}
+
+		$archive_structures = array(
+			"{$random_base}/{$this->author_base}/%author%",
+		);
+
+		$randomable_post_types = get_post_types( array( 'randomable' => true ) );
+
+		foreach ( get_taxonomies( array( 'publicly_queryable' => true ), 'objects' ) as $taxonomy ) {
+			$taxonomy_slug = is_array( $taxonomy->rewrite ) && isset( $taxonomy->rewrite['slug'] ) && is_string( $taxonomy->rewrite['slug'] ) ? $taxonomy->rewrite['slug'] : '';
+
+			// Only taxonomies with pretty permalinks have a registered rewrite tag.
+			if ( '' === $taxonomy_slug || ! isset( $this->extra_permastructs[ $taxonomy->name ] ) ) {
+				continue;
+			}
+
+			// Only taxonomies used by randomable post types can contain random content.
+			if ( ! array_intersect( $taxonomy->object_type, $randomable_post_types ) ) {
+				continue;
+			}
+
+			$archive_structures[] = "{$random_base}/{$taxonomy_slug}/%{$taxonomy->name}%";
+		}
+
+		foreach ( $archive_structures as $archive_structure ) {
+			$archive_rules = $this->generate_rewrite_rules( $archive_structure, EP_NONE, false, false, false, false, false );
+
+			foreach ( $archive_rules as $regex => $query ) {
+				$rules[ $regex ] = $query . '&random=1';
+			}
+		}
+
+		$random_post_types = array(
+			'publicly_queryable' => true,
+			'randomable'         => true,
+		);
+
+		foreach ( get_post_types( $random_post_types, 'objects' ) as $post_type ) {
+			if ( ! $post_type->has_archive || empty( $post_type->rewrite['slug'] ) ) {
+				continue;
+			}
+
+			$archive_slug = true === $post_type->has_archive ? $post_type->rewrite['slug'] : $post_type->has_archive;
+
+			if ( ! is_string( $archive_slug ) ) {
+				continue;
+			}
+
+			$rules[ "{$random_base}/{$archive_slug}/?$" ] = $this->index . "?post_type={$post_type->name}&random=1";
+		}
+
+		return $rules;
 	}
 
 	/**
@@ -1931,6 +2065,9 @@ class WP_Rewrite {
 			$this->root = $this->index . '/';
 		}
 
+		$random_base       = get_option( 'random_base' );
+		$this->random_base = is_string( $random_base ) ? $random_base : '';
+
 		unset( $this->author_structure );
 		unset( $this->date_structure );
 		unset( $this->page_structure );
@@ -2015,6 +2152,84 @@ class WP_Rewrite {
 			update_option( 'tag_base', $tag_base );
 			$this->init();
 		}
+	}
+
+	/**
+	 * Sets the random base for random content permalinks.
+	 *
+	 * Will update the 'random_base' option, if there is a difference between the
+	 * current random base and the parameter value. Calls WP_Rewrite::init() after
+	 * the option is updated.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $random_base Random content permalink base.
+	 */
+	public function set_random_base( string $random_base ): void {
+		if ( get_option( 'random_base' ) !== $random_base ) {
+			update_option( 'random_base', $random_base );
+			$this->init();
+		}
+	}
+
+	/**
+	 * Retrieves the random content permalink base.
+	 *
+	 * Requests prefixed with this base redirect to a randomly selected post,
+	 * for example `example.com/random/` or `example.com/random/category/news/`.
+	 * A published page with this slug takes precedence over `example.com/random/`.
+	 *
+	 * Returns the custom base from the 'random_base' option when one is set.
+	 * Otherwise returns the default base, translated into the site language so
+	 * that rewrite rules do not depend on the language of the user who flushes them.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string Random content permalink base.
+	 */
+	public function get_random_base(): string {
+		if ( '' !== $this->random_base ) {
+			return $this->random_base;
+		}
+
+		$switched_locale = switch_to_locale( get_locale() );
+
+		/*
+		 * translators: Default base for random content URLs, such as example.com/random/.
+		 * This string is used in URLs, so it must be lowercase and contain only letters,
+		 * numbers and hyphens. Transliterate it to Latin characters if needed.
+		 */
+		$random_base = _x( 'random', 'random content permalink base' );
+
+		if ( $switched_locale ) {
+			restore_previous_locale();
+		}
+
+		return '' !== $random_base ? $random_base : 'random';
+	}
+
+	/**
+	 * Determines whether post permalinks can be at the random content permalink base.
+	 *
+	 * When the permalink structure is only the post name at the root of the site, for
+	 * example `/%postname%/`, a post with the same slug as the random base has the
+	 * same URL as random content requests, for example `example.com/random/`.
+	 *
+	 * Permalink structures with a prefix, such as `/blog/%postname%/` on the main site
+	 * of a subdirectory multisite network, do not conflict with the random base.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_Rewrite::random_rewrite_rules()
+	 *
+	 * @return bool Whether a post's permalink can be at the random base.
+	 */
+	public function post_permalinks_share_random_base(): bool {
+		if ( ! $this->using_permalinks() ) {
+			return false;
+		}
+
+		return 1 === preg_match( '#^' . preg_quote( '/' . $this->root, '#' ) . '%postname%/?$#', $this->permalink_structure );
 	}
 
 	/**

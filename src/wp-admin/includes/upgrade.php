@@ -2871,7 +2871,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 		return __get_option( 'siteurl' );
 	}
 
-	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
+	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base', 'random_base' ), true ) ) {
 		$option = untrailingslashit( $option );
 	}
 
