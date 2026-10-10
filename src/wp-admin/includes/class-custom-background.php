@@ -18,7 +18,9 @@ class Custom_Background {
 	 * Callback for administration header.
 	 *
 	 * @since 3.0.0
-	 * @var callable
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var WP_Optional_Callback
 	 */
 	public $admin_header_callback;
 
@@ -26,7 +28,9 @@ class Custom_Background {
 	 * Callback for header div.
 	 *
 	 * @since 3.0.0
-	 * @var callable
+	 * @var callable|string|null
+	 *
+	 * @phpstan-var WP_Optional_Callback
 	 */
 	public $admin_image_div_callback;
 
@@ -43,10 +47,13 @@ class Custom_Background {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param callable $admin_header_callback    Optional. Administration header callback.
-	 *                                           Default empty string.
-	 * @param callable $admin_image_div_callback Optional. Custom image div output callback.
-	 *                                           Default empty string.
+	 * @param callable|string|null $admin_header_callback    Optional. Administration header callback.
+	 *                                                       Empty string or null for none. Default empty string.
+	 * @param callable|string|null $admin_image_div_callback Optional. Custom image div output callback.
+	 *                                                       Empty string or null for none. Default empty string.
+	 *
+	 * @phpstan-param WP_Optional_Callback $admin_header_callback
+	 * @phpstan-param WP_Optional_Callback $admin_image_div_callback
 	 */
 	public function __construct( $admin_header_callback = '', $admin_image_div_callback = '' ) {
 		$this->admin_header_callback    = $admin_header_callback;

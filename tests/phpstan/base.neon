@@ -271,6 +271,12 @@ parameters:
 			}
 		'''
 
+		# An optional callback that is called without arguments, such as an admin page or
+		# custom header callback. Core treats an empty string or null as no callback.
+		WP_Optional_Callback: '''
+			''|(callable(): mixed)|null
+		'''
+
 		# The properties of a block style as WP_Block_Styles_Registry stores them, which is
 		# more than its register() hash accepts: `name` is required for a style to be
 		# registered at all, and `label` is filled in from the name when the caller omits
