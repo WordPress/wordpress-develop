@@ -962,6 +962,19 @@ function update_option( $option, $value, $autoload = null ) {
 
 	$result = $wpdb->update( $wpdb->options, $update_args, array( 'option_name' => $option ) );
 	if ( ! $result ) {
+		if ( ! wp_installing() ) {
+			$alloptions = wp_load_alloptions( true );
+
+			if ( isset( $alloptions[ $option ] ) ) {
+				unset( $alloptions[ $option ] );
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			} else {
+				wp_cache_delete( 'alloptions', 'options' );
+			}
+
+			wp_cache_delete( $option, 'options' );
+		}
+
 		return false;
 	}
 
