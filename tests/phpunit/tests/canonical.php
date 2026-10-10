@@ -195,6 +195,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2010/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ), // A year the post is not in.
 			array( '/post-format-test-au/', '/2008/06/02/post-format-test-audio/' ),
 
+			// Embed of posts & pages
+			array( '?p=587&embed=1', '/2008/06/02/post-format-test-audio/embed/' ),
+			array( '/2008/06/02/post-format-test-audio/?embed=1', '/2008/06/02/post-format-test-audio/embed/' ),
+			array( '/?page_id=144&embed=1', '/parent-page/child-page-1/embed/' ),
+			array( '/child-page-1/?embed=1', '/parent-page/child-page-1/embed/' ),
+			array( '/about/?embed=1', '/about/embed/' ),
+
 			// Pagination.
 			array(
 				'/2008/09/03/multipage-post-test/3/',
