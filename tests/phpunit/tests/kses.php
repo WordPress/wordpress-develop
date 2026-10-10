@@ -2559,7 +2559,7 @@ EOF;
 	 * Filter upload directory for tests using port number.
 	 *
 	 * @param  array $param See wp_upload_dir()
-	 * @return array        $param with a modified `url`.
+	 * @return array Upload directory data with a modified `url`.
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
 		// Take care to replace the entire domain, including cases where it already has a port number.
