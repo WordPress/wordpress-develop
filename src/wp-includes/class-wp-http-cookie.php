@@ -26,7 +26,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $name;
 
@@ -35,7 +35,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $value;
 
@@ -62,7 +62,7 @@ class WP_Http_Cookie {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $domain;
 
