@@ -226,6 +226,12 @@ TABLE OF CONTENTS:
 	cursor: default;
 }
 
+/* aria-disabled buttons remain focusable: restore the focus style removed by the disabled styles above. */
+.wp-core-ui .button[aria-disabled="true"]:focus,
+.wp-core-ui .button-secondary[aria-disabled="true"]:focus {
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9) !important;
+}
+
 /* Buttons that look like links, for a cross of good semantics with the visual */
 .wp-core-ui .button-link {
 	margin: 0;
@@ -326,6 +332,12 @@ TABLE OF CONTENTS:
 
 .wp-core-ui .button-primary[aria-disabled="true"] {
 	cursor: default;
+}
+
+.wp-core-ui .button-primary[aria-disabled="true"]:focus {
+	box-shadow:
+		0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9),
+		inset 0 0 0 1px #fff !important;
 }
 
 /**
