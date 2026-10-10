@@ -564,7 +564,7 @@
 				 * @param {Object} meta The post meta to set, as key/value pairs.
 				 */
 				setMetas: function( meta ) {
-					var metas = this.get( 'meta' );
+					var metas = _.extend( {}, this.get( 'meta' ) );
 					_.extend( metas, meta );
 					this.set( 'meta', metas );
 				},
@@ -576,7 +576,7 @@
 				 * @param {Object} value The meta value.
 				 */
 				setMeta: function( key, value ) {
-					var metas = this.get( 'meta' );
+					var metas = _.extend( {}, this.get( 'meta' ) );
 					metas[ key ] = value;
 					this.set( 'meta', metas );
 				}
