@@ -99,8 +99,10 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 		self::$private_post_id = $factory->post->create(
 			array(
-				'post_title'  => 'Private Post Data',
-				'post_status' => 'private',
+				'post_title'    => 'Private Post Data',
+				'post_status'   => 'private',
+				'post_date'     => '2025-01-03 09:00:00',
+				'post_date_gmt' => '2025-01-03 09:00:00',
 			)
 		);
 
@@ -150,6 +152,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when both field and key args are missing or empty.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 *
 	 * @dataProvider data_missing_or_empty_field_args
@@ -170,7 +174,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_missing_or_empty_field_args() {
+	public static function data_missing_or_empty_field_args() {
 		return array(
 			'missing args'           => array( array() ),
 			'empty string field'     => array( array( 'field' => '' ) ),
@@ -189,6 +193,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when postId is missing or empty.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 *
 	 * @dataProvider data_missing_or_empty_post_id
@@ -206,7 +212,7 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_missing_or_empty_post_id() {
+	public static function data_missing_or_empty_post_id() {
 		return array(
 			'missing postId context' => array( array() ),
 			'empty string postId'    => array( array( 'postId' => '' ) ),
@@ -217,6 +223,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when post does not exist.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -232,6 +240,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when post is not publicly viewable
 	 * and user cannot read_post.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -253,6 +263,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns post data when user has read_post capability.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
 	public function test_get_value_returns_value_when_user_can_read_private_post() {
@@ -263,9 +275,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$admin_id );
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$private_post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-03T09:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'field' => 'date' ), $block ),
 			'Private post date should be accessible by user with read_post capability.'
 		);
@@ -273,6 +284,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when post password is required.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -291,6 +304,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns date field formatted in ISO 8601.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
 	public function test_get_value_returns_date_field() {
@@ -299,16 +314,17 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'postId' => self::$post_id )
 		);
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-01T10:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'field' => 'date' ), $block ),
-			'Date field should return get_the_date( "c" ).'
+			'Date field should return the post date in ISO 8601 format.'
 		);
 	}
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns modified date when modified date is later than publish date.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -318,9 +334,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'postId' => self::$post_id )
 		);
 
-		$expected_modified = esc_attr( get_the_modified_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_modified,
+			'2025-01-02T12:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'field' => 'modified' ), $block ),
 			'Modified date should be returned when later than publish date.'
 		);
@@ -328,6 +343,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns empty string when modified date is not later than publish date.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -346,6 +363,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns permalink for link field.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -366,6 +385,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null when get_permalink() returns false.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
 	public function test_get_value_returns_null_when_permalink_is_false() {
@@ -383,6 +404,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() escapes URL characters in the link field.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -410,6 +433,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests backward compatibility with legacy `key` argument.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
 	public function test_get_value_backward_compatibility_with_key_arg() {
@@ -418,9 +443,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'postId' => self::$post_id )
 		);
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-01T10:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'key' => 'date' ), $block ),
 			'Legacy key argument should resolve as field.'
 		);
@@ -428,6 +452,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() reads attributes for navigation-link blocks.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -438,9 +464,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'id' => self::$post_id )
 		);
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-01T10:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'field' => 'date' ), $block ),
 			'Navigation link block should read post ID from attributes.'
 		);
@@ -448,6 +473,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() reads attributes for navigation-submenu blocks.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -458,9 +485,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'id' => self::$post_id )
 		);
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-01T10:00:00+00:00',
 			_block_bindings_post_data_get_value( array( 'field' => 'date' ), $block ),
 			'Navigation submenu block should read post ID from attributes.'
 		);
@@ -468,6 +494,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that _block_bindings_post_data_get_value() returns null for unsupported/unknown fields.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -485,6 +513,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that core/post-data source is registered with expected properties.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_register_block_bindings_post_data_source
 	 */
@@ -516,6 +546,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 	/**
 	 * Tests that value retrieval works through the registered source get_value() method.
 	 *
+	 * @ticket 65819
+	 *
 	 * @covers ::_register_block_bindings_post_data_source
 	 * @covers ::_block_bindings_post_data_get_value
 	 */
@@ -526,9 +558,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 			array( 'postId' => self::$post_id )
 		);
 
-		$expected_date = esc_attr( get_the_date( 'c', self::$post_id ) );
 		$this->assertSame(
-			$expected_date,
+			'2025-01-01T10:00:00+00:00',
 			$source->get_value( array( 'field' => 'date' ), $block, 'content' ),
 			'Registered source get_value() should return date field.'
 		);
@@ -536,6 +567,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that calling _register_block_bindings_post_data_source() registers the source.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_register_block_bindings_post_data_source
 	 */
@@ -551,6 +584,8 @@ class Tests_Block_Bindings_Post_Data_Source extends WP_UnitTestCase {
 
 	/**
 	 * Tests that calling _register_block_bindings_post_data_source() when already registered triggers doing it wrong.
+	 *
+	 * @ticket 65819
 	 *
 	 * @covers ::_register_block_bindings_post_data_source
 	 */
