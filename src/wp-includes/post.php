@@ -2326,6 +2326,12 @@ function _add_post_type_submenus() {
  * A third, optional parameter can also be passed along with a feature to provide
  * additional information about supporting that feature.
  *
+ * When calling this function multiple times for the same post type and feature,
+ * an array passed as the first argument is merged into the existing one rather
+ * than overwritten. This allows multiple calls to add different sub-properties
+ * to the same feature. Any further arguments are replaced by those of the most
+ * recent call.
+ *
  * Example usage:
  *
  *     add_post_type_support( 'my_post_type', 'comments' );
@@ -2339,6 +2345,8 @@ function _add_post_type_submenus() {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 7.2.0 Multiple calls to add support for the same feature with an array
+ *              as the first argument now merge it instead of overwriting it.
  *
  * @global array $_wp_post_type_features
  *
@@ -2353,7 +2361,24 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 	$features = (array) $feature;
 	foreach ( $features as $feature ) {
 		if ( $args ) {
-			$_wp_post_type_features[ $post_type ][ $feature ] = $args;
+			// Copy per feature, so a merge does not leak into the other features of this call.
+			$feature_args = $args;
+
+			// Check if feature already exists with args and if both are arrays that should be merged.
+			if (
+				isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) &&
+				is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] ) &&
+				isset( $feature_args[0] ) &&
+				is_array( $feature_args[0] )
+			) {
+				// Merge the arrays to preserve existing properties.
+				$feature_args[0] = array_merge(
+					$_wp_post_type_features[ $post_type ][ $feature ][0],
+					$feature_args[0]
+				);
+			}
+
+			$_wp_post_type_features[ $post_type ][ $feature ] = $feature_args;
 		} else {
 			$_wp_post_type_features[ $post_type ][ $feature ] = true;
 		}
@@ -2363,17 +2388,59 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
 /**
  * Removes support for a feature from a post type.
  *
+ * Passing `$sub_features` removes only those sub-features from the feature's
+ * array arguments, while the feature itself stays supported. Sub-features are
+ * matched against the keys of an associative array and the values of a list.
+ *
+ * Example usage:
+ *
+ *     add_post_type_support( 'my_post_type', 'editor', array(
+ *         'default-mode' => 'template-locked',
+ *         'notes'        => true,
+ *     ) );
+ *     remove_post_type_support( 'my_post_type', 'editor', 'notes' );
+ *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$sub_features` parameter.
  *
  * @global array $_wp_post_type_features
  *
- * @param string $post_type The post type for which to remove the feature.
- * @param string $feature   The feature being removed.
+ * @param string          $post_type    The post type for which to remove the feature.
+ * @param string          $feature      The feature being removed.
+ * @param string|string[] $sub_features Optional. Sub-feature or list of sub-features to remove
+ *                                      from the feature's arguments. Default empty array,
+ *                                      which removes the whole feature.
  */
-function remove_post_type_support( $post_type, $feature ) {
+function remove_post_type_support( $post_type, $feature, $sub_features = array() ) {
 	global $_wp_post_type_features;
 
-	unset( $_wp_post_type_features[ $post_type ][ $feature ] );
+	// Compare strictly, so a sub-feature named '0' is not mistaken for the default.
+	if ( array() === $sub_features || '' === $sub_features ) {
+		unset( $_wp_post_type_features[ $post_type ][ $feature ] );
+		return;
+	}
+
+	if (
+		! isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) ||
+		! is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] )
+	) {
+		return;
+	}
+
+	$sub_features = (array) $sub_features;
+	$args         = $_wp_post_type_features[ $post_type ][ $feature ][0];
+	$is_list      = array_is_list( $args );
+
+	foreach ( $args as $key => $value ) {
+		// Associative arguments are keyed by sub-feature, lists hold sub-features as values.
+		$name = is_int( $key ) ? $value : $key;
+
+		if ( in_array( $name, $sub_features, true ) ) {
+			unset( $args[ $key ] );
+		}
+	}
+
+	$_wp_post_type_features[ $post_type ][ $feature ][0] = $is_list ? array_values( $args ) : $args;
 }
 
 /**
@@ -2394,18 +2461,50 @@ function get_all_post_type_supports( $post_type ) {
 /**
  * Checks a post type's support for a given feature.
  *
+ * Passing `$sub_feature` checks for a sub-feature within the feature's array
+ * arguments. For an associative array, the sub-feature is supported when its
+ * key is set to a non-empty value. For a list, it is supported when the list
+ * contains it.
+ *
+ * Example usage:
+ *
+ *     add_post_type_support( 'my_post_type', 'editor', array(
+ *         'notes' => true,
+ *     ) );
+ *     post_type_supports( 'my_post_type', 'editor', 'notes' );
+ *
  * @since 3.0.0
+ * @since 7.2.0 Added the `$sub_feature` parameter.
  *
  * @global array $_wp_post_type_features
  *
- * @param string $post_type The post type being checked.
- * @param string $feature   The feature being checked.
- * @return bool Whether the post type supports the given feature.
+ * @param string $post_type   The post type being checked.
+ * @param string $feature     The feature being checked.
+ * @param string $sub_feature Optional. The sub-feature being checked. Default empty.
+ * @return bool Whether the post type supports the given feature, or sub-feature if given.
  */
-function post_type_supports( $post_type, $feature ) {
+function post_type_supports( $post_type, $feature, $sub_feature = '' ) {
 	global $_wp_post_type_features;
 
-	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	if ( '' === $sub_feature ) {
+		return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	}
+
+	if (
+		! isset( $_wp_post_type_features[ $post_type ][ $feature ][0] ) ||
+		! is_array( $_wp_post_type_features[ $post_type ][ $feature ][0] )
+	) {
+		return false;
+	}
+
+	foreach ( $_wp_post_type_features[ $post_type ][ $feature ][0] as $key => $value ) {
+		// Lists hold sub-features as values, associative arguments are keyed by sub-feature.
+		if ( is_int( $key ) ? $sub_feature === $value : ( $sub_feature === $key && ! empty( $value ) ) ) {
+			return true;
+		}
+	}
+
+	return false;
 }
 /**
  * Retrieves a list of post type names that support a specific feature.
