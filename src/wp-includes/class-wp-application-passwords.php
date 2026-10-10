@@ -61,13 +61,15 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 * @since 5.7.0 Returns WP_Error if application name already exists.
 	 * @since 6.8.0 The hashed password value now uses wp_fast_hash() instead of phpass.
+	 * @since 7.2.0 Returns WP_Error if the expiration is not in the future.
 	 *
 	 * @param int   $user_id  User ID.
 	 * @param array $args     {
 	 *     Arguments used to create the application password.
 	 *
-	 *     @type string $name   The name of the application password.
-	 *     @type string $app_id A UUID provided by the application to uniquely identify it.
+	 *     @type string   $name    The name of the application password.
+	 *     @type string   $app_id  A UUID provided by the application to uniquely identify it.
+	 *     @type int|null $expires Optional. Unix timestamp of when the password expires. Default null.
 	 * }
 	 * @return array|WP_Error {
 	 *     Application password details, or a WP_Error instance if an error occurs.
@@ -95,6 +97,17 @@ class WP_Application_Passwords {
 			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ), array( 'status' => 400 ) );
 		}
 
+		$created = time();
+		$expires = isset( $args['expires'] ) ? (int) $args['expires'] : null;
+
+		if ( null !== $expires && $expires <= $created ) {
+			return new WP_Error(
+				'application_password_invalid_expiration',
+				__( 'The expiration date and time must be in the future.' ),
+				array( 'status' => 400 )
+			);
+		}
+
 		$new_password    = wp_generate_password( static::PW_LENGTH, false );
 		$hashed_password = self::hash_password( $new_password );
 
@@ -103,10 +116,10 @@ class WP_Application_Passwords {
 			'app_id'    => empty( $args['app_id'] ) ? '' : $args['app_id'],
 			'name'      => $args['name'],
 			'password'  => $hashed_password,
-			'created'   => time(),
+			'created'   => $created,
 			'last_used' => null,
 			'last_ip'   => null,
-			'expires'   => isset( $args['expires'] ) ? (int) $args['expires'] : null,
+			'expires'   => $expires,
 		);
 
 		$passwords   = static::get_user_application_passwords( $user_id );

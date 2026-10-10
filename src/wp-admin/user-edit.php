@@ -862,7 +862,7 @@ switch ( $action ) {
 
 										<div class="form-field">
 											<label for="new_application_password_expires"><?php _e( 'Expires on' ); ?></label>
-											<input type="datetime-local" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" step="1" aria-describedby="new_application_password_expires_desc application-passwords-timezone" />
+											<input type="datetime-local" id="new_application_password_expires" name="new_application_password_expires" class="input ltr" step="1" min="<?php echo esc_attr( wp_date( 'Y-m-d\TH:i:s', time() + 1 ) ); ?>" aria-describedby="new_application_password_expires_desc application-passwords-timezone" />
 											<p class="description" id="new_application_password_expires_desc"><?php _e( 'Optional. Set an expiration date and time for this password.' ); ?></p>
 										</div>
 

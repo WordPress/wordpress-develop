@@ -350,6 +350,76 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53995
+	 * @dataProvider data_create_item_with_non_future_expiration
+	 *
+	 * @param int $offset Expiration offset from the current time, in seconds.
+	 */
+	public function test_create_item_with_non_future_expiration( $offset ) {
+		wp_set_current_user( self::$admin );
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params(
+			array(
+				'name'    => 'Expired',
+				'expires' => gmdate( 'Y-m-d\TH:i:s\Z', time() + $offset ),
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'application_password_invalid_expiration', $response, 400 );
+		$this->assertSame( array(), WP_Application_Passwords::get_user_application_passwords( self::$admin ) );
+	}
+
+	/**
+	 * Data provider for rejecting an expiration that is not in the future.
+	 *
+	 * @return array[]
+	 */
+	public function data_create_item_with_non_future_expiration() {
+		return array(
+			'past day'       => array( -DAY_IN_SECONDS ),
+			'current second' => array( 0 ),
+		);
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_create_item_with_future_expiration() {
+		wp_set_current_user( self::$admin );
+		$expires = time() + DAY_IN_SECONDS;
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params(
+			array(
+				'name'    => 'Future',
+				'expires' => gmdate( 'Y-m-d\TH:i:s\Z', $expires ),
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( gmdate( 'Y-m-d\TH:i:s', $expires ), $response->get_data()['expires'] );
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_update_item_with_past_expiration() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+		$expires        = time() - DAY_IN_SECONDS;
+		$request        = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $item['uuid'] );
+		$request->set_body_params( array( 'expires' => gmdate( 'Y-m-d\TH:i:s\Z', $expires ) ) );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( gmdate( 'Y-m-d\TH:i:s', $expires ), $response->get_data()['expires'] );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_create_item_self_user_id_subscriber() {

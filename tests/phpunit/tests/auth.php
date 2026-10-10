@@ -1774,12 +1774,14 @@ class Tests_Auth extends WP_UnitTestCase {
 		add_filter( 'application_password_is_api_request', '__return_true' );
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
-		list( $password ) = WP_Application_Passwords::create_new_application_password(
+		list( $password, $item ) = WP_Application_Passwords::create_new_application_password(
 			self::$user_id,
-			array(
-				'name'    => 'phpunit',
-				'expires' => time() - DAY_IN_SECONDS,
-			)
+			array( 'name' => 'phpunit' )
+		);
+		WP_Application_Passwords::update_application_password(
+			self::$user_id,
+			$item['uuid'],
+			array( 'expires' => time() - DAY_IN_SECONDS )
 		);
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, $password );

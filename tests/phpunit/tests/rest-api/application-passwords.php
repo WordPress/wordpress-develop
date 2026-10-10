@@ -99,6 +99,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			array_keys( $new_item )
 		);
 		$this->assertSame( $args['name'], $new_item['name'] );
+		$this->assertSame( $args['expires'] ?? null, $new_item['expires'] );
 	}
 
 	public function data_create_new_application_password() {
@@ -116,6 +117,51 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 					'expires' => time() + DAY_IN_SECONDS,
 				),
 			),
+			'should create new password with null expiration' => array(
+				'args' => array(
+					'name'    => 'test_null_expire',
+					'expires' => null,
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 53995
+	 * @dataProvider data_create_new_application_password_with_non_future_expiration
+	 *
+	 * @param int $offset Expiration offset from the current time, in seconds.
+	 */
+	public function test_create_new_application_password_with_non_future_expiration( $offset ) {
+		WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'Existing' ) );
+		$passwords     = WP_Application_Passwords::get_user_application_passwords( self::$user_id );
+		$created_count = did_action( 'wp_create_application_password' );
+
+		$result = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'Expired',
+				'expires' => time() + $offset,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'application_password_invalid_expiration', $result->get_error_code() );
+		$this->assertSame( array( 'status' => 400 ), $result->get_error_data() );
+		$this->assertSame( $passwords, WP_Application_Passwords::get_user_application_passwords( self::$user_id ) );
+		$this->assertSame( $created_count, did_action( 'wp_create_application_password' ) );
+	}
+
+	/**
+	 * Data provider for rejecting an expiration that is not in the future.
+	 *
+	 * @return array[]
+	 */
+	public function data_create_new_application_password_with_non_future_expiration() {
+		return array(
+			'past day'       => array( -DAY_IN_SECONDS ),
+			'past second'    => array( -1 ),
+			'current second' => array( 0 ),
 		);
 	}
 
@@ -194,6 +240,10 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			),
 			'should update expires'                  => array(
 				'update'   => array( 'expires' => time() + DAY_IN_SECONDS ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should update expires to the past'      => array(
+				'update'   => array( 'expires' => time() - DAY_IN_SECONDS ),
 				'existing' => array( 'name' => 'Test' ),
 			),
 			'should clear expires'                   => array(

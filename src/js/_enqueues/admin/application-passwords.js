@@ -21,6 +21,11 @@
 		tmplAppPassRow = wp.template( 'application-password-row' ),
 		userId = $( '#user_id' ).val();
 
+	updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+	$newAppPassExpiresField.on( 'focus', function() {
+		updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+	} );
+
 	$newAppPassButton.on( 'click', function( e ) {
 		e.preventDefault();
 
@@ -32,6 +37,11 @@
 
 		if ( 0 === name.length ) {
 			$newAppPassField.trigger( 'focus' );
+			return;
+		}
+
+		updateApplicationPasswordExpirationMinimum( $newAppPassExpiresField );
+		if ( ! $newAppPassExpiresField[0].reportValidity() ) {
 			return;
 		}
 
@@ -122,6 +132,9 @@
 			$input.val( wp.date.date( 'Y-m-d\\TH:i:s', currentExpires + 'Z' ) );
 		}
 		var initialExpires = $input.val();
+		$input.on( 'focus', function() {
+			updateApplicationPasswordExpirationMinimum( $input );
+		} );
 
 		var $buttonContainer = $( '<div class="edit-expires-button-group"></div>' );
 		var $saveBtn = $( '<button type="button" class="button button-small button-primary">' + wp.i18n.__( 'Save' ) + '</button>' );
@@ -156,7 +169,14 @@
 		} );
 
 		$saveBtn.on( 'click', function() {
+			updateApplicationPasswordExpirationMinimum( $input );
 			var newExpires = $input.val();
+
+			// An existing expired value may be retained, but a newly selected time must be in the future.
+			if ( ! ( currentExpires && newExpires === initialExpires ) && ! $input[0].reportValidity() ) {
+				return;
+			}
+
 			var expiresDate = newExpires ? wp.date.getDate( newExpires ) : null;
 			var requestData = {
 				expires: ( expiresDate && ! isNaN( expiresDate.getTime() ) ) ? expiresDate.toISOString() : null
@@ -287,6 +307,17 @@
 		}
 
 		addNotice( errorMessage, 'error' );
+	}
+
+	/**
+	 * Updates the earliest expiration allowed in an application password input.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {jQuery} $input The expiration input.
+	 */
+	function updateApplicationPasswordExpirationMinimum( $input ) {
+		$input.attr( 'min', wp.date.date( 'Y-m-d\\TH:i:s', new Date( Date.now() + 1000 ) ) );
 	}
 
 	/**

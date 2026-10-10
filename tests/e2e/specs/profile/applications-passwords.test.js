@@ -331,6 +331,178 @@ test.describe( 'Manage applications passwords', () => {
 	} );
 } );
 
+test.describe( 'Application password creation expiry validation', () => {
+	test.use( { timezoneId: 'Australia/Melbourne' } );
+
+	test( 'should restrict new expiry times in the site timezone and refresh the minimum', async ( {
+		page,
+		admin,
+	} ) => {
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:00:00Z' ) );
+		await admin.visitAdminPage( '/profile.php' );
+		await page.evaluate( () => {
+			const settings = window.wp.date.getSettings();
+			window.wp.date.setSettings( {
+				...settings,
+				timezone: { ...settings.timezone, string: '', offset: 5.5 },
+			} );
+		} );
+
+		const input = page.getByLabel( 'Expires on' );
+		await input.focus();
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:30:01' );
+		await input.fill( '2028-07-15T15:29:59' );
+		expect(
+			await input.evaluate(
+				( element ) => element.validity.rangeUnderflow
+			)
+		).toBe( true );
+		await input.fill( '2028-07-15T15:30:01' );
+		expect(
+			await input.evaluate( ( element ) => element.checkValidity() )
+		).toBe( true );
+
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:00:30Z' ) );
+		await input.blur();
+		await input.focus();
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:30:31' );
+
+		// A time that was valid when the picker opened may have passed before submission.
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:01:00Z' ) );
+		await page
+			.getByLabel( 'New Application Password Name' )
+			.fill( 'Not created' );
+		let submitted = false;
+		await page.route( '**/application-passwords?*', async ( route ) => {
+			submitted = true;
+			await route.abort();
+		} );
+		await page
+			.getByRole( 'button', {
+				name: 'Add Application Password',
+				exact: true,
+			} )
+			.click();
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:31:01' );
+		expect(
+			await input.evaluate(
+				( element ) => element.validity.rangeUnderflow
+			)
+		).toBe( true );
+		expect( submitted ).toBe( false );
+		await expect(
+			page.getByRole( 'button', {
+				name: 'Add Application Password',
+				exact: true,
+			} )
+		).not.toHaveClass( /disabled/ );
+		await input.fill( '' );
+		expect(
+			await input.evaluate( ( element ) => element.checkValidity() )
+		).toBe( true );
+	} );
+} );
+
+test.describe( 'Application password table expiry validation', () => {
+	test.use( { timezoneId: 'Australia/Melbourne' } );
+
+	test( 'should block past selections in the inline editor while allowing expiry removal', async ( {
+		page,
+		admin,
+	} ) => {
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:00:00Z' ) );
+		await admin.visitAdminPage( '/profile.php' );
+		const uuid = '11111111-1111-4111-8111-111111111111';
+		await page.evaluate( ( fixtureUuid ) => {
+			const settings = window.wp.date.getSettings();
+			window.wp.date.setSettings( {
+				...settings,
+				timezone: { ...settings.timezone, string: '', offset: 5.5 },
+			} );
+			window.jQuery( '#application-passwords-section tbody' ).append(
+				window.wp.template( 'application-password-row' )( {
+					uuid: fixtureUuid,
+					app_id: '',
+					name: 'Browser-only expiry fixture',
+					created: '2028-07-15T09:00:00',
+					last_used: null,
+					last_ip: null,
+					expires: '2028-07-16T10:00:00',
+				} )
+			);
+			window.jQuery( '.application-passwords-list-table-wrapper' ).show();
+		}, uuid );
+
+		const submitted = [];
+		await page.route(
+			`**/application-passwords/${ uuid }?*`,
+			async ( route ) => {
+				submitted.push( route.request().postDataJSON() );
+				await route.fulfill( {
+					status: 400,
+					contentType: 'application/json',
+					body: JSON.stringify( {
+						message: 'Save intercepted for testing.',
+					} ),
+				} );
+			}
+		);
+		const row = page.locator( `tr[data-uuid="${ uuid }"]` );
+		await row.locator( '.edit-expires' ).click();
+		const input = row.getByLabel( 'Expiration date and time', {
+			exact: true,
+		} );
+		const save = row.getByRole( 'button', { name: 'Save', exact: true } );
+
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:30:01' );
+		await input.fill( '2028-07-14T15:30' );
+		expect(
+			await input.evaluate(
+				( element ) => element.validity.rangeUnderflow
+			)
+		).toBe( true );
+		await save.click();
+		expect( submitted ).toHaveLength( 0 );
+		await expect( save ).toBeEnabled();
+
+		await input.fill( '2028-07-15T15:30:01' );
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:01:00Z' ) );
+		await save.click();
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:31:01' );
+		expect( submitted ).toHaveLength( 0 );
+		await page.clock.setFixedTime( new Date( '2028-07-15T10:01:30Z' ) );
+		await input.blur();
+		await input.focus();
+		await expect( input ).toHaveAttribute( 'min', '2028-07-15T15:31:31' );
+
+		await input.fill( '2028-07-15T15:32' );
+		await save.click();
+		await expect( page.getByRole( 'alert' ) ).toContainText(
+			'Save intercepted for testing.'
+		);
+		expect( submitted ).toEqual( [
+			{ expires: '2028-07-15T10:02:00.000Z' },
+		] );
+		await input.fill( '' );
+		await save.click();
+		await expect.poll( () => submitted.length ).toBe( 2 );
+		expect( submitted[ 1 ] ).toEqual( { expires: null } );
+
+		// Opening an already expired password must not silently change its stored expiry.
+		await row
+			.getByRole( 'button', { name: 'Cancel', exact: true } )
+			.click();
+		await row.evaluate( ( element ) => {
+			window.jQuery( element ).data( 'expires', '2028-07-14T10:00:00' );
+		} );
+		await row.locator( '.edit-expires' ).click();
+		await expect( input ).toHaveValue( '2028-07-14T15:30' );
+		await save.click();
+		await expect.poll( () => submitted.length ).toBe( 3 );
+		expect( submitted[ 2 ] ).toEqual( { expires: '2028-07-14T10:00:00Z' } );
+	} );
+} );
+
 class ApplicationPasswords {
 	constructor( { requestUtils, page, admin } ) {
 		this.requestUtils = requestUtils;
