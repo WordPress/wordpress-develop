@@ -889,7 +889,7 @@ class WP_Query {
 			$this->is_attachment = true;
 		} elseif ( '' !== $query_vars['name'] ) {
 			$this->is_single = true;
-		} elseif ( $query_vars['p'] ) {
+		} elseif ( $query_vars['p'] && ! $query_vars['category_name'] ) {
 			$this->is_single = true;
 		} elseif ( '' !== $query_vars['pagename'] || ! empty( $query_vars['page_id'] ) ) {
 			$this->is_page   = true;
@@ -2219,7 +2219,7 @@ class WP_Query {
 		}
 
 		// If a post number is specified, load that post.
-		if ( $query_vars['p'] ) {
+		if ( $query_vars['p'] && ! $query_vars['category_name'] ) {
 			$where .= " AND {$wpdb->posts}.ID = " . $query_vars['p'];
 		} elseif ( $query_vars['post__in'] ) {
 			// Duplicate array before sorting to allow for the orderby clause.
