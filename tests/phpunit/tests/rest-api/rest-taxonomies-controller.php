@@ -147,6 +147,21 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( '{}', json_encode( $data ) );
 	}
 
+	/**
+	 * Tests that filtering an empty, object-shaped collection with `_fields` does not fatal.
+	 *
+	 * @ticket 66230
+	 */
+	public function test_get_taxonomies_for_invalid_type_with_fields() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
+		$request->set_param( 'type', 'wingding' );
+		$request->set_param( '_fields', 'name,slug' );
+		$server   = rest_get_server();
+		$response = rest_filter_response_fields( $server->dispatch( $request ), $server, $request );
+
+		$this->assertSame( '{}', wp_json_encode( $response->get_data() ) );
+	}
+
 	public function test_get_item() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/taxonomies/category' );
 		$response = rest_get_server()->dispatch( $request );

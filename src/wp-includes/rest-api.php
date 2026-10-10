@@ -955,6 +955,11 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$data = $response->get_data();
 
+	// Only array data has fields to filter, e.g. an empty collection may be an object so it is encoded as `{}`.
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
+
 	$fields = wp_parse_list( $request['_fields'] );
 
 	if ( 0 === count( $fields ) ) {
