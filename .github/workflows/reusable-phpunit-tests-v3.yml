@@ -317,6 +317,21 @@ jobs:
             php -m | grep -i pcov
           '
 
+      - name: Select PHPUnit configuration
+        run: |
+          PHPUNIT_VERSION=$(node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --version | grep -oE '\b[0-9]+\.[0-9]+' | head -n 1)
+          echo "Detected PHPUnit version: ${PHPUNIT_VERSION}"
+          MAJOR_VERSION=$(echo "${PHPUNIT_VERSION}" | cut -d. -f1)
+          if [ "${MAJOR_VERSION}" -ge 10 ]; then
+            if [ "${PHPUNIT_CONFIG}" = "tests/phpunit/multisite.xml" ]; then
+              NEW_CONFIG="tests/phpunit/multisite10.xml"
+            else
+              NEW_CONFIG="phpunit10.xml.dist"
+            fi
+            echo "Using PHPUnit 10+ configuration: ${NEW_CONFIG}"
+            echo "PHPUNIT_CONFIG=${NEW_CONFIG}" >> "$GITHUB_ENV"
+          fi
+
       - name: Run external HTTP tests
         if: ${{ ! inputs.multisite && ! inputs.phpunit-test-groups && ! inputs.coverage-report }}
         continue-on-error: ${{ inputs.allow-errors }}
