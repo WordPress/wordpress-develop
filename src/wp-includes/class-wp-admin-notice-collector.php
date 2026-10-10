@@ -17,7 +17,7 @@
  * `ob_start()` callback replaces the placeholder with the final count once
  * the buffer is flushed.
  *
- * @since x.x.x
+ * @since 7.2.0
  */
 class WP_Admin_Notice_Collector {
 
@@ -25,7 +25,7 @@ class WP_Admin_Notice_Collector {
 	 * Placeholder inserted into the admin title, replaced with the
 	 * actual notice count once it is known.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 * @var string
 	 */
 	const TITLE_PLACEHOLDER = '%%wp_admin_notice_count%%';
@@ -33,7 +33,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Notices captured during the current request.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 * @var array[]
 	 */
 	protected static $notices = array();
@@ -41,7 +41,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Whether the collector's hooks have already been registered.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 * @var bool
 	 */
 	protected static $hooked = false;
@@ -49,7 +49,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Registers the hooks used to collect notices and to annotate the admin title.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 */
 	public static function init() {
 		if ( self::$hooked ) {
@@ -72,7 +72,7 @@ class WP_Admin_Notice_Collector {
 	 *
 	 * Hooked to the {@see 'wp_admin_notice_markup'} filter.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 *
 	 * @param string $markup  The HTML markup for the admin notice.
 	 * @param string $message The message for the admin notice.
@@ -94,7 +94,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Returns all notices captured during the current request.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 *
 	 * @return array[] Array of captured notices. Each entry contains the
 	 *                 notice's 'markup', 'message', and 'args'.
@@ -106,7 +106,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Returns the number of notices captured during the current request.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 *
 	 * @return int Notice count.
 	 */
@@ -117,7 +117,7 @@ class WP_Admin_Notice_Collector {
 	/**
 	 * Clears all previously captured notices.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 */
 	public static function reset() {
 		self::$notices = array();
@@ -129,7 +129,7 @@ class WP_Admin_Notice_Collector {
 	 * The real count isn't known yet at this point, since notices are usually
 	 * produced later in the page. inject_notice_count() resolves it.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 *
 	 * @param string $admin_title The page title, with extra context added.
 	 * @param string $title       The original page title.
@@ -145,7 +145,7 @@ class WP_Admin_Notice_Collector {
 	 * Used as an `ob_start()` callback so it runs once the full page - including
 	 * any notices printed after `<title>` - has been buffered.
 	 *
-	 * @since x.x.x
+	 * @since 7.2.0
 	 *
 	 * @param string $buffer The full buffered page output.
 	 * @return string The page output with the placeholder resolved.
