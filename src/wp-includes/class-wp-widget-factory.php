@@ -69,11 +69,14 @@ class WP_Widget_Factory {
 	 * @since 7.1.1 The key for an instance is prefixed so that it is never cast to an integer.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+	 *
+	 * @phpstan-param class-string<WP_Widget>|WP_Widget $widget
 	 */
 	public function register( $widget ) {
 		if ( $widget instanceof WP_Widget ) {
 			$this->widgets[ self::INSTANCE_KEY_PREFIX . spl_object_id( $widget ) ] = $widget;
 		} else {
+			// @phpstan-ignore arguments.count (Widget classes declare their own constructor, which takes no arguments.)
 			$this->widgets[ $widget ] = new $widget();
 		}
 	}
@@ -87,6 +90,8 @@ class WP_Widget_Factory {
 	 * @since 7.1.1 The key for an instance is prefixed so that it is never cast to an integer.
 	 *
 	 * @param string|WP_Widget $widget Either the name of a `WP_Widget` subclass or an instance of a `WP_Widget` subclass.
+	 *
+	 * @phpstan-param class-string<WP_Widget>|WP_Widget $widget
 	 */
 	public function unregister( $widget ) {
 		if ( $widget instanceof WP_Widget ) {
