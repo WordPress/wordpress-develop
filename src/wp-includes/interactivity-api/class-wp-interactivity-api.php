@@ -96,6 +96,43 @@ final class WP_Interactivity_API {
 	private $has_processed_router_region = false;
 
 	/**
+	 * Flag that indicates whether all the blocks rendered on the page support
+	 * client-side navigation.
+	 *
+	 * It starts as `true` and it is set to `false` as soon as a block that does
+	 * not declare support for client-side navigation is rendered. It is used to
+	 * decide whether the server-generated style assets can be marked with the
+	 * `data-wp-router-managed` attribute.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $all_blocks_support_client_navigation = true;
+
+	/**
+	 * Flag that indicates whether the template enhancement output buffer started
+	 * by core is active for the current request.
+	 *
+	 * It is set from the {@see 'wp_template_enhancement_output_buffer_started'}
+	 * action. When it is `true`, the `data-wp-router-managed` attribute is added
+	 * through the {@see 'wp_template_enhancement_output_buffer'} filter and no
+	 * additional output buffer is needed.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $template_output_buffer_started = false;
+
+	/**
+	 * Flag that indicates whether starting the fallback output buffer used to add
+	 * the `data-wp-router-managed` attribute has already been considered.
+	 *
+	 * @since 7.2.0
+	 * @var bool
+	 */
+	private $router_managed_output_buffer_attempted = false;
+
+	/**
 	 * Set of script modules that can be loaded after client-side navigation.
 	 *
 	 * @since 6.9.0
@@ -399,11 +436,368 @@ final class WP_Interactivity_API {
 	 *
 	 * @since 6.5.0
 	 * @since 6.9.0 Adds support for client-side navigation in script modules.
+	 * @since 7.2.0 Tracks the page-wide client-side navigation support and registers the hooks that decide how the
+	 *              `data-wp-router-managed` attribute is added to the server-generated style assets.
 	 */
 	public function add_hooks() {
 		add_filter( 'script_module_data_@wordpress/interactivity', array( $this, 'filter_script_module_interactivity_data' ) );
 		add_filter( 'script_module_data_@wordpress/interactivity-router', array( $this, 'filter_script_module_interactivity_router_data' ) );
 		add_filter( 'wp_script_attributes', array( $this, 'add_load_on_client_navigation_attribute_to_script_modules' ) );
+
+		if ( ! is_admin() ) {
+			/*
+			 * The tracked support is only read on the front end, so there is no
+			 * need to inspect every rendered block in admin requests.
+			 */
+			add_filter( 'render_block_data', array( $this, 'filter_render_block_data_client_navigation_support' ) );
+
+			/*
+			 * The `wp_template_enhancement_output_buffer` filter that adds the
+			 * `data-wp-router-managed` attribute is not registered here on purpose.
+			 * Merely having that filter registered when the template is included
+			 * makes core start the template enhancement output buffer for every
+			 * front-end request, which disables response streaming even on pages
+			 * that never get the attribute. See
+			 * `wp_should_output_buffer_template_for_enhancement()`.
+			 *
+			 * Instead, the filter is added from
+			 * `WP_Interactivity_API::data_wp_router_region_processor()`, i.e. only
+			 * once a router region has actually been processed, and
+			 * `WP_Interactivity_API::maybe_start_router_managed_output_buffer()`
+			 * starts a dedicated output buffer when core's one is not running.
+			 */
+			add_action( 'wp_template_enhancement_output_buffer_started', array( $this, 'mark_template_output_buffer_started' ) );
+
+			/*
+			 * The lowest possible priority guarantees that nothing hooked to
+			 * `wp_head` prints a style asset before the fallback output buffer
+			 * starts. Marking only part of the style assets of a page would be
+			 * worse than not marking any of them, because the router would treat
+			 * the unmarked ones as client-injected and preserve them across every
+			 * client-side navigation.
+			 */
+			add_action( 'wp_head', array( $this, 'maybe_start_router_managed_output_buffer' ), PHP_INT_MIN );
+		}
+	}
+
+	/**
+	 * Records that the template enhancement output buffer started by core is
+	 * active for the current request.
+	 *
+	 * This method is a {@see 'wp_template_enhancement_output_buffer_started'}
+	 * action callback.
+	 *
+	 * @since 7.2.0
+	 */
+	public function mark_template_output_buffer_started() {
+		$this->template_output_buffer_started = true;
+	}
+
+	/**
+	 * Tracks whether all the blocks rendered on the page support client-side
+	 * navigation.
+	 *
+	 * This method is a `render_block_data` filter callback that only inspects the
+	 * blocks being rendered; it always returns the parsed block unmodified. As
+	 * soon as a block that does not declare support for client-side navigation is
+	 * found, client-side navigation is considered unsupported for the whole page.
+	 *
+	 * The compatibility rules mirror the ones used by
+	 * {@see block_core_query_disable_enhanced_pagination()}: blocks without a
+	 * block name, i.e. freeform classic HTML, do not break compatibility, while
+	 * named blocks require either `supports.interactivity` or
+	 * `supports.interactivity.clientNavigation` to be `true`.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $parsed_block The block being rendered.
+	 * @return array Returns the parsed block, unmodified.
+	 */
+	public function filter_render_block_data_client_navigation_support( $parsed_block ) {
+		if ( ! $this->all_blocks_support_client_navigation ) {
+			return $parsed_block;
+		}
+
+		if ( ! isset( $parsed_block['blockName'] ) ) {
+			return $parsed_block;
+		}
+
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $parsed_block['blockName'] );
+
+		/*
+		 * Client side navigation can be true in two states:
+		 *  - supports.interactivity = true;
+		 *  - supports.interactivity.clientNavigation = true;
+		 */
+		$supports_client_navigation = ( isset( $block_type->supports['interactivity']['clientNavigation'] ) && true === $block_type->supports['interactivity']['clientNavigation'] )
+			|| ( isset( $block_type->supports['interactivity'] ) && true === $block_type->supports['interactivity'] );
+
+		if ( ! $supports_client_navigation ) {
+			$this->all_blocks_support_client_navigation = false;
+		}
+
+		return $parsed_block;
+	}
+
+	/**
+	 * Adds the `data-wp-router-managed` attribute to all the style assets of the
+	 * page.
+	 *
+	 * This method is a `wp_template_enhancement_output_buffer` filter callback, so
+	 * it receives the complete server-generated markup. Working on the final
+	 * buffer is what guarantees full-page coverage: every `<style>` element and
+	 * every `<link rel="stylesheet">` element is marked regardless of how or when
+	 * it was printed. The only exceptions are the style assets contained in
+	 * `noscript` and `template` elements, which are not rendered as part of the
+	 * document.
+	 *
+	 * The filter is not registered upfront. It is added from
+	 * {@see WP_Interactivity_API::data_wp_router_region_processor()} when a router
+	 * region is processed, because registering it earlier would force core to
+	 * start the template enhancement output buffer on every front-end request. See
+	 * {@see WP_Interactivity_API::add_hooks()}.
+	 *
+	 * The attribute lets the Interactivity API router tell server-rendered style
+	 * assets apart from the ones injected later by JavaScript, so the latter can
+	 * be preserved when the head is diffed during a client-side navigation.
+	 *
+	 * The attribute is only added when all the blocks rendered on the page support
+	 * client-side navigation, at least one router region has been processed, and
+	 * client-side navigation has not been disabled.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|mixed $buffer The template output buffer.
+	 * @return string|mixed The template output buffer, with the attribute added to the style assets.
+	 */
+	public function filter_template_output_buffer_add_router_managed_attribute( $buffer ) {
+		if ( ! is_string( $buffer ) ) {
+			return $buffer;
+		}
+
+		if ( ! $this->should_add_router_managed_attribute() ) {
+			return $buffer;
+		}
+
+		return $this->add_router_managed_attribute_to_style_assets( $buffer );
+	}
+
+	/**
+	 * Starts an output buffer to add the `data-wp-router-managed` attribute to
+	 * the style assets of the page when core's template enhancement output buffer
+	 * is not running.
+	 *
+	 * This method is a {@see 'wp_head'} action callback registered with the lowest
+	 * possible priority, so the buffer captures every style asset printed from
+	 * that point on: the rest of the HEAD, the BODY and the footer.
+	 *
+	 * The buffer is only started when it is really needed. Core starts its own
+	 * template enhancement output buffer whenever something requires it, and in
+	 * that case the attribute is added through the
+	 * {@see 'wp_template_enhancement_output_buffer'} filter instead.
+	 *
+	 * This fallback relies on the block template canvas, which renders the whole
+	 * template, including the footer template parts, into a string before printing
+	 * the doctype and firing `wp_head`. In that flow all the directives have
+	 * already been processed by the time this method runs, so the conditions
+	 * checked here are final and the markup printed before the buffer starts
+	 * cannot contain style assets.
+	 *
+	 * In flows where blocks are rendered after `wp_head` instead, i.e. classic
+	 * themes, block themes serving a PHP template, or a PHP template served
+	 * through the {@see 'template_include'} filter by a plugin, no router region
+	 * has been processed at this point, so this method intentionally does nothing.
+	 * Those flows are covered by the
+	 * {@see 'wp_template_enhancement_output_buffer'} filter as long as core's
+	 * template enhancement output buffer is active, which classic themes enable by
+	 * default since WordPress 6.9. When it is not active, e.g. a site opting out
+	 * through the {@see 'wp_should_output_buffer_template_for_enhancement'} filter
+	 * or a block theme serving a PHP template, the attribute is not emitted at
+	 * all. That is a deliberate limitation: not marking any style asset is safe,
+	 * whereas marking only some of them is not.
+	 *
+	 * @since 7.2.0
+	 */
+	public function maybe_start_router_managed_output_buffer() {
+		if ( $this->router_managed_output_buffer_attempted || $this->template_output_buffer_started ) {
+			return;
+		}
+
+		$this->router_managed_output_buffer_attempted = true;
+
+		if ( ! $this->should_add_router_managed_attribute() ) {
+			return;
+		}
+
+		/*
+		 * The buffer is not closed explicitly. It is flushed through its callback
+		 * by `wp_ob_end_flush_all()` on shutdown, like the one started by
+		 * `wp_start_template_enhancement_output_buffer()`.
+		 *
+		 * As a side effect, third-party code that captures the output of `wp_head`
+		 * with its own `ob_start()` and `ob_get_clean()` pair consumes this buffer
+		 * instead of its own, because this one is started from within `wp_head`.
+		 * The markup is not lost, but it is returned unmarked. This is an accepted
+		 * tradeoff of covering the whole page from a single buffer.
+		 */
+		ob_start(
+			array( $this, 'finalize_router_managed_output_buffer' ),
+			/*
+			 * An unlimited chunk size, so the entire output is passed to the
+			 * callback at once and every style asset can be marked no matter where
+			 * it was printed.
+			 */
+			0,
+			/*
+			 * The `PHP_OUTPUT_HANDLER_FLUSHABLE` flag is omitted so a `flush()`
+			 * call cannot send a fragment of the page through the callback and
+			 * leave the rest of the markup unprocessed. The buffer is still
+			 * cleanable and removable, which is required because WordPress calls
+			 * `wp_ob_end_flush_all()` before `wp_cache_close()`. Same rationale as
+			 * `wp_start_template_enhancement_output_buffer()`.
+			 */
+			PHP_OUTPUT_HANDLER_STDFLAGS ^ PHP_OUTPUT_HANDLER_FLUSHABLE
+		);
+	}
+
+	/**
+	 * Adds the `data-wp-router-managed` attribute to the style assets of the
+	 * buffer started by {@see WP_Interactivity_API::maybe_start_router_managed_output_buffer()}.
+	 *
+	 * The conditions are checked again here because this callback runs when the
+	 * buffer is finalized, i.e. at the very end of the request, and code running
+	 * after `wp_head`, e.g. a `wp_footer` callback, may still have rendered a
+	 * block without client-side navigation support or disabled client-side
+	 * navigation.
+	 *
+	 * Unlike `wp_finalize_template_enhancement_output_buffer()`, this callback
+	 * does not check the content type of the response. The buffer is only started
+	 * from `wp_head`, so the response is an HTML document, and the HTML processor
+	 * leaves markup without style assets untouched anyway.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $output The output buffer.
+	 * @param int    $phase  The output buffer phase bitmask.
+	 * @return string The output buffer, with the attribute added to the style assets.
+	 */
+	public function finalize_router_managed_output_buffer( string $output, int $phase ): string {
+		// When the output is being cleaned, e.g. it is replaced with an error page, it must not be processed.
+		if ( ( $phase & PHP_OUTPUT_HANDLER_CLEAN ) !== 0 ) {
+			return $output;
+		}
+
+		if ( ! $this->should_add_router_managed_attribute() ) {
+			return $output;
+		}
+
+		try {
+			return $this->add_router_managed_attribute_to_style_assets( $output );
+		} catch ( Throwable $e ) {
+			/*
+			 * An exception thrown from an output buffer callback is fatal and
+			 * discards the whole response, so the original output is returned
+			 * unmodified instead. The page is served without the attribute, which
+			 * only disables the optimization.
+			 */
+			return $output;
+		}
+	}
+
+	/**
+	 * Checks whether the style assets of the page can be marked with the
+	 * `data-wp-router-managed` attribute.
+	 *
+	 * The attribute is only added when all the blocks rendered on the page support
+	 * client-side navigation, at least one router region has been processed, and
+	 * client-side navigation has not been disabled.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether the attribute can be added to the style assets.
+	 */
+	private function should_add_router_managed_attribute(): bool {
+		if ( ! $this->has_processed_router_region || ! $this->all_blocks_support_client_navigation ) {
+			return false;
+		}
+
+		/*
+		 * The configuration is read directly instead of through
+		 * `WP_Interactivity_API::config()` because that method would create an
+		 * empty `core/router` entry as a side effect of reading it.
+		 */
+		return empty( $this->config_data['core/router']['clientNavigationDisabled'] );
+	}
+
+	/**
+	 * Adds the `data-wp-router-managed` attribute to every style asset found in
+	 * the given markup.
+	 *
+	 * Every `<style>` element and every `<link rel="stylesheet">` element is
+	 * marked. The only exceptions are the style assets contained in `noscript` and
+	 * `template` elements, which are not rendered as part of the document.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $html The markup to process.
+	 * @return string The markup, with the attribute added to the style assets.
+	 */
+	private function add_router_managed_attribute_to_style_assets( string $html ): string {
+		$processor = new WP_HTML_Tag_Processor( $html );
+
+		/*
+		 * Depth of the `noscript` and `template` elements currently open. The
+		 * contents of `template` elements are inert until they are cloned by
+		 * JavaScript, and `noscript` elements are only rendered when scripting is
+		 * disabled, so the style assets inside them must not be marked as
+		 * server-generated ones.
+		 */
+		$inert_depth = 0;
+
+		while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
+			$tag_name  = $processor->get_tag();
+			$is_closer = $processor->is_tag_closer();
+
+			if ( 'NOSCRIPT' === $tag_name || 'TEMPLATE' === $tag_name ) {
+				if ( $is_closer ) {
+					$inert_depth = max( 0, $inert_depth - 1 );
+				} elseif ( ! $processor->has_self_closing_flag() ) {
+					/*
+					 * Self-closing tags are only meaningful in foreign content,
+					 * i.e. inside SVG or MathML, where they have no closing tag.
+					 * They are skipped so they do not leave the depth counter
+					 * stuck for the rest of the document.
+					 */
+					++$inert_depth;
+				}
+				continue;
+			}
+
+			if ( $is_closer || $inert_depth > 0 ) {
+				continue;
+			}
+
+			if ( 'STYLE' === $tag_name ) {
+				$processor->set_attribute( 'data-wp-router-managed', true );
+				continue;
+			}
+
+			if ( 'LINK' !== $tag_name ) {
+				continue;
+			}
+
+			$rel = $processor->get_attribute( 'rel' );
+			if ( ! is_string( $rel ) ) {
+				continue;
+			}
+
+			$rel_tokens = preg_split( '/[\t\n\f\r ]+/', strtolower( $rel ), -1, PREG_SPLIT_NO_EMPTY );
+			if ( is_array( $rel_tokens ) && in_array( 'stylesheet', $rel_tokens, true ) ) {
+				$processor->set_attribute( 'data-wp-router-managed', true );
+			}
+		}
+
+		return $processor->get_updated_html();
 	}
 
 	/**
@@ -1486,6 +1880,17 @@ HTML;
 	}
 
 	/**
+	 * Checks whether a `data-wp-router-region` directive has been processed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return bool Whether a router region has been processed on the page.
+	 */
+	public function has_router_region(): bool {
+		return $this->has_processed_router_region;
+	}
+
+	/**
 	 * Processes the `data-wp-router-region` directive.
 	 *
 	 * It renders in the footer a set of HTML elements to notify users about
@@ -1494,12 +1899,47 @@ HTML;
 	 * and 2) an `aria-live` region for accessible navigation announcements.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Registers the filter that adds the `data-wp-router-managed` attribute to the style assets.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
 	 */
 	private function data_wp_router_region_processor( WP_Interactivity_API_Directives_Processor $p, string $mode ) {
-		if ( 'enter' === $mode && ! $this->has_processed_router_region ) {
+		if ( 'enter' !== $mode ) {
+			return;
+		}
+
+		if ( ! is_admin() ) {
+			/*
+			 * The filter is added here, and not in `add_hooks()`, because having
+			 * it registered when the template is included is what makes core start
+			 * the template enhancement output buffer, and that would disable
+			 * response streaming on every front-end request. See
+			 * `wp_should_output_buffer_template_for_enhancement()`.
+			 *
+			 * Adding it now cannot start a buffer that was not going to be
+			 * started: directives are processed while the template renders, so the
+			 * decision to buffer was already made at
+			 * `wp_before_include_template`. The filter chain is only applied when
+			 * the buffer is finalized, so attaching to an already started buffer
+			 * works as expected.
+			 *
+			 * It is added for every processed router region, and not only for the
+			 * first one, so the registration is restored if other code removed the
+			 * filters of this hook in between, and so it happens once per request
+			 * even though `$has_processed_router_region` is only reset when a new
+			 * instance is created. Adding the same callback with the same priority
+			 * more than once is a no-op.
+			 *
+			 * The priority is set to 20 so this filter runs after the one added by
+			 * `wp_hoist_late_printed_styles()`, which uses the default priority and
+			 * can move style tags into the HEAD. That way, every style asset
+			 * present in the final markup gets the attribute.
+			 */
+			add_filter( 'wp_template_enhancement_output_buffer', array( $this, 'filter_template_output_buffer_add_router_managed_attribute' ), 20 );
+		}
+
+		if ( ! $this->has_processed_router_region ) {
 			$this->has_processed_router_region = true;
 
 			// Initializes the `state.url` property from the server.
