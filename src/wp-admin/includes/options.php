@@ -52,6 +52,47 @@ function options_general_add_js() {
 			$siteIconPreview.text( title );
 		});
 
+		// Site name validation.
+		$( 'form' ).on( 'submit', function(e) {
+			var $blogname = $( '#blogname' );
+			var siteTitle = $.trim( $blogname.val() );
+			
+			// Remove any existing error messages.
+			$( '.site-title-error' ).remove();
+			$blogname.removeClass( 'form-invalid' );
+			
+			// Check if site title is empty.
+			if ( ! siteTitle ) {
+				e.preventDefault();
+				
+				// Add error styling.
+				$blogname.addClass( 'form-invalid' );
+				
+				// Add error message.
+				$blogname.closest( 'td' ).append( 
+					'<p class="site-title-error" style="color: #d63638; margin-top: 5px;">' +
+					'<?php esc_html_e( 'Site title is required and cannot be empty.' ); ?>' +
+					'</p>' 
+				);
+
+				// Focus on the field.
+				$blogname.focus();
+
+				// Scroll to the field.
+				$( 'html, body' ).animate({
+					scrollTop: $blogname.offset().top - 100
+				}, 500);
+				
+				return false;
+			}
+		});
+
+		// Remove error message when user starts typing.
+		$( '#blogname' ).on( 'input', function() {
+			$( '.site-title-error' ).remove();
+			$( this ).removeClass( 'form-invalid' );
+		});
+
 		$( 'input[name="date_format"]' ).on( 'click', function() {
 			if ( 'date_format_custom_radio' !== $(this).attr( 'id' ) )
 				$( 'input[name="date_format_custom"]' ).val( $( this ).val() ).closest( 'fieldset' ).find( '.example' ).text( $( this ).parent( 'label' ).children( '.format-i18n' ).text() );
