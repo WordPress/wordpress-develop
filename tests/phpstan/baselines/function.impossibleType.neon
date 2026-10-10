@@ -19,17 +19,7 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Call to function is_string\(\) with bool will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
 			message: '#^Call to function is_wp_error\(\) with 0\|0\.0\|''''\|''0''\|array\{\}\|false\|null will always evaluate to false\.$#'
 			identifier: function.impossibleType
 			count: 2
 			path: ../../../src/wp-admin/update.php
-		-
-			message: '#^Call to function is_string\(\) with bool will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: ../../../src/wp-includes/load.php
