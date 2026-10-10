@@ -738,11 +738,14 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		),
 	);
 	$args     = wp_parse_args( $args, $defaults );
-	if ( $menu->count > 0 ) {
-		$items = get_posts( $args );
-	} else {
-		$items = array();
-	}
+
+	/*
+	 * The term's count only reflects published menu items and can be stale,
+	 * so it is not a safe proxy for whether any items match these args.
+	 * get_posts() already returns an empty array for a genuinely empty menu,
+	 * and the query is cached in the 'post-queries' group.
+	 */
+	$items = get_posts( $args );
 
 	$items = array_map( 'wp_setup_nav_menu_item', $items );
 
