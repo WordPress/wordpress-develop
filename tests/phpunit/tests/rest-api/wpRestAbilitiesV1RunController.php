@@ -379,6 +379,26 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an empty object.
+		$this->register_test_ability(
+			'test/empty-object-output',
+			array(
+				'label'               => 'Empty Object Output',
+				'description'         => 'Returns an empty object.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -564,6 +584,20 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number.',
 			$data['message']
 		);
+	}
+
+	/**
+	 * Tests that an empty object result is prepared for JSON clients.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_empty_object_output_is_prepared_for_json_clients(): void {
+		$request  = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/empty-object-output/run' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '{}', wp_json_encode( $response->get_data() ) );
+		$this->assertSame( array(), wp_get_ability( 'test/empty-object-output' )->execute() );
 	}
 
 	/**
