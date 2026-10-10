@@ -28,7 +28,6 @@ includes:
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanAnd.leftAlwaysTrue.neon
-	- tests/phpstan/baselines/booleanAnd.rightAlwaysTrue.neon
 	- tests/phpstan/baselines/booleanNot.alwaysFalse.neon
 	- tests/phpstan/baselines/booleanNot.alwaysTrue.neon
 	- tests/phpstan/baselines/booleanOr.alwaysFalse.neon
