@@ -3,9 +3,12 @@
  * Fake Requests transport for HTTP unit tests.
  *
  * Returns canned raw HTTP responses so tests can exercise WP_Http request
- * handling (cookie normalization, redirect policy, response conversion,
- * streaming, and response size limits) without performing live network
- * requests.
+ * handling (cookie normalization, redirect policy, response conversion)
+ * without performing live network requests.
+ *
+ * Intentionally does not reimplement Requests transport behaviors such as
+ * streaming to disk or response-size truncation. Those remain covered by the
+ * real-transport integration tests in WP_HTTP_UnitTestCase.
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -18,26 +21,15 @@
 class WP_Http_Unit_Test_Transport implements WpOrg\Requests\Transport {
 
 	/**
-	 * Expected body size for the canned dashboard.png fixture.
-	 *
-	 * @var int
-	 */
-	const DASHBOARD_PNG_SIZE = 153204;
-
-	/**
 	 * Performs a request against the canned responses.
-	 *
-	 * Honors Requests' `filename` (stream to disk) and `max_bytes` options so
-	 * streaming and response-size tests can run without a live network.
 	 *
 	 * @param string       $url     URL to request.
 	 * @param array        $headers Associative array of request headers.
 	 * @param string|array $data    Request data.
 	 * @param array        $options Request options.
-	 * @return string Raw HTTP response, or headers only when streaming to a file.
+	 * @return string Raw HTTP response.
 	 *
-	 * @throws WpOrg\Requests\Exception When no canned response exists for the URL,
-	 *                                  or the stream destination cannot be written.
+	 * @throws WpOrg\Requests\Exception When no canned response exists for the URL.
 	 */
 	public function request( $url, $headers = array(), $data = array(), $options = array() ) {
 		$response = $this->get_raw_response( $url );
@@ -49,38 +41,7 @@ class WP_Http_Unit_Test_Transport implements WpOrg\Requests\Transport {
 			);
 		}
 
-		$parts        = explode( "\r\n\r\n", $response, 2 );
-		$header_block = $parts[0];
-		$body         = isset( $parts[1] ) ? $parts[1] : '';
-
-		$max_bytes = false;
-		if ( isset( $options['max_bytes'] ) && false !== $options['max_bytes'] ) {
-			$max_bytes = (int) $options['max_bytes'];
-		}
-
-		if ( false !== $max_bytes && strlen( $body ) > $max_bytes ) {
-			$body = substr( $body, 0, $max_bytes );
-		}
-
-		if ( ! empty( $options['filename'] ) ) {
-			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Match Requests transport behavior.
-			$stream_handle = @fopen( $options['filename'], 'wb' );
-			if ( false === $stream_handle ) {
-				$error = error_get_last();
-				throw new WpOrg\Requests\Exception(
-					isset( $error['message'] ) ? $error['message'] : 'Failed to open stream destination.',
-					'fopen'
-				);
-			}
-
-			fwrite( $stream_handle, $body );
-			fclose( $stream_handle );
-
-			// Streaming transports return headers only; the body lives on disk.
-			return $header_block;
-		}
-
-		return $header_block . "\r\n\r\n" . $body;
+		return $response;
 	}
 
 	/**
@@ -122,15 +83,12 @@ class WP_Http_Unit_Test_Transport implements WpOrg\Requests\Transport {
 	 * @return string|null Raw HTTP response, or null when unhandled.
 	 */
 	private function get_raw_response( $url ) {
-		$png_headers = 'Content-Type: image/png' . "\r\n" . 'Content-Length: ' . self::DASHBOARD_PNG_SIZE . "\r\n";
-		$png_body    = str_repeat( "\0", self::DASHBOARD_PNG_SIZE );
-		$png_200     = "HTTP/1.1 200 OK\r\n{$png_headers}\r\n{$png_body}";
+		$png_headers = "Content-Type: image/png\r\nContent-Length: 153204\r\n";
 
 		switch ( $url ) {
-			case 'http://s.w.org/screenshots/3.9/dashboard.png':
 			case 'https://s.w.org/screenshots/3.9/dashboard.png':
 			case 'https://wordpress.org/screenshots/3.9/dashboard.png':
-				return $png_200;
+				return "HTTP/1.1 200 OK\r\n{$png_headers}\r\n";
 
 			case 'https://wp.org/screenshots/3.9/dashboard.png':
 				return "HTTP/1.1 301 Moved Permanently\r\nLocation: https://wordpress.org/screenshots/3.9/dashboard.png\r\n\r\n";

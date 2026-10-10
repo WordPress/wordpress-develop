@@ -248,6 +248,83 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::wp_remote_request
+	 */
+	public function test_file_stream() {
+		$url  = $this->file_stream_url;
+		$size = 153204;
+		$res  = $this->wp_remote_request(
+			$url,
+			array(
+				'stream'  => true,
+				'timeout' => 30,
+			)
+		); // Auto generate the filename.
+
+		// Cleanup before we assert, as it'll return early.
+		if ( ! is_wp_error( $res ) ) {
+			$filesize = filesize( $res['filename'] );
+			unlink( $res['filename'] );
+		}
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( '', $res['body'] ); // The body should be empty.
+		$this->assertSame( (string) $size, $res['headers']['Content-Length'] );   // Check the headers are returned (and the size is the same).
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
+	}
+
+	/**
+	 * @ticket 26726
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_file_stream_limited_size() {
+		$url  = $this->file_stream_url;
+		$size = 10000;
+		$res  = $this->wp_remote_request(
+			$url,
+			array(
+				'stream'              => true,
+				'timeout'             => 30,
+				'limit_response_size' => $size,
+			)
+		); // Auto generate the filename.
+
+		// Cleanup before we assert, as it'll return early.
+		if ( ! is_wp_error( $res ) ) {
+			$filesize = filesize( $res['filename'] );
+			unlink( $res['filename'] );
+		}
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+	}
+
+	/**
+	 * Tests limiting the response size when returning strings.
+	 *
+	 * @ticket 31172
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_request_limited_size() {
+		$url  = $this->file_stream_url;
+		$size = 10000;
+
+		$res = $this->wp_remote_request(
+			$url,
+			array(
+				'timeout'             => 30,
+				'limit_response_size' => $size,
+			)
+		);
+
+		$this->assertNotWPError( $res );
+		$this->assertSame( $size, strlen( $res['body'] ) );
+	}
+
+	/**
 	 * Test POST redirection methods.
 	 *
 	 * @dataProvider data_post_redirect_to_method_300

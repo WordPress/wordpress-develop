@@ -17,12 +17,20 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	private $using_mock_transport = false;
 
 	/**
+	 * Captured Requests options from the most recent mocked request.
+	 *
+	 * @var array|null
+	 */
+	private $captured_requests_options = null;
+
+	/**
 	 * Tear down the fake transport hook when used.
 	 */
 	public function tear_down() {
 		if ( $this->using_mock_transport ) {
 			remove_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10 );
-			$this->using_mock_transport = false;
+			$this->using_mock_transport      = false;
+			$this->captured_requests_options = null;
 		}
 
 		parent::tear_down();
@@ -39,11 +47,16 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	private function use_mock_transport() {
 		remove_filter( 'pre_http_request', array( $this, 'block_external_http_request' ), PHP_INT_MAX );
 		add_action( 'requests-requests.before_request', array( $this, 'inject_mock_transport' ), 10, 5 );
-		$this->using_mock_transport = true;
+		$this->using_mock_transport      = true;
+		$this->captured_requests_options = null;
 	}
 
 	/**
 	 * Injects the fake Requests transport into request options.
+	 *
+	 * Also snapshots the Requests options so tests can assert that WP_Http
+	 * mapped streaming and size-limit args without reimplementing those
+	 * transport behaviors in the fake transport.
 	 *
 	 * @param string       $url     Request URL.
 	 * @param array        $headers Request headers.
@@ -52,7 +65,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	 * @param array        $options Request options (passed by reference).
 	 */
 	public function inject_mock_transport( $url, $headers, $data, $type, &$options ) {
-		$options['transport'] = new WP_Http_Unit_Test_Transport();
+		$this->captured_requests_options = $options;
+		$options['transport']            = new WP_Http_Unit_Test_Transport();
 	}
 
 	/**
@@ -277,16 +291,20 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Verifies WP_Http maps `stream` to a Requests `filename` option.
+	 *
+	 * Real Curl/Fsockopen streaming behavior remains covered by
+	 * WP_HTTP_UnitTestCase::test_file_stream().
+	 *
 	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
-	public function test_file_stream() {
+	public function test_stream_passes_filename_option_to_requests() {
 		$this->use_mock_transport();
 
-		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
-		$size = WP_Http_Unit_Test_Transport::DASHBOARD_PNG_SIZE;
-		$res  = wp_remote_request(
+		$url = 'https://s.w.org/screenshots/3.9/dashboard.png';
+		$res = wp_remote_request(
 			$url,
 			array(
 				'stream'  => true,
@@ -294,34 +312,58 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$filesize = null;
-
-		// Cleanup before we assert, as it'll return early.
-		if ( ! is_wp_error( $res ) ) {
-			$filesize = filesize( $res['filename'] );
-			unlink( $res['filename'] );
-		}
-
 		$this->assertNotWPError( $res );
-		$this->assertSame( '', $res['body'] ); // The body should be empty.
-		$this->assertSame( (string) $size, $res['headers']['Content-Length'] ); // Check the headers are returned (and the size is the same).
-		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
-		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
+		$this->assertIsArray( $this->captured_requests_options );
+		$this->assertArrayHasKey( 'filename', $this->captured_requests_options );
+		$this->assertSame( get_temp_dir() . 'dashboard.png', $this->captured_requests_options['filename'] );
 	}
 
 	/**
+	 * Verifies WP_Http maps `limit_response_size` to Requests `max_bytes`.
+	 *
+	 * Real Curl/Fsockopen truncation remains covered by
+	 * WP_HTTP_UnitTestCase::test_request_limited_size().
+	 *
+	 * @ticket 31172
+	 * @ticket 63914
+	 *
+	 * @covers ::wp_remote_request
+	 */
+	public function test_limit_response_size_passes_max_bytes_option_to_requests() {
+		$this->use_mock_transport();
+
+		$size = 10000;
+		$res  = wp_remote_request(
+			'https://s.w.org/screenshots/3.9/dashboard.png',
+			array(
+				'timeout'             => 30,
+				'limit_response_size' => $size,
+			)
+		);
+
+		$this->assertNotWPError( $res );
+		$this->assertIsArray( $this->captured_requests_options );
+		$this->assertArrayHasKey( 'max_bytes', $this->captured_requests_options );
+		$this->assertSame( $size, $this->captured_requests_options['max_bytes'] );
+	}
+
+	/**
+	 * Verifies WP_Http maps stream + size limit options together.
+	 *
+	 * Real Curl/Fsockopen behavior remains covered by
+	 * WP_HTTP_UnitTestCase::test_file_stream_limited_size().
+	 *
 	 * @ticket 26726
 	 * @ticket 63914
 	 *
 	 * @covers ::wp_remote_request
 	 */
-	public function test_file_stream_limited_size() {
+	public function test_stream_with_limit_passes_filename_and_max_bytes_to_requests() {
 		$this->use_mock_transport();
 
-		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
 		$size = 10000;
 		$res  = wp_remote_request(
-			$url,
+			'https://s.w.org/screenshots/3.9/dashboard.png',
 			array(
 				'stream'              => true,
 				'timeout'             => 30,
@@ -329,42 +371,12 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 			)
 		);
 
-		$filesize = null;
-
-		// Cleanup before we assert, as it'll return early.
-		if ( ! is_wp_error( $res ) ) {
-			$filesize = filesize( $res['filename'] );
-			unlink( $res['filename'] );
-		}
-
 		$this->assertNotWPError( $res );
-		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
-	}
-
-	/**
-	 * Tests limiting the response size when returning strings.
-	 *
-	 * @ticket 31172
-	 * @ticket 63914
-	 *
-	 * @covers ::wp_remote_request
-	 */
-	public function test_request_limited_size() {
-		$this->use_mock_transport();
-
-		$url  = 'https://s.w.org/screenshots/3.9/dashboard.png';
-		$size = 10000;
-
-		$res = wp_remote_request(
-			$url,
-			array(
-				'timeout'             => 30,
-				'limit_response_size' => $size,
-			)
-		);
-
-		$this->assertNotWPError( $res );
-		$this->assertSame( $size, strlen( $res['body'] ) );
+		$this->assertIsArray( $this->captured_requests_options );
+		$this->assertArrayHasKey( 'filename', $this->captured_requests_options );
+		$this->assertSame( get_temp_dir() . 'dashboard.png', $this->captured_requests_options['filename'] );
+		$this->assertArrayHasKey( 'max_bytes', $this->captured_requests_options );
+		$this->assertSame( $size, $this->captured_requests_options['max_bytes'] );
 	}
 
 	/**
