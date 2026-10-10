@@ -214,6 +214,8 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
+	 * Navigation fallback has no collection route; singular GET is covered by test_get_item().
+	 *
 	 * @doesNotPerformAssertions
 	 */
 	public function test_get_items() {
@@ -221,23 +223,56 @@ class WP_REST_Navigation_Fallback_Controller_Test extends WP_Test_REST_Controlle
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_user );
+
+		$request  = new WP_REST_Request( 'POST', '/wp-block-editor/v1/navigation-fallback' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Navigation fallback is read-only; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_user );
+
+		$route = '/wp-block-editor/v1/navigation-fallback';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 }
