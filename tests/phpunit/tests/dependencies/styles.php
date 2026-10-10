@@ -226,6 +226,136 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that inline style attributes are filtered during normal style output.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter() {
+		$filter_calls = 0;
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( $attributes ) use ( &$filter_calls ) {
+				++$filter_calls;
+				$attributes['nonce'] = 'test-nonce';
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
+
+		$printed = get_echo( 'wp_print_styles' );
+
+		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
+		$this->assertSame( 1, $filter_calls );
+	}
+
+	/**
+	 * Tests that inline style attributes are filtered when print_inline_style() is called directly.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_with_direct_call() {
+		global $wp_styles;
+
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( $attributes ) {
+				$attributes['nonce'] = 'test-nonce';
+				return $attributes;
+			}
+		);
+
+		wp_register_style( 'handle', 'http://example.com' );
+		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
+
+		$printed = get_echo( array( $wp_styles, 'print_inline_style' ), array( 'handle' ) );
+
+		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
+	}
+
+	/**
+	 * Tests that inline style attributes are filtered for a concatenated non-core stylesheet.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_with_non_core_concat() {
+		global $wp_styles;
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/', '/wp-includes/css/' );
+
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( $attributes ) {
+				$attributes['nonce'] = 'test-nonce';
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
+		wp_print_styles();
+
+		$this->assertStringContainsString(
+			'<style id="handle-inline-css" nonce="test-nonce">',
+			$wp_styles->print_html
+		);
+	}
+
+	/**
+	 * Tests that inline style attributes are filtered for concatenated core styles.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_with_core_concat() {
+		global $wp_styles;
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( $attributes ) {
+				$attributes['nonce'] = 'test-nonce';
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'handle', '/wp-admin/example.css' );
+		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
+		wp_print_styles();
+
+		$printed = get_echo( '_print_styles' );
+
+		$this->assertStringContainsString( '<style nonce="test-nonce">', $printed );
+	}
+
+	/**
+	 * Tests that inline style attributes are not filtered when style output is suppressed.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_not_called_when_output_is_suppressed() {
+		$filter_calls = 0;
+
+		add_filter( 'style_loader_src', '__return_false' );
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( $attributes ) use ( &$filter_calls ) {
+				++$filter_calls;
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
+
+		$this->assertSame( '', get_echo( 'wp_print_styles' ) );
+		$this->assertSame( 0, $filter_calls );
+	}
+
+	/**
 	 * Test normalizing relative links in CSS.
 	 *
 	 * @dataProvider data_normalize_relative_css_links
