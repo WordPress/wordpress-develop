@@ -48,8 +48,3 @@ parameters:
 			identifier: empty.variable
 			count: 1
 			path: ../../../src/wp-includes/taxonomy.php
-		-
-			message: '#^Variable \$old_user_data in empty\(\) always exists and is not falsy\.$#'
-			identifier: empty.variable
-			count: 1
-			path: ../../../src/wp-includes/user.php

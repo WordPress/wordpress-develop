@@ -394,26 +394,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/options.php
 		-
-			message: '#^Variable \$page might not be defined\.$#'
-			identifier: variable.undefined
-			count: 18
-			path: ../../../src/wp-admin/plugins.php
-		-
-			message: '#^Variable \$plugins might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/plugins.php
-		-
-			message: '#^Variable \$status might not be defined\.$#'
-			identifier: variable.undefined
-			count: 18
-			path: ../../../src/wp-admin/plugins.php
-		-
-			message: '#^Variable \$user_ID might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/plugins.php
-		-
 			message: '#^Variable \$typenow might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -484,26 +464,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/upgrade.php
 		-
-			message: '#^Variable \$_wp_admin_css_colors might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
-			message: '#^Variable \$user_login might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
-			message: '#^Variable \$wp_roles might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/user-edit.php
-		-
-			message: '#^Variable \$blog_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/user-new.php
-		-
 			message: '#^Variable \$current_blog might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
@@ -513,31 +473,6 @@ parameters:
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-admin/user/admin.php
-		-
-			message: '#^Variable \$blog_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/users.php
-		-
-			message: '#^Variable \$current_user might not be defined\.$#'
-			identifier: variable.undefined
-			count: 7
-			path: ../../../src/wp-admin/users.php
-		-
-			message: '#^Variable \$redirect might not be defined\.$#'
-			identifier: variable.undefined
-			count: 10
-			path: ../../../src/wp-admin/users.php
-		-
-			message: '#^Variable \$usersearch might not be defined\.$#'
-			identifier: variable.undefined
-			count: 2
-			path: ../../../src/wp-admin/users.php
-		-
-			message: '#^Variable \$wp_roles might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/users.php
 		-
 			message: '#^Variable \$title might not be defined\.$#'
 			identifier: variable.undefined
@@ -833,11 +768,6 @@ parameters:
 			identifier: variable.undefined
 			count: 2
 			path: ../../../src/wp-includes/template.php
-		-
-			message: '#^Variable \$manage_url might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/user.php
 		-
 			message: '#^Variable \$error might not be defined\.$#'
 			identifier: variable.undefined
