@@ -684,6 +684,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * Covers: opcache enabled, disabled, not available, and opcache_get_status() returns false.
 	 *
 	 * @ticket 63697
+	 * @ticket 65921
 	 *
 	 * @covers ::get_test_opcode_cache()
 	 */
@@ -693,7 +694,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 		$opcache_enabled = false;
 		if ( function_exists( 'opcache_get_status' ) ) {
 			$status = @opcache_get_status( false ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Warning emitted in failure case.
-			if ( $status && true === $status['opcache_enabled'] ) {
+			if ( $status && ( true === $status['opcache_enabled'] || ! empty( $status['file_cache_only'] ) ) ) {
 				$opcache_enabled = true;
 			}
 		}
