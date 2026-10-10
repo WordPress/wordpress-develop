@@ -36,6 +36,7 @@
  *
  * @phpstan-template T of WP_List_Table
  * @phpstan-param class-string<T> $class_name
+ * @phpstan-param array{plural?: string, singular?: string, ajax?: bool, screen?: string|WP_Screen|null} $args
  * @phpstan-return T|false
  */
 function _get_list_table( $class_name, $args = array() ) {
