@@ -606,18 +606,20 @@ function install_plugin_information() {
 		$_with_banner = 'with-banner';
 		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
 		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
-		?>
-		<style>
+		$low_url      = esc_url( $low );
+		$high_url     = esc_url( $high );
+		wp_print_inline_style_tag(
+			<<<CSS
 			#plugin-information-title.with-banner {
-				background-image: url( <?php echo esc_url( $low ); ?> );
+				background-image: url( {$low_url} );
 			}
 			@media only screen and ( -webkit-min-device-pixel-ratio: 1.5 ) {
 				#plugin-information-title.with-banner {
-					background-image: url( <?php echo esc_url( $high ); ?> );
+					background-image: url( {$high_url} );
 				}
 			}
-		</style>
-		<?php
+			CSS
+		);
 	}
 
 	echo '<div id="plugin-information-scrollable">';
