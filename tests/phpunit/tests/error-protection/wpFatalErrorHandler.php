@@ -335,11 +335,17 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	/**
 	 * Tests that handle() displays the error template in the admin.
 	 *
+	 * Runs in a separate process because handle() returns early once another
+	 * test has defined the WP_SANDBOX_SCRAPING constant.
+	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::handle
 	 * @covers ::display_error_template
 	 * @covers ::display_default_error_template
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_displays_error_template_in_admin() {
 		set_current_screen( 'dashboard' );
