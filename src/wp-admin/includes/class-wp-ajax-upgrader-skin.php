@@ -102,6 +102,59 @@ class WP_Ajax_Upgrader_Skin extends Automatic_Upgrader_Skin {
 	}
 
 	/**
+	 * Checks if the plugin can be overwritten and outputs an array of changes for overwriting a plugin on upload.
+	 *
+	 * @since 6.9.0
+	 *
+	 * @return bool|array Whether the plugin can be overwritten and an array of changes returned.
+	 */
+	public function can_overwrite_plugin() {
+		if ( ! is_wp_error( $this->result ) || 'folder_exists' !== $this->result->get_error_code() ) {
+			return false;
+		}
+
+		$folder = $this->result->get_error_data( 'folder_exists' );
+		$folder = ltrim( substr( $folder, strlen( WP_PLUGIN_DIR ) ), '/' );
+
+		$current_plugin_data = false;
+		$all_plugins         = get_plugins();
+
+		foreach ( $all_plugins as $plugin => $plugin_data ) {
+			if ( strrpos( $plugin, $folder ) !== 0 ) {
+				continue;
+			}
+
+			$current_plugin_data = $plugin_data;
+		}
+
+		$new_plugin_data = $this->upgrader->new_plugin_data;
+
+		if ( ! $current_plugin_data || ! $new_plugin_data ) {
+			return false;
+		}
+
+		$rows = array(
+			'Downgrade' => version_compare( $current_plugin_data['Version'], $new_plugin_data['Version'], '>' ),
+		);
+
+		$fields = array( 'Name', 'Version', 'Author', 'RequiresWP', 'RequiresPHP' );
+
+		$is_same_plugin = true; // Let's consider only these rows.
+
+		foreach ( $fields as $field ) {
+			$old_value = ! empty( $current_plugin_data[ $field ] ) ? (string) $current_plugin_data[ $field ] : '-';
+			$new_value = ! empty( $new_plugin_data[ $field ] ) ? (string) $new_plugin_data[ $field ] : '-';
+
+			$is_same_plugin = $is_same_plugin && ( $old_value === $new_value );
+
+			$rows[ $field ] = array( wp_strip_all_tags( $old_value ), wp_strip_all_tags( $new_value ) );
+
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Stores an error message about the upgrade.
 	 *
 	 * @since 4.6.0
