@@ -251,38 +251,80 @@ class Tests_REST_WpRestBlockPatternsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/test-one' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$request->set_param( 'title', 'Example pattern' );
+		$request->set_param( 'content', '<!-- wp:paragraph --><p>Example</p><!-- /wp:paragraph -->' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route; update requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', static::REQUEST_ROUTE . '/test-one' );
+		$request->set_param( 'title', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * Block patterns has no item route; delete requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE . '/test-one' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**

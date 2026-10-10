@@ -2143,6 +2143,8 @@ function _admin_search_query() {
  *
  * @param string $title      Optional. Title of the Iframe page. Default empty.
  * @param bool   $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
 function iframe_header( $title = '', $deprecated = false ) {
 	global $hook_suffix, $admin_body_class, $body_id, $wp_locale;
@@ -2652,6 +2654,8 @@ function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap =
  *                                       e.g. `id="search-submit"`, though the array format is generally preferred.
  *                                       Default empty string.
  * @return string Submit button HTML.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_submit_button( $text = '', $type = 'primary large', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	if ( ! is_array( $type ) ) {

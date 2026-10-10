@@ -435,7 +435,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-ability' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertTrue( $data['meta']['public'] );
@@ -466,7 +466,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-optout' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );

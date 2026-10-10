@@ -157,6 +157,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 		$value = (object) $value;
 		$this->assertTrue( update_option( $key, $value ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $value, get_option( $key ) );
 		$this->assertTrue( delete_option( $key ) );
 	}
@@ -218,7 +219,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_bad_option_names() {
+	public static function data_bad_option_names() {
 		return array(
 			'empty string'        => array( '' ),
 			'string 0'            => array( '0' ),
@@ -287,7 +288,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_but_undesired_option_names() {
+	public static function data_valid_but_undesired_option_names() {
 		return array(
 			'string 123'   => array( '123' ),
 			'integer 123'  => array( 123 ),
@@ -340,7 +341,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_option_autoloading() {
+	public static function data_option_autoloading() {
 		return array(
 			// Supported values.
 			array( 'autoload_true', true, 'on' ),
@@ -378,7 +379,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual->autoload );
 	}
 
-	public function data_option_autoloading_large_option() {
+	public static function data_option_autoloading_large_option() {
 		return array(
 			'on'    => array(
 				'autoload' => 'on',
@@ -577,7 +578,7 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_option_does_not_hit_the_external_cache_multiple_times_for_the_same_option() {
+	public static function data_get_option_does_not_hit_the_external_cache_multiple_times_for_the_same_option() {
 		return array(
 			'exists, autoload'       => array( 1, true, true ),
 			'exists, not autoloaded' => array( 3, true, false ),

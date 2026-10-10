@@ -88,6 +88,14 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	public function set_up() {
 		parent::set_up();
 
+		// Avoid a DNS lookup when validating the URL used by the mocked request.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return self::URL_PLACEHOLDER;
+			}
+		);
+
 		add_filter( 'pre_http_request', array( $this, 'mock_success_request_to_remote_url' ), 10, 3 );
 
 		// Disables usage of cache during major of tests.
@@ -747,7 +755,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$method = $this->get_reflective_method( 'get_description' );
 		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1045,38 +1053,78 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $data['endpoints'] );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/example' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; update requests on the real endpoint should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		foreach ( array( 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, static::REQUEST_ROUTE );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; delete requests on the real endpoint should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**

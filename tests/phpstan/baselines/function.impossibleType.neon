@@ -29,11 +29,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/update.php
 		-
-			message: '#^Call to function is_wp_error\(\) with array will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 2
-			path: ../../../src/wp-includes/class-wp-tax-query.php
-		-
 			message: '#^Call to function is_string\(\) with bool will always evaluate to false\.$#'
 			identifier: function.impossibleType
 			count: 1
