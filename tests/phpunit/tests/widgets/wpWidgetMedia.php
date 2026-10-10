@@ -38,15 +38,10 @@ class Tests_Widgets_wpWidgetMedia extends WP_UnitTestCase {
 	 * @return PHPUnit_Framework_MockObject_MockObject|WP_Widget_Media Mocked instance.
 	 */
 	private function get_mocked_class_instance( $id_base = 'mocked', $name = 'Mocked', $widget_options = array(), $control_options = array() ) {
-		$original_class_name       = 'WP_Widget_Media';
-		$arguments                 = array( $id_base, $name, $widget_options, $control_options );
-		$mock_class_name           = '';
-		$call_original_constructor = true;
-		$call_original_clone       = true;
-		$call_autoload             = true;
-		$mocked_methods            = array( 'render_media' );
-
-		return $this->getMockForAbstractClass( $original_class_name, $arguments, $mock_class_name, $call_original_constructor, $call_original_clone, $call_autoload, $mocked_methods );
+		return $this->getMockBuilder( 'WP_Widget_Media' )
+			->setConstructorArgs( array( $id_base, $name, $widget_options, $control_options ) )
+			->onlyMethods( array( 'render_media' ) )
+			->getMock();
 	}
 
 	/**
