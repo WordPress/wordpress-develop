@@ -277,7 +277,7 @@ class WP {
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// A rewrite rule matched, so clear the 404 error var.
+				// Clear the 404 error var since we found something.
 				unset( $error, $_GET['error'] );
 			}
 

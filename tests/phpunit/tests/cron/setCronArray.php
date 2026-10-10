@@ -51,7 +51,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_input_validation() {
+	public static function data_set_cron_array_input_validation() {
 		return array(
 			'null'        => array(
 				'input'    => null,
@@ -101,7 +101,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_returns_false_when_not_updated() {
+	public static function data_set_cron_array_returns_false_when_not_updated() {
 		return array(
 			'empty array' => array(
 				'input'    => array(),
@@ -135,7 +135,7 @@ class Tests_Cron_setCronArray extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_cron_array_returns_WP_Error_when_not_updated() {
+	public static function data_set_cron_array_returns_WP_Error_when_not_updated() {
 		return array(
 			'empty array' => array(
 				'input'    => array(),
