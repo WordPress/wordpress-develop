@@ -719,11 +719,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-http-streams.php
 		-
-			message: '#^Variable \$result might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-image-editor.php
-		-
 			message: '#^Variable \$cache_found might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1

@@ -50,6 +50,128 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65817
+	 * @dataProvider data_maybe_exif_rotate_without_rotation
+	 *
+	 * @param int|bool|null $orientation Filtered EXIF orientation.
+	 */
+	public function test_maybe_exif_rotate_returns_false_without_rotation( $orientation ) {
+		$editor = $this->createPartialMock( 'WP_Image_Editor_Mock', array( 'rotate', 'flip' ) );
+		$editor->expects( $this->never() )->method( 'rotate' );
+		$editor->expects( $this->never() )->method( 'flip' );
+
+		add_filter(
+			'wp_image_maybe_exif_rotate',
+			static function () use ( $orientation ) {
+				return $orientation;
+			}
+		);
+
+		$this->assertFalse( $editor->maybe_exif_rotate() );
+	}
+
+	/**
+	 * Data provider for test_maybe_exif_rotate_returns_false_without_rotation().
+	 *
+	 * @return array
+	 */
+	public function data_maybe_exif_rotate_without_rotation() {
+		return array(
+			'no EXIF orientation'      => array( null ),
+			'rotation disabled'        => array( false ),
+			'zero orientation'         => array( 0 ),
+			'already oriented'         => array( 1 ),
+			'negative orientation'     => array( -1 ),
+			'orientation above eight'  => array( 9 ),
+			'maximum EXIF short value' => array( 65535 ),
+		);
+	}
+
+	/**
+	 * @ticket 65817
+	 * @dataProvider data_maybe_exif_rotate
+	 *
+	 * @param int        $orientation Filtered EXIF orientation.
+	 * @param int|null   $rotation    Expected rotation angle, or null for no rotation.
+	 * @param array|null $flip        Expected flip arguments, or null for no flip.
+	 */
+	public function test_maybe_exif_rotate_applies_orientation( $orientation, $rotation, $flip ) {
+		$editor = $this->createPartialMock( 'WP_Image_Editor_Mock', array( 'rotate', 'flip' ) );
+
+		if ( null === $rotation ) {
+			$editor->expects( $this->never() )->method( 'rotate' );
+		} else {
+			$editor->expects( $this->once() )->method( 'rotate' )->with( $rotation )->willReturn( true );
+		}
+
+		if ( null === $flip ) {
+			$editor->expects( $this->never() )->method( 'flip' );
+		} else {
+			$editor->expects( $this->once() )->method( 'flip' )->with( $flip[0], $flip[1] )->willReturn( true );
+		}
+
+		add_filter(
+			'wp_image_maybe_exif_rotate',
+			static function () use ( $orientation ) {
+				return $orientation;
+			}
+		);
+
+		$this->assertTrue( $editor->maybe_exif_rotate() );
+	}
+
+	/**
+	 * Data provider for test_maybe_exif_rotate_applies_orientation().
+	 *
+	 * @return array
+	 */
+	public function data_maybe_exif_rotate() {
+		return array(
+			'flip horizontally'                => array( 2, null, array( false, true ) ),
+			'flip horizontally and vertically' => array( 3, null, array( true, true ) ),
+			'flip vertically'                  => array( 4, null, array( true, false ) ),
+			'rotate and flip vertically'       => array( 5, 90, array( true, false ) ),
+			'rotate clockwise'                 => array( 6, 270, null ),
+			'rotate and flip horizontally'     => array( 7, 90, array( false, true ) ),
+			'rotate counter-clockwise'         => array( 8, 90, null ),
+		);
+	}
+
+	/**
+	 * @ticket 65817
+	 * @dataProvider data_maybe_exif_rotate_error
+	 *
+	 * @param int $orientation Filtered EXIF orientation.
+	 */
+	public function test_maybe_exif_rotate_does_not_flip_after_rotation_error( $orientation ) {
+		$error  = new WP_Error( 'rotation_failed' );
+		$editor = $this->createPartialMock( 'WP_Image_Editor_Mock', array( 'rotate', 'flip' ) );
+		$editor->expects( $this->once() )->method( 'rotate' )->with( 90 )->willReturn( $error );
+		$editor->expects( $this->never() )->method( 'flip' );
+
+		add_filter(
+			'wp_image_maybe_exif_rotate',
+			static function () use ( $orientation ) {
+				return $orientation;
+			}
+		);
+
+		$this->assertSame( $error, $editor->maybe_exif_rotate() );
+	}
+
+	/**
+	 * Data provider for test_maybe_exif_rotate_does_not_flip_after_rotation_error().
+	 *
+	 * @return array
+	 */
+	public function data_maybe_exif_rotate_error() {
+		return array(
+			'rotate and flip vertically'   => array( 5 ),
+			'rotate and flip horizontally' => array( 7 ),
+		);
+	}
+
+	/**
 	 * Return integer of 95 for testing.
 	 */
 	public function return_integer_95() {
