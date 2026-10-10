@@ -56,6 +56,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_adds_extra_headers_to_existing_cache() {
@@ -77,6 +78,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_keeps_cached_fields_when_adding_extra_headers() {
@@ -103,6 +105,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_rereads_extra_header_values_after_cache_was_warm() {
@@ -128,6 +131,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_folder_argument_does_not_scan_other_plugins() {
@@ -142,6 +146,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_fills_remaining_plugins_after_a_folder_call() {
@@ -155,6 +160,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_folder_cache_adds_extra_headers() {
@@ -176,6 +182,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
 	public function test_get_plugins_caches_a_missing_folder() {
@@ -190,21 +197,99 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A later folder read still merges after another cache key already absorbed the new headers.
+	 *
+	 * @ticket 66057
 	 * @covers ::get_plugins
 	 */
-	public function test_get_plugins_tracks_extra_plugin_headers() {
+	public function test_get_plugins_merges_extra_headers_into_each_cached_folder() {
 		wp_clean_plugins_cache( false );
 		get_plugins();
-		$this->assertSame( array(), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+		get_plugins( '/custom-internationalized-plugin' );
 
 		$callback = array( $this, 'filter_x_wp_test_extra_header' );
 		add_filter( 'extra_plugin_headers', $callback );
 
 		try {
-			get_plugins();
-			$this->assertSame( array( 'X-WP-Test-Extra' ), wp_cache_get( 'extra_plugin_headers', 'plugins' ) );
+			$all = get_plugins();
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $all['custom-internationalized-plugin/custom-internationalized-plugin.php'] );
+
+			$folder = get_plugins( '/custom-internationalized-plugin' );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $folder['custom-internationalized-plugin.php'] );
 		} finally {
 			remove_filter( 'extra_plugin_headers', $callback );
+		}
+	}
+
+	/**
+	 * A full scan does not list foo/sub/*.php. A folder scan does, including
+	 * when the full list is already warm. Seeding the full list from a folder
+	 * cache must not add those deeper files.
+	 *
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_does_not_mix_folder_and_full_scan_depth() {
+		$dir       = WP_PLUGIN_DIR . '/wp-test-nested-plugin';
+		$root_file = $dir . '/wp-test-nested-plugin.php';
+		$sub_file  = $dir . '/sub/nested.php';
+
+		mkdir( $dir );
+		mkdir( $dir . '/sub' );
+		file_put_contents( $root_file, "<?php\n/*\nPlugin Name: Nested Root\n*/" );
+		file_put_contents( $sub_file, "<?php\n/*\nPlugin Name: Nested Deep\n*/" );
+
+		try {
+			wp_clean_plugins_cache( false );
+
+			$all_first = get_plugins();
+			$this->assertArrayNotHasKey( 'wp-test-nested-plugin/sub/nested.php', $all_first );
+
+			$folder = get_plugins( '/wp-test-nested-plugin' );
+			$this->assertArrayHasKey( 'wp-test-nested-plugin.php', $folder );
+			$this->assertArrayHasKey( 'sub/nested.php', $folder );
+
+			wp_clean_plugins_cache( false );
+
+			$folder_first = get_plugins( '/wp-test-nested-plugin' );
+			$this->assertArrayHasKey( 'sub/nested.php', $folder_first );
+
+			$all_second = get_plugins();
+			$this->assertArrayHasKey( 'wp-test-nested-plugin/wp-test-nested-plugin.php', $all_second );
+			$this->assertArrayNotHasKey( 'wp-test-nested-plugin/sub/nested.php', $all_second );
+		} finally {
+			unlink( $sub_file );
+			unlink( $root_file );
+			rmdir( $dir . '/sub' );
+			rmdir( $dir );
+			wp_clean_plugins_cache( false );
+		}
+	}
+
+	/**
+	 * Rows seeded from a folder cache still gain extra headers when a freshly scanned row sorts first.
+	 *
+	 * @ticket 66057
+	 * @covers ::get_plugins
+	 */
+	public function test_get_plugins_merges_extra_headers_into_seeded_rows() {
+		$early    = $this->_create_plugin( "<?php\n/*\nPlugin Name: 000 Extra Sort First\n*/", 'extra-sort-first.php' );
+		$callback = array( $this, 'filter_x_wp_test_extra_header' );
+
+		try {
+			wp_clean_plugins_cache( false );
+			get_plugins( '/custom-internationalized-plugin' );
+
+			add_filter( 'extra_plugin_headers', $callback );
+
+			$all = get_plugins();
+			$this->assertSame( 'extra-sort-first.php', array_key_first( $all ) );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $all['extra-sort-first.php'] );
+			$this->assertArrayHasKey( 'X-WP-Test-Extra', $all['custom-internationalized-plugin/custom-internationalized-plugin.php'] );
+		} finally {
+			remove_filter( 'extra_plugin_headers', $callback );
+			unlink( $early[1] );
+			wp_clean_plugins_cache( false );
 		}
 	}
 

@@ -273,8 +273,9 @@ function get_plugin_files( $plugin ) {
  *
  * @since 1.5.0
  * @since 7.2.0 Extra headers registered after the first scan are merged into
- *              cached rows. Each folder argument is memoized on its own cache
- *              key. A missing folder is cached as an empty list.
+ *              each cached list when it is read. Each folder argument is
+ *              memoized on its own cache key. A missing folder is cached as
+ *              an empty list.
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
  * @return array[] Array of arrays of plugin data, keyed by plugin file name. See get_plugin_data().
@@ -294,47 +295,17 @@ function get_plugins( $plugin_folder = '' ) {
 		$extra_headers = array();
 	}
 
-	$cached_headers = wp_cache_get( 'extra_plugin_headers', 'plugins' );
-	$needs_merge    = is_array( $cached_headers ) && $cached_headers !== $extra_headers;
-
-	if ( $cached_headers !== $extra_headers ) {
-		wp_cache_set( 'extra_plugin_headers', $extra_headers, 'plugins' );
-	}
-
 	if ( array_key_exists( $plugin_folder, $cache_plugins ) ) {
-		if ( $needs_merge ) {
-			$cache_plugins[ $plugin_folder ] = _wp_merge_extra_plugin_headers(
-				$cache_plugins[ $plugin_folder ],
-				$extra_headers,
-				$plugin_folder
-			);
+		$wp_plugins = _wp_merge_extra_plugin_headers(
+			$cache_plugins[ $plugin_folder ],
+			$extra_headers,
+			$plugin_folder
+		);
+
+		if ( $wp_plugins !== $cache_plugins[ $plugin_folder ] ) {
+			$cache_plugins[ $plugin_folder ] = $wp_plugins;
 			wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
 		}
-
-		return $cache_plugins[ $plugin_folder ];
-	}
-
-	if ( '' !== $plugin_folder && array_key_exists( '', $cache_plugins ) ) {
-		$folder     = trim( $plugin_folder, '/' );
-		$prefix     = $folder . '/';
-		$wp_plugins = array();
-
-		foreach ( $cache_plugins[''] as $plugin_file => $plugin_data ) {
-			if ( str_starts_with( $plugin_file, $prefix ) ) {
-				$wp_plugins[ substr( $plugin_file, strlen( $prefix ) ) ] = $plugin_data;
-			}
-		}
-
-		if ( $needs_merge ) {
-			$wp_plugins = _wp_merge_extra_plugin_headers(
-				$wp_plugins,
-				$extra_headers,
-				$plugin_folder
-			);
-		}
-
-		$cache_plugins[ $plugin_folder ] = $wp_plugins;
-		wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
 
 		return $wp_plugins;
 	}
@@ -355,6 +326,14 @@ function get_plugins( $plugin_folder = '' ) {
 			$folder = trim( $cached_folder, '/' );
 
 			foreach ( $cached_plugins as $file => $data ) {
+				/*
+				 * A folder scan also lists files one level deeper (foo/sub/bar.php).
+				 * A full scan never does, so do not seed those rows into the full list.
+				 */
+				if ( str_contains( $file, '/' ) ) {
+					continue;
+				}
+
 				$wp_plugins[ "$folder/$file" ] = $data;
 			}
 		}
@@ -416,13 +395,11 @@ function get_plugins( $plugin_folder = '' ) {
 
 	uasort( $wp_plugins, '_sort_uname_callback' );
 
-	if ( $needs_merge ) {
-		$wp_plugins = _wp_merge_extra_plugin_headers(
-			$wp_plugins,
-			$extra_headers,
-			$plugin_folder
-		);
-	}
+	$wp_plugins = _wp_merge_extra_plugin_headers(
+		$wp_plugins,
+		$extra_headers,
+		$plugin_folder
+	);
 
 	$cache_plugins[ $plugin_folder ] = $wp_plugins;
 	wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
@@ -433,7 +410,8 @@ function get_plugins( $plugin_folder = '' ) {
 /**
  * Merges extra plugin headers into a cached get_plugins() list.
  *
- * Existing fields are left alone. Missing extra keys are read from the plugin file.
+ * Each row is checked. Existing fields are left alone. Only a row that is
+ * missing an extra header is read from disk.
  *
  * @since 7.2.0
  * @access private
@@ -449,21 +427,13 @@ function _wp_merge_extra_plugin_headers( $wp_plugins, $extra_headers, $plugin_fo
 		return $wp_plugins;
 	}
 
-	$sample        = reset( $wp_plugins );
-	$missing_extra = false;
-
-	foreach ( $extra_headers as $header_name ) {
-		if ( ! array_key_exists( $header_name, $sample ) ) {
-			$missing_extra = true;
-			break;
-		}
-	}
-
-	if ( ! $missing_extra ) {
-		return $wp_plugins;
-	}
-
 	foreach ( $wp_plugins as $plugin_basename => $plugin_data ) {
+		$missing = array_diff( $extra_headers, array_keys( $plugin_data ) );
+
+		if ( ! $missing ) {
+			continue;
+		}
+
 		$plugin_path = WP_PLUGIN_DIR . $plugin_folder . '/' . $plugin_basename;
 
 		if ( ! is_readable( $plugin_path ) ) {
@@ -472,11 +442,7 @@ function _wp_merge_extra_plugin_headers( $wp_plugins, $extra_headers, $plugin_fo
 
 		$fresh_data = get_plugin_data( $plugin_path, false, false );
 
-		foreach ( $extra_headers as $header_name ) {
-			if ( array_key_exists( $header_name, $plugin_data ) ) {
-				continue;
-			}
-
+		foreach ( $missing as $header_name ) {
 			$wp_plugins[ $plugin_basename ][ $header_name ] = array_key_exists( $header_name, $fresh_data )
 				? $fresh_data[ $header_name ]
 				: '';
@@ -2487,7 +2453,6 @@ function settings_fields( $option_group ) {
  * Clears the plugins cache used by get_plugins() and by default, the plugin updates cache.
  *
  * @since 3.7.0
- * @since 7.2.0 Also clears the extra_plugin_headers cache used by get_plugins().
  *
  * @param bool $clear_update_cache Whether to clear the plugin updates cache. Default true.
  */
@@ -2496,7 +2461,6 @@ function wp_clean_plugins_cache( $clear_update_cache = true ) {
 		delete_site_transient( 'update_plugins' );
 	}
 	wp_cache_delete( 'plugins', 'plugins' );
-	wp_cache_delete( 'extra_plugin_headers', 'plugins' );
 }
 
 /**
