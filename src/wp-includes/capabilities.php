@@ -34,6 +34,7 @@
  *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
  *              and `update_https` capabilities.
  * @since 6.7.0 Added the `edit_block_binding` capability.
+ * @since 7.1.0 Added the `manage_nav_menus` capability.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -133,6 +134,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				);
 
 				$caps[] = 'edit_others_posts';
+				break;
+			}
+
+			// Route nav_menu_item edit/delete through manage_nav_menus
+			// instead of the post type's primitive edit_theme_options caps.
+			if ( 'nav_menu_item' === $post->post_type ) {
+				$caps = map_meta_cap( 'manage_nav_menus', $user_id );
 				break;
 			}
 
@@ -236,6 +244,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				);
 
 				$caps[] = 'edit_others_posts';
+				break;
+			}
+
+			// Route nav_menu_item edit/delete through manage_nav_menus
+			// instead of the post type's primitive edit_theme_options caps.
+			if ( 'nav_menu_item' === $post->post_type ) {
+				$caps = map_meta_cap( 'manage_nav_menus', $user_id );
 				break;
 			}
 
@@ -696,6 +711,9 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			}
 			break;
 		case 'customize':
+			$caps[] = 'edit_theme_options';
+			break;
+		case 'manage_nav_menus':
 			$caps[] = 'edit_theme_options';
 			break;
 		case 'delete_site':

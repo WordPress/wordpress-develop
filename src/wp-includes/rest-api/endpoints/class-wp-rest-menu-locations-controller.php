@@ -156,7 +156,7 @@ class WP_REST_Menu_Locations_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		if ( ! current_user_can( 'edit_theme_options' ) ) {
+		if ( ! current_user_can( 'manage_nav_menus' ) ) {
 			return new WP_Error(
 				'rest_cannot_view',
 				__( 'Sorry, you are not allowed to view menu locations.' ),
