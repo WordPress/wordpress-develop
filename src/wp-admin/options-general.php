@@ -188,13 +188,15 @@ $tagline_description = sprintf(
 			);
 		}
 	}
+	$site_icon_css_url = esc_url( $site_icon_url );
+	wp_print_inline_style_tag(
+		<<<CSS
+		:root {
+			--site-icon-url: url( '{$site_icon_css_url}' );
+		}
+		CSS
+	);
 	?>
-
-	<style>
-	:root {
-		--site-icon-url: url( '<?php echo esc_url( $site_icon_url ); ?>' );
-	}
-	</style>
 
 	<div id="site-icon-preview" class="site-icon-preview settings <?php echo esc_attr( $classes_for_wrapper ); ?>">
 		<div class="direction-wrap">
