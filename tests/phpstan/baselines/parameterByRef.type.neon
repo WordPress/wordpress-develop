@@ -39,11 +39,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-token-map.php
 		-
-			message: '#^Parameter &\$has_noncharacters by\-ref type of function _wp_scan_utf8\(\) expects bool\|null, int given\.$#'
-			identifier: parameterByRef.type
-			count: 2
-			path: ../../../src/wp-includes/compat-utf8.php
-		-
 			message: '#^Parameter &\$result by\-ref type of function _page_traverse_name\(\) expects array\<string\>, array given\.$#'
 			identifier: parameterByRef.type
 			count: 1
