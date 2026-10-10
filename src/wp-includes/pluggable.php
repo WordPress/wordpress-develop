@@ -3024,7 +3024,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 		 * Some misconfigured 32-bit environments (Entropy PHP, for example)
 		 * truncate integers larger than PHP_INT_MAX to PHP_INT_MAX rather than overflowing them to floats.
 		 */
-		$max_random_number = 3000000000 === 2147483647 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
+		$max_random_number = PHP_INT_SIZE === 4 ? (float) '4294967295' : 4294967295; // 4294967295 = 0xffffffff
 
 		if ( null === $min ) {
 			$min = 0;
