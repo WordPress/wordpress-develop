@@ -71,7 +71,7 @@
 		"grunt-file-append": "0.0.7",
 		"grunt-jsdoc": "2.4.1",
 		"grunt-legacy-util": "^2.0.2",
-		"grunt-patch-wordpress": "~4.0.0",
+		"grunt-patch-wordpress": "git+https://github.com/whyisjake/grunt-patch-wordpress.git#d8d668146aee0176bec3ea2a9149fa20ed2b6ef2",
 		"grunt-replace-lts": "~1.1.0",
 		"grunt-rtlcss": "~2.0.2",
 		"grunt-sass": "~4.1.0",
