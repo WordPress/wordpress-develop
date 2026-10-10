@@ -81,4 +81,7 @@
 			<file>../../src/wp-includes/rss.php</file>
 		</exclude>
 	</source>
+	<logging>
+		<junit outputFile="build/logs/junit.xml" />
+	</logging>
 </phpunit>
