@@ -1078,6 +1078,7 @@ table.form-table td .updated p {
 
 .edit-expires-button-group {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 4px;
 	justify-content: flex-start;
 }

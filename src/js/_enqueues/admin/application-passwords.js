@@ -139,8 +139,12 @@
 		var $buttonContainer = $( '<div class="edit-expires-button-group"></div>' );
 		var $saveBtn = $( '<button type="button" class="button button-small button-primary">' + wp.i18n.__( 'Save' ) + '</button>' );
 		var $cancelBtn = $( '<button type="button" class="button button-small">' + wp.i18n.__( 'Cancel' ) + '</button>' );
+		var $removeBtn = $( '<button type="button" class="button button-small button-link button-link-delete"></button>' ).text( wp.i18n.__( 'Remove expiry' ) );
 
 		$buttonContainer.append( $saveBtn ).append( $cancelBtn );
+		if ( currentExpires ) {
+			$buttonContainer.append( $removeBtn );
+		}
 		$form.append( $input )
 			.append( $( '<p class="description"></p>' ).attr( 'id', timezoneDescriptionId ).text(
 				/* translators: %s: Site timezone. */
@@ -164,11 +168,24 @@
 		});
 
 		$cancelBtn.on( 'click', function() {
+			if ( $cancelBtn.prop( 'disabled' ) ) {
+				return;
+			}
+
 			$form.remove();
 			$button.show().trigger( 'focus' );
 		} );
 
+		$removeBtn.on( 'click', function() {
+			$input.val( '' ).trigger( 'focus' );
+			$saveBtn.trigger( 'click' );
+		} );
+
 		$saveBtn.on( 'click', function() {
+			if ( $saveBtn.prop( 'disabled' ) ) {
+				return;
+			}
+
 			updateApplicationPasswordExpirationMinimum( $input );
 			var newExpires = $input.val();
 
@@ -189,6 +206,7 @@
 			clearNotices();
 			$saveBtn.prop( 'disabled', true );
 			$cancelBtn.prop( 'disabled', true );
+			$removeBtn.prop( 'disabled', true );
 
 			wp.apiRequest( {
 				path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid + '?_locale=user',
@@ -198,6 +216,7 @@
 			} ).always( function() {
 				$saveBtn.prop( 'disabled', false );
 				$cancelBtn.prop( 'disabled', false );
+				$removeBtn.prop( 'disabled', false );
 			} ).done( function( response ) {
 				var $newRow = $( tmplAppPassRow( response ) );
 				$tr.replaceWith( $newRow );

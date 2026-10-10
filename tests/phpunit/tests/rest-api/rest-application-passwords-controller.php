@@ -437,6 +437,37 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 53995
+	 */
+	public function test_update_item_clears_expiration_with_json_null() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'    => 'App',
+				'expires' => time() + DAY_IN_SECONDS,
+			)
+		);
+		$path           = '/wp/v2/users/me/application-passwords/' . $item['uuid'];
+		$request        = new WP_REST_Request( 'PUT', $path );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'expires' => null ) ) );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( $response->get_data()['expires'] );
+		$stored = WP_Application_Passwords::get_user_application_password( self::$admin, $item['uuid'] );
+		$this->assertNull( $stored['expires'] );
+		$this->assertSame( $item['password'], $stored['password'] );
+		$this->assertSame( $item['name'], $stored['name'] );
+
+		$response = rest_do_request( new WP_REST_Request( 'GET', $path ) );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNull( $response->get_data()['expires'] );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_create_item_other_user_id() {

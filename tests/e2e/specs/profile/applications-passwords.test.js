@@ -503,6 +503,220 @@ test.describe( 'Application password table expiry validation', () => {
 	} );
 } );
 
+test.describe( 'Application password expiry removal', () => {
+	test( 'should remove and restore expiry and add expiry to a password without one', async ( {
+		page,
+		admin,
+		requestUtils,
+	} ) => {
+		const currentUser = await requestUtils.rest( {
+			path: '/wp/v2/users/me',
+		} );
+		const username = 'expiry-removal-' + Date.now();
+		const user = await requestUtils.createUser( {
+			username,
+			email: username + '@example.org',
+			password: 'test-password',
+			roles: [ 'subscriber' ],
+		} );
+		try {
+			const app = await requestUtils.rest( {
+				method: 'POST',
+				path: `/wp/v2/users/${ user.id }/application-passwords`,
+				data: {
+					name: TEST_APPLICATION_NAME,
+					expires: new Date(
+						Date.now() + 24 * 60 * 60 * 1000
+					).toISOString(),
+				},
+			} );
+			const path = `/wp/v2/users/${ user.id }/application-passwords/${ app.uuid }`;
+			await admin.visitAdminPage(
+				'/user-edit.php',
+				`user_id=${ user.id }`
+			);
+			const row = page.locator( `tr[data-uuid="${ app.uuid }"]` );
+			const input = row.getByLabel( 'Expiration date and time', {
+				exact: true,
+			} );
+			const remove = row.getByRole( 'button', {
+				name: 'Remove expiry',
+				exact: true,
+			} );
+
+			await row.locator( '.edit-expires' ).click();
+			await expect( remove ).toBeVisible();
+			await expect
+				.poll( async () =>
+					remove.evaluate( ( element ) => {
+						const [ red, green, blue ] = getComputedStyle( element )
+							.color.match( /\d+/g )
+							.map( Number );
+						return red > green * 2 && red > blue * 2;
+					} )
+				)
+				.toBe( true );
+			const originalExpires = await input.inputValue();
+
+			// Cancel still discards manual edits; Remove expiry is an immediate action.
+			await input.fill( '' );
+			await row
+				.getByRole( 'button', { name: 'Cancel', exact: true } )
+				.click();
+			const unchanged = await requestUtils.rest( { path } );
+			expect( unchanged.expires ).toBe( app.expires );
+
+			await row.locator( '.edit-expires' ).click();
+			await expect( input ).not.toHaveValue( '' );
+
+			// Hold a failed removal response to check pending controls and retry behavior.
+			let releaseResponse;
+			const responseGate = new Promise( ( resolve ) => {
+				releaseResponse = resolve;
+			} );
+			const routePattern = `**/application-passwords/${ app.uuid }?*`;
+			let removalRequests = 0;
+			await page.route( routePattern, async ( route ) => {
+				removalRequests++;
+				expect( route.request().postDataJSON() ).toEqual( {
+					expires: null,
+				} );
+				await responseGate;
+				await route.fulfill( {
+					status: 500,
+					contentType: 'application/json',
+					body: JSON.stringify( {
+						message: 'Removal failed for testing.',
+					} ),
+				} );
+			} );
+
+			try {
+				await remove.click();
+				await expect( remove ).toBeDisabled();
+				await expect(
+					row.getByRole( 'button', { name: 'Save', exact: true } )
+				).toBeDisabled();
+				await expect(
+					row.getByRole( 'button', { name: 'Cancel', exact: true } )
+				).toBeDisabled();
+				await expect.poll( () => removalRequests ).toBe( 1 );
+				await input.press( 'Enter' );
+				await input.press( 'Escape' );
+				await expect( input ).toBeVisible();
+			} finally {
+				releaseResponse();
+			}
+
+			await expect( page.getByRole( 'alert' ) ).toContainText(
+				'Removal failed for testing.'
+			);
+			expect( removalRequests ).toBe( 1 );
+			await expect( input ).toBeVisible();
+			await expect( remove ).toBeEnabled();
+			await expect(
+				row.getByRole( 'button', { name: 'Save', exact: true } )
+			).toBeEnabled();
+			await expect(
+				row.getByRole( 'button', { name: 'Cancel', exact: true } )
+			).toBeEnabled();
+
+			const failedRemoval = await requestUtils.rest( { path } );
+			expect( failedRemoval.expires ).toBe( app.expires );
+			await page.unroute( routePattern );
+			await remove.click();
+			await expect( page.getByRole( 'alert' ) ).toContainText(
+				'Application password expiration updated.'
+			);
+
+			const cleared = await requestUtils.rest( { path } );
+			expect( cleared.expires ).toBeNull();
+			await expect( row.locator( '.edit-expires' ) ).toBeFocused();
+			await expect( row.locator( '.column-expires' ) ).toContainText(
+				'—'
+			);
+			await row.locator( '.edit-expires' ).click();
+			await expect( input ).toHaveValue( '' );
+			await expect( remove ).toHaveCount( 0 );
+			await row
+				.getByRole( 'button', { name: 'Cancel', exact: true } )
+				.click();
+			await page.reload();
+			await expect( row.locator( '.column-expires' ) ).toContainText(
+				'—'
+			);
+			await row.locator( '.edit-expires' ).click();
+			await expect( input ).toHaveValue( '' );
+			await expect( remove ).toHaveCount( 0 );
+
+			// Add the original expiry back after removing it, then verify it survives reload.
+			await input.fill( originalExpires );
+			await row
+				.getByRole( 'button', { name: 'Save', exact: true } )
+				.click();
+			await expect( page.getByRole( 'alert' ) ).toContainText(
+				'Application password expiration updated.'
+			);
+			const restored = await requestUtils.rest( { path } );
+			expect( restored.expires ).toBe( app.expires );
+			await page.reload();
+			await row.locator( '.edit-expires' ).click();
+			await expect( input ).toHaveValue( originalExpires );
+			await expect( remove ).toBeVisible();
+
+			// A password created without any expiry must support adding and then removing one.
+			const noExpiry = await requestUtils.rest( {
+				method: 'POST',
+				path: `/wp/v2/users/${ user.id }/application-passwords`,
+				data: { name: 'Initially without expiry' },
+			} );
+			expect( noExpiry.expires ).toBeNull();
+			await page.reload();
+			const noExpiryRow = page.locator(
+				`tr[data-uuid="${ noExpiry.uuid }"]`
+			);
+			const noExpiryInput = noExpiryRow.getByLabel(
+				'Expiration date and time',
+				{ exact: true }
+			);
+			const noExpiryRemove = noExpiryRow.getByRole( 'button', {
+				name: 'Remove expiry',
+				exact: true,
+			} );
+			await noExpiryRow.locator( '.edit-expires' ).click();
+			await expect( noExpiryInput ).toHaveValue( '' );
+			await expect( noExpiryRemove ).toHaveCount( 0 );
+			await noExpiryInput.fill( originalExpires );
+			await noExpiryRow
+				.getByRole( 'button', { name: 'Save', exact: true } )
+				.click();
+			await expect( page.getByRole( 'alert' ) ).toContainText(
+				'Application password expiration updated.'
+			);
+			const noExpiryPath = `/wp/v2/users/${ user.id }/application-passwords/${ noExpiry.uuid }`;
+			const added = await requestUtils.rest( { path: noExpiryPath } );
+			expect( added.expires ).toBe( app.expires );
+			await page.reload();
+			await noExpiryRow.locator( '.edit-expires' ).click();
+			await expect( noExpiryInput ).toHaveValue( originalExpires );
+			await noExpiryRemove.click();
+			await expect( page.getByRole( 'alert' ) ).toContainText(
+				'Application password expiration updated.'
+			);
+			const removedAgain = await requestUtils.rest( {
+				path: noExpiryPath,
+			} );
+			expect( removedAgain.expires ).toBeNull();
+		} finally {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/users/${ user.id }`,
+				params: { force: true, reassign: currentUser.id },
+			} );
+		}
+	} );
+} );
+
 class ApplicationPasswords {
 	constructor( { requestUtils, page, admin } ) {
 		this.requestUtils = requestUtils;
