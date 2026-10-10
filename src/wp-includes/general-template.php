@@ -5734,6 +5734,7 @@ function wp_required_field_message() {
  * Outputs the nonce used in the heartbeat XHR.
  *
  * @since 3.6.0
+ * @since 7.2.0 Added the `refreshNonce` setting.
  *
  * @param array $settings
  * @return array Heartbeat settings.
@@ -5744,8 +5745,32 @@ function wp_heartbeat_settings( $settings ) {
 	}
 
 	if ( is_user_logged_in() ) {
-		$settings['nonce'] = wp_create_nonce( 'heartbeat-nonce' );
+		$settings['nonce']        = wp_create_nonce( 'heartbeat-nonce' );
+		$settings['refreshNonce'] = wp_create_nonce( 'heartbeat-refresh-nonce' );
 	}
 
 	return $settings;
+}
+
+/**
+ * Sets the lifespan of the Heartbeat refresh nonce.
+ *
+ * The refresh nonce works like an OAuth refresh token: it cannot authorize any
+ * action by itself, it can only be exchanged through Heartbeat for fresh nonces
+ * once the regular nonces have expired, for example after a device slept or a
+ * browser tab was suspended. Like all nonces it is tied to the session token,
+ * so it stops working when the user logs out.
+ *
+ * @since 7.2.0
+ *
+ * @param int        $lifespan Lifespan of nonces in seconds.
+ * @param string|int $action   The nonce action.
+ * @return int Lifespan of the nonce in seconds.
+ */
+function wp_heartbeat_refresh_nonce_life( $lifespan, $action = -1 ) {
+	if ( 'heartbeat-refresh-nonce' === $action ) {
+		return 2 * WEEK_IN_SECONDS;
+	}
+
+	return $lifespan;
 }
