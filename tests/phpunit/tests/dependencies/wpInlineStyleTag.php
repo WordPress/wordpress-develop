@@ -10,16 +10,14 @@
  */
 class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 
-	private $css = 'body { color: #123456; }';
-
 	/**
 	 * @ticket 51325
 	 */
 	public function test_get_inline_style_tag_with_attributes() {
 		$this->assertSame(
-			"<style id=\"test-inline-css\" nonce=\"test-nonce\">\n{$this->css}\n</style>\n",
+			"<style id=\"test-inline-css\" nonce=\"test-nonce\">\n{$this->get_test_css()}\n</style>\n",
 			wp_get_inline_style_tag(
-				$this->css,
+				$this->get_test_css(),
 				array(
 					'id'    => 'test-inline-css',
 					'nonce' => 'test-nonce',
@@ -35,10 +33,10 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 		$attributes = array( 'id' => 'test-inline-css' );
 
 		$this->assertSame(
-			wp_get_inline_style_tag( $this->css, $attributes ),
+			wp_get_inline_style_tag( $this->get_test_css(), $attributes ),
 			get_echo(
 				'wp_print_inline_style_tag',
-				array( $this->css, $attributes )
+				array( $this->get_test_css(), $attributes )
 			)
 		);
 	}
@@ -51,7 +49,7 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( $attributes, $data ) use ( &$filtered_data ) {
+			static function ( array $attributes, string $data ) use ( &$filtered_data ) {
 				$attributes['nonce'] = 'test-nonce';
 				$filtered_data       = $data;
 				return $attributes;
@@ -61,10 +59,10 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			"<style nonce=\"test-nonce\">\n{$this->css}\n</style>\n",
-			wp_get_inline_style_tag( $this->css )
+			"<style nonce=\"test-nonce\">\n{$this->get_test_css()}\n</style>\n",
+			wp_get_inline_style_tag( $this->get_test_css() )
 		);
-		$this->assertSame( "\n{$this->css}\n", $filtered_data );
+		$this->assertSame( "\n{$this->get_test_css()}\n", $filtered_data );
 	}
 
 	/**
@@ -91,8 +89,8 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 		$this->assertEqualHTML(
 			$expected,
 			wp_get_inline_style_tag(
-				$this->css,
-				array(
+				$this->get_test_css(),
+				array( // @phpstan-ignore argument.type
 					'true'         => true,
 					'false'        => false,
 					'null'         => null,
@@ -125,7 +123,7 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 		$this->assertEqualHTML(
 			$expected,
 			wp_get_inline_style_tag(
-				$this->css,
+				$this->get_test_css(),
 				array(
 					'test' => 'test-a',
 					'tesT' => 'tesT-b',
@@ -145,5 +143,14 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 			"<style>\nbody::after { content: \"\\3c\\2fstyle>\"; }\n</style>\n",
 			wp_get_inline_style_tag( 'body::after { content: "</style>"; }' )
 		);
+	}
+
+	/**
+	 * Gets test CSS code.
+	 *
+	 * @return non-falsy-string
+	 */
+	private function get_test_css(): string {
+		return 'body { color: #123456; }';
 	}
 }

@@ -9,23 +9,19 @@
  * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
-	private $old_wp_styles;
-	private $old_wp_scripts;
+	private ?WP_Styles $old_wp_styles;
+	private ?WP_Scripts $old_wp_scripts;
 
+	/**
+	 * @global WP_Scripts|null $wp_scripts
+	 * @global WP_Styles|null  $wp_styles
+	 */
 	public function set_up() {
+		global $wp_scripts, $wp_styles;
 		parent::set_up();
 
-		if ( empty( $GLOBALS['wp_styles'] ) ) {
-			$GLOBALS['wp_styles'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_styles'];
-
-		if ( empty( $GLOBALS['wp_scripts'] ) ) {
-			$GLOBALS['wp_scripts'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_scripts'];
+		$this->old_wp_styles  = $wp_styles;
+		$this->old_wp_scripts = $wp_scripts;
 
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -37,9 +33,14 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$GLOBALS['wp_scripts']->default_version = get_bloginfo( 'version' );
 	}
 
+	/**
+	 * @global WP_Scripts|null $wp_scripts
+	 * @global WP_Styles|null  $wp_styles
+	 */
 	public function tear_down() {
-		$GLOBALS['wp_styles']  = $this->old_wp_styles;
-		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+		global $wp_scripts, $wp_styles;
+		$wp_styles  = $this->old_wp_styles;
+		$wp_scripts = $this->old_wp_scripts;
 
 		add_action( 'wp_default_styles', 'wp_default_styles' );
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -231,23 +232,23 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter() {
-		$filter_calls = 0;
+		$mock_action = new MockAction();
+		add_filter( 'wp_inline_style_attributes', array( $mock_action, 'filter' ) );
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( $attributes ) use ( &$filter_calls ) {
-				++$filter_calls;
+			static function ( array $attributes ) {
 				$attributes['nonce'] = 'test-nonce';
 				return $attributes;
 			}
 		);
 
-		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_enqueue_style( 'handle', 'http://example.com', array(), '1' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 
 		$printed = get_echo( 'wp_print_styles' );
 
 		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
-		$this->assertSame( 1, $filter_calls );
+		$this->assertSame( 1, $mock_action->get_call_count() );
 	}
 
 	/**
@@ -256,11 +257,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter_with_direct_call() {
-		global $wp_styles;
-
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( $attributes ) {
+			static function ( array $attributes ) {
 				$attributes['nonce'] = 'test-nonce';
 				return $attributes;
 			}
@@ -269,7 +268,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_register_style( 'handle', 'http://example.com' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 
-		$printed = get_echo( array( $wp_styles, 'print_inline_style' ), array( 'handle' ) );
+		$printed = get_echo( array( wp_styles(), 'print_inline_style' ), array( 'handle' ) );
 
 		$this->assertStringContainsString( '<style id="handle-inline-css" nonce="test-nonce">', $printed );
 	}
@@ -280,26 +279,24 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter_with_non_core_concat() {
-		global $wp_styles;
-
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/', '/wp-includes/css/' );
+		wp_styles()->do_concat    = true;
+		wp_styles()->default_dirs = array( '/wp-admin/', '/wp-includes/css/' );
 
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( $attributes ) {
+			static function ( array $attributes ) {
 				$attributes['nonce'] = 'test-nonce';
 				return $attributes;
 			}
 		);
 
-		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_enqueue_style( 'handle', 'http://example.com', array(), '1' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 		wp_print_styles();
 
 		$this->assertStringContainsString(
 			'<style id="handle-inline-css" nonce="test-nonce">',
-			$wp_styles->print_html
+			wp_styles()->print_html
 		);
 	}
 
@@ -309,14 +306,12 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter_with_core_concat() {
-		global $wp_styles;
-
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/' );
+		wp_styles()->do_concat    = true;
+		wp_styles()->default_dirs = array( '/wp-admin/' );
 
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( $attributes ) {
+			static function ( array $attributes ) {
 				$attributes['nonce'] = 'test-nonce';
 				return $attributes;
 			}
@@ -337,22 +332,15 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter_not_called_when_output_is_suppressed() {
-		$filter_calls = 0;
-
 		add_filter( 'style_loader_src', '__return_false' );
-		add_filter(
-			'wp_inline_style_attributes',
-			static function ( $attributes ) use ( &$filter_calls ) {
-				++$filter_calls;
-				return $attributes;
-			}
-		);
+		$mock_action = new MockAction();
+		add_filter( 'wp_inline_style_attributes', array( $mock_action, 'filter' ) );
 
-		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
+		wp_enqueue_style( 'handle', 'http://example.com', array(), '1' );
 		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
 
 		$this->assertSame( '', get_echo( 'wp_print_styles' ) );
-		$this->assertSame( 0, $filter_calls );
+		$this->assertSame( 0, $mock_action->get_call_count() );
 	}
 
 	/**
