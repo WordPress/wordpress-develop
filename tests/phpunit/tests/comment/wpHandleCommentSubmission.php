@@ -596,6 +596,71 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 		$this->assertSame( $error, $comment->get_error_code() );
 	}
 
+	/**
+	 * A logged-out visitor must not be able to comment using the email address
+	 * of a registered user, to prevent impersonation.
+	 *
+	 * @ticket 10931
+	 */
+	public function test_submitting_comment_anonymously_with_registered_email_returns_error() {
+
+		$registered_email = get_userdata( self::$author_id )->user_email;
+
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Impersonator',
+			'email'           => $registered_email,
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertWPError( $comment );
+		$this->assertSame( 'comment_author_must_login', $comment->get_error_code() );
+		$this->assertSame( 403, $comment->get_error_data() );
+	}
+
+	/**
+	 * A logged-out visitor may still comment with an email that is not tied to
+	 * a registered user.
+	 *
+	 * @ticket 10931
+	 */
+	public function test_submitting_comment_anonymously_with_unregistered_email_succeeds() {
+
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'not-a-registered-user@example.org',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+		$this->assertSame( 'not-a-registered-user@example.org', $comment->comment_author_email );
+	}
+
+	/**
+	 * The registered-email check only targets logged-out visitors; a logged-in
+	 * user commenting under their own (registered) email must still succeed.
+	 *
+	 * @ticket 10931
+	 */
+	public function test_submitting_comment_as_logged_in_user_with_registered_email_succeeds() {
+
+		wp_set_current_user( self::$author_id );
+
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+		$this->assertSame( self::$author_id, (int) $comment->user_id );
+	}
+
 	public function test_submitting_comment_with_no_comment_content_returns_error() {
 
 		$error = 'require_valid_comment';
