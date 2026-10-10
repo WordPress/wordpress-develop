@@ -1314,8 +1314,10 @@ class WP_Block_Processor {
 			'innerContent' => array(),
 		);
 
-		$depth = $this->get_depth();
-		while ( $this->next_token() && $this->get_depth() > $depth ) {
+		$depth          = $this->get_depth();
+		$should_advance = true;
+		while ( ( ! $should_advance || $this->next_token() ) && $this->get_depth() > $depth ) {
+			$should_advance = true;
 			if ( $this->is_html() ) {
 				$chunk                   = $this->get_html_content();
 				$block['innerHTML']     .= $chunk;
@@ -1330,20 +1332,10 @@ class WP_Block_Processor {
 			 * @todo Use iteration instead of recursion, or at least refactor to tail-call form.
 			 */
 			if ( $this->opens_block() ) {
+				$should_advance          = self::VOID !== $this->type;
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
-			}
-
-			/*
-			 * Because the parser has advanced past the closing block token, it
-			 * may be matched on an HTML span. This needs to be processed before
-			 * moving on to the next token at the start of the next loop iteration.
-			 */
-			if ( $this->is_html() ) {
-				$chunk                   = $this->get_html_content();
-				$block['innerHTML']     .= $chunk;
-				$block['innerContent'][] = $chunk;
 			}
 		}
 

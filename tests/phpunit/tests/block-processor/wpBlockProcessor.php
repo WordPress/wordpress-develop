@@ -1573,6 +1573,72 @@ HTML
 	}
 
 	/**
+	 * Ensures that block extraction stops on the closing delimiter of a block with inner
+	 * content, on freeform HTML, or on the token following a void block.
+	 *
+	 * @ticket 66138
+	 *
+	 * @dataProvider data_extraction_stop_tokens
+	 *
+	 * @param string      $test_document An HTML document containing blocks.
+	 * @param string      $block_type    Block type at which to start extraction.
+	 * @param string|null $stop_token    Token on which extraction should stop, or null if
+	 *                                   extraction should reach the end of the document.
+	 */
+	public function test_extraction_stops_on_expected_token( string $test_document, string $block_type, ?string $stop_token ): void {
+		$processor = new WP_Block_Processor( $test_document );
+		$this->assertTrue(
+			$processor->next_block( $block_type ),
+			"Failed to find a block of type '{$block_type}'."
+		);
+
+		$processor->extract_full_block_and_advance();
+		$span = $processor->get_span();
+
+		$this->assertSame(
+			$stop_token,
+			isset( $span ) ? substr( $test_document, $span->start, $span->length ) : null,
+			'Stopped on the wrong token after extracting a block.'
+		);
+	}
+
+	/**
+	 * Ensures that inner HTML at the end of incomplete input appears only in the block containing it.
+	 *
+	 * @ticket 66138
+	 */
+	public function test_extraction_does_not_copy_incomplete_inner_html_into_parent_block(): void {
+		$processor = new WP_Block_Processor( '<!-- wp:g --><!-- wp:p -->y<' );
+		$this->assertTrue( $processor->next_block( 'g' ), "Failed to find a block of type 'g'." );
+		$group = $processor->extract_full_block_and_advance();
+
+		$this->assertSame( array( null ), $group['innerContent'], 'Copied inner HTML into the parent block.' );
+		$this->assertSame( array( 'y' ), $group['innerBlocks'][0]['innerContent'], 'Failed to extract inner HTML of the inner block.' );
+		$this->assertSame( WP_Block_Processor::INCOMPLETE_INPUT, $processor->get_last_error(), 'Failed to report incomplete input.' );
+		$this->assertSame( 'y', $processor->get_html_content(), 'Stopped on the wrong token after extracting a block from incomplete input.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string|null}>
+	 */
+	public static function data_extraction_stop_tokens(): array {
+		return array(
+			'Block with inner content'                  => array( '<!-- wp:a -->x<!-- /wp:a -->y', 'a', '<!-- /wp:a -->' ),
+			'Block ending in void inner block'          => array( '<!-- wp:g --><!-- wp:v /--><!-- /wp:g -->x', 'g', '<!-- /wp:g -->' ),
+			'Void block'                                => array( '<!-- wp:a /--><!-- wp:b /-->', 'a', '<!-- wp:b /-->' ),
+			'Void block before freeform HTML'           => array( '<!-- wp:a /-->x', 'a', 'x' ),
+			'Void block at end of document'             => array( '<!-- wp:a /-->', 'a', null ),
+			'Inner void block'                          => array( '<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->', 'v', '<!-- wp:w /-->' ),
+			'Freeform HTML'                             => array( 'x<!-- wp:a /-->', 'freeform', 'x' ),
+			'Unclosed block'                            => array( '<!-- wp:a -->x', 'a', null ),
+			'Unclosed block ending in void inner block' => array( '<!-- wp:g --><!-- wp:v /-->', 'g', null ),
+			'Incomplete input after void inner block'   => array( '<!-- wp:g --><!-- wp:v /-->x<', 'g', 'x' ),
+		);
+	}
+
+	/**
 	 * Data provider.
 	 *
 	 * @return Generator
@@ -1592,6 +1658,18 @@ HTML
 
 		yield 'Group with void inner' => array(
 			'<!-- wp:group --><!-- wp:void /--><!-- /wp:group -->',
+		);
+
+		yield 'Void block after group ending in void inner' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- /wp:g --><!-- wp:b /-->',
+		);
+
+		yield 'Adjacent void inner blocks' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- wp:w /--><!-- /wp:g -->',
+		);
+
+		yield 'Inner block directly after void inner block' => array(
+			'<!-- wp:g --><!-- wp:v /--><!-- wp:p -->y<!-- /wp:p --><!-- /wp:g -->',
 		);
 
 		/*
