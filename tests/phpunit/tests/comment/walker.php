@@ -54,6 +54,65 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 			array( $comment_child, $comment_parent )
 		);
 	}
+
+	/**
+	 * @ticket 45498
+	 */
+	public function test_callback_receives_comment_args_and_depth_in_default_order_for_back_compat() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $this->post_id ) );
+		$comment    = get_comment( $comment_id );
+		$actual     = array();
+
+		wp_list_comments(
+			array(
+				'callback'  => function ( $comment, $args, $depth ) use ( &$actual ) {
+					$actual = array(
+						'comment' => $comment,
+						'args'    => $args,
+						'depth'   => $depth,
+					);
+				},
+				'echo'      => false,
+				'max_depth' => 3,
+			),
+			array( $comment )
+		);
+
+		$this->assertSame( $comment, $actual['comment'] );
+		$this->assertSame( 1, $actual['depth'] );
+		$this->assertIsArray( $actual['args'] );
+		$this->assertSame( 3, $actual['args']['max_depth'] );
+	}
+
+	/**
+	 * @ticket 45498
+	 */
+	public function test_callback_can_receive_comment_depth_and_args_in_walker_order() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $this->post_id ) );
+		$comment    = get_comment( $comment_id );
+		$actual     = array();
+
+		wp_list_comments(
+			array(
+				'callback'       => function ( $comment, $depth, $args ) use ( &$actual ) {
+					$actual = array(
+						'comment' => $comment,
+						'depth'   => $depth,
+						'args'    => $args,
+					);
+				},
+				'callback_order' => 'comment_depth_args',
+				'echo'           => false,
+				'max_depth'      => 3,
+			),
+			array( $comment )
+		);
+
+		$this->assertSame( $comment, $actual['comment'] );
+		$this->assertSame( 1, $actual['depth'] );
+		$this->assertIsArray( $actual['args'] );
+		$this->assertSame( 3, $actual['args']['max_depth'] );
+	}
 }
 
 class Comment_Callback_Test_Helper {
