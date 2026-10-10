@@ -272,6 +272,10 @@ function get_plugin_files( $plugin ) {
  * optimization purposes.
  *
  * @since 1.5.0
+ * @since 7.2.0 Extra headers registered after the first scan are merged into
+ *              each cached list when it is read. Each folder argument is
+ *              memoized on its own cache key. A missing folder is cached as
+ *              an empty list.
  *
  * @param string $plugin_folder Optional. Relative path to single plugin folder.
  * @return array[] Array of arrays of plugin data, keyed by plugin file name. See get_plugin_data().
@@ -279,21 +283,62 @@ function get_plugin_files( $plugin ) {
 function get_plugins( $plugin_folder = '' ) {
 
 	$cache_plugins = wp_cache_get( 'plugins', 'plugins' );
-	if ( ! $cache_plugins ) {
+
+	if ( ! is_array( $cache_plugins ) ) {
 		$cache_plugins = array();
 	}
 
-	if ( isset( $cache_plugins[ $plugin_folder ] ) ) {
-		return $cache_plugins[ $plugin_folder ];
+	/** This filter is documented in wp-includes/functions.php */
+	$extra_headers = apply_filters( 'extra_plugin_headers', array() );
+
+	if ( ! is_array( $extra_headers ) ) {
+		$extra_headers = array();
+	}
+
+	if ( array_key_exists( $plugin_folder, $cache_plugins ) ) {
+		$wp_plugins = _wp_merge_extra_plugin_headers(
+			$cache_plugins[ $plugin_folder ],
+			$extra_headers,
+			$plugin_folder
+		);
+
+		if ( $wp_plugins !== $cache_plugins[ $plugin_folder ] ) {
+			$cache_plugins[ $plugin_folder ] = $wp_plugins;
+			wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
+		}
+
+		return $wp_plugins;
 	}
 
 	$wp_plugins  = array();
 	$plugin_root = WP_PLUGIN_DIR;
+
 	if ( ! empty( $plugin_folder ) ) {
 		$plugin_root .= $plugin_folder;
 	}
 
-	// Files in wp-content/plugins directory.
+	if ( '' === $plugin_folder ) {
+		foreach ( $cache_plugins as $cached_folder => $cached_plugins ) {
+			if ( '' === $cached_folder || ! is_array( $cached_plugins ) ) {
+				continue;
+			}
+
+			$folder = trim( $cached_folder, '/' );
+
+			foreach ( $cached_plugins as $file => $data ) {
+				/*
+				 * A folder scan also lists files one level deeper (foo/sub/bar.php).
+				 * A full scan never does, so do not seed those rows into the full list.
+				 */
+				if ( str_contains( $file, '/' ) ) {
+					continue;
+				}
+
+				$wp_plugins[ "$folder/$file" ] = $data;
+			}
+		}
+	}
+
 	$plugins_dir  = @opendir( $plugin_root );
 	$plugin_files = array();
 
@@ -327,11 +372,13 @@ function get_plugins( $plugin_folder = '' ) {
 		closedir( $plugins_dir );
 	}
 
-	if ( empty( $plugin_files ) ) {
-		return $wp_plugins;
-	}
-
 	foreach ( $plugin_files as $plugin_file ) {
+		$plugin_basename = plugin_basename( $plugin_file );
+
+		if ( isset( $wp_plugins[ $plugin_basename ] ) ) {
+			continue;
+		}
+
 		if ( ! is_readable( "$plugin_root/$plugin_file" ) ) {
 			continue;
 		}
@@ -343,13 +390,64 @@ function get_plugins( $plugin_folder = '' ) {
 			continue;
 		}
 
-		$wp_plugins[ plugin_basename( $plugin_file ) ] = $plugin_data;
+		$wp_plugins[ $plugin_basename ] = $plugin_data;
 	}
 
 	uasort( $wp_plugins, '_sort_uname_callback' );
 
+	$wp_plugins = _wp_merge_extra_plugin_headers(
+		$wp_plugins,
+		$extra_headers,
+		$plugin_folder
+	);
+
 	$cache_plugins[ $plugin_folder ] = $wp_plugins;
 	wp_cache_set( 'plugins', $cache_plugins, 'plugins' );
+
+	return $wp_plugins;
+}
+
+/**
+ * Merges extra plugin headers into a cached get_plugins() list.
+ *
+ * Each row is checked. Existing fields are left alone. Only a row that is
+ * missing an extra header is read from disk.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array    $wp_plugins    Cached plugin data keyed by plugin file.
+ * @param string[] $extra_headers Extra header names from extra_plugin_headers.
+ * @param string   $plugin_folder Folder argument as passed to get_plugins().
+ * @return array Plugin data with extra headers merged in.
+ */
+function _wp_merge_extra_plugin_headers( $wp_plugins, $extra_headers, $plugin_folder = '' ) {
+
+	if ( ! $extra_headers || ! $wp_plugins ) {
+		return $wp_plugins;
+	}
+
+	foreach ( $wp_plugins as $plugin_basename => $plugin_data ) {
+		$missing = array_diff( $extra_headers, array_keys( $plugin_data ) );
+
+		if ( ! $missing ) {
+			continue;
+		}
+
+		$plugin_path = WP_PLUGIN_DIR . $plugin_folder . '/' . $plugin_basename;
+
+		if ( ! is_readable( $plugin_path ) ) {
+			continue;
+		}
+
+		$fresh_data = get_plugin_data( $plugin_path, false, false );
+
+		foreach ( $missing as $header_name ) {
+			$wp_plugins[ $plugin_basename ][ $header_name ] = array_key_exists( $header_name, $fresh_data )
+				? $fresh_data[ $header_name ]
+				: '';
+		}
+	}
 
 	return $wp_plugins;
 }
