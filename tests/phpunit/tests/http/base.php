@@ -75,7 +75,15 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			return;
 		}
 
-		$socket = @stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
+		set_error_handler( static function () {
+			return true;
+		} );
+		try {
+			$socket = stream_socket_server( 'tcp://127.0.0.1:0', $errno, $errstr );
+		} finally {
+			restore_error_handler();
+		}
+
 		if ( ! $socket ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
 			return;
@@ -120,14 +128,21 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$deadline = microtime( true ) + 5.0;
 		$ready    = false;
 
-		while ( microtime( true ) < $deadline ) {
-			$connection = @fsockopen( '127.0.0.1', $port, $errno, $errstr, 0.1 );
-			if ( $connection ) {
-				fclose( $connection );
-				$ready = true;
-				break;
+		set_error_handler( static function () {
+			return true;
+		} );
+		try {
+			while ( microtime( true ) < $deadline ) {
+				$connection = fsockopen( '127.0.0.1', $port, $errno, $errstr, 0.1 );
+				if ( $connection ) {
+					fclose( $connection );
+					$ready = true;
+					break;
+				}
+				usleep( 50000 );
 			}
-			usleep( 50000 );
+		} finally {
+			restore_error_handler();
 		}
 
 		if ( ! $ready ) {
