@@ -36,7 +36,6 @@ includes:
 	- tests/phpstan/baselines/catch.neverThrown.neon
 	- tests/phpstan/baselines/class.notFound.neon
 	- tests/phpstan/baselines/deadCode.unreachable.neon
-	- tests/phpstan/baselines/empty.offset.neon
 	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
