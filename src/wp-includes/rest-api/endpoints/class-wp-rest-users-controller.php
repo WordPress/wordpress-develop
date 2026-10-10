@@ -782,6 +782,19 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			);
 		}
 
+		// A new email address must not match another user's username.
+		if ( is_string( $request['email'] ) && 0 !== strcasecmp( $request['email'], $user->user_email ) ) {
+			$login_owner_id = username_exists( $request['email'] );
+
+			if ( $login_owner_id && (int) $login_owner_id !== $id ) {
+				return new WP_Error(
+					'rest_user_invalid_email',
+					__( 'Invalid email address.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
 		if ( ! empty( $request['username'] ) && $request['username'] !== $user->user_login ) {
 			return new WP_Error(
 				'rest_user_invalid_argument',

@@ -1820,6 +1820,48 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'rest_user_invalid_email', $data['code'] );
 	}
 
+	/**
+	 * @ticket 57394
+	 */
+	public function test_update_item_email_matching_another_user_login() {
+		self::factory()->user->create(
+			array(
+				'user_login' => 'login-57394@example.com',
+				'user_email' => 'other-57394@example.com',
+			)
+		);
+
+		wp_set_current_user( self::$editor );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', self::$editor ) );
+		$request->set_param( 'email', 'login-57394@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_user_invalid_email', $response, 400 );
+	}
+
+	/**
+	 * @ticket 57394
+	 */
+	public function test_update_item_email_matching_own_login() {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'       => 'editor',
+				'user_login' => 'self-57394@example.com',
+				'user_email' => 'self-other-57394@example.com',
+			)
+		);
+
+		wp_set_current_user( $user_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d', $user_id ) );
+		$request->set_param( 'email', 'self-57394@example.com' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'self-57394@example.com', $response->get_data()['email'] );
+	}
+
 	public function test_update_item_invalid_locale() {
 		$user1 = self::factory()->user->create(
 			array(

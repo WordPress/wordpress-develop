@@ -1370,6 +1370,412 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'user_nicename_too_long', $u->get_error_code() );
 	}
 
+
+	/**
+	 * Creates two users whose login and email are set directly in the database.
+	 *
+	 * Writing straight to the table bypasses wp_insert_user() validation, which
+	 * makes it possible to reproduce collisions that already exist on live sites.
+	 *
+	 * @param array $user_a Login and email for user A.
+	 * @param array $user_b Login and email for user B.
+	 * @return int[] IDs of user A and user B.
+	 */
+	private function create_users_with_logins_and_emails( $user_a, $user_b ) {
+		global $wpdb;
+
+		$ids = array();
+		foreach ( array( $user_a, $user_b ) as $user ) {
+			$id = self::factory()->user->create();
+			$wpdb->update(
+				$wpdb->users,
+				array(
+					'user_login' => $user['login'],
+					'user_email' => $user['email'],
+				),
+				array( 'ID' => $id )
+			);
+			clean_user_cache( $id );
+			$ids[] = $id;
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Tests that wp_insert_user() rejects a new user whose login or email
+	 * collides with another user's email or login.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::wp_insert_user
+	 *
+	 * @dataProvider data_wp_insert_user_login_email_collisions
+	 *
+	 * @param array       $userdata       User data for the new user.
+	 * @param string|null $expected_error Expected error code, or null for success.
+	 */
+	public function test_wp_insert_user_login_email_collisions( $userdata, $expected_error ) {
+		$this->create_users_with_logins_and_emails(
+			array(
+				'login' => 'existing',
+				'email' => 'existing@example.com',
+			),
+			array(
+				'login' => 'existing-login@example.com',
+				'email' => 'other@example.com',
+			)
+		);
+
+		$userdata['user_pass'] = 'password';
+		$result                = wp_insert_user( $userdata );
+
+		if ( null === $expected_error ) {
+			$this->assertNotWPError( $result );
+		} else {
+			$this->assertWPError( $result, 'A WP_Error object should have been returned.' );
+			$this->assertSame( $expected_error, $result->get_error_code(), 'An unexpected error code was returned.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_insert_user_login_email_collisions().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_insert_user_login_email_collisions() {
+		return array(
+			'unique login and email'                    => array(
+				'userdata'       => array(
+					'user_login' => 'new',
+					'user_email' => 'new@example.com',
+				),
+				'expected_error' => null,
+			),
+			'login matches own email'                   => array(
+				'userdata'       => array(
+					'user_login' => 'new@example.com',
+					'user_email' => 'new@example.com',
+				),
+				'expected_error' => null,
+			),
+			'login matches another user email'          => array(
+				'userdata'       => array(
+					'user_login' => 'existing@example.com',
+					'user_email' => 'new@example.com',
+				),
+				'expected_error' => 'existing_user_email_as_login',
+			),
+			'login matches another user email, case'    => array(
+				'userdata'       => array(
+					'user_login' => 'Existing@Example.com',
+					'user_email' => 'new@example.com',
+				),
+				'expected_error' => 'existing_user_email_as_login',
+			),
+			'email matches another user login'          => array(
+				'userdata'       => array(
+					'user_login' => 'new',
+					'user_email' => 'existing-login@example.com',
+				),
+				'expected_error' => 'existing_user_login_as_email',
+			),
+			'email matches another user email'          => array(
+				'userdata'       => array(
+					'user_login' => 'new',
+					'user_email' => 'existing@example.com',
+				),
+				'expected_error' => 'existing_user_email',
+			),
+			'login matches another user login'          => array(
+				'userdata'       => array(
+					'user_login' => 'existing',
+					'user_email' => 'new@example.com',
+				),
+				'expected_error' => 'existing_user_login',
+			),
+		);
+	}
+
+	/**
+	 * Tests that wp_update_user() only rejects an email address when it is
+	 * changing to another user's login, and never blocks updates to users
+	 * whose existing data already collides.
+	 *
+	 * @ticket 57394
+	 * @ticket 57967
+	 *
+	 * @covers ::wp_insert_user
+	 * @covers ::wp_update_user
+	 *
+	 * @dataProvider data_wp_update_user_login_email_collisions
+	 *
+	 * @param array       $user_a         Login and email for user A, the user being updated.
+	 * @param array       $user_b         Login and email for user B.
+	 * @param array       $update         Data to update user A with.
+	 * @param string|null $expected_error Expected error code, or null for success.
+	 */
+	public function test_wp_update_user_login_email_collisions( $user_a, $user_b, $update, $expected_error ) {
+		list( $user_a_id ) = $this->create_users_with_logins_and_emails( $user_a, $user_b );
+
+		$update['ID'] = $user_a_id;
+		$result       = wp_update_user( $update );
+
+		if ( null === $expected_error ) {
+			$this->assertSame( $user_a_id, $result, 'The user should have been updated.' );
+			if ( isset( $update['user_email'] ) ) {
+				$this->assertSame( $update['user_email'], get_userdata( $user_a_id )->user_email, 'The email address was not updated.' );
+			}
+		} else {
+			$this->assertWPError( $result, 'A WP_Error object should have been returned.' );
+			$this->assertSame( $expected_error, $result->get_error_code(), 'An unexpected error code was returned.' );
+		}
+	}
+
+	/**
+	 * Data provider for test_wp_update_user_login_email_collisions().
+	 *
+	 * @return array[]
+	 */
+	public function data_wp_update_user_login_email_collisions() {
+		return array(
+			'login matches own email, other field changes' => array(
+				'user_a'         => array(
+					'login' => 'a@example.com',
+					'email' => 'a@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b',
+					'email' => 'b@example.com',
+				),
+				'update'         => array( 'display_name' => 'Updated' ),
+				'expected_error' => null,
+			),
+			'login already matches another user email'     => array(
+				'user_a'         => array(
+					'login' => 'b@example.com',
+					'email' => 'a@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b',
+					'email' => 'b@example.com',
+				),
+				'update'         => array( 'display_name' => 'Updated' ),
+				'expected_error' => null,
+			),
+			'email already matches another user login'     => array(
+				'user_a'         => array(
+					'login' => 'a',
+					'email' => 'b@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b@example.com',
+					'email' => 'b-other@example.com',
+				),
+				'update'         => array( 'display_name' => 'Updated' ),
+				'expected_error' => null,
+			),
+			'email already matches another user login, unchanged email resubmitted' => array(
+				'user_a'         => array(
+					'login' => 'a',
+					'email' => 'b@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b@example.com',
+					'email' => 'b-other@example.com',
+				),
+				'update'         => array( 'user_email' => 'b@example.com' ),
+				'expected_error' => null,
+			),
+			'email changes to own login'                   => array(
+				'user_a'         => array(
+					'login' => 'a@example.com',
+					'email' => 'a-other@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b',
+					'email' => 'b@example.com',
+				),
+				'update'         => array( 'user_email' => 'a@example.com' ),
+				'expected_error' => null,
+			),
+			'email changes to unique address'              => array(
+				'user_a'         => array(
+					'login' => 'a',
+					'email' => 'a@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b',
+					'email' => 'b@example.com',
+				),
+				'update'         => array( 'user_email' => 'a-new@example.com' ),
+				'expected_error' => null,
+			),
+			'email changes to another user login'          => array(
+				'user_a'         => array(
+					'login' => 'a',
+					'email' => 'a@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b@example.com',
+					'email' => 'b-other@example.com',
+				),
+				'update'         => array( 'user_email' => 'b@example.com' ),
+				'expected_error' => 'existing_user_login_as_email',
+			),
+			'email changes to another user email'          => array(
+				'user_a'         => array(
+					'login' => 'a',
+					'email' => 'a@example.com',
+				),
+				'user_b'         => array(
+					'login' => 'b',
+					'email' => 'b@example.com',
+				),
+				'update'         => array( 'user_email' => 'b@example.com' ),
+				'expected_error' => 'existing_user_email',
+			),
+		);
+	}
+
+	/**
+	 * Tests that register_new_user() rejects a login or email that collides
+	 * with another user's email or login.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::register_new_user
+	 */
+	public function test_register_new_user_login_email_collisions() {
+		$this->create_users_with_logins_and_emails(
+			array(
+				'login' => 'existing',
+				'email' => 'existing@example.com',
+			),
+			array(
+				'login' => 'existing-login@example.com',
+				'email' => 'other@example.com',
+			)
+		);
+
+		$result = register_new_user( 'existing@example.com', 'new@example.com' );
+		$this->assertWPError( $result, 'A login matching another user email should be rejected.' );
+		$this->assertContains( 'username_exists_as_email', $result->get_error_codes(), 'The login collision error is missing.' );
+
+		$result = register_new_user( 'new', 'existing-login@example.com' );
+		$this->assertWPError( $result, 'An email matching another user login should be rejected.' );
+		$this->assertContains( 'email_exists_as_username', $result->get_error_codes(), 'The email collision error is missing.' );
+	}
+
+	/**
+	 * Tests that edit_user() rejects a new user whose login matches another
+	 * user's email address.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::edit_user
+	 */
+	public function test_edit_user_rejects_new_login_that_matches_another_user_email() {
+		$this->create_users_with_logins_and_emails(
+			array(
+				'login' => 'existing',
+				'email' => 'existing@example.com',
+			),
+			array(
+				'login' => 'other',
+				'email' => 'other@example.com',
+			)
+		);
+
+		$_POST = array(
+			'user_login' => 'existing@example.com',
+			'email'      => 'new@example.com',
+			'pass1'      => 'password',
+			'pass2'      => 'password',
+		);
+
+		$result = edit_user();
+
+		$this->assertWPError( $result, 'A WP_Error object should have been returned.' );
+		$this->assertContains( 'user_login', $result->get_error_codes(), 'The login collision error is missing.' );
+	}
+
+	/**
+	 * Tests that edit_user() only rejects an email address matching another
+	 * user's login when the email address is changing.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::edit_user
+	 */
+	public function test_edit_user_checks_only_changed_email_against_logins() {
+		list( $user_a_id ) = $this->create_users_with_logins_and_emails(
+			array(
+				'login' => 'a',
+				'email' => 'b@example.com',
+			),
+			array(
+				'login' => 'b@example.com',
+				'email' => 'b-other@example.com',
+			)
+		);
+
+		$user_c_id = self::factory()->user->create( array( 'user_email' => 'c@example.com' ) );
+
+		wp_set_current_user( self::$admin_id );
+
+		// User A already collides with user B; saving without changing the email must work.
+		$_POST  = array(
+			'email'    => 'b@example.com',
+			'nickname' => 'a',
+		);
+		$result = edit_user( $user_a_id );
+		$this->assertSame( $user_a_id, $result, 'Saving an existing collision without changes should succeed.' );
+
+		// User C changing their email to user B's login must fail.
+		$_POST  = array(
+			'email'    => 'b@example.com',
+			'nickname' => 'c',
+		);
+		$result = edit_user( $user_c_id );
+		$this->assertWPError( $result, 'A WP_Error object should have been returned.' );
+		$this->assertContains( 'email_exists_as_username', $result->get_error_codes(), 'The email collision error is missing.' );
+	}
+
+	/**
+	 * Tests that a profile email change matching another user's login does not
+	 * send a confirmation email.
+	 *
+	 * @ticket 57394
+	 *
+	 * @covers ::send_confirmation_on_profile_email
+	 */
+	public function test_send_confirmation_on_profile_email_rejects_another_user_login() {
+		global $errors;
+
+		list( $user_a_id ) = $this->create_users_with_logins_and_emails(
+			array(
+				'login' => 'a',
+				'email' => 'a@example.com',
+			),
+			array(
+				'login' => 'b@example.com',
+				'email' => 'b-other@example.com',
+			)
+		);
+
+		reset_phpmailer_instance();
+		wp_set_current_user( $user_a_id );
+
+		$errors           = new WP_Error();
+		$_POST['user_id'] = $user_a_id;
+		$_POST['email']   = 'b@example.com';
+		send_confirmation_on_profile_email();
+
+		$this->assertFalse( tests_retrieve_phpmailer_instance()->get_sent(), 'A confirmation email should not have been sent.' );
+		$this->assertContains( 'user_email', $errors->get_error_codes(), 'The email collision error is missing.' );
+	}
+
 	/**
 	 * @ticket 33793
 	 */
