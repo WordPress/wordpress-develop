@@ -33,7 +33,7 @@ class WP_HTML_Processor_State {
 	 * is added to the parser for more modes, add them here
 	 * following the same naming and value pattern.
 	 *
-	 * @see https://html.spec.whatwg.org/#the-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-insertion-mode
 	 */
 
 	/**
@@ -41,7 +41,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-initial-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -53,7 +53,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-before-html-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -65,7 +65,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-beforehead
+	 * @link https://html.spec.whatwg.org/#parsing-main-beforehead
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -77,7 +77,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inhead
+	 * @link https://html.spec.whatwg.org/#parsing-main-inhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -89,7 +89,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inheadnoscript
+	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -101,7 +101,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterhead
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -113,7 +113,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inbody
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -125,7 +125,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intable
+	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -137,7 +137,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intabletext
+	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -149,7 +149,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incaption
+	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -161,7 +161,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incolumngroup
+	 * @link https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -173,7 +173,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intablebody
+	 * @link https://html.spec.whatwg.org/#parsing-main-intablebody
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -185,7 +185,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inrow
+	 * @link https://html.spec.whatwg.org/#parsing-main-inrow
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -197,7 +197,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-incell
+	 * @link https://html.spec.whatwg.org/#parsing-main-incell
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -237,7 +237,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-intemplate
+	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -249,7 +249,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterbody
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -261,7 +261,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-inframeset
+	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -273,7 +273,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#parsing-main-afterframeset
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -285,7 +285,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -297,7 +297,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
 	 *
 	 * @var string
@@ -309,7 +309,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/#the-insertion-mode:stack-of-template-insertion-modes
+	 * @link https://html.spec.whatwg.org/#the-insertion-mode:stack-of-template-insertion-modes
 	 *
 	 * @var array<string>
 	 */
@@ -322,7 +322,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#stack-of-open-elements
+	 * @link https://html.spec.whatwg.org/#stack-of-open-elements
 	 *
 	 * @var WP_HTML_Open_Elements
 	 */
@@ -335,7 +335,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#list-of-active-formatting-elements
+	 * @link https://html.spec.whatwg.org/#list-of-active-formatting-elements
 	 *
 	 * @var WP_HTML_Active_Formatting_Elements
 	 */
@@ -355,7 +355,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#insertion-mode
+	 * @link https://html.spec.whatwg.org/#insertion-mode
 	 *
 	 * @var string
 	 */
@@ -408,7 +408,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#head-element-pointer
 	 *
 	 * @var WP_HTML_Token|null
 	 */
@@ -424,7 +424,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @todo This may be invalidated by a seek operation.
 	 *
-	 * @see https://html.spec.whatwg.org/#form-element-pointer
+	 * @link https://html.spec.whatwg.org/#form-element-pointer
 	 *
 	 * @since 6.7.0
 	 *
@@ -439,7 +439,7 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @see https://html.spec.whatwg.org/#frameset-ok-flag
+	 * @link https://html.spec.whatwg.org/#frameset-ok-flag
 	 *
 	 * @var bool
 	 */
