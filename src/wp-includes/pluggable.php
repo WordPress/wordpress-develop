@@ -1834,17 +1834,13 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			$comment_author_domain = gethostbyaddr( $comment->comment_author_IP );
 		}
 
-		/*
-		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-		 * We want to reverse this for the plain text arena of emails.
-		 */
-		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$site_title      = wp_resolve_site_title();
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
 		if ( '' === $comment->comment_author ) {
-			$from = "From: \"$blogname\" <$wp_email>";
+			$from = "From: \"$site_title\" <$wp_email>";
 			if ( '' !== $comment->comment_author_email ) {
 				$reply_to = "Reply-To: $comment->comment_author_email";
 			}
@@ -1893,7 +1889,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all trackbacks on this post here:' ) . "\r\n";
 					/* translators: Trackback notification email subject. 1: Site title, 2: Post title. */
-					$subject = sprintf( __( '[%1$s] Trackback: "%2$s"' ), $blogname, $post->post_title );
+					$subject = sprintf( __( '[%1$s] Trackback: "%2$s"' ), $site_title, $post->post_title );
 					break;
 
 				case 'pingback':
@@ -1907,7 +1903,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all pingbacks on this post here:' ) . "\r\n";
 					/* translators: Pingback notification email subject. 1: Site title, 2: Post title. */
-					$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $blogname, $post->post_title );
+					$subject = sprintf( __( '[%1$s] Pingback: "%2$s"' ), $site_title, $post->post_title );
 					break;
 
 				case 'note':
@@ -1921,7 +1917,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$notify_message .= sprintf( __( 'Note: %s' ), "\r\n" . ( empty( $comment_content ) ? __( 'resolved/reopened' ) : $comment_content ) ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all notes on this post here:' ) . "\r\n";
 					/* translators: Note notification email subject. 1: Site title, 2: Post title. */
-					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $blogname, $post->post_title );
+					$subject = sprintf( __( '[%1$s] Note: "%2$s"' ), $site_title, $post->post_title );
 					break;
 
 				default: // Comments.
@@ -1943,7 +1939,7 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 					$notify_message .= sprintf( __( 'Comment: %s' ), "\r\n" . $comment_content ) . "\r\n\r\n";
 					$notify_message .= __( 'You can see all comments on this post here:' ) . "\r\n";
 					/* translators: Comment notification email subject. 1: Site title, 2: Post title. */
-					$subject = sprintf( __( '[%1$s] Comment: "%2$s"' ), $blogname, $post->post_title );
+					$subject = sprintf( __( '[%1$s] Comment: "%2$s"' ), $site_title, $post->post_title );
 					break;
 			}
 
@@ -2049,11 +2045,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 
 		$comments_waiting = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_approved = '0'" );
 
-		/*
-		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-		 * We want to reverse this for the plain text arena of emails.
-		 */
-		$blogname        = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$site_title      = wp_resolve_site_title();
 		$comment_content = wp_specialchars_decode( $comment->comment_content );
 
 		$message_headers = '';
@@ -2159,7 +2151,7 @@ if ( ! function_exists( 'wp_notify_moderator' ) ) :
 			$notify_message .= admin_url( 'edit-comments.php?comment_status=moderated#wpbody-content' ) . "\r\n";
 
 			/* translators: Comment moderation notification email subject. 1: Site title, 2: Post title. */
-			$subject = sprintf( __( '[%1$s] Please moderate: "%2$s"' ), $blogname, $post->post_title );
+			$subject = sprintf( __( '[%1$s] Please moderate: "%2$s"' ), $site_title, $post->post_title );
 
 			/**
 			 * Filters the comment moderation email text.
@@ -2218,11 +2210,7 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 			/* translators: %s: User name. */
 			$message = sprintf( __( 'Password changed for user: %s' ), $user->user_login ) . "\r\n";
 
-			/*
-			 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-			 * We want to reverse this for the plain text arena of emails.
-			 */
-			$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+			$site_title = wp_resolve_site_title();
 
 			$wp_password_change_notification_email = array(
 				'to'      => get_option( 'admin_email' ),
@@ -2246,13 +2234,13 @@ if ( ! function_exists( 'wp_password_change_notification' ) ) :
 			 *     @type string $headers The headers of the email.
 			 * }
 			 * @param WP_User $user     User object for user whose password was changed.
-			 * @param string  $blogname The site title.
+			 * @param string  $site_title The site title.
 			 */
-			$wp_password_change_notification_email = apply_filters( 'wp_password_change_notification_email', $wp_password_change_notification_email, $user, $blogname );
+			$wp_password_change_notification_email = apply_filters( 'wp_password_change_notification_email', $wp_password_change_notification_email, $user, $site_title );
 
 			wp_mail(
 				$wp_password_change_notification_email['to'],
-				wp_specialchars_decode( sprintf( $wp_password_change_notification_email['subject'], $blogname ) ),
+				wp_specialchars_decode( sprintf( $wp_password_change_notification_email['subject'], $site_title ) ),
 				$wp_password_change_notification_email['message'],
 				$wp_password_change_notification_email['headers']
 			);
@@ -2292,11 +2280,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 
 		$user = get_userdata( $user_id );
 
-		/*
-		 * The blogname option is escaped with esc_html() on the way into the database in sanitize_option().
-		 * We want to reverse this for the plain text arena of emails.
-		 */
-		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$site_title = wp_resolve_site_title();
 
 		/**
 		 * Filters whether the admin is notified of a new user registration.
@@ -2319,7 +2303,7 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			}
 
 			/* translators: %s: Site title. */
-			$message = sprintf( __( 'New user registration on your site %s:' ), $blogname ) . "\r\n\r\n";
+			$message = sprintf( __( 'New user registration on your site %s:' ), $site_title ) . "\r\n\r\n";
 			/* translators: %s: User login. */
 			$message .= sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 			/* translators: %s: User email address. */
@@ -2347,13 +2331,13 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			 *     @type string $headers The headers of the email.
 			 * }
 			 * @param WP_User $user     User object for new user.
-			 * @param string  $blogname The site title.
+			 * @param string  $site_title The site title.
 			 */
-			$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $blogname );
+			$wp_new_user_notification_email_admin = apply_filters( 'wp_new_user_notification_email_admin', $wp_new_user_notification_email_admin, $user, $site_title );
 
 			wp_mail(
 				$wp_new_user_notification_email_admin['to'],
-				wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $blogname ) ),
+				wp_specialchars_decode( sprintf( $wp_new_user_notification_email_admin['subject'], $site_title ) ),
 				$wp_new_user_notification_email_admin['message'],
 				$wp_new_user_notification_email_admin['headers']
 			);
@@ -2418,13 +2402,13 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 		 *     @type string $headers The headers of the email.
 		 * }
 		 * @param WP_User $user     User object for new user.
-		 * @param string  $blogname The site title.
+		 * @param string  $site_title The site title.
 		 */
-		$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $blogname );
+		$wp_new_user_notification_email = apply_filters( 'wp_new_user_notification_email', $wp_new_user_notification_email, $user, $site_title );
 
 		wp_mail(
 			$wp_new_user_notification_email['to'],
-			wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $blogname ) ),
+			wp_specialchars_decode( sprintf( $wp_new_user_notification_email['subject'], $site_title ) ),
 			$wp_new_user_notification_email['message'],
 			$wp_new_user_notification_email['headers']
 		);

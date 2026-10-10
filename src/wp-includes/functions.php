@@ -8450,8 +8450,7 @@ All at ###SITENAME###
 		'headers' => '',
 	);
 
-	// Get site name.
-	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$site_title = wp_resolve_site_title();
 
 	/**
 	 * Filters the contents of the email notification sent when the site admin email address is changed.
@@ -8478,14 +8477,14 @@ All at ###SITENAME###
 
 	$email_change_email['message'] = str_replace( '###OLD_EMAIL###', $old_email, $email_change_email['message'] );
 	$email_change_email['message'] = str_replace( '###NEW_EMAIL###', $new_email, $email_change_email['message'] );
-	$email_change_email['message'] = str_replace( '###SITENAME###', $site_name, $email_change_email['message'] );
+	$email_change_email['message'] = str_replace( '###SITENAME###', $site_title, $email_change_email['message'] );
 	$email_change_email['message'] = str_replace( '###SITEURL###', home_url(), $email_change_email['message'] );
 
 	wp_mail(
 		$email_change_email['to'],
 		sprintf(
 			$email_change_email['subject'],
-			$site_name
+			$site_title
 		),
 		$email_change_email['message'],
 		$email_change_email['headers']
@@ -9534,6 +9533,26 @@ function wp_verify_fast_hash(
 }
 
 /**
+ * Resolve the site title
+ *
+ * If the site title is empty then set the host as site title.
+ *
+ * @since 7.2.0
+ * @return string Site title.
+ */
+function wp_resolve_site_title(): string {
+	$site_title = get_option( 'blogname' );
+
+	if ( '' !== $site_title ) {
+		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	} else {
+		$site_title = wp_parse_url( home_url(), PHP_URL_HOST );
+	}
+
+	return $site_title;
+}
+
+/**
  * Sends an email to the user when a new application password is created.
  *
  * @since 7.2.0
@@ -9605,7 +9624,7 @@ All at ###SITENAME###
 	);
 
 	// Get site name.
-	$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	$site_name = wp_resolve_site_title();
 
 	/**
 	 * Filters the contents of the email notification sent to a user when a new application password is created.
@@ -9649,3 +9668,4 @@ All at ###SITENAME###
 		$email['headers']
 	);
 }
+

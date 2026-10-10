@@ -967,7 +967,7 @@ class WP_Automatic_Updater {
 
 		// If the auto-update is not to the latest version, say that the current version of WP is available instead.
 		$version = 'success' === $type ? $core_update->current : $next_user_core_update->current;
-		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $version );
+		$subject = sprintf( $subject, wp_resolve_site_title(), $version );
 
 		$body = '';
 

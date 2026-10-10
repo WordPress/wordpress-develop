@@ -113,8 +113,8 @@ final class WP_Recovery_Mode_Email_Service {
 	 */
 	private function send_recovery_mode_email( $rate_limit, $error, $extension ) {
 
-		$url      = $this->link_service->generate_url();
-		$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		$url        = $this->link_service->generate_url();
+		$site_title = wp_resolve_site_title();
 
 		$switched_locale = switch_to_locale( get_locale() );
 
@@ -224,7 +224,7 @@ When seeking help with this issue, you may be asked for some of the following in
 
 		$sent = wp_mail(
 			$email['to'],
-			wp_specialchars_decode( sprintf( $email['subject'], $blogname ) ),
+			sprintf( $email['subject'], $site_title ),
 			$email['message'],
 			$email['headers'],
 			$email['attachments']
