@@ -2989,8 +2989,8 @@ function gallery_shortcode( $attr ) {
 	 *                    Otherwise, defaults to true.
 	 */
 	if ( apply_filters( 'use_default_gallery_style', ! $html5 ) ) {
-		$gallery_style = "
-		<style>
+		$gallery_style = "\n\t\t" . wp_get_inline_style_tag(
+			<<<CSS
 			#{$selector} {
 				margin: auto;
 			}
@@ -3007,7 +3007,8 @@ function gallery_shortcode( $attr ) {
 				margin-left: 0;
 			}
 			/* see gallery_shortcode() in wp-includes/media.php */
-		</style>\n\t\t";
+			CSS
+		) . "\t\t";
 	}
 
 	$size_class  = sanitize_html_class( is_array( $atts['size'] ) ? implode( 'x', $atts['size'] ) : $atts['size'] );
