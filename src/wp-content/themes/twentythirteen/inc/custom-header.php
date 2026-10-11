@@ -138,7 +138,8 @@ CSS;
 		}
 	} elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) {
 		// The user has set a custom color for the text, so use that.
-		$sanitized_text_color = sanitize_hex_color_no_hash( $text_color );
+		// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
+		$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
 
 		$css[] = <<<CSS
 		.site-title,
