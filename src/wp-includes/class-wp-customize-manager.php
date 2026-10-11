@@ -5208,7 +5208,7 @@ final class WP_Customize_Manager {
 					'label'       => __( 'Site Icon' ),
 					'description' => sprintf(
 						/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
-						'<p>' . __( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ) . '</p>',
+						'<p>' . __( 'The Site Icon appears in browser tabs, bookmark bars, and within the WordPress mobile apps. It must have a square aspect ratio (1:1) and be at least <strong>%1$s &times; %2$s</strong> pixels in size.' ) . '</p>',
 						512,
 						512
 					),
