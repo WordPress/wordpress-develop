@@ -113,16 +113,13 @@ class WP_Font_Face_Resolver {
 	 * parse and return the fist font from the list.
 	 *
 	 * @since 6.4.0
+	 * @since 7.2.0 Returns the name as a quoted CSS string, or an empty string if the value is invalid.
 	 *
 	 * @param string $font_family Font family `fontFamily' to parse.
 	 * @return string Font-family name.
 	 */
 	private static function maybe_parse_name_from_comma_separated_list( $font_family ) {
-		if ( str_contains( $font_family, ',' ) ) {
-			$font_family = explode( ',', $font_family )[0];
-		}
-
-		return trim( $font_family, "\"'" );
+		return WP_Font_Utils::get_font_face_family( $font_family );
 	}
 
 	/**

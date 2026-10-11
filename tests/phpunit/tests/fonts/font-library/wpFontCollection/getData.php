@@ -171,19 +171,24 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 					'name'          => 'My Collection',
 					'font_families' => array(
 						array(
+							/*
+							 * The second entry of `fontFamily` is not valid CSS, so it is
+							 * one raw font name. The serializer escapes the markup, so the
+							 * name stays inert.
+							 */
 							'font_family_settings' => array(
-								'fontFamily' => '"Open Sans", sans-serif',
+								'fontFamily' => '"Open Sans", "sans-serif\\3c script\\3e alert(\\"xss\\")\\3c /script\\3e "',
 								'slug'       => 'open-sans',
 								'name'       => 'Open Sans',
 								'fontFace'   => array(
 									array(
-										'fontFamily' => 'Open Sans',
+										'fontFamily' => '"Open Sans"',
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => 'https://example.com/src-as-string.ttf?a=',
 									),
 									array(
-										'fontFamily' => 'Open Sans',
+										'fontFamily' => '"Open Sans"',
 										'fontStyle'  => 'normal',
 										'fontWeight' => '400',
 										'src'        => array(

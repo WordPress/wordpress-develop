@@ -11,6 +11,7 @@
  * Font Face generates and prints `@font-face` styles for given fonts.
  *
  * @since 6.4.0
+ * @since 7.2.0 Writes the font-family descriptor as a quoted CSS string.
  */
 class WP_Font_Face {
 
@@ -82,8 +83,9 @@ class WP_Font_Face {
 
 		/*
 		 * The font-face CSS is contained within <style> tags and can only be interpreted
-		 * as CSS in the browser. Using wp_strip_all_tags() is sufficient escaping
-		 * to avoid malicious attempts to close </style> and open a <script>.
+		 * as CSS in the browser. The font-family descriptor escapes `<` as a CSS escape,
+		 * so a font name cannot close the style element. wp_strip_all_tags() removes any
+		 * remaining markup from the other descriptors.
 		 */
 		$css = wp_strip_all_tags( $css );
 
@@ -142,6 +144,23 @@ class WP_Font_Face {
 				__METHOD__,
 				__( 'Font font-family must be a non-empty string.' ),
 				'6.4.0'
+			);
+			return false;
+		}
+
+		/*
+		 * Write the font-family descriptor as a quoted CSS string. The value
+		 * can be CSS, such as `"ACME, Sans"`, or a plain name, such as
+		 * `O'Reilly Sans`. The decoded name does not change.
+		 */
+		$font_face['font-family'] = WP_Font_Utils::get_font_face_family( $font_face['font-family'] );
+
+		if ( '' === $font_face['font-family'] ) {
+			// @todo replace with `wp_trigger_error()`.
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Font font-family must be a valid CSS font family value or a plain font name.' ),
+				'7.2.0'
 			);
 			return false;
 		}
@@ -307,18 +326,7 @@ class WP_Font_Face {
 	private function build_font_face_css( array $font_face ) {
 		$css = '';
 
-		/*
-		 * Wrap font-family in quotes if it contains spaces
-		 * and is not already wrapped in quotes.
-		 */
-		if (
-			str_contains( $font_face['font-family'], ' ' ) &&
-			! str_contains( $font_face['font-family'], '"' ) &&
-			! str_contains( $font_face['font-family'], "'" )
-		) {
-			$font_face['font-family'] = '"' . $font_face['font-family'] . '"';
-		}
-
+		// The font-family is already a quoted CSS string. See ::validate_font_face_declarations().
 		foreach ( $font_face as $key => $value ) {
 			// Compile the "src" parameter.
 			if ( 'src' === $key ) {

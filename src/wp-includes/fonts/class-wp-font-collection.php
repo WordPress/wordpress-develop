@@ -259,7 +259,7 @@ final class WP_Font_Collection {
 						'preview'    => 'sanitize_url',
 						'fontFace'   => array(
 							array(
-								'fontFamily'            => 'sanitize_text_field',
+								'fontFamily'            => 'WP_Font_Utils::sanitize_font_family',
 								'fontStyle'             => 'sanitize_text_field',
 								'fontWeight'            => 'sanitize_text_field',
 								'src'                   => static function ( $value ) {
