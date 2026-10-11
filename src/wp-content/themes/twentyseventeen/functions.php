@@ -435,6 +435,8 @@ add_action( 'wp_head', 'twentyseventeen_pingback_header' );
 
 /**
  * Displays custom color CSS.
+ *
+ * @since Twenty Seventeen 4.3 Added `wp_print_inline_style_tag()` support.
  */
 function twentyseventeen_colors_css_wrap() {
 	if ( 'custom' !== get_theme_mod( 'colorscheme' ) && ! is_customize_preview() ) {
@@ -444,15 +446,23 @@ function twentyseventeen_colors_css_wrap() {
 	require_once get_parent_theme_file_path( '/inc/color-patterns.php' );
 	$hue = absint( get_theme_mod( 'colorscheme_hue', 250 ) );
 
-	$customize_preview_data_hue = '';
-	if ( is_customize_preview() ) {
-		$customize_preview_data_hue = 'data-hue="' . $hue . '"';
+	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
+		$attributes = array( 'id' => 'custom-theme-colors' );
+		if ( is_customize_preview() ) {
+			$attributes['data-hue'] = (string) $hue;
+		}
+		wp_print_inline_style_tag( twentyseventeen_custom_colors_css(), $attributes );
+	} else {
+		$customize_preview_data_hue = '';
+		if ( is_customize_preview() ) {
+			$customize_preview_data_hue = 'data-hue="' . $hue . '"';
+		}
+		?>
+		<style id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
+			<?php echo twentyseventeen_custom_colors_css(); ?>
+		</style>
+		<?php
 	}
-	?>
-	<style id="custom-theme-colors" <?php echo $customize_preview_data_hue; ?>>
-		<?php echo twentyseventeen_custom_colors_css(); ?>
-	</style>
-	<?php
 }
 add_action( 'wp_head', 'twentyseventeen_colors_css_wrap' );
 

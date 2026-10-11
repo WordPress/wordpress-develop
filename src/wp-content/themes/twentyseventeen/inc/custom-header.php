@@ -65,6 +65,8 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 	 * Styles the header image and text displayed on the blog.
 	 *
 	 * @see twentyseventeen_custom_header_setup().
+	 *
+	 * @since Twenty Seventeen 4.3 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyseventeen_header_style() {
 		$header_text_color = get_header_textcolor();
@@ -76,21 +78,20 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 		}
 
 		// If we get this far, we have custom styles. Let's do this.
-		?>
-		<style id="twentyseventeen-custom-header-styles">
-		<?php
-		// Has the text been hidden?
-		if ( 'blank' === $header_text_color ) :
-			?>
+		if ( 'blank' === $header_text_color ) {
+			// The text has been hidden.
+			$css = <<<CSS
 		.site-title,
 		.site-description {
 			position: absolute;
 			clip-path: inset(50%);
 		}
-			<?php
-			// If the user has set a custom color for the text use that.
-		else :
-			?>
+CSS;
+		} else {
+			// The user has set a custom color for the text, so use that.
+			$escaped_header_text_color = esc_attr( $header_text_color );
+
+			$css = <<<CSS
 		.site-title a,
 		.colors-dark .site-title a,
 		.colors-custom .site-title a,
@@ -109,11 +110,16 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 		body.has-header-video.colors-dark .site-description,
 		body.has-header-image.colors-custom .site-description,
 		body.has-header-video.colors-custom .site-description {
-			color: #<?php echo esc_attr( $header_text_color ); ?>;
+			color: #{$escaped_header_text_color};
 		}
-	<?php endif; ?>
-	</style>
-		<?php
+CSS;
+		}
+
+		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
+			wp_print_inline_style_tag( $css, array( 'id' => 'twentyseventeen-custom-header-styles' ) );
+		} else {
+			echo "<style id=\"twentyseventeen-custom-header-styles\">\n{$css}\n</style>\n";
+		}
 	}
 endif; // End of twentyseventeen_header_style().
 
