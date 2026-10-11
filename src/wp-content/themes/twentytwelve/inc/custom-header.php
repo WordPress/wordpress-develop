@@ -110,7 +110,7 @@ CSS;
  * @since Twenty Twelve 5.0 Added `wp_print_inline_style_tag()` support.
  */
 function twentytwelve_admin_header_style() {
-	$max_width = get_theme_support( 'custom-header', 'max-width' );
+	$max_width = (int) get_theme_support( 'custom-header', 'max-width' );
 
 	$css = <<<CSS
 	.appearance_page_custom-header #headimg {
