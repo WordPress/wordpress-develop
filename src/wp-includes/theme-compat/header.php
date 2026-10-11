@@ -30,12 +30,15 @@ _deprecated_file(
 if ( file_exists( get_stylesheet_directory() . '/images/kubrickbgwide.jpg' ) ) {
 	// Checks to see whether it needs a sidebar.
 	if ( empty( $withcomments ) && ! is_single() ) {
-		$kubrick_background = get_bloginfo( 'stylesheet_directory', 'display' ) . '/images/kubrickbg-' . get_bloginfo( 'text_direction', 'display' ) . '.jpg';
+		$kubrick_background = get_bloginfo( 'stylesheet_directory' ) . '/images/kubrickbg-' . get_bloginfo( 'text_direction' ) . '.jpg';
 	} else { // No sidebar.
-		$kubrick_background = get_bloginfo( 'stylesheet_directory', 'display' ) . '/images/kubrickbgwide.jpg';
+		$kubrick_background = get_bloginfo( 'stylesheet_directory' ) . '/images/kubrickbgwide.jpg';
 	}
+	$escaped_kubrick_background = esc_url_raw( $kubrick_background );
 	wp_print_inline_style_tag(
-		sprintf( '#page { background: url("%s") repeat-y top; border: none; }', $kubrick_background ),
+		<<<CSS
+		#page { background: url( "{$escaped_kubrick_background}" ) repeat-y top; border: none; }
+		CSS,
 		array( 'media' => 'screen' )
 	);
 }
