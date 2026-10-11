@@ -186,7 +186,6 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 		$this->assertStringContainsString( '<select id="archives-dropdown-2" name="archive-dropdown">', $output );
 		$this->assertStringContainsString( '<label class="screen-reader-text" for="archives-dropdown-2">Select Archive</label>', $output );
 		$this->assertStringContainsString( '<option value="">Select Month</option>', $output );
-		$this->assertStringContainsString( 'archives-dropdown-2', $output );
 		$this->assertStringNotContainsString( '<ul>', $output );
 	}
 
@@ -244,8 +243,8 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 
 		$old_instance = array(
 			'title'    => 'Old Title',
-			'count'    => 0,
-			'dropdown' => 0,
+			'count'    => 1,
+			'dropdown' => 1,
 		);
 
 		$result = $widget->update( $new_instance, $old_instance );
@@ -284,6 +283,16 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 					'dropdown' => 0,
 				),
 			),
+			'unchecked checkboxes'      => array(
+				array(
+					'title' => 'Archives',
+				),
+				array(
+					'title'    => 'Archives',
+					'count'    => 0,
+					'dropdown' => 0,
+				),
+			),
 		);
 	}
 
@@ -307,36 +316,18 @@ class Tests_Widgets_wpWidgetArchives extends WP_UnitTestCase {
 		$output    = get_echo( array( $widget, 'form' ), array( $instance ) );
 		$processor = new WP_HTML_Tag_Processor( $output );
 
-		$this->assertTrue(
-			$processor->next_tag(
-				array(
-					'tag_name' => 'INPUT',
-					'id'       => 'widget-archives-2-title',
-				)
-			)
-		);
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The form should contain a title input.' );
+		$this->assertSame( 'widget-archives-2-title', $processor->get_attribute( 'id' ) );
 		$this->assertSame( 'Archives Box', $processor->get_attribute( 'value' ) );
 
-		$this->assertTrue(
-			$processor->next_tag(
-				array(
-					'tag_name' => 'INPUT',
-					'id'       => 'widget-archives-2-dropdown',
-				)
-			)
-		);
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The form should contain a dropdown checkbox.' );
+		$this->assertSame( 'widget-archives-2-dropdown', $processor->get_attribute( 'id' ) );
 		$this->assertSame( 'checkbox', $processor->get_attribute( 'type' ) );
-		$this->assertTrue( $processor->get_attribute( 'checked' ) );
+		$this->assertSame( 'checked', $processor->get_attribute( 'checked' ) );
 
-		$this->assertTrue(
-			$processor->next_tag(
-				array(
-					'tag_name' => 'INPUT',
-					'id'       => 'widget-archives-2-count',
-				)
-			)
-		);
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The form should contain a post count checkbox.' );
+		$this->assertSame( 'widget-archives-2-count', $processor->get_attribute( 'id' ) );
 		$this->assertSame( 'checkbox', $processor->get_attribute( 'type' ) );
-		$this->assertTrue( $processor->get_attribute( 'checked' ) );
+		$this->assertSame( 'checked', $processor->get_attribute( 'checked' ) );
 	}
 }
