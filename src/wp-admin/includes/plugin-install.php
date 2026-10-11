@@ -606,16 +606,15 @@ function install_plugin_information() {
 		$_with_banner = 'with-banner';
 		$low          = empty( $api->banners['low'] ) ? $api->banners['high'] : $api->banners['low'];
 		$high         = empty( $api->banners['high'] ) ? $api->banners['low'] : $api->banners['high'];
-		$escaped_low  = esc_url_raw( $low );
-		$escaped_high = esc_url_raw( $high );
+		$esc_url_raw  = 'esc_url_raw';
 		wp_print_inline_style_tag(
 			<<<CSS
 			#plugin-information-title.with-banner {
-				background-image: url( "{$escaped_low}" );
+				background-image: url( "{$esc_url_raw( $low )}" );
 			}
 			@media only screen and ( -webkit-min-device-pixel-ratio: 1.5 ) {
 				#plugin-information-title.with-banner {
-					background-image: url( "{$escaped_high}" );
+					background-image: url( "{$esc_url_raw( $high )}" );
 				}
 			}
 			CSS

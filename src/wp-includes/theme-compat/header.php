@@ -34,10 +34,10 @@ if ( file_exists( get_stylesheet_directory() . '/images/kubrickbgwide.jpg' ) ) {
 	} else { // No sidebar.
 		$kubrick_background = get_bloginfo( 'stylesheet_directory' ) . '/images/kubrickbgwide.jpg';
 	}
-	$escaped_kubrick_background = esc_url_raw( $kubrick_background );
+	$esc_url_raw = 'esc_url_raw';
 	wp_print_inline_style_tag(
 		<<<CSS
-		#page { background: url( "{$escaped_kubrick_background}" ) repeat-y top; border: none; }
+		#page { background: url( "{$esc_url_raw( $kubrick_background )}" ) repeat-y top; border: none; }
 		CSS,
 		array( 'media' => 'screen' )
 	);
