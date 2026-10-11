@@ -446,6 +446,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * the escaped query could never be hit in a subsequent request.
 	 *
 	 * @ticket 66282
+	 * @ticket 64250
 	 *
 	 * @covers ::redirect_guess_404_permalink
 	 */
