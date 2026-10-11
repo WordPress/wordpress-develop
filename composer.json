@@ -21,6 +21,7 @@
 		"ext-curl": "*",
 		"ext-dom": "*",
 		"ext-exif": "*",
+		"ext-ffi": "*",
 		"ext-fileinfo": "*",
 		"ext-filter": "*",
 		"ext-ftp": "*",
