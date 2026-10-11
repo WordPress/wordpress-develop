@@ -542,12 +542,16 @@ class WP_Duotone {
 	 * var:preset|duotone|blue-orange
 	 * var(--wp--preset--duotone--blue-orange)
 	 *
+	 * The slug is converted to kebab-case to match the filter IDs and CSS custom
+	 * properties generated for the presets, e.g. `blueOrange` becomes `blue-orange`.
+	 *
 	 * @internal
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 The returned slug is converted to kebab-case.
 	 *
 	 * @param string|string[] $duotone_attr The duotone attribute from a block.
-	 * @return string The slug of the duotone preset or an empty string if no slug is found (including when an array was passed).
+	 * @return string The kebab-cased slug of the duotone preset or an empty string if no slug is found (including when an array was passed).
 	 */
 	private static function get_slug_from_attribute( $duotone_attr ) {
 		if ( ! is_string( $duotone_attr ) ) {
@@ -557,7 +561,7 @@ class WP_Duotone {
 		// Uses Branch Reset Groups `(?|…)` to return one capture group.
 		preg_match( '/(?|var:preset\|duotone\|(\S+)|var\(--wp--preset--duotone--(\S+)\))/', $duotone_attr, $matches );
 
-		return ! empty( $matches[1] ) ? $matches[1] : '';
+		return ! empty( $matches[1] ) ? _wp_to_kebab_case( $matches[1] ) : '';
 	}
 
 	/**
@@ -825,7 +829,7 @@ class WP_Duotone {
 	private static function get_global_styles_presets( $sources ) {
 		$css = WP_Theme_JSON::ROOT_CSS_PROPERTIES_SELECTOR . '{';
 		foreach ( $sources as $filter_id => $filter_data ) {
-			$slug              = $filter_data['slug'];
+			$slug              = _wp_to_kebab_case( $filter_data['slug'] );
 			$colors            = $filter_data['colors'];
 			$css_property_name = self::get_css_custom_property_name( $slug );
 			$declaration_value = is_string( $colors ) ? $colors : self::get_filter_url( $filter_id );
