@@ -831,3 +831,8 @@ table.wp-block-table td:last-child {
 	font-weight: 800;
 	line-height: 1.5;
 }
+
+.wp-block-search .wp-block-search__input {
+	padding: 0.7em;
+	line-height: 1.5;
+}
