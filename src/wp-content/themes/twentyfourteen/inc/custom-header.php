@@ -82,11 +82,11 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 CSS;
 		} elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) {
 			// The user has set a custom color for the text, so use that.
-			$escaped_text_color = esc_attr( $text_color );
+			$sanitized_text_color = sanitize_hex_color_no_hash( $text_color );
 
 			$css = <<<CSS
 			.site-title a {
-				color: #{$escaped_text_color};
+				color: #{$sanitized_text_color};
 			}
 CSS;
 		}

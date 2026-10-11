@@ -89,7 +89,7 @@ if ( ! function_exists( 'twentyseventeen_header_style' ) ) :
 CSS;
 		} else {
 			// The user has set a custom color for the text, so use that.
-			$escaped_header_text_color = esc_attr( $header_text_color );
+			$sanitized_header_text_color = sanitize_hex_color_no_hash( $header_text_color );
 
 			$css = <<<CSS
 		.site-title a,
@@ -110,7 +110,7 @@ CSS;
 		body.has-header-video.colors-dark .site-description,
 		body.has-header-image.colors-custom .site-description,
 		body.has-header-video.colors-custom .site-description {
-			color: #{$escaped_header_text_color};
+			color: #{$sanitized_header_text_color};
 		}
 CSS;
 		}
