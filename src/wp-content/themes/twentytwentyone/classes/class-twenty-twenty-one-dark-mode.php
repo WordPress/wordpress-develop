@@ -330,9 +330,21 @@ class Twenty_Twenty_One_Dark_Mode {
 		);
 		echo '</button>';
 
+		/*
+		 * Escape the labels for use in single-quoted CSS strings. HTML character references
+		 * are not decoded in STYLE elements, so esc_attr() would not be appropriate here.
+		 */
+		$escape_css_string = static function ( $text ) {
+			return str_replace(
+				array( '\\', "'", '<', "\n", "\r" ),
+				array( '\\\\', "\\'", '\\3C ', '\\A ', '\\D ' ),
+				$text
+			);
+		};
+
 		$margin_side       = is_rtl() ? 'right' : 'left';
-		$escaped_off_label = esc_attr__( 'Off', 'twentytwentyone' );
-		$escaped_on_label  = esc_attr__( 'On', 'twentytwentyone' );
+		$escaped_off_label = $escape_css_string( __( 'Off', 'twentytwentyone' ) );
+		$escaped_on_label  = $escape_css_string( __( 'On', 'twentytwentyone' ) );
 
 		$css = <<<CSS
 			#dark-mode-toggler > span {
