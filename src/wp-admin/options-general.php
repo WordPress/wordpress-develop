@@ -188,11 +188,11 @@ $tagline_description = sprintf(
 			);
 		}
 	}
-	$site_icon_css_url = esc_url( $site_icon_url );
+	$escaped_site_icon_url = esc_url_raw( $site_icon_url );
 	wp_print_inline_style_tag(
 		<<<CSS
 		:root {
-			--site-icon-url: url( '{$site_icon_css_url}' );
+			--site-icon-url: url( "{$escaped_site_icon_url}" );
 		}
 		CSS
 	);
