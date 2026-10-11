@@ -1,7 +1,7 @@
 <?php
 /**
- * Title: Primary Navigation
- * Slug: twentytwentyfour/primary-navigation
+ * Title: Hidden Navigation
+ * Slug: twentytwentyfour/hidden-navigation
  * Categories: navigation
  * Block Types: core/navigation
  * Description: The primary navigation menu.
