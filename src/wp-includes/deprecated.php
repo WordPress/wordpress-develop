@@ -5991,7 +5991,12 @@ function print_emoji_styles() {
  */
 function wp_admin_bar_header() {
 	_deprecated_function( __FUNCTION__, '6.4.0', 'wp_enqueue_admin_bar_header_styles' );
-	wp_print_inline_style_tag( '#wpadminbar { display:none; }', array( 'media' => 'print' ) );
+	wp_print_inline_style_tag(
+		<<<'CSS'
+		#wpadminbar { display:none; }
+		CSS,
+		array( 'media' => 'print' )
+	);
 }
 
 /**
@@ -6526,7 +6531,11 @@ function wp_print_auto_sizes_contain_css_fix() {
 		return;
 	}
 
-	wp_print_inline_style_tag( 'img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }' );
+	wp_print_inline_style_tag(
+		<<<'CSS'
+		img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }
+		CSS
+	);
 }
 
 /**
