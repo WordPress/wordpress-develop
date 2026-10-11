@@ -11,17 +11,17 @@
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
-		"node": ">=24.18.0",
-		"npm": ">=11.16.0"
+		"node": ">=24.20.0",
+		"npm": ">=11.18.0"
 	},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
-			"version": ">=24.18.0"
+			"version": ">=24.20.0"
 		},
 		"packageManager": {
 			"name": "npm",
-			"version": ">=11.16.0",
+			"version": ">=11.18.0",
 			"onFail": "error"
 		}
 	},
@@ -160,5 +160,12 @@
 		"gutenberg:copy": "node tools/gutenberg/copy.js",
 		"gutenberg:verify": "node tools/gutenberg/utils.js",
 		"gutenberg:download": "node tools/gutenberg/download.js && npm run build:gutenberg"
+	},
+	"allowScripts": {
+		"@parcel/watcher": false,
+		"core-js": false,
+		"core-js-pure": false,
+		"fsevents": false,
+		"unrs-resolver": false
 	}
 }
