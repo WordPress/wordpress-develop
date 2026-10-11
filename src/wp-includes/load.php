@@ -395,7 +395,7 @@ function wp_favicon_request() {
  * the wp-content directory).
  *
  * @since 3.0.0
- * @since 7.2.0 Added status and no-cache headers before loading a custom `maintenance.php` drop-in.
+ * @since 7.2.0 Added status, no-cache and retry-after headers before loading a custom `maintenance.php` drop-in.
  * @access private
  */
 function wp_maintenance() {
