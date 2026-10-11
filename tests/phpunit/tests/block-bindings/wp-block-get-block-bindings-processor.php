@@ -34,7 +34,7 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 		$processor->next_tag( array( 'tag_name' => 'a' ) );
 
 		$this->assertTrue( $processor->replace_rich_text( 'The hardest button to button' ) );
-		$this->assertEquals(
+		$this->assertSame(
 			$button_wrapper_opener . 'The hardest button to button' . $button_wrapper_closer,
 			$processor->get_updated_html()
 		);
@@ -61,7 +61,7 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 				array( strlen( $item_opener . $rich_text ) )
 			)
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			$item_opener . 'New list item content' . $nested_list . $item_closer,
 			$processor->get_updated_html()
 		);
@@ -88,7 +88,7 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 		$processor->next_tag( array( 'tag_name' => 'figcaption' ) );
 
 		$this->assertTrue( $processor->replace_rich_text( '<strong>New</strong> image caption' ) );
-		$this->assertEquals(
+		$this->assertSame(
 			'<figure class="wp-block-image size-large">' .
 			$img .
 			'<figcaption class="wp-element-caption"><strong>New</strong> image caption</figcaption>' .
@@ -122,7 +122,7 @@ class Tests_Blocks_GetBlockBindingsProcessor extends WP_UnitTestCase {
 		$processor->seek( 'image' );
 		$processor->add_class( 'extra-img-class' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			$figure_opener .
 			'<img src="breakfast.jpg" alt="" class="wp-image-1 extra-img-class"/>' .
 			'<figcaption class="wp-element-caption"><strong>New</strong> image caption</figcaption>' .

@@ -127,6 +127,7 @@ class WP_Theme_JSON {
 	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
 	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @since 6.9.0 Added `border.radiusSizes`.
+	 * @since 7.2.0 Added `typography.textShadowPresets`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -187,6 +188,15 @@ class WP_Theme_JSON {
 			'css_vars'          => '--wp--preset--font-family--$slug',
 			'classes'           => array( '.has-$slug-font-family' => 'font-family' ),
 			'properties'        => array( 'font-family' ),
+		),
+		array(
+			'path'              => array( 'typography', 'textShadowPresets' ),
+			'prevent_override'  => array( 'typography', 'defaultTextShadowPresets' ),
+			'use_default_names' => false,
+			'value_key'         => 'textShadow',
+			'css_vars'          => '--wp--preset--text-shadow--$slug',
+			'classes'           => array( '.has-$slug-text-shadow' => 'text-shadow' ),
+			'properties'        => array( 'text-shadow' ),
 		),
 		array(
 			'path'              => array( 'spacing', 'spacingSizes' ),
@@ -419,6 +429,8 @@ class WP_Theme_JSON {
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
+	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
+	 *              and `typography.defaultTextShadowPresets`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -496,22 +508,25 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'typography'                    => array(
-			'fluid'            => null,
-			'customFontSize'   => null,
-			'defaultFontSizes' => null,
-			'dropCap'          => null,
-			'fontFamilies'     => null,
-			'fontSizes'        => null,
-			'fontStyle'        => null,
-			'fontWeight'       => null,
-			'letterSpacing'    => null,
-			'lineHeight'       => null,
-			'textAlign'        => null,
-			'textColumns'      => null,
-			'textDecoration'   => null,
-			'textIndent'       => null,
-			'textTransform'    => null,
-			'writingMode'      => null,
+			'fluid'                    => null,
+			'customFontSize'           => null,
+			'defaultFontSizes'         => null,
+			'dropCap'                  => null,
+			'fontFamilies'             => null,
+			'fontSizes'                => null,
+			'fontStyle'                => null,
+			'fontWeight'               => null,
+			'letterSpacing'            => null,
+			'lineHeight'               => null,
+			'textAlign'                => null,
+			'textColumns'              => null,
+			'textDecoration'           => null,
+			'textIndent'               => null,
+			'textTransform'            => null,
+			'textShadow'               => null,
+			'defaultTextShadowPresets' => null,
+			'textShadowPresets'        => null,
+			'writingMode'              => null,
 		),
 		'viewport'                      => array(
 			'mobile' => null,
@@ -954,6 +969,8 @@ class WP_Theme_JSON {
 	/**
 	 * Processes pseudo-selectors for any node (block or variation).
 	 *
+	 * @since 7.0.0
+	 *
 	 * @param array      $node            The node data (block or variation).
 	 * @param string     $base_selector   The base selector.
 	 * @param array      $settings        The theme settings.
@@ -1266,6 +1283,8 @@ class WP_Theme_JSON {
 	 * @since 5.9.0 Added the `$valid_block_names` and `$valid_element_name` parameters.
 	 * @since 6.3.0 Added the `$valid_variations` parameter.
 	 * @since 6.6.0 Updated schema to allow extended block style variations.
+	 * @since 7.1.1 Updated schema to allow responsive breakpoint states and pseudo-selectors
+	 *              at the top level of `styles` for block style variation partials.
 	 *
 	 * @param array $input               Structure to sanitize.
 	 * @param array $valid_block_names   List of valid block names.
@@ -1427,7 +1446,6 @@ class WP_Theme_JSON {
 					foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
 						$variation_schema[ $breakpoint_state ]             = $styles_non_top_level;
 						$variation_schema[ $breakpoint_state ]['elements'] = $schema_styles_elements;
-						$variation_schema[ $breakpoint_state ]['blocks']   = $schema_styles_blocks;
 
 						if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] ) ) {
 							foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block ] as $pseudo_selector ) {
@@ -1456,6 +1474,47 @@ class WP_Theme_JSON {
 		$schema['settings']                               = static::VALID_SETTINGS;
 		$schema['settings']['blocks']                     = $schema_settings_blocks;
 		$schema['settings']['typography']['fontFamilies'] = static::schema_in_root_and_per_origin( static::FONT_FAMILY_SCHEMA );
+
+		/*
+		 * Add block style variation states to the top-level styles schema.
+		 *
+		 * Block style variations defined in a standalone JSON partial within a
+		 * theme's `styles` directory declare their styles at the root of the
+		 * `styles` object, so they are sanitized against the top-level schema.
+		 * It needs to allow the same states that are allowed for variations
+		 * declared inline in theme.json, otherwise those states are silently
+		 * removed as unknown keys.
+		 *
+		 * The `blockTypes` property is only present on block style variation
+		 * partials, so it both identifies the config as a variation and
+		 * determines which pseudo-selectors are valid for it. Regular
+		 * theme.json files are unaffected.
+		 */
+		if ( ! empty( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
+			$variation_pseudo_selectors = array();
+			foreach ( $input['blockTypes'] as $variation_block_type ) {
+				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
+					$variation_pseudo_selectors = array_merge(
+						$variation_pseudo_selectors,
+						static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ]
+					);
+				}
+			}
+			$variation_pseudo_selectors = array_unique( $variation_pseudo_selectors );
+
+			foreach ( array_keys( $responsive_media_queries ) as $breakpoint_state ) {
+				$schema['styles'][ $breakpoint_state ]             = $styles_non_top_level;
+				$schema['styles'][ $breakpoint_state ]['elements'] = $schema_styles_elements;
+
+				foreach ( $variation_pseudo_selectors as $pseudo_selector ) {
+					$schema['styles'][ $breakpoint_state ][ $pseudo_selector ] = $styles_non_top_level;
+				}
+			}
+
+			foreach ( $variation_pseudo_selectors as $pseudo_selector ) {
+				$schema['styles'][ $pseudo_selector ] = $styles_non_top_level;
+			}
+		}
 
 		// Remove anything that's not present in the schema.
 		foreach ( array( 'styles', 'settings' ) as $subtree ) {
@@ -2258,7 +2317,8 @@ class WP_Theme_JSON {
 		 * Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
 		 */
 		if ( $has_block_gap_support || $has_fallback_gap_support ) {
-			$block_gap_value = null;
+			$block_gap_value     = null;
+			$block_gap_row_value = null;
 			// Use a fallback gap value if block gap support is not available.
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
@@ -2268,16 +2328,27 @@ class WP_Theme_JSON {
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
 			}
+			$block_gap_row_value = $block_gap_value;
 
 			// Support split row / column values and concatenate to a shorthand value.
 			if ( is_array( $block_gap_value ) ) {
-				if ( isset( $block_gap_value['top'] ) && isset( $block_gap_value['left'] ) ) {
-					$gap_row         = static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) );
-					$gap_column      = static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) );
-					$block_gap_value = $gap_row === $gap_column ? $gap_row : $gap_row . ' ' . $gap_column;
+				$has_block_gap_row_value    = isset( $block_gap_value['top'] );
+				$has_block_gap_column_value = isset( $block_gap_value['left'] );
+
+				if ( $has_block_gap_row_value || $has_block_gap_column_value ) {
+					$block_gap_row_value    = $has_block_gap_row_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) )
+						: '0';
+					$block_gap_column_value = $has_block_gap_column_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) )
+						: '0';
+					$block_gap_value        = $block_gap_row_value === $block_gap_column_value
+						? $block_gap_row_value
+						: $block_gap_row_value . ' ' . $block_gap_column_value;
 				} else {
-					// Skip outputting gap value if not all sides are provided.
-					$block_gap_value = null;
+					// Skip outputting a gap value if neither supported axis is provided.
+					$block_gap_value     = null;
+					$block_gap_row_value = null;
 				}
 			}
 
@@ -2289,8 +2360,11 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = $layout_definition['className'] ?? false;
-					$spacing_rules = $layout_definition['spacingStyles'] ?? array();
+					$class_name       = $layout_definition['className'] ?? false;
+					$spacing_rules    = $layout_definition['spacingStyles'] ?? array();
+					$layout_gap_value = in_array( $layout_definition_key, array( 'default', 'constrained' ), true )
+						? $block_gap_row_value
+						: $block_gap_value;
 
 					if (
 						! empty( $class_name ) &&
@@ -2305,7 +2379,7 @@ class WP_Theme_JSON {
 							) {
 								// Iterate over each of the styling rules and substitute non-string values such as `null` with the real `blockGap` value.
 								foreach ( $spacing_rule['rules'] as $css_property => $css_value ) {
-									$current_css_value = is_string( $css_value ) ? $css_value : $block_gap_value;
+									$current_css_value = is_string( $css_value ) ? $css_value : $layout_gap_value;
 									if ( static::is_safe_css_declaration( $css_property, $current_css_value ) ) {
 										$declarations[] = array(
 											'name'  => $css_property,
@@ -3009,12 +3083,12 @@ class WP_Theme_JSON {
 	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
 	 * @since 6.7.0 `ref` resolution of background properties, and assigning custom default values.
 	 *
-	 * @param array   $styles           Styles to process.
-	 * @param array   $settings         Theme settings.
-	 * @param array   $properties       Properties metadata.
-	 * @param array   $theme_json       Theme JSON array.
-	 * @param string  $selector         The style block selector.
-	 * @param boolean $use_root_padding Whether to add custom properties at root level.
+	 * @param array  $styles           Styles to process.
+	 * @param array  $settings         Theme settings.
+	 * @param array  $properties       Properties metadata.
+	 * @param array  $theme_json       Theme JSON array.
+	 * @param string $selector         The style block selector.
+	 * @param bool   $use_root_padding Whether to add custom properties at root level.
 	 * @return array Returns the modified $declarations.
 	 */
 	protected static function compute_style_properties( $styles, $settings = array(), $properties = null, $theme_json = null, $selector = null, $use_root_padding = null ) {
@@ -5593,6 +5667,7 @@ class WP_Theme_JSON {
 	 * For example, `var:preset|color|vivid-green-cyan` becomes `var(--wp--preset--color--vivid-green-cyan)`.
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 Preset reference slugs are kebab-cased to match the generated custom properties.
 	 *
 	 * @param string $value The variable such as var:preset|color|vivid-green-cyan to convert.
 	 * @return string The converted variable.
@@ -5603,12 +5678,29 @@ class WP_Theme_JSON {
 		$token_in   = '|';
 		$token_out  = '--';
 		if ( str_starts_with( $value, $prefix ) ) {
-			$unwrapped_name = str_replace(
-				$token_in,
-				$token_out,
-				substr( $value, $prefix_len )
-			);
-			$value          = "var(--wp--$unwrapped_name)";
+			$parts = explode( $token_in, substr( $value, $prefix_len ) );
+
+			/*
+			 * The slug of a preset reference is kebab-cased so the resulting
+			 * custom property matches the one generated from the preset,
+			 * whose slug is also kebab-cased (see `get_settings_values_by_slug()`).
+			 * For slugs that are not already kebab-cased (e.g. `n27`), a verbatim
+			 * conversion produces a reference to a custom property that does
+			 * not exist (`--wp--preset--font-family--n27` instead of the
+			 * generated `--wp--preset--font-family--n-27`).
+			 *
+			 * Duotone is the exception: its custom properties are generated by
+			 * `WP_Duotone` from the presets it registers in
+			 * `get_all_global_styles_presets()`. Duotone references are
+			 * kebab-cased all the same: the editor and the JS style engine
+			 * kebab-case the references of every preset type, and
+			 * `WP_Duotone` looks up presets by kebab-cased filter ID.
+			 */
+			if ( 3 === count( $parts ) && 'preset' === $parts[0] ) {
+				$parts[2] = _wp_to_kebab_case( $parts[2] );
+			}
+
+			$value = 'var(--wp--' . implode( $token_out, $parts ) . ')';
 		}
 
 		return $value;
@@ -5825,7 +5917,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( 0 <= strpos( $style, 'var(' ) ) {
+			if ( str_contains( $style, 'var(' ) ) {
 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
 
 				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
