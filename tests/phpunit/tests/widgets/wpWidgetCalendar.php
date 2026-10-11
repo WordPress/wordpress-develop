@@ -48,7 +48,9 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	 */
 	private function reset_calendar_widget_instance_count() {
 		$property = new ReflectionProperty( 'WP_Widget_Calendar', 'instance' );
-		$property->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
 		$property->setValue( null, 0 );
 	}
 
@@ -78,6 +80,9 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	 * @covers WP_Widget_Calendar::widget
 	 */
 	public function test_widget_output_without_title() {
+		// get_calendar() outputs nothing unless at least one post exists.
+		self::factory()->post->create();
+
 		$widget   = new WP_Widget_Calendar();
 		$instance = array();
 
@@ -88,6 +93,23 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'widget-title', $output );
 		$this->assertStringContainsString( '<div id="calendar_wrap" class="calendar_wrap">', $output );
 		$this->assertStringContainsString( '<table id="wp-calendar"', $output );
+	}
+
+	/**
+	 * Tests that widget() outputs an empty calendar wrapper when there are no posts.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers WP_Widget_Calendar::widget
+	 */
+	public function test_widget_output_without_posts() {
+		$widget   = new WP_Widget_Calendar();
+		$instance = array();
+
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
+
+		$this->assertStringContainsString( '<div id="calendar_wrap" class="calendar_wrap"></div>', $output );
+		$this->assertStringNotContainsString( '<table id="wp-calendar"', $output );
 	}
 
 	/**
