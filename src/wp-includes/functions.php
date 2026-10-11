@@ -9459,7 +9459,7 @@ function wp_admin_notice( $message, $args = array() ) {
 	 */
 	do_action( 'wp_admin_notice', $message, $args );
 
-	echo wp_kses_post( wp_get_admin_notice( $message, $args ) );
+	echo wp_get_admin_notice( $message, $args );
 }
 
 /**
