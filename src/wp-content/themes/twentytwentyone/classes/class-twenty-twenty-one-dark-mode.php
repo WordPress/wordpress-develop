@@ -342,19 +342,17 @@ class Twenty_Twenty_One_Dark_Mode {
 			);
 		};
 
-		$margin_side       = is_rtl() ? 'right' : 'left';
-		$escaped_off_label = $escape_css_string( __( 'Off', 'twentytwentyone' ) );
-		$escaped_on_label  = $escape_css_string( __( 'On', 'twentytwentyone' ) );
+		$margin_side = is_rtl() ? 'right' : 'left';
 
 		$css = <<<CSS
 			#dark-mode-toggler > span {
 				margin-{$margin_side}: 5px;
 			}
 			#dark-mode-toggler > span::before {
-				content: '{$escaped_off_label}';
+				content: '{$escape_css_string( __( 'Off', 'twentytwentyone' ) )}';
 			}
 			#dark-mode-toggler[aria-pressed="true"] > span::before {
-				content: '{$escaped_on_label}';
+				content: '{$escape_css_string( __( 'On', 'twentytwentyone' ) )}';
 			}
 CSS;
 
