@@ -88,10 +88,13 @@ function twentytwelve_header_style() {
 CSS;
 	} else {
 		// The user has set a custom color for the text, so use that.
+		// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
+		$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
+
 		$css = <<<CSS
 		.site-header h1 a,
 		.site-header h2 {
-			color: #{$text_color};
+			color: #{$sanitized_text_color};
 		}
 CSS;
 	}

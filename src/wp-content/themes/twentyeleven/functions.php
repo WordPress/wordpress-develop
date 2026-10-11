@@ -348,10 +348,13 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 CSS;
 		} else {
 			// The user has set a custom color for the text, so use that.
+			// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
+			$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
+
 			$css = <<<CSS
 			#site-title a,
 			#site-description {
-				color: #{$text_color};
+				color: #{$sanitized_text_color};
 			}
 CSS;
 		}
@@ -402,10 +405,13 @@ CSS;
 		// If the user has set a custom color for the text, use that.
 		$text_color = get_header_textcolor();
 		if ( HEADER_TEXTCOLOR !== $text_color ) {
+			// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
+			$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
+
 			$css[] = <<<CSS
 			#site-title a,
 			#site-description {
-				color: #{$text_color};
+				color: #{$sanitized_text_color};
 			}
 CSS;
 		}
