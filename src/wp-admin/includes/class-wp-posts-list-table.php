@@ -613,6 +613,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 * list table.
 		 *
 		 * @since 4.4.0
+		 * @since 6.9.0 No longer fires for `$which === 'bottom'` when the list table has no items.
 		 *
 		 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 		 */
