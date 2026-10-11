@@ -16,11 +16,16 @@
 class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 
 	/**
-	 * Clean up global post and query state after each test.
+	 * Default widget arguments.
+	 *
+	 * @var array
 	 */
-	public function tear_down() {
-		parent::tear_down();
-	}
+	protected $args = array(
+		'before_widget' => '<section id="search-2" class="widget widget_search">',
+		'after_widget'  => "</section>\n",
+		'before_title'  => '<h2 class="widget-title">',
+		'after_title'   => "</h2>\n",
+	);
 
 	/**
 	 * Tests the constructor settings and options.
@@ -49,15 +54,9 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public function test_widget_output_without_title() {
 		$widget   = new WP_Widget_Search();
-		$args     = array(
-			'before_widget' => '<section id="search-2" class="widget widget_search">',
-			'after_widget'  => "</section>\n",
-			'before_title'  => '<h2 class="widget-title">',
-			'after_title'   => "</h2>\n",
-		);
 		$instance = array();
 
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
 
 		$this->assertStringStartsWith( '<section id="search-2" class="widget widget_search">', $output );
 		$this->assertStringEndsWith( "</section>\n", $output );
@@ -74,15 +73,9 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public function test_widget_output_with_title() {
 		$widget   = new WP_Widget_Search();
-		$args     = array(
-			'before_widget' => '<section id="search-2" class="widget widget_search">',
-			'after_widget'  => "</section>\n",
-			'before_title'  => '<h2 class="widget-title">',
-			'after_title'   => "</h2>\n",
-		);
 		$instance = array( 'title' => 'Find Something' );
 
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
 
 		$this->assertStringContainsString( '<h2 class="widget-title">Find Something</h2>', $output );
 		$this->assertStringContainsString( '<form role="search"', $output );
@@ -97,12 +90,6 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public function test_widget_applies_widget_title_filter() {
 		$widget   = new WP_Widget_Search();
-		$args     = array(
-			'before_widget' => '<section id="search-2" class="widget widget_search">',
-			'after_widget'  => "</section>\n",
-			'before_title'  => '<h2 class="widget-title">',
-			'after_title'   => "</h2>\n",
-		);
 		$instance = array( 'title' => 'Initial Title' );
 
 		$filter = new MockAction();
@@ -115,7 +102,7 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 			20
 		);
 
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
 
 		$this->assertStringContainsString( '<h2 class="widget-title">Filtered Search Title</h2>', $output );
 		$this->assertSame(
@@ -134,17 +121,11 @@ class Tests_Widgets_wpWidgetSearch extends WP_UnitTestCase {
 	 */
 	public function test_widget_omits_empty_filtered_title() {
 		$widget   = new WP_Widget_Search();
-		$args     = array(
-			'before_widget' => '<section id="search-2" class="widget widget_search">',
-			'after_widget'  => "</section>\n",
-			'before_title'  => '<h2 class="widget-title">',
-			'after_title'   => "</h2>\n",
-		);
 		$instance = array( 'title' => 'Will Be Emptied' );
 
 		add_filter( 'widget_title', '__return_empty_string' );
 
-		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
+		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
 
 		$this->assertStringNotContainsString( 'widget-title', $output );
 	}
