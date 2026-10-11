@@ -668,7 +668,7 @@ body {
 }
 
 p {
-  font-size: 22px;
+  font-size: inherit;
 }
 
 h1,
