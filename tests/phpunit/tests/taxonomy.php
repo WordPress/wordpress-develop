@@ -83,6 +83,25 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( 'Categories: <span class="foo"><a href="' . $link . '">Uncategorized</a></span>.', $taxes['category'] );
 	}
 
+	/**
+	 * The term URL fills an `href`, so it must be escaped with esc_url() to
+	 * enforce the protocol allowlist, matching get_the_term_list(). A term_link
+	 * filter returning a javascript: URL must not survive into the markup.
+	 */
+	public function test_get_the_taxonomies_escapes_term_url() {
+		$post_id = self::factory()->post->create();
+
+		add_filter( 'term_link', array( $this, 'filter_term_link_to_js' ) );
+		$taxes = get_the_taxonomies( $post_id );
+		remove_filter( 'term_link', array( $this, 'filter_term_link_to_js' ) );
+
+		$this->assertStringNotContainsString( 'javascript:', $taxes['category'] );
+	}
+
+	public function filter_term_link_to_js() {
+		return 'javascript:alert(1)';
+	}
+
 	public function test_the_taxonomies() {
 		$post_id = self::factory()->post->create();
 
