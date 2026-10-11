@@ -103,6 +103,12 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	 * @covers WP_Widget_Calendar::widget
 	 */
 	public function test_widget_output_without_posts() {
+		/*
+		 * get_calendar() skips its "no posts" check when the global $posts is populated,
+		 * which can happen when it is left over from a previous test.
+		 */
+		unset( $GLOBALS['posts'] );
+
 		$widget   = new WP_Widget_Calendar();
 		$instance = array();
 
