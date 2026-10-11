@@ -570,6 +570,28 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Adds a `Last-Modified` response header based on the post modified time (GMT). (#47676)
+	 *
+	 * Enables clients to send `If-Unmodified-Since` on subsequent write requests.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_REST_Response $response Response object.
+	 * @param WP_Post          $post     Post object.
+	 */
+	protected function add_last_modified_header( $response, $post ) {
+		$modified = get_post_datetime( $post, 'modified', 'gmt' );
+		if ( ! $modified ) {
+			return;
+		}
+
+		$response->header(
+			'Last-Modified',
+			gmdate( 'D, d M Y H:i:s', $modified->getTimestamp() ) . ' GMT'
+		);
+	}
+
+	/**
 	 * Checks if a given request has access to read a post.
 	 *
 	 * @since 4.7.0
@@ -672,6 +694,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( is_post_type_viewable( get_post_type_object( $post->post_type ) ) ) {
 			$response->link_header( 'alternate', get_permalink( $post->ID ), array( 'type' => 'text/html' ) );
 		}
+
+		$this->add_last_modified_header( $response, $post );
 
 		return $response;
 	}
@@ -930,6 +954,21 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$if_unmodified_since = $request->get_header( 'If-Unmodified-Since' );
+		if ( $if_unmodified_since ) {
+			$client_time = strtotime( $if_unmodified_since );
+			if ( false !== $client_time ) {
+				$modified = get_post_datetime( $post, 'modified', 'gmt' );
+				if ( $modified && $modified->getTimestamp() > $client_time ) {
+					return new WP_Error(
+						'rest_precondition_failed',
+						__( 'Sorry, the post has been modified on the server since you started editing it. Conflict resolution is required.' ),
+						array( 'status' => 412 )
+					);
+				}
+			}
+		}
+
 		return true;
 	}
 
@@ -1040,8 +1079,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Filter is fired in WP_REST_Attachments_Controller subclass.
 		if ( 'attachment' === $this->post_type ) {
-			$response = $this->prepare_item_for_response( $post, $request );
-			return rest_ensure_response( $response );
+			$response = rest_ensure_response( $this->prepare_item_for_response( $post, $request ) );
+			$this->add_last_modified_header( $response, $post );
+			return $response;
 		}
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
@@ -1049,9 +1089,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		wp_after_insert_post( $post, true, $post_before );
 
-		$response = $this->prepare_item_for_response( $post, $request );
+		$response = rest_ensure_response( $this->prepare_item_for_response( $post, $request ) );
 
-		return rest_ensure_response( $response );
+		$this->add_last_modified_header( $response, $post );
+
+		return $response;
 	}
 
 	/**
