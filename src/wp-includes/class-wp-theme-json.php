@@ -1140,7 +1140,7 @@ class WP_Theme_JSON {
 		// In addition to presets, spacingScale (which generates presets) is also keyed by origin.
 		$scale_path    = array( 'settings', 'spacing', 'spacingScale' );
 		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
-		if ( null !== $spacing_scale ) {
+		if ( is_array( $spacing_scale ) ) {
 			// If the spacingScale is not already keyed by origin.
 			if ( empty( array_intersect( array_keys( $spacing_scale ), static::VALID_ORIGINS ) ) ) {
 				_wp_array_set( $this->theme_json, $scale_path, array( $origin => $spacing_scale ) );
@@ -1214,7 +1214,10 @@ class WP_Theme_JSON {
 			foreach ( $registered_variations as $variation_name ) {
 				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
 				$top_level_data   = $variations[ $variation_name ] ?? array();
-				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );
+				if ( ! is_array( $block_level_data ) || ! is_array( $top_level_data ) ) {
+					continue;
+				}
+				$merged_data = array_replace_recursive( $top_level_data, $block_level_data );
 				if ( ! empty( $merged_data ) ) {
 					_wp_array_set( $new_theme_json, array( 'styles', 'blocks', $block_type, 'variations', $variation_name ), $merged_data );
 				}
@@ -1493,7 +1496,7 @@ class WP_Theme_JSON {
 		if ( ! empty( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
 			$variation_pseudo_selectors = array();
 			foreach ( $input['blockTypes'] as $variation_block_type ) {
-				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
+				if ( is_string( $variation_block_type ) && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
 					$variation_pseudo_selectors = array_merge(
 						$variation_pseudo_selectors,
 						static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ]
@@ -2121,7 +2124,7 @@ class WP_Theme_JSON {
 	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
-		if ( empty( $css ) ) {
+		if ( empty( $css ) || ! is_string( $css ) ) {
 			return $processed_css;
 		}
 
@@ -3241,7 +3244,7 @@ class WP_Theme_JSON {
 		 * In the case of backgroundImage, if both a ref and a URL are present in the value,
 		 * the URL takes precedence and the ref is ignored.
 		 */
-		if ( is_array( $value ) && isset( $value['ref'] ) ) {
+		if ( is_array( $value ) && isset( $value['ref'] ) && is_string( $value['ref'] ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
 			// Background Image refs can refer to a string or an array containing a URL string.
@@ -5569,6 +5572,7 @@ class WP_Theme_JSON {
 			! isset( $spacing_scale['mediumStep'] ) ||
 			! is_numeric( $spacing_scale['mediumStep'] ) ||
 			! isset( $spacing_scale['unit'] ) ||
+			! is_string( $spacing_scale['unit'] ) ||
 			! isset( $spacing_scale['operator'] ) ||
 			( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ||
 			! isset( $spacing_scale['increment'] ) ||
