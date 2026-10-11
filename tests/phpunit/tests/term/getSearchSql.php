@@ -132,7 +132,9 @@ class Tests_Term_GetSearchSql extends WP_UnitTestCase {
 	 */
 	public function test_get_search_sql_structure() {
 		$reflection_method = new ReflectionMethod( 'WP_Term_Query', 'get_search_sql' );
-		$reflection_method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$reflection_method->setAccessible( true );
+		}
 
 		$query = new WP_Term_Query();
 
