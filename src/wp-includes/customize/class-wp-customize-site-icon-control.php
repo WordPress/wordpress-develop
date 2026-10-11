@@ -62,7 +62,7 @@ class WP_Customize_Site_Icon_Control extends WP_Customize_Cropped_Image_Control 
 					wp_print_inline_style_tag(
 						<<<'CSS'
 						:root{
-							--site-icon-url: url( '{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}' );
+							--site-icon-url: url( "{{ data.attachment.sizes.full ? data.attachment.sizes.full.url : data.attachment.url }}" );
 						}
 						CSS
 					);
