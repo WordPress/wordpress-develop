@@ -141,7 +141,7 @@ CSS;
 
 		// Has a Custom Header been added?
 		if ( ! empty( $header_image ) ) {
-			$escaped_header_image = esc_url_raw( $header_image );
+			$esc_url_raw = 'esc_url_raw';
 
 			$css[] = <<<CSS
 		.site-header {
@@ -150,7 +150,7 @@ CSS;
 			 * No shorthand so the Customizer can override individual properties.
 			 * @see https://core.trac.wordpress.org/ticket/31460
 			 */
-			background-image: url("{$escaped_header_image}");
+			background-image: url("{$esc_url_raw( $header_image )}");
 			background-repeat: no-repeat;
 			background-position: 50% 50%;
 			-webkit-background-size: cover;
@@ -166,7 +166,7 @@ CSS;
 				 * No shorthand so the Customizer can override individual properties.
 				 * @see https://core.trac.wordpress.org/ticket/31460
 				 */
-				background-image: url("{$escaped_header_image}");
+				background-image: url("{$esc_url_raw( $header_image )}");
 				background-repeat: no-repeat;
 				background-position: 100% 50%;
 				-webkit-background-size: cover;

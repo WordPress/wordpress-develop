@@ -99,11 +99,11 @@ function twentythirteen_header_style() {
 	$css = array();
 
 	if ( ! empty( $header_image ) ) {
-		$escaped_header_image = esc_url_raw( $header_image );
+		$esc_url_raw = 'esc_url_raw';
 
 		$css[] = <<<CSS
 		.site-header {
-			background: url("{$escaped_header_image}") no-repeat scroll top;
+			background: url("{$esc_url_raw( $header_image )}") no-repeat scroll top;
 			background-size: 1600px auto;
 		}
 		@media (max-width: 767px) {
@@ -169,8 +169,8 @@ function twentythirteen_admin_header_style() {
 
 	$header_image_declarations = '';
 	if ( ! empty( $header_image ) ) {
-		$escaped_header_image      = esc_url_raw( $header_image );
-		$header_image_declarations = "background: url(\"{$escaped_header_image}\") no-repeat scroll top; background-size: 1600px auto;";
+		$esc_url_raw               = 'esc_url_raw';
+		$header_image_declarations = "background: url(\"{$esc_url_raw( $header_image )}\") no-repeat scroll top; background-size: 1600px auto;";
 	}
 
 	$min_height_declaration = '';
