@@ -24,6 +24,13 @@ class Tests_Admin_PluginInstallerSkin extends WP_PluginDependencies_UnitTestCase
 	private $plugin_file = '';
 
 	/**
+	 * Path to the dependency plugin's main file, relative to the plugins directory.
+	 *
+	 * @var string
+	 */
+	private $dependency_file = '';
+
+	/**
 	 * The action links passed to the 'install_plugin_complete_actions' filter.
 	 *
 	 * @var string[]|null
@@ -54,13 +61,14 @@ class Tests_Admin_PluginInstallerSkin extends WP_PluginDependencies_UnitTestCase
 	}
 
 	/**
-	 * Removes the test plugin after each test.
+	 * Removes the test plugins after each test.
 	 */
 	public function tear_down() {
-		if ( $this->plugin_file ) {
-			$plugin_dir = WP_PLUGIN_DIR . '/' . dirname( $this->plugin_file );
-			unlink( WP_PLUGIN_DIR . '/' . $this->plugin_file );
-			rmdir( $plugin_dir );
+		foreach ( array( $this->plugin_file, $this->dependency_file ) as $file ) {
+			if ( $file ) {
+				unlink( WP_PLUGIN_DIR . '/' . $file );
+				rmdir( WP_PLUGIN_DIR . '/' . dirname( $file ) );
+			}
 		}
 
 		wp_clean_plugins_cache( false );
@@ -154,5 +162,32 @@ class Tests_Admin_PluginInstallerSkin extends WP_PluginDependencies_UnitTestCase
 			'An activation link should be offered.'
 		);
 		$this->assertStringNotContainsString( 'notice-error', $output, 'No error notice should be displayed.' );
+	}
+
+	/**
+	 * Tests that activation links are not offered when the required plugin is inactive.
+	 *
+	 * @ticket 66184
+	 */
+	public function test_should_not_offer_activation_when_required_plugin_is_inactive() {
+		// Install the dependency without activating it.
+		$dep_slug              = 'plugin-installer-skin-dependency';
+		$this->dependency_file = $dep_slug . '/' . $dep_slug . '.php';
+
+		mkdir( WP_PLUGIN_DIR . '/' . $dep_slug );
+		file_put_contents(
+			WP_PLUGIN_DIR . '/' . $this->dependency_file,
+			"<?php\n/**\n * Plugin Name: Plugin Installer Skin Dependency\n */\n"
+		);
+
+		$this->create_plugin( $dep_slug );
+
+		$output = $this->run_after();
+
+		$this->assertIsArray( $this->install_actions, 'The install actions filter did not run.' );
+		$this->assertArrayNotHasKey( 'activate_plugin', $this->install_actions, 'The Activate Plugin link should not be offered.' );
+		$this->assertArrayNotHasKey( 'network_activate', $this->install_actions, 'The Network Activate link should not be offered.' );
+		$this->assertStringContainsString( 'notice-error', $output, 'An error notice should be displayed.' );
+		$this->assertStringContainsString( 'Plugin Installer Skin Dependency', $output, 'The error notice should name the inactive plugin.' );
 	}
 }
