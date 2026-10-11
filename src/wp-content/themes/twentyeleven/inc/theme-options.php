@@ -452,6 +452,7 @@ add_action( 'wp_enqueue_scripts', 'twentyeleven_enqueue_color_scheme' );
  * This function is attached to the wp_head action hook.
  *
  * @since Twenty Eleven 1.0
+ * @since Twenty Eleven 5.3 Added `wp_print_inline_style_tag()` support.
  */
 function twentyeleven_print_link_color_style() {
 	$options    = twentyeleven_get_theme_options();
@@ -463,35 +464,40 @@ function twentyeleven_print_link_color_style() {
 	if ( $default_options['link_color'] === $link_color ) {
 		return;
 	}
-	?>
-	<style>
-		/* Link color */
-		a,
-		#site-title a:focus,
-		#site-title a:hover,
-		#site-title a:active,
-		.entry-title a:hover,
-		.entry-title a:focus,
-		.entry-title a:active,
-		.widget_twentyeleven_ephemera .comments-link a:hover,
-		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
-		section.recent-posts .other-recent-posts .comments-link a:hover,
-		.format-image footer.entry-meta a:hover,
-		#site-generator a:hover {
-			color: <?php echo $link_color; ?>;
-		}
-		section.recent-posts .other-recent-posts .comments-link a:hover {
-			border-color: <?php echo $link_color; ?>;
-		}
-		article.feature-image.small .entry-summary p a:hover,
-		.entry-header .comments-link a:hover,
-		.entry-header .comments-link a:focus,
-		.entry-header .comments-link a:active,
-		.feature-slider a.active {
-			background-color: <?php echo $link_color; ?>;
-		}
-	</style>
-	<?php
+
+	$css = <<<CSS
+	/* Link color */
+	a,
+	#site-title a:focus,
+	#site-title a:hover,
+	#site-title a:active,
+	.entry-title a:hover,
+	.entry-title a:focus,
+	.entry-title a:active,
+	.widget_twentyeleven_ephemera .comments-link a:hover,
+	section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+	section.recent-posts .other-recent-posts .comments-link a:hover,
+	.format-image footer.entry-meta a:hover,
+	#site-generator a:hover {
+		color: {$link_color};
+	}
+	section.recent-posts .other-recent-posts .comments-link a:hover {
+		border-color: {$link_color};
+	}
+	article.feature-image.small .entry-summary p a:hover,
+	.entry-header .comments-link a:hover,
+	.entry-header .comments-link a:focus,
+	.entry-header .comments-link a:active,
+	.feature-slider a.active {
+		background-color: {$link_color};
+	}
+CSS;
+
+	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
+		wp_print_inline_style_tag( $css );
+	} else {
+		echo "<style>\n{$css}\n</style>\n";
+	}
 }
 add_action( 'wp_head', 'twentyeleven_print_link_color_style' );
 
