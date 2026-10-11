@@ -707,4 +707,75 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 			$this->assertStringContainsString( __( 'Enabling this cache can significantly improve the performance of your site.' ), $result['description'] );
 		}
 	}
+
+	/**
+	 * Tests get_test_utf8mb3_usage() when no tables use the legacy utf8/utf8mb3 charset.
+	 *
+	 * @ticket 66109
+	 *
+	 * @covers ::get_test_utf8mb3_usage()
+	 */
+	public function test_get_test_utf8mb3_usage_no_legacy_charset() {
+		global $wpdb;
+
+		if ( empty( $wpdb->is_mysql ) ) {
+			$this->markTestSkipped( 'This test requires a MySQL server.' );
+		}
+
+		$table_name = $wpdb->prefix . 'test_utf8mb3_usage_good';
+		$wpdb->query( "DROP TABLE IF EXISTS `$table_name`" );
+		$wpdb->query( "CREATE TABLE `$table_name` ( some_column VARCHAR(50) CHARACTER SET utf8mb4 )" );
+
+		$filter = self::only_table_filter( $table_name );
+		add_filter( 'site_status_utf8mb3_usage_tables', $filter );
+		$result = $this->instance->get_test_utf8mb3_usage();
+		remove_filter( 'site_status_utf8mb3_usage_tables', $filter );
+
+		$wpdb->query( "DROP TABLE `$table_name`" );
+
+		$this->assertSame( 'good', $result['status'], 'Status should be "good" when no tables use the legacy utf8/utf8mb3 charset.' );
+		$this->assertSame( 'utf8mb3_usage', $result['test'] );
+	}
+
+	/**
+	 * Tests get_test_utf8mb3_usage() when a table uses the legacy utf8/utf8mb3 charset.
+	 *
+	 * @ticket 66109
+	 *
+	 * @covers ::get_test_utf8mb3_usage()
+	 */
+	public function test_get_test_utf8mb3_usage_with_legacy_charset() {
+		global $wpdb;
+
+		if ( empty( $wpdb->is_mysql ) ) {
+			$this->markTestSkipped( 'This test requires a MySQL server.' );
+		}
+
+		$table_name = $wpdb->prefix . 'test_utf8mb3_usage';
+		$wpdb->query( "DROP TABLE IF EXISTS `$table_name`" );
+		$wpdb->query( "CREATE TABLE `$table_name` ( legacy_column VARCHAR(50) CHARACTER SET utf8mb3, other_column VARCHAR(50) CHARACTER SET utf8mb4 )" );
+
+		$filter = self::only_table_filter( $table_name );
+		add_filter( 'site_status_utf8mb3_usage_tables', $filter );
+		$result = $this->instance->get_test_utf8mb3_usage();
+		remove_filter( 'site_status_utf8mb3_usage_tables', $filter );
+
+		$wpdb->query( "DROP TABLE `$table_name`" );
+
+		$this->assertSame( 'recommended', $result['status'], 'Status should be "recommended" when a table uses the legacy utf8/utf8mb3 charset.' );
+		$this->assertStringContainsString( $table_name . '.legacy_column', $result['description'] );
+		$this->assertStringNotContainsString( $table_name . '.other_column', $result['description'] );
+	}
+
+	/**
+	 * Builds a `site_status_utf8mb3_usage_tables` filter callback scoped to a single table.
+	 *
+	 * @param string $table_name The only table name the filtered test should scan.
+	 * @return callable The filter callback.
+	 */
+	private static function only_table_filter( $table_name ) {
+		return static function () use ( $table_name ) {
+			return array( $table_name );
+		};
+	}
 }

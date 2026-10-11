@@ -2836,6 +2836,89 @@ class WP_Site_Health {
 	}
 
 	/**
+	 * Tests whether any of the site's database tables use the legacy utf8/utf8mb3 charset.
+	 *
+	 * The utf8mb3 charset (historically also exposed as `utf8` in MySQL) can only store
+	 * 3-byte characters, so it cannot store emoji and some other multi-byte characters.
+	 * It has been deprecated by MySQL and may be removed in a future release.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, string|array<string, string>> The test result.
+	 */
+	public function get_test_utf8mb3_usage() {
+		global $wpdb;
+
+		$result = array(
+			'label'       => __( 'Your database tables use the current character encoding' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The utf8mb3 character set (sometimes shown as utf8) can only store 3-byte characters, so it cannot store emoji and some other characters. It has been deprecated by MySQL and may be removed in a future release.' )
+			),
+			'actions'     => '',
+			'test'        => 'utf8mb3_usage',
+		);
+
+		if ( empty( $wpdb->is_mysql ) ) {
+			return $result;
+		}
+
+		/**
+		 * Filters the list of database tables to check for the legacy utf8/utf8mb3 character set.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string[] $tables Prefixed names of the tables to check.
+		 */
+		$tables = apply_filters( 'site_status_utf8mb3_usage_tables', array_values( $wpdb->tables( 'all', true ) ) );
+
+		$affected_list = array();
+
+		foreach ( $tables as $table ) {
+			$columns = $wpdb->get_results( "SHOW FULL COLUMNS FROM `$table`" );
+
+			if ( ! $columns ) {
+				continue;
+			}
+
+			foreach ( $columns as $column ) {
+				if ( empty( $column->Collation ) ) {
+					continue;
+				}
+
+				list( $charset ) = explode( '_', $column->Collation );
+
+				if ( in_array( strtolower( $charset ), array( 'utf8', 'utf8mb3' ), true ) ) {
+					$affected_list[] = sprintf( '%s.%s', $table, $column->Field );
+				}
+			}
+		}
+
+		if ( empty( $affected_list ) ) {
+			return $result;
+		}
+
+		$result['status'] = 'recommended';
+		$result['label']  = __( 'Some database tables use the outdated utf8mb3 character set' );
+
+		$result['description'] .= sprintf(
+			'<p>%s</p>',
+			sprintf(
+				/* translators: %s: Comma-separated list of affected table and column names. */
+				__( 'The following tables and columns use the utf8mb3 character set: %s. Consider converting them to utf8mb4.' ),
+				implode( ', ', $affected_list )
+			)
+		);
+
+		return $result;
+	}
+
+	/**
 	 * Returns a set of tests that belong to the site status page.
 	 *
 	 * Each site status test is defined here, they may be `direct` tests, that run on page load, or `async` tests
@@ -2934,6 +3017,10 @@ class WP_Site_Health {
 				'opcode_cache'                 => array(
 					'label' => __( 'Opcode cache' ),
 					'test'  => 'opcode_cache',
+				),
+				'utf8mb3_usage'                => array(
+					'label' => __( 'Database character encoding' ),
+					'test'  => 'utf8mb3_usage',
 				),
 			),
 			'async'  => array(
