@@ -9,6 +9,31 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	private static $blogmeta;
 	private static $sitemeta;
 
+	private $orig_options;
+	private $orig_blogmeta;
+	private $orig_sitemeta;
+
+	public function set_up() {
+		parent::set_up();
+		global $wpdb;
+
+		$this->orig_options  = $wpdb->options;
+		$this->orig_blogmeta = $wpdb->blogmeta;
+		$this->orig_sitemeta = $wpdb->sitemeta;
+	}
+
+	public function tear_down() {
+		global $wpdb;
+
+		$wpdb->options  = $this->orig_options;
+		$wpdb->blogmeta = $this->orig_blogmeta;
+		$wpdb->sitemeta = $this->orig_sitemeta;
+
+		wp_cache_delete( 'alloptions', 'options' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Make sure the schema code is loaded before the tests are run.
 	 */
@@ -111,6 +136,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		$wpdb->options = $orig_options;
 
+		wp_cache_delete( 'alloptions', 'options' );
+
 		$this->assertSame( $expected, $results );
 	}
 
@@ -191,15 +218,16 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$wpdb->options = self::$options;
 
 		// Set the "default" value for the timezone to a deprecated timezone.
+		$filter_callback = static function ( $translation, $text, $context ) {
+			if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
+				return 'America/Buenos_Aires';
+			}
+
+			return $translation;
+		};
 		add_filter(
 			'gettext_with_context',
-			static function ( $translation, $text, $context ) {
-				if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
-					return 'America/Buenos_Aires';
-				}
-
-				return $translation;
-			},
+			$filter_callback,
 			10,
 			3
 		);
@@ -214,6 +242,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		// Reset.
 		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
 		$wpdb->options = $orig_options;
+		remove_filter( 'gettext_with_context', $filter_callback, 10 );
+		wp_cache_delete( 'alloptions', 'options' );
 
 		// Assert.
 		$this->assertSame( 'America/Buenos_Aires', $result );
