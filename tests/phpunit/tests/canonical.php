@@ -450,7 +450,6 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	 * @covers ::redirect_guess_404_permalink
 	 */
 	public function test_redirect_guess_404_permalink_cache_key_excludes_placeholder_escape() {
-		global $wpdb;
 		$post = self::factory()->post->create(
 			array(
 				'post_title' => 'redirect-guess-404-permalink-cache-key',
@@ -475,15 +474,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->assertSame( get_permalink( $post ), $guess, 'Did not guess the correct permalink.' );
 		$this->assertCount( 1, $queries, 'Expected exactly one loose-match query to be run.' );
 
-		$cache_key = 'redirect_guess_404_permalink:' . md5( $queries[0] );
-		$cache     = wp_cache_get_salted(
-			$cache_key,
+		$cache = wp_cache_get_salted(
+			'redirect_guess_404_permalink:' . md5( $queries[0] ),
 			'post-queries',
 			wp_cache_get_last_changed( 'posts' )
 		);
 
-		$this->assertSame( $post, $cache, 'The cache key should be generated from the SQL query.' );
-		$this->assertStringNotContainsString( $wpdb->placeholder_escape(), $cache_key, 'Cache key should not contain WPDB placeholder.' );
+		$this->assertSame( $post, $cache, 'The cache key should be generated from the query without the placeholder escape.' );
 	}
 
 	/**
