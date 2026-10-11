@@ -579,6 +579,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'      => array(),
 		);
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $actual );
 		$this->assertSame( $expected->timestamp, $actual2 );
 	}
@@ -628,12 +629,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( $ts_next, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
@@ -677,12 +681,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_event( $ts_next, $schedule, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
@@ -1053,7 +1060,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_reschedule_event_works_with_args() {
+	public static function data_wp_reschedule_event_works_with_args() {
 		return array(
 			'indexed'     => array(
 				array(

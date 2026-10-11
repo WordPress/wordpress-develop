@@ -127,6 +127,7 @@ class WP_Theme_JSON {
 	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
 	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @since 6.9.0 Added `border.radiusSizes`.
+	 * @since 7.2.0 Added `typography.textShadowPresets`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -187,6 +188,15 @@ class WP_Theme_JSON {
 			'css_vars'          => '--wp--preset--font-family--$slug',
 			'classes'           => array( '.has-$slug-font-family' => 'font-family' ),
 			'properties'        => array( 'font-family' ),
+		),
+		array(
+			'path'              => array( 'typography', 'textShadowPresets' ),
+			'prevent_override'  => array( 'typography', 'defaultTextShadowPresets' ),
+			'use_default_names' => false,
+			'value_key'         => 'textShadow',
+			'css_vars'          => '--wp--preset--text-shadow--$slug',
+			'classes'           => array( '.has-$slug-text-shadow' => 'text-shadow' ),
+			'properties'        => array( 'text-shadow' ),
 		),
 		array(
 			'path'              => array( 'spacing', 'spacingSizes' ),
@@ -419,6 +429,8 @@ class WP_Theme_JSON {
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
+	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
+	 *              and `typography.defaultTextShadowPresets`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -496,22 +508,25 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'typography'                    => array(
-			'fluid'            => null,
-			'customFontSize'   => null,
-			'defaultFontSizes' => null,
-			'dropCap'          => null,
-			'fontFamilies'     => null,
-			'fontSizes'        => null,
-			'fontStyle'        => null,
-			'fontWeight'       => null,
-			'letterSpacing'    => null,
-			'lineHeight'       => null,
-			'textAlign'        => null,
-			'textColumns'      => null,
-			'textDecoration'   => null,
-			'textIndent'       => null,
-			'textTransform'    => null,
-			'writingMode'      => null,
+			'fluid'                    => null,
+			'customFontSize'           => null,
+			'defaultFontSizes'         => null,
+			'dropCap'                  => null,
+			'fontFamilies'             => null,
+			'fontSizes'                => null,
+			'fontStyle'                => null,
+			'fontWeight'               => null,
+			'letterSpacing'            => null,
+			'lineHeight'               => null,
+			'textAlign'                => null,
+			'textColumns'              => null,
+			'textDecoration'           => null,
+			'textIndent'               => null,
+			'textTransform'            => null,
+			'textShadow'               => null,
+			'defaultTextShadowPresets' => null,
+			'textShadowPresets'        => null,
+			'writingMode'              => null,
 		),
 		'viewport'                      => array(
 			'mobile' => null,
@@ -953,6 +968,8 @@ class WP_Theme_JSON {
 
 	/**
 	 * Processes pseudo-selectors for any node (block or variation).
+	 *
+	 * @since 7.0.0
 	 *
 	 * @param array      $node            The node data (block or variation).
 	 * @param string     $base_selector   The base selector.
@@ -2300,7 +2317,8 @@ class WP_Theme_JSON {
 		 * Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
 		 */
 		if ( $has_block_gap_support || $has_fallback_gap_support ) {
-			$block_gap_value = null;
+			$block_gap_value     = null;
+			$block_gap_row_value = null;
 			// Use a fallback gap value if block gap support is not available.
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
@@ -2310,16 +2328,27 @@ class WP_Theme_JSON {
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
 			}
+			$block_gap_row_value = $block_gap_value;
 
 			// Support split row / column values and concatenate to a shorthand value.
 			if ( is_array( $block_gap_value ) ) {
-				if ( isset( $block_gap_value['top'] ) && isset( $block_gap_value['left'] ) ) {
-					$gap_row         = static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) );
-					$gap_column      = static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) );
-					$block_gap_value = $gap_row === $gap_column ? $gap_row : $gap_row . ' ' . $gap_column;
+				$has_block_gap_row_value    = isset( $block_gap_value['top'] );
+				$has_block_gap_column_value = isset( $block_gap_value['left'] );
+
+				if ( $has_block_gap_row_value || $has_block_gap_column_value ) {
+					$block_gap_row_value    = $has_block_gap_row_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) )
+						: '0';
+					$block_gap_column_value = $has_block_gap_column_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) )
+						: '0';
+					$block_gap_value        = $block_gap_row_value === $block_gap_column_value
+						? $block_gap_row_value
+						: $block_gap_row_value . ' ' . $block_gap_column_value;
 				} else {
-					// Skip outputting gap value if not all sides are provided.
-					$block_gap_value = null;
+					// Skip outputting a gap value if neither supported axis is provided.
+					$block_gap_value     = null;
+					$block_gap_row_value = null;
 				}
 			}
 
@@ -2331,8 +2360,11 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = $layout_definition['className'] ?? false;
-					$spacing_rules = $layout_definition['spacingStyles'] ?? array();
+					$class_name       = $layout_definition['className'] ?? false;
+					$spacing_rules    = $layout_definition['spacingStyles'] ?? array();
+					$layout_gap_value = in_array( $layout_definition_key, array( 'default', 'constrained' ), true )
+						? $block_gap_row_value
+						: $block_gap_value;
 
 					if (
 						! empty( $class_name ) &&
@@ -2347,7 +2379,7 @@ class WP_Theme_JSON {
 							) {
 								// Iterate over each of the styling rules and substitute non-string values such as `null` with the real `blockGap` value.
 								foreach ( $spacing_rule['rules'] as $css_property => $css_value ) {
-									$current_css_value = is_string( $css_value ) ? $css_value : $block_gap_value;
+									$current_css_value = is_string( $css_value ) ? $css_value : $layout_gap_value;
 									if ( static::is_safe_css_declaration( $css_property, $current_css_value ) ) {
 										$declarations[] = array(
 											'name'  => $css_property,
@@ -5885,7 +5917,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( 0 <= strpos( $style, 'var(' ) ) {
+			if ( str_contains( $style, 'var(' ) ) {
 				// find all the variables in the string in the form of var(--variable-name, fallback), with fallback in the second capture group.
 
 				$has_matches = preg_match_all( '/var\(([^),]+)?,?\s?(\S+)?\)/', $style, $var_parts );
