@@ -35,7 +35,12 @@ function network_domain_check() {
 function allow_subdomain_install() {
 	$home   = get_option( 'home' );
 	$domain = parse_url( $home, PHP_URL_HOST );
-	if ( parse_url( $home, PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
+
+	$has_path      = (bool) parse_url( $home, PHP_URL_PATH );
+	$is_localhost  = 'localhost' === $domain;
+	$is_ip_address = (bool) preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain );
+
+	if ( $has_path || $is_localhost || $is_ip_address ) {
 		return false;
 	}
 
