@@ -98,9 +98,7 @@ function handle_legacy_widget_preview_iframe() {
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="profile" href="https://gmpg.org/xfn/11" />
 		<?php wp_head(); ?>
-		<?php
-		wp_print_inline_style_tag(
-			<<<'CSS'
+		<style>
 			/* Reset theme styles */
 			html, body, #page, #content {
 				padding: 0 !important;
@@ -133,9 +131,7 @@ function handle_legacy_widget_preview_iframe() {
 			.widget {
 				font-size: var(--global--font-size-base);
 			}
-			CSS
-		);
-		?>
+		</style>
 	</head>
 	<body <?php body_class(); ?>>
 		<div id="page" class="site">
