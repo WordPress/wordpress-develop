@@ -172,6 +172,18 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a non-string value, such as from a misbehaving filter, does not cause a fatal error.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_tag_with_null_data() {
+		$this->assertEqualHTML(
+			"<style>\n\n</style>\n",
+			wp_get_inline_style_tag( null ) // @phpstan-ignore argument.type
+		);
+	}
+
+	/**
 	 * @ticket 51325
 	 */
 	public function test_inline_style_tag_escapes_closing_style_tag() {

@@ -3676,8 +3676,8 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @phpstan-param array<non-falsy-string, string|bool> $attributes
  * @phpstan-return non-falsy-string
  */
-function wp_get_inline_style_tag( string $data, array $attributes = array() ): string {
-	$data = "\n" . trim( $data, "\n\r " ) . "\n";
+function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
+	$data = "\n" . trim( (string) $data, "\n\r " ) . "\n";
 
 	/**
 	 * Filters attributes to be added to an inline style tag.
@@ -3733,7 +3733,7 @@ function wp_get_inline_style_tag( string $data, array $attributes = array() ): s
  *
  * @phpstan-param array<non-falsy-string, string|bool> $attributes
  */
-function wp_print_inline_style_tag( string $data, array $attributes = array() ): void {
+function wp_print_inline_style_tag( $data, array $attributes = array() ): void {
 	echo wp_get_inline_style_tag( $data, $attributes );
 }
 
