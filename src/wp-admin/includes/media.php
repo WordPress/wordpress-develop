@@ -468,7 +468,8 @@ function media_handle_sideload( $file_array, $post_id = 0, $desc = null, $post_d
 	if ( isset( $post_data['post_date'] ) && substr( $post_data['post_date'], 0, 4 ) > 0 ) {
 		$time = $post_data['post_date'];
 	} else {
-		$post = get_post( $post_id );
+		// Avoid get_post() falling back to the global post when no post ID is passed.
+		$post = $post_id ? get_post( $post_id ) : null;
 		if ( $post && substr( $post->post_date, 0, 4 ) > 0 ) {
 			$time = $post->post_date;
 		} else {
