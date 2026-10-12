@@ -243,7 +243,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$is_important = null === $important ? $declaration['important'] : $important;
-		$text         = $this->serialize_declaration( $declaration['raw_name'], $value, $is_important );
+		$text         = $this->serialize_declaration( $declaration['raw_name'], $this->trim_value( $value ), $is_important );
 		$parsed_value = $this->get_parsed_declaration_value( $text );
 		if ( null === $parsed_value ) {
 			return false;
@@ -439,7 +439,7 @@ class WP_HTML_Style_Attribute_Processor {
 
 		$separator        = $this->get_append_separator( $insert_at );
 		$serialized_name  = $this->is_custom_property_name( $property_name ) ? $property_name : strtolower( $property_name );
-		$declaration_text = $this->serialize_declaration( $serialized_name, $value, $important );
+		$declaration_text = $this->serialize_declaration( $serialized_name, $this->trim_value( $value ), $important );
 		$parsed_value     = $this->get_parsed_declaration_value( $declaration_text );
 		if ( null === $parsed_value ) {
 			return false;
@@ -1425,8 +1425,32 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return string Serialized declaration.
 	 */
 	private function serialize_declaration( string $property_name, string $value, bool $important ): string {
-		$value = trim( $value, self::WHITESPACE );
 		return $property_name . ': ' . $value . ( $important ? ' !important' : '' ) . ';';
+	}
+
+	/**
+	 * Removes the whitespace tokens before and after a declaration value.
+	 *
+	 * Whitespace consumed by an escape is part of the value, and a `\` before
+	 * a newline keeps one newline so that it does not escape the next byte.
+	 *
+	 * @param string $value CSS declaration value.
+	 * @return string Trimmed value.
+	 */
+	private function trim_value( string $value ): string {
+		$value     = ltrim( $value, self::WHITESPACE );
+		$processor = WP_CSS_Token_Processor::create( $value );
+		$end       = 0;
+		$is_delim  = false;
+
+		while ( $processor->next_token() ) {
+			if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE !== $processor->get_token_type() ) {
+				$end      = $processor->get_token_start() + $processor->get_token_length();
+				$is_delim = WP_CSS_Token_Processor::TOKEN_DELIM === $processor->get_token_type() && '\\' === $processor->get_token_value();
+			}
+		}
+
+		return substr( $value, 0, $end ) . ( $is_delim ? "\n" : '' );
 	}
 
 	/**

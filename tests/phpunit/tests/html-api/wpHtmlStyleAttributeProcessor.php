@@ -280,6 +280,48 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::set_value
+	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_values_ending_in_escaped_whitespace_or_a_backslash_delimiter
+	 *
+	 * @param string $value   Declaration value.
+	 * @param string $written Expected value text in the updated style.
+	 */
+	public function test_trimming_a_value_keeps_its_final_escape_or_backslash_delimiter( string $value, string $written ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( '--x: 1; width: 1px' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->set_value( $value ), 'Expected set_value() to succeed.' );
+		$this->assertSame( "--x: {$written}; width: 1px", $processor->get_updated_style() );
+
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'width: 1px' );
+
+		$this->assertTrue( $processor->append_declaration( '--x', $value ), 'Expected append_declaration() to succeed.' );
+		$this->assertSame( "width: 1px; --x: {$written};", $processor->get_updated_style() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_values_ending_in_escaped_whitespace_or_a_backslash_delimiter() {
+		return array(
+			'escaped space'                   => array( 'a\\ ', 'a\\ ' ),
+			'escaped space, then whitespace'  => array( "a\\  \t", 'a\\ ' ),
+			'escaped tab'                     => array( "a\\\t", "a\\\t" ),
+			'backslash before a newline'      => array( "a\\\n", "a\\\n" ),
+			'backslash, newline, then spaces' => array( "a\\\n  ", "a\\\n" ),
+			'escaped backslash'               => array( 'a\\\\ ', 'a\\\\' ),
+			'escaped backslash, then a delim' => array( "a\\\\\\\n", "a\\\\\\\n" ),
+		);
+	}
+
+	/**
 	 * @covers ::set_value
 	 * @covers ::is_important
 	 */
