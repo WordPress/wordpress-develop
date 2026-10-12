@@ -19,7 +19,7 @@ To reproduce both archives from the repository root with Python 3:
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo
 
-fixtures = Path('tests/e2e/test-data')
+fixtures = Path('tests/e2e/assets')
 for version in ['1.0', '2.0']:
     with ZipFile(fixtures / f'e2e-test-plugin-{version}.zip', 'w') as archive:
         entry = ZipInfo(

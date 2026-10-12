@@ -14,7 +14,7 @@ async function uploadPlugin( admin, page, version ) {
 	await page
 		.locator( '#pluginzip' )
 		.setInputFiles(
-			`tests/e2e/test-data/e2e-test-plugin-${ version }.zip`
+			`tests/e2e/assets/e2e-test-plugin-${ version }.zip`
 		);
 	await page
 		.getByRole( 'button', { name: 'Install Now', exact: true } )
