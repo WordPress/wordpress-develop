@@ -203,7 +203,7 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	 * An empty PHP array is encoded as `[]`, which does not match an object schema.
 	 * Other defaults stay unchanged.
 	 *
-	 * @ticket 64955
+	 * @ticket 66267
 	 *
 	 * @dataProvider data_wp_prepare_json_schema_for_client_encodes_default
 	 *
