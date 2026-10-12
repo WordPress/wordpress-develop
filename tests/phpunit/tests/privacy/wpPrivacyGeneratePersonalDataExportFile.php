@@ -30,6 +30,14 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public $export_file_name = '';
 
 	/**
+	 * The full path to the HTML report file for the current test method.
+	 *
+	 * @var string $html_report_pathname
+	 */
+	public $html_report_pathname = '';
+
+
+	/**
 	 * The full path to the exports directory.
 	 *
 	 * @since 5.2.0
@@ -68,7 +76,8 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function set_up() {
 		parent::set_up();
 
-		$this->export_file_name = '';
+		$this->export_file_name     = '';
+		$this->html_report_pathname = '';
 
 		if ( ! $this->remove_exports_dir() ) {
 			$this->markTestSkipped( 'Existing exports directory could not be removed. Skipping test.' );
@@ -77,7 +86,7 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		// We need to override the die handler. Otherwise, the unit tests will die too.
 		add_filter( 'wp_die_ajax_handler', array( $this, 'get_wp_die_handler' ), 1, 1 );
 		add_filter( 'wp_doing_ajax', '__return_true' );
-		add_action( 'wp_privacy_personal_data_export_file_created', array( $this, 'action_wp_privacy_personal_data_export_file_created' ) );
+		add_action( 'wp_privacy_personal_data_export_file_created', array( $this, 'action_wp_privacy_personal_data_export_file_created' ), 10, 5 );
 
 		// Suppress warnings from "Cannot modify header information - headers already sent by".
 		$this->orig_error_level = error_reporting();
@@ -102,11 +111,17 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string $archive_name Created export zip file path.
+	 * @param string $archive_name         Created export zip file path.
+	 * @param string $archive_url          The URL of the archive file.
+	 * @param string $html_report_pathname The full path to the HTML personal data report on the filesystem.
+	 * @param int    $request_id           The export request ID.
+	 * @param string $json_report_pathname The full path to the JSON personal data report on the filesystem.
 	 */
-	public function action_wp_privacy_personal_data_export_file_created( $archive_name ) {
-		$this->export_file_name = $archive_name;
+	public function action_wp_privacy_personal_data_export_file_created( $archive_name, $archive_url = '', $html_report_pathname = '', $request_id = 0, $json_report_pathname = '' ) {
+		$this->export_file_name     = $archive_name;
+		$this->html_report_pathname = $html_report_pathname;
 	}
+
 
 	/**
 	 * Removes the privacy exports directory, including files and subdirectories.
@@ -302,6 +317,27 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$this->assertFileExists( $this->export_file_name );
 	}
+
+	/**
+	 * Test that regenerated export files reuse the ZIP filename as the report basename.
+	 *
+	 * @ticket 44236
+	 */
+	public function test_regenerated_report_filename_matches_reused_archive_filename() {
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+
+		$archive_pathname = $this->export_file_name;
+
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+
+		$this->assertSame( $archive_pathname, $this->export_file_name, 'The regenerated ZIP file should reuse the existing archive filename.' );
+		$this->assertSame(
+			pathinfo( $this->export_file_name, PATHINFO_FILENAME ),
+			pathinfo( $this->html_report_pathname, PATHINFO_FILENAME ),
+			'The regenerated HTML report filename should match the reused archive filename.'
+		);
+	}
+
 
 	/**
 	 * Test the export HTML file has all the expected parts.
