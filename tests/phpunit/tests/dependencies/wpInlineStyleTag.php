@@ -147,9 +147,9 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_inline_style_tag_normalizes_whitespace().
+	 * Data provider for {@see self::test_inline_style_tag_normalizes_whitespace()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string|null, 1: string }>
+	 * @return array<non-falsy-string, array{ 0: string|null, 1: non-empty-string }>
 	 */
 	public function data_inline_style_tag_whitespace(): array {
 		return array(
@@ -171,8 +171,8 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_inline_style_tag_whitespace
 	 *
-	 * @param string|null $data     CSS passed to the function.
-	 * @param string      $expected Expected contents of the STYLE element.
+	 * @param string|null      $data     CSS passed to the function.
+	 * @param non-empty-string $expected Expected contents of the STYLE element.
 	 */
 	public function test_inline_style_tag_normalizes_whitespace( ?string $data, string $expected ): void {
 		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( $data ) ); // @phpstan-ignore argument.type
