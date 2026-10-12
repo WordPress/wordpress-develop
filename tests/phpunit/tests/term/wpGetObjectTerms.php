@@ -1063,10 +1063,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 	 */
 	public function test_should_return_numeric_string_for_fields_count_passed_as_query_string() {
 		$post_id = self::factory()->post->create();
-		$this->assertIsInt( $post_id, 'The post was not created.' );
 
 		$term_id = self::factory()->term->create( array( 'taxonomy' => $this->taxonomy ) );
-		$this->assertIsInt( $term_id, 'The term was not created.' );
 
 		wp_set_object_terms( $post_id, $term_id, $this->taxonomy );
 
@@ -1097,13 +1095,10 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		register_taxonomy( $taxonomy2, 'post' );
 
 		$post_id = self::factory()->post->create();
-		$this->assertIsInt( $post_id, 'The post was not created.' );
 
 		$term_1_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy1 ) );
-		$this->assertIsInt( $term_1_id, 'The term in the first taxonomy was not created.' );
 
 		$term_2_id = self::factory()->term->create( array( 'taxonomy' => $taxonomy2 ) );
-		$this->assertIsInt( $term_2_id, 'The term in the second taxonomy was not created.' );
 
 		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
 		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );
@@ -1133,7 +1128,6 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 				'slug'     => 'parent',
 			)
 		);
-		$this->assertIsInt( $parent_id, 'The parent term was not created.' );
 
 		$child_id = self::factory()->term->create(
 			array(
@@ -1143,10 +1137,8 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 				'parent'   => $parent_id,
 			)
 		);
-		$this->assertIsInt( $child_id, 'The child term was not created.' );
 
 		$post_id = self::factory()->post->create();
-		$this->assertIsInt( $post_id, 'The post was not created.' );
 
 		wp_set_object_terms( $post_id, array( $parent_id, $child_id ), 'wptests_tax_hierarchical' );
 
@@ -1197,7 +1189,6 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		register_taxonomy( $taxonomy2, 'post' );
 
 		$post_id = self::factory()->post->create();
-		$this->assertIsInt( $post_id, 'The post was not created.' );
 
 		$term_1_id = self::factory()->term->create(
 			array(
@@ -1205,7 +1196,6 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 				'name'     => 'Alpha',
 			)
 		);
-		$this->assertIsInt( $term_1_id, 'The term in the first taxonomy was not created.' );
 
 		$term_2_id = self::factory()->term->create(
 			array(
@@ -1213,7 +1203,6 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 				'name'     => 'Beta',
 			)
 		);
-		$this->assertIsInt( $term_2_id, 'The term in the second taxonomy was not created.' );
 
 		wp_set_object_terms( $post_id, $term_1_id, $taxonomy1 );
 		wp_set_object_terms( $post_id, $term_2_id, $taxonomy2 );

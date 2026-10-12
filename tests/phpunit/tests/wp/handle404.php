@@ -59,34 +59,20 @@ class Tests_WP_Handle404 extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The sitemap stylesheet routes must not be 404ed either.
-	 *
-	 * Covered separately because is_sitemap() only reflects the `sitemap` query var.
+	 * A legacy sitemap stylesheet query var must not bypass 404 handling.
 	 *
 	 * @ticket 65945
-	 *
-	 * @dataProvider data_sitemap_stylesheet_requests
-	 *
-	 * @param non-falsy-string $url Stylesheet URL to request.
 	 */
-	public function test_sitemap_stylesheet_requests_should_not_be_404ed_by_an_empty_main_query( string $url ) {
-		$this->go_to( home_url( $url ) );
+	public function test_legacy_sitemap_stylesheet_query_var_does_not_bypass_404() {
+		global $wp;
 
-		$this->assertFalse( is_404(), 'WP::handle_404() should not have set a 404.' );
-	}
+		$public_query_vars = $wp->public_query_vars;
+		$wp->add_query_var( 'sitemap-stylesheet' );
 
-	/**
-	 * Data provider.
-	 *
-	 * @return array<non-falsy-string, array{ non-falsy-string }>
-	 */
-	public function data_sitemap_stylesheet_requests(): array {
-		return array(
-			'sitemap stylesheet'        => array( '/?sitemap-stylesheet=sitemap' ),
-			'index stylesheet'          => array( '/?sitemap-stylesheet=index' ),
-			// Not a real route, but the only stylesheet case is_home() doesn't already cover.
-			'sitemap stylesheet, paged' => array( '/?sitemap-stylesheet=sitemap&paged=2' ),
-		);
+		$this->go_to( home_url( '/this-page-does-not-exist/?sitemap-stylesheet=sitemap' ) );
+		$wp->public_query_vars = $public_query_vars;
+
+		$this->assertTrue( is_404(), 'A legacy sitemap stylesheet query var should not bypass 404 handling.' );
 	}
 
 	/**
