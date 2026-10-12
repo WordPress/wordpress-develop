@@ -107,6 +107,30 @@ use WordPress\AiClient\Tools\DTO\WebSearch;
 class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 
 	/**
+	 * Configured generation parameters for the prompt.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, mixed>
+	 */
+	private array $generation_parameters = array();
+
+	/**
+	 * Configured model preferences for the prompt.
+	 *
+	 * @since 7.2.0
+	 * @var array<int, mixed>
+	 */
+	private array $model_preferences = array();
+
+	/**
+	 * Explicit model instance for the prompt.
+	 *
+	 * @since 7.2.0
+	 * @var ModelInterface|null
+	 */
+	private ?ModelInterface $model = null;
+
+	/**
 	 * List of methods that generate a result from the prompt.
 	 *
 	 * Structured as a map for faster lookups.
@@ -151,6 +175,39 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 		'is_supported_for_music_generation'          => true,
 		'is_supported_for_embedding_generation'      => true,
 	);
+
+	/**
+	 * Constructor.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param ProviderRegistry $registry The provider registry for finding suitable models.
+	 * @param Prompt           $prompt   Optional. Initial prompt content.
+	 *                                   A string for simple text prompts,
+	 *                                   a MessagePart or Message object for
+	 *                                   structured content, an array for a
+	 *                                   message array shape, or a list of
+	 *                                   parts or messages for multi-turn
+	 *                                   conversations. Default null.
+	 */
+	public function __construct( ProviderRegistry $registry, $prompt = null ) {
+		parent::__construct( $registry, $prompt );
+
+		$this->generation_parameters['timeout'] = 30.0;
+
+		/**
+		 * Fires after a prompt builder is constructed, before any caller chaining.
+		 *
+		 * Allows plugins to apply default configuration that callers can still override via subsequent
+		 * fluent method calls.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param WP_AI_Client_Prompt_Builder $builder The newly constructed prompt builder instance.
+		 * @param mixed                       $prompt  The initial prompt content.
+		 */
+		do_action( 'wp_ai_client_prompt_builder_init', $this, $prompt );
+	}
 
 	/**
 	 * Registers WordPress abilities as function declarations for the AI model.
@@ -286,5 +343,387 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 */
 	protected function get_support_check_methods(): array {
 		return self::$support_check_methods;
+	}
+
+	/**
+	 * Magic method to proxy snake_case method calls to their PHP AI Client camelCase counterparts.
+	 *
+	 * Intercepts method calls to apply customization filters for models, model preferences,
+	 * and generation parameters prior to execution, and tracks configured parameters.
+	 *
+	 * @since 7.0.0
+	 * @since 7.2.0 Added customization filters for model, preferences, and generation parameters.
+	 *
+	 * @param string            $name      The method name in snake_case.
+	 * @param array<int, mixed> $arguments The method arguments.
+	 * @return mixed The result of the method call.
+	 */
+	public function __call( string $name, array $arguments ) {
+		// Check if execution should apply customization filters for support check and generating methods.
+		if ( isset( self::$support_check_methods[ $name ] ) || isset( self::$generating_methods[ $name ] ) ) {
+			$capability = $this->get_capability_for_method( $name, $arguments );
+
+			/**
+			 * Filters the explicit model instance to use for generation.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param ModelInterface|null         $model      The model instance, or null if relying on preferences/discovery.
+			 * @param CapabilityEnum|null         $capability The capability targeted by the prompt, or null if unspecified.
+			 * @param WP_AI_Client_Prompt_Builder $builder    The prompt builder instance.
+			 */
+			$filtered_model = apply_filters( 'wp_ai_client_model', $this->model, $capability, $this );
+			if ( $filtered_model instanceof ModelInterface ) {
+				parent::__call( 'using_model', array( $filtered_model ) );
+			}
+
+			/**
+			 * Filters the preferred models to use for AI generation.
+			 *
+			 * Allows plugins to customize which models should be preferred for generation,
+			 * optionally scoped by capability.
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param array<int, mixed>           $preferred_models List of preferred models.
+			 * @param CapabilityEnum|null         $capability       The capability targeted by the prompt, or null if unspecified.
+			 * @param WP_AI_Client_Prompt_Builder $builder          The prompt builder instance.
+			 */
+			$filtered_model_preferences = apply_filters( 'wp_ai_client_model_preference', $this->model_preferences, $capability, $this );
+			if ( is_array( $filtered_model_preferences ) && ! empty( $filtered_model_preferences ) ) {
+				parent::__call( 'using_model_preference', $filtered_model_preferences );
+			}
+
+			/**
+			 * Filters the generation parameters for AI generation.
+			 *
+			 * Allows plugins to customize parameters such as temperature, max_tokens, top_p, etc.,
+			 * optionally scoped by capability.
+			 *
+			 * Supported parameters in the array:
+			 * - 'temperature' (float)
+			 * - 'max_tokens' (int)
+			 * - 'top_p' (float)
+			 * - 'top_k' (int)
+			 * - 'presence_penalty' (float)
+			 * - 'frequency_penalty' (float)
+			 * - 'stop_sequences' (array of strings)
+			 * - 'candidate_count' (int)
+			 * - 'system_instruction' (string)
+			 * - 'top_logprobs' (int)
+			 * - 'timeout' (float)
+			 *
+			 * @since 7.2.0
+			 *
+			 * @param array<string, mixed>        $generation_params Generation parameters as a key-value array.
+			 * @param CapabilityEnum|null         $capability        The capability targeted by the prompt, or null if unspecified.
+			 * @param WP_AI_Client_Prompt_Builder $builder           The prompt builder instance.
+			 */
+			$filtered_params = apply_filters( 'wp_ai_client_generation_parameters', $this->generation_parameters, $capability, $this );
+			if ( is_array( $filtered_params ) && ! empty( $filtered_params ) ) {
+				$this->apply_filtered_generation_parameters( $filtered_params );
+			}
+		}
+
+		// Track configured parameters and preferences for filtering and inspection.
+		if ( 'using_temperature' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['temperature'] = $arguments[0];
+		} elseif ( 'using_max_tokens' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['max_tokens'] = $arguments[0];
+		} elseif ( 'using_top_p' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['top_p'] = $arguments[0];
+		} elseif ( 'using_top_k' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['top_k'] = $arguments[0];
+		} elseif ( 'using_presence_penalty' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['presence_penalty'] = $arguments[0];
+		} elseif ( 'using_frequency_penalty' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['frequency_penalty'] = $arguments[0];
+		} elseif ( 'using_stop_sequences' === $name ) {
+			$this->generation_parameters['stop_sequences'] = $arguments;
+		} elseif ( 'using_candidate_count' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['candidate_count'] = $arguments[0];
+		} elseif ( 'using_system_instruction' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['system_instruction'] = $arguments[0];
+		} elseif ( 'using_top_logprobs' === $name && isset( $arguments[0] ) ) {
+			$this->generation_parameters['top_logprobs'] = $arguments[0];
+		} elseif ( 'using_model_preference' === $name ) {
+			$this->model_preferences = $arguments;
+		} elseif ( 'using_model' === $name && isset( $arguments[0] ) && $arguments[0] instanceof ModelInterface ) {
+			$this->model = $arguments[0];
+		}
+
+		return parent::__call( $name, $arguments );
+	}
+
+	/**
+	 * Retrieves the configured generation parameters.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The configured generation parameters.
+	 */
+	public function get_generation_parameters(): array {
+		return $this->generation_parameters;
+	}
+
+	/**
+	 * Retrieves the configured model preferences.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<int, mixed> The configured model preferences.
+	 */
+	public function get_model_preferences(): array {
+		return $this->model_preferences;
+	}
+
+	/**
+	 * Retrieves the explicit model instance, if set.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return ModelInterface|null The model instance or null.
+	 */
+	public function get_model(): ?ModelInterface {
+		return $this->model;
+	}
+
+	/**
+	 * Applies filtered generation parameters to the wrapped prompt builder.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $params The filtered generation parameters.
+	 */
+	private function apply_filtered_generation_parameters( array $params ): void {
+		if ( isset( $params['temperature'] ) ) {
+			if ( is_numeric( $params['temperature'] ) ) {
+				parent::__call( 'using_temperature', array( (float) $params['temperature'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a number.' ),
+						'<code>temperature</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['max_tokens'] ) ) {
+			if ( is_numeric( $params['max_tokens'] ) && (int) $params['max_tokens'] >= 1 ) {
+				parent::__call( 'using_max_tokens', array( (int) $params['max_tokens'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a positive integer.' ),
+						'<code>max_tokens</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['top_p'] ) ) {
+			if ( is_numeric( $params['top_p'] ) ) {
+				parent::__call( 'using_top_p', array( (float) $params['top_p'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a number.' ),
+						'<code>top_p</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['top_k'] ) ) {
+			if ( is_numeric( $params['top_k'] ) && (int) $params['top_k'] >= 1 ) {
+				parent::__call( 'using_top_k', array( (int) $params['top_k'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a positive integer.' ),
+						'<code>top_k</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['presence_penalty'] ) ) {
+			if ( is_numeric( $params['presence_penalty'] ) ) {
+				parent::__call( 'using_presence_penalty', array( (float) $params['presence_penalty'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a number.' ),
+						'<code>presence_penalty</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['frequency_penalty'] ) ) {
+			if ( is_numeric( $params['frequency_penalty'] ) ) {
+				parent::__call( 'using_frequency_penalty', array( (float) $params['frequency_penalty'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a number.' ),
+						'<code>frequency_penalty</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['stop_sequences'] ) ) {
+			if ( is_array( $params['stop_sequences'] ) && ! empty( $params['stop_sequences'] ) ) {
+				parent::__call( 'using_stop_sequences', $params['stop_sequences'] );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a non-empty array of strings.' ),
+						'<code>stop_sequences</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['candidate_count'] ) ) {
+			if ( is_numeric( $params['candidate_count'] ) && (int) $params['candidate_count'] >= 1 ) {
+				parent::__call( 'using_candidate_count', array( (int) $params['candidate_count'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a positive integer.' ),
+						'<code>candidate_count</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['system_instruction'] ) ) {
+			if ( is_string( $params['system_instruction'] ) ) {
+				parent::__call( 'using_system_instruction', array( $params['system_instruction'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a string.' ),
+						'<code>system_instruction</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['top_logprobs'] ) ) {
+			if ( is_numeric( $params['top_logprobs'] ) && (int) $params['top_logprobs'] >= 0 ) {
+				parent::__call( 'using_top_logprobs', array( (int) $params['top_logprobs'] ) );
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a non-negative integer.' ),
+						'<code>top_logprobs</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+
+		if ( isset( $params['timeout'] ) ) {
+			if ( is_numeric( $params['timeout'] ) && (float) $params['timeout'] >= 0.0 ) {
+				parent::__call(
+					'using_request_options',
+					array(
+						RequestOptions::fromArray(
+							array(
+								RequestOptions::KEY_TIMEOUT => (float) $params['timeout'],
+							)
+						),
+					)
+				);
+			} else {
+				_doing_it_wrong(
+					__METHOD__,
+					sprintf(
+						/* translators: %s: parameter name. */
+						__( 'The %s generation parameter must be a non-negative number.' ),
+						'<code>timeout</code>'
+					),
+					'7.2.0'
+				);
+			}
+		}
+	}
+
+	/**
+	 * Determines the capability being targeted by a method call.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string            $name      The method name in snake_case.
+	 * @param array<int, mixed> $arguments The method arguments.
+	 * @return CapabilityEnum|null The capability enum if determinable, or null.
+	 */
+	private function get_capability_for_method( string $name, array $arguments ): ?CapabilityEnum {
+		if ( str_starts_with( $name, 'generate_text' ) || 'is_supported_for_text_generation' === $name ) {
+			return CapabilityEnum::textGeneration();
+		}
+
+		if ( str_starts_with( $name, 'generate_image' ) || 'is_supported_for_image_generation' === $name ) {
+			return CapabilityEnum::imageGeneration();
+		}
+
+		if ( str_starts_with( $name, 'convert_text_to_speech' ) || 'is_supported_for_text_to_speech_conversion' === $name ) {
+			return CapabilityEnum::textToSpeechConversion();
+		}
+
+		if ( str_starts_with( $name, 'generate_speech' ) || 'is_supported_for_speech_generation' === $name ) {
+			return CapabilityEnum::speechGeneration();
+		}
+
+		if ( str_starts_with( $name, 'generate_video' ) || 'is_supported_for_video_generation' === $name ) {
+			return CapabilityEnum::videoGeneration();
+		}
+
+		if ( 'is_supported_for_music_generation' === $name ) {
+			return CapabilityEnum::musicGeneration();
+		}
+
+		if ( 'is_supported_for_embedding_generation' === $name ) {
+			return CapabilityEnum::embeddingGeneration();
+		}
+
+		if ( ( 'generate_result' === $name || 'is_supported' === $name ) && ! empty( $arguments[0] ) && $arguments[0] instanceof CapabilityEnum ) {
+			return $arguments[0];
+		}
+
+		return null;
 	}
 }
