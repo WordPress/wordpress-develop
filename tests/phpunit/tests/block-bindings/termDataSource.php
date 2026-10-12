@@ -33,6 +33,13 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 	protected static $parent_category_id;
 
 	/**
+	 * Test category term ID with HTML markup and entities.
+	 *
+	 * @var int
+	 */
+	protected static $markup_category_id;
+
+	/**
 	 * Sets up shared fixtures for the test class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Unit test factory.
@@ -62,6 +69,25 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 				'description' => 'Test Tag Description',
 			)
 		);
+
+		// Temporarily remove pre-save sanitization filters to allow markup and entities in the fixture.
+		remove_filter( 'pre_term_name', 'sanitize_text_field' );
+		remove_filter( 'pre_term_name', 'wp_filter_kses' );
+		remove_filter( 'pre_term_name', '_wp_specialchars', 30 );
+		remove_filter( 'pre_term_description', 'wp_filter_kses' );
+
+		self::$markup_category_id = $factory->category->create(
+			array(
+				'name'        => 'Category <tag> & "quotes"',
+				'slug'        => 'category-markup-entities',
+				'description' => '<p>Allowed HTML</p> <script>alert("xss");</script> & "quotes"',
+			)
+		);
+
+		add_filter( 'pre_term_name', 'sanitize_text_field' );
+		add_filter( 'pre_term_name', 'wp_filter_kses' );
+		add_filter( 'pre_term_name', '_wp_specialchars', 30 );
+		add_filter( 'pre_term_description', 'wp_filter_kses' );
 	}
 
 	/**
@@ -289,6 +315,53 @@ class Tests_Block_Bindings_Term_Data_Source extends WP_UnitTestCase {
 
 		$this->assertSame( (string) self::$category_id, _block_bindings_term_data_get_value( array( 'field' => 'id' ), $block ) );
 		$this->assertSame( (string) self::$parent_category_id, _block_bindings_term_data_get_value( array( 'field' => 'parent' ), $block ) );
+	}
+
+	/**
+	 * Tests that _block_bindings_term_data_get_value() escapes term names containing markup and entities.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::_block_bindings_term_data_get_value
+	 */
+	public function test_get_value_name_escaping() {
+		$block = $this->create_block(
+			'core/paragraph',
+			array(
+				'termId'   => self::$markup_category_id,
+				'taxonomy' => 'category',
+			)
+		);
+
+		$this->assertSame(
+			'Category &lt;tag&gt; &amp; &quot;quotes&quot;',
+			_block_bindings_term_data_get_value( array( 'field' => 'name' ), $block ),
+			'Term name should be escaped with esc_html().'
+		);
+	}
+
+	/**
+	 * Tests that _block_bindings_term_data_get_value() sanitizes term descriptions with wp_kses_post().
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::_block_bindings_term_data_get_value
+	 */
+	public function test_get_value_description_sanitization() {
+		$block = $this->create_block(
+			'core/paragraph',
+			array(
+				'termId'   => self::$markup_category_id,
+				'taxonomy' => 'category',
+			)
+		);
+
+		$this->assertEqualHTML(
+			'<p>Allowed HTML</p>  &amp; "quotes"',
+			_block_bindings_term_data_get_value( array( 'field' => 'description' ), $block ),
+			'<body>',
+			'Term description should be sanitized with wp_kses_post(), stripping disallowed tags like <script>.'
+		);
 	}
 
 	/**
