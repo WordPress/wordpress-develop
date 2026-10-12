@@ -145,23 +145,51 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	 */
 	public static function data_wp_prepare_json_schema_for_client_encodes_default() {
 		return array(
-			'empty default on an object schema'     => array(
+			'empty default on an object schema'          => array(
 				array(
 					'type'    => 'object',
 					'default' => array(),
 				),
 				'{}',
 			),
-			'non-empty default on an object schema' => array(
+			'non-empty default on an object schema'      => array(
 				array(
 					'type'    => 'object',
 					'default' => array( 'a' => 1 ),
 				),
 				'{"a":1}',
 			),
-			'empty default on an array schema'      => array(
+			'empty default on an array schema'           => array(
 				array(
 					'type'    => 'array',
+					'default' => array(),
+				),
+				'[]',
+			),
+			'empty default on an object or null schema'  => array(
+				array(
+					'type'    => array( 'object', 'null' ),
+					'default' => array(),
+				),
+				'{}',
+			),
+			'empty default on a null or object schema'   => array(
+				array(
+					'type'    => array( 'null', 'object' ),
+					'default' => array(),
+				),
+				'{}',
+			),
+			'empty default on an object or array schema' => array(
+				array(
+					'type'    => array( 'object', 'array' ),
+					'default' => array(),
+				),
+				'[]',
+			),
+			'empty default on an array or object schema' => array(
+				array(
+					'type'    => array( 'array', 'object' ),
 					'default' => array(),
 				),
 				'[]',
