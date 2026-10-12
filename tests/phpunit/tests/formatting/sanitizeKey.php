@@ -33,7 +33,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 				'key'      => 'howdy,admin',
 				'expected' => 'howdyadmin',
 			),
-			'a lowercase key with commas'    => array(
+			'an uppercase key with commas'   => array(
 				'key'      => 'HOWDY,ADMIN',
 				'expected' => 'howdyadmin',
 			),

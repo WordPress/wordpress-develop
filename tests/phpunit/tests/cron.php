@@ -460,7 +460,7 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->preflight_cron_array[ $event->timestamp ][ $event->hook ][ $key ] = array(
 			'schedule' => $event->schedule,
-			'interval' => isset( $event->interval ) ? $event->interval : 0,
+			'interval' => $event->interval ?? 0,
 			'args'     => $event->args,
 		);
 		uksort( $this->preflight_cron_array, 'strnatcasecmp' );
@@ -579,6 +579,7 @@ class Tests_Cron extends WP_UnitTestCase {
 			'args'      => array(),
 		);
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $actual );
 		$this->assertSame( $expected->timestamp, $actual2 );
 	}
@@ -628,12 +629,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_single_event( $ts_next, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
@@ -677,12 +681,15 @@ class Tests_Cron extends WP_UnitTestCase {
 		wp_schedule_event( $ts_next, $schedule, $hook, $args );
 
 		// Late running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected1, wp_get_scheduled_event( $hook, $args, $ts_late ) );
 
 		// Next running, timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args, $ts_next ) );
 
 		// Next running, no timestamp specified.
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected2, wp_get_scheduled_event( $hook, $args ) );
 	}
 
@@ -1053,7 +1060,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_reschedule_event_works_with_args() {
+	public static function data_wp_reschedule_event_works_with_args() {
 		return array(
 			'indexed'     => array(
 				array(
@@ -1329,5 +1336,28 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertTrue( $event );
 		$this->assertWPError( $unscheduled );
 		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_before_shutdown() {
+		remove_all_actions( 'shutdown' );
+		wp_cron();
+		$this->assertSame( 10, has_action( 'shutdown', '_wp_cron' ), 'Expected _wp_cron() to be scheduled for shutdown.' );
+	}
+
+	/**
+	 * @ticket 63858
+	 *
+	 * @covers ::wp_cron
+	 */
+	public function test_wp_cron_already_at_shutdown() {
+		remove_all_actions( 'shutdown' );
+		add_action( 'shutdown', 'wp_cron' );
+		do_action( 'shutdown' );
+		$this->assertFalse( has_action( 'shutdown', '_wp_cron' ), 'Expected wp_cron() to not add _wp_cron() to run at shutdown.' );
 	}
 }
