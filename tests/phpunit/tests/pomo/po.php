@@ -282,6 +282,7 @@ msgstr[2] "бабаяга"',
 		);
 
 		$simple_entry = new Translation_Entry( array( 'singular' => 'moon' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $simple_entry, $po->entries[ $simple_entry->key() ] );
 
 		$all_types_entry = new Translation_Entry(
@@ -292,6 +293,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( 'ztrut0', 'ztrut1', 'ztrut2' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $all_types_entry, $po->entries[ $all_types_entry->key() ] );
 
 		$multiple_line_entry = new Translation_Entry(
@@ -300,6 +302,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( "baba\ndyadogugu" ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $multiple_line_entry, $po->entries[ $multiple_line_entry->key() ] );
 
 		$multiple_line_all_types_entry = new Translation_Entry(
@@ -310,6 +313,7 @@ msgstr[2] "бабаяга"',
 				'translations' => array( 'translation0', 'translation1', 'translation2' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $multiple_line_all_types_entry, $po->entries[ $multiple_line_all_types_entry->key() ] );
 
 		$comments_entry = new Translation_Entry(
@@ -321,9 +325,11 @@ msgstr[2] "бабаяга"',
 				'flags'               => array( 'fuzzy' ),
 			)
 		);
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $comments_entry, $po->entries[ $comments_entry->key() ] );
 
 		$end_quote_entry = new Translation_Entry( array( 'singular' => 'a"' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $end_quote_entry, $po->entries[ $end_quote_entry->key() ] );
 	}
 
@@ -336,6 +342,71 @@ msgstr[2] "бабаяга"',
 		$po = new PO();
 		$this->assertTrue( $po->import_from_file( DIR_TESTDATA . '/pomo/windows-line-endings.po' ) );
 		$this->assertCount( 1, $po->entries );
+	}
+
+	/**
+	 * @ticket 64928
+	 *
+	 * @dataProvider data_import_from_file_with_various_line_endings
+	 */
+	public function test_import_from_file_with_various_line_endings( $newline, $printable_newline ) {
+		$import_file = $this->temp_filename();
+
+		$file  = 'msgid ""' . $newline;
+		$file .= 'msgstr ""' . $newline;
+		$file .= '"Project-Id-Version: WordPress 7.0\n"' . $newline;
+		$file .= '"Plural-Forms: nplurals=2; plural=n != 1;\n"';
+
+		$entries = array();
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$file .= $newline;
+			$file .= $newline;
+			$line  = "Entry $i";
+			$file .= 'msgid "' . $line . '"' . $newline;
+			$file .= 'msgstr ""';
+			$entry = new Translation_Entry( array( 'singular' => $line ) );
+
+			$entries[ $entry->key() ] = $entry;
+		}
+
+		file_put_contents( $import_file, $file );
+
+		$po  = new PO();
+		$res = $po->import_from_file( $import_file );
+		unlink( $import_file );
+
+		$this->assertTrue( $res );
+
+		$this->assertSame(
+			array(
+				'Project-Id-Version' => 'WordPress 7.0',
+				'Plural-Forms'       => 'nplurals=2; plural=n != 1;',
+			),
+			$po->headers
+		);
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
+		$this->assertEquals( $po->entries, $entries, 'Failed for ' . $printable_newline );
+
+		$export_file = $this->temp_filename();
+		$po->export_to_file( $export_file );
+		$content = file_get_contents( $export_file );
+		unlink( $export_file );
+
+		$this->assertSame( str_replace( $newline, "\n", $file ), $content );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_import_from_file_with_various_line_endings() {
+		return array(
+			'\r'   => array( "\r", '\r' ),
+			'\n'   => array( "\n", '\n' ),
+			'\r\n' => array( "\r\n", '\r\n' ),
+		);
 	}
 
 	// TODO: Add tests for bad files.

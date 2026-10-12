@@ -349,7 +349,7 @@
 		padding: $size__spacing-unit;
 	}
 
-	//! Verse
+	//! Poetry (Verse)
 	.wp-block-verse {
 		@include font-family( $font__body );
 		font-size: $font__size_base;
@@ -434,6 +434,10 @@
 					margin-top: 0;
 				}
 			}
+		}
+
+		&.has-text-color cite {
+			color: inherit;
 		}
 
 		&.is-style-solid-color {
@@ -803,6 +807,16 @@
 				outline: thin dotted;
 				outline-offset: -4px;
 			}
+		}
+
+		&.aligncenter .wp-block-file__button {
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		&.alignright .wp-block-file__button {
+			margin-left: auto;
+			margin-right: 0;
 		}
 	}
 

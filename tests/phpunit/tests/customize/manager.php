@@ -27,6 +27,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	protected static $admin_user_id;
 
 	/**
+	 * Second admin user ID.
+	 *
+	 * @var int
+	 */
+	protected static $other_admin_user_id;
+
+	/**
 	 * Subscriber user ID.
 	 *
 	 * @var int
@@ -41,13 +48,22 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Theme support state before the class tests run.
+	 *
+	 * @var array
+	 */
+	protected static $theme_features;
+
+	/**
 	 * Set up before class.
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
-		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_user_id  = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$admin_user_id       = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$other_admin_user_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$theme_features      = $GLOBALS['_wp_theme_features'];
 	}
 
 	/**
@@ -70,7 +86,12 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$this->manager = null;
 		unset( $GLOBALS['wp_customize'] );
-		$_REQUEST = array();
+		$_REQUEST                      = array();
+		$GLOBALS['_wp_theme_features'] = self::$theme_features;
+
+		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
+		remove_post_type_support( 'customize_changeset', 'revisions' );
+
 		parent::tear_down();
 	}
 
@@ -153,7 +174,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_constructor_deferred_changeset_uuid() {
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'admin' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$data = array(
 			'blogname' => array(
@@ -1254,7 +1275,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function test_save_changeset_post_without_kses_corrupting_json() {
 		global $wp_customize;
-		$lesser_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$lesser_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = new WP_Customize_Manager(
@@ -1349,11 +1370,11 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// User saved as one who cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_2' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_2' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_2' ) );
 
 		// User saved as one who also cannot bypass content_save_pre filter.
 		$this->assertStringNotContainsString( '<script>', get_option( 'custom_html_3' ) );
-		$this->assertStringContainsString( 'WordPress', get_option( 'custom_html_3' ) );
+		$this->assertStringNotContainsString( 'WordPress', get_option( 'custom_html_3' ) );
 	}
 
 	/**
@@ -1499,7 +1520,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1714,7 +1735,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		add_theme_support( 'custom-background' );
 		wp_set_current_user( self::$admin_user_id );
-		$other_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$other_admin_user_id = self::$other_admin_user_id;
 
 		$uuid         = wp_generate_uuid4();
 		$wp_customize = $this->create_test_manager( $uuid );
@@ -1877,7 +1898,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$r = $wp_customize->save_changeset_post(
 			array(
 				'autosave' => true,
-				'user_id'  => self::factory()->user->create( array( 'role' => 'administrator' ) ),
+				'user_id'  => self::$other_admin_user_id,
 			)
 		);
 		$this->assertSame( 'illegal_autosave_with_non_current_user', $r->get_error_code() );
@@ -1983,7 +2004,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize = new WP_Customize_Manager( array( 'changeset_uuid' => $wp_customize->changeset_uuid() ) );
 		do_action( 'customize_register', $wp_customize );
 		$wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
-		$this->assertSame( 'Unfilteredevil', get_option( 'scratchpad' ) );
+		$this->assertSame( 'Unfiltered', get_option( 'scratchpad' ) );
 
 		// Attempt publishing scratchpad as anonymous user when changeset was set by privileged user.
 		update_option( 'scratchpad', '' );
@@ -2000,7 +2021,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		wp_set_current_user( 0 );
 		$wp_customize = null;
 		unset( $GLOBALS['wp_actions']['customize_register'] );
-		$this->assertSame( 'Unfilteredevil', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
+		$this->assertSame( 'Unfiltered', apply_filters( 'content_save_pre', 'Unfiltered<script>evil</script>' ) );
 		wp_publish_post( $changeset_post_id ); // @todo If wp_update_post() is used here, then kses will corrupt the post_content.
 		$this->assertSame( 'Unfiltered<script>evil</script>', get_option( 'scratchpad' ) );
 	}
@@ -3009,7 +3030,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see WP_Customize_Manager::set_return_url()
 	 */
 	public function test_return_url() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'author' ) ) );
+		wp_set_current_user( self::$subscriber_user_id );
 		$this->assertSame( home_url( '/' ), $this->manager->get_return_url() );
 
 		wp_set_current_user( self::$admin_user_id );
@@ -3033,7 +3054,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		$url                     = 'http://badreferer.example.com/';
 		$_SERVER['HTTP_REFERER'] = wp_slash( $url );
-		$this->assertNotEquals( $url, $this->manager->get_return_url() );
+		$this->assertNotSame( $url, $this->manager->get_return_url() );
 		$this->assertSame( $preview_url, $this->manager->get_return_url() );
 
 		$this->manager->set_return_url( admin_url( 'edit.php?trashed=1' ) );
@@ -3244,7 +3265,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_widgets( $components, $customize_manager ) {
@@ -3261,7 +3281,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param array                $components         Components.
 	 * @param WP_Customize_Manager $customize_manager  Manager.
-	 *
 	 * @return array Components.
 	 */
 	public function return_array_containing_nav_menus( $components, $customize_manager ) {
@@ -3511,14 +3530,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		// The default devices list.
 		$default_devices = array(
 			'desktop' => array(
-				'label'   => __( 'Enter desktop preview mode' ),
+				'label'   => __( 'Desktop' ),
 				'default' => true,
 			),
 			'tablet'  => array(
-				'label' => __( 'Enter tablet preview mode' ),
+				'label' => __( 'Tablet' ),
 			),
 			'mobile'  => array(
-				'label' => __( 'Enter mobile preview mode' ),
+				'label' => __( 'Mobile' ),
 			),
 		);
 
@@ -3543,7 +3562,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private function filtered_device_list() {
 		return array(
 			'custom-device' => array(
-				'label'   => __( 'Enter custom-device preview mode' ),
+				'label'   => __( 'Custom device' ),
 				'default' => true,
 			),
 		);
@@ -3553,7 +3572,6 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * Callback for the customize_previewable_devices filter.
 	 *
 	 * @param array $devices The list of devices.
-	 *
 	 * @return array
 	 */
 	public function filter_customize_previewable_devices( $devices ) {
