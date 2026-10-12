@@ -294,8 +294,8 @@ html:lang(he-il) .rtl #wpadminbar * {
 #wpadminbar li.hover .ab-icon::before,
 #wpadminbar li.hover .ab-item::before,
 #wpadminbar li:hover #adminbarsearch::before,
-#wpadminbar li #adminbarsearch.adminbar-focused:before,
-#wpadminbar.mobile .quicklinks .ab-item:focus:before {
+#wpadminbar li #adminbarsearch.adminbar-focused::before,
+#wpadminbar.mobile .quicklinks .ab-item:focus::before {
 	color: #72aee6;
 }
 
