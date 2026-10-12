@@ -1880,8 +1880,11 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a genuine HEIF upload keeps its .heif extension instead of
-	 * being normalized to .heic.
+	 * Tests that an image detected as image/heif keeps a .heif filename
+	 * extension instead of being normalized to .heic.
+	 *
+	 * The fixture is a HEIC file, which PHP reports as image/heif; only the
+	 * uploaded filename uses the .heif extension.
 	 *
 	 * @ticket 65297
 	 * @requires extension fileinfo
