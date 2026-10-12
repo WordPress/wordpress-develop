@@ -257,6 +257,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	/**
 	 * Context node if created as a fragment parser.
 	 *
+	 * @since 6.6.0
 	 * @var WP_HTML_Token|null
 	 */
 	private $context_node = null;
@@ -1267,7 +1268,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 *
 	 * @param string $html Input HTML to normalize.
-	 *
 	 * @return string|null Normalized output, or `null` if unable to normalize.
 	 */
 	public static function normalize( string $html ): ?string {
@@ -1387,7 +1387,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				break;
 
 			case '#text':
-				$html .= htmlspecialchars( $this->get_modifiable_text(), ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+				$html .= self::escape_text_for_serialization( $this->get_modifiable_text() );
 				break;
 
 			// Unlike the `<>` which is interpreted as plaintext, this is ignored entirely.
@@ -1417,10 +1417,9 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			return $html;
 		}
 
-		$tag_name       = str_replace( "\x00", "\u{FFFD}", $this->get_tag() );
+		$tag_name       = $this->get_tag();
 		$in_html        = 'html' === $this->get_namespace();
 		$qualified_name = $in_html ? strtolower( $tag_name ) : $this->get_qualified_tag_name();
-		$qualified_name = str_replace( "\x00", "\u{FFFD}", $qualified_name );
 
 		if ( $this->is_tag_closer() ) {
 			$html .= "</{$qualified_name}>";
@@ -1439,7 +1438,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		$seen_attribute_names        = array();
 		foreach ( $attribute_names as $attribute_name ) {
 			$qualified_attribute_name = $this->get_qualified_attribute_name( $attribute_name );
-			$qualified_attribute_name = str_replace( "\x00", "\u{FFFD}", $qualified_attribute_name );
 			$qualified_attribute_name = wp_scrub_utf8( $qualified_attribute_name );
 			/**
 			 * Spaces only appear via the foreign attribute adjustment table.
@@ -1464,11 +1462,10 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$value = $this->get_attribute( $attribute_name );
 
 			if ( is_string( $value ) ) {
-				$html .= '="' . htmlspecialchars( $value, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5 ) . '"';
+				$html .= '="' . self::escape_text_for_serialization( $value ) . '"';
 			}
 
 			$previous_attribute_was_true = true === $value;
-			$html                        = str_replace( "\x00", "\u{FFFD}", $html );
 		}
 
 		if ( ! $in_html && $this->has_self_closing_flag() ) {
@@ -1517,13 +1514,40 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					break;
 
 				default:
-					$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+					$text = self::escape_text_for_serialization( $text );
 			}
 
 			$html .= "{$text}</{$qualified_name}>";
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Escapes decoded text for HTML serialization.
+	 *
+	 * Use for:
+	 * - Attribute values.
+	 * - Text in ordinary (data-state) elements and in the RCDATA elements
+	 *   (TITLE and TEXTAREA).
+	 * - Text in foreign content (elements not in the HTML namespace).
+	 *
+	 * Do not use for text in the RAWTEXT elements (STYLE, XMP, IFRAME,
+	 * NOEMBED, NOFRAMES), HTML SCRIPT elements, or PLAINTEXT elements,
+	 * whose contents serialize without escaping.
+	 *
+	 * @since 7.1.0
+	 * @ignore
+	 *
+	 * @param string $text Decoded text to escape.
+	 * @return string Escaped text.
+	 */
+	private static function escape_text_for_serialization( string $text ): string {
+		$text = htmlspecialchars( $text, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+
+		$text = str_replace( "\r", '&#xD;', $text );
+
+		return str_replace( "\x00", "\u{FFFD}", $text );
 	}
 
 	/**
@@ -1561,7 +1585,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto initial_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1654,7 +1677,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_html_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -1676,7 +1698,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto before_html_anything_else;
-				break;
 		}
 
 		/*
@@ -1736,7 +1757,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1781,7 +1801,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 				goto before_head_anything_else;
-				break;
 		}
 
 		if ( $is_closer ) {
@@ -1837,7 +1856,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1969,7 +1987,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
@@ -2062,7 +2079,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_noscript_anything_else;
-				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -2166,7 +2182,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 				goto after_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -2255,7 +2270,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto after_head_anything_else;
-				break;
 		}
 
 		/*
@@ -3344,8 +3358,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3362,6 +3374,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function in_body_any_other_end_tag(): bool {
+		$node       = null;
 		$token_name = $this->get_token_name();
 
 		/*
@@ -3394,8 +3407,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of "any other end tag" IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3472,7 +3483,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// Non-whitespace would trigger fostering, unsupported at this time.
 					$this->bail( 'Foster parenting is not supported.' );
-					break;
 				}
 				break;
 
@@ -3797,7 +3807,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_column_group_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4358,7 +4367,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4681,7 +4689,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
-				break;
 		}
 
 		/*
@@ -5075,8 +5082,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/*
@@ -5095,7 +5100,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
-		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
+		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
 		}
@@ -5109,6 +5114,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 	/**
 	 * Indicates the namespace of the current token, or "html" if there is none.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @return string One of "html", "math", or "svg".
 	 */
@@ -5407,14 +5414,14 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * This generator function is designed to be used inside a "foreach" loop.
 	 *
-	 * Example:
-	 *
-	 *     $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&lt;\tlang-en'>" );
-	 *     $p->next_tag();
-	 *     foreach ( $p->class_list() as $class_name ) {
-	 *         echo "{$class_name} ";
-	 *     }
-	 *     // Outputs: "free <egg> lang-en "
+	 * ```php interactive
+	 * $p = WP_HTML_Processor::create_fragment( "<div class='free &lt;egg&gt;\tlang-en'>" );
+	 * $p->next_tag();
+	 * foreach ( $p->class_list() as $class_name ) {
+	 *   echo "{$class_name} ";
+	 * }
+	 * // Outputs: "free <egg> lang-en "
+	 * ```
 	 *
 	 * @since 6.6.0 Subclassed for the HTML Processor.
 	 */
@@ -6362,8 +6369,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -6628,6 +6633,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * This unlock code is used to ensure that anyone calling the constructor is
 	 * doing so with a full understanding that it's intended to be a private API.
 	 *
+	 * @since 6.4.0
 	 * @access private
 	 */
 	const CONSTRUCTOR_UNLOCK_CODE = 'Use WP_HTML_Processor::create_fragment() instead of calling the class constructor directly.';

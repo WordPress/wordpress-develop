@@ -20,16 +20,16 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 
-		// Ensure core abilities are registered for these tests.
-		// Temporarily remove the unhook functions so we can register core abilities.
-		remove_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		remove_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
+		global $wp_current_filter;
 
-		// Add the core registration hooks and fire the actions.
-		add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
-		add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
-		do_action( 'wp_abilities_api_categories_init' );
-		do_action( 'wp_abilities_api_init' );
+		// Ensure core abilities and categories are registered for these tests.
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		wp_register_core_ability_categories();
+		array_pop( $wp_current_filter );
+
+		$wp_current_filter[] = 'wp_abilities_api_init';
+		wp_register_core_abilities();
+		array_pop( $wp_current_filter );
 	}
 
 	/**
@@ -38,10 +38,6 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 * @since 6.9.0
 	 */
 	public static function tear_down_after_class(): void {
-		// Re-add the unhook functions for subsequent tests.
-		add_action( 'wp_abilities_api_categories_init', '_unhook_core_ability_categories_registration', 1 );
-		add_action( 'wp_abilities_api_init', '_unhook_core_abilities_registration', 1 );
-
 		// Remove the core abilities and their categories.
 		foreach ( wp_get_abilities() as $ability ) {
 			wp_unregister_ability( $ability->get_name() );
@@ -54,6 +50,19 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the uncategorized fallback category is registered by core.
+	 *
+	 * @ticket 65569
+	 */
+	public function test_uncategorized_category_is_registered(): void {
+		$category = wp_get_ability_category( 'uncategorized' );
+
+		$this->assertInstanceOf( WP_Ability_Category::class, $category );
+		$this->assertSame( 'Uncategorized', $category->get_label() );
+		$this->assertSame( 'Abilities that have not been assigned to a specific category.', $category->get_description() );
+	}
+
+	/**
 	 * Tests that the `core/get-site-info` ability is registered with the expected schema.
 	 * @ticket 64146
 	 */
@@ -61,6 +70,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-site-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();
@@ -203,6 +213,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-user-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();
@@ -308,6 +319,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		$ability = wp_get_ability( 'core/get-environment-info' );
 
 		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertTrue( $ability->get_meta_item( 'public', false ) );
 		$this->assertTrue( $ability->get_meta_item( 'show_in_rest', false ) );
 
 		$input_schema  = $ability->get_input_schema();

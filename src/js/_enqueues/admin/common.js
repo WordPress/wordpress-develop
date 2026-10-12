@@ -2,15 +2,14 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
-/* global columns, screenMeta */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow, columns, screenMeta */
 
 /**
- *  Adds common WordPress functionality to the window.
+ * Adds common WordPress functionality to the window.
  *
- *  @param {jQuery} $        jQuery object.
- *  @param {Object} window   The window object.
- *  @param {mixed} undefined Unused.
+ * @param {JQueryStatic} $         The jQuery object.
+ * @param {Object}       window    The window object.
+ * @param {*}            undefined Unused.
  */
 ( function( $, window, undefined ) {
 	var $document = $( document ),
@@ -58,10 +57,10 @@ function deprecatedProperty( propName, version, replacement ) {
  * @since 5.6.0 Added the `version` parameter.
  *
  * @param {string} name       The name of the object, i.e. commonL10n.
- * @param {object} l10nObject The object to deprecate the properties on.
+ * @param {Object} l10nObject The object to deprecate the properties on.
  * @param {string} version    The version of WordPress that deprecated the property.
  *
- * @return {object} The object with all its properties deprecated.
+ * @return {Object} The object with all its properties deprecated.
  */
 function deprecateL10nObject( name, l10nObject, version ) {
 	var deprecatedObject = {};
@@ -476,8 +475,6 @@ window.columns = {
 	 * Gets the checked column toggles from the screen options.
 	 *
 	 * @since 3.0.0
-	 *
-	 * @return {string} String containing the checked column names.
 	 */
 	useCheckboxesForHidden : function() {
 		this.hidden = function(){
@@ -557,7 +554,7 @@ window.showNotice = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param text The text to display in the message.
+	 * @param {string} text The text to display in the message.
 	 */
 	note : function(text) {
 		alert(text);
@@ -570,8 +567,8 @@ window.showNotice = {
  * @since 3.2.0
  *
  * @type {{element: null, toggles: null, page: null, init: screenMeta.init,
- *         toggleEvent: screenMeta.toggleEvent, open: screenMeta.open,
- *         close: screenMeta.close}}
+ * toggleEvent: screenMeta.toggleEvent, open: screenMeta.open,
+ * close: screenMeta.close}}
  *
  * @return {void}
  */
@@ -695,7 +692,7 @@ $('.contextual-help-tabs').on( 'click', 'a', function(e) {
 	$('.contextual-help-tabs .active').removeClass('active');
 	link.parent('li').addClass('active');
 
-	panel = $( link.attr('href') );
+	panel = $( document ).find( link.attr('href') );
 
 	// Panels.
 	$('.help-tab-content').not( panel ).removeClass('active').hide();
@@ -982,8 +979,8 @@ $( function() {
 
 			/*
 			 * Show the sub instead of following the link if:
-			 * 	- the submenu is not open.
-			 * 	- the submenu is not shown inline or the menu is not folded.
+			 * - the submenu is not open.
+			 * - the submenu is not shown inline or the menu is not folded.
 			 */
 			if ( ! $menuItem.hasClass( 'opensub' ) && ( ! $menuItem.hasClass( 'wp-menu-open' ) || $menuItem.width() < 40 ) ) {
 				event.preventDefault();
@@ -1077,17 +1074,6 @@ $( function() {
 			adjustSubmenu( $( this ) );
 		});
 	}
-
-	/*
-	 * The `.below-h2` class is here just for backward compatibility with plugins
-	 * that are (incorrectly) using it. Do not use. Use `.inline` instead. See #34570.
-	 * If '.wp-header-end' is found, append the notices after it otherwise
-	 * after the first h1 or h2 heading found within the main content.
-	 */
-	if ( ! $headerEnd.length ) {
-		$headerEnd = $( '.wrap h1, .wrap h2' ).first();
-	}
-	$( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' ).insertAfter( $headerEnd );
 
 	/**
 	 * Makes notices dismissible.
@@ -1263,6 +1249,7 @@ $( function() {
 		/**
 		 * Triggers the primary submit when then secondary submit is clicked.
 		 *
+		 * @param {SubmitEvent} e The event object.
 		 * @since 5.7.0
 		 *
 		 * @return {void}
@@ -1486,7 +1473,7 @@ $( function() {
 	 * @param {Event} e The event object.
 	 *
 	 * @return {void}
- 	 */
+	 */
 	$('#contextual-help-link, #show-settings-link').on( 'focus.scroll-into-view', function(e){
 		if ( e.target.scrollIntoViewIfNeeded )
 			e.target.scrollIntoViewIfNeeded(false);
@@ -1526,6 +1513,32 @@ $( function() {
 		// Update the status when any file input changes.
 		input.on('change', toggleUploadButton);
 	})();
+
+	/**
+	 * Moves the admin notices into an `aside` element after the first `h1`.
+	 * Prior to 7.2.0, admin notices were only moved after the first `h1`;
+	 * The `aside` wrapper was added in 7.2.0.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return {void}
+	 */
+	function moveAdminNotices() {
+		/*
+		 * The `.below-h2` class is here just for backward compatibility with plugins
+		 * that are (incorrectly) using it. Do not use. Use `.inline` instead. See #34570.
+		 * If '.wp-header-end' is found, append the notices after it otherwise
+		 * after the first h1 or h2 heading found within the main content.
+		 */
+		if ( ! $headerEnd.length ) {
+			$headerEnd = $( '.wrap h1, .wrap h2' ).first();
+		}
+		const $notices = $( 'div.updated, div.error, div.notice' ).not( '.inline, .below-h2' );
+		if ( $notices.length ) {
+			const $wpAdminNotices = $( '<aside id="wp-admin-notices"></aside>' ).attr( 'aria-label', __( 'Admin Notices' ) ).insertAfter( $headerEnd );
+			$notices.appendTo( $wpAdminNotices );
+		}
+	}
 
 	/**
 	 * Pins the menu while distraction-free writing is enabled.
@@ -1845,7 +1858,7 @@ $( function() {
 			$document.on( 'postbox-toggled', this.maybeDisableSortables );
 
 			// When the screen columns are changed, potentially disable sortables.
-			$( '#screen-options-wrap input' ).on( 'click', this.maybeDisableSortables );
+			$( '#screen-options-wrap input:not(.meta-box-reordering-toggle)' ).on( 'click', this.maybeDisableSortables );
 		},
 
 		/**
@@ -1859,6 +1872,7 @@ $( function() {
 			var width = navigator.userAgent.indexOf('AppleWebKit/') > -1 ? $window.width() : window.innerWidth;
 
 			if (
+				$body.hasClass( 'meta-box-reordering-disabled' ) ||
 				( width <= 782 ) ||
 				( 1 >= $sortables.find( '.ui-sortable-handle:visible' ).length && jQuery( '.columns-prefs-1 input' ).prop( 'checked' ) )
 			) {
@@ -2129,6 +2143,7 @@ $( function() {
 	});
 
 	window.wpResponsive.init();
+	moveAdminNotices();
 	setPinMenu();
 	setMenuState();
 	makeNoticesDismissible();
@@ -2245,6 +2260,8 @@ $( function( $ ) {
  * plugin icon images in the update plugins table.
  *
  * @since 6.4.0
+ *
+ * @return {Object} Public methods.
  */
 (function() {
 	// Private variables and methods.
