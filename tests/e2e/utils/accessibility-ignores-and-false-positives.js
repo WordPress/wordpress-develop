@@ -43,6 +43,8 @@ module.exports = {
 		// Post title links in list tables may have surrounding text and are only distinguished by color.
 		// We consider this acceptable as these links can be distinguished by the context.
 		'.wp-list-table strong .row-title',
+		// Same for the Media Library list mode.
+		'#posts-filter #the-list #post-* .has-media-icon a',
 		// Em dashes for the pages hierarchy and other text e.g. post status are considered 'surrounding text'.
 		'.wp-list-table #the-list #post-* th strong a',
 	],
