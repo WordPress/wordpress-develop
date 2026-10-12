@@ -168,9 +168,9 @@ class Tests_DB extends WP_UnitTestCase {
 	 *
 	 * @ticket 10041
 	 * @dataProvider data_like_query
-	 * @param $data string The haystack, raw.
-	 * @param $like string The like phrase, raw.
-	 * @param $result string The expected comparison result; '1' = true, '0' = false
+	 * @param string $data   The haystack, raw.
+	 * @param string $like   The like phrase, raw.
+	 * @param string $result The expected comparison result; '1' = true, '0' = false
 	 */
 	public function test_like_query( $data, $like, $result ) {
 		global $wpdb;

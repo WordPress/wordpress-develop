@@ -2131,8 +2131,8 @@ EOF;
 	 * @ticket 46197
 	 * @ticket 46498
 	 *
-	 * @param $input string The style attribute saved in the editor.
-	 * @param $expected string The sanitized style attribute.
+	 * @param string $input    The style attribute saved in the editor.
+	 * @param string $expected The sanitized style attribute.
 	 */
 	public function test_kses_style_attr_with_url( $input, $expected ) {
 		$actual = safecss_filter_attr( $input );
