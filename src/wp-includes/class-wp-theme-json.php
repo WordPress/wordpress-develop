@@ -5167,7 +5167,18 @@ class WP_Theme_JSON {
 	 */
 	protected static function is_safe_css_declaration( $property_name, $property_value ) {
 		$style_to_validate = $property_name . ': ' . $property_value;
-		$filtered          = esc_html( safecss_filter_attr( $style_to_validate ) );
+
+		// Theme JSON validation uses the legacy CSS filter until this class builds declarations with the CSS API.
+		$force_legacy_css_parser = static function () {
+			return true;
+		};
+		add_filter( 'wp_kses_force_legacy_css_parser', $force_legacy_css_parser, PHP_INT_MAX );
+		try {
+			$filtered = esc_html( safecss_filter_attr( $style_to_validate ) );
+		} finally {
+			remove_filter( 'wp_kses_force_legacy_css_parser', $force_legacy_css_parser, PHP_INT_MAX );
+		}
+
 		return ! empty( trim( $filtered ) );
 	}
 

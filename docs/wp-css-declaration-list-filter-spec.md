@@ -200,6 +200,9 @@ trailing `;`) and the new form (trailing `;`):
   legacy function passed through and this filter drops as an item with no
   colon. It now filters `max-width:` plus the value and keeps the value of the
   result.
+- `WP_Theme_JSON::is_safe_css_declaration()` keeps the legacy behavior: it
+  adds a `wp_kses_force_legacy_css_parser` callback that returns `true` for
+  its own call and removes it afterward.
 
 Files under `wp-includes/blocks/` are synced from the Gutenberg repository and
 are not changed here. `post-featured-image.php` appends `;` after each
