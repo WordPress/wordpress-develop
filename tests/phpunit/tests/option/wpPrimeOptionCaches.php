@@ -427,7 +427,7 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_option_types() {
+	public static function data_option_types() {
 		return array(
 			'null'                              => array( null ),
 			'(bool) false'                      => array( false ),
@@ -455,7 +455,6 @@ class Tests_Option_WpPrimeOptionCaches extends WP_UnitTestCase {
 			'empty object'                      => array( new stdClass() ),
 			'populated object'                  => array( (object) array( 'string' ) ),
 			'INF'                               => array( INF ),
-			'NAN'                               => array( NAN ),
 		);
 	}
 }

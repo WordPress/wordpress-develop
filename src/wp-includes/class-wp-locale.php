@@ -315,10 +315,14 @@ class WP_Locale {
 	 * @since 2.1.0
 	 *
 	 * @param string|int $month_number '01' through '12'.
-	 * @return string Translated full month name.
+	 * @return string Translated full month name. If the month number is not found, an empty string is returned.
 	 */
 	public function get_month( $month_number ) {
-		return $this->month[ zeroise( $month_number, 2 ) ];
+		$month_number = zeroise( $month_number, 2 );
+		if ( ! isset( $this->month[ $month_number ] ) ) {
+			return '';
+		}
+		return $this->month[ $month_number ];
 	}
 
 	/**
@@ -438,6 +442,8 @@ class WP_Locale {
 	 *
 	 * @return string Localized word count type. Possible values are `characters_excluding_spaces`,
 	 *                `characters_including_spaces`, or `words`. Defaults to `words`.
+	 *
+	 * @phpstan-return 'characters_excluding_spaces'|'characters_including_spaces'|'words'
 	 */
 	public function get_word_count_type() {
 
@@ -446,7 +452,7 @@ class WP_Locale {
 		 * enter 'characters_excluding_spaces' or 'characters_including_spaces'. Otherwise, enter 'words'.
 		 * Do not translate into your own language.
 		 */
-		$word_count_type = is_null( $this->word_count_type ) ? _x( 'words', 'Word count type. Do not translate!' ) : $this->word_count_type;
+		$word_count_type = $this->word_count_type ?? _x( 'words', 'Word count type. Do not translate!' );
 
 		// Check for valid types.
 		if ( 'characters_excluding_spaces' !== $word_count_type && 'characters_including_spaces' !== $word_count_type ) {

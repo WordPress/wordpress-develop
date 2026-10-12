@@ -6,6 +6,7 @@
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		beStrictAboutOutputDuringTests="true"
+		failOnRisky="true"
 		convertErrorsToExceptions="true"
 		convertWarningsToExceptions="true"
 		convertNoticesToExceptions="true"
@@ -28,7 +29,7 @@
 			<group>ms-files</group>
 			<group>ms-required</group>
 			<group>external-http</group>
-			<group>html-api-html5lib-tests</group>
+			<group>html-api-web-platform-tests</group>
 		</exclude>
 	</groups>
 	<logging>
@@ -46,6 +47,7 @@
 				<directory suffix=".php">src/wp-includes/IXR</directory>
 				<directory suffix=".php">src/wp-includes/PHPMailer</directory>
 				<directory suffix=".php">src/wp-includes/Requests</directory>
+				<directory suffix=".php">src/wp-includes/php-ai-client</directory>
 				<directory suffix=".php">src/wp-includes/SimplePie</directory>
 				<directory suffix=".php">src/wp-includes/sodium_compat</directory>
 				<directory suffix=".php">src/wp-includes/Text</directory>
