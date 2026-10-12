@@ -102,7 +102,7 @@ class Tests_Safecss_Filter_Differential extends WP_UnitTestCase {
 		$processor = WP_HTML_Style_Attribute_Processor::create( $css );
 		$decls     = array();
 		while ( $processor->next_declaration() ) {
-			$value = implode( '', array_map( static fn( $t ) => substr( $css, $t['start'], $t['length'] ), $processor->get_value_tokens() ) );
+			$value = implode( '', array_map( static fn( $t ) => substr( $css, $t->get_start(), $t->get_length() ), $processor->get_value_tokens() ) );
 			$value = preg_replace( '/\s+/', ' ', $value );
 			$value = str_replace( array( '"', "'" ), '"', $value );
 			$value = preg_replace_callback( '/url\(\s*"([^"]*)"\s*\)/i', static fn( $m ) => 'url("' . $m[1] . '")', $value );

@@ -28,13 +28,11 @@ signature and docblock. It builds the allowed property list once, applies
 - `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.2.0 body,
   unchanged except that it receives the list.
 
-The declarations helper uses seven further private helpers:
+The declarations helper uses five further private helpers:
 `_safecss_filter_attr_value_has_open_block()`,
 `_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`,
-`_safecss_filter_attr_ends_inside_token()`, `_safecss_filter_attr_is_trivia()`,
-`_safecss_filter_attr_serialize_value()` and
-`_safecss_filter_attr_serialize_hash_value()`. All are `@access private`,
-`@internal`, `@since 7.2.0`.
+`_safecss_filter_attr_ends_inside_token()` and `_safecss_filter_attr_is_trivia()`.
+All are `@access private`, `@internal`, `@since 7.2.0`.
 
 ## Scope
 
@@ -67,13 +65,11 @@ parses as CSS or is not there.
 ## Value Access
 
 The filter reads each value through
-`WP_HTML_Style_Attribute_Processor::get_value_tokens()`, the token view the
-processor exposes: the slice of its own token list covering the value, each
-token as `{type, value, start, length, end}` with offsets into the style text.
-The filter uses the decoded `value` and `unit` for the checks and for
-re-escaping strings, URLs, identifiers, function names, hashes, at-keywords and
-dimensions, and copies numbers, percentages, delimiters and punctuation from
-the source bytes at `start` and `length`. The input is tokenized a second time, with
+`WP_HTML_Style_Attribute_Processor::get_value_tokens()`, the `WP_CSS_Token`
+objects covering the value, and runs the checks on their decoded values. It
+writes each accepted declaration with
+`WP_HTML_Style_Attribute_Processor::serialize_declaration()` and has no
+serializer of its own. The input is tokenized a second time, with
 `WP_CSS_Token_Processor`, only to read `is_token_terminated()` on its last
 token for rule 0.
 
@@ -148,35 +144,42 @@ helper. A filter result that is not an array is treated as an empty list.
    bare `&`, so a value that has one is rejected. `<`, `>`, `=`, `<!--` and
    `-->` are kept; encoding the output for HTML is the caller's task.
 6. **Escapes and comments.** Checks run on decoded values, so an escaped
-   function name or scheme is checked as what it denotes. Comments are never
-   emitted.
+   function name or scheme is checked as what it denotes. Comments are
+   dropped; see "Output".
 
 Beyond rules 4 and 5 the policy checks what a value contains, not whether it
 is valid for its property. Browser grammar is out of scope.
 
 ## Output
 
-The output is built from the accepted declarations, not cut from the input.
-Each declaration is `property:value;` with `!important` preserved as
-` !important` before the `;`. Property names are the decoded names. Values are
-serialized from their tokens: strings and URLs re-escaped from their decoded
-values with `WP_CSS_Token_Processor::serialize_string()`; identifiers,
-function names, at-keywords and dimension units re-escaped with
-`serialize_ident()`; hash names re-escaped with every code point outside
-`[A-Za-z0-9_-]` and U+0080 and above hex-escaped, so `#fff` and `#123456` are
-unchanged; a dimension's number copied from the source; numbers, percentages,
-delimiters and punctuation copied from the source; whitespace and comment runs
-reduced to one space. A token copied from the source could end in a hex
-escape and merge with the token after a dropped comment; re-escaping from the
-decoded value puts a space after every escape, so `#a\62/**/c` serializes as
-`#ab c`. No block is open at the end of a value, by rule 0, so
-the output never absorbs the `;` that follows. A `\` delimiter, which
-only a backslash before a newline produces, keeps its newline so it does not
-escape the space that follows.
+The output is built from the accepted declarations, not cut from the input:
+it joins the `serialize_declaration()` text of each one. Each declaration is
+`property: value;`, with `!important` preserved as ` !important` before the
+`;`. Property names are the decoded names, escaped as identifiers. Values are
+written from their tokens by `WP_CSS_Token_Serializer::serialize()`, which
+follows CSS Syntax Level 3 §9:
 
-`serialize_string()` hex-escapes `\`, `<`, `>`, `&`, `,`, `;`, `{`, `}` and
-both quotes. A URL with a query string therefore serializes as
-`url("a?x=1\26 y=2")`, which decodes to the same URL.
+- Comments are dropped. Each whitespace run, including one broken by comments,
+  becomes one space.
+- An empty comment is written between two tokens that would read as other
+  tokens when written together, as the §9 table lists, so `#a\62/**/c`
+  serializes as `#ab/**/c`. Between other pairs a dropped comment leaves
+  nothing: `a/**/,b` serializes as `a,b`.
+- Identifiers, function names, at-keywords, hash names and dimension units are
+  re-escaped from their decoded values. A hash keeps its type flag: `#\31 a`
+  stays `#\31 a` and `#1a` stays `#1a`.
+- Strings are written double-quoted. url tokens are written unquoted;
+  `url("...")` is a function with a string argument and keeps its quotes.
+- A `\` delimiter, which only a backslash before a newline produces, keeps its
+  newline so it does not escape the byte that follows.
+
+No block is open at the end of a value, by rule 0, so the output never absorbs
+the `;` that follows.
+
+Strings and url values hex-escape `\`, `<`, `>`, `&`, `,`, `;`, `{`, `}`,
+quotes and control characters; url values also escape parentheses and
+whitespace. A URL with a query string therefore serializes as
+`url(a?x=1\26 y=2)`, which decodes to the same URL.
 
 Properties of the output:
 
@@ -264,8 +267,8 @@ Intended:
   which the parser accepts by default. The remaining uses are `data:` URLs
   and functions this policy excludes, such as `attr()`.
 
-Formatting only: no space after the colon, double-quoted strings with
-hex-escaped punctuation, URLs as `url("...")`, trailing `;`.
+Formatting only: one space after the colon, double-quoted strings and unquoted
+url tokens with hex-escaped punctuation, comments dropped, trailing `;`.
 
 Unchanged: a block left open at the end of the input is rejected, as the
 legacy function rejected an unbalanced parenthesis; a comment left open at
@@ -306,8 +309,13 @@ Open during the prototype, now settled:
   for a transition period.
 - **Shared property list.** `safecss_filter_attr()` builds the list once and
   passes it to both helpers. The prototype's copy is deleted.
-- **Value access.** The token view, as bare arrays, as PR 2 ships it. The
+- **Value access.** The token view of `WP_CSS_Token` objects. The
   prototype's `get_value_source()` is not kept.
+- **Serialization.** `serialize_declaration()` for each accepted declaration.
+  Token lists are not a public unit for writing CSS, and the filter's own
+  value serializer, which turned every comment run into a space, is deleted:
+  in Chrome `calc(1px/**/+/**/2px)` is invalid, and the space made it
+  `calc(1px + 2px)`, which is valid.
 - **`wp_kses_no_null()`.** Not applied on the new path. See "Scope".
 
 ## Tests
@@ -315,7 +323,8 @@ Open during the prototype, now settled:
 `tests/phpunit/tests/kses/safecssFilterAttr.php` covers each policy rule in
 isolation, the open-block rule in standard and custom properties, the
 cut-off token rule for comments, strings and url tokens, the structural rule in standard, nested and custom positions,
-`!important`, comments, whitespace, escapes, the empty `safe_style_css` list,
+`!important`, comments, one case per marked cell of the §9 table and a sample
+of unmarked pairs, whitespace, escapes, the empty `safe_style_css` list,
 the two filters, and idempotence over a provider of the inputs that exercise
 the serializer.
 

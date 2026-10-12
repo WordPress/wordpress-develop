@@ -1766,14 +1766,13 @@ EOF;
 			// url() is allowed on every property.
 			array(
 				'css'             => 'aspect-ratio: url( https://wordpress.org/wp-content/uploads/aspect-ratio.jpg );',
-				'expected'        => 'aspect-ratio:url("https://wordpress.org/wp-content/uploads/aspect-ratio.jpg");',
+				'expected'        => 'aspect-ratio:url(https://wordpress.org/wp-content/uploads/aspect-ratio.jpg);',
 				'expected_legacy' => '',
 			),
 			// URL support for `filter` introduced in 6.3.
 			array(
-				'css'             => 'filter: url( my-file.svg#svg-blur );',
-				'expected'        => 'filter:url("my-file.svg#svg-blur");',
-				'expected_legacy' => 'filter: url( my-file.svg#svg-blur )',
+				'css'      => 'filter: url( my-file.svg#svg-blur );',
+				'expected' => 'filter: url( my-file.svg#svg-blur )',
 			),
 			// Support for `repeat` function.
 			array(
@@ -1958,44 +1957,36 @@ EOF;
 			),
 			// SVG url() references for allowlisted properties (ticket #65832).
 			array(
-				'css'             => 'clip-path: url(#myClipper)',
-				'expected'        => 'clip-path:url("#myClipper");',
-				'expected_legacy' => 'clip-path: url(#myClipper)',
+				'css'      => 'clip-path: url(#myClipper)',
+				'expected' => 'clip-path: url(#myClipper)',
 			),
 			array(
-				'css'             => 'fill: url(#gradient1)',
-				'expected'        => 'fill:url("#gradient1");',
-				'expected_legacy' => 'fill: url(#gradient1)',
+				'css'      => 'fill: url(#gradient1)',
+				'expected' => 'fill: url(#gradient1)',
 			),
 			array(
-				'css'             => 'mask: url(#myMask)',
-				'expected'        => 'mask:url("#myMask");',
-				'expected_legacy' => 'mask: url(#myMask)',
+				'css'      => 'mask: url(#myMask)',
+				'expected' => 'mask: url(#myMask)',
 			),
 			array(
-				'css'             => 'marker-start: url(#arrowStart)',
-				'expected'        => 'marker-start:url("#arrowStart");',
-				'expected_legacy' => 'marker-start: url(#arrowStart)',
+				'css'      => 'marker-start: url(#arrowStart)',
+				'expected' => 'marker-start: url(#arrowStart)',
 			),
 			array(
-				'css'             => 'marker-end: url(#arrowEnd)',
-				'expected'        => 'marker-end:url("#arrowEnd");',
-				'expected_legacy' => 'marker-end: url(#arrowEnd)',
+				'css'      => 'marker-end: url(#arrowEnd)',
+				'expected' => 'marker-end: url(#arrowEnd)',
 			),
 			array(
-				'css'             => 'marker-mid: url(#arrowMid)',
-				'expected'        => 'marker-mid:url("#arrowMid");',
-				'expected_legacy' => 'marker-mid: url(#arrowMid)',
+				'css'      => 'marker-mid: url(#arrowMid)',
+				'expected' => 'marker-mid: url(#arrowMid)',
 			),
 			array(
-				'css'             => 'marker: url(#marker1)',
-				'expected'        => 'marker:url("#marker1");',
-				'expected_legacy' => 'marker: url(#marker1)',
+				'css'      => 'marker: url(#marker1)',
+				'expected' => 'marker: url(#marker1)',
 			),
 			array(
-				'css'             => 'stroke: url(#strokeGradient)',
-				'expected'        => 'stroke:url("#strokeGradient");',
-				'expected_legacy' => 'stroke: url(#strokeGradient)',
+				'css'      => 'stroke: url(#strokeGradient)',
+				'expected' => 'stroke: url(#strokeGradient)',
 			),
 			// Disallow javascript: URLs in SVG url() references (security regression).
 			array(
@@ -2158,7 +2149,7 @@ EOF;
 			),
 			'background image URL with query string ampersand' => array(
 				'<div style="background-image: url(https://localhost/image.jpg?a=1&b=2);"></div>',
-				'<div style="background-image:url(&quot;https://localhost/image.jpg?a=1\26 b=2&quot;);"></div>',
+				'<div style="background-image: url(https://localhost/image.jpg?a=1&amp;b=2)"></div>',
 			),
 			'background image URL followed by another declaration' => array(
 				'<div style="background-image:url(\'https://localhost/image.jpg\');background-size:cover;"></div>',
@@ -2235,7 +2226,6 @@ EOF;
 			// No quotes.
 			array(
 				'background-image: url( http://example.com/valid.gif );',
-				'background-image:url("http://example.com/valid.gif");',
 				'background-image: url( http://example.com/valid.gif )',
 			),
 

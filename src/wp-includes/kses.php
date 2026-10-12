@@ -4186,8 +4186,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * Filters an inline style attribute by parsing it as a declaration list.
  *
  * Parses the list with WP_HTML_Style_Attribute_Processor, drops the
- * declarations the policy rejects, and serializes the rest as
- * `property:value;`. The unit of rejection is one declaration.
+ * declarations the policy rejects, and joins the
+ * WP_HTML_Style_Attribute_Processor::serialize_declaration() text of the
+ * rest, `property: value;` each. The unit of rejection is one declaration.
  * Declarations CSS drops at parse time never reach the policy because
  * the processor does not expose them.
  *
@@ -4204,7 +4205,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *    token at any depth. Inside strings and URLs these characters are
  *    escaped in the output; no standard property value uses them elsewhere.
  *
- * Checks run on decoded values. Comments are never emitted. For an empty
+ * Checks run on decoded values. Comments are dropped; an empty comment is
+ * written only between two tokens that would otherwise read as other
+ * tokens. For an empty
  * allowed list safecss_filter_attr() returns the input and does not call
  * this function.
  *
@@ -4261,17 +4264,13 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 			continue;
 		}
 
-		if ( ! _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) ) {
+		if ( ! _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is_custom ) ) {
 			continue;
 		}
 
 		// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
 
-		$declaration = WP_CSS_Token_Processor::serialize_ident( $name ) . ':' . _safecss_filter_attr_serialize_value( $css, $tokens );
-		if ( $processor->is_important() ) {
-			$declaration .= ' !important';
-		}
-		$declarations[] = $declaration . ';';
+		$declarations[] = $processor->serialize_declaration();
 	}
 
 	// A token cut off by the end of the input is in the last declaration or after it.
@@ -4289,13 +4288,12 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
  * @access private
  * @internal
  *
- * @param string   $css               CSS text the token offsets index.
- * @param array[]  $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
- * @param string[] $allowed_protocols Allowed URL protocols.
- * @param bool     $is_custom         Whether the declaration is a custom property.
+ * @param WP_CSS_Token[] $tokens            Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @param string[]       $allowed_protocols Allowed URL protocols.
+ * @param bool           $is_custom         Whether the declaration is a custom property.
  * @return bool Whether the value is allowed.
  */
-function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocols, $is_custom ) {
+function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is_custom ) {
 	// A function is listed when its result depends only on its arguments and Blink, Gecko and WebKit ship it unprefixed.
 	static $allowed_functions = array(
 		// General purpose value functions.
@@ -4396,18 +4394,18 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 	$depth = 0;
 	for ( $i = 0; $i < $count; $i++ ) {
 		$token = $tokens[ $i ];
-		$type  = $token['type'];
+		$type  = $token->get_type();
 
 		switch ( $type ) {
 			case WP_CSS_Token_Processor::TOKEN_DELIM:
 				// The output contains no `&`: other tokens escape it, and no property value uses a bare `&`.
-				if ( '&' === $token['value'] ) {
+				if ( '&' === $token->get_value() ) {
 					return false;
 				}
 				continue 2;
 
 			case WP_CSS_Token_Processor::TOKEN_URL:
-				if ( ! _safecss_filter_attr_url_is_allowed( $token['value'], $allowed_protocols ) ) {
+				if ( ! _safecss_filter_attr_url_is_allowed( $token->get_value(), $allowed_protocols ) ) {
 					return false;
 				}
 				continue 2;
@@ -4440,7 +4438,7 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 				continue 2;
 		}
 
-		$function_name = strtolower( (string) $token['value'] );
+		$function_name = strtolower( (string) $token->get_value() );
 
 		if ( 'url' === $function_name ) {
 			// `url("...")` tokenizes as a function with one string argument. Anything else inside is invalid CSS.
@@ -4448,7 +4446,7 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
 			}
-			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_STRING !== $tokens[ $j ]['type'] ) {
+			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_STRING !== $tokens[ $j ]->get_type() ) {
 				return false;
 			}
 			$string = $tokens[ $j ];
@@ -4456,10 +4454,10 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
 			}
-			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]['type'] ) {
+			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]->get_type() ) {
 				return false;
 			}
-			if ( ! _safecss_filter_attr_url_is_allowed( $string['value'], $allowed_protocols ) ) {
+			if ( ! _safecss_filter_attr_url_is_allowed( $string->get_value(), $allowed_protocols ) ) {
 				return false;
 			}
 			// The `)` is consumed with the argument.
@@ -4486,13 +4484,13 @@ function _safecss_filter_attr_value_is_allowed( $css, $tokens, $allowed_protocol
  * @access private
  * @internal
  *
- * @param array[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @param WP_CSS_Token[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
  * @return bool Whether a block is open at the end of the value.
  */
 function _safecss_filter_attr_value_has_open_block( $tokens ) {
 	$depth = 0;
 	foreach ( $tokens as $token ) {
-		switch ( $token['type'] ) {
+		switch ( $token->get_type() ) {
 			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
 			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
 			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
@@ -4567,141 +4565,11 @@ function _safecss_filter_attr_ends_inside_token( $css ) {
  * @access private
  * @internal
  *
- * @param array $token Token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
+ * @param WP_CSS_Token $token Token from WP_HTML_Style_Attribute_Processor::get_value_tokens().
  * @return bool Whether the token is whitespace or a comment.
  */
 function _safecss_filter_attr_is_trivia( $token ) {
-	return WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token['type'] || WP_CSS_Token_Processor::TOKEN_COMMENT === $token['type'];
-}
-
-/**
- * Serializes a declaration value from its tokens.
- *
- * Whitespace and comment runs become one space. Strings and URLs are
- * re-escaped from their decoded values. Identifiers, function names,
- * at-keywords and dimension units are re-escaped from their decoded names.
- * Hash names are re-escaped with every code point outside the name set
- * hex-escaped. A `\` delimiter, which only a backslash before a newline
- * produces, keeps its newline so it does not escape the space that follows.
- * Numbers, percentages, other delimiters and punctuation are copied from
- * the source. The value has no block open at the end, so the output never
- * absorbs the `;` that follows.
- *
- * @since 7.2.0
- * @access private
- * @internal
- *
- * @param string  $css    CSS text the token offsets index.
- * @param array[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
- * @return string Serialized value.
- */
-function _safecss_filter_attr_serialize_value( $css, $tokens ) {
-	$output        = '';
-	$pending_space = false;
-
-	foreach ( $tokens as $token ) {
-		if ( _safecss_filter_attr_is_trivia( $token ) ) {
-			$pending_space = '' !== $output;
-			continue;
-		}
-
-		if ( $pending_space ) {
-			$output       .= ' ';
-			$pending_space = false;
-		}
-
-		switch ( $token['type'] ) {
-			case WP_CSS_Token_Processor::TOKEN_STRING:
-				$output .= WP_CSS_Token_Processor::serialize_string( (string) $token['value'] );
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_URL:
-				$output .= 'url(' . WP_CSS_Token_Processor::serialize_string( (string) $token['value'] ) . ')';
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
-				$output .= WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] ) . '(';
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_IDENT:
-				$output .= WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] );
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_AT_KEYWORD:
-				$output .= '@' . WP_CSS_Token_Processor::serialize_ident( (string) $token['value'] );
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_HASH:
-				$output .= '#' . _safecss_filter_attr_serialize_hash_value( (string) $token['value'] );
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_DIMENSION:
-				$unit = WP_CSS_Token_Processor::serialize_ident( (string) $token['unit'] );
-				// A unit that starts with `e` and a digit would read as the number's exponent.
-				if ( preg_match( '/^[eE][+-]?[0-9]/', $unit ) ) {
-					$unit = sprintf( '\\%X ', ord( $unit[0] ) ) . substr( $unit, 1 );
-				}
-				$output .= $token['value'] . $unit;
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_DELIM:
-				$output .= '\\' === $token['value'] ? "\\\n" : substr( $css, $token['start'], $token['length'] );
-				break;
-
-			default:
-				$output .= substr( $css, $token['start'], $token['length'] );
-				break;
-		}
-	}
-
-	return $output;
-}
-
-/**
- * Serializes a decoded hash token name.
- *
- * Name code points (`[A-Za-z0-9_-]` and any code point U+0080 or above) are
- * emitted as they are. Every other code point is hex-escaped with a
- * trailing space. A NUL byte becomes U+FFFD, as the tokenizer decodes it.
- * Unlike an identifier, a hash name may start with a digit, so `#123456`
- * is unchanged.
- *
- * @since 7.2.0
- * @access private
- * @internal
- *
- * @param string $value Decoded hash name, without the `#`.
- * @return string Serialized hash name.
- */
-function _safecss_filter_attr_serialize_hash_value( $value ) {
-	$value  = wp_scrub_utf8( $value );
-	$output = '';
-	$length = strlen( $value );
-
-	for ( $i = 0; $i < $length; $i++ ) {
-		$byte = ord( $value[ $i ] );
-
-		if ( 0x00 === $byte ) {
-			$output .= "\u{FFFD}";
-			continue;
-		}
-
-		if (
-			$byte >= 0x80 ||
-			( $byte >= 0x30 && $byte <= 0x39 ) || // 0-9
-			( $byte >= 0x41 && $byte <= 0x5A ) || // A-Z
-			( $byte >= 0x61 && $byte <= 0x7A ) || // a-z
-			0x5F === $byte || // _
-			0x2D === $byte                        // -
-		) {
-			$output .= $value[ $i ];
-			continue;
-		}
-
-		$output .= sprintf( '\\%X ', $byte );
-	}
-
-	return $output;
+	return WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token->get_type() || WP_CSS_Token_Processor::TOKEN_COMMENT === $token->get_type();
 }
 
 /**
