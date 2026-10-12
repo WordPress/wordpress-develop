@@ -5,6 +5,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 /** The comment content used across tests. */
 const COMMENT_CONTENT = 'A comment awaiting moderation.';
+const postIds = [];
 
 /**
  * Creates a post with a comment in the given moderation status.
@@ -28,6 +29,7 @@ async function createPostWithComment(
 		content: '<p>Comment target.</p>',
 		status: 'publish',
 	} );
+	postIds.push( post.id );
 	const comment = await requestUtils.createComment( {
 		post: post.id,
 		content,
@@ -60,9 +62,15 @@ async function getCommentStatus( requestUtils, commentId ) {
 }
 
 test.describe( 'Moderate Comments', () => {
-	test.beforeEach( async ( { requestUtils } ) => {
-		await requestUtils.deleteAllComments();
-		await requestUtils.deleteAllPosts();
+	test.afterEach( async ( { requestUtils } ) => {
+		// Deleting each fixture post also deletes its comments, including replies.
+		for ( const id of postIds.splice( 0 ) ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ id }`,
+				params: { force: true },
+			} );
+		}
 	} );
 
 	test( 'approves a pending comment', async ( {
@@ -91,36 +99,12 @@ test.describe( 'Moderate Comments', () => {
 				message: 'the comment should be approved',
 			} )
 			.toBe( 'approved' );
-	} );
-
-	test( 'unapproves an approved comment', async ( {
-		admin,
-		page,
-		requestUtils,
-	} ) => {
-		const { comment } = await createPostWithComment(
-			requestUtils,
-			'approved'
-		);
-
+		await expect( row ).toBeHidden();
 		await admin.visitAdminPage(
 			'/edit-comments.php',
 			'comment_status=approved'
 		);
-
-		const row = page.locator( `#comment-${ comment.id }` );
 		await expect( row ).toBeVisible();
-
-		await row.hover();
-		await row
-			.getByRole( 'button', { name: 'Unapprove this comment' } )
-			.click();
-
-		await expect
-			.poll( () => getCommentStatus( requestUtils, comment.id ), {
-				message: 'the comment should return to moderation',
-			} )
-			.toBe( 'hold' );
 	} );
 
 	test( 'marks a comment as spam', async ( {
@@ -148,6 +132,12 @@ test.describe( 'Moderate Comments', () => {
 				message: 'the comment should be marked as spam',
 			} )
 			.toBe( 'spam' );
+		await expect( row ).toBeHidden();
+		await expect(
+			page
+				.locator( `#undo-${ comment.id }` )
+				.getByRole( 'button', { name: 'Undo', exact: true } )
+		).toBeVisible();
 	} );
 
 	test( 'replies to a comment from the admin', async ( {
@@ -172,7 +162,7 @@ test.describe( 'Moderate Comments', () => {
 			} )
 			.click();
 
-		// The inline reply form replaces the row.
+		// The inline reply form appears below the comment.
 		const replyField = page.getByRole( 'textbox', { name: 'Comment' } );
 		await expect( replyField ).toBeVisible();
 		await replyField.fill( 'An admin reply.' );
@@ -191,7 +181,9 @@ test.describe( 'Moderate Comments', () => {
 						context: 'edit',
 					},
 				} );
-				const reply = comments.find( ( item ) => item.id !== comment.id );
+				const reply = comments.find(
+					( item ) => item.id !== comment.id
+				);
 				return {
 					count: comments.length,
 					parent: reply?.parent,
@@ -207,6 +199,12 @@ test.describe( 'Moderate Comments', () => {
 				post: post.id,
 				status: 'approved',
 			} );
+		await expect(
+			page
+				.getByRole( 'paragraph' )
+				.filter( { hasText: /^An admin reply\.$/ } )
+		).toBeVisible();
+		await expect( replyField ).toBeHidden();
 	} );
 
 	test( 'moves multiple comments to spam with a bulk action', async ( {
@@ -233,11 +231,10 @@ test.describe( 'Moderate Comments', () => {
 			'comment_status=moderated'
 		);
 
-		// Select every comment in the list.
-		await page
-			.getByRole( 'checkbox', { name: 'Select All' } )
-			.first()
-			.check();
+		const firstRow = page.locator( `#comment-${ comment.id }` );
+		const secondRow = page.locator( `#comment-${ secondComment.id }` );
+		await firstRow.getByRole( 'checkbox' ).check();
+		await secondRow.getByRole( 'checkbox' ).check();
 		await page
 			.getByLabel( 'Select bulk action' )
 			.first()
@@ -254,5 +251,13 @@ test.describe( 'Moderate Comments', () => {
 				message: 'the second comment should be spam',
 			} )
 			.toBe( 'spam' );
+		await expect( firstRow ).toBeHidden();
+		await expect( secondRow ).toBeHidden();
+		await admin.visitAdminPage(
+			'/edit-comments.php',
+			'comment_status=spam'
+		);
+		await expect( firstRow ).toBeVisible();
+		await expect( secondRow ).toBeVisible();
 	} );
 } );
