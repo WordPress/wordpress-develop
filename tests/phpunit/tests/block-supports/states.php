@@ -905,7 +905,7 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 			),
 		);
 
-		$actual = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+		$actual    = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
 		$processor = new WP_HTML_Tag_Processor( $actual );
 		$processor->next_tag();
 
