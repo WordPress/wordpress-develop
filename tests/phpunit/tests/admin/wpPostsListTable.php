@@ -412,7 +412,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * @covers WP_Posts_List_Table::get_views
 	 */
 	public function test_get_views_should_include_scheduled_posts_link() {
-		$global_names = array( '_GET', '_REQUEST', 'avail_post_stati', 'locked_post_status', 'post_type_object' );
+		$global_names = array( 'avail_post_stati', 'locked_post_status', 'post_type_object' );
 		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
 		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
 		self::factory()->post->create(
@@ -424,8 +424,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		);
 
 		try {
-			$_GET                          = array();
-			$_REQUEST                      = array();
 			$GLOBALS['locked_post_status'] = '';
 			$GLOBALS['avail_post_stati']   = get_available_post_statuses( 'post' );
 			$table                         = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
@@ -453,7 +451,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 * @covers WP_Posts_List_Table::prepare_items
 	 */
 	public function test_prepare_items_should_only_include_scheduled_posts_when_filtered() {
-		$global_names = array( '_GET', '_POST', '_REQUEST', 'mode', 'avail_post_stati', 'per_page', 'post_type_object' );
+		$global_names = array( 'mode', 'avail_post_stati', 'per_page', 'post_type_object' );
 		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
 		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
 		$scheduled_id = self::factory()->post->create(
@@ -471,7 +469,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 				'post_type'   => 'post',
 				'post_status' => 'future',
 			);
-			$_POST    = array();
 			$_REQUEST = $_GET;
 			$table    = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
 

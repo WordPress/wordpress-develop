@@ -68,6 +68,9 @@ class Tests_Cron extends WP_UnitTestCase {
 		clean_post_cache( $post_id );
 		$this->assertSame( 'future', get_post_status( $post_id ), 'Setup must not publish the post.' );
 
+		// Cron removes a single event before calling its hook.
+		$this->assertTrue( wp_unschedule_event( $event->timestamp, $event->hook, $event->args ) );
+
 		// Exercise the registered callback with the scheduled event's real arguments.
 		do_action_ref_array( $event->hook, $event->args );
 
@@ -120,6 +123,17 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		clean_post_cache( $post_id );
 		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_missing_post_should_be_ignored_when_scheduled_hook_fires() {
+		do_action_ref_array( 'publish_future_post', array( PHP_INT_MAX ) );
+
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( PHP_INT_MAX ) ) );
 	}
 
 	/**
