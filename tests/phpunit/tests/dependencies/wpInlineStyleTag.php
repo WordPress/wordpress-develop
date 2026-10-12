@@ -147,30 +147,38 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a non-string value, such as from a misbehaving filter, does not cause a fatal error.
+	 * Data provider for test_inline_style_tag_normalizes_whitespace().
 	 *
-	 * @ticket 51325
+	 * @return array<non-falsy-string, array{ 0: string|null, 1: string }>
 	 */
-	public function test_inline_style_tag_with_null_data() {
-		$this->assertEqualHTML(
-			"<style>\n\n</style>\n",
-			wp_get_inline_style_tag( null ) // @phpstan-ignore argument.type
+	public function data_inline_style_tag_whitespace(): array {
+		return array(
+			'no whitespace'            => array( 'a{}', "\na{}\n" ),
+			'newlines'                 => array( "\n\na{}\n\n", "\na{}\n" ),
+			'all CSS whitespace'       => array( " \t\f\r\na{}\n\r\f\t ", "\na{}\n" ),
+			'inner whitespace kept'    => array( "\ta{}\n\n\tb{}\t", "\na{}\n\n\tb{}\n" ),
+			'only whitespace'          => array( " \t\f\r\n", "\n\n" ),
+			'empty string'             => array( '', "\n\n" ),
+			'null from a filter'       => array( null, "\n\n" ),
+			'non-whitespace preserved' => array( "\u{00A0}a{}\u{00A0}", "\n\u{00A0}a{}\u{00A0}\n" ),
 		);
 	}
 
 	/**
+	 * Tests that leading and trailing CSS whitespace is replaced by a single newline.
+	 *
 	 * @ticket 51325
+	 *
+	 * @dataProvider data_inline_style_tag_whitespace
+	 *
+	 * @param string|null $data     CSS passed to the function.
+	 * @param string      $expected Expected contents of the STYLE element.
 	 */
-	public function test_inline_style_tag_escapes_closing_style_tag() {
-		$css       = 'body::after { content: "</style>"; } body::before { content: "<script>"; }';
-		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( $css ) );
+	public function test_inline_style_tag_normalizes_whitespace( ?string $data, string $expected ): void {
+		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( $data ) ); // @phpstan-ignore argument.type
 
-		$this->assertTrue( $processor->next_tag(), 'Expected a STYLE tag.' );
-		$this->assertSame( 'STYLE', $processor->get_tag() );
-		$text = $processor->get_modifiable_text();
-		$this->assertStringNotContainsStringIgnoringCase( '</style', $text, 'Expected the closing STYLE tag to be escaped.' );
-		$this->assertStringContainsString( 'body::before { content: "<script>"; }', $text, 'Expected the rest of the CSS to be preserved.' );
-		$this->assertFalse( $processor->next_tag(), 'Expected the CSS to not break out of the STYLE element.' );
+		$this->assertTrue( $processor->next_tag( 'STYLE' ), 'Expected a STYLE tag.' );
+		$this->assertSame( $expected, $processor->get_modifiable_text() );
 	}
 
 	/**
