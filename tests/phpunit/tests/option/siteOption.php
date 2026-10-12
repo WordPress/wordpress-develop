@@ -200,6 +200,7 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 		$value->foo = true;
 		$value->bar = true;
 		add_site_option( $key, $value );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $value, get_site_option( $key ) );
 	}
 
