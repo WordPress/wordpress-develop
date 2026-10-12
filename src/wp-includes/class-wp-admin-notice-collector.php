@@ -114,7 +114,7 @@ class WP_Admin_Notice_Collector {
 	public static function get_notice_count() {
 		$returned_notices = array_filter(
 			self::$notices,
-			function( $notice ) {
+			function ( $notice ) {
 				$processor = new WP_HTML_Tag_Processor( $notice['markup'] );
 				$processor->next_tag();
 				if ( $processor->has_class( 'hide-if-js' ) || $processor->has_class( 'hidden' ) ) {
