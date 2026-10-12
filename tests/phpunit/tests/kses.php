@@ -3437,23 +3437,23 @@ HTML;
 	 */
 	public function data_wp_kses_one_attr_srcset_encoded_separators() {
 		return array(
-			'encoded spaces hide a second candidate'          => array(
+			'encoded spaces hide a second candidate'       => array(
 				' srcset="x/&#32;1x,&#32;javascript:alert(1)"',
 				' srcset="x/ 1x"',
 			),
-			'encoded comma and space after a query string'    => array(
+			'encoded comma and space after a query string' => array(
 				' srcset="a.jpg/?v=1&#32;1x&#44;&#32;javascript:alert(1)&#32;2x"',
 				' srcset="a.jpg/?v=1 1x"',
 			),
-			'encoded spaces after a root-relative URL'        => array(
+			'encoded spaces after a root-relative URL'     => array(
 				' srcset="/a.jpg&#32;1x,&#32;data:text/html,x&#32;2x"',
 				' srcset="/a.jpg 1x"',
 			),
-			'encoded allowed values round-trip unchanged'     => array(
+			'encoded allowed values round-trip unchanged'  => array(
 				' srcset="a.jpg?w=1&amp;h=2 1x, b.jpg?w=2&amp;h=4 2x"',
 				' srcset="a.jpg?w=1&amp;h=2 1x, b.jpg?w=2&amp;h=4 2x"',
 			),
-			'a dropped candidate re-encodes what remains'     => array(
+			'a dropped candidate re-encodes what remains'  => array(
 				' srcset="a.jpg?w=1&amp;h=2 1x, javascript:alert(1) 2x"',
 				' srcset="a.jpg?w=1&amp;h=2 1x"',
 			),
