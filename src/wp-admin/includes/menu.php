@@ -383,7 +383,7 @@ if ( ! wp_admin_page_exists() ) {
 	 *
 	 * @since 7.2.0
 	 */
-	do_action( 'admin_page_not_found' );
+	do_action( 'wp_admin_page_not_found' );
 
 	wp_die( __( 'The requested page does not exist.' ), 404 );
 } elseif ( ! user_can_access_admin_page() ) {
