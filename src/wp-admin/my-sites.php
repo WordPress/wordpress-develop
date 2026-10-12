@@ -17,7 +17,7 @@ if ( ! current_user_can( 'read' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to access this page.' ) );
 }
 
-$action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
+$action = $_POST['action'] ?? 'splash';
 
 $blogs = get_blogs_of_user( $current_user->ID );
 
@@ -124,7 +124,7 @@ else :
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
 
 	if ( $settings_html ) {
-		echo '<h3>' . __( 'Global Settings' ) . '</h3>';
+		echo '<h2>' . __( 'Global Settings' ) . '</h2>';
 		echo $settings_html;
 	}
 
@@ -134,7 +134,7 @@ else :
 		switch_to_blog( $user_blog->userblog_id );
 
 		echo '<li>';
-		echo "<h3>{$user_blog->blogname}</h3>";
+		echo "<h2>{$user_blog->blogname}</h2>";
 
 		$actions = "<a href='" . esc_url( home_url() ) . "'>" . __( 'Visit' ) . '</a>';
 
