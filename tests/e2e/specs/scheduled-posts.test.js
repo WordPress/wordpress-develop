@@ -1,4 +1,9 @@
 /**
+ * External dependencies
+ */
+import { errors } from '@playwright/test';
+
+/**
  * WordPress dependencies
  */
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
@@ -67,23 +72,11 @@ function fromRestDateGmt( dateGmt ) {
 }
 
 /**
- * Asks WordPress to run its due cron events, without waiting for them.
+ * Runs due events through the real cron endpoint.
  *
- * This is the only request in the spec that may take the doing_cron lock;
- * every other one carries `doing_wp_cron` so that spawn_cron() returns early.
- * Keeping the lock under these drives' sole control is what makes the retry
- * cadence below work: an ordinary request that takes the lock holds it for
- * WP_CRON_LOCK_TIMEOUT and then delegates the run to a loopback request, so
- * where loopback cannot be made, a stream of polling requests would take the
- * lock in turn, deliver nothing, and shut every later drive out of it.
- *
- * How long wp-cron.php holds the connection open depends on the server: under
- * PHP-FPM it calls fastcgi_finish_request() and answers immediately, while
- * under mod_php the response waits for every due event to finish. Since one
- * slow event would then stall the caller for as long as it runs, the request is
- * given a short timeout and its failure ignored — wp-cron.php sets
- * ignore_user_abort( true ), so the run continues server-side either way, and
- * what matters here is only that it was asked to start.
+ * PHP-FPM may respond before callbacks finish; other servers keep the request
+ * open. Tolerate only request timeouts, because PHP can continue after a client
+ * disconnects. The final status assertion verifies that publication succeeded.
  *
  * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils The request utils fixture.
  * @return {Promise<void>}
@@ -92,10 +85,13 @@ async function driveCron( requestUtils ) {
 	try {
 		await requestUtils.request.get(
 			siteUrl( requestUtils, 'wp-cron.php' ).toString(),
-			{ timeout: 5_000 }
+			{ timeout: 5_000, failOnStatusCode: true }
 		);
-	} catch {
-		// Timed out holding the connection open; the run itself is unaffected.
+	} catch ( error ) {
+		if ( ! ( error instanceof errors.TimeoutError ) ) {
+			throw error;
+		}
+		// A timed-out request may still be running; verify publication below.
 	}
 }
 
@@ -181,9 +177,10 @@ test.describe( 'Scheduled Posts', () => {
 		// of unrelated core events — privacy cleanups, do_pings, transient
 		// expiry — already due ahead of anything created during a test. A slow
 		// event in that queue leaves the drive still working when its own lock
-		// expires a minute later, at which point it stops. A later drive
-		// resumes from there, because every event the previous one reached was
-		// unscheduled before it ran.
+		// expires a minute later. A later drive may then claim the lock. The
+		// earlier runner checks for changed lock ownership after its callback
+		// finishes; expiry alone does not stop it. Events are unscheduled before
+		// their callbacks run.
 		//
 		// This is why the budget below is well over a minute: the recovery path
 		// becomes available exactly when the lock expires, so a timeout equal
