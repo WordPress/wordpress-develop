@@ -1,34 +1,66 @@
-const { test, expect } = require('@wordpress/e2e-test-utils-playwright');
+/**
+ * WordPress dependencies
+ */
+const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 
-test.describe('General Settings', () => {
-    let defaultTimezone;
+test.describe( 'General Settings', () => {
+	let originalTimezone;
 
-    test.beforeEach(async ({ admin, page }) => {
-        await admin.visitAdminPage('options-general.php');
+	test.beforeEach( async ( { admin, page } ) => {
+		originalTimezone = undefined;
+		await admin.visitAdminPage( 'options-general.php' );
+		originalTimezone = await page
+			.getByLabel( 'Timezone', { exact: true } )
+			.inputValue();
+	} );
 
-        // Capture the default timezone
-        defaultTimezone = await page.locator('select#timezone_string').inputValue();
-    });
+	test.afterEach( async ( { admin, page } ) => {
+		if ( originalTimezone === undefined ) {
+			return;
+		}
 
-    test.afterEach(async ({ page }) => {
-         // Revert to default timezone 
-         await page.locator('select#timezone_string').selectOption(defaultTimezone);
-         await page.click('#submit');
-    });
-    test('changes timezone', async ({ admin, page }) => {
-      
-        // Change timezone
-        await page.locator('select#timezone_string').selectOption('Africa/Libreville');
-        await page.click('#submit');
+		// Start from a fresh form, even if the test failed on another screen.
+		await admin.visitAdminPage( 'options-general.php' );
+		await page
+			.getByLabel( 'Timezone', { exact: true } )
+			.selectOption( originalTimezone );
+		await page
+			.getByRole( 'button', { name: 'Save Changes', exact: true } )
+			.click();
+		await expect(
+			page.locator( '#setting-error-settings_updated' )
+		).toContainText( 'Settings saved.' );
 
-        // Verify success message
-        await expect(page.locator('#setting-error-settings_updated')).toHaveText(
-            'Settings saved.Dismiss this notice.'
-        );
+		// Restoring through the form also preserves UTC-offset selections.
+		await admin.visitAdminPage( 'options-general.php' );
+		await expect(
+			page.getByLabel( 'Timezone', { exact: true } )
+		).toHaveValue( originalTimezone );
+	} );
 
-        // Verify selected timezone persists
-        const selectedTimezone = await page.locator('select#timezone_string').inputValue();
-        await expect(selectedTimezone).toBe('Africa/Libreville');       
-       
-    });
-});
+	test( 'changes timezone and preserves it after reloading', async ( {
+		admin,
+		page,
+	} ) => {
+		const targetTimezone =
+			originalTimezone === 'Africa/Libreville'
+				? 'Europe/Lisbon'
+				: 'Africa/Libreville';
+		expect( targetTimezone ).not.toBe( originalTimezone );
+
+		await page
+			.getByLabel( 'Timezone', { exact: true } )
+			.selectOption( targetTimezone );
+		await page
+			.getByRole( 'button', { name: 'Save Changes', exact: true } )
+			.click();
+		await expect(
+			page.locator( '#setting-error-settings_updated' )
+		).toContainText( 'Settings saved.' );
+
+		await admin.visitAdminPage( 'options-general.php' );
+		await expect(
+			page.getByLabel( 'Timezone', { exact: true } )
+		).toHaveValue( targetTimezone );
+	} );
+} );
