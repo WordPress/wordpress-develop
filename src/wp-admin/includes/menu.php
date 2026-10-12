@@ -41,6 +41,13 @@ if ( is_network_admin() ) {
 	do_action( '_admin_menu' );
 }
 
+/**
+ * @global array $menu
+ * @global array $submenu
+ * @global array $compat
+ */
+global $menu, $submenu, $compat;
+
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
 	$pos = strpos( $menu_page[2], '?' );
@@ -201,6 +208,10 @@ unset( $id, $data, $subs, $first_sub );
  * @param string $class_to_add The CSS class to add.
  * @param string $classes      The string to add the CSS class to.
  * @return string The string with the CSS class added.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $class_to_add
+ * @phpstan-return ( $classes is empty ? T : non-empty-string )
  */
 function add_cssclass( $class_to_add, $classes ) {
 	if ( empty( $classes ) ) {
@@ -327,12 +338,9 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 		} elseif ( ! isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
 			return 1;
 		} elseif ( isset( $menu_order[ $a ] ) && isset( $menu_order[ $b ] ) ) {
-			if ( $menu_order[ $a ] === $menu_order[ $b ] ) {
-				return 0;
-			}
-			return ( $menu_order[ $a ] < $menu_order[ $b ] ) ? -1 : 1;
+			return $menu_order[ $a ] <=> $menu_order[ $b ];
 		} else {
-			return ( $default_menu_order[ $a ] <= $default_menu_order[ $b ] ) ? -1 : 1;
+			return $default_menu_order[ $a ] <=> $default_menu_order[ $b ];
 		}
 	}
 

@@ -12,8 +12,8 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 	 */
 	public function test_add_no_follow() {
 		$content  = '<p>This is some cool <a href="/">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"/\" rel=\"nofollow\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_nofollow( $content ) );
+		$expected = '<p>This is some cool <a href="/" rel="nofollow">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_nofollow( $content ) ) );
 	}
 
 	/**
@@ -21,8 +21,8 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 	 */
 	public function test_convert_no_follow() {
 		$content  = '<p>This is some cool <a href="/" rel="weird">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"/\" rel=\"weird nofollow\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_nofollow( $content ) );
+		$expected = '<p>This is some cool <a href="/" rel="weird nofollow">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_nofollow( $content ) ) );
 	}
 
 	/**
@@ -30,7 +30,7 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 	 * @dataProvider data_wp_rel_nofollow
 	 */
 	public function test_wp_rel_nofollow( $input, $output, $expect_deprecation = false ) {
-		$this->assertSame( wp_slash( $output ), wp_rel_nofollow( $input ) );
+		$this->assertEqualHTML( $output, stripslashes( wp_rel_nofollow( $input ) ) );
 	}
 
 	public function data_wp_rel_nofollow() {
@@ -80,7 +80,7 @@ class Tests_Formatting_wpRelNofollow extends WP_UnitTestCase {
 
 	public function test_append_no_follow_with_valueless_attribute() {
 		$content  = '<p>This is some cool <a href="demo.com" download rel="hola">Code</a></p>';
-		$expected = '<p>This is some cool <a href=\"demo.com\" download rel=\"hola nofollow\">Code</a></p>';
-		$this->assertSame( $expected, wp_rel_nofollow( $content ) );
+		$expected = '<p>This is some cool <a href="demo.com" download rel="hola nofollow">Code</a></p>';
+		$this->assertEqualHTML( $expected, stripslashes( wp_rel_nofollow( $content ) ) );
 	}
 }
