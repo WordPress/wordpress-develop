@@ -89,10 +89,11 @@ ones:
    `;` inside an open block is part of the value, so
    `width: calc(1px; color: red` is one declaration, as a browser reads it.
 
-An empty `safe_style_css` list disables filtering. `safecss_filter_attr()`
-returns the input with NUL bytes and newlines removed, which is what the
-legacy function returns for an empty list, and does not call the declarations
-helper. A filter result that is not an array is treated as an empty list.
+An empty `safe_style_css` array disables filtering. `safecss_filter_attr()`
+returns the input with C0 control characters and `\0` sequences removed,
+which is what the legacy function returns for an empty list, and does not
+call the declarations helper. A filter result that is not an array is
+replaced with the default list, on both paths.
 
 1. **Property name.** The decoded, lowercased name is in the `safe_style_css`
    list, whose entries are lowercased once before matching; or the list
@@ -214,8 +215,9 @@ the appended `;`.
 ## Hooks
 
 `safe_style_css` is honoured as today, applied once before dispatch, so both
-paths see the same list. An empty list, or a result that is not an array,
-returns the input before dispatch (see "Policy").
+paths see the same list. An empty array returns the input before dispatch,
+and a result that is not an array is replaced with the default list (see
+"Policy").
 
 `wp_kses_force_legacy_css_parser` is new in 7.2.0. It receives `false`;
 returning `true` selects the legacy helper. It matches the form of
@@ -263,6 +265,10 @@ Intended:
   function rejected `}`.
 - An allowed-list entry with capitals matches, since entries and names are
   lowercased before matching.
+- A `safe_style_css` result that is not an array is replaced with the default
+  list, on both paths. The legacy function returned the input for `null`,
+  `false`, `''` and `0`, and threw a `TypeError` for other values when the
+  input had a declaration.
 - `safecss_filter_attr_allow_css` is deprecated and not applied. Most
   plugins and themes in the WordPress.org directories that attach a callback
   use it only to allow color, filter, math, easing or transform functions,
@@ -272,7 +278,7 @@ Intended:
 Formatting only: one space after the colon, double-quoted strings and unquoted
 url tokens with hex-escaped punctuation, comments dropped, trailing `;`.
 
-Unchanged: an empty `safe_style_css` list returns the input.
+Unchanged: an empty `safe_style_css` array returns the input.
 
 On the 156 legacy test vectors: 20 identical, 115 formatting only, 2
 narrowings (`expression()` inside a gradient; an unmatched `)`), 19 widenings,
@@ -326,7 +332,8 @@ properties, comments,
 strings and url tokens cut off by the end of the input, the structural rule in
 standard, nested and custom positions,
 `!important`, comments, one case per marked cell of the §9 table and a sample
-of unmarked pairs, whitespace, escapes, the empty `safe_style_css` list,
+of unmarked pairs, whitespace, escapes, the empty `safe_style_css` array, a
+`safe_style_css` result that is not an array,
 the two filters, and idempotence over a provider of the inputs that exercise
 the serializer.
 

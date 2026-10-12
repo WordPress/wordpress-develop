@@ -590,30 +590,53 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
-	 * @dataProvider data_empty_allowed_list
-	 *
-	 * @param callable $callback Callback for `safe_style_css` that returns an empty list or a non-array.
 	 */
-	public function test_empty_allowed_list_returns_the_input( $callback ) {
+	public function test_empty_allowed_list_returns_the_input() {
 		$input = 'color: red /* keep me */; width: calc(1px; foo: bar';
 
-		add_filter( 'safe_style_css', $callback );
+		add_filter( 'safe_style_css', '__return_empty_array' );
 		$actual = safecss_filter_attr( $input );
 		$legacy = safecss_filter_attr( "color:\0 red;\nwidth: 1px" );
-		remove_filter( 'safe_style_css', $callback );
+		remove_filter( 'safe_style_css', '__return_empty_array' );
 
 		$this->assertSame( $input, $actual );
 		$this->assertSame( 'color: red;width: 1px', $legacy );
 	}
 
 	/**
-	 * @return array<string, array{callable}>
+	 * @ticket 65738
+	 * @dataProvider data_non_array_allowed_list
+	 *
+	 * @param mixed $allowed_attr Value the `safe_style_css` filter returns.
 	 */
-	public function data_empty_allowed_list() {
+	public function test_non_array_allowed_list_uses_the_default_list( $allowed_attr ) {
+		$callback = static function () use ( $allowed_attr ) {
+			return $allowed_attr;
+		};
+
+		add_filter( 'safe_style_css', $callback );
+		$actual = safecss_filter_attr( 'color: red; user-select: none' );
+		add_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
+		$legacy = safecss_filter_attr( 'color: red; user-select: none' );
+		remove_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
+		remove_filter( 'safe_style_css', $callback );
+
+		$this->assertSame( 'color: red;', $actual, 'The parser-based filter should use the default list.' );
+		$this->assertSame( 'color: red', $legacy, 'The legacy filter should use the default list.' );
+	}
+
+	/**
+	 * @return array<string, array{mixed}>
+	 */
+	public function data_non_array_allowed_list() {
 		return array(
-			'empty array' => array( '__return_empty_array' ),
-			'null'        => array( '__return_null' ),
-			'false'       => array( '__return_false' ),
+			'null'         => array( null ),
+			'false'        => array( false ),
+			'empty string' => array( '' ),
+			'zero'         => array( 0 ),
+			'string'       => array( 'color' ),
+			'true'         => array( true ),
+			'ArrayObject'  => array( new ArrayObject( array( 'color' ) ) ),
 		);
 	}
 
