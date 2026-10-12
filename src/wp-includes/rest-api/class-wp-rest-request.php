@@ -211,7 +211,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return string|null String value if set, null otherwise.
 	 */
 	public function get_header( $key ) {
-		$key = $this->canonicalize_header_name( $key );
+		$key = static::canonicalize_header_name( $key );
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
 			return null;
@@ -229,7 +229,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @return array|null List of string values if set, null otherwise.
 	 */
 	public function get_header_as_array( $key ) {
-		$key = $this->canonicalize_header_name( $key );
+		$key = static::canonicalize_header_name( $key );
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
 			return null;
@@ -247,7 +247,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $value Header value, or list of values.
 	 */
 	public function set_header( $key, $value ) {
-		$key   = $this->canonicalize_header_name( $key );
+		$key   = static::canonicalize_header_name( $key );
 		$value = (array) $value;
 
 		$this->headers[ $key ] = $value;
@@ -262,7 +262,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $value Header value, or list of values.
 	 */
 	public function add_header( $key, $value ) {
-		$key   = $this->canonicalize_header_name( $key );
+		$key   = static::canonicalize_header_name( $key );
 		$value = (array) $value;
 
 		if ( ! isset( $this->headers[ $key ] ) ) {
@@ -280,7 +280,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $key Header name.
 	 */
 	public function remove_header( $key ) {
-		$key = $this->canonicalize_header_name( $key );
+		$key = static::canonicalize_header_name( $key );
 		unset( $this->headers[ $key ] );
 	}
 
@@ -535,7 +535,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_query_params() {
 		return $this->params['GET'];
@@ -587,7 +587,16 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
+	 *
+	 * @phpstan-return array<string, array{
+	 *                                   name: non-empty-string,
+	 *                                   type: non-empty-string,
+	 *                                   size: non-negative-int,
+	 *                                   tmp_name: non-empty-string,
+	 *                                   error: int<0, 8>,
+	 *                                   full_path?: non-empty-string,
+	 *                               }>
 	 */
 	public function get_file_params() {
 		return $this->params['FILES'];
@@ -601,6 +610,15 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $params Parameter map of key to value.
+	 *
+	 * @phpstan-param array<string, array{
+	 *                                  name: non-empty-string,
+	 *                                  type: non-empty-string,
+	 *                                  size: non-negative-int,
+	 *                                  tmp_name: non-empty-string,
+	 *                                  error: int<0, 8>,
+	 *                                  full_path?: non-empty-string,
+	 *                              }> $params
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
@@ -613,7 +631,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value
+	 * @return array Parameter map of key to value.
 	 */
 	public function get_default_params() {
 		return $this->params['defaults'];

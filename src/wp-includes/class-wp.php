@@ -167,7 +167,7 @@ class WP {
 			$error               = '404';
 			$this->did_permalink = true;
 
-			$pathinfo         = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '';
+			$pathinfo         = $_SERVER['PATH_INFO'] ?? '';
 			list( $pathinfo ) = explode( '?', $pathinfo );
 			$pathinfo         = str_replace( '%', '%25', $pathinfo );
 
@@ -277,10 +277,8 @@ class WP {
 				// Parse the query.
 				parse_str( $query, $perma_query_vars );
 
-				// If we're processing a 404 request, clear the error var since we found something.
-				if ( '404' === $error ) {
-					unset( $error, $_GET['error'] );
-				}
+				// Clear the 404 error var since we found something.
+				unset( $error, $_GET['error'] );
 			}
 
 			// If req_uri is empty or if it is a request for ourself, unset error.
@@ -539,7 +537,7 @@ class WP {
 		}
 
 		if ( is_singular() ) {
-			$post = isset( $wp_query->post ) ? $wp_query->post : null;
+			$post = $wp_query->post ?? null;
 
 			// Only set X-Pingback for single posts that allow pings.
 			if ( $post && pings_open( $post ) ) {
@@ -587,6 +585,9 @@ class WP {
 
 		/**
 		 * Fires once the requested HTTP headers for caching, content type, etc. have been sent.
+		 *
+		 * The {@see 'wp_finalized_template_enhancement_output_buffer'} action may be used to send
+		 * headers after rendering the template into an output buffer.
 		 *
 		 * @since 2.1.0
 		 *
@@ -647,14 +648,14 @@ class WP {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @global WP_Query     $wp_query     WordPress Query object.
-	 * @global string       $query_string Query string for the loop.
-	 * @global array        $posts        The found posts.
-	 * @global WP_Post|null $post         The current post, if available.
-	 * @global string       $request      The SQL statement for the request.
-	 * @global int          $more         Only set, if single page or post.
-	 * @global int          $single       If single page or post. Only set, if single page or post.
-	 * @global WP_User      $authordata   Only set, if author archive.
+	 * @global WP_Query           $wp_query     WordPress Query object.
+	 * @global string             $query_string Query string for the loop.
+	 * @global array              $posts        The found posts.
+	 * @global WP_Post|null       $post         The current post, if available.
+	 * @global string             $request      The SQL statement for the request.
+	 * @global int                $more         Only set, if single page or post.
+	 * @global int                $single       If single page or post. Only set, if single page or post.
+	 * @global WP_User|false|null $authordata   Only set, if author archive.
 	 */
 	public function register_globals() {
 		global $wp_query;
@@ -666,7 +667,7 @@ class WP {
 
 		$GLOBALS['query_string'] = $this->query_string;
 		$GLOBALS['posts']        = & $wp_query->posts;
-		$GLOBALS['post']         = isset( $wp_query->post ) ? $wp_query->post : null;
+		$GLOBALS['post']         = $wp_query->post ?? null;
 		$GLOBALS['request']      = $wp_query->request;
 
 		if ( $wp_query->is_single() || $wp_query->is_page() ) {
@@ -743,8 +744,9 @@ class WP {
 
 		$set_404 = true;
 
-		// Never 404 for the admin, robots, or favicon.
-		if ( is_admin() || is_robots() || is_favicon() ) {
+		// Never 404 here for the admin, robots, favicon, or sitemaps.
+		// Sitemap routes send their own status in WP_Sitemaps::render_sitemaps().
+		if ( is_admin() || is_robots() || is_favicon() || is_sitemap() ) {
 			$set_404 = false;
 
 			// If posts were found, check for paged content.
@@ -752,7 +754,7 @@ class WP {
 			$content_found = true;
 
 			if ( is_singular() ) {
-				$post = isset( $wp_query->post ) ? $wp_query->post : null;
+				$post = $wp_query->post ?? null;
 				$next = '<!--nextpage-->';
 
 				// Check for paged content that exceeds the max number of pages.

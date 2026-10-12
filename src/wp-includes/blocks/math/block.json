@@ -7,9 +7,55 @@
 	"description": "Display mathematical notation using LaTeX.",
 	"keywords": [ "equation", "formula", "latex", "mathematics" ],
 	"textdomain": "default",
+	"supports": {
+		"anchor": true,
+		"html": false,
+		"__experimentalBorder": {
+			"color": true,
+			"radius": true,
+			"style": true,
+			"width": true
+		},
+		"background": {
+			"backgroundImage": true,
+			"backgroundSize": true,
+			"gradient": true,
+			"__experimentalDefaultControls": {
+				"backgroundImage": true,
+				"gradient": true
+			}
+		},
+		"color": {
+			"gradients": true,
+			"__experimentalDefaultControls": {
+				"background": true,
+				"text": true
+			}
+		},
+		"shadow": true,
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"__experimentalDefaultControls": {
+				"margin": false,
+				"padding": false
+			}
+		},
+		"typography": {
+			"fontSize": true,
+			"__experimentalDefaultControls": {
+				"fontSize": true
+			}
+		},
+		"interactivity": {
+			"clientNavigation": true
+		}
+	},
 	"attributes": {
 		"latex": {
 			"type": "string",
+			"source": "text",
+			"selector": "math annotation[encoding=\"application/x-tex\"]",
 			"role": "content"
 		},
 		"mathML": {

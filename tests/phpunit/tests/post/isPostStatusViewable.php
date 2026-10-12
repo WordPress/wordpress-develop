@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers is_post_status_viewable
  */
 class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 
@@ -21,6 +23,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 * This may include emulations of built in (_builtin) statuses.
 	 *
 	 * @ticket 49380
+	 *
 	 * @dataProvider data_custom_post_statuses
 	 *
 	 * @param array $cps_args Registration arguments.
@@ -46,10 +49,9 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 *     bool  Expected result.
 	 * }
 	 */
-	public function data_custom_post_statuses() {
+	public static function data_custom_post_statuses() {
 		return array(
-			// 0. False for non-publicly queryable types.
-			array(
+			'false for non-publicly queryable types' => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
@@ -57,8 +59,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 1. True for publicly queryable types.
-			array(
+			'true for publicly queryable types'      => array(
 				array(
 					'publicly_queryable' => true,
 					'_builtin'           => false,
@@ -66,8 +67,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				true,
 			),
-			// 2. False for built-in non-public types.
-			array(
+			'false for built-in non-public types'    => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -75,8 +75,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 3. False for non-built-in public types.
-			array(
+			'false for non-built-in public types'    => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => false,
@@ -84,8 +83,7 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 				),
 				false,
 			),
-			// 4. True for built-in public types.
-			array(
+			'true for built-in public types'         => array(
 				array(
 					'publicly_queryable' => false,
 					'_builtin'           => true,
@@ -99,13 +97,14 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	/**
 	 * Test built-in and unregistered post status.
 	 *
-	 * @dataProvider data_built_unregistered_in_status_types
 	 * @ticket 49380
+	 *
+	 * @dataProvider data_built_in_and_unregistered_status_types
 	 *
 	 * @param mixed $status   Post status to check.
 	 * @param bool  $expected Expected viewable status.
 	 */
-	public function test_built_unregistered_in_status_types( $status, $expected ) {
+	public function test_built_in_and_unregistered_status_types( $status, $expected ) {
 		// Test status passed as string.
 		$this->assertSame( $expected, is_post_status_viewable( $status ) );
 		// Test status passed as object.
@@ -120,27 +119,28 @@ class Tests_Post_IsPostStatusViewable extends WP_UnitTestCase {
 	 *     @type bool  $expected Expected viewable status.
 	 * }
 	 */
-	public function data_built_unregistered_in_status_types() {
+	public static function data_built_in_and_unregistered_status_types() {
 		return array(
-			array( 'publish', true ),
-			array( 'future', false ),
-			array( 'draft', false ),
-			array( 'pending', false ),
-			array( 'private', false ),
-			array( 'trash', false ),
-			array( 'auto-draft', false ),
-			array( 'inherit', false ),
-			array( 'request-pending', false ),
-			array( 'request-confirmed', false ),
-			array( 'request-failed', false ),
-			array( 'request-completed', false ),
+			'publish'           => array( 'publish', true ),
+			'future'            => array( 'future', false ),
+			'draft'             => array( 'draft', false ),
+			'pending'           => array( 'pending', false ),
+			'private'           => array( 'private', false ),
+			'trash'             => array( 'trash', false ),
+			'auto-draft'        => array( 'auto-draft', false ),
+			'inherit'           => array( 'inherit', false ),
+			'request-pending'   => array( 'request-pending', false ),
+			'request-confirmed' => array( 'request-confirmed', false ),
+			'request-failed'    => array( 'request-failed', false ),
+			'request-completed' => array( 'request-completed', false ),
 
 			// Various unregistered statuses.
-			array( 'unregistered-status', false ),
-			array( false, false ),
-			array( true, false ),
-			array( 20, false ),
-			array( '', false ),
+			'unregistered'      => array( 'unregistered-status', false ),
+			'false'             => array( false, false ),
+			'true'              => array( true, false ),
+			'number 20'         => array( 20, false ),
+			'null'              => array( null, false ),
+			'empty string'      => array( '', false ),
 		);
 	}
 

@@ -589,21 +589,8 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		);
 		$autosave_db_post = get_post( $autosave_post_id );
 		$request          = new WP_REST_Request( 'GET', '/wp/v2/' . $rest_base . '/' . $template_id . '/autosaves/' . $autosave_db_post->ID );
-		// See create_initial_rest_routes. The controller need the post type
-		// with adjusted settings to initialize.
-		global $wp_post_types;
-		$wp_post_types['wp_template']->rest_base                       = 'templates';
-		$original_rest_controller_class                                = $wp_post_types['wp_template']->rest_controller_class;
-		$original_revisions_rest_controller_class                      = $wp_post_types['wp_template']->revisions_rest_controller_class;
-		$wp_post_types['wp_template']->rest_controller_class           = 'WP_REST_Templates_Controller';
-		$wp_post_types['wp_template']->revisions_rest_controller_class = 'WP_REST_Template_Revisions_Controller';
-		$wp_post_types['wp_template']->rest_controller                 = null;
-		$wp_post_types['wp_template']->revisions_rest_controller       = null;
-		$controller = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
-		$wp_post_types['wp_template']->rest_controller_class           = $original_rest_controller_class;
-		$wp_post_types['wp_template']->revisions_rest_controller_class = $original_revisions_rest_controller_class;
-		$wp_post_types['wp_template']->rest_base                       = 'wp_template';
-		$response = $controller->prepare_item_for_response( $autosave_db_post, $request );
+		$controller       = new WP_REST_Template_Autosaves_Controller( $parent_post->post_type );
+		$response         = $controller->prepare_item_for_response( $autosave_db_post, $request );
 		$this->assertInstanceOf(
 			WP_REST_Response::class,
 			$response,
@@ -695,6 +682,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$this->assertArrayHasKey( 'has_theme_file', $properties, 'has_theme_file key should exist in properties.' );
 		$this->assertArrayHasKey( 'author', $properties, 'author key should exist in properties.' );
 		$this->assertArrayHasKey( 'modified', $properties, 'modified key should exist in properties.' );
+		$this->assertArrayHasKey( 'date', $properties, 'date key should exist in properties.' );
 		$this->assertArrayHasKey( 'parent', $properties, 'Parent key should exist in properties.' );
 		$this->assertArrayHasKey( 'author_text', $properties, 'author_text key should exist in properties.' );
 		$this->assertArrayHasKey( 'original_source', $properties, 'original_source key should exist in properties.' );
@@ -713,13 +701,13 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			'templates'      => array(
 				'templates',
 				self::TEST_THEME . '//' . self::TEMPLATE_NAME,
-				19,
+				20,
 				array( 'is_custom', 'plugin' ),
 			),
 			'template parts' => array(
 				'template-parts',
 				self::TEST_THEME . '//' . self::TEMPLATE_PART_NAME,
-				18,
+				19,
 				array( 'area' ),
 			),
 		);

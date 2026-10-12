@@ -83,7 +83,7 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 		);
 		$block        = new WP_Block( $parsed_block );
 		$output       = $block->render();
-		$this->assertSame( '<p>Hello world!</p>', $output );
+		$this->assertSame( '<p class="wp-block-paragraph">Hello world!</p>', $output );
 	}
 
 	/**
@@ -99,7 +99,7 @@ class Tests_Blocks_RenderReusable extends WP_UnitTestCase {
 		$block        = new WP_Block( $parsed_block );
 		$output       = $block->render();
 		$output      .= $block->render();
-		$this->assertSame( '<p>Hello world!</p><p>Hello world!</p>', $output );
+		$this->assertSame( '<p class="wp-block-paragraph">Hello world!</p><p class="wp-block-paragraph">Hello world!</p>', $output );
 	}
 
 	public function test_ref_empty() {

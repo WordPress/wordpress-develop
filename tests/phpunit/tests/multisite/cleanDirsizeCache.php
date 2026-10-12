@@ -208,8 +208,8 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 	public function test_pre_recurse_dirsize_filter() {
 		add_filter( 'pre_recurse_dirsize', array( $this, 'filter_pre_recurse_dirsize' ) );
 
-		$upload_dir = wp_upload_dir();
-		$this->assertSame( 1042, recurse_dirsize( $upload_dir['path'] ) );
+		$directory_cache = array();
+		$this->assertSame( 1042, recurse_dirsize( __DIR__, null, null, $directory_cache ) );
 
 		remove_filter( 'pre_recurse_dirsize', array( $this, 'filter_pre_recurse_dirsize' ) );
 	}
@@ -270,7 +270,7 @@ class Tests_Multisite_CleanDirsizeCache extends WP_UnitTestCase {
 
 		/*
 		 * Now that it's confirmed that old cached values aren't being returned, create the
-		 * folder on disk, so that the the rest of the function can be tested.
+		 * folder on disk, so that the rest of the function can be tested.
 		 */
 		wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
 		$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';

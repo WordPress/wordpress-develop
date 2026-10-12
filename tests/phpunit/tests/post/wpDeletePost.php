@@ -17,38 +17,6 @@
 class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 
 	/**
-	 * User IDs for the test.
-	 *
-	 * @var array{administrator: int, editor: int, contributor: int}
-	 */
-	protected static $user_ids;
-
-	/**
-	 * Set up before class.
-	 *
-	 * @param WP_UnitTest_Factory $factory The Unit Test Factory.
-	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$user_ids = array(
-			'administrator' => $factory->user->create(
-				array(
-					'role' => 'administrator',
-				)
-			),
-			'editor'        => $factory->user->create(
-				array(
-					'role' => 'editor',
-				)
-			),
-			'contributor'   => $factory->user->create(
-				array(
-					'role' => 'contributor',
-				)
-			),
-		);
-	}
-
-	/**
 	 * Tests wp_delete_post reassign hierarchical post type.
 	 */
 	public function test_wp_delete_post_reassign_hierarchical_post_type() {
@@ -120,9 +88,9 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests wp_delete_post() when the post for the post_id has been already deleted.
+	 * Tests that wp_delete_post() returns null when the post has already been deleted.
 	 */
-	public function test_wp_delete_post_returns_false_for_invalid_post() {
+	public function test_wp_delete_post_returns_null_for_already_deleted_post() {
 		$post_id      = self::factory()->post->create();
 		$deleted_post = wp_delete_post( $post_id, true );
 		$this->assertInstanceOf( WP_Post::class, $deleted_post );
@@ -163,7 +131,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 		$deleted_post = wp_delete_post( (string) $post_id, true );
 		$this->assertInstanceOf( WP_Post::class, $deleted_post );
 
-		foreach ( array( 'before_delete_post', 'delete_post_post', 'delete_post', 'deleted_post_post', 'deleted_post', 'after_delete_post' ) as $action ) {
+		foreach ( $actions as $action ) {
 			$this->assertSame( $initial_action_counts[ $action ] + 1, did_action( $action ), "Expected $action action count to increment by 1." );
 			$this->assertCount( 2, $captured_action_args[ $action ], "Expected count for $action action" );
 			$this->assertSame( $post_id, $captured_action_args[ $action ][0], "Expected post ID for $action action" );
@@ -175,7 +143,7 @@ class Tests_Post_WpDeletePost extends WP_UnitTestCase {
 	/**
 	 * Tests short-circuiting wp_delete_post() with pre_delete_post filter.
 	 *
-	 * @ticket @63975
+	 * @ticket 63975
 	 */
 	public function test_wp_delete_post_can_be_short_circuited() {
 		$post_id = self::factory()->post->create();

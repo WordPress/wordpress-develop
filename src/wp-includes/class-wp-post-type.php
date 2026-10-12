@@ -303,6 +303,7 @@ final class WP_Post_Type {
 	 *   and delete blocks.
 	 * - If set to 'insert', the user is able to move existing blocks but is unable to insert
 	 *   new blocks and delete blocks.
+	 * - If set to 'contentOnly', the user is only able to edit the content of existing blocks.
 	 *
 	 * Default false.
 	 *
@@ -335,6 +336,8 @@ final class WP_Post_Type {
 
 	/**
 	 * Post type capabilities.
+	 *
+	 * @see get_post_type_capabilities()
 	 *
 	 * @since 4.6.0
 	 * @var stdClass $cap
@@ -567,19 +570,13 @@ final class WP_Post_Type {
 		$args['name'] = $this->name;
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['publicly_queryable'] ) {
-			$args['publicly_queryable'] = $args['public'];
-		}
+		$args['publicly_queryable'] ??= $args['public'];
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_ui'] ) {
-			$args['show_ui'] = $args['public'];
-		}
+		$args['show_ui'] ??= $args['public'];
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['embeddable'] ) {
-			$args['embeddable'] = $args['public'];
-		}
+		$args['embeddable'] ??= $args['public'];
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {
@@ -592,19 +589,13 @@ final class WP_Post_Type {
 		}
 
 		// If not set, default to the setting for 'show_in_menu'.
-		if ( null === $args['show_in_admin_bar'] ) {
-			$args['show_in_admin_bar'] = (bool) $args['show_in_menu'];
-		}
+		$args['show_in_admin_bar'] ??= (bool) $args['show_in_menu'];
 
 		// If not set, default to the setting for 'public'.
-		if ( null === $args['show_in_nav_menus'] ) {
-			$args['show_in_nav_menus'] = $args['public'];
-		}
+		$args['show_in_nav_menus'] ??= $args['public'];
 
 		// If not set, default to true if not public, false if public.
-		if ( null === $args['exclude_from_search'] ) {
-			$args['exclude_from_search'] = ! $args['public'];
-		}
+		$args['exclude_from_search'] ??= ! $args['public'];
 
 		// Back compat with quirky handling in version 3.0. #14122.
 		if ( empty( $args['capabilities'] )
@@ -614,9 +605,7 @@ final class WP_Post_Type {
 		}
 
 		// If not set, default to false.
-		if ( null === $args['map_meta_cap'] ) {
-			$args['map_meta_cap'] = false;
-		}
+		$args['map_meta_cap'] ??= false;
 
 		// If there's no specified edit link and no UI, remove the edit link.
 		if ( ! $args['show_ui'] && ! $has_edit_link ) {
@@ -642,25 +631,19 @@ final class WP_Post_Type {
 			if ( ! is_array( $args['rewrite'] ) ) {
 				$args['rewrite'] = array();
 			}
+
 			if ( empty( $args['rewrite']['slug'] ) ) {
 				$args['rewrite']['slug'] = $this->name;
 			}
-			if ( ! isset( $args['rewrite']['with_front'] ) ) {
-				$args['rewrite']['with_front'] = true;
-			}
-			if ( ! isset( $args['rewrite']['pages'] ) ) {
-				$args['rewrite']['pages'] = true;
-			}
+
+			$args['rewrite']['with_front'] ??= true;
+			$args['rewrite']['pages']      ??= true;
+
 			if ( ! isset( $args['rewrite']['feeds'] ) || ! $args['has_archive'] ) {
 				$args['rewrite']['feeds'] = (bool) $args['has_archive'];
 			}
-			if ( ! isset( $args['rewrite']['ep_mask'] ) ) {
-				if ( isset( $args['permalink_epmask'] ) ) {
-					$args['rewrite']['ep_mask'] = $args['permalink_epmask'];
-				} else {
-					$args['rewrite']['ep_mask'] = EP_PERMALINK;
-				}
-			}
+
+			$args['rewrite']['ep_mask'] ??= $args['permalink_epmask'] ?? EP_PERMALINK;
 		}
 
 		foreach ( $args as $property_name => $property_value ) {
@@ -798,13 +781,14 @@ final class WP_Post_Type {
 	 * Removes any rewrite rules, permastructs, and rules for the post type.
 	 *
 	 * @since 4.6.0
+	 * @since 7.2.0 Registered meta capabilities are no longer removed here. They are rebuilt
+	 *              from the post types that remain by {@see unregister_post_type()}.
 	 *
-	 * @global WP_Rewrite $wp_rewrite          WordPress rewrite component.
-	 * @global WP         $wp                  Current WordPress environment instance.
-	 * @global array      $post_type_meta_caps Used to remove meta capabilities.
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+	 * @global WP         $wp         Current WordPress environment instance.
 	 */
 	public function remove_rewrite_rules() {
-		global $wp, $wp_rewrite, $post_type_meta_caps;
+		global $wp, $wp_rewrite;
 
 		// Remove query var.
 		if ( false !== $this->query_var ) {
@@ -820,11 +804,6 @@ final class WP_Post_Type {
 					unset( $wp_rewrite->extra_rules_top[ $regex ] );
 				}
 			}
-		}
-
-		// Remove registered custom meta capabilities.
-		foreach ( $this->cap as $cap ) {
-			unset( $post_type_meta_caps[ $cap ] );
 		}
 	}
 

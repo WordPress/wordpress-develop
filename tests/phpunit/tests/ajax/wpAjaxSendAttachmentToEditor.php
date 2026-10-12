@@ -14,6 +14,15 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_wpAjaxSendAttachmentToEditor extends WP_Ajax_UnitTestCase {
 
 	/**
+	 * Tear down the test fixture.
+	 */
+	public function tear_down() {
+		// Cleanup.
+		$this->remove_added_uploads();
+		parent::tear_down();
+	}
+
+	/**
 	 * Shared user ID for the tests.
 	 *
 	 * @var int

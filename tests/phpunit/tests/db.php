@@ -122,28 +122,41 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10041
+	 *
+	 * @dataProvider data_esc_like
+	 *
+	 * @param string $input    The input string.
+	 * @param string $expected The expected escaped string.
 	 */
-	public function test_esc_like() {
+	public function test_esc_like( $input, $expected ) {
 		global $wpdb;
 
-		$inputs   = array(
-			'howdy%',              // Single percent.
-			'howdy_',              // Single underscore.
-			'howdy\\',             // Single slash.
-			'howdy\\howdy%howdy_', // The works.
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?', // Plain text.
-		);
-		$expected = array(
-			'howdy\\%',
-			'howdy\\_',
-			'howdy\\\\',
-			'howdy\\\\howdy\\%howdy\\_',
-			'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
-		);
+		$this->assertSame( $expected, $wpdb->esc_like( $input ) );
+	}
 
-		foreach ( $inputs as $key => $input ) {
-			$this->assertSame( $expected[ $key ], $wpdb->esc_like( $input ) );
-		}
+	public function data_esc_like() {
+		return array(
+			'single percent'    => array(
+				'howdy%',
+				'howdy\\%',
+			),
+			'single underscore' => array(
+				'howdy_',
+				'howdy\\_',
+			),
+			'single slash'      => array(
+				'howdy\\',
+				'howdy\\\\',
+			),
+			'the works'         => array(
+				'howdy\\howdy%howdy_',
+				'howdy\\\\howdy\\%howdy\\_',
+			),
+			'plain text'        => array(
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+				'howdy\'"[[]*#[^howdy]!+)(*&$#@!~|}{=--`/.,<>?',
+			),
+		);
 	}
 
 	/**
@@ -303,16 +316,18 @@ class Tests_DB extends WP_UnitTestCase {
 	 * Test that incompatible SQL modes are blocked
 	 *
 	 * @ticket 26847
+	 * @ticket 66185
 	 */
 	public function test_set_incompatible_sql_mode() {
 		global $wpdb;
 
 		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 
-		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_AUTO_VALUE_ON_ZERO' );
+		$new_modes = array( 'IGNORE_SPACE', 'NO_ZERO_DATE', 'NO_BACKSLASH_ESCAPES', 'NO_AUTO_VALUE_ON_ZERO' );
 		$wpdb->set_sql_mode( $new_modes );
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 		$this->assertNotContains( 'NO_ZERO_DATE', explode( ',', $check_new_modes ) );
+		$this->assertNotContains( 'NO_BACKSLASH_ESCAPES', explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( explode( ',', $current_modes ) );
 	}
