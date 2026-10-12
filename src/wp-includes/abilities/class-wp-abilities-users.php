@@ -18,9 +18,9 @@ declare( strict_types = 1 );
  * filtered by roles, published-post authorship, or included IDs. Field-level
  * access is enforced per user by omitting fields the current user cannot view.
  *
- * Unlike the other core abilities, which are self-contained closures registered
- * directly in wp_register_core_abilities(), the users ability lives in a dedicated
- * class because its callbacks and schemas share helpers: the permission and execute
+ * Unlike the core abilities registered directly in wp_register_core_abilities() as
+ * self-contained closures, the users ability lives in a dedicated class
+ * because its callbacks and schemas share helpers: the permission and execute
  * callbacks resolve and authorize the requested user through the same code, and the
  * input schema, output schema, and field normalization are built from the same
  * field definitions. Future write-oriented user abilities can reuse them as well.
