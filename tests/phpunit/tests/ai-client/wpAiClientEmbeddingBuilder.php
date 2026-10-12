@@ -11,6 +11,8 @@ use WordPress\AiClient\AiClient;
 use WordPress\AiClient\Builders\EmbeddingBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException as AiClientInvalidArgumentException;
 use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
+use WordPress\AiClient\Events\AfterGenerateEmbeddingEvent;
+use WordPress\AiClient\Events\BeforeGenerateEmbeddingEvent;
 use WordPress\AiClient\Messages\DTO\MessagePart;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
@@ -663,6 +665,45 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$actual_result = $builder->generate_embedding_result();
 
 		$this->assertSame( $result, $actual_result );
+	}
+
+	/**
+	 * Test that generate_embedding_result() fires the embedding lifecycle action hooks in order.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_generate_embedding_result_fires_lifecycle_action_hooks() {
+		$result = $this->create_test_embedding_result( 1 );
+		$model  = $this->create_mock_embedding_model( $result );
+
+		$hook_order = array();
+		$events     = array();
+
+		add_action(
+			'wp_ai_client_before_generate_embedding',
+			static function ( $event ) use ( &$hook_order, &$events ) {
+				$hook_order[]     = 'before';
+				$events['before'] = $event;
+			}
+		);
+		add_action(
+			'wp_ai_client_after_generate_embedding',
+			static function ( $event ) use ( &$hook_order, &$events ) {
+				$hook_order[]    = 'after';
+				$events['after'] = $event;
+			}
+		);
+
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
+		$builder->using_model( $model );
+
+		$actual_result = $builder->generate_embedding_result();
+
+		$this->assertSame( $result, $actual_result );
+		$this->assertSame( array( 'before', 'after' ), $hook_order );
+		$this->assertInstanceOf( BeforeGenerateEmbeddingEvent::class, $events['before'] );
+		$this->assertInstanceOf( AfterGenerateEmbeddingEvent::class, $events['after'] );
+		$this->assertSame( $result, $events['after']->getResult() );
 	}
 
 	/**
