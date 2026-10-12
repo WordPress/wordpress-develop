@@ -1283,17 +1283,17 @@ final class WP_Customize_Widgets {
 	 * @since 3.9.0
 	 */
 	public function print_preview_css() {
-		?>
-		<style>
-		.widget-customizer-highlighted-widget {
-			outline: none;
-			-webkit-box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
-			box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
-			position: relative;
-			z-index: 1;
-		}
-		</style>
-		<?php
+		wp_print_inline_style_tag(
+			<<<'CSS'
+			.widget-customizer-highlighted-widget {
+				outline: none;
+				-webkit-box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+				box-shadow: 0 0 2px rgba(30, 140, 190, 0.8);
+				position: relative;
+				z-index: 1;
+			}
+			CSS
+		);
 	}
 
 	/**
