@@ -4201,9 +4201,8 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
  *  - A non-custom property has no bare parenthesis block and no brace
  *    block at the top level of its value.
- *  - The value has no `&`, `<`, `>` or `=` delimiter and no `<!--` or `-->`
- *    token at any depth. Inside strings and URLs these characters are
- *    escaped in the output; no standard property value uses them elsewhere.
+ *  - The value has no `&` delimiter at any depth. The output contains no
+ *    `&`: other tokens escape it, and no property value uses a bare `&`.
  *
  * Checks run on decoded values. Comments are dropped; an empty comment is
  * written only between two tokens that would otherwise read as other
