@@ -409,7 +409,6 @@ ul#adminmenu > li.current > a.current::after {
 #wpadminbar.nojs .ab-top-menu > li.menupop:hover > .ab-item,
 #wpadminbar .ab-top-menu > li.menupop.hover > .ab-item {
 	color: variables.$menu-submenu-focus-text;
-	background: variables.$menu-submenu-background;
 }
 
 #wpadminbar > #wp-toolbar li:hover span.ab-label,
@@ -517,7 +516,6 @@ ul#adminmenu > li.current > a.current::after {
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode:hover > .ab-item,
 #wpadminbar:not(.mobile) .ab-top-menu > #wp-admin-bar-recovery-mode > .ab-item:focus {
 	color: variables.$adminbar-recovery-exit-text;
-	background-color: variables.$adminbar-recovery-exit-background-alt;
 }
 
 /* Admin Bar: my account */
