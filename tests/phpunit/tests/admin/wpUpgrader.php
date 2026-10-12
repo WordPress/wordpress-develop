@@ -49,11 +49,11 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		self::$upgrader_skin_mock = $this->getMockBuilder( 'WP_Upgrader_Skin' )->getMock();
+		self::$upgrader_skin_mock = $this->createMock( 'WP_Upgrader_Skin' );
 
 		self::$instance = new WP_Upgrader( self::$upgrader_skin_mock );
 
-		self::$wp_filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Base' )->getMock();
+		self::$wp_filesystem_mock = $this->createMock( 'WP_Filesystem_Base' );
 
 		if ( array_key_exists( 'wp_filesystem', $GLOBALS ) ) {
 			self::$wp_filesystem_backup = $GLOBALS['wp_filesystem'];
@@ -170,9 +170,13 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	 */
 	public function test_flatten_dirlist_should_flatten_the_provided_directory_list( $expected, $nested_files, $path = '' ) {
 		$flatten_dirlist = new ReflectionMethod( self::$instance, 'flatten_dirlist' );
-		$flatten_dirlist->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( true );
+		}
 		$actual = $flatten_dirlist->invoke( self::$instance, $nested_files, $path );
-		$flatten_dirlist->setAccessible( false );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$flatten_dirlist->setAccessible( false );
+		}
 
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}

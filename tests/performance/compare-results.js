@@ -96,6 +96,8 @@ if ( process.env.GITHUB_SHA ) {
 	);
 }
 
+summaryMarkdown += `<details><summary>Results</summary>`;
+
 for ( const { title, results } of afterStats ) {
 	const prevStat = beforeStats.find( ( s ) => s.title === title );
 
@@ -143,9 +145,11 @@ for ( const { title, results } of afterStats ) {
 		console.log( '(no results)' );
 	}
 
-	summaryMarkdown += `**${ title }**\n\n`;
+	summaryMarkdown += `<b>${ title }</b>\n\n`;
 	summaryMarkdown += `${ formatAsMarkdownTable( rows ) }\n`;
 }
+
+summaryMarkdown += `</details>`;
 
 writeFileSync(
 	join( process.env.WP_ARTIFACTS_PATH, '/performance-results.md' ),
