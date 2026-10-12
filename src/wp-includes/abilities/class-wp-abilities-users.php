@@ -225,7 +225,7 @@ final class WP_Abilities_Users {
 		 * through to an unrestricted query: WP_User_Query ignores an empty `include`, which
 		 * would return every user — the opposite of the caller's intent.
 		 */
-		if ( isset( $input['include'] ) && array() === $include ) {
+		if ( isset( $input['include'] ) && empty( $include ) ) {
 			return $this->invalid_filter_error( 'include', __( 'The include filter must list one or more valid user IDs.' ) );
 		}
 
@@ -238,7 +238,7 @@ final class WP_Abilities_Users {
 			'paged'  => $page,
 		);
 
-		if ( array() !== $include ) {
+		if ( ! empty( $include ) ) {
 			/*
 			 * The include list filters the results but does not order them, as in the REST
 			 * users controller. Results keep WP_User_Query's default order, by login.
@@ -253,7 +253,7 @@ final class WP_Abilities_Users {
 		 */
 		if ( isset( $input['roles'] ) ) {
 			$roles = $this->normalize_string_list( $input['roles'] );
-			if ( array() === $roles ) {
+			if ( empty( $roles ) ) {
 				return $this->invalid_filter_error( 'roles', __( 'The roles filter must list one or more role names.' ) );
 			}
 
@@ -298,7 +298,7 @@ final class WP_Abilities_Users {
 				? array_values( array_intersect( $public_post_types, $has_published_posts ) )
 				: $public_post_types;
 
-			if ( array() === $has_published_posts ) {
+			if ( empty( $has_published_posts ) ) {
 				return array(
 					'users'       => array(),
 					'total'       => 0,
@@ -558,7 +558,7 @@ final class WP_Abilities_Users {
 	 */
 	private function is_public_author( WP_User $user ): bool {
 		$post_types = $this->get_public_post_types();
-		if ( array() === $post_types ) {
+		if ( empty( $post_types ) ) {
 			return false;
 		}
 
@@ -600,7 +600,7 @@ final class WP_Abilities_Users {
 	 */
 	private function normalize_fields( array $input ): array {
 		$fields = isset( $input['fields'] ) ? $this->normalize_string_list( $input['fields'] ) : array();
-		if ( array() === $fields ) {
+		if ( empty( $fields ) ) {
 			$fields = self::DEFAULT_FIELDS;
 		}
 
@@ -732,7 +732,7 @@ final class WP_Abilities_Users {
 	private function normalize_per_page( array $input, array $include_ids ): int {
 		$per_page = $this->parse_filter_int( $input['per_page'] ?? null, 1 );
 		if ( null === $per_page ) {
-			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
+			$per_page = empty( $include_ids ) ? self::DEFAULT_PER_PAGE : count( $include_ids );
 		}
 
 		return min( self::MAX_PER_PAGE, $per_page );
@@ -807,7 +807,7 @@ final class WP_Abilities_Users {
 
 		$post_types = $this->normalize_string_list( $value );
 
-		return array() === $post_types ? null : $post_types;
+		return empty( $post_types ) ? null : $post_types;
 	}
 
 	/**
