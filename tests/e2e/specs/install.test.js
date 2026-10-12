@@ -109,9 +109,7 @@ test.describe( 'WordPress installation process', () => {
 		// and never reaches the installation screen it's meant to be testing.
 		dropE2eTables();
 
-		// Wait for HTTP requests to observe the restored installation before
-		// another test navigates to the site. Retry navigation, not just the
-		// assertion on a page that may have already redirected to the installer.
+		// PHP can briefly serve the previous wp-config.php; wait until the site answers as installed.
 		await expect( async () => {
 			await page.goto( '/wp-login.php' );
 			expect( page.url() ).toMatch( /\/wp-login\.php$/ );
