@@ -335,8 +335,6 @@ add_action( 'enqueue_block_editor_assets', 'twentynineteen_editor_customizer_sty
 
 /**
  * Displays custom color CSS in customizer and on frontend.
- *
- * @since Twenty Nineteen 3.5 Added `wp_print_inline_style_tag()` support.
  */
 function twentynineteen_colors_css_wrap() {
 
@@ -351,21 +349,12 @@ function twentynineteen_colors_css_wrap() {
 	if ( 'default' !== get_theme_mod( 'primary_color', 'default' ) ) {
 		$primary_color = get_theme_mod( 'primary_color_hue', 199 );
 	}
+	?>
 
-	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-		$attributes = array( 'id' => 'custom-theme-colors' );
-		if ( is_customize_preview() ) {
-			$attributes['data-hue'] = (string) absint( $primary_color );
-		}
-		wp_print_inline_style_tag( twentynineteen_custom_colors_css(), $attributes );
-	} else {
-		?>
-
-		<style id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
-			<?php echo twentynineteen_custom_colors_css(); ?>
-		</style>
-		<?php
-	}
+	<style id="custom-theme-colors" <?php echo is_customize_preview() ? 'data-hue="' . absint( $primary_color ) . '"' : ''; ?>>
+		<?php echo twentynineteen_custom_colors_css(); ?>
+	</style>
+	<?php
 }
 add_action( 'wp_head', 'twentynineteen_colors_css_wrap' );
 

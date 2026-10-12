@@ -274,26 +274,21 @@ if ( ! function_exists( 'twentyten_admin_header_style' ) ) :
 	 * Referenced via add_custom_image_header() in twentyten_setup().
 	 *
 	 * @since Twenty Ten 1.0
-	 * @since Twenty Ten 4.8 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyten_admin_header_style() {
-		$css = <<<CSS
-		/* Shows the same border as on front end */
-		#headimg {
-		border-bottom: 1px solid #000;
-		border-top: 4px solid #000;
-		}
-		/* If header-text was supported, you would style the text with these selectors:
-		#headimg #name { }
-		#headimg #desc { }
-		*/
-CSS;
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyten-admin-header-css' ) );
-		} else {
-			echo "<style id=\"twentyten-admin-header-css\">\n{$css}\n</style>\n";
-		}
+		?>
+	<style id="twentyten-admin-header-css">
+	/* Shows the same border as on front end */
+	#headimg {
+	border-bottom: 1px solid #000;
+	border-top: 4px solid #000;
+	}
+	/* If header-text was supported, you would style the text with these selectors:
+	#headimg #name { }
+	#headimg #desc { }
+	*/
+	</style>
+		<?php
 	}
 endif;
 

@@ -79,7 +79,6 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 	 * Create your own twentysixteen_header_style() function to override in a child theme.
 	 *
 	 * @since Twenty Sixteen 1.0
-	 * @since Twenty Sixteen 4.0 Added `wp_print_inline_style_tag()` support.
 	 *
 	 * @see twentysixteen_custom_header_and_background().
 	 */
@@ -90,7 +89,8 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 		}
 
 		// If the header text has been hidden.
-		$css = <<<CSS
+		?>
+		<style id="twentysixteen-header-css">
 		.site-branding {
 			margin: 0 auto 0 0;
 		}
@@ -100,13 +100,8 @@ if ( ! function_exists( 'twentysixteen_header_style' ) ) :
 			clip-path: inset(50%);
 			position: absolute;
 		}
-CSS;
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentysixteen-header-css' ) );
-		} else {
-			echo "<style id=\"twentysixteen-header-css\">\n{$css}\n</style>\n";
-		}
+		</style>
+		<?php
 	}
 endif; // twentysixteen_header_style()
 

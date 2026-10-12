@@ -4018,8 +4018,7 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		?>
 	<title><?php echo $title; ?></title>
-		<?php
-		$css = <<<'CSS'
+	<style>
 		html {
 			background: #f1f1f1;
 		}
@@ -4121,18 +4120,13 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			-webkit-box-shadow: none;
 			box-shadow: none;
 		}
-		CSS;
-		if ( 'rtl' === $text_direction ) {
-			$css .= "\nbody { font-family: Tahoma, Arial; }";
-		}
 
-		// The wp_die() handler may be called before the inline style tag API has loaded.
-		if ( function_exists( 'wp_print_inline_style_tag' ) && class_exists( 'WP_HTML_Tag_Processor', false ) ) {
-			wp_print_inline_style_tag( $css );
-		} else {
-			echo "<style>\n{$css}\n</style>\n";
+		<?php
+		if ( 'rtl' === $text_direction ) {
+			echo 'body { font-family: Tahoma, Arial; }';
 		}
 		?>
+	</style>
 </head>
 <body id="error-page">
 <?php endif; // ! did_action( 'admin_head' ) ?>

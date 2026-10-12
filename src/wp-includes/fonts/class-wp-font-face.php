@@ -92,7 +92,10 @@ class WP_Font_Face {
 			return;
 		}
 
-		wp_print_inline_style_tag( $css, array( 'class' => 'wp-fonts-local' ) );
+		$processor = new WP_HTML_Tag_Processor( '<style class="wp-fonts-local"></style>' );
+		$processor->next_tag();
+		$processor->set_modifiable_text( "\n{$css}\n" );
+		echo "{$processor->get_updated_html()}\n";
 	}
 
 	/**

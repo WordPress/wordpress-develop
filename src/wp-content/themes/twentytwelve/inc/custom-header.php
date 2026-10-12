@@ -66,7 +66,6 @@ add_action( 'admin_print_styles-appearance_page_custom-header', 'twentytwelve_cu
  * get_header_textcolor() options: 515151 is default, hide text (returns 'blank'), or any hex value.
  *
  * @since Twenty Twelve 1.0
- * @since Twenty Twelve 5.0 Added `wp_print_inline_style_tag()` support.
  */
 function twentytwelve_header_style() {
 	$text_color = get_header_textcolor();
@@ -77,45 +76,38 @@ function twentytwelve_header_style() {
 	}
 
 	// If we get this far, we have custom styles.
-	if ( ! display_header_text() ) {
-		// The text has been hidden.
-		$css = <<<CSS
-		.site-title,
-		.site-description {
-			position: absolute;
-			clip-path: inset(50%);
-		}
-CSS;
-	} else {
-		// The user has set a custom color for the text, so use that.
-		// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
-		$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
-
-		$css = <<<CSS
+	?>
+	<style id="twentytwelve-header-css">
+	<?php
+		// Has the text been hidden?
+	if ( ! display_header_text() ) :
+		?>
+	.site-title,
+	.site-description {
+		position: absolute;
+		clip-path: inset(50%);
+	}
+		<?php
+		// If the user has set a custom color for the text, use that.
+		else :
+			?>
 		.site-header h1 a,
 		.site-header h2 {
-			color: #{$sanitized_text_color};
+			color: #<?php echo $text_color; ?>;
 		}
-CSS;
-	}
-
-	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-		wp_print_inline_style_tag( $css, array( 'id' => 'twentytwelve-header-css' ) );
-	} else {
-		echo "<style id=\"twentytwelve-header-css\">\n{$css}\n</style>\n";
-	}
+	<?php endif; ?>
+	</style>
+	<?php
 }
 
 /**
  * Styles the header image displayed on the Appearance > Header admin panel.
  *
  * @since Twenty Twelve 1.0
- * @since Twenty Twelve 5.0 Added `wp_print_inline_style_tag()` support.
  */
 function twentytwelve_admin_header_style() {
-	$max_width = (int) get_theme_support( 'custom-header', 'max-width' );
-
-	$css = <<<CSS
+	?>
+	<style id="twentytwelve-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 		font-family: "Open Sans", Helvetica, Arial, sans-serif;
@@ -142,15 +134,10 @@ function twentytwelve_admin_header_style() {
 		margin-bottom: 24px;
 	}
 	#headimg img {
-		max-width: {$max_width}px;
+		max-width: <?php echo get_theme_support( 'custom-header', 'max-width' ); ?>px;
 	}
-CSS;
-
-	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-		wp_print_inline_style_tag( $css, array( 'id' => 'twentytwelve-admin-header-css' ) );
-	} else {
-		echo "<style id=\"twentytwelve-admin-header-css\">\n{$css}\n</style>\n";
-	}
+	</style>
+	<?php
 }
 
 /**

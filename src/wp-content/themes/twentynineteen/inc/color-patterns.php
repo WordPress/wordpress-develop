@@ -9,8 +9,6 @@
 
 /**
  * Generates the CSS for the current primary color.
- *
- * @return string Generated CSS.
  */
 function twentynineteen_custom_colors_css() {
 

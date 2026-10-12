@@ -84,7 +84,6 @@ add_action( 'admin_print_styles-appearance_page_custom-header', 'twentythirteen_
  * get_header_textcolor() options: Hide text (returns 'blank'), or any hex value.
  *
  * @since Twenty Thirteen 1.0
- * @since Twenty Thirteen 4.8 Added `wp_print_inline_style_tag()` support.
  */
 function twentythirteen_header_style() {
 	$header_image = get_header_image();
@@ -96,106 +95,76 @@ function twentythirteen_header_style() {
 	}
 
 	// If we get this far, we have custom styles.
-	$css = array();
-
-	if ( ! empty( $header_image ) ) {
-		$esc_url_raw = 'esc_url_raw';
-
-		$css[] = <<<CSS
+	?>
+	<style id="twentythirteen-header-css">
+	<?php
+	if ( ! empty( $header_image ) ) :
+		?>
+	.site-header {
+		background: url(<?php header_image(); ?>) no-repeat scroll top;
+		background-size: 1600px auto;
+	}
+	@media (max-width: 767px) {
 		.site-header {
-			background: url("{$esc_url_raw( $header_image )}") no-repeat scroll top;
-			background-size: 1600px auto;
+			background-size: 768px auto;
 		}
-		@media (max-width: 767px) {
-			.site-header {
-				background-size: 768px auto;
-			}
-		}
-		@media (max-width: 359px) {
-			.site-header {
-				background-size: 360px auto;
-			}
-		}
-CSS;
 	}
+	@media (max-width: 359px) {
+		.site-header {
+			background-size: 360px auto;
+		}
+	}
+		<?php
+		endif;
 
-	if ( ! display_header_text() ) {
-		// The text has been hidden.
-		$css[] = <<<CSS
+		// Has the text been hidden?
+	if ( ! display_header_text() ) :
+		?>
+	.site-title,
+	.site-description {
+		position: absolute;
+		clip-path: inset(50%);
+	}
+		<?php
+		if ( empty( $header_image ) ) :
+			?>
+	.site-header .home-link {
+	min-height: 0;
+	}
+			<?php
+		endif;
+
+		// If the user has set a custom color for the text, use that.
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) :
+			?>
 		.site-title,
 		.site-description {
-			position: absolute;
-			clip-path: inset(50%);
+			color: #<?php echo esc_attr( $text_color ); ?>;
 		}
-CSS;
-
-		if ( empty( $header_image ) ) {
-			$css[] = <<<CSS
-			.site-header .home-link {
-			min-height: 0;
-			}
-CSS;
-		}
-	} elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) {
-		// The user has set a custom color for the text, so use that.
-		// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
-		$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
-
-		$css[] = <<<CSS
-		.site-title,
-		.site-description {
-			color: #{$sanitized_text_color};
-		}
-CSS;
-	}
-
-	$css = implode( "\n", $css );
-
-	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-		wp_print_inline_style_tag( $css, array( 'id' => 'twentythirteen-header-css' ) );
-	} else {
-		echo "<style id=\"twentythirteen-header-css\">\n{$css}\n</style>\n";
-	}
+	<?php endif; ?>
+	</style>
+	<?php
 }
 
 /**
  * Styles the header image displayed on the Appearance > Header admin panel.
  *
  * @since Twenty Thirteen 1.0
- * @since Twenty Thirteen 4.8 Added `wp_print_inline_style_tag()` support.
  */
 function twentythirteen_admin_header_style() {
 	$header_image = get_header_image();
-
-	$header_image_declarations = '';
-	if ( ! empty( $header_image ) ) {
-		$esc_url_raw               = 'esc_url_raw';
-		$header_image_declarations = "background: url(\"{$esc_url_raw( $header_image )}\") no-repeat scroll top; background-size: 1600px auto;";
-	}
-
-	$min_height_declaration = '';
-	if ( ! empty( $header_image ) || display_header_text() ) {
-		$min_height_declaration = 'min-height: 230px;';
-	}
-
-	$hidden_text_rule = '';
-	if ( ! display_header_text() ) {
-		$hidden_text_rule = <<<CSS
-	#headimg h1,
-	#headimg h2 {
-		position: absolute !important;
-		clip-path: inset(50%);
-	}
-CSS;
-	}
-
-	$css = <<<CSS
+	?>
+	<style id="twentythirteen-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
 		-webkit-box-sizing: border-box;
 		-moz-box-sizing:    border-box;
 		box-sizing:         border-box;
-		{$header_image_declarations}
+		<?php
+		if ( ! empty( $header_image ) ) {
+			echo 'background: url(' . esc_url( $header_image ) . ') no-repeat scroll top; background-size: 1600px auto;';
+		}
+		?>
 		padding: 0 20px;
 	}
 	#headimg .home-link {
@@ -204,10 +173,20 @@ CSS;
 		box-sizing:         border-box;
 		margin: 0 auto;
 		max-width: 1040px;
-		{$min_height_declaration}
+		<?php
+		if ( ! empty( $header_image ) || display_header_text() ) {
+			echo 'min-height: 230px;';
+		}
+		?>
 		width: 100%;
 	}
-{$hidden_text_rule}
+	<?php if ( ! display_header_text() ) : ?>
+	#headimg h1,
+	#headimg h2 {
+		position: absolute !important;
+		clip-path: inset(50%);
+	}
+	<?php endif; ?>
 	#headimg h1 {
 		font: bold 60px/1 Bitter, Georgia, serif;
 		margin: 0;
@@ -228,13 +207,8 @@ CSS;
 		max-width: 230px;
 		width: auto;
 	}
-CSS;
-
-	if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-		wp_print_inline_style_tag( $css, array( 'id' => 'twentythirteen-admin-header-css' ) );
-	} else {
-		echo "<style id=\"twentythirteen-admin-header-css\">\n{$css}\n</style>\n";
-	}
+	</style>
+	<?php
 }
 
 /**

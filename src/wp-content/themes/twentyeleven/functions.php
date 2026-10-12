@@ -326,7 +326,6 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 	 * Styles the header image and text displayed on the blog.
 	 *
 	 * @since Twenty Eleven 1.0
-	 * @since Twenty Eleven 5.3 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyeleven_header_style() {
 		$text_color = get_header_textcolor();
@@ -337,33 +336,28 @@ if ( ! function_exists( 'twentyeleven_header_style' ) ) :
 		}
 
 		// If we get this far, we have custom styles. Let's do this.
-		if ( 'blank' === $text_color ) {
-			// The text has been hidden.
-			$css = <<<CSS
-			#site-title,
-			#site-description {
-				position: absolute;
-				clip-path: inset(50%);
-			}
-CSS;
-		} else {
-			// The user has set a custom color for the text, so use that.
-			// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
-			$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
-
-			$css = <<<CSS
-			#site-title a,
-			#site-description {
-				color: #{$sanitized_text_color};
-			}
-CSS;
+		?>
+		<style id="twentyeleven-header-css">
+		<?php
+		// Has the text been hidden?
+		if ( 'blank' === $text_color ) :
+			?>
+		#site-title,
+		#site-description {
+			position: absolute;
+			clip-path: inset(50%);
 		}
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyeleven-header-css' ) );
-		} else {
-			echo "<style id=\"twentyeleven-header-css\">\n{$css}\n</style>\n";
+			<?php
+			// If the user has set a custom color for the text, use that.
+		else :
+			?>
+		#site-title a,
+		#site-description {
+			color: #<?php echo $text_color; ?>;
 		}
+	<?php endif; ?>
+	</style>
+		<?php
 	}
 endif; // twentyeleven_header_style()
 
@@ -374,63 +368,46 @@ if ( ! function_exists( 'twentyeleven_admin_header_style' ) ) :
 	 * Referenced via add_theme_support('custom-header') in twentyeleven_setup().
 	 *
 	 * @since Twenty Eleven 1.0
-	 * @since Twenty Eleven 5.3 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyeleven_admin_header_style() {
-		$css = array();
-
-		$css[] = <<<CSS
-		.appearance_page_custom-header #headimg {
-			border: none;
-		}
-		#headimg h1,
-		#desc {
-			font-family: "Helvetica Neue", Arial, Helvetica, "Nimbus Sans L", sans-serif;
-		}
-		#headimg h1 {
-			margin: 0;
-		}
-		#headimg h1 a {
-			font-size: 32px;
-			line-height: 36px;
-			text-decoration: none;
-		}
-		#desc {
-			font-size: 14px;
-			line-height: 23px;
-			padding: 0 0 3em;
-		}
-CSS;
-
+		?>
+	<style id="twentyeleven-admin-header-css">
+	.appearance_page_custom-header #headimg {
+		border: none;
+	}
+	#headimg h1,
+	#desc {
+		font-family: "Helvetica Neue", Arial, Helvetica, "Nimbus Sans L", sans-serif;
+	}
+	#headimg h1 {
+		margin: 0;
+	}
+	#headimg h1 a {
+		font-size: 32px;
+		line-height: 36px;
+		text-decoration: none;
+	}
+	#desc {
+		font-size: 14px;
+		line-height: 23px;
+		padding: 0 0 3em;
+	}
+		<?php
 		// If the user has set a custom color for the text, use that.
-		$text_color = get_header_textcolor();
-		if ( HEADER_TEXTCOLOR !== $text_color ) {
-			// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
-			$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
-
-			$css[] = <<<CSS
-			#site-title a,
-			#site-description {
-				color: #{$sanitized_text_color};
-			}
-CSS;
-		}
-
-		$css[] = <<<CSS
-		#headimg img {
-			max-width: 1000px;
-			height: auto;
-			width: 100%;
-		}
-CSS;
-
-		$css = implode( "\n", $css );
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyeleven-admin-header-css' ) );
-		} else {
-			echo "<style id=\"twentyeleven-admin-header-css\">\n{$css}\n</style>\n";
-		}
+		if ( get_header_textcolor() !== HEADER_TEXTCOLOR ) :
+			?>
+	#site-title a,
+	#site-description {
+		color: #<?php echo get_header_textcolor(); ?>;
+	}
+	<?php endif; ?>
+	#headimg img {
+		max-width: 1000px;
+		height: auto;
+		width: 100%;
+	}
+	</style>
+		<?php
 	}
 endif; // twentyeleven_admin_header_style()
 

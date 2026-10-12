@@ -82,7 +82,6 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 	 * Styles the header image and text displayed on the blog.
 	 *
 	 * @since Twenty Fifteen 1.0
-	 * @since Twenty Fifteen 4.4 Added `wp_print_inline_style_tag()` support.
 	 *
 	 * @see twentyfifteen_custom_header_setup()
 	 */
@@ -95,11 +94,12 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 		}
 
 		// If we get this far, we have custom styles. Let's do this.
-		$css = array();
-
+		?>
+		<style id="twentyfifteen-header-css">
+		<?php
 		// Short header for when there is no Custom Header and Header Text is hidden.
-		if ( empty( $header_image ) && ! display_header_text() ) {
-			$css[] = <<<CSS
+		if ( empty( $header_image ) && ! display_header_text() ) :
+			?>
 		.site-header {
 			padding-top: 14px;
 			padding-bottom: 14px;
@@ -136,21 +136,19 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				min-height: 0;
 			}
 		}
-CSS;
-		}
+			<?php
+		endif;
 
 		// Has a Custom Header been added?
-		if ( ! empty( $header_image ) ) {
-			$esc_url_raw = 'esc_url_raw';
-
-			$css[] = <<<CSS
+		if ( ! empty( $header_image ) ) :
+			?>
 		.site-header {
 
 			/*
 			 * No shorthand so the Customizer can override individual properties.
 			 * @see https://core.trac.wordpress.org/ticket/31460
 			 */
-			background-image: url("{$esc_url_raw( $header_image )}");
+			background-image: url(<?php header_image(); ?>);
 			background-repeat: no-repeat;
 			background-position: 50% 50%;
 			-webkit-background-size: cover;
@@ -166,7 +164,7 @@ CSS;
 				 * No shorthand so the Customizer can override individual properties.
 				 * @see https://core.trac.wordpress.org/ticket/31460
 				 */
-				background-image: url("{$esc_url_raw( $header_image )}");
+				background-image: url(<?php header_image(); ?>);
 				background-repeat: no-repeat;
 				background-position: 100% 50%;
 				-webkit-background-size: cover;
@@ -180,27 +178,20 @@ CSS;
 				background: transparent;
 			}
 		}
-CSS;
-		}
+			<?php
+		endif;
 
 		// Has the text been hidden?
-		if ( ! display_header_text() ) {
-			$css[] = <<<CSS
+		if ( ! display_header_text() ) :
+			?>
 		.site-title,
 		.site-description {
 			clip-path: inset(50%);
 			position: absolute;
 		}
-CSS;
-		}
-
-		$css = implode( "\n", $css );
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyfifteen-header-css' ) );
-		} else {
-			echo "<style id=\"twentyfifteen-header-css\">\n{$css}\n</style>\n";
-		}
+	<?php endif; ?>
+	</style>
+		<?php
 	}
 endif; // twentyfifteen_header_style()
 

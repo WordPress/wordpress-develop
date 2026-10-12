@@ -104,8 +104,8 @@ add_action( 'wp_head', 'do_activate_header' );
  * @since MU (3.0.0)
  */
 function wpmu_activate_stylesheet() {
-	wp_print_inline_style_tag(
-		<<<'CSS'
+	?>
+	<style>
 		.wp-activate-container { width: 90%; margin: 0 auto; text-align: start; padding: 24px; box-sizing: border-box; }
 		.wp-activate-container form { margin: 24px 0; }
 		.wp-activate-container p { font-size: 18px; }
@@ -113,8 +113,8 @@ function wpmu_activate_stylesheet() {
 		#key { width: 100%; direction: ltr; }
 		#submit { width: auto; }
 		span.h3 { font-weight: 600; }
-		CSS
-	);
+	</style>
+	<?php
 }
 add_action( 'wp_head', 'wpmu_activate_stylesheet' );
 add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );

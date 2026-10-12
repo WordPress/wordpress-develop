@@ -638,17 +638,13 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
 			<link rel="profile" href="https://gmpg.org/xfn/11" />
 			<?php wp_head(); ?>
-			<?php
-			wp_print_inline_style_tag(
-				<<<'CSS'
+			<style>
 				/* Reset theme styles */
 				html, body, #page, #content {
 					padding: 0 !important;
 					margin: 0 !important;
 				}
-				CSS
-			);
-			?>
+			</style>
 		</head>
 		<body <?php body_class(); ?>>
 		<div id="page" class="site">

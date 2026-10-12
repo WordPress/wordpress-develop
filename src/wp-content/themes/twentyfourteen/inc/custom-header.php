@@ -58,8 +58,6 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 	 * Styles the header image and text displayed on the blog.
 	 *
 	 * @see twentyfourteen_custom_header_setup().
-	 *
-	 * @since Twenty Fourteen 4.7 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyfourteen_header_style() {
 		$text_color = get_header_textcolor();
@@ -70,33 +68,27 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 		}
 
 		// If we get this far, we have custom styles.
-		$css = '';
-		if ( ! display_header_text() ) {
-			// The text has been hidden.
-			$css = <<<CSS
-			.site-title,
-			.site-description {
-				clip-path: inset(50%);
-				position: absolute;
-			}
-CSS;
-		} elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) {
-			// The user has set a custom color for the text, so use that.
-			// Validate inline since sanitize_hex_color_no_hash() is not available outside the Customizer before WordPress 4.6.
-			$sanitized_text_color = preg_match( '/^([a-f0-9]{3}){1,2}$/i', $text_color ) ? $text_color : '';
-
-			$css = <<<CSS
-			.site-title a {
-				color: #{$sanitized_text_color};
-			}
-CSS;
+		?>
+		<style id="twentyfourteen-header-css">
+		<?php
+		// Has the text been hidden?
+		if ( ! display_header_text() ) :
+			?>
+		.site-title,
+		.site-description {
+			clip-path: inset(50%);
+			position: absolute;
 		}
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyfourteen-header-css' ) );
-		} else {
-			echo "<style id=\"twentyfourteen-header-css\">\n{$css}\n</style>\n";
+			<?php
+			// If the user has set a custom color for the text, use that.
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) !== $text_color ) :
+			?>
+		.site-title a {
+			color: #<?php echo esc_attr( $text_color ); ?>;
 		}
+	<?php endif; ?>
+	</style>
+		<?php
 	}
 endif; // twentyfourteen_header_style()
 
@@ -108,39 +100,34 @@ if ( ! function_exists( 'twentyfourteen_admin_header_style' ) ) :
 	 * @see twentyfourteen_custom_header_setup()
 	 *
 	 * @since Twenty Fourteen 1.0
-	 * @since Twenty Fourteen 4.7 Added `wp_print_inline_style_tag()` support.
 	 */
 	function twentyfourteen_admin_header_style() {
-		$css = <<<CSS
-		.appearance_page_custom-header #headimg {
-			background-color: #000;
-			border: none;
-			max-width: 1260px;
-			min-height: 48px;
-		}
-		#headimg h1 {
-			font-family: Lato, sans-serif;
-			font-size: 18px;
-			line-height: 48px;
-			margin: 0 0 0 30px;
-		}
-		.rtl #headimg h1  {
-			margin: 0 30px 0 0;
-		}
-		#headimg h1 a {
-			color: #fff;
-			text-decoration: none;
-		}
-		#headimg img {
-			vertical-align: middle;
-		}
-CSS;
-
-		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
-			wp_print_inline_style_tag( $css, array( 'id' => 'twentyfourteen-admin-header-css' ) );
-		} else {
-			echo "<style id=\"twentyfourteen-admin-header-css\">\n{$css}\n</style>\n";
-		}
+		?>
+	<style id="twentyfourteen-admin-header-css">
+	.appearance_page_custom-header #headimg {
+		background-color: #000;
+		border: none;
+		max-width: 1260px;
+		min-height: 48px;
+	}
+	#headimg h1 {
+		font-family: Lato, sans-serif;
+		font-size: 18px;
+		line-height: 48px;
+		margin: 0 0 0 30px;
+	}
+	.rtl #headimg h1  {
+		margin: 0 30px 0 0;
+	}
+	#headimg h1 a {
+		color: #fff;
+		text-decoration: none;
+	}
+	#headimg img {
+		vertical-align: middle;
+	}
+	</style>
+		<?php
 	}
 endif; // twentyfourteen_admin_header_style()
 

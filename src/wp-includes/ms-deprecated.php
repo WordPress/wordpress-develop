@@ -96,26 +96,21 @@ function graceful_fail( $message ) {
 <html><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Error!</title>
-' . str_replace( // Escape any '%' from filtered attributes, since this is a sprintf() format.
-	'%',
-	'%%',
-	wp_get_inline_style_tag(
-		<<<'CSS'
-		img {
-			border: 0;
-		}
-		body {
-		line-height: 1.6em; font-family: Georgia, serif; width: 390px; margin: auto;
-		text-align: center;
-		}
-		.message {
-			font-size: 22px;
-			width: 350px;
-			margin: auto;
-		}
-		CSS
-	)
-) . '</head>
+<style>
+img {
+	border: 0;
+}
+body {
+line-height: 1.6em; font-family: Georgia, serif; width: 390px; margin: auto;
+text-align: center;
+}
+.message {
+	font-size: 22px;
+	width: 350px;
+	margin: auto;
+}
+</style>
+</head>
 <body>
 <p class="message">%s</p>
 </body>
