@@ -3661,7 +3661,11 @@ function wp_count_attachments( $mime_type = '' ) {
 	 * the background, when an exact real-time count is not required.
 	 *
 	 * If the filtered value does not contain a trash count, one is added to the
-	 * result and set to zero.
+	 * result and set to zero. Missing MIME types are not added, as they depend on
+	 * the attachments that exist. The filtered value should therefore contain a
+	 * count for every MIME type matching `$mime_type` that has attachments,
+	 * including types first uploaded after the value was computed, as callers
+	 * may read the count for any MIME type that exists.
 	 *
 	 * The returned value is not cached and passed through the
 	 * {@see 'wp_count_attachments'} filter.
