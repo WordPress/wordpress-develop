@@ -572,4 +572,119 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
+
+	/**
+	 * Tests that a limited depth does not hide the children of an excluded page,
+	 * and that only children within the depth are promoted to the top level.
+	 *
+	 * @ticket 27326
+	 *
+	 * @covers ::wp_list_pages
+	 * @covers Walker_Page::walk
+	 */
+	public function test_wp_list_pages_exclude_with_depth_one_promotes_only_orphans() {
+		$args = array(
+			'echo'    => false,
+			'exclude' => self::$parent_3,
+			'depth'   => 1,
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_3 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][0] ) . '">Child 1</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_3 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][1] ) . '">Child 2</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_3 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_3 ][2] ) . '">Child 3</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
+
+	/**
+	 * Tests that excluding a page gives the same output for a depth covering the whole tree
+	 * as for unlimited depth, including the descendants of the excluded page's children.
+	 *
+	 * @ticket 27326
+	 *
+	 * @covers ::wp_list_pages
+	 * @covers Walker_Page::walk
+	 */
+	public function test_wp_list_pages_exclude_with_depth_matches_unlimited_depth() {
+		self::factory()->post->create(
+			array(
+				'post_parent' => self::$children[ self::$parent_3 ][0],
+				'post_type'   => 'page',
+				'post_title'  => 'Grandchild 1',
+			)
+		);
+
+		$args = array(
+			'echo'    => false,
+			'exclude' => self::$parent_3,
+		);
+
+		$unlimited = wp_list_pages( $args );
+
+		$this->assertStringContainsString( 'Grandchild 1', $unlimited, 'The excluded page\'s grandchild should be listed with unlimited depth.' );
+		$this->assertSame( $unlimited, wp_list_pages( array_merge( $args, array( 'depth' => 3 ) ) ) );
+	}
+
+	/**
+	 * Tests that the descendants of an excluded page's children are listed flat,
+	 * and only down to the given depth below the promoted child.
+	 *
+	 * @ticket 27326
+	 *
+	 * @covers ::wp_list_pages
+	 * @covers Walker_Page::walk
+	 */
+	public function test_wp_list_pages_exclude_with_depth_limits_promoted_descendants() {
+		$grandchild = self::factory()->post->create(
+			array(
+				'post_parent' => self::$children[ self::$parent_3 ][0],
+				'post_type'   => 'page',
+				'post_title'  => 'Grandchild 1',
+			)
+		);
+
+		$args = array(
+			'echo'    => false,
+			'exclude' => self::$parent_3,
+		);
+
+		$this->assertStringNotContainsString(
+			'page-item-' . $grandchild . '"',
+			wp_list_pages( array_merge( $args, array( 'depth' => 1 ) ) ),
+			'The grandchild should not be listed with a depth of 1.'
+		);
+
+		$this->assertStringContainsString(
+			"\n" . '<li class="page_item page-item-' . $grandchild . '">',
+			wp_list_pages( array_merge( $args, array( 'depth' => 2 ) ) ),
+			'The grandchild should be listed flat at the top level with a depth of 2.'
+		);
+	}
+
+	/**
+	 * Tests that pages listed from a common non-top-level parent are not repeated
+	 * as orphans when the depth is limited.
+	 *
+	 * @ticket 27326
+	 *
+	 * @covers ::wp_list_pages
+	 * @covers Walker_Page::walk
+	 */
+	public function test_wp_list_pages_child_of_with_depth_does_not_repeat_pages() {
+		$args = array(
+			'echo'     => false,
+			'child_of' => self::$parent_1,
+			'depth'    => 1,
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$children[ self::$parent_1 ][0] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][0] ) . '">Child 1</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_1 ][1] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][1] ) . '">Child 2</a></li>
+<li class="page_item page-item-' . self::$children[ self::$parent_1 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_1 ][2] ) . '">Child 3</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
 }

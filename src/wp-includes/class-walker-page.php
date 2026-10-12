@@ -242,4 +242,92 @@ class Walker_Page extends Walker {
 		}
 		$output .= "</li>{$n}";
 	}
+
+	/**
+	 * Displays array of elements hierarchically.
+	 *
+	 * Extends Walker::walk() to also display orphans (pages whose parent is not in the list,
+	 * for example because it was excluded) when the depth is limited. Orphans are displayed
+	 * flat after the hierarchy, as Walker::walk() does when displaying all levels, down to
+	 * `$max_depth` levels below each orphan.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see Walker::walk()
+	 *
+	 * @param array $elements  An array of elements.
+	 * @param int   $max_depth The maximum hierarchical depth.
+	 * @param mixed ...$args   Optional additional arguments.
+	 * @return string The hierarchical item output.
+	 */
+	public function walk( $elements, $max_depth, ...$args ) {
+		$output = parent::walk( $elements, $max_depth, ...$args );
+
+		$max_depth = (int) $max_depth;
+
+		// Orphans are already displayed when displaying all levels.
+		if ( $max_depth < 1 || empty( $elements ) ) {
+			return $output;
+		}
+
+		$id_field     = $this->db_fields['id'];
+		$parent_field = $this->db_fields['parent'];
+
+		$element_ids       = array();
+		$children_elements = array();
+		$has_top_level     = false;
+
+		foreach ( $elements as $e ) {
+			$element_ids[ $e->$id_field ] = true;
+
+			if ( empty( $e->$parent_field ) ) {
+				$has_top_level = true;
+			} else {
+				$children_elements[ $e->$parent_field ][] = $e;
+			}
+		}
+
+		// Without top level elements, Walker::walk() displays the siblings of the first element as top level.
+		if ( ! $has_top_level ) {
+			unset( $children_elements[ array_first( $elements )->$parent_field ] );
+		}
+
+		// Map each orphan's parent ID, then each displayed orphan's ID, to the level of its children.
+		$levels = array();
+		foreach ( $children_elements as $parent_id => $children ) {
+			if ( ! isset( $element_ids[ $parent_id ] ) ) {
+				$levels[ $parent_id ] = 1;
+			}
+		}
+
+		$queue = array_keys( $levels );
+		while ( $queue ) {
+			$parent_id = array_shift( $queue );
+
+			if ( $levels[ $parent_id ] >= $max_depth ) {
+				continue;
+			}
+
+			foreach ( $children_elements[ $parent_id ] as $child ) {
+				$child_id = $child->$id_field;
+
+				if ( isset( $children_elements[ $child_id ] ) && ! isset( $levels[ $child_id ] ) ) {
+					$levels[ $child_id ] = $levels[ $parent_id ] + 1;
+					$queue[]             = $child_id;
+				}
+			}
+		}
+
+		// Display in the same order as Walker::walk() does when displaying all levels.
+		$empty_array = array();
+		foreach ( $children_elements as $parent_id => $orphans ) {
+			if ( isset( $levels[ $parent_id ] ) ) {
+				foreach ( $orphans as $op ) {
+					$this->display_element( $op, $empty_array, 1, 0, $args, $output );
+				}
+			}
+		}
+
+		return $output;
+	}
 }
