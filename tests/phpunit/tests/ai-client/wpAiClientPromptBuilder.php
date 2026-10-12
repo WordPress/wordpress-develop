@@ -105,7 +105,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @return mixed The property value.
 	 */
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder = $builder_property->getValue( $builder );
@@ -1420,7 +1420,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		);
 
 		// Manually add a model message as the last message.
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder   = $builder_property->getValue( $builder );
@@ -2647,7 +2647,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @return string[] The text of each message part, in order.
 	 */
 	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 		$inner = $wrapped->getValue( $builder );
 
@@ -2673,7 +2673,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
 		$clone   = clone $builder;
 
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 
 		$this->assertNotSame(
@@ -2762,7 +2762,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$wrapped_builder->method( $wrapped_method )
 			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
 
-		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$builder_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $builder_property );
 		$builder_property->setValue( $prompt_builder, $wrapped_builder );
 
@@ -2938,14 +2938,14 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the protected throwable_to_wp_error method via reflection.
+	 * Invokes the private throwable_to_wp_error method via reflection.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
 	 * @param Throwable                   $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error.
 	 */
 	private function invoke_throwable_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Throwable $throwable ): WP_Error {
-		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection = new ReflectionClass( WP_AI_Client_Builder::class );
 		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 

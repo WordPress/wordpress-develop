@@ -17,7 +17,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	 * @return array The wrapped builder's inputs.
 	 */
 	private function get_wrapped_builder_inputs( WP_AI_Client_Embedding_Builder $builder ): array {
-		$reflection_class = new ReflectionClass( WP_AI_Client_Embedding_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$builder_property->setAccessible( true );
@@ -151,7 +151,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $this->get_wrapped_builder_inputs( $builder ) );
 
-		$error_property = new ReflectionProperty( WP_AI_Client_Embedding_Builder::class, 'error' );
+		$error_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'error' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$error_property->setAccessible( true );
 		}

@@ -74,7 +74,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	 * @return mixed The property value.
 	 */
 	private function get_wrapped_builder_property_value( WP_AI_Client_Embedding_Builder $builder, string $property ) {
-		$reflection_class = new ReflectionClass( WP_AI_Client_Embedding_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder = $builder_property->getValue( $builder );
@@ -95,14 +95,14 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the protected throwable_to_wp_error() method on a builder.
+	 * Invokes the private throwable_to_wp_error() method on a builder.
 	 *
 	 * @param WP_AI_Client_Embedding_Builder $builder   The builder to invoke the method on.
 	 * @param Throwable                      $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error.
 	 */
 	private function invoke_throwable_to_wp_error( WP_AI_Client_Embedding_Builder $builder, Throwable $throwable ): WP_Error {
-		$reflection = new ReflectionClass( WP_AI_Client_Embedding_Builder::class );
+		$reflection = new ReflectionClass( WP_AI_Client_Builder::class );
 		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
@@ -850,7 +850,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$wrapped_builder->method( 'isSupported' )
 			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
 
-		$builder_property = new ReflectionProperty( WP_AI_Client_Embedding_Builder::class, 'builder' );
+		$builder_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $builder_property );
 		$builder_property->setValue( $builder, $wrapped_builder );
 

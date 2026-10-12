@@ -32,6 +32,9 @@ use WordPress\AiClient\Providers\ProviderRegistry;
  * false rather than the error state instance.
  *
  * @since 7.2.0
+ * @internal Intended only as the shared base for the AI client builders in core.
+ *           It may gain abstract methods in the future, so it should not be extended.
+ * @access private
  */
 abstract class WP_AI_Client_Builder {
 
@@ -42,7 +45,7 @@ abstract class WP_AI_Client_Builder {
 	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var object
 	 */
-	protected object $builder;
+	private object $builder;
 
 	/**
 	 * WordPress error instance, if any error occurred during method calls.
@@ -51,7 +54,7 @@ abstract class WP_AI_Client_Builder {
 	 * @since 7.2.0 Moved from `WP_AI_Client_Prompt_Builder` to the `WP_AI_Client_Builder` base class.
 	 * @var WP_Error|null
 	 */
-	protected ?WP_Error $error = null;
+	private ?WP_Error $error = null;
 
 	/**
 	 * Constructor.
@@ -288,7 +291,7 @@ abstract class WP_AI_Client_Builder {
 	 * @param Throwable $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error object.
 	 */
-	protected function throwable_to_wp_error( Throwable $throwable ): WP_Error {
+	private function throwable_to_wp_error( Throwable $throwable ): WP_Error {
 		$prefix = $this->get_error_code_prefix();
 
 		if ( $throwable instanceof NetworkException ) {
