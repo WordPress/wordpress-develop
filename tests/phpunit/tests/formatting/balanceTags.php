@@ -8,6 +8,15 @@
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	/**
+	 * @ticket 6297
+	 */
+	public function test_does_not_treat_nextpage_as_a_balancing_boundary() {
+		$input = '<em>first page<!--nextpage-->second page</em>';
+
+		$this->assertSame( $input, balanceTags( $input, true ) );
+	}
+
+	/**
 	 * @ticket 47014
 	 * @dataProvider data_supported_traditional_tag_names
 	 */
