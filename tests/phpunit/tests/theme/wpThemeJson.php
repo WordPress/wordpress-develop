@@ -5908,7 +5908,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			array_merge( array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $theme_json_data )
 		);
 
-		$this->assertIsString( $theme_json->get_stylesheet() );
+		$this->assertIsString( $theme_json->get_stylesheet( array( 'variables', 'styles', 'presets', 'custom-css' ) ) );
 	}
 
 	/**
@@ -5918,6 +5918,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 */
 	public static function data_get_stylesheet_ignores_values_of_unexpected_types() {
 		return array(
+			'root custom css as an object'       => array(
+				array( 'styles' => array( 'css' => array( 'color' => 'red' ) ) ),
+			),
 			'element custom css as an object'    => array(
 				array( 'styles' => array( 'elements' => array( 'link' => array( 'css' => array( 'color' => 'red' ) ) ) ) ),
 			),
