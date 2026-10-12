@@ -463,7 +463,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 				'post_date_gmt' => $future_date,
 			)
 		);
-		$published_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		try {
@@ -479,7 +479,6 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 			$post_ids = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 			$this->assertSame( array( $scheduled_id ), $post_ids );
-			$this->assertNotContains( $published_id, $post_ids );
 		} finally {
 			foreach ( $global_names as $name ) {
 				if ( array_key_exists( $name, $backup ) ) {
