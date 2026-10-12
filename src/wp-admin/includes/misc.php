@@ -1090,13 +1090,18 @@ function wp_color_scheme_settings() {
 }
 
 /**
- * Dashicons back-compat: adds the icon colors of the current admin color scheme to SVG menu icons.
+ * Colors inline SVG admin menu icons with the icon colors of the current admin color scheme.
  *
- * Color schemes that only color the `::before` pseudo-element of menu icons do
- * not reach inline SVG icons, so these are colored from the scheme's icon colors.
- * The stylesheets of the core schemes already color them.
+ * These are the colors a scheme registers through the `$icons` argument of
+ * wp_admin_css_color(). svg-painter.js applies the same colors to menu icons
+ * given as base64-encoded SVG; this does it for inline SVG icons, with CSS.
+ *
+ * The rules are printed before the stylesheet of the scheme, so a scheme
+ * that colors the icon element itself overrides them.
  *
  * @since 7.2.0
+ *
+ * @see wp_color_scheme_settings()
  *
  * @global array $_wp_admin_css_colors
  */
@@ -1121,11 +1126,11 @@ function wp_color_scheme_menu_icon_styles() {
 	}
 
 	wp_add_inline_style(
-		'colors',
+		'admin-menu',
 		sprintf(
-			'#adminmenu div.wp-menu-image.svg-icon{color:%1$s}' .
-			'#adminmenu li:hover div.wp-menu-image.svg-icon,#adminmenu li a:focus div.wp-menu-image.svg-icon,#adminmenu li.opensub div.wp-menu-image.svg-icon{color:%2$s}' .
-			'#adminmenu li.wp-has-current-submenu div.wp-menu-image.svg-icon,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image.svg-icon,#adminmenu li.current div.wp-menu-image.svg-icon,#adminmenu a.current:hover div.wp-menu-image.svg-icon{color:%3$s}',
+			'#adminmenu div.wp-menu-image{color:%1$s}' .
+			'#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image{color:%2$s}' .
+			'#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image{color:%3$s}',
 			$icon_colors['base'],
 			$icon_colors['focus'],
 			$icon_colors['current']

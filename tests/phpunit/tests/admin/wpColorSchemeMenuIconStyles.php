@@ -53,7 +53,7 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dashicons back-compat: a third-party scheme that only colors `::before` gets its icon colors on SVG menu icons.
+	 * A third-party scheme gets its icon colors on SVG menu icons.
 	 *
 	 * @ticket 65089
 	 */
@@ -69,7 +69,7 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 
 		wp_color_scheme_menu_icon_styles();
 
-		$styles = implode( '', (array) wp_styles()->get_data( 'colors', 'after' ) );
+		$styles = implode( '', (array) wp_styles()->get_data( 'admin-menu', 'after' ) );
 
 		$this->assertStringContainsString( 'color:#aaaaaa', $styles );
 		$this->assertStringContainsString( 'color:#bbbbbb', $styles );
@@ -89,7 +89,7 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 
 		wp_color_scheme_menu_icon_styles();
 
-		$this->assertEmpty( wp_styles()->get_data( 'colors', 'after' ) );
+		$this->assertEmpty( wp_styles()->get_data( 'admin-menu', 'after' ) );
 	}
 
 	/**
