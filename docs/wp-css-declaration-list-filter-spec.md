@@ -98,7 +98,9 @@ replaced with the default list, on both paths.
 1. **Property name.** The decoded, lowercased name is in the `safe_style_css`
    list, whose entries are lowercased once before matching; or the list
    contains `--*` and the name matches `^--[a-zA-Z0-9_-]+$`. Custom property
-   names are matched case-sensitively.
+   names are matched case-sensitively. List entries that are not strings are
+   ignored, so a list with no string entry allows no property, as in the
+   legacy function, which compared entries strictly.
 2. **Functions.** Every function in the value, at any nesting depth, is in the
    function allowlist: the legacy function's list, the math functions `abs`,
    `sign`, `round`, `mod`, `rem`, `pow`, `sqrt`, `hypot`, `log`, `exp`, `sin`,
@@ -333,7 +335,7 @@ strings and url tokens cut off by the end of the input, the structural rule in
 standard, nested and custom positions,
 `!important`, comments, one case per marked cell of the §9 table and a sample
 of unmarked pairs, whitespace, escapes, the empty `safe_style_css` array, a
-`safe_style_css` result that is not an array,
+`safe_style_css` result that is not an array, list entries that are not strings,
 the two filters, and idempotence over a provider of the inputs that exercise
 the serializer.
 

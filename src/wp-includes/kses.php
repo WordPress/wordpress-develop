@@ -3936,7 +3936,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	/**
 	 * Filters the list of allowed CSS attributes.
 	 *
-	 * A value that is not an array is replaced with the default list.
+	 * Entries that are not strings are ignored, so an array with no string
+	 * entry allows no property. A value that is not an array is replaced with
+	 * the default list.
 	 *
 	 * An empty array disables filtering: the input is returned with C0 control
 	 * characters and `\0` sequences removed.
@@ -4195,9 +4197,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *
  * The policy:
  *
- *  - The lowercased property name is in the allowed list, whose entries are
- *    lowercased once, or the list contains `--*` and the name matches
- *    `^--[a-zA-Z0-9_-]+$`.
+ *  - The lowercased property name is in the allowed list, whose string
+ *    entries are lowercased once and whose other entries are ignored, or the
+ *    list contains `--*` and the name matches `^--[a-zA-Z0-9_-]+$`.
  *  - Every function at any depth is in the function allowlist.
  *  - Every URL at any depth is non-empty and unchanged by wp_kses_bad_protocol().
  *  - A non-custom property has no bare parenthesis block and no brace
@@ -4218,8 +4220,9 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * @access private
  * @internal
  *
- * @param string   $css          A string of CSS rules, decoded from an HTML `style` attribute.
- * @param string[] $allowed_attr Allowed CSS property names after the `safe_style_css` filter. Must be non-empty.
+ * @param string $css          A string of CSS rules, decoded from an HTML `style` attribute.
+ * @param array  $allowed_attr Allowed CSS property names after the `safe_style_css` filter. Must be non-empty.
+ *                             Entries that are not strings are ignored.
  * @return string Filtered string of CSS rules.
  */
 function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
@@ -4227,8 +4230,8 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 	$allow_custom      = in_array( '--*', $allowed_attr, true );
 	$allowed_protocols = wp_allowed_protocols();
 
-	// The processor lowercases property names; match the list the same way.
-	$allowed_attr = array_map( 'strtolower', $allowed_attr );
+	// Only string entries name properties. The processor lowercases property names; match the list the same way.
+	$allowed_attr = array_map( 'strtolower', array_filter( $allowed_attr, 'is_string' ) );
 
 	if ( has_filter( 'safecss_filter_attr_allow_css' ) ) {
 		_deprecated_hook(

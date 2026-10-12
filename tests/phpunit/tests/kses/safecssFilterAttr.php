@@ -642,6 +642,45 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @dataProvider data_allowed_list_with_entries_that_are_not_strings
+	 *
+	 * @param array  $allowed_attr    Allowed list the `safe_style_css` filter returns.
+	 * @param string $expected        Expected output of the parser-based filter.
+	 * @param string $expected_legacy Expected output of the legacy filter.
+	 */
+	public function test_allowed_list_entries_that_are_not_strings_are_ignored( $allowed_attr, $expected, $expected_legacy ) {
+		$callback = static function () use ( $allowed_attr ) {
+			return $allowed_attr;
+		};
+
+		add_filter( 'safe_style_css', $callback );
+		$actual = safecss_filter_attr( 'color: red; display: none' );
+		add_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
+		$legacy = safecss_filter_attr( 'color: red; display: none' );
+		remove_filter( 'wp_kses_force_legacy_css_parser', '__return_true' );
+		remove_filter( 'safe_style_css', $callback );
+
+		$this->assertSame( $expected, $actual, 'Parser-based output does not match.' );
+		$this->assertSame( $expected_legacy, $legacy, 'Legacy output does not match.' );
+	}
+
+	/**
+	 * @return array<string, array{array, string, string}>
+	 */
+	public function data_allowed_list_with_entries_that_are_not_strings() {
+		return array(
+			'array entry'          => array( array( 'color', array( 'display' ) ), 'color: red;', 'color: red' ),
+			'null entry'           => array( array( 'color', null ), 'color: red;', 'color: red' ),
+			'integer entry'        => array( array( 'color', 5 ), 'color: red;', 'color: red' ),
+			'only false'           => array( array( false ), '', '' ),
+			'only null'            => array( array( null ), '', '' ),
+			'only an array'        => array( array( array( 'color', 'display' ) ), '', '' ),
+			'only a wildcard list' => array( array( array( '--*' ) ), '', '' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
 	 */
 	public function test_empty_allowed_list_returns_the_input_on_the_legacy_path() {
 		add_filter( 'safe_style_css', '__return_empty_array' );
