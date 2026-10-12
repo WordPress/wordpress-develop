@@ -119,6 +119,7 @@ require ABSPATH . WPINC . '/class-wp-admin-notice-collector.php';
 require ABSPATH . WPINC . '/class-wp-meta-query.php';
 require ABSPATH . WPINC . '/class-wp-matchesmapregex.php';
 require ABSPATH . WPINC . '/class-wp.php';
+require ABSPATH . WPINC . '/class-wp-superglobals.php';
 require ABSPATH . WPINC . '/class-wp-error.php';
 require ABSPATH . WPINC . '/pomo/mo.php';
 require ABSPATH . WPINC . '/l10n/class-wp-translation-controller.php';
