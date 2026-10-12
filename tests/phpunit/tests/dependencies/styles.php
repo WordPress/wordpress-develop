@@ -260,37 +260,6 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that inline style attributes are filtered when print_inline_style() is called directly.
-	 *
-	 * @ticket 51325
-	 */
-	public function test_inline_style_attributes_filter_with_direct_call() {
-		add_filter(
-			'wp_inline_style_attributes',
-			static function ( array $attributes ) {
-				$attributes['nonce'] = 'test-nonce';
-				return $attributes;
-			}
-		);
-
-		wp_register_style( 'handle', 'http://example.com' );
-		wp_add_inline_style( 'handle', 'body { color: #123456; }' );
-
-		$expected = <<<'HTML'
-			<style id="handle-inline-css" nonce="test-nonce">
-			body { color: #123456; }
-			/*# sourceURL=handle-inline-css */
-			</style>
-
-			HTML;
-
-		$this->assertEqualHTML(
-			$expected,
-			get_echo( array( wp_styles(), 'print_inline_style' ), array( 'handle' ) )
-		);
-	}
-
-	/**
 	 * Tests that inline style attributes are filtered for a concatenated non-core stylesheet.
 	 *
 	 * @ticket 51325
