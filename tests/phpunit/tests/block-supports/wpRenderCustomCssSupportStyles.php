@@ -237,6 +237,18 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 					),
 				),
 			),
+			'CSS produces no rules'          => array(
+				'block_name'   => 'test/custom-css-empty-output',
+				'supports'     => array( 'customCSS' => true ),
+				'parsed_block' => array(
+					'blockName' => 'test/custom-css-empty-output',
+					'attrs'     => array(
+						'style' => array(
+							'css' => '&',
+						),
+					),
+				),
+			),
 			'no style attribute'             => array(
 				'block_name'   => 'test/custom-css-no-style',
 				'supports'     => array( 'customCSS' => true ),
@@ -270,6 +282,70 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 				),
 			),
 		);
+	}
+
+	/**
+	 * Tests that custom CSS is scoped to pseudo-selector and viewport states.
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_processes_custom_css_for_pseudo_and_viewport_states() {
+		$responsive_media_queries = WP_Theme_JSON::get_viewport_media_queries( wp_get_global_settings( array( 'viewport' ) ) );
+		$viewport_state           = key( $responsive_media_queries );
+		$viewport_media_query     = $responsive_media_queries[ $viewport_state ];
+		$style                    = array(
+			'css'    => 'color: red;',
+			':hover' => array(
+				'css' => 'color: blue;',
+			),
+		);
+		$style[ $viewport_state ] = array(
+			'css'    => 'color: green;',
+			':focus' => array(
+				'css' => 'color: purple;',
+			),
+		);
+
+		$parsed_block = array(
+			'blockName' => 'core/button',
+			'attrs'     => array(
+				'style' => $style,
+			),
+		);
+
+		$result        = wp_render_custom_css_support_styles( $parsed_block );
+		$class_name    = $result['attrs']['className'];
+		$inline_styles = implode( '', (array) wp_styles()->get_data( 'wp-block-custom-css', 'after' ) );
+
+		$this->assertStringContainsString( ':root :where(.' . $class_name . '){color: red;}', $inline_styles );
+		$this->assertStringContainsString( ':root :where(.' . $class_name . ':hover){color: blue;}', $inline_styles );
+		$this->assertStringContainsString( $viewport_media_query . '{:root :where(.' . $class_name . '){color: green;}}', $inline_styles );
+		$this->assertStringContainsString( $viewport_media_query . '{:root :where(.' . $class_name . ':focus){color: purple;}}', $inline_styles );
+	}
+
+	/**
+	 * Tests that invalid CSS in one state does not prevent valid states from rendering.
+	 *
+	 * @covers ::wp_render_custom_css_support_styles
+	 */
+	public function test_processes_valid_custom_css_states_when_another_state_contains_html() {
+		$parsed_block = array(
+			'blockName' => 'core/button',
+			'attrs'     => array(
+				'style' => array(
+					'css'    => '<script>alert(1)</script>',
+					':hover' => array(
+						'css' => 'color: blue;',
+					),
+				),
+			),
+		);
+
+		wp_render_custom_css_support_styles( $parsed_block );
+		$inline_styles = implode( '', (array) wp_styles()->get_data( 'wp-block-custom-css', 'after' ) );
+
+		$this->assertStringContainsString( 'color: blue;', $inline_styles );
+		$this->assertStringNotContainsString( '<script>', $inline_styles );
 	}
 
 	/**
