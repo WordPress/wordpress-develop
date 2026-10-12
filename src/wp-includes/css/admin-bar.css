@@ -286,11 +286,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	fill: currentColor;
 }
 
-/* Dashicons back-compat: hide an empty icon element left in a title next to the SVG icon. */
-#wpadminbar .ab-icon.svg-icon ~ .ab-icon:empty {
-	display: none;
-}
-
 #wpadminbar .ab-icon,
 #wpadminbar .ab-item::before {
 	position: relative;
