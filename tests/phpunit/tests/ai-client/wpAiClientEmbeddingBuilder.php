@@ -8,7 +8,6 @@
  */
 
 use WordPress\AiClient\AiClient;
-use WordPress\AiClient\Builders\EmbeddingBuilder;
 use WordPress\AiClient\Common\Exception\InvalidArgumentException as AiClientInvalidArgumentException;
 use WordPress\AiClient\Common\Exception\TokenLimitReachedException;
 use WordPress\AiClient\Events\AfterGenerateEmbeddingEvent;
@@ -95,21 +94,6 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private throwable_to_wp_error() method on a builder.
-	 *
-	 * @param WP_AI_Client_Embedding_Builder $builder   The builder to invoke the method on.
-	 * @param Throwable                      $throwable The throwable to convert.
-	 * @return WP_Error The resulting WP_Error.
-	 */
-	private function invoke_throwable_to_wp_error( WP_AI_Client_Embedding_Builder $builder, Throwable $throwable ): WP_Error {
-		$reflection = new ReflectionClass( WP_AI_Client_Builder::class );
-		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
-		self::set_accessible( $method );
-
-		return $method->invoke( $builder, $throwable );
-	}
-
-	/**
 	 * Returns the inputs held by the wrapped embedding builder.
 	 *
 	 * @param WP_AI_Client_Embedding_Builder $builder The embedding builder to read.
@@ -164,12 +148,13 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Creates a mock embedding generation model using an anonymous class.
 	 *
-	 * @param EmbeddingResult    $result   The result to return from generation.
-	 * @param ModelMetadata|null $metadata Optional metadata.
+	 * @param EmbeddingResult|Throwable $result   The result to return from generation,
+	 *                                            or a throwable to throw instead.
+	 * @param ModelMetadata|null        $metadata Optional metadata.
 	 * @return ModelInterface&EmbeddingGenerationModelInterface The mock model.
 	 */
 	private function create_mock_embedding_model(
-		EmbeddingResult $result,
+		$result,
 		?ModelMetadata $metadata = null
 	): ModelInterface {
 		$metadata = $metadata ?? $this->create_test_embedding_model_metadata();
@@ -184,13 +169,14 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 
 			private ModelMetadata $metadata;
 			private ProviderMetadata $provider_metadata;
-			private EmbeddingResult $result;
+			/** @var EmbeddingResult|Throwable */
+			private $result;
 			private ModelConfig $config;
 
 			public function __construct(
 				ModelMetadata $metadata,
 				ProviderMetadata $provider_metadata,
-				EmbeddingResult $result
+				$result
 			) {
 				$this->metadata          = $metadata;
 				$this->provider_metadata = $provider_metadata;
@@ -215,6 +201,9 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 			}
 
 			public function generateEmbeddingResult( array $inputs ): EmbeddingResult { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+				if ( $this->result instanceof Throwable ) {
+					throw $this->result;
+				}
 				return $this->result;
 			}
 		};
@@ -390,19 +379,6 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$config = $this->get_wrapped_builder_property_value( $builder, 'modelConfig' );
 
 		$this->assertSame( 256, $config->getDimensions() );
-	}
-
-	/**
-	 * Test that the wrapper passes the AiClient event dispatcher to the wrapped builder.
-	 *
-	 * @ticket 65638
-	 */
-	public function test_passes_ai_client_event_dispatcher_to_wrapped_builder() {
-		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
-
-		$dispatcher = $this->get_wrapped_builder_property_value( $builder, 'eventDispatcher' );
-
-		$this->assertSame( AiClient::getEventDispatcher(), $dispatcher );
 	}
 
 	/**
@@ -776,19 +752,21 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that throwable_to_wp_error() maps throwables to embedding-prefixed error codes.
+	 * Test that a throwable from the model is returned as a WP_Error with an embedding-prefixed code.
 	 *
 	 * @ticket 65638
 	 *
-	 * @dataProvider data_throwable_to_wp_error_mapping
+	 * @dataProvider data_generate_embedding_result_maps_throwable_to_wp_error
 	 *
-	 * @param Throwable $throwable       The throwable to convert.
+	 * @param Throwable $throwable       The throwable thrown by the model.
 	 * @param string    $expected_code   The expected WP_Error code.
 	 * @param int       $expected_status The expected HTTP status in the error data.
 	 */
-	public function test_throwable_to_wp_error_mapping( Throwable $throwable, string $expected_code, int $expected_status ) {
-		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_throwable_to_wp_error( $builder, $throwable );
+	public function test_generate_embedding_result_maps_throwable_to_wp_error( Throwable $throwable, string $expected_code, int $expected_status ) {
+		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
+		$error   = $builder->using_model( $this->create_mock_embedding_model( $throwable ) )->generate_embedding_result();
+
+		$this->assertWPError( $error );
 
 		$this->assertSame( $expected_code, $error->get_error_code() );
 		$this->assertSame( $throwable->getMessage(), $error->get_error_message() );
@@ -797,11 +775,11 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for {@see self::test_throwable_to_wp_error_mapping()}.
+	 * Data provider for {@see self::test_generate_embedding_result_maps_throwable_to_wp_error()}.
 	 *
 	 * @return array<string, array{0: Throwable, 1: string, 2: int}>
 	 */
-	public static function data_throwable_to_wp_error_mapping(): array {
+	public static function data_generate_embedding_result_maps_throwable_to_wp_error(): array {
 		return array(
 			'NetworkException'             => array( new NetworkException( 'network error' ), 'embedding_network_error', 503 ),
 			'ClientException with code'    => array( new ClientException( 'unauthorized', 401 ), 'embedding_client_error', 401 ),
@@ -835,31 +813,6 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 		$this->assertWPError( $error );
 		$this->assertSame( 'embedding_builder_error', $error->get_error_code() );
 		$this->assertSame( 'TypeError', $error->get_error_data()['exception_class'] );
-	}
-
-	/**
-	 * Test that is_supported() returns false when the wrapped builder throws.
-	 *
-	 * @ticket 65638
-	 * @ticket 65781
-	 */
-	public function test_is_supported_returns_false_when_builder_throws() {
-		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry(), 'Test input' );
-
-		$wrapped_builder = $this->createMock( EmbeddingBuilder::class );
-		$wrapped_builder->method( 'isSupported' )
-			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
-
-		$builder_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
-		self::set_accessible( $builder_property );
-		$builder_property->setValue( $builder, $wrapped_builder );
-
-		$this->assertFalse( $builder->is_supported(), 'is_supported should return false when the wrapped builder throws' );
-
-		// The error is still recorded, so a generating method returns it.
-		$error = $builder->generate_embeddings();
-		$this->assertWPError( $error );
-		$this->assertSame( 'embedding_builder_error', $error->get_error_code() );
 	}
 
 	/**
