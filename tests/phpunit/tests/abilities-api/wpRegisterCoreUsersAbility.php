@@ -668,19 +668,41 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 	 * Empty collection mode returns only public authors for users without list_users.
 	 *
 	 * @ticket 64657
+	 *
+	 * @dataProvider data_roles_without_list_users
+	 *
+	 * @param string $role Current user's role.
 	 */
-	public function test_empty_collection_mode_restricts_users_without_list_users_to_public_authors(): void {
-		wp_set_current_user( self::$fixture_ids['subscriber'] );
+	public function test_empty_collection_mode_restricts_users_without_list_users_to_public_authors( string $role ): void {
+		wp_set_current_user( self::$fixture_ids[ $role ] );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/users-query' )->execute( array() );
 
-		$this->assertIsArray( $result, 'Collection mode should return an array for logged-in users.' );
-		$this->assertContains( self::$fixture_ids['public_author'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should include public authors.' );
-		$this->assertNotContains( self::$fixture_ids['administrator'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit non-author administrators for users without list_users.' );
-		$this->assertNotContains( self::$fixture_ids['subscriber'], wp_list_pluck( $result['users'], 'id' ), 'Collection mode should omit subscribers for users without list_users.' );
-		$this->assertIsInt( $result['total'], 'Collection mode should include an integer total.' );
-		$this->assertIsInt( $result['total_pages'], 'Collection mode should include an integer total_pages value.' );
+		$this->assertIsArray( $result, sprintf( 'Collection mode should return an array for the %s role.', $role ) );
+
+		$ids = wp_list_pluck( $result['users'], 'id' );
+
+		$this->assertContains( self::$fixture_ids['public_author'], $ids, sprintf( 'Collection mode should include public authors for the %s role.', $role ) );
+		$this->assertNotContains( self::$fixture_ids['administrator'], $ids, sprintf( 'Collection mode should omit non-author administrators for the %s role.', $role ) );
+		$this->assertNotContains( self::$fixture_ids['subscriber'], $ids, sprintf( 'Collection mode should omit subscribers for the %s role.', $role ) );
+		$this->assertNotContains( self::$fixture_ids[ $role ], $ids, sprintf( 'Collection mode should omit the current user without published posts for the %s role.', $role ) );
+		$this->assertIsInt( $result['total'], sprintf( 'Collection mode should include an integer total for the %s role.', $role ) );
+		$this->assertIsInt( $result['total_pages'], sprintf( 'Collection mode should include an integer total_pages value for the %s role.', $role ) );
+	}
+
+	/**
+	 * Data provider for the roles that cannot list users.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_roles_without_list_users(): array {
+		return array(
+			'editor'      => array( 'editor' ),
+			'author'      => array( 'author' ),
+			'contributor' => array( 'contributor' ),
+			'subscriber'  => array( 'subscriber' ),
+		);
 	}
 
 	/**
