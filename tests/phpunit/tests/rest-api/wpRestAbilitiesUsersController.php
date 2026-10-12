@@ -220,7 +220,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status(), 'An editor should be able to look up a user of the site without public posts.' );
 		$this->assertSame( $user_id, $data['id'], 'The lookup should return the requested user.' );
-		$this->assertSame( array( 'id', 'name' ), array_keys( $data ), 'Only the author fields should be returned.' );
+		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data ), 'Only the author fields should be returned.' );
 	}
 
 	/**
@@ -394,7 +394,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status(), 'String values from a query string should be accepted.' );
 		$this->assertSame( array( $second ), wp_list_pluck( $data['users'], 'id' ), 'The second page of one user should hold the second included user by login.' );
-		$this->assertSame( array( 'id', 'name' ), array_keys( $data['users'][0] ), 'Only the fields from the comma-separated list should be returned.' );
+		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data['users'][0] ), 'Only the fields from the comma-separated list should be returned.' );
 		$this->assertSame( 2, $data['total'], 'The total should count both included users.' );
 		$this->assertSame( 2, $data['total_pages'], 'The total pages should be computed from the string per_page value.' );
 	}

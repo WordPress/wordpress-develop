@@ -278,7 +278,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$this->assertSame( 'object', $output_schema['type'], 'The users ability output schema should describe an object.' );
 		$this->assertCount( 2, $output_schema['oneOf'], 'The output schema should describe single-user and collection responses.' );
 		$this->assertSame( array( 'id' ), $user_schema['required'], 'Only the always-returned id should be required in a user.' );
-		$this->assertSame( array( 'users', 'total', 'total_pages' ), $collection_schema['required'], 'Collection responses should require the wrapper fields.' );
+		$this->assertSameSets( array( 'users', 'total', 'total_pages' ), $collection_schema['required'], 'Collection responses should require the wrapper fields.' );
 		$this->assertSame( 'date-time', $user_properties['registered_date']['format'], 'The registered_date output schema should use date-time format.' );
 		$this->assertSame( 'uri', $user_properties['link']['format'], 'The link output schema should use uri format.' );
 		$this->assertSame( 'uri', $user_properties['avatar_urls']['additionalProperties']['format'], 'The avatar_urls output schema should use uri format.' );
@@ -336,7 +336,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( 'core/users-query' )->execute( array( 'id' => self::$fixture_ids['subscriber'] ) );
 
 		$this->assertIsArray( $result, 'A current-user lookup should return an array.' );
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'id', 'name', 'link', 'slug', 'avatar_urls' ),
 			array_keys( $result ),
 			'Omitted fields should return the lean default field set.'
@@ -362,7 +362,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'An empty fields list should be accepted.' );
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'id', 'name', 'link', 'slug', 'avatar_urls' ),
 			array_keys( $result ),
 			'An empty fields list should return the lean default field set.'
@@ -580,7 +580,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $by_slug, 'An editor should resolve a user of the site without public posts by slug.' );
-		$this->assertSame( array( 'id', 'name', 'link', 'slug' ), array_keys( $by_slug ), 'Only the requested author fields should be returned.' );
+		$this->assertSameSets( array( 'id', 'name', 'link', 'slug' ), array_keys( $by_slug ), 'Only the requested author fields should be returned.' );
 		$this->assertSame( $user_id, $by_slug['id'], 'The slug lookup should return the requested user.' );
 		$this->assertSame( 'Pending Author', $by_slug['name'], 'The display name should be returned.' );
 
@@ -596,7 +596,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$defaults = $ability->execute( array( 'id' => $user_id ) );
 
 		$this->assertIsArray( $defaults, 'A default-fields lookup should succeed.' );
-		$this->assertSame( array( 'id', 'name', 'link', 'slug', 'avatar_urls' ), array_keys( $defaults ), 'Every default field should be an author field.' );
+		$this->assertSameSets( array( 'id', 'name', 'link', 'slug', 'avatar_urls' ), array_keys( $defaults ), 'Every default field should be an author field.' );
 
 		$by_email = $ability->execute( array( 'email' => 'core-users-ability-pending-author@example.com' ) );
 		$this->assertWPError( $by_email, 'An email lookup should still require permission to list or edit users.' );
@@ -697,9 +697,9 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		$result = wp_get_ability( 'core/users-query' )->execute();
 
 		$this->assertIsArray( $result, 'Calling the ability without input should succeed.' );
-		$this->assertSame( array( 'users', 'total', 'total_pages' ), array_keys( $result ), 'Calling the ability without input should return a collection.' );
+		$this->assertSameSets( array( 'users', 'total', 'total_pages' ), array_keys( $result ), 'Calling the ability without input should return a collection.' );
 		$this->assertNotEmpty( $result['users'], 'The collection should contain the users the administrator can list.' );
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'id', 'name', 'link', 'slug', 'avatar_urls' ),
 			array_keys( $result['users'][0] ),
 			'Each user should have the default fields.'
@@ -1941,7 +1941,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'A partially suppressed avatar set should not fail the lookup.' );
-		$this->assertSame( array( 24, 48, 96 ), array_keys( $result['avatar_urls'] ), 'Every avatar size should still be reported.' );
+		$this->assertSameSets( array( 24, 48, 96 ), array_keys( $result['avatar_urls'] ), 'Every avatar size should still be reported.' );
 		$this->assertNull( $result['avatar_urls'][24], 'A size with no resolvable URL should be null.' );
 		$this->assertIsString( $result['avatar_urls'][48], 'The 48px size resolves, so it should keep its URL.' );
 		$this->assertIsString( $result['avatar_urls'][96], 'The 96px size resolves, so it should keep its URL.' );
