@@ -118,7 +118,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
 		global $pagenow, $plugin_page;
 
-		$current_user = get_current_user_id();
 		wp_set_current_user( self::$admin_id );
 
 		add_options_page( 'Test Settings', 'Test Settings', 'manage_options', 'testsettings', 'mt_settings_page' );
@@ -130,7 +129,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$exists = wp_admin_page_exists();
 
 		$pagenow = $original_pagenow;
-		wp_set_current_user( $current_user );
 
 		$this->assertTrue( $exists );
 	}
@@ -156,7 +154,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page_the_user_cannot_access() {
 		global $plugin_page;
 
-		$current_user = get_current_user_id();
 		wp_set_current_user( self::$admin_id );
 
 		add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
@@ -168,8 +165,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		$plugin_page = 'mt-no-priv';
 
 		$this->assertTrue( wp_admin_page_exists() );
-
-		wp_set_current_user( $current_user );
 	}
 
 	/**
@@ -182,7 +177,6 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	public function test_wp_admin_page_exists_returns_true_for_an_inaccessible_page_after_nopriv_registries_are_reset() {
 		global $plugin_page, $_wp_menu_nopriv, $_wp_submenu_nopriv;
 
-		$current_user = get_current_user_id();
 		wp_set_current_user( 0 );
 
 		add_submenu_page( 'options-general.php', 'No Priv', 'No Priv', 'do_not_allow', 'mt-no-priv', 'mt_no_priv_page' );
@@ -193,11 +187,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		$plugin_page = 'mt-no-priv';
 
-		$exists = wp_admin_page_exists();
-
-		wp_set_current_user( $current_user );
-
-		$this->assertTrue( $exists );
+		$this->assertTrue( wp_admin_page_exists() );
 	}
 
 	/**
