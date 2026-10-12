@@ -91,7 +91,10 @@ test.describe( 'Moderate Comments', () => {
 		// Row actions appear on hover.
 		await row.hover();
 		await row
-			.getByRole( 'button', { name: 'Approve this comment' } )
+			.getByRole( 'button', {
+				name: 'Approve this comment',
+				exact: true,
+			} )
 			.click();
 
 		await expect
@@ -163,7 +166,10 @@ test.describe( 'Moderate Comments', () => {
 			.click();
 
 		// The inline reply form appears below the comment.
-		const replyField = page.getByRole( 'textbox', { name: 'Comment' } );
+		const replyField = page.getByRole( 'textbox', {
+			name: 'Comment',
+			exact: true,
+		} );
 		await expect( replyField ).toBeVisible();
 		await replyField.fill( 'An admin reply.' );
 		await page
@@ -171,28 +177,38 @@ test.describe( 'Moderate Comments', () => {
 			.click();
 
 		// Verify the saved reply, including its content and parent comment.
+		let replyId;
 		await expect
-			.poll( async () => {
-				const comments = await requestUtils.rest( {
-					path: '/wp/v2/comments',
-					params: {
-						post: post.id,
-						status: 'approve',
-						context: 'edit',
-					},
-				} );
-				const reply = comments.find(
-					( item ) => item.id !== comment.id
-				);
-				return {
-					count: comments.length,
-					parent: reply?.parent,
-					content: reply?.content.raw,
-					post: reply?.post,
-					status: reply?.status,
-				};
-			} )
+			.poll(
+				async () => {
+					const comments = await requestUtils.rest( {
+						path: '/wp/v2/comments',
+						params: {
+							post: post.id,
+							status: 'approve',
+							context: 'edit',
+						},
+					} );
+					const reply = comments.find(
+						( item ) => item.id !== comment.id
+					);
+					replyId = reply?.id;
+					return {
+						id: replyId,
+						count: comments.length,
+						parent: reply?.parent,
+						content: reply?.content.raw,
+						post: reply?.post,
+						status: reply?.status,
+					};
+				},
+				{
+					message:
+						'the reply should be saved with the correct parent, content, post, and status',
+				}
+			)
 			.toEqual( {
+				id: expect.any( Number ),
 				count: 2,
 				parent: comment.id,
 				content: 'An admin reply.',
@@ -201,6 +217,7 @@ test.describe( 'Moderate Comments', () => {
 			} );
 		await expect(
 			page
+				.locator( `#comment-${ replyId }` )
 				.getByRole( 'paragraph' )
 				.filter( { hasText: /^An admin reply\.$/ } )
 		).toBeVisible();
@@ -239,7 +256,10 @@ test.describe( 'Moderate Comments', () => {
 			.getByLabel( 'Select bulk action' )
 			.first()
 			.selectOption( 'spam' );
-		await page.getByRole( 'button', { name: 'Apply' } ).first().click();
+		await page
+			.getByRole( 'button', { name: 'Apply', exact: true } )
+			.first()
+			.click();
 
 		await expect
 			.poll( () => getCommentStatus( requestUtils, comment.id ), {
