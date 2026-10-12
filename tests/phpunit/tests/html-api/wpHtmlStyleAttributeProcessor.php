@@ -165,7 +165,10 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
 
 		$this->assertTrue( $processor->next_declaration() );
-		$this->assertSame( $expected_tokens, $processor->get_value_tokens() );
+		$tokens = $processor->get_value_tokens();
+
+		$this->assertContainsOnlyInstancesOf( WP_CSS_Token::class, $tokens );
+		$this->assertSame( $expected_tokens, array_map( array( self::class, 'token_fields' ), $tokens ) );
 	}
 
 	/**
@@ -181,10 +184,9 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$tokens = $processor->get_value_tokens();
 
 		$this->assertCount( 1, $tokens );
-		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $tokens[0]['type'] );
-		$this->assertSame( 'a"b', $tokens[0]['value'] );
-		$this->assertSame( '"a\\"b"', substr( $style, $tokens[0]['start'], $tokens[0]['length'] ) );
-		$this->assertSame( $tokens[0]['start'] + $tokens[0]['length'], $tokens[0]['end'] );
+		$this->assertSame( WP_CSS_Token_Processor::TOKEN_STRING, $tokens[0]->get_type() );
+		$this->assertSame( 'a"b', $tokens[0]->get_value() );
+		$this->assertSame( '"a\\"b"', substr( $style, $tokens[0]->get_start(), $tokens[0]->get_length() ) );
 	}
 
 	/**
@@ -201,7 +203,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->set_value( 'green' ) );
 		$this->assertSame(
 			array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'green', 7, 5 ) ),
-			$processor->get_value_tokens()
+			array_map( array( self::class, 'token_fields' ), $processor->get_value_tokens() )
 		);
 
 		$this->assertTrue( $processor->remove_declaration() );
@@ -211,7 +213,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertSame( 'background: white', $processor->get_updated_style() );
 		$this->assertSame(
 			array( self::token( WP_CSS_Token_Processor::TOKEN_IDENT, 'white', 12, 5 ) ),
-			$processor->get_value_tokens()
+			array_map( array( self::class, 'token_fields' ), $processor->get_value_tokens() )
 		);
 	}
 
@@ -233,17 +235,18 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 
 		$first = $tokens[0];
 		$last  = $tokens[ count( $tokens ) - 1 ];
-		$slice = substr( $style, $first['start'], $last['end'] - $first['start'] );
+		$slice = substr( $style, $first->get_start(), $last->get_start() + $last->get_length() - $first->get_start() );
 
 		$expected  = array();
 		$tokenizer = WP_CSS_Token_Processor::create( $slice );
 		while ( $tokenizer->next_token() ) {
-			$expected[] = array( $tokenizer->get_token_type(), $tokenizer->get_token_value(), $tokenizer->get_token_unit() );
+			$token      = $tokenizer->get_token();
+			$expected[] = array( $token->get_type(), $token->get_flag(), $token->get_value(), $token->get_unit(), $token->is_terminated() );
 		}
 
 		$actual = array_map(
-			static function ( array $token ): array {
-				return array( $token['type'], $token['value'], $token['unit'] );
+			static function ( WP_CSS_Token $token ): array {
+				return array( $token->get_type(), $token->get_flag(), $token->get_value(), $token->get_unit(), $token->is_terminated() );
 			},
 			$tokens
 		);
@@ -927,13 +930,14 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Builds a value token array.
+	 * Builds the expected fields of a value token.
 	 *
 	 * @param string      $type   Token type.
 	 * @param string|null $value  Token value.
 	 * @param int         $start  Byte offset of the token.
 	 * @param int         $length Byte length of the token.
-	 * @return array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}
+	 * @param string|null $unit   Optional. Dimension unit. Default null.
+	 * @return array{type:string, value:string|null, unit:string|null, start:int, length:int}
 	 */
 	private static function token( string $type, ?string $value, int $start, int $length, ?string $unit = null ): array {
 		return array(
@@ -942,8 +946,17 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 			'unit'   => $unit,
 			'start'  => $start,
 			'length' => $length,
-			'end'    => $start + $length,
 		);
+	}
+
+	/**
+	 * Reads the fields of a value token that the expectations compare.
+	 *
+	 * @param WP_CSS_Token $token Value token.
+	 * @return array{type:string, value:string|null, unit:string|null, start:int, length:int}
+	 */
+	private static function token_fields( WP_CSS_Token $token ): array {
+		return self::token( $token->get_type(), $token->get_value(), $token->get_start(), $token->get_length(), $token->get_unit() );
 	}
 
 	/**

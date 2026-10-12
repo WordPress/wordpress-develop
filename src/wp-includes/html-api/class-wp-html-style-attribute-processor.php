@@ -44,9 +44,9 @@ class WP_HTML_Style_Attribute_Processor {
 	private $style;
 
 	/**
-	 * CSS token metadata.
+	 * CSS tokens of the style attribute value.
 	 *
-	 * @var array<int, array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}>
+	 * @var WP_CSS_Token[]
 	 */
 	private $tokens = array();
 
@@ -185,28 +185,13 @@ class WP_HTML_Style_Attribute_Processor {
 	 * whitespace and comments between value tokens are included. The list is
 	 * empty when the declaration has no value tokens, as in `color:;`.
 	 *
-	 * Each token is an array with these keys:
-	 *
-	 *  - `type`: a {@see WP_CSS_Token_Processor} `TOKEN_*` constant.
-	 *  - `value`: the token value as {@see WP_CSS_Token_Processor::get_token_value()}
-	 *    returns it: a dimension's number without its unit, a hash's name
-	 *    without `#`, a string's decoded contents, and null for tokens
-	 *    without a value.
-	 *  - `unit`: the decoded unit of a dimension token, as
-	 *    {@see WP_CSS_Token_Processor::get_token_unit()} returns it, and null
-	 *    for every other token type.
-	 *  - `start`: byte offset of the token in the style text.
-	 *  - `length`: byte length of the token in the style text.
-	 *  - `end`: byte offset after the token, `start + length`.
-	 *
-	 * Offsets index the current style text, which
+	 * Token offsets index the current style text, which
 	 * {@see WP_HTML_Style_Attribute_Processor::get_updated_style()} returns.
 	 * Before any mutation that is the text passed to `create()`.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @return array<int, array{type:string, value:string|null, unit:string|null, start:int, length:int, end:int}>|null
-	 *               Value tokens, or null when not on a declaration.
+	 * @return WP_CSS_Token[]|null Value tokens, or null when not on a declaration.
 	 */
 	public function get_value_tokens(): ?array {
 		$declaration = $this->get_current_declaration();
@@ -522,16 +507,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		while ( $processor->next_token() ) {
-			$start          = $processor->get_token_start();
-			$length         = $processor->get_token_length();
-			$this->tokens[] = array(
-				'type'   => $processor->get_token_type(),
-				'value'  => $processor->get_token_value(),
-				'unit'   => $processor->get_token_unit(),
-				'start'  => $start,
-				'length' => $length,
-				'end'    => $start + $length,
-			);
+			$this->tokens[] = $processor->get_token();
 		}
 
 		$this->parse_declaration_list();
@@ -561,8 +537,8 @@ class WP_HTML_Style_Attribute_Processor {
 			$leading_start = $previous_item_ends_at;
 			$index         = $this->skip_ignored_tokens( $index );
 
-			while ( $index < $count && WP_CSS_Token_Processor::TOKEN_SEMICOLON === $this->tokens[ $index ]['type'] ) {
-				$previous_item_ends_at = $this->tokens[ $index ]['end'];
+			while ( $index < $count && WP_CSS_Token_Processor::TOKEN_SEMICOLON === $this->tokens[ $index ]->get_type() ) {
+				$previous_item_ends_at = self::get_token_end( $this->tokens[ $index ] );
 				$leading_start         = $previous_item_ends_at;
 				++$index;
 				$index = $this->skip_ignored_tokens( $index );
@@ -572,7 +548,7 @@ class WP_HTML_Style_Attribute_Processor {
 				break;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_AT_KEYWORD === $this->tokens[ $index ]['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_AT_KEYWORD === $this->tokens[ $index ]->get_type() ) {
 				list( $index, $previous_item_ends_at ) = $this->consume_at_rule( $index );
 				continue;
 			}
@@ -603,25 +579,25 @@ class WP_HTML_Style_Attribute_Processor {
 		while ( $index < $count ) {
 			$token = $this->tokens[ $index ];
 
-			if ( WP_CSS_Token_Processor::TOKEN_SEMICOLON === $token['type'] ) {
-				return array( $index + 1, $token['end'] );
+			if ( WP_CSS_Token_Processor::TOKEN_SEMICOLON === $token->get_type() ) {
+				return array( $index + 1, self::get_token_end( $token ) );
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
 				return $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
@@ -629,7 +605,7 @@ class WP_HTML_Style_Attribute_Processor {
 			++$index;
 		}
 
-		$after = empty( $this->tokens ) ? strlen( $this->style ) : $this->tokens[ $count - 1 ]['end'];
+		$after = empty( $this->tokens ) ? strlen( $this->style ) : self::get_token_end( $this->tokens[ $count - 1 ] );
 		return array( $count, $after );
 	}
 
@@ -647,26 +623,26 @@ class WP_HTML_Style_Attribute_Processor {
 		while ( $index < $count ) {
 			$token = $this->tokens[ $index ];
 
-			if ( $closing_type === $token['type'] ) {
-				return array( $index + 1, $token['end'] );
+			if ( $closing_type === $token->get_type() ) {
+				return array( $index + 1, self::get_token_end( $token ) );
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
@@ -674,7 +650,7 @@ class WP_HTML_Style_Attribute_Processor {
 			++$index;
 		}
 
-		$after = empty( $this->tokens ) ? strlen( $this->style ) : $this->tokens[ $count - 1 ]['end'];
+		$after = empty( $this->tokens ) ? strlen( $this->style ) : self::get_token_end( $this->tokens[ $count - 1 ] );
 		return array( $count, $after );
 	}
 
@@ -690,26 +666,26 @@ class WP_HTML_Style_Attribute_Processor {
 		while ( $index < $count ) {
 			$token = $this->tokens[ $index ];
 
-			if ( WP_CSS_Token_Processor::TOKEN_SEMICOLON === $token['type'] ) {
-				return array( $index, $token['end'], true );
+			if ( WP_CSS_Token_Processor::TOKEN_SEMICOLON === $token->get_type() ) {
+				return array( $index, self::get_token_end( $token ), true );
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
@@ -717,7 +693,7 @@ class WP_HTML_Style_Attribute_Processor {
 			++$index;
 		}
 
-		$after = empty( $this->tokens ) ? strlen( $this->style ) : $this->tokens[ $count - 1 ]['end'];
+		$after = empty( $this->tokens ) ? strlen( $this->style ) : self::get_token_end( $this->tokens[ $count - 1 ] );
 		return array( $count, $after, false );
 	}
 
@@ -732,12 +708,12 @@ class WP_HTML_Style_Attribute_Processor {
 	 */
 	private function parse_declaration_segment( int $leading_start, int $start_index, int $end_index, int $after ): ?array {
 		$index = $this->skip_ignored_tokens( $start_index, $end_index );
-		if ( $index >= $end_index || WP_CSS_Token_Processor::TOKEN_IDENT !== $this->tokens[ $index ]['type'] ) {
+		if ( $index >= $end_index || WP_CSS_Token_Processor::TOKEN_IDENT !== $this->tokens[ $index ]->get_type() ) {
 			return null;
 		}
 
 		$name_token = $this->tokens[ $index ];
-		$name       = $name_token['value'];
+		$name       = $name_token->get_value();
 		if ( null === $name ) {
 			return null;
 		}
@@ -747,7 +723,7 @@ class WP_HTML_Style_Attribute_Processor {
 		++$index;
 		$index = $this->skip_ignored_tokens( $index, $end_index );
 
-		if ( $index >= $end_index || WP_CSS_Token_Processor::TOKEN_COLON !== $this->tokens[ $index ]['type'] ) {
+		if ( $index >= $end_index || WP_CSS_Token_Processor::TOKEN_COLON !== $this->tokens[ $index ]->get_type() ) {
 			return null;
 		}
 
@@ -765,23 +741,23 @@ class WP_HTML_Style_Attribute_Processor {
 		if (
 			null !== $last_value_index &&
 			null !== $before_last_index &&
-			WP_CSS_Token_Processor::TOKEN_IDENT === $this->tokens[ $last_value_index ]['type'] &&
-			0 === strcasecmp( 'important', (string) $this->tokens[ $last_value_index ]['value'] ) &&
-			WP_CSS_Token_Processor::TOKEN_DELIM === $this->tokens[ $before_last_index ]['type'] &&
-			'!' === $this->tokens[ $before_last_index ]['value']
+			WP_CSS_Token_Processor::TOKEN_IDENT === $this->tokens[ $last_value_index ]->get_type() &&
+			0 === strcasecmp( 'important', (string) $this->tokens[ $last_value_index ]->get_value() ) &&
+			WP_CSS_Token_Processor::TOKEN_DELIM === $this->tokens[ $before_last_index ]->get_type() &&
+			'!' === $this->tokens[ $before_last_index ]->get_value()
 		) {
 			$important       = true;
-			$important_start = $this->tokens[ $before_last_index ]['start'];
-			$important_end   = $this->tokens[ $last_value_index ]['end'];
+			$important_start = $this->tokens[ $before_last_index ]->get_start();
+			$important_end   = self::get_token_end( $this->tokens[ $last_value_index ] );
 			$value_end_index = $this->trim_ignored_tokens( $value_start_index, $before_last_index );
 		}
 
 		if ( $value_start_index >= $value_end_index ) {
-			$value_start = $colon_token['end'];
-			$value_end   = $colon_token['end'];
+			$value_start = self::get_token_end( $colon_token );
+			$value_end   = self::get_token_end( $colon_token );
 		} else {
-			$value_start = $this->tokens[ $value_start_index ]['start'];
-			$value_end   = $this->tokens[ $value_end_index - 1 ]['end'];
+			$value_start = $this->tokens[ $value_start_index ]->get_start();
+			$value_end   = self::get_token_end( $this->tokens[ $value_end_index - 1 ] );
 		}
 
 		if ( ! $this->is_parsed_value_valid( $value_start_index, $value_end_index, $this->is_custom_property_name( $name ) ) ) {
@@ -790,9 +766,9 @@ class WP_HTML_Style_Attribute_Processor {
 
 		return array(
 			'name'            => $name,
-			'raw_name'        => substr( $this->style, $name_token['start'], $name_token['length'] ),
+			'raw_name'        => substr( $this->style, $name_token->get_start(), $name_token->get_length() ),
 			'leading_start'   => $leading_start,
-			'start'           => $name_token['start'],
+			'start'           => $name_token->get_start(),
 			'after'           => $after,
 			'trailing_end'    => $after,
 			'value_start'     => $value_start,
@@ -825,22 +801,22 @@ class WP_HTML_Style_Attribute_Processor {
 
 			$top_level_tokens[] = $index;
 
-			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
@@ -890,11 +866,11 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @return int Byte offset after ignored tokens.
 	 */
 	private function get_trailing_ignored_end( int $index ): int {
-		$end   = $index > 0 && isset( $this->tokens[ $index - 1 ] ) ? $this->tokens[ $index - 1 ]['end'] : 0;
+		$end   = $index > 0 && isset( $this->tokens[ $index - 1 ] ) ? self::get_token_end( $this->tokens[ $index - 1 ] ) : 0;
 		$count = count( $this->tokens );
 
 		while ( $index < $count && $this->is_ignored_token( $this->tokens[ $index ] ) ) {
-			$end = $this->tokens[ $index ]['end'];
+			$end = self::get_token_end( $this->tokens[ $index ] );
 			++$index;
 		}
 
@@ -904,14 +880,24 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a token is ignored by declaration-list grammar.
 	 *
-	 * @param array{type:string, value:string|null, start:int, length:int, end:int} $token Token metadata.
+	 * @param WP_CSS_Token $token Token.
 	 * @return bool Whether the token is ignored.
 	 */
-	private function is_ignored_token( array $token ): bool {
+	private function is_ignored_token( WP_CSS_Token $token ): bool {
 		return (
-			WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token['type'] ||
-			WP_CSS_Token_Processor::TOKEN_COMMENT === $token['type']
+			WP_CSS_Token_Processor::TOKEN_WHITESPACE === $token->get_type() ||
+			WP_CSS_Token_Processor::TOKEN_COMMENT === $token->get_type()
 		);
+	}
+
+	/**
+	 * Gets the byte offset after a token.
+	 *
+	 * @param WP_CSS_Token $token Token.
+	 * @return int Byte offset after the token.
+	 */
+	private static function get_token_end( WP_CSS_Token $token ): int {
+		return $token->get_start() + $token->get_length();
 	}
 
 	/**
@@ -1161,16 +1147,16 @@ class WP_HTML_Style_Attribute_Processor {
 			return $insert_at > 0 ? ' ' : '';
 		}
 
-		return WP_CSS_Token_Processor::TOKEN_SEMICOLON === $last_token['type'] ? ' ' : '; ';
+		return WP_CSS_Token_Processor::TOKEN_SEMICOLON === $last_token->get_type() ? ' ' : '; ';
 	}
 
 	/**
 	 * Gets the last top-level non-ignored token before a byte offset.
 	 *
 	 * @param int $insert_at Byte offset before which to scan.
-	 * @return array{type:string, value:string|null, start:int, length:int, end:int}|null Token metadata.
+	 * @return WP_CSS_Token|null Token, or null when there is none.
 	 */
-	private function get_last_top_level_non_ignored_token_before( int $insert_at ): ?array {
+	private function get_last_top_level_non_ignored_token_before( int $insert_at ): ?WP_CSS_Token {
 		$count      = count( $this->tokens );
 		$index      = 0;
 		$last_token = null;
@@ -1178,7 +1164,7 @@ class WP_HTML_Style_Attribute_Processor {
 		while ( $index < $count ) {
 			$token = $this->tokens[ $index ];
 
-			if ( $token['start'] >= $insert_at ) {
+			if ( $token->get_start() >= $insert_at ) {
 				break;
 			}
 
@@ -1189,22 +1175,22 @@ class WP_HTML_Style_Attribute_Processor {
 
 			$last_token = $token;
 
-			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_FUNCTION === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_PAREN === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET );
 				continue;
 			}
 
-			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token['type'] ) {
+			if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $token->get_type() ) {
 				list( $index ) = $this->consume_simple_block( $index, WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE );
 				continue;
 			}
@@ -1228,22 +1214,22 @@ class WP_HTML_Style_Attribute_Processor {
 		$stack = array();
 
 		foreach ( $this->tokens as $token ) {
-			if ( $token['start'] >= $insert_at ) {
+			if ( $token->get_start() >= $insert_at ) {
 				break;
 			}
 
-			if ( $token['end'] > $insert_at ) {
+			if ( self::get_token_end( $token ) > $insert_at ) {
 				return null;
 			}
 
-			switch ( $token['type'] ) {
+			switch ( $token->get_type() ) {
 				case WP_CSS_Token_Processor::TOKEN_BAD_STRING:
 				case WP_CSS_Token_Processor::TOKEN_BAD_URL:
 					return null;
 
 				case WP_CSS_Token_Processor::TOKEN_COMMENT:
 					if (
-						strlen( $this->style ) === $token['end'] &&
+						strlen( $this->style ) === self::get_token_end( $token ) &&
 						'*/' !== substr( $this->style, -2 )
 					) {
 						return null;
@@ -1295,12 +1281,12 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a URL token source contains its real closing parenthesis.
 	 *
-	 * @param array{type:string, value:string|null, start:int, length:int, end:int} $token URL token metadata.
+	 * @param WP_CSS_Token $token URL token.
 	 * @return bool Whether the URL token was closed in source.
 	 */
-	private function is_url_token_closed( array $token ): bool {
+	private function is_url_token_closed( WP_CSS_Token $token ): bool {
 		$sentinel = ' !wp-style-attribute-processor-sentinel';
-		$source   = substr( $this->style, $token['start'], $token['length'] );
+		$source   = substr( $this->style, $token->get_start(), $token->get_length() );
 		$scanner  = WP_CSS_Token_Processor::create( $source . $sentinel );
 		if ( null === $scanner || ! $scanner->next_token() ) {
 			return false;
@@ -1488,7 +1474,7 @@ class WP_HTML_Style_Attribute_Processor {
 
 		for ( $index = $start; $index < $end; $index++ ) {
 			$token = $this->tokens[ $index ];
-			$type  = $token['type'];
+			$type  = $token->get_type();
 
 			if ( empty( $stack ) && ! $this->is_ignored_token( $token ) ) {
 				if ( WP_CSS_Token_Processor::TOKEN_LEFT_BRACE === $type ) {
@@ -1497,7 +1483,7 @@ class WP_HTML_Style_Attribute_Processor {
 					$has_other_top_level = true;
 				}
 
-				if ( WP_CSS_Token_Processor::TOKEN_DELIM === $type && '!' === $token['value'] ) {
+				if ( WP_CSS_Token_Processor::TOKEN_DELIM === $type && '!' === $token->get_value() ) {
 					return false;
 				}
 			}
