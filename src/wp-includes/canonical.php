@@ -456,8 +456,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$default_feed = get_default_feed();
 
 			if ( is_feed() && in_array( $feed, $wp_rewrite->feeds, true ) ) {
-				$addl_path = ! empty( $addl_path ) ? trailingslashit( $addl_path ) : '';
-
 				if ( ! is_singular() && get_query_var( 'withcomments' ) ) {
 					$addl_path .= 'comments/';
 				}
@@ -1007,7 +1005,8 @@ function redirect_guess_404_permalink() {
 
 		$query = "SELECT ID FROM $wpdb->posts WHERE $where AND post_status IN ('" . implode( "', '", esc_sql( $publicly_viewable_statuses ) ) . "')";
 
-		$key          = md5( $query );
+		// Remove the per-request placeholder escape so the cache key is stable across requests.
+		$key          = md5( $wpdb->remove_placeholder_escape( $query ) );
 		$last_changed = wp_cache_get_last_changed( 'posts' );
 		$cache_key    = "redirect_guess_404_permalink:$key";
 		$cache        = wp_cache_get_salted( $cache_key, 'post-queries', $last_changed );
