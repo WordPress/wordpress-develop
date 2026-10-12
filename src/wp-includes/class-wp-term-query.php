@@ -1124,14 +1124,14 @@ class WP_Term_Query {
 	protected function get_search_sql( $search ) {
 		$searches = array( $search );
 
-		$encoded = _wp_specialchars( $search, ENT_COMPAT, 'UTF-8', true );
-		if ( $encoded !== $search ) {
-			$searches[] = $encoded;
+		$decoded = wp_specialchars_decode( $search, ENT_COMPAT );
+		if ( $decoded !== $search ) {
+			$searches[] = $decoded;
 		}
 
-		$decoded = wp_specialchars_decode( $search, ENT_COMPAT );
-		if ( $decoded !== $search && ! in_array( $decoded, $searches, true ) ) {
-			$searches[] = $decoded;
+		$encoded = _wp_specialchars( $decoded, ENT_COMPAT, 'UTF-8', true );
+		if ( $encoded !== $search && ! in_array( $encoded, $searches, true ) ) {
+			$searches[] = $encoded;
 		}
 
 		global $wpdb;

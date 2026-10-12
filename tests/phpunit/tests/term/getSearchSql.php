@@ -99,6 +99,14 @@ class Tests_Term_GetSearchSql extends WP_UnitTestCase {
 			'encoded entity followed by space' => array( 'Tour &amp; ' ),
 			'full name with encoded entity'    => array( 'Tour &amp; Travel' ),
 			'suffix with encoded entity'       => array( '&amp; Travel' ),
+			'decimal entity followed by space' => array( 'Tour &#38; ' ),
+			'full name with decimal entity'    => array( 'Tour &#38; Travel' ),
+			'suffix with decimal entity'       => array( '&#38; Travel' ),
+			'decimal entity only'              => array( '&#38;' ),
+			'hex entity followed by space'     => array( 'Tour &#x26; ' ),
+			'full name with hex entity'        => array( 'Tour &#x26; Travel' ),
+			'suffix with hex entity'           => array( '&#x26; Travel' ),
+			'hex entity only'                  => array( '&#x26;' ),
 		);
 	}
 
@@ -147,5 +155,11 @@ class Tests_Term_GetSearchSql extends WP_UnitTestCase {
 		$this->assertStringContainsString( ') OR ((', $ampersand_sql, 'Expanded search must join groups with OR.' );
 		$this->assertStringContainsString( 'Tour & ', $ampersand_sql, 'SQL must match raw search term.' );
 		$this->assertStringContainsString( 'Tour &amp; ', $ampersand_sql, 'SQL must match entity-encoded search term.' );
+
+		// Case 3: Search term with numeric entity returns expanded OR clauses covering input, decoded, and encoded forms.
+		$numeric_entity_sql = $reflection_method->invoke( $query, 'Tour &#38; Travel' );
+		$this->assertStringContainsString( 'Tour &#38; Travel', $numeric_entity_sql, 'SQL must match numeric entity search term.' );
+		$this->assertStringContainsString( 'Tour & Travel', $numeric_entity_sql, 'SQL must match decoded search term.' );
+		$this->assertStringContainsString( 'Tour &amp; Travel', $numeric_entity_sql, 'SQL must match entity-encoded search term.' );
 	}
 }
