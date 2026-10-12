@@ -326,6 +326,26 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 		// VIPS is memory-efficient but still raise the limit.
 		wp_raise_memory_limit( 'image' );
 
+		/*
+		 * Fetch a stream before attempting to decode it, so that failing to read the
+		 * resource is reported as a load failure rather than as a bad image. The Imagick
+		 * editor draws the same line, and a stream read can throw rather than return false
+		 * when the fetch is refused.
+		 */
+		$file_contents = null;
+
+		if ( wp_is_stream( $this->file ) ) {
+			try {
+				$file_contents = file_get_contents( $this->file );
+			} catch ( Exception $e ) {
+				$file_contents = false;
+			}
+
+			if ( false === $file_contents ) {
+				return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
+			}
+		}
+
 		try {
 			/*
 			 * Reject truncated images, as the Imagick and GD editors do. PNG and WebP
@@ -337,12 +357,8 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			$load_mime    = wp_is_stream( $this->file ) ? '' : wp_get_image_mime( $this->file );
 			$load_options = array( 'fail_on' => ( 'image/jpeg' === $load_mime ) ? 'none' : 'truncated' );
 
-			// Load the image.
-			if ( wp_is_stream( $this->file ) ) {
-				$file_contents = file_get_contents( $this->file );
-				if ( false === $file_contents ) {
-					return new WP_Error( 'error_loading_image', __( 'File does not exist?' ), $this->file );
-				}
+			// Decode the stream contents fetched above, or the file itself.
+			if ( null !== $file_contents ) {
 				$this->image = Jcupitt\Vips\Image::newFromBuffer( $file_contents, '', $load_options );
 			} else {
 				$this->image = Jcupitt\Vips\Image::newFromFile( $this->file, $load_options );
@@ -1108,8 +1124,18 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			case 'image/webp':
 				$options['Q'] = $this->get_quality();
 
-				// A lossless WebP has no quality to trade away, so it is re-saved losslessly.
-				if ( $this->lossless ) {
+				/*
+				 * A lossless WebP has no quality to trade away, so it is re-saved losslessly.
+				 *
+				 * Quality 100 is also written losslessly, because that is what the Imagick
+				 * editor does: ImageMagick's WebP coder reserves quality 100 for lossless, so
+				 * its 99 matches libvips' 100 and its 100 is a jump to lossless. Measured on
+				 * one 768x432 image: Imagick 88,964 bytes at quality 99 against 311,954 at
+				 * 100, and libvips 90,262 at Q100 against 309,444 written losslessly. Writing
+				 * quality 100 lossily would make the same request produce a far smaller file
+				 * than the editor this one sits in front of.
+				 */
+				if ( $this->lossless || 100 === $this->get_quality() ) {
 					$options['lossless'] = true;
 				}
 				break;
