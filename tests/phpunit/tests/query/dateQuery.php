@@ -8,6 +8,8 @@
  * @group query
  * @group date
  * @group datequery
+ *
+ * @covers WP_Query
  */
 class Tests_Query_DateQuery extends WP_UnitTestCase {
 
