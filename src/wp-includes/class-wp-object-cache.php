@@ -355,7 +355,7 @@ class WP_Object_Cache {
 	 * @param string     $group Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $force Optional. Unused. Whether to force an update of the local cache
 	 *                          from the persistent cache. Default false.
-	 * @param bool       $found Optional. Whether the key was found in the cache (passed by reference).
+	 * @param bool|null  $found Optional. Whether the key was found in the cache (passed by reference).
 	 *                          Disambiguates a return of false, a storable value. Default null.
 	 * @return mixed|false The cache contents on success, false on failure to retrieve contents.
 	 */
@@ -420,6 +420,8 @@ class WP_Object_Cache {
 	 * @param string     $group      Optional. Where the cache contents are grouped. Default 'default'.
 	 * @param bool       $deprecated Optional. Unused. Default false.
 	 * @return bool True on success, false if the contents were not deleted.
+	 *
+	 * @phpstan-param false $deprecated
 	 */
 	public function delete( $key, $group = 'default', $deprecated = false ) {
 		if ( ! $this->is_valid_key( $key ) ) {
