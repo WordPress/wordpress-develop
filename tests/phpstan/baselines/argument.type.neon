@@ -989,11 +989,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$name of method WP_HTML_Tag_Processor\:\:set_bookmark\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
-		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
