@@ -29,9 +29,9 @@ function _wp_get_presets_class_name( $block ) {
  * @since 6.2.0
  * @access private
  *
- * @param  string $block_content Rendered block content.
- * @param  array  $block         Block object.
- * @return string                Filtered block content.
+ * @param string $block_content Rendered block content.
+ * @param array  $block         Block object.
+ * @return string Filtered block content.
  */
 function _wp_add_block_level_presets_class( $block_content, $block ) {
 	if ( ! $block_content ) {
@@ -45,7 +45,7 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
 	}
 
 	// return early if no settings are found on the block attributes.
-	$block_settings = isset( $block['attrs']['settings'] ) ? $block['attrs']['settings'] : null;
+	$block_settings = $block['attrs']['settings'] ?? null;
 	if ( empty( $block_settings ) ) {
 		return $block_content;
 	}
@@ -69,9 +69,8 @@ function _wp_add_block_level_presets_class( $block_content, $block ) {
  * @since 6.3.0 Updated preset styles to use Selectors API.
  * @access private
  *
- * @param string|null $pre_render   The pre-rendered content. Default null.
- * @param array       $block The block being rendered.
- *
+ * @param string|null $pre_render The pre-rendered content. Default null.
+ * @param array       $block      The block being rendered.
  * @return null
  */
 function _wp_add_block_level_preset_styles( $pre_render, $block ) {
@@ -82,7 +81,7 @@ function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 	}
 
 	// return early if no settings are found on the block attributes.
-	$block_settings = isset( $block['attrs']['settings'] ) ? $block['attrs']['settings'] : null;
+	$block_settings = $block['attrs']['settings'] ?? null;
 	if ( empty( $block_settings ) ) {
 		return null;
 	}
@@ -131,7 +130,7 @@ function _wp_add_block_level_preset_styles( $pre_render, $block ) {
 		)
 	);
 
-	// include preset css classes on the the stylesheet.
+	// include preset css classes on the stylesheet.
 	$styles .= $theme_json_object->get_stylesheet(
 		array( 'presets' ),
 		null,

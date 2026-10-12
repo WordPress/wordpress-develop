@@ -20,7 +20,9 @@ class Twenty_Twenty_One_Dark_Mode {
 	public function __construct() {
 
 		// Enqueue assets for the block-editor.
-		add_action( 'enqueue_block_assets', array( $this, 'editor_custom_color_variables' ) );
+		if ( is_admin() ) {
+			add_action( 'enqueue_block_assets', array( $this, 'editor_custom_color_variables' ) );
+		}
 
 		// Add styles for dark-mode.
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
@@ -68,7 +70,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			'twentytwentyone-dark-mode-support-toggle',
 			get_template_directory_uri() . '/assets/js/dark-mode-toggler.js',
 			array(),
-			'1.0.0',
+			wp_get_theme()->get( 'Version' ),
 			array( 'in_footer' => true )
 		);
 
@@ -76,7 +78,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			'twentytwentyone-editor-dark-mode-support',
 			get_template_directory_uri() . '/assets/js/editor-dark-mode-support.js',
 			array( 'twentytwentyone-dark-mode-support-toggle' ),
-			'1.0.0',
+			wp_get_theme()->get( 'Version' ),
 			array( 'in_footer' => true )
 		);
 	}
@@ -96,7 +98,7 @@ class Twenty_Twenty_One_Dark_Mode {
 		if ( is_rtl() ) {
 			$url = get_template_directory_uri() . '/assets/css/style-dark-mode-rtl.css';
 		}
-		wp_enqueue_style( 'tt1-dark-mode', $url, array( 'twenty-twenty-one-style' ), wp_get_theme()->get( 'Version' ) ); // @phpstan-ignore-line. Version is always a string.
+		wp_enqueue_style( 'tt1-dark-mode', $url, array( 'twenty-twenty-one-style' ), wp_get_theme()->get( 'Version' ) );
 	}
 
 	/**
@@ -114,7 +116,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			'twentytwentyone-customize-controls',
 			get_template_directory_uri() . '/assets/js/customize.js',
 			array( 'customize-base', 'customize-controls', 'underscore', 'jquery', 'twentytwentyone-customize-helpers' ),
-			'1.0.0',
+			wp_get_theme()->get( 'Version' ),
 			array( 'in_footer' => true )
 		);
 	}
@@ -135,7 +137,7 @@ class Twenty_Twenty_One_Dark_Mode {
 		}
 
 		// Custom notice control.
-		require_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-notice-control.php' ); // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude.FileIncludeFound
+		require_once get_theme_file_path( 'classes/class-twenty-twenty-one-customize-notice-control.php' );
 
 		$wp_customize->add_setting(
 			'respect_user_color_preference_notice',
@@ -363,9 +365,14 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @return void
 	 */
 	public function the_script() {
-		echo '<script>';
-		include get_template_directory() . '/assets/js/dark-mode-toggler.js'; // phpcs:ignore WPThemeReview.CoreFunctionality.FileInclude
-		echo '</script>';
+		$path = 'assets/js/dark-mode-toggler.js';
+		$js   = rtrim( file_get_contents( trailingslashit( get_template_directory() ) . $path ) );
+		$js  .= "\n//# sourceURL=" . esc_url_raw( trailingslashit( get_template_directory_uri() ) . $path );
+		if ( function_exists( 'wp_print_inline_script_tag' ) ) {
+			wp_print_inline_script_tag( $js );
+		} else {
+			printf( "<script>%s</script>\n", $js );
+		}
 	}
 
 	/**
