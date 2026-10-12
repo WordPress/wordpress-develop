@@ -37,19 +37,24 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 	 */
 	public function test_should_apply_pre_unzip_file_filters() {
 		$filter = new MockAction();
-		add_filter( 'pre_unzip_file', array( $filter, 'filter' ) );
+		add_filter( 'pre_unzip_file', array( $filter, 'filter' ), 10, 2 );
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
+		if ( file_exists( $unzip_destination ) ) {
+			$this->rmdir( $unzip_destination );
+			$this->delete_folders( $unzip_destination );
+		}
 		mkdir( $unzip_destination );
 
 		_unzip_file_pclzip( self::$test_data_dir . 'archive.zip', $unzip_destination );
 
-		// Cleanup test environment.
+		// Clean up test environment.
 		$this->rmdir( $unzip_destination );
 		$this->delete_folders( $unzip_destination );
 
-		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count(), 'The filter should be called once.' );
+		$this->assertSame( self::$test_data_dir . 'archive.zip', $filter->get_args()[0][1], 'The $file parameter should be correct.' );
 	}
 
 	/**
@@ -59,18 +64,23 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 	 */
 	public function test_should_apply_unzip_file_filters() {
 		$filter = new MockAction();
-		add_filter( 'unzip_file', array( $filter, 'filter' ) );
+		add_filter( 'unzip_file', array( $filter, 'filter' ), 10, 2 );
 
 		// Prepare test environment.
 		$unzip_destination = self::$test_data_dir . 'archive/';
+		if ( file_exists( $unzip_destination ) ) {
+			$this->rmdir( $unzip_destination );
+			$this->delete_folders( $unzip_destination );
+		}
 		mkdir( $unzip_destination );
 
 		_unzip_file_pclzip( self::$test_data_dir . 'archive.zip', $unzip_destination );
 
-		// Cleanup test environment.
+		// Clean up test environment.
 		$this->rmdir( $unzip_destination );
 		$this->delete_folders( $unzip_destination );
 
-		$this->assertSame( 1, $filter->get_call_count() );
+		$this->assertSame( 1, $filter->get_call_count(), 'The filter should be called once.' );
+		$this->assertSame( self::$test_data_dir . 'archive.zip', $filter->get_args()[0][1], 'The $file parameter should be correct.' );
 	}
 }

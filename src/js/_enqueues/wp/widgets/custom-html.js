@@ -9,6 +9,8 @@
 /**
  * @namespace wp.customHtmlWidget
  * @memberOf wp
+ *
+ * @param {JQueryStatic} $ The jQuery object.
  */
 wp.customHtmlWidgets = ( function( $ ) {
 	'use strict';
@@ -40,9 +42,9 @@ wp.customHtmlWidgets = ( function( $ ) {
 		 * @augments Backbone.View
 		 * @abstract
 		 *
-		 * @param {Object} options - Options.
-		 * @param {jQuery} options.el - Control field container element.
-		 * @param {jQuery} options.syncContainer - Container element where fields are synced for the server.
+		 * @param {Object} options               Options.
+		 * @param {jQuery} options.el            Control field container element.
+		 * @param {jQuery} options.syncContainer Container element where fields are synced for the server.
 		 *
 		 * @return {void}
 		 */
@@ -122,7 +124,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 		/**
 		 * Show linting error notice.
 		 *
-		 * @param {Array} errorAnnotations - Error annotations.
+		 * @param {Array} errorAnnotations Error annotations.
 		 * @return {void}
 		 */
 		updateErrorNotice: function( errorAnnotations ) {
@@ -203,7 +205,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 				 *
 				 * @ignore
 				 *
-				 * @param {Array} errorAnnotations - Error notifications.
+				 * @param {Array} errorAnnotations Error notifications.
 				 * @return {void}
 				 */
 				onChangeLintingErrors: function onChangeLintingErrors( errorAnnotations ) {
@@ -215,7 +217,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 				 *
 				 * @ignore
 				 *
-				 * @param {Array} errorAnnotations - Error annotations.
+				 * @param {Array} errorAnnotations Error annotations.
 				 * @return {void}
 				 */
 				onUpdateErrorNotice: function onUpdateErrorNotice( errorAnnotations ) {
@@ -285,8 +287,8 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.handleWidgetAdded
 	 *
-	 * @param {jQuery.Event} event - Event.
-	 * @param {jQuery}       widgetContainer - Widget container element.
+	 * @param {jQuery.Event} event           Event.
+	 * @param {jQuery}       widgetContainer Widget container element.
 	 *
 	 * @return {void}
 	 */
@@ -307,7 +309,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 
 		/*
 		 * Create a container element for the widget control fields.
-		 * This is inserted into the DOM immediately before the the .widget-content
+		 * This is inserted into the DOM immediately before the .widget-content
 		 * element because the contents of this element are essentially "managed"
 		 * by PHP, where each widget update cause the entire element to be emptied
 		 * and replaced with the rendered output of WP_Widget::form() which is
@@ -333,7 +335,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 		 * This ensures that the textarea is visible and the editor can be initialized.
 		 */
 		renderWhenAnimationDone = function() {
-			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://github.com/xwp/wordpress-develop/pull/247/commits/5322387d
+			if ( ! ( wp.customize ? widgetContainer.parent().hasClass( 'expanded' ) : widgetContainer.hasClass( 'open' ) ) ) { // Core merge: The wp.customize condition can be eliminated with this change being in core: https://core.trac.wordpress.org/changeset/41260
 				setTimeout( renderWhenAnimationDone, animatedCheckDelay );
 			} else {
 				widgetControl.initializeEditor();
@@ -382,8 +384,8 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.handleWidgetUpdated
 	 *
-	 * @param {jQuery.Event} event - Event.
-	 * @param {jQuery}       widgetContainer - Widget container element.
+	 * @param {jQuery.Event} event           Event.
+	 * @param {jQuery}       widgetContainer Widget container element.
 	 * @return {void}
 	 */
 	component.handleWidgetUpdated = function handleWidgetUpdated( event, widgetContainer ) {
@@ -413,7 +415,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.init
 	 *
-	 * @param {Object} settings - Options for code editor, exported from PHP.
+	 * @param {Object} settings Options for code editor, exported from PHP.
 	 *
 	 * @return {void}
 	 */

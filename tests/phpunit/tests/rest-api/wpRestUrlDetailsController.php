@@ -43,11 +43,15 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	/**
 	 * URL placeholder.
 	 *
+	 * Even though the request is being intercepted with a mocked response, it is not fully bypassing the network. The
+	 * REST API endpoint is validating the `url` parameter with `wp_http_validate_url()` which includes a call to
+	 * `gethostbyname()`. So the domain used in the placeholder URL must be valid to ensure it passes a validity check.
+	 *
 	 * @since 5.9.0
 	 *
 	 * @var string
 	 */
-	const URL_PLACEHOLDER = 'https://placeholder-site.com';
+	const URL_PLACEHOLDER = 'https://example.com';
 
 	/**
 	 * Array of request args.
@@ -83,6 +87,14 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 	public function set_up() {
 		parent::set_up();
+
+		// Avoid a DNS lookup when validating the URL used by the mocked request.
+		add_filter(
+			'pre_option_home',
+			static function () {
+				return self::URL_PLACEHOLDER;
+			}
+		);
 
 		add_filter( 'pre_http_request', array( $this, 'mock_success_request_to_remote_url' ), 10, 3 );
 
@@ -129,9 +141,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 		$this->assertSame(
 			array(
 				'title'       => 'Example Website — - with encoded content.',
-				'icon'        => 'https://placeholder-site.com/favicon.ico?querystringaddedfortesting',
+				'icon'        => 'https://example.com/favicon.ico?querystringaddedfortesting',
 				'description' => 'Example description text here. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.',
-				'image'       => 'https://placeholder-site.com/images/home/screen-themes.png?3',
+				'image'       => 'https://example.com/images/home/screen-themes.png?3',
 			),
 			$data
 		);
@@ -444,7 +456,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$this->assertSame( 418, $data['status'], 'Response "status" is not 418' );
 
-		$expected = 'Response for URL https://placeholder-site.com altered via rest_prepare_url_details filter';
+		$expected = 'Response for URL https://example.com altered via rest_prepare_url_details filter';
 		$this->assertSame( $expected, $data['response'], 'Response "response" is not "' . $expected . '"' );
 	}
 
@@ -743,7 +755,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 
 		$method = $this->get_reflective_method( 'get_description' );
 		$actual = $method->invoke( $controller, $meta_elements );
-		$this->assertSame( $expected, $actual );
+		$this->assertEqualHTML( $expected, $actual );
 	}
 
 	/**
@@ -1016,7 +1028,7 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 			),
 
 			// Happy paths with HTML tags in the content.
-			'with other og meta'                           => array(
+			'with other og meta and HTML content'          => array(
 				'<meta property="og:image:height" content="720" />
 				<meta property="og:image:alt" content="<em>ignore this please</em>" />
 				<meta property="og:image" content="https://wordpress.org/images/myimage.jpg" />
@@ -1041,38 +1053,78 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details endpoint does not support the context request parameter.
+	 *
+	 * @ticket 40538
 	 */
 	public function test_context_param() {
-		// Controller does not use get_context_param().
+		$request  = new WP_REST_Request( 'OPTIONS', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertNotEmpty( $data['endpoints'] );
+		foreach ( $data['endpoints'] as $endpoint ) {
+			$this->assertArrayNotHasKey( 'context', $endpoint['args'] );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details has no item route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_get_item() {
-		// Controller does not implement get_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'GET', static::REQUEST_ROUTE . '/example' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; create requests should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'POST', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; update requests on the real endpoint should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		wp_set_current_user( self::$admin_id );
+
+		foreach ( array( 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, static::REQUEST_ROUTE );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		}
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * URL Details is read-only; delete requests on the real endpoint should not match a route.
+	 *
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', static::REQUEST_ROUTE );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
@@ -1196,7 +1248,9 @@ class Tests_REST_WpRestUrlDetailsController extends WP_Test_REST_Controller_Test
 	protected function get_reflective_method( $method_name ) {
 		$class  = new ReflectionClass( WP_REST_URL_Details_Controller::class );
 		$method = $class->getMethod( $method_name );
-		$method->setAccessible( true );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
 		return $method;
 	}
 }
