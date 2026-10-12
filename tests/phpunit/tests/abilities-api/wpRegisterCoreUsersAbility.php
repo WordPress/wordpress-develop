@@ -402,6 +402,7 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'A user should be able to read themselves by ID.' );
+		$this->assertSameSets( array( 'id', 'email', 'username', 'roles' ), array_keys( $result ), 'The current user should receive only the requested fields.' );
 		$this->assertSame( self::$fixture_ids['subscriber'], $result['id'], 'The ID lookup should return the current user.' );
 		$this->assertSame( 'core-users-ability-subscriber@example.com', $result['email'], 'The current user should receive their own email.' );
 		$this->assertSame( 'core_users_ability_subscriber', $result['username'], 'The current user should receive their own username.' );
