@@ -3026,7 +3026,7 @@ HTML;
 			$string        = "<img $name='$value' />";
 			$expect_string = '<img ' . $name . '="' . trim( $value, ';' ) . '" />';
 
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$this->assertEqualHTML( $expect_string, wp_kses( $string, $allowedposttags ) );
 		}
 	}
 
@@ -3041,7 +3041,7 @@ HTML;
 	public function test_wp_kses_srcset( $unfiltered, $expected ) {
 		$unfiltered = "<img src='test.png' srcset='{$unfiltered}' />";
 		$expected   = '<img src="test.png" srcset="' . $expected . '" />';
-		$this->assertSame( $expected, wp_kses_post( $unfiltered ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $unfiltered ) );
 	}
 
 	public function data_wp_kses_srcset() {
@@ -3076,15 +3076,15 @@ HTML;
 		global $allowedposttags;
 
 		$html = '<picture><source srcset="pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		$html = '<picture><source srcset="https://wordpress.org/pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="https://wordpress.org/pear-tablet.jpeg 500w, https://wordpress.org/pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Test bad protocol in srcset.
 		$original = '<picture><source srcset="bad://pear-mobile.jpeg" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
-		$expected = '<picture><source srcset="" media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
-		$this->assertSame( $expected, wp_kses( $original, $allowedposttags ) );
+		$expected = '<picture><source media="(max-width: 720px)" type="image/png"><source srcset="pear-tablet.jpeg" media="(max-width: 1280px)" type="image/png"><img src="pear-desktop.jpeg" alt="The pear is juicy."></picture>';
+		$this->assertEqualHTML( $expected, wp_kses( $original, $allowedposttags ) );
 	}
 
 	/**
@@ -3205,28 +3205,27 @@ HTML;
 			$result,
 			'A disallowed protocol survived srcset sanitization.'
 		);
-		$this->assertSame(
+		$this->assertEqualHTML(
 			'<img srcset="https://example.com/large.jpg 2x" />',
 			$result,
 			'Dropping a candidate should leave the rest of the candidate list intact.'
 		);
 
 		/*
-		 * Markup inside srcset ends the tag as far as the HTML parser is concerned,
-		 * so kses emits the whole thing as escaped text rather than as an element.
+		 * Markup inside a quoted srcset value stays part of the attribute value.
+		 * Every candidate uses a disallowed protocol, so the whole attribute is dropped.
 		 */
 		$original = '<img srcset="javascript:alert(1) 1x, data:text/html,<script>alert(1)</script> 2x" />';
 		$result   = wp_kses( $original, $allowedposttags );
-		$this->assertStringStartsWith( '&lt;', $result );
 		$this->assertStringNotContainsString( '<script>', $result, 'A script element was emitted.' );
-		$this->assertStringNotContainsString( '<img', $result, 'An img element was emitted.' );
+		$this->assertStringNotContainsString( 'javascript:', $result, 'A disallowed protocol survived srcset sanitization.' );
+		$this->assertEqualHTML( '<img>', $result );
 
-		// Script tag in picture element (should be stripped).
+		// Script element in picture element (should be removed along with its contents).
 		$original = '<picture><script>alert(1)</script><source srcset="image.jpg"><img src="fallback.jpg"></picture>';
 		$result   = wp_kses( $original, $allowedposttags );
-		// Script content should be converted to text, not completely removed.
-		$this->assertStringContainsString( 'alert(1)', $result );
 		$this->assertStringNotContainsString( '<script>', $result );
+		$this->assertEqualHTML( '<picture><source srcset="image.jpg"><img src="fallback.jpg"></picture>', $result );
 
 		// Onclick in source element (should be stripped).
 		$original = '<picture><source srcset="image.jpg" onclick="alert(1)"><img src="fallback.jpg"></picture>';
@@ -3244,15 +3243,15 @@ HTML;
 
 		// Valid sizes attribute.
 		$html = '<img src="image.jpg" sizes="(max-width: 600px) 100vw, 50vw" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Complex sizes with multiple conditions.
 		$html = '<img src="image.jpg" sizes="(max-width: 320px) 280px, (max-width: 640px) 580px, 800px" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Sizes in source element.
 		$html = '<picture><source srcset="mobile.jpg" sizes="100vw" media="(max-width: 600px)"><img src="desktop.jpg"></picture>';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 	}
 
 	/**
@@ -3265,7 +3264,7 @@ HTML;
 
 		// Test complex srcset with width descriptors.
 		$html = '<img src="default.jpg" srcset="small.jpg 480w, medium.jpg 768w, large.jpg 1024w, xlarge.jpg 1440w" sizes="(max-width: 480px) 100vw, (max-width: 768px) 75vw, 50vw" alt="Responsive image" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Test picture with multiple sources and mixed protocols.
 		$original = '<picture><source srcset="javascript:void(0) 480w, https://example.com/mobile.webp 480w" type="image/webp" media="(max-width: 600px)"><source srcset="bad://example.com/tablet.jpg 768w, https://example.com/tablet.jpg 768w" type="image/jpeg" media="(max-width: 1200px)"><img src="https://example.com/desktop.jpg" alt="Picture element test" /></picture>';
@@ -3300,7 +3299,7 @@ HTML;
 	public function test_wp_kses_srcset_with_commas_in_urls( $input, $expected ) {
 		$unfiltered = "<img src='test.png' srcset='{$input}' />";
 		$expected   = '<img src="test.png" srcset="' . $expected . '" />';
-		$this->assertSame( $expected, wp_kses_post( $unfiltered ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $unfiltered ) );
 	}
 
 	public function data_wp_kses_srcset_with_commas_in_urls() {
@@ -3364,15 +3363,15 @@ HTML;
 
 		// Test decoding attribute.
 		$html = '<img src="test.jpg" decoding="async" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Test fetchpriority attribute.
 		$html = '<img src="test.jpg" fetchpriority="high" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Test full real-world img tag with all responsive attributes.
 		$html = '<img src="test.jpg" decoding="async" fetchpriority="high" srcset="small.jpg 1x, large.jpg 2x" sizes="100vw" loading="lazy" />';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 	}
 
 	/**
@@ -3470,7 +3469,7 @@ HTML;
 
 		// All allowed attributes together.
 		$html = '<source srcset="img.jpg" type="image/webp" media="(min-width: 800px)" sizes="100vw" width="800" height="600">';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 
 		// Disallowed attribute is stripped from source.
 		$original = '<source srcset="img.jpg" charset="utf-8">';
@@ -3501,7 +3500,7 @@ HTML;
 
 		// Picture with only img, no source elements.
 		$html = '<picture><img src="only-img.jpg" /></picture>';
-		$this->assertSame( $html, wp_kses( $html, $allowedposttags ) );
+		$this->assertEqualHTML( $html, wp_kses( $html, $allowedposttags ) );
 	}
 
 	/**
@@ -3669,7 +3668,7 @@ HTML;
 			. '<img src="photo.jpg" alt="Photo" width="800" height="600" />'
 			. '</picture>';
 		$expected = $html;
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -3684,7 +3683,7 @@ HTML;
 			. '<img src="hero-small.jpg" srcset="hero-small-300.jpg 300w, hero-small-600.jpg 600w" sizes="100vw" alt="Hero" />'
 			. '</picture>';
 		$expected = $html;
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
@@ -3735,7 +3734,7 @@ HTML;
 			. 'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=824,height=550,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/img.jpg 824w" '
 			. 'decoding="async" fetchpriority="high" width="824" height="550" alt="Test" />';
 		$expected = $html;
-		$this->assertSame( $expected, wp_kses_post( $html ) );
+		$this->assertEqualHTML( $expected, wp_kses_post( $html ) );
 	}
 
 	/**
