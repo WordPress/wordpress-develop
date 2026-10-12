@@ -284,6 +284,7 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 
 	/**
 	 * @ticket 64847
+	 * @ticket 66287
 	 *
 	 * @covers ::get_item_schema
 	 */
@@ -291,12 +292,20 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icon-collections' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$schema   = $data['schema'];
 
-		$properties = $data['schema']['properties'];
+		$this->assertSame( 'icon-collection', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
+
+		$properties = $schema['properties'];
 		$this->assertCount( 3, $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'label', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
+
+		$this->assertTrue( $properties['slug']['readonly'] );
+		$this->assertTrue( $properties['label']['readonly'] );
+		$this->assertTrue( $properties['description']['readonly'] );
 	}
 
 	/**
