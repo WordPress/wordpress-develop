@@ -382,8 +382,12 @@ class WP_Image_Editor_Vips extends WP_Image_Editor {
 			 * pixels. The dimensions are known before that happens, so an oversized image
 			 * is refused here rather than after a decoding attempt has exhausted memory.
 			 *
-			 * The default is the largest image a JPEG can describe, which is also the
-			 * largest size the other editors handle without special configuration.
+			 * The default is a deliberately conservative guard rather than a format
+			 * limit: a JPEG can describe 65500 pixels per side, and neither the GD nor
+			 * the Imagick editor restricts the size it will attempt. Because the editor
+			 * is chosen before the file is opened, an image above this size fails to
+			 * load rather than falling back to them, so a site that needs larger images
+			 * has to raise this.
 			 *
 			 * @since 7.2.0
 			 *
