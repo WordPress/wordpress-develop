@@ -1750,7 +1750,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 				'user_email' => '',
 			)
 		);
-		clean_user_cache( $user_id );
 
 		$this->assertSame( '', get_userdata( $user_id )->user_email, 'The fixture user should have an empty stored email.' );
 
@@ -1802,7 +1801,6 @@ class Tests_Abilities_API_WpRegisterCoreUsersAbility extends WP_UnitTestCase {
 				'user_email' => 'a@@b.c',
 			)
 		);
-		clean_user_cache( $user_id );
 
 		$stored_email = get_userdata( $user_id )->user_email;
 
