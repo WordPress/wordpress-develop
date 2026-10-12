@@ -4,14 +4,14 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 test.describe( 'Quick Edit page', () => {
-	let pageId;
+	let pageIds;
 
 	test.beforeEach( () => {
-		pageId = undefined;
+		pageIds = [];
 	} );
 
 	test.afterEach( async ( { requestUtils } ) => {
-		if ( pageId ) {
+		for ( const pageId of pageIds.reverse() ) {
 			await requestUtils.rest( {
 				method: 'DELETE',
 				path: `/wp/v2/pages/${ pageId }`,
@@ -20,17 +20,22 @@ test.describe( 'Quick Edit page', () => {
 		}
 	} );
 
-	test( 'saves a page title using Quick Edit', async ( {
+	test( 'saves a page parent using Quick Edit', async ( {
 		page,
 		admin,
 		requestUtils,
 	} ) => {
+		const parentPage = await requestUtils.createPage( {
+			title: 'Quick Edit parent',
+			status: 'publish',
+		} );
+		pageIds.push( parentPage.id );
 		const createdPage = await requestUtils.createPage( {
 			title: 'Quick Edit page',
 			status: 'publish',
 		} );
-		pageId = createdPage.id;
-		const updatedTitle = `Updated page ${ pageId }`;
+		const pageId = createdPage.id;
+		pageIds.push( pageId );
 
 		await admin.visitAdminPage( 'edit.php?post_type=page' );
 		const row = page.locator( `#post-${ pageId }` );
@@ -45,22 +50,27 @@ test.describe( 'Quick Edit page', () => {
 			.click();
 
 		const editRow = page.locator( `#edit-${ pageId }` );
-		const title = editRow.getByRole( 'textbox', {
-			name: 'Title',
+		const parent = editRow.getByRole( 'combobox', {
+			name: 'Parent',
 			exact: true,
 		} );
-		await expect( title ).toHaveValue( 'Quick Edit page' );
-		await title.fill( updatedTitle );
+		await expect( parent ).toHaveValue( '0' );
+		await parent.selectOption( String( parentPage.id ) );
 		await editRow
 			.getByRole( 'button', { name: 'Update', exact: true } )
 			.click();
-		await expect(
-			row.getByRole( 'link', { name: updatedTitle, exact: true } )
-		).toBeVisible();
+		await expect( editRow ).toBeHidden();
 
 		await page.reload();
-		await expect(
-			row.getByRole( 'link', { name: updatedTitle, exact: true } )
-		).toBeVisible();
+		await row
+			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
+			.hover();
+		await row
+			.getByRole( 'button', {
+				name: 'Quick edit “Quick Edit page” inline',
+				exact: true,
+			} )
+			.click();
+		await expect( parent ).toHaveValue( String( parentPage.id ) );
 	} );
 } );
