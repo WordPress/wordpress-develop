@@ -1,0 +1,4 @@
+@use "scheme";
+@use "../admin-bar";
+
+@include admin-bar.styles();
