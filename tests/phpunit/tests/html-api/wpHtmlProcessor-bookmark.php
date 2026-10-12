@@ -157,4 +157,17 @@ class Tests_HtmlApi_WpHtmlProcessor_Bookmark extends WP_UnitTestCase {
 			'Fragment parser' => array( array( WP_HTML_Processor::class, 'create_fragment' ) ),
 		);
 	}
+
+	/**
+	 * @ticket 62521
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Processor::set_bookmark
+	 */
+	public function test_bookmarks_not_allowed_on_virtual_nodes() {
+		$processor = WP_HTML_Processor::create_full_parser( 'text' );
+		$this->assertTrue( $processor->next_tag( 'BODY' ) );
+		$this->assertFalse( $processor->set_bookmark( 'mark' ) );
+		$this->assertTrue( $processor->next_token() );
+		$this->assertTrue( $processor->set_bookmark( 'mark' ) );
+	}
 }

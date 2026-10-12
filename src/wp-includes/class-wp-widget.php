@@ -138,7 +138,8 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $instance The settings for the particular instance of the widget.
-	 * @return string|void Default return is 'noform'.
+	 * @return string|void Default return is 'noform'. A subclass which echoes its own
+	 *                     form returns nothing.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
@@ -212,6 +213,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string Name attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_name( $field_name ) {
 		$pos = strpos( $field_name, '[' );
@@ -237,6 +240,8 @@ class WP_Widget {
 	 *
 	 * @param string $field_name Field name.
 	 * @return string ID attribute for `$field_name`.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_field_id( $field_name ) {
 		$field_name = str_replace( array( '[]', '[', ']' ), array( '', '-', '' ), $field_name );
@@ -447,7 +452,7 @@ class WP_Widget {
 				$new_instance = stripslashes_deep( $new_instance );
 				$this->_set( $number );
 
-				$old_instance = isset( $all_instances[ $number ] ) ? $all_instances[ $number ] : array();
+				$old_instance = $all_instances[ $number ] ?? array();
 
 				$was_cache_addition_suspended = wp_suspend_cache_addition();
 				if ( $this->is_preview() && ! $was_cache_addition_suspended ) {
@@ -546,9 +551,9 @@ class WP_Widget {
 			 *
 			 * @since 2.8.0
 			 *
-			 * @param WP_Widget $widget   The widget instance (passed by reference).
-			 * @param null      $return   Return null if new fields are added.
-			 * @param array     $instance An array of the widget's settings.
+			 * @param WP_Widget   $widget   The widget instance (passed by reference).
+			 * @param null|string $return   Default 'noform'. Return null if new fields are added.
+			 * @param array       $instance An array of the widget's settings.
 			 */
 			do_action_ref_array( 'in_widget_form', array( &$this, &$return, $instance ) );
 		}

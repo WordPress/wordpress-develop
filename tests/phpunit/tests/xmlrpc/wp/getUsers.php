@@ -70,7 +70,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
-		$this->assertEquals( $editor_id, $results[0]['user_id'] );
+		$this->assertSame( (string) $editor_id, $results[0]['user_id'] );
 
 		// Test 'authors', which should return all non-subscribers.
 		$filter2  = array( 'who' => 'authors' );
@@ -117,11 +117,26 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		);
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertNotIXRError( $results );
+		$this->assertNotEmpty( $results );
 
 		$last_email = '';
 		foreach ( $results as $user ) {
 			$this->assertLessThanOrEqual( 0, strcmp( $last_email, $user['email'] ) );
 			$last_email = $user['email'];
 		}
+	}
+
+	/**
+	 * Ensure a non-array `$fields` argument is rejected instead of causing a fatal error.
+	 *
+	 * @ticket 65983
+	 */
+	public function test_non_array_fields_returns_error(): void {
+		$this->make_user_by_role( 'administrator' );
+
+		$result = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', array(), 'all' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 400, $result->code );
 	}
 }

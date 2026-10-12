@@ -20,7 +20,7 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {
-			add_filter( $filter[0], $filter[1], 10, isset( $filter[2] ) ? $filter[2] : 1 );
+			add_filter( $filter[0], $filter[1], 10, $filter[2] ?? 1 );
 		}
 		wp_enqueue_script( $handle, $src, array(), null );
 
@@ -171,5 +171,103 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
 		$expected = file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' );
 		$this->assertSame( $expected, load_script_textdomain( $handle ) );
+	}
+
+	/**
+	 * Tests that an unparseable script source URL short-circuits to
+	 * `load_script_translations( false, ... )` instead of falling through
+	 * to the relative-path computation.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_unparseable_src_returns_false(): void {
+		$handle = 'test-unparseable-src';
+		$src    = 'http:///example';
+
+		$this->assertFalse( wp_parse_url( $src ), 'Test prerequisite failed: the test src should be unparseable.' );
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+	}
+
+	/**
+	 * Tests that an unparseable `content_url()` return value short-circuits
+	 * to `load_script_translations( false, ... )` instead of computing
+	 * `$relative` from a corrupted parsed-URL array.
+	 *
+	 * The `MockAction` spy on `pre_load_script_translations` is necessary
+	 * here because the function's tail end also calls `load_script_translations( false, ... )`,
+	 * so a regression that bypasses the early return would still return false
+	 * via the fallback path. Asserting on the recorded `$file` arguments pins
+	 * the test to the intended branch.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_unparseable_content_url_returns_false(): void {
+		$handle = 'test-unparseable-content-url';
+		$src    = '/wp-includes/js/script.js';
+
+		add_filter(
+			'content_url',
+			static function () {
+				return 'http:///example';
+			}
+		);
+
+		$mock = new MockAction();
+		add_filter( 'pre_load_script_translations', array( $mock, 'filter' ), 10, 4 );
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame(
+			array(
+				DIR_TESTDATA . '/languages/en_US-' . $handle . '.json',
+				false,
+			),
+			array_column( $mock->get_args(), 1 ),
+			'Expected the unparseable content_url branch to short-circuit before any relative-path lookup.'
+		);
+	}
+
+	/**
+	 * Tests that the `load_script_textdomain_relative_path` filter returning
+	 * a non-string, non-false value (e.g., a callback that forgets to return)
+	 * short-circuits via the `! is_string( $relative )` guard rather than
+	 * falling through to string functions like `str_ends_with()` and `md5()`.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_non_string_relative_path_filter_returns_false(): void {
+		$handle = 'test-non-string-relative-path';
+		$src    = '/wp-includes/js/script.js';
+
+		add_filter( 'load_script_textdomain_relative_path', '__return_null' );
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
+	}
+
+	/**
+	 * Tests that a script source URL with no path component does not trigger
+	 * an undefined index warning when the path is read further down in the
+	 * function. The result is reached via the regular fallback path
+	 * (no host/path match) rather than an early return.
+	 *
+	 * @ticket 65015
+	 */
+	public function test_src_without_path_component_does_not_warn(): void {
+		$handle = 'test-src-without-path';
+		$src    = 'https://example.com';
+
+		$parsed = wp_parse_url( $src );
+		$this->assertIsArray( $parsed, 'Test prerequisite failed: the test src should parse.' );
+		$this->assertArrayNotHasKey( 'path', $parsed, 'Test prerequisite failed: the test src should have no path component.' );
+
+		wp_enqueue_script( $handle, $src, array(), null );
+
+		$this->assertFalse( load_script_textdomain( $handle, 'default', DIR_TESTDATA . '/languages' ) );
 	}
 }

@@ -417,6 +417,165 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-cache',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-cach' );
+
+		$first_run = redirect_guess_404_permalink();
+		$this->assertSame( get_permalink( $post ), $first_run, 'Did not guess the correct permalink on first run.' );
+
+		$start_num_queries = get_num_queries();
+		$second_run        = redirect_guess_404_permalink();
+		$this->assertSame( $first_run, $second_run, 'Result changed between cached and uncached run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
+	}
+
+	/**
+	 * Ensures the cache key does not contain the per-request `wpdb` placeholder escape.
+	 *
+	 * The placeholder escape string changes on every request, so a cache key derived from
+	 * the escaped query could never be hit in a subsequent request.
+	 *
+	 * @ticket 66282
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_key_excludes_placeholder_escape() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-cache-key',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-cache-ke' );
+
+		// The `query` filter receives the SQL after the placeholder escape has been removed.
+		$queries = array();
+		$filter  = static function ( $query ) use ( &$queries ) {
+			if ( str_contains( $query, 'post_name LIKE' ) ) {
+				$queries[] = $query;
+			}
+			return $query;
+		};
+
+		add_filter( 'query', $filter );
+		$guess = redirect_guess_404_permalink();
+		remove_filter( 'query', $filter );
+
+		$this->assertSame( get_permalink( $post ), $guess, 'Did not guess the correct permalink.' );
+		$this->assertCount( 1, $queries, 'Expected exactly one loose-match query to be run.' );
+
+		$cache = wp_cache_get_salted(
+			'redirect_guess_404_permalink:' . md5( $queries[0] ),
+			'post-queries',
+			wp_cache_get_last_changed( 'posts' )
+		);
+
+		$this->assertSame( $post, $cache, 'The cache key should be generated from the query without the placeholder escape.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_misses_are_cached() {
+		$this->go_to( 'redirect-guess-404-permalink-no-such-post' );
+
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug.' );
+
+		$start_num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match for a nonexistent slug on second run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached "not found" result performed an additional database query.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_new_matching_post() {
+		$this->go_to( 'redirect-guess-404-permalink-new-post' );
+
+		// Prime a "not found" cache entry.
+		$this->assertFalse( redirect_guess_404_permalink(), 'Expected no match before the matching post exists.' );
+
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-new-post',
+			)
+		);
+
+		$start_num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Newly created matching post was not found after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_invalidated_on_post_delete() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-404-permalink-delete-me',
+			)
+		);
+
+		$this->go_to( 'redirect-guess-404-permalink-delete-m' );
+
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink(), 'Did not guess the correct permalink before deletion.' );
+
+		wp_delete_post( $post, true );
+
+		$start_num_queries = get_num_queries();
+		$this->assertFalse( redirect_guess_404_permalink(), 'Deleted post should no longer be guessed after cache invalidation.' );
+		$this->assertSame( 1, get_num_queries() - $start_num_queries, 'Expected exactly one new query after the posts cache was invalidated by deletion.' );
+	}
+
+	/**
+	 * @ticket 64250
+	 *
+	 * @covers ::redirect_guess_404_permalink
+	 */
+	public function test_redirect_guess_404_permalink_cache_keys_do_not_collide() {
+		$post_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'post',
+			)
+		);
+		$page_post = self::factory()->post->create(
+			array(
+				'post_title' => 'redirect-guess-collision',
+				'post_type'  => 'page',
+			)
+		);
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=post' );
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Setting post type to post did not return the post permalink.' );
+
+		// Re-run without navigating away (go_to() flushes the object cache) to confirm the cached result is reused.
+		$start_num_queries = get_num_queries();
+		$this->assertSame( get_permalink( $post_post ), redirect_guess_404_permalink(), 'Result changed between cached and uncached run.' );
+		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'A cached lookup performed an additional database query.' );
+
+		$this->go_to( '/?name=redirect-guess-collisio&post_type=page' );
+		$this->assertSame( get_permalink( $page_post ), redirect_guess_404_permalink(), 'Setting post type to page did not return the page permalink.' );
+	}
+
+	/**
 	 * @ticket 43745
 	 */
 	public function test_utf8_query_keys_canonical() {
