@@ -105,13 +105,26 @@ class WP_Admin_Notice_Collector {
 
 	/**
 	 * Returns the number of notices captured during the current request.
+	 * Counted notices include only visible notices.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @return int Notice count.
 	 */
 	public static function get_notice_count() {
-		return count( self::$notices );
+		$returned_notices = array_filter(
+			self::$notices,
+			function( $notice ) {
+				$processor = new WP_HTML_Tag_Processor( $notice['markup'] );
+				$processor->next_tag();
+				if ( $processor->has_class( 'hide-if-js' ) || $processor->has_class( 'hidden' ) ) {
+					return false;
+				}
+				return true;
+			}
+		);
+
+		return count( $returned_notices );
 	}
 
 	/**
