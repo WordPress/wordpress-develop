@@ -999,6 +999,34 @@ class Tests_User extends WP_UnitTestCase {
 	/**
 	 * @ticket 66238
 	 *
+	 * @covers ::email_exists
+	 */
+	public function test_email_exists_falls_back_to_lower_lookup_when_exact_lookup_misses() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create( array( 'user_email' => 'MixedCase@example.com' ) );
+		clean_user_cache( $user_id );
+
+		add_filter( 'wp_is_user_email_case_sensitive', '__return_true' );
+
+		// Simulate a case-sensitive user_email column by making the exact lookup compare in binary.
+		$force_binary = static function ( $query ) use ( $wpdb ) {
+			return str_replace( "FROM $wpdb->users WHERE user_email = ", "FROM $wpdb->users WHERE BINARY user_email = ", $query );
+		};
+		add_filter( 'query', $force_binary );
+
+		$this->assertFalse( get_user_by( 'email', 'mixedcase@example.com' ), 'The exact lookup should miss, as on a case-sensitive collation.' );
+
+		$found_id = email_exists( 'mixedcase@example.com' );
+
+		remove_filter( 'query', $force_binary );
+
+		$this->assertSame( $user_id, $found_id, 'The LOWER() fallback should find the user.' );
+	}
+
+	/**
+	 * @ticket 66238
+	 *
 	 * @covers ::_wp_is_user_email_case_sensitive
 	 */
 	public function test_wp_is_user_email_case_sensitive_matches_column_collation() {

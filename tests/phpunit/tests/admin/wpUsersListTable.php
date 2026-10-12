@@ -65,7 +65,13 @@ class Tests_Admin_wpUsersListTable extends WP_UnitTestCase {
 		};
 		add_filter( 'query', $collect );
 
-		$flagged = $method->invoke( $this->table, array( $original, $unique ) );
+		$flagged = $method->invoke(
+			$this->table,
+			array(
+				$original => get_userdata( $original ),
+				$unique   => get_userdata( $unique ),
+			)
+		);
 
 		remove_filter( 'query', $collect );
 

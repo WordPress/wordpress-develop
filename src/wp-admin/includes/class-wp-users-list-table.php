@@ -447,7 +447,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param WP_User[] $users IDs of the users to check.
+	 * @param WP_User[] $users Users to check.
 	 * @return list<int> IDs of the given users whose email address is shared.
 	 */
 	protected function get_duplicate_email_user_ids( array $users ): array {

@@ -2202,7 +2202,7 @@ function email_exists( $email ) {
  *
  * @return bool True if user email comparisons are case-sensitive, false otherwise.
  */
-function _wp_is_user_email_case_sensitive() {
+function _wp_is_user_email_case_sensitive(): bool {
 	global $wpdb;
 
 	static $is_case_sensitive = null;
