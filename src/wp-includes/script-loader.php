@@ -3677,7 +3677,7 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @phpstan-return non-falsy-string
  */
 function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
-	$data = "\n" . trim( (string) $data, "\n\r " ) . "\n";
+	$data = "\n" . trim( (string) $data, " \t\f\r\n" ) . "\n";
 
 	/**
 	 * Filters attributes to be added to an inline style tag.
