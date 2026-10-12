@@ -29,7 +29,7 @@ class Tests_Theme_WpThemeHasThemeJson extends WP_Theme_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_theme_has_theme_json_reports_correctly() {
+	public static function data_theme_has_theme_json_reports_correctly() {
 		return array(
 			'a theme with theme.json'       => array(
 				'theme'    => 'block-theme',
