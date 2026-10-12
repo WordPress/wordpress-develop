@@ -6,6 +6,7 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 /**
  * External dependencies
  */
+import fs from 'fs';
 import path from 'path';
 
 // A 640x480 image: it must be larger than at least one registered sub-size
@@ -56,13 +57,75 @@ async function failMediaCreate( page ) {
 	);
 }
 
-// A file plupload and the store both treat as HEIC but no browser can
-// decode: whether the server can convert it is what decides its path.
+// A well-formed HEIC, which the tests pair with withoutHeicDecoder() so the
+// browser cannot decode it: whether the server can convert it is what
+// decides its path. The container has to parse, otherwise the pipeline
+// reports a damaged file rather than a missing codec.
 const UNDECODABLE_HEIC = {
 	name: 'undecodable.heic',
 	mimeType: 'image/heic',
-	buffer: Buffer.from( 'not a HEIC image' ),
+	buffer: fs.readFileSync(
+		path.join( __dirname, '../../phpunit/data/images/test-image.heic' )
+	),
 };
+
+/**
+ * Answers the classic upload with async-upload.php's error markup instead of
+ * running it.
+ *
+ * The hand-off is what is under test, not whether this server's image editor
+ * can convert HEIC, so the request is answered once it has been made.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function stubClassicUpload( page ) {
+	await page.route( '**/wp-admin/async-upload.php', ( route ) =>
+		route.fulfill( {
+			status: 200,
+			contentType: 'text/html',
+			body: '<div class="error-div error">Upload stubbed by the test.</div>',
+		} )
+	);
+}
+
+/**
+ * Takes away every HEIC decoder the browser offers, as on Linux or on
+ * Windows without the HEVC extension, whatever the machine running the test.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function withoutHeicDecoder( page ) {
+	await page.addInitScript( () => {
+		const isHeic = ( source ) =>
+			source instanceof Blob && /^image\/hei[cf]/i.test( source.type );
+
+		const createImageBitmap = window.createImageBitmap;
+		window.createImageBitmap = function ( source, ...args ) {
+			if ( isHeic( source ) ) {
+				return Promise.reject(
+					new DOMException( 'Unsupported image', 'InvalidStateError' )
+				);
+			}
+			return createImageBitmap.call( this, source, ...args );
+		};
+
+		if ( window.ImageDecoder ) {
+			const isTypeSupported = window.ImageDecoder.isTypeSupported;
+			window.ImageDecoder.isTypeSupported = ( type ) =>
+				/^image\/hei[cf]/i.test( type )
+					? Promise.resolve( false )
+					: isTypeSupported.call( window.ImageDecoder, type );
+		}
+
+		if ( window.VideoDecoder ) {
+			const isConfigSupported = window.VideoDecoder.isConfigSupported;
+			window.VideoDecoder.isConfigSupported = ( config ) =>
+				/^(hev1|hvc1)/.test( ( config && config.codec ) || '' )
+					? Promise.resolve( { supported: false, config } )
+					: isConfigSupported.call( window.VideoDecoder, config );
+		}
+	} );
+}
 
 /**
  * Counts the POST requests that upload a file, per transport.
@@ -658,6 +721,8 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		// No heic_upload_error means the server's image editor handles HEIC.
 		await overridePluploadDefaults( page, { heic_upload_error: false } );
 
+		await withoutHeicDecoder( page );
+		await stubClassicUpload( page );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
 		const isolated = await page.evaluate( () =>
@@ -684,9 +749,9 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			0,
 			{ timeout: 60_000 }
 		);
-		await expect( page.locator( '.upload-error-message' ) ).not.toContainText(
-			'HEIC'
-		);
+		await expect(
+			page.locator( '.upload-error-message', { hasText: 'HEIC' } )
+		).toHaveCount( 0 );
 	} );
 
 	test( 'reports the HEIC error when neither the browser nor the server can convert it', async ( {
@@ -695,6 +760,7 @@ test.describe( 'Media Library grid client-side uploads', () => {
 	} ) => {
 		await overridePluploadDefaults( page, { heic_upload_error: true } );
 
+		await withoutHeicDecoder( page );
 		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
 
 		const isolated = await page.evaluate( () =>
