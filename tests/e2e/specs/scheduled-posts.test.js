@@ -224,14 +224,16 @@ test.describe( 'Scheduled Posts', () => {
 				new Date( serverNow.getTime() + 2 * 60 * 60 * 1_000 )
 			),
 		} );
+		await requestUtils.createPost( {
+			title: 'Published Post',
+			status: 'publish',
+		} );
 
 		await admin.visitAdminPage( '/edit.php' );
 
 		// Switch to the Scheduled status view.
-		await page
-			.locator( '.subsubsub' )
-			.getByRole( 'link', { name: /^Scheduled/ } )
-			.click();
+		await page.getByRole( 'link', { name: /^Scheduled/ } ).click();
+		await expect( page ).toHaveURL( /[?&]post_status=future(?:&|$)/ );
 
 		const listTable = page.getByRole( 'table', {
 			name: 'Table ordered by',
@@ -246,5 +248,8 @@ test.describe( 'Scheduled Posts', () => {
 		await expect(
 			listTable.getByRole( 'cell', { name: /^Scheduled/ } )
 		).toBeVisible();
+		await expect(
+			listTable.getByRole( 'link', { name: 'Published Post', exact: true } )
+		).toHaveCount( 0 );
 	} );
 } );
