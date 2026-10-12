@@ -73,8 +73,10 @@ jobs:
         image: ${{ inputs.db-type }}:${{ inputs.db-version }}
         ports:
           - 3306
+        # Ping over TCP, to wait for the TCP server rather than the Unix socket.
+        # MariaDB 11.0 dropped the `mysqladmin` symlink, so pick the client the image ships.
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="${{ inputs.db-type == 'mariadb' && ! contains( fromJSON('["5.5", "10.0", "10.1", "10.2", "10.3"]'), inputs.db-version ) && 'mariadb-admin' || 'mysqladmin' }} ping -h 127.0.0.1 --protocol=tcp"
           --health-interval="30s"
           --health-timeout="10s"
           --health-retries="5"

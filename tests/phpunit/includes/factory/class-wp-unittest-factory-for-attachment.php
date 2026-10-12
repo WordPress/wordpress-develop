@@ -2,13 +2,6 @@
 
 /**
  * Unit test factory for attachments.
- *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
- *
- * @method int|WP_Error     create( $args = array(), $generation_definitions = null )
- * @method WP_Post|WP_Error create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[] create_many( $count, $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 
@@ -17,6 +10,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *
 	 * @since UT (3.7.0)
 	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
 	 * @param array $args {
 	 *     Array of arguments. Accepts all arguments that can be passed to
@@ -24,9 +18,10 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *     @type int    $post_parent ID of the post to which the attachment belongs.
 	 *     @type string $file        Path of the attached file.
 	 * }
-	 * @param int   $legacy_parent Deprecated.
-	 * @param array $legacy_args   Deprecated.
-	 * @return int|WP_Error The attachment ID on success, WP_Error object on failure.
+	 * @param int          $legacy_parent Deprecated.
+	 * @param array        $legacy_args   Deprecated.
+	 * @return positive-int The attachment ID.
+	 * @throws WP_UnitTest_Factory_Exception When the attachment could not be created.
 	 */
 	public function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
 		// Backward compatibility for legacy argument format.
@@ -45,7 +40,11 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			$args
 		);
 
-		return wp_insert_attachment( $r, $r['file'], $r['post_parent'], true );
+		$attachment_id = wp_insert_attachment( $r, $r['file'], $r['post_parent'], true );
+
+		$this->assert_valid_object_id( $attachment_id, 'Unable to create the attachment' );
+
+		return $attachment_id;
 	}
 
 	/**
