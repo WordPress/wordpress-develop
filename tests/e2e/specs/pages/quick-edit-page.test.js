@@ -1,44 +1,66 @@
 /**
  * WordPress dependencies
  */
-const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
+import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-test.describe( 'Quick Edit Page', () => {
-	test.beforeEach( async ( { requestUtils, admin, editor } ) => {
-		await requestUtils.deleteAllPages();
-		await admin.createNewPost( { title: 'QA Page', postType: 'page' } );
-		await editor.publishPost();
+test.describe( 'Quick Edit page', () => {
+	let pageId;
+
+	test.beforeEach( () => {
+		pageId = undefined;
 	} );
 
-	test( 'Should be able to quick edit a wp page', async ( {
+	test.afterEach( async ( { requestUtils } ) => {
+		if ( pageId ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/pages/${ pageId }`,
+				params: { force: true },
+			} );
+		}
+	} );
+
+	test( 'saves a page title using Quick Edit', async ( {
 		page,
 		admin,
+		requestUtils,
 	} ) => {
-		// navigate to All Pages
-		await admin.visitAdminPage( '/edit.php?post_type=page' );
+		const createdPage = await requestUtils.createPage( {
+			title: 'Quick Edit page',
+			status: 'publish',
+		} );
+		pageId = createdPage.id;
+		const updatedTitle = `Updated page ${ pageId }`;
 
-		// hover over the page created
-		await page.hover( 'role=link[name= "“QA Page” (Edit)"i]' );
+		await admin.visitAdminPage( 'edit.php?post_type=page' );
+		const row = page.locator( `#post-${ pageId }` );
+		await row
+			.getByRole( 'link', { name: 'Quick Edit page', exact: true } )
+			.hover();
+		await row
+			.getByRole( 'button', {
+				name: 'Quick edit “Quick Edit page” inline',
+				exact: true,
+			} )
+			.click();
 
-		// click on quick edit
-		await page.getByRole( 'button', { name: 'Quick Edit' } ).click();
-
-		// validate the title to check correct page is being edited
+		const editRow = page.locator( `#edit-${ pageId }` );
+		const title = editRow.getByRole( 'textbox', {
+			name: 'Title',
+			exact: true,
+		} );
+		await expect( title ).toHaveValue( 'Quick Edit page' );
+		await title.fill( updatedTitle );
+		await editRow
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
 		await expect(
-			page.getByRole( 'textbox', { name: 'Title', exact: true } )
-		).toHaveValue( 'QA Page' );
+			row.getByRole( 'link', { name: updatedTitle, exact: true } )
+		).toBeVisible();
 
-		// Updated title of the page
-		await page
-			.getByRole( 'textbox', { name: 'Title' } )
-			.fill( 'Edited from quick edit' );
-
-		// click on the update page button
-		await page.getByRole( 'button', { name: 'Update' } ).click();
-
-		// Validate title after quick edit
+		await page.reload();
 		await expect(
-			page.getByRole( 'link', { name: 'Edited from quick edit” (Edit)' } )
-		).toContainText( 'Edited from quick edit' );
+			row.getByRole( 'link', { name: updatedTitle, exact: true } )
+		).toBeVisible();
 	} );
 } );
