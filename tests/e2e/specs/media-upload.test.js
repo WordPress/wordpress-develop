@@ -70,9 +70,7 @@ test( 'uploads a JPEG and shows the completed attachment', async ( {
 			attachmentId = Number( await uploadResponse.text() );
 		}
 		expect( uploadResponse.ok() ).toBe( true );
-		expect( Number.isInteger( attachmentId ) && attachmentId > 0 ).toBe(
-			true
-		);
+		expect( attachmentId ).toBeGreaterThan( 0 );
 
 		await expect(
 			page.getByText( 'test-image', { exact: true } )
