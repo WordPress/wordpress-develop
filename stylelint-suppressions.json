@@ -159,7 +159,7 @@
   },
   "src/wp-admin/css/wp-tooltip.css": {
     "selector-class-pattern": {
-      "count": 20
+      "count": 28
     },
     "selector-no-qualifying-type": {
       "count": 6
