@@ -94,4 +94,67 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 		$this->assertCount( 3, $inputs );
 		$this->assertContainsOnlyInstancesOf( MessagePart::class, $inputs );
 	}
+
+	/**
+	 * Test that a single list argument becomes independent inputs.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_single_list_argument_becomes_independent_inputs() {
+		$builder = wp_ai_client_embedding( array( 'First', 'Second', 'Third' ) );
+
+		$inputs = $this->get_wrapped_builder_inputs( $builder );
+
+		$this->assertCount( 3, $inputs );
+		$this->assertSame( 'First', $inputs[0]->getText() );
+		$this->assertSame( 'Second', $inputs[1]->getText() );
+		$this->assertSame( 'Third', $inputs[2]->getText() );
+	}
+
+	/**
+	 * Test that a single list argument can mix input types.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_single_list_argument_with_mixed_input_types() {
+		$part_shape = ( new MessagePart( 'Third' ) )->toArray();
+
+		$builder = wp_ai_client_embedding( array( 'First', new MessagePart( 'Second' ), $part_shape ) );
+
+		$inputs = $this->get_wrapped_builder_inputs( $builder );
+
+		$this->assertCount( 3, $inputs );
+		$this->assertSame( 'Third', $inputs[2]->getText() );
+	}
+
+	/**
+	 * Test that a single message part array shape argument stays a single input.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_single_array_shape_argument_becomes_single_input() {
+		$builder = wp_ai_client_embedding( ( new MessagePart( 'Test input' ) )->toArray() );
+
+		$inputs = $this->get_wrapped_builder_inputs( $builder );
+
+		$this->assertCount( 1, $inputs );
+		$this->assertSame( 'Test input', $inputs[0]->getText() );
+	}
+
+	/**
+	 * Test that a single empty array argument creates a builder without inputs or an error state.
+	 *
+	 * @ticket 64591
+	 */
+	public function test_empty_array_argument_creates_builder_without_inputs() {
+		$builder = wp_ai_client_embedding( array() );
+
+		$this->assertSame( array(), $this->get_wrapped_builder_inputs( $builder ) );
+
+		$error_property = new ReflectionProperty( WP_AI_Client_Embedding_Builder::class, 'error' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$error_property->setAccessible( true );
+		}
+		$this->assertNull( $error_property->getValue( $builder ), 'The builder should not be in an error state' );
+	}
 }
