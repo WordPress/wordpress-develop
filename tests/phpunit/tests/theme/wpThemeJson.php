@@ -5897,6 +5897,122 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66286
+	 *
+	 * @dataProvider data_get_stylesheet_ignores_values_of_unexpected_types
+	 *
+	 * @param array $theme_json_data The theme.json data, without the version.
+	 */
+	public function test_get_stylesheet_ignores_values_of_unexpected_types( $theme_json_data ) {
+		$theme_json = new WP_Theme_JSON(
+			array_merge( array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $theme_json_data )
+		);
+
+		$this->assertIsString( $theme_json->get_stylesheet( array( 'variables', 'styles', 'presets', 'custom-css' ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_get_stylesheet_ignores_values_of_unexpected_types() {
+		return array(
+			'root custom css as an object'       => array(
+				array( 'styles' => array( 'css' => array( 'color' => 'red' ) ) ),
+			),
+			'element custom css as an object'    => array(
+				array( 'styles' => array( 'elements' => array( 'link' => array( 'css' => array( 'color' => 'red' ) ) ) ) ),
+			),
+			'block custom css as a list'         => array(
+				array( 'styles' => array( 'blocks' => array( 'core/paragraph' => array( 'css' => array( 'color: red;' ) ) ) ) ),
+			),
+			'ref as an array'                    => array(
+				array( 'styles' => array( 'color' => array( 'text' => array( 'ref' => array( 'styles', 'color' ) ) ) ) ),
+			),
+			'spacing scale as a string'          => array(
+				array( 'settings' => array( 'spacing' => array( 'spacingScale' => '1.5' ) ) ),
+			),
+			'spacing scale unit as an array'     => array(
+				array(
+					'settings' => array(
+						'spacing' => array(
+							'spacingScale' => array(
+								'operator'   => '*',
+								'increment'  => 1.5,
+								'steps'      => 7,
+								'mediumStep' => 1.5,
+								'unit'       => array( 'rem' ),
+							),
+						),
+					),
+				),
+			),
+			'shared style variation as a string' => array(
+				array( 'styles' => array( 'variations' => array( 'plain' => 'red' ) ) ),
+			),
+			'block types item as an array'       => array(
+				array( 'blockTypes' => array( array( 'core/button' ) ) ),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 66286
+	 */
+	public function test_merge_does_not_generate_spacing_sizes_from_a_non_array_per_origin_spacing_scale() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => array(
+							'operator'   => '*',
+							'increment'  => 1.5,
+							'steps'      => 3,
+							'mediumStep' => 1.5,
+							'unit'       => 'rem',
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme_json->merge(
+			new WP_Theme_JSON(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array( 'spacing' => array( 'spacingScale' => array( 'theme' => '1.5' ) ) ),
+				)
+			)
+		);
+		$spacing_sizes = $theme_json->get_settings()['spacing']['spacingSizes'];
+
+		$this->assertSame( array(), $spacing_sizes['theme'], 'The theme layer with a non-array spacing scale should generate no sizes.' );
+		$this->assertSame(
+			array(
+				array(
+					'name' => 'Small',
+					'slug' => '40',
+					'size' => '1rem',
+				),
+				array(
+					'name' => 'Medium',
+					'slug' => '50',
+					'size' => '1.5rem',
+				),
+				array(
+					'name' => 'Large',
+					'slug' => '60',
+					'size' => '2.25rem',
+				),
+			),
+			$spacing_sizes['default'],
+			'The default layer sizes should be unaffected.'
+		);
+	}
+
+	/**
 	 * @ticket 57583
 	 * @ticket 61165
 	 *
@@ -7411,6 +7527,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 61165
 	 * @ticket 61769
+	 * @ticket 66286
 	 *
 	 * @dataProvider data_process_blocks_custom_css
 	 *
@@ -7444,6 +7561,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 				'input'    => array(
 					'selector' => '.foo',
 					'css'      => '',
+				),
+				'expected' => '',
+			),
+			'css as an object'             => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => array( 'color' => 'red' ),
+				),
+				'expected' => '',
+			),
+			'css as a list of strings'     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => array( 'color: red;' ),
 				),
 				'expected' => '',
 			),
