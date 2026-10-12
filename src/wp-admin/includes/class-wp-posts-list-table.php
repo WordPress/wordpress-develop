@@ -486,9 +486,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 				'selected'        => $cat,
 			);
 
-			echo '<label class="screen-reader-text" for="cat">' . get_taxonomy( 'category' )->labels->filter_by_item . '</label>';
+			echo '<div class="tablenav-filter">';
+			echo '<label for="cat">' . get_taxonomy( 'category' )->labels->filter_by_item . '</label>';
 
 			wp_dropdown_categories( $dropdown_options );
+			echo '</div>';
 		}
 	}
 
@@ -533,9 +535,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 
 		$displayed_post_format = $_GET['post_format'] ?? '';
 		?>
-		<label for="filter-by-format" class="screen-reader-text">
+		<div class="tablenav-filter">
+		<label for="filter-by-format">
 			<?php
-			/* translators: Hidden accessibility text. */
 			_e( 'Filter by post format' );
 			?>
 		</label>
@@ -558,6 +560,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			}
 			?>
 		</select>
+		</div>
 		<?php
 	}
 

@@ -275,4 +275,21 @@ OPTIONS;
 			'all type requested'             => array( 'all' ),
 		);
 	}
+
+	/**
+	 * @ticket 63971
+	 *
+	 * @covers WP_Comments_List_Table::comment_type_dropdown
+	 */
+	public function test_comment_type_filter_label_is_visible() {
+		self::factory()->comment->create( array( 'comment_post_ID' => self::factory()->post->create() ) );
+
+		$this->table->prepare_items();
+
+		ob_start();
+		$this->table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter"><label for="filter-by-comment-type">Filter by comment type</label><select id="filter-by-comment-type"#', $output );
+	}
 }
