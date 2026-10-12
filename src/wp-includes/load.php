@@ -395,6 +395,7 @@ function wp_favicon_request() {
  * the wp-content directory).
  *
  * @since 3.0.0
+ * @since 7.2.0 Added status, no-cache and retry-after headers before loading a custom `maintenance.php` drop-in.
  * @access private
  */
 function wp_maintenance() {
@@ -403,12 +404,16 @@ function wp_maintenance() {
 		return;
 	}
 
+	require_once ABSPATH . WPINC . '/functions.php';
+
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
+		status_header( 503 );
+		nocache_headers();
+		header( 'Retry-After: 600' );
 		require_once WP_CONTENT_DIR . '/maintenance.php';
 		die();
 	}
 
-	require_once ABSPATH . WPINC . '/functions.php';
 	wp_load_translations_early();
 
 	header( 'Retry-After: 600' );
@@ -1832,6 +1837,8 @@ function wp_doing_cron() {
  * @return bool Whether the variable is an instance of WP_Error.
  *
  * @phpstan-assert-if-true WP_Error $thing
+ *
+ * @phpstan-return ( $thing is WP_Error ? true : false )
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );

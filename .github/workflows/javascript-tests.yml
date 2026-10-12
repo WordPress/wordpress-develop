@@ -69,6 +69,7 @@ on:
       - 'tools/webpack/**'
       - '.jshintrc'
       - 'tests/qunit/**'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/javascript-tests.yml'
       - '.github/workflows/reusable-javascript-tests.yml'
   workflow_dispatch:
