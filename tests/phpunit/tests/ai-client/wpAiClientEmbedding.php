@@ -36,7 +36,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that wp_ai_client_embedding() returns a WP_AI_Client_Embedding_Builder instance.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_returns_embedding_builder_instance() {
 		$builder = wp_ai_client_embedding();
@@ -47,7 +47,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that successive calls return independent builder instances.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_returns_independent_instances() {
 		$builder1 = wp_ai_client_embedding( 'First' );
@@ -59,7 +59,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that calling with no arguments creates a builder without inputs or an error state.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_no_arguments_creates_builder_without_inputs() {
 		$builder = wp_ai_client_embedding();
@@ -70,7 +70,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that a single argument becomes a single input.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_single_argument_becomes_single_input() {
 		$builder = wp_ai_client_embedding( 'Test input' );
@@ -84,7 +84,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that multiple variadic arguments each become an independent input.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_variadic_arguments_become_independent_inputs() {
 		$builder = wp_ai_client_embedding( 'First', 'Second', 'Third' );
@@ -98,7 +98,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that a single list argument becomes independent inputs.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_single_list_argument_becomes_independent_inputs() {
 		$builder = wp_ai_client_embedding( array( 'First', 'Second', 'Third' ) );
@@ -114,7 +114,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that a single list argument can mix input types.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_single_list_argument_with_mixed_input_types() {
 		$part_shape = ( new MessagePart( 'Third' ) )->toArray();
@@ -130,7 +130,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that a single message part array shape argument stays a single input.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_single_array_shape_argument_becomes_single_input() {
 		$builder = wp_ai_client_embedding( ( new MessagePart( 'Test input' ) )->toArray() );
@@ -144,7 +144,7 @@ class Tests_AI_Client_Embedding extends WP_UnitTestCase {
 	/**
 	 * Test that a single empty array argument creates a builder without inputs or an error state.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_empty_array_argument_creates_builder_without_inputs() {
 		$builder = wp_ai_client_embedding( array() );

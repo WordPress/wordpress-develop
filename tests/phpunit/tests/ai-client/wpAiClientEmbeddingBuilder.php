@@ -223,7 +223,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that WP_AI_Client_Embedding_Builder can be instantiated.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_instantiation() {
 		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry() );
@@ -234,7 +234,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that WP_AI_Client_Embedding_Builder can be instantiated with initial input.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_instantiation_with_input() {
 		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry(), 'Test input' );
@@ -245,7 +245,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor parses a single string input into one message part.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_constructor_with_string_input() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
@@ -259,7 +259,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor parses a list of inputs into one message part each.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_constructor_with_input_list() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, array( 'First', 'Second' ) );
@@ -273,7 +273,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor sets the default request timeout.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_constructor_sets_default_request_timeout() {
 		$builder = new WP_AI_Client_Embedding_Builder( AiClient::defaultRegistry() );
@@ -288,7 +288,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the request timeout filter receives the embedding builder type.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_request_timeout_filter_receives_builder_type() {
 		$received_builder_type = null;
@@ -311,7 +311,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor allows overriding the default request timeout.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_constructor_allows_overriding_request_timeout() {
 		add_filter(
@@ -332,7 +332,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the constructor rejects an invalid request timeout, reporting the concrete class name.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 *
 	 * @expectedIncorrectUsage WP_AI_Client_Embedding_Builder::__construct
 	 */
@@ -350,7 +350,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that fluent methods return the wrapper instance for method chaining.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_method_chaining_returns_wrapper() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -365,7 +365,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that with_input() appends inputs to the wrapped builder.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_with_input_appends_inputs() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'First' );
@@ -380,7 +380,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that using_dimensions() sets the dimensions on the model configuration.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_using_dimensions_sets_model_config() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -395,7 +395,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the wrapper passes the AiClient event dispatcher to the wrapped builder.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_passes_ai_client_event_dispatcher_to_wrapped_builder() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -408,7 +408,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that calling a nonexistent method puts the builder in an error state.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_invalid_method_returns_wp_error() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -423,7 +423,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that once in error state, subsequent fluent calls return the same instance.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_error_state_fluent_calls_return_same_instance() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -441,7 +441,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns false when in error state.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_support_check_method_returns_false_in_error_state() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -455,7 +455,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that an invalid constructor input puts the builder in an error state.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_constructor_with_invalid_input_enters_error_state() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, '' );
@@ -469,7 +469,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generating without any inputs returns a WP_Error.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings_without_input_returns_wp_error() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry );
@@ -483,7 +483,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns false when AI is not supported.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_is_supported_returns_false_when_ai_not_supported() {
 		add_filter( 'wp_supports_ai', '__return_false' );
@@ -496,7 +496,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns false when the prevent embedding filter returns true.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_is_supported_returns_false_when_filter_prevents_embedding() {
 		add_filter( 'wp_ai_client_prevent_embedding', '__return_true' );
@@ -509,7 +509,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns true for a model with the embedding generation capability.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_is_supported_with_capable_model() {
 		$model   = $this->create_mock_embedding_model( $this->create_test_embedding_result( 1 ) );
@@ -524,7 +524,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	 * Embeddings are only comparable to other embeddings from the same model, so
 	 * the SDK never selects a model automatically.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_is_supported_returns_false_without_model() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
@@ -535,7 +535,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generating without a model returns a WP_Error.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings_without_model_returns_wp_error() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, 'Test input' );
@@ -549,7 +549,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns false when the model's provider is not configured.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_is_supported_returns_false_when_provider_not_configured() {
 		$registry = $this->createMock( ProviderRegistry::class );
@@ -564,7 +564,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that using_provider_model() retrieves the model from the registry.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_using_provider_model_generates_with_registry_model() {
 		$result = $this->create_test_embedding_result( 1 );
@@ -585,7 +585,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generating returns a WP_Error when the prevent embedding filter returns true.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings_returns_wp_error_when_filter_prevents_embedding() {
 		add_filter( 'wp_ai_client_prevent_embedding', '__return_true' );
@@ -603,7 +603,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generating returns a WP_Error when AI is not supported.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings_returns_wp_error_when_ai_not_supported() {
 		add_filter( 'wp_supports_ai', '__return_false' );
@@ -620,7 +620,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the prevent embedding filter receives a clone of the builder instance.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_prevent_embedding_filter_receives_cloned_builder_instance() {
 		$captured_builder = null;
@@ -653,7 +653,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generate_embedding_result() returns the result from the model.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embedding_result() {
 		$result = $this->create_test_embedding_result( 1 );
@@ -670,7 +670,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generate_embedding_result() fires the embedding lifecycle action hooks in order.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embedding_result_fires_lifecycle_action_hooks() {
 		$result = $this->create_test_embedding_result( 1 );
@@ -709,7 +709,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generate_embedding() returns a single embedding.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embedding() {
 		$result = $this->create_test_embedding_result( 1 );
@@ -727,7 +727,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generate_embeddings() returns one embedding per input.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings() {
 		$result = $this->create_test_embedding_result( 2 );
@@ -746,7 +746,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that generate_embedding() returns a WP_Error when multiple inputs are configured.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embedding_returns_wp_error_with_multiple_inputs() {
 		$builder = new WP_AI_Client_Embedding_Builder( $this->registry, array( 'First', 'Second' ) );
@@ -760,7 +760,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that a mismatched embedding count from the model results in a WP_Error.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_generate_embeddings_returns_wp_error_on_count_mismatch() {
 		$result = $this->create_test_embedding_result( 1 );
@@ -778,7 +778,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that throwable_to_wp_error() maps throwables to embedding-prefixed error codes.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 *
 	 * @dataProvider data_throwable_to_wp_error_mapping
 	 *
@@ -821,6 +821,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	 * `usingDimensions()` expects an int; an array can never be coerced and throws a
 	 * TypeError, which extends Error rather than Exception.
 	 *
+	 * @ticket 65638
 	 * @ticket 65505
 	 */
 	public function test_call_catches_type_error_from_invalid_argument_type() {
@@ -839,6 +840,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that is_supported() returns false when the wrapped builder throws.
 	 *
+	 * @ticket 65638
 	 * @ticket 65781
 	 */
 	public function test_is_supported_returns_false_when_builder_throws() {
@@ -863,6 +865,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that a clone does not share the wrapped builder with the original.
 	 *
+	 * @ticket 65638
 	 * @ticket 65782
 	 */
 	public function test_clone_does_not_share_the_wrapped_builder() {
@@ -877,6 +880,7 @@ class Tests_AI_Client_EmbeddingBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the clone passed to the prevent embedding filter cannot change the inputs.
 	 *
+	 * @ticket 65638
 	 * @ticket 65782
 	 */
 	public function test_prevent_embedding_filter_cannot_mutate_the_original_inputs() {

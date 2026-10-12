@@ -206,7 +206,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Test that the request timeout filter receives the builder type.
 	 *
-	 * @ticket 64591
+	 * @ticket 65638
 	 */
 	public function test_request_timeout_filter_receives_builder_type() {
 		$received_builder_type = null;
