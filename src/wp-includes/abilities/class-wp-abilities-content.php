@@ -18,8 +18,8 @@ declare( strict_types = 1 );
  * by post type, status, author, parent, or included IDs. Raw fields are only returned for
  * posts the current user can edit.
  *
- * Unlike the other core abilities, which are self-contained closures registered directly
- * in wp_register_core_abilities(), the content ability lives in a dedicated class because
+ * Unlike the core abilities registered directly in wp_register_core_abilities() as
+ * self-contained closures, the content ability lives in a dedicated class because
  * its callbacks and schemas share helpers: the permission and execute callbacks resolve and
  * authorize the requested post through the same code, and the input schema, output schema,
  * and field projection are built from the same field definitions. Future write-oriented
