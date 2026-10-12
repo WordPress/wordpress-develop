@@ -316,14 +316,16 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	}
 
 	/**
+	 * CSS closes a comment, string or url token that the input ends inside,
+	 * so the declaration is kept and the token is written closed.
+	 *
 	 * @ticket 65738
-	 * @covers ::_safecss_filter_attr_ends_inside_token
 	 * @dataProvider data_input_ending_inside_a_token
 	 *
 	 * @param string $css      Input whose last token is a comment, string or url token cut off by the end of the input.
 	 * @param string $expected Expected output.
 	 */
-	public function test_input_ending_inside_a_token_drops_the_last_declaration( $css, $expected ) {
+	public function test_token_cut_off_by_the_end_of_the_input_is_written_closed( $css, $expected ) {
 		$this->assertSame( $expected, safecss_filter_attr( $css ) );
 	}
 
@@ -332,20 +334,20 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	 */
 	public function data_input_ending_inside_a_token() {
 		return array(
-			'comment in the value'               => array( 'color: red /*', '' ),
-			'comment after the last declaration' => array( 'color: red; /*', '' ),
-			'comment in the second value'        => array( 'color: red; width: 1px /*', 'color: red;' ),
-			'comment "/*/"'                      => array( 'color: red; width: 1px /*/', 'color: red;' ),
-			'string in the second value'         => array( 'color: red; width: "abc', 'color: red;' ),
-			'string in a standard property'      => array( 'color: "abc', '' ),
-			'string with escaped quote'          => array( 'color: red; font-family: "a\\"', 'color: red;' ),
-			'url token'                          => array( 'background: url(http://x/a.png', '' ),
-			'url token with trailing whitespace' => array( 'background: url(http://x/a.png ', '' ),
-			'url token in the second value'      => array( 'color: red; background: url(http://x/a.png', 'color: red;' ),
-			'string in a custom property'        => array( '--x: "abc', '' ),
-			'comment in a custom property'       => array( '--x: red /*', '' ),
-			'url token in a custom property'     => array( '--x: url(a', '' ),
-			'string after a rejected value'      => array( 'color: red; foo: "abc', '' ),
+			'comment in the value'               => array( 'color: red /*', 'color: red;' ),
+			'comment after the last declaration' => array( 'color: red; /*', 'color: red;' ),
+			'comment in the second value'        => array( 'color: red; width: 1px /*', 'color: red;width: 1px;' ),
+			'comment "/*/"'                      => array( 'color: red; width: 1px /*/', 'color: red;width: 1px;' ),
+			'string in the second value'         => array( 'color: red; width: "abc', 'color: red;width: "abc";' ),
+			'string in a standard property'      => array( 'font-family: "abc', 'font-family: "abc";' ),
+			'string with escaped quote'          => array( 'color: red; font-family: "a\\"', 'color: red;font-family: "a\\22 ";' ),
+			'url token'                          => array( 'background: url(http://x/a.png', 'background: url(http://x/a.png);' ),
+			'url token with trailing whitespace' => array( 'background: url(http://x/a.png ', 'background: url(http://x/a.png);' ),
+			'url token in the second value'      => array( 'color: red; background: url(http://x/a.png', 'color: red;background: url(http://x/a.png);' ),
+			'string in a custom property'        => array( '--x: "abc', '--x: "abc";' ),
+			'comment in a custom property'       => array( '--x: red /*', '--x: red;' ),
+			'url token in a custom property'     => array( '--x: url(a', '--x: url(a);' ),
+			'string after a rejected value'      => array( 'color: red; foo: "abc', 'color: red;' ),
 		);
 	}
 

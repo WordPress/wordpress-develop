@@ -4212,11 +4212,10 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * this function.
  *
  * A declaration whose value has a block (a function, `(`, `[` or `{`)
- * still open at the end of the input is dropped, for every property. When the input ends inside a comment,
- * string or url token, the last accepted declaration is dropped; such a
- * token runs to the end of the input, so it is in the last declaration or
- * after it. The legacy implementation rejected both, and callers rely on a
- * rejected declaration staying rejected.
+ * still open at the end of the input is dropped, for every property. The
+ * legacy implementation rejected an unclosed block, and callers rely on a
+ * rejected declaration staying rejected. A comment, string or url token
+ * that the input ends inside is closed, as CSS closes it.
  *
  * @since 7.2.0
  * @access private
@@ -4271,11 +4270,6 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		// The deprecated `safecss_filter_attr_allow_css` filter is applied by the legacy implementation only.
 
 		$declarations[] = $processor->serialize_declaration();
-	}
-
-	// A token cut off by the end of the input is in the last declaration or after it.
-	if ( ! empty( $declarations ) && _safecss_filter_attr_ends_inside_token( $css ) ) {
-		array_pop( $declarations );
 	}
 
 	return implode( '', $declarations );
@@ -4527,35 +4521,6 @@ function _safecss_filter_attr_url_is_allowed( $url, $allowed_protocols ) {
 	}
 
 	return wp_kses_bad_protocol( $url, $allowed_protocols ) === $url;
-}
-
-/**
- * Checks whether the input ends inside a comment, string or url token.
- *
- * Such a token has a closing delimiter (`*\/`, the matching quote or `)`).
- * CSS closes the token at the end of the input, so the declaration parses.
- * This reads the tokenizer's flag for the last token.
- *
- * @since 7.2.0
- * @access private
- * @internal
- *
- * @param string $css CSS text.
- * @return bool Whether the last token is a comment, string or url token cut off by the end of the input.
- */
-function _safecss_filter_attr_ends_inside_token( $css ) {
-	$processor = WP_CSS_Token_Processor::create( $css );
-	$type      = null;
-	while ( $processor->next_token() ) {
-		$type       = $processor->get_token_type();
-		$terminated = $processor->is_token_terminated();
-	}
-
-	return (
-		WP_CSS_Token_Processor::TOKEN_COMMENT === $type ||
-		WP_CSS_Token_Processor::TOKEN_STRING === $type ||
-		WP_CSS_Token_Processor::TOKEN_URL === $type
-	) && ! $terminated;
 }
 
 /**

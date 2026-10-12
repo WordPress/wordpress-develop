@@ -28,10 +28,10 @@ signature and docblock. It builds the allowed property list once, applies
 - `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.2.0 body,
   unchanged except that it receives the list.
 
-The declarations helper uses five further private helpers:
+The declarations helper uses four further private helpers:
 `_safecss_filter_attr_value_has_open_block()`,
-`_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`,
-`_safecss_filter_attr_ends_inside_token()` and `_safecss_filter_attr_is_trivia()`.
+`_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`
+and `_safecss_filter_attr_is_trivia()`.
 All are `@access private`, `@internal`, `@since 7.2.0`.
 
 ## Scope
@@ -69,9 +69,7 @@ The filter reads each value through
 objects covering the value, and runs the checks on their decoded values. It
 writes each accepted declaration with
 `WP_HTML_Style_Attribute_Processor::serialize_declaration()` and has no
-serializer of its own. The input is tokenized a second time, with
-`WP_CSS_Token_Processor`, only to read `is_token_terminated()` on its last
-token for rule 0.
+serializer of its own.
 
 ## Rejection Unit
 
@@ -84,17 +82,14 @@ neighbour.
 One rule applies to every declaration, for every property including custom
 ones:
 
-0. **Open blocks and tokens cut off by the end of the input.** A value with
-   a block (a function, `(`, `[` or `{`) still open at the end of the input
-   is rejected. When the input ends inside a comment, string or url token,
-   the last accepted declaration is dropped: such a token runs to the end of
-   the input, so it is in the last declaration or after it (`color: red; /*`
-   gives an empty result). The legacy function rejected an unbalanced
-   parenthesis and a `/*` comment, and callers rely on a rejected
-   declaration staying rejected. CSS would close the block or token at the
-   end of the input, so the processor exposes the declaration; the filter
-   drops it. The tokenizer reports the cut-off token through
-   `is_token_terminated()`.
+0. **Open blocks.** A value with a block (a function, `(`, `[` or `{`) still
+   open at the end of the input is rejected. The legacy function rejected an
+   unbalanced parenthesis, and callers rely on a rejected declaration staying
+   rejected. CSS would close the block at the end of the input, so the
+   processor exposes the declaration; the filter drops it. A comment, string
+   or url token that the input ends inside is not a block: CSS closes it,
+   the declaration is checked like any other, and the output writes the token
+   closed (`font-family: "abc` gives `font-family:"abc";`).
 
 An empty `safe_style_css` list disables filtering. `safecss_filter_attr()`
 returns the input with NUL bytes and newlines removed, which is what the
@@ -254,9 +249,10 @@ Intended:
 - A `\0` escape decodes to U+FFFD instead of being deleted from the text.
 - A `=` delimiter is kept. The legacy function rejected it. Both reject a
   bare `&`.
-- A string or url token cut off by the end of the input drops the last
-  declaration, in every property. The legacy function kept an unclosed
-  string and an unclosed `url(` with no `(` in its test string.
+- A comment, string or url token cut off by the end of the input is closed,
+  and its declaration is checked like any other. The legacy function
+  rejected an item containing `/*` and an unclosed `url(`, and kept an
+  unclosed string as it was.
 - A lone `{ }` block in a standard property is rejected, as the legacy
   function rejected `}`.
 - An allowed-list entry with capitals matches, since entries and names are
@@ -271,9 +267,8 @@ Formatting only: one space after the colon, double-quoted strings and unquoted
 url tokens with hex-escaped punctuation, comments dropped, trailing `;`.
 
 Unchanged: a block left open at the end of the input is rejected, as the
-legacy function rejected an unbalanced parenthesis; a comment left open at
-the end of the input drops the declaration, as the legacy function rejected
-`/*`; an empty `safe_style_css` list returns the input.
+legacy function rejected an unbalanced parenthesis; an empty `safe_style_css`
+list returns the input.
 
 On the 156 legacy test vectors: 31 identical, 115 formatting only, 2
 narrowings (`expression()` inside a gradient; an unmatched `)`), 8 widenings,
@@ -294,15 +289,13 @@ Open during the prototype, now settled:
   function accepts and which is valid CSS. The processor already drops a
   `{ }` block mixed with other tokens in a non-custom property; this rule
   covers a value that is only a `{ }` block.
-- **Tokens cut off by the end of the input.** A comment, string or url token
-  the input ends inside drops the last accepted declaration, for every
-  property including custom ones. An earlier version rejected only strings,
-  only in non-custom properties, and detected them from the token's source
-  bytes. The tokenizer now reports the condition through
-  `is_token_terminated()`, and the rule covers comments and url tokens, which
-  have the same shape: the token runs to the end of the input, and a
-  consumer that emits the original text would have the rest of its
-  stylesheet read as part of the token.
+- **Tokens cut off by the end of the input.** Closed, as CSS Syntax Level 3
+  closes them: a string or url token at the end of the input is returned
+  with a parse error (§4.3.5, §4.3.6), and a comment ends there. The
+  declaration is kept if the policy accepts it, and the output writes the
+  token closed. An earlier version dropped the last accepted declaration
+  instead. Browsers keep every such declaration, and the legacy function
+  kept `color: red; /*` and `font-family: "abc`, which that rule dropped.
 - **Transition.** The filter is named `wp_kses_force_legacy_css_parser`,
   after `wp_kses_force_legacy_parser`, defaults to `false`, and receives no
   other argument. Duration is not fixed; the filter docblock says it exists
@@ -321,8 +314,9 @@ Open during the prototype, now settled:
 ## Tests
 
 `tests/phpunit/tests/kses/safecssFilterAttr.php` covers each policy rule in
-isolation, the open-block rule in standard and custom properties, the
-cut-off token rule for comments, strings and url tokens, the structural rule in standard, nested and custom positions,
+isolation, the open-block rule in standard and custom properties, comments,
+strings and url tokens cut off by the end of the input, the structural rule in
+standard, nested and custom positions,
 `!important`, comments, one case per marked cell of the §9 table and a sample
 of unmarked pairs, whitespace, escapes, the empty `safe_style_css` list,
 the two filters, and idempotence over a provider of the inputs that exercise
