@@ -180,16 +180,33 @@ test.describe( 'Moderate Comments', () => {
 			.getByRole( 'button', { name: 'Reply', exact: true } )
 			.click();
 
-		// The reply lands as an approved comment on the same post.
+		// Verify the saved reply, including its content and parent comment.
 		await expect
 			.poll( async () => {
 				const comments = await requestUtils.rest( {
 					path: '/wp/v2/comments',
-					params: { post: post.id, status: 'approve' },
+					params: {
+						post: post.id,
+						status: 'approve',
+						context: 'edit',
+					},
 				} );
-				return comments.length;
+				const reply = comments.find( ( item ) => item.id !== comment.id );
+				return {
+					count: comments.length,
+					parent: reply?.parent,
+					content: reply?.content.raw,
+					post: reply?.post,
+					status: reply?.status,
+				};
 			} )
-			.toBe( 2 );
+			.toEqual( {
+				count: 2,
+				parent: comment.id,
+				content: 'An admin reply.',
+				post: post.id,
+				status: 'approved',
+			} );
 	} );
 
 	test( 'moves multiple comments to spam with a bulk action', async ( {
