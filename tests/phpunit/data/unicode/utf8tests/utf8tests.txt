@@ -1,0 +1,841 @@
+# == UTF-8 Test Cases ==
+
+# Updated on Sun Jan 16 18:52:08 UTC 2022
+
+# This file, utf8tests.txt, contains test cases for testing UTF-8
+# decoders and validators.  You "compile" the file to generate
+# the file utf8tests.bin and utf8tests.html used for testing.
+
+
+
+# == About the File Format ==
+
+# The compiler skips blank lines or lines that start with a #.
+
+# The other lines test valid or invalid UTF-8 byte sequences.  A
+# test line starts with a unique string. Tests lines may be added
+# moved or removed but never changed.
+
+# This file is an ASCII file without control characters.
+
+# * The replacment character is U+FFFD <EFBFBD>.
+# * nothing = ""
+
+# Line types in this file:
+
+# # <comment line>
+# <blank line>
+# num:valid:ASCII bytes
+# num:valid hex:hexString
+# num:invalid hex:hexString:hexString2:hexString3
+
+# * hexString2 is the expected value when skipping invalid bytes.
+# * hexString3 is the expected value when replacing invalid bytes with U+FFFD.
+
+
+
+# == utf8tests.bin ==
+#
+# The utf8tests.bin is a binary file. Line types in the utf8tests.bin file:
+#
+# num:valid:bytes
+# num:invalid:bytes
+
+
+
+# == Test Cases ==
+
+# This file groups the tests into these categories:
+
+# * Valid Characters
+# * Too Big Characters
+# * Overlong Characters
+# * Surrogate Characters
+# * Valid Noncharacters
+# * Miscellaneous Byte Sequences
+# * Visual Tests
+# * Null Characters
+
+
+
+# === Valid Characters ===
+
+1.0.1:valid hex:31
+1.1.0:valid:abc
+
+# Two byte character.
+2.1.0:valid hex:C2 A9
+
+# Three byte character.
+# U+2010, HYPHEN
+3.0:valid hex:E2 80 90
+
+# Four byte character.
+# U+1D49C
+4.0:valid hex:F0 9D 92 9C
+
+# first two byte sequence
+# U+00000080, <c2 80>
+5.1:valid hex:c2 80
+
+# first three byte sequence
+# U+00000800, <e0 a0 80>
+5.2:valid hex:e0 a0 80
+
+# first four byte sequence
+# U+00010000, <f0 90 80 80>
+5.3:valid hex:f0 90 80 80
+
+# U+0080, <c2 80>
+7.1:valid hex:c2 80
+7.2:valid hex:c2 81
+7.3:valid hex:c2 82
+
+# last one byte character U+0000007F, DELETE
+8.0:valid hex:7F
+
+# last two byte character U+000007FF, <DF BF>
+8.1:valid hex:DF BF
+
+# 1110xxxx 10xxxxxx 10xxxxxx
+# 11101111 10111111 10111111
+# EF       BF       BF
+# U+0000FFFF, <EF BF BF>
+8.2:valid hex:EF BF BF
+
+# U+0010FFFF, <F4 8F BF BF>
+8.3:valid hex:F4 8F BF BF
+
+# U+E000 <EE 80 80>
+10.1:valid hex:EE 80 80
+
+# U+FFFD, replacement character, <EFBFBD>
+10.2:valid hex:EFBFBD
+
+# U+10FFFF, biggest code point, <F4 8F BF BF>
+10.3:valid hex:F4 8F BF BF
+
+# U+002f, SOLIDUS
+22.0:valid:/
+
+# U+002f, SOLIDUS <2f>
+22.1:valid hex:2F
+
+# U+0800, <e0 a0 80>
+22.7:valid hex:e0 a0 80
+
+
+
+# === Too Big Characters ===
+
+# too big U+001FFFFF, <F7 BF BF BF>
+6.0:invalid hex:F7 BF BF BF:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# U+10FFFF is the biggest. 110000, <F4 90 80 80>
+6.0.1:invalid hex:F4 90 80 80:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# too big U+00200000, <f8 88 80 80 80>
+6.1:invalid hex:f8 88 80 80 80:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# too big U+03FFFFFF, <F7 BF BF BF BF>
+6.2:invalid hex:F7 BF BF BF BF:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# too big U+04000000, <fc 84 80 80 80 80>
+6.3:invalid hex:fc 84 80 80 80 80:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# too big U+7FFFFFFF, <F7 BF BF BF BF BF>
+6.4:invalid hex:F7 BF BF BF BF BF:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# too big, <F7 BF BF BF BF BF BF>
+6.5:invalid hex:F7 BF BF BF BF BF BF:nothing:EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD  EFBFBD
+
+# <F7 BF BF>
+9.0:invalid hex:F7 BF BF:nothing:EFBFBD  EFBFBD  EFBFBD
+
+# 2.3  Other boundary conditions
+
+
+
+# 3  Malformed sequences
+
+# 3.1  Unexpected continuation bytes
+
+# first continuation byte <80>
+11.0:invalid hex:80:nothing:EFBFBD
+
+# last continuation byte <bf>
+11.1:invalid hex:bf:nothing:EFBFBD
+
+# <80 bf>
+
+11.2:invalid hex:80 bf:nothing:EFBFBD EFBFBD
+
+# <80 bf 80>
+11.3:invalid hex:80 bf 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# <80 bf 80 bf>
+11.4:invalid hex:80 bf 80 bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <80 bf 80 bf 80>
+11.5:invalid hex:80 bf 80 bf 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <80 bf 80 bf 80 bf>
+11.6:invalid hex:80 bf 80 bf 80 bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 3.1.9  Sequence of all 64 possible continuation bytes (0x80-0xbf)
+
+# <80 - 87>
+12.0:invalid hex:8081 8283 8485 8687:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <88 - 8f>
+12.1:invalid hex:8889 8a8b 8c8d 8e8f:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <90 - 97>
+12.2:invalid hex:9091 9293 9495 9697:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <98 - 9f>
+12.3:invalid hex:9899 9a9b 9c9d 9e9f:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <a0 - a7>
+12.4:invalid hex:a0a1 a2a3 a4a5 a6a7:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <a8 - af>
+12.5:invalid hex:a8a9 aaab acad aeaf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <b0 - b7>
+12.6:invalid hex:b0b1 b2b3 b4b5 b6b7:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <b8 - bf>
+12.7:invalid hex:b8b9 babb bcbd bebf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 3.2  Lonely start characters
+
+# 3.2.1  All 32 first bytes of 2-byte sequences (0xc0-0xdf),
+#        each followed by a space character.
+
+# <c0 - c3>
+13.0:invalid hex:c020 c120 c220 c320:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <c4 - c7>
+13.1:invalid hex:c420 c520 c620 c720:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <c8 - cb>
+13.2:invalid hex:c820 c920 ca20 cb20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <cc - cf>
+13.3:invalid hex:cc20 cd20 ce20 cf20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <d0 - d3>
+13.4:invalid hex:d020 d120 d220 d320:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <d4 - d7>
+13.5:invalid hex:d420 d520 d620 d720:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <d8 - db>
+13.6:invalid hex:d820 d920 da20 db20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <dc - df>
+13.7:invalid hex:dc20 dd20 de20 df20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+
+# 3.2.2  All 16 first bytes of 3-byte sequences (0xe0-0xef)
+#        each followed by a space character
+
+# <e0 - e3>
+14.0:invalid hex:e020 e120 e220 e320:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <e4 - e7>
+14.1:invalid hex:e420 e520 e620 e720:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <e8 - eb>
+14.2:invalid hex:e820 e920 ea20 eb20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# <ec - ef>
+14.3:invalid hex:ec20 ed20 ee20 ef20:20 20 20 20:EFBFBD 20 EFBFBD 20 EFBFBD 20 EFBFBD 20
+
+# Table 3-8. U+FFFD for Non-Shortest Form Sequences
+14.4.0:invalid hex:C0 AF E0 80 BF F0 81 82 41:41:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD 41
+
+# Table 3-9. U+FFFD for Ill-Formed Sequences for Surrogates
+14.4.1:invalid hex:ED A0 80 ED BF BF ED AF 41:41:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD 41
+
+# Table 3-10. U+FFFD for Other Ill-Formed Sequences
+14.4.2:invalid hex:F4 91 92 93 FF 41 80 BF 42:41 42:efbfbd efbfbd efbfbd efbfbd efbfbd 41 efbfbd efbfbd 42
+
+# Table 3-11. U+FFFD for Truncated Sequences
+14.5.1:invalid hex:E1 80 E2 F0 91 92 F1 BF 41:41: EFBFBD EFBFBD EFBFBD EFBFBD 41
+
+# 3.2.3  All 8 first bytes of 4-byte sequences (0xf0-0xf7),
+#        each followed by a space character
+
+# <f0 - f1>
+15.0:invalid hex:f020 f120:20 20:EFBFBD 20 EFBFBD 20
+
+# <f2 - f3>
+15.1:invalid hex:f220 f320:20 20:EFBFBD 20 EFBFBD 20
+
+# <f4 - f5>
+15.2:invalid hex:f420 f520:20 20:EFBFBD 20 EFBFBD 20
+
+# <f6 - f7>
+15.3:invalid hex:f620 f720:20 20:EFBFBD 20 EFBFBD 20
+
+
+# 3.2.4  All 4 first bytes of 5-byte sequences (0xf8-0xfb),
+#        each followed by a space character
+
+# <f8>
+16.0:invalid hex:f820:20:EFBFBD 20
+
+# <f9>
+16.1:invalid hex:f920:20:EFBFBD 20
+
+# <fa>
+16.2:invalid hex:fa20:20:EFBFBD 20
+
+# <fb>
+16.3:invalid hex:fb20:20:EFBFBD 20
+
+
+# 3.2.5  All 2 first bytes of 6-byte sequences (0xfc-0xfd),
+#        each followed by a space character.
+
+# <fc>
+17.0:invalid hex:fc20:20:EFBFBD 20
+
+# <fd>
+17.1:invalid hex:fd20:20:EFBFBD 20
+
+# 3.3  Sequences with last continuation byte missing
+
+# <c0>
+18.0:invalid hex:c0:nothing:EFBFBD
+
+# <e0 80>
+18.1:invalid hex:e0 80:nothing:EFBFBD EFBFBD
+
+# <f0 80 80>
+18.2:invalid hex:f0 80 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# <f8 80 80 80>
+18.3:invalid hex:f8 80 80 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# <fc 80 80 80 80>
+18.4:invalid hex:fc 80 80 80 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+
+# 0 -> 2 -> 1, U+000007FF, <df>
+19.0:invalid hex:df:nothing:EFBFBD
+
+# 0 -> 3 -> 2 -> 1, U+0000FFFF, <ef bf>
+19.1:invalid hex:ef bf:nothing:EFBFBD
+
+# 0 -> 1, U+001FFFFF, <f7 bf bf>
+19.2:invalid hex:f7 bf bf:nothing:EFBFBD EFBFBD EFBFBD
+
+# 0->1, U+03FFFFFF, <fb bf bf bf>
+19.3:invalid hex:fb bf bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 0->1, U+7FFFFFFF, <fd bf bf bf bf>
+19.4:invalid hex:fd bf bf bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 0->3->2-1, 123 <ef 80>
+19.5:invalid hex:31 32 33 ef 80:31 32 33:31 32 33 EFBFBD
+
+# 123 <ef 80 f0>
+19.6:invalid hex:31 32 33 ef 80 f0:31 32 33:31 32 33 EFBFBD EFBFBD
+
+# <80>
+21.0:invalid hex:80:nothing:EFBFBD
+
+# <81>
+21.1:invalid hex:81:nothing:EFBFBD
+
+# <fe>
+21.2:invalid hex:fe:nothing:EFBFBD
+
+# <ff>
+21.3:invalid hex:ff:nothing:EFBFBD
+
+# 7 <ff>
+21.4:invalid hex:37 ff:37:37 EFBFBD
+
+# 7 8 <ff>
+21.5:invalid hex:37 38 fe:37 38:37 38 EFBFBD
+
+# 7 8 9 <fe>
+21.6:invalid hex:37 38 39 fe:37 38 39:37 38 39 EFBFBD
+
+
+
+# === Overlong Characters ===
+
+# Overlong solidus has been abused before and is a potential
+# security issue.
+
+# overlong solidus <c0 af>
+22.2:invalid hex:c0 af:nothing:EFBFBD EFBFBD
+
+# overlong solidus <e0 80 af>
+22.3:invalid hex:e0 80 af:nothing:EFBFBD EFBFBD EFBFBD
+
+# overlong solidus <f0 80 80 af>
+22.4:invalid hex:f0 80 80 af:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# overlong solidus <f8 80 80 80 af>
+22.5:invalid hex:f8 80 80 80 af:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# overlong solidus <fc 80 80 80 80 af>
+22.6:invalid hex:fc 80 80 80 80 af:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# max two byte overlong U+0000007F <c1 bf>
+23.0:invalid hex:c1 bf:nothing:EFBFBD EFBFBD
+
+# max three byte overlong U+000007FF <e0 9f bf>
+23.1:invalid hex:e0 9f bf:nothing:EFBFBD EFBFBD EFBFBD
+
+# overlong U+0000FFFF <f0 8f bf bf>
+23.2:invalid hex:f0 8f bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# overlong U+001FFFFF <f8 87 bf bf bf>
+23.3:invalid hex:f8 87 bf bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+
+
+# === Surrogate Characters ===
+
+# 1 surrogate U+D800, <ed a0 80>
+24.0:invalid hex:ed a0 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+D800, <ed a0 80> 5
+24.0.1:invalid hex:ed a0 80 35:35:EFBFBD EFBFBD EFBFBD 35
+
+# 1 surrogate U+D800, 123 <ed a0 80> 1
+24.0.2:invalid hex:31 32 33 ed a0 80 31:31 32 33 31:31 32 33 EFBFBD EFBFBD EFBFBD 31
+
+# 1 surrogate U+DB7F, <ed ad bf>
+24.2:invalid hex:ed ad bf:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+DB80, <ed ae 80>
+24.3:invalid hex:ed ae 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+DBFF, <ed af bf>
+24.4:invalid hex:ed af bf:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+DC00, <ed b0 80>
+24.5:invalid hex:ed b0 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+DF80, <ed be 80>
+24.6:invalid hex:ed be 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# 1 surrogate U+DFFF, <ed bf bf>
+24.7:invalid hex:ed bf bf:nothing:EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+D800 U+DC00, <eda080 edb080>
+25.0:invalid hex:ed a0 80 ed b0 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+D800 U+DFFF, <eda080 edbfbf>
+25.1:invalid hex:ed a0 80 ed bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DB7F U+DC00, <edadbf edb080>
+25.2:invalid hex:ed ad bf ed b0 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DB7F U+DFFF, <edadbf edbfbf>
+25.3:invalid hex:ed ad bf ed bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DB80 U+DC00, <edae80 edb080>
+25.4:invalid hex:ed ae 80 ed b0 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DB80 U+DFFF, <edae80 edbfbf>
+25.5:invalid hex:ed ae 80 ed bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DBFF U+DC00, <edafbf edb080>
+25.6:invalid hex:ed af bf ed b0 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 2 surrogates U+DBFF U+DFFF, <edafbf edbfbf>
+25.7:invalid hex:ed af bf ed bf bf:nothing:EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD EFBFBD
+
+
+
+# === Valid Noncharacters ===
+
+# Page 90, section 3.4, Characters and Encoding:
+# "Normally a coded character sequence consists of a sequence of
+# encoded characters, but it may also include noncharacters or
+# reserved code points."
+#
+# Page 80, section 3.2,  Conformance Requirements:
+# Note that security problems can result if noncharacter code
+# points are removed from text received from external
+# sources. For more information, see Section 23.7, Noncharacters,
+# and Unicode Technical Report #36, "Unicode Security
+# Considerations."
+
+# U+FFFE, <EF BF BE>
+26.0:valid hex:EF BF BE
+
+# U+FFFF, <EF BF BF>
+26.1:valid hex:EF BF BF
+
+# U+FDD0, <EF B7 90>
+26.2:valid hex:EF B7 90
+
+# U+FDD1, <EF B7 91>
+26.3:valid hex:EF B7 91
+
+# U+FDD2, <EF B7 92>
+26.4:valid hex:EF B7 92
+
+# U+FDD3, <EF B7 93>
+26.5:valid hex:EF B7 93
+
+# U+FDD4, <EF B7 94>
+26.6:valid hex:EF B7 94
+
+# U+FDD5, <EF B7 95>
+26.7:valid hex:EF B7 95
+
+# U+FDD6, <EF B7 96>
+26.8:valid hex:EF B7 96
+
+# U+FDD7, <EF B7 97>
+26.9:valid hex:EF B7 97
+
+# U+FDD8, <EF B7 98>
+26.10:valid hex:EF B7 98
+
+# U+FDD9, <EF B7 99>
+26.11:valid hex:EF B7 99
+
+# U+FDDA, <EF B7 9a>
+26.12:valid hex:EF B7 9a
+
+# U+FDDB, <EF B7 9b>
+26.13:valid hex:EF B7 9b
+
+# U+FDDC, <EF B7 9c>
+26.14:valid hex:EF B7 9c
+
+# U+FDDD, <EF B7 9d>
+26.15:valid hex:EF B7 9d
+
+# U+FDDE, <EF B7 9e>
+26.16:valid hex:EF B7 9e
+
+# U+FDEF, <EF B7 9f>
+26.17:valid hex:EF B7 9f
+
+# U+1FFFE, <F0 9F BF BE>
+27.0:valid hex:F0 9F BF BE
+
+# U+2FFFE, <F0 AF BF BE>
+27.1:valid hex:F0 AF BF BE
+
+# U+3FFFE, <F0 BF BF BE>
+27.2:valid hex:F0 BF BF BE
+
+# U+4FFFE, <F1 8F BF BE>
+27.3:valid hex:F1 8F BF BE
+
+# U+5FFFE, <F1 9F BF BE>
+27.4:valid hex:F1 9F BF BE
+
+# U+6FFFE, <F1 AF BF BE>
+27.5:valid hex:F1 AF BF BE
+
+# U+7FFFE, <F1 BF BF BE>
+27.6:valid hex:F1 BF BF BE
+
+# U+8FFFE, <F2 8F BF BE>
+27.7:valid hex:F2 8F BF BE
+
+# U+9FFFE, <F2 9F BF BE>
+27.8:valid hex:F2 9F BF BE
+
+# U+AFFFE, <F2 AF BF BE>
+27.9:valid hex:F2 AF BF BE
+
+# U+BFFFE, <F2 BF BF BE>
+27.10:valid hex:F2 BF BF BE
+
+# U+CFFFE, <F3 8F BF BE>
+27.11:valid hex:F3 8F BF BE
+
+# U+DFFFE, <F3 9F BF BE>
+27.12:valid hex:F3 9F BF BE
+
+# U+EFFFE, <F3 AF BF BE>
+27.13:valid hex:F3 AF BF BE
+
+# U+FFFFE, <F3 BF BF BE>
+27.14:valid hex:F3 BF BF BE
+
+# U+10FFFE, <F4 8F BF BE>
+27.15:valid hex:F4 8F BF BE
+
+# U+1FFFF, <F0 9F BF BF>
+28.0:valid hex:F0 9F BF BF
+
+# U+2FFFF, <F0 AF BF BF>
+28.1:valid hex:F0 AF BF BF
+
+# U+3FFFF, <F0 BF BF BF>
+28.2:valid hex:F0 BF BF BF
+
+# U+4FFFF, <F1 8F BF BF>
+28.3:valid hex:F1 8F BF BF
+
+# U+5FFFF, <F1 9F BF BF>
+28.4:valid hex:F1 9F BF BF
+
+# U+6FFFF, <F1 AF BF BF>
+28.5:valid hex:F1 AF BF BF
+
+# U+7FFFF, <F1 BF BF BF>
+28.6:valid hex:F1 BF BF BF
+
+# U+8FFFF, <F2 8F BF BF>
+28.7:valid hex:F2 8F BF BF
+
+# U+9FFFF, <F2 9F BF BF>
+28.8:valid hex:F2 9F BF BF
+
+# U+AFFFF, <F2 AF BF BF>
+28.9:valid hex:F2 AF BF BF
+
+# U+BFFFF, <F2 BF BF BF>
+28.10:valid hex:F2 BF BF BF
+
+# U+CFFFF, <F3 8F BF BF>
+28.11:valid hex:F3 8F BF BF
+
+# U+DFFFF, <F3 9F BF BF>
+28.12:valid hex:F3 9F BF BF
+
+# U+EFFFF, <F3 AF BF BF>
+28.13:valid hex:F3 AF BF BF
+
+# U+FFFFF, <F3 BF BF BF>
+28.14:valid hex:F3 BF BF BF
+
+# U+10FFFF, <F4 8F BF BF>
+28.15:valid hex:F4 8F BF BF
+
+
+
+
+# === Miscellaneous Byte Sequences ===
+
+# The following tests come from looking at the UTF-8 finite state diagram
+# for cases that enter the error state. They cover each arrow
+# going into the error state.
+
+# The transition from the start state 0 to error state 1 can happen
+# with bytes 80-c1, f5-ff.
+# !(00-7f, c2-df, e0, e1-ec, ed, ee-ef, f0, f1-f3, f4)
+
+# <80>
+29.0:invalid hex:80:nothing:EFBFBD
+
+# <20 80>
+29.1:invalid hex:20 80:20:20 EFBFBD
+
+# <20 21 21 23 fe 20>
+29.2:invalid hex:20 21 21 23 fe 20:20 21 21 23 20:20 21 21 23 EFBFBD 20
+
+# <20 21 21 23 24 fe>
+29.3:invalid hex:20 21 21 23 24 fe:20 21 21 23 24:20 21 21 23 24 EFBFBD
+
+# <80 20>
+29.4:invalid hex:80 20:20:EFBFBD 20
+
+# <20 80 20>
+29.5:invalid hex:20 80 20:20 20:20 EFBFBD 20
+
+# <81 20>
+29.6:invalid hex:81 20:20:EFBFBD 20
+
+# <c1 20>
+29.7:invalid hex:c1 20:20:EFBFBD 20
+
+# <f5 20>
+29.8:invalid hex:f5 20:20:EFBFBD 20
+
+# <ff 20>
+29.9:invalid hex:ff 20:20:EFBFBD 20
+
+# The transition from the state 2 to state 1 can happen
+# with bytes 00-7f, c0-ff.
+
+# <c2 7f>, 7f = DELETE
+30.1:invalid hex:c2 7f:7f:EFBFBD 7f
+
+# <c2 c0>
+30.2:invalid hex:c2 c0:nothing:EFBFBD EFBFBD
+
+# <c2 ff>
+30.3:invalid hex:c2 ff:nothing:EFBFBD EFBFBD
+
+# <df 7f>
+30.5:invalid hex:df 7f:7f:EFBFBD 7f
+
+# <df c0>
+30.6:invalid hex:df c0:nothing:EFBFBD EFBFBD
+
+# <df ff>
+30.7:invalid hex:df ff:nothing:EFBFBD EFBFBD
+
+# <e0 a0 7f>
+31.1:invalid hex:e0 80 7f:7f:EFBFBD  EFBFBD  7f
+
+# <e0 a0 c0>
+31.2:invalid hex:e0 80 c0:nothing:EFBFBD EFBFBD EFBFBD
+
+# <e0 a0 ff>
+31.3:invalid hex:e0 80 ff:nothing:EFBFBD EFBFBD EFBFBD
+
+# <ed 80 7f>
+32.1:invalid hex:ed 80 7f:7f:EFBFBD 7f
+
+# <ed 80 c0>
+32.2:invalid hex:ed 80 c0:nothing:EFBFBD EFBFBD
+
+# <ed 80 ff>
+32.3:invalid hex:ed 80 ff:nothing:EFBFBD EFBFBD
+
+# <f0 90 80 7f>
+33.1:invalid hex:f0 90 80 7f:7f:EFBFBD 7f
+
+# <f0 90 80 c0>
+33.2:invalid hex:f0 90 80 c0:nothing:EFBFBD EFBFBD
+
+# <f0 90 80 ff>
+33.3:invalid hex:f0 90 80 ff:nothing:EFBFBD EFBFBD
+
+
+# <f1 80 80 7f>
+34.1:invalid hex:f1 80 80 7f:7f:EFBFBD 7f
+
+# <f1 80 80 c0>
+34.2:invalid hex:f1 80 80 c0:nothing:EFBFBD EFBFBD
+
+# <f1 80 80 ff>
+34.3:invalid hex:f1 80 80 ff:nothing: EFBFBD EFBFBD
+
+# <f4 80 80 7f>
+35.1:invalid hex:f4 80 80 7f:7f: EFBFBD 7f
+
+# <f4 80 80 c0>
+35.2:invalid hex:f4 80 80 c0:nothing: EFBFBD EFBFBD
+
+# <f4 80 80 ff>
+35.3:invalid hex:f4 80 80 ff:nothing: EFBFBD EFBFBD
+
+# Example in the Unicode spec. Constraints on Conversion Processes, pg 126, section 3.9.
+9.1:invalid hex:C2 41 42:41 42:EFBFBD 41 42
+
+
+
+# === Visual Tests ===
+
+# The 36 numbered tests are designed so you can manually validate
+# them by looking at the result.  The left and right sides should
+# be the same. The first line shows you what the replacement
+# character looks like. It should be a black diamond with a white
+# question mark in it.
+
+# The replacement character.
+# replacement character=EFBFBD 3d EFBFBD 2e
+36.1: valid hex: 7265706C6163656D656E74206368617261637465723D EFBFBD 3d EFBFBD 2e
+
+# Invalid ff byte.
+36.2: invalid hex: EFBFBD 3d ff 2e : EFBFBD 3d 2e : EFBFBD 3d EFBFBD 2e
+
+# Invalid two byte sequence <e0 80>.
+36.3: invalid hex: EFBFBD EFBFBD 3d e0 80 2e : EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD 3d EFBFBD EFBFBD 2e
+
+# Invalid three byte sequence <f0 80 80>.
+36.4: invalid hex: EFBFBD EFBFBD EFBFBD 3d f0 80 80 2e : EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD 2e
+
+# Invalid three byte sequence followed by invalid bytes <f8 80 80 80>.
+36.5: invalid hex: EFBFBD EFBFBD EFBFBD EFBFBD 3d f0 80 80 80  2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD EFBFBD 2e
+
+# Invalid two byte sequence <e0 80> twice.
+36.6: invalid hex: EFBFBD EFBFBD EFBFBD EFBFBD 3d e0 80 e0 80 2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD EFBFBD 2e
+
+# too big U+001FFFFF, <F7 BF BF BF>
+36.7:invalid hex:EFBFBD EFBFBD EFBFBD EFBFBD 3d F7 BF BF BF 2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD EFBFBD 2e
+
+# 1 surrogate U+D800, <ed a0 80>
+36.8:invalid hex:EFBFBD EFBFBD EFBFBD 3d ed a0 80 2e : EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD 2e
+
+# overlong solidus <e0 80 af>
+36.10:invalid hex:EFBFBD EFBFBD EFBFBD 3d e0 80 af 2e : EFBFBD EFBFBD EFBFBD 3d 2e : EFBFBD EFBFBD EFBFBD 3d EFBFBD EFBFBD EFBFBD 2e
+
+# valid noncharacter U+FFFF, <EF BF BF>
+36.9:valid hex:EF BF BF 3d EF BF BF 2e
+
+# valid noncharacter U+FFFE, <EF BF BE>
+36.9.1:valid hex:EF BF BE 3d EF BF BE 2e
+
+
+# === Null Characters ===
+
+
+# The null <00> byte is a valid ASCII and valid UTF-8 character.
+# It is often used to terminate a string in C type
+# languages. That is why these tests are at the end of the file.
+
+# U+00000000, null, <00>
+5.0:valid hex:00
+
+# state 0 -> 2 -> 1
+# <c2 00>
+30.0:invalid hex:c2 00:00:EFBFBD 00
+
+# <df 00>
+30.4:invalid hex:df 00:00:EFBFBD 00
+
+# state 0 -> 4 -> 2 -> 1
+# <e0 a0 00>
+31.0:invalid hex:e0 80 00:00:EFBFBD  EFBFBD  00
+
+# state 0 -> 5 -> 2 -> 1
+# <ed 80 00>
+32.0:invalid hex:ed 80 00:00:EFBFBD 00
+
+# state 0 -> 6 -> 3 -> 2 -> 1
+# <f0 90 80 00>
+33.0:invalid hex:f0 90 80 00:00:EFBFBD 00
+
+# state 0 -> 7 -> 3 -> 2 -> 1
+# <f1 80 80 00>
+34.0:invalid hex:f1 80 80 00:00:EFBFBD 00
+
+# state 0 -> 8 -> 3 -> 2 -> 1
+# <f4 80 80 00>
+35.0:invalid hex:f4 80 80 00:00: EFBFBD 00
+
+# 110xxxxx 10xxxxxx
+# 11000000 10000000
+# overlong zero <c0 80>
+37.0:invalid hex:c0 80:nothing:EFBFBD EFBFBD
+
+# 1110xxxx 10xxxxxx 10xxxxxx =
+# 11100000 10000000 10000000 =
+# overlong zero <E0 80 80>
+37.1:invalid hex:E0 80 80:nothing:EFBFBD EFBFBD EFBFBD
+
+# 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+# 11110000 10000000 10000000 10000000
+# overlong zero <F0 80 80 80>
+37.2:invalid hex:F0 80 80 80:nothing:EFBFBD EFBFBD EFBFBD EFBFBD
+
+# 0 in the middle, 20 00 35
+37.2.1:valid hex:20 00 35
+
+# 0 in the middle, 20 00 20 <ff>
+37.3:invalid hex:20 00 20 ff:20 00 20:20 00 20 EFBFBD
+
+# 0 at the end, 20 00
+37.4:valid hex:20 00

@@ -1,9 +1,12 @@
 /**
- * Interim login dialog.
- *
  * @output wp-includes/js/wp-auth-check.js
  */
 
+/**
+ * Handles the interim login dialog.
+ *
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 ( function( $ ) {
 	var wrap,
 		tempHidden,
@@ -134,14 +137,13 @@
 	 * Binds to the Heartbeat Tick event.
 	 *
 	 * - Shows the authentication form popup if user is not logged in.
-	 * - Hides the authentication form popup if it is already visible and user is
-	 *   logged in.
+	 * - Hides the authentication form popup if it is already visible and user is logged in.
 	 *
 	 * @ignore
 	 *
 	 * @since 3.6.0
 	 *
-	 * @param {Object} e The heartbeat-tick event that has been triggered.
+	 * @param {Object} e    The heartbeat-tick event that has been triggered.
 	 * @param {Object} data Response data.
 	 */
 	$( function() {
@@ -159,12 +161,23 @@
 			setShowTimeout();
 		});
 	}).on( 'heartbeat-tick.wp-auth-check', function( e, data ) {
-		if ( 'wp-auth-check' in data ) {
+		if ( ! ( 'wp-auth-check' in data ) ) {
+			return;
+		}
+
+		var showOrHide = function () {
 			if ( ! data['wp-auth-check'] && wrap.hasClass( 'hidden' ) && ! tempHidden ) {
 				show();
 			} else if ( data['wp-auth-check'] && ! wrap.hasClass( 'hidden' ) ) {
 				hide();
 			}
+		};
+
+		// This is necessary due to a race condition where the heartbeat-tick event may fire before DOMContentLoaded.
+		if ( wrap ) {
+			showOrHide();
+		} else {
+			$( showOrHide );
 		}
 	});
 

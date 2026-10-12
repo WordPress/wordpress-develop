@@ -183,11 +183,15 @@ function export_wp( $args = array() ) {
 				)
 			);
 
+			// Cast thumbnail IDs to integers to prevent second-order SQL injection via user-controlled meta values.
+			$thumbnails_ids = array_filter( array_map( 'absint', $thumbnails_ids ) );
+
 			$additional_ids = array_merge( $additional_ids, $attachment_ids, $thumbnails_ids );
 		}
 
-		// Merge the additional IDs back with the original post IDs after processing all posts
-		$post_ids = array_unique( array_merge( $post_ids, $additional_ids ) );
+		// Merge the additional IDs back with the original post IDs after processing all posts.
+		// Cast to integers as defense-in-depth, since $additional_ids may include values sourced from postmeta.
+		$post_ids = array_unique( array_map( 'absint', array_merge( $post_ids, $additional_ids ) ) );
 	}
 
 	/*
@@ -239,11 +243,13 @@ function export_wp( $args = array() ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $str String to wrap in XML CDATA tag.
+	 * @param string|null $str String to wrap in XML CDATA tag. May be null.
 	 * @return string
 	 */
 	function wxr_cdata( $str ) {
-		if ( ! seems_utf8( $str ) ) {
+		$str = (string) $str;
+
+		if ( ! wp_is_valid_utf8( $str ) ) {
 			$str = utf8_encode( $str );
 		}
 		// $str = ent2ncr(esc_html($str));
@@ -405,19 +411,26 @@ function export_wp( $args = array() ) {
 		global $wpdb;
 
 		if ( ! empty( $post_ids ) ) {
-			$post_ids = array_map( 'absint', $post_ids );
-			$and      = 'AND ID IN ( ' . implode( ', ', $post_ids ) . ')';
+			$post_ids       = array_map( 'absint', $post_ids );
+			$post_id_chunks = array_chunk( $post_ids, 20 );
 		} else {
-			$and = '';
+			$post_id_chunks = array( array() );
 		}
 
 		$authors = array();
-		$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
-		foreach ( (array) $results as $result ) {
-			$authors[] = get_userdata( $result->post_author );
+
+		foreach ( $post_id_chunks as $next_posts ) {
+			$and = ! empty( $next_posts ) ? 'AND ID IN (' . implode( ', ', $next_posts ) . ')' : '';
+
+			$results = $wpdb->get_results( "SELECT DISTINCT post_author FROM $wpdb->posts WHERE post_status != 'auto-draft' $and" );
+
+			foreach ( (array) $results as $result ) {
+				$authors[] = get_userdata( $result->post_author );
+			}
 		}
 
 		$authors = array_filter( $authors );
+		$authors = array_unique( $authors, SORT_REGULAR ); // Remove duplicate authors.
 
 		foreach ( $authors as $author ) {
 			echo "\t<wp:author>";
@@ -588,8 +601,10 @@ function export_wp( $args = array() ) {
 
 		// Fetch 20 posts at a time rather than loading the entire table into memory.
 		while ( $next_posts = array_splice( $post_ids, 0, 20 ) ) {
-			$where = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
-			$posts = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
+			// Re-sanitize immediately before use, as defense-in-depth against the IDs being interpolated directly into SQL below.
+			$next_posts = array_map( 'absint', $next_posts );
+			$where      = 'WHERE ID IN (' . implode( ',', $next_posts ) . ')';
+			$posts      = $wpdb->get_results( "SELECT * FROM {$wpdb->posts} $where" );
 
 			// Begin Loop.
 			foreach ( $posts as $post ) {
@@ -678,7 +693,12 @@ function export_wp( $args = array() ) {
 	endforeach;
 
 				$_comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
-				$comments  = array_map( 'get_comment', $_comments );
+				$comments  = array_filter(
+					array_map( 'get_comment', $_comments ),
+					static function ( $comment ) {
+						return $comment instanceof WP_Comment;
+					}
+				);
 				foreach ( $comments as $c ) :
 					?>
 		<wp:comment>
