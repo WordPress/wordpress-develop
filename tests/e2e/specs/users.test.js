@@ -71,9 +71,13 @@ test.describe( 'User management', () => {
 			await loginPage.goto(
 				new URL( '../wp-login.php', page.url() ).href
 			);
-			await loginPage
-				.getByLabel( 'Username or Email Address', { exact: true } )
-				.fill( username );
+			const usernameField = loginPage.getByLabel(
+				'Username or Email Address',
+				{ exact: true }
+			);
+			// Wait for WordPress's delayed autofocus before entering credentials.
+			await expect( usernameField ).toBeFocused();
+			await usernameField.fill( username );
 			await loginPage
 				.getByLabel( 'Password', { exact: true } )
 				.fill( password );
