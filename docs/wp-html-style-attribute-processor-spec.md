@@ -111,6 +111,11 @@ advancement must reflect the updated declaration list.
 Current-position getters should reflect successful pending edits without forcing
 a full reparse where practical, following HTML API style.
 
+Each successful mutation parses the whole style text again. Removing most of the
+declarations of a long style one at a time therefore takes time that grows with
+the square of its length. To keep some declarations, read them and join the
+`serialize_declaration()` output of the ones to keep.
+
 ## Property Names
 
 All public property-name arguments are decoded/plaintext CSS property names, not

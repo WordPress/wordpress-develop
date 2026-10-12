@@ -387,6 +387,11 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Only the current declaration is removed. Other declarations with the same
 	 * property name remain in place.
 	 *
+	 * Each call parses the whole style text again, so removing most of the
+	 * declarations of a long style one at a time is slow. To keep some
+	 * declarations, join the {@see WP_HTML_Style_Attribute_Processor::serialize_declaration()}
+	 * output of the ones to keep instead.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @return bool Whether the current declaration was removed.
