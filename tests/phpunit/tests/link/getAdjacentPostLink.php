@@ -2,9 +2,6 @@
 
 /**
  * @group link
- * @covers ::get_adjacent_post_link
- * @covers ::get_next_post_link
- * @covers ::get_previous_post_link
  */
 class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 
@@ -56,6 +53,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( $this->post_ids[2] );
 	}
 
+	/**
+	 * @covers ::get_next_post_link
+	 */
 	public function test_get_next_post_link_default() {
 		$actual   = get_next_post_link();
 		$title    = get_post( $this->post_ids[1] )->post_title;
@@ -63,6 +63,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::get_previous_post_link
+	 */
 	public function test_get_previous_post_link_default() {
 		$actual   = get_previous_post_link();
 		$title    = get_post( $this->post_ids[3] )->post_title;
@@ -70,6 +73,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::get_next_post_link
+	 */
 	public function test_get_next_post_link_same_category() {
 		$actual   = get_next_post_link( '%link &raquo;', '%title', true );
 		$title    = get_post( $this->post_ids[1] )->post_title;
@@ -77,6 +83,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::get_previous_post_link
+	 */
 	public function test_get_previous_post_link_same_category() {
 		$actual   = get_previous_post_link( '&laquo; %link', '%title', true );
 		$title    = get_post( $this->post_ids[3] )->post_title;
@@ -84,6 +93,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::get_next_post_link
+	 */
 	public function test_get_next_post_link_exclude_category() {
 		$actual   = get_next_post_link( '%link &raquo;', '%title', false, $this->cat_id );
 		$title    = get_post( $this->post_ids[1] )->post_title;
@@ -91,6 +103,9 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @covers ::get_previous_post_link
+	 */
 	public function test_get_previous_post_link_exclude_category() {
 		$actual   = get_previous_post_link( '&laquo; %link', '%title', false, $this->cat_id );
 		$title    = get_post( $this->post_ids[3] )->post_title;
