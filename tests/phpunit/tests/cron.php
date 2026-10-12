@@ -31,6 +31,112 @@ class Tests_Cron extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the scheduled publication hook publishes a post whose date is due.
+	 *
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_scheduled_post_should_publish_when_due() {
+		global $wpdb;
+
+		$future_date = gmdate( 'Y-m-d H:i:s', $this->plus_thirty_minutes );
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		$event       = wp_get_scheduled_event( 'publish_future_post', array( $post_id ) );
+
+		$this->assertNotFalse( $event, 'Creating a future post should schedule publication.' );
+
+		// Make the post due without letting wp_update_post() publish it during setup.
+		$past_date = gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS );
+		$this->assertSame(
+			1,
+			$wpdb->update(
+				$wpdb->posts,
+				array(
+					'post_date'     => get_date_from_gmt( $past_date ),
+					'post_date_gmt' => $past_date,
+				),
+				array( 'ID' => $post_id )
+			)
+		);
+		clean_post_cache( $post_id );
+		$this->assertSame( 'future', get_post_status( $post_id ), 'Setup must not publish the post.' );
+
+		// Cron removes a single event before calling its hook.
+		$this->assertTrue( wp_unschedule_event( $event->timestamp, $event->hook, $event->args ) );
+
+		// Exercise the registered callback with the scheduled event's real arguments.
+		do_action_ref_array( $event->hook, $event->args );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+	}
+
+	/**
+	 * Tests that an early publication hook leaves the post scheduled for its date.
+	 *
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_scheduled_post_should_not_publish_before_due() {
+		$future_date = gmdate( 'Y-m-d H:i:s', $this->plus_thirty_minutes );
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		$event       = wp_get_scheduled_event( 'publish_future_post', array( $post_id ) );
+
+		$this->assertNotFalse( $event );
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+
+		// Cron removes a single event before calling its hook. An early call must reschedule it.
+		$this->assertTrue( wp_unschedule_event( $event->timestamp, $event->hook, $event->args ) );
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+
+		do_action_ref_array( $event->hook, $event->args );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+		$this->assertSame( $this->plus_thirty_minutes, wp_next_scheduled( 'publish_future_post', array( $post_id ) ) );
+	}
+
+	/**
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_draft_post_should_not_publish_when_scheduled_hook_fires() {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
+		do_action_ref_array( 'publish_future_post', array( $post_id ) );
+
+		clean_post_cache( $post_id );
+		$this->assertSame( 'draft', get_post_status( $post_id ) );
+	}
+
+	/**
+	 * @ticket 65772
+	 * @group post
+	 * @covers ::check_and_publish_future_post
+	 */
+	public function test_missing_post_should_be_ignored_when_scheduled_hook_fires() {
+		do_action_ref_array( 'publish_future_post', array( PHP_INT_MAX ) );
+
+		$this->assertFalse( wp_next_scheduled( 'publish_future_post', array( PHP_INT_MAX ) ) );
+	}
+
+	/**
 	 * @covers ::wp_get_schedule
 	 */
 	public function test_wp_get_schedule_empty() {

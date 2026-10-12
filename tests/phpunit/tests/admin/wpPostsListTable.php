@@ -408,6 +408,130 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65772
+	 * @covers WP_Posts_List_Table::get_views
+	 */
+	public function test_get_views_should_include_scheduled_posts_link() {
+		$global_names = array( 'avail_post_stati', 'locked_post_status', 'post_type_object' );
+		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
+		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+
+		try {
+			$GLOBALS['locked_post_status'] = '';
+			$GLOBALS['avail_post_stati']   = get_available_post_statuses( 'post' );
+			$table                         = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+			$views = $table->get_views();
+
+			$this->assertArrayHasKey( 'future', $views );
+			$this->assertSame(
+				'<a href="edit.php?post_status=future&#038;post_type=post">Scheduled <span class="count">(1)</span></a>',
+				$views['future']
+			);
+		} finally {
+			foreach ( $global_names as $name ) {
+				if ( array_key_exists( $name, $backup ) ) {
+					$GLOBALS[ $name ] = $backup[ $name ];
+				} else {
+					unset( $GLOBALS[ $name ] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * @ticket 65772
+	 * @covers WP_Posts_List_Table::prepare_items
+	 */
+	public function test_prepare_items_should_only_include_scheduled_posts_when_filtered() {
+		$global_names = array( 'mode', 'avail_post_stati', 'per_page', 'post_type_object' );
+		$backup       = array_intersect_key( $GLOBALS, array_flip( $global_names ) );
+		$future_date  = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		$scheduled_id = self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+		self::factory()->post->create( array( 'post_status' => 'publish' ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		try {
+			$_GET     = array(
+				'post_type'   => 'post',
+				'post_status' => 'future',
+			);
+			$_REQUEST = $_GET;
+			$table    = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+			$table->prepare_items();
+
+			$post_ids = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
+			$this->assertSame( array( $scheduled_id ), $post_ids );
+		} finally {
+			foreach ( $global_names as $name ) {
+				if ( array_key_exists( $name, $backup ) ) {
+					$GLOBALS[ $name ] = $backup[ $name ];
+				} else {
+					unset( $GLOBALS[ $name ] );
+				}
+			}
+		}
+	}
+
+	/**
+	 * @ticket 65772
+	 * @dataProvider data_scheduled_post_date_column_status
+	 * @covers WP_Posts_List_Table::column_date
+	 *
+	 * @param int    $offset   Seconds from now to the scheduled date.
+	 * @param string $expected Expected status markup.
+	 */
+	public function test_column_date_should_show_scheduled_post_status( $offset, $expected ) {
+		$future_date = gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS );
+		$post        = self::factory()->post->create_and_get(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => get_date_from_gmt( $future_date ),
+				'post_date_gmt' => $future_date,
+			)
+		);
+
+		// Model an overdue date without letting wp_update_post() publish the fixture.
+		$date                = gmdate( 'Y-m-d H:i:s', time() + $offset );
+		$post->post_date     = get_date_from_gmt( $date );
+		$post->post_date_gmt = $date;
+
+		ob_start();
+		try {
+			$this->table->column_date( $post );
+			$output = ob_get_contents();
+		} finally {
+			ob_end_clean();
+		}
+
+		$this->assertStringStartsWith( $expected . '<br />', $output );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public function data_scheduled_post_date_column_status() {
+		return array(
+			'future date'   => array( DAY_IN_SECONDS, 'Scheduled' ),
+			'past due date' => array( -DAY_IN_SECONDS, '<strong class="error-message">Missed schedule</strong>' ),
+		);
+	}
+
+	/**
 	 * Renders the title column for a post in a given list view mode.
 	 *
 	 * @param WP_Post $post       The post to render.
