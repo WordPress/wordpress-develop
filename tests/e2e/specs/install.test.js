@@ -101,13 +101,22 @@ test.describe( 'WordPress installation process', () => {
 		writeFileSync( wpConfig, wpConfigPatched );
 	} );
 
-	test.afterEach( async () => {
+	test.afterEach( async ( { page } ) => {
 		writeFileSync( wpConfig, wpConfigOriginal );
 
 		// The test completes a full install under TEST_TABLE_PREFIX. Drop
 		// those tables, otherwise the next run finds a pre-existing install
 		// and never reaches the installation screen it's meant to be testing.
 		dropE2eTables();
+
+		// Wait for HTTP requests to observe the restored installation before
+		// another test navigates to the site. Retry navigation, not just the
+		// assertion on a page that may have already redirected to the installer.
+		await expect( async () => {
+			await page.goto( '/wp-login.php' );
+			expect( page.url() ).toMatch( /\/wp-login\.php$/ );
+			await expect( page.getByRole( 'button', { name: 'Log In', exact: true } ) ).toBeVisible();
+		}, 'should restore the installed site after the installation test' ).toPass( { timeout: 10_000 } );
 	} );
 
 	test( 'should install WordPress with pre-existing database credentials', async ( { page } ) => {
