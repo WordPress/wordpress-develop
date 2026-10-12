@@ -244,6 +244,29 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a text color is painted under a text clip from global styles,
+	 * which the block's own styles do not show.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_adds_text_fill_reset_for_a_text_color_without_a_known_text_clip() {
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'color' => '#ff0000' ),
+			array( 'color' => array( 'text' => '#ff0000' ) ),
+			array()
+		);
+
+		$this->assertSame(
+			array(
+				'color'                   => '#ff0000',
+				'-webkit-text-fill-color' => 'currentColor',
+			),
+			$actual
+		);
+	}
+
+	/**
 	 * Tests that the fill is left alone when the state paints its own gradient.
 	 *
 	 * @ticket 66094
@@ -1139,6 +1162,43 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'@media (width <= 480px){.' . $matches[0] . '{color:#ff0000 !important;}}',
+			$actual_stylesheet
+		);
+	}
+
+	/**
+	 * Tests that a responsive text color fills the letters again for a block
+	 * that supports the background clip, so a text gradient from global styles
+	 * cannot hide it.
+	 *
+	 * @ticket 66094
+	 */
+	public function test_responsive_text_color_fills_text_for_a_block_that_supports_the_clip() {
+		$this->ensure_block_registered(
+			'test/responsive-text-clip-state',
+			array(),
+			array( 'background' => array( 'backgroundClip' => true ) )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-text-clip-state',
+			'attrs'     => array(
+				'style' => array(
+					'@mobile' => array(
+						'color' => array(
+							'text' => '#ff0000',
+						),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){.' . $matches[0] . '{color:#ff0000 !important;-webkit-text-fill-color:currentColor !important;}}',
 			$actual_stylesheet
 		);
 	}
