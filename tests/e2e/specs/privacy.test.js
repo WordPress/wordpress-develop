@@ -7,16 +7,48 @@ function normalizeText( text ) {
 	return text.replace( /\s+/g, ' ' ).trim();
 }
 
-test( 'creates a draft privacy page and selects it in settings', async ( {
-	admin,
-	page,
-	requestUtils,
-} ) => {
-	const originalSettings = await requestUtils.rest( {
-		path: '/wp/v2/settings',
-	} );
+test.describe( 'Privacy page creation', () => {
+	let originalSettings;
 	let createdPageId;
-	try {
+
+	test.beforeEach( async ( { requestUtils } ) => {
+		originalSettings = undefined;
+		createdPageId = undefined;
+		originalSettings = await requestUtils.rest( {
+			path: '/wp/v2/settings',
+		} );
+	} );
+
+	test.afterEach( async ( { requestUtils } ) => {
+		if ( ! originalSettings ) {
+			return;
+		}
+
+		try {
+			await requestUtils.rest( {
+				method: 'POST',
+				path: '/wp/v2/settings',
+				data: {
+					page_for_privacy_policy:
+						originalSettings.page_for_privacy_policy,
+				},
+			} );
+		} finally {
+			if ( createdPageId ) {
+				await requestUtils.rest( {
+					method: 'DELETE',
+					path: `/wp/v2/pages/${ createdPageId }`,
+					params: { force: true },
+				} );
+			}
+		}
+	} );
+
+	test( 'creates a draft privacy page and selects it in settings', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
 		await admin.visitAdminPage( 'options-privacy.php' );
 		await Promise.all( [
 			page
@@ -57,26 +89,7 @@ test( 'creates a draft privacy page and selects it in settings', async ( {
 		await expect( page.locator( '#page_for_privacy_policy' ) ).toHaveValue(
 			String( createdPageId )
 		);
-	} finally {
-		try {
-			await requestUtils.rest( {
-				method: 'POST',
-				path: '/wp/v2/settings',
-				data: {
-					page_for_privacy_policy:
-						originalSettings.page_for_privacy_policy,
-				},
-			} );
-		} finally {
-			if ( createdPageId ) {
-				await requestUtils.rest( {
-					method: 'DELETE',
-					path: `/wp/v2/pages/${ createdPageId }`,
-					params: { force: true },
-				} );
-			}
-		}
-	}
+	} );
 } );
 
 test( 'copies suggested policy text without tutorial or toolbar text', async ( {
@@ -88,6 +101,7 @@ test( 'copies suggested policy text without tutorial or toolbar text', async ( {
 	await context.grantPermissions( [ 'clipboard-read', 'clipboard-write' ], {
 		origin: new URL( baseURL ).origin,
 	} );
+	await page.clock.install( { time: new Date( '2026-01-01T00:00:00Z' ) } );
 	await admin.visitAdminPage( 'privacy-policy-guide.php' );
 	const section = page.getByRole( 'button', {
 		name: 'WordPress',
@@ -123,6 +137,8 @@ test( 'copies suggested policy text without tutorial or toolbar text', async ( {
 		name: 'Copy suggested policy text from WordPress.',
 		exact: true,
 	} );
+	// Keep the notice's dismissal timer from racing the second copy on slow runners.
+	await page.clock.pauseAt( new Date( '2026-01-01T01:00:00Z' ) );
 	// Repeat while the success notice is visible to catch copying the toolbar into the clipboard.
 	for ( let attempt = 0; attempt < 2; attempt++ ) {
 		await page.evaluate( () =>
