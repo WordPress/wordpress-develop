@@ -595,10 +595,20 @@ class WP_Term_Query {
 		}
 
 		if ( ! empty( $args['name__like'] ) ) {
-			$this->sql_clauses['where']['name__like'] = $wpdb->prepare(
-				't.name LIKE %s',
-				'%' . $wpdb->esc_like( $args['name__like'] ) . '%'
-			);
+			$name_like = '%' . $wpdb->esc_like( $args['name__like'] ) . '%';
+
+			// Term names are saved with special characters encoded as HTML entities, so match the encoded form too.
+			$encoded_name_like = _wp_specialchars( wp_specialchars_decode( $args['name__like'] ) );
+
+			if ( '' === $encoded_name_like || $encoded_name_like === $args['name__like'] ) {
+				$this->sql_clauses['where']['name__like'] = $wpdb->prepare( 't.name LIKE %s', $name_like );
+			} else {
+				$this->sql_clauses['where']['name__like'] = $wpdb->prepare(
+					'(t.name LIKE %s OR t.name LIKE %s)',
+					$name_like,
+					'%' . $wpdb->esc_like( $encoded_name_like ) . '%'
+				);
+			}
 		}
 
 		if ( ! empty( $args['description__like'] ) ) {
@@ -1115,6 +1125,7 @@ class WP_Term_Query {
 	 * Used internally to generate a SQL string related to the 'search' parameter.
 	 *
 	 * @since 4.6.0
+	 * @since 7.2.0 Also matches term names containing special characters stored as HTML entities.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -1126,7 +1137,21 @@ class WP_Term_Query {
 
 		$like = '%' . $wpdb->esc_like( $search ) . '%';
 
-		return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		/*
+		 * Term names are saved with special characters encoded as HTML entities
+		 * (see the 'pre_term_name' filter), so 'Tour & Travel' is stored as
+		 * 'Tour &amp; Travel'. Match the encoded form of the search too, decoding
+		 * first so that entities such as '&#38;' map to the stored form.
+		 */
+		$encoded_search = _wp_specialchars( wp_specialchars_decode( $search ) );
+
+		if ( '' === $encoded_search || $encoded_search === $search ) {
+			return $wpdb->prepare( '((t.name LIKE %s) OR (t.slug LIKE %s))', $like, $like );
+		}
+
+		$encoded_like = '%' . $wpdb->esc_like( $encoded_search ) . '%';
+
+		return $wpdb->prepare( '((t.name LIKE %s) OR (t.name LIKE %s) OR (t.slug LIKE %s))', $like, $encoded_like, $like );
 	}
 
 	/**
