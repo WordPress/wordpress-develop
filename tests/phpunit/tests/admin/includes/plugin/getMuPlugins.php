@@ -137,56 +137,85 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_mu_plugins() unsets standard silence-is-golden index.php (<= 30 bytes).
+	 * Tests that get_mu_plugins() returns an empty array when the mu-plugins directory is empty.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_get_mu_plugins_when_directory_is_empty() {
+		$dir = WPMU_PLUGIN_DIR;
+		if ( ! is_dir( $dir ) ) {
+			$this->assertTrue( wp_mkdir_p( $dir ), "Failed to create directory: {$dir}" );
+			$this->created_dirs[] = $dir;
+		}
+
+		$this->assertSame( array(), get_mu_plugins() );
+	}
+
+	/**
+	 * Tests that get_mu_plugins() unsets index.php when at or below the 30-byte threshold.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_get_mu_plugins_unsets_silence_is_golden_index_file() {
-		// Standard silence-is-golden file is typically "<?php\n// Silence is golden.\n" (25 bytes).
-		$silence_content = "<?php\n// Silence is golden.\n";
-		$this->assertLessThanOrEqual( 30, strlen( $silence_content ) );
+		// Exactly 30 bytes (the boundary threshold to unset as silence-is-golden).
+		$silence_content = "<?php\n// 12345678901234567890\n";
+		$this->assertSame( 30, strlen( $silence_content ) );
 
 		$this->create_mu_plugin_file( 'index.php', $silence_content );
 
 		$mu_plugins = get_mu_plugins();
 
-		$this->assertArrayNotHasKey( 'index.php', $mu_plugins, 'Standard silence is golden index.php must be unset.' );
+		$this->assertArrayNotHasKey( 'index.php', $mu_plugins, 'An index.php file of 30 bytes or less must be unset.' );
 	}
 
 	/**
-	 * Tests that get_mu_plugins() preserves index.php when it contains an actual plugin (> 30 bytes).
+	 * Tests that get_mu_plugins() preserves index.php when exceeding the 30-byte threshold.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_get_mu_plugins_keeps_index_file_when_exceeds_threshold() {
-		$plugin_content = "<?php\n/**\n * Plugin Name: MU Index Plugin\n * Description: Real plugin in index.php\n */\n";
-		$this->assertGreaterThan( 30, strlen( $plugin_content ) );
+		// Exactly 31 bytes (1 byte above the 30-byte threshold).
+		$content_31_bytes = "<?php\n// 123456789012345678901\n";
+		$this->assertSame( 31, strlen( $content_31_bytes ) );
 
-		$this->create_mu_plugin_file( 'index.php', $plugin_content );
+		$this->create_mu_plugin_file( 'index.php', $content_31_bytes );
 
 		$mu_plugins = get_mu_plugins();
 
-		$this->assertArrayHasKey( 'index.php', $mu_plugins );
-		$this->assertSame( 'MU Index Plugin', $mu_plugins['index.php']['Name'] );
+		$this->assertArrayHasKey( 'index.php', $mu_plugins, 'An index.php file exceeding 30 bytes must be preserved.' );
+		$this->assertSame( 'index.php', $mu_plugins['index.php']['Name'] );
 	}
 
 	/**
-	 * Tests that get_mu_plugins() sorts results naturally and case-insensitively.
+	 * Tests that get_mu_plugins() sorts by plugin Name naturally and case-insensitively,
+	 * independent of fixture filenames.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_get_mu_plugins_sorts_keys_naturally() {
-		$this->create_mu_plugin_file( 'zebra-mu.php', "<?php\n/**\n * Plugin Name: Zebra\n */\n" );
-		$this->create_mu_plugin_file( 'alpha-mu.php', "<?php\n/**\n * Plugin Name: Alpha\n */\n" );
+	public function test_get_mu_plugins_sorts_by_plugin_name_naturally_and_case_insensitively() {
+		// Fixture filenames are chosen so their alphabetical sort order conflicts with their plugin Names.
+		// Filename order: a-plugin.php, b-plugin.php, m-plugin.php, z-plugin.php.
+		// Plugin Name order: "alpha 2", "Alpha 10", "beta 1", "BETA 2".
+		$this->create_mu_plugin_file( 'z-plugin.php', "<?php\n/**\n * Plugin Name: alpha 2\n */\n" );
+		$this->create_mu_plugin_file( 'b-plugin.php', "<?php\n/**\n * Plugin Name: Alpha 10\n */\n" );
+		$this->create_mu_plugin_file( 'a-plugin.php', "<?php\n/**\n * Plugin Name: beta 1\n */\n" );
+		$this->create_mu_plugin_file( 'm-plugin.php', "<?php\n/**\n * Plugin Name: BETA 2\n */\n" );
 
 		$mu_plugins = get_mu_plugins();
-		$keys       = array_keys( $mu_plugins );
 
-		$alpha_pos = array_search( 'alpha-mu.php', $keys, true );
-		$zebra_pos = array_search( 'zebra-mu.php', $keys, true );
+		$expected_keys = array( 'z-plugin.php', 'b-plugin.php', 'a-plugin.php', 'm-plugin.php' );
+		$this->assertSame(
+			$expected_keys,
+			array_keys( $mu_plugins ),
+			'MU plugins should be sorted by plugin Name rather than filename.'
+		);
 
-		$this->assertNotFalse( $alpha_pos );
-		$this->assertNotFalse( $zebra_pos );
-		$this->assertLessThan( $zebra_pos, $alpha_pos, 'alpha-mu.php should precede zebra-mu.php when sorted.' );
+		$expected_names = array( 'alpha 2', 'Alpha 10', 'beta 1', 'BETA 2' );
+		$actual_names   = array_column( $mu_plugins, 'Name' );
+		$this->assertSame(
+			$expected_names,
+			$actual_names,
+			'MU plugins should be naturally and case-insensitively sorted by plugin Name.'
+		);
 	}
 }
