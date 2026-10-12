@@ -3652,6 +3652,40 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
 
+	/**
+	 * Filters the attachment counts before the query is run.
+	 *
+	 * Returning a non-null value short-circuits wp_count_attachments(), skipping
+	 * both the object cache lookup and the database queries. This allows the
+	 * counts to be served from another source, such as a value pre-computed in
+	 * the background, when an exact real-time count is not required.
+	 *
+	 * If the filtered value does not contain a trash count, one is added to the
+	 * result and set to zero.
+	 *
+	 * The returned value is not cached and passed through the
+	 * {@see 'wp_count_attachments'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param stdClass|null   $counts    An object containing the attachment counts by
+	 *                                   mime type, or null to run the default query.
+	 *                                   Default null.
+	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
+	 */
+	$counts = apply_filters( 'pre_wp_count_attachments', null, $mime_type );
+
+	if ( null !== $counts ) {
+		$counts = (object) $counts;
+
+		if ( ! isset( $counts->trash ) ) {
+			$counts->trash = 0;
+		}
+
+		/** This filter is documented in wp-includes/post.php */
+		return apply_filters( 'wp_count_attachments', $counts, $mime_type );
+	}
+
 	$cache_key = sprintf(
 		'attachments%s',
 		! empty( $mime_type ) ? ':' . str_replace( '/', '_', implode( '-', (array) $mime_type ) ) : ''
