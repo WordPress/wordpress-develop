@@ -55,6 +55,9 @@ test.describe( 'Quick Edit page', () => {
 			exact: true,
 		} );
 		await expect( parent ).toHaveValue( '0' );
+		await expect(
+			parent.locator( `option[value="${ pageId }"]` )
+		).toHaveCount( 0 );
 		await parent.selectOption( String( parentPage.id ) );
 		await editRow
 			.getByRole( 'button', { name: 'Update', exact: true } )
