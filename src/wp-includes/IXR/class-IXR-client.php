@@ -30,9 +30,9 @@ class IXR_Client
         if (!$path) {
             // Assume we have been given a URL instead
             $bits = parse_url($server);
-            $this->server = $bits['host'];
-            $this->port = isset($bits['port']) ? $bits['port'] : 80;
-            $this->path = isset($bits['path']) ? $bits['path'] : '/';
+            $this->server = $bits['host'] ?? '';
+            $this->port = $bits['port'] ?? 80;
+            $this->path = $bits['path'] ?? '/';
 
             // Make absolutely sure we have a path
             if (!$this->path) {

@@ -29,7 +29,7 @@ class WP_HTML_Token {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $bookmark_name = null;
 
@@ -81,6 +81,7 @@ class WP_HTML_Token {
 	/**
 	 * Called when token is garbage-collected or otherwise destroyed.
 	 *
+	 * @since 6.4.0
 	 * @var callable|null
 	 */
 	public $on_destroy = null;
