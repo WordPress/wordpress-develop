@@ -732,13 +732,29 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	/**
 	 * @covers ::append_declaration
 	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_styles_ending_inside_a_comment
+	 *
+	 * @param string $style Style text.
 	 */
-	public function test_append_declaration_rejects_eof_repairs_that_cannot_be_precise() {
-		$style     = 'color: var(--x;/*keep';
+	public function test_append_declaration_rejects_eof_repairs_that_cannot_be_precise( string $style ) {
 		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
 
 		$this->assertFalse( $processor->append_declaration( 'background', 'white' ) );
 		$this->assertSame( $style, $processor->get_updated_style() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_styles_ending_inside_a_comment(): array {
+		return array(
+			'comment inside an open function' => array( 'color: var(--x;/*keep' ),
+			'comment after a declaration'     => array( 'color: red /* keep' ),
+			'comment ending in a slash'       => array( 'color: red /*/' ),
+		);
 	}
 
 	/**

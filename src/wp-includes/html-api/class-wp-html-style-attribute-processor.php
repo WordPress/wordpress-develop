@@ -1228,10 +1228,7 @@ class WP_HTML_Style_Attribute_Processor {
 					return null;
 
 				case WP_CSS_Token_Processor::TOKEN_COMMENT:
-					if (
-						strlen( $this->style ) === self::get_token_end( $token ) &&
-						'*/' !== substr( $this->style, -2 )
-					) {
+					if ( ! $token->is_terminated() ) {
 						return null;
 					}
 					break;
@@ -1242,7 +1239,7 @@ class WP_HTML_Style_Attribute_Processor {
 					break;
 
 				case WP_CSS_Token_Processor::TOKEN_URL:
-					if ( ! $this->is_url_token_closed( $token ) ) {
+					if ( ! $token->is_terminated() ) {
 						$stack[] = ')';
 					}
 					break;
@@ -1276,30 +1273,6 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		return implode( '', array_reverse( $stack ) );
-	}
-
-	/**
-	 * Checks whether a URL token source contains its real closing parenthesis.
-	 *
-	 * @param WP_CSS_Token $token URL token.
-	 * @return bool Whether the URL token was closed in source.
-	 */
-	private function is_url_token_closed( WP_CSS_Token $token ): bool {
-		$sentinel = ' !wp-style-attribute-processor-sentinel';
-		$source   = substr( $this->style, $token->get_start(), $token->get_length() );
-		$scanner  = WP_CSS_Token_Processor::create( $source . $sentinel );
-		if ( null === $scanner || ! $scanner->next_token() ) {
-			return false;
-		}
-
-		if (
-			WP_CSS_Token_Processor::TOKEN_URL !== $scanner->get_token_type() ||
-			$scanner->get_token_length() > strlen( $source )
-		) {
-			return false;
-		}
-
-		return $scanner->next_token();
 	}
 
 	/**
