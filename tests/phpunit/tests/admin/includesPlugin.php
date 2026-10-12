@@ -104,6 +104,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14060
+	 *
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_when_no_plugin_page_is_set() {
@@ -113,6 +115,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14060
+	 *
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_true_for_a_registered_page() {
@@ -134,6 +138,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 14060
+	 *
 	 * @covers ::wp_admin_page_exists
 	 */
 	public function test_wp_admin_page_exists_returns_false_for_an_unregistered_page() {
@@ -148,6 +154,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	/**
 	 * Pages the current user cannot access are not added to $_registered_pages,
 	 * but they do exist and must not be reported as missing.
+	 *
+	 * @ticket 14060
 	 *
 	 * @covers ::wp_admin_page_exists
 	 */
@@ -171,6 +179,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 * The no-privilege menu registries are reset in menu.php after the
 	 * `_admin_menu` hook fires, so pages registered before that must still
 	 * be considered to exist.
+	 *
+	 * @ticket 14060
 	 *
 	 * @covers ::wp_admin_page_exists
 	 */
