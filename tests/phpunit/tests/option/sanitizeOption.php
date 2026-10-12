@@ -20,7 +20,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_option() {
+	public static function data_sanitize_option() {
 		return array(
 			array( 'admin_email', 'mail@example.com', 'mail@example.com' ),
 			array( 'admin_email', get_option( 'admin_email' ), 'invalid' ),
@@ -43,6 +43,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			array( 'date_format', 'F j, Y', 'F j, Y' ),
 			array( 'date_format', 'F j, Y', 'F j, <strong>Y</strong>' ),
 			array( 'ping_sites', 'http://rpc.pingomatic.com/', 'http://rpc.pingomatic.com/' ),
+			array( 'ping_sites', 'https://rpc.pingomatic.com/', 'https://rpc.pingomatic.com/' ),
 			array( 'ping_sites', "http://www.example.com\nhttp://example.org", "www.example.com \n\texample.org\n\n" ),
 			array( 'gmt_offset', '0', 0 ),
 			array( 'gmt_offset', '1.5', '1.5' ),
@@ -104,7 +105,7 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_option( 'upload_path', $provided ) );
 	}
 
-	public function data_sanitize_option_upload_path() {
+	public static function data_sanitize_option_upload_path() {
 		return array(
 			array( '<a href="http://www.example.com">Link</a>', 'Link' ),
 			array( '<scr' . 'ipt>url</scr' . 'ipt>', 'url' ),
@@ -157,10 +158,11 @@ class Tests_Option_SanitizeOption extends WP_UnitTestCase {
 			$this->assertSame( 'invalid_permalink_structure', $errors[0]['code'] );
 		}
 
+		// Keep assertEquals() because get_option( 'permalink_structure' ) returns false on single site and empty string on multisite.
 		$this->assertEquals( $expected, $actual );
 	}
 
-	public function data_sanitize_option_permalink_structure() {
+	public static function data_sanitize_option_permalink_structure() {
 		return array(
 			array( '', '', true ),
 			array( '%postname', false, false ),
