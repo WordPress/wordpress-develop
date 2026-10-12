@@ -3208,6 +3208,7 @@ HTML;
 		$this->assertEqualHTML(
 			'<img srcset="https://example.com/large.jpg 2x" />',
 			$result,
+			'<body>',
 			'Dropping a candidate should leave the rest of the candidate list intact.'
 		);
 
