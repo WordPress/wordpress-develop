@@ -906,11 +906,22 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 		);
 
 		$actual = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
-		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$processor->next_tag();
+
+		$state_class = null;
+		foreach ( $processor->class_list() as $class_name ) {
+			if ( str_starts_with( $class_name, 'wp-states-' ) ) {
+				$state_class = $class_name;
+				break;
+			}
+		}
+		$this->assertNotNull( $state_class, 'Expected a wp-states-* class on the first tag.' );
+
 		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
 
 		$this->assertStringContainsString(
-			'@media (width <= 480px){.' . $matches[0] . '{',
+			'@media (width <= 480px){.' . $state_class . '{',
 			$actual_stylesheet
 		);
 		$this->assertStringContainsString( 'min-height:300px', $actual_stylesheet );
