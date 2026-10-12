@@ -247,6 +247,43 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures proper decoding of ambiguous ampersands.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_ambiguous_ampersands
+	 *
+	 * @param string $context  'attribute' or 'data'.
+	 * @param string $raw_text Raw text.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decodes_ambiguous_ampersands( string $context, string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode( $context, $raw_text ),
+			"Failed handling ambiguous ampersand in context '{$context}' for '{$raw_text}'."
+		);
+	}
+
+	/**
+	 * Data provider for ambiguous ampersands.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function data_ambiguous_ampersands(): array {
+		return array(
+			'Semicolonless reference (data)'          => array( 'data', '&amp', '&' ),
+			'Semicolonless reference (attr)'          => array( 'attribute', '&amp', '&' ),
+			'Semicolonless followed by equals (data)' => array( 'data', '&not=', '¬=' ),
+			'Semicolonless followed by letter (data)' => array( 'data', '&notit', '¬it' ),
+			'With semicolon (data)'                   => array( 'data', '&not;', '¬' ),
+			'With semicolon (attr)'                   => array( 'attribute', '&not;', '¬' ),
+			'Semicolonless followed by space (data)'  => array( 'data', '&not ', '¬ ' ),
+			'Semicolonless followed by space (attr)'  => array( 'attribute', '&not ', '¬ ' ),
+		);
+	}
+
+	/**
 	 * Ensures ambiguous ampersand is recognized with trailing ASCII alphanumerics.
 	 *
 	 * @dataProvider data_semicolonless_attribute_character_reference_no_decode_followers
@@ -515,6 +552,202 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 			array( 'http://wordpress.org', 'Http', 'ascii-case-insensitive', true ),
 			array( 'http://wordpress.org', 'https', 'case-sensitive', false ),
 			array( 'http://wordpress.org', 'https', 'ascii-case-insensitive', false ),
+		);
+	}
+
+	/**
+	 * Ensures decoding of named character references in attributes.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_decode_attribute_named_character_references
+	 *
+	 * @param string $raw_text Raw attribute value containing named character reference.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decode_attribute_decodes_named_character_references( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding named character reference in attribute '{$raw_text}'."
+		);
+	}
+
+	/**
+	 * Data provider for named character references in attributes.
+	 *
+	 * Beyond the main syntax characters, covers references which do and do not
+	 * decode without a trailing semicolon, as well as case-sensitive names.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_decode_attribute_named_character_references(): array {
+		return array(
+			// The main syntax characters.
+			'Ampersand with semicolon'               => array( '&amp;', '&' ),
+			'Ampersand without semicolon'            => array( '&amp', '&' ),
+			'Less-than with semicolon'               => array( '&lt;', '<' ),
+			'Less-than without semicolon'            => array( '&lt', '<' ),
+			'Greater-than with semicolon'            => array( '&gt;', '>' ),
+			'Greater-than without semicolon'         => array( '&gt', '>' ),
+			'Double quote with semicolon'            => array( '&quot;', '"' ),
+			'Double quote without semicolon'         => array( '&quot', '"' ),
+
+			// Legacy references which decode without a semicolon.
+			'Copyright with semicolon'               => array( '&copy;', '©' ),
+			'Copyright without semicolon'            => array( '&copy', '©' ),
+			'Uppercase copyright with semicolon'     => array( '&COPY;', '©' ),
+			'Uppercase copyright without semicolon'  => array( '&COPY', '©' ),
+
+			// References which only decode with a semicolon.
+			'C with dot with semicolon'              => array( '&cdot;', 'ċ' ),
+			'C with dot without semicolon'           => array( '&cdot', '&cdot' ),
+			'Uppercase C with dot with semicolon'    => array( '&Cdot;', 'Ċ' ),
+			'Uppercase C with dot without semicolon' => array( '&Cdot', '&Cdot' ),
+			'Backprime with semicolon'               => array( '&backprime;', '‵' ),
+			'Backprime without semicolon'            => array( '&backprime', '&backprime' ),
+
+			// Names are case-sensitive: only the lowercase form exists.
+			'Non-existent uppercase Backprime'       => array( '&Backprime;', '&Backprime;' ),
+		);
+	}
+
+	/**
+	 * Ensures decoding of numeric character references across their syntactic variants.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_numeric_character_references
+	 *
+	 * @param string $raw_text Raw numeric character reference.
+	 * @param string $expected Expected decoded string.
+	 */
+	public function test_decodes_numeric_character_references( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_text_node( $raw_text ),
+			"Failed decoding numeric character reference in text node: '{$raw_text}'."
+		);
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding numeric character reference in attribute: '{$raw_text}'."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Generates, for a representative set of code points, every combination of:
+	 *  - decimal vs. hexadecimal syntax,
+	 *  - `x` vs. `X` introducer and lower vs. upper case hexadecimal digits,
+	 *  - count of leading zeros (which do not count toward the digit limit),
+	 *  - semicolon present or missing.
+	 *
+	 * @return Generator<string, array{string, string}> Test cases.
+	 */
+	public static function data_numeric_character_references(): Generator {
+		$code_points = array(
+			'ASCII'                 => array( 0x41, 'A' ),
+			'Two-byte UTF-8'        => array( 0xE9, 'é' ),
+			'Three-byte UTF-8'      => array( 0x2603, '☃' ),
+			'Astral plane'          => array( 0x1F600, '😀' ),
+			'Maximum code point'    => array( 0x10FFFF, "\u{10FFFF}" ),
+
+			// Surrogate halves and code points beyond U+10FFFF decode to U+FFFD.
+			'High surrogate start'  => array( 0xD800, "\u{FFFD}" ),
+			'High surrogate middle' => array( 0xDABC, "\u{FFFD}" ),
+			'Low surrogate end'     => array( 0xDFFF, "\u{FFFD}" ),
+			'Out of range'          => array( 0x110000, "\u{FFFD}" ),
+		);
+
+		foreach ( $code_points as $label => list( $code_point, $expected ) ) {
+			$hex      = dechex( $code_point );
+			$syntaxes = array(
+				array( '#', (string) $code_point ),
+				array( '#x', $hex ),
+				array( '#x', strtoupper( $hex ) ),
+				array( '#X', $hex ),
+				array( '#X', strtoupper( $hex ) ),
+			);
+
+			// Hexadecimal digits without letters have no case variants.
+			$syntaxes = array_unique( $syntaxes, SORT_REGULAR );
+
+			foreach ( $syntaxes as list( $introducer, $digit_string ) ) {
+				foreach ( array( 0, 1, 10 ) as $zero_count ) {
+					foreach ( array( ';', '' ) as $terminator ) {
+						$raw_text = '&' . $introducer . str_repeat( '0', $zero_count ) . $digit_string . $terminator;
+
+						yield "{$label}: {$raw_text}" => array( $raw_text, $expected );
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Ensures that Windows-1252 mapped characters are properly decoded.
+	 *
+	 * @ticket 61072
+	 *
+	 * @dataProvider data_windows_1252_mapped_characters
+	 *
+	 * @param string $raw_text Raw numeric character reference.
+	 * @param string $expected Expected decoded character.
+	 */
+	public function test_decodes_windows_1252_mapped_characters( string $raw_text, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_text_node( $raw_text ),
+			"Failed decoding Windows-1252 character reference in text node: '{$raw_text}'."
+		);
+		$this->assertSame(
+			$expected,
+			WP_HTML_Decoder::decode_attribute( $raw_text ),
+			"Failed decoding Windows-1252 character reference in attribute: '{$raw_text}'."
+		);
+	}
+
+	/**
+	 * Data provider for Windows-1252 mapped characters.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_windows_1252_mapped_characters(): array {
+		return array(
+			'Euro sign'        => array( '&#x80;', '€' ),
+			'Unmapped U+81'    => array( '&#x81;', "\u{81}" ),
+			'Single low-9'     => array( '&#x82;', '‚' ),
+			'F with hook'      => array( '&#x83;', 'ƒ' ),
+			'Double low-9'     => array( '&#x84;', '„' ),
+			'Ellipsis'         => array( '&#x85;', '…' ),
+			'Dagger'           => array( '&#x86;', '†' ),
+			'Double dagger'    => array( '&#x87;', '‡' ),
+			'Circumflex'       => array( '&#x88;', 'ˆ' ),
+			'Per mille'        => array( '&#x89;', '‰' ),
+			'S with caron'     => array( '&#x8A;', 'Š' ),
+			'Less single guil' => array( '&#x8B;', '‹' ),
+			'OE ligature'      => array( '&#x8C;', 'Œ' ),
+			'Unmapped U+8D'    => array( '&#x8D;', "\u{8D}" ),
+			'Z with caron'     => array( '&#x8E;', 'Ž' ),
+			'Unmapped U+8F'    => array( '&#x8F;', "\u{8F}" ),
+			'Unmapped U+90'    => array( '&#x90;', "\u{90}" ),
+			'Left single quot' => array( '&#x91;', '‘' ),
+			'Right single quo' => array( '&#x92;', '’' ),
+			'Left double quot' => array( '&#x93;', '“' ),
+			'Right double quo' => array( '&#x94;', '”' ),
+			'Bullet'           => array( '&#x95;', '•' ),
+			'En dash'          => array( '&#x96;', '–' ),
+			'Em dash'          => array( '&#x97;', '—' ),
+			'Small tilde'      => array( '&#x98;', '˜' ),
+			'Trade mark'       => array( '&#x99;', '™' ),
+			's with caron'     => array( '&#x9A;', 'š' ),
+			'Right single gui' => array( '&#x9B;', '›' ),
+			'oe ligature'      => array( '&#x9C;', 'œ' ),
+			'Unmapped U+9D'    => array( '&#x9D;', "\u{9D}" ),
+			'z with caron'     => array( '&#x9E;', 'ž' ),
+			'Y with diaeresis' => array( '&#x9F;', 'Ÿ' ),
 		);
 	}
 }
