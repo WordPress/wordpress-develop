@@ -1445,49 +1445,49 @@ class Tests_User extends WP_UnitTestCase {
 	 */
 	public function data_wp_insert_user_login_email_collisions() {
 		return array(
-			'unique login and email'                    => array(
+			'unique login and email'                 => array(
 				'userdata'       => array(
 					'user_login' => 'new',
 					'user_email' => 'new@example.com',
 				),
 				'expected_error' => null,
 			),
-			'login matches own email'                   => array(
+			'login matches own email'                => array(
 				'userdata'       => array(
 					'user_login' => 'new@example.com',
 					'user_email' => 'new@example.com',
 				),
 				'expected_error' => null,
 			),
-			'login matches another user email'          => array(
+			'login matches another user email'       => array(
 				'userdata'       => array(
 					'user_login' => 'existing@example.com',
 					'user_email' => 'new@example.com',
 				),
 				'expected_error' => 'existing_user_email_as_login',
 			),
-			'login matches another user email, case'    => array(
+			'login matches another user email, case' => array(
 				'userdata'       => array(
 					'user_login' => 'Existing@Example.com',
 					'user_email' => 'new@example.com',
 				),
 				'expected_error' => 'existing_user_email_as_login',
 			),
-			'email matches another user login'          => array(
+			'email matches another user login'       => array(
 				'userdata'       => array(
 					'user_login' => 'new',
 					'user_email' => 'existing-login@example.com',
 				),
 				'expected_error' => 'existing_user_login_as_email',
 			),
-			'email matches another user email'          => array(
+			'email matches another user email'       => array(
 				'userdata'       => array(
 					'user_login' => 'new',
 					'user_email' => 'existing@example.com',
 				),
 				'expected_error' => 'existing_user_email',
 			),
-			'login matches another user login'          => array(
+			'login matches another user login'       => array(
 				'userdata'       => array(
 					'user_login' => 'existing',
 					'user_email' => 'new@example.com',
