@@ -510,27 +510,40 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	}
 
 	/**
+	 * CSS closes a block left open at the end of the input, so the
+	 * declaration is checked like any other and written with the block closed.
+	 *
 	 * @ticket 65738
-	 * @covers ::_safecss_filter_attr_value_has_open_block
+	 * @dataProvider data_blocks_left_open_at_end_of_input
+	 *
+	 * @param string $css      Input ending inside one or more blocks.
+	 * @param string $expected Filtered output.
 	 */
-	public function test_block_left_open_at_end_of_input_is_rejected() {
-		$this->assertSame( '', safecss_filter_attr( 'width: calc(1px' ) );
-		$this->assertSame( '', safecss_filter_attr( 'width: var(--a, var(--b' ) );
-		$this->assertSame( '', safecss_filter_attr( 'width: calc(3em + (10px * 2)' ) );
-		$this->assertSame( '', safecss_filter_attr( 'background: url("a.png"' ) );
-		// The `;` is inside the open function, so there is one declaration and it is rejected.
-		$this->assertSame( '', safecss_filter_attr( 'width: calc(1px; color: red' ) );
+	public function test_block_left_open_at_end_of_input_is_closed( $css, $expected ) {
+		$this->assertSame( $expected, safecss_filter_attr( $css ) );
 	}
 
 	/**
-	 * @ticket 65738
-	 * @covers ::_safecss_filter_attr_value_has_open_block
+	 * @return array<string, array{string, string}>
 	 */
-	public function test_block_left_open_at_end_of_input_is_rejected_in_custom_property() {
-		$this->assertSame( '', safecss_filter_attr( '--x: calc(1px' ) );
-		$this->assertSame( '', safecss_filter_attr( '--x: (1px' ) );
-		$this->assertSame( '', safecss_filter_attr( '--x: [a' ) );
-		$this->assertSame( '', safecss_filter_attr( '--x: {a:b' ) );
+	public function data_blocks_left_open_at_end_of_input() {
+		return array(
+			'function'                       => array( 'width: calc(1px', 'width: calc(1px);' ),
+			'nested functions'               => array( 'width: var(--a, var(--b', 'width: var(--a, var(--b));' ),
+			'parenthesis inside a function'  => array( 'width: calc(3em + (10px * 2)', 'width: calc(3em + (10px * 2));' ),
+			'square bracket'                 => array( 'width: [1px', 'width: [1px];' ),
+			'url function with a string'     => array( 'background: url("a.png"', 'background: url("a.png");' ),
+			'url function with whitespace'   => array( 'background: url( "a.png" ', 'background: url( "a.png");' ),
+			// The `;` is inside the open function, so there is one declaration, as a browser reads it.
+			'semicolon inside the function'  => array( 'width: calc(1px; color: red', 'width: calc(1px; color: red);' ),
+			'custom property function'       => array( '--x: calc(1px', '--x: calc(1px);' ),
+			'custom property parenthesis'    => array( '--x: (1px', '--x: (1px);' ),
+			'custom property square bracket' => array( '--x: [a', '--x: [a];' ),
+			'custom property brace'          => array( '--x: {a:b', '--x: {a:b};' ),
+			'after an accepted declaration'  => array( 'color: red; width: calc(1px', 'color: red;width: calc(1px);' ),
+			'function not on the allowlist'  => array( 'width: foo(1px', '' ),
+			'url function with a bad scheme' => array( 'background: url("javascript:a"', '' ),
+		);
 	}
 
 	/**
@@ -882,7 +895,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		return array(
 			'simple'                   => array( 'margin-top: 2px' ),
 			'escaped ident'            => array( 'margin-top: \2px' ),
-			'open function, rejected'  => array( 'width: calc(3em + 10px' ),
+			'open function'            => array( 'width: calc(3em + 10px' ),
 			'custom open string'       => array( '--x: "abc' ),
 			'custom bare block'        => array( '--x: (1px)' ),
 			'custom brace block'       => array( '--x: {a:b}' ),

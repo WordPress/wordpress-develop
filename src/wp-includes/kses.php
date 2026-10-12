@@ -4211,10 +4211,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * allowed list safecss_filter_attr() returns the input and does not call
  * this function.
  *
- * A declaration whose value has a block (a function, `(`, `[` or `{`)
- * still open at the end of the input is dropped, for every property. The
- * legacy implementation rejected an unclosed block, and callers rely on a
- * rejected declaration staying rejected. A comment, string or url token
+ * A block (a function, `(`, `[` or `{`) or a comment, string or url token
  * that the input ends inside is closed, as CSS closes it.
  *
  * @since 7.2.0
@@ -4249,11 +4246,6 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		$name      = $processor->get_property_name();
 		$tokens    = $processor->get_value_tokens();
 		$is_custom = str_starts_with( $name, '--' );
-
-		// The legacy implementation rejected an unclosed block; callers rely on a rejected declaration staying rejected.
-		if ( _safecss_filter_attr_value_has_open_block( $tokens ) ) {
-			continue;
-		}
 
 		if ( $is_custom ) {
 			if ( ! $allow_custom || ! preg_match( '/^--[a-zA-Z0-9_-]+$/', $name ) ) {
@@ -4435,7 +4427,7 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
 		$function_name = strtolower( (string) $token->get_value() );
 
 		if ( 'url' === $function_name ) {
-			// `url("...")` tokenizes as a function with one string argument. Anything else inside is invalid CSS.
+			// `url("...")` tokenizes as a function with one string argument, closed by `)` or the end of the input. Anything else inside is invalid CSS.
 			$j = $i + 1;
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
@@ -4448,7 +4440,7 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
 			while ( $j < $count && _safecss_filter_attr_is_trivia( $tokens[ $j ] ) ) {
 				++$j;
 			}
-			if ( $j >= $count || WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]->get_type() ) {
+			if ( $j < $count && WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN !== $tokens[ $j ]->get_type() ) {
 				return false;
 			}
 			if ( ! _safecss_filter_attr_url_is_allowed( $string->get_value(), $allowed_protocols ) ) {
@@ -4466,41 +4458,6 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
 	}
 
 	return true;
-}
-
-/**
- * Checks whether a declaration value has a block still open at the end of the input.
- *
- * A function, `(`, `[` or `{` opens a block. CSS closes every open block at
- * the end of the input, so the token view has no closing token for it.
- *
- * @since 7.2.0
- * @access private
- * @internal
- *
- * @param WP_CSS_Token[] $tokens Value tokens from WP_HTML_Style_Attribute_Processor::get_value_tokens().
- * @return bool Whether a block is open at the end of the value.
- */
-function _safecss_filter_attr_value_has_open_block( $tokens ) {
-	$depth = 0;
-	foreach ( $tokens as $token ) {
-		switch ( $token->get_type() ) {
-			case WP_CSS_Token_Processor::TOKEN_FUNCTION:
-			case WP_CSS_Token_Processor::TOKEN_LEFT_PAREN:
-			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET:
-			case WP_CSS_Token_Processor::TOKEN_LEFT_BRACE:
-				++$depth;
-				break;
-
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN:
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET:
-			case WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE:
-				--$depth;
-				break;
-		}
-	}
-
-	return 0 !== $depth;
 }
 
 /**

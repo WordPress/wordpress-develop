@@ -28,8 +28,7 @@ signature and docblock. It builds the allowed property list once, applies
 - `_safecss_filter_attr_legacy( $css, $allowed_attr )`: the pre-7.2.0 body,
   unchanged except that it receives the list.
 
-The declarations helper uses four further private helpers:
-`_safecss_filter_attr_value_has_open_block()`,
+The declarations helper uses three further private helpers:
 `_safecss_filter_attr_value_is_allowed()`, `_safecss_filter_attr_url_is_allowed()`
 and `_safecss_filter_attr_is_trivia()`.
 All are `@access private`, `@internal`, `@since 7.2.0`.
@@ -82,14 +81,13 @@ neighbour.
 One rule applies to every declaration, for every property including custom
 ones:
 
-0. **Open blocks.** A value with a block (a function, `(`, `[` or `{`) still
-   open at the end of the input is rejected. The legacy function rejected an
-   unbalanced parenthesis, and callers rely on a rejected declaration staying
-   rejected. CSS would close the block at the end of the input, so the
-   processor exposes the declaration; the filter drops it. A comment, string
-   or url token that the input ends inside is not a block: CSS closes it,
-   the declaration is checked like any other, and the output writes the token
-   closed (`font-family: "abc` gives `font-family:"abc";`).
+0. **The end of the input.** CSS closes a block (a function, `(`, `[` or
+   `{`) and a comment, string or url token that the input ends inside. The
+   processor exposes the declaration, the rules below check it like any
+   other, and the output writes it closed: `width: calc(1px` gives
+   `width: calc(1px);` and `font-family: "abc` gives `font-family: "abc";`. A
+   `;` inside an open block is part of the value, so
+   `width: calc(1px; color: red` is one declaration, as a browser reads it.
 
 An empty `safe_style_css` list disables filtering. `safecss_filter_attr()`
 returns the input with NUL bytes and newlines removed, which is what the
@@ -123,8 +121,8 @@ helper. A filter result that is not an array is treated as an empty list.
 3. **URLs.** Every URL in the value, at any depth, whether a `url()` token or
    `url("...")` with a string argument, is non-empty after trimming and is
    returned unchanged by `wp_kses_bad_protocol()` with `wp_allowed_protocols()`.
-   `url()` with anything other than one string argument is invalid CSS and the
-   declaration is dropped. There is no per-property list of URL-bearing
+   `url(` with anything other than one string argument, closed by `)` or by
+   the end of the input, is invalid CSS and the declaration is dropped. There is no per-property list of URL-bearing
    properties. `src()` is not in the function allowlist: it exists so `var()`
    can supply a URL, which the filter cannot check.
 4. **Structure.** In a non-custom property, the value has no bare `( )` block
@@ -168,8 +166,9 @@ follows CSS Syntax Level 3 §9:
 - A `\` delimiter, which only a backslash before a newline produces, keeps its
   newline so it does not escape the byte that follows.
 
-No block is open at the end of a value, by rule 0, so the output never absorbs
-the `;` that follows.
+- Blocks still open at the end of the input, and strings and url tokens cut
+  off by it, are written closed, so the output never absorbs the `;` that
+  follows.
 
 Strings and url values hex-escape `\`, `<`, `>`, `&`, `,`, `;`, `{`, `}`,
 quotes and control characters; url values also escape parentheses and
@@ -253,6 +252,10 @@ Intended:
   and its declaration is checked like any other. The legacy function
   rejected an item containing `/*` and an unclosed `url(`, and kept an
   unclosed string as it was.
+- A block left open at the end of the input is closed, and its declaration is
+  checked like any other. The legacy function rejected a value with an
+  unclosed `(`, which its bad-character test matched, and kept an unclosed
+  `[` or `{` as it was.
 - A lone `{ }` block in a standard property is rejected, as the legacy
   function rejected `}`.
 - An allowed-list entry with capitals matches, since entries and names are
@@ -266,23 +269,24 @@ Intended:
 Formatting only: one space after the colon, double-quoted strings and unquoted
 url tokens with hex-escaped punctuation, comments dropped, trailing `;`.
 
-Unchanged: a block left open at the end of the input is rejected, as the
-legacy function rejected an unbalanced parenthesis; an empty `safe_style_css`
-list returns the input.
+Unchanged: an empty `safe_style_css` list returns the input.
 
-On the 156 legacy test vectors: 31 identical, 115 formatting only, 2
-narrowings (`expression()` inside a gradient; an unmatched `)`), 8 widenings,
+On the 156 legacy test vectors: 20 identical, 115 formatting only, 2
+narrowings (`expression()` inside a gradient; an unmatched `)`), 19 widenings,
 0 defects, idempotent on all 156.
 
 ## Decisions
 
 Open during the prototype, now settled:
 
-- **Open blocks.** Rejected for every property. The prototype closed them in
-  the output, which
-  accepted nine inputs the legacy function rejected; callers rely on a
-  rejected declaration staying rejected. With the rule, the serializer has no
-  block-closing code.
+- **Open blocks.** Closed, as CSS Syntax Level 3 closes a simple block or a
+  function at the end of the input ("consume a simple block", "consume a
+  function"), and checked like any other declaration. An earlier version rejected them, citing the legacy
+  function's rejection of an unbalanced parenthesis; the legacy function
+  kept an unclosed `[` or `{`, and a closed block gives the output the
+  meaning a browser reads from the input. This applies the same rule as
+  tokens cut off by the end of the input, so a url function with a string,
+  `url("a.png"`, and a url token, `url(a.png`, are both kept.
 - **Bare `( )` and `{ }` blocks.** Rejected at the top level of a non-custom
   property's value; kept when nested in a function and in custom properties.
   Rejecting at any depth would drop `calc(3em + (10px * 2))`, which the legacy
@@ -314,7 +318,8 @@ Open during the prototype, now settled:
 ## Tests
 
 `tests/phpunit/tests/kses/safecssFilterAttr.php` covers each policy rule in
-isolation, the open-block rule in standard and custom properties, comments,
+isolation, blocks left open at the end of the input in standard and custom
+properties, comments,
 strings and url tokens cut off by the end of the input, the structural rule in
 standard, nested and custom positions,
 `!important`, comments, one case per marked cell of the §9 table and a sample
