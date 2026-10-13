@@ -1333,6 +1333,12 @@ function get_post_status( $post = null ) {
 		 * status in the logic block above.
 		 */
 		$post_status = 'publish';
+	} elseif ( 'inherit' === $post_status && $post->post_parent && $post->ID !== $post->post_parent ) {
+		// Inherit status from the parent post for non-attachment post types.
+		$parent_status = get_post_status( $post->post_parent );
+		if ( $parent_status ) {
+			$post_status = $parent_status;
+		}
 	}
 
 	/**
