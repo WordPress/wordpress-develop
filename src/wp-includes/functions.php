@@ -5674,6 +5674,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
+ * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5686,6 +5687,8 @@ function dead_db() {
 
 	// Load custom DB error template, if present.
 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+		status_header( 500 );
+		nocache_headers();
 		require_once WP_CONTENT_DIR . '/db-error.php';
 		die();
 	}
@@ -9353,6 +9356,10 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	 */
 	$args = apply_filters( 'wp_admin_notice_args', $args, $message );
 
+	// Unique ID is intended for internal use, and is not a filterable argument.
+	$unique_id         = wp_unique_prefixed_id( 'wp-admin-notice-' );
+	$args['notice_id'] = $unique_id;
+
 	$wrap_with_p  = false !== $args['paragraph_wrap'];
 	$wrap_opener  = $wrap_with_p ? '<p>' : '';
 	$wrap_closer  = $wrap_with_p ? '</p>' : '';
@@ -9362,9 +9369,15 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	if ( is_string( $args['id'] ) ) {
 		$trimmed_id = trim( $args['id'] );
 
+		$html_builder->set_attribute( 'data-id', $unique_id );
 		if ( '' !== $trimmed_id ) {
 			$html_builder->set_attribute( 'id', $trimmed_id );
+		} else {
+			$html_builder->set_attribute( 'id', $unique_id );
 		}
+	} else {
+		$html_builder->set_attribute( 'data-id', $unique_id );
+		$html_builder->set_attribute( 'id', $unique_id );
 	}
 
 	if ( is_string( $args['type'] ) ) {
@@ -9586,7 +9599,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
-	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
 
@@ -9632,6 +9645,7 @@ All at ###SITENAME###
 	 *         The following strings have a special meaning and will get replaced dynamically:
 	 *          - `###USERNAME###`                  The user's display name.
 	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
+	 *          - `###ADMIN_EMAIL###`               The admin email in case this was unexpected.
 	 *          - `###EMAIL###`                     The user's email address.
 	 *          - `###SITENAME###`                  The name of the site.
 	 *          - `###SITEURL###`                   The URL to the site.
@@ -9644,6 +9658,7 @@ All at ###SITENAME###
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
 	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
 	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
