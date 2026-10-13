@@ -173,12 +173,13 @@ jobs:
               }
             }
 
+            // Tips are left out of the results, since they are only shown in the annotations, next to the code.
             if ( context.eventName === 'pull_request' ) {
               fs.mkdirSync( `${ process.env.RUNNER_TEMP }/phpstan-results`, { recursive: true } );
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
                 head_sha: context.payload.pull_request.head.sha,
-                errors,
+                errors: errors.map( ( { tip, ...error } ) => error ),
               } ) );
             }
 
