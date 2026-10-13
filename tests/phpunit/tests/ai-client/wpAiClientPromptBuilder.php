@@ -96,18 +96,30 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Gets the value of a protected or private property from the wrapped prompt builder.
 	 *
+	 * Since PHP AI Client 1.4.0, model selection state (e.g. `model`, `registry`,
+	 * `providerIdOrClassName`, `requestOptions`) lives on the builder's ModelResolver,
+	 * so properties not found on the wrapped builder are looked up there.
+	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder  The WordPress prompt builder instance.
 	 * @param string                      $property Property to get value for.
 	 * @return mixed The property value.
 	 */
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
-		$the_property      = $reflection_class2->getProperty( $property );
+		if ( ! $reflection_class2->hasProperty( $property ) ) {
+			$resolver_property = $reflection_class2->getProperty( 'modelResolver' );
+			self::set_accessible( $resolver_property );
+			$wrapped_builder = $resolver_property->getValue( $wrapped_builder );
+
+			$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
+		}
+
+		$the_property = $reflection_class2->getProperty( $property );
 		self::set_accessible( $the_property );
 
 		return $the_property->getValue( $wrapped_builder );
@@ -189,6 +201,29 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
 		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Test that the request timeout filter receives the builder type.
+	 *
+	 * @ticket 65638
+	 */
+	public function test_request_timeout_filter_receives_builder_type() {
+		$received_builder_type = null;
+
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function ( $default_timeout, $builder_type ) use ( &$received_builder_type ) {
+				$received_builder_type = $builder_type;
+				return $default_timeout;
+			},
+			10,
+			2
+		);
+
+		new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		$this->assertSame( WP_AI_Client_Prompt_Builder::class, $received_builder_type );
 	}
 
 	/**
@@ -376,15 +411,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$registry       = AiClient::defaultRegistry();
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection_class->getProperty( 'builder' );
-		self::set_accessible( $builder_property );
-		$wrapped_builder = $builder_property->getValue( $prompt_builder );
-
-		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
-		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-		self::set_accessible( $registry_property );
-		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
+		$this->assertSame( $registry, $this->get_wrapped_prompt_builder_property_value( $prompt_builder, 'registry' ), 'Wrapped builder should have the same registry' );
 	}
 
 	/**
@@ -1393,7 +1420,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		);
 
 		// Manually add a model message as the last message.
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder   = $builder_property->getValue( $builder );
@@ -2620,7 +2647,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @return string[] The text of each message part, in order.
 	 */
 	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 		$inner = $wrapped->getValue( $builder );
 
@@ -2646,7 +2673,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
 		$clone   = clone $builder;
 
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 
 		$this->assertNotSame(
@@ -2735,7 +2762,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$wrapped_builder->method( $wrapped_method )
 			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
 
-		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$builder_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $builder_property );
 		$builder_property->setValue( $prompt_builder, $wrapped_builder );
 
@@ -2911,18 +2938,18 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Invokes the private exception_to_wp_error method via reflection.
+	 * Invokes the private throwable_to_wp_error method via reflection.
 	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder   The builder instance.
-	 * @param Exception                   $exception The exception to convert.
+	 * @param Throwable                   $throwable The throwable to convert.
 	 * @return WP_Error The resulting WP_Error.
 	 */
-	private function invoke_exception_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Exception $exception ): WP_Error {
-		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$method     = $reflection->getMethod( 'exception_to_wp_error' );
+	private function invoke_throwable_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Throwable $throwable ): WP_Error {
+		$reflection = new ReflectionClass( WP_AI_Client_Builder::class );
+		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
-		return $method->invoke( $builder, $exception );
+		return $method->invoke( $builder, $throwable );
 	}
 
 	/**
@@ -2932,7 +2959,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_network_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new NetworkException( 'Connection timed out' )
 		);
@@ -2950,7 +2977,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Unauthorized', 401 )
 		);
@@ -2968,7 +2995,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_client_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ClientException( 'Bad request' )
 		);
@@ -2985,7 +3012,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_with_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Bad gateway', 502 )
 		);
@@ -3003,7 +3030,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_server_exception_without_code() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new ServerException( 'Internal server error' )
 		);
@@ -3020,7 +3047,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_token_limit_reached_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new TokenLimitReachedException( 'Token limit exceeded', 4096 )
 		);
@@ -3038,7 +3065,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_invalid_argument_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new AiClientInvalidArgumentException( 'Invalid model parameter' )
 		);
@@ -3056,7 +3083,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_generic_exception() {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error(
+		$error   = $this->invoke_throwable_to_wp_error(
 			$builder,
 			new Exception( 'Something went wrong' )
 		);
@@ -3065,6 +3092,51 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$this->assertSame( 'Something went wrong', $error->get_error_message() );
 		$this->assertSame( 500, $error->get_error_data()['status'] );
 		$this->assertSame( 'Exception', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests exception_to_wp_error maps an Error (e.g. TypeError) to a generic builder error.
+	 *
+	 * A TypeError extends Error, not Exception, so this guards against the
+	 * conversion only accepting Exception instances.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_exception_to_wp_error_type_error() {
+		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+		$error   = $this->invoke_throwable_to_wp_error(
+			$builder,
+			new TypeError( 'Argument must be of type float' )
+		);
+
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertSame( 'Argument must be of type float', $error->get_error_message() );
+		$this->assertSame( 500, $error->get_error_data()['status'] );
+		$this->assertSame( 'TypeError', $error->get_error_data()['exception_class'] );
+	}
+
+	/**
+	 * Tests that a TypeError thrown by the wrapped SDK is caught and returned as a WP_Error.
+	 *
+	 * Passing an argument of the wrong type to a strict-typed SDK method throws a
+	 * TypeError (which extends Error, not Exception). The builder must catch it and
+	 * place itself in an error state instead of letting it fatal the request.
+	 *
+	 * @ticket 65505
+	 */
+	public function test_call_catches_type_error_from_invalid_argument_type() {
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test prompt' );
+
+		// usingTemperature() expects a float; an array can never be coerced and throws a TypeError.
+		$result = $builder->using_temperature( array( 0.7 ) );
+
+		// The builder is returned (fluent interface preserved), now in an error state.
+		$this->assertInstanceOf( WP_AI_Client_Prompt_Builder::class, $result );
+
+		// A generating method now surfaces the stored WP_Error rather than fataling.
+		$error = $result->generate_text();
+		$this->assertWPError( $error );
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
 	}
 
 	/**
@@ -3078,7 +3150,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 */
 	public function test_exception_to_wp_error_error_data_structure( Exception $exception ) {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
-		$error   = $this->invoke_exception_to_wp_error( $builder, $exception );
+		$error   = $this->invoke_throwable_to_wp_error( $builder, $exception );
 
 		$data = $error->get_error_data();
 		$this->assertIsArray( $data );

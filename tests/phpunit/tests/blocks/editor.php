@@ -11,11 +11,16 @@
 class Tests_Blocks_Editor extends WP_UnitTestCase {
 	/**
 	 * Sets up each test method.
+	 *
+	 * @global WP_Scripts        $wp_scripts
+	 * @global WP_Styles         $wp_styles
+	 * @global WP_Script_Modules $wp_script_modules
 	 */
 	public function set_up() {
 		global $post;
 
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
 
@@ -32,37 +37,59 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		global $post_ID;
 		$post_ID = 1;
 
-		global $wp_scripts, $wp_styles;
-		$this->original_wp_scripts = $wp_scripts;
-		$this->original_wp_styles  = $wp_styles;
-		$wp_scripts                = null;
-		$wp_styles                 = null;
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$this->original_wp_scripts        = $wp_scripts;
+		$this->original_wp_styles         = $wp_styles;
+		$this->original_wp_script_modules = $wp_script_modules;
+		$wp_scripts                       = null;
+		$wp_styles                        = null;
+		$wp_script_modules                = null;
 		wp_scripts();
 		wp_styles();
+		/*
+		 * The script module print callbacks are bound to the instance that
+		 * registers them, so the fresh instance must register its own hooks.
+		 * WP_UnitTestCase restores $wp_filter between tests.
+		 */
+		wp_script_modules()->add_hooks();
 	}
 
 	public function tear_down() {
-		global $wp_scripts, $wp_styles;
-		$wp_scripts = $this->original_wp_scripts;
-		$wp_styles  = $this->original_wp_styles;
+		global $wp_scripts, $wp_styles, $wp_script_modules;
+		$wp_scripts        = $this->original_wp_scripts;
+		$wp_styles         = $this->original_wp_styles;
+		$wp_script_modules = $this->original_wp_script_modules;
+
+		$registry = WP_Block_Type_Registry::get_instance();
+		if ( $registry->is_registered( 'tests/preload-view-assets' ) ) {
+			$registry->unregister( 'tests/preload-view-assets' );
+		}
 
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 		global $post_ID;
 		$post_ID = null;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
-	/**
-	 * @var WP_Scripts|null
-	 */
-	protected $original_wp_scripts;
+	protected ?WP_Scripts $original_wp_scripts;
+
+	protected ?WP_Styles $original_wp_styles;
+
+	protected ?WP_Script_Modules $original_wp_script_modules;
 
 	/**
-	 * @var WP_Styles|null
+	 * Original stylesheet.
+	 *
+	 * @var string
 	 */
-	protected $original_wp_styles;
+	private $original_stylesheet;
 
 	public function filter_set_block_categories_post( $block_categories, $post ) {
 		if ( empty( $post ) ) {
@@ -670,6 +697,64 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		block_editor_rest_api_preload( $preload_paths, new WP_Block_Editor_Context() );
 		$haystack = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertStringContainsString( $expected, $haystack );
+	}
+
+	/**
+	 * Tests that scripts, styles, and script modules enqueued while rendering blocks
+	 * during REST API preloading are not enqueued in the block editor.
+	 *
+	 * @ticket 64484
+	 * @ticket 55151
+	 *
+	 * @covers ::block_editor_rest_api_preload
+	 */
+	public function test_block_editor_rest_api_preload_discards_assets_enqueued_during_preload() {
+		wp_register_script( 'test-view-script', '/test-view-script.js', array(), null );
+		wp_register_style( 'test-view-style', '/test-view-style.css', array(), null );
+		wp_register_script_module( 'test-view-script-module', '/test-view-script-module.js' );
+		wp_register_script_module( 'test-editor-script-module', '/test-editor-script-module.js' );
+
+		$rendered = false;
+		register_block_type(
+			'tests/preload-view-assets',
+			array(
+				'render_callback'        => static function () use ( &$rendered ) {
+					$rendered = true;
+					return '<p>Block content.</p>';
+				},
+				'view_script_handles'    => array( 'test-view-script' ),
+				'view_style_handles'     => array( 'test-view-style' ),
+				'view_script_module_ids' => array( 'test-view-script-module' ),
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_content' => '<!-- wp:tests/preload-view-assets /-->',
+			)
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		// Enqueued before preloading, so it must still be enqueued afterwards.
+		wp_enqueue_script_module( 'test-editor-script-module' );
+
+		block_editor_rest_api_preload(
+			array( "/wp/v2/posts/{$post_id}?context=edit" ),
+			new WP_Block_Editor_Context( array( 'post' => get_post( $post_id ) ) )
+		);
+
+		$admin_footer_scripts = get_echo(
+			static function () {
+				/** This action is documented in wp-admin/admin-footer.php */
+				do_action( 'admin_print_footer_scripts' );
+			}
+		);
+
+		$this->assertTrue( $rendered, 'The block should render during preloading.' );
+		$this->assertNotContains( 'test-view-script', wp_scripts()->queue, 'The block view script should not be enqueued.' );
+		$this->assertNotContains( 'test-view-style', wp_styles()->queue, 'The block view style should not be enqueued.' );
+		$this->assertStringNotContainsString( 'test-view-script-module', $admin_footer_scripts, 'The block view script module should not be printed.' );
+		$this->assertStringContainsString( 'test-editor-script-module', $admin_footer_scripts, 'The script module enqueued before preloading should be printed.' );
 	}
 
 	/**
