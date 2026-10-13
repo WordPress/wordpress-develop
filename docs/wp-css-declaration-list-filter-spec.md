@@ -134,10 +134,12 @@ replaced with the default list, on both paths.
    A `( )` block nested in a function, as in `calc(1px + (2px * 3))` or a
    `var()` fallback, is governed by that function's grammar and is kept.
    Custom properties keep every block.
-5. **Ampersand.** The value has no `&` delimiter token at any depth, in every
+5. **Delimiters.** The value has no `&` delimiter token at any depth, in every
    property including custom ones. The output contains no `&`: the serializer
    escapes it in every other token, and no standard property value uses a
-   bare `&`, so a value that has one is rejected. `<`, `>`, `=`, `<!--` and
+   bare `&`, so a value that has one is rejected. The same applies to a
+   control character delimiter, U+0001 to U+001F other than whitespace or
+   U+007F, which the serializer writes raw. `<`, `>`, `=`, `<!--` and
    `-->` are kept; encoding the output for HTML is the caller's task.
 6. **Escapes and comments.** Checks run on decoded values, so an escaped
    function name or scheme is checked as what it denotes. Comments are
@@ -255,6 +257,9 @@ Intended:
 - A `\0` escape decodes to U+FFFD instead of being deleted from the text.
 - A `=` delimiter is kept. The legacy function rejected it. Both reject a
   bare `&`.
+- A control character delimiter rejects its declaration. The legacy function
+  deleted U+0000 to U+001F and kept the rest of the declaration, and kept
+  U+007F.
 - A comment, string or url token cut off by the end of the input is closed,
   and its declaration is checked like any other. The legacy function
   rejected an item containing `/*` and an unclosed `url(`, and kept an

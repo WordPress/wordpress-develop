@@ -783,6 +783,44 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @dataProvider data_control_character_delimiters
+	 *
+	 * @param string $css Input with a control character delimiter.
+	 */
+	public function test_control_character_delimiter_is_rejected( $css ) {
+		$this->assertSame( 'width: 1px;', safecss_filter_attr( "$css; width: 1px" ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_control_character_delimiters() {
+		return array(
+			'U+0001'    => array( "color: red\x01" ),
+			'U+0008'    => array( "color: red\x08" ),
+			'U+000B'    => array( "color: red\x0B" ),
+			'U+000E'    => array( "color: red\x0E" ),
+			'U+001F'    => array( "color: red\x1F" ),
+			'U+007F'    => array( "color: red\x7F" ),
+			'in calc'   => array( "width: calc(1px \x01 2px)" ),
+			'in custom' => array( "--x: a\x01b" ),
+			'in var'    => array( "color: var(--x, a\x01)" ),
+		);
+	}
+
+	/**
+	 * wp_sanitize_html_kses() removes raw control characters from the
+	 * document and decodes character references afterward, so `&#1;` reaches
+	 * the filter as a control character.
+	 *
+	 * @ticket 65738
+	 */
+	public function test_control_character_from_a_character_reference_is_rejected() {
+		$this->assertSame( '<p style="width: 1px;">x</p>', wp_kses_post( '<p style="color: red&#1;; width: 1px">x</p>' ) );
+	}
+
+	/**
+	 * @ticket 65738
 	 * @dataProvider data_output_without_ampersand
 	 *
 	 * @param string $css Input with a `&` in a token other than a delimiter.
@@ -815,7 +853,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 	 * @param string $css      Input with a `<`, `>` or `=` delimiter or a `<!--` or `-->` token.
 	 * @param string $expected Filtered output.
 	 */
-	public function test_delimiters_other_than_ampersand_are_kept( $css, $expected ) {
+	public function test_other_delimiters_are_kept( $css, $expected ) {
 		$this->assertSame( $expected, safecss_filter_attr( $css ) );
 	}
 
