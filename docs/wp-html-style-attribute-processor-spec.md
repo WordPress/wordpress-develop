@@ -68,6 +68,7 @@ public function next_declaration( ?string $property_name = null ): bool;
 public function get_property_name(): ?string;
 public function is_important(): ?bool;
 public function get_value_tokens(): ?array;
+public function serialize_declaration(): ?string;
 public function set_value( string $value, ?bool $important = null ): bool;
 public function set_important( bool $important ): bool;
 public function remove_declaration(): bool;
@@ -157,6 +158,19 @@ Two alternatives were considered. A `WP_CSS_Token_Processor` positioned over the
 value's range would need range support in the tokenizer and give consumers a
 forward-only cursor over tokens the processor already holds. A raw string would
 be re-tokenized by every consumer.
+
+## Serializing A Declaration
+
+`serialize_declaration()` writes the current declaration from its parsed parts,
+or returns `null` when the cursor is not on a declaration. The property name is
+escaped as an identifier. The value is written from its tokens with
+`WP_CSS_Token_Serializer::serialize()`: comments are dropped, each whitespace run
+becomes one space, and blocks left open at the end of the style are closed. The
+result is `name: value;` or `name: value !important;`, and CSS reads it as the same
+declaration.
+
+This is the public way to write CSS from a parsed declaration. Token lists are
+not a public unit for writing CSS: `WP_CSS_Token_Serializer` is internal.
 
 ## Value Validation
 

@@ -255,6 +255,146 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize_declaration
+	 * @covers ::remove_declaration
+	 */
+	public function test_serialize_declaration_returns_null_when_not_on_a_declaration() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white' );
+
+		$this->assertNull( $processor->serialize_declaration(), 'Expected null before the first declaration.' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->remove_declaration() );
+		$this->assertNull( $processor->serialize_declaration(), 'Expected null after removing the declaration.' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertFalse( $processor->next_declaration() );
+		$this->assertNull( $processor->serialize_declaration(), 'Expected null after the last declaration.' );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize_declaration
+	 *
+	 * @dataProvider data_serialized_declarations
+	 *
+	 * @param string $style    Style text.
+	 * @param string $expected Expected text of the first declaration.
+	 */
+	public function test_serialize_declaration_writes_the_current_declaration( string $style, string $expected ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertSame( $expected, $processor->serialize_declaration() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string,string}>
+	 */
+	public static function data_serialized_declarations(): array {
+		return array(
+			'single ident'                     => array( 'color: red', 'color: red;' ),
+			'important'                        => array( 'color : red ! important ;', 'color: red !important;' ),
+			'important after a comment'        => array( 'color: red /* x */ !important', 'color: red !important;' ),
+			'lowercased name'                  => array( 'COLOR: Red', 'color: Red;' ),
+			'escaped name'                     => array( 'c\\6f lor: red', 'color: red;' ),
+			'custom property keeps its case'   => array( '--Foo: a b', '--Foo: a b;' ),
+			'custom property name escape'      => array( '--a\\ b: 1', '--a\\20 b: 1;' ),
+			'comments and whitespace runs'     => array( "margin: 1px /* a */ \t 2px", 'margin: 1px 2px;' ),
+			'comment between tokens'           => array( 'margin: 1px/**/2px', 'margin: 1px/**/2px;' ),
+			'empty value'                      => array( 'color:;', 'color: ;' ),
+			'string'                           => array( "font-family: 'a\"b'", 'font-family: "a\\22 b";' ),
+			'value ending in an escaped space' => array( '--x: a\\ ', '--x: a\\20 ;' ),
+			'backslash before a newline'       => array( "--x: a\\\n; width: 1px", "--x: a\\\n;" ),
+			'block open at the end'            => array( 'width: calc(1px + (2px', 'width: calc(1px + (2px));' ),
+			'url open at the end'              => array( 'background: url(a.png', 'background: url(a.png);' ),
+			'semicolon inside an open block'   => array( 'width: calc(1px; color: red', 'width: calc(1px; color: red);' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize_declaration
+	 *
+	 * @dataProvider data_value_tokens_source_slices
+	 *
+	 * @param string $style Style text.
+	 */
+	public function test_serialize_declaration_reads_back_as_the_same_declaration( string $style ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+		$this->assertTrue( $processor->next_declaration() );
+
+		$reread = WP_HTML_Style_Attribute_Processor::create( $processor->serialize_declaration() );
+		$this->assertTrue( $reread->next_declaration() );
+
+		$this->assertSame( $processor->get_property_name(), $reread->get_property_name() );
+		$this->assertSame( $processor->is_important(), $reread->is_important() );
+		$this->assertSame(
+			self::significant_tokens( $processor->get_value_tokens() ),
+			self::significant_tokens( $reread->get_value_tokens() )
+		);
+		$this->assertFalse( $reread->next_declaration(), 'Expected exactly one declaration.' );
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::serialize_declaration
+	 * @covers ::set_value
+	 */
+	public function test_serialize_declaration_follows_mutations() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'color: red; background: white' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->set_value( 'green /* c */', true ) );
+		$this->assertSame( 'color: green !important;', $processor->serialize_declaration() );
+	}
+
+	/**
+	 * Reads the fields that give a value its meaning, closing blocks left open.
+	 *
+	 * @param WP_CSS_Token[] $tokens Value tokens.
+	 * @return array[] Type, flag, value and unit of each token except whitespace and comments.
+	 */
+	private static function significant_tokens( array $tokens ): array {
+		$closers = array(
+			WP_CSS_Token_Processor::TOKEN_FUNCTION     => WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN,
+			WP_CSS_Token_Processor::TOKEN_LEFT_PAREN   => WP_CSS_Token_Processor::TOKEN_RIGHT_PAREN,
+			WP_CSS_Token_Processor::TOKEN_LEFT_BRACKET => WP_CSS_Token_Processor::TOKEN_RIGHT_BRACKET,
+			WP_CSS_Token_Processor::TOKEN_LEFT_BRACE   => WP_CSS_Token_Processor::TOKEN_RIGHT_BRACE,
+		);
+		$open    = array();
+		$fields  = array();
+
+		foreach ( $tokens as $token ) {
+			$type = $token->get_type();
+			if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE === $type || WP_CSS_Token_Processor::TOKEN_COMMENT === $type ) {
+				continue;
+			}
+
+			if ( isset( $closers[ $type ] ) ) {
+				$open[] = $closers[ $type ];
+			} elseif ( in_array( $type, $closers, true ) ) {
+				array_pop( $open );
+			}
+
+			$fields[] = array( $type, $token->get_flag(), $token->get_value(), $token->get_unit() );
+		}
+
+		foreach ( array_reverse( $open ) as $type ) {
+			$fields[] = array( $type, null, null, null );
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * @covers ::set_value
 	 * @covers ::get_updated_style
 	 */

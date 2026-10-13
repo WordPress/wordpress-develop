@@ -204,6 +204,34 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
+	 * Serializes the current declaration.
+	 *
+	 * The property name is escaped as an identifier, and the value is written
+	 * from its tokens: comments are dropped, each whitespace run becomes one
+	 * space, and blocks left open at the end of the style are closed. The
+	 * result is `name: value;` or `name: value !important;`, as in CSSOM, and
+	 * CSS reads it as the same declaration.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_CSS_Token_Serializer::serialize()
+	 *
+	 * @return string|null Declaration text, or null when not on a declaration.
+	 */
+	public function serialize_declaration(): ?string {
+		$declaration = $this->get_current_declaration();
+		if ( null === $declaration ) {
+			return null;
+		}
+
+		return $this->format_declaration(
+			WP_CSS_Token_Serializer::escape_ident( $declaration['name'] ),
+			WP_CSS_Token_Serializer::serialize( $this->get_value_tokens() ),
+			$declaration['important']
+		);
+	}
+
+	/**
 	 * Sets the value of the current declaration.
 	 *
 	 * @since 7.2.0
@@ -228,7 +256,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$is_important = null === $important ? $declaration['important'] : $important;
-		$text         = $this->serialize_declaration( $declaration['raw_name'], $this->trim_value( $value ), $is_important );
+		$text         = $this->format_declaration( $declaration['raw_name'], $this->trim_value( $value ), $is_important );
 		$parsed_value = $this->get_parsed_declaration_value( $text );
 		if ( null === $parsed_value ) {
 			return false;
@@ -424,7 +452,7 @@ class WP_HTML_Style_Attribute_Processor {
 
 		$separator        = $this->get_append_separator( $insert_at );
 		$serialized_name  = $this->is_custom_property_name( $property_name ) ? $property_name : strtolower( $property_name );
-		$declaration_text = $this->serialize_declaration( $serialized_name, $this->trim_value( $value ), $important );
+		$declaration_text = $this->format_declaration( $serialized_name, $this->trim_value( $value ), $important );
 		$parsed_value     = $this->get_parsed_declaration_value( $declaration_text );
 		if ( null === $parsed_value ) {
 			return false;
@@ -1376,14 +1404,14 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Serializes a declaration.
+	 * Formats a declaration as `name: value;` or `name: value !important;`.
 	 *
-	 * @param string $property_name CSS property name.
-	 * @param string $value         CSS declaration value.
+	 * @param string $property_name CSS property name text.
+	 * @param string $value         CSS declaration value text.
 	 * @param bool   $important     Whether to append !important.
-	 * @return string Serialized declaration.
+	 * @return string Declaration text.
 	 */
-	private function serialize_declaration( string $property_name, string $value, bool $important ): string {
+	private function format_declaration( string $property_name, string $value, bool $important ): string {
 		return $property_name . ': ' . $value . ( $important ? ' !important' : '' ) . ';';
 	}
 
