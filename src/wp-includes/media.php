@@ -5506,8 +5506,13 @@ function get_post_galleries( $post, $html = true ) {
 
 			// New Gallery block format as an array.
 			if ( $has_inner_blocks ) {
-				$attrs = wp_list_pluck( $block['innerBlocks'], 'attrs' );
-				$ids   = wp_list_pluck( $attrs, 'id' );
+				$ids = array();
+
+				foreach ( $block['innerBlocks'] as $inner_block ) {
+					if ( isset( $inner_block['attrs']['id'] ) ) {
+						$ids[] = $inner_block['attrs']['id'];
+					}
+				}
 
 				foreach ( $ids as $id ) {
 					$url = wp_get_attachment_url( $id );
