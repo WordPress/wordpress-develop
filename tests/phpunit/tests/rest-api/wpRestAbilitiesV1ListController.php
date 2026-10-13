@@ -304,7 +304,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -327,7 +327,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 7, $data, 'Response should contain all fields.' );
@@ -353,7 +353,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 2, $data, 'Response should only contain the requested fields.' );
@@ -373,7 +373,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertCount( 3, $data, 'Response should only contain the fields for embed context.' );
@@ -386,14 +386,12 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test getting a non-existent ability returns 404.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
 	 */
 	public function test_get_item_not_found(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/non/existent' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
@@ -408,7 +406,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/not-show-in-rest' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
@@ -437,7 +435,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-ability' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertTrue( $data['meta']['public'] );
@@ -468,7 +466,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/public-optout' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
@@ -486,7 +484,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 401, $response->get_status() );
+		$this->assertSame( 401, $response->get_status() );
 	}
 
 	/**
@@ -499,15 +497,15 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'per_page', 10 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$headers = $response->get_headers();
 		$this->assertArrayHasKey( 'X-WP-Total', $headers );
 		$this->assertArrayHasKey( 'X-WP-TotalPages', $headers );
 
 		$total_abilities = count( wp_get_abilities() ) - 1; // Exclude the one that doesn't show in REST.
-		$this->assertEquals( $total_abilities, (int) $headers['X-WP-Total'] );
-		$this->assertEquals( ceil( $total_abilities / 10 ), (int) $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_abilities, $headers['X-WP-Total'] );
+		$this->assertSame( (string) ceil( $total_abilities / 10 ), $headers['X-WP-TotalPages'] );
 	}
 
 	/**
@@ -589,7 +587,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'page', 2 );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertCount( 5, $data );
 
@@ -727,7 +725,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 
 		wp_unregister_ability( 'test-hyphen/ability' );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -761,15 +759,14 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/' . $name );
 		$response = $this->server->dispatch( $request );
 		// Should return 404 as the regex pattern won't match
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
 	 * Test extremely long ability names.
 	 *
 	 * @ticket 64098
-	 *
-	 * @expectedIncorrectUsage WP_Abilities_Registry::get_registered
+	 * @ticket 65644
 	 */
 	public function test_extremely_long_ability_names(): void {
 		// Create a very long but valid ability name
@@ -779,7 +776,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		// Should return 404 as ability doesn't exist
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	/**
@@ -836,7 +833,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'category', 'math' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );
@@ -868,7 +865,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$request->set_param( 'category', 'nonexistent' );
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertIsArray( $data );

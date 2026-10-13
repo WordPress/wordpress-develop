@@ -49,11 +49,11 @@ class Tests_Admin_WpUpgrader extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		self::$upgrader_skin_mock = $this->getMockBuilder( 'WP_Upgrader_Skin' )->getMock();
+		self::$upgrader_skin_mock = $this->createMock( 'WP_Upgrader_Skin' );
 
 		self::$instance = new WP_Upgrader( self::$upgrader_skin_mock );
 
-		self::$wp_filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Base' )->getMock();
+		self::$wp_filesystem_mock = $this->createMock( 'WP_Filesystem_Base' );
 
 		if ( array_key_exists( 'wp_filesystem', $GLOBALS ) ) {
 			self::$wp_filesystem_backup = $GLOBALS['wp_filesystem'];

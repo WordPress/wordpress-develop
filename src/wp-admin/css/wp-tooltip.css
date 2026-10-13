@@ -3,7 +3,6 @@
 .wp-tooltip {
 	display: inline-flex;
 	align-items: center;
-	vertical-align: middle;
 }
 
 /* Toggle and close buttons. */
@@ -22,14 +21,18 @@
 	cursor: pointer;
 }
 
-.wp-tooltip .wp-tooltip__toggle:hover,
-.wp-tooltip .wp-tooltip__toggle:focus,
+.wp-tooltip:not(:has(button[aria-disabled="true"],button[disabled])) .wp-tooltip__toggle:hover,
+.wp-tooltip:not(:has(button[aria-disabled="true"],button[disabled])) .wp-tooltip__toggle:focus,
 .wp-tooltip .wp-tooltip__close:hover,
 .wp-tooltip .wp-tooltip__close:focus {
 	color: var(--wp-admin-theme-color, #3858e9);
 }
 
-.wp-tooltip .wp-tooltip__toggle:focus,
+/*
+ * `:where()` keeps the wrapper out of the specificity total, so buttons
+ * passed into a tooltip keep control of their own focus ring.
+ */
+:where(.wp-tooltip:not(:has(button[aria-disabled="true"],button[disabled]))) .wp-tooltip__toggle:focus,
 .wp-tooltip .wp-tooltip__close:focus {
 	outline: 2px solid transparent;
 	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
@@ -64,7 +67,8 @@
 	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
 }
 
-.wp-tooltip.wp-is-tooltip .wp-tooltip__bubble {
+.wp-tooltip.wp-is-tooltip .wp-tooltip__bubble,
+.wp-tooltip .wp-tooltip__hint {
 	background: #000;
 	color: #f0f0f0;
 	text-align: center;
@@ -72,7 +76,7 @@
 	line-height: 1.4;
 }
 
-.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__text {
+.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble:not(.wp-tooltip__hint) .wp-tooltip__text {
 	display: block;
 	padding-inline-end: 24px;
 }
@@ -91,13 +95,14 @@
 		position-try-fallbacks: flip-block, flip-inline;
 	}
 
-	.wp-tooltip.wp-is-tooltip .wp-tooltip__bubble {
+	.wp-tooltip.wp-is-tooltip .wp-tooltip__bubble,
+	.wp-tooltip .wp-tooltip__hint {
 		margin: 0;
 	}
 
 	/* Arrow: gray border (::before) under a white fill (::after). */
-	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble::before,
-	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble::after {
+	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble:not(.wp-tooltip__hint)::before,
+	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble:not(.wp-tooltip__hint)::after {
 		content: "";
 		position: absolute;
 		top: 100%;
@@ -108,12 +113,12 @@
 		border-bottom: 0;
 	}
 
-	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble::before {
+	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble:not(.wp-tooltip__hint)::before {
 		margin-left: -8px;
 		border-top-color: #c3c4c7;
 	}
 
-	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble::after {
+	.wp-tooltip:not(.wp-is-tooltip) .wp-tooltip__bubble:not(.wp-tooltip__hint)::after {
 		margin-left: -7px;
 		border-width: 7px;
 		border-bottom: 0;
