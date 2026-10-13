@@ -2,7 +2,7 @@ import path from 'path';
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 const AxeScanner = require( '../utils/accessibility-axe-scanner' );
 const { pages } = require( '../utils/accessibility-pages-matrix' );
-const ignoresAndknownFalsePositives = require( '../utils/accessibility-ignores-and-false-positives' );
+const ignoresAndFalsePositives = require( '../utils/accessibility-ignores-and-false-positives' );
 
 /**
  * Global accessibility scan rules.
@@ -98,7 +98,7 @@ async function scanAndAssert( page, pageSpec, variant = null ) {
 	let results = await scanner.scan();
 
 	// Filter out known ignores and false positives.
-	results = filterIgnoresAndFalsePositives( results, ignoresAndknownFalsePositives );
+	results = filterIgnoresAndFalsePositives( results, ignoresAndFalsePositives );
 
 	scanner.formatResults( results );
 
