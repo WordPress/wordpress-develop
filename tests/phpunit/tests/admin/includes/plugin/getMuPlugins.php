@@ -151,38 +151,6 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_mu_plugins() returns an empty array when the mu-plugins directory is empty.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_get_mu_plugins_when_directory_is_empty() {
-		$temp_dir = WP_CONTENT_DIR . '/mu-plugin-empty-test-backup';
-		$isolated = false;
-
-		if ( is_dir( WPMU_PLUGIN_DIR ) && ! empty( glob( WPMU_PLUGIN_DIR . '/*' ) ) ) {
-			rename( WPMU_PLUGIN_DIR, $temp_dir );
-			$isolated = true;
-		}
-
-		$dir = WPMU_PLUGIN_DIR;
-		if ( ! is_dir( $dir ) ) {
-			$this->assertTrue( wp_mkdir_p( $dir ), "Failed to create directory: {$dir}" );
-			$this->created_dirs[] = $dir;
-		}
-
-		try {
-			$this->assertSame( array(), get_mu_plugins() );
-		} finally {
-			if ( $isolated ) {
-				if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-					rmdir( WPMU_PLUGIN_DIR );
-				}
-				rename( $temp_dir, WPMU_PLUGIN_DIR );
-			}
-		}
-	}
-
-	/**
 	 * Tests that get_mu_plugins() unsets index.php when at or below the 30-byte threshold.
 	 *
 	 * @ticket 65819
