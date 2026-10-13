@@ -38,31 +38,31 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'non-ASCII passthrough'   => array( "'café'", '"café"' ),
 
 			// Backslash escaping — must happen first to prevent double-escaping.
-			'backslash'               => array( '"Back\\\\Slash"', '"Back\\5C Slash"' ),
-			'double backslash'        => array( '"\\\\\\\\"', '"\\5C \\5C "' ),
-			'backslash before quote'  => array( '"a\\\\\'b"', '"a\\5C \\27 b"' ),
+			'backslash'               => array( '"Back\\\\Slash"', '"Back\\5c Slash"' ),
+			'double backslash'        => array( '"\\\\\\\\"', '"\\5c \\5c "' ),
+			'backslash before quote'  => array( '"a\\\\\'b"', '"a\\5c \\27 b"' ),
 
 			// NULL → U+FFFD replacement character.
 			'null byte'               => array( "\"a\x00b\"", '"a�b"' ),
 			'zero escape'             => array( '"a\\0 b"', '"a�b"' ),
 
 			// Control characters are escaped as code points; CR and FF are not normalized to LF.
-			'LF'                      => array( '"a\\A b"', '"a\\A b"' ),
-			'CR'                      => array( '"a\\D b"', '"a\\D b"' ),
-			'CRLF'                    => array( '"a\\D \\A b"', '"a\\D \\A b"' ),
-			'form feed'               => array( '"a\\C b"', '"a\\C b"' ),
+			'LF'                      => array( '"a\\A b"', '"a\\a b"' ),
+			'CR'                      => array( '"a\\D b"', '"a\\d b"' ),
+			'CRLF'                    => array( '"a\\D \\A b"', '"a\\d \\a b"' ),
+			'form feed'               => array( '"a\\C b"', '"a\\c b"' ),
 			'tab'                     => array( "\"a\tb\"", '"a\\9 b"' ),
 			'escaped tab'             => array( '"a\\9 b"', '"a\\9 b"' ),
 			'U+0001'                  => array( "\"a\x01b\"", '"a\\1 b"' ),
-			'U+001F'                  => array( '"a\\1F b"', '"a\\1F b"' ),
-			'delete'                  => array( "\"a\x7Fb\"", '"a\\7F b"' ),
+			'U+001F'                  => array( '"a\\1F b"', '"a\\1f b"' ),
+			'delete'                  => array( "\"a\x7Fb\"", '"a\\7f b"' ),
 			'U+0080 is not escaped'   => array( '"a\\80 b"', "\"a\u{80}b\"" ),
 
 			// HTML-problematic characters.
-			'HTML characters < > &'   => array( '"a<b>c&d"', '"a\\3C b\\3E c\\26 d"' ),
+			'HTML characters < > &'   => array( '"a<b>c&d"', '"a\\3c b\\3e c\\26 d"' ),
 
 			// CSS-problematic characters.
-			'CSS syntax , ; { }'      => array( '"a,b;c{d}"', '"a\\2C b\\3B c\\7B d\\7D "' ),
+			'CSS syntax , ; { }'      => array( '"a,b;c{d}"', '"a\\2c b\\3b c\\7b d\\7d "' ),
 			'single quote'            => array( '"CSS\'s strings"', '"CSS\\27 s strings"' ),
 			'double quote'            => array( '\'Say "Hi"\'', '"Say \\22 Hi\\22 "' ),
 		);
@@ -119,7 +119,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		yield 'Hyphenated ident' => array( 'sans-serif', 'sans-serif' );
 		yield 'Underscore prefix' => array( '_foo', '_foo' );
 		yield 'Single char' => array( 'a', 'a' );
-		yield 'Single hyphen' => array( '-', '\\2D ' );
+		yield 'Single hyphen' => array( '-', '\\2d ' );
 		yield 'Custom property prefix' => array( '--custom', '--custom' );
 		yield 'Non-ASCII' => array( 'café', 'café' );
 
@@ -135,17 +135,17 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		yield 'Space within' => array( 'My Font', 'My\\20 Font' );
 		yield 'Multiple spaces within' => array( 'a b c', 'a\\20 b\\20 c' );
 		yield 'Tab within' => array( "has\ttab", 'has\\9 tab' );
-		yield 'Newline within' => array( "has\nnewline", 'has\\A newline' );
-		yield 'Carriage return within' => array( "has\rreturn", 'has\\D return' );
+		yield 'Newline within' => array( "has\nnewline", 'has\\a newline' );
+		yield 'Carriage return within' => array( "has\rreturn", 'has\\d return' );
 		yield 'NULL byte within' => array( "has\0null", 'has�null' );
-		yield 'DEL within' => array( "has\x7Fdelete", 'has\\7F delete' );
+		yield 'DEL within' => array( "has\x7Fdelete", 'has\\7f delete' );
 
 		// Special characters.
 		yield 'Apostrophe' => array( "Font's", 'Font\\27 s' );
-		yield 'Angle brackets' => array( '<html>', '\\3C html\\3E ' );
-		yield 'Comma' => array( 'a,b', 'a\\2C b' );
-		yield 'Semicolon' => array( 'a;b', 'a\\3B b' );
-		yield 'Backslash' => array( 'a\\b', 'a\\5C b' );
+		yield 'Angle brackets' => array( '<html>', '\\3c html\\3e ' );
+		yield 'Comma' => array( 'a,b', 'a\\2c b' );
+		yield 'Semicolon' => array( 'a;b', 'a\\3b b' );
+		yield 'Backslash' => array( 'a\\b', 'a\\5c b' );
 	}
 
 	/**
@@ -325,13 +325,13 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 	public static function data_token_serialization(): array {
 		return array(
 			'ident escapes decoded'                  => array( '\\66 oo', 'foo' ),
-			'ident escapes added'                    => array( 'a\\:b', 'a\\3A b' ),
+			'ident escapes added'                    => array( 'a\\:b', 'a\\3a b' ),
 			'function'                               => array( '\\66 oo(1)', 'foo(1)' ),
 			'at-keyword'                             => array( '@\\66 oo', '@foo' ),
-			'hash id'                                => array( '#a\\:', '#a\\3A ' ),
+			'hash id'                                => array( '#a\\:', '#a\\3a ' ),
 			'hash id escaped digit'                  => array( '#\\31 a', '#\\31 a' ),
 			'hash unrestricted'                      => array( '#1a', '#1a' ),
-			'hash unrestricted escape'               => array( '#1\\:', '#1\\3A ' ),
+			'hash unrestricted escape'               => array( '#1\\:', '#1\\3a ' ),
 			'hash unrestricted hyphen'               => array( '#-', '#-' ),
 			'string'                                 => array( "'a\"b'", '"a\\22 b"' ),
 			'string unterminated'                    => array( '"abc', '"abc"' ),
@@ -341,9 +341,9 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'url escaped parenthesis'                => array( 'url(a\\29 b)', 'url(a\\29 b)' ),
 			'url escaped space'                      => array( 'url(a\\20 b)', 'url(a\\20 b)' ),
 			'url escaped quote'                      => array( 'url(a\\"b)', 'url(a\\22 b)' ),
-			'url escaped backslash'                  => array( 'url(a\\\\b)', 'url(a\\5C b)' ),
+			'url escaped backslash'                  => array( 'url(a\\\\b)', 'url(a\\5c b)' ),
 			'url escaped control'                    => array( 'url(a\\1 b)', 'url(a\\1 b)' ),
-			'url escaped newline'                    => array( 'url(a\\A b)', 'url(a\\A b)' ),
+			'url escaped newline'                    => array( 'url(a\\A b)', 'url(a\\a b)' ),
 			'url ampersand'                          => array( 'url(a&b)', 'url(a\\26 b)' ),
 			'url NUL'                                => array( "url(a\x00b)", "url(a\u{FFFD}b)" ),
 			'url unterminated'                       => array( 'url(a', 'url(a)' ),
@@ -352,7 +352,7 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'number'                                 => array( '+.5e-3', '+.5e-3' ),
 			'percentage'                             => array( '-1.5%', '-1.5%' ),
 			'dimension'                              => array( '1.5e3PX', '1.5e3PX' ),
-			'dimension unit escape'                  => array( '1\\2D ', '1\\2D ' ),
+			'dimension unit escape'                  => array( '1\\2D ', '1\\2d ' ),
 			'dimension unit read as exponent'        => array( '1\\65 3', '1\\65 3' ),
 			'dimension unit read as signed exponent' => array( '1\\45 -3', '1\\45 -3' ),
 			'dimension unit e'                       => array( '1e', '1e' ),

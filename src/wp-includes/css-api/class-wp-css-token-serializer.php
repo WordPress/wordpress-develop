@@ -345,7 +345,7 @@ class WP_CSS_Token_Serializer {
 				$unit = self::escape_ident( $token->get_unit() );
 				// A unit that starts with `e`, an optional `-`, and a digit would read as an exponent.
 				if ( 1 === preg_match( '/^[eE]-?[0-9]/', $unit ) ) {
-					$unit = sprintf( '\\%X ', ord( $unit[0] ) ) . substr( $unit, 1 );
+					$unit = sprintf( '\\%x ', ord( $unit[0] ) ) . substr( $unit, 1 );
 				}
 				return $value . $unit;
 
@@ -378,13 +378,13 @@ class WP_CSS_Token_Serializer {
 	public static function escape_ident( string $value ): string {
 		// A lone `-` cannot start an identifier.
 		if ( '-' === $value ) {
-			return '\\2D ';
+			return '\\2d ';
 		}
 
 		// Neither can a digit or a `-` followed by a digit, so the digit is escaped.
 		$digit_at = ( isset( $value[0] ) && '-' === $value[0] ) ? 1 : 0;
 		if ( isset( $value[ $digit_at ] ) && $value[ $digit_at ] >= '0' && $value[ $digit_at ] <= '9' ) {
-			return substr( $value, 0, $digit_at ) . sprintf( '\\%X ', ord( $value[ $digit_at ] ) ) . self::escape_name( substr( $value, $digit_at + 1 ) );
+			return substr( $value, 0, $digit_at ) . sprintf( '\\%x ', ord( $value[ $digit_at ] ) ) . self::escape_name( substr( $value, $digit_at + 1 ) );
 		}
 
 		return self::escape_name( $value );
@@ -425,7 +425,7 @@ class WP_CSS_Token_Serializer {
 				0x7F === $byte ||
 				false !== strpos( '"\'\\<>&,;{}', $value[ $i ] )
 			) {
-				$result .= sprintf( '\\%X ', $byte );
+				$result .= sprintf( '\\%x ', $byte );
 				continue;
 			}
 
@@ -473,7 +473,7 @@ class WP_CSS_Token_Serializer {
 				continue;
 			}
 
-			$result .= sprintf( '\\%X ', $byte );
+			$result .= sprintf( '\\%x ', $byte );
 		}
 
 		return $result;
@@ -511,7 +511,7 @@ class WP_CSS_Token_Serializer {
 				0x7F === $byte ||
 				false !== strpos( '"\'()\\<>&,;{}', $value[ $i ] )
 			) {
-				$result .= sprintf( '\\%X ', $byte );
+				$result .= sprintf( '\\%x ', $byte );
 				continue;
 			}
 
