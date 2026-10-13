@@ -129,9 +129,9 @@ exactly because casing is semantic.
 - ordinary property names are returned lowercase;
 - custom property names preserve exact decoded casing.
 
-Edits preserve authored property-name spelling when the declaration already
-exists. Appended ordinary properties serialize lowercase because there is no
-authored spelling to preserve. Appended custom properties preserve exact casing.
+Edits and appends write the property name as `get_property_name()` returns it,
+escaped as an identifier: ordinary properties lowercase, custom properties with
+their exact casing.
 
 Appended property names must be valid plaintext CSS property names. The processor
 does not escape arbitrary strings into identifiers. Custom properties follow the
@@ -262,11 +262,15 @@ declaration value must be strict: it must serialize from parsed token/component
 data with equivalent CSS semantics. If equivalence cannot be proven, the
 mutation returns `false`.
 
-`set_value()` trims supplied values according to CSS whitespace.
+`set_value()` and `append_declaration()` write a declaration as
+`serialize_declaration()` does: `name: value;` or `name: value !important;`, with
+the name escaped as an identifier and the value written from its tokens. Comments
+and whitespace before and after a supplied value are removed, comments inside it
+are dropped, and each whitespace run inside it becomes one space. Nothing is
+copied from the supplied text.
 
-When possible, `set_value()` replaces the current declaration's value and
-priority portion rather than normalizing the whole declaration. Correctness wins
-over whitespace preservation.
+`set_value()` rewrites the whole current declaration; text around it is
+unchanged.
 
 ## Invalid Fragments
 

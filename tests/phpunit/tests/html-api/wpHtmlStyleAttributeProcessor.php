@@ -419,7 +419,7 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 		$this->assertTrue( $processor->set_value( '/* before */ green /* after */' ) );
 		$this->assertTrue( $processor->append_declaration( 'background', '/* before */ white /* after */' ) );
 
-		$this->assertSame( 'color: /* before */ green /* after */; background: /* before */ white /* after */;', $processor->get_updated_style() );
+		$this->assertSame( 'color: green; background: white;', $processor->get_updated_style() );
 	}
 
 	/**
@@ -454,14 +454,76 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	 */
 	public static function data_values_ending_in_escaped_whitespace_or_a_backslash_delimiter() {
 		return array(
-			'escaped space'                   => array( 'a\\ ', 'a\\ ' ),
-			'escaped space, then whitespace'  => array( "a\\  \t", 'a\\ ' ),
-			'escaped tab'                     => array( "a\\\t", "a\\\t" ),
+			'escaped space'                   => array( 'a\\ ', 'a\\20 ' ),
+			'escaped space, then whitespace'  => array( "a\\  \t", 'a\\20 ' ),
+			'escaped tab'                     => array( "a\\\t", 'a\\9 ' ),
 			'backslash before a newline'      => array( "a\\\n", "a\\\n" ),
 			'backslash, newline, then spaces' => array( "a\\\n  ", "a\\\n" ),
-			'escaped backslash'               => array( 'a\\\\ ', 'a\\\\' ),
-			'escaped backslash, then a delim' => array( "a\\\\\\\n", "a\\\\\\\n" ),
+			'escaped backslash'               => array( 'a\\\\ ', 'a\\5c ' ),
+			'escaped backslash, then a delim' => array( "a\\\\\\\n", "a\\5c \\\n" ),
 		);
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::set_value
+	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_values_written_from_tokens
+	 *
+	 * @param string $value   Declaration value.
+	 * @param string $written Expected value text in the updated style.
+	 */
+	public function test_set_value_and_append_declaration_write_the_value_from_its_tokens( string $value, string $written ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( '--x: 1; width: 1px' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->set_value( $value ), 'Expected set_value() to succeed.' );
+		$this->assertSame( "--x: {$written}; width: 1px", $processor->get_updated_style() );
+
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'width: 1px' );
+
+		$this->assertTrue( $processor->append_declaration( '--x', $value ), 'Expected append_declaration() to succeed.' );
+		$this->assertSame( "width: 1px; --x: {$written};", $processor->get_updated_style() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_values_written_from_tokens() {
+		return array(
+			'comments and whitespace runs'  => array( " \t/* a */ a \t/* b */  b /* c */ ", 'a b' ),
+			'comment between tokens'        => array( 'a/**/b', 'a/**/b' ),
+			'escaped ident'                 => array( '\\66 oo', 'foo' ),
+			'single-quoted string'          => array( "'a'", '"a"' ),
+			'control character in a string' => array( "\"a\x01b\"", '"a\\1 b"' ),
+			'url with spaces and ampersand' => array( 'url( a&b )', 'url(a\\26 b)' ),
+			'non-ident code point in ident' => array( "a\u{A0}b", 'a\\a0 b' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::set_value
+	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 */
+	public function test_set_value_and_append_declaration_write_the_name_as_an_identifier() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'C\\6f LOR: red' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->set_value( 'blue' ) );
+		$this->assertSame( 'color: blue;', $processor->get_updated_style() );
+
+		$processor = WP_HTML_Style_Attribute_Processor::create( '' );
+
+		$this->assertTrue( $processor->append_declaration( "--a\u{A0}b", '1' ) );
+		$this->assertSame( '--a\\a0 b: 1;', $processor->get_updated_style() );
 	}
 
 	/**
@@ -956,18 +1018,18 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	 * @covers ::set_value
 	 * @covers ::get_updated_style
 	 */
-	public function test_escaped_property_names_match_decoded_names_and_preserve_raw_spelling() {
+	public function test_escaped_property_names_match_decoded_names_and_are_written_as_identifiers() {
 		$processor = WP_HTML_Style_Attribute_Processor::create( 'c\\6f lor: red; --t\\6f ne: cool; --Tone: warm;' );
 
 		$this->assertTrue( $processor->next_declaration( 'color' ) );
 		$this->assertSame( 'color', $processor->get_property_name() );
 		$this->assertTrue( $processor->set_value( 'green' ) );
-		$this->assertSame( 'c\\6f lor: green; --t\\6f ne: cool; --Tone: warm;', $processor->get_updated_style() );
+		$this->assertSame( 'color: green; --t\\6f ne: cool; --Tone: warm;', $processor->get_updated_style() );
 
 		$this->assertTrue( $processor->next_declaration( '--tone' ) );
 		$this->assertSame( '--tone', $processor->get_property_name() );
 		$this->assertTrue( $processor->set_value( 'cold' ) );
-		$this->assertSame( 'c\\6f lor: green; --t\\6f ne: cold; --Tone: warm;', $processor->get_updated_style() );
+		$this->assertSame( 'color: green; --tone: cold; --Tone: warm;', $processor->get_updated_style() );
 
 		$this->assertFalse( $processor->next_declaration( '--tone' ) );
 	}

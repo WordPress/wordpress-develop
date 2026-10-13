@@ -53,7 +53,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Parsed declarations.
 	 *
-	 * @var array<int, array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
+	 * @var array<int, array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}>
 	 */
 	private $declarations = array();
 
@@ -234,6 +234,10 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Sets the value of the current declaration.
 	 *
+	 * The declaration is written as serialize_declaration() writes it: the
+	 * name is escaped as an identifier and the value is written from its
+	 * tokens.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string    $value     CSS declaration value, without the property name.
@@ -256,7 +260,7 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$is_important = null === $important ? $declaration['important'] : $important;
-		$text         = $this->format_declaration( $declaration['raw_name'], $this->trim_value( $value ), $is_important );
+		$text         = $this->format_declaration( WP_CSS_Token_Serializer::escape_ident( $declaration['name'] ), $this->serialize_value( $value ), $is_important );
 		$parsed_value = $this->get_parsed_declaration_value( $text );
 		if ( null === $parsed_value ) {
 			return false;
@@ -426,7 +430,9 @@ class WP_HTML_Style_Attribute_Processor {
 	 * Appends a declaration to the style attribute value.
 	 *
 	 * Appending does not remove or replace existing declarations with the same
-	 * property name.
+	 * property name. The declaration is written as serialize_declaration()
+	 * writes it: the name is escaped as an identifier and the value is
+	 * written from its tokens.
 	 *
 	 * @since 7.2.0
 	 *
@@ -456,14 +462,14 @@ class WP_HTML_Style_Attribute_Processor {
 		}
 
 		$separator        = $this->get_append_separator( $insert_at );
-		$serialized_name  = $this->is_custom_property_name( $property_name ) ? $property_name : strtolower( $property_name );
-		$declaration_text = $this->format_declaration( $serialized_name, $this->trim_value( $value ), $important );
+		$name             = $this->is_custom_property_name( $property_name ) ? $property_name : strtolower( $property_name );
+		$declaration_text = $this->format_declaration( WP_CSS_Token_Serializer::escape_ident( $name ), $this->serialize_value( $value ), $important );
 		$parsed_value     = $this->get_parsed_declaration_value( $declaration_text );
 		if ( null === $parsed_value ) {
 			return false;
 		}
 
-		if ( ! $this->is_parseable_append( $repair_at, $eof_repair, $separator, $declaration_text, $old_declaration_count, $serialized_name, $parsed_value, $important ) ) {
+		if ( ! $this->is_parseable_append( $repair_at, $eof_repair, $separator, $declaration_text, $old_declaration_count, $name, $parsed_value, $important ) ) {
 			return false;
 		}
 
@@ -737,7 +743,7 @@ class WP_HTML_Style_Attribute_Processor {
 	 * @param int $start_index   First token index in the segment.
 	 * @param int $end_index     Token index after the segment.
 	 * @param int $after         Byte offset after the declaration.
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @return array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function parse_declaration_segment( int $leading_start, int $start_index, int $end_index, int $after ): ?array {
 		$index = $this->skip_ignored_tokens( $start_index, $end_index );
@@ -799,7 +805,6 @@ class WP_HTML_Style_Attribute_Processor {
 
 		return array(
 			'name'            => $name,
-			'raw_name'        => substr( $this->style, $name_token->get_start(), $name_token->get_length() ),
 			'leading_start'   => $leading_start,
 			'start'           => $name_token->get_start(),
 			'after'           => $after,
@@ -966,7 +971,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets the current declaration metadata.
 	 *
-	 * @return array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
+	 * @return array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null}|null
 	 */
 	private function get_current_declaration(): ?array {
 		if (
@@ -983,7 +988,7 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Checks whether a replacement preserves the current declaration's structure.
 	 *
-	 * @param array{name:string, raw_name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
+	 * @param array{name:string, leading_start:int, start:int, after:int, trailing_end:int, value_start:int, value_end:int, value_tokens:array{int,int}, important:bool, important_start:int|null, important_end:int|null} $declaration        Current declaration metadata.
 	 * @param int                                                                                                                                                                                                                           $start              Byte offset at which to start the replacement.
 	 * @param int                                                                                                                                                                                                                           $length             Number of bytes to replace.
 	 * @param string                                                                                                                                                                                                                        $text               Replacement text.
@@ -1421,28 +1426,31 @@ class WP_HTML_Style_Attribute_Processor {
 	}
 
 	/**
-	 * Removes the whitespace tokens before and after a declaration value.
+	 * Writes a declaration value from its tokens.
 	 *
-	 * Whitespace consumed by an escape is part of the value, and a `\` before
-	 * a newline keeps one newline so that it does not escape the next byte.
+	 * Whitespace and comments before and after the value are removed, and the
+	 * rest is written as serialize_declaration() writes a value.
 	 *
 	 * @param string $value CSS declaration value.
-	 * @return string Trimmed value.
+	 * @return string Value text.
 	 */
-	private function trim_value( string $value ): string {
-		$value     = ltrim( $value, self::WHITESPACE );
+	private function serialize_value( string $value ): string {
 		$processor = WP_CSS_Token_Processor::create( $value );
-		$end       = 0;
-		$is_delim  = false;
-
+		$tokens    = array();
 		while ( $processor->next_token() ) {
-			if ( WP_CSS_Token_Processor::TOKEN_WHITESPACE !== $processor->get_token_type() ) {
-				$end      = $processor->get_token_start() + $processor->get_token_length();
-				$is_delim = WP_CSS_Token_Processor::TOKEN_DELIM === $processor->get_token_type() && '\\' === $processor->get_token_value();
-			}
+			$tokens[] = $processor->get_token();
 		}
 
-		return substr( $value, 0, $end ) . ( $is_delim ? "\n" : '' );
+		$start = 0;
+		$end   = count( $tokens );
+		while ( $start < $end && $this->is_ignored_token( $tokens[ $start ] ) ) {
+			++$start;
+		}
+		while ( $end > $start && $this->is_ignored_token( $tokens[ $end - 1 ] ) ) {
+			--$end;
+		}
+
+		return WP_CSS_Token_Serializer::serialize( array_slice( $tokens, $start, $end - $start ) );
 	}
 
 	/**
