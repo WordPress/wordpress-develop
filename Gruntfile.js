@@ -1,5 +1,4 @@
 /* jshint node:true */
-/* eslint-env es6 */
 /* globals Set */
 var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
@@ -138,7 +137,6 @@ module.exports = function(grunt) {
 			'concat',
 			'copy',
 			'cssmin',
-			'imagemin',
 			'jshint',
 			'uglify',
 			'watch'
@@ -155,7 +153,11 @@ module.exports = function(grunt) {
 		]
 	};
 
-	// Load grunt-* tasks.
+	/**
+	 * Loads the Grunt tasks for the given dependency.
+	 *
+	 * @param {string} dependency The name of the Grunt task to load.
+	 */
 	function loadGruntTasks( dependency ) {
 		var contrib = key === 'contrib' ? 'contrib-' : '';
 		grunt.loadNpmTasks( 'grunt-' + contrib + dependency );
@@ -368,6 +370,8 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.color.min.js' ]: [ './node_modules/jquery-color/dist/jquery.color.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
@@ -807,8 +811,8 @@ module.exports = function(grunt) {
 							// Strip the 'library/' prefix from filePath values so they
 							// resolve correctly relative to wp-includes/images/icon-library/.
 							.replace(
-								/'filePath' => 'library\//g,
-								'\'filePath\' => \''
+								/'filePath'(\s+)=> 'library\//g,
+								'\'filePath\'$1=> \''
 							);
 					}
 				},
@@ -926,6 +930,11 @@ module.exports = function(grunt) {
 							{
 								expr: /content/im,
 								action: function( prop, value ) {
+									// Alternative text, as in `content: "\f141" / '';`, is not part of the icon.
+									var altText = ( value.match( /\s*\/\s*(?:'[^']*'|"[^"]*")\s*$/ ) || [ '' ] )[ 0 ];
+
+									value = value.slice( 0, value.length - altText.length );
+
 									if ( value === '"\\f141"' ) { // dashicons-arrow-left
 										value = '"\\f139"';
 									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
@@ -939,7 +948,7 @@ module.exports = function(grunt) {
 									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
 										value = '"\\f341"';
 									}
-									return { prop: prop, value: value };
+									return { prop: prop, value: value + altText };
 								}
 							}
 						]
@@ -1080,28 +1089,59 @@ module.exports = function(grunt) {
 					'**/test/**',
 					'**/vendor/**'
 				],
-				/*
-				 * Limit JSHint's run to a single specified plugin directory:
+				/**
+				 * Limits JSHint's run to a single specified plugin directory:
 				 *
-				 *    grunt jshint:plugins --dir=foldername
+				 * Usage example:
+				 * grunt jshint:plugins --dir=foldername
+				 *
+				 * This also automatically skips minified files that may not have
+				 * a filename ending with `.min.js`, specifically when they have
+				 * lines longer than 500 characters.
+				 *
+				 * @param {string} dirpath Directory path.
+				 * @return {boolean} Whether the path is skipped.
 				 */
 				filter: function( dirpath ) {
-					var index, dir = grunt.option( 'dir' );
-
-					// Don't filter when no target folder is specified.
-					if ( ! dir ) {
-						return true;
+					// Bypasses folder targets so fs.readFileSync doesn't throw errors.
+					if ( ! fs.lstatSync( dirpath ).isFile() ) {
+						return false;
 					}
 
-					dirpath = dirpath.replace( /\\/g, '/' );
-					index = dirpath.lastIndexOf( '/' + dir );
+					// If `--dir` is provided.
+					var dir = grunt.option( 'dir' );
+					if ( dir ) {
+						var normalizedPath = dirpath.replace( /\\/g, '/' );
+						var index = normalizedPath.lastIndexOf( '/' + dir );
 
-					// Match only the folder name passed from cli.
-					if ( -1 !== index ) {
-						return true;
+						// If a directory was requested but this file isn't in it, exclude it.
+						if ( -1 === index ) {
+							return false;
+						}
 					}
 
-					return false;
+					// Read the file and inspect line lengths to catch minified/bundled code.
+					var content;
+					try {
+						content = fs.readFileSync( dirpath, 'utf-8' );
+					} catch ( error ) {
+						grunt.log.writeln( 'Could not read file: ' + dirpath + ' (Error: ' + error.message + ')' );
+						return false;
+					}
+
+					var lines = content.split( '\n' );
+
+					// Cap the maximum number of iterations at 5 lines.
+					for ( const line of lines.slice( 0, 5 ) ) {
+						// Exclude files with lines longer than 500 characters.
+						if ( line.length > 500 ) {
+							grunt.log.writeln( 'Skipping minified file: ' + dirpath );
+							return false;
+						}
+					}
+
+					// File passed both independent checks: proceed with JSHint.
+    				return true;
 				}
 			}
 		},
@@ -1565,6 +1605,15 @@ module.exports = function(grunt) {
 					},
 					{
 						expand: true,
+						cwd: BUILD_DIR + 'wp-includes/js/jquery',
+						src: [
+							'jquery-migrate.js',
+							'jquery-migrate.min.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/jquery/'
+					},
+					{
+						expand: true,
 						cwd: BUILD_DIR + 'wp-includes/js/dist/',
 						src: [ '*.js' ],
 						dest: BUILD_DIR + 'wp-includes/js/dist/',
@@ -1667,13 +1716,13 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks( 'grunt-webpack' );
 
 	// RTL task.
-	grunt.registerTask('rtl', ['rtlcss:core', 'rtlcss:colors']);
+	grunt.registerTask('rtl', 'Generates right-to-left (RTL) stylesheets for core and the admin color schemes.', ['rtlcss:core', 'rtlcss:colors']);
 
 	// Color schemes task.
-	grunt.registerTask('colors', ['sass:colors', 'postcss:colors']);
+	grunt.registerTask('colors', 'Compiles and processes the admin color scheme stylesheets.', ['sass:colors', 'postcss:colors']);
 
 	// JSHint task.
-	grunt.registerTask( 'jshint:corejs', [
+	grunt.registerTask( 'jshint:corejs', 'Runs JSHint on the Gruntfile, tests, bundled themes, and core JavaScript files.', [
 		'jshint:grunt',
 		'jshint:tests',
 		'jshint:themes',
@@ -1681,7 +1730,7 @@ module.exports = function(grunt) {
 		'jshint:media'
 	] );
 
-	grunt.registerTask( 'restapi-jsclient', [
+	grunt.registerTask( 'restapi-jsclient', 'Runs the PHPUnit and QUnit tests for the REST API JavaScript client.', [
 		'phpunit:restapi-jsclient',
 		'qunit:compiled'
 	] );
@@ -1740,7 +1789,7 @@ module.exports = function(grunt) {
 
 	grunt.renameTask( 'watch', '_watch' );
 
-	grunt.registerTask( 'watch', function() {
+	grunt.registerTask( 'watch', 'Watches files for changes and runs the related tasks. Use watch:phpunit or --phpunit to also run PHPUnit tests.', function() {
 		if ( ! this.args.length || this.args.indexOf( 'webpack' ) > -1 ) {
 			grunt.task.run( 'build' );
 		}
@@ -1755,13 +1804,16 @@ module.exports = function(grunt) {
 		grunt.task.run( '_' + this.nameArgs );
 	} );
 
-	grunt.registerTask( 'precommit:image', [
+	grunt.registerMultiTask( 'imagemin', 'Losslessly optimizes PNG, JPEG and GIF images.', require( './tools/imagemin/task.js' )( grunt ) );
+
+	grunt.registerTask( 'precommit:image', 'Optimizes core images in preparation for a commit.', [
 		'imagemin:core'
 	] );
 
-	grunt.registerTask( 'precommit:js', [
+	grunt.registerTask( 'precommit:js', 'Builds, lints, type checks, and tests JavaScript files in preparation for a commit.', [
 		'webpack:prod',
 		'jshint:corejs',
+		'lint:jsdoc',
 		'typecheck:js',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
@@ -1771,16 +1823,16 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'precommit:css', [
+	grunt.registerTask( 'precommit:css', 'Processes core CSS files with PostCSS in preparation for a commit.', [
 		'postcss:core'
 	] );
 
-	grunt.registerTask( 'precommit:php', [
+	grunt.registerTask( 'precommit:php', 'Runs PHPStan and PHPUnit tests in preparation for a commit.', [
 		'phpstan',
 		'phpunit'
 	] );
 
-	grunt.registerTask( 'precommit:emoji', [
+	grunt.registerTask( 'precommit:emoji', 'Updates the emoji regular expressions from the latest Twemoji file list. Requires the GitHub CLI.', [
 		'replace:emoji-regex'
 	] );
 
@@ -1797,6 +1849,11 @@ module.exports = function(grunt) {
 			path.dirname( __dirname ) + '/.svn'
 		] );
 
+		/**
+		 * Searches for the first version control directory in the given set.
+		 *
+		 * @param {string[]} set Array of directory paths to check.
+		 */
 		function find( set ) {
 			var dir;
 
@@ -1809,6 +1866,9 @@ module.exports = function(grunt) {
 			}
 		}
 
+		/**
+		 * Runs all tasks.
+		 */
 		function runAllTasks() {
 			grunt.log.writeln( 'Cannot determine which files are modified as SVN and GIT are not available.' );
 			grunt.log.writeln( 'Running all tasks and all tests.' );
@@ -1824,6 +1884,11 @@ module.exports = function(grunt) {
 			done();
 		}
 
+		/**
+		 * Determines which precommit tasks to run based on modified files detected by version control.
+		 *
+		 * @param {string} type The version control type: 'git' or 'svn'.
+		 */
 		function run( type ) {
 			var command = map[ type ].split( ' ' );
 
@@ -1833,13 +1898,23 @@ module.exports = function(grunt) {
 			}, function( error, result, code ) {
 				var taskList = [];
 
-				// Callback for finding modified paths.
+				/**
+				 * Checks if the given path appears in the version control status output.
+				 *
+				 * @param {string} path The path to check.
+				 * @return {boolean} True if the path is found, false otherwise.
+				 */
 				function testPath( path ) {
 					var regex = new RegExp( ' ' + path + '$', 'm' );
 					return regex.test( result.stdout );
 				}
 
-				// Callback for finding modified files by extension.
+				/**
+				 * Checks if files with the given extension appear in the version control status output.
+				 *
+				 * @param {string} extension The file extension to check for.
+				 * @return {boolean} True if the file with the given extension is found, false otherwise.
+				 */
 				function testExtension( extension ) {
 					var regex = new RegExp( '\.' + extension + '$', 'm' );
 					return regex.test( result.stdout );
@@ -1897,14 +1972,14 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'copy:js', [
+	grunt.registerTask( 'copy:js', 'Copies JavaScript files from npm packages, vendor libraries, wp-admin, and wp-includes.', [
 		'copy:npm-packages',
 		'copy:vendor-js',
 		'copy:admin-js',
 		'copy:includes-js'
 	] );
 
-	grunt.registerTask( 'uglify:all', [
+	grunt.registerTask( 'uglify:all', 'Minifies all JavaScript files.', [
 		'uglify:core',
 		'uglify:emoji-loader',
 		'uglify:jquery-ui',
@@ -1915,20 +1990,20 @@ module.exports = function(grunt) {
 		'uglify:wp-polyfill-fetch'
 	] );
 
-	grunt.registerTask( 'build:codemirror', [
+	grunt.registerTask( 'build:codemirror', 'Builds the CodeMirror script and styles.', [
 		'webpack:codemirror',
 		'cssmin:codemirror',
 		'usebanner:codemirror',
 		'copy:codemirror'
 	] );
 
-	grunt.registerTask( 'build:webpack', [
+	grunt.registerTask( 'build:webpack', 'Cleans the webpack assets and runs the production and development webpack builds.', [
 		'clean:webpack-assets',
 		'webpack:prod',
 		'webpack:dev',
 	] );
 
-	grunt.registerTask( 'build:js', [
+	grunt.registerTask( 'build:js', 'Builds all JavaScript files.', [
 		'clean:js',
 		'build:webpack',
 		'copy:js',
@@ -1938,7 +2013,7 @@ module.exports = function(grunt) {
 		'concat:emoji'
 	] );
 
-	grunt.registerTask( 'build:css', [
+	grunt.registerTask( 'build:css', 'Builds all CSS files, including the RTL and admin color scheme stylesheets.', [
 		'clean:css',
 		'copy:wp-admin-css-compat-rtl',
 		'copy:wp-admin-css-compat-min',
@@ -2029,30 +2104,30 @@ module.exports = function(grunt) {
 		} );
 	} );
 
-	grunt.registerTask( 'build:certificates', [
+	grunt.registerTask( 'build:certificates', 'Copies the certificate authority bundle into wp-includes.', [
 		'copy:certificates'
 	] );
 
-	grunt.registerTask( 'certificates:upgrade', [
+	grunt.registerTask( 'certificates:upgrade', 'Upgrades the certificate authority bundle package and copies the bundle into wp-includes.', [
 		'certificates:upgrade-package',
 		'copy:certificates'
 	] );
 
-	grunt.registerTask( 'build:files', [
+	grunt.registerTask( 'build:files', 'Cleans the build directory and copies the core files into it.', [
 		'clean:files',
 		'copy:files',
 		'copy:version',
 	] );
 
-	grunt.registerTask( 'replace:workflow-references-local-to-remote', [
+	grunt.registerTask( 'replace:workflow-references-local-to-remote', 'Replaces local reusable workflow references with references to trunk.', [
 		'copy:workflow-references-local-to-remote',
 	]);
 
-	grunt.registerTask( 'replace:workflow-references-remote-to-local', [
+	grunt.registerTask( 'replace:workflow-references-remote-to-local', 'Replaces reusable workflow references to trunk with local references.', [
 		'copy:workflow-references-remote-to-local',
 	]);
 
-	grunt.registerTask( 'post-branching', [
+	grunt.registerTask( 'post-branching', 'Removes unneeded workflows and points reusable workflow references to trunk after branching.', [
 		'clean:workflows',
 		'replace:workflow-references-local-to-remote'
 	]);
@@ -2060,7 +2135,7 @@ module.exports = function(grunt) {
 	/**
 	 * Build verification tasks.
 	 */
-	grunt.registerTask( 'verify:build', [
+	grunt.registerTask( 'verify:build', 'Runs all build verification tasks.', [
 		'verify:old-files',
 		'verify:source-maps',
 	] );
@@ -2070,7 +2145,7 @@ module.exports = function(grunt) {
 	 *
 	 * @ticket 36083
 	 */
-	grunt.registerTask( 'verify:old-files', function() {
+	grunt.registerTask( 'verify:old-files', 'Verifies that no files listed in $_old_files exist in the build directory.', function() {
 		const file = `${ BUILD_DIR }wp-admin/includes/update-core.php`;
 
 		assert(
@@ -2130,7 +2205,7 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 * @ticket 60348
 	 */
-	grunt.registerTask( 'verify:source-maps', function() {
+	grunt.registerTask( 'verify:source-maps', 'Verifies that built JavaScript files do not contain source map links.', function() {
 		const ignoredFiles = [
 			'build/wp-includes/js/dist/components.js',
 			'build/wp-includes/js/dist/data.js',
@@ -2216,7 +2291,7 @@ module.exports = function(grunt) {
 	} );
 
 	// Detects and copies stable routes.
-	grunt.registerTask( 'build:routes', [
+	grunt.registerTask( 'build:routes', 'Detects and copies the stable Gutenberg routes.', [
 		'routes:setup',
 		'copy:routes',
 	] );
@@ -2228,7 +2303,7 @@ module.exports = function(grunt) {
 	 *
 	 * Because all of these tasks write to src/, the outcome is identical for build and build:dev.
 	 */
-	grunt.registerTask( 'build:gutenberg', [
+	grunt.registerTask( 'build:gutenberg', 'Refreshes the Gutenberg-sourced content in src/.', [
 		'clean:gutenberg',
 		'copy:gutenberg-php',
 		'build:routes',
@@ -2241,7 +2316,7 @@ module.exports = function(grunt) {
 		'copy:icon-library-manifest',
 	] );
 
-	grunt.registerTask( 'build', function() {
+	grunt.registerTask( 'build', 'Builds WordPress. Use --dev to build into src/ for development.', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
 				'gutenberg:verify',
@@ -2266,7 +2341,7 @@ module.exports = function(grunt) {
 		}
 	} );
 
-	grunt.registerTask( 'prerelease', [
+	grunt.registerTask( 'prerelease', 'Runs formatting checks, linting, tests, and image optimization in preparation for a release.', [
 		'format:php:error',
 		'precommit:php',
 		'precommit:js',
@@ -2313,6 +2388,18 @@ module.exports = function(grunt) {
 		grunt.util.spawn( {
 			cmd: 'npm',
 			args: [ 'run', 'typecheck:js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'lint:jsdoc', 'Runs JSDoc linting on JavaScript files.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'npm',
+			args: [ 'run', 'lint:jsdoc' ],
 			opts: { stdio: 'inherit' }
 		}, function( error ) {
 			done( ! error );
@@ -2395,7 +2482,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('apply', 'patch');
 
 	// Default task.
-	grunt.registerTask('default', ['build']);
+	grunt.registerTask('default', 'Runs the build task.', ['build']);
 
 	/*
 	 * Automatically updates the `:dynamic` configurations

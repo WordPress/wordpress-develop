@@ -232,6 +232,7 @@ declare( strict_types = 1 );
  *     ),
  *
  * @since 6.9.0
+ * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
  *
  * @see WP_Abilities_Registry::register()
@@ -291,6 +292,8 @@ declare( strict_types = 1 );
  *                                                     of ability behavior.
  * }
  * @return WP_Ability|null The registered ability instance on success, `null` on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $name
  */
 function wp_register_ability( string $name, array $args ): ?WP_Ability {
 	if ( ! doing_action( 'wp_abilities_api_init' ) ) {
@@ -651,6 +654,8 @@ function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
  *     @type array<string, mixed> $meta        Optional. Additional metadata for the ability category.
  * }
  * @return WP_Ability_Category|null The registered ability category instance on success, `null` on failure.
+ *
+ * @phpstan-param lowercase-string&non-empty-string $slug
  */
 function wp_register_ability_category( string $slug, array $args ): ?WP_Ability_Category {
 	if ( ! doing_action( 'wp_abilities_api_categories_init' ) ) {

@@ -40,6 +40,7 @@ final class WP_Abilities_Registry {
 	 * Do not use this method directly. Instead, use the `wp_register_ability()` function.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `public` meta argument.
 	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 	 *
 	 * @see wp_register_ability()
@@ -83,6 +84,8 @@ final class WP_Abilities_Registry {
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $name
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
@@ -110,6 +113,7 @@ final class WP_Abilities_Registry {
 		 * Filters the ability arguments before they are validated and used to instantiate the ability.
 		 *
 		 * @since 6.9.0
+		 * @since 7.1.0 Added the `public` meta argument.
 		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 		 *
 		 * @param array<string, mixed> $args {
