@@ -344,7 +344,7 @@ function update_nag() {
 		$msg,
 		array(
 			'type'               => 'warning',
-			'additional_classes' => array( 'update-nag', 'inline' ),
+			'additional_classes' => array( 'update-nag' ),
 			'paragraph_wrap'     => false,
 		)
 	);
@@ -889,7 +889,7 @@ function maintenance_nag() {
 		$msg,
 		array(
 			'type'               => 'warning',
-			'additional_classes' => array( 'update-nag', 'inline' ),
+			'additional_classes' => array( 'update-nag' ),
 			'paragraph_wrap'     => false,
 		)
 	);
