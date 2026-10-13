@@ -1037,6 +1037,7 @@ function admin_color_scheme_picker( $user_id ) {
 				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
 				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="menu_icon_styles" value="<?php echo esc_attr( _wp_get_color_scheme_menu_icon_styles( $color ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<div class="color-palette">
 				<?php
@@ -1102,39 +1103,54 @@ function wp_color_scheme_settings() {
  * @since 7.2.0
  *
  * @see wp_color_scheme_settings()
- *
- * @global array $_wp_admin_css_colors
  */
 function wp_color_scheme_menu_icon_styles() {
+	$styles = _wp_get_color_scheme_menu_icon_styles( get_user_option( 'admin_color' ) );
+
+	if ( '' !== $styles ) {
+		wp_add_inline_style( 'admin-menu', $styles );
+	}
+}
+
+/**
+ * Returns the CSS that colors inline SVG admin menu icons with the icon colors of an admin color scheme.
+ *
+ * The color scheme picker also passes it to user-profile.js, which applies
+ * it when another scheme is selected.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $_wp_admin_css_colors
+ *
+ * @param string $color_scheme The name of the color scheme.
+ * @return string The CSS, or an empty string if the scheme needs none.
+ */
+function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
 	global $_wp_admin_css_colors;
 
-	$color_scheme = get_user_option( 'admin_color' );
-
 	if ( empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
-		return;
+		return '';
 	}
 
 	// The core schemes have no stylesheet of their own, or one from the core colors directory.
 	$url = $_wp_admin_css_colors[ $color_scheme ]->url;
 	if ( ! is_string( $url ) || '' === $url || str_starts_with( $url, admin_url( 'css/colors/' ) ) ) {
-		return;
+		return '';
 	}
 
 	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
 	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
-		return;
+		return '';
 	}
 
-	wp_add_inline_style(
-		'admin-menu',
-		sprintf(
-			'#adminmenu div.wp-menu-image{color:%1$s}' .
-			'#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image{color:%2$s}' .
-			'#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image{color:%3$s}',
-			$icon_colors['base'],
-			$icon_colors['focus'],
-			$icon_colors['current']
-		)
+	return sprintf(
+		'#adminmenu div.wp-menu-image{color:%1$s}' .
+		'#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image{color:%2$s}' .
+		'#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image{color:%3$s}',
+		$icon_colors['base'],
+		$icon_colors['focus'],
+		$icon_colors['current']
 	);
 }
 
