@@ -97,7 +97,8 @@ function wp_prepare_json_schema_for_client( array $schema, string $schema_profil
  * Prepares a JSON value for clients according to its schema.
  *
  * Empty PHP arrays are converted to objects when the schema allows objects but
- * not arrays. Nested values are prepared using their property or item schemas.
+ * not arrays. Nested values are prepared using matching anyOf or oneOf branches
+ * and their property or item schemas.
  *
  * @since 7.2.0
  *
@@ -116,9 +117,55 @@ function wp_prepare_json_value_for_client( $value, array $schema ) {
 		return $value;
 	}
 
-	$types         = isset( $schema['type'] ) ? (array) $schema['type'] : array();
-	$allows_object = in_array( 'object', $types, true );
-	$allows_array  = in_array( 'array', $types, true );
+	if ( isset( $schema['anyOf'] ) ) {
+		$matching_schema = rest_find_any_matching_schema( $value, $schema, '' );
+
+		/*
+		 * Prefer an array schema for PHP lists. An empty PHP array also matches an
+		 * object schema, but should remain [] when an array schema accepts it.
+		 */
+		if (
+			$is_array_value && array_is_list( $value )
+			&& ! is_wp_error( $matching_schema )
+			&& ! _wp_json_schema_allows_type( $matching_schema, 'array' )
+		) {
+			foreach ( $schema['anyOf'] as $candidate_schema ) {
+				if ( ! isset( $candidate_schema['type'] ) && isset( $schema['type'] ) ) {
+					$candidate_schema['type'] = $schema['type'];
+				}
+
+				if ( _wp_json_schema_allows_type( $candidate_schema, 'array' ) && ! is_wp_error( rest_validate_value_from_schema( $value, $candidate_schema ) ) ) {
+					$matching_schema = $candidate_schema;
+					break;
+				}
+			}
+		}
+
+		if ( ! is_wp_error( $matching_schema ) ) {
+			if ( ! isset( $schema['type'] ) && isset( $matching_schema['type'] ) ) {
+				$schema['type'] = $matching_schema['type'];
+			}
+
+			$value = wp_prepare_json_value_for_client( $value, $matching_schema );
+		}
+	}
+
+	if ( isset( $schema['oneOf'] ) ) {
+		$matching_schema = rest_find_one_matching_schema( $value, $schema, '' );
+		if ( ! is_wp_error( $matching_schema ) ) {
+			if ( ! isset( $schema['type'] ) && isset( $matching_schema['type'] ) ) {
+				$schema['type'] = $matching_schema['type'];
+			}
+
+			$value = wp_prepare_json_value_for_client( $value, $matching_schema );
+		}
+	}
+
+	$is_array_value  = is_array( $value );
+	$is_object_value = $value instanceof stdClass;
+	$types           = isset( $schema['type'] ) ? (array) $schema['type'] : array();
+	$allows_object   = in_array( 'object', $types, true );
+	$allows_array    = in_array( 'array', $types, true );
 
 	if ( $is_array_value && empty( $value ) && $allows_object && ! $allows_array ) {
 		return (object) $value;
@@ -159,6 +206,47 @@ function wp_prepare_json_value_for_client( $value, array $schema ) {
 	}
 
 	return $value;
+}
+
+/**
+ * Determines whether a JSON Schema allows a type.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array<string, mixed> $schema The schema to inspect.
+ * @param string               $type   The type to find.
+ * @return bool Whether the schema allows the type.
+ */
+function _wp_json_schema_allows_type( array $schema, string $type ): bool {
+	if ( isset( $schema['type'] ) && ! in_array( $type, (array) $schema['type'], true ) ) {
+		return false;
+	}
+
+	foreach ( array( 'anyOf', 'oneOf' ) as $keyword ) {
+		if ( ! isset( $schema[ $keyword ] ) ) {
+			continue;
+		}
+
+		foreach ( $schema[ $keyword ] as $sub_schema ) {
+			if ( ! is_array( $sub_schema ) ) {
+				continue;
+			}
+
+			// Match rest_find_any_matching_schema(), which applies the parent type to untyped branches.
+			if ( ! isset( $sub_schema['type'] ) && isset( $schema['type'] ) ) {
+				$sub_schema['type'] = $schema['type'];
+			}
+
+			if ( _wp_json_schema_allows_type( $sub_schema, $type ) ) {
+				continue 2;
+			}
+		}
+
+		return false;
+	}
+
+	return isset( $schema['type'] ) || isset( $schema['anyOf'] ) || isset( $schema['oneOf'] );
 }
 
 /**

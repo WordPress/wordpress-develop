@@ -509,6 +509,121 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				array( 'type' => array( 'object', 'null' ) ),
 				'{}',
 			),
+			'empty object via anyOf'       => array(
+				array(),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'object' ),
+						array( 'type' => 'null' ),
+					),
+				),
+				'{}',
+			),
+			'empty object via oneOf'       => array(
+				array(),
+				array(
+					'oneOf' => array(
+						array( 'type' => 'object' ),
+						array( 'type' => 'null' ),
+					),
+				),
+				'{}',
+			),
+			'empty anyOf object or array'  => array(
+				array(),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'object' ),
+						array( 'type' => 'array' ),
+					),
+				),
+				'[]',
+			),
+			'empty oneOf array match'      => array(
+				array(),
+				array(
+					'oneOf' => array(
+						array(
+							'type'     => 'object',
+							'required' => array( 'key' ),
+						),
+						array( 'type' => 'array' ),
+					),
+				),
+				'[]',
+			),
+			'empty mixed object via oneOf' => array(
+				array(),
+				array(
+					'type'  => array( 'object', 'array' ),
+					'oneOf' => array(
+						array( 'type' => 'object' ),
+						array( 'type' => 'null' ),
+					),
+				),
+				'{}',
+			),
+			'nested anyOf array match'     => array(
+				array(),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'object' ),
+						array(
+							'anyOf' => array(
+								array( 'type' => 'array' ),
+								array( 'type' => 'null' ),
+							),
+						),
+					),
+				),
+				'[]',
+			),
+			'nested oneOf array match'     => array(
+				array(),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'object' ),
+						array(
+							'oneOf' => array(
+								array( 'type' => 'array' ),
+								array( 'type' => 'null' ),
+							),
+						),
+					),
+				),
+				'[]',
+			),
+			'untyped branch array match'   => array(
+				array(),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'object' ),
+						array(
+							'type'  => 'array',
+							'oneOf' => array(
+								array( 'maxItems' => 10 ),
+							),
+						),
+					),
+				),
+				'[]',
+			),
+			'list via anyOf array branch'  => array(
+				array( array() ),
+				array(
+					'anyOf' => array(
+						array(
+							'type'                 => 'object',
+							'additionalProperties' => array( 'type' => 'object' ),
+						),
+						array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'array' ),
+						),
+					),
+				),
+				'[[]]',
+			),
 			'empty object or array'        => array(
 				array(),
 				array( 'type' => array( 'object', 'array' ) ),
@@ -528,6 +643,36 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				array( 'key' => 'value' ),
 				array( 'type' => 'object' ),
 				'{"key":"value"}',
+			),
+			'nested object via anyOf'      => array(
+				array( 'nested' => array() ),
+				array(
+					'anyOf' => array(
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'nested' => array( 'type' => 'object' ),
+							),
+						),
+						array( 'type' => 'null' ),
+					),
+				),
+				'{"nested":{}}',
+			),
+			'nested object via oneOf'      => array(
+				array( 'nested' => array() ),
+				array(
+					'oneOf' => array(
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'nested' => array( 'type' => 'object' ),
+							),
+						),
+						array( 'type' => 'null' ),
+					),
+				),
+				'{"nested":{}}',
 			),
 			'sparse mixed object or array' => array(
 				array( 2 => array() ),
