@@ -105,6 +105,7 @@ class WP_Admin_Notice_Collector {
 
 	/**
 	 * Returns the number of notices captured during the current request.
+	 *
 	 * Counted notices include only visible notices.
 	 *
 	 * @since 7.2.0
