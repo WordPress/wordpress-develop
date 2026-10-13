@@ -225,17 +225,15 @@ jobs:
             exit 0
           fi
 
-          # The summary below concerns an ignore configuration that no longer describes the code.
-          # Those errors are `ignore.unmatched`, where a pattern matched nothing at all, and
-          # `ignore.count`, where it matched a different number of times than the entry records.
-          # The `ignore.` prefix is matched rather than those two names so that any later addition
-          # to the group is caught as well. Any other error that cannot be ignored is something
-          # regenerating the baselines would not help with, so fail on it plainly.
+          # Whether the errors include ignore errors decides what to say about them, but not whether to
+          # fail: every error that reaches this point fails the run. Ignore errors concern an ignore
+          # configuration that no longer describes the code. They are `ignore.unmatched`, where a
+          # pattern matched nothing at all, and `ignore.count`, where it matched a different number of
+          # times than the entry records. The `ignore.` prefix is matched rather than those two names
+          # so that any later addition to the group is caught as well. Any other error that cannot be
+          # ignored is something regenerating the baselines would not help with, so it is reported
+          # plainly instead.
           ignore_errors=$( jq '[ .files[].messages[] | select( .identifier // "" | startswith( "ignore." ) ) ] | length' "${report}" )
-          if [ "${ignore_errors}" -eq 0 ]; then
-            echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
-            exit 1
-          fi
 
           # The summary is Markdown, and its code spans and fences are written literally, so the
           # heredoc is quoted to keep the backticks out of the shell's hands. The links are
@@ -244,7 +242,7 @@ jobs:
           #
           # A newline renders as a line break rather than a space, so each paragraph is one
           # line however long that makes it, and the rendered summary wraps to its own width.
-          cat >> "${GITHUB_STEP_SUMMARY}" <<'SUMMARY'
+          baselines_summary=$( cat <<'SUMMARY'
           ## PHPStan baselines are out of date
 
           An ignored error no longer occurs, or occurs a different number of times, so PHPStan reported it under an `ignore.unmatched` or `ignore.count` identifier.
@@ -270,13 +268,20 @@ jobs:
           See [`tests/phpstan/README.md`][readme] for details.
 
           SUMMARY
+          )
 
-          {
-            echo "[baselines]: ${BASELINES_URL}"
-            echo "[readme]: ${README_URL}"
-          } >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${ignore_errors}" -gt 0 ]; then
+            {
+              printf '%s\n\n' "${baselines_summary}"
+              echo "[baselines]: ${BASELINES_URL}"
+              echo "[readme]: ${README_URL}"
+            } >> "${GITHUB_STEP_SUMMARY}"
 
-          echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
+            echo "::error title=PHPStan baselines are out of date::An ignored error no longer occurs, or occurs a different number of times. If you fixed it, that is expected: run \`npm run typecheck:php:baselines\` or \`composer phpstan:baselines\` and commit the updated baselines. See ${README_URL}"
+          else
+            echo "::error title=PHPStan reported errors that cannot be ignored::PHPStan reported ${unignorable} error(s) that cannot be ignored or reported as warnings. See the error annotations for details, and ${README_URL} for how to run the analysis locally."
+          fi
+
           exit 1
 
       - name: "Save result cache"
