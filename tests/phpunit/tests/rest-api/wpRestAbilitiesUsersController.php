@@ -145,7 +145,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_logged_out_user_receives_401(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'id' => self::$admin_id ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'id' => self::$admin_id ) ) ) );
 
 		$this->assertSame( 401, $response->get_status(), 'A logged-out request should be rejected as unauthenticated.' );
 	}
@@ -156,7 +156,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_subscriber_filtering_by_roles_receives_403(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'roles' => array( 'administrator' ) ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'roles' => array( 'administrator' ) ) ) ) );
 
 		$this->assertSame( 403, $response->get_status(), 'Filtering by role should require permission to list users.' );
 		$this->assertSame( 'rest_ability_cannot_execute', $response->get_data()['code'], 'The error should come from the permission check.' );
@@ -173,7 +173,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'id'     => $author_id,
+					'where'  => array( 'id' => $author_id ),
 					'fields' => array( 'id', 'name', 'username', 'email', 'roles' ),
 				)
 			)
@@ -181,11 +181,11 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'A subscriber should be able to read an author with a published post.' );
-		$this->assertSame( $author_id, $data['id'], 'The lookup should return the requested author.' );
-		$this->assertSame( 'Public REST Author', $data['name'], 'The display name should be returned to a subscriber.' );
-		$this->assertArrayNotHasKey( 'username', $data, 'The username should not be returned to a subscriber.' );
-		$this->assertArrayNotHasKey( 'email', $data, 'The email address should not be returned to a subscriber.' );
-		$this->assertArrayNotHasKey( 'roles', $data, 'The roles should not be returned to a subscriber.' );
+		$this->assertSame( $author_id, $data['items'][0]['id'], 'The lookup should return the requested author.' );
+		$this->assertSame( 'Public REST Author', $data['items'][0]['name'], 'The display name should be returned to a subscriber.' );
+		$this->assertArrayNotHasKey( 'username', $data['items'][0], 'The username should not be returned to a subscriber.' );
+		$this->assertArrayNotHasKey( 'email', $data['items'][0], 'The email address should not be returned to a subscriber.' );
+		$this->assertArrayNotHasKey( 'roles', $data['items'][0], 'The roles should not be returned to a subscriber.' );
 	}
 
 	/**
@@ -211,7 +211,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'slug'   => 'rest-users-pending-author',
+					'where'  => array( 'slug' => 'rest-users-pending-author' ),
 					'fields' => array( 'id', 'name', 'description', 'email' ),
 				)
 			)
@@ -219,8 +219,8 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'An editor should be able to look up a user of the site without public posts.' );
-		$this->assertSame( $user_id, $data['id'], 'The lookup should return the requested user.' );
-		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data ), 'Only the author fields should be returned.' );
+		$this->assertSame( $user_id, $data['items'][0]['id'], 'The lookup should return the requested user.' );
+		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data['items'][0] ), 'Only the author fields should be returned.' );
 	}
 
 	/**
@@ -231,7 +231,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 
 		wp_set_current_user( self::$subscriber_id );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'email' => 'rest-users-email-lookup@example.org' ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'email' => 'rest-users-email-lookup@example.org' ) ) ) );
 
 		$this->assertSame( 403, $response->get_status(), 'Looking up another user by email should require permission to list or edit users, even for a public author.' );
 	}
@@ -245,7 +245,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		wp_set_current_user( self::$subscriber_id );
 
 		$response = $this->server->dispatch( $this->run_request( array( 'fields' => array( 'id' ) ) ) );
-		$user_ids = wp_list_pluck( $response->get_data()['users'], 'id' );
+		$user_ids = wp_list_pluck( $response->get_data()['items'], 'id' );
 
 		$this->assertSame( 200, $response->get_status(), 'A subscriber should be able to query users.' );
 		$this->assertContains( $author_id, $user_ids, 'An author with a published post should be listed for a subscriber.' );
@@ -261,8 +261,8 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'An administrator should be able to query users.' );
-		$this->assertArrayHasKey( 'users', $data, 'Collection mode should return a users list.' );
-		$this->assertContains( self::$subscriber_id, wp_list_pluck( $data['users'], 'id' ), 'A user without published posts should be listed for an administrator.' );
+		$this->assertArrayHasKey( 'items', $data, 'Collection mode should return the users as items.' );
+		$this->assertContains( self::$subscriber_id, wp_list_pluck( $data['items'], 'id' ), 'A user without published posts should be listed for an administrator.' );
 	}
 
 	/**
@@ -277,30 +277,37 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 			$this->run_request(
 				array(
 					// Deliberately pass IDs in the opposite of the expected login order.
-					'include' => array( $third, $first ),
-					'fields'  => array( 'id' ),
+					'where'  => array( 'include' => array( $third, $first ) ),
+					'fields' => array( 'id' ),
 				)
 			)
 		);
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The include query should succeed.' );
-		$this->assertSame( array( $first, $third ), wp_list_pluck( $data['users'], 'id' ), 'Included users should be returned by login, regardless of the include order.' );
-		$this->assertNotContains( $second, wp_list_pluck( $data['users'], 'id' ), 'Users outside the include list should not be returned.' );
-		$this->assertSame( 2, $data['total'], 'The total should only count the included users.' );
+		$this->assertSame( array( $first, $third ), wp_list_pluck( $data['items'], 'id' ), 'Included users should be returned by login, regardless of the include order.' );
+		$this->assertNotContains( $second, wp_list_pluck( $data['items'], 'id' ), 'Users outside the include list should not be returned.' );
+		$this->assertSame( 2, $data['pagination']['total'], 'The total should only count the included users.' );
 	}
 
 	/**
 	 * @ticket 64657
 	 */
 	public function test_get_single_user_by_id(): void {
-		$response = $this->server->dispatch( $this->run_request( array( 'id' => self::$subscriber_id ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'id' => self::$subscriber_id ) ) ) );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The ID lookup should succeed.' );
-		$this->assertSame( self::$subscriber_id, $data['id'], 'The ID lookup should return the requested user.' );
-		$this->assertArrayNotHasKey( 'users', $data, 'A single-user lookup should not return a users list.' );
-		$this->assertArrayNotHasKey( 'total', $data, 'A single-user lookup should not return query totals.' );
+		$this->assertSame( self::$subscriber_id, $data['items'][0]['id'], 'The ID lookup should return the requested user.' );
+		$this->assertCount( 1, $data['items'], 'A single-user lookup should return only the requested user.' );
+		$this->assertSame(
+			array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+			$data['pagination'],
+			'A single-user lookup should report one user on one page.'
+		);
 	}
 
 	/**
@@ -309,13 +316,21 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_get_single_user_by_slug(): void {
 		$user_id = self::factory()->user->create( array( 'user_nicename' => 'rest-users-slug' ) );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'slug' => 'rest-users-slug' ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'slug' => 'rest-users-slug' ) ) ) );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The slug lookup should succeed.' );
-		$this->assertSame( $user_id, $data['id'], 'The slug lookup should return the matching user.' );
-		$this->assertSame( 'rest-users-slug', $data['slug'], 'The slug lookup should return the user slug.' );
-		$this->assertArrayNotHasKey( 'users', $data, 'A slug lookup should not return a users list.' );
+		$this->assertSame( $user_id, $data['items'][0]['id'], 'The slug lookup should return the matching user.' );
+		$this->assertSame( 'rest-users-slug', $data['items'][0]['slug'], 'The slug lookup should return the user slug.' );
+		$this->assertCount( 1, $data['items'], 'A slug lookup should return only the matching user.' );
+		$this->assertSame(
+			array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+			$data['pagination'],
+			'A slug lookup should report one user on one page.'
+		);
 	}
 
 	/**
@@ -324,7 +339,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_wrong_http_method_returns_405(): void {
 		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array( 'id' => self::$admin_id ) ) ) );
+		$request->set_body( wp_json_encode( array( 'input' => array( 'where' => array( 'id' => self::$admin_id ) ) ) ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -341,17 +356,19 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'per_page' => 2,
-					'page'     => 1,
+					'pagination' => array(
+						'page'     => 1,
+						'per_page' => 2,
+					),
 				)
 			)
 		);
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The paginated query should succeed.' );
-		$this->assertCount( 2, $data['users'], 'The first page should be limited to per_page users.' );
-		$this->assertGreaterThanOrEqual( 5, $data['total'], 'The total should count users across all pages.' );
-		$this->assertSame( (int) ceil( $data['total'] / 2 ), $data['total_pages'], 'The total pages should match the total and per_page.' );
+		$this->assertCount( 2, $data['items'], 'The first page should be limited to per_page users.' );
+		$this->assertGreaterThanOrEqual( 5, $data['pagination']['total'], 'The total should count users across all pages.' );
+		$this->assertSame( (int) ceil( $data['pagination']['total'] / 2 ), $data['pagination']['total_pages'], 'The total pages should match the total and per_page.' );
 	}
 
 	/**
@@ -361,8 +378,10 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'per_page' => 1,
-					'page'     => 999,
+					'pagination' => array(
+						'page'     => 999,
+						'per_page' => 1,
+					),
 				)
 			)
 		);
@@ -383,20 +402,22 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'include'  => $second . ',' . $first,
-					'fields'   => 'id,name',
-					'per_page' => '1',
-					'page'     => '2',
+					'where'      => array( 'include' => $second . ',' . $first ),
+					'fields'     => 'id,name',
+					'pagination' => array(
+						'page'     => '2',
+						'per_page' => '1',
+					),
 				)
 			)
 		);
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'String values from a query string should be accepted.' );
-		$this->assertSame( array( $second ), wp_list_pluck( $data['users'], 'id' ), 'The second page of one user should hold the second included user by login.' );
-		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data['users'][0] ), 'Only the fields from the comma-separated list should be returned.' );
-		$this->assertSame( 2, $data['total'], 'The total should count both included users.' );
-		$this->assertSame( 2, $data['total_pages'], 'The total pages should be computed from the string per_page value.' );
+		$this->assertSame( array( $second ), wp_list_pluck( $data['items'], 'id' ), 'The second page of one user should hold the second included user by login.' );
+		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data['items'][0] ), 'Only the fields from the comma-separated list should be returned.' );
+		$this->assertSame( 2, $data['pagination']['total'], 'The total should count both included users.' );
+		$this->assertSame( 2, $data['pagination']['total_pages'], 'The total pages should be computed from the string per_page value.' );
 	}
 
 	/**
@@ -409,15 +430,17 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'include'             => $author_id . ',' . $non_author_id,
-					'has_published_posts' => 'true',
-					'fields'              => 'id',
+					'where'  => array(
+						'include'             => $author_id . ',' . $non_author_id,
+						'has_published_posts' => 'true',
+					),
+					'fields' => 'id',
 				)
 			)
 		);
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The string "true" should be accepted for has_published_posts.' );
-		$this->assertSame( array( $author_id ), wp_list_pluck( $data['users'], 'id' ), 'Only the included user with a published post should be returned.' );
+		$this->assertSame( array( $author_id ), wp_list_pluck( $data['items'], 'id' ), 'Only the included user with a published post should be returned.' );
 	}
 }
