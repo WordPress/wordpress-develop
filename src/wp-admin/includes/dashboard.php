@@ -1177,6 +1177,7 @@ function wp_dashboard_rss_output( $widget_id ) {
  * @since 2.5.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 7.2.0 Removed the "This widget requires JavaScript." notice from the loading stub.
  *
  * @param string   $widget_id  The widget ID.
  * @param callable $callback   The callback function used to display each feed.
@@ -1187,13 +1188,6 @@ function wp_dashboard_rss_output( $widget_id ) {
 function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = array(), ...$args ) {
 	$doing_ajax = wp_doing_ajax();
 	$loading    = '<p class="widget-loading hide-if-no-js">' . __( 'Loading&hellip;' ) . '</p>';
-	$loading   .= wp_get_admin_notice(
-		__( 'This widget requires JavaScript.' ),
-		array(
-			'type'               => 'error',
-			'additional_classes' => array( 'inline', 'hide-if-js' ),
-		)
-	);
 
 	if ( empty( $check_urls ) ) {
 		$widgets = get_option( 'dashboard_widget_options' );
