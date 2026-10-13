@@ -1,0 +1,267 @@
+# Keeps a comment on a pull request up to date with the errors reported by PHPStan.
+#
+# The analysis runs in the PHPStan Static Analysis workflow, which has no permission to comment when the pull request
+# comes from a fork. It uploads its results as an artifact instead, and this workflow picks them up once that run
+# completes.
+#
+# A `workflow_run` workflow runs with write permissions even for a pull request from a fork, so nothing from the pull
+# request is checked out or executed here. The results it uploaded are treated as untrusted data, and are only
+# accepted for the pull request whose current head is the commit that was analyzed.
+name: PHPStan Pull Request Comments
+
+on: # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows: [ 'PHPStan Static Analysis' ]
+    types:
+      - completed
+
+# Runs for the same pull request are queued rather than run at the same time, so that two of them do not each create
+# a comment. A queued run that is superseded by a newer one is cancelled, which is fine: only the newest results matter.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_repository.full_name }}-${{ github.event.workflow_run.head_branch }}
+
+# Disable permissions for all available scopes by default.
+# Any needed permissions should be configured at the job level.
+permissions: {}
+
+jobs:
+  # Creates, updates, or resolves the comment listing PHPStan errors.
+  #
+  # Performs the following steps:
+  # - Downloads the analysis results from the completed run.
+  # - Creates or updates the comment while there are errors, and marks it as resolved once there are none.
+  phpstan-results:
+    name: Comment on a pull request with PHPStan results
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
+    timeout-minutes: 5
+    # A run that found errors concludes in failure only when some of them cannot be reported as warnings, and those
+    # are the errors this comment matters most for, so both conclusions are handled.
+    if: >
+      github.repository == 'WordPress/wordpress-develop' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      ( github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' )
+    steps:
+      # The artifact is missing when the analysis did not complete, in which case there is nothing to report and the
+      # comment is left as it is.
+      - name: Download the analysis results
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          name: phpstan-results
+          path: ${{ runner.temp }}/phpstan-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Create, update, or resolve the PHPStan comment
+        if: ${{ steps.download.outcome == 'success' }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+
+            const { owner, repo } = context.repo;
+            const run = context.payload.workflow_run;
+            const marker = '<!-- phpstan-results -->';
+            const maxRows = 50;
+            const readmeUrl = `https://github.com/${ owner }/${ repo }/blob/trunk/tests/phpstan/README.md`;
+
+            // The results were written by a run on the pull request, whose code may have been changed to write
+            // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
+            // current head is the commit that the run analyzed. That also discards the results of a run that was
+            // overtaken by a newer push.
+            const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
+            const issue_number = results.pull_request;
+            if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! Array.isArray( results.errors ) ) {
+              core.setFailed( 'The analysis results are malformed.' );
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get( { owner, repo, pull_number: issue_number } );
+            if ( pr.head.sha !== run.head_sha ) {
+              core.info( `The results are not for the current head of pull request #${ issue_number }, so they are not reported.` );
+              return;
+            }
+            if ( pr.state !== 'open' ) {
+              core.info( `Pull request #${ issue_number } is not open, so the results are not reported.` );
+              return;
+            }
+
+            const asString = ( value ) => ( typeof value === 'string' ? value : null );
+            const errors = results.errors.map( ( error ) => ( {
+              file: asString( error.file ),
+              line: Number.isSafeInteger( error.line ) && error.line > 0 ? error.line : null,
+              message: asString( error.message ) ?? '',
+              identifier: /^[A-Za-z0-9.]+$/.test( error.identifier ) ? error.identifier : null,
+              ignorable: error.ignorable === true,
+            } ) );
+
+            // Every message is rendered as a code span. Within one, Markdown is not interpreted, and neither are
+            // mentions nor references to issues, both of which PHPStan messages can resemble, as in `Parameter #1`.
+            // In a table, a pipe still ends the cell even within a code span, unless it is escaped.
+            const code = ( text ) => {
+              let content = text.replace( /\s+/g, ' ' ).trim();
+              if ( content.length > 500 ) {
+                content = `${ content.slice( 0, 500 ) }…`;
+              }
+              content = content.replace( /\|/g, '\\|' );
+              const longestBackticks = Math.max( 0, ...( content.match( /`+/g ) ?? [] ).map( ( backticks ) => backticks.length ) );
+              const fence = '`'.repeat( longestBackticks + 1 );
+              const padding = content.startsWith( '`' ) || content.endsWith( '`' ) ? ' ' : '';
+              return `${ fence }${ padding }${ content }${ padding }${ fence }`;
+            };
+
+            const shortSha = run.head_sha.slice( 0, 7 );
+            const commitLink = `[${ shortSha }](https://github.com/${ owner }/${ repo }/pull/${ issue_number }/commits/${ run.head_sha })`;
+
+            const location = ( error ) => {
+              if ( ! error.file ) {
+                return '_Not specific to a file_';
+              }
+              const label = code( error.line ? `${ error.file }:${ error.line }` : error.file );
+              if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
+                return label;
+              }
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ run.head_sha }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
+            };
+
+            const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
+
+            let rowsLeft = maxRows;
+            const table = ( rows ) => {
+              const shown = rows.slice( 0, rowsLeft );
+              rowsLeft -= shown.length;
+              const lines = [
+                '| Location | Error | Identifier |',
+                '| --- | --- | --- |',
+                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } |` ),
+              ];
+              if ( shown.length < rows.length ) {
+                lines.push( '', `…and ${ rows.length - shown.length } more, which are listed in the [workflow run](${ run.html_url }).` );
+              }
+              return lines.join( '\n' );
+            };
+
+            const unignorable = errors.filter( ( error ) => ! error.ignorable );
+            const ignorable = errors.filter( ( error ) => error.ignorable );
+            const hasIgnoreErrors = unignorable.some( ( error ) => error.identifier?.startsWith( 'ignore.' ) );
+
+            let body;
+            if ( errors.length > 0 ) {
+              const sections = [
+                marker,
+                '## PHPStan Static Analysis',
+                `PHPStan reported ${ errors.length === 1 ? '1 error' : `${ errors.length } errors` } when analyzing ${ commitLink } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.`,
+              ];
+
+              if ( unignorable.length > 0 ) {
+                if ( hasIgnoreErrors ) {
+                  sections.push( [
+                    '> [!IMPORTANT]',
+                    '> **The PHPStan baselines are out of date, so the PHPStan check fails.**',
+                    '>',
+                    '> An error recorded in a baseline no longer occurs, or occurs a different number of times. If this pull request fixed it, that is expected: nothing needs to change in the code, but each baseline entry records an exact count for a specific file, and the baselines need to catch up. Regenerate them and commit the result:',
+                    '>',
+                    '> ```bash',
+                    '> npm run typecheck:php:baselines',
+                    '> ```',
+                    '>',
+                    '> or, outside the Docker environment:',
+                    '>',
+                    '> ```bash',
+                    '> composer phpstan:baselines',
+                    '> ```',
+                    '>',
+                    '> Where an error below names an `@phpstan-ignore` comment in the code rather than a baseline entry, remove that comment instead; regenerating will not clear it.',
+                    '>',
+                    `> See [Regenerating the baselines](${ readmeUrl }#regenerating-the-baselines) for details.`,
+                  ].join( '\n' ) );
+                } else {
+                  sections.push( [
+                    '> [!IMPORTANT]',
+                    '> **PHPStan reported errors that cannot be ignored, so the PHPStan check fails.**',
+                  ].join( '\n' ) );
+                }
+                sections.push( '### Errors that fail the check', table( unignorable ) );
+              }
+
+              if ( ignorable.length > 0 ) {
+                sections.push(
+                  '### Errors',
+                  'These are also shown as annotations on the changed files. They do not fail the check, but they should still be fixed before the pull request is committed.',
+                  table( ignorable )
+                );
+              }
+
+              sections.push(
+                '### Running PHPStan locally',
+                [
+                  'To run the analysis on your own machine, use:',
+                  '',
+                  '```bash',
+                  'npm run typecheck:php',
+                  '```',
+                  '',
+                  'or `composer phpstan` outside the Docker environment.',
+                  `See [\`tests/phpstan/README.md\`](${ readmeUrl }) for details.`,
+                ].join( '\n' )
+              );
+
+              body = sections.join( '\n\n' ) + '\n';
+            }
+
+            const comments = await github.paginate( github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 } );
+            const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
+
+            if ( ! comment ) {
+              if ( body ) {
+                await github.rest.issues.createComment( { owner, repo, issue_number, body } );
+                core.notice( `Created PHPStan comment for pull request: ${ pr.html_url }` );
+              }
+              return;
+            }
+
+            const { node } = await github.graphql(
+              'query( $id: ID! ) { node( id: $id ) { ... on IssueComment { isMinimized } } }',
+              { id: comment.node_id }
+            );
+
+            if ( body ) {
+              if ( comment.body !== body ) {
+                await github.rest.issues.updateComment( { owner, repo, comment_id: comment.id, body } );
+              }
+              // Errors that come back after being resolved make the comment relevant again.
+              if ( node.isMinimized ) {
+                await github.graphql(
+                  'mutation( $id: ID! ) { unminimizeComment( input: { subjectId: $id } ) { clientMutationId } }',
+                  { id: comment.node_id }
+                );
+              }
+              core.notice( `Updated PHPStan comment for pull request: ${ pr.html_url }` );
+              return;
+            }
+
+            if ( node.isMinimized ) {
+              core.info( 'The PHPStan comment has already been marked as resolved.' );
+              return;
+            }
+
+            await github.rest.issues.updateComment( {
+              owner,
+              repo,
+              comment_id: comment.id,
+              body: [
+                marker,
+                '## PHPStan Static Analysis',
+                `All errors reported by PHPStan were resolved as of ${ commitLink } ([workflow run](${ run.html_url })).`,
+              ].join( '\n\n' ) + '\n',
+            } );
+            await github.graphql(
+              'mutation( $id: ID! ) { minimizeComment( input: { subjectId: $id, classifier: RESOLVED } ) { clientMutationId } }',
+              { id: comment.node_id }
+            );
+            core.notice( `Resolved PHPStan comment for pull request: ${ pr.html_url }` );
