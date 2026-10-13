@@ -1,6 +1,6 @@
 <?php
 /**
- * Unit tests covering the wp_is_icon_name() function.
+ * Unit tests covering the wp_is_valid_icon_name() function.
  *
  * @package WordPress
  * @subpackage Icons
@@ -8,9 +8,9 @@
  *
  * @group icons
  *
- * @covers ::wp_is_icon_name
+ * @covers ::wp_is_valid_icon_name
  */
-class Tests_Icons_WpIsIconName extends WP_UnitTestCase {
+class Tests_Icons_WpIsValidIconName extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65089
@@ -20,7 +20,7 @@ class Tests_Icons_WpIsIconName extends WP_UnitTestCase {
 	 * @param mixed $value The value to check.
 	 */
 	public function test_returns_true_for_namespaced_icon_names( $value ): void {
-		$this->assertTrue( wp_is_icon_name( $value ) );
+		$this->assertTrue( wp_is_valid_icon_name( $value ) );
 	}
 
 	/**
@@ -46,7 +46,7 @@ class Tests_Icons_WpIsIconName extends WP_UnitTestCase {
 	 * @param mixed $value The value to check.
 	 */
 	public function test_returns_false_for_other_values( $value ): void {
-		$this->assertFalse( wp_is_icon_name( $value ) );
+		$this->assertFalse( wp_is_valid_icon_name( $value ) );
 	}
 
 	/**

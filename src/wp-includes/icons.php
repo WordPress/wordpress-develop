@@ -192,7 +192,7 @@ function _wp_register_default_icons() {
  * @param mixed $icon_name The value to check.
  * @return bool True if the value has the form of a namespaced icon name, else false.
  */
-function wp_is_icon_name( $icon_name ) {
+function wp_is_valid_icon_name( $icon_name ) {
 	return is_string( $icon_name )
 		&& 1 === preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#D', $icon_name );
 }

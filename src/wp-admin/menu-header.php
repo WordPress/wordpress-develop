@@ -172,7 +172,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 				// The value is base64-encoded data, so esc_attr() is used here instead of esc_url().
 				$img_style = ' style="background-image:url(\'' . esc_attr( $item[6] ) . '\')"';
 				$img_class = ' svg';
-			} elseif ( wp_is_icon_name( $icon_name ) ) {
+			} elseif ( wp_is_valid_icon_name( $icon_name ) ) {
 				$img  = '<br />';
 				$icon = wp_get_icon( $icon_name );
 				if ( '' !== $icon ) {

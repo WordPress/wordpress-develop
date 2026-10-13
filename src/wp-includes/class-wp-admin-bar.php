@@ -663,7 +663,7 @@ class WP_Admin_Bar {
 		}
 
 		$icon = '';
-		if ( wp_is_icon_name( $icon_name ) ) {
+		if ( wp_is_valid_icon_name( $icon_name ) ) {
 			$icon = _wp_admin_bar_icon( $icon_name );
 
 			if ( ! WP_Icons_Registry::get_instance()->is_registered( $icon_name ) ) {

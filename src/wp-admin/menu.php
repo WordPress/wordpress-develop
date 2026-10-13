@@ -151,7 +151,7 @@ foreach ( array_merge( $builtin, $post_types ) as $post_type ) {
 		if ( 'none' === $post_type_obj->menu_icon || 'div' === $post_type_obj->menu_icon
 			|| str_starts_with( $post_type_obj->menu_icon, 'data:image/svg+xml;base64,' )
 			|| str_starts_with( $post_type_obj->menu_icon, 'dashicons-' )
-			|| wp_is_icon_name( $post_type_obj->menu_icon )
+			|| wp_is_valid_icon_name( $post_type_obj->menu_icon )
 		) {
 			$menu_icon = $post_type_obj->menu_icon;
 		} else {
