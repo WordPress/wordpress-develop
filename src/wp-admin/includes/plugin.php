@@ -1474,13 +1474,13 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @since 1.5.0
  * @since 5.3.0 Added the `$position` parameter.
  *
- * @global array $submenu
- * @global array $menu
- * @global array $_wp_real_parent_file
- * @global bool  $_wp_submenu_nopriv
- * @global array $_wp_nopriv_pages
- * @global array $_registered_pages
- * @global array $_parent_pages
+ * @global array                              $submenu
+ * @global array                              $menu
+ * @global array                              $_wp_real_parent_file
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv
+ * @global array<string, true>                $_wp_nopriv_pages
+ * @global array<string, true>                $_registered_pages
+ * @global array                              $_parent_pages
  *
  * @param string    $parent_slug The slug name for the parent menu (or the file name of a standard
  *                               WordPress admin page).
@@ -2149,7 +2149,7 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  *
  * @since 7.2.0
  *
- * @global string                             $plugin_page        The plugin page slug being loaded.
+ * @global string|null                        $plugin_page        The plugin page slug being loaded.
  * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
  * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
  * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
@@ -2228,8 +2228,8 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  * @global array                              $submenu            The admin submenu items, keyed by parent slug.
  * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
  * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
- * @global string                             $plugin_page        The plugin page slug being loaded.
- * @global array                              $_registered_pages  Array of all registered admin page hooks.
+ * @global string|null                        $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
