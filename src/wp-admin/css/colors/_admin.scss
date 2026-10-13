@@ -396,6 +396,11 @@ ul#adminmenu > li.current > a.current::after {
 	color: variables.$menu-text;
 }
 
+#wpadminbar a:focus,
+#wpadminbar .ab-item[tabindex="0"]:focus {
+	outline-color: variables.$menu-submenu-focus-text;
+}
+
 #wpadminbar .ab-icon,
 #wpadminbar .ab-icon::before,
 #wpadminbar .ab-item::before,
