@@ -364,6 +364,7 @@ function wp_get_block_state_element_selectors( $root_selector ) {
  * Adds a compiled state style rule to a rule list.
  *
  * @since 7.1.0
+ * @since 7.2.0 Added fallback dimension styles.
  *
  * @param array       $css_rules   Style rules.
  * @param string      $state       Pseudo-state selector.
