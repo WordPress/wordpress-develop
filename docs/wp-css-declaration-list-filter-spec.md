@@ -139,7 +139,9 @@ replaced with the default list, on both paths.
    escapes it in every other token, and no standard property value uses a
    bare `&`, so a value that has one is rejected. The same applies to a
    control character delimiter, U+0001 to U+001F other than whitespace or
-   U+007F, which the serializer writes raw. `<`, `>`, `=`, `<!--` and
+   U+007F, which the serializer writes raw, and to a `\` delimiter, which only
+   a backslash before a newline produces and which the serializer writes with
+   that newline. `<`, `>`, `=`, `<!--` and
    `-->` are kept; encoding the output for HTML is the caller's task.
 6. **Escapes and comments.** Checks run on decoded values, so an escaped
    function name or scheme is checked as what it denotes. Comments are
@@ -168,9 +170,6 @@ follows CSS Syntax Level 3 §9:
   stays `#\31 a` and `#1a` stays `#1a`.
 - Strings are written double-quoted. url tokens are written unquoted;
   `url("...")` is a function with a string argument and keeps its quotes.
-- A `\` delimiter, which only a backslash before a newline produces, keeps its
-  newline so it does not escape the byte that follows.
-
 - Blocks still open at the end of the input, and strings and url tokens cut
   off by it, are written closed, so the output never absorbs the `;` that
   follows.

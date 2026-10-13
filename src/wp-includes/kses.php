@@ -4206,7 +4206,7 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  *    block at the top level of its value.
  *  - The value has no `&` delimiter at any depth. The output contains no
  *    `&`: other tokens escape it, and no property value uses a bare `&`.
- *  - The value has no control character delimiter at any depth.
+ *  - The value has no `\` or control character delimiter at any depth.
  *
  * Checks run on decoded values. Comments are dropped; an empty comment is
  * written only between two tokens that would otherwise read as other
@@ -4393,8 +4393,8 @@ function _safecss_filter_attr_value_is_allowed( $tokens, $allowed_protocols, $is
 				if ( '&' === $value ) {
 					return false;
 				}
-				// No property value uses a control character as a delimiter.
-				if ( ord( $value ) < 0x20 || "\x7F" === $value ) {
+				// No property value uses a `\` or a control character as a delimiter.
+				if ( '\\' === $value || ord( $value ) < 0x20 || "\x7F" === $value ) {
 					return false;
 				}
 				continue 2;

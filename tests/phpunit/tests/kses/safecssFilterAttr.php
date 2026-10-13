@@ -821,6 +821,29 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65738
+	 * @dataProvider data_backslash_delimiters
+	 *
+	 * @param string $css Input with a `\` delimiter.
+	 */
+	public function test_backslash_delimiter_is_rejected( $css ) {
+		$this->assertSame( 'width: 1px;', safecss_filter_attr( "$css; width: 1px" ) );
+	}
+
+	/**
+	 * @return array<string, array{string}>
+	 */
+	public function data_backslash_delimiters() {
+		return array(
+			'before a line feed'       => array( "color: red \\\n" ),
+			'before a carriage return' => array( "color: red \\\r\n" ),
+			'before a form feed'       => array( "color: red \\\f" ),
+			'in calc'                  => array( "width: calc(1px \\\n+ 2px)" ),
+			'in custom'                => array( "--x: a \\\n b" ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
 	 * @dataProvider data_output_without_ampersand
 	 *
 	 * @param string $css Input with a `&` in a token other than a delimiter.
