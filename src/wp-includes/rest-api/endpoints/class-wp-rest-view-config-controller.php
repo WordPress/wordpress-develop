@@ -631,6 +631,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * matching the TypeScript Layout union in dataviews/src/types/dataform.ts.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added the `showPlaceholderIfEmpty` property to the panel layout.
 	 *
 	 * @return array Schema for a form layout object.
 	 */
@@ -655,15 +656,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 				array(
 					'type'       => 'object',
 					'properties' => array(
-						'type'           => array(
+						'type'                   => array(
 							'type' => 'string',
 							'enum' => array( 'panel' ),
 						),
-						'labelPosition'  => array(
+						'labelPosition'          => array(
 							'type' => 'string',
 							'enum' => array( 'top', 'side', 'none' ),
 						),
-						'openAs'         => array(
+						'openAs'                 => array(
 							'oneOf' => array(
 								array(
 									'type' => 'string',
@@ -686,7 +687,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'summary'        => array(
+						'summary'                => array(
 							'oneOf' => array(
 								array( 'type' => 'string' ),
 								array(
@@ -697,9 +698,12 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 								),
 							),
 						),
-						'editVisibility' => array(
+						'editVisibility'         => array(
 							'type' => 'string',
 							'enum' => array( 'always', 'on-hover' ),
+						),
+						'showPlaceholderIfEmpty' => array(
+							'type' => 'boolean',
 						),
 					),
 				),

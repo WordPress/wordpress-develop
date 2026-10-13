@@ -36,12 +36,12 @@ parameters:
 		-
 			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept list\<stdClass\>\|null\.$#'
 			identifier: assign.propertyType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
 			message: '#^Property WP_Query\:\:\$posts \(array\<int\|WP_Post\>\|null\) does not accept list\<string\|null\>\.$#'
 			identifier: assign.propertyType
-			count: 2
+			count: 1
 			path: ../../../src/wp-includes/class-wp-query.php
 		-
 			message: '#^Property WP_Rewrite\:\:\$rules \(array\<string\>\) does not accept string\.$#'
@@ -108,11 +108,6 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: ../../../src/wp-includes/customize/class-wp-customize-header-image-control.php
-		-
-			message: '#^Property WP_HTML_Tag_Processor\:\:\$is_closing_tag \(bool\) does not accept null\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-tag-processor.php
 		-
 			message: '#^Property WP_Translation_File\:\:\$entries \(array\<string, string\>\) does not accept array\<string, array\<string\>\>\.$#'
 			identifier: assign.propertyType

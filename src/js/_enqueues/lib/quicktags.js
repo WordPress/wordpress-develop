@@ -233,6 +233,12 @@ window.edToolbar = function(){};
 		t.init();
 	};
 
+	/**
+	 * Escapes HTML special characters in a string.
+	 *
+	 * @param {string} text The string to escape.
+	 * @return {string} The escaped string.
+	 */
 	function _escape( text ) {
 		text = text || '';
 		text = text.replace( /&([^#])(?![a-z1-4]{1,8};)/gi, '&#038;$1' );
@@ -248,6 +254,11 @@ window.edToolbar = function(){};
 	qt._buttonsInit = function( id ) {
 		var t = this;
 
+		/**
+		 * Initializes the Quicktags buttons for a specific instance.
+		 *
+		 * @param {string} instanceId The ID of the Quicktags instance to initialize buttons for.
+		 */
 		function _init( instanceId ) {
 			var canvas, name, settings, theButtons, html, ed, id, i, use,
 				defaults = ',strong,em,link,block,del,ins,img,ul,ol,li,code,more,close,';
@@ -322,12 +333,12 @@ window.edToolbar = function(){};
 	 * use add_action( 'admin_print_footer_scripts', 'output_my_js', 100 ) or add_action( 'wp_footer', 'output_my_js', 100 )
 	 *
 	 * Minimum required to add a button that calls an external function:
-	 *     QTags.addButton( 'my_id', 'my button', my_callback );
-	 *     function my_callback() { alert('yeah!'); }
+	 * QTags.addButton( 'my_id', 'my button', my_callback );
+	 * function my_callback() { alert('yeah!'); }
 	 *
 	 * Minimum required to add a button that inserts a tag:
-	 *     QTags.addButton( 'my_id', 'my button', '<span>', '</span>' );
-	 *     QTags.addButton( 'my_id2', 'my button', '<br />' );
+	 * QTags.addButton( 'my_id', 'my button', '<span>', '</span>' );
+	 * QTags.addButton( 'my_id2', 'my button', '<br />' );
 	 *
 	 * @param {string}          id           Required. Button HTML ID
 	 * @param {string}          display      Required. Button's value="..."

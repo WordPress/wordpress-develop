@@ -79,7 +79,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?twitter\.com/i/moments/.*#i' => array( 'https://publish.twitter.com/oembed', true ),
 			'#https?://(www\.)?soundcloud\.com/.*#i'       => array( 'https://soundcloud.com/oembed', true ),
 			'#https?://(open|play)\.spotify\.com/.*#i'     => array( 'https://embed.spotify.com/oembed/', true ),
-			'#https?://(.+\.)?imgur\.com/.*#i'             => array( 'https://api.imgur.com/oembed', true ),
 			'#https?://(www\.)?issuu\.com/.+/docs/.+#i'    => array( 'https://issuu.com/oembed_wp', true ),
 			'#https?://(www\.)?mixcloud\.com/.*#i'         => array( 'https://app.mixcloud.com/oembed/', true ),
 			'#https?://(www\.|embed\.)?ted\.com/talks/.*#i' => array( 'https://www.ted.com/services/v1/oembed.{format}', true ),
@@ -88,7 +87,7 @@ class WP_oEmbed {
 			'#https?://(www\.)?kickstarter\.com/projects/.*#i' => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://kck\.st/.*#i'                       => array( 'https://www.kickstarter.com/services/oembed', true ),
 			'#https?://cloudup\.com/.*#i'                  => array( 'https://cloudup.com/oembed', true ),
-			'#https?://(www\.)?reverbnation\.com/.*#i'     => array( 'https://www.reverbnation.com/oembed', true ),
+			'#https?://((legacy|www)\.)?reverbnation\.com/.*#i' => array( 'https://legacy.reverbnation.com/oembed', true ),
 			'#https?://videopress\.com/v/.*#'              => array( 'https://public-api.wordpress.com/oembed/?for=' . $host, true ),
 			'#https?://(www\.)?reddit\.com/r/[^/]+/comments/.*#i' => array( 'https://www.reddit.com/oembed', true ),
 			'#https?://(www\.)?speakerdeck\.com/.*#i'      => array( 'https://speakerdeck.com/oembed.{format}', true ),
@@ -102,9 +101,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?amzn\.in/.*#i'              => array( 'https://read.amazon.in/kp/api/oembed', true ),
 			'#https?://(www\.)?amzn\.asia/.*#i'            => array( 'https://read.amazon.com.au/kp/api/oembed', true ),
 			'#https?://(www\.)?z\.cn/.*#i'                 => array( 'https://read.amazon.cn/kp/api/oembed', true ),
-			'#https?://www\.someecards\.com/.+-cards/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://www\.someecards\.com/usercards/viewcard/.+#i' => array( 'https://www.someecards.com/v2/oembed/', true ),
-			'#https?://some\.ly\/.+#i'                     => array( 'https://www.someecards.com/v2/oembed/', true ),
 			'#https?://(www\.)?tiktok\.com/.*/video/.*#i'  => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://(www\.)?tiktok\.com/@.*#i'          => array( 'https://www.tiktok.com/oembed', true ),
 			'#https?://([a-z]{2}|www)\.pinterest\.com(\.(au|mx))?/.*#i' => array( 'https://www.pinterest.com/oembed.json', true ),
@@ -154,7 +150,6 @@ class WP_oEmbed {
 		 * | Dailymotion  | dai.ly                                    | 3.6.0   |
 		 * | Flickr       | flic.kr                                   | 3.6.0   |
 		 * | Spotify      | spotify.com                               | 3.6.0   |
-		 * | Imgur        | imgur.com                                 | 3.9.0   |
 		 * | Animoto      | animoto.com                               | 4.0.0   |
 		 * | Animoto      | video214.com                              | 4.0.0   |
 		 * | Issuu        | issuu.com                                 | 4.0.0   |
@@ -175,7 +170,6 @@ class WP_oEmbed {
 		 * | Twitter      | twitter.com/user                          | 4.7.0   |
 		 * | Twitter      | twitter.com/likes                         | 4.7.0   |
 		 * | Twitter      | twitter.com/lists                         | 4.7.0   |
-		 * | Screencast   | screencast.com                            | 4.8.0   |
 		 * | Amazon       | amazon.com (com.mx, com.br, ca)           | 4.9.0   |
 		 * | Amazon       | amazon.de (fr, it, es, in, nl, ru, co.uk) | 4.9.0   |
 		 * | Amazon       | amazon.co.jp (com.au)                     | 4.9.0   |
@@ -183,8 +177,6 @@ class WP_oEmbed {
 		 * | Amazon       | a.co                                      | 4.9.0   |
 		 * | Amazon       | amzn.to (eu, in, asia)                    | 4.9.0   |
 		 * | Amazon       | z.cn                                      | 4.9.0   |
-		 * | Someecards   | someecards.com                            | 4.9.0   |
-		 * | Someecards   | some.ly                                   | 4.9.0   |
 		 * | Crowdsignal  | survey.fm                                 | 5.1.0   |
 		 * | TikTok       | tiktok.com                                | 5.4.0   |
 		 * | Pinterest    | pinterest.com                             | 5.9.0   |
@@ -219,6 +211,9 @@ class WP_oEmbed {
 		 * | Meetup.com   | meetu.ps             | 3.9.0     | 6.0.1     |
 		 * | SlideShare   | slideshare.net       | 3.5.0     | 6.6.0     |
 		 * | Screencast   | screencast.com       | 4.8.0     | 6.8.2     |
+		 * | Imgur        | imgur.com            | 3.9.0     | 7.1.3     |
+		 * | Someecards   | someecards.com       | 4.9.0     | 7.1.3     |
+		 * | Someecards   | some.ly              | 4.9.0     | 7.1.3     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
