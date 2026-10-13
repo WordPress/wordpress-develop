@@ -9,35 +9,9 @@
  * @ticket 51173
  */
 class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
-
-	/**
-	 * Whether REQUEST_URI was set before the test.
-	 *
-	 * @var bool
-	 */
-	private $request_uri_was_set;
-
-	/**
-	 * Original REQUEST_URI value.
-	 *
-	 * @var string
-	 */
-	private $original_request_uri;
-
 	public function set_up() {
 		parent::set_up();
-		$this->request_uri_was_set  = isset( $_SERVER['REQUEST_URI'] );
-		$this->original_request_uri = $_SERVER['REQUEST_URI'] ?? '';
 		$this->set_permalink_structure( '/%postname%/' );
-	}
-
-	public function tear_down() {
-		if ( $this->request_uri_was_set ) {
-			$_SERVER['REQUEST_URI'] = $this->original_request_uri;
-		} else {
-			unset( $_SERVER['REQUEST_URI'] );
-		}
-		parent::tear_down();
 	}
 
 	/**
