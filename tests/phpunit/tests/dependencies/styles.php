@@ -933,7 +933,7 @@ HTML;
 		$expected = <<<HTML
 <link
 	rel="stylesheet"
-	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
+	href="/wp-admin/load-styles.php?dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
 	media="all"
 >
 <style>
