@@ -1115,6 +1115,9 @@ function wp_color_scheme_menu_icon_styles() {
 /**
  * Returns the CSS that colors inline SVG admin menu icons with the icon colors of an admin color scheme.
  *
+ * A scheme without icon colors gets CSS that makes the icons follow the
+ * text color of the menu links instead.
+ *
  * The color scheme picker also passes it to user-profile.js, which applies
  * it when another scheme is selected.
  *
@@ -1129,7 +1132,7 @@ function wp_color_scheme_menu_icon_styles() {
 function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
 	global $_wp_admin_css_colors;
 
-	if ( empty( $_wp_admin_css_colors[ $color_scheme ]->icon_colors ) ) {
+	if ( empty( $_wp_admin_css_colors[ $color_scheme ] ) ) {
 		return '';
 	}
 
@@ -1139,19 +1142,20 @@ function _wp_get_color_scheme_menu_icon_styles( $color_scheme ) {
 		return '';
 	}
 
-	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+	$base_selector    = '#adminmenu div.wp-menu-image';
+	$focus_selector   = '#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image';
+	$current_selector = '#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image';
+
+	$icon_colors = array_map( 'sanitize_hex_color', wp_parse_args( (array) $_wp_admin_css_colors[ $color_scheme ]->icon_colors, array_fill_keys( array( 'base', 'focus', 'current' ), '' ) ) );
+
+	// Without icon colors, the icons follow the text color that the scheme gives to the menu links.
 	if ( ! $icon_colors['base'] || ! $icon_colors['focus'] || ! $icon_colors['current'] ) {
-		return '';
+		return "$base_selector,$focus_selector,$current_selector{color:inherit}";
 	}
 
-	return sprintf(
-		'#adminmenu div.wp-menu-image{color:%1$s}' .
-		'#adminmenu li:hover div.wp-menu-image,#adminmenu li a:focus div.wp-menu-image,#adminmenu li.opensub div.wp-menu-image{color:%2$s}' .
-		'#adminmenu li.wp-has-current-submenu div.wp-menu-image,#adminmenu li.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.wp-has-current-submenu:hover div.wp-menu-image,#adminmenu a.current:hover div.wp-menu-image,#adminmenu li.current div.wp-menu-image,#adminmenu li.wp-has-current-submenu a:focus div.wp-menu-image,#adminmenu li.wp-has-current-submenu.opensub div.wp-menu-image{color:%3$s}',
-		$icon_colors['base'],
-		$icon_colors['focus'],
-		$icon_colors['current']
-	);
+	return "$base_selector{color:{$icon_colors['base']}}" .
+		"$focus_selector{color:{$icon_colors['focus']}}" .
+		"$current_selector{color:{$icon_colors['current']}}";
 }
 
 /**

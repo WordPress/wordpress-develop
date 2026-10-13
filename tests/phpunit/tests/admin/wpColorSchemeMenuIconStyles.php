@@ -105,11 +105,8 @@ class Tests_Admin_WpColorSchemeMenuIconStyles extends WP_UnitTestCase {
 		);
 
 		return array(
-			'core scheme'           => array( admin_url( 'css/colors/light/colors.css' ), $icons ),
-			'no stylesheet'         => array( '', $icons ),
-			'no icon colors'        => array( 'https://example.org/scheme.css', array() ),
-			'missing color'         => array( 'https://example.org/scheme.css', array_diff_key( $icons, array( 'current' => '' ) ) ),
-			'color that is not hex' => array( 'https://example.org/scheme.css', array_merge( $icons, array( 'focus' => 'red' ) ) ),
+			'core scheme'   => array( admin_url( 'css/colors/light/colors.css' ), $icons ),
+			'no stylesheet' => array( '', $icons ),
 		);
 	}
 }
