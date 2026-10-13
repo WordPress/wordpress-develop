@@ -61,35 +61,37 @@ final class WP_Abilities_Content {
 	private const MAX_PER_PAGE = 100;
 
 	/**
-	 * Fields that expose edit-context post data.
+	 * Field paths that expose edit-context post data.
 	 *
-	 * Requests that explicitly include any of these fields require edit access.
+	 * Requests that explicitly include any of these paths require edit access. Requesting
+	 * the whole object, such as `title`, does not: it returns these sub-fields only for
+	 * posts the current user can edit.
 	 *
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private const EDIT_FIELDS = array( 'title_raw', 'excerpt_raw', 'content_raw' );
+	private const EDIT_FIELDS = array( 'title.raw', 'excerpt.raw', 'content.raw' );
 
 	/**
-	 * Fields whose output may read post meta or terms.
+	 * Field paths whose output may read post meta or terms.
 	 *
-	 * Requests that include any of these prime the post meta and term caches for the
-	 * page. Rendered excerpts and content may read either, and permalinks read terms
-	 * when the permalink structure contains `%category%`. Other fields, such as the
-	 * rendered title, do not need that cache priming.
+	 * Requests that include any of these, directly or through their whole object, prime
+	 * the post meta and term caches for the page. Rendered excerpts and content may read
+	 * either, and permalinks read terms when the permalink structure contains `%category%`.
+	 * Other fields, such as the rendered title, do not need that cache priming.
 	 *
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private const CACHE_PRIMING_FIELDS = array( 'link', 'excerpt_rendered', 'content_rendered' );
+	private const CACHE_PRIMING_FIELDS = array( 'link', 'excerpt.rendered', 'content.rendered' );
 
 	/**
-	 * Default fields returned when the caller does not request a field subset.
+	 * Default field paths returned when the caller does not request a field subset.
 	 *
 	 * @since 7.2.0
 	 * @var list<string>
 	 */
-	private const DEFAULT_FIELDS = array( 'id', 'type', 'status', 'date', 'slug', 'title_rendered' );
+	private const DEFAULT_FIELDS = array( 'id', 'type', 'status', 'date', 'slug', 'title.rendered' );
 
 	/**
 	 * Globals that rendering a post changes: the global post and the globals that
@@ -142,7 +144,7 @@ final class WP_Abilities_Content {
 			'core/content-query',
 			array(
 				'label'               => __( 'Query Content' ),
-				'description'         => __( 'Reads content from post types exposed to abilities. Single-post lookups by ID or by post type and slug return the post object directly. Query mode returns readable posts filtered by post type, status, author, parent, or included IDs. Requires an authenticated user. Lookups and filters are exact-match only; the ability does not perform full-text search.' ),
+				'description'         => __( 'Reads content from post types exposed to abilities, as a paginated list of posts. Look up a single readable post by ID or by post type and slug, or query readable posts filtered by post type, status, author, parent, or included IDs. Requires an authenticated user. Lookups and filters are exact-match only; the ability does not perform full-text search.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_query_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_query_output_schema(),
@@ -167,12 +169,12 @@ final class WP_Abilities_Content {
 	/**
 	 * Permission callback for the `core/content-query` ability.
 	 *
-	 * This gate is the authoritative permission decision for single-post modes: it
-	 * resolves the requested post and denies missing, mismatched, or unreadable posts
-	 * before execution. Query mode is only gated coarsely here (collection status
-	 * capabilities); {@see self::execute_content_query()} enforces row-level read/edit
-	 * permissions, since individual rows are unknown until the query runs. Requests
-	 * that explicitly ask for edit-context fields require edit access before execution.
+	 * This gate is the authoritative permission decision for lookups: it resolves the
+	 * requested post and denies missing, mismatched, or unreadable posts before execution.
+	 * Queries are only gated coarsely here (collection status capabilities);
+	 * {@see self::execute_content_query()} enforces row-level read/edit permissions, since
+	 * individual rows are unknown until the query runs. Requests that explicitly ask for
+	 * edit-context fields require edit access before execution.
 	 *
 	 * @since 7.2.0
 	 *
@@ -186,11 +188,20 @@ final class WP_Abilities_Content {
 			return false;
 		}
 
+		/*
+		 * A `where` that is not an object is let through, so that the execute callback can
+		 * report it as an invalid filter. It reads no post.
+		 */
+		$where = $this->get_input_object( $input, 'where' );
+		if ( null === $where ) {
+			return true;
+		}
+
 		$requires_edit = $this->has_explicit_edit_fields( $input );
 
-		// Single-post modes, by ID or by post type and slug.
-		if ( isset( $input['id'] ) || isset( $input['slug'] ) ) {
-			$post = $this->get_requested_post( $input );
+		// Lookups, by ID or by post type and slug.
+		if ( isset( $where['id'] ) || isset( $where['slug'] ) ) {
+			$post = $this->get_requested_post( $where );
 			if ( ! $post ) {
 				return false;
 			}
@@ -198,8 +209,8 @@ final class WP_Abilities_Content {
 			return $requires_edit ? current_user_can( 'edit_post', $post->ID ) : $this->check_read_permission( $post );
 		}
 
-		// Query mode requires an exposed post type.
-		$post_type_object = $this->get_exposed_post_type( $input['type'] ?? null );
+		// A query requires an exposed post type.
+		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
 			return false;
 		}
@@ -208,7 +219,7 @@ final class WP_Abilities_Content {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
-		return $this->can_query_statuses( $input, $post_type_object );
+		return $this->can_query_statuses( $where, $post_type_object );
 	}
 
 	/**
@@ -261,7 +272,7 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $input The ability input, or one of its objects, such as `where`.
 	 * @param string       $key   The input key holding the list.
 	 * @return list<string> The parsed string values; empty when absent or unparseable.
 	 */
@@ -278,7 +289,8 @@ final class WP_Abilities_Content {
 	 * Checks whether the input explicitly requests edit-context fields.
 	 *
 	 * Omitted fields are not treated as edit-intent: default responses include the
-	 * fields visible for each individual post.
+	 * fields visible for each individual post. Neither is a whole object, such as
+	 * `content`, which returns its raw sub-field only for posts the current user can edit.
 	 *
 	 * @since 7.2.0
 	 *
@@ -298,12 +310,12 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input            The ability input.
+	 * @param array<mixed> $where            The `where` filters.
 	 * @param WP_Post_Type $post_type_object The post type object.
 	 * @return bool True if the requested statuses may be queried.
 	 */
-	private function can_query_statuses( array $input, WP_Post_Type $post_type_object ): bool {
-		foreach ( $this->normalize_statuses( $input ) as $status ) {
+	private function can_query_statuses( array $where, WP_Post_Type $post_type_object ): bool {
+		foreach ( $this->normalize_statuses( $where ) as $status ) {
 			if ( 'publish' === $status ) {
 				continue;
 			}
@@ -402,29 +414,50 @@ final class WP_Abilities_Content {
 	/**
 	 * Executes the `core/content-query` ability.
 	 *
-	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, so the
-	 * single-post modes only re-validate the lookup itself: existence, exposure, and a
-	 * matching post type. Query mode still filters every row by read or edit permission,
-	 * because the gate cannot resolve rows before the query runs.
+	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, so
+	 * lookups only re-validate the lookup itself: existence, exposure, and a matching post
+	 * type. Queries still filter every row by read or edit permission, because the gate
+	 * cannot resolve rows before the query runs.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param mixed $input Optional. The ability input. Default empty array.
-	 * @return array<string, mixed>|WP_Error A single post, a `posts` list with totals in query mode, or a WP_Error.
+	 * @return array<string, mixed>|WP_Error A page of posts, or a WP_Error on failure.
 	 */
 	private function execute_content_query( $input = array() ) {
 		$input         = rest_sanitize_object( $input );
 		$fields        = $this->normalize_fields( $input );
 		$requires_edit = $this->has_explicit_edit_fields( $input );
 
-		// Single-post modes, by ID or by post type and slug.
-		if ( isset( $input['id'] ) || isset( $input['slug'] ) ) {
-			$post = $this->get_requested_post( $input );
-
-			return $post ? $this->format_post( $post, $fields ) : $this->not_found_error();
+		/*
+		 * A `where` that is not an object cannot be honored. Reject it rather than reading it
+		 * as no filter at all.
+		 */
+		$where = $this->get_input_object( $input, 'where' );
+		if ( null === $where ) {
+			return $this->invalid_filter_error( 'where', __( 'The where filter must be an object.' ) );
 		}
 
-		$post_type_object = $this->get_exposed_post_type( $input['type'] ?? null );
+		// Pagination that is not an object falls back to the defaults, like page values that cannot be parsed.
+		$pagination = $this->get_input_object( $input, 'pagination' ) ?? array();
+		$page       = $this->parse_filter_int( $pagination['page'] ?? 1, 1 ) ?? 1;
+
+		// Lookups, by ID or by post type and slug.
+		if ( isset( $where['id'] ) || isset( $where['slug'] ) ) {
+			$post = $this->get_requested_post( $where );
+			if ( ! $post ) {
+				return $this->not_found_error();
+			}
+
+			// A lookup is a result set of one post, so it has a single page.
+			if ( $page > 1 ) {
+				return $this->invalid_page_number_error();
+			}
+
+			return $this->prepare_output( array( $this->format_post( $post, $fields ) ), 1, 1 );
+		}
+
+		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
 			return $this->not_found_error();
 		}
@@ -441,50 +474,49 @@ final class WP_Abilities_Content {
 		 * values loudly so a filter that cannot be honored fails closed instead.
 		 */
 		$parent = null;
-		if ( isset( $input['parent'] ) ) {
+		if ( isset( $where['parent'] ) ) {
 			if ( ! is_post_type_hierarchical( $post_type ) ) {
-				return $this->invalid_filter_error( 'parent', __( 'The parent filter is only supported for hierarchical post types.' ) );
+				return $this->invalid_filter_error( 'where[parent]', __( 'The parent filter is only supported for hierarchical post types.' ) );
 			}
 
-			$parent = $this->parse_filter_int( $input['parent'], 0 );
+			$parent = $this->parse_filter_int( $where['parent'], 0 );
 			if ( null === $parent ) {
-				return $this->invalid_filter_error( 'parent', __( 'The parent filter must be a non-negative integer.' ) );
+				return $this->invalid_filter_error( 'where[parent]', __( 'The parent filter must be a non-negative integer.' ) );
 			}
 		}
 
 		$author = null;
-		if ( isset( $input['author_slug'] ) ) {
+		if ( isset( $where['author_slug'] ) ) {
 			if ( ! post_type_supports( $post_type, 'author' ) ) {
 				return $this->invalid_filter_error(
-					'author_slug',
+					'where[author_slug]',
 					/* translators: %s: Parameter. */
 					sprintf( __( 'The %s filter is only supported for post types that support authors.' ), 'author_slug' )
 				);
 			}
 
-			$author = $this->get_author_by_slug( $input['author_slug'], $post_type_object );
+			$author = $this->get_author_by_slug( $where['author_slug'], $post_type_object );
 			if ( ! $author ) {
 				return $this->invalid_filter_error(
-					'author_slug',
+					'where[author_slug]',
 					/* translators: %s: Parameter. */
 					sprintf( __( 'The %s filter must be the slug of an existing user.' ), 'author_slug' )
 				);
 			}
 		}
 
-		$include = $this->normalize_include( $input );
+		$include = $this->normalize_include( $where );
 
 		/*
 		 * An include filter that was supplied but parsed to no valid IDs must not fall
 		 * through to an unrestricted query: WP_Query ignores an empty `post__in`, which
 		 * would return every post of the type — the opposite of the caller's intent.
 		 */
-		if ( isset( $input['include'] ) && array() === $include ) {
-			return $this->invalid_filter_error( 'include', __( 'The include filter must list one or more valid post IDs.' ) );
+		if ( isset( $where['include'] ) && array() === $include ) {
+			return $this->invalid_filter_error( 'where[include]', __( 'The include filter must list one or more valid post IDs.' ) );
 		}
 
-		$per_page = $this->normalize_per_page( $input, $include );
-		$page     = $this->parse_filter_int( $input['page'] ?? 1, 1 ) ?? 1;
+		$per_page = $this->normalize_per_page( $pagination, $include );
 
 		$prime_post_caches = $this->should_prime_post_caches( $fields );
 
@@ -494,7 +526,7 @@ final class WP_Abilities_Content {
 		 */
 		$query_args = array(
 			'post_type'              => $post_type,
-			'post_status'            => $this->normalize_statuses( $input ),
+			'post_status'            => $this->normalize_statuses( $where ),
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
 			'perm'                   => $requires_edit ? 'editable' : 'readable',
@@ -536,11 +568,7 @@ final class WP_Abilities_Content {
 		 * totals and no error.
 		 */
 		if ( $total > 0 && $page > $total_pages ) {
-			return new WP_Error(
-				'content_invalid_page_number',
-				__( 'The page number requested is larger than the number of pages available.' ),
-				array( 'status' => 404 )
-			);
+			return $this->invalid_page_number_error();
 		}
 
 		/*
@@ -575,11 +603,29 @@ final class WP_Abilities_Content {
 		 * Mirror the REST posts controller: totals come from the underlying WP_Query,
 		 * while the row-level checks above may withhold individual returned rows.
 		 */
-		return array(
-			'posts'       => $posts,
-			'total'       => $total,
-			'total_pages' => $total_pages,
-		);
+		return $this->prepare_output( $posts, $total, $total_pages );
+	}
+
+	/**
+	 * Reads an object member of the input, such as `where` or `pagination`.
+	 *
+	 * Accepts what schema validation reads as an object: an array, a `stdClass`, or an
+	 * empty string. Only the REST run controller converts input to the schema types, so
+	 * callers that bypass it, such as a direct WP_Ability::execute() call, can pass any of them.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $input The ability input.
+	 * @param string       $key   The member name.
+	 * @return array<mixed>|null The member as an array, an empty array when it is omitted,
+	 *                           or null when it is not an object.
+	 */
+	private function get_input_object( array $input, string $key ): ?array {
+		if ( ! array_key_exists( $key, $input ) ) {
+			return array();
+		}
+
+		return rest_is_object( $input[ $key ] ) ? rest_sanitize_object( $input[ $key ] ) : null;
 	}
 
 	/**
@@ -592,12 +638,12 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input       The ability input.
+	 * @param array<mixed> $pagination  The `pagination` input.
 	 * @param list<int>    $include_ids Normalized included post IDs; empty when not requested.
 	 * @return int The clamped per-page value.
 	 */
-	private function normalize_per_page( array $input, array $include_ids ): int {
-		$per_page = $this->parse_filter_int( $input['per_page'] ?? null, 1 );
+	private function normalize_per_page( array $pagination, array $include_ids ): int {
+		$per_page = $this->parse_filter_int( $pagination['per_page'] ?? null, 1 );
 		if ( null === $per_page ) {
 			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
 		}
@@ -641,13 +687,22 @@ final class WP_Abilities_Content {
 	/**
 	 * Checks whether requested fields benefit from page-level cache priming.
 	 *
+	 * A whole object counts as a request for its sub-fields, so `content` primes the
+	 * caches as `content.rendered` does.
+	 *
 	 * @since 7.2.0
 	 *
-	 * @param list<string> $fields The requested field names.
+	 * @param list<string> $fields The requested field paths.
 	 * @return bool True when post meta and term caches should be primed.
 	 */
 	private function should_prime_post_caches( array $fields ): bool {
-		return ! empty( array_intersect( self::CACHE_PRIMING_FIELDS, $fields ) );
+		foreach ( self::CACHE_PRIMING_FIELDS as $field ) {
+			if ( rest_is_field_included( $field, $fields ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -657,27 +712,28 @@ final class WP_Abilities_Content {
 	 * `type` guard when one is given. As with the integer filters, the ID is read with
 	 * {@see self::parse_filter_int()}, so a malformed ID or one beyond the integer range
 	 * cannot be coerced onto another post. By slug, the post type must be exposed to
-	 * abilities, and {@see self::get_post_by_slug()} resolves the post.
+	 * abilities, and {@see self::get_post_by_slug()} resolves the post. A lookup by ID
+	 * ignores a slug given along with it.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $where The `where` filters.
 	 * @return WP_Post|null The post, or null when it cannot be resolved.
 	 */
-	private function get_requested_post( array $input ): ?WP_Post {
-		if ( isset( $input['id'] ) ) {
-			$post_id = $this->parse_filter_int( $input['id'], 1 );
+	private function get_requested_post( array $where ): ?WP_Post {
+		if ( isset( $where['id'] ) ) {
+			$post_id = $this->parse_filter_int( $where['id'], 1 );
 			$post    = null === $post_id ? null : get_post( $post_id );
 
 			if ( ! $post instanceof WP_Post || ! $this->get_exposed_post_type( $post->post_type ) ) {
 				return null;
 			}
 
-			return empty( $input['type'] ) || $post->post_type === $input['type'] ? $post : null;
+			return empty( $where['type'] ) || $post->post_type === $where['type'] ? $post : null;
 		}
 
-		$slug             = $input['slug'] ?? null;
-		$post_type_object = $this->get_exposed_post_type( $input['type'] ?? null );
+		$slug             = $where['slug'] ?? null;
+		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 
 		return is_string( $slug ) && $post_type_object ? $this->get_post_by_slug( $post_type_object->name, $slug ) : null;
 	}
@@ -812,25 +868,25 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $where The `where` filters.
 	 * @return list<string> Normalized list of post status slugs.
 	 */
-	private function normalize_statuses( array $input ): array {
-		$statuses = $this->parse_list_input( $input, 'status' );
+	private function normalize_statuses( array $where ): array {
+		$statuses = $this->parse_list_input( $where, 'status' );
 
 		return array() === $statuses ? array( 'publish' ) : array_map( 'sanitize_key', $statuses );
 	}
 
 	/**
-	 * Normalizes query-mode included post IDs.
+	 * Normalizes the post IDs a query includes.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $input The ability input.
+	 * @param array<mixed> $where The `where` filters.
 	 * @return list<int> Unique positive post IDs.
 	 */
-	private function normalize_include( array $input ): array {
-		$include = $input['include'] ?? null;
+	private function normalize_include( array $where ): array {
+		$include = $where['include'] ?? null;
 		if ( ! is_array( $include ) && ! is_string( $include ) && ! is_int( $include ) ) {
 			return array();
 		}
@@ -843,11 +899,12 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Returns the requested fields, or a lean default set when none are given.
+	 * Returns the requested field paths, or a lean default set when none are given.
 	 *
 	 * An empty or absent `fields` value selects a lean set of common read fields.
-	 * Otherwise the requested fields are returned. The input schema has already
-	 * validated them against the supported set before the ability executes.
+	 * Otherwise the requested paths are returned. The input schema has already
+	 * validated them against the supported set before the ability executes, and
+	 * {@see self::build_post_fields()} ignores any other path.
 	 *
 	 * The `id` field is always included, so every returned post can be identified. This
 	 * also means a post is never empty, so it always encodes as a JSON object.
@@ -855,7 +912,7 @@ final class WP_Abilities_Content {
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
-	 * @return list<string> List of requested field names.
+	 * @return list<string> List of requested field paths.
 	 */
 	private function normalize_fields( array $input ): array {
 		$fields = $this->parse_list_input( $input, 'fields' );
@@ -874,9 +931,10 @@ final class WP_Abilities_Content {
 	 * Returns the post field definitions, keyed by field name in output order.
 	 *
 	 * This is the single source of truth for the ability's post fields: the output
-	 * schema uses the definitions directly, while the input schema fields enum uses
-	 * the keys. Read-context fields are returned for readable posts; the edit-context
-	 * fields listed in {@see self::EDIT_FIELDS} additionally require edit access.
+	 * schema uses the definitions directly, while the input schema `fields` enum lists
+	 * each field, followed by the path of each of its sub-fields, such as `title.rendered`.
+	 * Read-context fields are returned for readable posts; the edit-context sub-fields
+	 * listed in {@see self::EDIT_FIELDS} additionally require edit access.
 	 *
 	 * @since 7.2.0
 	 *
@@ -884,87 +942,162 @@ final class WP_Abilities_Content {
 	 */
 	private function get_post_properties(): array {
 		return array(
-			'id'                => array(
+			'id'       => array(
 				'type'        => 'integer',
 				'description' => __( 'The post ID.' ),
 			),
-			'type'              => array(
+			'type'     => array(
 				'type'        => 'string',
 				'description' => __( 'The post type.' ),
 			),
-			'status'            => array(
+			'status'   => array(
 				'type'        => 'string',
 				'description' => __( 'The post status.' ),
 			),
-			'date'              => array(
-				'type'        => array( 'string', 'null' ),
-				'format'      => 'date-time',
-				'description' => __( "The publication date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
+			'date'     => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'local' => array(
+						'type'        => array( 'string', 'null' ),
+						'format'      => 'date-time',
+						'description' => __( "The publication date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
+					),
+					'gmt'   => array(
+						'type'        => array( 'string', 'null' ),
+						'format'      => 'date-time',
+						'description' => __( 'The publication date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
+					),
+				),
+				'description'          => __( 'The publication date.' ),
 			),
-			'date_gmt'          => array(
-				'type'        => array( 'string', 'null' ),
-				'format'      => 'date-time',
-				'description' => __( 'The publication date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
+			'modified' => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'local' => array(
+						'type'        => array( 'string', 'null' ),
+						'format'      => 'date-time',
+						'description' => __( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
+					),
+					'gmt'   => array(
+						'type'        => array( 'string', 'null' ),
+						'format'      => 'date-time',
+						'description' => __( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
+					),
+				),
+				'description'          => __( 'The last modified date.' ),
 			),
-			'modified'          => array(
-				'type'        => array( 'string', 'null' ),
-				'format'      => 'date-time',
-				'description' => __( "The last modified date, in ISO 8601 format using the site's timezone. Null when the date cannot be resolved." ),
-			),
-			'modified_gmt'      => array(
-				'type'        => array( 'string', 'null' ),
-				'format'      => 'date-time',
-				'description' => __( 'The last modified date, in ISO 8601 format as GMT. Null when the date cannot be resolved.' ),
-			),
-			'slug'              => array(
+			'slug'     => array(
 				'type'        => 'string',
 				'description' => __( 'The post slug.' ),
 			),
-			'link'              => array(
+			'link'     => array(
 				'type'        => 'string',
 				'description' => __( 'The permalink URL.' ),
 			),
-			'title_raw'         => array(
-				'type'        => 'string',
-				'description' => __( 'The raw post title. Present when the post type supports titles and the current user can edit the post.' ),
+			'title'    => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'raw'      => array(
+						'type'        => 'string',
+						'description' => __( 'The raw post title. Present when the current user can edit the post.' ),
+					),
+					'rendered' => array(
+						'type'        => 'string',
+						'description' => __( 'The rendered post title.' ),
+					),
+				),
+				'description'          => __( 'The post title. Present when the post type supports titles.' ),
 			),
-			'title_rendered'    => array(
-				'type'        => 'string',
-				'description' => __( 'The rendered post title. Present when the post type supports titles.' ),
+			'excerpt'  => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'raw'       => array(
+						'type'        => 'string',
+						'description' => __( 'The raw post excerpt. Present when the current user can edit the post.' ),
+					),
+					'rendered'  => array(
+						'type'        => 'string',
+						'description' => __( 'The rendered post excerpt (HTML). Empty when withheld for a password-protected post.' ),
+					),
+					'protected' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Whether the excerpt is protected with a password.' ),
+					),
+				),
+				'description'          => __( 'The post excerpt. Present when the post type supports excerpts.' ),
 			),
-			'excerpt_raw'       => array(
-				'type'        => 'string',
-				'description' => __( 'The raw post excerpt. Present when the post type supports excerpts and the current user can edit the post.' ),
+			'content'  => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'raw'       => array(
+						'type'        => 'string',
+						'description' => __( 'The raw, unfiltered post content (block markup). Present when the current user can edit the post.' ),
+					),
+					'rendered'  => array(
+						'type'        => 'string',
+						'description' => __( 'The rendered post content. Empty when withheld for a password-protected post.' ),
+					),
+					'protected' => array(
+						'type'        => 'boolean',
+						'description' => __( 'Whether the content is protected with a password.' ),
+					),
+				),
+				'description'          => __( 'The post content. Present when the post type supports the editor.' ),
 			),
-			'excerpt_rendered'  => array(
-				'type'        => 'string',
-				'description' => __( 'The rendered post excerpt (HTML). Present when the post type supports excerpts. Empty when withheld for a password-protected post.' ),
+			'author'   => array(
+				'type'                 => 'object',
+				'additionalProperties' => false,
+				'properties'           => array(
+					'id'   => array(
+						'type'        => 'integer',
+						'description' => __( 'The user ID of the author.' ),
+					),
+					'name' => array(
+						'type'        => array( 'string', 'null' ),
+						'description' => __( "The author's display name, as the REST API users endpoint returns it in `name`. Null when the author no longer exists." ),
+					),
+					'slug' => array(
+						'type'        => array( 'string', 'null' ),
+						'description' => __( "The author's user slug (nicename), as the REST API users endpoint returns it in `slug`, and as the `author_slug` filter takes it. Null when the author no longer exists." ),
+					),
+				),
+				'description'          => __( 'The post author. Present when the post type supports authors.' ),
 			),
-			'excerpt_protected' => array(
-				'type'        => 'boolean',
-				'description' => __( 'Whether the excerpt is protected with a password. Present when the post type supports excerpts.' ),
-			),
-			'content_raw'       => array(
-				'type'        => 'string',
-				'description' => __( 'The raw, unfiltered post content (block markup). Present when the post type supports the editor and the current user can edit the post.' ),
-			),
-			'content_rendered'  => array(
-				'type'        => 'string',
-				'description' => __( 'The rendered post content. Present when the post type supports the editor. Empty when withheld for a password-protected post.' ),
-			),
-			'content_protected' => array(
-				'type'        => 'boolean',
-				'description' => __( 'Whether the content is protected with a password. Present when the post type supports the editor.' ),
-			),
-			'author_slug'       => array(
-				'type'        => 'string',
-				'description' => __( "The author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Present when the post type supports authors. Empty when the author no longer exists." ),
-			),
-			'parent'            => array(
+			'parent'   => array(
 				'type'        => 'integer',
 				'description' => __( 'The parent post ID. Present for hierarchical post types.' ),
 			),
 		);
+	}
+
+	/**
+	 * Returns the field paths the `fields` input accepts, in output order.
+	 *
+	 * Each post field is followed by the path of each of its sub-fields, such as `title`,
+	 * `title.raw` and `title.rendered`. Requesting a field returns all of its sub-fields
+	 * that apply, while a sub-field path returns only that sub-field, as the REST API's
+	 * `_fields` parameter does.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return list<string> The field paths.
+	 */
+	private function get_field_paths(): array {
+		$paths = array();
+		foreach ( $this->get_post_properties() as $name => $schema ) {
+			$paths[] = $name;
+
+			foreach ( array_keys( $schema['properties'] ?? array() ) as $sub_field ) {
+				$paths[] = "{$name}.{$sub_field}";
+			}
+		}
+
+		return $paths;
 	}
 
 	/**
@@ -980,25 +1113,29 @@ final class WP_Abilities_Content {
 			'uniqueItems' => true,
 			'items'       => array(
 				'type' => 'string',
-				'enum' => array_keys( $this->get_post_properties() ),
+				'enum' => $this->get_field_paths(),
 			),
-			'description' => __( 'Limit each returned post to these fields. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Explicit raw field requests require edit access.' ),
+			'description' => __( 'Limit each returned post to these fields. A field such as `title` returns all of its sub-fields the current user can see, while a path such as `title.rendered` returns only that sub-field. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Explicit raw sub-field requests, such as `content.raw`, require edit access.' ),
 		);
 	}
 
 	/**
 	 * Builds the input schema for the `core/content-query` ability.
 	 *
-	 * The ability has three mutually exclusive modes, modeled as a `oneOf` so invalid
-	 * combinations are rejected rather than silently ignored:
+	 * The input has three members: `where` selects the posts, `fields` selects the fields
+	 * returned for each post, and `pagination` selects the page of results. `where` holds
+	 * one of three sets of keys, modeled as an `anyOf` so invalid combinations are rejected
+	 * rather than silently ignored:
 	 *
-	 *   - Get a single post by `id` (optionally guarded by `type`).
-	 *   - Get a single post by `type` and `slug`.
-	 *   - Query a set of posts by `type` plus filters (`status`, `author_slug`, `parent`,
-	 *     `include`, `page`, `per_page`).
+	 *   - A single readable post by `id`, optionally guarded by `type`.
+	 *   - A single readable post by `type` and `slug`.
+	 *   - Readable posts of a `type`, filtered by any of `status`, `author_slug`, `parent`,
+	 *     and `include`.
 	 *
-	 * Each mode sets `additionalProperties: false`, so e.g. passing `per_page` alongside `id`
-	 * fails validation instead of being dropped. `fields` is accepted in every mode.
+	 * Each branch sets `additionalProperties: false`, so e.g. passing `include` alongside `id`
+	 * fails validation instead of being dropped. The `anyOf` sits inside `where` rather than
+	 * at the top level, because some AI providers, such as Anthropic, reject a tool whose
+	 * input schema has a combinator at the top level.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1007,104 +1144,119 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed> The input JSON Schema.
 	 */
 	private function get_content_query_input_schema( array $post_types, array $statuses ): array {
-		$fields  = $this->get_fields_input_schema();
-		$include = array(
-			'type'        => 'array',
-			'minItems'    => 1,
-			'maxItems'    => self::MAX_PER_PAGE,
-			'uniqueItems' => true,
-			'items'       => array(
-				'type'    => 'integer',
-				'minimum' => 1,
-			),
-			'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum.' ),
-		);
-
 		return array(
-			'type'  => 'object',
-			'oneOf' => array(
-				// Mode 1: retrieve a single readable post by ID.
-				array(
-					'title'                => __( 'Get a single readable post by ID' ),
-					'required'             => array( 'id' ),
-					'additionalProperties' => false,
-					'properties'           => array(
-						'id'     => array(
-							'type'        => 'integer',
-							'minimum'     => 1,
-							'description' => __( 'Retrieve a single readable post by ID.' ),
-						),
-						'type'   => array(
-							'type'        => 'string',
-							'enum'        => $post_types,
-							'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches and the current user can read it.' ),
-						),
-						'fields' => $fields,
-					),
-				),
-				// Mode 2: retrieve a single readable post by post type and slug.
-				array(
-					'title'                => __( 'Get a single readable post by slug' ),
-					'required'             => array( 'type', 'slug' ),
-					'additionalProperties' => false,
-					'properties'           => array(
-						'type'   => array(
-							'type'        => 'string',
-							'enum'        => $post_types,
-							'description' => __( 'Post type containing the slug. Slugs are not unique across post types.' ),
-						),
-						'slug'   => array(
-							'type'        => 'string',
-							'minLength'   => 1,
-							'description' => __( 'Retrieve a single readable post by slug. Resolves to the newest readable match, preferring published posts. In hierarchical post types, posts under different parents can share a slug; use `id` to get a specific one.' ),
-						),
-						'fields' => $fields,
-					),
-				),
-				// Mode 3: query a set of readable posts by post type and filters.
-				array(
-					'title'                => __( 'Query readable posts by post type and filters' ),
-					'required'             => array( 'type' ),
-					'additionalProperties' => false,
-					'properties'           => array(
-						'type'        => array(
-							'type'        => 'string',
-							'enum'        => $post_types,
-							'description' => __( 'Post type to query for readable posts.' ),
-						),
-						'status'      => array(
-							'type'        => 'array',
-							'uniqueItems' => true,
-							'items'       => array(
-								'type' => 'string',
-								'enum' => $statuses,
+			'type'                 => 'object',
+			'additionalProperties' => false,
+			'required'             => array( 'where' ),
+			'properties'           => array(
+				'where'      => array(
+					'type'        => 'object',
+					/*
+					 * Only the branches set `additionalProperties`. Sanitization applies the
+					 * `where` schema again after the matching branch, so `false` here would
+					 * strip every key.
+					 */
+					'anyOf'       => array(
+						// A single readable post, looked up by ID.
+						array(
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'required'             => array( 'id' ),
+							'properties'           => array(
+								'id'   => array(
+									'type'        => 'integer',
+									'minimum'     => 1,
+									'description' => __( 'Retrieve a single readable post by ID.' ),
+								),
+								'type' => array(
+									'type'        => 'string',
+									'enum'        => $post_types,
+									'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches and the current user can read it.' ),
+								),
 							),
-							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
 						),
-						'author_slug' => array(
-							'type'        => 'string',
-							'minLength'   => 1,
-							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
+						// A single readable post, looked up by post type and slug.
+						array(
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'required'             => array( 'type', 'slug' ),
+							'properties'           => array(
+								'type' => array(
+									'type'        => 'string',
+									'enum'        => $post_types,
+									'description' => __( 'Post type containing the slug. Slugs are not unique across post types.' ),
+								),
+								'slug' => array(
+									'type'        => 'string',
+									'minLength'   => 1,
+									'description' => __( 'Retrieve a single readable post by slug. Resolves to the newest readable match, preferring published posts. In hierarchical post types, posts under different parents can share a slug; use `id` to get a specific one.' ),
+								),
+							),
 						),
-						'parent'      => array(
-							'type'        => 'integer',
-							'minimum'     => 0,
-							'description' => __( 'Filter by parent post ID. Only supported for hierarchical post types. Use 0 for top-level posts.' ),
+						// Readable posts of a post type, filtered by any of these keys.
+						array(
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'required'             => array( 'type' ),
+							'properties'           => array(
+								'type'        => array(
+									'type'        => 'string',
+									'enum'        => $post_types,
+									'description' => __( 'Post type to query for readable posts.' ),
+								),
+								'status'      => array(
+									'type'        => 'array',
+									'uniqueItems' => true,
+									'items'       => array(
+										'type' => 'string',
+										'enum' => $statuses,
+									),
+									'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
+								),
+								'author_slug' => array(
+									'type'        => 'string',
+									'minLength'   => 1,
+									'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
+								),
+								'parent'      => array(
+									'type'        => 'integer',
+									'minimum'     => 0,
+									'description' => __( 'Filter by parent post ID. Only supported for hierarchical post types. Use 0 for top-level posts.' ),
+								),
+								'include'     => array(
+									'type'        => 'array',
+									'minItems'    => 1,
+									'maxItems'    => self::MAX_PER_PAGE,
+									'uniqueItems' => true,
+									'items'       => array(
+										'type'    => 'integer',
+										'minimum' => 1,
+									),
+									'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum.' ),
+								),
+							),
 						),
-						'include'     => $include,
-						'fields'      => $fields,
-						'page'        => array(
+					),
+					'description' => __( 'Selects the posts to return. Look up a single readable post by `id`, optionally guarded by `type`, or by `type` and `slug`, or query the readable posts of a `type`, filtered by any of `status`, `author_slug`, `parent`, and `include`. A lookup cannot be combined with the query filters.' ),
+				),
+				'fields'     => $this->get_fields_input_schema(),
+				'pagination' => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => array(
+						'page'     => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error. Check `total_pages` before requesting later pages.' ),
+							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error, so a lookup only has page 1. Check `pagination.total_pages` in the result before requesting later pages.' ),
 						),
-						'per_page'    => array(
+						'per_page' => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'maximum'     => self::MAX_PER_PAGE,
 							'description' => __( 'Maximum number of posts to return per page.' ),
 						),
 					),
+					'description'          => __( 'Selects the page of results to return.' ),
 				),
 			),
 		);
@@ -1133,44 +1285,44 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the output schema for the `core/content-query` ability.
 	 *
+	 * Every request returns the same shape: a page of posts in `items`, and the totals
+	 * across all pages in `pagination`. A lookup returns a single post.
+	 *
 	 * Only `id` is required in a post, because it is always returned. The other fields are
 	 * optional because the `fields` input lets the caller request any subset, and a field
-	 * is only present when its post type supports it. Single-post mode returns the post
-	 * object directly, while query mode returns a paginated wrapper.
+	 * is only present when its post type supports it.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @return array<string, mixed> The output JSON Schema.
 	 */
 	private function get_content_query_output_schema(): array {
-		$post_schema = $this->get_content_output_schema();
-
-		$query_schema = array(
+		return array(
 			'type'                 => 'object',
 			'additionalProperties' => false,
-			'required'             => array( 'posts', 'total', 'total_pages' ),
+			'required'             => array( 'items', 'pagination' ),
 			'properties'           => array(
-				'posts'       => array(
+				'items'      => array(
 					'type'        => 'array',
-					'description' => __( 'The readable posts matching the query, ordered by post date, newest first.' ),
-					'items'       => $post_schema,
+					'description' => __( 'The readable posts on the requested page, ordered by post date, newest first.' ),
+					'items'       => $this->get_content_output_schema(),
 				),
-				'total'       => array(
-					'type'        => 'integer',
-					'description' => __( 'Total number of posts matching the underlying query, across all pages. May exceed the number of returned posts when row-level permission checks withhold some of them.' ),
+				'pagination' => array(
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => array( 'total', 'total_pages' ),
+					'properties'           => array(
+						'total'       => array(
+							'type'        => 'integer',
+							'description' => __( 'Total number of posts matching the underlying query, across all pages. May exceed the number of returned posts when row-level permission checks withhold some of them.' ),
+						),
+						'total_pages' => array(
+							'type'        => 'integer',
+							'description' => __( 'Total number of query result pages available for the underlying query. May include pages whose rows are withheld by row-level permission checks.' ),
+						),
+					),
+					'description'          => __( 'The totals of the request, across all pages.' ),
 				),
-				'total_pages' => array(
-					'type'        => 'integer',
-					'description' => __( 'Total number of query result pages available for the underlying query. May include pages whose rows are withheld by row-level permission checks.' ),
-				),
-			),
-		);
-
-		return array(
-			'type'  => 'object',
-			'oneOf' => array(
-				$post_schema,
-				$query_schema,
 			),
 		);
 	}
@@ -1188,7 +1340,7 @@ final class WP_Abilities_Content {
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post      $post   The post object.
-	 * @param list<string> $fields The requested field names.
+	 * @param list<string> $fields The requested field paths.
 	 * @return array<string, mixed> The formatted post data.
 	 */
 	private function format_post( WP_Post $post, array $fields ): array {
@@ -1229,96 +1381,123 @@ final class WP_Abilities_Content {
 	/**
 	 * Builds the requested field projection for a post.
 	 *
-	 * Only the requested fields that the post type supports and the current user can see are
-	 * included. Raw fields are edit-context fields; rendered fields are read-context fields and
-	 * are withheld for password-protected posts unless the current user can edit the post,
-	 * mirroring the REST API behavior.
+	 * Fields are selected as the REST API's `_fields` parameter selects them, with
+	 * rest_is_field_included(): a field such as `title` is included when it or one of its
+	 * paths is requested, and a sub-field such as `title.rendered` when it or its field is.
+	 *
+	 * Only the fields that the post type supports and the current user can see are included,
+	 * and a field none of whose requested sub-fields remain is left out, so it never encodes
+	 * as an empty JSON array. Raw sub-fields are edit-context fields, included only when the
+	 * current user can edit the post, whether they were requested on their own or through
+	 * their field. Rendered sub-fields are read-context fields and are withheld for
+	 * password-protected posts unless the current user can edit the post, mirroring the REST
+	 * API behavior.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post      $post         The post object.
-	 * @param list<string> $fields       The requested field names.
+	 * @param list<string> $fields       The requested field paths.
 	 * @param bool         $can_edit     Whether the current user can edit the post.
 	 * @param bool         $is_protected Whether rendered fields must be withheld as password-protected.
 	 * @return array<string, mixed> The formatted post data.
 	 */
 	private function build_post_fields( WP_Post $post, array $fields, bool $can_edit, bool $is_protected ): array {
 		$post_type = $post->post_type;
-
-		// Edit-context fields require edit access; drop them so EDIT_FIELDS is the single gate.
-		if ( ! $can_edit ) {
-			$fields = array_diff( $fields, self::EDIT_FIELDS );
-		}
-
-		$requested = array_flip( $fields );
 		$data      = array();
 
-		if ( isset( $requested['id'] ) ) {
+		if ( rest_is_field_included( 'id', $fields ) ) {
 			$data['id'] = (int) $post->ID;
 		}
-		if ( isset( $requested['type'] ) ) {
+		if ( rest_is_field_included( 'type', $fields ) ) {
 			$data['type'] = $post_type;
 		}
-		if ( isset( $requested['status'] ) ) {
+		if ( rest_is_field_included( 'status', $fields ) ) {
 			$data['status'] = $post->post_status;
 		}
-		if ( isset( $requested['date'] ) ) {
-			$data['date'] = $this->format_date( $post, 'date', false );
+
+		foreach ( array( 'date', 'modified' ) as $field ) {
+			$dates = array();
+			if ( rest_is_field_included( "{$field}.local", $fields ) ) {
+				$dates['local'] = $this->format_date( $post, $field, false );
+			}
+			if ( rest_is_field_included( "{$field}.gmt", $fields ) ) {
+				$dates['gmt'] = $this->format_date( $post, $field, true );
+			}
+			if ( ! empty( $dates ) ) {
+				$data[ $field ] = $dates;
+			}
 		}
-		if ( isset( $requested['date_gmt'] ) ) {
-			$data['date_gmt'] = $this->format_date( $post, 'date', true );
-		}
-		if ( isset( $requested['modified'] ) ) {
-			$data['modified'] = $this->format_date( $post, 'modified', false );
-		}
-		if ( isset( $requested['modified_gmt'] ) ) {
-			$data['modified_gmt'] = $this->format_date( $post, 'modified', true );
-		}
-		if ( isset( $requested['slug'] ) ) {
+
+		if ( rest_is_field_included( 'slug', $fields ) ) {
 			$data['slug'] = $post->post_name;
 		}
-		if ( isset( $requested['link'] ) ) {
+		if ( rest_is_field_included( 'link', $fields ) ) {
 			$data['link'] = (string) get_permalink( $post );
 		}
 
-		if ( isset( $requested['title_raw'] ) && post_type_supports( $post_type, 'title' ) ) {
-			$data['title_raw'] = $post->post_title;
+		if ( rest_is_field_included( 'title', $fields ) && post_type_supports( $post_type, 'title' ) ) {
+			$title = array();
+			if ( $can_edit && rest_is_field_included( 'title.raw', $fields ) ) {
+				$title['raw'] = $post->post_title;
+			}
+			if ( rest_is_field_included( 'title.rendered', $fields ) ) {
+				$title['rendered'] = $this->get_title( $post );
+			}
+			if ( ! empty( $title ) ) {
+				$data['title'] = $title;
+			}
 		}
 
-		if ( isset( $requested['title_rendered'] ) && post_type_supports( $post_type, 'title' ) ) {
-			$data['title_rendered'] = $this->get_title( $post );
+		if ( rest_is_field_included( 'excerpt', $fields ) && post_type_supports( $post_type, 'excerpt' ) ) {
+			$excerpt = array();
+			if ( $can_edit && rest_is_field_included( 'excerpt.raw', $fields ) ) {
+				$excerpt['raw'] = $post->post_excerpt;
+			}
+			if ( rest_is_field_included( 'excerpt.rendered', $fields ) ) {
+				$excerpt['rendered'] = $is_protected ? '' : $this->get_rendered_excerpt( $post );
+			}
+			if ( rest_is_field_included( 'excerpt.protected', $fields ) ) {
+				$excerpt['protected'] = (bool) $post->post_password;
+			}
+			if ( ! empty( $excerpt ) ) {
+				$data['excerpt'] = $excerpt;
+			}
 		}
 
-		if ( isset( $requested['excerpt_raw'] ) && post_type_supports( $post_type, 'excerpt' ) ) {
-			$data['excerpt_raw'] = $post->post_excerpt;
+		if ( rest_is_field_included( 'content', $fields ) && post_type_supports( $post_type, 'editor' ) ) {
+			$content = array();
+			if ( $can_edit && rest_is_field_included( 'content.raw', $fields ) ) {
+				$content['raw'] = $post->post_content;
+			}
+			if ( rest_is_field_included( 'content.rendered', $fields ) ) {
+				$content['rendered'] = $is_protected ? '' : $this->get_rendered_content( $post );
+			}
+			if ( rest_is_field_included( 'content.protected', $fields ) ) {
+				$content['protected'] = (bool) $post->post_password;
+			}
+			if ( ! empty( $content ) ) {
+				$data['content'] = $content;
+			}
 		}
 
-		if ( isset( $requested['excerpt_rendered'] ) && post_type_supports( $post_type, 'excerpt' ) ) {
-			$data['excerpt_rendered'] = $is_protected ? '' : $this->get_rendered_excerpt( $post );
+		if ( rest_is_field_included( 'author', $fields ) && post_type_supports( $post_type, 'author' ) ) {
+			$user   = get_userdata( (int) $post->post_author );
+			$author = array();
+			if ( rest_is_field_included( 'author.id', $fields ) ) {
+				$author['id'] = (int) $post->post_author;
+			}
+			if ( rest_is_field_included( 'author.name', $fields ) ) {
+				$author['name'] = $user ? $user->display_name : null;
+			}
+			if ( rest_is_field_included( 'author.slug', $fields ) ) {
+				$author['slug'] = $user ? $user->user_nicename : null;
+			}
+			if ( ! empty( $author ) ) {
+				$data['author'] = $author;
+			}
 		}
 
-		if ( isset( $requested['excerpt_protected'] ) && post_type_supports( $post_type, 'excerpt' ) ) {
-			$data['excerpt_protected'] = (bool) $post->post_password;
-		}
-
-		if ( isset( $requested['content_raw'] ) && post_type_supports( $post_type, 'editor' ) ) {
-			$data['content_raw'] = $post->post_content;
-		}
-
-		if ( isset( $requested['content_rendered'] ) && post_type_supports( $post_type, 'editor' ) ) {
-			$data['content_rendered'] = $is_protected ? '' : $this->get_rendered_content( $post );
-		}
-
-		if ( isset( $requested['content_protected'] ) && post_type_supports( $post_type, 'editor' ) ) {
-			$data['content_protected'] = (bool) $post->post_password;
-		}
-
-		if ( isset( $requested['author_slug'] ) && post_type_supports( $post_type, 'author' ) ) {
-			$author              = get_userdata( (int) $post->post_author );
-			$data['author_slug'] = $author ? $author->user_nicename : '';
-		}
-
-		if ( isset( $requested['parent'] ) && is_post_type_hierarchical( $post_type ) ) {
+		if ( rest_is_field_included( 'parent', $fields ) && is_post_type_hierarchical( $post_type ) ) {
 			$data['parent'] = (int) $post->post_parent;
 		}
 
@@ -1531,6 +1710,26 @@ final class WP_Abilities_Content {
 	}
 
 	/**
+	 * Builds the ability output for a page of formatted posts.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<int, array<string, mixed>> $items       The formatted posts on the page.
+	 * @param int                              $total       Total number of posts across all pages.
+	 * @param int                              $total_pages Total number of pages.
+	 * @return array<string, mixed> The ability output.
+	 */
+	private function prepare_output( array $items, int $total, int $total_pages ): array {
+		return array(
+			'items'      => $items,
+			'pagination' => array(
+				'total'       => $total,
+				'total_pages' => $total_pages,
+			),
+		);
+	}
+
+	/**
 	 * Builds the uniform not-found error.
 	 *
 	 * Unreachable through gated transports, which run {@see self::check_permission()}
@@ -1556,25 +1755,43 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Builds the error for a query filter that cannot be honored.
+	 * Builds the error for a page past the last page of results.
 	 *
-	 * As in the REST API's `rest_invalid_param` errors, the error data maps the filter to
-	 * the message under `params`, so callers can tell which filter failed without parsing
-	 * the translated message.
+	 * A page that does not exist is reported as not found rather than as an empty list,
+	 * so callers can tell it apart from a request that matches no posts.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $filter  The filter's input name.
+	 * @return WP_Error The invalid page number error.
+	 */
+	private function invalid_page_number_error(): WP_Error {
+		return new WP_Error(
+			'content_invalid_page_number',
+			__( 'The page number requested is larger than the number of pages available.' ),
+			array( 'status' => 404 )
+		);
+	}
+
+	/**
+	 * Builds the error for a filter that cannot be honored.
+	 *
+	 * As in the REST API's `rest_invalid_param` errors, the error data maps the filter's
+	 * input path to the message under `params`, so callers can tell which filter failed
+	 * without parsing the translated message.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $param   The filter's input path, such as `where[include]`.
 	 * @param string $message The error message.
 	 * @return WP_Error The invalid filter error.
 	 */
-	private function invalid_filter_error( string $filter, string $message ): WP_Error {
+	private function invalid_filter_error( string $param, string $message ): WP_Error {
 		return new WP_Error(
 			'content_invalid_filter',
 			$message,
 			array(
 				'status' => 400,
-				'params' => array( $filter => $message ),
+				'params' => array( $param => $message ),
 			)
 		);
 	}
