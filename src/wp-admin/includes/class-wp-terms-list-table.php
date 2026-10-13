@@ -383,6 +383,13 @@ class WP_Terms_List_Table extends WP_List_Table {
 	public function column_name( $tag ) {
 		$taxonomy = $this->screen->taxonomy;
 
+		$default_term_label = '';
+		if ( $tag->term_id === (int) get_option( 'default_' . $taxonomy )
+			|| $tag->term_id === (int) get_option( 'default_term_' . $taxonomy )
+		) {
+			$default_term_label = ' &mdash; <span class="taxonomy-default-label">' . __( 'Default' ) . '</span>';
+		}
+
 		$pad = str_repeat( '&#8212; ', max( 0, $this->level ) );
 
 		/**
@@ -420,8 +427,9 @@ class WP_Terms_List_Table extends WP_List_Table {
 		}
 
 		$output = sprintf(
-			'<strong>%s</strong><br />',
-			$name
+			'<strong>%s%s</strong><br />',
+			$name,
+			$default_term_label
 		);
 
 		/** This filter is documented in wp-admin/includes/class-wp-terms-list-table.php */
@@ -527,6 +535,19 @@ class WP_Terms_List_Table extends WP_List_Table {
 				/* translators: %s: Taxonomy term name. */
 				esc_attr( sprintf( __( 'View &#8220;%s&#8221; archive' ), $tag->name ) ),
 				__( 'View' )
+			);
+		}
+
+		if ( 'category' === $taxonomy
+			&& (int) get_option( 'default_category' ) === $tag->term_id
+			&& current_user_can( 'manage_options' )
+		) {
+			$actions['change-default'] = sprintf(
+				'<a href="%s" aria-label="%s">%s</a>',
+				esc_url( admin_url( 'options-writing.php#default_category' ) ),
+				/* translators: %s: Taxonomy term name. */
+				esc_attr( sprintf( __( 'Change the default category from &#8220;%s&#8221;' ), $tag->name ) ),
+				__( 'Change Default' )
 			);
 		}
 
