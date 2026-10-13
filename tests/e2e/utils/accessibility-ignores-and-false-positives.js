@@ -52,6 +52,7 @@ module.exports = {
 		// The "group" role for the admin bar list items is flagged as invalid by axe-core.
 		// This is a known false positive in axe-core and can be ignored. Note
 		// that the 'aria-allowed-role' rule is part of the 'best-practice' rules group.
+		// Related axe-core issue https://github.com/dequelabs/axe-core/issues/3439 on the 'aria-allowed-role' rule.
 		'#wp-toolbar #wp-admin-bar-*',
 		// Same known false positive in axe-core for the media attachments list browser.
 		'.attachments-browser .attachments-wrapper #__attachments-view-* .attachment',
