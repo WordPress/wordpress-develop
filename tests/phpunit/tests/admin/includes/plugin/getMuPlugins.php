@@ -25,6 +25,20 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 	private $created_dirs = array();
 
 	/**
+	 * Sets up the environment before any tests in this class run.
+	 */
+	public static function wpSetUpBeforeClass() {
+		self::_back_up_mu_plugins();
+	}
+
+	/**
+	 * Restores the environment after all tests in this class have run.
+	 */
+	public static function wpTearDownAfterClass() {
+		self::_restore_mu_plugins();
+	}
+
+	/**
 	 * Sets up the environment before each test.
 	 */
 	public function set_up() {
@@ -142,13 +156,30 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_get_mu_plugins_when_directory_is_empty() {
+		$temp_dir = WP_CONTENT_DIR . '/mu-plugin-empty-test-backup';
+		$isolated = false;
+
+		if ( is_dir( WPMU_PLUGIN_DIR ) && ! empty( glob( WPMU_PLUGIN_DIR . '/*' ) ) ) {
+			rename( WPMU_PLUGIN_DIR, $temp_dir );
+			$isolated = true;
+		}
+
 		$dir = WPMU_PLUGIN_DIR;
 		if ( ! is_dir( $dir ) ) {
 			$this->assertTrue( wp_mkdir_p( $dir ), "Failed to create directory: {$dir}" );
 			$this->created_dirs[] = $dir;
 		}
 
-		$this->assertSame( array(), get_mu_plugins() );
+		try {
+			$this->assertSame( array(), get_mu_plugins() );
+		} finally {
+			if ( $isolated ) {
+				if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+					rmdir( WPMU_PLUGIN_DIR );
+				}
+				rename( $temp_dir, WPMU_PLUGIN_DIR );
+			}
+		}
 	}
 
 	/**
@@ -201,21 +232,59 @@ class Tests_Admin_Includes_Plugin_GetMuPlugins extends WP_UnitTestCase {
 		$this->create_mu_plugin_file( 'a-plugin.php', "<?php\n/**\n * Plugin Name: beta 1\n */\n" );
 		$this->create_mu_plugin_file( 'm-plugin.php', "<?php\n/**\n * Plugin Name: BETA 2\n */\n" );
 
-		$mu_plugins = get_mu_plugins();
-
 		$expected_keys = array( 'z-plugin.php', 'b-plugin.php', 'a-plugin.php', 'm-plugin.php' );
+		$mu_plugins    = get_mu_plugins();
+
+		// Restrict assertions to this test's fixtures while preserving their returned sort order.
+		$fixture_plugins = array_intersect_key( $mu_plugins, array_flip( $expected_keys ) );
+
 		$this->assertSame(
 			$expected_keys,
-			array_keys( $mu_plugins ),
+			array_keys( $fixture_plugins ),
 			'MU plugins should be sorted by plugin Name rather than filename.'
 		);
 
 		$expected_names = array( 'alpha 2', 'Alpha 10', 'beta 1', 'BETA 2' );
-		$actual_names   = array_column( $mu_plugins, 'Name' );
+		$actual_names   = array_column( $fixture_plugins, 'Name' );
 		$this->assertSame(
 			$expected_names,
 			$actual_names,
 			'MU plugins should be naturally and case-insensitively sorted by plugin Name.'
 		);
+	}
+
+	/**
+	 * Moves existing mu-plugins to wp-content/mu-plugin-backup.
+	 */
+	private static function _back_up_mu_plugins() {
+		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+			$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
+			rename( WPMU_PLUGIN_DIR, $mu_bu_dir );
+		}
+	}
+
+	/**
+	 * Restores backed-up mu-plugins.
+	 */
+	private static function _restore_mu_plugins() {
+		$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
+
+		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+			$files = glob( WPMU_PLUGIN_DIR . '/*' );
+			if ( ! empty( $files ) ) {
+				foreach ( $files as $file ) {
+					if ( is_dir( $file ) ) {
+						rmdir( $file );
+					} elseif ( is_file( $file ) ) {
+						unlink( $file );
+					}
+				}
+			}
+			rmdir( WPMU_PLUGIN_DIR );
+		}
+
+		if ( is_dir( $mu_bu_dir ) ) {
+			rename( $mu_bu_dir, WPMU_PLUGIN_DIR );
+		}
 	}
 }

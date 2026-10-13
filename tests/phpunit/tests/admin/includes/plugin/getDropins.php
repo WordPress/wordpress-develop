@@ -19,6 +19,20 @@ class Tests_Admin_Includes_Plugin_GetDropins extends WP_UnitTestCase {
 	private $created_files = array();
 
 	/**
+	 * Sets up the environment before any tests in this class run.
+	 */
+	public static function wpSetUpBeforeClass() {
+		self::_back_up_drop_ins();
+	}
+
+	/**
+	 * Restores the environment after all tests in this class have run.
+	 */
+	public static function wpTearDownAfterClass() {
+		self::_restore_drop_ins();
+	}
+
+	/**
 	 * Sets up the environment before each test.
 	 */
 	public function set_up() {
@@ -195,5 +209,58 @@ class Tests_Admin_Includes_Plugin_GetDropins extends WP_UnitTestCase {
 		$this->assertNotFalse( $db_error_pos );
 		$this->assertNotFalse( $maintenance_pos );
 		$this->assertLessThan( $maintenance_pos, $db_error_pos, 'db-error.php should precede maintenance.php when sorted.' );
+	}
+
+	/**
+	 * Tests that get_dropins() returns an empty array when no drop-ins exist.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_get_dropins_when_no_dropins_exist() {
+		$this->assertSame( array(), get_dropins() );
+	}
+
+	/**
+	 * Moves existing drop-ins to wp-content/drop-ins-backup.
+	 */
+	private static function _back_up_drop_ins() {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$di_bu_dir = WP_CONTENT_DIR . '/drop-ins-backup';
+		if ( ! is_dir( $di_bu_dir ) ) {
+			mkdir( $di_bu_dir );
+		}
+
+		foreach ( _get_dropins() as $file_to_move => $v ) {
+			if ( file_exists( WP_CONTENT_DIR . '/' . $file_to_move ) ) {
+				rename( WP_CONTENT_DIR . '/' . $file_to_move, $di_bu_dir . '/' . $file_to_move );
+			}
+		}
+	}
+
+	/**
+	 * Restores backed-up drop-ins.
+	 */
+	private static function _restore_drop_ins() {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+		$di_bu_dir = WP_CONTENT_DIR . '/drop-ins-backup';
+
+		if ( ! is_dir( $di_bu_dir ) ) {
+			return;
+		}
+
+		foreach ( _get_dropins() as $file_to_move => $v ) {
+			if ( file_exists( $di_bu_dir . '/' . $file_to_move ) ) {
+				if ( file_exists( WP_CONTENT_DIR . '/' . $file_to_move ) ) {
+					unlink( WP_CONTENT_DIR . '/' . $file_to_move );
+				}
+				rename( $di_bu_dir . '/' . $file_to_move, WP_CONTENT_DIR . '/' . $file_to_move );
+			}
+		}
+
+		if ( is_dir( $di_bu_dir ) ) {
+			rmdir( $di_bu_dir );
+		}
 	}
 }
