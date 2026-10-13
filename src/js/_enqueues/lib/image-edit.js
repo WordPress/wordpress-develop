@@ -986,6 +986,10 @@
 					t.iasapi.setOptions({
 						aspectRatio: ratio
 					});
+
+					// Remember the ratio currently in force so the selection
+					// change handler can derive the height from it exactly.
+					t.activeRatio = ratio || null;
 				});
 			},
 
@@ -1030,14 +1034,26 @@
 			 */
 			onSelectChange: function(img, c) {
 				var sizer = imageEdit.hold.sizer,
+					width,
+					height,
+					ar,
 					oldSel = imageEdit.currentCropSelection;
 
 				if ( oldSel != null && oldSel.width == c.width && oldSel.height == c.height ) {
 					return;
 				}
 
-				selW.val( Math.min( imageEdit.hold.w, imageEdit.round( c.width / sizer ) ) );
-				selH.val( Math.min( imageEdit.hold.h, imageEdit.round( c.height / sizer ) ) );
+				width = imageEdit.round( c.width / sizer );
+
+				if ( imageEdit.activeRatio ) {
+					ar = imageEdit.activeRatio.split( ':' );
+					height = imageEdit.round( width * parseFloat( ar[1] ) / parseFloat( ar[0] ) );
+				} else {
+					height = imageEdit.round( c.height / sizer );
+				}
+
+				selW.val( Math.min( imageEdit.hold.w, width ) );
+				selH.val( Math.min( imageEdit.hold.h, height ) );
 
 				t.currentCropSelection = c;
 			}
