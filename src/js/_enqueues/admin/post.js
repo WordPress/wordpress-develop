@@ -15,6 +15,8 @@ window.makeSlugeditClickable = window.editPermalink = function(){};
 window.wp = window.wp || {};
 
 /**
+ * Handles the dynamic functionality needed on post and term pages.
+ *
  * @param {JQueryStatic} $ The jQuery object.
  */
 ( function( $ ) {
@@ -256,7 +258,7 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * Heartbeat refresh nonces.
+ * Handles the Heartbeat refresh nonces.
  *
  * @param {JQueryStatic} $ The jQuery object.
  */
@@ -304,7 +306,7 @@ window.wp = window.wp || {};
 }(jQuery));
 
 /**
- * All post and postbox controls and functionality.
+ * Handles all post and postbox controls and functionality.
  *
  * @param {JQueryStatic} $ The jQuery object.
  */
@@ -1328,7 +1330,7 @@ jQuery( function($) {
 } );
 
 /**
- * TinyMCE word count display
+ * Handles the TinyMCE word count display.
  *
  * @param {JQueryStatic}         $       The jQuery object.
  * @param {wp.utils.WordCounter} counter The WordCounter object.
