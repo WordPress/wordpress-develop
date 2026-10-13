@@ -96,18 +96,30 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	/**
 	 * Gets the value of a protected or private property from the wrapped prompt builder.
 	 *
+	 * Since PHP AI Client 1.4.0, model selection state (e.g. `model`, `registry`,
+	 * `providerIdOrClassName`, `requestOptions`) lives on the builder's ModelResolver,
+	 * so properties not found on the wrapped builder are looked up there.
+	 *
 	 * @param WP_AI_Client_Prompt_Builder $builder  The WordPress prompt builder instance.
 	 * @param string                      $property Property to get value for.
 	 * @return mixed The property value.
 	 */
 	private function get_wrapped_prompt_builder_property_value( WP_AI_Client_Prompt_Builder $builder, string $property ) {
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder = $builder_property->getValue( $builder );
 
 		$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
-		$the_property      = $reflection_class2->getProperty( $property );
+		if ( ! $reflection_class2->hasProperty( $property ) ) {
+			$resolver_property = $reflection_class2->getProperty( 'modelResolver' );
+			self::set_accessible( $resolver_property );
+			$wrapped_builder = $resolver_property->getValue( $wrapped_builder );
+
+			$reflection_class2 = new ReflectionClass( get_class( $wrapped_builder ) );
+		}
+
+		$the_property = $reflection_class2->getProperty( $property );
 		self::set_accessible( $the_property );
 
 		return $the_property->getValue( $wrapped_builder );
@@ -189,6 +201,29 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( RequestOptions::class, $request_options );
 		$this->assertSame( 30.0, $request_options->getTimeout() );
+	}
+
+	/**
+	 * Test that the request timeout filter receives the builder type.
+	 *
+	 * @ticket 65638
+	 */
+	public function test_request_timeout_filter_receives_builder_type() {
+		$received_builder_type = null;
+
+		add_filter(
+			'wp_ai_client_default_request_timeout',
+			static function ( $default_timeout, $builder_type ) use ( &$received_builder_type ) {
+				$received_builder_type = $builder_type;
+				return $default_timeout;
+			},
+			10,
+			2
+		);
+
+		new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry() );
+
+		$this->assertSame( WP_AI_Client_Prompt_Builder::class, $received_builder_type );
 	}
 
 	/**
@@ -376,15 +411,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$registry       = AiClient::defaultRegistry();
 		$prompt_builder = new WP_AI_Client_Prompt_Builder( $registry );
 
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
-		$builder_property = $reflection_class->getProperty( 'builder' );
-		self::set_accessible( $builder_property );
-		$wrapped_builder = $builder_property->getValue( $prompt_builder );
-
-		$wrapped_builder_reflection = new ReflectionClass( get_class( $wrapped_builder ) );
-		$registry_property          = $wrapped_builder_reflection->getProperty( 'registry' );
-		self::set_accessible( $registry_property );
-		$this->assertSame( $registry, $registry_property->getValue( $wrapped_builder ), 'Wrapped builder should have the same registry' );
+		$this->assertSame( $registry, $this->get_wrapped_prompt_builder_property_value( $prompt_builder, 'registry' ), 'Wrapped builder should have the same registry' );
 	}
 
 	/**
@@ -1393,7 +1420,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		);
 
 		// Manually add a model message as the last message.
-		$reflection_class = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection_class = new ReflectionClass( WP_AI_Client_Builder::class );
 		$builder_property = $reflection_class->getProperty( 'builder' );
 		self::set_accessible( $builder_property );
 		$wrapped_builder   = $builder_property->getValue( $builder );
@@ -2620,7 +2647,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @return string[] The text of each message part, in order.
 	 */
 	private function get_prompt_parts( WP_AI_Client_Prompt_Builder $builder ): array {
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 		$inner = $wrapped->getValue( $builder );
 
@@ -2646,7 +2673,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$builder = new WP_AI_Client_Prompt_Builder( AiClient::defaultRegistry(), 'Original prompt' );
 		$clone   = clone $builder;
 
-		$wrapped = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$wrapped = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $wrapped );
 
 		$this->assertNotSame(
@@ -2735,7 +2762,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 		$wrapped_builder->method( $wrapped_method )
 			->willThrowException( new RuntimeException( 'Thrown by the wrapped builder.' ) );
 
-		$builder_property = new ReflectionProperty( WP_AI_Client_Prompt_Builder::class, 'builder' );
+		$builder_property = new ReflectionProperty( WP_AI_Client_Builder::class, 'builder' );
 		self::set_accessible( $builder_property );
 		$builder_property->setValue( $prompt_builder, $wrapped_builder );
 
@@ -2918,7 +2945,7 @@ class Tests_AI_Client_PromptBuilder extends WP_UnitTestCase {
 	 * @return WP_Error The resulting WP_Error.
 	 */
 	private function invoke_throwable_to_wp_error( WP_AI_Client_Prompt_Builder $builder, Throwable $throwable ): WP_Error {
-		$reflection = new ReflectionClass( WP_AI_Client_Prompt_Builder::class );
+		$reflection = new ReflectionClass( WP_AI_Client_Builder::class );
 		$method     = $reflection->getMethod( 'throwable_to_wp_error' );
 		self::set_accessible( $method );
 
