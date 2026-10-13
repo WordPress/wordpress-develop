@@ -1242,14 +1242,16 @@ class WP_HTML_Style_Attribute_Processor {
 	/**
 	 * Gets required closing delimiters before appending at EOF.
 	 *
-	 * CSS closes unterminated functions and simple blocks at EOF. Appending must
-	 * materialize those closers before adding a new declaration.
+	 * CSS closes unterminated strings, comments, functions and simple blocks at
+	 * EOF. Appending must materialize those closers before adding a new
+	 * declaration.
 	 *
 	 * @param int $insert_at Byte offset at which the declaration will be inserted.
 	 * @return string|null Closing delimiters, or null when repair cannot be precise.
 	 */
 	private function get_eof_repair( int $insert_at ): ?string {
-		$stack = array();
+		$stack        = array();
+		$token_closer = '';
 
 		foreach ( $this->tokens as $token ) {
 			if ( $token->get_start() >= $insert_at ) {
@@ -1267,7 +1269,14 @@ class WP_HTML_Style_Attribute_Processor {
 
 				case WP_CSS_Token_Processor::TOKEN_COMMENT:
 					if ( ! $token->is_terminated() ) {
-						return null;
+						$token_closer = '*/';
+					}
+					break;
+
+				case WP_CSS_Token_Processor::TOKEN_STRING:
+					if ( ! $token->is_terminated() ) {
+						// The string ends with the quote it starts with.
+						$token_closer = $this->style[ $token->get_start() ];
 					}
 					break;
 
@@ -1310,7 +1319,7 @@ class WP_HTML_Style_Attribute_Processor {
 			}
 		}
 
-		return implode( '', array_reverse( $stack ) );
+		return $token_closer . implode( '', array_reverse( $stack ) );
 	}
 
 	/**

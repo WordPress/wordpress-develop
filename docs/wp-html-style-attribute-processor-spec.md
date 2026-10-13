@@ -306,8 +306,10 @@ semantics and structure.
 when the processor can preserve existing CSS semantics.
 
 When trailing declaration text is valid only because CSS closes an unclosed
-function or block at EOF, appending must materialize the missing closing
-delimiters before inserting the new declaration.
+string, comment, function or block at EOF, appending must materialize the
+missing closing delimiters before inserting the new declaration. A string is
+closed with the quote it starts with and a comment with `*/`. A `\` at EOF
+cannot be closed this way, so append returns `false`.
 
 Example:
 

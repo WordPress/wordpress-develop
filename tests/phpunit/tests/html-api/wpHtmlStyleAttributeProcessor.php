@@ -932,10 +932,59 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
 	 * @covers ::append_declaration
 	 * @covers ::get_updated_style
 	 *
-	 * @dataProvider data_styles_ending_inside_a_comment
+	 * @dataProvider data_styles_ending_inside_a_string_or_comment
+	 *
+	 * @param string $style    Style text.
+	 * @param string $expected Updated style text.
+	 */
+	public function test_append_declaration_closes_strings_and_comments_left_open( string $style, string $expected ) {
+		$processor = WP_HTML_Style_Attribute_Processor::create( $style );
+
+		$this->assertTrue( $processor->append_declaration( 'background', 'white' ) );
+		$this->assertSame( $expected, $processor->get_updated_style() );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_styles_ending_inside_a_string_or_comment(): array {
+		return array(
+			'comment inside an open function' => array( 'color: var(--x;/*keep', 'color: var(--x;/*keep*/); background: white;' ),
+			'comment after a declaration'     => array( 'color: red /* keep', 'color: red /* keep*/; background: white;' ),
+			'comment ending in a slash'       => array( 'color: red /*/', 'color: red /*/*/; background: white;' ),
+			'comment ending in a backslash'   => array( 'color: red /* \\', 'color: red /* \\*/; background: white;' ),
+			'double-quoted string'            => array( 'font-family: "a', 'font-family: "a"; background: white;' ),
+			'single-quoted string'            => array( "font-family: 'a", "font-family: 'a'; background: white;" ),
+			'string inside an open function'  => array( 'width: var(--x, "a', 'width: var(--x, "a"); background: white;' ),
+		);
+	}
+
+	/**
+	 * @ticket 65738
+	 *
+	 * @covers ::set_important
+	 * @covers ::get_updated_style
+	 */
+	public function test_set_important_closes_a_string_left_open() {
+		$processor = WP_HTML_Style_Attribute_Processor::create( 'font-family: "a' );
+
+		$this->assertTrue( $processor->next_declaration() );
+		$this->assertTrue( $processor->set_important( true ) );
+		$this->assertSame( 'font-family: "a" !important', $processor->get_updated_style() );
+	}
+
+	/**
+	 * @covers ::append_declaration
+	 * @covers ::get_updated_style
+	 *
+	 * @dataProvider data_styles_ending_in_a_backslash
 	 *
 	 * @param string $style Style text.
 	 */
@@ -951,11 +1000,10 @@ class Tests_HtmlApi_WpHtmlStyleAttributeProcessor extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string}>
 	 */
-	public static function data_styles_ending_inside_a_comment(): array {
+	public static function data_styles_ending_in_a_backslash(): array {
 		return array(
-			'comment inside an open function' => array( 'color: var(--x;/*keep' ),
-			'comment after a declaration'     => array( 'color: red /* keep' ),
-			'comment ending in a slash'       => array( 'color: red /*/' ),
+			'backslash after an ident'  => array( 'color: x\\' ),
+			'backslash inside a string' => array( 'content: "a\\' ),
 		);
 	}
 
