@@ -18,8 +18,8 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	 * Returns the redirect URL triggered by wp_redirect_admin_locations()
 	 * for the given REQUEST_URI, or null if no redirect fires.
 	 *
-	 * @param string $request_uri
-	 * @return string|null
+	 * @param string $request_uri Requested URL.
+	 * @return string|null Redirect destination, null if no redirect.
 	 */
 	private function get_redirect_for( $request_uri ) {
 		$_SERVER['REQUEST_URI'] = $request_uri;
