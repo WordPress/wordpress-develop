@@ -4784,6 +4784,17 @@ function wp_json_file_decode( $filename, $options = array() ) {
 		);
 		return $result;
 	}
+	if ( ! is_readable( $filename ) ) {
+		wp_trigger_error(
+			__FUNCTION__,
+			sprintf(
+			/* translators: %s: Path to the JSON file. */
+				__( "File %s is not readable" ),
+				$filename
+			)
+		);
+		return $result;
+	}
 
 	$options      = wp_parse_args( $options, array( 'associative' => false ) );
 	$decoded_file = json_decode( file_get_contents( $filename ), $options['associative'] );
