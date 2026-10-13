@@ -51,26 +51,18 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 		$_SERVER['REQUEST_URI'] = $request_uri;
 
 		global $wp_query;
-		$original_is_404  = $wp_query->is_404;
 		$wp_query->is_404 = true;
 
 		$captured = null;
 
 		$capture = static function ( $location ) use ( &$captured ) {
 			$captured = $location;
-			throw new RuntimeException( 'Redirect intercepted.' );
+			return false;
 		};
 
-		add_filter( 'wp_redirect', $capture );
-		try {
-			wp_redirect_admin_locations();
-		} catch ( RuntimeException $e ) {
-			// Redirect was intercepted; $captured holds the URL.
-		} finally {
-			remove_filter( 'wp_redirect', $capture );
-			$wp_query->is_404 = $original_is_404;
-		}
-
+		// Runs late to ensure filters added by other tests fire first.
+		add_filter( 'wp_redirect', $capture, 20 );
+		wp_redirect_admin_locations();
 		return $captured;
 	}
 
