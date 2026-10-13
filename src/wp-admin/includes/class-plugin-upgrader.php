@@ -57,9 +57,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->strings['up_to_date'] = __( 'The plugin is at the latest version.' );
 		$this->strings['no_package'] = __( 'Update package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&#8230;' ), '<span class="code pre">%s</span>' );
-		$this->strings['unpack_package']       = __( 'Unpacking the update&#8230;' );
-		$this->strings['remove_old']           = __( 'Removing the old version of the plugin&#8230;' );
+		$this->strings['downloading_package']  = sprintf( __( 'Downloading update from %s&hellip;' ), '<span class="code pre">%s</span>' );
+		$this->strings['unpack_package']       = __( 'Unpacking the update&hellip;' );
+		$this->strings['remove_old']           = __( 'Removing the old version of the plugin&hellip;' );
 		$this->strings['remove_old_failed']    = __( 'Could not remove the old plugin.' );
 		$this->strings['process_failed']       = __( 'Plugin update failed.' );
 		$this->strings['process_success']      = __( 'Plugin updated successfully.' );
@@ -74,10 +74,10 @@ class Plugin_Upgrader extends WP_Upgrader {
 	public function install_strings() {
 		$this->strings['no_package'] = __( 'Installation package not available.' );
 		/* translators: %s: Package URL. */
-		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&#8230;' ), '<span class="code pre">%s</span>' );
-		$this->strings['unpack_package']      = __( 'Unpacking the package&#8230;' );
-		$this->strings['installing_package']  = __( 'Installing the plugin&#8230;' );
-		$this->strings['remove_old']          = __( 'Removing the current plugin&#8230;' );
+		$this->strings['downloading_package'] = sprintf( __( 'Downloading installation package from %s&hellip;' ), '<span class="code pre">%s</span>' );
+		$this->strings['unpack_package']      = __( 'Unpacking the package&hellip;' );
+		$this->strings['installing_package']  = __( 'Installing the plugin&hellip;' );
+		$this->strings['remove_old']          = __( 'Removing the current plugin&hellip;' );
 		$this->strings['remove_old_failed']   = __( 'Could not remove the current plugin.' );
 		$this->strings['no_files']            = __( 'The plugin contains no files.' );
 		$this->strings['process_failed']      = __( 'Plugin installation failed.' );
@@ -87,13 +87,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		if ( ! empty( $this->skin->overwrite ) ) {
 			if ( 'update-plugin' === $this->skin->overwrite ) {
-				$this->strings['installing_package'] = __( 'Updating the plugin&#8230;' );
+				$this->strings['installing_package'] = __( 'Updating the plugin&hellip;' );
 				$this->strings['process_failed']     = __( 'Plugin update failed.' );
 				$this->strings['process_success']    = __( 'Plugin updated successfully.' );
 			}
 
 			if ( 'downgrade-plugin' === $this->skin->overwrite ) {
-				$this->strings['installing_package'] = __( 'Downgrading the plugin&#8230;' );
+				$this->strings['installing_package'] = __( 'Downgrading the plugin&hellip;' );
 				$this->strings['process_failed']     = __( 'Plugin downgrade failed.' );
 				$this->strings['process_success']    = __( 'Plugin downgraded successfully.' );
 			}
