@@ -393,14 +393,13 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Escapes a decoded value as a quoted string.
 	 *
-	 * Many characters that are problematic in HTML or may be complicated for
-	 * rudimentary CSS or HTML processors to handle are encoded using Unicode
-	 * escape sequences.
-	 *
-	 * The string reads back as the same value, except that NULL becomes U+FFFD.
-	 * Line endings are not normalized: CR and FF are escaped as `\D ` and `\C `.
+	 * Quotes, `\` and the control characters U+0001 to U+001F and U+007F are
+	 * hex-escaped. So are `< > & , ; { }`, which may be problematic in HTML or
+	 * for rudimentary CSS processors. The string reads back as the same value,
+	 * except that NULL becomes U+FFFD.
 	 *
 	 * @see https://www.w3.org/TR/css-syntax-3/#escaping
+	 * @see https://drafts.csswg.org/cssom/#serialize-a-string
 	 *
 	 * @since 7.2.0
 	 *
@@ -408,38 +407,32 @@ class WP_CSS_Token_Serializer {
 	 * @return string Quoted string text.
 	 */
 	private static function escape_string( string $value ): string {
-		$value   = wp_scrub_utf8( $value );
-		$escaped = strtr(
-			$value,
-			array(
-				// Escape existing backslashes to prevent unintentional escapes in result.
-				'\\' => '\\5C ',
+		$value  = wp_scrub_utf8( $value );
+		$result = '';
+		$length = strlen( $value );
 
-				// CSS cannot represent NULL; preprocessing replaces it with U+FFFD.
-				"\0" => "\u{FFFD}",
+		for ( $i = 0; $i < $length; $i++ ) {
+			$byte = ord( $value[ $i ] );
 
-				// Newlines must be escaped in CSS strings.
-				"\n" => '\\A ',
-				"\r" => '\\D ',
-				"\f" => '\\C ',
+			// CSS cannot represent NULL; preprocessing replaces it with U+FFFD.
+			if ( 0x00 === $byte ) {
+				$result .= "\u{FFFD}";
+				continue;
+			}
 
-				// Arbitrary characters for Unicode escaping:
+			if (
+				$byte < 0x20 ||
+				0x7F === $byte ||
+				false !== strpos( '"\'\\<>&,;{}', $value[ $i ] )
+			) {
+				$result .= sprintf( '\\%X ', $byte );
+				continue;
+			}
 
-				// HTML syntax may be problematic.
-				'<'  => '\\3C ',
-				'>'  => '\\3E ',
-				'&'  => '\\26 ',
+			$result .= $value[ $i ];
+		}
 
-				// CSS syntax may be problematic.
-				','  => '\\2C ',
-				';'  => '\\3B ',
-				'{'  => '\\7B ',
-				'}'  => '\\7D ',
-				'"'  => '\\22 ',
-				"'"  => '\\27 ',
-			)
-		);
-		return "\"{$escaped}\"";
+		return "\"{$result}\"";
 	}
 
 	/**

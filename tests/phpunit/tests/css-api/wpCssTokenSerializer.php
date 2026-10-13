@@ -46,11 +46,17 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'null byte'               => array( "\"a\x00b\"", '"a�b"' ),
 			'zero escape'             => array( '"a\\0 b"', '"a�b"' ),
 
-			// Escaped newlines keep their code points; CR and FF are not normalized to LF.
+			// Control characters are escaped as code points; CR and FF are not normalized to LF.
 			'LF'                      => array( '"a\\A b"', '"a\\A b"' ),
 			'CR'                      => array( '"a\\D b"', '"a\\D b"' ),
 			'CRLF'                    => array( '"a\\D \\A b"', '"a\\D \\A b"' ),
 			'form feed'               => array( '"a\\C b"', '"a\\C b"' ),
+			'tab'                     => array( "\"a\tb\"", '"a\\9 b"' ),
+			'escaped tab'             => array( '"a\\9 b"', '"a\\9 b"' ),
+			'U+0001'                  => array( "\"a\x01b\"", '"a\\1 b"' ),
+			'U+001F'                  => array( '"a\\1F b"', '"a\\1F b"' ),
+			'delete'                  => array( "\"a\x7Fb\"", '"a\\7F b"' ),
+			'U+0080 is not escaped'   => array( '"a\\80 b"', "\"a\u{80}b\"" ),
 
 			// HTML-problematic characters.
 			'HTML characters < > &'   => array( '"a<b>c&d"', '"a\\3C b\\3E c\\26 d"' ),
