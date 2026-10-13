@@ -30,6 +30,7 @@
 	},
 	"include": [],
 	"files": [
+		"src/js/_enqueues/lib/accordion.js",
 		"src/js/_enqueues/lib/codemirror/htmlhint-kses.js",
 		"src/js/_enqueues/lib/codemirror/javascript-lint.js",
 		"src/js/_enqueues/lib/emoji-loader.js",
