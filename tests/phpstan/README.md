@@ -48,7 +48,7 @@ For available flags, see https://phpstan.org/user-guide/command-line-usage.
 The analysis also runs on every pull request that changes PHP files or the PHPStan configuration. The errors it reports are shown in two places:
 
 - As annotations on the changed files. Most errors are annotated as warnings, which do not fail the check.
-- In a comment on the pull request, which lists every error in a table. The comment is updated as new commits are pushed, and once a commit resolves all of the errors, it is marked as resolved and collapsed.
+- In a comment on the pull request, which lists every error in a table along with the commit it was first reported for. The comment is updated as new commits are pushed, moving each error that a commit resolves into a collapsed list of resolved errors, which also names that commit. Once all of the errors are resolved, the comment is marked as resolved and collapsed.
 
 Some errors cannot be ignored, and so cannot be reported as warnings either. These fail the check. The most common is an [out-of-date baseline](#regenerating-the-baselines), which is reported when an error recorded in a baseline was fixed without the baseline being regenerated. Such an error is reported against a file rather than a line in it, so its annotation does not appear alongside the changes, and it would easily go unnoticed if the check passed.
 

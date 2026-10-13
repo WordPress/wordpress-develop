@@ -92,13 +92,72 @@ jobs:
             }
 
             const asString = ( value ) => ( typeof value === 'string' ? value : null );
-            const errors = results.errors.map( ( error ) => ( {
+            const asSha = ( value ) => ( typeof value === 'string' && /^[0-9a-f]{40}$/.test( value ) ? value : null );
+            const normalize = ( error ) => ( {
               file: asString( error.file ),
               line: Number.isSafeInteger( error.line ) && error.line > 0 ? error.line : null,
-              message: asString( error.message ) ?? '',
+              message: ( asString( error.message ) ?? '' ).slice( 0, 1000 ),
               identifier: /^[A-Za-z0-9.]+$/.test( error.identifier ) ? error.identifier : null,
               ignorable: error.ignorable === true,
-            } ) );
+            } );
+
+            // An error is recognized from one run to the next by its file, identifier and message, but not its line,
+            // which moves whenever lines above it are added or removed. The same error can occur more than once in a
+            // file, so each occurrence is told apart by its position among the others, in line order.
+            const errors = results.errors.map( normalize );
+            const occurrences = new Map();
+            for ( const error of [ ...errors ].sort( ( a, b ) => ( a.line ?? 0 ) - ( b.line ?? 0 ) ) ) {
+              const key = JSON.stringify( [ error.file, error.identifier, error.message ] );
+              const occurrence = occurrences.get( key ) ?? 0;
+              occurrences.set( key, occurrence + 1 );
+              error.key = `${ key }#${ occurrence }`;
+            }
+
+            const comments = await github.paginate( github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 } );
+            const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
+
+            // The history of the errors is kept in the comment itself, compressed into a hidden HTML comment: each
+            // error, the commit it was first reported for, the last commit it was reported for, and the commit that
+            // resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
+            const zlib = require( 'zlib' );
+            const historyPattern = /<!-- phpstan-history:([A-Za-z0-9+\/=]+) -->/;
+            let history = [];
+            const historyMatch = comment?.body?.match( historyPattern );
+            if ( historyMatch ) {
+              try {
+                const parsed = JSON.parse( zlib.inflateRawSync( Buffer.from( historyMatch[ 1 ], 'base64' ) ).toString( 'utf8' ) );
+                history = ( Array.isArray( parsed ) ? parsed : [] )
+                  .map( ( entry ) => ( {
+                    ...normalize( entry ),
+                    key: asString( entry.key ),
+                    introduced: asSha( entry.introduced ),
+                    seen: asSha( entry.seen ),
+                    fixed: asSha( entry.fixed ),
+                  } ) )
+                  .filter( ( entry ) => entry.key && entry.introduced && entry.seen );
+              } catch ( error ) {
+                core.warning( `The error history in the PHPStan comment could not be read, so it starts over: ${ error.message }` );
+              }
+            }
+
+            // An error that was already being reported keeps the commit it was first reported for. One that is new,
+            // or that comes back after being resolved, is attributed to this commit. One that is no longer reported
+            // is attributed as resolved by this commit, unless an earlier commit already resolved it.
+            const historyByKey = new Map( history.map( ( entry ) => [ entry.key, entry ] ) );
+            const active = errors.map( ( error ) => {
+              const before = historyByKey.get( error.key );
+              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, seen: run.head_sha, fixed: null };
+            } );
+            const activeKeys = new Set( active.map( ( error ) => error.key ) );
+            let resolved = [
+              ...history.filter( ( entry ) => entry.fixed && ! activeKeys.has( entry.key ) ),
+              ...history.filter( ( entry ) => ! entry.fixed && ! activeKeys.has( entry.key ) ).map( ( entry ) => ( { ...entry, fixed: run.head_sha } ) ),
+            ].slice( -maxRows );
+
+            if ( ! comment && active.length === 0 ) {
+              core.info( 'PHPStan reported no errors, and there is no comment to update.' );
+              return;
+            }
 
             // Every message is rendered as a code span. Within one, Markdown is not interpreted, and neither are
             // mentions nor references to issues, both of which PHPStan messages can resemble, as in `Parameter #1`.
@@ -115,9 +174,10 @@ jobs:
               return `${ fence }${ padding }${ content }${ padding }${ fence }`;
             };
 
-            const shortSha = run.head_sha.slice( 0, 7 );
-            const commitLink = `[${ shortSha }](https://github.com/${ owner }/${ repo }/pull/${ issue_number }/commits/${ run.head_sha })`;
+            const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
 
+            // A location links to the file as of the last commit the error was reported for, which is the one its
+            // line number belongs to.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
@@ -126,19 +186,17 @@ jobs:
               if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
                 return label;
               }
-              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ run.head_sha }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.seen }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
             };
 
             const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
 
-            let rowsLeft = maxRows;
-            const table = ( rows ) => {
-              const shown = rows.slice( 0, rowsLeft );
-              rowsLeft -= shown.length;
+            const table = ( rows, rowLimit, { withResolution = false } = {} ) => {
+              const shown = rows.slice( 0, rowLimit );
               const lines = [
-                '| Location | Error | Identifier |',
-                '| --- | --- | --- |',
-                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } |` ),
+                `| Location | Error | Identifier | First reported |${ withResolution ? ' Resolved |' : '' }`,
+                `| --- | --- | --- | --- |${ withResolution ? ' --- |' : '' }`,
+                ...shown.map( ( error ) => `| ${ location( error ) } | ${ code( error.message ) } | ${ identifier( error ) } | ${ commit( error.introduced ) } |${ withResolution ? ` ${ commit( error.fixed ) } |` : '' }` ),
               ];
               if ( shown.length < rows.length ) {
                 lines.push( '', `…and ${ rows.length - shown.length } more, which are listed in the [workflow run](${ run.html_url }).` );
@@ -146,18 +204,22 @@ jobs:
               return lines.join( '\n' );
             };
 
-            const unignorable = errors.filter( ( error ) => ! error.ignorable );
-            const ignorable = errors.filter( ( error ) => error.ignorable );
+            const unignorable = active.filter( ( error ) => ! error.ignorable );
+            const ignorable = active.filter( ( error ) => error.ignorable );
             const hasIgnoreErrors = unignorable.some( ( error ) => error.identifier?.startsWith( 'ignore.' ) );
 
-            let body;
-            if ( errors.length > 0 ) {
-              const sections = [
-                marker,
-                '## PHPStan Static Analysis',
-                `PHPStan reported ${ errors.length === 1 ? '1 error' : `${ errors.length } errors` } when analyzing ${ commitLink } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.`,
-              ];
+            const render = ( trackedLimit ) => {
+              const sections = [ marker, '## PHPStan Static Analysis' ];
 
+              if ( active.length > 0 ) {
+                sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
+              } else {
+                // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
+                const resolvedBy = resolved.at( -1 )?.fixed ?? run.head_sha;
+                sections.push( `All errors reported by PHPStan were resolved as of ${ commit( resolvedBy ) }.` );
+              }
+
+              let rowsLeft = maxRows;
               if ( unignorable.length > 0 ) {
                 if ( hasIgnoreErrors ) {
                   sections.push( [
@@ -186,82 +248,93 @@ jobs:
                     '> **PHPStan reported errors that cannot be ignored, so the PHPStan check fails.**',
                   ].join( '\n' ) );
                 }
-                sections.push( '### Errors that fail the check', table( unignorable ) );
+                sections.push( '### Errors that fail the check', table( unignorable, rowsLeft ) );
+                rowsLeft = Math.max( 0, rowsLeft - unignorable.length );
               }
 
               if ( ignorable.length > 0 ) {
                 sections.push(
                   '### Errors',
                   'These are also shown as annotations on the changed files. They do not fail the check, but they should still be fixed before the pull request is committed.',
-                  table( ignorable )
+                  table( ignorable, rowsLeft )
                 );
               }
 
-              sections.push(
-                '### Running PHPStan locally',
-                [
-                  'To run the analysis on your own machine, use:',
+              // Most recently resolved first.
+              if ( resolved.length > 0 ) {
+                sections.push( [
+                  '<details>',
+                  `<summary>Resolved errors (${ resolved.length })</summary>`,
                   '',
-                  '```bash',
-                  'npm run typecheck:php',
-                  '```',
+                  table( [ ...resolved ].reverse(), maxRows, { withResolution: true } ),
                   '',
-                  'or `composer phpstan` outside the Docker environment.',
-                  `See [\`tests/phpstan/README.md\`](${ readmeUrl }) for details.`,
-                ].join( '\n' )
-              );
+                  '</details>',
+                ].join( '\n' ) );
+              }
 
-              body = sections.join( '\n\n' ) + '\n';
+              if ( active.length > 0 ) {
+                sections.push(
+                  '### Running PHPStan locally',
+                  [
+                    'To run the analysis on your own machine, use:',
+                    '',
+                    '```bash',
+                    'npm run typecheck:php',
+                    '```',
+                    '',
+                    'or `composer phpstan` outside the Docker environment.',
+                    `See [\`tests/phpstan/README.md\`](${ readmeUrl }) for details.`,
+                  ].join( '\n' )
+                );
+              }
+
+              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
+                { key, file, line, message, identifier, ignorable, introduced, seen, fixed }
+              ) );
+              sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
+
+              return sections.join( '\n\n' ) + '\n';
+            };
+
+            // A comment is limited to 65,536 characters. Should the body exceed that, give up the oldest resolved
+            // errors first, and then the history of errors beyond those listed.
+            const maxLength = 65000;
+            let trackedLimit = 200;
+            let body = render( trackedLimit );
+            while ( body.length > maxLength && resolved.length > 0 ) {
+              resolved = resolved.slice( 1 );
+              body = render( trackedLimit );
+            }
+            while ( body.length > maxLength && trackedLimit > 0 ) {
+              trackedLimit = Math.floor( trackedLimit / 2 );
+              body = render( trackedLimit );
             }
 
-            const comments = await github.paginate( github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 } );
-            const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
-
             if ( ! comment ) {
-              if ( body ) {
-                await github.rest.issues.createComment( { owner, repo, issue_number, body } );
-                core.notice( `Created PHPStan comment for pull request: ${ pr.html_url }` );
-              }
+              await github.rest.issues.createComment( { owner, repo, issue_number, body } );
+              core.notice( `Created PHPStan comment for pull request: ${ pr.html_url }` );
               return;
             }
 
+            if ( comment.body !== body ) {
+              await github.rest.issues.updateComment( { owner, repo, comment_id: comment.id, body } );
+              core.notice( `Updated PHPStan comment for pull request: ${ pr.html_url }` );
+            }
+
+            // The comment is collapsed as resolved while there are no errors, and expanded again if errors return.
             const { node } = await github.graphql(
               'query( $id: ID! ) { node( id: $id ) { ... on IssueComment { isMinimized } } }',
               { id: comment.node_id }
             );
-
-            if ( body ) {
-              if ( comment.body !== body ) {
-                await github.rest.issues.updateComment( { owner, repo, comment_id: comment.id, body } );
-              }
-              // Errors that come back after being resolved make the comment relevant again.
-              if ( node.isMinimized ) {
-                await github.graphql(
-                  'mutation( $id: ID! ) { unminimizeComment( input: { subjectId: $id } ) { clientMutationId } }',
-                  { id: comment.node_id }
-                );
-              }
-              core.notice( `Updated PHPStan comment for pull request: ${ pr.html_url }` );
-              return;
+            if ( active.length === 0 && ! node.isMinimized ) {
+              await github.graphql(
+                'mutation( $id: ID! ) { minimizeComment( input: { subjectId: $id, classifier: RESOLVED } ) { clientMutationId } }',
+                { id: comment.node_id }
+              );
+              core.notice( `Resolved PHPStan comment for pull request: ${ pr.html_url }` );
+            } else if ( active.length > 0 && node.isMinimized ) {
+              await github.graphql(
+                'mutation( $id: ID! ) { unminimizeComment( input: { subjectId: $id } ) { clientMutationId } }',
+                { id: comment.node_id }
+              );
             }
-
-            if ( node.isMinimized ) {
-              core.info( 'The PHPStan comment has already been marked as resolved.' );
-              return;
-            }
-
-            await github.rest.issues.updateComment( {
-              owner,
-              repo,
-              comment_id: comment.id,
-              body: [
-                marker,
-                '## PHPStan Static Analysis',
-                `All errors reported by PHPStan were resolved as of ${ commitLink } ([workflow run](${ run.html_url })).`,
-              ].join( '\n\n' ) + '\n',
-            } );
-            await github.graphql(
-              'mutation( $id: ID! ) { minimizeComment( input: { subjectId: $id, classifier: RESOLVED } ) { clientMutationId } }',
-              { id: comment.node_id }
-            );
-            core.notice( `Resolved PHPStan comment for pull request: ${ pr.html_url }` );
