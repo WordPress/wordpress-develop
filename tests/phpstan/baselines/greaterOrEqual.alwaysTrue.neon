@@ -19,16 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Comparison operation "\>\=" between int\<70400, 80500\> and 70300 is always true\.$#'
-			identifier: greaterOrEqual.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/fonts/class-wp-font-utils.php
-		-
-			message: '#^Comparison operation "\>\=" between int\<70400, 80500\> and 70400 is always true\.$#'
-			identifier: greaterOrEqual.alwaysTrue
-			count: 1
-			path: ../../../src/wp-includes/fonts/class-wp-font-utils.php
-		-
 			message: '#^Comparison operation "\>\=" between int\<2592000, 31535999\> and 2592000 is always true\.$#'
 			identifier: greaterOrEqual.alwaysTrue
 			count: 1
