@@ -23,8 +23,3 @@ parameters:
 			identifier: ternary.alwaysTrue
 			count: 1
 			path: ../../../src/wp-admin/menu-header.php
-		-
-			message: '#^Ternary operator condition is always true\.$#'
-			identifier: ternary.alwaysTrue
-			count: 1
-			path: ../../../src/wp-admin/theme-install.php
