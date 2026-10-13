@@ -278,7 +278,7 @@ class WP_Meta_Query {
 		 * the rest of the meta_query).
 		 */
 		$primary_meta_query = array();
-		foreach ( array( 'key', 'compare', 'type', 'compare_key', 'type_key' ) as $key ) {
+		foreach ( array( 'key', 'compare', 'type', 'compare_key', 'type_key', 'like_escape' ) as $key ) {
 			if ( ! empty( $qv[ "meta_$key" ] ) ) {
 				$primary_meta_query[ $key ] = $qv[ "meta_$key" ];
 			}
@@ -619,9 +619,10 @@ class WP_Meta_Query {
 		$clause['alias'] = $alias;
 
 		// Determine the data type.
-		$_meta_type     = $clause['type'] ?? '';
-		$meta_type      = $this->get_cast_for_type( $_meta_type );
-		$clause['cast'] = $meta_type;
+		$_meta_type        = $clause['type'] ?? '';
+		$meta_type         = $this->get_cast_for_type( $_meta_type );
+		$clause['cast']    = $meta_type;
+		$meta_like_escape  = isset( $clause['like_escape'] ) ? (bool) $clause['like_escape'] : false;
 
 		// Fallback for clause keys is the table alias. Key must be a string.
 		if ( is_int( $clause_key ) || ! $clause_key ) {
@@ -752,8 +753,10 @@ class WP_Meta_Query {
 
 				case 'LIKE':
 				case 'NOT LIKE':
-					$meta_value = '%' . $wpdb->esc_like( $meta_value ) . '%';
-					$where      = $wpdb->prepare( '%s', $meta_value );
+					if ( ! $meta_like_escape ) {
+						$meta_value = '%' . $wpdb->esc_like( $meta_value ) . '%';
+					}
+					$where = $wpdb->prepare( '%s', $meta_value );
 					break;
 
 				// EXISTS with a value is interpreted as '='.
