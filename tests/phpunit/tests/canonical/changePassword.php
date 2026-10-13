@@ -72,7 +72,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	public function test_well_known_change_password_redirects_to_profile() {
 		$redirect = $this->get_redirect_for( '/.well-known/change-password' );
 		$this->assertNotNull( $redirect, 'A redirect should fire for the well-known change-password URL.' );
-		$this->assertStringContainsString( 'profile.php', $redirect, 'Should redirect to the profile page.' );
+		$this->assertSame( admin_url( 'profile.php' ), $redirect, 'Should redirect to the profile page.' );
 	}
 
 	/**
@@ -81,7 +81,7 @@ class Tests_Canonical_ChangePassword extends WP_UnitTestCase {
 	public function test_well_known_change_password_with_trailing_slash_redirects_to_profile() {
 		$redirect = $this->get_redirect_for( '/.well-known/change-password/' );
 		$this->assertNotNull( $redirect, 'A redirect should fire for the trailing-slash variant.' );
-		$this->assertStringContainsString( 'profile.php', $redirect, 'Trailing slash variant should also redirect to the profile page.' );
+		$this->assertSame( admin_url( 'profile.php' ), $redirect, 'Trailing slash variant should also redirect to the profile page.' );
 	}
 
 	/**
