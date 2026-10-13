@@ -2517,7 +2517,7 @@ h6 {
 h1:not(.site-title):before,
 h2:before {
   background: #767676;
-  content: "\020";
+  content: "";
   display: block;
   height: 2px;
   margin: 1rem 0;
@@ -4200,7 +4200,7 @@ body.page .main-navigation {
 
 .entry .entry-title:before {
   background: #767676;
-  content: "\020";
+  content: "";
   display: block;
   height: 2px;
   margin: 1rem 0;
@@ -4494,7 +4494,7 @@ body.page .main-navigation {
 
 .author-bio .author-title:before {
   background: #767676;
-  content: "\020";
+  content: "";
   display: block;
   height: 2px;
   margin: 1rem 0;
@@ -4594,7 +4594,7 @@ body.page .main-navigation {
 
 .comments-area .comments-title-wrap .comments-title:before {
   background: #767676;
-  content: "\020";
+  content: "";
   display: block;
   height: 2px;
   margin: 1rem 0;
