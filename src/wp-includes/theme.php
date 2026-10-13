@@ -2018,9 +2018,12 @@ function wp_get_custom_css_post( $stylesheet = '' ) {
 			$post  = $query->post;
 			/*
 			 * Cache the lookup. See wp_update_custom_css_post().
+			 * A stored post ID is kept when the lookup fails, as the post is expected to exist.
 			 * @todo This should get cleared if a custom_css post is added/removed.
 			 */
-			set_theme_mod( 'custom_css_post_id', $post ? $post->ID : -1 );
+			if ( $post || empty( $post_id ) ) {
+				set_theme_mod( 'custom_css_post_id', $post ? $post->ID : -1 );
+			}
 		}
 	} else {
 		$query = new WP_Query( $custom_css_query_vars );
