@@ -438,10 +438,16 @@ class WP_CSS_Token_Serializer {
 	/**
 	 * Escapes every code point that cannot appear in an identifier.
 	 *
-	 * Letters, digits, `-`, `_` and code points U+0080 and above are written
-	 * as they are; every other code point is hex-escaped. Unlike
+	 * Letters, digits, `-`, `_` and the non-ASCII ident code points are
+	 * written as they are; every other code point is hex-escaped. Unlike
 	 * escape_ident(), a leading digit or `-` is not escaped, as the name of
 	 * a hash token with the "unrestricted" flag requires.
+	 *
+	 * The tokenizer reads every code point above U+007F as an identifier code
+	 * point, as browsers do. CSS Syntax allows fewer, so the others are escaped
+	 * and the output reads the same under both rules.
+	 *
+	 * @see https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
 	 *
 	 * @since 7.2.0
 	 *
@@ -461,8 +467,22 @@ class WP_CSS_Token_Serializer {
 				continue;
 			}
 
+			if ( $byte >= 0x80 ) {
+				// The value is valid UTF-8, so the leading byte gives the sequence length.
+				$sequence_length = $byte >= 0xF0 ? 4 : ( $byte >= 0xE0 ? 3 : 2 );
+				$code_point      = $byte & ( 0xFF >> ( $sequence_length + 1 ) );
+				for ( $j = 1; $j < $sequence_length; $j++ ) {
+					$code_point = ( $code_point << 6 ) | ( ord( $value[ $i + $j ] ) & 0x3F );
+				}
+
+				$result .= self::is_non_ascii_ident_code_point( $code_point )
+					? substr( $value, $i, $sequence_length )
+					: sprintf( '\\%x ', $code_point );
+				$i      += $sequence_length - 1;
+				continue;
+			}
+
 			if (
-				$byte >= 0x80 ||
 				( $byte >= 0x30 && $byte <= 0x39 ) || // 0-9
 				( $byte >= 0x41 && $byte <= 0x5A ) || // A-Z
 				( $byte >= 0x61 && $byte <= 0x7A ) || // a-z
@@ -477,6 +497,36 @@ class WP_CSS_Token_Serializer {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Reports whether a code point above U+007F is a non-ASCII ident code point.
+	 *
+	 * @see https://drafts.csswg.org/css-syntax-3/#non-ascii-ident-code-point
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int $code_point Code point above U+007F.
+	 * @return bool Whether the code point may appear unescaped in an identifier.
+	 */
+	private static function is_non_ascii_ident_code_point( int $code_point ): bool {
+		return (
+			0xB7 === $code_point ||
+			( $code_point >= 0xC0 && $code_point <= 0xD6 ) ||
+			( $code_point >= 0xD8 && $code_point <= 0xF6 ) ||
+			( $code_point >= 0xF8 && $code_point <= 0x37D ) ||
+			( $code_point >= 0x37F && $code_point <= 0x1FFF ) ||
+			0x200C === $code_point ||
+			0x200D === $code_point ||
+			0x203F === $code_point ||
+			0x2040 === $code_point ||
+			( $code_point >= 0x2070 && $code_point <= 0x218F ) ||
+			( $code_point >= 0x2C00 && $code_point <= 0x2FEF ) ||
+			( $code_point >= 0x3001 && $code_point <= 0xD7FF ) ||
+			( $code_point >= 0xF900 && $code_point <= 0xFDCF ) ||
+			( $code_point >= 0xFDF0 && $code_point <= 0xFFFD ) ||
+			$code_point >= 0x10000
+		);
 	}
 
 	/**

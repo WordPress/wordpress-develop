@@ -122,6 +122,18 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 		yield 'Single hyphen' => array( '-', '\\2d ' );
 		yield 'Custom property prefix' => array( '--custom', '--custom' );
 		yield 'Non-ASCII' => array( 'café', 'café' );
+		yield 'Middle dot' => array( "a\u{B7}b", "a\u{B7}b" );
+		yield 'Zero width joiner' => array( "a\u{200D}b", "a\u{200D}b" );
+		yield 'Replacement character' => array( "a\u{FFFD}b", "a\u{FFFD}b" );
+		yield 'Supplementary plane' => array( "a\u{1F600}b", "a\u{1F600}b" );
+
+		// Non-ASCII code points outside the identifier code points — must be escaped.
+		yield 'Leading C1 control' => array( "\u{80}a", '\\80 a' );
+		yield 'No-break space within' => array( "a\u{A0}b", 'a\\a0 b' );
+		yield 'Multiplication sign within' => array( "a\u{D7}b", 'a\\d7 b' );
+		yield 'Greek question mark within' => array( "a\u{37E}b", 'a\\37e b' );
+		yield 'Zero width space within' => array( "a\u{200B}b", 'a\\200b b' );
+		yield 'U+FFFE within' => array( "a\u{FFFE}b", 'a\\fffe b' );
 
 		// Invalid ident starts — must be escaped.
 		yield 'Leading digits' => array( '123', '\\31 23' );
@@ -333,6 +345,9 @@ class Tests_CssApi_WpCssTokenSerializer extends WP_UnitTestCase {
 			'hash unrestricted'                      => array( '#1a', '#1a' ),
 			'hash unrestricted escape'               => array( '#1\\:', '#1\\3a ' ),
 			'hash unrestricted hyphen'               => array( '#-', '#-' ),
+			'hash id non-ident code point'           => array( '#a\\d7 b', '#a\\d7 b' ),
+			'hash unrestricted non-ident code point' => array( '#1\\d7 b', '#1\\d7 b' ),
+			'dimension unit non-ident code point'    => array( '1\\a0 b', '1\\a0 b' ),
 			'string'                                 => array( "'a\"b'", '"a\\22 b"' ),
 			'string unterminated'                    => array( '"abc', '"abc"' ),
 			'bad string'                             => array( "'a\nb", "\"\n b" ),
