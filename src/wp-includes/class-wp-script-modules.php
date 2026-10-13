@@ -636,17 +636,47 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
 	 *
-	 * @global WP_Scripts $wp_scripts
-	 *
 	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
 	 *                                              identifiers and their respective URLs, including the version query.
 	 */
 	private function get_import_map(): array {
-		global $wp_scripts;
-
 		$imports = array();
 
 		// Identify script modules that are dependencies of classic scripts.
+		$classic_script_module_dependencies = $this->get_classic_script_module_dependencies();
+
+		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
+		$ids = array_unique(
+			array_merge(
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
+			)
+		);
+		foreach ( $ids as $id ) {
+			$src = $this->get_src( $id );
+			if ( '' !== $src ) {
+				$imports[ $id ] = $src;
+			}
+		}
+		return array( 'imports' => $imports );
+	}
+
+	/**
+	 * Gets the IDs of the script modules that classic scripts depend on.
+	 *
+	 * Walks the enqueued, to-do and done classic scripts and their dependencies, and collects the registered
+	 * script modules in their 'module_dependencies' data. A script module that is not registered triggers a
+	 * {@see _doing_it_wrong()} notice.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 *
+	 * @return string[] Script module IDs.
+	 */
+	private function get_classic_script_module_dependencies(): array {
+		global $wp_scripts;
+
 		$classic_script_module_dependencies = array();
 		if ( $wp_scripts instanceof WP_Scripts ) {
 			$handles = array_merge(
@@ -707,20 +737,7 @@ class WP_Script_Modules {
 			}
 		}
 
-		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
-		$ids = array_unique(
-			array_merge(
-				$classic_script_module_dependencies,
-				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
-			)
-		);
-		foreach ( $ids as $id ) {
-			$src = $this->get_src( $id );
-			if ( '' !== $src ) {
-				$imports[ $id ] = $src;
-			}
-		}
-		return array( 'imports' => $imports );
+		return $classic_script_module_dependencies;
 	}
 
 	/**
