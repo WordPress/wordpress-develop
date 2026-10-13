@@ -429,7 +429,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertEquals( 8, $response->get_data() );
+		$this->assertSame( 8.0, $response->get_data() );
 	}
 
 	/**
@@ -451,7 +451,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( self::$user_id, $data['id'] );
+		$this->assertSame( self::$user_id, $data['id'] );
 	}
 
 	/**
@@ -675,7 +675,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data() );
 	}
 
@@ -789,7 +789,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$data = $response->get_data();
 		$this->assertSame( 'nested', $data['level1']['level2']['value'] );
-		$this->assertEquals( array( 1, 2, 3 ), $data['array'] );
+		$this->assertSame( array( 1, 2, 3 ), $data['array'] );
 	}
 
 	/**
@@ -1297,7 +1297,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $inputs, $data['echo'] );
+		$this->assertSame( $inputs, $data['echo'] );
 	}
 
 	/**
@@ -1346,9 +1346,9 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$data = $response->get_data();
 
 		// Input should be preserved exactly
-		$this->assertEquals( $input['utf8'], $data['echo']['utf8'] );
-		$this->assertEquals( $input['emoji'], $data['echo']['emoji'] );
-		$this->assertEquals( $input['html'], $data['echo']['html'] );
+		$this->assertSame( $input['utf8'], $data['echo']['utf8'] );
+		$this->assertSame( $input['emoji'], $data['echo']['emoji'] );
+		$this->assertSame( $input['html'], $data['echo']['html'] );
 	}
 
 	/**
