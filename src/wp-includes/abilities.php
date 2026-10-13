@@ -9,10 +9,13 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
+
 /**
  * Registers the core ability categories.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `uncategorized` category.
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -30,12 +33,21 @@ function wp_register_core_ability_categories(): void {
 			'description' => __( 'Abilities that retrieve or modify user information and settings.' ),
 		)
 	);
+
+	wp_register_ability_category(
+		'uncategorized',
+		array(
+			'label'       => __( 'Uncategorized' ),
+			'description' => __( 'Abilities that have not been assigned to a specific category.' ),
+		)
+	);
 }
 
 /**
  * Registers the default core abilities.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `core/settings-get` ability.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -132,12 +144,12 @@ function wp_register_core_abilities(): void {
 				return current_user_can( 'manage_options' );
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);
@@ -256,12 +268,12 @@ function wp_register_core_abilities(): void {
 				return is_user_logged_in();
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);
@@ -342,13 +354,16 @@ function wp_register_core_abilities(): void {
 				return current_user_can( 'manage_options' );
 			},
 			'meta'                => array(
-				'annotations'  => array(
+				'annotations' => array(
 					'readonly'    => true,
 					'destructive' => false,
 					'idempotent'  => true,
 				),
-				'show_in_rest' => true,
+				'public'      => true,
 			),
 		)
 	);
+
+	// Register the settings abilities (currently the read-only `core/settings-get`).
+	( new WP_Abilities_Settings() )->register();
 }
