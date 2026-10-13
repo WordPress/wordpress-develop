@@ -250,6 +250,8 @@ class WP_Comment_Query {
 	 *                                                      or space/comma-separated list of 'hold' (`comment_status=0`),
 	 *                                                      'approve' (`comment_status=1`), 'all', or a custom
 	 *                                                      comment status. Default 'all'.
+	 *     @type string[]          $status__not_in          Exclude comments from a given array of comment stati.
+	 *                                                      Default empty array.
 	 *     @type string|string[] $type                      Include comments of a given type, or array of types.
 	 *                                                      Accepts 'comment', 'pings' (includes 'pingback' and
 	 *                                                      'trackback'), or any custom type string. Default empty.
@@ -308,6 +310,7 @@ class WP_Comment_Query {
 			'post_status'               => '',
 			'post_type'                 => '',
 			'status'                    => 'all',
+			'status__not_in'            => array(),
 			'type'                      => '',
 			'type__in'                  => '',
 			'type__not_in'              => '',
@@ -569,6 +572,14 @@ class WP_Comment_Query {
 		if ( empty( $statuses ) ) {
 			$statuses = array( 'all' );
 		}
+
+		// unlink 'status', 'status__not_in' accepts only an array
+		$status__not_in = $this->query_vars['status__not_in'];
+		if ( ! is_array( $status__not_in ) ) {
+			$status__not_in = array();
+		}
+		$statuses = array_diff( $statuses, $status__not_in );
+		unset( $status__not_in );
 
 		// 'any' overrides other statuses.
 		if ( ! in_array( 'any', $statuses, true ) ) {
