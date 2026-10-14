@@ -40,11 +40,13 @@ class WP_Http_Cookie {
 	public $value;
 
 	/**
-	 * When the cookie expires. Unix timestamp or formatted date.
+	 * When the cookie expires, as a Unix timestamp.
+	 *
+	 * False if the expiration date could not be parsed, or null if not provided.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var string|int|null
+	 * @var int|false|null
 	 */
 	public $expires;
 
@@ -78,9 +80,11 @@ class WP_Http_Cookie {
 	/**
 	 * host-only flag.
 	 *
+	 * Null if not provided.
+	 *
 	 * @since 5.2.0
 	 *
-	 * @var bool
+	 * @var bool|null
 	 */
 	public $host_only;
 
@@ -262,9 +266,9 @@ class WP_Http_Cookie {
 	 * @return array {
 	 *     List of attributes.
 	 *
-	 *     @type string|int|null $expires When the cookie expires. Unix timestamp or formatted date.
-	 *     @type string          $path    Cookie URL path.
-	 *     @type string          $domain  Cookie domain.
+	 *     @type int|false|null $expires When the cookie expires, as a Unix timestamp.
+	 *     @type string         $path    Cookie URL path.
+	 *     @type string|null    $domain  Cookie domain.
 	 * }
 	 */
 	public function get_attributes() {
