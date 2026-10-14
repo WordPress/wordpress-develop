@@ -1391,11 +1391,11 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
  *     );
  *
  * Only randomable post types and published posts without a password are eligible.
- * The number and order of posts are enforced by wp_random_content_post_limits() and
- * wp_random_content_posts_orderby(), so callbacks modifying them on archives do not
+ * The number and order of posts are enforced by {@see wp_random_content_post_limits()} and
+ * {@see wp_random_content_posts_orderby()}, so callbacks modifying them on archives do not
  * affect the selection.
  *
- * Added to the {@see 'pre_get_posts'} action by WP::handle_random() while the
+ * Added to the {@see 'pre_get_posts'} action by {@see WP::handle_random()} while the
  * random content query runs, so it runs after other callbacks.
  *
  * @since 7.2.0
@@ -1436,13 +1436,13 @@ function wp_random_content_posts_orderby( $orderby, WP_Query $query ): string {
 		return 'RAND()';
 	}
 
-	return $orderby;
+	return (string) $orderby;
 }
 
 /**
  * Limits the random content query to a single post.
  *
- * Added to the {@see 'post_limits'} filter by WP::handle_random() while the random
+ * Added to the {@see 'post_limits'} filter by {@see WP::handle_random()} while the random
  * content query runs. Enforcing the limit in SQL prevents {@see 'pre_get_posts'}
  * callbacks setting the number of posts, offset or page on archives from affecting
  * the selection.
@@ -1458,7 +1458,7 @@ function wp_random_content_post_limits( $limits, WP_Query $query ): string {
 		return 'LIMIT 0, 1';
 	}
 
-	return $limits;
+	return (string) $limits;
 }
 
 /**
@@ -1496,8 +1496,11 @@ function wp_random_content_split_the_query( $split_the_query, WP_Query $query ):
  *                                             value prevents the header being sent.
  * @return array<string, string|false> Associative array of headers to be sent.
  */
-function wp_random_content_headers( array $headers ): array {
+function wp_random_content_headers( $headers ): array {
 	global $wp_query;
+	if ( ! is_array( $headers ) ) {
+		$headers = array();
+	}
 
 	if ( ! wp_is_random_content_query( $wp_query ) ) {
 		return $headers;

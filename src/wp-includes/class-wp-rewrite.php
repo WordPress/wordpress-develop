@@ -123,14 +123,14 @@ class WP_Rewrite {
 	/**
 	 * Custom random content permalink base.
 	 *
-	 * Set from the 'random_base' option by WP_Rewrite::init(). Empty when no custom
+	 * Set from the 'random_base' option by {@see WP_Rewrite::init()}. Empty when no custom
 	 * base is set, in which case the translated default is used.
-	 * Use WP_Rewrite::get_random_base() to retrieve the base in use.
+	 * Use {@see WP_Rewrite::get_random_base()} to retrieve the base in use.
 	 *
 	 * @since 7.2.0
 	 * @var string
 	 */
-	public $random_base = '';
+	public string $random_base = '';
 
 	/**
 	 * Comments feed permalink structure.
@@ -1524,8 +1524,8 @@ class WP_Rewrite {
 	 *
 	 * If a published page exists at the random base, the page takes precedence and the
 	 * `/random/` rule is omitted. The same applies to a published post when posts share
-	 * the URL, see WP_Rewrite::post_permalinks_share_random_base(). The rules are flushed
-	 * when such a page or post changes, see wp_random_content_flush_rewrite_rules_for_post().
+	 * the URL, see {@see WP_Rewrite::post_permalinks_share_random_base()}. The rules are flushed
+	 * when such a page or post changes, see {@see wp_random_content_flush_rewrite_rules_for_post()}.
 	 *
 	 * The `random` query variable can be added to any other archive or search URL, for example
 	 * `/2026/?random`, to request a random post from that archive.
@@ -1534,7 +1534,7 @@ class WP_Rewrite {
 	 *
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
-	 * @return string[] Array of rewrite rules for random content redirects, keyed by their regex pattern.
+	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
 	 */
 	public function random_rewrite_rules(): array {
 		if ( ! wp_is_random_content_redirect_enabled() ) {
@@ -2158,7 +2158,7 @@ class WP_Rewrite {
 	 * Sets the random base for random content permalinks.
 	 *
 	 * Will update the 'random_base' option, if there is a difference between the
-	 * current random base and the parameter value. Calls WP_Rewrite::init() after
+	 * current random base and the parameter value. Calls {@see WP_Rewrite::init()} after
 	 * the option is updated.
 	 *
 	 * @since 7.2.0
