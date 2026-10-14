@@ -78,7 +78,7 @@ class WP_Http_Cookie {
 	public $port;
 
 	/**
-	 * host-only flag.
+	 * Host-only flag.
 	 *
 	 * Null if not provided.
 	 *
