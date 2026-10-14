@@ -476,6 +476,8 @@ class WP_Http {
 	 *
 	 * @param array<int|string, WP_Http_Cookie|scalar> $cookies Array of cookies to send with the request,
 	 *                                                          as WP_Http_Cookie objects or name/value pairs.
+	 *                                                          Cookies without a name or a scalar value
+	 *                                                          are ignored.
 	 * @return WpOrg\Requests\Cookie\Jar Cookie holder object.
 	 */
 	public static function normalize_cookies( $cookies ) {
