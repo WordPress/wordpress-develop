@@ -343,4 +343,84 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			'whitespace-only' => array( " \t " ),
 		);
 	}
+
+	/**
+	 * Tests that get_sendable_name() returns the trimmed name, or null when there is no usable name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::get_sendable_name
+	 *
+	 * @dataProvider data_get_sendable_name
+	 *
+	 * @param string|null $name     Cookie name, set after construction.
+	 * @param string|null $expected Expected sendable name.
+	 */
+	public function test_get_sendable_name( ?string $name, ?string $expected ): void {
+		$cookie       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+		$cookie->name = $name;
+
+		$this->assertSame( $expected, $cookie->get_sendable_name() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_get_sendable_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|null, 1: string|null }>
+	 */
+	public function data_get_sendable_name(): array {
+		return array(
+			'plain'           => array( 'flavor', 'flavor' ),
+			'surrounded'      => array( " \tflavor ", 'flavor' ),
+			'numeric'         => array( '0', '0' ),
+			'empty'           => array( '', null ),
+			'whitespace-only' => array( " \t ", null ),
+			'null'            => array( null, null ),
+		);
+	}
+
+	/**
+	 * Tests that getHeaderValue() uses the trimmed name, as WP_Http::normalize_cookies() does.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::getHeaderValue
+	 */
+	public function test_get_header_value_uses_trimmed_name(): void {
+		$cookie       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+		$cookie->name = " \tflavor ";
+
+		$this->assertSame( 'flavor=chocolate-chip', $cookie->getHeaderValue() );
+	}
+
+	/**
+	 * Tests that a non-string name does not cause a fatal error.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::test
+	 * @covers ::getHeaderValue
+	 */
+	public function test_non_string_name_is_invalid(): void {
+		$cookie = new WP_Http_Cookie(
+			array( // @phpstan-ignore argument.type (Intentionally passing an invalid name.)
+				'name'  => array( 'flavor' ),
+				'value' => 'chocolate-chip',
+			),
+			'https://example.org/'
+		);
+
+		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
+		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
+	}
 }

@@ -198,7 +198,7 @@ class WP_Http_Cookie {
 	 * @return bool true if allowed, false otherwise.
 	 */
 	public function test( $url ) {
-		if ( ! isset( $this->name ) || '' === trim( $this->name ) ) {
+		if ( null === $this->get_sendable_name() ) {
 			return false;
 		}
 
@@ -247,7 +247,8 @@ class WP_Http_Cookie {
 	 * @return string Header encoded cookie name and value.
 	 */
 	public function getHeaderValue() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		if ( ! isset( $this->name ) || '' === trim( $this->name ) || ! isset( $this->value ) ) {
+		$name = $this->get_sendable_name();
+		if ( null === $name || ! isset( $this->value ) ) {
 			return '';
 		}
 
@@ -259,7 +260,27 @@ class WP_Http_Cookie {
 		 * @param string $value The cookie value.
 		 * @param string $name  The cookie name.
 		 */
-		return $this->name . '=' . apply_filters( 'wp_http_cookie_value', $this->value, $this->name );
+		return $name . '=' . apply_filters( 'wp_http_cookie_value', $this->value, $name );
+	}
+
+	/**
+	 * Retrieves the cookie name to send, with surrounding whitespace trimmed.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return string|null The trimmed cookie name, or null if the name is missing, empty, or not a scalar.
+	 */
+	public function get_sendable_name(): ?string {
+		if ( ! is_scalar( $this->name ) ) {
+			return null;
+		}
+
+		$name = trim( (string) $this->name );
+		if ( '' === $name ) {
+			return null;
+		}
+
+		return $name;
 	}
 
 	/**
