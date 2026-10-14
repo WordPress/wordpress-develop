@@ -310,6 +310,10 @@ function wp_register_custom_css_support( $block_type ) {
  * @return array The style attribute with all `css` keys removed.
  */
 function wp_strip_custom_css_from_style_array( $style ) {
+	if ( ! is_array( $style ) ) {
+		return $style;
+	}
+
 	unset( $style['css'] );
 
 	foreach ( $style as $key => $value ) {
