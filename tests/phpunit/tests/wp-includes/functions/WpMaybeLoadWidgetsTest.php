@@ -14,25 +14,53 @@ use WP_UnitTestCase;
 class WpMaybeLoadWidgetsTest extends WP_UnitTestCase {
 
 	/**
+	 * Tests that wp_maybe_load_widgets() hooks wp_widgets_add_menu() to _admin_menu.
+	 *
 	 * @ticket 57201
 	 */
-	public function test_wp_maybe_load_widgets() {
-		// If the class already exists, we can't test the initial "not loaded" state.
-		if ( ! class_exists( 'WP_Nav_Menu_Widget' ) ) {
-			$this->assertFalse( class_exists( 'WP_Nav_Menu_Widget' ), 'WP_Nav_Menu_Widget class should not be loaded initially.' );
-			$this->assertFalse( has_action( '_admin_menu', 'wp_widgets_add_menu' ), 'wp_widgets_add_menu should not be hooked to _admin_menu initially.' );
-
-			add_filter( 'load_default_widgets', '__return_false' );
-			wp_maybe_load_widgets();
-			remove_filter( 'load_default_widgets', '__return_false' );
-
-			$this->assertFalse( class_exists( 'WP_Nav_Menu_Widget' ), 'WP_Nav_Menu_Widget class should not be loaded when load_default_widgets filter returns false.' );
-			$this->assertFalse( has_action( '_admin_menu', 'wp_widgets_add_menu' ), 'wp_widgets_add_menu should not be hooked to _admin_menu when load_default_widgets filter returns false.' );
-		}
+	public function test_should_hook_widgets_menu() {
+		// The widgets library is loaded during bootstrap, so reset the hook first.
+		remove_action( '_admin_menu', 'wp_widgets_add_menu' );
 
 		wp_maybe_load_widgets();
 
-		$this->assertTrue( class_exists( 'WP_Nav_Menu_Widget' ), 'WP_Nav_Menu_Widget class should be loaded.' );
-		$this->assertNotFalse( has_action( '_admin_menu', 'wp_widgets_add_menu' ), 'wp_widgets_add_menu should be hooked to _admin_menu.' );
+		$this->assertSame( 10, has_action( '_admin_menu', 'wp_widgets_add_menu' ) );
+	}
+
+	/**
+	 * Tests that wp_maybe_load_widgets() does not hook wp_widgets_add_menu() when load_default_widgets filter is falsy.
+	 *
+	 * @ticket 57201
+	 *
+	 * @dataProvider data_falsy_values
+	 *
+	 * @param mixed $value Falsy value.
+	 */
+	public function test_should_not_hook_widgets_menu_when_filter_is_falsy( $value ) {
+		remove_action( '_admin_menu', 'wp_widgets_add_menu' );
+		add_filter(
+			'load_default_widgets',
+			static function () use ( $value ) {
+				return $value;
+			}
+		);
+
+		wp_maybe_load_widgets();
+
+		$this->assertFalse( has_action( '_admin_menu', 'wp_widgets_add_menu' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_falsy_values() {
+		return array(
+			'false'        => array( false ),
+			'0'            => array( 0 ),
+			'empty string' => array( '' ),
+			'null'         => array( null ),
+		);
 	}
 }
