@@ -1,5 +1,6 @@
 <?php
 
+require_once __DIR__ . '/build-style-attribute-declarations.php';
 require_once __DIR__ . '/build-visual-html-tree.php';
 require_once __DIR__ . '/factory.php';
 require_once __DIR__ . '/trac.php';
