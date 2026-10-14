@@ -1964,8 +1964,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A query by several IDs returns every readable post, newest first, whatever the order of
 	 * the IDs, on one page.
 	 *
-	 * The page size defaults to the number of IDs, so more IDs than the default page size of
-	 * 10 still fit on the first page.
+	 * With IDs, the page size defaults to the maximum of 100 instead of 10, so more than 10 IDs
+	 * still fit on the first page.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2005,7 +2005,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'total_pages' => 1,
 			),
 			$result['pagination'],
-			'The page size should default to the number of IDs, so every requested post should fit on one page.'
+			'With IDs, the page size should default to 100, so every requested post should fit on one page.'
 		);
 	}
 
@@ -2364,8 +2364,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A query by several slugs returns every listed post, newest first, on one page.
 	 *
 	 * Each slug is normalized like a post slug, so a slug in capitals matches its lowercase
-	 * slug, and the slug "0" matches too. The page size defaults to the number of slugs, so
-	 * more slugs than the default page size of 10 still fit on the first page.
+	 * slug, and the slug "0" matches too. With slugs, the page size defaults to the maximum of
+	 * 100 instead of 10, so the posts of more than 10 slugs still fit on the first page.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2432,7 +2432,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'total_pages' => 1,
 			),
 			$result['pagination'],
-			'The page size should default to the number of slugs, so every listed post should fit on one page.'
+			'With slugs, the page size should default to 100, so every listed post should fit on one page.'
 		);
 	}
 
@@ -2441,8 +2441,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * `parent` filter tells them apart.
 	 *
 	 * Pages under the same parent cannot share a slug, but pages under different parents can.
-	 * The page size defaults to the number of slugs, so without a page size each page holds
-	 * one of them.
+	 * With slugs, the page size defaults to the maximum of 100, so without a page size both
+	 * pages come back on the first page, while an explicit page size of one splits them over
+	 * two pages.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2479,19 +2480,27 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$both = $ability->execute(
 			array(
-				'where'      => $where,
-				'fields'     => array( 'id' ),
-				'pagination' => array( 'per_page' => 2 ),
+				'where'  => $where,
+				'fields' => array( 'id' ),
 			)
 		);
 
 		$this->assertIsArray( $both, 'The query by a shared slug should succeed.' );
 		$this->assertSame( array_reverse( $child_ids ), wp_list_pluck( $both['items'], 'id' ), 'Both pages sharing the slug should be returned, newest first.' );
+		$this->assertSame(
+			array(
+				'total'       => 2,
+				'total_pages' => 1,
+			),
+			$both['pagination'],
+			'Without a page size, both pages sharing the slug should fit on the first page.'
+		);
 
 		$first_page = $ability->execute(
 			array(
-				'where'  => $where,
-				'fields' => array( 'id' ),
+				'where'      => $where,
+				'fields'     => array( 'id' ),
+				'pagination' => array( 'per_page' => 1 ),
 			)
 		);
 
@@ -2506,7 +2515,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				),
 			),
 			$first_page,
-			'Without a page size, a page should hold as many posts as there are slugs, and the totals should count both pages.'
+			'An explicit page size of one should return the newest page first, and the totals should count both pages.'
 		);
 
 		$by_parent = $ability->execute(
@@ -2755,14 +2764,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			$expected
 		);
 
-		// One slug makes a page size of one, so ask for a page that holds both posts.
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where'      => array(
+				'where' => array(
 					'type'  => 'post',
 					'slugs' => array( 'shadowed-slug' ),
 				),
-				'pagination' => array( 'per_page' => 10 ),
 			)
 		);
 
@@ -2936,15 +2943,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		// One slug makes a page size of one, so ask for a page that holds every post sharing the slug.
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where'      => array(
+				'where'  => array(
 					'type'  => 'post',
 					'slugs' => array( 'shared-slug' ),
 				),
-				'fields'     => $fields,
-				'pagination' => array( 'per_page' => 10 ),
+				'fields' => $fields,
 			)
 		);
 
