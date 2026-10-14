@@ -914,11 +914,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/formatting.php
 		-
-			message: '#^Parameter \#3 \$number of function _n expects int, float given\.$#'
-			identifier: argument.type
-			count: 6
-			path: ../../../src/wp-includes/formatting.php
-		-
 			message: '#^Parameter \#1 \$prefix of function uniqid expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
