@@ -12,16 +12,15 @@ declare( strict_types = 1 );
 /**
  * Core class used to register content-related abilities.
  *
- * Registers the read-only `core/content-query` ability, which retrieves readable posts of a
- * post type exposed to abilities via `show_in_abilities`. Supports fetching a single
- * readable post by ID or by post type and slug, or querying multiple readable posts filtered
- * by post type, status, author, parent, or included IDs. Raw fields are only returned for
- * posts the current user can edit.
+ * Registers the read-only `core/content-query` ability, which queries the readable posts of a
+ * post type exposed to abilities via `show_in_abilities`, filtered by any of post IDs, slugs,
+ * status, author, and parent. Raw fields are only returned for posts the current user can
+ * edit.
  *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
  * self-contained closures, the content ability lives in a dedicated class because
- * its callbacks and schemas share helpers: the permission and execute callbacks resolve and
- * authorize the requested post through the same code, and the input schema, output schema,
+ * its callbacks and schemas share helpers: the permission and execute callbacks read the
+ * post type and the filters through the same code, and the input schema, output schema,
  * and field projection are built from the same field definitions. Future write-oriented
  * content abilities can reuse them as well.
  *
@@ -45,7 +44,7 @@ final class WP_Abilities_Content {
 	private const CATEGORY = 'content';
 
 	/**
-	 * Default number of posts returned per page in query mode.
+	 * Default number of posts returned per page.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -53,7 +52,7 @@ final class WP_Abilities_Content {
 	private const DEFAULT_PER_PAGE = 10;
 
 	/**
-	 * Maximum number of posts returned per page in query mode.
+	 * Maximum number of posts returned per page, which also caps the `ids` and `slugs` filters.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -134,9 +133,10 @@ final class WP_Abilities_Content {
 		}
 
 		/*
-		 * Internal statuses (e.g. `inherit`) are excluded, so post types that rely on
-		 * them (attachments) are only reachable by ID. Revisit if such a post type is
-		 * ever exposed via `show_in_abilities`.
+		 * Internal statuses (e.g. `inherit`) are excluded here and from the statuses a query
+		 * covers by default, so the posts of post types that rely on them (attachments)
+		 * cannot be queried. Revisit if such a post type is ever exposed via
+		 * `show_in_abilities`.
 		 */
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
 
@@ -144,7 +144,7 @@ final class WP_Abilities_Content {
 			'core/content-query',
 			array(
 				'label'               => __( 'Query Content' ),
-				'description'         => __( 'Reads content from post types exposed to abilities, as a paginated list of posts. Look up a single readable post by ID or by post type and slug, or query readable posts filtered by post type, status, author, parent, or included IDs. Requires an authenticated user. Lookups and filters are exact-match only; the ability does not perform full-text search.' ),
+				'description'         => __( 'Reads content from post types exposed to abilities, as a paginated list of posts. Queries the readable posts of a post type, filtered by any of post IDs, slugs, status, author, and parent. Requires an authenticated user. Filters are exact-match only; the ability does not perform full-text search.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_query_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_query_output_schema(),
@@ -169,12 +169,11 @@ final class WP_Abilities_Content {
 	/**
 	 * Permission callback for the `core/content-query` ability.
 	 *
-	 * This gate is the authoritative permission decision for lookups: it resolves the
-	 * requested post and denies missing, mismatched, or unreadable posts before execution.
-	 * Queries are only gated coarsely here (collection status capabilities);
+	 * The request is only gated as a whole here: it needs a logged-in user, a post type
+	 * exposed to abilities, the capabilities to query the explicitly requested statuses, and
+	 * edit access when edit-context fields are explicitly requested. It reads no post.
 	 * {@see self::execute_content_query()} enforces row-level read/edit permissions, since
-	 * individual rows are unknown until the query runs. Requests that explicitly ask for
-	 * edit-context fields require edit access before execution.
+	 * individual rows are unknown until the query runs.
 	 *
 	 * @since 7.2.0
 	 *
@@ -190,23 +189,11 @@ final class WP_Abilities_Content {
 
 		/*
 		 * A `where` that is not an object is let through, so that the execute callback can
-		 * report it as an invalid filter. It reads no post.
+		 * report it as an invalid filter.
 		 */
 		$where = $this->get_input_object( $input, 'where' );
 		if ( null === $where ) {
 			return true;
-		}
-
-		$requires_edit = $this->has_explicit_edit_fields( $input );
-
-		// Lookups, by ID or by post type and slug.
-		if ( isset( $where['id'] ) || isset( $where['slug'] ) ) {
-			$post = $this->get_requested_post( $where );
-			if ( ! $post ) {
-				return false;
-			}
-
-			return $requires_edit ? current_user_can( 'edit_post', $post->ID ) : $this->check_read_permission( $post );
 		}
 
 		// A query requires an exposed post type.
@@ -215,7 +202,7 @@ final class WP_Abilities_Content {
 			return false;
 		}
 
-		if ( $requires_edit ) {
+		if ( $this->has_explicit_edit_fields( $input ) ) {
 			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
@@ -302,11 +289,10 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Checks whether the current user may query the requested statuses.
+	 * Checks whether the current user may query the explicitly requested statuses.
 	 *
-	 * This mirrors the REST posts controller's conservative collection-status gate:
-	 * requesting non-default statuses requires edit access, except `private`, which
-	 * may be queried by users who can read private posts.
+	 * The statuses a query covers by default, see {@see self::normalize_statuses()}, only
+	 * hold statuses the current user may query, so they need no check.
 	 *
 	 * @since 7.2.0
 	 *
@@ -315,23 +301,38 @@ final class WP_Abilities_Content {
 	 * @return bool True if the requested statuses may be queried.
 	 */
 	private function can_query_statuses( array $where, WP_Post_Type $post_type_object ): bool {
-		foreach ( $this->normalize_statuses( $where ) as $status ) {
-			if ( 'publish' === $status ) {
-				continue;
+		foreach ( $this->get_requested_statuses( $where ) as $status ) {
+			if ( ! $this->can_query_status( $status, $post_type_object ) ) {
+				return false;
 			}
-
-			if ( 'private' === $status && current_user_can( $post_type_object->cap->read_private_posts ) ) {
-				continue;
-			}
-
-			if ( current_user_can( $post_type_object->cap->edit_posts ) ) {
-				continue;
-			}
-
-			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks whether the current user may query posts in a status.
+	 *
+	 * This mirrors the REST posts controller's conservative collection-status gate:
+	 * querying statuses other than `publish` requires edit access, except `private`,
+	 * which may be queried by users who can read private posts.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string       $status           The post status slug.
+	 * @param WP_Post_Type $post_type_object The post type object.
+	 * @return bool True if the status may be queried.
+	 */
+	private function can_query_status( string $status, WP_Post_Type $post_type_object ): bool {
+		if ( 'publish' === $status ) {
+			return true;
+		}
+
+		if ( 'private' === $status && current_user_can( $post_type_object->cap->read_private_posts ) ) {
+			return true;
+		}
+
+		return current_user_can( $post_type_object->cap->edit_posts );
 	}
 
 	/**
@@ -414,10 +415,9 @@ final class WP_Abilities_Content {
 	/**
 	 * Executes the `core/content-query` ability.
 	 *
-	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, so
-	 * lookups only re-validate the lookup itself: existence, exposure, and a matching post
-	 * type. Queries still filter every row by read or edit permission, because the gate
-	 * cannot resolve rows before the query runs.
+	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, which
+	 * gates the request as a whole. The query still filters every row by read or edit
+	 * permission, because the gate cannot know the rows before the query runs.
 	 *
 	 * @since 7.2.0
 	 *
@@ -442,21 +442,6 @@ final class WP_Abilities_Content {
 		$pagination = $this->get_input_object( $input, 'pagination' ) ?? array();
 		$page       = $this->parse_filter_int( $pagination['page'] ?? 1, 1 ) ?? 1;
 
-		// Lookups, by ID or by post type and slug.
-		if ( isset( $where['id'] ) || isset( $where['slug'] ) ) {
-			$post = $this->get_requested_post( $where );
-			if ( ! $post ) {
-				return $this->not_found_error();
-			}
-
-			// A lookup is a result set of one post, so it has a single page.
-			if ( $page > 1 ) {
-				return $this->invalid_page_number_error();
-			}
-
-			return $this->prepare_output( array( $this->format_post( $post, $fields ) ), 1, 1 );
-		}
-
 		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
 			return $this->not_found_error();
@@ -469,9 +454,10 @@ final class WP_Abilities_Content {
 		 * support them; a shared input schema cannot express that per post type. On
 		 * transports that skip schema validation a malformed value would otherwise
 		 * coerce to a benign default and silently *widen* the query (`author => 0`
-		 * drops the author filter, an empty `post__in` is ignored, `post_parent => 0`
-		 * becomes a top-level query). Reject unsupported filters and invalid filter
-		 * values loudly so a filter that cannot be honored fails closed instead.
+		 * drops the author filter, an empty `post__in` or `post_name__in` is ignored,
+		 * `post_parent => 0` becomes a top-level query). Reject unsupported filters and
+		 * invalid filter values loudly so a filter that cannot be honored fails closed
+		 * instead.
 		 */
 		$parent = null;
 		if ( isset( $where['parent'] ) ) {
@@ -505,18 +491,37 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		$include = $this->normalize_include( $where );
-
 		/*
-		 * An include filter that was supplied but parsed to no valid IDs must not fall
-		 * through to an unrestricted query: WP_Query ignores an empty `post__in`, which
-		 * would return every post of the type — the opposite of the caller's intent.
+		 * An `ids` or `slugs` filter that was given but kept no valid entry must not fall
+		 * through to an unrestricted query: WP_Query ignores an empty `post__in` or
+		 * `post_name__in`, which would return every post of the type, the opposite of the
+		 * caller's intent.
 		 */
-		if ( isset( $where['include'] ) && array() === $include ) {
-			return $this->invalid_filter_error( 'where[include]', __( 'The include filter must list one or more valid post IDs.' ) );
+		$ids = null;
+		if ( isset( $where['ids'] ) ) {
+			$ids = $this->normalize_ids( $where );
+			if ( array() === $ids ) {
+				return $this->invalid_filter_error(
+					'where[ids]',
+					/* translators: %s: Parameter. */
+					sprintf( __( 'The %s filter must list one or more valid post IDs.' ), 'ids' )
+				);
+			}
 		}
 
-		$per_page = $this->normalize_per_page( $pagination, $include );
+		$slugs = null;
+		if ( isset( $where['slugs'] ) ) {
+			$slugs = $this->normalize_slugs( $where );
+			if ( array() === $slugs ) {
+				return $this->invalid_filter_error(
+					'where[slugs]',
+					/* translators: %s: Parameter. */
+					sprintf( __( 'The %s filter must list one or more valid post slugs.' ), 'slugs' )
+				);
+			}
+		}
+
+		$per_page = $this->normalize_per_page( $pagination, $ids ?? $slugs ?? array() );
 
 		$prime_post_caches = $this->should_prime_post_caches( $fields );
 
@@ -526,7 +531,7 @@ final class WP_Abilities_Content {
 		 */
 		$query_args = array(
 			'post_type'              => $post_type,
-			'post_status'            => $this->normalize_statuses( $where ),
+			'post_status'            => $this->normalize_statuses( $where, $post_type_object, null !== $ids || null !== $slugs ),
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
 			'perm'                   => $requires_edit ? 'editable' : 'readable',
@@ -535,8 +540,12 @@ final class WP_Abilities_Content {
 			'update_post_term_cache' => $prime_post_caches,
 		);
 
-		if ( array() !== $include ) {
-			$query_args['post__in'] = $include;
+		if ( null !== $ids ) {
+			$query_args['post__in'] = $ids;
+		}
+
+		if ( null !== $slugs ) {
+			$query_args['post_name__in'] = $slugs;
 		}
 
 		if ( null !== $author ) {
@@ -631,21 +640,22 @@ final class WP_Abilities_Content {
 	/**
 	 * Normalizes the requested per-page value to the supported bounds.
 	 *
-	 * An explicit `per_page` always wins. Otherwise an `include` request pages to the
-	 * number of requested IDs, so a caller loading a known set of posts receives all of
-	 * them in one call rather than silently losing the ones past the default page size.
-	 * The input schema caps `include` at {@see self::MAX_PER_PAGE} so it always fits.
+	 * An explicit `per_page` always wins. Otherwise a request that lists `ids`, or else
+	 * `slugs`, pages to the number listed, so a caller loading a known set of posts
+	 * receives them in one call rather than silently losing the ones past the default page
+	 * size. The input schema caps both lists at {@see self::MAX_PER_PAGE}. A slug can match
+	 * several posts, though, so the matches of the listed slugs can span several pages.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $pagination  The `pagination` input.
-	 * @param list<int>    $include_ids Normalized included post IDs; empty when not requested.
+	 * @param array<mixed>           $pagination The `pagination` input.
+	 * @param list<int>|list<string> $listed     The normalized `ids`, or else `slugs`; empty when neither is given.
 	 * @return int The clamped per-page value.
 	 */
-	private function normalize_per_page( array $pagination, array $include_ids ): int {
+	private function normalize_per_page( array $pagination, array $listed ): int {
 		$per_page = $this->parse_filter_int( $pagination['per_page'] ?? null, 1 );
 		if ( null === $per_page ) {
-			$per_page = array() === $include_ids ? self::DEFAULT_PER_PAGE : count( $include_ids );
+			$per_page = array() === $listed ? self::DEFAULT_PER_PAGE : count( $listed );
 		}
 
 		return min( self::MAX_PER_PAGE, $per_page );
@@ -706,39 +716,6 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Looks up the single post an ID or slug request resolves to.
-	 *
-	 * By ID, the post must exist, belong to a post type exposed to abilities, and match the
-	 * `type` guard when one is given. As with the integer filters, the ID is read with
-	 * {@see self::parse_filter_int()}, so a malformed ID or one beyond the integer range
-	 * cannot be coerced onto another post. By slug, the post type must be exposed to
-	 * abilities, and {@see self::get_post_by_slug()} resolves the post. A lookup by ID
-	 * ignores a slug given along with it.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $where The `where` filters.
-	 * @return WP_Post|null The post, or null when it cannot be resolved.
-	 */
-	private function get_requested_post( array $where ): ?WP_Post {
-		if ( isset( $where['id'] ) ) {
-			$post_id = $this->parse_filter_int( $where['id'], 1 );
-			$post    = null === $post_id ? null : get_post( $post_id );
-
-			if ( ! $post instanceof WP_Post || ! $this->get_exposed_post_type( $post->post_type ) ) {
-				return null;
-			}
-
-			return empty( $where['type'] ) || $post->post_type === $where['type'] ? $post : null;
-		}
-
-		$slug             = $where['slug'] ?? null;
-		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
-
-		return is_string( $slug ) && $post_type_object ? $this->get_post_by_slug( $post_type_object->name, $slug ) : null;
-	}
-
-	/**
 	 * Looks up the user an author slug names.
 	 *
 	 * The slug is the user's nicename, which the REST API users endpoint returns as `slug`. It is
@@ -783,69 +760,6 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Looks up the single post a slug request resolves to.
-	 *
-	 * Slugs are not unique across statuses (drafts skip slug uniqueness), so the
-	 * lookup returns the newest match the current user can read, preferring
-	 * publicly viewable posts — a newer draft sharing the slug cannot shadow a
-	 * published post. This mirrors the REST API, where slug queries default to
-	 * the `publish` status. Which post a slug resolves to is independent of the
-	 * requested fields; edit-field requests are gated afterwards on the resolved
-	 * post by {@see self::check_permission()}.
-	 *
-	 * In hierarchical post types, posts under different parents can also share a
-	 * slug. The lookup cannot tell them apart and resolves to one of them by the
-	 * same rules, so callers that need a specific post should look it up by ID.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $post_type The post type.
-	 * @param string $slug      The post slug.
-	 * @return WP_Post|null The matching readable post, or null when none exists.
-	 */
-	private function get_post_by_slug( string $post_type, string $slug ): ?WP_Post {
-		$name = sanitize_title( $slug );
-		if ( '' === $name ) {
-			return null;
-		}
-
-		$query = new WP_Query(
-			array(
-				'post_type'              => $post_type,
-				'name'                   => $name,
-				'post_status'            => array_values( get_post_stati( array( 'internal' => false ) ) ),
-				'no_found_rows'          => true,
-				'ignore_sticky_posts'    => true,
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-			)
-		);
-
-		// Candidates come newest first; a publicly viewable post is always readable here.
-		$readable = null;
-		foreach ( $query->posts as $candidate ) {
-			/*
-			 * Skip posts of other post types, which query filters can add, such as a
-			 * `pre_get_posts` callback that adds post types to single views without an
-			 * is_main_query() check, since a `name` query is a single view.
-			 */
-			if ( ! $candidate instanceof WP_Post || $post_type !== $candidate->post_type ) {
-				continue;
-			}
-
-			if ( is_post_publicly_viewable( $candidate ) ) {
-				return $candidate;
-			}
-
-			if ( null === $readable && $this->check_read_permission( $candidate ) ) {
-				$readable = $candidate;
-			}
-		}
-
-		return $readable;
-	}
-
-	/**
 	 * Returns a post type exposed through the Abilities API.
 	 *
 	 * Deliberately resolved on every call rather than cached: post types can be
@@ -864,38 +778,111 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Normalizes the requested statuses to a non-empty, sanitized list defaulting to publish.
+	 * Returns the statuses the `status` filter explicitly requests.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $where The `where` filters.
-	 * @return list<string> Normalized list of post status slugs.
+	 * @return list<string> Sanitized post status slugs; empty when none is requested.
 	 */
-	private function normalize_statuses( array $where ): array {
-		$statuses = $this->parse_list_input( $where, 'status' );
-
-		return array() === $statuses ? array( 'publish' ) : array_map( 'sanitize_key', $statuses );
+	private function get_requested_statuses( array $where ): array {
+		return array_map( 'sanitize_key', $this->parse_list_input( $where, 'status' ) );
 	}
 
 	/**
-	 * Normalizes the post IDs a query includes.
+	 * Normalizes the statuses a query covers.
+	 *
+	 * Explicitly requested statuses are queried as given, once the permission callback has
+	 * allowed them. Otherwise a query covers `publish`, as in the REST posts controller,
+	 * unless it lists `ids` or `slugs`. Such a query names the posts it wants, which may be
+	 * drafts or private posts, so it covers every non-internal status that
+	 * {@see self::can_query_status()} allows instead. The row-level read checks still
+	 * withhold the posts the current user cannot read, such as other users' drafts.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $where            The `where` filters.
+	 * @param WP_Post_Type $post_type_object The post type object.
+	 * @param bool         $lists_posts      Whether the query lists `ids` or `slugs`.
+	 * @return list<string> Post status slugs.
+	 */
+	private function normalize_statuses( array $where, WP_Post_Type $post_type_object, bool $lists_posts ): array {
+		$statuses = $this->get_requested_statuses( $where );
+		if ( array() !== $statuses ) {
+			return $statuses;
+		}
+
+		if ( ! $lists_posts ) {
+			return array( 'publish' );
+		}
+
+		foreach ( get_post_stati( array( 'internal' => false ) ) as $status ) {
+			if ( $this->can_query_status( $status, $post_type_object ) ) {
+				$statuses[] = $status;
+			}
+		}
+
+		return $statuses;
+	}
+
+	/**
+	 * Normalizes the post IDs the `ids` filter lists.
+	 *
+	 * Like schema validation, it also accepts a single ID or a comma-separated string. Each
+	 * ID is read with {@see self::parse_filter_int()}, and one that is not a whole number of
+	 * at least 1, such as a fraction or a number beyond the integer range, is dropped rather
+	 * than coerced, so it can never select another post.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $where The `where` filters.
-	 * @return list<int> Unique positive post IDs.
+	 * @return list<int> Unique post IDs; empty when none is valid.
 	 */
-	private function normalize_include( array $where ): array {
-		$include = $where['include'] ?? null;
-		if ( ! is_array( $include ) && ! is_string( $include ) && ! is_int( $include ) ) {
+	private function normalize_ids( array $where ): array {
+		$ids = $where['ids'] ?? null;
+		if ( is_string( $ids ) ) {
+			$ids = wp_parse_list( $ids );
+		} elseif ( is_int( $ids ) || is_float( $ids ) ) {
+			$ids = array( $ids );
+		} elseif ( ! is_array( $ids ) ) {
 			return array();
 		}
 
-		/*
-		 * wp_parse_id_list() also parses a single ID or a comma-separated string, as
-		 * schema validation does.
-		 */
-		return array_values( array_filter( wp_parse_id_list( $include ) ) );
+		$post_ids = array();
+		foreach ( $ids as $id ) {
+			$post_id = $this->parse_filter_int( $id, 1 );
+			if ( null !== $post_id ) {
+				$post_ids[] = $post_id;
+			}
+		}
+
+		return array_values( array_unique( $post_ids ) );
+	}
+
+	/**
+	 * Normalizes the post slugs the `slugs` filter lists.
+	 *
+	 * Like schema validation, it also accepts a comma-separated string. Each slug is
+	 * sanitized with sanitize_title(), as WordPress sanitizes a post slug when it saves the
+	 * post, so `Hello-World` matches `hello-world`. A slug that sanitizes to an empty string,
+	 * such as `!!!`, is dropped: it names no post, and querying it would match the posts
+	 * that have no slug yet, such as drafts.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<mixed> $where The `where` filters.
+	 * @return list<string> Unique post slugs; empty when none is valid.
+	 */
+	private function normalize_slugs( array $where ): array {
+		$slugs = array();
+		foreach ( $this->parse_list_input( $where, 'slugs' ) as $slug ) {
+			$slug = sanitize_title( $slug );
+			if ( '' !== $slug ) {
+				$slugs[] = $slug;
+			}
+		}
+
+		return array_values( array_unique( $slugs ) );
 	}
 
 	/**
@@ -1124,18 +1111,10 @@ final class WP_Abilities_Content {
 	 *
 	 * The input has three members: `where` selects the posts, `fields` selects the fields
 	 * returned for each post, and `pagination` selects the page of results. `where` holds
-	 * one of three sets of keys, modeled as an `anyOf` so invalid combinations are rejected
-	 * rather than silently ignored:
-	 *
-	 *   - A single readable post by `id`, optionally guarded by `type`.
-	 *   - A single readable post by `type` and `slug`.
-	 *   - Readable posts of a `type`, filtered by any of `status`, `author_slug`, `parent`,
-	 *     and `include`.
-	 *
-	 * Each branch sets `additionalProperties: false`, so e.g. passing `include` alongside `id`
-	 * fails validation instead of being dropped. The `anyOf` sits inside `where` rather than
-	 * at the top level, because some AI providers, such as Anthropic, reject a tool whose
-	 * input schema has a combinator at the top level.
+	 * the post type to query in `type`, and any of the filters `ids`, `slugs`, `status`,
+	 * `author_slug`, and `parent`, which all combine. Every object sets
+	 * `additionalProperties: false`, so an unknown key, such as a misspelled filter, fails
+	 * validation instead of being silently ignored.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1150,94 +1129,58 @@ final class WP_Abilities_Content {
 			'required'             => array( 'where' ),
 			'properties'           => array(
 				'where'      => array(
-					'type'        => 'object',
-					/*
-					 * Only the branches set `additionalProperties`. Sanitization applies the
-					 * `where` schema again after the matching branch, so `false` here would
-					 * strip every key.
-					 */
-					'anyOf'       => array(
-						// A single readable post, looked up by ID.
-						array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'required'             => array( 'id' ),
-							'properties'           => array(
-								'id'   => array(
-									'type'        => 'integer',
-									'minimum'     => 1,
-									'description' => __( 'Retrieve a single readable post by ID.' ),
-								),
-								'type' => array(
-									'type'        => 'string',
-									'enum'        => $post_types,
-									'description' => __( 'Optional. Restrict the lookup to this post type; the post is returned only if it matches and the current user can read it.' ),
-								),
-							),
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'required'             => array( 'type' ),
+					'properties'           => array(
+						'type'        => array(
+							'type'        => 'string',
+							'enum'        => $post_types,
+							'description' => __( 'Post type to query for readable posts.' ),
 						),
-						// A single readable post, looked up by post type and slug.
-						array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'required'             => array( 'type', 'slug' ),
-							'properties'           => array(
-								'type' => array(
-									'type'        => 'string',
-									'enum'        => $post_types,
-									'description' => __( 'Post type containing the slug. Slugs are not unique across post types.' ),
-								),
-								'slug' => array(
-									'type'        => 'string',
-									'minLength'   => 1,
-									'description' => __( 'Retrieve a single readable post by slug. Resolves to the newest readable match, preferring published posts. In hierarchical post types, posts under different parents can share a slug; use `id` to get a specific one.' ),
-								),
+						'ids'         => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'maxItems'    => self::MAX_PER_PAGE,
+							'items'       => array(
+								'type'    => 'integer',
+								'minimum' => 1,
 							),
+							'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, the page size defaults to the number of IDs.' ),
 						),
-						// Readable posts of a post type, filtered by any of these keys.
-						array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'required'             => array( 'type' ),
-							'properties'           => array(
-								'type'        => array(
-									'type'        => 'string',
-									'enum'        => $post_types,
-									'description' => __( 'Post type to query for readable posts.' ),
-								),
-								'status'      => array(
-									'type'        => 'array',
-									'uniqueItems' => true,
-									'items'       => array(
-										'type' => 'string',
-										'enum' => $statuses,
-									),
-									'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish. Non-published statuses require the appropriate capabilities.' ),
-								),
-								'author_slug' => array(
-									'type'        => 'string',
-									'minLength'   => 1,
-									'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
-								),
-								'parent'      => array(
-									'type'        => 'integer',
-									'minimum'     => 0,
-									'description' => __( 'Filter by parent post ID. Only supported for hierarchical post types. Use 0 for top-level posts.' ),
-								),
-								'include'     => array(
-									'type'        => 'array',
-									'minItems'    => 1,
-									'maxItems'    => self::MAX_PER_PAGE,
-									'uniqueItems' => true,
-									'items'       => array(
-										'type'    => 'integer',
-										'minimum' => 1,
-									),
-									'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum.' ),
-								),
+						'slugs'       => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'maxItems'    => self::MAX_PER_PAGE,
+							'items'       => array(
+								'type'      => 'string',
+								'minLength' => 1,
 							),
+							'description' => __( 'Limit the query to posts with these slugs. Each slug is sanitized as a post slug is, so `Hello-World` matches `hello-world`. A slug can match several posts, such as pages under different parents, and every match is returned. The order of the slugs does not affect the order of the results. If neither `ids` nor `pagination.per_page` is given, the page size defaults to the number of slugs.' ),
+						),
+						'status'      => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'items'       => array(
+								'type' => 'string',
+								'enum' => $statuses,
+							),
+							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Non-published statuses require the appropriate capabilities.' ),
+						),
+						'author_slug' => array(
+							'type'        => 'string',
+							'minLength'   => 1,
+							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
+						),
+						'parent'      => array(
+							'type'        => 'integer',
+							'minimum'     => 0,
+							'description' => __( 'Filter by parent post ID. Only supported for hierarchical post types. Use 0 for top-level posts.' ),
 						),
 					),
-					'description' => __( 'Selects the posts to return. Look up a single readable post by `id`, optionally guarded by `type`, or by `type` and `slug`, or query the readable posts of a `type`, filtered by any of `status`, `author_slug`, `parent`, and `include`. A lookup cannot be combined with the query filters.' ),
+					'description'          => __( 'Selects the posts to return: the readable posts of a `type`, filtered by any of `ids`, `slugs`, `status`, `author_slug`, and `parent`. A post must match every given filter.' ),
 				),
 				'fields'     => $this->get_fields_input_schema(),
 				'pagination' => array(
@@ -1247,7 +1190,7 @@ final class WP_Abilities_Content {
 						'page'     => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error, so a lookup only has page 1. Check `pagination.total_pages` in the result before requesting later pages.' ),
+							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error. Check `pagination.total_pages` in the result before requesting later pages.' ),
 						),
 						'per_page' => array(
 							'type'        => 'integer',
@@ -1286,7 +1229,7 @@ final class WP_Abilities_Content {
 	 * Builds the output schema for the `core/content-query` ability.
 	 *
 	 * Every request returns the same shape: a page of posts in `items`, and the totals
-	 * across all pages in `pagination`. A lookup returns a single post.
+	 * across all pages in `pagination`.
 	 *
 	 * Only `id` is required in a post, because it is always returned. The other fields are
 	 * optional because the `fields` input lets the caller request any subset, and a field
@@ -1733,14 +1676,15 @@ final class WP_Abilities_Content {
 	 * Builds the uniform not-found error.
 	 *
 	 * Unreachable through gated transports, which run {@see self::check_permission()}
-	 * first and deny the same lookups. It is kept so that a direct call to the execute
-	 * callback still fails closed on a structural lookup failure: a missing post, a post
-	 * type that is not exposed, or a post type that does not match the requested one.
+	 * first and deny a request without a post type exposed to abilities. It is kept so
+	 * that a direct call to the execute callback still fails closed when `where` names no
+	 * exposed post type.
 	 *
 	 * This is not a permission check. The execute callback deliberately does not repeat
-	 * the read/edit checks that {@see self::check_permission()} already performed, so a
-	 * direct call bypasses them. Only invoke the callback through
-	 * {@see WP_Ability::execute()}, which always runs the permission callback first.
+	 * the checks of the request as a whole that {@see self::check_permission()} already
+	 * performed, such as the status capabilities, so a direct call bypasses them. Only
+	 * invoke the callback through {@see WP_Ability::execute()}, which always runs the
+	 * permission callback first.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1781,7 +1725,7 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $param   The filter's input path, such as `where[include]`.
+	 * @param string $param   The filter's input path, such as `where[ids]`.
 	 * @param string $message The error message.
 	 * @return WP_Error The invalid filter error.
 	 */
