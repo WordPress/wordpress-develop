@@ -1421,7 +1421,7 @@ function wp_random_content_pre_get_posts( $query ): void {
 /**
  * Orders the random content query randomly.
  *
- * Added to the {@see 'posts_orderby'} filter by WP::handle_random() while the random
+ * Added to the {@see 'posts_orderby'} filter by {@see WP::handle_random()} while the random
  * content query runs. Enforcing the order in SQL prevents {@see 'pre_get_posts'}
  * callbacks setting the order of posts on archives from affecting the selection.
  *
@@ -1520,12 +1520,12 @@ function wp_random_content_headers( $headers ): array {
 /**
  * Redirects random content requests to the randomly selected post.
  *
- * Called by WP::handle_random() immediately after the main query selects the
+ * Called by {@see WP::handle_random()} immediately after the main query selects the
  * random post, to avoid unnecessary processing before the redirect. As the redirect
- * is sent before WP::send_headers(), the headers preventing the redirect being
- * cached or indexed are sent with it, see wp_random_content_headers().
+ * is sent before {@see WP::send_headers()}, the headers preventing the redirect being
+ * cached or indexed are sent with it, see {@see wp_random_content_headers()}.
  *
- * If no post is selected, for example on an empty archive, WP::handle_random()
+ * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
  * handles the request as a 404. If the post's permalink is on another site, the
  * request is handled as a regular archive request.
  *
@@ -1564,7 +1564,7 @@ function wp_random_content_redirect(): void {
  * A published page at the random base, for example `example.com/random/`, takes
  * precedence over random content redirects. So does a published post when the
  * permalink structure places posts at the same URL, for example `/%postname%/`,
- * see WP_Rewrite::post_permalinks_share_random_base(). As the rewrite rules account
+ * see {@see WP_Rewrite::post_permalinks_share_random_base()}. As the rewrite rules account
  * for the page or post, they need to be regenerated when it is published,
  * unpublished, renamed, moved or deleted.
  *

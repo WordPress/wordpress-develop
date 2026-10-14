@@ -717,9 +717,9 @@ class WP {
 	 * customizing the archive apply to the selection. While the query runs, callbacks
 	 * enforcing the eligible posts, order and limit are added after any other callbacks:
 	 *
-	 * - wp_random_content_pre_get_posts() on the {@see 'pre_get_posts'} action.
-	 * - wp_random_content_posts_orderby() on the {@see 'posts_orderby'} filter.
-	 * - wp_random_content_post_limits() on the {@see 'post_limits'} filter.
+	 * - {@see wp_random_content_pre_get_posts()} on the {@see 'pre_get_posts'} action.
+	 * - {@see wp_random_content_posts_orderby()} on the {@see 'posts_orderby'} filter.
+	 * - {@see wp_random_content_post_limits()} on the {@see 'post_limits'} filter.
 	 *
 	 * If no post is selected, for example on an empty archive, the request is a 404 as
 	 * there is no post to redirect to. If a post is selected but the request is not

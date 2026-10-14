@@ -287,7 +287,7 @@ function flush_rewrite_rules( $hard = true ) {
  * Clears the rewrite rules when the site language changes.
  *
  * Rewrite rules can contain translated slugs, such as the default random content
- * base, see WP_Rewrite::get_random_base(). Clearing the rules causes them to be
+ * base, see {@see WP_Rewrite::get_random_base()}. Clearing the rules causes them to be
  * regenerated in the new site language.
  *
  * The rules are regenerated on the next request rather than immediately, because
