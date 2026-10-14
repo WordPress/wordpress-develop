@@ -578,8 +578,6 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 14761
 	 */
 	public function test_unregister_post_type_removes_post_type_supports() {
-		global $_wp_post_type_features;
-
 		register_post_type(
 			'foo',
 			array(
@@ -595,10 +593,10 @@ class Tests_Post_Types extends WP_UnitTestCase {
 				'title'    => true,
 				'autosave' => true,
 			),
-			$_wp_post_type_features['foo']
+			get_all_post_type_supports( 'foo' )
 		);
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertArrayNotHasKey( 'foo', $_wp_post_type_features );
+		$this->assertSame( array(), get_all_post_type_supports( 'foo' ) );
 	}
 
 	/**
