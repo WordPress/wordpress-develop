@@ -3621,7 +3621,8 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
 	 *                                               Only the attribute name is added to the `<script>` tag for
 	 *                                               entries with a boolean value, and that are true.
-	 * @param string                     $data       Inline data.
+	 * @param string                     $data       Inline data. For JavaScript and JSON types, `<script` and `</script`
+	 *                                               are escaped when printed, so the printed text can differ from `$data`.
 	 */
 	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
 
