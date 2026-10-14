@@ -11,6 +11,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $category_id;
 	protected static $customtax_term_id;
+	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_taxonomy(
@@ -24,12 +25,14 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$category_id        = $factory->category->create();
 		self::$customtax_term_id  = $factory->term->create( array( 'taxonomy' => 'customtax' ) );
+		self::$editor_id          = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_term( self::$category_id, 'category' );
 		wp_delete_term( self::$customtax_term_id, 'customtax' );
+		self::delete_user( self::$editor_id );
 
 		unregister_taxonomy( 'customtax' );
 	}
@@ -198,12 +201,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
-		wp_set_current_user( $user );
+		wp_set_current_user( self::$editor_id );
 	}
 
 	public function test_get_value() {
@@ -791,12 +789,12 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 3, $meta[0] );
+		$this->assertSame( '3', $meta[0] );
 
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_custom_schema', $meta );
-		$this->assertEquals( 3, $meta['test_custom_schema'] );
+		$this->assertSame( 3.0, $meta['test_custom_schema'] );
 	}
 
 	public function test_set_value_multiple_custom_schema() {
@@ -820,7 +818,7 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_term_meta( self::$category_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 2, $meta[0] );
+		$this->assertSame( '2', $meta[0] );
 
 		// Add another value.
 		$data = array(
