@@ -327,6 +327,8 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	/**
 	 * Tests that a CSS var is generated for a text indent spacing preset.
 	 *
+	 * @ticket 66306
+	 *
 	 * @covers ::wp_apply_typography_support
 	 */
 	public function test_should_generate_css_var_for_text_indent_spacing_preset() {
