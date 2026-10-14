@@ -253,6 +253,12 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			'missing "=" from header'           => array( 'novalue' ),
 			'missing "=" with attribute header' => array( 'novalue; path=/' ),
 			'empty header'                      => array( '' ),
+			'empty name from array'             => array(
+				array(
+					'name'  => '',
+					'value' => 'abc',
+				),
+			),
 		);
 	}
 }

@@ -163,7 +163,7 @@ class WP_Http_Cookie {
 				$this->$key = $val;
 			}
 		} else {
-			if ( ! isset( $data['name'] ) ) {
+			if ( ! isset( $data['name'] ) || '' === $data['name'] ) {
 				return;
 			}
 
