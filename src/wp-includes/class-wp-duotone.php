@@ -40,21 +40,47 @@
 class WP_Duotone {
 	/**
 	 * Block names from global, theme, and custom styles that use duotone presets and the slug of
-	 * the preset they are using.
+	 * the preset they are using, or the custom colors they are using.
 	 *
 	 * Example:
 	 *  [
 	 *      'core/featured-image' => 'blue-orange',
+	 *      'core/image'          => [ '#000000', '#ffffff' ],
 	 *       …
 	 *  ]
 	 *
 	 * @internal
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 Values can also be a list of custom colors.
 	 *
 	 * @var ?array
 	 */
 	private static $global_styles_block_names;
+
+	/**
+	 * Duotone filters used by block style variations in global styles, keyed
+	 * on the block name they apply to, then on the filter ID. Includes the
+	 * block types styled inside a variation, such as an Image in a section style.
+	 *
+	 * Example:
+	 *  [
+	 *      'core/image' => [
+	 *          'wp-duotone-custom-000000-ffffff' => [
+	 *              'data'      => [ 'slug' => 'custom-000000-ffffff', 'colors' => [ '#000000', '#ffffff' ] ],
+	 *              'is_preset' => false,
+	 *          ],
+	 *      ],
+	 *       …
+	 *  ]
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var ?array
+	 */
+	private static $global_styles_variation_filters;
 
 	/**
 	 * An array of duotone filter data from global, theme, and custom presets.
@@ -653,6 +679,45 @@ class WP_Duotone {
 	}
 
 	/**
+	 * Gets a stable filter ID for a custom duotone, a raw list of colors.
+	 *
+	 * The ID is built from the normalized hex value of each color, so the
+	 * same colors always map to the same filter.
+	 *
+	 * Example output:
+	 *  wp-duotone-custom-000000-ffffff
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $colors The duotone value to check, e.g. array( '#000', 'rgb(255,255,255)' ).
+	 * @return string|null The filter ID, or null if the value is not a list of at least two valid colors.
+	 */
+	public static function get_custom_filter_id( $colors ) {
+		if ( ! is_array( $colors ) || ! array_is_list( $colors ) || count( $colors ) < 2 ) {
+			return null;
+		}
+
+		$hex_colors = array();
+		foreach ( $colors as $color_str ) {
+			$color = is_string( $color_str ) ? self::colord_parse( $color_str ) : null;
+			if ( null === $color ) {
+				return null;
+			}
+
+			// Mirrors colord's toHex(), which drops the alpha channel when opaque.
+			$hex = sprintf( '%02x%02x%02x', round( $color['r'] ), round( $color['g'] ), round( $color['b'] ) );
+			if ( $color['a'] < 1 ) {
+				$hex .= sprintf( '%02x', round( $color['a'] * 255 ) );
+			}
+			$hex_colors[] = $hex;
+		}
+
+		return self::get_filter_id( 'custom-' . implode( '-', $hex_colors ) );
+	}
+
+	/**
 	 * Gets the SVG for the duotone filter definition.
 	 *
 	 * Whitespace is removed when SCRIPT_DEBUG is not enabled.
@@ -921,6 +986,35 @@ class WP_Duotone {
 	}
 
 	/**
+	 * Enqueues the SVG filter, and the custom property for a preset, that a
+	 * global styles duotone value needs, without any block CSS.
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|string[] $duotone A preset slug, e.g. 'blue-orange', or a list of colors.
+	 */
+	private static function enqueue_global_style_filter( $duotone ) {
+		if ( is_array( $duotone ) ) {
+			$filter_id = self::get_custom_filter_id( $duotone );
+
+			self::$used_svg_filter_data[ $filter_id ] = array(
+				'slug'   => substr( $filter_id, strlen( 'wp-duotone-' ) ),
+				'colors' => $duotone,
+			);
+			return;
+		}
+
+		$filter_id = self::get_filter_id( $duotone );
+		$presets   = self::get_all_global_styles_presets();
+		if ( isset( $presets[ $filter_id ] ) ) {
+			self::$used_global_styles_presets[ $filter_id ] = $presets[ $filter_id ];
+			self::$used_svg_filter_data[ $filter_id ]       = $presets[ $filter_id ];
+		}
+	}
+
+	/**
 	 * Registers the style and colors block attributes for block types that support it.
 	 *
 	 * Block support is added with `supports.filter.duotone` in block.json.
@@ -1030,8 +1124,9 @@ class WP_Duotone {
 	 * duotone filters defined in the theme.json global styles.
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 Includes block names that use custom duotone colors.
 	 *
-	 * @return string[] An array of global style block slugs, keyed on the block name.
+	 * @return array An array of global style block slugs or custom colors, keyed on the block name.
 	 */
 	private static function get_all_global_style_block_names() {
 		if ( isset( self::$global_styles_block_names ) ) {
@@ -1057,8 +1152,16 @@ class WP_Duotone {
 			if ( empty( $duotone_attr ) ) {
 				continue;
 			}
+
+			// Custom colors are kept as is, the filter is built from them at render time.
+			if ( is_array( $duotone_attr ) ) {
+				if ( null !== self::get_custom_filter_id( $duotone_attr ) ) {
+					self::$global_styles_block_names[ $block_node['name'] ] = $duotone_attr;
+				}
+				continue;
+			}
+
 			// If it has a duotone filter preset, save the block name and the preset slug.
-			// Only process if it's a string (preset reference), not an array (custom colors).
 			if ( ! is_string( $duotone_attr ) ) {
 				continue;
 			}
@@ -1073,12 +1176,106 @@ class WP_Duotone {
 	}
 
 	/**
+	 * Collects the duotone filters used by block style variations in global styles.
+	 *
+	 * The theme.json stylesheet already outputs the `filter` declarations for
+	 * variations. This finds the SVG filters and preset custom properties those
+	 * declarations need.
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array Filters keyed on block name, then on filter ID.
+	 */
+	private static function get_all_global_style_variation_filters() {
+		if ( isset( self::$global_styles_variation_filters ) ) {
+			return self::$global_styles_variation_filters;
+		}
+
+		self::$global_styles_variation_filters = array();
+
+		$theme_json = WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data();
+		foreach ( $theme_json['styles']['blocks'] ?? array() as $block_name => $block_styles ) {
+			foreach ( $block_styles['variations'] ?? array() as $variation_styles ) {
+				self::add_global_style_variation_filter( $block_name, $variation_styles['filter']['duotone'] ?? null );
+
+				foreach ( $variation_styles['blocks'] ?? array() as $inner_block_name => $inner_block_styles ) {
+					self::add_global_style_variation_filter( $inner_block_name, $inner_block_styles['filter']['duotone'] ?? null );
+				}
+			}
+		}
+
+		return self::$global_styles_variation_filters;
+	}
+
+	/**
+	 * Records the filter for one variation's duotone value, if it needs one.
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $block_name   The block name the value applies to.
+	 * @param mixed  $duotone_attr The duotone value, e.g. a preset reference or a list of colors.
+	 */
+	private static function add_global_style_variation_filter( $block_name, $duotone_attr ) {
+		if ( is_array( $duotone_attr ) ) {
+			$filter_id = self::get_custom_filter_id( $duotone_attr );
+			if ( null !== $filter_id ) {
+				self::$global_styles_variation_filters[ $block_name ][ $filter_id ] = array(
+					'data'      => array(
+						'slug'   => substr( $filter_id, strlen( 'wp-duotone-' ) ),
+						'colors' => $duotone_attr,
+					),
+					'is_preset' => false,
+				);
+			}
+			return;
+		}
+
+		if ( ! self::is_preset( $duotone_attr ) ) {
+			return;
+		}
+
+		$filter_id = self::get_filter_id( self::get_slug_from_attribute( $duotone_attr ) );
+		self::$global_styles_variation_filters[ $block_name ][ $filter_id ] = array(
+			'data'      => self::get_all_global_styles_presets()[ $filter_id ],
+			'is_preset' => true,
+		);
+	}
+
+	/**
+	 * Enqueues the SVG filters, and the custom properties for presets, used by
+	 * a block type's style variations.
+	 *
+	 * Every filter for the block type is enqueued, whichever variation the block
+	 * uses, since a block can also pick one up from a section style on an ancestor.
+	 *
+	 * @internal
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $block_name The block name.
+	 */
+	private static function enqueue_global_style_variation_filters( $block_name ) {
+		$filters = self::get_all_global_style_variation_filters()[ $block_name ] ?? array();
+		foreach ( $filters as $filter_id => $filter ) {
+			self::$used_svg_filter_data[ $filter_id ] = $filter['data'];
+			if ( $filter['is_preset'] ) {
+				self::$used_global_styles_presets[ $filter_id ] = $filter['data'];
+			}
+		}
+	}
+
+	/**
 	 * Render out the duotone CSS styles and SVG.
 	 *
 	 * The hooks self::set_global_style_block_names and self::set_global_styles_presets
 	 * must be called before this function.
 	 *
 	 * @since 6.3.0
+	 * @since 7.2.0 Global styles duotone no longer adds a class or block CSS, and style variation filters are output.
 	 *
 	 * @param string   $block_content Rendered block content.
 	 * @param array    $block         Block object.
@@ -1094,6 +1291,8 @@ class WP_Duotone {
 		if ( ! $duotone_selector ) {
 			return $block_content;
 		}
+
+		self::enqueue_global_style_variation_filters( $block['blockName'] );
 
 		$global_styles_block_names = self::get_all_global_style_block_names();
 
@@ -1149,17 +1348,19 @@ class WP_Duotone {
 				self::enqueue_custom_filter( $filter_id, $duotone_selector, $filter_value, $filter_data );
 			}
 		} elseif ( $has_global_styles_duotone ) {
-			$slug         = $global_styles_block_names[ $block['blockName'] ]; // e.g. 'blue-orange'.
-			$filter_id    = self::get_filter_id( $slug ); // e.g. 'wp-duotone-filter-blue-orange'.
-			$filter_value = self::get_css_var( $slug ); // e.g. 'var(--wp--preset--duotone--blue-orange)'.
-
-			// CSS custom property, SVG filter, and block CSS.
-			self::enqueue_global_styles_preset( $filter_id, $duotone_selector, $filter_value );
+			/*
+			 * The theme.json stylesheet already applies the block type's duotone
+			 * with a `:root :where()` rule, so a block style variation can follow
+			 * it at the same specificity. Only the SVG filter, and the custom
+			 * property for a preset, are needed here: no class and no block CSS,
+			 * which would out-rank the variation.
+			 */
+			self::enqueue_global_style_filter( $global_styles_block_names[ $block['blockName'] ] );
 		}
 
 		// Like the layout hook, this assumes the hook only applies to blocks with a single wrapper.
 		$tags = new WP_HTML_Tag_Processor( $block_content );
-		if ( $tags->next_tag() ) {
+		if ( $tags->next_tag() && isset( $filter_id ) ) {
 			$tags->add_class( $filter_id );
 		}
 		return $tags->get_updated_html();
