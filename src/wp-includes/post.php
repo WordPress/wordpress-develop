@@ -3655,7 +3655,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	/**
 	 * Filters the attachment counts before the query is run.
 	 *
-	 * Returning a non-null value short-circuits wp_count_attachments(), skipping
+	 * Returning an object short-circuits wp_count_attachments(), skipping
 	 * both the object cache lookup and the database queries. This allows the
 	 * counts to be served from another source, such as a value pre-computed in
 	 * the background, when an exact real-time count is not required.
@@ -3679,9 +3679,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	 */
 	$counts = apply_filters( 'pre_wp_count_attachments', null, $mime_type );
 
-	if ( null !== $counts ) {
-		$counts = (object) $counts;
-
+	if ( is_object( $counts ) ) {
 		if ( ! isset( $counts->trash ) ) {
 			$counts->trash = 0;
 		}
