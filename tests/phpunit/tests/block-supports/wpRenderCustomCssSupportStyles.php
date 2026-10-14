@@ -153,6 +153,7 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	 * Tests that custom CSS support does not add a class name when CSS should not be applied.
 	 *
 	 * @ticket 64544
+	 * @ticket 66288
 	 *
 	 * @covers ::wp_render_custom_css_support_styles
 	 *
@@ -287,6 +288,8 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 	/**
 	 * Tests that custom CSS is scoped to pseudo-selector and viewport states.
 	 *
+	 * @ticket 66288
+	 *
 	 * @covers ::wp_render_custom_css_support_styles
 	 */
 	public function test_processes_custom_css_for_pseudo_and_viewport_states() {
@@ -325,6 +328,8 @@ class Tests_Block_Supports_WpRenderCustomCssSupportStyles extends WP_UnitTestCas
 
 	/**
 	 * Tests that invalid CSS in one state does not prevent valid states from rendering.
+	 *
+	 * @ticket 66288
 	 *
 	 * @covers ::wp_render_custom_css_support_styles
 	 */

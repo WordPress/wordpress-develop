@@ -102,6 +102,8 @@ class Tests_Block_Supports_WpStripCustomCssFromBlocks extends WP_UnitTestCase {
 	/**
 	 * Tests that custom CSS is stripped from nested pseudo-selector and viewport states.
 	 *
+	 * @ticket 66288
+	 *
 	 * @covers ::wp_strip_custom_css_from_blocks
 	 * @covers ::wp_strip_custom_css_from_style_array
 	 */
