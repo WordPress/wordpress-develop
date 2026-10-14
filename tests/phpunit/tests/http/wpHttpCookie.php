@@ -35,7 +35,15 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 		$cookie_no_value = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
 		$this->assertSame( '', $cookie_no_value->getHeaderValue() );
 
-		$cookie_no_name = new WP_Http_Cookie( array( 'value' => 'chocolate-chip' ) );
+		// The constructor ignores the value when the name is missing, so unset the name afterward.
+		$cookie_no_name       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+		$cookie_no_name->name = null;
+		$this->assertSame( 'chocolate-chip', $cookie_no_name->value );
 		$this->assertSame( '', $cookie_no_name->getHeaderValue() );
 	}
 
