@@ -121,7 +121,7 @@ class Tests_Comment_WpNotifyNoteMentions extends WP_UnitTestCase {
 				'user_id'         => $user_id,
 			)
 		);
-		assert( $comment instanceof WP_Comment );
+		$this->assertInstanceOf( WP_Comment::class, $comment );
 		return $comment;
 	}
 

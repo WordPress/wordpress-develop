@@ -842,7 +842,7 @@ HTML
 		$processor->set_modifiable_text( "\n{$importmap}\n" );
 		$decoded_importmap = json_decode( $processor->get_modifiable_text(), true );
 		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'JSON failed to decode correctly.' );
-		$this->assertEquals( $importmap_data, $decoded_importmap );
+		$this->assertSame( $importmap_data, $decoded_importmap );
 		$processor->next_tag( 'SCRIPT' );
 		$processor->set_attribute( 'type', 'module' );
 		$javascript = <<<'JS'
@@ -870,7 +870,7 @@ HTML;
 		$importmap_json    = $processor->get_modifiable_text();
 		$decoded_importmap = json_decode( $importmap_json, true );
 		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'Importmap JSON failed to decode.' );
-		$this->assertEquals(
+		$this->assertSame(
 			$importmap_data,
 			$decoded_importmap,
 			'JSON was not equal after re-processing updated HTML.'
@@ -911,7 +911,7 @@ HTML;
 		$processor->next_tag( 'SCRIPT' );
 		$decoded_json_from_html = json_decode( $processor->get_modifiable_text(), true );
 		$this->assertSame( JSON_ERROR_NONE, json_last_error(), 'JSON failed to decode.' );
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_decoded_json,
 			$decoded_json_from_html
 		);

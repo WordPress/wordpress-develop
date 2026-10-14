@@ -11,6 +11,7 @@
  * Registers a new icon collection.
  *
  * @since 7.1.0
+ * @since 7.2.0 Added the `public` property.
  *
  * @param string $slug Icon collection slug.
  * @param array  $args {
@@ -18,8 +19,14 @@
  *
  *     @type string $label       Required. A human-readable label for the icon collection.
  *     @type string $description Optional. A human-readable description for the icon collection.
+ *     @type bool   $public      Optional. Whether the collection and its icons are exposed through
+ *                               the REST API, and therefore selectable in the editor's icon picker.
+ *                               Icons in non-public collections stay available to server-side code
+ *                               via {@see wp_get_icon()}. Default true.
  * }
  * @return bool True if the icon collection was registered successfully, else false.
+ *
+ * @phpstan-param lowercase-string&non-empty-string $slug
  */
 function wp_register_icon_collection( $slug, $args ) {
 	return WP_Icon_Collections_Registry::get_instance()->register( $slug, $args );
@@ -41,27 +48,27 @@ function wp_unregister_icon_collection( $slug ) {
  * Registers a new icon.
  *
  * @since 7.1.0
- * @since 7.2.0 Added the `public` property.
+ * @since 7.2.0 Added the `keywords` property.
  *
  * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
- *                          (e.g. "my-plugin/arrow-left"). The "core" collection is
- *                          reserved for WordPress core icons; third-party code should
- *                          register icons under its own collection rather than the
- *                          "core" collection.
+ *                          (e.g. "my-plugin/arrow-left"). The "core" and "core-admin"
+ *                          collections are reserved for WordPress core icons; third-party
+ *                          code should register icons under its own collection rather than
+ *                          a reserved one.
  * @param array  $args      {
  *     List of properties for the icon.
  *
- *     @type string $label     Required. A human-readable label for the icon.
- *     @type string $content   Optional. SVG markup for the icon.
- *                             If not provided, the content will be retrieved from the `file_path` if set.
- *                             If both `content` and `file_path` are not set, the icon will not be registered.
- *     @type string $file_path Optional. The full path to the file containing the icon content.
- *     @type bool   $public    Optional. Whether the icon is exposed through the REST API, and
- *                             therefore selectable in the editor's icon picker. Non-public icons
- *                             stay available to server-side code via {@see wp_get_icon()}.
- *                             Default true.
+ *     @type string   $label     Required. A human-readable label for the icon.
+ *     @type string   $content   Optional. SVG markup for the icon.
+ *                               If not provided, the content will be retrieved from the `file_path` if set.
+ *                               If both `content` and `file_path` are not set, the icon will not be registered.
+ *     @type string   $file_path Optional. The full path to the file containing the icon content.
+ *     @type string[] $keywords  Optional. Additional search terms for the icon, matched by
+ *                               `get_registered_icons()` alongside the name and label.
  * }
  * @return bool True if the icon was registered successfully, else false.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $icon_name
  */
 function wp_register_icon( $icon_name, $args ) {
 	return WP_Icons_Registry::get_instance()->register( $icon_name, $args );
@@ -94,10 +101,18 @@ function _wp_register_default_icon_collections() {
 			'description' => __( 'Default icon collection.' ),
 		)
 	);
+	wp_register_icon_collection(
+		'core-admin',
+		array(
+			'label'       => __( 'WordPress Admin' ),
+			'description' => __( 'Icon collection used by the WordPress admin interface.' ),
+			'public'      => false,
+		)
+	);
 }
 
 /**
- * Registers the default core icons from the manifest.
+ * Registers the default core and core-admin icons from the manifest.
  *
  * @since 7.1.0
  * @access private
@@ -114,6 +129,14 @@ function _wp_register_default_icons() {
 		return;
 	}
 
+	/**
+	 * @var array<lowercase-string&non-falsy-string, array{
+	 *     label: string,
+	 *     filePath: non-empty-string,
+	 *     collections: non-empty-list<lowercase-string&non-falsy-string>,
+	 *     keywords?: list<string>
+	 * }> $collection
+	 */
 	$collection = include $manifest_path;
 
 	if ( empty( $collection ) ) {
@@ -137,16 +160,27 @@ function _wp_register_default_icons() {
 			return;
 		}
 
+		if ( empty( $icon_data['collections'] ) || ! is_array( $icon_data['collections'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				__( 'Core icon collection manifest must provide a non-empty "collections" array for each icon.' ),
+				'7.2.0'
+			);
+			return;
+		}
+
 		$icon_args = array(
 			'label'     => $icon_data['label'],
 			'file_path' => $icons_directory . $icon_data['filePath'],
 		);
 
-		if ( isset( $icon_data['public'] ) ) {
-			$icon_args['public'] = $icon_data['public'];
+		if ( isset( $icon_data['keywords'] ) ) {
+			$icon_args['keywords'] = $icon_data['keywords'];
 		}
 
-		wp_register_icon( 'core/' . $icon_name, $icon_args );
+		foreach ( $icon_data['collections'] as $collection_slug ) {
+			wp_register_icon( $collection_slug . '/' . $icon_name, $icon_args );
+		}
 	}
 }
 

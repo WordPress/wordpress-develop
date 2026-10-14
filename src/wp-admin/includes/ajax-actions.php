@@ -1747,7 +1747,7 @@ function wp_ajax_add_meta() {
 						'meta_value' => $value,
 						'meta_id'    => $meta_id,
 					),
-					$c
+					$count
 				),
 				'position'     => 0,
 				'supplemental' => array( 'postid' => $meta->post_id ),
@@ -1870,6 +1870,20 @@ function wp_ajax_hidden_columns() {
 
 	$hidden = ! empty( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
 	update_user_meta( $user->ID, "manage{$page}columnshidden", $hidden );
+
+	wp_die( 1 );
+}
+
+/**
+ * Handles the meta box reordering setting via Ajax.
+ *
+ * @since 7.2.0
+ */
+function wp_ajax_meta_box_reordering() {
+	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
+
+	$enabled = isset( $_POST['enabled'] ) && '1' === (string) $_POST['enabled'];
+	update_user_option( get_current_user_id(), 'meta_box_reordering', $enabled ? 'enabled' : 'disabled' );
 
 	wp_die( 1 );
 }
