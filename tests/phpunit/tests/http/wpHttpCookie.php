@@ -423,4 +423,47 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
 		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
 	}
+
+	/**
+	 * Tests that getHeaderValue() omits a cookie with a non-scalar value, as WP_Http::normalize_cookies() does.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::getHeaderValue
+	 */
+	public function test_get_header_value_with_non_scalar_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'prefs',
+				'value' => array( 'a' => 1 ),
+			)
+		);
+
+		$this->assertSame( '', $cookie->getHeaderValue() );
+	}
+
+	/**
+	 * Tests that getHeaderValue() sends a non-scalar value that the wp_http_cookie_value filter makes scalar.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::getHeaderValue
+	 */
+	public function test_get_header_value_with_non_scalar_value_filtered_to_scalar(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'prefs',
+				'value' => array( 'a' => 1 ),
+			)
+		);
+
+		add_filter(
+			'wp_http_cookie_value',
+			static function ( $value ) {
+				return is_array( $value ) ? http_build_query( $value ) : $value;
+			}
+		);
+
+		$this->assertSame( 'prefs=a=1', $cookie->getHeaderValue() );
+	}
 }

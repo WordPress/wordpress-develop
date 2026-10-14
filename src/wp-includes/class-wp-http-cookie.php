@@ -260,7 +260,14 @@ class WP_Http_Cookie {
 		 * @param string $value The cookie value.
 		 * @param string $name  The cookie name.
 		 */
-		return $name . '=' . apply_filters( 'wp_http_cookie_value', $this->value, $name );
+		$value = apply_filters( 'wp_http_cookie_value', $this->value, $name );
+
+		// A non-scalar value cannot be represented, as in WP_Http::normalize_cookies().
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		return $name . '=' . $value;
 	}
 
 	/**
