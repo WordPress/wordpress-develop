@@ -313,8 +313,12 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::test
 	 * @covers ::getHeaderValue
+	 *
+	 * @dataProvider data_cookie_with_name_emptied_after_construction
+	 *
+	 * @param string $name Empty or whitespace-only name.
 	 */
-	public function test_cookie_with_name_emptied_after_construction(): void {
+	public function test_cookie_with_name_emptied_after_construction( string $name ): void {
 		$cookie       = new WP_Http_Cookie(
 			array(
 				'name'  => 'flavor',
@@ -322,9 +326,21 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			),
 			'https://example.org/'
 		);
-		$cookie->name = '';
+		$cookie->name = $name;
 
 		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
 		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_cookie_with_name_emptied_after_construction()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string }>
+	 */
+	public function data_cookie_with_name_emptied_after_construction(): array {
+		return array(
+			'empty'           => array( '' ),
+			'whitespace-only' => array( " \t " ),
+		);
 	}
 }

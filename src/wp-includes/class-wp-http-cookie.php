@@ -198,7 +198,7 @@ class WP_Http_Cookie {
 	 * @return bool true if allowed, false otherwise.
 	 */
 	public function test( $url ) {
-		if ( ! isset( $this->name ) || '' === $this->name ) {
+		if ( ! isset( $this->name ) || '' === trim( $this->name ) ) {
 			return false;
 		}
 
@@ -247,7 +247,7 @@ class WP_Http_Cookie {
 	 * @return string Header encoded cookie name and value.
 	 */
 	public function getHeaderValue() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
-		if ( ! isset( $this->name ) || '' === $this->name || ! isset( $this->value ) ) {
+		if ( ! isset( $this->name ) || '' === trim( $this->name ) || ! isset( $this->value ) ) {
 			return '';
 		}
 
