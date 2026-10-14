@@ -353,6 +353,7 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 				'custom-fields',
+				'author',
 			),
 		)
 	);
