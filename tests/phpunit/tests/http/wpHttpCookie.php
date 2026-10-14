@@ -26,6 +26,8 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests getHeaderValue() returns empty string when name or value is not set.
 	 *
+	 * @ticket 66305
+	 *
 	 * @covers ::getHeaderValue
 	 */
 	public function test_get_header_value_when_name_or_value_not_set(): void {
