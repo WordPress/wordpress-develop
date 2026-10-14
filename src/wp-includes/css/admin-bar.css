@@ -693,6 +693,12 @@ html:lang(he-il) .rtl #wpadminbar * {
 	background: transparent;
 }
 
+/* Flip the search icon direction on LTR */
+#wpadminbar #wp-admin-bar-command-palette .ab-icon svg,
+#wpadminbar #adminbarsearch .ab-icon svg {
+	transform: scaleX(-1) /*rtl:none*/;
+}
+
 /**
  * Customize support classes
  */
