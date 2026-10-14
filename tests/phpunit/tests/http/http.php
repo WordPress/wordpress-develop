@@ -733,7 +733,39 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'empty name from header'  => array( array( new WP_Http_Cookie( '=foo' ) ) ),
 			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
 			'empty scalar name'       => array( array( '' => 'foo' ) ),
+			'whitespace scalar name'  => array( array( " \t " => 'foo' ) ),
 		);
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} trims surrounding whitespace from cookie names.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_trims_cookie_name(): void {
+		// The constructor trims the name, so add the whitespace afterward.
+		$cookie       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+		$cookie->name = " \tflavor ";
+
+		$cookie_jar = WP_Http::normalize_cookies(
+			array(
+				$cookie,
+				' texture ' => 'chewy',
+			)
+		);
+
+		$this->assertSame( array( 'flavor', 'texture' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
+		$this->assertSame( 'flavor=chocolate-chip', $cookie_jar['flavor']->format_for_header() );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['texture'] );
+		$this->assertSame( 'texture=chewy', $cookie_jar['texture']->format_for_header() );
 	}
 
 	/**
