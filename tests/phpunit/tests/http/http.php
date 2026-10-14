@@ -922,4 +922,25 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} does not set an empty Cookie header when no cookie can be sent.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_without_sendable_cookies(): void {
+		$args = array(
+			'headers' => array( 'accept' => 'text/html' ),
+			'cookies' => array(
+				new WP_Http_Cookie( 'novalue' ),
+				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'accept' => 'text/html' ), $args['headers'] );
+	}
 }

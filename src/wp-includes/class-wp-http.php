@@ -852,6 +852,11 @@ class WP_Http {
 				}
 			}
 
+			// Avoid sending an empty Cookie header.
+			if ( array() === $cookie_header_values ) {
+				return;
+			}
+
 			$cookies_header         = implode( '; ', $cookie_header_values );
 			$r['headers']['cookie'] = $cookies_header;
 		}
