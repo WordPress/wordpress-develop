@@ -483,33 +483,31 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
-				$cookie_name = (string) $value->name;
-
-				/*
-				 * A cookie without a name cannot be sent, and one without a value is not sent by
-				 * WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
-				 */
-				if ( '' === $cookie_name || ! is_scalar( $value->value ) ) {
-					continue;
-				}
-
-				$attributes                 = array_filter(
+				$cookie_name  = (string) $value->name;
+				$cookie_value = $value->value;
+				$attributes   = array_filter(
 					$value->get_attributes(),
 					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
-				$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $value->value, $attributes, array( 'host-only' => $value->host_only ) );
-			} elseif ( is_scalar( $value ) ) {
-				$cookie_name = (string) $name;
-
-				// A cookie without a name cannot be sent.
-				if ( '' === $cookie_name ) {
-					continue;
-				}
-
-				$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $value );
+				$flags        = array( 'host-only' => $value->host_only );
+			} else {
+				$cookie_name  = (string) $name;
+				$cookie_value = $value;
+				$attributes   = array();
+				$flags        = array();
 			}
+
+			/*
+			 * A cookie without a name cannot be sent, and one without a value is not sent by
+			 * WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
+			 */
+			if ( '' === $cookie_name || ! is_scalar( $cookie_value ) ) {
+				continue;
+			}
+
+			$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $cookie_value, $attributes, $flags );
 		}
 
 		return $cookie_jar;
