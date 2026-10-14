@@ -11,6 +11,9 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * Basic functionality goes here.
 	 *
 	 * @dataProvider data_basic_features
+	 *
+	 * @param non-falsy-string       $input
+	 * @param list<non-falsy-string> $output
 	 */
 	public function test_basic_features( string $input, array $output ): void {
 		$this->assertSame( $output, wp_html_split( $input ) );
@@ -19,7 +22,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_basic_features()}.
 	 *
-	 * @return list<array{0: string, 1: array}>
+	 * @return list<array{ 0: non-falsy-string, 1: list<non-falsy-string> }>
 	 */
 	public function data_basic_features(): array {
 		return array(
@@ -48,6 +51,9 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 *
 	 * @ticket 63997
 	 * @dataProvider data_gt_in_quoted_attribute_values
+	 *
+	 * @param non-falsy-string $input
+	 * @param list<string>     $output
 	 */
 	public function test_gt_in_quoted_attribute_values( string $input, array $output ): void {
 		$this->assertSame( $output, wp_html_split( $input ) );
@@ -56,7 +62,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_gt_in_quoted_attribute_values()}.
 	 *
-	 * @return list<array{0: string, 1: array{ string, string, string, string, string }}>
+	 * @return list<array{ 0: non-falsy-string, 1: list<string> }>
 	 */
 	public function data_gt_in_quoted_attribute_values(): array {
 		return array(
