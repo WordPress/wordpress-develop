@@ -306,6 +306,7 @@ add_filter( 'tiny_mce_before_init', '_mce_set_direction' );
 add_filter( 'teeny_mce_before_init', '_mce_set_direction' );
 add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
 add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
+add_filter( 'wp_kses_force_legacy_parser', '__return_false' );
 add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
@@ -555,6 +556,7 @@ add_action( 'parse_request', 'rest_api_loaded' );
 
 // Abilities API.
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+add_action( 'wp_abilities_api_init', '_wp_register_initial_settings_for_abilities', 1 );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 // Connectors API.

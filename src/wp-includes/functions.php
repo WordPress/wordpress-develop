@@ -1266,6 +1266,7 @@ function wp_removable_query_args() {
 		'activate',
 		'activated',
 		'admin_email_remind_later',
+		'admin_email_updated',
 		'approved',
 		'core-major-auto-updates-saved',
 		'deactivate',
@@ -2149,6 +2150,7 @@ function wp_mkdir_p( $target ) {
  * @return bool True if path is absolute, false is not absolute.
  *
  * @phpstan-return ( $path is non-falsy-string ? bool : false )
+ * @phpstan-assert-if-true non-falsy-string $path
  */
 function path_is_absolute( $path ) {
 	/*
@@ -2191,6 +2193,8 @@ function path_is_absolute( $path ) {
  * @param string $base Base path.
  * @param string $path Path relative to $base.
  * @return string The path with the base or absolute path.
+ *
+ * @phpstan-return non-falsy-string
  */
 function path_join( $base, $path ) {
 	if ( path_is_absolute( $path ) ) {
@@ -2956,7 +2960,8 @@ function _wp_check_existing_file_names( $filename, $files ) {
  *     @type string|false $error Error message, if there has been an error.
  * }
  *
- * @phpstan-param null $deprecated
+ * @phpstan-param non-empty-string $name
+ * @phpstan-param null             $deprecated
  * @phpstan-return array{ file: non-empty-string, url: non-empty-string, type: string|false, error: false }
  *                |array{ error: string, ... }
  */
@@ -4479,6 +4484,8 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  * @param int   $depth Optional. Maximum depth to walk through $value. Must be
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded.
+ *
+ * @phpstan-return non-empty-string|false
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
@@ -5656,6 +5663,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
+ * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5668,6 +5676,8 @@ function dead_db() {
 
 	// Load custom DB error template, if present.
 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+		status_header( 500 );
+		nocache_headers();
 		require_once WP_CONTENT_DIR . '/db-error.php';
 		die();
 	}
@@ -8177,6 +8187,8 @@ function wp_raise_memory_limit( $context = 'admin' ) {
  * @since 7.0.0 Uses wp_rand if available.
  *
  * @return string UUID.
+ *
+ * @phpstan-return lowercase-string&non-falsy-string
  */
 function wp_generate_uuid4() {
 	static $backup_randomizer = false;
@@ -8192,7 +8204,8 @@ function wp_generate_uuid4() {
 		$randomizer = $backup_randomizer;
 	}
 
-	return sprintf(
+	/** @var lowercase-string&non-falsy-string $uuid The %x conversion only produces lowercase hex digits. */
+	$uuid = sprintf(
 		'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 		$randomizer( 0, 0xffff ),
 		$randomizer( 0, 0xffff ),
@@ -8203,6 +8216,8 @@ function wp_generate_uuid4() {
 		$randomizer( 0, 0xffff ),
 		$randomizer( 0, 0xffff )
 	);
+
+	return $uuid;
 }
 
 /**
@@ -9211,6 +9226,8 @@ function clean_dirsize_cache( $path ) {
  * @since 6.7.0
  *
  * @return string The current WordPress version.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_get_wp_version() {
 	static $wp_version;
@@ -9219,6 +9236,7 @@ function wp_get_wp_version() {
 		require ABSPATH . WPINC . '/version.php';
 	}
 
+	/** @var non-falsy-string $wp_version */
 	return $wp_version;
 }
 
@@ -9327,6 +9345,10 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	 */
 	$args = apply_filters( 'wp_admin_notice_args', $args, $message );
 
+	// Unique ID is intended for internal use, and is not a filterable argument.
+	$unique_id         = wp_unique_prefixed_id( 'wp-admin-notice-' );
+	$args['notice_id'] = $unique_id;
+
 	$wrap_with_p  = false !== $args['paragraph_wrap'];
 	$wrap_opener  = $wrap_with_p ? '<p>' : '';
 	$wrap_closer  = $wrap_with_p ? '</p>' : '';
@@ -9336,9 +9358,15 @@ function wp_get_admin_notice( $message, $args = array() ) {
 	if ( is_string( $args['id'] ) ) {
 		$trimmed_id = trim( $args['id'] );
 
+		$html_builder->set_attribute( 'data-id', $unique_id );
 		if ( '' !== $trimmed_id ) {
 			$html_builder->set_attribute( 'id', $trimmed_id );
+		} else {
+			$html_builder->set_attribute( 'id', $unique_id );
 		}
+	} else {
+		$html_builder->set_attribute( 'data-id', $unique_id );
+		$html_builder->set_attribute( 'id', $unique_id );
 	}
 
 	if ( is_string( $args['type'] ) ) {
@@ -9478,6 +9506,8 @@ function wp_is_heic_image_mime_type( $mime_type ) {
  *
  * @param string $message The message to hash.
  * @return string The hash of the message.
+ *
+ * @phpstan-return non-falsy-string
  */
 function wp_fast_hash(
 	#[\SensitiveParameter]
@@ -9558,7 +9588,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
-	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
 
@@ -9604,6 +9634,7 @@ All at ###SITENAME###
 	 *         The following strings have a special meaning and will get replaced dynamically:
 	 *          - `###USERNAME###`                  The user's display name.
 	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
+	 *          - `###ADMIN_EMAIL###`               The admin email in case this was unexpected.
 	 *          - `###EMAIL###`                     The user's email address.
 	 *          - `###SITENAME###`                  The name of the site.
 	 *          - `###SITEURL###`                   The URL to the site.
@@ -9616,6 +9647,7 @@ All at ###SITENAME###
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
 	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
 	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
