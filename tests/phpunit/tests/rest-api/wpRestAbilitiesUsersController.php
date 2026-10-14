@@ -145,7 +145,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_logged_out_user_receives_401(): void {
 		wp_set_current_user( 0 );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'id' => self::$admin_id ) ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'ids' => array( self::$admin_id ) ) ) ) );
 
 		$this->assertSame( 401, $response->get_status(), 'A logged-out request should be rejected as unauthenticated.' );
 	}
@@ -173,7 +173,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'where'  => array( 'id' => $author_id ),
+					'where'  => array( 'ids' => array( $author_id ) ),
 					'fields' => array( 'id', 'name', 'username', 'email', 'roles' ),
 				)
 			)
@@ -191,7 +191,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * @ticket 64657
 	 */
-	public function test_editor_reading_a_user_without_public_posts_receives_author_fields(): void {
+	public function test_editor_reading_a_user_without_public_posts_receives_an_empty_list(): void {
 		$user_id = self::factory()->user->create(
 			array(
 				'role'          => 'author',
@@ -211,29 +211,47 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'where'  => array( 'slug' => 'rest-users-pending-author' ),
+					'where'  => array( 'slugs' => array( 'rest-users-pending-author' ) ),
 					'fields' => array( 'id', 'name', 'description', 'email' ),
 				)
 			)
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status(), 'An editor should be able to look up a user of the site without public posts.' );
-		$this->assertSame( $user_id, $data['items'][0]['id'], 'The lookup should return the requested user.' );
-		$this->assertSameSets( array( 'id', 'name' ), array_keys( $data['items'][0] ), 'Only the author fields should be returned.' );
+		$this->assertSame( 200, $response->get_status(), 'An editor should be able to query a user of the site without public posts.' );
+		$this->assertSame( array(), $data['items'], 'A user without public posts should not be returned to an editor.' );
+		$this->assertSame(
+			array(
+				'total'       => 0,
+				'total_pages' => 0,
+			),
+			$data['pagination'],
+			'The empty result should report zero totals.'
+		);
 	}
 
 	/**
 	 * @ticket 64657
 	 */
-	public function test_subscriber_looking_up_a_public_author_by_email_receives_403(): void {
-		$this->create_public_author( array( 'user_email' => 'rest-users-email-lookup@example.org' ) );
+	public function test_subscriber_filtering_a_public_author_by_email_or_username_is_rejected(): void {
+		$this->create_public_author(
+			array(
+				'user_login' => 'rest_users_username_lookup',
+				'user_email' => 'rest-users-email-lookup@example.org',
+			)
+		);
 
 		wp_set_current_user( self::$subscriber_id );
 
 		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'email' => 'rest-users-email-lookup@example.org' ) ) ) );
 
-		$this->assertSame( 403, $response->get_status(), 'Looking up another user by email should require permission to list or edit users, even for a public author.' );
+		$this->assertSame( 400, $response->get_status(), 'Filtering by email should fail validation, since email is not a filter.' );
+		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The email error should come from input validation.' );
+
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'usernames' => array( 'rest_users_username_lookup' ) ) ) ) );
+
+		$this->assertSame( 403, $response->get_status(), 'Filtering by username should require permission to list users, even for a public author.' );
+		$this->assertSame( 'rest_ability_cannot_execute', $response->get_data()['code'], 'The username error should come from the permission check.' );
 	}
 
 	/**
@@ -268,7 +286,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	/**
 	 * @ticket 64657
 	 */
-	public function test_admin_query_include_limits_results(): void {
+	public function test_admin_query_ids_limits_results(): void {
 		$first  = self::factory()->user->create( array( 'user_login' => 'rest_users_include_a' ) );
 		$second = self::factory()->user->create( array( 'user_login' => 'rest_users_include_b' ) );
 		$third  = self::factory()->user->create( array( 'user_login' => 'rest_users_include_c' ) );
@@ -277,16 +295,16 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 			$this->run_request(
 				array(
 					// Deliberately pass IDs in the opposite of the expected login order.
-					'where'  => array( 'include' => array( $third, $first ) ),
+					'where'  => array( 'ids' => array( $third, $first ) ),
 					'fields' => array( 'id' ),
 				)
 			)
 		);
 		$data     = $response->get_data();
 
-		$this->assertSame( 200, $response->get_status(), 'The include query should succeed.' );
-		$this->assertSame( array( $first, $third ), wp_list_pluck( $data['items'], 'id' ), 'Included users should be returned by login, regardless of the include order.' );
-		$this->assertNotContains( $second, wp_list_pluck( $data['items'], 'id' ), 'Users outside the include list should not be returned.' );
+		$this->assertSame( 200, $response->get_status(), 'The ID list query should succeed.' );
+		$this->assertSame( array( $first, $third ), wp_list_pluck( $data['items'], 'id' ), 'Included users should be returned by login, regardless of the order of the ID list.' );
+		$this->assertNotContains( $second, wp_list_pluck( $data['items'], 'id' ), 'Users outside the ID list should not be returned.' );
 		$this->assertSame( 2, $data['pagination']['total'], 'The total should only count the included users.' );
 	}
 
@@ -294,7 +312,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	 * @ticket 64657
 	 */
 	public function test_get_single_user_by_id(): void {
-		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'id' => self::$subscriber_id ) ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'ids' => array( self::$subscriber_id ) ) ) ) );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The ID lookup should succeed.' );
@@ -316,7 +334,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_get_single_user_by_slug(): void {
 		$user_id = self::factory()->user->create( array( 'user_nicename' => 'rest-users-slug' ) );
 
-		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'slug' => 'rest-users-slug' ) ) ) );
+		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'slugs' => array( 'rest-users-slug' ) ) ) ) );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'The slug lookup should succeed.' );
@@ -339,7 +357,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 	public function test_wrong_http_method_returns_405(): void {
 		$request = new WP_REST_Request( 'POST', self::RUN_ROUTE );
 		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body( wp_json_encode( array( 'input' => array( 'where' => array( 'id' => self::$admin_id ) ) ) ) );
+		$request->set_body( wp_json_encode( array( 'input' => array( 'where' => array( 'ids' => array( self::$admin_id ) ) ) ) ) );
 
 		$response = $this->server->dispatch( $request );
 
@@ -402,7 +420,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 		$response = $this->server->dispatch(
 			$this->run_request(
 				array(
-					'where'      => array( 'include' => $second . ',' . $first ),
+					'where'      => array( 'ids' => $second . ',' . $first ),
 					'fields'     => 'id,name',
 					'pagination' => array(
 						'page'     => '2',
@@ -431,7 +449,7 @@ class Tests_REST_API_WpRestAbilitiesUsersController extends WP_UnitTestCase {
 			$this->run_request(
 				array(
 					'where'  => array(
-						'include'             => $author_id . ',' . $non_author_id,
+						'ids'                 => $author_id . ',' . $non_author_id,
 						'has_published_posts' => 'true',
 					),
 					'fields' => 'id',
