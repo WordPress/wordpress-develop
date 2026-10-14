@@ -498,7 +498,8 @@ class WP_Http {
 				);
 				$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
-				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( (string) $name, (string) $value );
+				$cookie_name                = (string) $name;
+				$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $value );
 			}
 		}
 
