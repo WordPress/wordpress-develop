@@ -223,4 +223,74 @@ class Tests_Image_ReadImageMetadataAllowedKeys extends WP_UnitTestCase {
 		$this->assertSame( self::$exif_image, $captured_args['file'] );
 		$this->assertSame( IMAGETYPE_JPEG, $captured_args['image_type'] );
 	}
+
+	/**
+	 * Tests that allowing only 'title' extracts the title from IPTC 2#120
+	 * without extracting 'caption'.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_allowed_keys_with_only_title_extracts_title_from_iptc_without_caption() {
+		if ( ! function_exists( 'iptcembed' ) ) {
+			$this->markTestSkipped( 'iptcembed() is required for this test.' );
+		}
+
+		$iptc_tag  = chr( 0x1c ) . chr( 0x02 ) . chr( 120 ) . chr( 0x00 ) . chr( strlen( 'IPTC Fallback Title' ) ) . 'IPTC Fallback Title';
+		$data      = iptcembed( $iptc_tag, DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
+		$temp_file = wp_tempnam( 'iptc-title' );
+		file_put_contents( $temp_file, $data );
+
+		add_filter(
+			'wp_read_image_metadata_allowed_keys',
+			static function () {
+				return array( 'title' );
+			}
+		);
+
+		$meta = wp_read_image_metadata( $temp_file );
+		unlink( $temp_file );
+
+		$this->assertSame( 'IPTC Fallback Title', $meta['title'], 'Title should be extracted from IPTC 2#120 when only title is allowed.' );
+		$this->assertSame( '', $meta['caption'], 'Caption should remain empty when caption is not in allowed keys.' );
+	}
+
+	/**
+	 * Tests that allowing only 'title' extracts the title from EXIF metadata
+	 * without extracting 'caption'.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_allowed_keys_with_only_title_extracts_title_from_exif_without_caption() {
+		add_filter(
+			'wp_read_image_metadata_allowed_keys',
+			static function () {
+				return array( 'title' );
+			}
+		);
+
+		$meta = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
+
+		$this->assertSame( 'Copyright Alex Shiels', $meta['title'], 'Title should be extracted from EXIF when only title is allowed.' );
+		$this->assertSame( '', $meta['caption'], 'Caption should remain empty when caption is not in allowed keys.' );
+	}
+
+	/**
+	 * Tests that allowing only 'caption' extracts the caption from IPTC 2#120
+	 * without extracting 'title'.
+	 *
+	 * @ticket 66248
+	 */
+	public function test_allowed_keys_with_only_caption_extracts_caption_without_title() {
+		add_filter(
+			'wp_read_image_metadata_allowed_keys',
+			static function () {
+				return array( 'caption' );
+			}
+		);
+
+		$meta = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
+
+		$this->assertSame( 'IPTC Caption', $meta['caption'], 'Caption should be extracted when caption is allowed.' );
+		$this->assertSame( '', $meta['title'], 'Title should remain empty when title is not in allowed keys.' );
+	}
 }
