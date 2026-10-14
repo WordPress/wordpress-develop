@@ -704,20 +704,18 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_normalize_cookies_skips_cookie_without_name
 	 *
-	 * @param WP_Http_Cookie $cookie Cookie without a name.
+	 * @param array<int|string, WP_Http_Cookie|scalar> $nameless_cookie Single cookie without a name.
 	 */
-	public function test_normalize_cookies_skips_cookie_without_name( WP_Http_Cookie $cookie ): void {
-		$cookie_jar = WP_Http::normalize_cookies(
+	public function test_normalize_cookies_skips_cookie_without_name( array $nameless_cookie ): void {
+		$cookies           = $nameless_cookie;
+		$cookies['flavor'] = new WP_Http_Cookie(
 			array(
-				'nameless' => $cookie,
-				'flavor'   => new WP_Http_Cookie(
-					array(
-						'name'  => 'flavor',
-						'value' => 'chocolate-chip',
-					)
-				),
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
 			)
 		);
+
+		$cookie_jar = WP_Http::normalize_cookies( $cookies );
 
 		$this->assertSame( array( 'flavor' ), array_keys( iterator_to_array( $cookie_jar ) ) );
 	}
@@ -725,13 +723,14 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_normalize_cookies_skips_cookie_without_name()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: WP_Http_Cookie }>
+	 * @return array<non-falsy-string, array{ 0: array<int|string, WP_Http_Cookie|scalar> }>
 	 */
 	public function data_normalize_cookies_skips_cookie_without_name(): array {
 		return array(
-			'null name from array'    => array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ),
-			'empty name from header'  => array( new WP_Http_Cookie( '=foo' ) ),
-			'missing "=" from header' => array( new WP_Http_Cookie( 'foo' ) ),
+			'null name from array'    => array( array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ) ),
+			'empty name from header'  => array( array( new WP_Http_Cookie( '=foo' ) ) ),
+			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
+			'empty scalar name'       => array( array( '' => 'foo' ) ),
 		);
 	}
 
