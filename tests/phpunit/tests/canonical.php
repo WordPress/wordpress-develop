@@ -126,6 +126,56 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 				17174,
 			),
 
+			// Child categories with missing parent category slugs in the URL.
+			array(
+				'/category/child-1/',
+				array(
+					'url' => '/category/parent/child-1/',
+					'qv'  => array( 'category_name' => 'parent/child-1' ),
+				),
+			),
+			array(
+				'/category/child-2/',
+				array(
+					'url' => '/category/parent/child-1/child-2/',
+					'qv'  => array( 'category_name' => 'parent/child-1/child-2' ),
+				),
+			),
+			array(
+				'/category/parent/child-2/',
+				array(
+					'url' => '/category/parent/child-1/child-2/',
+					'qv'  => array( 'category_name' => 'parent/child-1/child-2' ),
+				),
+			),
+			array(
+				'/category/too/many/parents/child-1/',
+				array(
+					'url' => '/category/parent/child-1/',
+					'qv'  => array( 'category_name' => 'parent/child-1' ),
+				),
+			),
+			array(
+				'/category/child-1/page/2/',
+				array(
+					'url' => '/category/parent/child-1/page/2/',
+					'qv'  => array(
+						'category_name' => 'parent/child-1',
+						'paged'         => 2,
+					),
+				),
+			),
+			array(
+				'/category/child-1/child-2/page/2/',
+				array(
+					'url' => '/category/parent/child-1/child-2/page/2/',
+					'qv'  => array(
+						'category_name' => 'parent/child-1/child-2',
+						'paged'         => 2,
+					),
+				),
+			),
+
 			// Categories & intersections with other vars.
 			array(
 				'/category/uncategorized/?tag=post-formats',
