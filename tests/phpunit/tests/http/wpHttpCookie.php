@@ -100,4 +100,114 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $cookie->get_attributes() );
 	}
+
+	/**
+	 * Tests that the expiration date is stored as a Unix timestamp, false if unparsable, or null if not provided.
+	 *
+	 * @covers ::__construct
+	 *
+	 * @dataProvider data_expires
+	 *
+	 * @param string|array{ name: string, value: string, expires?: int|string } $data     Cookie data.
+	 * @param int|false|null                                                    $expected Expected expiration.
+	 */
+	public function test_expires( $data, $expected ): void {
+		$cookie = new WP_Http_Cookie( $data );
+
+		$this->assertSame( $expected, $cookie->expires );
+	}
+
+	/**
+	 * Data provider for {@see self::test_expires()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string, expires?: int|string }, 1: int|false|null }>
+	 */
+	public function data_expires(): array {
+		return array(
+			'timestamp from array'    => array(
+				array(
+					'name'    => 'flavor',
+					'value'   => 'chocolate-chip',
+					'expires' => 1445412480,
+				),
+				1445412480,
+			),
+			'date string from array'  => array(
+				array(
+					'name'    => 'flavor',
+					'value'   => 'chocolate-chip',
+					'expires' => 'Wed, 21 Oct 2015 07:28:00 GMT',
+				),
+				1445412480,
+			),
+			'unparsable from array'   => array(
+				array(
+					'name'    => 'flavor',
+					'value'   => 'chocolate-chip',
+					'expires' => 'garbage',
+				),
+				false,
+			),
+			'missing from array'      => array(
+				array(
+					'name'  => 'flavor',
+					'value' => 'chocolate-chip',
+				),
+				null,
+			),
+			'date string from header' => array( 'flavor=chocolate-chip; expires=Wed, 21 Oct 2015 07:28:00 GMT', 1445412480 ),
+			'unparsable from header'  => array( 'flavor=chocolate-chip; expires=garbage', false ),
+			'missing from header'     => array( 'flavor=chocolate-chip', null ),
+		);
+	}
+
+	/**
+	 * Tests that the host-only flag is stored when provided, or null otherwise.
+	 *
+	 * @covers ::__construct
+	 *
+	 * @dataProvider data_host_only
+	 *
+	 * @param string|array{ name: string, value: string, host_only?: bool } $data     Cookie data.
+	 * @param bool|null                                                     $expected Expected host-only flag.
+	 */
+	public function test_host_only( $data, ?bool $expected ): void {
+		$cookie = new WP_Http_Cookie( $data );
+
+		$this->assertSame( $expected, $cookie->host_only );
+	}
+
+	/**
+	 * Data provider for {@see self::test_host_only()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string, host_only?: bool }, 1: bool|null }>
+	 */
+	public function data_host_only(): array {
+		return array(
+			'true from array'     => array(
+				array(
+					'name'      => 'flavor',
+					'value'     => 'chocolate-chip',
+					'host_only' => true,
+				),
+				true,
+			),
+			'false from array'    => array(
+				array(
+					'name'      => 'flavor',
+					'value'     => 'chocolate-chip',
+					'host_only' => false,
+				),
+				false,
+			),
+			'missing from array'  => array(
+				array(
+					'name'  => 'flavor',
+					'value' => 'chocolate-chip',
+				),
+				null,
+			),
+			'missing from header' => array( 'flavor=chocolate-chip', null ),
+		);
+	}
 }
