@@ -32,9 +32,18 @@ $title = __( 'Connectors' );
 // Set parent file for menu highlighting.
 $parent_file = 'options-general.php';
 
+/*
+ * Connector plugins are installed via `wp.updates.installPlugin()` when the
+ * filesystem method requires credentials which have not been stored.
+ */
+wp_enqueue_script( 'updates' );
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 // Render the Connectors page.
 wp_options_connectors_wp_admin_render_page();
+
+wp_print_request_filesystem_credentials_modal();
+wp_print_admin_notice_templates();
 
 require_once ABSPATH . 'wp-admin/admin-footer.php';

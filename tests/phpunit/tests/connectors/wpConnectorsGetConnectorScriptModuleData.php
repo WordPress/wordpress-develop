@@ -209,4 +209,65 @@ class Tests_Connectors_WpConnectorsGetConnectorScriptModuleData extends WP_UnitT
 		$this->assertSame( 'env', $auth['keySource'] );
 		$this->assertTrue( $auth['isConnected'] );
 	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_not_required_for_direct_filesystem_method(): void {
+		$this->set_filesystem_method( 'direct' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertFalse( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_required_when_credentials_are_not_stored(): void {
+		$this->set_filesystem_method( 'ftpext' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertTrue( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_not_required_when_credentials_are_stored(): void {
+		$this->set_filesystem_method( 'ftpext' );
+		add_filter( 'request_filesystem_credentials', '__return_true' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertFalse( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_not_required_when_file_modifications_are_disallowed(): void {
+		$this->set_filesystem_method( 'ftpext' );
+		add_filter( 'file_mod_allowed', '__return_false' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertTrue( $data['isFileModDisabled'] );
+		$this->assertFalse( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * Forces the filesystem method returned by get_filesystem_method().
+	 *
+	 * @param string $method Filesystem method.
+	 */
+	private function set_filesystem_method( string $method ): void {
+		add_filter(
+			'filesystem_method',
+			static function () use ( $method ) {
+				return $method;
+			}
+		);
+	}
 }
