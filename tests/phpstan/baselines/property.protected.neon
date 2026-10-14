@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to protected property WP_Posts_List_Table\:\:\$screen\.$#'
-			identifier: property.protected
-			count: 1
-			path: ../../../src/wp-admin/includes/ajax-actions.php
-		-
 			message: '#^Access to protected property wpdb\:\:\$dbh\.$#'
 			identifier: property.protected
 			count: 3
