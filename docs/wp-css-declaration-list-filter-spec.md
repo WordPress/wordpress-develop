@@ -153,11 +153,11 @@ is valid for its property. Browser grammar is out of scope.
 ## Output
 
 The output is built from the accepted declarations, not cut from the input:
-it joins the `serialize_declaration()` text of each one. Each declaration is
-`property: value;`, with `!important` preserved as ` !important` before the
-`;`. Property names are the decoded names, escaped as identifiers. Values are
-written from their tokens by `WP_CSS_Token_Serializer::serialize()`, which
-follows CSS Syntax Level 3 §9:
+it joins the `serialize_declaration()` text of each one with a space. Each
+declaration is `property: value;`, with `!important` preserved as
+` !important` before the `;`. Property names are the decoded names, escaped
+as identifiers. Values are written from their tokens by
+`WP_CSS_Token_Serializer::serialize()`, which follows CSS Syntax Level 3 §9:
 
 - Comments are dropped. Each whitespace run, including one broken by comments,
   becomes one space.
@@ -281,14 +281,15 @@ Intended:
   which the parser accepts by default. The remaining uses are `data:` URLs
   and functions this policy excludes, such as `attr()`.
 
-Formatting only: one space after the colon, double-quoted strings and unquoted
-url tokens with hex-escaped punctuation, comments dropped, trailing `;`.
+Formatting only: one space after the colon and between declarations,
+double-quoted strings and unquoted url tokens with hex-escaped punctuation,
+comments dropped, trailing `;`.
 
 Unchanged: an empty `safe_style_css` array returns the input.
 
-On the 156 legacy test vectors: 20 identical, 115 formatting only, 2
-narrowings (`expression()` inside a gradient; an unmatched `)`), 19 widenings,
-0 defects, idempotent on all 156.
+On the 158 legacy test vectors: 20 identical, 119 formatting only, 2
+narrowings (`expression()` inside a gradient; an unmatched `)`), 17 widenings,
+0 defects, idempotent on all 158.
 
 ## Decisions
 

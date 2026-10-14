@@ -37,7 +37,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		$actual = safecss_filter_attr( 'Foo-Bar: baz; foo-bar: baz; FOO-BAR: baz' );
 		remove_filter( 'safe_style_css', $add );
 
-		$this->assertSame( 'foo-bar: baz;foo-bar: baz;foo-bar: baz;', $actual );
+		$this->assertSame( 'foo-bar: baz; foo-bar: baz; foo-bar: baz;', $actual );
 	}
 
 	/**
@@ -336,14 +336,14 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		return array(
 			'comment in the value'               => array( 'color: red /*', 'color: red;' ),
 			'comment after the last declaration' => array( 'color: red; /*', 'color: red;' ),
-			'comment in the second value'        => array( 'color: red; width: 1px /*', 'color: red;width: 1px;' ),
-			'comment "/*/"'                      => array( 'color: red; width: 1px /*/', 'color: red;width: 1px;' ),
-			'string in the second value'         => array( 'color: red; width: "abc', 'color: red;width: "abc";' ),
+			'comment in the second value'        => array( 'color: red; width: 1px /*', 'color: red; width: 1px;' ),
+			'comment "/*/"'                      => array( 'color: red; width: 1px /*/', 'color: red; width: 1px;' ),
+			'string in the second value'         => array( 'color: red; width: "abc', 'color: red; width: "abc";' ),
 			'string in a standard property'      => array( 'font-family: "abc', 'font-family: "abc";' ),
-			'string with escaped quote'          => array( 'color: red; font-family: "a\\"', 'color: red;font-family: "a\\22 ";' ),
+			'string with escaped quote'          => array( 'color: red; font-family: "a\\"', 'color: red; font-family: "a\\22 ";' ),
 			'url token'                          => array( 'background: url(http://x/a.png', 'background: url(http://x/a.png);' ),
 			'url token with trailing whitespace' => array( 'background: url(http://x/a.png ', 'background: url(http://x/a.png);' ),
-			'url token in the second value'      => array( 'color: red; background: url(http://x/a.png', 'color: red;background: url(http://x/a.png);' ),
+			'url token in the second value'      => array( 'color: red; background: url(http://x/a.png', 'color: red; background: url(http://x/a.png);' ),
 			'string in a custom property'        => array( '--x: "abc', '--x: "abc";' ),
 			'comment in a custom property'       => array( '--x: red /*', '--x: red;' ),
 			'url token in a custom property'     => array( '--x: url(a', '--x: url(a);' ),
@@ -372,7 +372,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		$this->assertSame( 'color: red !important;', safecss_filter_attr( 'color: red !important' ) );
 		$this->assertSame( 'color: red !important;', safecss_filter_attr( 'color: red!important' ) );
 		$this->assertSame( 'color: red !important;', safecss_filter_attr( 'color: red ! important ;' ) );
-		$this->assertSame( 'color: red !important;width: 1px;', safecss_filter_attr( 'color: red !important; width: 1px' ) );
+		$this->assertSame( 'color: red !important; width: 1px;', safecss_filter_attr( 'color: red !important; width: 1px' ) );
 	}
 
 	/**
@@ -540,7 +540,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 			'custom property parenthesis'    => array( '--x: (1px', '--x: (1px);' ),
 			'custom property square bracket' => array( '--x: [a', '--x: [a];' ),
 			'custom property brace'          => array( '--x: {a:b', '--x: {a:b};' ),
-			'after an accepted declaration'  => array( 'color: red; width: calc(1px', 'color: red;width: calc(1px);' ),
+			'after an accepted declaration'  => array( 'color: red; width: calc(1px', 'color: red; width: calc(1px);' ),
 			'function not on the allowlist'  => array( 'width: foo(1px', '' ),
 			'url function with a bad scheme' => array( 'background: url("javascript:a"', '' ),
 		);
@@ -576,7 +576,7 @@ class Tests_Kses_SafecssFilterAttr extends WP_UnitTestCase {
 		$this->assertSame( 'font-family: "a";', safecss_filter_attr( "font-family: 'a'" ) );
 		$this->assertSame( 'background: url(a.png);', safecss_filter_attr( 'background: url(a.png)' ) );
 		$this->assertSame( 'background: url( "a.png" );', safecss_filter_attr( "background: url( 'a.png' )" ) );
-		$this->assertSame( 'font-weight: bold;font-size: 15px;', safecss_filter_attr( 'font-weight: bold; font-size: 15px' ) );
+		$this->assertSame( 'font-weight: bold; font-size: 15px;', safecss_filter_attr( 'font-weight: bold;font-size: 15px' ) );
 	}
 
 	/**

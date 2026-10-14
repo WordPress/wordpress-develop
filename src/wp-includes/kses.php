@@ -4191,7 +4191,8 @@ function _safecss_filter_attr_legacy( $css, $allowed_attr ) {
  * Parses the list with WP_HTML_Style_Attribute_Processor, drops the
  * declarations the policy rejects, and joins the
  * WP_HTML_Style_Attribute_Processor::serialize_declaration() text of the
- * rest, `property: value;` each. The unit of rejection is one declaration.
+ * rest, `property: value;` each, with a space. The unit of rejection is one
+ * declaration.
  * Declarations CSS drops at parse time never reach the policy because
  * the processor does not expose them.
  *
@@ -4268,7 +4269,7 @@ function _safecss_filter_attr_declarations( $css, $allowed_attr ) {
 		$declarations[] = $processor->serialize_declaration();
 	}
 
-	return implode( '', $declarations );
+	return implode( ' ', $declarations );
 }
 
 /**
