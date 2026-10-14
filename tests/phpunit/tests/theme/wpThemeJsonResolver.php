@@ -1541,6 +1541,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
 	public function test_get_merged_data_returns_a_separate_instance_per_call() {
@@ -1556,6 +1557,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66280
 	 * @dataProvider data_merged_data_origins
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 *
@@ -1579,6 +1581,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * Callers are free to modify the returned data. WP_Theme_JSON::resolve_variables()
 	 * does exactly that, so a modification must not be observable by the next caller.
 	 *
+	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
 	public function test_get_merged_data_is_not_affected_by_modifying_the_result() {
@@ -1624,6 +1627,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
 	public function test_get_merged_data_reflects_blocks_registered_after_a_previous_call() {
@@ -1654,6 +1658,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66280
 	 * @dataProvider data_merged_data_origins
 	 * @covers WP_Theme_JSON_Resolver::clean_cached_data
 	 *
@@ -1687,6 +1692,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
 	public function test_switching_theme_refreshes_merged_data() {

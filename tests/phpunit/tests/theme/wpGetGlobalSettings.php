@@ -14,6 +14,9 @@ class Tests_Theme_wpGetGlobalSettings extends WP_UnitTestCase {
 		parent::tear_down();
 	}
 
+	/**
+	 * @ticket 66280
+	 */
 	public function test_reflects_theme_data_changed_after_a_previous_call() {
 		wp_get_global_settings();
 
