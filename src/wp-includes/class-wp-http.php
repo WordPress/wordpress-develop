@@ -502,11 +502,11 @@ class WP_Http {
 			}
 
 			/*
-			 * A cookie without a name, once surrounding whitespace is trimmed as in
-			 * WP_Http_Cookie::get_sendable_name(), cannot be sent, and one without a value is not
-			 * sent by WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
+			 * A cookie without a name cannot be sent, though an empty name is valid per RFC 6265bis.
+			 * One without a value is not sent by WP_Http_Cookie::getHeaderValue() either, and a
+			 * non-scalar value cannot be represented.
 			 */
-			if ( null === $cookie_name || '' === $cookie_name || ! is_scalar( $cookie_value ) ) {
+			if ( null === $cookie_name || ! is_scalar( $cookie_value ) ) {
 				continue;
 			}
 

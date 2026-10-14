@@ -729,12 +729,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 */
 	public function data_normalize_cookies_skips_cookie_without_name(): array {
 		return array(
-			'null name from array'    => array( array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ) ),
-			'empty name from header'  => array( array( new WP_Http_Cookie( '=foo' ) ) ),
-			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
-			'empty scalar name'       => array( array( '' => 'foo' ) ),
-			'whitespace scalar name'  => array( array( " \t " => 'foo' ) ),
-			'non-scalar name'         => array(
+			'null name from array'             => array( array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ) ),
+			'empty name and value from header' => array( array( new WP_Http_Cookie( '=' ) ) ),
+			'non-scalar name'                  => array(
 				array(
 					new WP_Http_Cookie(
 						array( // @phpstan-ignore argument.type (Intentionally passing an invalid name.)
@@ -744,6 +741,39 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 					),
 				),
 			),
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty name, per RFC 6265bis.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 *
+	 * @dataProvider data_normalize_cookies_sends_cookie_with_empty_name
+	 *
+	 * @param array<int|string, WP_Http_Cookie|scalar> $cookies Single cookie with an empty name.
+	 */
+	public function test_normalize_cookies_sends_cookie_with_empty_name( array $cookies ): void {
+		$cookie_jar = WP_Http::normalize_cookies( $cookies );
+
+		$this->assertSame( array( '' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar[''] );
+		$this->assertSame( '=foo', $cookie_jar['']->format_for_header() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_normalize_cookies_sends_cookie_with_empty_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<int|string, WP_Http_Cookie|scalar> }>
+	 */
+	public function data_normalize_cookies_sends_cookie_with_empty_name(): array {
+		return array(
+			'empty name from header'  => array( array( new WP_Http_Cookie( '=foo' ) ) ),
+			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
+			'empty scalar name'       => array( array( '' => 'foo' ) ),
+			'whitespace scalar name'  => array( array( " \t " => 'foo' ) ),
 		);
 	}
 
