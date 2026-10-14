@@ -97,7 +97,7 @@ if ( is_multisite() && ! is_subdomain_install() && is_main_site()
 
 $category_base = get_option( 'category_base' );
 $tag_base      = get_option( 'tag_base' );
-$random_base   = get_option( 'random_base' );
+$random_base   = get_option( 'wp_random_base' );
 $random_base   = is_string( $random_base ) ? $random_base : '';
 
 $structure_updated        = false;
@@ -150,8 +150,8 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 		$wp_rewrite->set_tag_base( $tag_base );
 	}
 
-	if ( wp_is_random_content_redirect_enabled() && isset( $_POST['random_base'] ) && is_string( $_POST['random_base'] ) ) {
-		$random_base = $_POST['random_base'];
+	if ( wp_is_random_content_redirect_enabled() && isset( $_POST['wp_random_base'] ) && is_string( $_POST['wp_random_base'] ) ) {
+		$random_base = $_POST['wp_random_base'];
 
 		if ( ! empty( $random_base ) ) {
 			$random_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $random_base ) );
@@ -476,19 +476,19 @@ printf(
 	<?php if ( wp_is_random_content_redirect_enabled() ) : ?>
 	<tr>
 		<th>
-			<label for="random_base">
+			<label for="wp_random_base">
 				<?php _e( 'Random base' ); ?>
 			</label>
 		</th>
 		<td>
 		<?php if ( '' === $blog_prefix ) : ?>
-			<input name="random_base" id="random_base" type="text"
+			<input name="wp_random_base" id="wp_random_base" type="text"
 				value="<?php echo esc_attr( $random_base ); ?>" class="regular-text code"
 			/>
 		<?php else : ?>
 			<span class="code permalink-structure-has-blog-prefix">
 				<code class="no-break"><?php echo $blog_prefix; ?></code>
-				<input name="random_base" id="random_base" type="text"
+				<input name="wp_random_base" id="wp_random_base" type="text"
 					value="<?php echo esc_attr( $random_base ); ?>" class="regular-text code"
 				/>
 			</span>

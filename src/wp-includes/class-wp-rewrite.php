@@ -123,7 +123,7 @@ class WP_Rewrite {
 	/**
 	 * Custom random content permalink base.
 	 *
-	 * Set from the 'random_base' option by {@see WP_Rewrite::init()}. Empty when no custom
+	 * Set from the 'wp_random_base' option by {@see WP_Rewrite::init()}. Empty when no custom
 	 * base is set, in which case the translated default is used.
 	 * Use {@see WP_Rewrite::get_random_base()} to retrieve the base in use.
 	 *
@@ -2065,7 +2065,7 @@ class WP_Rewrite {
 			$this->root = $this->index . '/';
 		}
 
-		$random_base       = get_option( 'random_base' );
+		$random_base       = get_option( 'wp_random_base' );
 		$this->random_base = is_string( $random_base ) ? $random_base : '';
 
 		unset( $this->author_structure );
@@ -2157,7 +2157,7 @@ class WP_Rewrite {
 	/**
 	 * Sets the random base for random content permalinks.
 	 *
-	 * Will update the 'random_base' option, if there is a difference between the
+	 * Will update the 'wp_random_base' option, if there is a difference between the
 	 * current random base and the parameter value. Calls {@see WP_Rewrite::init()} after
 	 * the option is updated.
 	 *
@@ -2166,8 +2166,8 @@ class WP_Rewrite {
 	 * @param string $random_base Random content permalink base.
 	 */
 	public function set_random_base( string $random_base ): void {
-		if ( get_option( 'random_base' ) !== $random_base ) {
-			update_option( 'random_base', $random_base );
+		if ( get_option( 'wp_random_base' ) !== $random_base ) {
+			update_option( 'wp_random_base', $random_base );
 			$this->init();
 		}
 	}
@@ -2179,7 +2179,7 @@ class WP_Rewrite {
 	 * for example `example.com/random/` or `example.com/random/category/news/`.
 	 * A published page with this slug takes precedence over `example.com/random/`.
 	 *
-	 * Returns the custom base from the 'random_base' option when one is set.
+	 * Returns the custom base from the 'wp_random_base' option when one is set.
 	 * Otherwise returns the default base, translated into the site language so
 	 * that rewrite rules do not depend on the language of the user who flushes them.
 	 *

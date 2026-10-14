@@ -27,7 +27,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		 * The parent class re-initializes the rewrite base from this option before the
 		 * database transaction is rolled back, so it needs to be removed first.
 		 */
-		delete_option( 'random_base' );
+		delete_option( 'wp_random_base' );
 
 		parent::tear_down();
 	}
@@ -398,7 +398,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	public function test_random_base_defaults_to_random(): void {
 		global $wp_rewrite;
 
-		$this->assertFalse( get_option( 'random_base' ), 'The random_base option should not be populated on install.' );
+		$this->assertFalse( get_option( 'wp_random_base' ), 'The wp_random_base option should not be populated on install.' );
 		$this->assertSame( '', $wp_rewrite->random_base, 'The custom random base property should be empty by default.' );
 		$this->assertSame( 'random', $wp_rewrite->get_random_base(), 'The random base should default to random.' );
 	}
@@ -478,7 +478,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 
 		$wp_rewrite->set_random_base( '/surprise-me' );
 
-		$this->assertSame( 'surprise-me', get_option( 'random_base' ), 'The option should be saved without slashes.' );
+		$this->assertSame( 'surprise-me', get_option( 'wp_random_base' ), 'The option should be saved without slashes.' );
 		$this->assertSame( 'surprise-me', $wp_rewrite->random_base, 'The rewrite base should be set from the option.' );
 		$this->assertSame( 'surprise-me', $wp_rewrite->get_random_base(), 'The random base in use should be the custom base.' );
 
@@ -513,7 +513,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	public function test_random_base_option_strips_a_pathinfo_prefix_and_slashes(): void {
 		global $wp_rewrite;
 
-		update_option( 'random_base', '/index.php/surprise-me/' );
+		update_option( 'wp_random_base', '/index.php/surprise-me/' );
 		$wp_rewrite->init();
 
 		$this->assertSame( 'surprise-me', $wp_rewrite->random_base, 'The random base option should be stripped of the PATHINFO prefix and slashes.' );
