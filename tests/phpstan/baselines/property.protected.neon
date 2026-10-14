@@ -19,26 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Access to protected property wpdb\:\:\$dbh\.$#'
-			identifier: property.protected
-			count: 3
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to protected property wpdb\:\:\$dbhost\.$#'
-			identifier: property.protected
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to protected property wpdb\:\:\$dbname\.$#'
-			identifier: property.protected
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
-			message: '#^Access to protected property wpdb\:\:\$dbuser\.$#'
-			identifier: property.protected
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
-		-
 			message: '#^Access to protected property WP_Object_Cache\:\:\$global_groups\.$#'
 			identifier: property.protected
 			count: 2
