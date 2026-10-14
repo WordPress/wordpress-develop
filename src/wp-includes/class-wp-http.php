@@ -485,8 +485,8 @@ class WP_Http {
 			if ( $value instanceof WP_Http_Cookie ) {
 				$cookie_name = (string) $value->name;
 
-				// A cookie without a name cannot be sent.
-				if ( '' === $cookie_name ) {
+				// A cookie without a name cannot be sent, and one without a value is not sent by WP_Http_Cookie::getHeaderValue() either.
+				if ( '' === $cookie_name || null === $value->value ) {
 					continue;
 				}
 
