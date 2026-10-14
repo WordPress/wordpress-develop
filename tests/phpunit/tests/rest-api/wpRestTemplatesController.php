@@ -1181,6 +1181,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'slug', 'not-found' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $data, 'Response should be an empty object when a fallback template is not found.' );
 	}
 

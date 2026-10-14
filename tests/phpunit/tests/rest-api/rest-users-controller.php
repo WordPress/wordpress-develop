@@ -1175,6 +1175,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$data = $response->get_data();
 
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $data['capabilities'], new stdClass() );
 			$this->assertEquals( $data['extra_capabilities'], new stdClass() );
 		}
@@ -2387,7 +2388,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2410,7 +2411,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2469,7 +2470,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'first_name'  => 'div strong',
 				'last_name'   => 'div strong',
 				'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 				'nickname'    => 'div strong',
 				'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 			)
@@ -3355,6 +3356,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->last_name, $data['last_name'] );
 			$this->assertSame( $user->nickname, $data['nickname'] );
 			$this->assertSame( $user->user_email, $data['email'] );
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( (object) $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( (object) $user->caps, $data['extra_capabilities'] );
 			$this->assertSame( gmdate( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );
