@@ -74,7 +74,7 @@ class Mock_Store implements WP_Secrets_Store {
 		$names  = array();
 
 		foreach ( array_keys( $this->records ) as $key ) {
-			if ( 0 === strpos( $key, $prefix ) ) {
+			if ( str_starts_with( $key, $prefix ) ) {
 				$names[] = substr( $key, strlen( $prefix ) );
 			}
 		}

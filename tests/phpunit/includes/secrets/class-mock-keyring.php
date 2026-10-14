@@ -61,7 +61,7 @@ class Mock_Keyring implements WP_Secrets_Keyring {
 			return new WP_Error( WP_SECRETS_ERROR_KEY_UNAVAILABLE, 'Mock_Keyring: unwrap() configured to fail.' );
 		}
 
-		if ( 0 !== strpos( $wrapped, self::MARKER ) ) {
+		if ( ! str_starts_with( $wrapped, self::MARKER ) ) {
 			return new WP_Error( WP_SECRETS_ERROR_KEY_UNAVAILABLE, 'Mock_Keyring: not a value this keyring wrapped.' );
 		}
 
