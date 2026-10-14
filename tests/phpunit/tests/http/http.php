@@ -734,6 +734,16 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 			'missing "=" from header' => array( array( new WP_Http_Cookie( 'foo' ) ) ),
 			'empty scalar name'       => array( array( '' => 'foo' ) ),
 			'whitespace scalar name'  => array( array( " \t " => 'foo' ) ),
+			'non-scalar name'         => array(
+				array(
+					new WP_Http_Cookie(
+						array( // @phpstan-ignore argument.type (Intentionally passing an invalid name.)
+							'name'  => array( 'foo' ),
+							'value' => 'foo',
+						)
+					),
+				),
+			),
 		);
 	}
 

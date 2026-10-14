@@ -485,7 +485,7 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
-				$cookie_name  = trim( (string) $value->name );
+				$cookie_name  = $value->get_sendable_name();
 				$cookie_value = $value->value;
 				$attributes   = array_filter(
 					$value->get_attributes(),
@@ -502,11 +502,11 @@ class WP_Http {
 			}
 
 			/*
-			 * A cookie without a name, once surrounding whitespace is trimmed as in WP_Http_Cookie,
-			 * cannot be sent, and one without a value is not sent by
-			 * WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
+			 * A cookie without a name, once surrounding whitespace is trimmed as in
+			 * WP_Http_Cookie::get_sendable_name(), cannot be sent, and one without a value is not
+			 * sent by WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
 			 */
-			if ( '' === $cookie_name || ! is_scalar( $cookie_value ) ) {
+			if ( null === $cookie_name || '' === $cookie_name || ! is_scalar( $cookie_value ) ) {
 				continue;
 			}
 
