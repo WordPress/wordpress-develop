@@ -800,7 +800,7 @@ class WP_Http {
 			if ( 'set-cookie' === $key ) {
 				$cookie = new WP_Http_Cookie( $value, $url );
 
-				// Ignore a cookie without a name, which the constructor leaves unset.
+				// Ignore a cookie with neither a name nor a value, which the constructor leaves unset.
 				if ( null !== $cookie->get_sendable_name() ) {
 					$cookies[] = $cookie;
 				}

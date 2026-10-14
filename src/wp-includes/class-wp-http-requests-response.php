@@ -160,7 +160,7 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 	public function get_cookies() {
 		$cookies = array();
 		foreach ( $this->response->cookies as $cookie ) {
-			$wp_cookie = new WP_Http_Cookie(
+			$cookies[] = new WP_Http_Cookie(
 				array(
 					'name'      => $cookie->name,
 					'value'     => urldecode( $cookie->value ),
@@ -170,11 +170,6 @@ class WP_HTTP_Requests_Response extends WP_HTTP_Response {
 					'host_only' => $cookie->flags['host-only'] ?? null,
 				)
 			);
-
-			// Ignore a cookie without a name, which the constructor leaves unset.
-			if ( null !== $wp_cookie->get_sendable_name() ) {
-				$cookies[] = $wp_cookie;
-			}
 		}
 
 		return $cookies;
