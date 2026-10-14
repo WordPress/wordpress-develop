@@ -114,7 +114,7 @@
 		"jsonlint": "1.6.3",
 		"lodash": "4.18.1",
 		"masonry-layout": "4.2.2",
-		"moment": "2.30.1",
+		"moment": "2.31.0",
 		"objectFitPolyfill": "2.3.5",
 		"polyfill-library": "4.8.0",
 		"react": "18.3.1",
