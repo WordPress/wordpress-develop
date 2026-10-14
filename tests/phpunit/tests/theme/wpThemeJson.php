@@ -9558,6 +9558,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * Tests that block style variation custom CSS, including breakpoint custom
 	 * CSS, uses the block's css feature selector when defined.
+	 *
+	 * @ticket 66297
+	 *
 	 */
 	public function test_get_styles_for_block_variation_custom_css_uses_css_feature_selector() {
 		register_block_style(
