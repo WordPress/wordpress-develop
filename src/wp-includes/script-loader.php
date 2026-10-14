@@ -3605,6 +3605,8 @@ function wp_print_script_tag( $attributes ) {
  *
  * @since 5.7.0
  * @since 7.0.0 Returns an empty string if the data cannot be safely embedded in a script tag.
+ * @since 7.2.0 The {@see 'wp_inline_script_attributes'} filter receives the script text as the browser
+ *              parses it from the printed tag, and is not applied when the data cannot be embedded.
  *
  * @param string                     $data       Data for script tag: JavaScript, importmap, speculationrules, etc.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<script>` tag attributes.
@@ -3613,45 +3615,64 @@ function wp_print_script_tag( $attributes ) {
 function wp_get_inline_script_tag( $data, $attributes = array() ) {
 	$data = "\n" . trim( $data, "\n\r " ) . "\n";
 
+	// Returns the tag built from the given attributes, or null if the data cannot be embedded with them.
+	$build_tag = static function ( $attributes ) use ( $data ) {
+		$processor = new WP_HTML_Tag_Processor( '<script></script>' );
+		$processor->next_tag();
+		foreach ( $attributes as $name => $value ) {
+			/*
+			 * Lexical variations of an attribute name may represent the
+			 * same attribute in HTML, therefore it’s possible that the
+			 * input array might contain duplicate attributes even though
+			 * it’s keyed on their name. Calling code should rewrite an
+			 * attribute’s value rather than sending a duplicate attribute.
+			 *
+			 * Example:
+			 *
+			 *     array( 'id' => 'main', 'ID' => 'nav' )
+			 *
+			 * In this example, there are two keys both describing the `id`
+			 * attribute. PHP array iteration is in key-insertion order so
+			 * the 'id' value will be set in the SCRIPT tag.
+			 */
+			if ( null !== $processor->get_attribute( $name ) ) {
+				continue;
+			}
+
+			$processor->set_attribute( $name, $value ?? true );
+		}
+
+		// The `type` and `language` attributes decide how the text is escaped, so they are set first.
+		return $processor->set_modifiable_text( $data ) ? $processor : null;
+	};
+
+	$processor = $build_tag( $attributes );
+	if ( null === $processor ) {
+		return '';
+	}
+
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
 	 * @since 5.7.0
+	 * @since 7.2.0 `$data` is the script text as the browser parses it from the printed tag.
 	 *
 	 * @param array<string, string|bool> $attributes Key-value pairs representing `<script>` tag attributes.
 	 *                                               Only the attribute name is added to the `<script>` tag for
 	 *                                               entries with a boolean value, and that are true.
-	 * @param string                     $data       Inline data.
+	 * @param string                     $data       Script text as the browser parses it from the printed tag,
+	 *                                               escaped for the `type` and `language` in `$attributes`.
+	 *                                               A callback that changes `type` or `language` can change
+	 *                                               the escaping of the printed text.
 	 */
-	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $data );
+	$filtered_attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $processor->get_modifiable_text() );
 
-	$processor = new WP_HTML_Tag_Processor( '<script></script>' );
-	$processor->next_tag();
-	foreach ( $attributes as $name => $value ) {
-		/*
-		 * Lexical variations of an attribute name may represent the
-		 * same attribute in HTML, therefore it’s possible that the
-		 * input array might contain duplicate attributes even though
-		 * it’s keyed on their name. Calling code should rewrite an
-		 * attribute’s value rather than sending a duplicate attribute.
-		 *
-		 * Example:
-		 *
-		 *     array( 'id' => 'main', 'ID' => 'nav' )
-		 *
-		 * In this example, there are two keys both describing the `id`
-		 * attribute. PHP array iteration is in key-insertion order so
-		 * the 'id' value will be set in the SCRIPT tag.
-		 */
-		if ( null !== $processor->get_attribute( $name ) ) {
-			continue;
+	// The filtered array replaces the attributes, removals included, so the tag is built again.
+	if ( $filtered_attributes !== $attributes ) {
+		$processor = $build_tag( $filtered_attributes );
+		if ( null === $processor ) {
+			return '';
 		}
-
-		$processor->set_attribute( $name, $value ?? true );
-	}
-
-	if ( ! $processor->set_modifiable_text( $data ) ) {
-		return '';
 	}
 
 	return "{$processor->get_updated_html()}\n";

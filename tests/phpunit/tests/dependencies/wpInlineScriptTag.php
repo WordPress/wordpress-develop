@@ -184,4 +184,128 @@ HTML;
 		);
 		$this->assertSame( '', $result );
 	}
+
+	/**
+	 * Test that the filter receives the script text as it is printed, with escaping applied.
+	 *
+	 * @ticket 66308
+	 */
+	public function test_filter_receives_escaped_script_text() {
+		$filtered_data = null;
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( $attributes, $data ) use ( &$filtered_data ) {
+				$filtered_data = $data;
+				return $attributes;
+			},
+			10,
+			2
+		);
+
+		$tag = wp_get_inline_script_tag( 'console.log( "</script>" );' );
+
+		$this->assertSame( "\n" . 'console.log( "</\\u0073cript>" );' . "\n", $filtered_data );
+		$this->assertSame( '<script>' . "\n" . 'console.log( "</\\u0073cript>" );' . "\n" . '</script>' . "\n", $tag );
+	}
+
+	/**
+	 * Test that the filter receives the script text with newlines normalized as a browser parses them.
+	 *
+	 * @ticket 66308
+	 */
+	public function test_filter_receives_script_text_with_normalized_newlines() {
+		$filtered_data = null;
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( $attributes, $data ) use ( &$filtered_data ) {
+				$filtered_data = $data;
+				return $attributes;
+			},
+			10,
+			2
+		);
+
+		wp_get_inline_script_tag( "first();\r\nsecond();\rthird();" );
+
+		$this->assertSame( "\nfirst();\nsecond();\nthird();\n", $filtered_data );
+	}
+
+	/**
+	 * Test that the printed tag has exactly the attributes returned by the filter.
+	 *
+	 * @ticket 66308
+	 */
+	public function test_filter_replaces_attributes() {
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( $attributes ) {
+				unset( $attributes['nomodule'] );
+				$attributes['async'] = true;
+				return $attributes;
+			}
+		);
+
+		$expected = <<<'HTML'
+<script id="example" async>
+"script data";
+</script>
+
+HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_script_tag(
+				'"script data";',
+				array(
+					'id'       => 'example',
+					'nomodule' => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Test that a filter setting an unrecognized type on data that cannot be escaped for it returns no tag.
+	 *
+	 * @ticket 66308
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 */
+	public function test_filter_setting_unrecognized_type_on_dangerous_contents_returns_empty_string() {
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( $attributes ) {
+				$attributes['type'] = 'example/example';
+				return $attributes;
+			}
+		);
+
+		$this->assertSame( '', wp_get_inline_script_tag( 'console.log( "</script>" );' ) );
+	}
+
+	/**
+	 * Test that the filter does not run when no tag is printed.
+	 *
+	 * @ticket 66308
+	 *
+	 * @expectedIncorrectUsage WP_HTML_Tag_Processor::set_modifiable_text
+	 */
+	public function test_filter_not_called_for_dangerous_unescapeable_contents() {
+		$filter_calls = 0;
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( $attributes ) use ( &$filter_calls ) {
+				++$filter_calls;
+				return $attributes;
+			}
+		);
+
+		$result = wp_get_inline_script_tag(
+			'</script>',
+			array( 'type' => 'example/example' )
+		);
+
+		$this->assertSame( '', $result );
+		$this->assertSame( 0, $filter_calls );
+	}
 }
