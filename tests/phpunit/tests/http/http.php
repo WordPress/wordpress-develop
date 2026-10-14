@@ -696,4 +696,76 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie without a value, as {@see WP_Http_Cookie::getHeaderValue()} does.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_skips_cookie_without_value(): void {
+		$cookie = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
+		$this->assertNull( $cookie->value, 'Expected the cookie value to be null.' );
+		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected the cookie to be omitted from the header value.' );
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertSame( array(), iterator_to_array( $cookie_jar ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie with a non-scalar value.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_skips_cookie_with_non_scalar_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'prefs',
+				'value' => array( 'a' => 1 ),
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertSame( array(), iterator_to_array( $cookie_jar ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with a scalar value as a string.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_scalar_cookie_value_to_string(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'count',
+				'value' => 5,
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['count'] );
+		$this->assertSame( '5', $cookie_jar['count']->value );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty value.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_sends_cookie_with_empty_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => '',
+			)
+		);
+		$this->assertSame( 'flavor=', $cookie->getHeaderValue(), 'Expected the cookie to be in the header value.' );
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
+		$this->assertSame( 'flavor=', $cookie_jar['flavor']->format_for_header() );
+	}
 }

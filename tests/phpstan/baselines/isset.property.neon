@@ -114,21 +114,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-widgets.php
 		-
-			message: '#^Property WP_Http_Cookie\:\:\$domain \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$name \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
-			message: '#^Property WP_Http_Cookie\:\:\$value \(string\) in isset\(\) is not nullable\.$#'
-			identifier: isset.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-http-cookie.php
-		-
 			message: '#^Property WP_Post\:\:\$ID \(int\<0, max\>\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
