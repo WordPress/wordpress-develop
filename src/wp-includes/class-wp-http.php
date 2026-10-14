@@ -836,17 +836,22 @@ class WP_Http {
 				}
 			}
 
-			$cookies_header = '';
+			$cookie_header_values = array();
 			foreach ( (array) $r['cookies'] as $cookie ) {
 				// Objects are not upgraded above, so skip any that are not cookies.
 				if ( ! $cookie instanceof WP_Http_Cookie ) {
 					continue;
 				}
 
-				$cookies_header .= $cookie->getHeaderValue() . '; ';
+				$cookie_header_value = $cookie->getHeaderValue();
+
+				// Omit cookies that cannot be sent, such as those without a name or value.
+				if ( '' !== $cookie_header_value ) {
+					$cookie_header_values[] = $cookie_header_value;
+				}
 			}
 
-			$cookies_header         = substr( $cookies_header, 0, -2 );
+			$cookies_header         = implode( '; ', $cookie_header_values );
 			$r['headers']['cookie'] = $cookies_header;
 		}
 	}

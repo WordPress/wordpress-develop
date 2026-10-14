@@ -823,4 +823,27 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip' ), $args['headers'] );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} omits cookies that cannot be sent.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_omits_unsendable_cookies(): void {
+		$args = array(
+			'cookies' => array(
+				new WP_Http_Cookie( '=abc; path=/' ),
+				new WP_Http_Cookie( 'novalue' ),
+				'flavor'  => 'chocolate-chip',
+				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
+				'texture' => 'chewy',
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
+	}
 }
