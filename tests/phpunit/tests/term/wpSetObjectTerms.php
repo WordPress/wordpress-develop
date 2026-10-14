@@ -507,9 +507,10 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( $term_ids, $actual );
-
+		// Teardown: Reset term counting before assertion.
 		wp_defer_term_counting( false );
+
+		$this->assertSame( $term_ids, $actual );
 	}
 
 	/**
@@ -543,8 +544,9 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 			array( 'fields' => 'ids' )
 		);
 
-		$this->assertSame( $term_ids, $actual );
-
+		// Teardown: Reset term counting before assertion.
 		wp_defer_term_counting( false );
+
+		$this->assertSame( $term_ids, $actual );
 	}
 }
