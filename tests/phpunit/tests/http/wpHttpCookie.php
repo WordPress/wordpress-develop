@@ -2,7 +2,8 @@
 
 /**
  * @group http
- * @covers WP_Http_Cookie
+ *
+ * @coversDefaultClass WP_Http_Cookie
  */
 class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 
@@ -10,7 +11,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * Tests getHeaderValue() with standard cookie data.
 	 *
 	 * @ticket 65817
-	 * @covers WP_Http_Cookie::getHeaderValue
+	 * @covers ::getHeaderValue
 	 */
 	public function test_get_header_value() {
 		$cookie = new WP_Http_Cookie(
@@ -27,7 +28,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * Tests getHeaderValue() returns empty string when name or value is not set.
 	 *
 	 * @ticket 65817
-	 * @covers WP_Http_Cookie::getHeaderValue
+	 * @covers ::getHeaderValue
 	 */
 	public function test_get_header_value_when_name_or_value_not_set() {
 		$cookie_empty = new WP_Http_Cookie( array() );
@@ -44,7 +45,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * Tests getFullHeader() with and without cookie values.
 	 *
 	 * @ticket 65817
-	 * @covers WP_Http_Cookie::getFullHeader
+	 * @covers ::getFullHeader
 	 */
 	public function test_get_full_header() {
 		$cookie = new WP_Http_Cookie(
@@ -64,7 +65,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * Tests that properties default to null when not provided.
 	 *
 	 * @ticket 65817
-	 * @covers WP_Http_Cookie::__construct
+	 * @covers ::__construct
 	 */
 	public function test_properties_null_when_not_provided() {
 		$cookie = new WP_Http_Cookie( 'foo=bar' );
@@ -83,7 +84,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * Tests get_attributes() returns expected cookie attributes.
 	 *
 	 * @ticket 65817
-	 * @covers WP_Http_Cookie::get_attributes
+	 * @covers ::get_attributes
 	 */
 	public function test_get_attributes() {
 		$cookie = new WP_Http_Cookie(
