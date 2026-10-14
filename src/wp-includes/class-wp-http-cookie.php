@@ -270,6 +270,11 @@ class WP_Http_Cookie {
 	 *     @type string         $path    Cookie URL path.
 	 *     @type string|null    $domain  Cookie domain.
 	 * }
+	 * @phpstan-return array{
+	 *     expires: int|false|null,
+	 *     path: string,
+	 *     domain: string|null,
+	 * }
 	 */
 	public function get_attributes() {
 		return array(
