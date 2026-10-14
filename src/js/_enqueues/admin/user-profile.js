@@ -494,9 +494,10 @@
 
 	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
-			select   = $( '#display_name' ),
-			username = $( '#user_login' ).val(),
-			greeting = $( '#wp-admin-bar-my-account' ).find( '.display-name' );
+			select    = $( '#display_name' ),
+			username  = $( '#user_login' ).val(),
+			myAccount = $( '#wp-admin-bar-my-account' ),
+			greeting  = myAccount.find( '.display-name:not(.howdy):not(.edit-profile)' );
 
 		$( '#pass1' ).val( '' ).on( 'input' + ' pwupdate', check_pass_strength );
 		$('#pass-strength-result').show();
@@ -547,9 +548,19 @@
 					return;
 				}
 
-				var display_name = this.value.trim() || username;
+				var display_name = this.value.trim() || username,
+					howdy        = myAccount.find( '#wp-admin-bar-user-info .howdy' ),
+					usernameLine = howdy.siblings( '.username' );
 
 				greeting.text( display_name );
+				myAccount.children( '.ab-sub-wrapper' ).children( '[aria-label]' ).attr( 'aria-label', display_name );
+
+				// Only show the username when it differs from the display name.
+				if ( display_name === username ) {
+					usernameLine.remove();
+				} else if ( ! usernameLine.length && howdy.length ) {
+					$( '<span class="username"></span>' ).text( username ).insertAfter( howdy );
+				}
 			} );
 		}
 
