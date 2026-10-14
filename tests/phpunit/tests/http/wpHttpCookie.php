@@ -261,4 +261,26 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * Tests that a cookie whose name is emptied after construction is treated as invalid.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::test
+	 * @covers ::getHeaderValue
+	 */
+	public function test_cookie_with_name_emptied_after_construction(): void {
+		$cookie       = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			),
+			'https://example.org/'
+		);
+		$cookie->name = '';
+
+		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
+		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
+	}
 }
