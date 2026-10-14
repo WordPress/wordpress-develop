@@ -504,4 +504,33 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 
 		$this->assertSame( 'prefs=a=1', $cookie->getHeaderValue() );
 	}
+
+	/**
+	 * Tests that getHeaderValue() sends a value that the wp_http_cookie_value filter makes a stringable object.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::getHeaderValue
+	 */
+	public function test_get_header_value_with_value_filtered_to_stringable_object(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'flavor',
+				'value' => 'chocolate-chip',
+			)
+		);
+
+		add_filter(
+			'wp_http_cookie_value',
+			static function (): object {
+				return new class() {
+					public function __toString(): string {
+						return 'CHOCOLATE-CHIP';
+					}
+				};
+			}
+		);
+
+		$this->assertSame( 'flavor=CHOCOLATE-CHIP', $cookie->getHeaderValue() );
+	}
 }

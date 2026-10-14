@@ -265,8 +265,8 @@ class WP_Http_Cookie {
 		 */
 		$value = apply_filters( 'wp_http_cookie_value', $this->value, $name );
 
-		// A non-scalar value cannot be represented, as in WP_Http::normalize_cookies().
-		if ( ! is_scalar( $value ) ) {
+		// A value that is neither scalar nor stringable cannot be represented, as in WP_Http::normalize_cookies().
+		if ( ! is_scalar( $value ) && ! ( is_object( $value ) && method_exists( $value, '__toString' ) ) ) {
 			return '';
 		}
 
