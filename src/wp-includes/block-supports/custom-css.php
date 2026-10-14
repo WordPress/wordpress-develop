@@ -95,8 +95,8 @@ function wp_get_custom_css_state_entries( $style, $block_name, $responsive_media
  * @since 7.2.0
  * @access private
  *
- * @param array  $state_entries Custom CSS entries.
- * @param string $selector      Selector scoping the block instance.
+ * @param array[] $state_entries Custom CSS entries.
+ * @param string  $selector      Selector scoping the block instance.
  * @return string Processed CSS.
  */
 function wp_process_custom_css_state_entries( $state_entries, $selector ) {
