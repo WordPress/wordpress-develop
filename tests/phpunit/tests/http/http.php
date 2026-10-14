@@ -700,8 +700,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} skips cookies without a name.
 	 *
-	 * @ticket 65817
-	 *
 	 * @covers WP_Http::normalize_cookies
 	 *
 	 * @dataProvider data_normalize_cookies_skips_cookie_without_name
@@ -739,8 +737,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie without a value as an empty string.
-	 *
-	 * @ticket 65817
 	 *
 	 * @covers WP_Http::normalize_cookies
 	 */
