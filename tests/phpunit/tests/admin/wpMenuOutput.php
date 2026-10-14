@@ -54,7 +54,6 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 * @ticket 65089
 	 *
 	 * @covers ::_wp_menu_output
-	 * @covers ::_wp_replace_menu_dashicon
 	 *
 	 * @dataProvider data_replaced_dashicons
 	 *
@@ -98,7 +97,6 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 * @ticket 65089
 	 *
 	 * @covers ::_wp_menu_output
-	 * @covers ::_wp_replace_menu_dashicon
 	 *
 	 * @dataProvider data_unchanged_icons
 	 *
@@ -106,8 +104,6 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	 * @param string $expected The expected HTML of the icon element.
 	 */
 	public function test_other_icon_is_rendered_as_before( $icon, $expected ): void {
-		$this->assertSame( $icon, _wp_replace_menu_dashicon( $icon ) );
-
 		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 		$menu = array(
 			array( 'Item', 'read', 'my-plugin', '', 'menu-top', 'toplevel_page_my-plugin', $icon ),

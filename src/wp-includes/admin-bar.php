@@ -299,7 +299,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'icon'   => empty( $avatar ) ? 'core-admin/people' : '',
+			'icon'   => empty( $avatar ) ? 'core-admin/people' : false,
 			'title'  => '<span class="display-name">' . $display_name . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(

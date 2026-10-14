@@ -194,7 +194,7 @@ function _wp_register_default_icons() {
  */
 function wp_is_valid_icon_name( $icon_name ) {
 	return is_string( $icon_name )
-		&& 1 === preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#D', $icon_name );
+		&& preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#D', $icon_name );
 }
 
 /**

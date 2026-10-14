@@ -55,38 +55,6 @@ $submenu_file = apply_filters( 'submenu_file', $submenu_file, $parent_file );
 get_admin_page_parent();
 
 /**
- * Dashicons back-compat: returns the name of the icon that replaces a Dashicon in the admin menu.
- *
- * The `$menu` global keeps the Dashicons values of the core menu items. Those
- * Dashicons are only mapped to their replacement icons here, when the menu is
- * rendered.
- *
- * @access private
- * @since 7.2.0
- *
- * @param string $dashicon The Dashicon class name, e.g. 'dashicons-admin-post'.
- * @return string Namespaced icon name of the replacement, or the given value if it has no replacement.
- */
-function _wp_replace_menu_dashicon( $dashicon ) {
-	$dashicon_replacements = array(
-		'dashicons-dashboard'        => 'core-admin/dashboard',
-		'dashicons-admin-post'       => 'core-admin/pin',
-		'dashicons-admin-media'      => 'core-admin/media',
-		'dashicons-admin-links'      => 'core-admin/link',
-		'dashicons-admin-page'       => 'core-admin/page',
-		'dashicons-admin-comments'   => 'core-admin/comment',
-		'dashicons-admin-appearance' => 'core-admin/brush',
-		'dashicons-admin-plugins'    => 'core-admin/plugins',
-		'dashicons-admin-users'      => 'core-admin/people',
-		'dashicons-admin-tools'      => 'core-admin/tool',
-		'dashicons-admin-settings'   => 'core-admin/settings',
-		'dashicons-admin-multisite'  => 'core-admin/sites',
-	);
-
-	return $dashicon_replacements[ $dashicon ] ?? $dashicon;
-}
-
-/**
  * Display menu.
  *
  * @access private
@@ -104,6 +72,26 @@ function _wp_replace_menu_dashicon( $dashicon ) {
  */
 function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 	global $self, $parent_file, $submenu_file, $plugin_page, $typenow;
+
+	/*
+	 * Dashicons back-compat: the `$menu` global keeps the Dashicons values of the core
+	 * menu items. Those Dashicons are only mapped to their replacement icons here, when
+	 * the menu is rendered.
+	 */
+	$dashicon_replacements = array(
+		'dashicons-dashboard'        => 'core-admin/dashboard',
+		'dashicons-admin-post'       => 'core-admin/pin',
+		'dashicons-admin-media'      => 'core-admin/media',
+		'dashicons-admin-links'      => 'core-admin/link',
+		'dashicons-admin-page'       => 'core-admin/page',
+		'dashicons-admin-comments'   => 'core-admin/comment',
+		'dashicons-admin-appearance' => 'core-admin/brush',
+		'dashicons-admin-plugins'    => 'core-admin/plugins',
+		'dashicons-admin-users'      => 'core-admin/people',
+		'dashicons-admin-tools'      => 'core-admin/tool',
+		'dashicons-admin-settings'   => 'core-admin/settings',
+		'dashicons-admin-multisite'  => 'core-admin/sites',
+	);
 
 	$first = true;
 	// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
@@ -163,7 +151,7 @@ function _wp_menu_output( $menu, $submenu, $submenu_as_parent = true ) {
 		 */
 		if ( ! empty( $item[6] ) ) {
 			$img       = '<img src="' . esc_url( $item[6] ) . '" alt="" />';
-			$icon_name = _wp_replace_menu_dashicon( $item[6] );
+			$icon_name = $dashicon_replacements[ $item[6] ] ?? $item[6];
 
 			if ( 'none' === $item[6] || 'div' === $item[6] ) {
 				$img = '<br />';

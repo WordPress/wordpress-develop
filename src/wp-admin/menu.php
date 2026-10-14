@@ -21,10 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *     3: Page title.
  *     4: Classes.
  *     5: ID.
- *     6: Icon for top level menu.
- *
- * Dashicons back-compat: the Dashicons values of the icons are kept. They are
- * replaced with SVG icons at render time, see _wp_replace_menu_dashicon().
+ *     6: Icon for top level menu. Dashicons values are kept here and replaced
+ *        with SVG icons at render time, see _wp_menu_output().
  *
  * @global array $menu
  */
