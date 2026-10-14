@@ -910,8 +910,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	public function test_build_cookie_header_omits_unsendable_cookies(): void {
 		$args = array(
 			'cookies' => array(
+				new WP_Http_Cookie( '=; path=/' ),
 				new WP_Http_Cookie( '=abc; path=/' ),
-				new WP_Http_Cookie( 'novalue' ),
 				'flavor'  => 'chocolate-chip',
 				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
 				'texture' => 'chewy',
@@ -920,7 +920,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		WP_Http::buildCookieHeader( $args );
 
-		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
+		// A cookie with an empty name is still sent, per RFC 6265bis.
+		$this->assertSame( array( 'cookie' => '=abc; flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
 	}
 
 	/**
@@ -934,7 +935,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$args = array(
 			'headers' => array( 'accept' => 'text/html' ),
 			'cookies' => array(
-				new WP_Http_Cookie( 'novalue' ),
+				new WP_Http_Cookie( '=; path=/' ),
 				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
 			),
 		);
@@ -945,30 +946,37 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that {@see WP_Http::processHeaders()} ignores Set-Cookie headers lacking a name.
+	 * Tests that {@see WP_Http::processHeaders()} keeps cookies with an empty name, but ignores those with neither a name nor a value.
 	 *
 	 * @ticket 66305
 	 *
 	 * @covers WP_Http::processHeaders
 	 */
-	public function test_process_headers_ignores_cookies_without_name(): void {
-		$headers = "HTTP/1.1 200 OK\r\nSet-Cookie: novalue\r\nSet-Cookie: =abc; path=/\r\nSet-Cookie: flavor=chocolate-chip\r\n";
+	public function test_process_headers_ignores_cookies_without_name_or_value(): void {
+		$headers = "HTTP/1.1 200 OK\r\nSet-Cookie: novalue\r\nSet-Cookie: =abc; path=/\r\nSet-Cookie: =; path=/\r\nSet-Cookie: flavor=chocolate-chip\r\n";
 
 		$processed = WP_Http::processHeaders( $headers, 'https://example.org/' );
 
-		$this->assertCount( 1, $processed['cookies'] );
-		$this->assertInstanceOf( 'WP_Http_Cookie', $processed['cookies'][0] );
-		$this->assertSame( 'flavor', $processed['cookies'][0]->name );
+		$this->assertIsArray( $processed['cookies'] );
+		$this->assertSame(
+			array( '=novalue', '=abc', 'flavor=chocolate-chip' ),
+			array_map(
+				static function ( WP_Http_Cookie $cookie ): string {
+					return $cookie->getHeaderValue();
+				},
+				$processed['cookies']
+			)
+		);
 	}
 
 	/**
-	 * Tests that {@see WP_HTTP_Requests_Response::get_cookies()} ignores cookies lacking a name.
+	 * Tests that {@see WP_HTTP_Requests_Response::get_cookies()} keeps cookies with an empty name.
 	 *
 	 * @ticket 66305
 	 *
 	 * @covers WP_HTTP_Requests_Response::get_cookies
 	 */
-	public function test_requests_response_get_cookies_ignores_cookies_without_name(): void {
+	public function test_requests_response_get_cookies_keeps_cookies_with_empty_name(): void {
 		$requests_response          = new WpOrg\Requests\Response();
 		$requests_response->cookies = new WpOrg\Requests\Cookie\Jar(
 			array(
@@ -979,7 +987,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$cookies = ( new WP_HTTP_Requests_Response( $requests_response ) )->get_cookies();
 
-		$this->assertCount( 1, $cookies );
-		$this->assertSame( 'flavor', $cookies[0]->name );
+		$this->assertCount( 2, $cookies );
+		$this->assertSame( '', $cookies[0]->name );
+		$this->assertSame( 'abc', $cookies[0]->value );
+		$this->assertSame( 'flavor', $cookies[1]->name );
 	}
 }

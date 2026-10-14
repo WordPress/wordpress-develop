@@ -275,6 +275,8 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 
 		$this->assertSame( '', $cookie->name );
 		$this->assertSame( $expected_value, $cookie->value );
+		$this->assertTrue( $cookie->test( 'https://example.org/' ), 'Expected the cookie to be sent.' );
+		$this->assertSame( '=' . $expected_value, $cookie->getHeaderValue() );
 	}
 
 	/**
@@ -343,7 +345,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a cookie whose name is emptied after construction is treated as invalid.
+	 * Tests that a cookie whose name is emptied after construction is sent with an empty name.
 	 *
 	 * @ticket 66305
 	 *
@@ -364,8 +366,8 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 		);
 		$cookie->name = $name;
 
-		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
-		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
+		$this->assertTrue( $cookie->test( 'https://example.org/' ), 'Expected the cookie to be sent.' );
+		$this->assertSame( '=chocolate-chip', $cookie->getHeaderValue() );
 	}
 
 	/**
@@ -381,7 +383,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that get_sendable_name() returns the trimmed name, or null when there is no usable name.
+	 * Tests that get_sendable_name() returns the trimmed name, or null when there is no name.
 	 *
 	 * @ticket 66305
 	 *
@@ -414,8 +416,8 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			'plain'           => array( 'flavor', 'flavor' ),
 			'surrounded'      => array( " \tflavor ", 'flavor' ),
 			'numeric'         => array( '0', '0' ),
-			'empty'           => array( '', null ),
-			'whitespace-only' => array( " \t ", null ),
+			'empty'           => array( '', '' ),
+			'whitespace-only' => array( " \t ", '' ),
 			'null'            => array( null, null ),
 		);
 	}

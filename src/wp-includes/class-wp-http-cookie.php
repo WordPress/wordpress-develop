@@ -276,21 +276,18 @@ class WP_Http_Cookie {
 	/**
 	 * Retrieves the cookie name to send, with surrounding whitespace trimmed.
 	 *
+	 * An empty name is valid, per RFC 6265bis.
+	 *
 	 * @since 7.2.0
 	 *
-	 * @return string|null The trimmed cookie name, or null if the name is missing, empty, or not a scalar.
+	 * @return string|null The trimmed cookie name, or null if the name is missing or not a scalar.
 	 */
 	public function get_sendable_name(): ?string {
 		if ( ! is_scalar( $this->name ) ) {
 			return null;
 		}
 
-		$name = trim( (string) $this->name );
-		if ( '' === $name ) {
-			return null;
-		}
-
-		return $name;
+		return trim( (string) $this->name );
 	}
 
 	/**
