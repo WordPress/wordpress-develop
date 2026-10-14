@@ -963,7 +963,10 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 */
 	public function test_build_cookie_header_without_sendable_cookies(): void {
 		$args = array(
-			'headers' => array( 'accept' => 'text/html' ),
+			'headers' => array(
+				'accept' => 'text/html',
+				'cookie' => 'replaced=1',
+			),
 			'cookies' => array(
 				new WP_Http_Cookie( '=; path=/' ),
 				new WP_Http_Cookie( array( 'name' => 'missing-value' ) ),
@@ -972,6 +975,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		WP_Http::buildCookieHeader( $args );
 
+		// As when cookies are sent, the cookies replace any Cookie header supplied.
 		$this->assertSame( array( 'accept' => 'text/html' ), $args['headers'] );
 	}
 

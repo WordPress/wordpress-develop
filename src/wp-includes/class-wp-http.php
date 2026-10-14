@@ -857,8 +857,11 @@ class WP_Http {
 				}
 			}
 
-			// Avoid sending an empty Cookie header.
+			// Replace any Cookie header supplied, as when cookies are sent, but avoid sending an empty one.
 			if ( array() === $cookie_header_values ) {
+				if ( isset( $r['headers'] ) && is_array( $r['headers'] ) ) {
+					unset( $r['headers']['cookie'] );
+				}
 				return;
 			}
 
