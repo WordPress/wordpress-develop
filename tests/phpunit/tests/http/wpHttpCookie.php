@@ -222,7 +222,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a cookie with an empty or missing name is treated as invalid.
+	 * Tests that a header string with neither a name nor a value is ignored.
 	 *
 	 * @ticket 66305
 	 *
@@ -230,12 +230,12 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 * @covers ::test
 	 * @covers ::getHeaderValue
 	 *
-	 * @dataProvider data_cookie_without_name
+	 * @dataProvider data_header_without_name_or_value
 	 *
-	 * @param string|array{ name: string, value: string } $data Cookie data.
+	 * @param string $header Cookie header string.
 	 */
-	public function test_cookie_without_name( $data ): void {
-		$cookie = new WP_Http_Cookie( $data, 'https://example.org/' );
+	public function test_header_without_name_or_value( string $header ): void {
+		$cookie = new WP_Http_Cookie( $header, 'https://example.org/' );
 
 		$this->assertNull( $cookie->name, 'Expected the name to be null.' );
 		$this->assertNull( $cookie->value, 'Expected the value to be null.' );
@@ -244,32 +244,20 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for {@see self::test_cookie_without_name()}.
+	 * Data provider for {@see self::test_header_without_name_or_value()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string } }>
+	 * @return array<non-falsy-string, array{ 0: string }>
 	 */
-	public function data_cookie_without_name(): array {
+	public function data_header_without_name_or_value(): array {
 		return array(
-			'empty header'                     => array( '' ),
-			'whitespace header'                => array( ' ; path=/' ),
-			'empty name and value from header' => array( '=; path=/' ),
-			'empty name from array'            => array(
-				array(
-					'name'  => '',
-					'value' => 'abc',
-				),
-			),
-			'whitespace name from array'       => array(
-				array(
-					'name'  => " \t ",
-					'value' => 'abc',
-				),
-			),
+			'empty'                => array( '' ),
+			'whitespace'           => array( ' ; path=/' ),
+			'empty name and value' => array( '=; path=/' ),
 		);
 	}
 
 	/**
-	 * Tests that a header string with an empty or missing name is parsed as a cookie with an empty name.
+	 * Tests that a cookie with an empty or missing name is parsed as a cookie with an empty name.
 	 *
 	 * Per RFC 6265bis, a name-value pair lacking "=" is an empty name with the pair as its value.
 	 *
@@ -277,30 +265,44 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::__construct
 	 *
-	 * @dataProvider data_header_with_empty_name
+	 * @dataProvider data_cookie_with_empty_name
 	 *
-	 * @param string $header         Cookie header string.
-	 * @param string $expected_value Expected cookie value.
+	 * @param string|array{ name: string, value: string } $data           Cookie data.
+	 * @param string                                      $expected_value Expected cookie value.
 	 */
-	public function test_header_with_empty_name( string $header, string $expected_value ): void {
-		$cookie = new WP_Http_Cookie( $header, 'https://example.org/' );
+	public function test_cookie_with_empty_name( $data, string $expected_value ): void {
+		$cookie = new WP_Http_Cookie( $data, 'https://example.org/' );
 
 		$this->assertSame( '', $cookie->name );
 		$this->assertSame( $expected_value, $cookie->value );
 	}
 
 	/**
-	 * Data provider for {@see self::test_header_with_empty_name()}.
+	 * Data provider for {@see self::test_cookie_with_empty_name()}.
 	 *
-	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
+	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string }, 1: string }>
 	 */
-	public function data_header_with_empty_name(): array {
+	public function data_cookie_with_empty_name(): array {
 		return array(
-			'empty name'                  => array( '=abc; path=/', 'abc' ),
-			'whitespace name'             => array( ' =abc', 'abc' ),
-			'missing "="'                 => array( 'novalue', 'novalue' ),
-			'missing "=" with attributes' => array( 'novalue; path=/', 'novalue' ),
-			'missing "=" with encoding'   => array( 'no%20value', 'no value' ),
+			'empty name from header'                  => array( '=abc; path=/', 'abc' ),
+			'whitespace name from header'             => array( ' =abc', 'abc' ),
+			'missing "=" from header'                 => array( 'novalue', 'novalue' ),
+			'missing "=" with attributes from header' => array( 'novalue; path=/', 'novalue' ),
+			'missing "=" with encoding from header'   => array( 'no%20value', 'no value' ),
+			'empty name from array'                   => array(
+				array(
+					'name'  => '',
+					'value' => 'abc',
+				),
+				'abc',
+			),
+			'whitespace name from array'              => array(
+				array(
+					'name'  => " \t ",
+					'value' => 'abc',
+				),
+				'abc',
+			),
 		);
 	}
 
