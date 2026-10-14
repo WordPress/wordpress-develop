@@ -250,23 +250,57 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 */
 	public function data_cookie_without_name(): array {
 		return array(
-			'empty name from header'            => array( '=abc; path=/' ),
-			'whitespace name from header'       => array( ' =abc' ),
-			'missing "=" from header'           => array( 'novalue' ),
-			'missing "=" with attribute header' => array( 'novalue; path=/' ),
-			'empty header'                      => array( '' ),
-			'empty name from array'             => array(
+			'empty header'                     => array( '' ),
+			'whitespace header'                => array( ' ; path=/' ),
+			'empty name and value from header' => array( '=; path=/' ),
+			'empty name from array'            => array(
 				array(
 					'name'  => '',
 					'value' => 'abc',
 				),
 			),
-			'whitespace name from array'        => array(
+			'whitespace name from array'       => array(
 				array(
 					'name'  => " \t ",
 					'value' => 'abc',
 				),
 			),
+		);
+	}
+
+	/**
+	 * Tests that a header string with an empty or missing name is parsed as a cookie with an empty name.
+	 *
+	 * Per RFC 6265bis, a name-value pair lacking "=" is an empty name with the pair as its value.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::__construct
+	 *
+	 * @dataProvider data_header_with_empty_name
+	 *
+	 * @param string $header         Cookie header string.
+	 * @param string $expected_value Expected cookie value.
+	 */
+	public function test_header_with_empty_name( string $header, string $expected_value ): void {
+		$cookie = new WP_Http_Cookie( $header, 'https://example.org/' );
+
+		$this->assertSame( '', $cookie->name );
+		$this->assertSame( $expected_value, $cookie->value );
+	}
+
+	/**
+	 * Data provider for {@see self::test_header_with_empty_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string, 1: string }>
+	 */
+	public function data_header_with_empty_name(): array {
+		return array(
+			'empty name'                  => array( '=abc; path=/', 'abc' ),
+			'whitespace name'             => array( ' =abc', 'abc' ),
+			'missing "="'                 => array( 'novalue', 'novalue' ),
+			'missing "=" with attributes' => array( 'novalue; path=/', 'novalue' ),
+			'missing "=" with encoding'   => array( 'no%20value', 'no value' ),
 		);
 	}
 

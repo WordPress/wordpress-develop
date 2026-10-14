@@ -129,17 +129,20 @@ class WP_Http_Cookie {
 
 			// Special handling for first pair; name=value. Also be careful of "=" in value.
 			$separator = strpos( $pairs[0], '=' );
-
-			// Ignore a cookie lacking "=" or with an empty name, per RFC 6265, leaving its name and value unset.
 			if ( false === $separator ) {
-				return;
+				// Per RFC 6265bis, a pair lacking "=" has an empty name, with the whole pair as its value.
+				$name  = '';
+				$value = $pairs[0];
+			} else {
+				$name  = trim( substr( $pairs[0], 0, $separator ) );
+				$value = substr( $pairs[0], $separator + 1 );
 			}
-			$name = trim( substr( $pairs[0], 0, $separator ) );
-			if ( '' === $name ) {
+
+			// Ignore a cookie with neither a name nor a value, per RFC 6265bis, leaving both unset.
+			if ( '' === $name && '' === trim( $value ) ) {
 				return;
 			}
 
-			$value       = substr( $pairs[0], $separator + 1 );
 			$this->name  = $name;
 			$this->value = urldecode( $value );
 
