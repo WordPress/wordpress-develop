@@ -706,7 +706,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @param WP_Http_Cookie $cookie Cookie without a name.
 	 */
-	public function test_normalize_cookies_skips_cookie_without_name( WP_Http_Cookie $cookie ) {
+	public function test_normalize_cookies_skips_cookie_without_name( WP_Http_Cookie $cookie ): void {
 		$cookie_jar = WP_Http::normalize_cookies(
 			array(
 				'nameless' => $cookie,
@@ -723,11 +723,11 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider.
+	 * Data provider for {@see self::test_normalize_cookies_skips_cookie_without_name()}.
 	 *
 	 * @return array<non-falsy-string, array{ 0: WP_Http_Cookie }>
 	 */
-	public function data_normalize_cookies_skips_cookie_without_name() {
+	public function data_normalize_cookies_skips_cookie_without_name(): array {
 		return array(
 			'null name from array'    => array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ),
 			'empty name from header'  => array( new WP_Http_Cookie( '=foo' ) ),
@@ -740,7 +740,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Http::normalize_cookies
 	 */
-	public function test_normalize_cookies_casts_null_cookie_value_to_empty_string() {
+	public function test_normalize_cookies_casts_null_cookie_value_to_empty_string(): void {
 		$cookie = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
 		$this->assertNull( $cookie->value, 'Expected the cookie value to be null.' );
 
