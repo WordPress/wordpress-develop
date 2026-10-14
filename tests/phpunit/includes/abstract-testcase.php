@@ -1330,8 +1330,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 	 *
 	 * Given two markup strings, assert that they translate to the same semantic HTML tree,
 	 * normalizing tag names, attribute names, and attribute order. Furthermore, attributes
-	 * and class names are sorted and deduplicated, and whitespace in style attributes
-	 * is normalized. Finally, block delimiter comments are recognized and normalized,
+	 * and class names are sorted and deduplicated, and style attributes are compared by
+	 * their declarations, as in assertEqualStyleAttribute(), when they have no other text.
+	 * Finally, block delimiter comments are recognized and normalized,
 	 * applying the same principles.
 	 *
 	 * @since 6.9.0
@@ -1361,6 +1362,35 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 		}
 
 		$this->assertSame( $tree_expected, $tree_actual, $message );
+	}
+
+	/**
+	 * Check style attribute values for the same declarations.
+	 *
+	 * Given two decoded style attribute values, assert that they have the same declarations
+	 * in the same order: the same property names, priorities and value tokens, as listed by
+	 * build_style_attribute_declarations(). Whitespace and comments are ignored. The assertion
+	 * fails when either value has text that is not a declaration, a `;`, whitespace or a comment.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $expected The expected style attribute value.
+	 * @param string $actual   The actual style attribute value.
+	 * @param string $message  Optional. The assertion error message.
+	 */
+	public function assertEqualStyleAttribute( string $expected, string $actual, string $message = 'Style attribute values were not equivalent.' ): void {
+		$declarations_expected = build_style_attribute_declarations( $expected );
+		$declarations_actual   = build_style_attribute_declarations( $actual );
+
+		if ( null === $declarations_expected ) {
+			$this->fail( "{$message}\nThe expected value has text that is not a declaration: {$expected}" );
+		}
+
+		if ( null === $declarations_actual ) {
+			$this->fail( "{$message}\nThe actual value has text that is not a declaration: {$actual}" );
+		}
+
+		$this->assertSame( implode( "\n", $declarations_expected ), implode( "\n", $declarations_actual ), $message );
 	}
 
 	/**
