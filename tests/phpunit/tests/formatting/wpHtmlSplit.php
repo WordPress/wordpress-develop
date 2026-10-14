@@ -81,6 +81,8 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	 * @dataProvider data_whole_posts
 	 *
 	 * @covers ::get_html_split_regex
+	 *
+	 * @param non-falsy-string $input
 	 */
 	public function test_pcre_performance( string $input ): void {
 		$regex  = get_html_split_regex();
@@ -91,7 +93,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_pcre_performance()}.
 	 *
-	 * @return array<int, array{0: string}>
+	 * @return non-empty-list<array{ non-falsy-string }>
 	 */
 	public function data_whole_posts(): array {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
