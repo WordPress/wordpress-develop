@@ -163,6 +163,11 @@ class WP_Http_Cookie {
 				$this->$key = $val;
 			}
 		} else {
+			// Trim the name as is done for a header string, so a whitespace-only name is treated as empty.
+			if ( isset( $data['name'] ) && is_string( $data['name'] ) ) {
+				$data['name'] = trim( $data['name'] );
+			}
+
 			if ( ! isset( $data['name'] ) || '' === $data['name'] ) {
 				return;
 			}

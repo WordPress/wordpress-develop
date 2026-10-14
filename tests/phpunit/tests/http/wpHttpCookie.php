@@ -261,6 +261,48 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 					'value' => 'abc',
 				),
 			),
+			'whitespace name from array'        => array(
+				array(
+					'name'  => " \t ",
+					'value' => 'abc',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that surrounding whitespace is trimmed from the cookie name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::__construct
+	 * @covers ::getHeaderValue
+	 *
+	 * @dataProvider data_cookie_name_is_trimmed
+	 *
+	 * @param string|array{ name: string, value: string } $data Cookie data.
+	 */
+	public function test_cookie_name_is_trimmed( $data ): void {
+		$cookie = new WP_Http_Cookie( $data );
+
+		$this->assertSame( 'flavor', $cookie->name );
+		$this->assertSame( 'flavor=chocolate-chip', $cookie->getHeaderValue() );
+	}
+
+	/**
+	 * Data provider for {@see self::test_cookie_name_is_trimmed()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string } }>
+	 */
+	public function data_cookie_name_is_trimmed(): array {
+		return array(
+			'from header' => array( " \tflavor =chocolate-chip" ),
+			'from array'  => array(
+				array(
+					'name'  => " \tflavor ",
+					'value' => 'chocolate-chip',
+				),
+			),
 		);
 	}
 
