@@ -1544,7 +1544,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
-	public function test_get_merged_data_returns_a_separate_instance_per_call() {
+	public function test_get_merged_data_returns_a_separate_instance_per_call(): void {
 		$first  = WP_Theme_JSON_Resolver::get_merged_data();
 		$second = WP_Theme_JSON_Resolver::get_merged_data();
 
@@ -1563,7 +1563,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @param string $origin Origin to request.
 	 */
-	public function test_get_merged_data_returns_the_memoized_data( $origin ) {
+	public function test_get_merged_data_returns_the_memoized_data( string $origin ): void {
 		WP_Theme_JSON_Resolver::get_merged_data( $origin );
 
 		$sentinel = $this->replace_merged_data_with_sentinel( $origin );
@@ -1584,9 +1584,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
-	public function test_get_merged_data_is_not_affected_by_modifying_the_result() {
+	public function test_get_merged_data_is_not_affected_by_modifying_the_result(): void {
 		// A style referencing a preset is injected because no bundled theme fixture has one that resolves.
-		$filter = static function ( $theme_json ) {
+		$filter = static function ( WP_Theme_JSON_Data $theme_json ): WP_Theme_JSON_Data {
 			return $theme_json->update_with(
 				array(
 					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -1630,7 +1630,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
-	public function test_get_merged_data_reflects_blocks_registered_after_a_previous_call() {
+	public function test_get_merged_data_reflects_blocks_registered_after_a_previous_call(): void {
 		// The first call records the registered blocks and stores the data; the second returns it.
 		WP_Theme_JSON_Resolver::get_merged_data();
 		WP_Theme_JSON_Resolver::get_merged_data();
@@ -1664,7 +1664,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 *
 	 * @param string $origin Origin to request.
 	 */
-	public function test_clean_cached_data_refreshes_merged_data( $origin ) {
+	public function test_clean_cached_data_refreshes_merged_data( string $origin ): void {
 		WP_Theme_JSON_Resolver::get_merged_data( $origin );
 		$this->replace_merged_data_with_sentinel( $origin );
 
@@ -1680,9 +1680,9 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string}>
 	 */
-	public function data_merged_data_origins() {
+	public static function data_merged_data_origins(): array {
 		return array(
 			'default' => array( 'default' ),
 			'blocks'  => array( 'blocks' ),
@@ -1695,7 +1695,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @ticket 66280
 	 * @covers WP_Theme_JSON_Resolver::get_merged_data
 	 */
-	public function test_switching_theme_refreshes_merged_data() {
+	public function test_switching_theme_refreshes_merged_data(): void {
 		switch_theme( 'block-theme' );
 		$before = wp_list_pluck( WP_Theme_JSON_Resolver::get_merged_data()->get_settings()['color']['palette']['theme'] ?? array(), 'slug' );
 
@@ -1712,7 +1712,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 * @param string $origin Origin to replace the data for.
 	 * @return WP_Theme_JSON The instance now memoized for the origin.
 	 */
-	private function replace_merged_data_with_sentinel( $origin ) {
+	private function replace_merged_data_with_sentinel( string $origin ): WP_Theme_JSON {
 		$sentinel = new WP_Theme_JSON(
 			array(
 				'version' => WP_Theme_JSON::LATEST_SCHEMA,
