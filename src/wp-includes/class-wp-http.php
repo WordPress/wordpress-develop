@@ -839,15 +839,15 @@ class WP_Http {
 
 			$cookie_header_values = array();
 			foreach ( (array) $r['cookies'] as $cookie ) {
-				// Objects are not upgraded above, so skip any that are not cookies.
-				if ( ! $cookie instanceof WP_Http_Cookie ) {
+				// Objects are not upgraded above, so skip any that cannot provide a header value.
+				if ( ! is_object( $cookie ) || ! method_exists( $cookie, 'getHeaderValue' ) ) {
 					continue;
 				}
 
 				$cookie_header_value = $cookie->getHeaderValue();
 
 				// Omit cookies that cannot be sent, such as those without a name or value.
-				if ( '' !== $cookie_header_value ) {
+				if ( is_string( $cookie_header_value ) && '' !== $cookie_header_value ) {
 					$cookie_header_values[] = $cookie_header_value;
 				}
 			}

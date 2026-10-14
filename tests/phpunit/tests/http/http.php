@@ -877,6 +877,30 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} includes objects of other classes that provide a header value.
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_includes_other_cookie_classes(): void {
+		$custom_cookie = new class() {
+			public function getHeaderValue(): string { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+				return 'texture=chewy';
+			}
+		};
+
+		$args = array(
+			'cookies' => array(
+				'flavor' => 'chocolate-chip',
+				'custom' => $custom_cookie,
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip; texture=chewy' ), $args['headers'] );
+	}
+
+	/**
 	 * Tests that {@see WP_Http::buildCookieHeader()} omits cookies that cannot be sent.
 	 *
 	 * @ticket 66305
