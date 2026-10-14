@@ -104,9 +104,9 @@ class WP_Http_Cookie {
 	 *     @type mixed           $value     Value. Should NOT already be urlencoded.
 	 *     @type string|int|null $expires   Optional. Unix timestamp or formatted date. Default null.
 	 *     @type string|null     $path      Optional. Path. Default '/'.
-	 *     @type string          $domain    Optional. Domain. Default host of parsed $requested_url.
+	 *     @type string|null     $domain    Optional. Domain. Default host of parsed $requested_url.
 	 *     @type int|string|null $port      Optional. Port or comma-separated list of ports. Default null.
-	 *     @type bool            $host_only Optional. host-only storage flag. Default true.
+	 *     @type bool|null       $host_only Optional. host-only storage flag. Default true.
 	 * }
 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
 	 *                                    and $port values.
