@@ -44,7 +44,7 @@ final class WP_Abilities_Content {
 	private const CATEGORY = 'content';
 
 	/**
-	 * Default number of posts returned per page.
+	 * Default number of posts returned per page, unless `where` lists posts by ID or slug.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -52,7 +52,10 @@ final class WP_Abilities_Content {
 	private const DEFAULT_PER_PAGE = 10;
 
 	/**
-	 * Maximum number of posts returned per page, which also caps the `ids` and `slugs` filters.
+	 * Maximum number of posts returned per page.
+	 *
+	 * The `ids` and `slugs` lists in `where` each hold at most this many values, so the posts
+	 * that `ids` lists fit on one page.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -521,7 +524,8 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		$per_page = $this->normalize_per_page( $pagination, $ids ?? $slugs ?? array() );
+		$lists_posts = null !== $ids || null !== $slugs;
+		$per_page    = $this->normalize_per_page( $pagination, $lists_posts );
 
 		$prime_post_caches = $this->should_prime_post_caches( $fields );
 
@@ -531,7 +535,7 @@ final class WP_Abilities_Content {
 		 */
 		$query_args = array(
 			'post_type'              => $post_type,
-			'post_status'            => $this->normalize_statuses( $where, $post_type_object, null !== $ids || null !== $slugs ),
+			'post_status'            => $this->normalize_statuses( $where, $post_type_object, $lists_posts ),
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
 			'perm'                   => $requires_edit ? 'editable' : 'readable',
@@ -640,25 +644,24 @@ final class WP_Abilities_Content {
 	/**
 	 * Normalizes the requested per-page value to the supported bounds.
 	 *
-	 * An explicit `per_page` always wins. Otherwise a request that lists `ids`, or else
-	 * `slugs`, pages to the number listed, so a caller loading a known set of posts
-	 * receives them in one call rather than silently losing the ones past the default page
-	 * size. The input schema caps both lists at {@see self::MAX_PER_PAGE}. A slug can match
-	 * several posts, though, so the matches of the listed slugs can span several pages.
+	 * An explicit `per_page` always wins. Otherwise a request that lists posts by ID or slug
+	 * pages to the maximum, as `core/users-query` does for its lists, so a caller loading a
+	 * known set of posts receives them in one call rather than silently losing the ones past
+	 * the default page size. The input schema caps each list at {@see self::MAX_PER_PAGE},
+	 * so every post that `ids` lists fits on the first page. A slug can match several posts,
+	 * though, so the matches of `slugs` only continue past the first page when more than
+	 * that many posts match.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed>           $pagination The `pagination` input.
-	 * @param list<int>|list<string> $listed     The normalized `ids`, or else `slugs`; empty when neither is given.
+	 * @param array<mixed> $pagination  The `pagination` input.
+	 * @param bool         $lists_posts Whether the query lists `ids` or `slugs`.
 	 * @return int The clamped per-page value.
 	 */
-	private function normalize_per_page( array $pagination, array $listed ): int {
-		$per_page = $this->parse_filter_int( $pagination['per_page'] ?? null, 1 );
-		if ( null === $per_page ) {
-			$per_page = array() === $listed ? self::DEFAULT_PER_PAGE : count( $listed );
-		}
+	private function normalize_per_page( array $pagination, bool $lists_posts ): int {
+		$default_per_page = $lists_posts ? self::MAX_PER_PAGE : self::DEFAULT_PER_PAGE;
 
-		return min( self::MAX_PER_PAGE, $per_page );
+		return min( self::MAX_PER_PAGE, $this->parse_filter_int( $pagination['per_page'] ?? null, 1 ) ?? $default_per_page );
 	}
 
 	/**
@@ -1147,7 +1150,7 @@ final class WP_Abilities_Content {
 								'type'    => 'integer',
 								'minimum' => 1,
 							),
-							'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, the page size defaults to the number of IDs.' ),
+							'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, every matching post is returned on the first page.' ),
 						),
 						'slugs'       => array(
 							'type'        => 'array',
@@ -1158,7 +1161,7 @@ final class WP_Abilities_Content {
 								'type'      => 'string',
 								'minLength' => 1,
 							),
-							'description' => __( 'Limit the query to posts with these slugs. Each slug is sanitized as a post slug is, so `Hello-World` matches `hello-world`. A slug can match several posts, such as pages under different parents, and every match is returned. The order of the slugs does not affect the order of the results. If neither `ids` nor `pagination.per_page` is given, the page size defaults to the number of slugs.' ),
+							'description' => __( 'Limit the query to posts with these slugs. Each slug is sanitized as a post slug is, so `Hello-World` matches `hello-world`. A slug can match several posts, such as pages under different parents, and every match is returned. The order of the slugs does not affect the order of the results. If `pagination.per_page` is omitted, every matching post is returned on the first page, up to the `per_page` maximum.' ),
 						),
 						'status'      => array(
 							'type'        => 'array',
