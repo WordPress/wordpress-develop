@@ -128,8 +128,18 @@ class WP_Http_Cookie {
 			$pairs = explode( ';', $data );
 
 			// Special handling for first pair; name=value. Also be careful of "=" in value.
-			$name        = trim( substr( $pairs[0], 0, strpos( $pairs[0], '=' ) ) );
-			$value       = substr( $pairs[0], strpos( $pairs[0], '=' ) + 1 );
+			$separator = strpos( $pairs[0], '=' );
+
+			// Ignore a cookie lacking "=" or with an empty name, per RFC 6265, leaving its name and value unset.
+			if ( false === $separator ) {
+				return;
+			}
+			$name = trim( substr( $pairs[0], 0, $separator ) );
+			if ( '' === $name ) {
+				return;
+			}
+
+			$value       = substr( $pairs[0], $separator + 1 );
 			$this->name  = $name;
 			$this->value = urldecode( $value );
 

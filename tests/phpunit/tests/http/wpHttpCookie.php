@@ -218,4 +218,41 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 			'missing from header' => array( 'flavor=chocolate-chip', null ),
 		);
 	}
+
+	/**
+	 * Tests that a cookie with an empty or missing name is treated as invalid.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::__construct
+	 * @covers ::test
+	 * @covers ::getHeaderValue
+	 *
+	 * @dataProvider data_cookie_without_name
+	 *
+	 * @param string|array{ name: string, value: string } $data Cookie data.
+	 */
+	public function test_cookie_without_name( $data ): void {
+		$cookie = new WP_Http_Cookie( $data, 'https://example.org/' );
+
+		$this->assertNull( $cookie->name, 'Expected the name to be null.' );
+		$this->assertNull( $cookie->value, 'Expected the value to be null.' );
+		$this->assertFalse( $cookie->test( 'https://example.org/' ), 'Expected the cookie not to be sent.' );
+		$this->assertSame( '', $cookie->getHeaderValue(), 'Expected an empty header value.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_cookie_without_name()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string } }>
+	 */
+	public function data_cookie_without_name(): array {
+		return array(
+			'empty name from header'            => array( '=abc; path=/' ),
+			'whitespace name from header'       => array( ' =abc' ),
+			'missing "=" from header'           => array( 'novalue' ),
+			'missing "=" with attribute header' => array( 'novalue; path=/' ),
+			'empty header'                      => array( '' ),
+		);
+	}
 }
