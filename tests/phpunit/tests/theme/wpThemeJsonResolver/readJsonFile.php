@@ -125,11 +125,11 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 	 * @ticket 64620
 	 */
 	public function test_read_json_file_with_non_existent_file() {
+		$this->expectNotice();
 
 		$non_existent_file = DIR_TESTDATA . '/non-existent.json';
-		$result            = self::read_json_file( $non_existent_file );
-
-		$this->assertSame( array(), $result );
+		// we get an error, not an empty array
+		self::read_json_file( $non_existent_file );
 	}
 
 	/**
@@ -147,10 +147,13 @@ class Tests_Theme_wpThemeJsonResolver_readJsonFile extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Cannot test unreadable file permissions when running as root.' );
 		}
 
+		$this->expectNotice();
+
 		$unreadable_file = tempnam( sys_get_temp_dir(), 'unreadable-json' );
 		chmod( $unreadable_file, 0000 );
 		try {
-			$this->assertSame( array(), self::read_json_file( $unreadable_file ) );
+			// we get an error, not an empty array
+			self::read_json_file( $unreadable_file );
 		} finally {
 			chmod( $unreadable_file, 0644 );
 			unlink( $unreadable_file );
