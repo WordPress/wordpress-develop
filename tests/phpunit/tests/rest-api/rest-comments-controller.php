@@ -3494,14 +3494,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertSame( get_comment_link( $comment ), $data['link'] );
 		$this->assertArrayHasKey( 'author_avatar_urls', $data );
-		$this->assertSameSets(
-			array(
-				'self',
-				'collection',
-				'up',
-			),
-			array_keys( $links )
+
+		$expected_links = array(
+			'self',
+			'collection',
+			'up',
 		);
+
+		if ( 'edit' === $context ) {
+			$expected_links[] = 'https://api.w.org/action-trash';
+		}
+
+		$this->assertSameSets( $expected_links, array_keys( $links ) );
 
 		if ( $comment->comment_post_ID ) {
 			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
@@ -4187,6 +4191,43 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Verify the href attribute contains the expected status and type parameters.
 		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
 		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Comments_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_when_not_trashable() {
+		add_filter( 'rest_comment_trashable', '__return_false' );
+		wp_set_current_user( self::$moderator_id );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $response->get_links() );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Comments_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_for_trashed_comment() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 'trash',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
+		wp_set_current_user( self::$moderator_id );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $response->get_links() );
 	}
 
 	/**
