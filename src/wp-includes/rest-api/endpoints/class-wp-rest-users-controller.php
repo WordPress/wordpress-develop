@@ -622,9 +622,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				}
 				return $error;
 			}
-		}
-
-		if ( is_multisite() ) {
 			$user_id = wpmu_create_user( $user->user_login, $user->user_pass, $user->user_email );
 
 			if ( ! $user_id ) {
@@ -637,20 +634,34 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 			$user->ID = $user_id;
 			$user_id  = wp_update_user( wp_slash( (array) $user ) );
+		} else {
+			$user_id = wp_insert_user( wp_slash( (array) $user ) );
+		}
 
-			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
+		if ( is_wp_error( $user_id ) ) {
+			if ( in_array( $user_id->get_error_code(), array( 'existing_user_login' ) ) ) {
+				return new WP_Error(
+					'rest_existing_user_login',
+					__( 'Sorry, that username already exists!' ),
+					array( 'status' => 409 )
+				);
 			}
 
+			if ( in_array( $user_id->get_error_code(), array( 'existing_user_email' ) ) ) {
+				return new WP_Error(
+					'rest_user_existing_user_email',
+					__( 'Sorry, that email address is already used!",' ),
+					array( 'status' => 409 )
+				);
+			}
+
+			return $user_id;
+		}
+
+		if ( is_multisite() ) {
 			$result = add_user_to_blog( get_site()->id, $user_id, '' );
 			if ( is_wp_error( $result ) ) {
 				return $result;
-			}
-		} else {
-			$user_id = wp_insert_user( wp_slash( (array) $user ) );
-
-			if ( is_wp_error( $user_id ) ) {
-				return $user_id;
 			}
 		}
 
