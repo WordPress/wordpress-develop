@@ -483,13 +483,19 @@ class WP_Http {
 
 		foreach ( $cookies as $name => $value ) {
 			if ( $value instanceof WP_Http_Cookie ) {
+				// A cookie without a value is not sent by WP_Http_Cookie::getHeaderValue() either, and a non-scalar value cannot be represented.
+				if ( ! is_scalar( $value->value ) ) {
+					continue;
+				}
+
+				$cookie_name                = (string) $value->name;
 				$attributes                 = array_filter(
 					$value->get_attributes(),
 					static function ( $attr ) {
 						return null !== $attr;
 					}
 				);
-				$cookie_jar[ $value->name ] = new WpOrg\Requests\Cookie( (string) $value->name, $value->value, $attributes, array( 'host-only' => $value->host_only ) );
+				$cookie_jar[ $cookie_name ] = new WpOrg\Requests\Cookie( $cookie_name, (string) $value->value, $attributes, array( 'host-only' => $value->host_only ) );
 			} elseif ( is_scalar( $value ) ) {
 				$cookie_jar[ $name ] = new WpOrg\Requests\Cookie( (string) $name, (string) $value );
 			}
