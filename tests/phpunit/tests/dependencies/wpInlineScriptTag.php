@@ -204,8 +204,8 @@ HTML;
 
 		$tag = wp_get_inline_script_tag( 'console.log( "</script>" );' );
 
-		$this->assertSame( "\n" . 'console.log( "</\\u0073cript>" );' . "\n", $filtered_data );
-		$this->assertSame( '<script>' . "\n" . 'console.log( "</\\u0073cript>" );' . "\n" . '</script>' . "\n", $tag );
+		$this->assertSame( "\n" . 'console.log( "</\u0073cript>" );' . "\n", $filtered_data );
+		$this->assertSame( '<script>' . "\n" . 'console.log( "</\u0073cript>" );' . "\n" . '</script>' . "\n", $tag );
 	}
 
 	/**
