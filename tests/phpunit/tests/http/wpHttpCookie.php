@@ -12,7 +12,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::getHeaderValue
 	 */
-	public function test_get_header_value() {
+	public function test_get_header_value(): void {
 		$cookie = new WP_Http_Cookie(
 			array(
 				'name'  => 'flavor',
@@ -28,7 +28,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::getHeaderValue
 	 */
-	public function test_get_header_value_when_name_or_value_not_set() {
+	public function test_get_header_value_when_name_or_value_not_set(): void {
 		$cookie_empty = new WP_Http_Cookie( array() );
 		$this->assertSame( '', $cookie_empty->getHeaderValue() );
 
@@ -44,7 +44,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::getFullHeader
 	 */
-	public function test_get_full_header() {
+	public function test_get_full_header(): void {
 		$cookie = new WP_Http_Cookie(
 			array(
 				'name'  => 'flavor',
@@ -63,7 +63,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::__construct
 	 */
-	public function test_properties_null_when_not_provided() {
+	public function test_properties_null_when_not_provided(): void {
 		$cookie = new WP_Http_Cookie( 'foo=bar' );
 
 		$this->assertSame( 'foo', $cookie->name );
@@ -81,7 +81,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @covers ::get_attributes
 	 */
-	public function test_get_attributes() {
+	public function test_get_attributes(): void {
 		$cookie = new WP_Http_Cookie(
 			array(
 				'name'    => 'session',
