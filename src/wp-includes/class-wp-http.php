@@ -838,6 +838,11 @@ class WP_Http {
 
 			$cookies_header = '';
 			foreach ( (array) $r['cookies'] as $cookie ) {
+				// Objects are not upgraded above, so skip any that are not cookies.
+				if ( ! $cookie instanceof WP_Http_Cookie ) {
+					continue;
+				}
+
 				$cookies_header .= $cookie->getHeaderValue() . '; ';
 			}
 

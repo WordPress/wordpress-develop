@@ -805,4 +805,22 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
 		$this->assertSame( 'flavor=', $cookie_jar['flavor']->format_for_header() );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::buildCookieHeader()} skips objects that are not cookies.
+	 *
+	 * @covers WP_Http::buildCookieHeader
+	 */
+	public function test_build_cookie_header_skips_non_cookie_objects(): void {
+		$args = array(
+			'cookies' => array(
+				'flavor' => 'chocolate-chip',
+				'other'  => new stdClass(),
+			),
+		);
+
+		WP_Http::buildCookieHeader( $args );
+
+		$this->assertSame( array( 'cookie' => 'flavor=chocolate-chip' ), $args['headers'] );
+	}
 }
