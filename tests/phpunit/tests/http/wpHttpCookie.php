@@ -10,7 +10,6 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests getHeaderValue() with standard cookie data.
 	 *
-	 * @ticket 65817
 	 * @covers ::getHeaderValue
 	 */
 	public function test_get_header_value() {
@@ -27,7 +26,6 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests getHeaderValue() returns empty string when name or value is not set.
 	 *
-	 * @ticket 65817
 	 * @covers ::getHeaderValue
 	 */
 	public function test_get_header_value_when_name_or_value_not_set() {
@@ -44,7 +42,6 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests getFullHeader() with and without cookie values.
 	 *
-	 * @ticket 65817
 	 * @covers ::getFullHeader
 	 */
 	public function test_get_full_header() {
@@ -64,7 +61,6 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests that properties default to null when not provided.
 	 *
-	 * @ticket 65817
 	 * @covers ::__construct
 	 */
 	public function test_properties_null_when_not_provided() {
@@ -83,7 +79,6 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	/**
 	 * Tests get_attributes() returns expected cookie attributes.
 	 *
-	 * @ticket 65817
 	 * @covers ::get_attributes
 	 */
 	public function test_get_attributes() {
