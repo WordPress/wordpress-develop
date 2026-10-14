@@ -447,6 +447,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 				),
 			),
 
+			'valid_text_indent_spacing_preset_value'       => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'textIndent' => 'var:preset|spacing|30',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'text-indent:var(--wp--preset--spacing--30);',
+					'declarations' => array(
+						'text-indent' => 'var(--wp--preset--spacing--30)',
+					),
+				),
+			),
+
 			'valid_spacing_multi_preset_values'            => array(
 				'block_styles'    => array(
 					'spacing' => array(
