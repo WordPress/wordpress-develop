@@ -12,18 +12,17 @@ declare( strict_types = 1 );
 /**
  * Core class used to register user-related abilities.
  *
- * Registers the read-only `core/users-query` ability, which retrieves one or more
- * readable WordPress users. Supports fetching a single readable user by ID,
- * email, username, or slug, or querying a paginated collection optionally
- * filtered by roles, published-post authorship, or included IDs. Field-level
- * access is enforced per user by omitting fields the current user cannot view.
+ * Registers the read-only `core/users-query` ability, which retrieves a paginated
+ * list of readable WordPress users, optionally filtered by IDs, slugs, usernames,
+ * roles, or published-post authorship. Field-level access is enforced per user by
+ * omitting fields the current user cannot view.
  *
  * Unlike the core abilities registered directly in wp_register_core_abilities() as
  * self-contained closures, the users ability lives in a dedicated class
  * because its callbacks and schemas share helpers: the permission and execute
- * callbacks resolve and authorize the requested user through the same code, and the
- * input schema, output schema, and field normalization are built from the same
- * field definitions. Future write-oriented user abilities can reuse them as well.
+ * callbacks read the input through the same code, and the input schema, output
+ * schema, and field normalization are built from the same field definitions.
+ * Future write-oriented user abilities can reuse them as well.
  *
  * Only register() is public. The ability callbacks are closures that call private
  * methods, so callers go through the Abilities API, such as
@@ -45,7 +44,7 @@ final class WP_Abilities_Users {
 	private const CATEGORY = 'user';
 
 	/**
-	 * Default number of users returned per page in collection mode.
+	 * Default number of users returned per page, unless `where` lists users by ID, slug, or username.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -53,7 +52,10 @@ final class WP_Abilities_Users {
 	private const DEFAULT_PER_PAGE = 10;
 
 	/**
-	 * Maximum number of users returned per page in collection mode.
+	 * Maximum number of users returned per page.
+	 *
+	 * Each identifier list in `where` holds at most this many values, so the users it
+	 * lists fit on one page.
 	 *
 	 * @since 7.2.0
 	 * @var int
@@ -61,24 +63,18 @@ final class WP_Abilities_Users {
 	private const MAX_PER_PAGE = 100;
 
 	/**
-	 * Lookup type returned for collection requests.
+	 * The WP_User_Query argument that each identifier list in `where` sets.
 	 *
-	 * @since 7.2.0
-	 * @var string
-	 */
-	private const LOOKUP_COLLECTION = 'collection';
-
-	/**
-	 * The get_user_by() field for each single-user lookup type, in the order they are checked.
+	 * The lists filter the results but do not order them, as in the REST users controller,
+	 * so results keep WP_User_Query's default order, by login.
 	 *
 	 * @since 7.2.0
 	 * @var array<string, string>
 	 */
-	private const LOOKUP_FIELDS = array(
-		'id'       => 'id',
-		'email'    => 'email',
-		'username' => 'login',
-		'slug'     => 'slug',
+	private const IDENTIFIER_LISTS = array(
+		'ids'       => 'include',
+		'slugs'     => 'nicename__in',
+		'usernames' => 'login__in',
 	);
 
 	/**
@@ -88,23 +84,6 @@ final class WP_Abilities_Users {
 	 * @var string[]
 	 */
 	private const DEFAULT_FIELDS = array(
-		'id',
-		'name',
-		'link',
-		'slug',
-		'avatar_urls',
-	);
-
-	/**
-	 * Fields a single-user lookup returns for a user the current user can only see as an author.
-	 *
-	 * They only identify the user. The profile fields (`description` and `url`), which a user
-	 * writes to show next to their published posts, are left out.
-	 *
-	 * @since 7.2.0
-	 * @var string[]
-	 */
-	private const AUTHOR_FIELDS = array(
 		'id',
 		'name',
 		'link',
@@ -136,7 +115,7 @@ final class WP_Abilities_Users {
 			'core/users-query',
 			array(
 				'label'               => __( 'Query Users' ),
-				'description'         => __( 'Retrieves one or more readable WordPress users as a paginated list. Look up a single readable user by ID, email, username, or slug, or query a collection optionally filtered by roles, published-post authorship, or included IDs. Requires an authenticated user.' ),
+				'description'         => __( 'Retrieves a paginated list of readable WordPress users, optionally filtered by IDs, slugs, usernames, roles, or published-post authorship. Callers without permission to list users only see public authors. To read your own profile, use `core/get-user-info`. Requires an authenticated user.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_users_query_input_schema(),
 				'output_schema'       => $this->get_users_query_output_schema(),
@@ -161,9 +140,8 @@ final class WP_Abilities_Users {
 	/**
 	 * Permission callback for the `core/users-query` ability.
 	 *
-	 * Performs request-level checks. Single-user requests are checked against
-	 * the target user, while collection requests rely on query arguments in
-	 * {@see self::execute_users_query()} for row-level access.
+	 * Performs request-level checks only, and never looks users up. Which users are
+	 * returned is decided by the query arguments in {@see self::execute_users_query()}.
 	 *
 	 * @since 7.2.0
 	 *
@@ -179,22 +157,12 @@ final class WP_Abilities_Users {
 
 		/*
 		 * A `where` that is not an object is let through, so that the execute callback can
-		 * report it as an invalid filter. It reads no user.
+		 * report it as an invalid filter.
 		 */
 		$where = $this->get_input_object( $input, 'where' ) ?? array();
 
-		if ( ! empty( $where['roles'] ) && ! current_user_can( 'list_users' ) ) {
-			return false;
-		}
-
-		$lookup_type = $this->get_lookup_type( $where );
-		if ( self::LOOKUP_COLLECTION === $lookup_type ) {
-			return true;
-		}
-
-		$user = $this->find_user( $where, $lookup_type );
-
-		return $user instanceof WP_User && null !== $this->get_readable_fields( $user, $lookup_type );
+		// Roles and usernames are not public, so only callers who can list users may filter by them.
+		return ( empty( $where['roles'] ) && empty( $where['usernames'] ) ) || current_user_can( 'list_users' );
 	}
 
 	/**
@@ -222,82 +190,65 @@ final class WP_Abilities_Users {
 		$pagination = $this->get_input_object( $input, 'pagination' ) ?? array();
 		$page       = $this->parse_filter_int( $pagination['page'] ?? 1, 1 ) ?? 1;
 
-		$lookup_type = $this->get_lookup_type( $where );
-		if ( self::LOOKUP_COLLECTION !== $lookup_type ) {
-			$user = $this->find_user( $where, $lookup_type );
-			if ( ! $user instanceof WP_User ) {
-				return $this->not_found_error();
-			}
-
-			$readable_fields = $this->get_readable_fields( $user, $lookup_type );
-			if ( null === $readable_fields ) {
-				return $this->not_found_error();
-			}
-
-			// A lookup is a result set of one user, so it has a single page.
-			if ( $page > 1 ) {
-				return $this->invalid_page_number_error();
-			}
-
-			return $this->prepare_output(
-				array( $this->format_user( $user, array_values( array_intersect( $fields, $readable_fields ) ) ) ),
-				1,
-				1
-			);
-		}
-
-		$include = $this->normalize_include( $where );
-
-		/*
-		 * An include filter that was supplied but parsed to no valid IDs must not fall
-		 * through to an unrestricted query: WP_User_Query ignores an empty `include`, which
-		 * would return every user — the opposite of the caller's intent.
-		 */
-		if ( isset( $where['include'] ) && empty( $include ) ) {
-			return $this->invalid_filter_error( 'where[include]', __( 'The include filter must list one or more valid user IDs.' ) );
-		}
-
-		$per_page       = $this->normalize_per_page( $pagination, $include );
-		$can_list_users = current_user_can( 'list_users' );
-
-		$query_args = array(
-			'number' => $per_page,
-			'paged'  => $page,
-		);
-
-		if ( ! empty( $include ) ) {
-			/*
-			 * The include list filters the results but does not order them, as in the REST
-			 * users controller. Results keep WP_User_Query's default order, by login.
-			 */
-			$query_args['include'] = $include;
-		}
-
 		/*
 		 * On transports that skip schema validation, a filter that cannot be honored must
 		 * not be dropped, which would silently widen the query. Reject it instead, so the
-		 * query fails closed, as the content query does with its filters.
+		 * query fails closed, as the content query does with its filters. WP_User_Query
+		 * ignores an empty list, so a list with no valid value left would return every user.
 		 */
-		if ( isset( $where['roles'] ) ) {
-			$roles = $this->normalize_string_list( $where['roles'] );
-			if ( empty( $roles ) ) {
-				return $this->invalid_filter_error( 'where[roles]', __( 'The roles filter must list one or more role names.' ) );
+		$query_args = array();
+		foreach ( self::IDENTIFIER_LISTS as $key => $query_var ) {
+			if ( ! isset( $where[ $key ] ) ) {
+				continue;
 			}
 
-			/*
-			 * The permission callback already refuses a role filter to callers who cannot
-			 * list users. Refuse it here too, rather than dropping the filter, which would
-			 * widen the query to every public author, so a direct call fails closed.
-			 */
-			if ( ! $can_list_users ) {
-				return new WP_Error(
-					'users_cannot_filter_by_role',
-					__( 'Sorry, you are not allowed to filter users by role.' ),
-					array( 'status' => rest_authorization_required_code() )
+			$query_args[ $query_var ] = 'ids' === $key ? $this->normalize_id_list( $where[ $key ] ) : $this->normalize_string_list( $where[ $key ] );
+			if ( empty( $query_args[ $query_var ] ) ) {
+				return $this->invalid_filter_error(
+					"where[{$key}]",
+					/* translators: %s: The name of the filter, such as ids. */
+					sprintf( __( 'The %s filter must list one or more valid values.' ), $key )
 				);
 			}
+		}
 
-			$query_args['role__in'] = $roles;
+		/*
+		 * An explicit `per_page` always wins. Otherwise a request that lists users by ID, slug,
+		 * or username returns every matching user on the first page, since the input schema
+		 * caps each list at the maximum page size.
+		 */
+		$default_per_page     = empty( $query_args ) ? self::DEFAULT_PER_PAGE : self::MAX_PER_PAGE;
+		$per_page             = min( self::MAX_PER_PAGE, $this->parse_filter_int( $pagination['per_page'] ?? null, 1 ) ?? $default_per_page );
+		$query_args['number'] = $per_page;
+		$query_args['paged']  = $page;
+
+		if ( isset( $where['roles'] ) ) {
+			$query_args['role__in'] = $this->normalize_string_list( $where['roles'] );
+			if ( empty( $query_args['role__in'] ) ) {
+				return $this->invalid_filter_error( 'where[roles]', __( 'The roles filter must list one or more role names.' ) );
+			}
+		}
+
+		/*
+		 * The permission callback already refuses the role and username filters to callers
+		 * who cannot list users. Refuse them here too, rather than dropping them, which would
+		 * widen the query to every public author, so a direct call fails closed.
+		 */
+		$can_list_users = current_user_can( 'list_users' );
+		if ( isset( $where['roles'] ) && ! $can_list_users ) {
+			return new WP_Error(
+				'users_cannot_filter_by_role',
+				__( 'Sorry, you are not allowed to filter users by role.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		if ( isset( $where['usernames'] ) && ! $can_list_users ) {
+			return new WP_Error(
+				'users_cannot_filter_by_username',
+				__( 'Sorry, you are not allowed to filter users by username.' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
 		}
 
 		$has_published_posts = $this->normalize_has_published_posts( $where );
@@ -306,10 +257,10 @@ final class WP_Abilities_Users {
 		}
 
 		/*
-		 * Callers who cannot list users only see public authors in a collection,
-		 * matching core, so the filter is always applied for them. This intentionally
-		 * excludes the caller's own account when they have no published posts. Self is
-		 * read through a single-user lookup (like the REST `/users/me` endpoint) instead.
+		 * Callers who cannot list users only see public authors, as in the REST users
+		 * controller, so the filter is always applied for them. This intentionally excludes
+		 * the caller's own account when they have no published posts, which
+		 * `core/get-user-info` returns instead.
 		 */
 		if ( null !== $has_published_posts || ! $can_list_users ) {
 			/*
@@ -386,64 +337,6 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Determines the single-user lookup type represented by the `where` filters.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $where The `where` filters.
-	 * @return string The lookup type, or {@see self::LOOKUP_COLLECTION}.
-	 */
-	private function get_lookup_type( array $where ): string {
-		foreach ( array_keys( self::LOOKUP_FIELDS ) as $key ) {
-			if ( array_key_exists( $key, $where ) ) {
-				return $key;
-			}
-		}
-
-		return self::LOOKUP_COLLECTION;
-	}
-
-	/**
-	 * Finds the user a single-user lookup asks for.
-	 *
-	 * Whether the current user may read that user is decided separately, by
-	 * {@see self::get_readable_fields()}.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $where       The `where` filters.
-	 * @param string       $lookup_type The single-user lookup type.
-	 * @return WP_User|null The user, or null when no user matches.
-	 */
-	private function find_user( array $where, string $lookup_type ): ?WP_User {
-		$value = $where[ $lookup_type ];
-
-		if ( 'id' === $lookup_type ) {
-			/*
-			 * The ID is read with parse_filter_int(), so a malformed ID or one beyond the
-			 * integer range cannot be coerced onto another user.
-			 */
-			$user_id = $this->parse_filter_int( $value, 1 );
-			$user    = null === $user_id ? false : get_user_by( 'id', $user_id );
-
-			return $user instanceof WP_User ? $user : null;
-		}
-
-		// WP_Ability::check_permissions() does not validate the input, so the value may not be a scalar.
-		if ( ! is_scalar( $value ) ) {
-			return null;
-		}
-
-		/*
-		 * get_user_by() sanitizes a login itself, and matches a slug as given, like the REST
-		 * users controller, so a stored nicename that sanitize_title() would change is found.
-		 */
-		$user = get_user_by( self::LOOKUP_FIELDS[ $lookup_type ], (string) $value );
-
-		return $user instanceof WP_User ? $user : null;
-	}
-
-	/**
 	 * Parses a raw input value into an integer of at least a minimum, or null when invalid.
 	 *
 	 * Accepts the whole numbers that the integer schema accepts: native integers, floats such
@@ -482,124 +375,6 @@ final class WP_Abilities_Users {
 		$number = (float) $value;
 
 		return $number >= $min && $number <= 2 ** 53 ? (int) $number : null;
-	}
-
-	/**
-	 * Returns the fields a single-user lookup may return for a user.
-	 *
-	 * Shared by the permission and execute callbacks so the single-user
-	 * authorization decision has exactly one implementation. The per-field checks in
-	 * {@see self::format_user()}, such as the ones for sensitive fields, still apply.
-	 *
-	 * Email and username are identifier-sensitive lookup modes: another user can only be
-	 * found by them with permission to list or edit users. Collections do not list the
-	 * users that the author fields are returned for, because they only list public
-	 * authors to callers who cannot list users.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_User $user        User object.
-	 * @param string  $lookup_type Lookup type.
-	 * @return string[]|null The field names the lookup may return, or null when the user cannot be read.
-	 */
-	private function get_readable_fields( WP_User $user, string $lookup_type ): ?array {
-		$all_fields = array_keys( $this->get_user_properties() );
-
-		/*
-		 * The current user can always read their own account, like the REST `/users/me`
-		 * endpoint, even on a site they are not a member of.
-		 */
-		if ( $this->is_current_user( $user ) ) {
-			return $all_fields;
-		}
-
-		// The capabilities only reveal users of the site, not of the whole network.
-		$is_site_member = ! is_multisite() || is_user_member_of_blog( $user->ID );
-		if ( $is_site_member && ( current_user_can( 'edit_user', $user->ID ) || current_user_can( 'list_users' ) ) ) {
-			return $all_fields;
-		}
-
-		if ( 'email' === $lookup_type || 'username' === $lookup_type ) {
-			return null;
-		}
-
-		/*
-		 * Public authors are visible on the front end, so they can be read even when they
-		 * are not members of the site, such as a super admin who published posts on it.
-		 */
-		if ( $this->is_public_author( $user ) ) {
-			return $all_fields;
-		}
-
-		/*
-		 * A caller who can assign posts to other users can make any user of the site an
-		 * author, so they may identify those users, but not read their profiles.
-		 */
-		if ( $is_site_member && $this->can_assign_authors() ) {
-			return self::AUTHOR_FIELDS;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Checks whether the current user can assign posts to other users.
-	 *
-	 * A user who can edit others' posts of a post type that supports authors can make any
-	 * user of the site the author of such a post.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return bool Whether the current user can assign posts to other users.
-	 */
-	private function can_assign_authors(): bool {
-		foreach ( get_post_types_by_support( 'author' ) as $post_type ) {
-			$post_type_object = get_post_type_object( $post_type );
-			if ( ! $post_type_object || ! current_user_can( $post_type_object->cap->edit_others_posts ) ) {
-				continue;
-			}
-
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Checks whether the current user is the target user.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_User $user User object.
-	 * @return bool Whether the current user is the target user.
-	 */
-	private function is_current_user( WP_User $user ): bool {
-		return get_current_user_id() === $user->ID;
-	}
-
-	/**
-	 * Checks whether the current user can see a post by this user in a publicly
-	 * viewable post type.
-	 *
-	 * Published posts always count. Private posts also count for a caller who holds
-	 * `read_private_posts` for the post type, because `count_user_posts()` defaults to
-	 * `$public_only = false`. This matches how the REST users controller resolves a
-	 * single user. Collection mode is filtered by `WP_User_Query`'s
-	 * `has_published_posts`, which matches published posts only, so the two modes
-	 * disagree about an author whose posts are all private.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param WP_User $user User object.
-	 * @return bool Whether the user is visible as an author to the current user.
-	 */
-	private function is_public_author( WP_User $user ): bool {
-		$post_types = $this->get_public_post_types();
-		if ( empty( $post_types ) ) {
-			return false;
-		}
-
-		return count_user_posts( $user->ID, $post_types ) > 0;
 	}
 
 	/**
@@ -753,47 +528,27 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Normalizes the requested per-page value to the supported bounds.
+	 * Normalizes a mixed value into a list of user IDs.
 	 *
-	 * An explicit `per_page` always wins. Otherwise an `include` request pages to the
-	 * number of requested IDs, so a caller loading a known set of users receives all of
-	 * them in one call rather than silently losing the ones past the default page size.
-	 * The input schema caps `include` at {@see self::MAX_PER_PAGE} so it always fits.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $pagination  The `pagination` input.
-	 * @param int[]        $include_ids Normalized included user IDs; empty when not requested.
-	 * @return int The clamped per-page value.
-	 */
-	private function normalize_per_page( array $pagination, array $include_ids ): int {
-		$per_page = $this->parse_filter_int( $pagination['per_page'] ?? null, 1 );
-		if ( null === $per_page ) {
-			$per_page = empty( $include_ids ) ? self::DEFAULT_PER_PAGE : count( $include_ids );
-		}
-
-		return min( self::MAX_PER_PAGE, $per_page );
-	}
-
-	/**
-	 * Normalizes collection-mode included user IDs.
+	 * Accepts a list, a single ID, or a comma-separated string, which it parses with
+	 * wp_parse_list(), as schema validation does. Each item is read with parse_filter_int(),
+	 * so an item that is not a whole number of at least 1, such as a fraction or a negative
+	 * number, is dropped rather than truncated or made positive, which would read it as the
+	 * ID of another user.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $where The `where` filters.
-	 * @return int[] Unique positive user IDs.
+	 * @param mixed $value Raw value.
+	 * @return int[] Unique user IDs.
 	 */
-	private function normalize_include( array $where ): array {
-		$include = $where['include'] ?? null;
-		if ( ! is_array( $include ) && ! is_string( $include ) && ! is_int( $include ) ) {
-			return array();
+	private function normalize_id_list( $value ): array {
+		$items = is_array( $value ) || is_string( $value ) ? wp_parse_list( $value ) : array( $value );
+		$ids   = array();
+		foreach ( $items as $item ) {
+			$ids[] = $this->parse_filter_int( $item, 1 );
 		}
 
-		/*
-		 * wp_parse_id_list() also parses a single ID or a comma-separated string, as
-		 * schema validation does.
-		 */
-		return array_values( array_filter( wp_parse_id_list( $include ) ) );
+		return array_values( array_unique( array_filter( $ids ) ) );
 	}
 
 	/**
@@ -819,7 +574,7 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Normalizes the `has_published_posts` collection input.
+	 * Normalizes the `has_published_posts` filter.
 	 *
 	 * Accepts the string and integer forms of `true` alongside the native boolean.
 	 * Schema validation accepts them, and only the REST run controller converts input
@@ -851,16 +606,8 @@ final class WP_Abilities_Users {
 	 * Builds the input schema for the `core/users-query` ability.
 	 *
 	 * The input has three members: `where` selects the users, `fields` selects the fields
-	 * returned for each user, and `pagination` selects the page of results. `where` holds
-	 * one of two sets of keys, modeled as an `anyOf` so invalid combinations are rejected
-	 * rather than silently ignored:
-	 *
-	 *   - A single readable user, looked up by exactly one of `id`, `email`, `username`, or `slug`.
-	 *   - A collection of readable users, filtered by any of `include`, `roles`, and
-	 *     `has_published_posts`.
-	 *
-	 * The `anyOf` sits inside `where` rather than at the top level, because some AI providers,
-	 * such as Anthropic, reject a tool whose input schema has a combinator at the top level.
+	 * returned for each user, and `pagination` selects the page of results. The `where`
+	 * filters can be combined in any way, and a user must match all of them.
 	 *
 	 * @since 7.2.0
 	 *
@@ -881,90 +628,72 @@ final class WP_Abilities_Users {
 			'additionalProperties' => false,
 			'properties'           => array(
 				'where'      => array(
-					'type'        => 'object',
-					/*
-					 * Only the branches set `additionalProperties`. Sanitization applies the
-					 * `where` schema again after the matching branch, so `false` here would
-					 * strip every key.
-					 */
-					'anyOf'       => array(
-						// A single-user lookup, by exactly one of these keys.
-						array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'minProperties'        => 1,
-							'maxProperties'        => 1,
-							'properties'           => array(
-								'id'       => array(
-									'type'        => 'integer',
-									'minimum'     => 1,
-									'description' => __( 'Retrieve a single readable user by ID.' ),
-								),
-								'email'    => array(
-									'type'        => 'string',
-									'format'      => 'email',
-									'description' => __( 'Retrieve a single readable user by email address. Resolving another user by email requires permission to list or edit users.' ),
-								),
-								'username' => array(
-									'type'        => 'string',
-									'description' => __( 'Retrieve a single readable user by username. Resolving another user by username requires permission to list or edit users.' ),
-								),
-								'slug'     => array(
-									'type'        => 'string',
-									'description' => __( 'Retrieve a single readable user by slug.' ),
-								),
+					'type'                 => 'object',
+					'additionalProperties' => false,
+					'properties'           => array(
+						'ids'                 => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'maxItems'    => self::MAX_PER_PAGE,
+							'items'       => array(
+								'type'    => 'integer',
+								'minimum' => 1,
 							),
+							'description' => __( 'Limit results to users with these IDs. If `pagination.per_page` is omitted, every matching user is returned on the first page.' ),
 						),
-						// Collection filters, in any combination.
-						array(
-							'type'                 => 'object',
-							'additionalProperties' => false,
-							'properties'           => array(
-								'include'             => array(
-									'type'        => 'array',
-									'uniqueItems' => true,
-									'minItems'    => 1,
-									'maxItems'    => self::MAX_PER_PAGE,
-									'items'       => array(
-										'type'    => 'integer',
-										'minimum' => 1,
-									),
-									'description' => __( 'Limit the query to these user IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, the page size defaults to the number of included IDs, capped at the maximum. Collection results are limited to users the caller can read, which for callers without permission to list users means only public authors. To read your own account, look it up by `id`.' ),
+						'slugs'               => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'maxItems'    => self::MAX_PER_PAGE,
+							'items'       => array(
+								'type' => 'string',
+							),
+							'description' => __( 'Limit results to users with these slugs. If `pagination.per_page` is omitted, every matching user is returned on the first page.' ),
+						),
+						'usernames'           => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'maxItems'    => self::MAX_PER_PAGE,
+							'items'       => array(
+								'type' => 'string',
+							),
+							'description' => __( 'Limit results to users with these usernames. Requires permission to list users. If `pagination.per_page` is omitted, every matching user is returned on the first page.' ),
+						),
+						'roles'               => array(
+							'type'        => 'array',
+							'uniqueItems' => true,
+							'minItems'    => 1,
+							'items'       => array(
+								'type' => 'string',
+								'enum' => $role_names,
+							),
+							'description' => __( 'Filter users by one or more roles. Requires permission to list users.' ),
+						),
+						'has_published_posts' => array(
+							'anyOf'       => array(
+								// True matches authors of any publicly viewable post type.
+								array(
+									'type' => 'boolean',
+									'enum' => array( true ),
 								),
-								'roles'               => array(
+								// A list matches authors of the listed post types.
+								array(
 									'type'        => 'array',
 									'uniqueItems' => true,
 									'minItems'    => 1,
 									'items'       => array(
 										'type' => 'string',
-										'enum' => $role_names,
+										'enum' => $public_post_types,
 									),
-									'description' => __( 'Filter users by one or more roles. Requires permission to list users.' ),
-								),
-								'has_published_posts' => array(
-									'anyOf'       => array(
-										// True matches authors of any publicly viewable post type.
-										array(
-											'type' => 'boolean',
-											'enum' => array( true ),
-										),
-										// A list matches authors of the listed post types.
-										array(
-											'type'        => 'array',
-											'uniqueItems' => true,
-											'minItems'    => 1,
-											'items'       => array(
-												'type' => 'string',
-												'enum' => $public_post_types,
-											),
-										),
-									),
-									'description' => __( 'Limit results to users with published posts. Use true for all publicly viewable post types, or provide post type names.' ),
 								),
 							),
+							'description' => __( 'Limit results to users with published posts. Use true for all publicly viewable post types, or provide post type names.' ),
 						),
 					),
-					'description' => __( 'Selects the users to return. Look up a single readable user by exactly one of `id`, `email`, `username`, or `slug`, or filter the collection by any of `include`, `roles`, and `has_published_posts`. A lookup cannot be combined with other keys. If omitted, every user the current user can read is returned, which for callers without permission to list users means only public authors.' ),
+					'description'          => __( 'Selects the users to return. Every given filter must match, and a list matches users with any of its values. Results are ordered by username, and values that match no readable user are left out rather than causing an error. If omitted, every readable user is returned. Callers without permission to list users only see public authors, who have published posts in a publicly viewable post type. To read your own profile, use the `core/get-user-info` ability.' ),
 				),
 				'fields'     => array(
 					'type'        => 'array',
@@ -982,7 +711,7 @@ final class WP_Abilities_Users {
 						'page'     => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error, so a lookup only has page 1. Check `pagination.total_pages` in the result before requesting later pages.' ),
+							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error. Check `pagination.total_pages` in the result before requesting later pages.' ),
 						),
 						'per_page' => array(
 							'type'        => 'integer',
@@ -1001,7 +730,7 @@ final class WP_Abilities_Users {
 	 * Builds the output schema for the `core/users-query` ability.
 	 *
 	 * Every request returns the same shape: a page of users in `items`, and the totals
-	 * across all pages in `pagination`. A lookup returns a single user.
+	 * across all pages in `pagination`.
 	 *
 	 * Only `id` is required in a user, because it is always returned. The other fields
 	 * are optional because the `fields` input lets the caller request any subset, and
@@ -1064,7 +793,7 @@ final class WP_Abilities_Users {
 			return in_array( $field, $fields, true );
 		};
 
-		$can_view_sensitive = $this->is_current_user( $user ) || current_user_can( 'edit_user', $user->ID );
+		$can_view_sensitive = get_current_user_id() === $user->ID || current_user_can( 'edit_user', $user->ID );
 
 		$data = array();
 
@@ -1164,26 +893,6 @@ final class WP_Abilities_Users {
 	}
 
 	/**
-	 * Builds the error for a single-user lookup that does not resolve to a readable user.
-	 *
-	 * Unreachable through gated transports, which run {@see self::check_permission()}
-	 * first and deny the same lookups. It is kept so that a direct call to the execute
-	 * callback still fails closed. A user the current user cannot read is reported like a
-	 * missing one, so the error does not reveal whether such an account exists.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return WP_Error The not-found error.
-	 */
-	private function not_found_error(): WP_Error {
-		return new WP_Error(
-			'users_not_found',
-			__( 'The requested user was not found.' ),
-			array( 'status' => 404 )
-		);
-	}
-
-	/**
 	 * Builds the error for a page past the last page of results.
 	 *
 	 * A page that does not exist is reported as not found rather than as an empty list,
@@ -1210,7 +919,7 @@ final class WP_Abilities_Users {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param string $param   The filter's input path, such as `where[include]`.
+	 * @param string $param   The filter's input path, such as `where[ids]`.
 	 * @param string $message The error message.
 	 * @return WP_Error The invalid filter error.
 	 */
