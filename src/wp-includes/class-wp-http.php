@@ -485,8 +485,11 @@ class WP_Http {
 			if ( $value instanceof WP_Http_Cookie ) {
 				$cookie_name = (string) $value->name;
 
-				// A cookie without a name cannot be sent, and one without a value is not sent by WP_Http_Cookie::getHeaderValue() either.
-				if ( '' === $cookie_name || null === $value->value ) {
+				/*
+				 * A cookie without a name cannot be sent, and one without a value is not sent by
+				 * WP_Http_Cookie::getHeaderValue() either. A non-scalar value cannot be represented.
+				 */
+				if ( '' === $cookie_name || ! is_scalar( $value->value ) ) {
 					continue;
 				}
 

@@ -750,6 +750,43 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie with a non-scalar value.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_skips_cookie_with_non_scalar_value(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'prefs',
+				'value' => array( 'a' => 1 ),
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertSame( array(), iterator_to_array( $cookie_jar ) );
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with a scalar value as a string.
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_scalar_cookie_value_to_string(): void {
+		$cookie = new WP_Http_Cookie(
+			array(
+				'name'  => 'count',
+				'value' => 5,
+			)
+		);
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['count'] );
+		$this->assertSame( '5', $cookie_jar['count']->value );
+	}
+
+	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty value.
 	 *
 	 * @covers WP_Http::normalize_cookies
