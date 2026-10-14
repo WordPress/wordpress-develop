@@ -696,4 +696,62 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie\Jar', $cookie_jar );
 		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['1'] );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} skips cookies without a name.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 *
+	 * @dataProvider data_normalize_cookies_skips_cookie_without_name
+	 *
+	 * @param WP_Http_Cookie $cookie Cookie without a name.
+	 */
+	public function test_normalize_cookies_skips_cookie_without_name( WP_Http_Cookie $cookie ) {
+		$cookie_jar = WP_Http::normalize_cookies(
+			array(
+				'nameless' => $cookie,
+				'flavor'   => new WP_Http_Cookie(
+					array(
+						'name'  => 'flavor',
+						'value' => 'chocolate-chip',
+					)
+				),
+			)
+		);
+
+		$this->assertSame( array( 'flavor' ), array_keys( iterator_to_array( $cookie_jar ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: WP_Http_Cookie }>
+	 */
+	public function data_normalize_cookies_skips_cookie_without_name() {
+		return array(
+			'null name from array'    => array( new WP_Http_Cookie( array( 'value' => 'foo' ) ) ),
+			'empty name from header'  => array( new WP_Http_Cookie( '=foo' ) ),
+			'missing "=" from header' => array( new WP_Http_Cookie( 'foo' ) ),
+		);
+	}
+
+	/**
+	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie without a value as an empty string.
+	 *
+	 * @ticket 65817
+	 *
+	 * @covers WP_Http::normalize_cookies
+	 */
+	public function test_normalize_cookies_casts_null_cookie_value_to_empty_string() {
+		$cookie = new WP_Http_Cookie( array( 'name' => 'flavor' ) );
+		$this->assertNull( $cookie->value, 'Expected the cookie value to be null.' );
+
+		$cookie_jar = WP_Http::normalize_cookies( array( $cookie ) );
+
+		$this->assertInstanceOf( 'WpOrg\Requests\Cookie', $cookie_jar['flavor'] );
+		$this->assertSame( '', $cookie_jar['flavor']->value );
+		$this->assertSame( 'flavor=', $cookie_jar['flavor']->format_for_header() );
+	}
 }
