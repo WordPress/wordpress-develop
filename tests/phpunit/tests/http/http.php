@@ -943,4 +943,43 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'accept' => 'text/html' ), $args['headers'] );
 	}
+
+	/**
+	 * Tests that {@see WP_Http::processHeaders()} ignores Set-Cookie headers lacking a name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_Http::processHeaders
+	 */
+	public function test_process_headers_ignores_cookies_without_name(): void {
+		$headers = "HTTP/1.1 200 OK\r\nSet-Cookie: novalue\r\nSet-Cookie: =abc; path=/\r\nSet-Cookie: flavor=chocolate-chip\r\n";
+
+		$processed = WP_Http::processHeaders( $headers, 'https://example.org/' );
+
+		$this->assertCount( 1, $processed['cookies'] );
+		$this->assertInstanceOf( 'WP_Http_Cookie', $processed['cookies'][0] );
+		$this->assertSame( 'flavor', $processed['cookies'][0]->name );
+	}
+
+	/**
+	 * Tests that {@see WP_HTTP_Requests_Response::get_cookies()} ignores cookies lacking a name.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers WP_HTTP_Requests_Response::get_cookies
+	 */
+	public function test_requests_response_get_cookies_ignores_cookies_without_name(): void {
+		$requests_response          = new WpOrg\Requests\Response();
+		$requests_response->cookies = new WpOrg\Requests\Cookie\Jar(
+			array(
+				''       => new WpOrg\Requests\Cookie( '', 'abc' ),
+				'flavor' => new WpOrg\Requests\Cookie( 'flavor', 'chocolate-chip' ),
+			)
+		);
+
+		$cookies = ( new WP_HTTP_Requests_Response( $requests_response ) )->get_cookies();
+
+		$this->assertCount( 1, $cookies );
+		$this->assertSame( 'flavor', $cookies[0]->name );
+	}
 }

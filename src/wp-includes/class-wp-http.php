@@ -798,7 +798,12 @@ class WP_Http {
 				$newheaders[ $key ] = $value;
 			}
 			if ( 'set-cookie' === $key ) {
-				$cookies[] = new WP_Http_Cookie( $value, $url );
+				$cookie = new WP_Http_Cookie( $value, $url );
+
+				// Ignore a cookie without a name, which the constructor leaves unset.
+				if ( null !== $cookie->get_sendable_name() ) {
+					$cookies[] = $cookie;
+				}
 			}
 		}
 
