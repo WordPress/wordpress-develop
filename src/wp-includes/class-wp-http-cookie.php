@@ -160,6 +160,12 @@ class WP_Http_Cookie {
 
 				list( $key, $val ) = strpos( $pair, '=' ) ? explode( '=', $pair ) : array( $pair, '' );
 				$key               = strtolower( trim( $key ) );
+
+				// The name and value come only from the first pair, so ignore attributes that would overwrite them.
+				if ( 'name' === $key || 'value' === $key ) {
+					continue;
+				}
+
 				if ( 'expires' === $key ) {
 					$val = strtotime( $val );
 				}

@@ -533,4 +533,38 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 
 		$this->assertSame( 'flavor=CHOCOLATE-CHIP', $cookie->getHeaderValue() );
 	}
+
+	/**
+	 * Tests that "name" and "value" attributes in a header string do not overwrite the cookie name and value.
+	 *
+	 * @ticket 66305
+	 *
+	 * @covers ::__construct
+	 *
+	 * @dataProvider data_header_attributes_do_not_overwrite_name_or_value
+	 *
+	 * @param string $header Cookie header string.
+	 */
+	public function test_header_attributes_do_not_overwrite_name_or_value( string $header ): void {
+		$cookie = new WP_Http_Cookie( $header );
+
+		$this->assertSame( 'session', $cookie->name );
+		$this->assertSame( 'abc', $cookie->value );
+		$this->assertSame( '/', $cookie->path, 'Expected other attributes to still be parsed.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_header_attributes_do_not_overwrite_name_or_value()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string }>
+	 */
+	public function data_header_attributes_do_not_overwrite_name_or_value(): array {
+		return array(
+			'name attribute'        => array( 'session=abc; Name=evil; path=/' ),
+			'empty name attribute'  => array( 'session=abc; name=; path=/' ),
+			'bare name attribute'   => array( 'session=abc; name; path=/' ),
+			'value attribute'       => array( 'session=abc; Value=evil; path=/' ),
+			'empty value attribute' => array( 'session=abc; value=; path=/' ),
+		);
+	}
 }
