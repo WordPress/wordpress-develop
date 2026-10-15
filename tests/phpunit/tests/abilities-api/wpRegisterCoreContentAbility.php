@@ -6099,7 +6099,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
 	 * `where.ids` and `where.slugs` also take a comma-separated string, and a single ID or
-	 * slug, as schema validation does.
+	 * slug, even a slug sent as a number, as schema validation does.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -6117,6 +6117,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'post_name'   => 'string-list-newer',
 				'post_status' => 'publish',
 				'post_date'   => '2026-02-01 10:00:00',
+			)
+		);
+		$year_id  = self::factory()->post->create(
+			array(
+				'post_name'   => '2024',
+				'post_status' => 'publish',
 			)
 		);
 
@@ -6151,11 +6157,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'total_pages' => 1,
 			),
 		);
+		$year    = array(
+			'items'      => array(
+				array( 'id' => $year_id ),
+			),
+			'pagination' => array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+		);
 
 		$this->assertSame( $both, $query( array( 'ids' => $older_id . ',' . $newer_id ) ), 'A comma-separated ids string should return every listed post.' );
 		$this->assertSame( $both, $query( array( 'slugs' => 'string-list-older,string-list-newer' ) ), 'A comma-separated slugs string should return every listed post.' );
 		$this->assertSame( $older, $query( array( 'ids' => $older_id ) ), 'A single ID should return its post.' );
 		$this->assertSame( $older, $query( array( 'slugs' => 'string-list-older' ) ), 'A single slug string should return its post.' );
+		$this->assertSame( $year, $query( array( 'slugs' => 2024 ) ), 'A single slug sent as a number should return its post.' );
 	}
 
 	/**
