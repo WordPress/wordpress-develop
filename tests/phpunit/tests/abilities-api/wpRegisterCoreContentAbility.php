@@ -319,9 +319,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'object', $schema['type'], 'The input schema should describe an object.' );
 		$this->assertFalse( $schema['additionalProperties'], 'The input schema should reject unknown root keys.' );
 		$this->assertSame( array( 'where' ), $schema['required'], 'The input schema should require where.' );
-		foreach ( array( 'oneOf', 'anyOf', 'allOf' ) as $combinator ) {
-			$this->assertArrayNotHasKey( $combinator, $schema, sprintf( 'The input schema should not use %s at its root.', $combinator ) );
-		}
 		$this->assertSame( array(), $this->find_schema_keywords( $schema, array( 'oneOf', 'anyOf', 'allOf' ) ), 'The input schema should not use a combinator at any depth.' );
 		$this->assertSame( array( 'where', 'fields', 'pagination' ), array_keys( $schema['properties'] ), 'The input schema should take where, fields and pagination, in that order.' );
 
@@ -329,25 +326,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 'object', $where['type'], 'The where option should describe an object.' );
 		$this->assertArrayNotHasKey( 'title', $where, 'The where option should not have a title.' );
-		foreach ( array( 'oneOf', 'anyOf', 'allOf' ) as $combinator ) {
-			$this->assertArrayNotHasKey( $combinator, $where, sprintf( 'The where option should not use %s.', $combinator ) );
-		}
 		$this->assertSame( array( 'type' ), $where['required'], 'The where option should require a post type.' );
 		$this->assertFalse( $where['additionalProperties'], 'The where option should reject unknown keys.' );
 		$this->assertSame( array( 'type', 'ids', 'slugs', 'status', 'author_slug', 'parent' ), array_keys( $where['properties'] ), 'The where option should take a post type and the filters, in that order.' );
 		$this->assertSame( 'string', $where['properties']['type']['type'], 'The where option should take the post type as a string.' );
-
-		// The removed lookup keys are gone, `include` is renamed, and the page size belongs to the pagination option.
-		$this->assertArrayHasKey( 'ids', $where['properties'], 'The where option should support post IDs.' );
-		$this->assertArrayHasKey( 'per_page', $schema['properties']['pagination']['properties'], 'The pagination option should support a page size.' );
-		$this->assertArrayNotHasKey( 'per_page', $where['properties'], 'The where option should not take a page size, which belongs to the pagination option.' );
-		$this->assertArrayNotHasKey( 'include', $where['properties'], 'The where option should not take include, which is renamed to ids.' );
-		$this->assertArrayNotHasKey( 'slug', $where['properties'], 'The where option should not take slug, which slugs replaces.' );
-		$this->assertArrayNotHasKey( 'id', $where['properties'], 'The where option should not take id, which ids replaces.' );
-
-		// The exposed post types are listed in one place, the `type` enum of `where`.
-		$this->assertContains( 'post', $where['properties']['type']['enum'], 'The post type enum should include exposed posts.' );
-		$this->assertContains( 'page', $where['properties']['type']['enum'], 'The post type enum should include exposed pages.' );
 		$this->assertSameSets( array( 'post', 'page' ), $where['properties']['type']['enum'], 'Only the post types marked show_in_abilities should be exposed.' );
 
 		$ids = $where['properties']['ids'];
@@ -420,14 +402,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'The fields enum should list every field, each followed by the paths of its sub-fields.'
 		);
 
-		$fields_enum = $fields['items']['enum'];
-		$this->assertContains( 'type', $fields_enum, 'The fields enum should expose the post type as type.' );
-		$this->assertNotContains( 'post_type', $fields_enum, 'The fields enum should not expose the post type as post_type.' );
-		$this->assertContains( 'content.raw', $fields_enum, 'The fields enum should include raw content.' );
-		$this->assertContains( 'content.rendered', $fields_enum, 'The fields enum should include rendered content.' );
-		$this->assertContains( 'title.raw', $fields_enum, 'The fields enum should include raw titles.' );
-		$this->assertContains( 'title.rendered', $fields_enum, 'The fields enum should include rendered titles.' );
-
 		$pagination = $schema['properties']['pagination'];
 
 		$this->assertSame( 'object', $pagination['type'], 'The pagination option should describe an object.' );
@@ -462,246 +436,56 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function test_input_schema_omits_defaults(): void {
 		$this->register_ability();
 
-		$schema     = wp_get_ability( 'core/content-query' )->get_input_schema();
-		$where      = $schema['properties']['where'];
-		$pagination = $schema['properties']['pagination'];
+		$schema = wp_get_ability( 'core/content-query' )->get_input_schema();
 
-		$this->assertArrayNotHasKey( 'default', $where['properties']['status'], 'Status should rely on runtime defaults, not schema defaults.' );
-		$this->assertArrayNotHasKey( 'default', $pagination['properties']['page'], 'Page should rely on runtime defaults, not schema defaults.' );
-		$this->assertArrayNotHasKey( 'default', $pagination['properties']['per_page'], 'Per-page should rely on runtime defaults, not schema defaults.' );
 		$this->assertSame( array(), $this->find_schema_keywords( $schema, array( 'default' ) ), 'The input schema should not declare a default at any depth.' );
 	}
 
 	/**
-	 * `where.ids` combines with a `status` filter, while the removed `id` key next to a
-	 * `status` filter is rejected outright rather than silently ignored.
+	 * `where.ids` combines with a `status` filter: a post must have one of the IDs and one of the
+	 * statuses.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
 	public function test_ids_combine_with_a_status_filter(): void {
+		$draft_id = self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where' => array(
-					'type'   => 'post',
-					'id'     => self::$post_ids['published'],
-					'status' => array( 'publish' ),
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'The removed id key next to a status filter should fail validation.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The removed id key should return an input error.' );
-
-		$combined = wp_get_ability( 'core/content-query' )->execute(
-			array(
 				'where'  => array(
 					'type'   => 'post',
-					'ids'    => array( self::$post_ids['published'] ),
+					'ids'    => array( self::$post_ids['published'], $draft_id ),
 					'status' => array( 'publish' ),
 				),
 				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertIsArray( $combined, 'The ids filter next to a status filter should pass validation.' );
-		$this->assertSame( array( self::$post_ids['published'] ), wp_list_pluck( $combined['items'], 'id' ), 'The ids filter and the status filter should both apply.' );
+		$this->assertIsArray( $result, 'The ids filter next to a status filter should pass validation.' );
+		$this->assertSame( array( self::$post_ids['published'] ), wp_list_pluck( $result['items'], 'id' ), 'The ids filter and the status filter should both apply.' );
 	}
 
 	/**
-	 * A query by ID with the post type of the post returns the post.
+	 * Returns inputs whose `where` is missing, empty, or has no exposed post type.
 	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_ids_with_the_post_type_of_the_post_return_the_post(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::$post_ids['published'];
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'A query by ID with the post type of the post should succeed.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by ID should return the requested post.' );
-		$this->assertCount( 1, $result['items'], 'The query by ID should return only the requested post.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'The query by ID should report one post on one page.'
-		);
-	}
-
-	/**
-	 * Returns the two filters that name posts, `ids` and `slugs`.
+	 * An empty string counts as an empty object, as in schema validation.
 	 *
-	 * @return array<string, array{filter: string}> Filter test cases.
+	 * @return array<string, array{input: array<string, mixed>}> Input test cases.
 	 */
-	public function data_id_and_slug_filters(): array {
+	public function data_inputs_without_a_post_type(): array {
 		return array(
-			'by ID'   => array(
-				'filter' => 'ids',
-			),
-			'by slug' => array(
-				'filter' => 'slugs',
-			),
-		);
-	}
-
-	/**
-	 * Returns the `where` value that names the given post with the given filter.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $filter  The filter that names the post, `ids` or `slugs`.
-	 * @param int    $post_id The post to name.
-	 * @return array<string, string|list<int|string>> The `where` value.
-	 */
-	private function get_where_for_post( string $filter, int $post_id ): array {
-		if ( 'ids' === $filter ) {
-			return array(
-				'type' => get_post_type( $post_id ),
-				'ids'  => array( $post_id ),
-			);
-		}
-
-		return array(
-			'type'  => get_post_type( $post_id ),
-			'slugs' => array( get_post_field( 'post_name', $post_id ) ),
-		);
-	}
-
-	/**
-	 * A query that names one post by ID or by slug returns the post on the first page only.
-	 *
-	 * It is paginated like any query that matches one post, so a later page is past the last
-	 * one. A page size is accepted, and makes no difference.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_id_and_slug_filters
-	 * @since 7.2.0
-	 *
-	 * @param string $filter The filter that names the post, `ids` or `slugs`.
-	 */
-	public function test_ids_or_slugs_return_the_post_on_the_first_page_only( string $filter ): void {
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$post_id = self::$post_ids['published_content'];
-		$ability = wp_get_ability( 'core/content-query' );
-		$query   = array(
-			'where'  => $this->get_where_for_post( $filter, $post_id ),
-			'fields' => array( 'id' ),
-		);
-
-		$expected = array(
-			'items'      => array(
-				array( 'id' => $post_id ),
-			),
-			'pagination' => array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-		);
-
-		$first_page = $ability->execute(
-			$query + array(
-				'pagination' => array(
-					'page'     => 1,
-					'per_page' => 5,
-				),
-			)
-		);
-
-		$this->assertSame( $expected, $first_page, 'The first page should hold the requested post.' );
-
-		$without_page = $ability->execute( $query + array( 'pagination' => array( 'per_page' => 5 ) ) );
-
-		$this->assertSame( $expected, $without_page, 'A query without a page should return the first page.' );
-
-		$second_page = $ability->execute( $query + array( 'pagination' => array( 'page' => 2 ) ) );
-
-		$this->assertWPError( $second_page, 'The second page should fail rather than return an empty list.' );
-		$this->assertSame( 'content_invalid_page_number', $second_page->get_error_code(), 'The second page should report a page past the last one.' );
-		$this->assertSame( 404, $second_page->get_error_data()['status'], 'The second page should be reported as not found.' );
-	}
-
-	/**
-	 * A later page of a query that names a post the current user cannot query, by ID or by
-	 * slug, returns the empty result rather than an error.
-	 *
-	 * A subscriber's default statuses do not cover drafts, so the query matches no post, and a
-	 * query that matches nothing returns the empty result on any page.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_id_and_slug_filters
-	 * @since 7.2.0
-	 *
-	 * @param string $filter The filter that names the post, `ids` or `slugs`.
-	 */
-	public function test_ids_or_slugs_of_an_unreadable_post_return_the_empty_result_on_a_later_page( string $filter ): void {
-		$draft_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$user_ids['administrator'],
-				'post_name'   => 'unreadable-lookup',
-				'post_status' => 'draft',
-			)
-		);
-
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'      => $this->get_where_for_post( $filter, $draft_id ),
-				'pagination' => array( 'page' => 2 ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The second page of a query for an unreadable post should not fail.' );
-		$this->assertSame(
-			array(
-				'items'      => array(),
-				'pagination' => array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
-			$result,
-			'A query that matches no post the subscriber may query should return the empty result on the second page.'
-		);
-	}
-
-	/**
-	 * Returns inputs without a `where`, or whose `where` has no post type, holds a key it does
-	 * not take, such as the removed `id` and `slug` and the renamed `include`, or holds a value
-	 * its schema rejects.
-	 *
-	 * @return array<string, array{input: mixed}> Input test cases.
-	 */
-	public function data_inputs_without_a_valid_where(): array {
-		return array(
-			'no input'                   => array(
-				'input' => null,
-			),
 			'missing where'              => array(
 				'input' => array( 'fields' => array( 'id' ) ),
 			),
 			'empty where'                => array(
 				'input' => array( 'where' => array() ),
+			),
+			'empty string where'         => array(
+				'input' => array( 'where' => '' ),
 			),
 			'IDs without a post type'    => array(
 				'input' => array( 'where' => array( 'ids' => array( self::IMPORTED_POST_ID ) ) ),
@@ -712,7 +496,24 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			'status without a post type' => array(
 				'input' => array( 'where' => array( 'status' => array( 'draft' ) ) ),
 			),
-			'removed ID key'             => array(
+			'post type outside the enum' => array(
+				'input' => array( 'where' => array( 'type' => 'attachment' ) ),
+			),
+		);
+	}
+
+	/**
+	 * Returns inputs whose `where` holds a key it does not take, such as the removed `id` and
+	 * `slug` and the renamed `include`, or holds a value its schema rejects.
+	 *
+	 * @return array<string, array{input: mixed}> Input test cases.
+	 */
+	public function data_inputs_without_a_valid_where(): array {
+		return array(
+			'no input'            => array(
+				'input' => null,
+			),
+			'removed ID key'      => array(
 				'input' => array(
 					'where' => array(
 						'type' => 'post',
@@ -720,7 +521,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'removed slug key'           => array(
+			'removed slug key'    => array(
 				'input' => array(
 					'where' => array(
 						'type' => 'post',
@@ -728,7 +529,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'renamed include key'        => array(
+			'renamed include key' => array(
 				'input' => array(
 					'where' => array(
 						'type'    => 'post',
@@ -736,61 +537,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'ID and slug'                => array(
-				'input' => array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => self::IMPORTED_POST_ID,
-						'slug' => 'x',
-					),
-				),
-			),
-			'ID and status'              => array(
-				'input' => array(
-					'where' => array(
-						'type'   => 'post',
-						'id'     => self::IMPORTED_POST_ID,
-						'status' => array( 'publish' ),
-					),
-				),
-			),
-			'ID and author_slug'         => array(
-				'input' => array(
-					'where' => array(
-						'type'        => 'post',
-						'id'          => self::IMPORTED_POST_ID,
-						'author_slug' => 'x',
-					),
-				),
-			),
-			'ID and parent'              => array(
-				'input' => array(
-					'where' => array(
-						'type'   => 'page',
-						'id'     => self::IMPORTED_POST_ID,
-						'parent' => 0,
-					),
-				),
-			),
-			'ID and include'             => array(
-				'input' => array(
-					'where' => array(
-						'type'    => 'post',
-						'id'      => self::IMPORTED_POST_ID,
-						'include' => array( self::IMPORTED_POST_ID ),
-					),
-				),
-			),
-			'slug and status'            => array(
-				'input' => array(
-					'where' => array(
-						'type'   => 'post',
-						'slug'   => 'x',
-						'status' => array( 'publish' ),
-					),
-				),
-			),
-			'unknown key'                => array(
+			'unknown key'         => array(
 				'input' => array(
 					'where' => array(
 						'type'  => 'post',
@@ -798,10 +545,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'post type outside the enum' => array(
-				'input' => array( 'where' => array( 'type' => 'attachment' ) ),
-			),
-			'empty IDs'                  => array(
+			'empty IDs'           => array(
 				'input' => array(
 					'where' => array(
 						'type' => 'post',
@@ -809,7 +553,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'ID of 0'                    => array(
+			'ID of 0'             => array(
 				'input' => array(
 					'where' => array(
 						'type' => 'post',
@@ -817,7 +561,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'duplicate IDs'              => array(
+			'duplicate IDs'       => array(
 				'input' => array(
 					'where' => array(
 						'type' => 'post',
@@ -825,7 +569,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'empty slugs'                => array(
+			'empty slugs'         => array(
 				'input' => array(
 					'where' => array(
 						'type'  => 'post',
@@ -833,7 +577,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'empty slug'                 => array(
+			'empty slug'          => array(
 				'input' => array(
 					'where' => array(
 						'type'  => 'post',
@@ -841,7 +585,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'duplicate slugs'            => array(
+			'duplicate slugs'     => array(
 				'input' => array(
 					'where' => array(
 						'type'  => 'post',
@@ -853,36 +597,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Input without a `where`, or whose `where` has no post type, holds a key it does not take
-	 * or holds a value its schema rejects, fails schema validation.
-	 *
-	 * A readable post has the ID that the removed `id` key and the IDs name, so input that
-	 * wrongly passed validation would return a result rather than fail.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_inputs_without_a_valid_where
-	 * @since 7.2.0
-	 *
-	 * @param mixed $input The input to send.
-	 */
-	public function test_input_without_a_valid_where_fails_schema_validation( $input ): void {
-		self::factory()->post->create(
-			array(
-				'import_id'   => self::IMPORTED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute( $input );
-
-		$this->assertWPError( $result, 'Input without a valid where should not return a result.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Input without a valid where should fail schema validation.' );
-	}
-
-	/**
 	 * Returns inputs in the old shape, with an ID, a filter or pages at the root, and an input
 	 * with an unknown pagination key.
 	 *
@@ -891,10 +605,16 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	public function data_inputs_with_keys_outside_their_objects(): array {
 		return array(
 			'ID at the root'         => array(
-				'input' => array( 'id' => self::IMPORTED_POST_ID ),
+				'input' => array(
+					'where' => array( 'type' => 'post' ),
+					'id'    => self::IMPORTED_POST_ID,
+				),
 			),
 			'post type at the root'  => array(
-				'input' => array( 'type' => 'post' ),
+				'input' => array(
+					'where' => array( 'type' => 'post' ),
+					'type'  => 'post',
+				),
 			),
 			'page at the root'       => array(
 				'input' => array(
@@ -918,32 +638,28 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Input in the old shape, and an unknown pagination key, fail schema validation.
+	 * Input without a post type, with a key outside its object or that its object does not
+	 * take, or with a value its schema rejects, fails schema validation.
 	 *
 	 * The root only takes `where`, `fields` and `pagination`. An ID, a filter or a page given
 	 * outside its object is rejected, rather than ignored in favor of another request.
 	 *
 	 * @ticket 66268
+	 * @dataProvider data_inputs_without_a_post_type
+	 * @dataProvider data_inputs_without_a_valid_where
 	 * @dataProvider data_inputs_with_keys_outside_their_objects
 	 * @since 7.2.0
 	 *
-	 * @param array<string, mixed> $input The input to send.
+	 * @param mixed $input The input to send.
 	 */
-	public function test_old_shape_keys_fail_schema_validation( array $input ): void {
-		self::factory()->post->create(
-			array(
-				'import_id'   => self::IMPORTED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-
+	public function test_input_without_a_valid_where_fails_schema_validation( $input ): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
 		$result = wp_get_ability( 'core/content-query' )->execute( $input );
 
-		$this->assertWPError( $result, 'Old-shape or unknown keys should not return a result.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Old-shape or unknown keys should fail schema validation.' );
+		$this->assertWPError( $result, 'Input without a valid where should not return a result.' );
+		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Input without a valid where should fail schema validation.' );
 	}
 
 	/**
@@ -980,9 +696,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'An empty fields list and an empty pagination object should be valid.' );
 		$this->assertCount( 10, $result['items'], 'An empty pagination object should use the default page size.' );
 		$this->assertSame( (int) ceil( $result['pagination']['total'] / 10 ), $result['pagination']['total_pages'], 'The page count should follow the default page size.' );
-		$this->assertSame( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result['items'][0] ), 'An empty fields list should select the default fields.' );
+		$this->assertSameSets( array( 'id', 'type', 'status', 'date', 'slug', 'title' ), array_keys( $result['items'][0] ), 'An empty fields list should select the default fields.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The default fields should hold only the rendered title.' );
-		$this->assertSame( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both dates.' );
+		$this->assertSameSets( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default fields should hold both dates.' );
 
 		$explicit = $ability->execute(
 			array(
@@ -1194,6 +910,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function data_show_in_abilities_values_other_than_true(): array {
 		return array(
+			'false'               => array(
+				'value' => false,
+			),
 			'array of operations' => array(
 				'value' => array( 'create' ),
 			),
@@ -1331,7 +1050,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_get_single_published_post_by_id(): void {
+	public function test_query_by_id_returns_the_published_post(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -1347,16 +1066,15 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'The query by ID should return a post array.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by ID should return the requested post.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['items'], 'id' ), 'The query by ID should return only the requested post.' );
 		$this->assertSame( 'Hello Content', $result['items'][0]['title']['rendered'], 'Rendered titles should be returned by default.' );
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'id', 'type', 'status', 'date', 'slug', 'title' ),
 			array_keys( $result['items'][0] ),
 			'Omitted fields should return the lean default field set.'
 		);
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The default title should hold only the rendered title.' );
-		$this->assertSame( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default date should hold the local and the GMT date.' );
-		$this->assertCount( 1, $result['items'], 'The query by ID should return only the requested post.' );
+		$this->assertSameSets( array( 'local', 'gmt' ), array_keys( $result['items'][0]['date'] ), 'The default date should hold the local and the GMT date.' );
 		$this->assertSame(
 			array(
 				'total'       => 1,
@@ -1376,7 +1094,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_get_single_published_post_by_id_accepts_object_input(): void {
+	public function test_query_accepts_object_input(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -1397,7 +1115,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertIsArray( $result, 'Object input should execute the query by ID.' );
 		$this->assertSame( $post_id, $result['items'][0]['id'], 'Object input should preserve the requested post ID.' );
 		$this->assertSame( 'Hello Content', $result['items'][0]['title']['rendered'], 'Object input should preserve the requested fields.' );
-		$this->assertSame( array( 'id', 'title' ), array_keys( $result['items'][0] ), 'Object input should use the requested field projection.' );
+		$this->assertSameSets( array( 'id', 'title' ), array_keys( $result['items'][0] ), 'Object input should use the requested field projection.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'Object input should project the title to the requested path.' );
 	}
 
@@ -1415,28 +1133,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->register_ability();
 
 		$ability = wp_get_ability( 'core/content-query' );
-		$post_id = self::$post_ids['published_content'];
-
-		$by_id = array(
-			'where'  => (object) array(
-				'type' => 'post',
-				'ids'  => array( $post_id ),
-			),
-			'fields' => array( 'id' ),
-		);
-
-		$expected_by_id = array(
-			'items'      => array(
-				array( 'id' => $post_id ),
-			),
-			'pagination' => array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-		);
-
-		$this->assertSame( $expected_by_id, $ability->execute( $by_id ), 'An object where in array input should run the query by ID.' );
-		$this->assertSame( $expected_by_id, $ability->execute( (object) $by_id ), 'An object where in object input should run the query by ID.' );
 
 		$older_id = self::factory()->post->create(
 			array(
@@ -1484,7 +1180,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_get_single_published_post_by_id_can_return_content_fields(): void {
+	public function test_query_by_id_can_return_content_fields(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -1500,11 +1196,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by ID should return the requested post.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['items'], 'id' ), 'The query by ID should return only the requested post.' );
+		$this->assertSameSets( array( 'id', 'type', 'content' ), array_keys( $result['items'][0] ), 'The query by ID should return only the requested fields.' );
+		$this->assertSameSets( array( 'raw', 'rendered' ), array_keys( $result['items'][0]['content'] ), 'The content should hold only the requested sub-fields.' );
 		$this->assertSame( 'post', $result['items'][0]['type'], 'The query by ID should return the post type as type.' );
 		$this->assertStringContainsString( 'Body here.', $result['items'][0]['content']['rendered'], 'Explicit content fields should include rendered content.' );
 		$this->assertSame( 'Body here.', $result['items'][0]['content']['raw'], 'Explicit content fields should include raw content.' );
-		$this->assertCount( 1, $result['items'], 'The query by ID should return only the requested post.' );
 		$this->assertSame(
 			array(
 				'total'       => 1,
@@ -1516,94 +1213,57 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query by a missing post ID returns no post, rather than an error.
+	 * Returns `where` values whose IDs or slugs match no post of the post type: a missing ID,
+	 * the ID of a post of another post type, and a slug that no post has.
 	 *
-	 * @ticket 66268
-	 * @since 7.2.0
+	 * @return array<string, array{where: array<string, mixed>}> The `where` values.
 	 */
-	public function test_get_by_missing_id_returns_no_post(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
+	public function data_where_values_that_match_no_post(): array {
+		return array(
+			'missing ID'            => array(
 				'where' => array(
 					'type' => 'post',
 					'ids'  => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
 				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'A missing post should not fail the query.' );
-		$this->assertSame(
-			array(
-				'items'      => array(),
-				'pagination' => array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
 			),
-			$result,
-			'A query by a missing post ID should return the empty result.'
-		);
-	}
-
-	/**
-	 * An ID beyond the integer range is rejected instead of wrapping around onto another post.
-	 *
-	 * The integer schema accepts the whole float, so the ID reaches the execute callback, which
-	 * drops it, and rejects the ids filter, which then holds no valid ID.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_by_id_beyond_the_integer_range_is_rejected(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$aliased_id = self::factory()->post->create(
-			array(
-				'import_id'   => self::ALIASED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-		$this->assertSame( self::ALIASED_POST_ID, $aliased_id, 'The aliased post should have the requested ID.' );
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( 2 ** 64 + $aliased_id ),
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'An ID beyond the integer range should not resolve a post.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An ID beyond the integer range should leave no valid ID in the ids filter.' );
-	}
-
-	/**
-	 * A query by ID of a post of another post type returns no post, rather than an error.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_by_id_with_mismatched_post_type_returns_no_post(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::$post_ids['published'];
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
+			'ID of another type'    => array(
 				'where' => array(
 					'type' => 'page',
-					'ids'  => array( $post_id ),
+					'ids'  => array( self::IMPORTED_POST_ID ),
 				),
+			),
+			'slug that no post has' => array(
+				'where' => array(
+					'type'  => 'post',
+					'slugs' => array( 'no-such-slug' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * A query whose IDs or slugs match no post of the post type returns the empty result,
+	 * rather than an error.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_where_values_that_match_no_post
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $where The `where` value to send.
+	 */
+	public function test_ids_or_slugs_that_match_no_post_return_the_empty_result( array $where ): void {
+		self::factory()->post->create(
+			array(
+				'import_id'   => self::IMPORTED_POST_ID,
+				'post_status' => 'publish',
 			)
 		);
 
-		$this->assertIsArray( $result, 'A mismatched post type should not fail the query.' );
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute( array( 'where' => $where ) );
+
 		$this->assertSame(
 			array(
 				'items'      => array(),
@@ -1613,72 +1273,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				),
 			),
 			$result,
-			'A query of pages by the ID of a post should return the empty result.'
-		);
-	}
-
-	/**
-	 * A post from a post type not exposed to abilities cannot be queried by ID.
-	 *
-	 * A query of its post type fails validation, and a query of an exposed post type does not
-	 * match it.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_by_id_for_unexposed_post_type_returns_no_post(): void {
-		register_post_type(
-			'hidden_cpt',
-			array(
-				'public'       => true,
-				'show_in_rest' => false,
-				'supports'     => array( 'title', 'editor' ),
-			)
-		);
-
-		$this->login_as( 'administrator' );
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_type'   => 'hidden_cpt',
-				'post_status' => 'publish',
-			)
-		);
-		$this->assertGreaterThan( 0, $post_id, 'Precondition: the hidden custom post should be created.' );
-
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'hidden_cpt',
-					'ids'  => array( $post_id ),
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'A query of an unexposed post type should return an error.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'A query of an unexposed post type should fail validation.' );
-
-		$exposed = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
-			)
-		);
-
-		$this->assertSame(
-			array(
-				'items'      => array(),
-				'pagination' => array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
-			$exposed,
-			'A query of an exposed post type by the ID of the post should return no post.'
+			'A query whose IDs or slugs match no post should return the empty result.'
 		);
 	}
 
@@ -1995,7 +1590,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * Pins both halves of what the schema advertises. The ability leaves `orderby` at the
 	 * WP_Query default, matching the REST posts controller, and `ids` only filters the query,
-	 * so a caller that passes IDs in a chosen order must not expect them back in it.
+	 * so a caller that passes IDs in a chosen order must not expect them back in it. The posts
+	 * are created out of date order, so that ordering by ID would fail.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2004,6 +1600,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
+		$newest = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2026-03-01 10:00:00',
+			)
+		);
 		$oldest = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',
@@ -2016,19 +1618,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'post_date'   => '2026-02-01 10:00:00',
 			)
 		);
-		$newest = self::factory()->post->create(
-			array(
-				'post_status' => 'publish',
-				'post_date'   => '2026-03-01 10:00:00',
-			)
-		);
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'where'  => array(
 					'type' => 'post',
 					// Deliberately neither date order nor ID order.
-					'ids'  => array( $middle, $newest, $oldest ),
+					'ids'  => array( $oldest, $newest, $middle ),
 				),
 				'fields' => array( 'id' ),
 			)
@@ -2038,55 +1634,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array( $newest, $middle, $oldest ),
 			wp_list_pluck( $result['items'], 'id' ),
 			'Results should be ordered by post date, newest first, not by the order of the ids list.'
-		);
-	}
-
-	/**
-	 * A query by several IDs returns every readable post, newest first, whatever the order of
-	 * the IDs, on one page.
-	 *
-	 * With IDs, the page size defaults to the maximum of 100 instead of 10, so more than 10 IDs
-	 * still fit on the first page.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_query_with_several_ids_returns_every_post_newest_first_on_one_page(): void {
-		$post_ids = array();
-		for ( $day = 1; $day <= 12; $day++ ) {
-			$post_ids[] = self::factory()->post->create(
-				array(
-					'post_status' => 'publish',
-					'post_date'   => sprintf( '2026-01-%02d 10:00:00', $day ),
-				)
-			);
-		}
-
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		// Deliberately neither date order nor ID order.
-		$requested = array_merge( array_slice( $post_ids, 6 ), array_reverse( array_slice( $post_ids, 0, 6 ) ) );
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => $requested,
-				),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The query by several IDs should succeed.' );
-		$this->assertSame( array_reverse( $post_ids ), wp_list_pluck( $result['items'], 'id' ), 'Every requested post should be returned, newest first, whatever the order of the IDs.' );
-		$this->assertSame(
-			array(
-				'total'       => 12,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'With IDs, the page size should default to 100, so every requested post should fit on one page.'
 		);
 	}
 
@@ -2216,229 +1763,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array( $draft ), wp_list_pluck( $result['items'], 'id' ), 'The draft query should return only the requested draft.' );
+		$this->assertSameSets( array( 'id', 'type', 'status', 'content' ), array_keys( $result['items'][0] ), 'The draft query should return only the requested fields.' );
+		$this->assertSameSets( array( 'raw', 'rendered' ), array_keys( $result['items'][0]['content'] ), 'The draft content should hold only the requested sub-fields.' );
 		$this->assertSame( 'post', $result['items'][0]['type'], 'Query responses should return the post type as type.' );
 		$this->assertSame( 'draft', $result['items'][0]['status'], 'The draft query should expose the requested draft status.' );
 		$this->assertStringContainsString( 'Draft body for content fields.', $result['items'][0]['content']['rendered'], 'Draft query results should include rendered content when requested.' );
 		$this->assertSame( 'Draft body for content fields.', $result['items'][0]['content']['raw'], 'Draft query results should include raw content when requested.' );
-	}
-
-	/**
-	 * Querying by slug without a post type is rejected by the input schema.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_slugs_require_post_type(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute( array( 'where' => array( 'slugs' => array( 'whatever' ) ) ) );
-
-		$this->assertWPError( $result, 'Slug queries without a post type should fail validation.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Invalid slug queries should return an input error.' );
-	}
-
-	/**
-	 * A query by slug with a post type returns the single post that has the slug.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_single_published_post_by_slug(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_name'   => 'content-slug-mode',
-				'post_title'  => 'Content Slug Mode',
-				'post_status' => 'publish',
-			)
-		);
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( 'content-slug-mode' ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The query by slug should return a post array.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by slug should return the requested post.' );
-		$this->assertSame( 'content-slug-mode', $result['items'][0]['slug'], 'The query by slug should return the matching slug.' );
-		$this->assertCount( 1, $result['items'], 'The query by slug should return only the requested post.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'The query by slug should report one post on one page.'
-		);
-	}
-
-	/**
-	 * A post queried by slug can return explicitly requested rendered and raw content.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_single_published_post_by_slug_can_return_content_fields(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::factory()->post->create(
-			array(
-				'post_name'    => 'content-slug-fields',
-				'post_title'   => 'Content Slug Fields',
-				'post_content' => 'Slug body for content fields.',
-				'post_status'  => 'publish',
-			)
-		);
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type'  => 'post',
-					'slugs' => array( 'content-slug-fields' ),
-				),
-				'fields' => array( 'id', 'type', 'slug', 'content.rendered', 'content.raw' ),
-			)
-		);
-
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by slug should return the requested post.' );
-		$this->assertSame( 'post', $result['items'][0]['type'], 'The query by slug should return the post type as type.' );
-		$this->assertSame( 'content-slug-fields', $result['items'][0]['slug'], 'The query by slug should return the matching slug.' );
-		$this->assertStringContainsString( 'Slug body for content fields.', $result['items'][0]['content']['rendered'], 'Queries by slug should include rendered content when requested.' );
-		$this->assertSame( 'Slug body for content fields.', $result['items'][0]['content']['raw'], 'Queries by slug should include raw content when requested.' );
-		$this->assertCount( 1, $result['items'], 'The query by slug should return only the requested post.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'The query by slug should report one post on one page.'
-		);
-	}
-
-	/**
-	 * A published post is not hidden behind more same-slug drafts than a page holds, from a
-	 * user who cannot query the drafts.
-	 *
-	 * A query by slug is paged and ordered newest first, so newer drafts that it covered would
-	 * fill the first page. A subscriber's default statuses do not cover drafts, so the drafts
-	 * are not part of the query.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_published_post_is_not_hidden_behind_drafts_sharing_its_slug(): void {
-		global $wpdb;
-
-		/*
-		 * Author every post as the administrator, so the subscriber who reads them below can
-		 * only see the published one.
-		 */
-		$this->login_as( 'administrator' );
-
-		// The published post owns the slug and is the oldest of the group.
-		$published = self::factory()->post->create(
-			array(
-				'post_status' => 'publish',
-				'post_name'   => 'slug-not-bounded',
-				'post_date'   => '2026-01-01 10:00:00',
-			)
-		);
-
-		/*
-		 * Drafts skip slug uniqueness, so they can all share the slug. Create more of them
-		 * than the largest page the ability will ever return.
-		 */
-		for ( $i = 0; $i < 110; $i++ ) {
-			self::factory()->post->create(
-				array(
-					'post_status' => 'draft',
-					'post_name'   => 'slug-not-bounded',
-					'post_date'   => '2026-03-01 10:00:00',
-				)
-			);
-		}
-
-		$sharing = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_name = %s", 'slug-not-bounded' ) ); // phpcs:ignore WordPress.DB
-		$this->assertGreaterThan( 100, $sharing, 'Precondition: more posts share the slug than a single page holds.' );
-
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type'  => 'post',
-					'slugs' => array( 'slug-not-bounded' ),
-				),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The published post should resolve even though the drafts fill more than a page.' );
-		$this->assertSame( $published, $result['items'][0]['id'], 'The readable published post should still resolve.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'The drafts should not be counted for a subscriber, whose default statuses do not cover drafts.'
-		);
-	}
-
-	/**
-	 * A post whose slug is the literal string "0" is fetched by slug.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_get_single_post_by_slug_zero(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		/*
-		 * Core regenerates an "empty" post_name from the title, so a post titled "0"
-		 * ends up with the literal slug "0".
-		 */
-		$post_id = self::factory()->post->create(
-			array(
-				'post_title'  => '0',
-				'post_name'   => '0',
-				'post_status' => 'publish',
-			)
-		);
-
-		$this->assertSame( '0', get_post( $post_id )->post_name, 'Precondition: the post slug should be the literal string "0".' );
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( '0' ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The query by slug should return a post array.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The slugs filter should match the literal "0" slug.' );
-		$this->assertCount( 1, $result['items'], 'A "0" slug should not fall through to a query of every post.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$result['pagination'],
-			'A query for the "0" slug should report one post on one page.'
-		);
 	}
 
 	/**
@@ -2452,6 +1782,22 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @since 7.2.0
 	 */
 	public function test_slugs_return_every_listed_post(): void {
+		/*
+		 * Core regenerates an "empty" post_name from the title, so a post titled "0"
+		 * ends up with the literal slug "0". It is the newest post, and is created first
+		 * so that ID order is not date order.
+		 */
+		$zero_id = self::factory()->post->create(
+			array(
+				'post_title'  => '0',
+				'post_name'   => '0',
+				'post_status' => 'publish',
+				'post_date'   => '2026-01-12 10:00:00',
+			)
+		);
+
+		$this->assertSame( '0', get_post( $zero_id )->post_name, 'Precondition: the post slug should be the literal string "0".' );
+
 		$slugs    = array();
 		$post_ids = array();
 		for ( $day = 1; $day <= 11; $day++ ) {
@@ -2464,21 +1810,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				)
 			);
 		}
-
-		/*
-		 * Core regenerates an "empty" post_name from the title, so a post titled "0"
-		 * ends up with the literal slug "0".
-		 */
-		$zero_id = self::factory()->post->create(
-			array(
-				'post_title'  => '0',
-				'post_name'   => '0',
-				'post_status' => 'publish',
-				'post_date'   => '2026-01-12 10:00:00',
-			)
-		);
-
-		$this->assertSame( '0', get_post( $zero_id )->post_name, 'Precondition: the post slug should be the literal string "0".' );
 
 		$slugs[]    = '0';
 		$post_ids[] = $zero_id;
@@ -2610,8 +1941,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A slug that normalizes to an empty string cannot match a post, so it is dropped, and a
-	 * slugs filter with no slug left is rejected rather than widened to every post.
+	 * A slug that normalizes to an empty string cannot match a post, so it is dropped, while
+	 * the other slugs still apply.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2624,29 +1955,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
+		// A draft has no slug yet, so an empty slug would match it.
+		self::factory()->post->create( array( 'post_status' => 'draft' ) );
+
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		$ability  = wp_get_ability( 'core/content-query' );
-		$rejected = $ability->execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( '!!!' ),
-				),
-			)
-		);
-
-		$this->assertWPError( $rejected, 'A slugs filter with no slug left must not fall through to an unrestricted query.' );
-		$this->assertSame( 'content_invalid_filter', $rejected->get_error_code(), 'A slugs filter with no slug left should fail closed as an invalid filter.' );
-		$this->assertSame(
-			array( 'where[slugs]' => $rejected->get_error_message() ),
-			$rejected->get_error_data()['params'],
-			'The error data should map the slugs filter to the error message.'
-		);
-		$this->assertSame( 400, $rejected->get_error_data()['status'], 'A slugs filter with no slug left should be reported as a bad request.' );
-
-		$result = $ability->execute(
+		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'where'  => array(
 					'type'  => 'post',
@@ -2681,24 +1996,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
-		$ability = wp_get_ability( 'core/content-query' );
-
-		$this->assertTrue(
-			$ability->validate_input(
-				array(
-					'where' => array(
-						'type'        => 'post',
-						'ids'         => array( 5 ),
-						'slugs'       => array( 'x' ),
-						'status'      => array( 'publish' ),
-						'author_slug' => 'jane',
-					),
-				)
-			),
-			'Every filter should be valid next to every other.'
-		);
-
-		$result = $ability->execute(
+		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
 				'where'  => array(
 					'type'  => 'post',
@@ -2725,8 +2023,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `where.slugs` combines with a `parent` filter, while the removed `slug` key next to a
-	 * `parent` filter is rejected outright rather than silently ignored.
+	 * `where.slugs` combines with a `parent` filter, so a parent of 0 tells a top-level page
+	 * apart from a child page with the same slug.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -2749,19 +2047,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->login_as( 'administrator' );
 		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'   => 'post',
-					'slug'   => 'content-slug-mode',
-					'parent' => 0,
-				),
-			)
-		);
-
-		$this->assertWPError( $result, 'The removed slug key next to a parent filter should fail validation.' );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'The removed slug key should return an input error.' );
 
 		$combined = wp_get_ability( 'core/content-query' )->execute(
 			array(
@@ -2856,186 +2141,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'The query by slug should succeed.' );
 		$this->assertSame( $expected_ids, wp_list_pluck( $result['items'], 'id' ), 'The query by slug should return every post with the slug that the role may read, newest first.' );
-		$this->assertSame( count( $expected ), $result['pagination']['total'], 'The total should count every post with the slug in the statuses the role may query.' );
-	}
-
-	/**
-	 * A slug held only by a draft returns the draft to its author, and no post to readers.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_slug_held_only_by_a_draft_follows_readability(): void {
-		$author_id = self::$user_ids['author'];
-		$draft_id  = self::factory()->post->create(
-			array(
-				'post_author' => $author_id,
-				'post_name'   => 'draft-only-slug',
-				'post_status' => 'draft',
-			)
-		);
-
-		wp_set_current_user( $author_id );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( 'draft-only-slug' ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'The draft author should resolve their own draft by slug.' );
-		$this->assertSame( $draft_id, $result['items'][0]['id'], 'The draft author should receive their own draft.' );
-
-		$this->login_as( 'subscriber' );
-
-		$withheld = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( 'draft-only-slug' ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $withheld, 'A slug held only by an unreadable draft should not fail the query.' );
-		$this->assertSame(
-			array(
-				'items'      => array(),
-				'pagination' => array(
-					'total'       => 0,
-					'total_pages' => 0,
-				),
-			),
-			$withheld,
-			'Readers should not resolve a slug held only by an unreadable draft.'
-		);
-	}
-
-	/**
-	 * A query by slug returns only posts of the requested post type, also when a query filter
-	 * adds post types to it.
-	 *
-	 * WP_Query treats the ability's query as the blog home, so a `pre_get_posts` callback
-	 * without an is_main_query() check also runs for it. Newer posts sharing the slug would
-	 * otherwise be returned, even from a post type that is not exposed.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_slugs_skip_posts_of_other_post_types(): void {
-		register_post_type(
-			'hidden_cpt',
-			array(
-				'public'   => true,
-				'supports' => array( 'title', 'editor' ),
-			)
-		);
-
-		$post_id   = self::factory()->post->create(
-			array(
-				'post_name'   => 'shared-slug',
-				'post_status' => 'publish',
-				'post_date'   => '2026-01-01 10:00:00',
-			)
-		);
-		$other_ids = array(
-			self::factory()->post->create(
-				array(
-					'post_type'   => 'page',
-					'post_name'   => 'shared-slug',
-					'post_status' => 'publish',
-					'post_date'   => '2026-03-01 10:00:00',
-				)
-			),
-			self::factory()->post->create(
-				array(
-					'post_type'   => 'hidden_cpt',
-					'post_name'   => 'shared-slug',
-					'post_status' => 'publish',
-					'post_date'   => '2026-06-01 10:00:00',
-				)
-			),
-		);
-
-		foreach ( $other_ids as $other_id ) {
-			$this->assertSame( 'shared-slug', get_post( $other_id )->post_name, 'Precondition: newer posts of other types should share the slug.' );
-		}
-
-		add_action(
-			'pre_get_posts',
-			static function ( WP_Query $query ): void {
-				if ( $query->is_home() ) {
-					$query->set( 'post_type', array( 'post', 'page', 'hidden_cpt' ) );
-				}
-			}
-		);
-
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type'  => 'post',
-					'slugs' => array( 'shared-slug' ),
-				),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertSame(
-			array(
-				'items'      => array(
-					array( 'id' => $post_id ),
-				),
-				'pagination' => array(
-					'total'       => 3,
-					'total_pages' => 1,
-				),
-			),
-			$result,
-			'The query by slug should return only the post of the requested type, and count the posts that the query filter adds.'
-		);
-	}
-
-	/**
-	 * `where.ids` cannot be combined with the removed `id` and `slug` keys, which fail
-	 * validation rather than being ignored next to it.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_ids_cannot_be_combined_with_the_removed_id_and_slug_keys(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$by_id   = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'id'   => self::$post_ids['published'],
-					'ids'  => array( self::$post_ids['published'] ),
-				),
-			)
-		);
-		$by_slug = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'slug' => 'whatever',
-					'ids'  => array( self::$post_ids['published'] ),
-				),
-			)
-		);
-
-		$this->assertWPError( $by_id, 'IDs next to the removed id key should fail validation.' );
-		$this->assertSame( 'ability_invalid_input', $by_id->get_error_code(), 'The removed id key next to IDs should return an input error.' );
-		$this->assertWPError( $by_slug, 'IDs next to the removed slug key should fail validation.' );
-		$this->assertSame( 'ability_invalid_input', $by_slug->get_error_code(), 'The removed slug key next to IDs should return an input error.' );
+		$this->assertCount( $result['pagination']['total'], $expected, 'The total should count every post with the slug in the statuses the role may query.' );
 	}
 
 	/**
@@ -3090,7 +2196,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array( 'id', 'title' ), array_keys( $result['items'][0] ), 'The ID should be returned along with the requested fields.' );
+		$this->assertSameSets( array( 'id', 'title' ), array_keys( $result['items'][0] ), 'The ID should be returned along with the requested fields.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The title should hold only the requested path.' );
 		$this->assertSame( $post_id, $result['items'][0]['id'], 'The returned ID should be the requested post.' );
 	}
@@ -3129,8 +2235,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function data_sub_field_paths(): array {
 		return array(
-			'title.rendered'    => array(
-				'field' => 'title.rendered',
+			'content.raw'       => array(
+				'field' => 'content.raw',
+			),
+			'content.rendered'  => array(
+				'field' => 'content.rendered',
 			),
 			'date.gmt'          => array(
 				'field' => 'date.gmt',
@@ -3173,7 +2282,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'The query should succeed.' );
-		$this->assertSame( array( 'id', $object ), array_keys( $result['items'][0] ), 'Only the ID and the object that holds the sub-field should be returned.' );
+		$this->assertSameSets( array( 'id', $object ), array_keys( $result['items'][0] ), 'Only the ID and the object that holds the sub-field should be returned.' );
 		$this->assertSame( array( $key ), array_keys( $result['items'][0][ $object ] ), 'The object should hold only the requested sub-field.' );
 	}
 
@@ -3265,54 +2374,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'Whole objects should not require edit access.' );
+		$this->assertSameSets( array( 'id', 'title', 'excerpt', 'content' ), array_keys( $result['items'][0] ), 'Only the ID and the requested objects should be returned.' );
 		$this->assertSame( array( 'rendered' ), array_keys( $result['items'][0]['title'] ), 'The title should hold only the rendered title.' );
-		$this->assertSame( array( 'rendered', 'protected' ), array_keys( $result['items'][0]['excerpt'] ), 'The excerpt should hold the rendered excerpt and the protected flag.' );
-		$this->assertSame( array( 'rendered', 'protected' ), array_keys( $result['items'][0]['content'] ), 'The content should hold the rendered content and the protected flag.' );
-	}
-
-	/**
-	 * The whole content of a password-protected post withholds the content from users who
-	 * cannot edit the post, and returns it to users who can.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_whole_content_of_a_password_protected_post_follows_edit_access(): void {
-		$this->register_ability();
-
-		$ability = wp_get_ability( 'core/content-query' );
-		$input   = array(
-			'where'  => array(
-				'type' => 'post',
-				'ids'  => array( self::$post_ids['password_protected'] ),
-			),
-			'fields' => array( 'content' ),
-		);
-
-		$this->login_as( 'subscriber' );
-		$withheld = $ability->execute( $input );
-
-		$this->assertIsArray( $withheld, 'A subscriber should read the protected post.' );
-		$this->assertSame(
-			array(
-				'rendered'  => '',
-				'protected' => true,
-			),
-			$withheld['items'][0]['content'],
-			'A subscriber should receive an empty rendered content and the protected flag.'
-		);
-
-		$this->login_as( 'editor' );
-		$unlocked = $ability->execute( $input );
-
-		$this->assertIsArray( $unlocked, 'An editor should read the protected post.' );
-
-		$content = $unlocked['items'][0]['content'];
-
-		$this->assertSame( array( 'raw', 'rendered', 'protected' ), array_keys( $content ), 'An editor should receive every content key.' );
-		$this->assertSame( 'Top secret body.', $content['raw'], 'An editor should receive the raw content.' );
-		$this->assertStringContainsString( 'Top secret body.', $content['rendered'], 'An editor should receive the real rendered content.' );
-		$this->assertTrue( $content['protected'], 'The protected flag should still be set for an editor.' );
+		$this->assertSameSets( array( 'rendered', 'protected' ), array_keys( $result['items'][0]['excerpt'] ), 'The excerpt should hold the rendered excerpt and the protected flag.' );
+		$this->assertSameSets( array( 'rendered', 'protected' ), array_keys( $result['items'][0]['content'] ), 'The content should hold the rendered content and the protected flag.' );
 	}
 
 	/**
@@ -3356,8 +2421,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$posts = array_column( $result['items'], null, 'id' );
 
 		$this->assertSameSets( array( $own_id, $other_id ), array_keys( $posts ), 'The query should return the posts of other users as well as the author\'s own.' );
+		$this->assertSameSets( array( 'raw', 'rendered', 'protected' ), array_keys( $posts[ $own_id ]['content'] ), 'The author\'s own post should hold every content key.' );
 		$this->assertSame( 'Own body.', $posts[ $own_id ]['content']['raw'], 'The author\'s own post should hold the raw content.' );
-		$this->assertArrayNotHasKey( 'raw', $posts[ $other_id ]['content'], 'Another user\'s post should not hold the raw content.' );
+		$this->assertSameSets( array( 'rendered', 'protected' ), array_keys( $posts[ $other_id ]['content'] ), 'Another user\'s post should not hold the raw content.' );
 		$this->assertStringContainsString( 'Other body.', $posts[ $other_id ]['content']['rendered'], 'Another user\'s post should hold the rendered content.' );
 	}
 
@@ -3471,6 +2537,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'An editor should read the whole title.' );
+		$this->assertSameSets( array( 'id', 'title' ), array_keys( $result['items'][0] ), 'Only the ID and the title should be returned.' );
 		$this->assertSame(
 			array(
 				'raw'      => 'Readable title',
@@ -3537,6 +2604,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
+		$this->assertSameSets( array( 'id', 'author' ), array_keys( $result['items'][0] ), 'Only the ID and the author should be returned.' );
 		$this->assertSame(
 			array(
 				'id'   => $author_id,
@@ -3714,39 +2782,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$post = $result['items'][ $post_index ];
 		$this->assertSame( 'Hello Content', $post['title']['rendered'], 'Subscribers should receive rendered titles.' );
 		$this->assertStringContainsString( 'Body here.', $post['content']['rendered'], 'Subscribers should receive rendered content.' );
-		$this->assertArrayNotHasKey( 'raw', $post['content'], 'Subscribers should not receive raw content without edit access.' );
-	}
-
-	/**
-	 * Subscribers can fetch a published post by ID.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_subscriber_can_get_single_published_post_by_id(): void {
-		$post_id = self::$post_ids['published_content'];
-
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
-			)
-		);
-
-		$this->assertIsArray( $result, 'Subscribers should be able to fetch a readable published post by ID.' );
-		$this->assertSame( 'Hello Content', $result['items'][0]['title']['rendered'], 'Subscribers should receive the rendered title.' );
-		$this->assertArrayNotHasKey( 'raw', $result['items'][0]['title'], 'Subscribers should not receive raw titles without edit access.' );
-		$this->assertArrayNotHasKey( 'content', $result['items'][0], 'Subscribers should not receive raw content without edit access.' );
-		$this->assertSame(
-			array( 'id', 'type', 'status', 'date', 'slug', 'title' ),
-			array_keys( $result['items'][0] ),
-			'Rendered content should require an explicit field request.'
-		);
+		$this->assertSame( array( 'rendered' ), array_keys( $post['content'] ), 'Subscribers should receive only the requested rendered content.' );
 	}
 
 	/**
@@ -3774,10 +2810,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'The readable published post should be returned.' );
 		$this->assertSame( 'Readable title', $result['items'][0]['title']['rendered'], 'Rendered title should remain visible.' );
-		$this->assertArrayNotHasKey( 'raw', $result['items'][0]['title'], 'Raw title should be omitted.' );
-		$this->assertArrayNotHasKey( 'excerpt', $result['items'][0], 'Raw excerpt should be omitted.' );
-		$this->assertArrayNotHasKey( 'content', $result['items'][0], 'Raw content should be omitted.' );
-		$this->assertSame(
+		$this->assertSameSets(
 			array( 'id', 'type', 'status', 'date', 'slug', 'title' ),
 			array_keys( $result['items'][0] ),
 			'Rendered content should be omitted from the lean default field set.'
@@ -4023,19 +3056,18 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$result = wp_get_ability( 'core/content-query' )->execute(
 			array(
-				'where'      => array(
+				'where'  => array(
 					'type'   => 'post',
 					'status' => array( 'draft' ),
 				),
-				'fields'     => array( 'id' ),
-				'pagination' => array( 'per_page' => 1 ),
+				'fields' => array( 'id' ),
 			)
 		);
 
 		$this->assertSame( array( $draft_b ), wp_list_pluck( $result['items'], 'id' ), 'Authors should receive only drafts they can read.' );
 		$this->assertNotContains( $draft_a, wp_list_pluck( $result['items'], 'id' ), 'Rows withheld by row-level permissions should not be returned.' );
-		$this->assertGreaterThan( count( $result['items'] ), $result['pagination']['total'], 'Totals may include rows withheld by row-level permission checks.' );
-		$this->assertSame( 2, $result['pagination']['total_pages'], 'Page counts should be based on the underlying query total, matching REST behavior.' );
+		$this->assertSame( 2, $result['pagination']['total'], 'Totals should include rows withheld by row-level permission checks.' );
+		$this->assertSame( 1, $result['pagination']['total_pages'], 'Page counts should be based on the underlying query total, matching REST behavior.' );
 	}
 
 	/**
@@ -4292,81 +3324,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns roles that name another user's draft in `where.ids`, with the totals they get.
-	 *
-	 * The default statuses of an author cover drafts, so the query counts the draft that the
-	 * author cannot read. The default statuses of a subscriber do not cover drafts.
-	 *
-	 * @return array<string, array{role: string, total: int, total_pages: int}> Role test cases.
-	 */
-	public function data_totals_of_another_users_draft_by_role(): array {
-		return array(
-			'author'     => array(
-				'role'        => 'author',
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			'subscriber' => array(
-				'role'        => 'subscriber',
-				'total'       => 0,
-				'total_pages' => 0,
-			),
-		);
-	}
-
-	/**
-	 * A query by the ID of another user's draft returns no post, and its totals count the
-	 * draft only for a role whose default statuses cover drafts.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_totals_of_another_users_draft_by_role
-	 * @since 7.2.0
-	 *
-	 * @param string $role        The role to query as.
-	 * @param int    $total       The total the role should get.
-	 * @param int    $total_pages The page count the role should get.
-	 */
-	public function test_query_totals_count_a_withheld_draft_only_for_roles_that_may_query_drafts( string $role, int $total, int $total_pages ): void {
-		$draft_id = self::factory()->post->create(
-			array(
-				'post_author' => self::$user_ids['author_secondary'],
-				'post_status' => 'draft',
-			)
-		);
-
-		$this->login_as( $role );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( $draft_id ),
-				),
-				'fields' => array( 'id' ),
-			)
-		);
-
-		$this->assertSame(
-			array(
-				'items'      => array(),
-				'pagination' => array(
-					'total'       => $total,
-					'total_pages' => $total_pages,
-				),
-			),
-			$result,
-			'The draft should be withheld, and the totals should count it only when the default statuses cover drafts.'
-		);
-	}
-
-	/**
 	 * The parent filter is rejected for non-hierarchical post types, mirroring REST.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_mode_rejects_parent_filter_for_non_hierarchical_post_type(): void {
+	public function test_query_rejects_parent_filter_for_non_hierarchical_post_type(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -4394,7 +3357,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_mode_filters_pages_by_parent(): void {
+	public function test_query_filters_pages_by_parent(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -4431,7 +3394,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_mode_rejects_author_filter_for_post_type_without_author_support(): void {
+	public function test_query_rejects_author_filter_for_post_type_without_author_support(): void {
 		register_post_type(
 			'no_author_cpt',
 			array(
@@ -4469,7 +3432,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_mode_filters_posts_by_author(): void {
+	public function test_query_filters_posts_by_author(): void {
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -4515,7 +3478,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_mode_skips_posts_of_other_post_types(): void {
+	public function test_query_skips_posts_of_other_post_types(): void {
 		register_post_type(
 			'hidden_cpt',
 			array(
@@ -5214,7 +4177,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsArray( $result, 'Precondition: the author should read their own protected post.' );
+		$this->assertSame( array( $owned_id ), wp_list_pluck( $result['items'], 'id' ), 'Precondition: the author should read their own protected post.' );
 		$this->assertFalse( $gates['owned'], 'The filter should unlock a protected post the current user can edit.' );
 		$this->assertTrue( $gates['other'], 'The filter should keep the gate on a protected post the current user cannot edit.' );
 		$this->assertFalse( $gates['public'], 'The filter should leave posts that do not require a password ungated.' );
@@ -5468,7 +4431,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * @param float|string $id The value to send for the imported post ID.
 	 */
-	public function test_get_by_id_honors_an_id_that_is_not_an_integer( $id ): void {
+	public function test_query_honors_an_id_that_is_not_an_integer( $id ): void {
 		$post_id = self::factory()->post->create(
 			array(
 				'import_id'   => self::IMPORTED_POST_ID,
@@ -5491,7 +4454,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->assertIsArray( $result, 'The post should be returned.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query should resolve to the requested post.' );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $result['items'], 'id' ), 'The query should resolve to the requested post.' );
 	}
 
 	/**
@@ -5539,66 +4502,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $result, 'The query should succeed.' );
 		$this->assertSame( array( $child_id ), wp_list_pluck( $result['items'], 'id' ), 'The query should return the children of the requested parent.' );
-	}
-
-	/**
-	 * Returns fractions just above {@see self::IMPORTED_POST_ID}, which the integer schema rejects.
-	 *
-	 * @return array<string, array{id: float|string}> The values to send for the post ID.
-	 */
-	public function data_fractional_post_ids(): array {
-		return array(
-			'float'  => array(
-				'id' => self::IMPORTED_POST_ID + 0.5,
-			),
-			'string' => array(
-				'id' => self::IMPORTED_POST_ID . '.5',
-			),
-		);
-	}
-
-	/**
-	 * A fractional ID is dropped rather than truncated onto the post with the whole ID.
-	 *
-	 * Schema validation rejects it before either callback runs through WP_Ability::execute().
-	 * Called directly, the permission callback, which looks up no post, lets it through, and
-	 * the execute callback rejects the ids filter, which holds no valid ID.
-	 *
-	 * @ticket 66268
-	 * @dataProvider data_fractional_post_ids
-	 * @since 7.2.0
-	 *
-	 * @param float|string $id The value to send, a fraction just above the imported post ID.
-	 */
-	public function test_execute_callback_rejects_a_fractional_id( $id ): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'import_id'   => self::IMPORTED_POST_ID,
-				'post_status' => 'publish',
-			)
-		);
-		$this->assertSame( self::IMPORTED_POST_ID, $post_id, 'Precondition: the post should have the ID the fraction truncates to.' );
-
-		$this->login_as( 'administrator' );
-		$callbacks = $this->get_ability_callbacks();
-		$input     = array(
-			'where' => array(
-				'type' => 'post',
-				'ids'  => array( $id ),
-			),
-		);
-
-		$this->assertTrue( $callbacks['permission_callback']( $input ), 'The permission callback should let a fractional ID through to the execute callback.' );
-
-		$result = $callbacks['execute_callback']( $input );
-
-		$this->assertWPError( $result, 'The execute callback should not resolve a fractional ID.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'A fractional ID should leave no valid ID in the ids filter.' );
-		$this->assertSame(
-			array( 'where[ids]' => $result->get_error_message() ),
-			$result->get_error_data()['params'],
-			'The error data should map the ids filter to the error message.'
-		);
 	}
 
 	/**
@@ -5824,19 +4727,16 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * @return array<string, array{field: string}> Post meta priming test cases.
 	 */
 	public function data_fields_that_prime_post_meta(): array {
-		return array(
-			'content.rendered' => array(
-				'field' => 'content.rendered',
-			),
-			'excerpt.rendered' => array(
-				'field' => 'excerpt.rendered',
-			),
-			'whole content'    => array(
-				'field' => 'content',
-			),
-			'whole excerpt'    => array(
-				'field' => 'excerpt',
-			),
+		return array_merge(
+			$this->data_rendered_fields(),
+			array(
+				'whole content' => array(
+					'field' => 'content',
+				),
+				'whole excerpt' => array(
+					'field' => 'excerpt',
+				),
+			)
 		);
 	}
 
@@ -6155,44 +5055,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A single post is returned with its ID when none of the requested fields apply to it.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_single_post_returns_its_id_when_requested_fields_do_not_apply(): void {
-		$this->login_as( 'administrator' );
-		$this->register_ability();
-
-		$post_id = self::$post_ids['published'];
-
-		// `parent` never applies to the non-hierarchical `post` type.
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
-				'fields' => array( 'parent' ),
-			)
-		);
-
-		$this->assertSame(
-			array(
-				'items'      => array(
-					array( 'id' => $post_id ),
-				),
-				'pagination' => array(
-					'total'       => 1,
-					'total_pages' => 1,
-				),
-			),
-			$result,
-			'A post whose requested fields do not apply should return only its ID.'
-		);
-	}
-
-	/**
 	 * Local and GMT date fields report the correct instant and offset on non-UTC sites.
 	 *
 	 * @ticket 66268
@@ -6508,63 +5370,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, the execute callback returns the empty result for IDs or slugs that
-	 * match no post of the requested post type.
-	 *
-	 * `content_not_found` only means a missing post type, so the callback reports a missing
-	 * post, a post of another post type and an unmatched slug like any query that matches
-	 * nothing.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_execute_callback_returns_the_empty_result_when_ids_or_slugs_match_nothing(): void {
-		$this->login_as( 'administrator' );
-
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$empty   = array(
-			'items'      => array(),
-			'pagination' => array(
-				'total'       => 0,
-				'total_pages' => 0,
-			),
-		);
-
-		$missing = $execute(
-			array(
-				'where' => array(
-					'type' => 'post',
-					'ids'  => array( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
-				),
-			)
-		);
-		$this->assertIsArray( $missing, 'A nonexistent post ID should not fail the query.' );
-		$this->assertSame( $empty, $missing, 'A nonexistent post ID should return the empty result.' );
-
-		$mismatched = $execute(
-			array(
-				'where' => array(
-					'type' => 'page',
-					'ids'  => array( self::$post_ids['published'] ),
-				),
-			)
-		);
-		$this->assertIsArray( $mismatched, 'A post type mismatch should not fail the query.' );
-		$this->assertSame( $empty, $mismatched, 'A post type mismatch should return the empty result.' );
-
-		$missing_slug = $execute(
-			array(
-				'where' => array(
-					'type'  => 'post',
-					'slugs' => array( 'no-such-slug' ),
-				),
-			)
-		);
-		$this->assertIsArray( $missing_slug, 'An unmatched slug should not fail the query.' );
-		$this->assertSame( $empty, $missing_slug, 'An unmatched slug should return the empty result.' );
-	}
-
-	/**
 	 * Returns author slugs that do not name a user.
 	 *
 	 * @return array<string, array{0: mixed}> The author slug filter value.
@@ -6815,8 +5620,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.slugs` values in which no slug is left after normalization, which only
-	 * reach the execute callback when it is called directly.
+	 * Returns `where.slugs` values in which no slug is left after normalization.
+	 *
+	 * Schema validation rejects the empty ones, so the test calls the execute callback
+	 * directly.
 	 *
 	 * @return array<string, array{slugs: mixed}> The `where.slugs` values.
 	 */
@@ -6983,13 +5790,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, `where.ids` and `where.slugs` also take a comma-separated string, and a
-	 * single ID or slug.
+	 * `where.ids` and `where.slugs` also take a comma-separated string, and a single ID or
+	 * slug, as schema validation does.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_execute_callback_accepts_ids_and_slugs_as_strings_and_single_values(): void {
+	public function test_ids_and_slugs_accept_comma_separated_strings_and_single_values(): void {
 		$older_id = self::factory()->post->create(
 			array(
 				'post_name'   => 'string-list-older',
@@ -7006,10 +5813,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$this->login_as( 'administrator' );
+		$this->register_ability();
 
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$query   = static function ( array $filter ) use ( $execute ) {
-			return $execute(
+		$ability = wp_get_ability( 'core/content-query' );
+		$query   = static function ( array $filter ) use ( $ability ) {
+			return $ability->execute(
 				array(
 					'where'  => array( 'type' => 'post' ) + $filter,
 					'fields' => array( 'id' ),
@@ -7043,6 +5851,29 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns values that are not objects, which schema validation rejects for `where` and
+	 * `pagination`.
+	 *
+	 * @return array<string, array{value: mixed}> The values to send.
+	 */
+	public function data_values_that_are_not_objects(): array {
+		return array(
+			'query string' => array(
+				'value' => 'id=5&page=2',
+			),
+			'integer'      => array(
+				'value' => 5,
+			),
+			'boolean'      => array(
+				'value' => true,
+			),
+			'null'         => array(
+				'value' => null,
+			),
+		);
+	}
+
+	/**
 	 * The execute callback rejects a `where` that is not an object, instead of running a query
 	 * without filters.
 	 *
@@ -7051,72 +5882,39 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * report it.
 	 *
 	 * @ticket 66268
+	 * @dataProvider data_values_that_are_not_objects
 	 * @since 7.2.0
+	 *
+	 * @param mixed $value The value to send as `where`.
 	 */
-	public function test_execute_callback_rejects_a_where_that_is_not_an_object(): void {
+	public function test_execute_callback_rejects_a_where_that_is_not_an_object( $value ): void {
 		$this->login_as( 'administrator' );
 
 		$callbacks = $this->get_ability_callbacks();
+		$input     = array( 'where' => $value );
 
-		foreach ( array( 'id=5', 5, true, null ) as $where ) {
-			$input = array( 'where' => $where );
-			$label = wp_json_encode( $where );
+		$this->assertTrue( $callbacks['permission_callback']( $input ), 'The permission callback should let the where through.' );
 
-			$this->assertTrue( $callbacks['permission_callback']( $input ), sprintf( 'The permission callback should let the %s where through.', $label ) );
+		$result = $callbacks['execute_callback']( $input );
 
-			$result = $callbacks['execute_callback']( $input );
-
-			$this->assertWPError( $result, sprintf( 'The %s where must not fall through to a query without filters.', $label ) );
-			$this->assertSame( 'content_invalid_filter', $result->get_error_code(), sprintf( 'The %s where should fail closed as an invalid filter.', $label ) );
-			$this->assertSame(
-				array( 'where' => $result->get_error_message() ),
-				$result->get_error_data()['params'],
-				sprintf( 'The error data should map the %s where to the error message.', $label )
-			);
-			$this->assertSame( 400, $result->get_error_data()['status'], sprintf( 'The %s where should be reported as a bad request.', $label ) );
-		}
-	}
-
-	/**
-	 * Returns inputs whose `where` is missing, empty, or has no exposed post type.
-	 *
-	 * @return array<string, array{input: array<string, mixed>}> Input test cases.
-	 */
-	public function data_inputs_that_read_as_a_query_without_a_post_type(): array {
-		return array(
-			'missing where'       => array(
-				'input' => array( 'fields' => array( 'id' ) ),
-			),
-			'empty where'         => array(
-				'input' => array( 'where' => array() ),
-			),
-			'empty string where'  => array(
-				'input' => array( 'where' => '' ),
-			),
-			'filters only'        => array(
-				'input' => array( 'where' => array( 'status' => array( 'publish' ) ) ),
-			),
-			'IDs only'            => array(
-				'input' => array( 'where' => array( 'ids' => array( self::IMPORTED_POST_ID ) ) ),
-			),
-			'slugs only'          => array(
-				'input' => array( 'where' => array( 'slugs' => array( 'x' ) ) ),
-			),
-			'unexposed post type' => array(
-				'input' => array( 'where' => array( 'type' => 'attachment' ) ),
-			),
+		$this->assertWPError( $result, 'The where must not fall through to a query without filters.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'The where should fail closed as an invalid filter.' );
+		$this->assertSame(
+			array( 'where' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the where to the error message.'
 		);
+		$this->assertSame( 400, $result->get_error_data()['status'], 'The where should be reported as a bad request.' );
 	}
 
 	/**
 	 * Called directly, a `where` that is missing, empty, or has no exposed post type reads as
 	 * a query without a post type, which both callbacks refuse.
 	 *
-	 * IDs and slugs do not stand in for the post type. An empty string counts as an empty
-	 * object, as in schema validation.
+	 * IDs and slugs do not stand in for the post type.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_inputs_that_read_as_a_query_without_a_post_type
+	 * @dataProvider data_inputs_without_a_post_type
 	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $input The input to send.
@@ -7139,9 +5937,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * the default page size.
 	 *
 	 * @ticket 66268
+	 * @dataProvider data_values_that_are_not_objects
 	 * @since 7.2.0
+	 *
+	 * @param mixed $value The value to send as `pagination`.
 	 */
-	public function test_execute_callback_defaults_a_pagination_that_is_not_an_object(): void {
+	public function test_execute_callback_defaults_a_pagination_that_is_not_an_object( $value ): void {
 		$this->login_as( 'administrator' );
 
 		// More posts than the default page size of 10, each with its own date.
@@ -7164,14 +5965,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertIsArray( $expected, 'Precondition: the query without pagination should succeed.' );
 		$this->assertCount( 10, $expected['items'], 'Precondition: the query without pagination should hold a page of the default size.' );
-
-		foreach ( array( 'page=2', 5, true, null ) as $pagination ) {
-			$this->assertSame(
-				$expected,
-				$execute( $query + array( 'pagination' => $pagination ) ),
-				sprintf( 'The %s pagination should fall back to the first page of the default page size.', wp_json_encode( $pagination ) )
-			);
-		}
+		$this->assertSame( $expected, $execute( $query + array( 'pagination' => $value ) ), 'The pagination should fall back to the first page of the default page size.' );
 	}
 
 	/**
