@@ -830,17 +830,14 @@ class Tests_Theme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49406
-	 *
-	 * @dataProvider data_register_theme_support_validation
-	 *
-	 * @param string $error_code The error code expected.
-	 * @param array  $args       The args to register.
 	 */
-	public function test_register_theme_support_validation( $error_code, $args ) {
-		$registered = register_theme_feature( 'test-feature', $args );
+	public function test_register_theme_support_validation() {
+		foreach ( $this->data_register_theme_support_validation() as $case => list( $error_code, $args ) ) {
+			$registered = register_theme_feature( 'test-feature', $args );
 
-		$this->assertWPError( $registered );
-		$this->assertSame( $error_code, $registered->get_error_code() );
+			$this->assertWPError( $registered, "Validation case $case should return an error." );
+			$this->assertSame( $error_code, $registered->get_error_code(), "Unexpected error for validation case $case." );
+		}
 	}
 
 	public function data_register_theme_support_validation() {
