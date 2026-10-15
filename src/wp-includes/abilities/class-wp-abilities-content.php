@@ -126,7 +126,7 @@ final class WP_Abilities_Content {
 		/*
 		 * Internal statuses (e.g. `inherit`) are excluded here and from the statuses a query
 		 * covers by default, so the posts of post types that rely on them (attachments)
-		 * cannot be queried. Revisit if such a post type is ever exposed via
+		 * cannot be queried, not even by ID. Revisit if such a post type is ever exposed via
 		 * `show_in_abilities`.
 		 */
 		$statuses = array_values( get_post_stati( array( 'internal' => false ) ) );
@@ -363,7 +363,10 @@ final class WP_Abilities_Content {
 
 		/*
 		 * Mirror the REST posts controller's inherited-parent behavior, but keep the
-		 * ability fail-closed for missing parents or parent loops.
+		 * ability fail-closed for missing parents or parent loops. No input can request
+		 * `inherit`, since internal statuses are left out of the input schema and of the
+		 * statuses a query covers by default, but a query filter such as a `pre_get_posts`
+		 * callback can still add it, so such posts keep their parent's read check.
 		 */
 		if ( 'inherit' === $post->post_status && $post->post_parent > 0 ) {
 			$parent = get_post( $post->post_parent );
@@ -614,7 +617,10 @@ final class WP_Abilities_Content {
 
 		/*
 		 * Mirror the REST posts controller: totals come from the underlying WP_Query,
-		 * while the row-level checks above may withhold individual returned rows.
+		 * while the row-level checks above may withhold individual returned rows. The
+		 * totals can therefore count posts the current user cannot read, such as another
+		 * author's draft listed in `ids`. This is deliberate: it only reveals that such a
+		 * post exists, as a REST collection request with `include` and `status` does.
 		 */
 		return $this->prepare_output( $posts, $total, $total_pages );
 	}
@@ -1201,7 +1207,12 @@ final class WP_Abilities_Content {
 							'type'        => 'integer',
 							'minimum'     => 1,
 							'maximum'     => self::MAX_PER_PAGE,
-							'description' => __( 'Maximum number of posts to return per page.' ),
+							'description' => sprintf(
+								/* translators: 1: Default number of posts per page, 2: Maximum number of posts per page. */
+								__( 'Maximum number of posts to return per page. Defaults to %1$d, or to %2$d when `where.ids` or `where.slugs` is given.' ),
+								self::DEFAULT_PER_PAGE,
+								self::MAX_PER_PAGE
+							),
 						),
 					),
 					'description'          => __( 'Selects the page of results to return.' ),
