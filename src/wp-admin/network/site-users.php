@@ -38,12 +38,12 @@ if ( ! empty( $_REQUEST['paged'] ) ) {
 $id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
-	wp_die( __( 'Invalid site ID.' ) );
+	wp_die( __( 'Invalid site ID.' ), 400 );
 }
 
 $details = get_site( $id );
 if ( ! $details ) {
-	wp_die( __( 'The requested site does not exist.' ) );
+	wp_die( __( 'The requested site does not exist.' ), 404 );
 }
 
 if ( ! can_edit_network( $details->site_id ) ) {
