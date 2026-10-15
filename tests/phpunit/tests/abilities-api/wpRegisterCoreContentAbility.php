@@ -337,7 +337,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'array', $ids['type'], 'The ids filter should take a list.' );
 		$this->assertSame( 1, $ids['minItems'], 'The ids filter should require at least one post ID.' );
 		$this->assertSame( 100, $ids['maxItems'], 'The ids filter should accept at most 100 post IDs.' );
-		$this->assertTrue( $ids['uniqueItems'], 'The ids filter should reject duplicate post IDs.' );
 		$this->assertSame( 'integer', $ids['items']['type'], 'The ids filter should contain post IDs.' );
 		$this->assertSame( 1, $ids['items']['minimum'], 'The ids filter should contain positive post IDs.' );
 
@@ -346,14 +345,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 'array', $slugs['type'], 'The slugs filter should take a list.' );
 		$this->assertSame( 1, $slugs['minItems'], 'The slugs filter should require at least one slug.' );
 		$this->assertSame( 100, $slugs['maxItems'], 'The slugs filter should accept at most 100 slugs.' );
-		$this->assertTrue( $slugs['uniqueItems'], 'The slugs filter should reject duplicate slugs.' );
 		$this->assertSame( 'string', $slugs['items']['type'], 'The slugs filter should contain slugs as strings.' );
 		$this->assertSame( 1, $slugs['items']['minLength'], 'The slugs filter should not contain an empty slug.' );
 
 		$status = $where['properties']['status'];
 
 		$this->assertSame( 'array', $status['type'], 'The status filter should take a list.' );
-		$this->assertTrue( $status['uniqueItems'], 'The status filter should reject duplicate statuses.' );
 		$this->assertSame( 1, $status['minItems'], 'The status filter should require at least one status.' );
 		$this->assertSame( 'string', $status['items']['type'], 'The status filter should contain status names.' );
 		$this->assertSameSets( array_values( get_post_stati( array( 'internal' => false ) ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal.' );
@@ -366,7 +363,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$fields = $schema['properties']['fields'];
 
 		$this->assertSame( 'array', $fields['type'], 'The fields option should take a list.' );
-		$this->assertTrue( $fields['uniqueItems'], 'The fields option should reject duplicate field paths.' );
 		$this->assertArrayNotHasKey( 'minItems', $fields, 'The fields option should accept an empty list, which selects the default fields.' );
 		$this->assertSame( 'string', $fields['items']['type'], 'The fields option should contain field paths.' );
 		$this->assertSame(
@@ -440,6 +436,21 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$schema = wp_get_ability( 'core/content-query' )->get_input_schema();
 
 		$this->assertSame( array(), $this->find_schema_keywords( $schema, array( 'default' ) ), 'The input schema should not declare a default at any depth.' );
+	}
+
+	/**
+	 * `uniqueItems` is omitted from the whole input schema, because the Gemini API rejects it
+	 * in the `parameters` of a function declaration. A repeated list value is accepted instead.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_input_schema_omits_unique_items(): void {
+		$this->register_ability();
+
+		$schema = wp_get_ability( 'core/content-query' )->get_input_schema();
+
+		$this->assertSame( array(), $this->find_schema_keywords( $schema, array( 'uniqueItems' ) ), 'The input schema should not declare uniqueItems at any depth.' );
 	}
 
 	/**
@@ -562,14 +573,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					),
 				),
 			),
-			'duplicate IDs'       => array(
-				'input' => array(
-					'where' => array(
-						'type' => 'post',
-						'ids'  => array( self::IMPORTED_POST_ID, self::IMPORTED_POST_ID ),
-					),
-				),
-			),
 			'empty slugs'         => array(
 				'input' => array(
 					'where' => array(
@@ -583,14 +586,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'where' => array(
 						'type'  => 'post',
 						'slugs' => array( '' ),
-					),
-				),
-			),
-			'duplicate slugs'     => array(
-				'input' => array(
-					'where' => array(
-						'type'  => 'post',
-						'slugs' => array( 'x', 'x' ),
 					),
 				),
 			),
@@ -661,6 +656,111 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertWPError( $result, 'Input without a valid where should not return a result.' );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code(), 'Input without a valid where should fail schema validation.' );
+	}
+
+	/**
+	 * Returns inputs that repeat a value in a list, each next to the same input without the
+	 * repeat. Each input selects the post with the ID {@see self::IMPORTED_POST_ID} and the
+	 * slug `repeated-list-value`.
+	 *
+	 * @return array<string, array{input: array<string, mixed>, deduplicated: array<string, mixed>}> Input test cases.
+	 */
+	public function data_inputs_with_a_repeated_list_value(): array {
+		return array(
+			'repeated ID'         => array(
+				'input'        => array(
+					'where' => array(
+						'type' => 'post',
+						'ids'  => array( self::IMPORTED_POST_ID, self::IMPORTED_POST_ID ),
+					),
+				),
+				'deduplicated' => array(
+					'where' => array(
+						'type' => 'post',
+						'ids'  => array( self::IMPORTED_POST_ID ),
+					),
+				),
+			),
+			'repeated slug'       => array(
+				'input'        => array(
+					'where' => array(
+						'type'  => 'post',
+						'slugs' => array( 'repeated-list-value', 'repeated-list-value' ),
+					),
+				),
+				'deduplicated' => array(
+					'where' => array(
+						'type'  => 'post',
+						'slugs' => array( 'repeated-list-value' ),
+					),
+				),
+			),
+			'repeated status'     => array(
+				'input'        => array(
+					'where' => array(
+						'type'   => 'post',
+						'ids'    => array( self::IMPORTED_POST_ID ),
+						'status' => array( 'publish', 'publish' ),
+					),
+				),
+				'deduplicated' => array(
+					'where' => array(
+						'type'   => 'post',
+						'ids'    => array( self::IMPORTED_POST_ID ),
+						'status' => array( 'publish' ),
+					),
+				),
+			),
+			'repeated field path' => array(
+				'input'        => array(
+					'where'  => array(
+						'type' => 'post',
+						'ids'  => array( self::IMPORTED_POST_ID ),
+					),
+					'fields' => array( 'title', 'slug', 'title' ),
+				),
+				'deduplicated' => array(
+					'where'  => array(
+						'type' => 'post',
+						'ids'  => array( self::IMPORTED_POST_ID ),
+					),
+					'fields' => array( 'title', 'slug' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * A value repeated in `where.ids`, `where.slugs`, `where.status` or `fields` passes schema
+	 * validation and returns the same result as the input without the repeat, so a caller
+	 * that repeats a value gets its answer rather than an error.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_inputs_with_a_repeated_list_value
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $input        The input with a repeated value.
+	 * @param array<string, mixed> $deduplicated The same input without the repeat.
+	 */
+	public function test_repeated_list_value_returns_the_deduplicated_result( array $input, array $deduplicated ): void {
+		self::factory()->post->create(
+			array(
+				'import_id'   => self::IMPORTED_POST_ID,
+				'post_name'   => 'repeated-list-value',
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$ability  = wp_get_ability( 'core/content-query' );
+		$expected = $ability->execute( $deduplicated );
+		$result   = $ability->execute( $input );
+
+		$this->assertIsArray( $expected, 'Precondition: the input without the repeat should pass validation.' );
+		$this->assertSame( array( self::IMPORTED_POST_ID ), wp_list_pluck( $expected['items'], 'id' ), 'Precondition: the input without the repeat should return the post.' );
+		$this->assertSame( $expected, $result, 'A repeated list value should return the same result as the input without the repeat.' );
 	}
 
 	/**
