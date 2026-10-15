@@ -1015,7 +1015,7 @@ function write_post() {
  * Adds post meta data defined in the `$_POST` superglobal for a post with given ID.
  *
  * @since 1.2.0
- * @since 7.1.0 Returns a WP_Error object when the meta key is protected or the user
+ * @since 7.2.0 Returns a WP_Error object when the meta key is protected or the user
  *              does not have the capability to add post meta.
  *
  * @param int $post_id
