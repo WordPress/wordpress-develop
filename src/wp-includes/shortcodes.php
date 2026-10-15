@@ -400,7 +400,7 @@ function do_shortcode_tag( $m ) {
 
 	// Allow [[foo]] syntax for escaping a tag.
 	if ( '[' === $m[1] && ']' === $m[6] ) {
-		return substr( $m[0], 1, -1 );
+		return '&#091;' . substr( $m[0], 2, -2 ) . '&#093;';
 	}
 
 	$tag  = $m[2];
@@ -475,7 +475,8 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 		'&#93;' => '&#093;',
 	);
 	$content = strtr( $content, $trans );
-	$trans   = array(
+
+	$trans = array(
 		'[' => '&#91;',
 		']' => '&#93;',
 	);
@@ -549,6 +550,17 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
 				$count    = 0;
 				$new_attr = preg_replace_callback( "/$pattern/", 'do_shortcode_tag', $attr, -1, $count );
 				if ( $count > 0 ) {
+					/**
+					 * Prevent escaped shortcodes to break the attribute reverting html chars back to brackets
+					 */
+					$new_attr = strtr(
+						$new_attr,
+						array(
+							'&#091;' => '[',
+							'&#093;' => ']',
+						)
+					);
+
 					// Sanitize the shortcode output using KSES.
 					$new_attr = wp_kses_one_attr( $new_attr, $elname );
 					if ( '' !== trim( $new_attr ) ) {
@@ -765,7 +777,7 @@ function strip_shortcodes( $content ) {
 function strip_shortcode_tag( $m ) {
 	// Allow [[foo]] syntax for escaping a tag.
 	if ( '[' === $m[1] && ']' === $m[6] ) {
-		return substr( $m[0], 1, -1 );
+		return '&#091;' . substr( $m[0], 2, -2 ) . '&#093;';
 	}
 
 	return $m[1] . $m[6];
