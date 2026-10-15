@@ -7,7 +7,7 @@
 		"url": "https://develop.svn.wordpress.org/trunk"
 	},
 	"gutenberg": {
-		"sha": "5715a61334c4d29f21b67cf34b46061dc1b62502",
+		"sha": "954fe7f9e04631c41aec4552acd627a7203a2aad",
 		"ghcrRepo": "WordPress/gutenberg/gutenberg-wp-develop-build"
 	},
 	"engines": {
@@ -55,7 +55,6 @@
 		"@wordpress/scripts": "33.0.0",
 		"autoprefixer": "10.5.3",
 		"chalk": "5.6.2",
-		"check-node-version": "4.2.1",
 		"cssnano": "7.1.9",
 		"dotenv": "17.4.2",
 		"dotenv-expand": "13.0.0",
@@ -111,10 +110,11 @@
 		"jquery-color": "3.0.0",
 		"jquery-form": "4.3.0",
 		"jquery-hoverintent": "1.10.2",
+		"jquery-migrate": "3.6.0",
 		"jsonlint": "1.6.3",
 		"lodash": "4.18.1",
 		"masonry-layout": "4.2.2",
-		"moment": "2.30.1",
+		"moment": "2.31.0",
 		"objectFitPolyfill": "2.3.5",
 		"polyfill-library": "4.8.0",
 		"react": "18.3.1",

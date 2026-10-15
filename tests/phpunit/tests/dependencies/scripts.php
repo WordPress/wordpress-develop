@@ -36,6 +36,11 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_concatenate_scripts;
 
 	/**
+	 * @var mixed
+	 */
+	protected $old_compress_scripts;
+
+	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -54,6 +59,7 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
 		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
 		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
+		$this->old_compress_scripts    = $GLOBALS['compress_scripts'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -77,6 +83,7 @@ JS;
 		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
 		$GLOBALS['wp_styles']           = $this->old_wp_styles;
 		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
+		$GLOBALS['compress_scripts']    = $this->old_compress_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -101,11 +108,11 @@ JS;
 		$find_id_tag_processor = new WP_HTML_Tag_Processor( $expected );
 		$find_id_tag_processor->next_token();
 		$id = $find_id_tag_processor->get_attribute( 'id' );
-		assert( is_string( $id ) );
+		$this->assertIsString( $id, 'The expected SCRIPT tag must have an ID attribute.' );
 
 		$processor = ( new class('', WP_HTML_Processor::CONSTRUCTOR_UNLOCK_CODE ) extends WP_HTML_Processor {
 			public function get_script_html() {
-				assert( 'SCRIPT' === $this->get_tag() );
+				assert( 'SCRIPT' === $this->get_tag(), 'The processor must be paused on a SCRIPT tag.' );
 				$this->set_bookmark( 'here' );
 				$span = $this->bookmarks['_here'];
 				return substr( $this->html, $span->start, $span->length );
@@ -2350,7 +2357,7 @@ HTML;
 	/**
 	 * Testing `wp_script_add_data` with the conditional key.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @since 6.9.0 Conditional comments should now return an empty string.
 	 *
@@ -2770,7 +2777,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 14853
 	 * @ticket 63821
@@ -2821,7 +2828,7 @@ HTML;
 	}
 
 	/**
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 *
 	 * @ticket 36392
 	 * @ticket 63821
@@ -3103,7 +3110,7 @@ HTML;
 		ob_start();
 		$output = $wp_scripts->print_inline_script( $handle, $position, true );
 		$this->assertEqualHTML( $expected_tag, ob_get_clean() );
-		$this->assertEquals( $expected_data, $output );
+		$this->assertSame( $expected_data, $output );
 	}
 
 	/**
@@ -3830,14 +3837,71 @@ HTML;
 	 * @ticket 58648
 	 */
 	public function test_printing_tinymce_scripts() {
-		global $wp_scripts;
-
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( wp_scripts() );
 
 		$actual = get_echo( 'wp_print_scripts', array( array( 'wp-tinymce' ) ) );
 
 		$this->assertStringNotContainsString( 'async', $actual, 'TinyMCE should not have an async attribute.' );
 		$this->assertStringNotContainsString( 'defer', $actual, 'TinyMCE should not have a defer attribute.' );
+	}
+
+	/**
+	 * Tests that TinyMCE is registered as separate files, never as the `wp-tinymce.js` bundle.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers ::wp_register_tinymce_scripts
+	 *
+	 * @dataProvider data_register_tinymce_scripts_unbundled
+	 *
+	 * @param bool $concatenate Value of the `$concatenate_scripts` global.
+	 * @param bool $compress    Value of the `$compress_scripts` global.
+	 */
+	public function test_register_tinymce_scripts_unbundled( bool $concatenate, bool $compress ): void {
+		global $concatenate_scripts, $compress_scripts;
+
+		$concatenate_scripts = $concatenate;
+		$compress_scripts    = $compress;
+
+		$wp_scripts = wp_scripts();
+		wp_register_tinymce_scripts( $wp_scripts );
+
+		$root = $wp_scripts->query( 'wp-tinymce-root' );
+		$this->assertInstanceOf( _WP_Dependency::class, $root, 'Expected TinyMCE core to be registered.' );
+		$this->assertIsString( $root->src );
+		$this->assertMatchesRegularExpression( '#/js/tinymce/tinymce(\.min)?\.js$#', $root->src );
+
+		$tinymce = $wp_scripts->query( 'wp-tinymce' );
+		$this->assertInstanceOf( _WP_Dependency::class, $tinymce, 'Expected the wp-tinymce handle to be registered.' );
+		$this->assertIsString( $tinymce->src );
+		$this->assertMatchesRegularExpression( '#/js/tinymce/plugins/compat3x/plugin(\.min)?\.js$#', $tinymce->src );
+		$this->assertSame( array( 'wp-tinymce-root' ), $tinymce->deps );
+	}
+
+	/**
+	 * Data provider for test_register_tinymce_scripts_unbundled().
+	 *
+	 * @return array<non-falsy-string, array{ concatenate: bool, compress: bool }>
+	 */
+	public function data_register_tinymce_scripts_unbundled(): array {
+		return array(
+			'concatenated and compressed' => array(
+				'concatenate' => true,
+				'compress'    => true,
+			),
+			'concatenated only'           => array(
+				'concatenate' => true,
+				'compress'    => false,
+			),
+			'compressed only'             => array(
+				'concatenate' => false,
+				'compress'    => true,
+			),
+			'neither'                     => array(
+				'concatenate' => false,
+				'compress'    => false,
+			),
+		);
 	}
 
 	/**
@@ -3891,7 +3955,7 @@ HTML;
 		$this->assertEqualHTML( $expected_header, $header, '<body>', 'Expected header script markup to match.' );
 		$this->assertEqualHTML( $expected_footer, $footer, '<body>', 'Expected footer script markup to match.' );
 		$this->assertEqualSets( $expected_in_footer, wp_scripts()->in_footer, 'Expected to have the same handles for in_footer.' );
-		$this->assertEquals( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
+		$this->assertSame( $expected_groups, wp_scripts()->groups, 'Expected groups to match.' );
 	}
 
 	/**
@@ -4172,6 +4236,7 @@ HTML;
 	 *
 	 * @ticket 61855
 	 * @ticket 60048
+	 * @ticket 60478
 	 *
 	 * @covers ::wp_default_scripts
 	 * @covers ::wp_default_packages_vendor
@@ -4233,6 +4298,7 @@ HTML;
 			'jquery-core'                      => array( 'jquery', 'jquery-core' ),
 			'jquery-form'                      => array( 'jquery-form' ),
 			'jquery-hoverintent'               => array( 'jquery-hoverintent', 'hoverIntent' ),
+			'jquery-migrate'                   => array( 'jquery-migrate' ),
 			'htmlhint'                         => array( 'htmlhint' ),
 			'jsonlint'                         => array( 'jsonlint' ),
 			'lodash'                           => array( 'lodash' ),
