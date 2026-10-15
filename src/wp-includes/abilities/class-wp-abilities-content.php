@@ -484,12 +484,25 @@ final class WP_Abilities_Content {
 		}
 
 		/*
+		 * A `status` filter that was given but kept no status must not fall through to the
+		 * default statuses, which with `ids` or `slugs` cover every status the current user may
+		 * query, wider than the caller asked for.
+		 */
+		$statuses = $this->get_requested_statuses( $where );
+		if ( isset( $where['status'] ) && empty( $statuses ) ) {
+			return $this->invalid_filter_error(
+				'where[status]',
+				/* translators: %s: Parameter. */
+				sprintf( __( 'The %s filter must list one or more post statuses.' ), 'status' )
+			);
+		}
+
+		/*
 		 * The input schema lists the statuses registered when the ability was, so check them
 		 * again: WP_Query ignores a status that is not registered, and drops the status clause
 		 * when none is left, which would cover every status, including internal ones such as
 		 * `trash`.
 		 */
-		$statuses = $this->get_requested_statuses( $where );
 		if ( ! empty( array_diff( $statuses, get_post_stati( array( 'internal' => false ) ) ) ) ) {
 			return $this->invalid_filter_error(
 				'where[status]',
@@ -1141,6 +1154,7 @@ final class WP_Abilities_Content {
 						'status'      => array(
 							'type'        => 'array',
 							'uniqueItems' => true,
+							'minItems'    => 1,
 							'items'       => array(
 								'type' => 'string',
 								'enum' => $statuses,
