@@ -2332,7 +2332,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return;
 		}
 
-		$note_ids        = array_map( 'intval', $note_ids );
 		$current_user_id = get_current_user_id();
 
 		$parent_in = $wpdb->prepare(
@@ -2507,11 +2506,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			isset( $check['meta']['_wp_note_status'] ) &&
 			in_array( $check['meta']['_wp_note_status'], array( 'resolved', 'reopen' ), true )
 		) {
-			return true;
-		}
-
-		// Reactions always have content (the emoji hex key), so allow them.
-		if ( isset( $check['comment_type'] ) && 'reaction' === $check['comment_type'] ) {
 			return true;
 		}
 

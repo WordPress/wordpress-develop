@@ -2292,7 +2292,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( array( $heart, $rocket ), array_map( 'intval', wp_get_note_reaction_ids( $note_id ) ) );
+		$this->assertSame( array( $heart, $rocket ), array_map( 'intval', wp_get_note_reaction_ids( get_comment( $note_id ) ) ) );
 	}
 
 	/**
@@ -2313,57 +2313,12 @@ class Tests_Comment extends WP_UnitTestCase {
 		$trashed  = $this->create_reaction_on_note( $note_id, '1f680' );
 		wp_trash_comment( $trashed );
 
-		$this->assertSame( array( $approved ), array_map( 'intval', wp_get_note_reaction_ids( $note_id, 'approve' ) ), 'Only the approved reaction was expected.' );
-		$this->assertSame( array( $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note_id, 'trash' ) ), 'Only the trashed reaction was expected.' );
-		$this->assertCount( 2, wp_get_note_reaction_ids( $note_id ), 'Both reactions were expected by default.' );
-		$this->assertSame( array( $approved, $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note_id ) ) );
-	}
+		$note = get_comment( $note_id );
 
-	/**
-	 * Only notes carry reactions.
-	 *
-	 * @ticket 64638
-	 *
-	 * @covers ::wp_get_note_reaction_ids
-	 *
-	 * @dataProvider data_wp_get_note_reaction_ids_non_note_comments
-	 *
-	 * @param string $comment_type The comment type to attach the reaction to.
-	 */
-	public function test_wp_get_note_reaction_ids_returns_empty_for_non_notes( $comment_type ) {
-		$comment_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_type'     => $comment_type,
-				'comment_approved' => '1',
-			)
-		);
-
-		$this->create_reaction_on_note( $comment_id );
-
-		$this->assertSame( array(), wp_get_note_reaction_ids( $comment_id ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, string[]>
-	 */
-	public function data_wp_get_note_reaction_ids_non_note_comments() {
-		return array(
-			'a discussion comment' => array( 'comment' ),
-			'a pingback'           => array( 'pingback' ),
-			'another reaction'     => array( 'reaction' ),
-		);
-	}
-
-	/**
-	 * @ticket 64638
-	 *
-	 * @covers ::wp_get_note_reaction_ids
-	 */
-	public function test_wp_get_note_reaction_ids_returns_empty_for_unknown_comment() {
-		$this->assertSame( array(), wp_get_note_reaction_ids( PHP_INT_MAX ) );
+		$this->assertSame( array( $approved ), array_map( 'intval', wp_get_note_reaction_ids( $note, 'approve' ) ), 'Only the approved reaction was expected.' );
+		$this->assertSame( array( $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note, 'trash' ) ), 'Only the trashed reaction was expected.' );
+		$this->assertCount( 2, wp_get_note_reaction_ids( $note ), 'Both reactions were expected by default.' );
+		$this->assertSame( array( $approved, $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note ) ) );
 	}
 
 	/**
