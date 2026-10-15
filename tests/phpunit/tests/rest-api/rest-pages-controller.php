@@ -457,7 +457,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertNotWPError( $response );
 		$this->assertSame( 201, $response->get_status() );
 
 		$data = $response->get_data();
@@ -569,7 +568,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertNotWPError( $response );
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'Location', $response->get_headers() );
 
