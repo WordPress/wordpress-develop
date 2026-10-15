@@ -398,7 +398,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 	public function test_random_base_defaults_to_random(): void {
 		global $wp_rewrite;
 
-		$this->assertFalse( get_option( 'wp_random_base' ), 'The wp_random_base option should not be populated on install.' );
+		$this->assertSame( '', get_option( 'wp_random_base' ), 'The wp_random_base option should be empty on install.' );
 		$this->assertSame( '', $wp_rewrite->random_base, 'The custom random base property should be empty by default.' );
 		$this->assertSame( 'random', $wp_rewrite->get_random_base(), 'The random base should default to random.' );
 	}
