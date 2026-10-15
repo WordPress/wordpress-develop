@@ -1196,4 +1196,240 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'marker-7f3a', $this->printed_client_data() );
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected the value read from context to decline as not a token.' );
 	}
+
+	/**
+	 * Gets the paths listed under `derivedStateClosures` of the client data
+	 * printed so far, by namespace.
+	 *
+	 * @return array<string, string[]> Paths by namespace.
+	 */
+	private function announced_paths(): array {
+		global $wp_interactivity;
+
+		$data = $wp_interactivity->filter_script_module_interactivity_data( array() );
+		return $data['derivedStateClosures'] ?? array();
+	}
+
+	/**
+	 * Tests that a token in state is listed once under its namespace however
+	 * many hosts reference it, and prints as an empty object.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 *
+	 * @dataProvider data_hosts_referencing_a_token_in_state
+	 *
+	 * @param string $hosts The hosts' markup.
+	 */
+	public function test_token_in_state_is_listed_once( string $hosts ) {
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		wp_interactivity_process_directives( $this->page( $hosts ) );
+
+		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
+		$this->assertEquals(
+			(object) array(),
+			json_decode( $this->printed_client_data() )->state->test->html,
+			'Expected the token to print as an empty object.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string }>
+	 */
+	public static function data_hosts_referencing_a_token_in_state(): array {
+		return array(
+			'one host'  => array( '<div data-wp-html="state.html">Fallback</div>' ),
+			'two hosts' => array(
+				'<div data-wp-html="state.html">Fallback</div><p data-wp-html="state.html">x</p>',
+			),
+		);
+	}
+
+	/**
+	 * Tests that a token restored by unserialization is listed like any other.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_unserialized_token_in_state_is_listed_once() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
+		$this->expect_html_notices();
+		$this->set_state( array( 'html' => unserialize( serialize( $this->token() ) ) ) );
+
+		wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.html">Fallback</div>' ) );
+
+		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
+		$this->assertEquals(
+			(object) array(),
+			json_decode( $this->printed_client_data() )->state->test->html,
+			'Expected the token to print as an empty object.'
+		);
+	}
+
+	/**
+	 * Tests that a token reached through state is listed with the full path of
+	 * the reference, under the namespace the reference resolves in, once per
+	 * path and namespace.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_token_paths_are_listed_in_full_per_namespace() {
+		$this->set_state(
+			array(
+				'html' => $this->token(),
+				'deep' => array( 'er' => array( 'html' => $this->token() ) ),
+			)
+		);
+		wp_interactivity_state(
+			'other',
+			array(
+				'html' => $this->token(),
+				'deep' => array( 'er' => array( 'html' => $this->token() ) ),
+			)
+		);
+
+		$output = wp_interactivity_process_directives(
+			$this->page(
+				'<div data-wp-html="state.deep.er.html">a</div>' .
+				'<div data-wp-html="state.deep.er.html">b</div>' .
+				'<div data-wp-html="state.html">c</div>' .
+				'<div data-wp-html="other::state.html">d</div>' .
+				'<div data-wp-html="other::state.deep.er.html">e</div>' .
+				'<div data-wp-html="other::state.deep.er.html">f</div>'
+			)
+		);
+
+		$this->assertSame( 6, substr_count( $output, self::MARKER_HTML ), 'Expected every host to render its token.' );
+		$this->assertSame(
+			array(
+				'test'  => array( 'state.deep.er.html', 'state.html' ),
+				'other' => array( 'state.html', 'state.deep.er.html' ),
+			),
+			$this->announced_paths()
+		);
+	}
+
+	/**
+	 * Tests that a token referenced with a leading `!` is listed without it.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_negated_reference_lists_the_path_without_the_negation() {
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		wp_interactivity_process_directives(
+			$this->page( '<div data-wp-class--off="!state.html">x</div>' )
+		);
+
+		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
+	}
+
+	/**
+	 * Tests that a token reached through the result of a derived-state closure
+	 * renders and only the closure's path is listed.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_token_in_a_closure_result_lists_only_the_closure() {
+		$token = $this->token();
+		$this->set_state(
+			array(
+				'foo' => static function () use ( $token ) {
+					return array( 'bar' => $token );
+				},
+			)
+		);
+
+		$output = wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.foo.bar">Fallback</div>' ) );
+
+		$this->assertSame(
+			$this->processed_page( '<div data-wp-html="state.foo.bar">' . self::MARKER_HTML . '</div>' ),
+			$output
+		);
+		$this->assertSame( array( 'test' => array( 'state.foo' ) ), $this->announced_paths() );
+	}
+
+	/**
+	 * Tests that a directive other than `data-wp-html` lists the token it
+	 * references, and that the trusted HTML reaches neither the output nor the
+	 * client data.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_token_referenced_only_by_another_directive_is_listed_once() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		$output = wp_interactivity_process_directives(
+			'<div data-wp-interactive="test"><span data-wp-bind--title="state.html">x</span></div>'
+		);
+
+		$this->assertStringNotContainsString( 'marker-7f3a', $output );
+		$this->assertStringNotContainsString( 'marker-7f3a', $this->printed_client_data() );
+		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
+	}
+
+	/**
+	 * Tests that tokens reached through `context`, such as the items of
+	 * `data-wp-each`, render without a notice and are not listed.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_tokens_reached_through_context_are_not_listed() {
+		$this->set_state(
+			array(
+				'items' => array(
+					array( 'html' => $this->token() ),
+					array( 'html' => $this->token() ),
+				),
+			)
+		);
+
+		$output = wp_interactivity_process_directives(
+			'<div data-wp-interactive="test"><ul><template data-wp-each="state.items"><li data-wp-html="context.item.html">Fallback</li></template></ul></div>'
+		);
+
+		$this->assertSame( 2, substr_count( $output, '<li data-wp-each-child="test::state.items" data-wp-html="context.item.html">' . self::MARKER_HTML . '</li>' ) );
+		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
+		$this->assertSame( array(), $this->announced_paths(), 'Expected no listed path.' );
+	}
+
+	/**
+	 * Tests that a token placed in state that no directive references is not
+	 * listed.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers ::filter_script_module_interactivity_data
+	 */
+	public function test_token_that_no_directive_references_is_not_listed() {
+		$this->set_state( array( 'html' => $this->token() ) );
+
+		wp_interactivity_process_directives( $this->page( '<div>x</div>' ) );
+
+		$this->assertSame( array(), $this->announced_paths() );
+	}
 }
