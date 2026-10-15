@@ -312,4 +312,89 @@ class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 
 		$this->assertSame( 'https://example.site/api/oembed', $result );
 	}
+
+	/**
+	 * @ticket 44231
+	 * @covers WP_oEmbed::fetch
+	 */
+	public function test_fetch_falls_back_to_xml_when_json_parsing_fails() {
+		$xml_body = '<?xml version="1.0" encoding="utf-8" standalone="yes"?>'
+			. '<oembed><type>rich</type><version>1.0</version>'
+			. '<html>&lt;p&gt;Test&lt;/p&gt;</html><width>400</width><height>300</height></oembed>';
+
+		$filter = static function ( $preempt, $parsed_args, $url ) use ( $xml_body ) {
+			if ( str_contains( $url, 'format=json' ) ) {
+				return array(
+					'body'     => $xml_body,
+					'response' => array( 'code' => 200 ),
+				);
+			}
+			return $preempt;
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 3 );
+		$result = $this->oembed->fetch( 'https://example.com/oembed', 'https://example.com/some-video' );
+		remove_filter( 'pre_http_request', $filter, 10 );
+
+		$this->assertInstanceOf( 'stdClass', $result );
+		$this->assertSame( 'rich', $result->type );
+		$this->assertSame( '<p>Test</p>', $result->html );
+	}
+
+	/**
+	 * @ticket 44231
+	 * @covers WP_oEmbed::fetch
+	 */
+	public function test_fetch_does_not_fall_back_to_xml_for_non_oembed_xml() {
+		$error_xml = '<?xml version="1.0" encoding="utf-8"?><error>Not found</error>';
+
+		$filter = static function ( $preempt, $parsed_args, $url ) use ( $error_xml ) {
+			if ( str_contains( $url, 'format=json' ) ) {
+				return array(
+					'body'     => $error_xml,
+					'response' => array( 'code' => 200 ),
+				);
+			}
+			return $preempt;
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 3 );
+		$result = $this->oembed->fetch( 'https://example.com/oembed', 'https://example.com/some-video' );
+		remove_filter( 'pre_http_request', $filter, 10 );
+
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 44231
+	 * @covers WP_oEmbed::fetch
+	 */
+	public function test_fetch_still_parses_valid_json_normally() {
+		$json_body = wp_json_encode(
+			array(
+				'type'    => 'rich',
+				'version' => '1.0',
+				'html'    => '<p>Test</p>',
+				'width'   => 400,
+				'height'  => 300,
+			)
+		);
+
+		$filter = static function ( $preempt, $parsed_args, $url ) use ( $json_body ) {
+			if ( str_contains( $url, 'format=json' ) ) {
+				return array(
+					'body'     => $json_body,
+					'response' => array( 'code' => 200 ),
+				);
+			}
+			return $preempt;
+		};
+
+		add_filter( 'pre_http_request', $filter, 10, 3 );
+		$result = $this->oembed->fetch( 'https://example.com/oembed', 'https://example.com/some-video' );
+		remove_filter( 'pre_http_request', $filter, 10 );
+
+		$this->assertInstanceOf( 'stdClass', $result );
+		$this->assertSame( 'rich', $result->type );
+	}
 }
