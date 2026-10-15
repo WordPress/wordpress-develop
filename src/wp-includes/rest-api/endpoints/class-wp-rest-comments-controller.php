@@ -31,7 +31,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 	 * with their reaction summaries. Reset after each get_items() call.
 	 *
 	 * @since 7.2.0
-	 * @var array|null
+	 * @var array<int, array<string, array{count: int, current_user_reaction: int}>>|null
 	 */
 	protected $reaction_summaries = null;
 
