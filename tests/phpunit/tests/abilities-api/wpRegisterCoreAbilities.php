@@ -23,13 +23,20 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 		global $wp_current_filter;
 
 		// Ensure core abilities and categories are registered for these tests.
+		// Pop in finally so a setup exception cannot leave the simulated action on the stack.
 		$wp_current_filter[] = 'wp_abilities_api_categories_init';
-		wp_register_core_ability_categories();
-		array_pop( $wp_current_filter );
+		try {
+			wp_register_core_ability_categories();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 
 		$wp_current_filter[] = 'wp_abilities_api_init';
-		wp_register_core_abilities();
-		array_pop( $wp_current_filter );
+		try {
+			wp_register_core_abilities();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
 	}
 
 	/**
