@@ -261,10 +261,6 @@ jQuery( function( $ ) {
 
 			if ( false === hasRemoved ) {
 				if ( false === hasRetained ) {
-<<<<<<< Updated upstream
-					summaryMessage = __( 'No personal data was found for this user.' );
-					classes = 'notice-info';
-=======
 					classes = 'notice-info';
 
 					if ( requestEmail ) {
@@ -277,7 +273,6 @@ jQuery( function( $ ) {
 							requestEmail
 						);
 					}
->>>>>>> Stashed changes
 				} else {
 					summaryMessage = __( 'Personal data was found for this user but was not erased.' );
 					classes = 'notice-warning';
