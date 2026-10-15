@@ -99,15 +99,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Gets the sources of the `_doing_it_wrong()` calls raised so far.
-	 *
-	 * @return string[] Sources, in the order raised.
-	 */
-	private function notice_sources(): array {
-		return array_column( $this->notices, 'source' );
-	}
-
-	/**
 	 * Gets the messages of the `data-wp-html` notices raised so far.
 	 *
 	 * @return string[] Messages.
@@ -120,14 +111,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			}
 		}
 		return $messages;
-	}
-
-	/**
-	 * Declares that `data-wp-html` notices are expected, so the test case does
-	 * not fail the test for them.
-	 */
-	private function expect_html_notices() {
-		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 	}
 
 	/**
@@ -198,7 +181,8 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 	/**
 	 * Tests that a token renders as the exact content of the host, however the
-	 * reference reaches it.
+	 * reference reaches it, and reaches the output only there: `data-wp-bind`
+	 * does not set it and the client data does not hold it.
 	 *
 	 * @ticket 66246
 	 *
@@ -208,16 +192,37 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 *
 	 * @param callable $make_state Callable returning the state to set.
 	 */
-	public function test_token_renders_as_exact_host_content( callable $make_state ) {
+	public function test_token_reaches_the_output_only_as_host_content( callable $make_state ) {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
 		$this->set_state( $make_state() );
 
-		$output = wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.html">Fallback</div>' ) );
+		$output = wp_interactivity_process_directives(
+			$this->page(
+				'<div data-wp-html="state.html">Fallback</div>' .
+				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
+			)
+		);
 
 		$this->assertSame(
-			$this->processed_page( '<div data-wp-html="state.html">' . self::MARKER_HTML . '</div>' ),
-			$output
+			$this->processed_page(
+				'<div data-wp-html="state.html">' . self::MARKER_HTML . '</div>' .
+				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
+			),
+			$output,
+			'Expected the token to be the host content and to set no bound attribute.'
 		);
-		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
+		$this->assertSame(
+			array(
+				'WP_Interactivity_API::data_wp_bind_processor',
+				'WP_Interactivity_API::data_wp_bind_processor',
+			),
+			array_column( $this->notices, 'source' ),
+			'Expected only the non-scalar notice of each bound attribute.'
+		);
+
+		$printed = $this->printed_client_data();
+		$this->assertStringNotContainsString( 'marker-7f3a', $printed, 'Expected the client data to hold no trusted HTML.' );
+		$this->assertStringContainsString( '"html":{}', $printed, 'Expected the token to print as an empty object.' );
 	}
 
 	/**
@@ -357,7 +362,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param mixed $value The value of `state.html`.
 	 */
 	public function test_value_that_is_not_a_token_declines_with_one_notice( $value ) {
-		$this->expect_html_notices();
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 		$this->set_state( array( 'html' => $value ) );
 
 		$output = wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.html">' . self::CHILDREN . '</div>' ) );
@@ -395,30 +400,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 				},
 			),
 		);
-	}
-
-	/**
-	 * Tests that an HTML string read from context declines like any other value
-	 * that is not a token.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_html_string_from_context_declines_with_one_notice() {
-		$this->expect_html_notices();
-
-		$output = wp_interactivity_process_directives(
-			'<div data-wp-interactive="test" data-wp-context=\'{"html":"<p>Hi</p>"}\'>' .
-			'<div data-wp-html="context.html">Fallback</div><span data-wp-text="state.text">x</span></div>'
-		);
-
-		$this->assertSame(
-			'<div data-wp-interactive="test" data-wp-context=\'{"html":"<p>Hi</p>"}\'>' .
-			'<div data-wp-html="context.html">Fallback</div><span data-wp-text="state.text">processed</span></div>',
-			$output
-		);
-		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
 	}
 
 	/**
@@ -478,7 +459,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string $reason   Text the notice contains to name the reason.
 	 */
 	public function test_structural_decline_names_its_reason_without_resolving_the_reference( string $host, string $expected, string $reason ) {
-		$this->expect_html_notices();
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 		$token = $this->token();
 		$this->set_state(
 			array(
@@ -542,7 +523,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @param string $literal The attribute value.
 	 */
 	public function test_authored_non_string_literal_declines_with_one_notice( string $literal ) {
-		$this->expect_html_notices();
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 
 		$output = wp_interactivity_process_directives(
 			$this->page( '<div data-wp-html=\'' . $literal . '\'>Fallback</div>' )
@@ -569,56 +550,24 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that entries other than the default one are ignored without a notice.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 *
-	 * @dataProvider data_ignored_entries
-	 *
-	 * @param string $attribute The attribute written on the host.
-	 */
-	public function test_non_default_entries_are_ignored_without_notice( string $attribute ) {
-		$this->set_state( array( 'html' => $this->token() ) );
-
-		$host   = '<div ' . $attribute . '>Fallback</div>';
-		$output = wp_interactivity_process_directives( $this->page( $host ) );
-
-		$this->assertSame( $this->processed_page( $host ), $output );
-		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{ 0: string }> Data provider.
-	 */
-	public static function data_ignored_entries(): array {
-		return array(
-			'suffix'    => array( 'data-wp-html--x="state.html"' ),
-			'unique id' => array( 'data-wp-html---id="state.html"' ),
-			'empty'     => array( 'data-wp-html=""' ),
-			'boolean'   => array( 'data-wp-html' ),
-		);
-	}
-
-	/**
-	 * Tests that the default entry renders when other entries accompany it.
+	 * Tests that only the default entry renders, and that entries with a suffix
+	 * or a unique ID, and empty entries, are ignored without a notice.
 	 *
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_default_entry_renders_beside_ignored_entries() {
+	public function test_only_the_default_entry_renders() {
 		$this->set_state( array( 'html' => $this->token() ) );
+		$ignored = '<div data-wp-html--x="state.html" data-wp-html---id="state.html">Fallback</div>' .
+			'<div data-wp-html="">Fallback</div><div data-wp-html>Fallback</div>';
 
 		$output = wp_interactivity_process_directives(
-			$this->page( '<div data-wp-html--x="state.missing" data-wp-html="state.html" data-wp-html---id="state.missing">Fallback</div>' )
+			$this->page( $ignored . '<div data-wp-html--x="state.missing" data-wp-html="state.html" data-wp-html---id="state.missing">Fallback</div>' )
 		);
 
 		$this->assertSame(
-			$this->processed_page( '<div data-wp-html--x="state.missing" data-wp-html="state.html" data-wp-html---id="state.missing">' . self::MARKER_HTML . '</div>' ),
+			$this->processed_page( $ignored . '<div data-wp-html--x="state.missing" data-wp-html="state.html" data-wp-html---id="state.missing">' . self::MARKER_HTML . '</div>' ),
 			$output
 		);
 		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
@@ -690,38 +639,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'<span data-wp-text="state.text">processed</span></div>',
 			$output
 		);
-	}
-
-	/**
-	 * Tests that a declining host inside `data-wp-each` raises one notice per
-	 * item and keeps the item's own processing.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_each_item_declines_with_one_notice_per_item() {
-		$this->expect_html_notices();
-		$this->set_state(
-			array(
-				'list' => array( 'a', 'b' ),
-				'html' => '<p>Hi</p>',
-			)
-		);
-
-		$output = wp_interactivity_process_directives(
-			'<div data-wp-interactive="test"><ul><template data-wp-each="state.list">' .
-			'<li data-wp-html="state.html"><span data-wp-text="context.item">x</span></li></template></ul></div>'
-		);
-
-		$this->assertSame(
-			'<div data-wp-interactive="test"><ul><template data-wp-each="state.list">' .
-			'<li data-wp-html="state.html"><span data-wp-text="context.item">x</span></li></template>' .
-			'<li data-wp-each-child="test::state.list" data-wp-html="state.html"><span data-wp-text="context.item">a</span></li>' .
-			'<li data-wp-each-child="test::state.list" data-wp-html="state.html"><span data-wp-text="context.item">b</span></li></ul></div>',
-			$output
-		);
-		$this->assertCount( 2, $this->html_notice_messages(), 'Expected one notice per item.' );
 	}
 
 	/**
@@ -826,14 +743,14 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 */
 	public function test_unserialized_token_declines_as_not_a_token() {
 		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
-		$this->expect_html_notices();
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 
 		$original = $this->token();
 		$value    = unserialize( serialize( $original ) );
 
 		$this->assertSame(
 			array( 'WP_Interactivity_Dangerous_HTML::__wakeup' ),
-			$this->notice_sources(),
+			array_column( $this->notices, 'source' ),
 			'Expected exactly one notice at unserialization.'
 		);
 
@@ -864,52 +781,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a token placed in state, or returned by a derived-state
-	 * closure, reaches the output only as the host's content, even when
-	 * `data-wp-bind` references it, and is absent from the client data.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 *
-	 * @dataProvider data_ways_to_reach_a_token
-	 *
-	 * @param callable $make_state Callable returning the state to set.
-	 */
-	public function test_token_reaches_the_output_only_as_host_content( callable $make_state ) {
-		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
-		$this->set_state( $make_state() );
-
-		$output = wp_interactivity_process_directives(
-			$this->page(
-				'<div data-wp-html="state.html">Fallback</div>' .
-				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
-			)
-		);
-
-		$this->assertSame(
-			$this->processed_page(
-				'<div data-wp-html="state.html">' . self::MARKER_HTML . '</div>' .
-				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
-			),
-			$output,
-			'Expected the token to be the host content and to set no bound attribute.'
-		);
-		$this->assertSame(
-			array(
-				'WP_Interactivity_API::data_wp_bind_processor',
-				'WP_Interactivity_API::data_wp_bind_processor',
-			),
-			$this->notice_sources(),
-			'Expected only the non-scalar notice of each bound attribute.'
-		);
-
-		$printed = $this->printed_client_data();
-		$this->assertStringNotContainsString( 'marker-7f3a', $printed, 'Expected the client data to hold no trusted HTML.' );
-		$this->assertStringContainsString( '"html":{}', $printed, 'Expected the token to print as an empty object.' );
-	}
-
-	/**
 	 * Tests that a token in `wp_interactivity_data_wp_context()` reaches neither
 	 * the output nor the client data, and that referencing it from other
 	 * directives neither renders it nor aborts processing.
@@ -920,7 +791,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 */
 	public function test_token_in_context_helper_reaches_no_output_or_client_data() {
 		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
-		$this->expect_html_notices();
+		$this->setExpectedIncorrectUsage( self::NOTICE_SOURCE );
 
 		$wrapper = '<div data-wp-interactive="test" ' . wp_interactivity_data_wp_context( array( 'h' => $this->token() ) ) . '>';
 		$output  = wp_interactivity_process_directives(
@@ -945,49 +816,11 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a token in state is listed once under its namespace however
-	 * many hosts reference it, and prints as an empty object.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 * @covers ::filter_script_module_interactivity_data
-	 *
-	 * @dataProvider data_hosts_referencing_a_token_in_state
-	 *
-	 * @param string $hosts The hosts' markup.
-	 */
-	public function test_token_in_state_is_listed_once( string $hosts ) {
-		$this->set_state( array( 'html' => $this->token() ) );
-
-		wp_interactivity_process_directives( $this->page( $hosts ) );
-
-		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
-		$this->assertEquals(
-			(object) array(),
-			json_decode( $this->printed_client_data() )->state->test->html,
-			'Expected the token to print as an empty object.'
-		);
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array<string, array{ 0: string }>
-	 */
-	public static function data_hosts_referencing_a_token_in_state(): array {
-		return array(
-			'one host'  => array( '<div data-wp-html="state.html">Fallback</div>' ),
-			'two hosts' => array(
-				'<div data-wp-html="state.html">Fallback</div><p data-wp-html="state.html">x</p>',
-			),
-		);
-	}
-
-	/**
 	 * Tests that every host renders its token and that a token reached through
 	 * state is listed with the full path of the reference, under the namespace
-	 * the reference resolves in, once per path and namespace.
+	 * the reference resolves in, once per path and namespace. A path is listed
+	 * without a leading `!`, also when only a directive other than
+	 * `data-wp-html` references it.
 	 *
 	 * @ticket 66246
 	 *
@@ -997,8 +830,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	public function test_token_paths_are_listed_in_full_per_namespace() {
 		$this->set_state(
 			array(
-				'html' => $this->token(),
-				'deep' => array( 'er' => array( 'html' => $this->token() ) ),
+				'html'    => $this->token(),
+				'deep'    => array( 'er' => array( 'html' => $this->token() ) ),
+				'negated' => $this->token(),
 			)
 		);
 		wp_interactivity_state(
@@ -1015,35 +849,18 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			$hosts    .= '<div data-wp-html="' . $reference . '">Fallback</div>';
 			$rendered .= '<div data-wp-html="' . $reference . '">' . self::MARKER_HTML . '</div>';
 		}
+		$negated = '<div data-wp-class--off="!state.negated">x</div>';
 
-		$output = wp_interactivity_process_directives( $this->page( $hosts ) );
+		$output = wp_interactivity_process_directives( $this->page( $hosts . $negated ) );
 
-		$this->assertSame( $this->processed_page( $rendered ), $output, 'Expected every host to render its token.' );
+		$this->assertSame( $this->processed_page( $rendered . $negated ), $output, 'Expected every host to render its token.' );
 		$this->assertSame(
 			array(
-				'test'  => array( 'state.deep.er.html', 'state.html' ),
+				'test'  => array( 'state.deep.er.html', 'state.html', 'state.negated' ),
 				'other' => array( 'state.html', 'state.deep.er.html' ),
 			),
 			$this->announced_paths()
 		);
-	}
-
-	/**
-	 * Tests that a token referenced with a leading `!` is listed without it.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 * @covers ::filter_script_module_interactivity_data
-	 */
-	public function test_negated_reference_lists_the_path_without_the_negation() {
-		$this->set_state( array( 'html' => $this->token() ) );
-
-		wp_interactivity_process_directives(
-			$this->page( '<div data-wp-class--off="!state.html">x</div>' )
-		);
-
-		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
 	}
 
 	/**
@@ -1075,28 +892,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a token referenced only by a directive other than
-	 * `data-wp-html` is listed.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 * @covers ::filter_script_module_interactivity_data
-	 */
-	public function test_token_referenced_only_by_another_directive_is_listed_once() {
-		$this->setExpectedIncorrectUsage( 'WP_Interactivity_API::data_wp_bind_processor' );
-		$this->set_state( array( 'html' => $this->token() ) );
-
-		wp_interactivity_process_directives(
-			'<div data-wp-interactive="test"><span data-wp-bind--title="state.html">x</span></div>'
-		);
-
-		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
-	}
-
-	/**
 	 * Tests that tokens reached through `context`, such as the items of
-	 * `data-wp-each`, render without a notice and are not listed.
+	 * `data-wp-each`, render without a notice and are not listed, although
+	 * they are held in state.
 	 *
 	 * @ticket 66246
 	 *
@@ -1120,23 +918,6 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$this->assertSame( 2, substr_count( $output, '<li data-wp-each-child="test::state.items" data-wp-html="context.item.html">' . self::MARKER_HTML . '</li>' ) );
 		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
 		$this->assertSame( array(), $this->announced_paths(), 'Expected no listed path.' );
-	}
-
-	/**
-	 * Tests that a token placed in state that no directive references is not
-	 * listed.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 * @covers ::filter_script_module_interactivity_data
-	 */
-	public function test_token_that_no_directive_references_is_not_listed() {
-		$this->set_state( array( 'html' => $this->token() ) );
-
-		wp_interactivity_process_directives( $this->page( '<div>x</div>' ) );
-
-		$this->assertSame( array(), $this->announced_paths() );
 	}
 
 	/**
