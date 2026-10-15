@@ -5000,6 +5000,54 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * The object form of `content` is validated like the string form, and only
+	 * its `raw` value is read.
+	 *
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_invalid_reaction_content_objects
+	 *
+	 * @param array $content The reaction content to submit.
+	 */
+	public function test_create_reaction_rejects_invalid_content_object( $content ) {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'parent'  => $note_id,
+					'content' => $content,
+					'type'    => 'reaction',
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_reaction', $response, 400 );
+	}
+
+	public function data_invalid_reaction_content_objects() {
+		return array(
+			'raw content not a key' => array( array( 'raw' => 'invalid_emoji' ) ),
+			'content without raw'   => array( array( 'rendered' => '2764' ) ),
+		);
+	}
+
+	/**
 	 * A reaction can only be created approved.
 	 *
 	 * Held, spammed or trashed reactions are invisible to the uniqueness check
