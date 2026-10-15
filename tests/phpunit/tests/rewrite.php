@@ -105,6 +105,24 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
+	/**
+	 * @ticket 42148
+	 */
+	public function test_url_to_postid_with_plain_permalinks_and_custom_post_type() {
+		$this->set_permalink_structure( '' );
+		register_post_type( 'findme', array( 'public' => true ) );
+
+		$front_page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $front_page_id );
+
+		$id = self::factory()->post->create( array( 'post_type' => 'findme' ) );
+
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
+
+		unregister_post_type( 'findme' );
+	}
+
 	public function test_url_to_postid_set_url_scheme_https_to_http() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );

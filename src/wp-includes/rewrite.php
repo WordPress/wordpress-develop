@@ -531,6 +531,26 @@ function url_to_postid( $url ) {
 		}
 	}
 
+	// Next, check for a custom post type query var, as used by plain permalinks.
+	$url_query = (string) parse_url( $url, PHP_URL_QUERY );
+	parse_str( $url_query, $url_query_vars );
+	foreach ( get_post_types( array( 'public' => true ), 'objects' ) as $post_type => $post_type_object ) {
+		$query_var = $post_type_object->query_var;
+		if ( ! $query_var || empty( $url_query_vars[ $query_var ] ) || ! is_string( $url_query_vars[ $query_var ] ) ) {
+			continue;
+		}
+
+		$query = new WP_Query(
+			array(
+				'post_type' => $post_type,
+				'name'      => $url_query_vars[ $query_var ],
+			)
+		);
+		if ( ! empty( $query->posts ) && $query->is_singular ) {
+			return $query->post->ID;
+		}
+	}
+
 	// Get rid of the #anchor.
 	$url_split = explode( '#', $url );
 	$url       = $url_split[0];
