@@ -352,6 +352,12 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				$prepared_args['search_columns'] = $search_columns;
 			}
 			$prepared_args['search'] = '*' . $prepared_args['search'] . '*';
+			// Some fields contain sensitive information, and can only be queried by privileged users.
+			$prepared_args['search_columns'] = array( 'ID', 'user_url', 'user_nicename', 'display_name' );
+			if ( current_user_can( 'list_users' ) ) {
+				$prepared_args['search_columns'][] = 'user_login';
+				$prepared_args['search_columns'][] = 'user_email';
+			}
 		}
 
 		$is_head_request = $request->is_method( 'HEAD' );
