@@ -811,8 +811,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie without a value, as {@see WP_Http_Cookie::getHeaderValue()} does.
 	 *
-	 * @ticket 66305
-	 *
 	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_normalize_cookies_skips_cookie_without_value(): void {
@@ -827,8 +825,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} skips a cookie with a non-scalar value.
-	 *
-	 * @ticket 66305
 	 *
 	 * @covers WP_Http::normalize_cookies
 	 */
@@ -848,8 +844,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with a scalar value as a string.
 	 *
-	 * @ticket 66305
-	 *
 	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_normalize_cookies_casts_scalar_cookie_value_to_string(): void {
@@ -868,8 +862,6 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * Tests that {@see WP_Http::normalize_cookies()} sends a cookie with an empty value.
-	 *
-	 * @ticket 66305
 	 *
 	 * @covers WP_Http::normalize_cookies
 	 */

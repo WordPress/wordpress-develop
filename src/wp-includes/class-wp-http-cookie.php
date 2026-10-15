@@ -106,7 +106,7 @@ class WP_Http_Cookie {
 	 *     @type string|null     $path      Optional. Path. Default '/'.
 	 *     @type string|null     $domain    Optional. Domain. Default host of parsed $requested_url.
 	 *     @type int|string|null $port      Optional. Port or comma-separated list of ports. Default null.
-	 *     @type bool|null       $host_only Optional. host-only storage flag. Default true.
+	 *     @type bool|null       $host_only Optional. Host-only storage flag. Default null.
 	 * }
 	 * @param string       $requested_url The URL which the cookie was set on, used for default $domain
 	 *                                    and $port values.
