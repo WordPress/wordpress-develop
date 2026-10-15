@@ -881,7 +881,9 @@ class WP_Rewrite {
 	 *                                    over and rewrite rules built for each in-turn. Default true.
 	 * @param bool   $endpoints           Optional. Whether endpoints should be applied to the generated rewrite rules.
 	 *                                    Default true.
-	 * @return string[] Array of rewrite rules keyed by their regex pattern.
+	 * @return array<string, string> Array of rewrite rules keyed by their regex pattern.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	public function generate_rewrite_rules( $permalink_structure, $ep_mask = EP_NONE, $paged = true, $feed = true, $forcomments = false, $walk_dirs = true, $endpoints = true ) {
 		// Build a regex to match the feed section of URLs, something like (feed|atom|rss|rss2)/?
@@ -1265,7 +1267,9 @@ class WP_Rewrite {
 	 * @param string $permalink_structure The permalink structure to generate rules.
 	 * @param bool   $walk_dirs           Optional. Whether to create list of directories to walk over.
 	 *                                    Default false.
-	 * @return array An array of rewrite rules keyed by their regex pattern.
+	 * @return array<string, string> An array of rewrite rules keyed by their regex pattern.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	public function generate_rewrite_rule( $permalink_structure, $walk_dirs = false ) {
 		return $this->generate_rewrite_rules( $permalink_structure, EP_NONE, false, false, false, $walk_dirs );
@@ -1286,7 +1290,9 @@ class WP_Rewrite {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return string[] An associative array of matches and queries.
+	 * @return array<string, string> An associative array of matches and queries.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	public function rewrite_rules() {
 		$rewrite = array();
@@ -1535,6 +1541,8 @@ class WP_Rewrite {
 	 * @see wp_is_random_content_redirect_enabled()
 	 *
 	 * @return array<string, string> Array of rewrite rules for random content redirects, keyed by their regex pattern.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	public function random_rewrite_rules(): array {
 		if ( ! wp_is_random_content_redirect_enabled() ) {
