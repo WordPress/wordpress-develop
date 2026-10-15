@@ -39,11 +39,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/edit-comments.php
 		-
-			message: '#^Variable \$messages might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/edit-comments.php
-		-
 			message: '#^Variable \$is_IE might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
