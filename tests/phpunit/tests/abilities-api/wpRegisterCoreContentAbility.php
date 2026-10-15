@@ -354,6 +354,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertSame( 'array', $status['type'], 'The status filter should take a list.' );
 		$this->assertTrue( $status['uniqueItems'], 'The status filter should reject duplicate statuses.' );
+		$this->assertSame( 1, $status['minItems'], 'The status filter should require at least one status.' );
 		$this->assertSame( 'string', $status['items']['type'], 'The status filter should contain status names.' );
 		$this->assertSameSets( array_values( get_post_stati( array( 'internal' => false ) ) ), $status['items']['enum'], 'The status filter should expose the statuses that are not internal.' );
 
@@ -5684,6 +5685,18 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 */
 	public function data_where_filters_with_statuses_that_cannot_be_queried(): array {
 		return array(
+			'empty status list'                   => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array(),
+				),
+			),
+			'status list without a status name'   => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 123 ),
+				),
+			),
 			'unregistered status'                 => array(
 				'where' => array(
 					'type'   => 'post',
@@ -5719,11 +5732,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, a status filter with a status that is not registered, or is internal, is
-	 * rejected rather than queried.
+	 * Called directly, a status filter with a status that is not registered, or is internal, or
+	 * with no status left in it, is rejected rather than queried.
 	 *
 	 * WP_Query ignores a status that is not registered, and with no status left it covers every
-	 * status, including `trash`.
+	 * status, including `trash`. A list that is given but empty would fall through to the default
+	 * statuses instead, which with `ids` or `slugs` cover every status the user may query.
 	 *
 	 * @ticket 66268
 	 * @dataProvider data_where_filters_with_statuses_that_cannot_be_queried
