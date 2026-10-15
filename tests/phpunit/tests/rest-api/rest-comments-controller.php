@@ -30,8 +30,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $per_page       = 50;
 	protected static $num_notes      = 10;
 
-	protected $endpoint;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		add_role(
 			'comment_moderator',
@@ -169,7 +167,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function set_up() {
 		parent::set_up();
-		$this->endpoint = new WP_REST_Comments_Controller();
 		wp_create_initial_comment_meta();
 
 		if ( is_multisite() ) {
@@ -647,10 +644,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_items_private_post_no_permissions( $method ) {
 		wp_set_current_user( 0 );
 
-		$post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
-
 		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
-		$request->set_param( 'post', $post_id );
+		$request->set_param( 'post', self::$private_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
 	}
@@ -1681,12 +1676,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 38820
 	 */
 	public function test_create_comment_with_invalid_type() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author'       => self::$admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
@@ -1705,12 +1698,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_invalid_email() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author'       => self::$admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'hello:)',
@@ -2521,8 +2512,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item_no_content() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
@@ -2543,8 +2532,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 64049
 	 */
 	public function test_update_item_no_content_allow_empty_comment_filter() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
@@ -3877,10 +3864,9 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 */
 	public function test_cannot_create_with_non_valid_comment_type() {
 		wp_set_current_user( self::$admin_id );
-		$post_id = self::factory()->post->create();
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author_name'  => 'Ishmael',
 			'author_email' => 'herman-melville@earthlink.net',
 			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
