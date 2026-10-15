@@ -631,7 +631,7 @@ final class WP_Abilities_Content {
 		$count_args['posts_per_page']         = 1;
 		$count_args['update_post_meta_cache'] = false;
 		$count_args['update_post_term_cache'] = false;
-		unset( $count_args['paged'], $count_args['no_found_rows'] );
+		unset( $count_args['paged'] );
 
 		$count_query = new WP_Query( $count_args );
 
@@ -715,7 +715,7 @@ final class WP_Abilities_Content {
 		}
 
 		// The capabilities only reveal users of the site, not of the whole network.
-		if ( ( ! is_multisite() || is_user_member_of_blog( $user->ID ) )
+		if ( is_user_member_of_blog( $user->ID )
 			&& ( current_user_can( 'list_users' ) || current_user_can( $post_type_object->cap->edit_others_posts ) )
 		) {
 			return $user;
