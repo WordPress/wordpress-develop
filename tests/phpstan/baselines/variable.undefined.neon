@@ -709,11 +709,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-duotone.php
 		-
-			message: '#^Variable \$processed_response might not be defined\.$#'
-			identifier: variable.undefined
-			count: 5
-			path: ../../../src/wp-includes/class-wp-http-streams.php
-		-
 			message: '#^Variable \$response might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
