@@ -672,7 +672,18 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
 
-		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		// A fallback size is required to generate the full PDF preview.
+		// Keep the thumbnail, but omit unused medium and large images.
+		$preview_sizes = static function () {
+			return array( 'thumbnail' );
+		};
+		add_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
+
+		try {
+			$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		} finally {
+			remove_filter( 'fallback_intermediate_image_sizes', $preview_sizes );
+		}
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
