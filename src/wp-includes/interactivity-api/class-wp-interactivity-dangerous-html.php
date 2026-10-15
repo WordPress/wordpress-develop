@@ -15,7 +15,8 @@
  * documents the risks of marking HTML as trusted.
  *
  * The HTML is kept in a private property, so encoding a token as JSON never
- * includes it, and a token cannot be unserialized.
+ * includes it. A token restored by unserialization is inert: it holds no HTML,
+ * so it never renders.
  *
  * @since 7.2.0
  *
@@ -23,8 +24,8 @@
  */
 final class WP_Interactivity_Dangerous_HTML {
 	/**
-	 * The trusted HTML. It stays `null` for an object whose constructor never
-	 * ran, such as the one `unserialize()` creates from a `C:` payload.
+	 * The trusted HTML. It is `null` for a token restored by unserialization,
+	 * which never renders.
 	 *
 	 * @since 7.2.0
 	 * @var string|null
@@ -56,13 +57,20 @@ final class WP_Interactivity_Dangerous_HTML {
 	}
 
 	/**
-	 * Refuses unserialization.
+	 * Makes a token restored by unserialization inert.
+	 *
+	 * Clears the HTML, so the token never renders, and reports the unserialization
+	 * instead of throwing, so a page that cached a token keeps working.
 	 *
 	 * @since 7.2.0
-	 *
-	 * @throws LogicException Always. A token must never be created by unserializing data.
 	 */
 	public function __wakeup(): void {
-		throw new LogicException( __CLASS__ . ' should never be unserialized.' );
+		$this->html = null;
+
+		_doing_it_wrong(
+			__METHOD__,
+			__( 'A token that marks HTML as trusted should not be unserialized. The unserialized token holds no HTML and does not render.' ),
+			'7.2.0'
+		);
 	}
 }

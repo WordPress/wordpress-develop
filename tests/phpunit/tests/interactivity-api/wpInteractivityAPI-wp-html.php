@@ -1038,37 +1038,25 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the value `unserialize()` creates from a `C:` payload naming the
-	 * token class declines as not a token.
-	 *
-	 * Also records how `unserialize()` treats such a payload: it warns, runs no
-	 * code of the class and returns an object of the class.
+	 * Tests that a token restored by unserialization does not render: the host
+	 * keeps its fallback, exactly one notice is raised for the unserialization
+	 * and one for the decline, and the markup after the host is processed.
 	 *
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
-	public function test_value_unserialized_from_custom_format_declines_as_not_a_token() {
+	public function test_unserialized_token_declines_as_not_a_token() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
 		$this->expect_html_notices();
 
-		$class    = get_class( $this->token() );
-		$warnings = array();
-		set_error_handler(
-			static function ( $errno, $errstr ) use ( &$warnings ) {
-				$warnings[] = array( $errno, $errstr );
-				return true;
-			}
-		);
-		try {
-			$value = unserialize( 'C:' . strlen( $class ) . ':"' . $class . '":0:{}' );
-		} finally {
-			restore_error_handler();
-		}
+		$value = unserialize( serialize( $this->token() ) );
 
-		$this->assertCount( 1, $warnings, 'Expected unserialize() to raise exactly one warning.' );
-		$this->assertSame( E_WARNING, $warnings[0][0], 'Expected the warning to be an E_WARNING.' );
-		$this->assertInstanceOf( $class, $value, 'Expected unserialize() to return an object of the token class.' );
-		$this->assertNull( WP_Interactivity_Dangerous_HTML::get_html( $value ), 'Expected the object to report no HTML.' );
+		$this->assertSame(
+			array( 'WP_Interactivity_Dangerous_HTML::__wakeup' ),
+			$this->notice_sources(),
+			'Expected exactly one notice at unserialization.'
+		);
 
 		$this->set_state( array( 'html' => $value ) );
 
@@ -1078,7 +1066,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			$this->processed_page( '<div data-wp-html="state.html">Fallback</div>' ),
 			$output
 		);
+		$this->assertStringNotContainsString( 'marker-7f3a', $output, 'Expected no trusted HTML in the output.' );
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
+		$this->assertCount( 2, $this->notices, 'Expected no notice besides those of the unserialization and the decline.' );
 	}
 
 	/**

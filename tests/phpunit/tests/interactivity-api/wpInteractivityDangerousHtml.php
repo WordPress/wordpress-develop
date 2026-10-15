@@ -120,43 +120,71 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	}
 
 	/**
-	 * Tests that unserializing a serialized token throws.
+	 * Every `_doing_it_wrong()` call of the test, in order.
 	 *
-	 * Also records that `serialize()` writes the `O:` format for a token.
-	 *
-	 * @ticket 66246
+	 * @var string[]
 	 */
-	public function test_unserialize_of_serialized_token_throws() {
-		$serialized = serialize( wp_interactivity_as_dangerous_html( '<b>x</b>' ) );
+	private $notice_sources = array();
 
-		$this->assertStringStartsWith( 'O:' . strlen( WP_Interactivity_Dangerous_HTML::class ) . ':"' . WP_Interactivity_Dangerous_HTML::class . '":', $serialized );
-
-		$this->expectException( LogicException::class );
-		unserialize( $serialized );
+	/**
+	 * Records the source of a `_doing_it_wrong()` call, counting every call
+	 * rather than only the first of each source as the test case does.
+	 *
+	 * @param string $source The function or method the notice names.
+	 */
+	public function collect_notice( $source ) {
+		$this->notice_sources[] = $source;
 	}
 
 	/**
-	 * Tests that unserializing a hand-written `O:` payload naming the token class throws.
+	 * Tests that unserializing a serialized token throws nothing and raises
+	 * exactly one notice.
 	 *
 	 * @ticket 66246
 	 */
-	public function test_unserialize_of_handwritten_payload_throws() {
-		$class   = WP_Interactivity_Dangerous_HTML::class;
-		$payload = 'O:' . strlen( $class ) . ':"' . $class . '":0:{}';
+	public function test_unserialize_of_serialized_token_raises_one_notice() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
+		$this->notice_sources = array();
+		add_action( 'doing_it_wrong_run', array( $this, 'collect_notice' ) );
 
-		$this->expectException( LogicException::class );
-		unserialize( $payload );
+		$token = unserialize( serialize( wp_interactivity_as_dangerous_html( '<b>x</b>' ) ) );
+
+		$this->assertSame(
+			array( 'WP_Interactivity_Dangerous_HTML::__wakeup' ),
+			$this->notice_sources,
+			'Expected exactly one notice.'
+		);
+		$this->assertInstanceOf( WP_Interactivity_Dangerous_HTML::class, $token );
 	}
 
 	/**
-	 * Tests that a token nested in a serialized structure also throws on unserialization.
+	 * Tests that a token restored by unserialization reports no HTML, whether it
+	 * was serialized alone or nested in a structure, so it never renders.
 	 *
 	 * @ticket 66246
 	 */
-	public function test_unserialize_of_structure_holding_token_throws() {
-		$serialized = serialize( array( 'a' => array( wp_interactivity_as_dangerous_html( '<b>x</b>' ) ) ) );
+	public function test_unserialized_token_reports_no_html() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
 
-		$this->expectException( LogicException::class );
-		unserialize( $serialized );
+		$alone  = unserialize( serialize( wp_interactivity_as_dangerous_html( '<b>x</b>' ) ) );
+		$nested = unserialize( serialize( array( 'a' => array( wp_interactivity_as_dangerous_html( '<b>x</b>' ) ) ) ) );
+
+		$this->assertNull( WP_Interactivity_Dangerous_HTML::get_html( $alone ), 'Expected a token restored on its own to report no HTML.' );
+		$this->assertNull( WP_Interactivity_Dangerous_HTML::get_html( $nested['a'][0] ), 'Expected a nested token to report no HTML.' );
+	}
+
+	/**
+	 * Tests that a token still reports its HTML after another one is restored
+	 * by unserialization.
+	 *
+	 * @ticket 66246
+	 */
+	public function test_unserialization_does_not_affect_other_tokens() {
+		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
+
+		$token = wp_interactivity_as_dangerous_html( '<b>x</b>' );
+		unserialize( serialize( $token ) );
+
+		$this->assertSame( '<b>x</b>', WP_Interactivity_Dangerous_HTML::get_html( $token ) );
 	}
 }
