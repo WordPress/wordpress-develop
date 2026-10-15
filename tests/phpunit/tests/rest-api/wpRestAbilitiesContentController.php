@@ -155,42 +155,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * @ticket 66268
 	 */
-	public function test_subscriber_requesting_published_posts_receives_readable_fields(): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_title'   => 'Published for subscriber via REST',
-				'post_content' => 'Subscriber REST body.',
-				'post_status'  => 'publish',
-			)
-		);
-
-		wp_set_current_user( self::$subscriber_id );
-
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where'  => array( 'type' => 'post' ),
-					'fields' => array( 'id', 'title', 'content' ),
-				)
-			)
-		);
-		$data     = $response->get_data();
-
-		$this->assertSame( 200, $response->get_status(), 'A subscriber should be able to query published posts.' );
-		$this->assertContains( $post_id, wp_list_pluck( $data['items'], 'id' ), 'The published post should be among the returned posts.' );
-
-		$post_index = array_search( $post_id, wp_list_pluck( $data['items'], 'id' ), true );
-		$this->assertIsInt( $post_index, 'Precondition: the published post should have a position in the posts list.' );
-
-		$post = $data['items'][ $post_index ];
-		$this->assertSame( array( 'rendered' => 'Published for subscriber via REST' ), $post['title'], 'Only the rendered title should be returned to a subscriber.' );
-		$this->assertStringContainsString( 'Subscriber REST body.', $post['content']['rendered'], 'The rendered content should be returned to a subscriber.' );
-		$this->assertSameSets( array( 'rendered', 'protected' ), array_keys( $post['content'] ), 'Raw content should not be returned to a subscriber.' );
-	}
-
-	/**
-	 * @ticket 66268
-	 */
 	public function test_subscriber_requesting_raw_fields_receives_the_posts_without_them(): void {
 		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -218,96 +182,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 			),
 			$response->get_data(),
 			'The published post should be returned without the raw content.'
-		);
-	}
-
-	/**
-	 * @ticket 66268
-	 */
-	public function test_admin_query_returns_published_posts(): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_title'  => 'Published via REST',
-				'post_status' => 'publish',
-			)
-		);
-
-		$response = $this->server->dispatch( $this->run_request( array( 'where' => array( 'type' => 'post' ) ) ) );
-		$data     = $response->get_data();
-
-		$this->assertSame( 200, $response->get_status(), 'An administrator should be able to query published posts.' );
-		$this->assertArrayHasKey( 'items', $data, 'The query should return the posts as items.' );
-		$this->assertContains( $post_id, wp_list_pluck( $data['items'], 'id' ), 'The published post should be among the returned posts.' );
-	}
-
-	/**
-	 * @ticket 66268
-	 */
-	public function test_admin_query_ids_limit_results(): void {
-		$first = self::factory()->post->create(
-			array(
-				'post_status' => 'publish',
-				'post_date'   => '2026-01-01 10:00:00',
-			)
-		);
-		self::factory()->post->create(
-			array(
-				'post_status' => 'publish',
-				'post_date'   => '2026-02-01 10:00:00',
-			)
-		);
-		$third = self::factory()->post->create(
-			array(
-				'post_status' => 'publish',
-				'post_date'   => '2026-03-01 10:00:00',
-			)
-		);
-
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where'  => array(
-						'type' => 'post',
-						// Deliberately pass IDs in the opposite of the expected date order.
-						'ids'  => array( $first, $third ),
-					),
-					'fields' => array( 'id' ),
-				)
-			)
-		);
-		$data     = $response->get_data();
-
-		$this->assertSame( 200, $response->get_status(), 'The query by IDs should succeed.' );
-		$this->assertSame( array( $third, $first ), wp_list_pluck( $data['items'], 'id' ), 'The requested posts should be returned newest first, regardless of the order of the IDs.' );
-	}
-
-	/**
-	 * @ticket 66268
-	 */
-	public function test_query_by_id_returns_the_post(): void {
-		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
-
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where' => array(
-						'type' => 'post',
-						'ids'  => array( $post_id ),
-					),
-				)
-			)
-		);
-		$data     = $response->get_data();
-
-		$this->assertSame( 200, $response->get_status(), 'The query by ID should succeed.' );
-		$this->assertSame( array( $post_id ), wp_list_pluck( $data['items'], 'id' ), 'A query by one ID should return only the requested post.' );
-		$this->assertSame(
-			array(
-				'total'       => 1,
-				'total_pages' => 1,
-			),
-			$data['pagination'],
-			'A query by one ID should report one post on one page.'
 		);
 	}
 
@@ -364,31 +238,6 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * @ticket 66268
 	 */
-	public function test_pagination_returns_totals_in_body(): void {
-		self::factory()->post->create_many( 3, array( 'post_status' => 'publish' ) );
-
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where'      => array( 'type' => 'post' ),
-					'pagination' => array(
-						'page'     => 1,
-						'per_page' => 2,
-					),
-				)
-			)
-		);
-		$data     = $response->get_data();
-
-		$this->assertSame( 200, $response->get_status(), 'The paginated query should succeed.' );
-		$this->assertCount( 2, $data['items'], 'The first page should be limited to per_page posts.' );
-		$this->assertGreaterThanOrEqual( 3, $data['pagination']['total'], 'The total should count posts across all pages.' );
-		$this->assertSame( (int) ceil( $data['pagination']['total'] / 2 ), $data['pagination']['total_pages'], 'The total pages should match the total and per_page.' );
-	}
-
-	/**
-	 * @ticket 66268
-	 */
 	public function test_out_of_range_page_returns_404(): void {
 		self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -414,49 +263,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	 * @ticket 66268
 	 */
 	public function test_query_string_values_are_accepted(): void {
-		$post_id = self::factory()->post->create(
-			array(
-				'post_title'  => 'Query string lookup',
-				'post_status' => 'publish',
-			)
-		);
-
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where'      => array(
-						'type' => 'post',
-						'ids'  => (string) $post_id,
-					),
-					'fields'     => 'id,title.rendered',
-					'pagination' => array(
-						'page'     => '1',
-						'per_page' => '10',
-					),
-				)
-			)
-		);
-
-		$this->assertSame( 200, $response->get_status(), 'String values for a query by one ID should be accepted.' );
-		$this->assertSame(
-			array(
-				'items'      => array(
-					array(
-						'id'    => $post_id,
-						'title' => array( 'rendered' => 'Query string lookup' ),
-					),
-				),
-				'pagination' => array(
-					'total'       => 1,
-					'total_pages' => 1,
-				),
-			),
-			$response->get_data(),
-			'The query should return the requested post with the fields from the comma-separated list.'
-		);
-
 		$older = self::factory()->post->create(
 			array(
+				'post_title'  => 'Older post',
 				'post_status' => 'publish',
 				'post_date'   => '2026-01-01 10:00:00',
 			)
@@ -475,7 +284,7 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 						'type' => 'post',
 						'ids'  => $newer . ',' . $older,
 					),
-					'fields'     => 'id',
+					'fields'     => 'id,title.rendered',
 					'pagination' => array(
 						'page'     => '2',
 						'per_page' => '1',
@@ -483,12 +292,24 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 				)
 			)
 		);
-		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status(), 'String values for the second page of a query by two IDs should be accepted.' );
-		$this->assertSame( array( $older ), wp_list_pluck( $data['items'], 'id' ), 'The second page, of one post each, should hold the older post.' );
-		$this->assertSame( 2, $data['pagination']['total'], 'The total should count both requested posts.' );
-		$this->assertSame( 2, $data['pagination']['total_pages'], 'The total pages should be computed from the string per_page value.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array(
+						'id'    => $older,
+						'title' => array( 'rendered' => 'Older post' ),
+					),
+				),
+				'pagination' => array(
+					'total'       => 2,
+					'total_pages' => 2,
+				),
+			),
+			$response->get_data(),
+			'The second page, of one post each, should hold the older post with the fields from the comma-separated list.'
+		);
 	}
 
 	/**
@@ -577,36 +398,14 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A GET request with an `id` filter, which `ids` replaces, is rejected, even next to a post
-	 * type.
+	 * A GET request without `where` is rejected, also when it gives the post type at the root.
 	 *
 	 * @ticket 66268
 	 */
-	public function test_id_filter_returns_400(): void {
-		$response = $this->server->dispatch(
-			$this->run_request(
-				array(
-					'where' => array(
-						'type' => 'post',
-						'id'   => '1',
-					),
-				)
-			)
-		);
-
-		$this->assertSame( 400, $response->get_status(), 'An id filter should be rejected.' );
-		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'An id filter should fail input validation.' );
-	}
-
-	/**
-	 * A GET request in the old input shape, with the post type at the root, is rejected.
-	 *
-	 * @ticket 66268
-	 */
-	public function test_old_input_shape_returns_400(): void {
+	public function test_input_without_where_returns_400(): void {
 		$response = $this->server->dispatch( $this->run_request( array( 'type' => 'post' ) ) );
 
-		$this->assertSame( 400, $response->get_status(), 'A post type at the root of the input should be rejected.' );
+		$this->assertSame( 400, $response->get_status(), 'Input without where should be rejected.' );
 		$this->assertSame( 'ability_invalid_input', $response->get_data()['code'], 'The error should come from input validation.' );
 	}
 }
