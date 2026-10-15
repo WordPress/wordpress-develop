@@ -219,7 +219,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	endif;
 	?>
 	<div id="login">
-		<h1 role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></h1>
+		<div role="presentation" class="wp-login-logo"><a href="<?php echo esc_url( $login_header_url ); ?>"><?php echo $login_header_text; ?></a></div>
 	<?php
 	/**
 	 * Filters the message to display above the login form.
