@@ -2008,10 +2008,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 							'count'                 => array(
 								'description' => __( 'Total number of reactions with this emoji.' ),
 								'type'        => 'integer',
+								'minimum'     => 0,
 							),
 							'current_user_reaction' => array(
 								'description' => __( "The current user's reaction comment ID for this emoji, or 0 if they have not reacted." ),
 								'type'        => 'integer',
+								'minimum'     => 0,
 							),
 						),
 					),
