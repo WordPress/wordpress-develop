@@ -4569,7 +4569,7 @@ class WP_HTML_Tag_Processor {
 	 * Prevent CSS text from modifying the HTML structure of a document and
 	 * ensure that it's contained within its enclosing STYLE tag as intended.
 	 *
-	 * @since 7.0.0
+	 * @since 7.2.0
 	 *
 	 * @param string $text Raw contents intended to be serialized into an HTML STYLE element.
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing STYLE element.
