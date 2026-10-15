@@ -1530,9 +1530,8 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_selection_varies_between_requests(): void {
-		$post_ids = array( self::$arts_post, self::$sport_post );
 		for ( $i = 0; $i < 8; $i++ ) {
-			$post_ids[] = $this->create_post();
+			$this->create_post();
 		}
 
 		$seen = array();
