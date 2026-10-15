@@ -32,6 +32,8 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 			hasCloseButton: true
 		});
 
+		this.titleId = _.uniqueId( 'media-frame-title-' );
+
 		this.focusManager = new wp.media.view.FocusManager({
 			el: this.el
 		});
@@ -39,12 +41,15 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 	/**
 	 * Prepares the data for the modal template.
 	 *
+	 * @since 7.2.0 Added the `titleId` property.
+	 *
 	 * @return {Object} The prepared data.
 	 */
 	prepare: function() {
 		return {
 			title:          this.options.title,
-			hasCloseButton: this.options.hasCloseButton
+			hasCloseButton: this.options.hasCloseButton,
+			titleId:        this.titleId
 		};
 	},
 

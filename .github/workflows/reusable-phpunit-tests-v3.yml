@@ -219,7 +219,12 @@ jobs:
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: npm
+          package-manager-cache: false
+
+      - name: Set up npm
+        # Release branches run this workflow from trunk, but some older branches may lack the action.
+        if: ${{ hashFiles('.github/actions/setup-npm/action.yml') != '' }}
+        uses: ./.github/actions/setup-npm
 
       ##
       # This allows Composer dependencies to be installed using a single step.
@@ -245,6 +250,7 @@ jobs:
         run: npm ci
 
       - name: Build WordPress
+        timeout-minutes: 5
         run: npm run build:dev
         env:
           # The producer resolved this once. Matrix jobs must not re-resolve mutable GHCR tags.
@@ -316,6 +322,7 @@ jobs:
         continue-on-error: ${{ inputs.allow-errors }}
         run: node ./tools/local-env/scripts/docker.js run php ./vendor/bin/phpunit --verbose -c "${PHPUNIT_CONFIG}" --group external-http
 
+      # PHPUnit versions used below PHP 7.3 do not support --fail-on-empty-test-suite.
       - name: Run PHPUnit tests${{ inputs.phpunit-test-groups && format( ' ({0} groups)', inputs.phpunit-test-groups ) || '' }}${{ inputs.coverage-report && ' with coverage report' || '' }}
         continue-on-error: ${{ inputs.allow-errors }}
         run: |
@@ -324,6 +331,7 @@ jobs:
             --verbose \
             -c "${PHPUNIT_CONFIG}" \
             ${{ inputs.phpunit-test-groups && '--group "${TEST_GROUPS}"' || '' }} \
+            ${{ inputs.phpunit-test-groups && inputs.php >= '7.3' && '--fail-on-empty-test-suite' || '' }} \
             ${{ inputs.coverage-report && '--coverage-clover "wp-code-coverage-${MULTISITE_FLAG}-${GITHUB_SHA}.xml"' || '' }}
         env:
           TEST_GROUPS: ${{ inputs.phpunit-test-groups }}

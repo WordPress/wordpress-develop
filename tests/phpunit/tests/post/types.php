@@ -67,7 +67,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_register_post_type_with_too_long_name() {
 		// Post type too long.
-		$this->assertInstanceOf( 'WP_Error', register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
+		$this->assertWPError( register_post_type( 'abcdefghijklmnopqrstuvwxyz0123456789' ) );
 	}
 
 	/**
@@ -77,7 +77,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 */
 	public function test_register_post_type_with_empty_name() {
 		// Post type too short.
-		$this->assertInstanceOf( 'WP_Error', register_post_type( '' ) );
+		$this->assertWPError( register_post_type( '' ) );
 	}
 
 	/**
@@ -89,9 +89,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		 * 'public'              Default is false
 		 * 'exclude_from_search' Default is null (opposite 'public')
 		 */
-		$args = register_post_type( $this->post_type, array( 'public' => $public = false ) );
+		$args = register_post_type( $this->post_type, array( 'public' => false ) );
 
-		$this->assertNotEquals( $public, $args->exclude_from_search );
+		$this->assertTrue( $args->exclude_from_search );
 	}
 
 	/**
@@ -292,6 +292,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$after = get_post_type_object( 'foo' )->labels;
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $before, $after );
 
 		_unregister_post_type( 'foo' );

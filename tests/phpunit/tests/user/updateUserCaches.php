@@ -10,8 +10,11 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 		$u            = self::factory()->user->create();
 		$raw_userdata = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $u ) );
 
+		wp_cache_delete( $u, 'users' );
+
 		update_user_caches( $raw_userdata );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $raw_userdata, wp_cache_get( $u, 'users' ) );
 	}
 
@@ -61,10 +64,14 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 		$raw_userdata = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $u ) );
 		$user_object  = new WP_User( $u );
 
+		wp_cache_delete( $u, 'users' );
+
 		update_user_caches( $user_object );
 
 		$cached = wp_cache_get( $u, 'users' );
 		$this->assertNotInstanceOf( 'WP_User', $cached );
+
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $raw_userdata, $cached );
 	}
 }

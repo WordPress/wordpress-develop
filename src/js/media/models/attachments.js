@@ -18,8 +18,8 @@
  * @param {string}                      [options.props.order]   Initial order (ASC or DESC) for the collection.
  * @param {string}                      [options.props.orderby] Initial attribute key to order the collection by.
  * @param {string}                      [options.props.query]   Whether the collection is linked to an attachments query.
- * @param {string}                      [options.observe] 	    An attachments collection to observe and mirror.
- * @param {string}                      [options.filters] 	    Filters to apply to the collection.
+ * @param {string}                      [options.observe]       An attachments collection to observe and mirror.
+ * @param {string}                      [options.filters]       Filters to apply to the collection.
  *
  */
 var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachments.prototype */{
@@ -544,7 +544,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 *
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on the search query.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the search filter, false otherwise.
 		 */
@@ -564,7 +564,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its type.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the type filter, false otherwise.
 		 */
@@ -593,7 +593,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its uploadedTo property.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the uploadedTo filter, false otherwise.
 		 */
@@ -611,7 +611,7 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		 * @static
 		 * @param {wp.media.model.Attachment} attachment The attachment to filter based on its status property.
 		 *
-		 * @this wp.media.model.Attachments
+		 * @this {wp.media.model.Attachments}
 		 *
 		 * @return {boolean} True if the attachment matches the status filter, false otherwise.
 		 */

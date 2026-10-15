@@ -395,6 +395,7 @@ function wp_favicon_request() {
  * the wp-content directory).
  *
  * @since 3.0.0
+ * @since 7.2.0 Added status, no-cache and retry-after headers before loading a custom `maintenance.php` drop-in.
  * @access private
  */
 function wp_maintenance() {
@@ -403,12 +404,16 @@ function wp_maintenance() {
 		return;
 	}
 
+	require_once ABSPATH . WPINC . '/functions.php';
+
 	if ( file_exists( WP_CONTENT_DIR . '/maintenance.php' ) ) {
+		status_header( 503 );
+		nocache_headers();
+		header( 'Retry-After: 600' );
 		require_once WP_CONTENT_DIR . '/maintenance.php';
 		die();
 	}
 
-	require_once ABSPATH . WPINC . '/functions.php';
 	wp_load_translations_early();
 
 	header( 'Retry-After: 600' );
@@ -817,6 +822,70 @@ function wp_using_ext_object_cache( $using = null ) {
 	}
 
 	return $current_using;
+}
+
+/**
+ * Loads the secrets.php drop-in, if one exists, and records whether it left the
+ * Secrets API's provider, store, and keyring overrides in a usable state.
+ *
+ * Runs once, before must-use plugins load, so that every interface a drop-in's
+ * classes implement already exists and every plugin sees the drop-in's provider.
+ *
+ * Sets `$GLOBALS['wp_secrets_dropin_loaded']` as soon as the file is found, whether
+ * or not it then loads cleanly: wp_using_secrets_dropin() reports presence, not
+ * health.
+ *
+ * Sets `$GLOBALS['wp_secrets_dropin_broken']` when the require throws, or when any of
+ * `$GLOBALS['wp_secrets_provider']`, `$GLOBALS['wp_secrets_store']`, or
+ * `$GLOBALS['wp_secrets_keyring']` is set to something that does not implement its
+ * interface. A global left unset is fine: a drop-in that overrides only the keyring
+ * leaves the other two alone. Once the flag is set, every Secrets API operation
+ * returns WP_Error for the rest of the request rather than falling back to the
+ * default provider, so a broken drop-in reads as unreachable, never as absent.
+ *
+ * PHP treats a class that implements an interface but omits a required method as an
+ * uncatchable fatal error, even inside the try/catch around the require. That case
+ * cannot be intercepted from PHP code.
+ *
+ * @since 7.2.0
+ * @access private
+ */
+function wp_load_secrets_dropin(): void {
+	static $loaded = false;
+
+	if ( $loaded ) {
+		return;
+	}
+
+	$loaded = true;
+
+	$dropin_path = WP_CONTENT_DIR . '/secrets.php';
+
+	if ( ! file_exists( $dropin_path ) ) {
+		return;
+	}
+
+	$GLOBALS['wp_secrets_dropin_loaded'] = true;
+
+	try {
+		require $dropin_path;
+	} catch ( Throwable $e ) {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		return;
+	}
+
+	if ( isset( $GLOBALS['wp_secrets_store'] ) && ! ( $GLOBALS['wp_secrets_store'] instanceof WP_Secrets_Store ) ) {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+	}
+
+	if ( isset( $GLOBALS['wp_secrets_keyring'] ) && ! ( $GLOBALS['wp_secrets_keyring'] instanceof WP_Secrets_Keyring ) ) {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+	}
+
+	if ( isset( $GLOBALS['wp_secrets_provider'] ) && ! ( $GLOBALS['wp_secrets_provider'] instanceof WP_Secrets_Provider ) ) {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+	}
 }
 
 /**
@@ -1461,12 +1530,44 @@ function is_multisite() {
  * Converts a value to non-negative integer.
  *
  * @since 2.5.0
+ * @since 7.2.0 The `int` return type was added. Finite values beyond the integer
+ *              range are now capped at `PHP_INT_MAX` rather than overflowing.
+ *              Non-finite values continue to return `0`, as `NAN` and `INF` have
+ *              always cast to `0`; note that this includes numeric strings beyond
+ *              the float range, such as `'1e309'`, which become `INF` when cast.
  *
  * @param mixed $maybeint Data you wish to have converted to a non-negative integer.
  * @return int A non-negative integer.
+ * @phpstan-return non-negative-int
  */
-function absint( $maybeint ) {
-	return abs( (int) $maybeint );
+function absint( $maybeint ): int {
+	if ( is_float( $maybeint ) ) {
+		if ( ! is_finite( $maybeint ) ) {
+			// Casting `NAN` or `INF` to int has produced `0` since PHP 7.0.
+			return 0;
+		}
+
+		if ( $maybeint <= (float) PHP_INT_MIN || $maybeint >= (float) PHP_INT_MAX ) {
+			// Casting a float beyond the integer range is unreliable and warns as of PHP 8.5.
+			return PHP_INT_MAX;
+		}
+	}
+
+	/*
+	 * Casting from an unknown type is the entire contract of this function, so this conversion is
+	 * deliberate: arrays, objects, and resources are converted exactly as PHP has always converted
+	 * them here, and narrowing the type first would change long-standing behavior. PHPStan flags
+	 * such casts for good reason, but that reasoning does not apply here; if the rule level is
+	 * ever raised to 9, the resulting `cast.int` error will need to be ignored or baselined.
+	 */
+	$maybeint = (int) $maybeint;
+
+	if ( PHP_INT_MIN === $maybeint ) {
+		// `abs( PHP_INT_MIN )` overflows to a float, as `PHP_INT_MAX` is one less than `-PHP_INT_MIN`.
+		return PHP_INT_MAX;
+	}
+
+	return abs( $maybeint );
 }
 
 /**
@@ -1800,6 +1901,8 @@ function wp_doing_cron() {
  * @return bool Whether the variable is an instance of WP_Error.
  *
  * @phpstan-assert-if-true WP_Error $thing
+ *
+ * @phpstan-return ( $thing is WP_Error ? true : false )
  */
 function is_wp_error( $thing ) {
 	$is_wp_error = ( $thing instanceof WP_Error );
