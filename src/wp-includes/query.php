@@ -1483,45 +1483,12 @@ function wp_random_content_split_the_query( $split_the_query, WP_Query $query ):
 }
 
 /**
- * Adds HTTP headers to random content requests.
- *
- * Prevents random content requests from being cached, so each request selects a
- * new random post, and from being indexed by search engines.
- *
- * @since 7.2.0
- *
- * @global WP_Query $wp_query WordPress Query object.
- *
- * @param array<string, string|false> $headers Associative array of headers to be sent. A `false`
- *                                             value prevents the header being sent.
- * @return array<string, string|false> Associative array of headers to be sent.
- */
-function wp_random_content_headers( $headers ): array {
-	global $wp_query;
-	if ( ! is_array( $headers ) ) {
-		$headers = array();
-	}
-
-	if ( ! wp_is_random_content_query( $wp_query ) ) {
-		return $headers;
-	}
-
-	foreach ( wp_get_nocache_headers() as $name => $value ) {
-		if ( is_string( $name ) && ( is_string( $value ) || false === $value ) ) {
-			$headers[ $name ] = $value;
-		}
-	}
-
-	return $headers;
-}
-
-/**
  * Redirects random content requests to the randomly selected post.
  *
  * Called by {@see WP::handle_random()} immediately after the main query selects the
  * random post, to avoid unnecessary processing before the redirect. As the redirect
  * is sent before {@see WP::send_headers()}, the headers preventing the redirect being
- * cached or indexed are sent with it, see {@see wp_random_content_headers()}.
+ * cached or indexed are sent with it.
  *
  * If no post is selected, for example on an empty archive, {@see WP::handle_random()}
  * handles the request as a 404. If the post's permalink is on another site, the

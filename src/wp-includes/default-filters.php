@@ -497,7 +497,6 @@ add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
 // Random content redirects, see WP::handle_random().
 add_filter( 'split_the_query', 'wp_random_content_split_the_query', 10, 2 );
-add_filter( 'wp_headers', 'wp_random_content_headers' );
 add_action( 'wp_after_insert_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 4 );
 add_action( 'after_delete_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 2 );
 

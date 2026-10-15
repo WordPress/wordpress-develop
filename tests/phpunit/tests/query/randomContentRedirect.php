@@ -15,7 +15,6 @@
  * @covers ::wp_is_random_content_query
  * @covers ::wp_get_random_content_post_types
  * @covers ::wp_random_content_flush_rewrite_rules_for_post
- * @covers ::wp_random_content_headers
  * @covers ::wp_random_content_split_the_query
  * @covers ::wp_is_random_content_redirect_enabled
  */
@@ -213,24 +212,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		global $wp_query;
 
 		return $wp_query;
-	}
-
-	/**
-	 * Requests a URL and gets the headers passed through the `wp_headers` filter.
-	 *
-	 * @param string $url URL to request.
-	 * @return array<mixed> Headers to be sent.
-	 */
-	protected function go_to_and_get_headers( string $url ): array {
-		$headers = new MockAction();
-		add_filter( 'wp_headers', array( $headers, 'filter' ), 1000 );
-
-		$this->go_to( $url );
-
-		$sent = $headers->get_args()[0][0] ?? null;
-		$this->assertIsArray( $sent, 'The wp_headers filter did not receive an array of headers.' );
-
-		return $sent;
 	}
 
 	/**
@@ -1428,30 +1409,6 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->go_to( home_url( '/random/' ) );
 
 		$this->assertNotRedirected( 'An empty permalink should not redirect.' );
-	}
-
-	/*
-	 * HTTP headers.
-	 */
-
-	public function test_random_requests_are_not_cached(): void {
-		$sent = $this->go_to_and_get_headers( home_url( '/random/' ) );
-		foreach ( wp_get_nocache_headers() as $name => $value ) {
-			$this->assertArrayHasKey( $name, $sent, "The {$name} header is missing." );
-			$this->assertSame( $value, $sent[ $name ], "The {$name} header is incorrect." );
-		}
-	}
-
-	public function test_random_requests_are_not_indexed(): void {
-		$sent = $this->go_to_and_get_headers( home_url( '/random/' ) );
-		$this->assertArrayHasKey( 'X-Robots-Tag', $sent, 'Random content requests should send the X-Robots-Tag header.' );
-		$this->assertSame( 'noindex, follow', $sent['X-Robots-Tag'], 'Random content requests should not be indexed.' );
-	}
-
-	public function test_headers_are_unchanged_for_other_requests(): void {
-		$sent = $this->go_to_and_get_headers( home_url( '/category/arts/' ) );
-		$this->assertArrayNotHasKey( 'X-Robots-Tag', $sent, 'Other requests should not send the X-Robots-Tag header.' );
-		$this->assertArrayNotHasKey( 'Cache-Control', $sent, 'Other requests should not send the Cache-Control header.' );
 	}
 
 	public function test_redirect_happens_before_the_wp_action(): void {
