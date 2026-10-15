@@ -3877,7 +3877,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 */
 	public function test_cannot_create_with_non_valid_comment_type() {
 		wp_set_current_user( self::$admin_id );
-		$post_id = $this->factory->post->create();
+		$post_id = self::factory()->post->create();
 
 		$params = array(
 			'post'         => $post_id,
