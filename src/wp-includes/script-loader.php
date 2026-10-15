@@ -3671,13 +3671,21 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  *
  * @param string                     $data       CSS for the style tag.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
- * @return string HTML style tag containing the provided CSS.
+ * @return string HTML style tag containing the provided CSS or the empty string `""` if the CSS cannot be safely embedded in a style tag.
  *
  * @phpstan-param array<non-falsy-string, string|bool> $attributes
- * @phpstan-return non-falsy-string
+ * @phpstan-return non-falsy-string|''
  */
 function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	$data = "\n" . trim( (string) $data, " \t\f\r\n" ) . "\n";
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+
+	// Set the text first so the filter receives the CSS as it will be printed, which may differ from $data after escaping.
+	if ( ! $processor->set_modifiable_text( $data ) ) {
+		return '';
+	}
 
 	/**
 	 * Filters attributes to be added to an inline style tag.
@@ -3687,12 +3695,10 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
 	 *                                               Only the attribute name is added to the `<style>` tag for
 	 *                                               entries with a boolean value, and that are true.
-	 * @param string                     $data       Inline CSS.
+	 * @param string                     $data       Inline CSS, as it will be printed in the `<style>` tag.
 	 */
-	$attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $data );
+	$attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
 
-	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-	$processor->next_tag();
 	foreach ( $attributes as $name => $value ) {
 		/*
 		 * Lexical variations of an attribute name may represent the
@@ -3715,8 +3721,6 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 
 		$processor->set_attribute( $name, $value ?? true );
 	}
-
-	$processor->set_modifiable_text( $data );
 
 	return "{$processor->get_updated_html()}\n";
 }

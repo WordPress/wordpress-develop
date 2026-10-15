@@ -77,6 +77,33 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the attributes filter receives the CSS as printed, after any escaping.
+	 *
+	 * This allows a filter to compute a CSP hash which matches the printed STYLE contents.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_receives_escaped_data() {
+		$filtered_data = null;
+
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( array $attributes, string $data ) use ( &$filtered_data ) {
+				$filtered_data = $data;
+				return $attributes;
+			},
+			10,
+			2
+		);
+
+		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( 'a::after { content: "</style>"; }' ) );
+
+		$this->assertTrue( $processor->next_tag( 'STYLE' ), 'Expected a STYLE tag.' );
+		$this->assertStringNotContainsString( '</style>', $filtered_data, 'Expected the filtered data to be escaped.' );
+		$this->assertSame( $processor->get_modifiable_text(), $filtered_data );
+	}
+
+	/**
 	 * Test the behavior of generated style tag attributes passed different values and types of values.
 	 *
 	 * @ticket 51325
