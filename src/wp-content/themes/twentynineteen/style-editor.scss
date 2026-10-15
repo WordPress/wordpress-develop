@@ -1101,3 +1101,7 @@ $group-block-background__padding: $font__size_base;
 .wp-calendar-table {
 	@include font-family( $font__heading );
 }
+
+/* Non-latin font fallbacks. Must be imported last, see the partial. */
+
+@import "sass/mixins/non-latin-fonts";
