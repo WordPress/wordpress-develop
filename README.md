@@ -56,8 +56,7 @@ npm run build:dev
 npm run env:start
 npm run env:install
 ```
-
-Your WordPress site will be accessible at http://localhost:8889. You can see or change configurations in the `.env` file located at the root of the project directory.
+Your WordPress site will be accessible at http://localhost:8889. You can view or change the configuration settings in the `.env` file located in the root directory of the project.
 
 #### To watch for changes
 
@@ -103,10 +102,7 @@ To run the JavaScript (QUnit) tests:
 npm run grunt qunit:compiled
 ```
 
-`qunit:compiled` builds first, then runs the suite. The QUnit runner loads
-scripts from the built `build/` directory, so a plain `npm run grunt qunit`
-requires a completed `npm run build` first without a build, every test fails
-with a `jQuery is not defined` error.
+`qunit:compiled` builds first, then runs the suite. The QUnit runner loads scripts from the built `build/` directory, so a plain `npm run grunt qunit` requires a completed `npm run build` first; without a build, every test fails with a `jQuery is not defined` error.
 
 #### To lint the workflow files
 
