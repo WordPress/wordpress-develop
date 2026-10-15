@@ -2689,6 +2689,88 @@ HTML;
 	}
 
 	/**
+	 * Ensures class_list_from_string() tokenizes a decoded class attribute value.
+	 *
+	 * @ticket 65466
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list_from_string
+	 *
+	 * @dataProvider data_class_list_from_string
+	 *
+	 * @param string   $class_attribute  Decoded class attribute value to tokenize.
+	 * @param bool     $case_insensitive Whether to normalize class names to lower-case.
+	 * @param string[] $expected         Expected list of class names.
+	 */
+	public function test_class_list_from_string( string $class_attribute, bool $case_insensitive, array $expected ) {
+		$this->assertSame(
+			$expected,
+			iterator_to_array( WP_HTML_Tag_Processor::class_list_from_string( $class_attribute, $case_insensitive ) )
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_class_list_from_string() {
+		return array(
+			'Empty string'                     => array( '', false, array() ),
+			'Only whitespace'                  => array( " \t\f\r\n", false, array() ),
+			'Single class'                     => array( 'foo', false, array( 'foo' ) ),
+			'Multiple classes in order'        => array( 'one two three', false, array( 'one', 'two', 'three' ) ),
+			'Leading and trailing whitespace'  => array( '  foo bar  ', false, array( 'foo', 'bar' ) ),
+			'Mixed HTML whitespace separators' => array( "a\tb\fc\rd\ne", false, array( 'a', 'b', 'c', 'd', 'e' ) ),
+			'Collapses repeated whitespace'    => array( 'foo    bar', false, array( 'foo', 'bar' ) ),
+			'Skips duplicate class names'      => array( 'foo bar foo', false, array( 'foo', 'bar' ) ),
+			'Case-sensitive by default'        => array( 'Foo foo FOO', false, array( 'Foo', 'foo', 'FOO' ) ),
+			'Case-insensitive normalizes'      => array( 'Foo foo FOO', true, array( 'foo' ) ),
+		);
+	}
+
+	/**
+	 * Ensures class_list_from_string() does not decode HTML character references.
+	 *
+	 * This distinguishes it from class_list(), which operates on an HTML attribute value
+	 * and decodes character references. The standalone helper treats its input as already
+	 * decoded, so entity-like sequences are preserved verbatim.
+	 *
+	 * @ticket 65466
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list_from_string
+	 */
+	public function test_class_list_from_string_does_not_decode_character_references() {
+		$found_classes = iterator_to_array(
+			WP_HTML_Tag_Processor::class_list_from_string( '&lt;egg&gt; &#x6f;ne' )
+		);
+
+		$this->assertSame(
+			array( '&lt;egg&gt;', '&#x6f;ne' ),
+			$found_classes,
+			'Character references should be preserved verbatim rather than decoded.'
+		);
+	}
+
+	/**
+	 * Ensures class_list_from_string() and class_list() agree for decoded input.
+	 *
+	 * @ticket 65466
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 * @covers WP_HTML_Tag_Processor::class_list_from_string
+	 */
+	public function test_class_list_delegates_to_class_list_from_string() {
+		$processor = new WP_HTML_Tag_Processor( '<div class="one two one three">' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			iterator_to_array( $processor->class_list() ),
+			iterator_to_array( WP_HTML_Tag_Processor::class_list_from_string( 'one two one three' ) ),
+			'class_list() should tokenize decoded values identically to class_list_from_string().'
+		);
+	}
+
+	/**
 	 * Ensures that the tag processor matches class names with null bytes correctly.
 	 *
 	 * @ticket 61531
