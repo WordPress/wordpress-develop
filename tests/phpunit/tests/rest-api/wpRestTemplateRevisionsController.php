@@ -961,29 +961,52 @@ class Tests_REST_wpRestTemplateRevisionsController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
+	 * Template revisions collection is not creatable; create requests are rejected.
+	 *
+	 * Create does not match the revisions collection route (GET-only). It falls through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to create template revisions.",
-				WP_REST_Template_Revisions_Controller::class
-			)
-		);
+		wp_set_current_user( self::$admin_id );
+
+		$route = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions';
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'POST', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 
 	/**
-	 * @coversNothing
+	 * Template revisions item route is not editable; update requests are rejected.
+	 *
+	 * Write methods do not match the revisions item route (GET/DELETE only). They fall through
+	 * to the templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to update template revisions.",
-				WP_REST_Template_Revisions_Controller::class
-			)
-		);
+		wp_set_current_user( self::$admin_id );
+
+		$revision_id = self::$template_revisions[0];
+		$route       = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/revisions/' . $revision_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
+		}
 	}
 
 	/**
