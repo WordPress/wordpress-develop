@@ -23,8 +23,7 @@ $wp_version = '7.2-alpha-63166-src';
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 64338; // What are the odds I forget to update this when I commit?
-
+$wp_db_version = 64338; // TODO: What are the odds I forget to update this when I commit?
 
 /**
  * Holds the TinyMCE version.

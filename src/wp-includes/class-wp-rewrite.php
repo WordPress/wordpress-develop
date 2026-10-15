@@ -1564,6 +1564,7 @@ class WP_Rewrite {
 		foreach ( $random_base_posts as $random_base_post ) {
 			if ( $random_base_post instanceof WP_Post && is_post_publicly_viewable( $random_base_post ) ) {
 				$random_base_is_taken = true;
+				break;
 			}
 		}
 
@@ -1611,7 +1612,7 @@ class WP_Rewrite {
 				continue;
 			}
 
-			$archive_slug = true === $post_type->has_archive ? $post_type->rewrite['slug'] : $post_type->has_archive;
+			$archive_slug = $post_type->rewrite['slug'];
 
 			if ( ! is_string( $archive_slug ) ) {
 				continue;

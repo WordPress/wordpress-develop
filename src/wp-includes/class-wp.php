@@ -738,15 +738,15 @@ class WP {
 			return false;
 		}
 
-		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', PHP_INT_MAX );
-		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', PHP_INT_MAX, 2 );
-		add_filter( 'post_limits', 'wp_random_content_post_limits', PHP_INT_MAX, 2 );
+		add_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		add_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20, 2 );
+		add_filter( 'post_limits', 'wp_random_content_post_limits', 20, 2 );
 
 		$this->query_posts();
 
-		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', PHP_INT_MAX );
-		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', PHP_INT_MAX );
-		remove_filter( 'post_limits', 'wp_random_content_post_limits', PHP_INT_MAX );
+		remove_action( 'pre_get_posts', 'wp_random_content_pre_get_posts', 20 );
+		remove_filter( 'posts_orderby', 'wp_random_content_posts_orderby', 20 );
+		remove_filter( 'post_limits', 'wp_random_content_post_limits', 20 );
 
 		wp_random_content_redirect();
 

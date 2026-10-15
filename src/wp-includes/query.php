@@ -1383,7 +1383,7 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
  *
  *     add_action(
  *         'pre_get_posts',
- *         function ( $query ) {
+ *         static function ( WP_Query $query ) {
  *             if ( wp_is_random_content_query( $query ) ) {
  *                 $query->set( 'category__not_in', array( 1 ) );
  *             }
@@ -1511,8 +1511,6 @@ function wp_random_content_headers( $headers ): array {
 			$headers[ $name ] = $value;
 		}
 	}
-
-	$headers['X-Robots-Tag'] = 'noindex, follow';
 
 	return $headers;
 }
