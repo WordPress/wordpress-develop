@@ -1037,6 +1037,8 @@ function add_meta( $post_id ) {
 		 * We have a key/value pair. If both the select and the input
 		 * for the key have data, the input takes precedence.
 		 */
+		$metakey = '';
+
 		if ( '#NONE#' !== $metakeyselect ) {
 			$metakey = $metakeyselect;
 		}
