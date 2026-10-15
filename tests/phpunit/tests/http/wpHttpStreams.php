@@ -16,7 +16,7 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	 * @param string   $body         Expected downloaded body.
 	 * @param bool     $stream       Whether to stream the response to a file.
 	 */
-	public function test_streaming_response( $raw_response, $status, $body, $stream = true ) {
+	public function test_streaming_response( string $raw_response, ?int $status, string $body, bool $stream = true ): void {
 		if ( ! function_exists( 'proc_open' ) || ! function_exists( 'stream_socket_server' ) ) {
 			$this->markTestSkipped( 'proc_open() and stream_socket_server() are required.' );
 		}
@@ -67,9 +67,9 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array
+	 * @return array<non-falsy-string, array{ 0: string, 1: int|null, 2: string, 3?: bool }>
 	 */
-	public function data_streaming_response() {
+	public function data_streaming_response(): array {
 		return array(
 			'empty response'      => array( '', null, '' ),
 			'incomplete headers'  => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
