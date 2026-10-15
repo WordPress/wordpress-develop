@@ -63,18 +63,6 @@ final class WP_Abilities_Content {
 	private const MAX_PER_PAGE = 100;
 
 	/**
-	 * Field paths that expose edit-context post data.
-	 *
-	 * Requests that explicitly include any of these paths require edit access. Requesting
-	 * the whole object, such as `title`, does not: it returns these sub-fields only for
-	 * posts the current user can edit.
-	 *
-	 * @since 7.2.0
-	 * @var list<string>
-	 */
-	private const EDIT_FIELDS = array( 'title.raw', 'excerpt.raw', 'content.raw' );
-
-	/**
 	 * Field paths whose output may read post meta or terms.
 	 *
 	 * Requests that include any of these, directly or through their whole object, prime
@@ -173,10 +161,9 @@ final class WP_Abilities_Content {
 	 * Permission callback for the `core/content-query` ability.
 	 *
 	 * The request is only gated as a whole here: it needs a logged-in user, a post type
-	 * exposed to abilities, the capabilities to query the explicitly requested statuses, and
-	 * edit access when edit-context fields are explicitly requested. It reads no post.
-	 * {@see self::execute_content_query()} enforces row-level read/edit permissions, since
-	 * individual rows are unknown until the query runs.
+	 * exposed to abilities, and the capabilities to query the explicitly requested statuses.
+	 * It reads no post. {@see self::execute_content_query()} enforces row-level read
+	 * permissions, since individual rows are unknown until the query runs.
 	 *
 	 * @since 7.2.0
 	 *
@@ -203,10 +190,6 @@ final class WP_Abilities_Content {
 		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
 			return false;
-		}
-
-		if ( $this->has_explicit_edit_fields( $input ) ) {
-			return current_user_can( $post_type_object->cap->edit_posts );
 		}
 
 		return $this->can_query_statuses( $where, $post_type_object );
@@ -276,22 +259,6 @@ final class WP_Abilities_Content {
 	}
 
 	/**
-	 * Checks whether the input explicitly requests edit-context fields.
-	 *
-	 * Omitted fields are not treated as edit-intent: default responses include the
-	 * fields visible for each individual post. Neither is a whole object, such as
-	 * `content`, which returns its raw sub-field only for posts the current user can edit.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param array<mixed> $input The ability input.
-	 * @return bool True if edit-context fields were explicitly requested.
-	 */
-	private function has_explicit_edit_fields( array $input ): bool {
-		return ! empty( array_intersect( self::EDIT_FIELDS, $this->parse_list_input( $input, 'fields' ) ) );
-	}
-
-	/**
 	 * Checks whether the current user may query the explicitly requested statuses.
 	 *
 	 * The statuses a query covers by default, see {@see self::normalize_statuses()}, only
@@ -316,9 +283,10 @@ final class WP_Abilities_Content {
 	/**
 	 * Checks whether the current user may query posts in a status.
 	 *
-	 * This mirrors the REST posts controller's conservative collection-status gate:
-	 * querying statuses other than `publish` requires edit access, except `private`,
-	 * which may be queried by users who can read private posts.
+	 * Like the REST posts controller, any user may query `publish`, while other statuses, such
+	 * as `draft`, require edit access. Any user may also query the other publicly viewable
+	 * statuses, and `private`, since the query only covers the private posts the user can
+	 * read, see {@see self::execute_content_query()}.
 	 *
 	 * @since 7.2.0
 	 *
@@ -327,15 +295,7 @@ final class WP_Abilities_Content {
 	 * @return bool True if the status may be queried.
 	 */
 	private function can_query_status( string $status, WP_Post_Type $post_type_object ): bool {
-		if ( 'publish' === $status ) {
-			return true;
-		}
-
-		if ( 'private' === $status && current_user_can( $post_type_object->cap->read_private_posts ) ) {
-			return true;
-		}
-
-		return current_user_can( $post_type_object->cap->edit_posts );
+		return in_array( $status, array( 'publish', 'private' ), true ) || is_post_status_viewable( $status ) || current_user_can( $post_type_object->cap->edit_posts );
 	}
 
 	/**
@@ -419,8 +379,8 @@ final class WP_Abilities_Content {
 	 * Executes the `core/content-query` ability.
 	 *
 	 * {@see WP_Ability::execute()} always runs {@see self::check_permission()} first, which
-	 * gates the request as a whole. The query still filters every row by read or edit
-	 * permission, because the gate cannot know the rows before the query runs.
+	 * gates the request as a whole. The query still filters every row by read permission,
+	 * because the gate cannot know the rows before the query runs.
 	 *
 	 * @since 7.2.0
 	 *
@@ -428,9 +388,8 @@ final class WP_Abilities_Content {
 	 * @return array<string, mixed>|WP_Error A page of posts, or a WP_Error on failure.
 	 */
 	private function execute_content_query( $input = array() ) {
-		$input         = rest_sanitize_object( $input );
-		$fields        = $this->normalize_fields( $input );
-		$requires_edit = $this->has_explicit_edit_fields( $input );
+		$input  = rest_sanitize_object( $input );
+		$fields = $this->normalize_fields( $input );
 
 		/*
 		 * A `where` that is not an object cannot be honored. Reject it rather than reading it
@@ -524,6 +483,21 @@ final class WP_Abilities_Content {
 			}
 		}
 
+		/*
+		 * The input schema lists the statuses registered when the ability was, so check them
+		 * again: WP_Query ignores a status that is not registered, and drops the status clause
+		 * when none is left, which would cover every status, including internal ones such as
+		 * `trash`.
+		 */
+		$statuses = $this->get_requested_statuses( $where );
+		if ( ! empty( array_diff( $statuses, get_post_stati( array( 'internal' => false ) ) ) ) ) {
+			return $this->invalid_filter_error(
+				'where[status]',
+				/* translators: %s: Parameter. */
+				sprintf( __( 'The %s filter must list valid post statuses.' ), 'status' )
+			);
+		}
+
 		$lists_posts = null !== $ids || null !== $slugs;
 		$per_page    = $this->normalize_per_page( $pagination, $lists_posts );
 
@@ -532,13 +506,18 @@ final class WP_Abilities_Content {
 		/*
 		 * `orderby` is left unset, which orders by `post_date` descending, matching the
 		 * default of the REST posts controller.
+		 *
+		 * `perm` leaves out the other users' private posts for a user who cannot read them,
+		 * so the totals do not count them. It is not set for a user who can: when a query
+		 * filter adds post types, WP_Query checks `read_private_multiple_post_types`
+		 * instead, which no role has, and would leave the posts out too.
 		 */
 		$query_args = array(
 			'post_type'              => $post_type,
-			'post_status'            => $this->normalize_statuses( $where, $post_type_object, $lists_posts ),
+			'post_status'            => $this->normalize_statuses( $statuses, $post_type_object, $lists_posts ),
 			'posts_per_page'         => $per_page,
 			'paged'                  => $page,
-			'perm'                   => $requires_edit ? 'editable' : 'readable',
+			'perm'                   => current_user_can( $post_type_object->cap->read_private_posts ) ? '' : 'readable',
 			'ignore_sticky_posts'    => true,
 			'update_post_meta_cache' => $prime_post_caches,
 			'update_post_term_cache' => $prime_post_caches,
@@ -603,10 +582,7 @@ final class WP_Abilities_Content {
 			if ( ! $post instanceof WP_Post || $post_type !== $post->post_type ) {
 				continue;
 			}
-			if ( $requires_edit && ! current_user_can( 'edit_post', $post->ID ) ) {
-				continue;
-			}
-			if ( ! $requires_edit && ! $this->check_read_permission( $post ) ) {
+			if ( ! $this->check_read_permission( $post ) ) {
 				continue;
 			}
 			$posts[] = $this->format_post( $post, $fields );
@@ -804,13 +780,12 @@ final class WP_Abilities_Content {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<mixed> $where            The `where` filters.
+	 * @param list<string> $statuses         The explicitly requested statuses; empty when none is requested.
 	 * @param WP_Post_Type $post_type_object The post type object.
 	 * @param bool         $lists_posts      Whether the query lists `ids` or `slugs`.
 	 * @return list<string> Post status slugs.
 	 */
-	private function normalize_statuses( array $where, WP_Post_Type $post_type_object, bool $lists_posts ): array {
-		$statuses = $this->get_requested_statuses( $where );
+	private function normalize_statuses( array $statuses, WP_Post_Type $post_type_object, bool $lists_posts ): array {
 		if ( array() !== $statuses ) {
 			return $statuses;
 		}
@@ -923,8 +898,8 @@ final class WP_Abilities_Content {
 	 * This is the single source of truth for the ability's post fields: the output
 	 * schema uses the definitions directly, while the input schema `fields` enum lists
 	 * each field, followed by the path of each of its sub-fields, such as `title.rendered`.
-	 * Read-context fields are returned for readable posts; the edit-context sub-fields
-	 * listed in {@see self::EDIT_FIELDS} additionally require edit access.
+	 * Read-context fields are returned for readable posts; the `raw` sub-fields only for
+	 * posts the current user can edit.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1105,7 +1080,7 @@ final class WP_Abilities_Content {
 				'type' => 'string',
 				'enum' => $this->get_field_paths(),
 			),
-			'description' => __( 'Limit each returned post to these fields. A field such as `title` returns all of its sub-fields the current user can see, while a path such as `title.rendered` returns only that sub-field. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Explicit raw sub-field requests, such as `content.raw`, require edit access.' ),
+			'description' => __( 'Limit each returned post to these fields. A field such as `title` returns all of its sub-fields the current user can see, while a path such as `title.rendered` returns only that sub-field. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Raw sub-fields, such as `content.raw`, are left out of the posts the current user cannot edit.' ),
 		);
 	}
 
@@ -1170,7 +1145,7 @@ final class WP_Abilities_Content {
 								'type' => 'string',
 								'enum' => $statuses,
 							),
-							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Non-published statuses require the appropriate capabilities.' ),
+							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Statuses that are not publicly viewable, other than private, require edit access.' ),
 						),
 						'author_slug' => array(
 							'type'        => 'string',
