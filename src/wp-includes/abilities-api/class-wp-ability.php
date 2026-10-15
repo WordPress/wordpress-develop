@@ -140,6 +140,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `deprecated` meta property.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -169,12 +170,21 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
-	 *                                                      to clients such as the REST API, MCP, or AI agents.
-	 *                                                      Seeds the default for per-channel flags like
-	 *                                                      `$show_in_rest`. Defaults to false.
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
-	 *                                                      Default is the value of `$public` when set, false otherwise.
+	 *         @type null|array<string, string> $deprecated {
+	 *             Optional. Deprecation details. If set, mark the ability as deprecated. Deprecated abilities are hidden
+	 *             from discovery by default, but can be retrieved by exact name or explicitly included in discovery
+	 *             with the `include_deprecated` argument. Default null.
+	 *
+	 *             @type string $since       Version of the ability provider that deprecated the ability.
+	 *             @type string $replacement Optional. Namespaced ability to use instead.
+	 *             @type string $message     Optional. Additional migration guidance.
+	 *         }
+	 *         @type bool                       $public       Optional. Whether the ability is meant to be available
+	 *                                                        to clients such as the REST API, MCP, or AI agents.
+	 *                                                        Seeds the default for per-channel flags like
+	 *                                                        `$show_in_rest`. Defaults to false.
+	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                        Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 * }
 	 */
@@ -211,6 +221,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added support for the `deprecated` meta property.
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
@@ -239,12 +250,21 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
-	 *                                                      to clients such as the REST API, MCP, or AI agents.
-	 *                                                      Seeds the default for per-channel flags like
-	 *                                                      `$show_in_rest`. Defaults to false.
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
-	 *                                                      Default is the value of `$public` when set, false otherwise.
+	 *         @type null|array<string, string> $deprecated {
+	 *             Optional. Deprecation details. If set, mark the ability as deprecated. Deprecated abilities are hidden
+	 *             from discovery by default, but can be retrieved by exact name or explicitly included in discovery
+	 *             with the `include_deprecated` argument. Default null.
+	 *
+	 *             @type string $since       Version of the ability provider that deprecated the ability.
+	 *             @type string $replacement Optional. Namespaced ability to use instead.
+	 *             @type string $message     Optional. Additional migration guidance.
+	 *         }
+	 *         @type bool                       $public       Optional. Whether the ability is meant to be available
+	 *                                                        to clients such as the REST API, MCP, or AI agents.
+	 *                                                        Seeds the default for per-channel flags like
+	 *                                                        `$show_in_rest`. Defaults to false.
+	 *         @type bool                       $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                        Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 * }
 	 * @return array<string, mixed> {
@@ -272,10 +292,17 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $public       Whether the ability is meant to be available to clients
-	 *                                                      such as the REST API, MCP, or AI agents. Defaults to
-	 *                                                      false.
-	 *         @type bool                     $show_in_rest Whether to expose this ability in the REST API.
+	 *         @type bool                       $public       Whether the ability is meant to be available to clients
+	 *                                                        such as the REST API, MCP, or AI agents. Defaults to
+	 *                                                        false.
+	 *         @type null|array<string, string> $deprecated {
+	 *             Deprecation details, or null when the ability is not deprecated.
+	 *
+	 *             @type string $since       Version of the ability provider that deprecated the ability.
+	 *             @type string $replacement Optional. Namespaced ability to use instead.
+	 *             @type string $message     Optional. Additional migration guidance.
+	 *         }
+	 *         @type bool                       $show_in_rest Whether to expose this ability in the REST API.
 	 *     }
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
@@ -351,6 +378,35 @@ class WP_Ability {
 			);
 		}
 
+		if ( isset( $args['meta']['deprecated'] ) ) {
+			if ( ! is_array( $args['meta']['deprecated'] ) ) {
+				throw new InvalidArgumentException(
+					__( 'The ability meta should provide `deprecated` as null or an array of deprecation details.' )
+				);
+			}
+
+			foreach ( array( 'since', 'replacement', 'message' ) as $key ) {
+				if ( ! array_key_exists( $key, $args['meta']['deprecated'] ) ) {
+					if ( 'since' === $key ) {
+						throw new InvalidArgumentException(
+							__( 'The ability deprecation details must include a `since` version.' )
+						);
+					}
+					continue;
+				}
+
+				if ( ! is_string( $args['meta']['deprecated'][ $key ] ) || '' === $args['meta']['deprecated'][ $key ] ) {
+					throw new InvalidArgumentException(
+						sprintf(
+							/* translators: %s: Deprecation metadata key. */
+							__( 'The ability deprecation `%s` value should be a non-empty string.' ),
+							$key
+						)
+					);
+				}
+			}
+		}
+
 		// Set defaults for optional meta.
 		$args['meta'] = wp_parse_args(
 			$args['meta'] ?? array(),
@@ -371,6 +427,7 @@ class WP_Ability {
 		 */
 		$args['meta']['show_in_rest'] ??= $args['meta']['public'] ?? self::DEFAULT_SHOW_IN_REST;
 		$args['meta']['public']       ??= self::DEFAULT_PUBLIC;
+		$args['meta']['deprecated']   ??= null;
 
 		return $args;
 	}
@@ -772,6 +829,9 @@ class WP_Ability {
 	 * @return mixed|WP_Error The result of the ability execution, or WP_Error on failure.
 	 */
 	public function execute( $input = null ) {
+		// Triggers a deprecation notice if the ability is marked as as deprecated and hasn't been triggered earlier.
+		$this->_handle_ability_deprecation();
+
 		/**
 		 * Fires when an ability is invoked, before any processing takes place.
 		 *
@@ -880,6 +940,84 @@ class WP_Ability {
 		do_action( 'wp_after_execute_ability', $this->name, $input, $result, $this );
 
 		return $result;
+	}
+
+	/**
+	 * Informs when a deprecated ability has been called.
+	 *
+	 * There is a {@see 'deprecated_ability_run'} hook that will be called that can be used
+	 * to get the backtrace up to what file and function used the deprecated ability.
+	 *
+	 * The current behavior is to trigger a user error if `WP_DEBUG` is true.
+	 *
+	 * @since 7.2.0
+	 * @internal Triggered when a deprecated ability is called. It should never be called directly in user
+	 *           code. There is no guarantee of backward compatibility.
+	 */
+	public function _handle_ability_deprecation(): void {
+		$name             = $this->get_name();
+		$deprecation_meta = $this->get_meta_item( 'deprecated' );
+		if ( ! is_array( $deprecation_meta ) || ! isset( $deprecation_meta['since'] ) ) {
+			return;
+		}
+
+		$version     = $deprecation_meta['since'];
+		$replacement = $deprecation_meta['replacement'] ?? '';
+		$message     = $deprecation_meta['message'] ?? '';
+
+		/**
+		 * Fires every time a deprecated ability is called.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param string $ability_name The ability that was retrieved.
+		 * @param string $replacement  The ability that should be used as a replacement.
+		 * @param string $version      The version of the ability provider (plugin, WordPress core, etc.) that deprecated the ability.
+		 * @param string $message      Additional migration guidance.
+		 */
+		do_action( 'deprecated_ability_run', $name, $replacement, $version, $message );
+
+		// A local cache of deprecated abilities is used to prevent repeated warnings.
+		static $deprecated_abilities = array();
+
+		$already_triggered = isset( $deprecated_abilities[ $name ] );
+
+		/**
+		 * Filters whether to trigger an error for deprecated abilities.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param bool $trigger Whether to trigger the error for deprecated abilities.
+		 *                      Default true if the warning has not already been triggered for this ability, false on
+		 *                      subsequent calls.
+		 */
+		if ( WP_DEBUG && apply_filters( 'deprecated_ability_trigger_error', ! $already_triggered ) ) {
+			$message = empty( $message ) ? '' : ' ' . $message;
+
+			if ( $replacement ) {
+				$notice = sprintf(
+					/* translators: 1: Ability name, 2: Version number, 3: Alternative ability name, 4: Additional message. */
+					__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s. Use %3$s instead.%4$s' ),
+					$name,
+					$version,
+					$replacement,
+					$message
+				);
+			} else {
+				$notice = sprintf(
+					/* translators: 1: Ability name, 2: Version number, 3: Additional message. */
+					__( 'Ability %1$s is <strong>deprecated</strong> since version %2$s with no alternative available.%3$s' ),
+					$name,
+					$version,
+					$message
+				);
+			}
+
+			wp_trigger_error( '', $notice, E_USER_DEPRECATED );
+
+			// Store the deprecated ability so we don't spam the same warning multiple times.
+			$deprecated_abilities[ $name ] = true;
+		}
 	}
 
 	/**

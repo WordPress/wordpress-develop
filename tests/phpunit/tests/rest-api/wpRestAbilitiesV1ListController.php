@@ -76,7 +76,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 */
 	public function tear_down(): void {
 		// Clean up test abilities.
-		foreach ( wp_get_abilities() as $ability ) {
+		foreach ( wp_get_abilities( array( 'include_deprecated' => true ) ) as $ability ) {
 			if ( ! str_starts_with( $ability->get_name(), 'test/' ) ) {
 				continue;
 			}
@@ -161,6 +161,29 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 				'meta'                => array(
 					'show_in_rest' => true,
 					'featured'     => true,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Helper to register a deprecated ability exposed through REST.
+	 */
+	private function register_deprecated_ability(): void {
+		$this->register_test_ability(
+			'test/deprecated-calculator',
+			array(
+				'label'               => 'Deprecated Calculator',
+				'description'         => 'A deprecated calculator ability.',
+				'category'            => 'math',
+				'execute_callback'    => '__return_true',
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+					'deprecated'   => array(
+						'since'       => '2.0.0',
+						'replacement' => 'test/calculator',
+					),
 				),
 			)
 		);
@@ -316,6 +339,94 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertContains( 'test/calculator', $ability_names );
 		$this->assertContains( 'test/system-info', $ability_names );
 		$this->assertNotContains( 'test/not-show-in-rest', $ability_names );
+	}
+
+	/**
+	 * Tests that collection discovery excludes deprecated abilities by default.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_excludes_deprecated_abilities_by_default(): void {
+		$this->register_deprecated_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/calculator', $ability_names );
+		$this->assertNotContains( 'test/deprecated-calculator', $ability_names );
+	}
+
+	/**
+	 * Tests that the `include_deprecated` parameter adds deprecated abilities to the collection.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_include_deprecated(): void {
+		$this->register_deprecated_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'include_deprecated', true );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/calculator', $ability_names );
+		$this->assertContains( 'test/deprecated-calculator', $ability_names );
+	}
+
+	/**
+	 * Tests that a `deprecated` meta filter returns matching deprecated abilities in the collection.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_items_deprecated_meta_filter_returns_matching_deprecated_abilities(): void {
+		$this->register_deprecated_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'meta', array( 'deprecated' => array( 'since' => '2.0.0' ) ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$ability_names = wp_list_pluck( $response->get_data(), 'name' );
+
+		$this->assertContains( 'test/deprecated-calculator', $ability_names );
+		$this->assertNotContains( 'test/calculator', $ability_names );
+	}
+
+	/**
+	 * Tests that the deprecated abilities remain retrievable through their exact REST route.
+	 *
+	 * @ticket 64209
+	 */
+	public function test_get_item_deprecated_ability_by_exact_name(): void {
+		$this->register_deprecated_ability();
+
+		$this->setExpectedDeprecated( 'test/deprecated-calculator' );
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/deprecated-calculator' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'test/deprecated-calculator', $data['name'] );
+		$this->assertSame(
+			array(
+				'since'       => '2.0.0',
+				'replacement' => 'test/calculator',
+			),
+			$data['meta']['deprecated']
+		);
 	}
 
 	/**

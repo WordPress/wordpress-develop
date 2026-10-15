@@ -12711,6 +12711,11 @@ mockedApiResponse.Schema = {
                             "type": "string",
                             "required": false
                         },
+                        "include_deprecated": {
+                            "description": "Whether to include deprecated abilities in the results.",
+                            "type": "boolean",
+                            "required": false
+                        },
                         "namespace": {
                             "description": "Limit results to abilities in a specific namespace.",
                             "type": "string",
