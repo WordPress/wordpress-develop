@@ -1610,16 +1610,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		add_filter( 'wp_theme_json_data_theme', $filter );
 		$path = array( 'typography', 'fontFamily' );
 
-		try {
-			$before   = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
-			$resolved = _wp_array_get(
-				WP_Theme_JSON::resolve_variables( WP_Theme_JSON_Resolver::get_merged_data() )->get_raw_data()['styles'],
-				$path
-			);
-			$after    = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
-		} finally {
-			remove_filter( 'wp_theme_json_data_theme', $filter );
-		}
+		$before   = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
+		$resolved = _wp_array_get(
+			WP_Theme_JSON::resolve_variables( WP_Theme_JSON_Resolver::get_merged_data() )->get_raw_data()['styles'],
+			$path
+		);
+		$after    = _wp_array_get( WP_Theme_JSON_Resolver::get_merged_data()->get_raw_data()['styles'], $path );
 
 		$this->assertSame( 'var(--wp--preset--font-family--test-font)', $before, 'The theme data should reference a preset.' );
 		$this->assertSame( 'Test Font, sans-serif', $resolved, 'Expected the preset reference to resolve.' );

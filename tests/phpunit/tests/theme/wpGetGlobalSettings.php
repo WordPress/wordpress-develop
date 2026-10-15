@@ -38,7 +38,6 @@ class Tests_Theme_wpGetGlobalSettings extends WP_UnitTestCase {
 		$settings = wp_get_global_settings();
 
 		unregister_block_type( 'test/block-settings' );
-		remove_filter( 'wp_theme_json_data_theme', $filter );
 
 		$this->assertSame(
 			'fresh',
