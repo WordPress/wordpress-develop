@@ -143,7 +143,8 @@ function wp_interactivity_get_element(): ?array {
  * Marks an HTML string as trusted, for `data-wp-html` to render as the content of an element.
  *
  * The returned token is the only value `data-wp-html` renders in server directive processing.
- * The HTML is rendered as given and never reaches the client data, so keep it out of state and context.
+ * Put the token in state, not the HTML string: the HTML is rendered as given and never reaches
+ * the client data through the token. Keep the raw HTML string out of state and context.
  *
  * Warning: this function does not sanitize the HTML. Passing untrusted input, such as
  * user-submitted content, creates a cross-site scripting (XSS) vulnerability. Sanitize it
