@@ -2985,6 +2985,230 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Registers a post type with its own capabilities, such as `edit_books`, instead of those
+	 * of posts.
+	 *
+	 * No role has these capabilities, so tests grant them with
+	 * create_subscriber_with_capabilities().
+	 *
+	 * @since 7.2.0
+	 */
+	private function register_post_type_with_own_capabilities(): void {
+		register_post_type(
+			'book',
+			array(
+				'public'            => true,
+				'show_in_abilities' => true,
+				'capability_type'   => array( 'book', 'books' ),
+				'map_meta_cap'      => true,
+				'supports'          => array( 'title', 'editor', 'author' ),
+			)
+		);
+	}
+
+	/**
+	 * Creates a subscriber who also has the given capabilities.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param list<string> $capabilities The capabilities to grant.
+	 * @return int The user ID.
+	 */
+	private function create_subscriber_with_capabilities( array $capabilities ): int {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'subscriber' ) );
+		foreach ( $capabilities as $capability ) {
+			$user->add_cap( $capability );
+		}
+
+		return $user->ID;
+	}
+
+	/**
+	 * Querying the drafts of a post type with its own capabilities requires the edit capability
+	 * of that post type, not that of posts.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_drafts_of_a_post_type_with_own_capabilities_require_its_edit_capability(): void {
+		$this->register_post_type_with_own_capabilities();
+
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'book',
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$input   = array(
+			'where'  => array(
+				'type'   => 'book',
+				'status' => array( 'draft' ),
+			),
+			'fields' => array( 'id' ),
+		);
+
+		$this->login_as( 'editor' );
+		$denied = $ability->execute( $input );
+
+		$this->assertWPError( $denied, 'An editor, who can edit posts but not books, should not query draft books.' );
+		$this->assertSame( 'ability_invalid_permissions', $denied->get_error_code(), 'A draft query without the edit capability of the post type should return a permission error.' );
+
+		wp_set_current_user( $this->create_subscriber_with_capabilities( array( 'edit_books', 'edit_others_books' ) ) );
+
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $draft_id ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$ability->execute( $input ),
+			'A user who can edit others\' books, but not posts, should get another user\'s draft book.'
+		);
+	}
+
+	/**
+	 * Another user's private post of a post type with its own capabilities is only returned and
+	 * counted with the `read_private` capability of that post type, not that of posts.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_private_posts_of_a_post_type_with_own_capabilities_require_its_read_private_capability(): void {
+		$this->register_post_type_with_own_capabilities();
+
+		$private_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'book',
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'private',
+			)
+		);
+
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$input   = array(
+			'where'  => array(
+				'type'   => 'book',
+				'status' => array( 'private' ),
+			),
+			'fields' => array( 'id' ),
+		);
+
+		$this->login_as( 'editor' );
+
+		$this->assertSame(
+			array(
+				'items'      => array(),
+				'pagination' => array(
+					'total'       => 0,
+					'total_pages' => 0,
+				),
+			),
+			$ability->execute( $input ),
+			'An editor, who can read private posts but not private books, should neither get nor count another user\'s private book.'
+		);
+
+		wp_set_current_user( $this->create_subscriber_with_capabilities( array( 'read_private_books' ) ) );
+
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $private_id ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$ability->execute( $input ),
+			'A user who can read private books, but not private posts, should get another user\'s private book.'
+		);
+	}
+
+	/**
+	 * A user who can read private posts but cannot edit posts gets another user's private
+	 * posts, but cannot query drafts, so a query by ID without a status covers the private post
+	 * but not the draft.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_user_who_can_read_private_posts_but_not_edit_posts_gets_private_posts_but_not_drafts(): void {
+		$private_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'private',
+			)
+		);
+		$draft_id   = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'draft',
+			)
+		);
+
+		wp_set_current_user( $this->create_subscriber_with_capabilities( array( 'read_private_posts' ) ) );
+		$this->register_ability();
+
+		$ability  = wp_get_ability( 'core/content-query' );
+		$expected = array(
+			'items'      => array(
+				array( 'id' => $private_id ),
+			),
+			'pagination' => array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+		);
+
+		$by_status = $ability->execute(
+			array(
+				'where'  => array(
+					'type'   => 'post',
+					'status' => array( 'private' ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( $expected, $by_status, 'A query for private posts should return another user\'s private post.' );
+
+		$drafts = $ability->execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'draft' ),
+				),
+			)
+		);
+
+		$this->assertWPError( $drafts, 'A user who cannot edit posts should not query drafts.' );
+		$this->assertSame( 'ability_invalid_permissions', $drafts->get_error_code(), 'A draft query without edit access should return a permission error.' );
+
+		$by_ids = $ability->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $private_id, $draft_id ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( $expected, $by_ids, 'A query by ID without a status should cover the private post but not the draft.' );
+	}
+
+	/**
 	 * An author can pass the draft gate but only sees their own drafts.
 	 *
 	 * @ticket 66268
@@ -6031,6 +6255,48 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$drafts = $query( array( 'draft' ), self::$user_ids['author_secondary'] );
 		$this->assertIsArray( $drafts, 'An editor should filter by an author without published posts.' );
 		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['items'], 'id' ), 'The filter should return that author\'s drafts.' );
+	}
+
+	/**
+	 * For a post type with its own capabilities, an author_slug filter names a user without
+	 * published posts to the users who can edit others' posts of that post type, not to those
+	 * who can edit others' posts.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_author_slug_filter_follows_the_capabilities_of_the_queried_post_type(): void {
+		$this->register_post_type_with_own_capabilities();
+
+		$draft_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'book',
+				'post_author' => self::$user_ids['author_secondary'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+		$input   = array(
+			'where'  => array(
+				'type'        => 'book',
+				'status'      => array( 'draft' ),
+				'author_slug' => get_userdata( self::$user_ids['author_secondary'] )->user_nicename,
+			),
+			'fields' => array( 'id' ),
+		);
+
+		$this->login_as( 'editor' );
+		$hidden = $execute( $input );
+
+		$this->assertWPError( $hidden, 'An editor, who can edit others\' posts but not others\' books, should not learn that an author without published posts exists.' );
+		$this->assertSame( 'content_invalid_filter', $hidden->get_error_code(), 'An author hidden from the editor should be reported like a missing one.' );
+
+		wp_set_current_user( $this->create_subscriber_with_capabilities( array( 'edit_books', 'edit_others_books' ) ) );
+		$drafts = $execute( $input );
+
+		$this->assertIsArray( $drafts, 'A user who can edit others\' books should filter by an author without published posts.' );
+		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['items'], 'id' ), 'The filter should return that author\'s draft books.' );
 	}
 
 	/**
