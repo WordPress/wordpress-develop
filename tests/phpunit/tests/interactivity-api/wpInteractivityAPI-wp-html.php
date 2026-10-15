@@ -149,7 +149,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a token renders as the exact content of the host, however the
 	 * reference reaches it.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -207,7 +207,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that every HTML string, malformed ones included, becomes the host
 	 * content byte for byte and leaves the markup after the host processed.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -251,7 +251,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * given and that the markup after the host keeps its own namespace and
 	 * context.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -279,7 +279,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that the HTML is inserted exactly once per host, whatever it holds,
 	 * and does not disturb markup that is balanced around it.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -310,7 +310,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a host resolves its reference in the context it declares, runs
 	 * its other directives, and leaves the context of the markup after it alone.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -345,7 +345,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * exactly one not-a-token notice, and processes the fallback and the markup
 	 * after it.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -395,7 +395,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that a value read from context declines, even when it holds HTML.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -418,7 +418,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that a `null` value and an unresolved reference decline silently.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -455,7 +455,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a declining host keeps its children and has the directives in
 	 * them processed, whatever the reason it declined for.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -506,7 +506,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that hosts that cannot hold content decline with one notice whatever
 	 * the value, and keep their own markup.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -555,7 +555,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a host that also carries `data-wp-text` declines with one
 	 * notice, whatever the value, and `data-wp-text` still sets the content.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -594,7 +594,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a `template` carrying `data-wp-each` and `data-wp-html` declines
 	 * with one notice and still renders its items.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -631,7 +631,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that the three decline reasons have pairwise different messages.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -661,7 +661,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that an element that both cannot hold content and is a combination
 	 * raises only the cannot-hold-content notice.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -689,7 +689,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that a declining host does not evaluate its reference.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -735,7 +735,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that an authored non-string value declines with one not-a-token
 	 * notice, without evaluating it, and processes the markup after the host.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -777,7 +777,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that entries other than the default one are ignored without a notice.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -812,7 +812,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that the default entry renders when other entries accompany it.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -835,7 +835,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * resolves to, with the item in context, and only the item's top-level
 	 * element is marked.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -871,7 +871,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that, inside `data-wp-each`, trusted HTML holding directives or
 	 * unbalanced tags is inserted as given without disturbing the items.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -903,7 +903,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a declining host inside `data-wp-each` raises one notice per
 	 * item and keeps the item's own processing.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -935,7 +935,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that a host nested in a host is replaced as a whole and the HTML
 	 * of the outer host appears once.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -957,7 +957,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that markup that was never trusted is not mistaken for a placeholder
 	 * and that inserted HTML is not searched for placeholders.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -979,7 +979,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that HTML that looks like the placeholder of another host is
 	 * inserted as given, not replaced by that host's HTML.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -1006,7 +1006,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that unbalanced markup returns the input unchanged, with no HTML
 	 * inserted.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -1021,7 +1021,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that one call's HTML is not carried to the next call.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -1044,7 +1044,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Also records how `unserialize()` treats such a payload: it warns, runs no
 	 * code of the class and returns an object of the class.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -1130,7 +1130,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * `data-wp-bind` and `data-wp-style` reference it, and is absent from the
 	 * client data.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -1178,7 +1178,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * the output nor the client data, and that referencing it from other
 	 * directives neither renders it nor aborts processing.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */
@@ -1212,7 +1212,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that `data-wp-style` referencing a token removes the targeted
 	 * property as it does for `null`, raising no notice.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 *
@@ -1240,7 +1240,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * Tests that `data-wp-style` also treats the object `unserialize()` returns
 	 * for a `C:` payload naming the token class as no value.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 */

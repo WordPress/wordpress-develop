@@ -17,7 +17,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	/**
 	 * Tests that the function returns a token reporting the given HTML byte for byte.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @dataProvider data_html_strings
 	 *
@@ -52,7 +52,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	 * Tests that tokens created with `new` or `clone` report the same HTML as
 	 * one returned by the function.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 */
 	public function test_new_and_clone_tokens_report_the_same_html() {
 		$html     = '<em>x</em>';
@@ -70,7 +70,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	/**
 	 * Tests that the token class reports no HTML for values that are not tokens.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 *
 	 * @dataProvider data_non_tokens
 	 *
@@ -109,7 +109,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	/**
 	 * Tests that encoding a token as JSON leaves its HTML out.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 */
 	public function test_json_encoding_does_not_include_html() {
 		$token = wp_interactivity_as_dangerous_html( '<b>secret-html</b>' );
@@ -124,7 +124,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	 *
 	 * Also records that `serialize()` writes the `O:` format for a token.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 */
 	public function test_unserialize_of_serialized_token_throws() {
 		$serialized = serialize( wp_interactivity_as_dangerous_html( '<b>x</b>' ) );
@@ -138,7 +138,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	/**
 	 * Tests that unserializing a hand-written `O:` payload naming the token class throws.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 */
 	public function test_unserialize_of_handwritten_payload_throws() {
 		$class   = WP_Interactivity_Dangerous_HTML::class;
@@ -151,7 +151,7 @@ class Tests_Interactivity_API_WpInteractivityDangerousHtml extends WP_UnitTestCa
 	/**
 	 * Tests that a token nested in a serialized structure also throws on unserialization.
 	 *
-	 * @ticket 64846
+	 * @ticket 66246
 	 */
 	public function test_unserialize_of_structure_holding_token_throws() {
 		$serialized = serialize( array( 'a' => array( wp_interactivity_as_dangerous_html( '<b>x</b>' ) ) ) );
