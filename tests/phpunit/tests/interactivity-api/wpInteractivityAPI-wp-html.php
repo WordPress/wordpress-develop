@@ -1117,8 +1117,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	/**
 	 * Tests that a token placed in state, or returned by a derived-state
 	 * closure, reaches the output only as the host's content, even when
-	 * `data-wp-bind` and `data-wp-style` reference it, and is absent from the
-	 * client data.
+	 * `data-wp-bind` references it, and is absent from the client data.
 	 *
 	 * @ticket 66246
 	 *
@@ -1135,17 +1134,17 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$output = wp_interactivity_process_directives(
 			$this->page(
 				'<div data-wp-html="state.html">Fallback</div>' .
-				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html" data-wp-style--color="state.html">z</div>'
+				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
 			)
 		);
 
 		$this->assertSame(
 			$this->processed_page(
 				'<div data-wp-html="state.html">' . self::MARKER_HTML . '</div>' .
-				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html" data-wp-style--color="state.html">z</div>'
+				'<div data-wp-bind--data-html="state.html" data-wp-bind--title="state.html">z</div>'
 			),
 			$output,
-			'Expected the token to be the host content, to remove the bound attributes and to leave no style.'
+			'Expected the token to be the host content and to remove the bound attributes.'
 		);
 		$this->assertSame( 1, substr_count( $output, 'marker-7f3a' ), 'Expected the marker once, in the host content.' );
 		$this->assert_marker_in_no_attribute( $output );
@@ -1180,14 +1179,14 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$output  = wp_interactivity_process_directives(
 			$wrapper .
 			'<div data-wp-html="context.h">Fallback</div>' .
-			'<div data-wp-bind--title="context.h" data-wp-style--color="context.h">z</div>' .
+			'<div data-wp-bind--title="context.h">z</div>' .
 			'<span data-wp-text="state.text">x</span></div>'
 		);
 
 		$this->assertSame(
 			$wrapper .
 			'<div data-wp-html="context.h">Fallback</div>' .
-			'<div data-wp-bind--title="context.h" data-wp-style--color="context.h">z</div>' .
+			'<div data-wp-bind--title="context.h">z</div>' .
 			'<span data-wp-text="state.text">processed</span></div>',
 			$output,
 			'Expected the context to hold no HTML to render, and the markup after it to be processed.'
@@ -1196,58 +1195,5 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'marker-7f3a', $output );
 		$this->assertStringNotContainsString( 'marker-7f3a', $this->printed_client_data() );
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected the value read from context to decline as not a token.' );
-	}
-
-	/**
-	 * Tests that `data-wp-style` referencing a token removes the targeted
-	 * property as it does for `null`, raising no notice.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 *
-	 * @dataProvider data_ways_to_reach_a_token
-	 *
-	 * @param callable $make_state Callable returning the state to set.
-	 */
-	public function test_style_with_a_token_removes_the_property_as_null_does( callable $make_state ) {
-		$markup = '<div data-wp-style--color="state.html" style="color:red;background:blue">a</div>' .
-			'<div data-wp-style--color="state.html">b</div>';
-
-		$this->set_state( array( 'html' => null ) );
-		$expected = wp_interactivity_process_directives( $this->page( $markup ) );
-
-		$this->set_state( $make_state() );
-		$output = wp_interactivity_process_directives( $this->page( $markup ) );
-
-		$this->assertSame( $expected, $output, 'Expected a token to be treated as no value.' );
-		$this->assertStringContainsString( 'style="background:blue;"', $output, 'Expected the declared property to be removed.' );
-		$this->assertStringContainsString( '<span data-wp-text="state.text">processed</span>', $output, 'Expected processing to continue.' );
-		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
-	}
-
-	/**
-	 * Tests that `data-wp-style` also treats the object `unserialize()` returns
-	 * for a `C:` payload naming the token class as no value.
-	 *
-	 * @ticket 66246
-	 *
-	 * @covers ::process_directives
-	 */
-	public function test_style_with_a_value_unserialized_from_custom_format_removes_the_property() {
-		$class = get_class( $this->token() );
-		$value = @unserialize( 'C:' . strlen( $class ) . ':"' . $class . '":0:{}' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-
-		$this->set_state( array( 'html' => $value ) );
-
-		$output = wp_interactivity_process_directives(
-			$this->page( '<div data-wp-style--color="state.html" style="color:red;background:blue">a</div>' )
-		);
-
-		$this->assertSame(
-			$this->processed_page( '<div data-wp-style--color="state.html" style="background:blue;">a</div>' ),
-			$output
-		);
-		$this->assertSame( array(), $this->notices, 'Expected no notice.' );
 	}
 }

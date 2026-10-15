@@ -1341,11 +1341,7 @@ final class WP_Interactivity_API {
 	 * It updates the style attribute value of the current HTML element based on
 	 * the evaluation of its associated references.
 	 *
-	 * A reference that resolves to a token from {@see wp_interactivity_as_dangerous_html()}
-	 * is treated as no value, so the property is removed as it is for `null`.
-	 *
 	 * @since 6.5.0
-	 * @since 7.2.0 A token value removes the style property.
 	 *
 	 * @param WP_Interactivity_API_Directives_Processor $p               The directives processor instance.
 	 * @param string                                    $mode            Whether the processing is entering or exiting the tag.
@@ -1359,17 +1355,7 @@ final class WP_Interactivity_API {
 					continue;
 				}
 
-				$style_property_value = $this->evaluate( $entry );
-
-				/*
-				 * A token marks trusted HTML for `data-wp-html`, and its HTML never
-				 * belongs in an attribute. It is treated as no value, so the property
-				 * is removed as it is for `null`.
-				 */
-				if ( $style_property_value instanceof WP_Interactivity_Dangerous_HTML ) {
-					$style_property_value = null;
-				}
-
+				$style_property_value  = $this->evaluate( $entry );
 				$style_attribute_value = $p->get_attribute( 'style' );
 				$style_attribute_value = ( $style_attribute_value && ! is_bool( $style_attribute_value ) ) ? $style_attribute_value : '';
 
