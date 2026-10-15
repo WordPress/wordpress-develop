@@ -716,12 +716,30 @@ final class WP_Abilities_Content {
 	 */
 	private function should_prime_post_caches( array $fields ): bool {
 		foreach ( self::CACHE_PRIMING_FIELDS as $field ) {
-			if ( rest_is_field_included( $field, $fields ) ) {
+			if ( $this->is_field_requested( $field, $fields ) ) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Checks whether a field path is requested.
+	 *
+	 * Matches paths as the REST API's `_fields` parameter does, with rest_is_field_included():
+	 * a field such as `title` is requested when it or one of its paths, such as
+	 * `title.rendered`, is requested, and a path such as `title.rendered` is requested when it
+	 * or its whole field is.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string       $path   The field path, such as `title` or `title.rendered`.
+	 * @param list<string> $fields The requested field paths.
+	 * @return bool Whether the field path is requested.
+	 */
+	private function is_field_requested( string $path, array $fields ): bool {
+		return rest_is_field_included( $path, $fields );
 	}
 
 	/**
@@ -1337,9 +1355,8 @@ final class WP_Abilities_Content {
 	 * Builds the requested field projection for a post.
 	 *
 	 * Fields are selected as the REST API's `_fields` parameter selects them, with
-	 * rest_is_field_included(): a field such as `title` is included when it or one of its
-	 * paths is requested, and a sub-field such as `title.rendered` when it or its field is.
-	 * The `id` is always included, since {@see self::normalize_fields()} always requests it.
+	 * {@see self::is_field_requested()}. The `id` is always included, since
+	 * {@see self::normalize_fields()} always requests it.
 	 *
 	 * Only the fields that the post type supports and the current user can see are included,
 	 * and a field none of whose requested sub-fields remain is left out, so it never encodes
@@ -1361,19 +1378,19 @@ final class WP_Abilities_Content {
 		$post_type = $post->post_type;
 		$data      = array( 'id' => (int) $post->ID );
 
-		if ( rest_is_field_included( 'type', $fields ) ) {
+		if ( $this->is_field_requested( 'type', $fields ) ) {
 			$data['type'] = $post_type;
 		}
-		if ( rest_is_field_included( 'status', $fields ) ) {
+		if ( $this->is_field_requested( 'status', $fields ) ) {
 			$data['status'] = $post->post_status;
 		}
 
 		foreach ( array( 'date', 'modified' ) as $field ) {
 			$dates = array();
-			if ( rest_is_field_included( "{$field}.local", $fields ) ) {
+			if ( $this->is_field_requested( "{$field}.local", $fields ) ) {
 				$dates['local'] = $this->format_date( $post, $field, false );
 			}
-			if ( rest_is_field_included( "{$field}.gmt", $fields ) ) {
+			if ( $this->is_field_requested( "{$field}.gmt", $fields ) ) {
 				$dates['gmt'] = $this->format_date( $post, $field, true );
 			}
 			if ( ! empty( $dates ) ) {
@@ -1381,10 +1398,10 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		if ( rest_is_field_included( 'slug', $fields ) ) {
+		if ( $this->is_field_requested( 'slug', $fields ) ) {
 			$data['slug'] = $post->post_name;
 		}
-		if ( rest_is_field_included( 'link', $fields ) ) {
+		if ( $this->is_field_requested( 'link', $fields ) ) {
 			$data['link'] = (string) get_permalink( $post );
 		}
 
@@ -1403,18 +1420,18 @@ final class WP_Abilities_Content {
 		);
 		foreach ( $rendered_fields as $field => $spec ) {
 			list( $feature, $property, $render, $protectable ) = $spec;
-			if ( ! rest_is_field_included( $field, $fields ) || ! post_type_supports( $post_type, $feature ) ) {
+			if ( ! $this->is_field_requested( $field, $fields ) || ! post_type_supports( $post_type, $feature ) ) {
 				continue;
 			}
 
 			$value = array();
-			if ( $can_edit && rest_is_field_included( "{$field}.raw", $fields ) ) {
+			if ( $can_edit && $this->is_field_requested( "{$field}.raw", $fields ) ) {
 				$value['raw'] = $post->$property;
 			}
-			if ( rest_is_field_included( "{$field}.rendered", $fields ) ) {
+			if ( $this->is_field_requested( "{$field}.rendered", $fields ) ) {
 				$value['rendered'] = ( $protectable && $is_protected ) ? '' : $this->$render( $post );
 			}
-			if ( $protectable && rest_is_field_included( "{$field}.protected", $fields ) ) {
+			if ( $protectable && $this->is_field_requested( "{$field}.protected", $fields ) ) {
 				$value['protected'] = (bool) $post->post_password;
 			}
 			if ( ! empty( $value ) ) {
@@ -1422,16 +1439,16 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		if ( rest_is_field_included( 'author', $fields ) && post_type_supports( $post_type, 'author' ) ) {
+		if ( $this->is_field_requested( 'author', $fields ) && post_type_supports( $post_type, 'author' ) ) {
 			$user   = get_userdata( (int) $post->post_author );
 			$author = array();
-			if ( rest_is_field_included( 'author.id', $fields ) ) {
+			if ( $this->is_field_requested( 'author.id', $fields ) ) {
 				$author['id'] = (int) $post->post_author;
 			}
-			if ( rest_is_field_included( 'author.name', $fields ) ) {
+			if ( $this->is_field_requested( 'author.name', $fields ) ) {
 				$author['name'] = $user ? $user->display_name : null;
 			}
-			if ( rest_is_field_included( 'author.slug', $fields ) ) {
+			if ( $this->is_field_requested( 'author.slug', $fields ) ) {
 				$author['slug'] = $user ? $user->user_nicename : null;
 			}
 			if ( ! empty( $author ) ) {
@@ -1439,7 +1456,7 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		if ( rest_is_field_included( 'parent', $fields ) && is_post_type_hierarchical( $post_type ) ) {
+		if ( $this->is_field_requested( 'parent', $fields ) && is_post_type_hierarchical( $post_type ) ) {
 			$data['parent'] = (int) $post->post_parent;
 		}
 
