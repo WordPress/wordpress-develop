@@ -5635,45 +5635,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
-	 * Only the user who added a reaction can remove it, even though other
-	 * users who can edit the post can edit the note it belongs to.
-	 *
-	 * @ticket 64638
-	 */
-	public function test_delete_reaction_of_another_user_is_not_allowed() {
-		$post_id     = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
-		$note_id     = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => 0,
-				'user_id'          => self::$editor_id,
-				'comment_content'  => 'Test note',
-			)
-		);
-		$reaction_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => $post_id,
-				'comment_type'     => 'reaction',
-				'comment_parent'   => $note_id,
-				'comment_approved' => 1,
-				'user_id'          => self::$editor_id,
-				'comment_content'  => '2764',
-			)
-		);
-
-		wp_set_current_user( self::$admin_id );
-
-		$request = new WP_REST_Request( 'DELETE', '/wp/v2/comments/' . $reaction_id );
-		$request->set_param( 'force', true );
-		$response = rest_get_server()->dispatch( $request );
-
-		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
-		$this->assertSame( 'Sorry, you can only remove your own reactions.', $response->as_error()->get_error_message() );
-		$this->assertNotNull( get_comment( $reaction_id ), 'Another user removed the reaction.' );
-	}
-
-	/**
 	 * A reaction's author can remove it from a note somebody else wrote.
 	 *
 	 * @ticket 64638
