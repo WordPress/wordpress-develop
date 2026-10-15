@@ -3748,6 +3748,30 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * Creating a note requires edit access to the target post.
+	 *
+	 * @ticket 64638
+	 */
+	public function test_cannot_create_note_without_edit_post_capability() {
+		$post_id = self::factory()->post->create( array( 'post_author' => self::$editor_id ) );
+
+		wp_set_current_user( self::$subscriber_id );
+
+		$params = array(
+			'post'    => $post_id,
+			'content' => 'Subscriber note attempt',
+			'type'    => 'note',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_create_note', $response, rest_authorization_required_code() );
+	}
+
+	/**
 	 * @ticket 64096
 	 */
 	public function test_cannot_create_note_without_post_type_support() {
@@ -4896,6 +4920,44 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$new_comment = get_comment( $response->get_data()['id'] );
 		$this->assertSame( '2764', $new_comment->comment_content );
+	}
+
+	/**
+	 * Whitespace around the reaction key is trimmed before it is validated
+	 * and stored.
+	 *
+	 * @ticket 64638
+	 */
+	public function test_create_reaction_trims_key() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create();
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => 0,
+				'user_id'          => self::$editor_id,
+				'comment_content'  => 'Test note',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'post'    => $post_id,
+					'type'    => 'reaction',
+					'parent'  => $note_id,
+					'content' => " 2764\n",
+				)
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( '2764', get_comment( $response->get_data()['id'] )->comment_content );
 	}
 
 	/**
