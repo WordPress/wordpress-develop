@@ -96,6 +96,110 @@ class Tests_Multisite_wpMsSitesListTable extends WP_UnitTestCase {
 		$this->assertSameSets( array( 1 ) + self::$site_ids, $items );
 	}
 
+	/**
+	 * @ticket 33832
+	 */
+	public function test_ms_sites_list_table_admin_email_column_does_not_load_when_hidden() {
+		$hide_admin_email = static function ( $hidden ) {
+			$hidden[] = 'site_admin_email';
+			return $hidden;
+		};
+		add_filter( 'hidden_columns', $hide_admin_email );
+
+		$table                 = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
+		$admin_email_requested = false;
+		$track_option_request  = static function ( $value ) use ( &$admin_email_requested ) {
+			$admin_email_requested = true;
+			return $value;
+		};
+		add_filter( 'pre_option_admin_email', $track_option_request );
+
+		ob_start();
+		$table->column_site_admin_email( array( 'blog_id' => self::$site_ids['wordpress.org/foo/'] ) );
+		$output = ob_get_clean();
+
+		remove_filter( 'hidden_columns', $hide_admin_email );
+		remove_filter( 'pre_option_admin_email', $track_option_request );
+
+		$this->assertSame( '', $output );
+		$this->assertFalse( $admin_email_requested );
+	}
+
+	/**
+	 * @ticket 33832
+	 */
+	public function test_ms_sites_list_table_admin_email_column_is_opt_in_for_existing_preferences() {
+		$user_id       = self::factory()->user->create();
+		$screen_id     = 'ms-sites-admin-email-preferences';
+		$hidden_option = 'manage' . $screen_id . 'columnshidden';
+
+		wp_set_current_user( $user_id );
+		update_user_meta( $user_id, $hidden_option, array( 'registered' ) );
+
+		$table  = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => $screen_id ) );
+		$hidden = get_hidden_columns( $table->screen );
+
+		$this->assertSame( array( 'registered', 'site_admin_email' ), $hidden );
+		$this->assertSame( $hidden, get_user_meta( $user_id, $hidden_option, true ) );
+
+		// Enabling the column through Screen Options must persist.
+		update_user_meta( $user_id, $hidden_option, array( 'registered' ) );
+		$table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => $screen_id ) );
+
+		$this->assertSame( array( 'registered' ), get_hidden_columns( $table->screen ) );
+
+		wp_set_current_user( 0 );
+	}
+
+	/**
+	 * @ticket 33832
+	 */
+	public function test_ms_sites_list_table_admin_email_column_output() {
+		$site_id     = self::$site_ids['wordpress.org/foo/'];
+		$admin_email = 'site-admin@example.org';
+
+		update_blog_option( $site_id, 'admin_email', $admin_email );
+
+		$this->assertArrayHasKey( 'site_admin_email', $this->table->get_columns() );
+
+		ob_start();
+		$this->table->column_site_admin_email( array( 'blog_id' => $site_id ) );
+		$output = ob_get_clean();
+
+		$this->assertSame( $admin_email, $output );
+	}
+
+	/**
+	 * @ticket 33832
+	 */
+	public function test_existing_admin_email_custom_column_uses_custom_column_hook() {
+		$add_admin_email_column    = static function ( $columns ) {
+			$columns['admin_email'] = 'Custom Admin Email';
+			return $columns;
+		};
+		$custom_column_rendered    = false;
+		$render_admin_email_column = static function ( $column_name ) use ( &$custom_column_rendered ) {
+			if ( 'admin_email' === $column_name ) {
+				$custom_column_rendered = true;
+			}
+		};
+
+		add_filter( 'wpmu_blogs_columns', $add_admin_email_column );
+		add_action( 'manage_sites_custom_column', $render_admin_email_column );
+
+		$table        = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites-admin-email-compat' ) );
+		$table->items = array( get_site( self::$site_ids['wordpress.org/foo/'] ) );
+
+		ob_start();
+		$table->display_rows();
+		ob_end_clean();
+
+		remove_filter( 'wpmu_blogs_columns', $add_admin_email_column );
+		remove_action( 'manage_sites_custom_column', $render_admin_email_column );
+
+		$this->assertTrue( $custom_column_rendered );
+	}
+
 	public function test_ms_sites_list_table_subdirectory_path_search_items() {
 		if ( is_subdomain_install() ) {
 			$this->markTestSkipped( 'Path search is not available for subdomain configurations.' );
