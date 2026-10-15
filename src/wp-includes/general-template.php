@@ -5400,9 +5400,16 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 		return;
 	}
 
-	$stylesheet_link = sprintf(
-		"<link rel='stylesheet' href='%s' />\n",
-		esc_url( wp_admin_css_uri( $file ) )
+	// Preserve the historical markup format passed to the wp_admin_css filter.
+	$stylesheet_link = str_replace(
+		'"',
+		"'",
+		wp_get_stylesheet_link_tag(
+			array(
+				'rel'  => 'stylesheet',
+				'href' => wp_admin_css_uri( $file ),
+			)
+		)
 	);
 
 	/**
@@ -5419,9 +5426,15 @@ function wp_admin_css( $file = 'wp-admin', $force_echo = false ) {
 	echo apply_filters( 'wp_admin_css', $stylesheet_link, $file );
 
 	if ( function_exists( 'is_rtl' ) && is_rtl() ) {
-		$rtl_stylesheet_link = sprintf(
-			"<link rel='stylesheet' href='%s' />\n",
-			esc_url( wp_admin_css_uri( "$file-rtl" ) )
+		$rtl_stylesheet_link = str_replace(
+			'"',
+			"'",
+			wp_get_stylesheet_link_tag(
+				array(
+					'rel'  => 'stylesheet',
+					'href' => wp_admin_css_uri( "$file-rtl" ),
+				)
+			)
 		);
 
 		/** This filter is documented in wp-includes/general-template.php */

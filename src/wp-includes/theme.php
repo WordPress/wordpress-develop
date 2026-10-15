@@ -733,9 +733,12 @@ function locale_stylesheet() {
 		return;
 	}
 
-	printf(
-		'<link rel="stylesheet" href="%s" media="screen" />',
-		$stylesheet
+	wp_print_stylesheet_link_tag(
+		array(
+			'rel'   => 'stylesheet',
+			'href'  => $stylesheet,
+			'media' => 'screen',
+		)
 	);
 }
 
