@@ -404,9 +404,20 @@ final class WP_Abilities_Content {
 		$pagination = $this->get_input_object( $input, 'pagination' ) ?? array();
 		$page       = $this->parse_filter_int( $pagination['page'] ?? 1, 1 ) ?? 1;
 
+		/*
+		 * Unreachable through gated transports, which run check_permission() first and deny a
+		 * request without a post type exposed to abilities. A direct call to the execute
+		 * callback still fails closed here, but it bypasses the checks of the request as a
+		 * whole that the permission callback performed, such as the status capabilities, so
+		 * only invoke the callback through WP_Ability::execute().
+		 */
 		$post_type_object = $this->get_exposed_post_type( $where['type'] ?? null );
 		if ( ! $post_type_object ) {
-			return $this->not_found_error();
+			return new WP_Error(
+				'content_not_found',
+				__( 'The requested content was not found.' ),
+				array( 'status' => 404 )
+			);
 		}
 
 		$post_type = $post_type_object->name;
@@ -821,8 +832,10 @@ final class WP_Abilities_Content {
 	 *
 	 * Like schema validation, it also accepts a single ID or a comma-separated string. Each
 	 * ID is read with {@see self::parse_filter_int()}, and one that is not a whole number of
-	 * at least 1, such as a fraction or a number beyond the integer range, is dropped rather
-	 * than coerced, so it can never select another post.
+	 * at least 1, such as a fraction, a negative number, or a float too large to hold its
+	 * integer exactly, is dropped rather than coerced, so it can never select another post.
+	 * A digit string beyond the integer range saturates to PHP_INT_MAX, as REST sanitization
+	 * does, which selects no post either.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1315,6 +1328,7 @@ final class WP_Abilities_Content {
 	 * Fields are selected as the REST API's `_fields` parameter selects them, with
 	 * rest_is_field_included(): a field such as `title` is included when it or one of its
 	 * paths is requested, and a sub-field such as `title.rendered` when it or its field is.
+	 * The `id` is always included, since {@see self::normalize_fields()} always requests it.
 	 *
 	 * Only the fields that the post type supports and the current user can see are included,
 	 * and a field none of whose requested sub-fields remain is left out, so it never encodes
@@ -1334,11 +1348,8 @@ final class WP_Abilities_Content {
 	 */
 	private function build_post_fields( WP_Post $post, array $fields, bool $can_edit, bool $is_protected ): array {
 		$post_type = $post->post_type;
-		$data      = array();
+		$data      = array( 'id' => (int) $post->ID );
 
-		if ( rest_is_field_included( 'id', $fields ) ) {
-			$data['id'] = (int) $post->ID;
-		}
 		if ( rest_is_field_included( 'type', $fields ) ) {
 			$data['type'] = $post_type;
 		}
@@ -1366,48 +1377,37 @@ final class WP_Abilities_Content {
 			$data['link'] = (string) get_permalink( $post );
 		}
 
-		if ( rest_is_field_included( 'title', $fields ) && post_type_supports( $post_type, 'title' ) ) {
-			$title = array();
-			if ( $can_edit && rest_is_field_included( 'title.raw', $fields ) ) {
-				$title['raw'] = $post->post_title;
+		/*
+		 * The rendered fields share a shape: `raw` for a user who can edit the post,
+		 * `rendered`, and `protected` for the excerpt and content, whose rendered values are
+		 * withheld for a password-protected post. The title is never withheld, so it has no
+		 * `protected` sub-field. Each field lists the feature the post type must support, the
+		 * post property holding the raw value, the method rendering it, and whether it can be
+		 * protected.
+		 */
+		$rendered_fields = array(
+			'title'   => array( 'title', 'post_title', 'get_title', false ),
+			'excerpt' => array( 'excerpt', 'post_excerpt', 'get_rendered_excerpt', true ),
+			'content' => array( 'editor', 'post_content', 'get_rendered_content', true ),
+		);
+		foreach ( $rendered_fields as $field => $spec ) {
+			list( $feature, $property, $render, $protectable ) = $spec;
+			if ( ! rest_is_field_included( $field, $fields ) || ! post_type_supports( $post_type, $feature ) ) {
+				continue;
 			}
-			if ( rest_is_field_included( 'title.rendered', $fields ) ) {
-				$title['rendered'] = $this->get_title( $post );
-			}
-			if ( ! empty( $title ) ) {
-				$data['title'] = $title;
-			}
-		}
 
-		if ( rest_is_field_included( 'excerpt', $fields ) && post_type_supports( $post_type, 'excerpt' ) ) {
-			$excerpt = array();
-			if ( $can_edit && rest_is_field_included( 'excerpt.raw', $fields ) ) {
-				$excerpt['raw'] = $post->post_excerpt;
+			$value = array();
+			if ( $can_edit && rest_is_field_included( "{$field}.raw", $fields ) ) {
+				$value['raw'] = $post->$property;
 			}
-			if ( rest_is_field_included( 'excerpt.rendered', $fields ) ) {
-				$excerpt['rendered'] = $is_protected ? '' : $this->get_rendered_excerpt( $post );
+			if ( rest_is_field_included( "{$field}.rendered", $fields ) ) {
+				$value['rendered'] = ( $protectable && $is_protected ) ? '' : $this->$render( $post );
 			}
-			if ( rest_is_field_included( 'excerpt.protected', $fields ) ) {
-				$excerpt['protected'] = (bool) $post->post_password;
+			if ( $protectable && rest_is_field_included( "{$field}.protected", $fields ) ) {
+				$value['protected'] = (bool) $post->post_password;
 			}
-			if ( ! empty( $excerpt ) ) {
-				$data['excerpt'] = $excerpt;
-			}
-		}
-
-		if ( rest_is_field_included( 'content', $fields ) && post_type_supports( $post_type, 'editor' ) ) {
-			$content = array();
-			if ( $can_edit && rest_is_field_included( 'content.raw', $fields ) ) {
-				$content['raw'] = $post->post_content;
-			}
-			if ( rest_is_field_included( 'content.rendered', $fields ) ) {
-				$content['rendered'] = $is_protected ? '' : $this->get_rendered_content( $post );
-			}
-			if ( rest_is_field_included( 'content.protected', $fields ) ) {
-				$content['protected'] = (bool) $post->post_password;
-			}
-			if ( ! empty( $content ) ) {
-				$data['content'] = $content;
+			if ( ! empty( $value ) ) {
+				$data[ $field ] = $value;
 			}
 		}
 
@@ -1657,32 +1657,6 @@ final class WP_Abilities_Content {
 				'total'       => $total,
 				'total_pages' => $total_pages,
 			),
-		);
-	}
-
-	/**
-	 * Builds the uniform not-found error.
-	 *
-	 * Unreachable through gated transports, which run {@see self::check_permission()}
-	 * first and deny a request without a post type exposed to abilities. It is kept so
-	 * that a direct call to the execute callback still fails closed when `where` names no
-	 * exposed post type.
-	 *
-	 * This is not a permission check. The execute callback deliberately does not repeat
-	 * the checks of the request as a whole that {@see self::check_permission()} already
-	 * performed, such as the status capabilities, so a direct call bypasses them. Only
-	 * invoke the callback through {@see WP_Ability::execute()}, which always runs the
-	 * permission callback first.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @return WP_Error The not-found error.
-	 */
-	private function not_found_error(): WP_Error {
-		return new WP_Error(
-			'content_not_found',
-			__( 'The requested content was not found.' ),
-			array( 'status' => 404 )
 		);
 	}
 
