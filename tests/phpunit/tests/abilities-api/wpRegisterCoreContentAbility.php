@@ -643,7 +643,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A later page of a query that names a post the current user cannot query, by ID or by
 	 * slug, returns the empty result rather than an error.
 	 *
-	 * A subscriber's default statuses are `publish` only, so the query matches no post, and a
+	 * A subscriber's default statuses do not cover drafts, so the query matches no post, and a
 	 * query that matches nothing returns the empty result on any page.
 	 *
 	 * @ticket 66268
@@ -1769,6 +1769,87 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns `where` filters that name a post in the publicly viewable `public_archive` status.
+	 *
+	 * @return array<string, array{where: array<string, mixed>}> Filter test cases.
+	 */
+	public function data_filters_naming_a_post_in_a_viewable_custom_status(): array {
+		return array(
+			'ids'    => array(
+				'where' => array(
+					'type' => 'post',
+					'ids'  => array( self::IMPORTED_POST_ID ),
+				),
+			),
+			'slugs'  => array(
+				'where' => array(
+					'type'  => 'post',
+					'slugs' => array( 'public-archive-post' ),
+				),
+			),
+			'status' => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'public_archive' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * A post in a publicly viewable custom status is returned to a subscriber, who cannot edit
+	 * it, whether the query names it by ID, by slug or by status.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_filters_naming_a_post_in_a_viewable_custom_status
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $where The `where` filters.
+	 */
+	public function test_viewable_custom_status_is_readable_by_subscribers( array $where ): void {
+		register_post_status(
+			'public_archive',
+			array(
+				'label'  => 'Public archive',
+				'public' => true,
+			)
+		);
+
+		$post_id = self::factory()->post->create(
+			array(
+				'import_id'   => self::IMPORTED_POST_ID,
+				'post_author' => self::$user_ids['administrator'],
+				'post_name'   => 'public-archive-post',
+				'post_status' => 'public_archive',
+			)
+		);
+
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => $where,
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $post_id ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			'A subscriber should get the post in a publicly viewable custom status.'
+		);
+	}
+
+	/**
 	 * Adds the `inherit` status to the ability's queries for the given post type.
 	 *
 	 * `inherit` is an internal status, so neither `where.status` nor the default statuses cover
@@ -2248,7 +2329,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * user who cannot query the drafts.
 	 *
 	 * A query by slug is paged and ordered newest first, so newer drafts that it covered would
-	 * fill the first page. A subscriber's default statuses are `publish` only, so the drafts
+	 * fill the first page. A subscriber's default statuses do not cover drafts, so the drafts
 	 * are not part of the query.
 	 *
 	 * @ticket 66268
@@ -2310,7 +2391,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'total_pages' => 1,
 			),
 			$result['pagination'],
-			'The drafts should not be counted for a subscriber, whose default statuses are publish only.'
+			'The drafts should not be counted for a subscriber, whose default statuses do not cover drafts.'
 		);
 	}
 
@@ -2720,8 +2801,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A newer draft that shares a published post's slug comes back next to the published post
 	 * for a role that can read the draft, and is withheld from a role that cannot.
 	 *
-	 * Every post that matches a slug is returned. A subscriber's default statuses are `publish`
-	 * only, while an editor's cover drafts.
+	 * Every post that matches a slug is returned. A subscriber's default statuses do not cover
+	 * drafts, while an editor's do.
 	 *
 	 * @ticket 66268
 	 * @dataProvider data_roles_with_and_without_access_to_others_drafts
@@ -2835,45 +2916,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns field sets that a request is checked against with read or with edit access.
-	 *
-	 * @return array<string, array{fields: list<string>}> Field set test cases.
-	 */
-	public function data_read_and_edit_fields(): array {
-		return array(
-			'read fields' => array(
-				'fields' => array( 'id' ),
-			),
-			'edit fields' => array(
-				'fields' => array( 'id', 'content.raw' ),
-			),
-		);
-	}
-
-	/**
-	 * Returns field sets that a request is checked against with read or with edit access, with
-	 * the total that a query filter adding two other post types leads to, when it is fixed.
-	 *
-	 * With explicit raw paths, WP_Query checks a query that spans several post types against
-	 * capabilities no role has, so it may return only the current user's own posts, or none,
-	 * and the total is not fixed.
-	 *
-	 * @return array<string, array{fields: list<string>, total: int|null}> Field set test cases.
-	 */
-	public function data_read_and_edit_fields_with_the_total_across_post_types(): array {
-		return array(
-			'read fields' => array(
-				'fields' => array( 'id' ),
-				'total'  => 3,
-			),
-			'edit fields' => array(
-				'fields' => array( 'id', 'content.raw' ),
-				'total'  => null,
-			),
-		);
-	}
-
-	/**
 	 * A query by slug returns only posts of the requested post type, also when a query filter
 	 * adds post types to it.
 	 *
@@ -2881,18 +2923,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * without an is_main_query() check also runs for it. Newer posts sharing the slug would
 	 * otherwise be returned, even from a post type that is not exposed.
 	 *
-	 * With explicit raw paths, WP_Query may narrow the query that spans several post types to
-	 * the current user's own posts, or to none, so only the absence of the other post types
-	 * is checked.
-	 *
 	 * @ticket 66268
-	 * @dataProvider data_read_and_edit_fields_with_the_total_across_post_types
 	 * @since 7.2.0
-	 *
-	 * @param list<string> $fields The field paths to request.
-	 * @param int|null     $total  The total the query filter leads to, or null when it is not fixed.
 	 */
-	public function test_slugs_skip_posts_of_other_post_types( array $fields, ?int $total ): void {
+	public function test_slugs_skip_posts_of_other_post_types(): void {
 		register_post_type(
 			'hidden_cpt',
 			array(
@@ -2949,23 +2983,23 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type'  => 'post',
 					'slugs' => array( 'shared-slug' ),
 				),
-				'fields' => $fields,
+				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertIsArray( $result, 'The query by slug should succeed.' );
-
-		if ( null === $total ) {
-			$this->assertSame(
-				array(),
-				array_values( array_intersect( wp_list_pluck( $result['items'], 'id' ), $other_ids ) ),
-				'Posts of other post types sharing the slug should never come back.'
-			);
-			return;
-		}
-
-		$this->assertSame( $total, $result['pagination']['total'], 'Precondition: the query filter should add the other post types.' );
-		$this->assertSame( $post_id, $result['items'][0]['id'], 'The query by slug should resolve to the post of the requested type.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $post_id ),
+				),
+				'pagination' => array(
+					'total'       => 3,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			'The query by slug should return only the post of the requested type, and count the posts that the query filter adds.'
+		);
 	}
 
 	/**
@@ -3210,9 +3244,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Whole title, excerpt and content objects leave out the raw values for users who cannot
 	 * edit the post, rather than failing the request.
 	 *
-	 * Only explicit raw paths ask for edit access, so the objects return every sub-field the
-	 * user may see.
-	 *
 	 * @ticket 66268
 	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
 	 * @since 7.2.0
@@ -3331,17 +3362,19 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A query for an explicit raw path is narrowed to the posts the current user can edit.
+	 * A query for an explicit raw path is not narrowed to the posts the current user can edit
+	 * either, and leaves the raw content out of the other posts.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_query_for_an_explicit_raw_path_is_narrowed_to_editable_posts(): void {
+	public function test_query_for_an_explicit_raw_path_is_not_narrowed_to_editable_posts(): void {
 		$own_id   = self::factory()->post->create(
 			array(
 				'post_author'  => self::$user_ids['author'],
 				'post_content' => 'Own body.',
 				'post_status'  => 'publish',
+				'post_date'    => '2026-01-01 10:00:00',
 			)
 		);
 		$other_id = self::factory()->post->create(
@@ -3349,6 +3382,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 				'post_author'  => self::$user_ids['author_secondary'],
 				'post_content' => 'Other body.',
 				'post_status'  => 'publish',
+				'post_date'    => '2026-02-01 10:00:00',
 			)
 		);
 
@@ -3365,14 +3399,28 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsArray( $result, 'An author, who can edit posts, should query an explicit raw path.' );
-		$this->assertSame( array( $own_id ), wp_list_pluck( $result['items'], 'id' ), 'The query should return only the author\'s own post, not another user\'s post.' );
-		$this->assertSame( 'Own body.', $result['items'][0]['content']['raw'], 'The author\'s own post should hold the requested raw content.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $other_id ),
+					array(
+						'id'      => $own_id,
+						'content' => array( 'raw' => 'Own body.' ),
+					),
+				),
+				'pagination' => array(
+					'total'       => 2,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			'The query should return another user\'s post without the raw content, next to the author\'s own post with it.'
+		);
 	}
 
 	/**
-	 * An explicit raw path asks for edit access even next to its whole object, and a rendered
-	 * path next to its whole object returns the whole object.
+	 * A path next to its whole object returns the whole object, without the sub-fields the
+	 * current user cannot see.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -3384,7 +3432,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$post_id = self::$post_ids['limited_role_content'];
 
 		$this->login_as( 'subscriber' );
-		$denied = $ability->execute(
+		$without_raw = $ability->execute(
 			array(
 				'where'  => array(
 					'type' => 'post',
@@ -3394,8 +3442,22 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertWPError( $denied, 'A raw title path next to the whole title should still ask for edit access.' );
-		$this->assertSame( 'ability_invalid_permissions', $denied->get_error_code(), 'A subscriber should be refused the raw title path.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array(
+						'id'    => $post_id,
+						'title' => array( 'rendered' => 'Readable title' ),
+					),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$without_raw,
+			'A raw title path next to the whole title should return the whole title without the raw title to a subscriber.'
+		);
 
 		$this->login_as( 'editor' );
 		$result = $ability->execute(
@@ -3688,53 +3750,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Subscribers cannot request edit-context raw fields in a query.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_subscriber_cannot_request_raw_fields_in_query_mode(): void {
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array( 'type' => 'post' ),
-				'fields' => array( 'content.raw' ),
-			)
-		);
-
-		$this->assertWPError( $result, 'Subscribers should not be able to request raw fields in a query.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Subscriber raw-field query requests should return a permission error.' );
-	}
-
-	/**
-	 * Subscribers cannot request edit-context raw fields for a single post.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_subscriber_cannot_request_raw_fields_for_single_post(): void {
-		$post_id = self::$post_ids['published'];
-
-		$this->login_as( 'subscriber' );
-		$this->register_ability();
-
-		$result = wp_get_ability( 'core/content-query' )->execute(
-			array(
-				'where'  => array(
-					'type' => 'post',
-					'ids'  => array( $post_id ),
-				),
-				'fields' => array( 'content.raw' ),
-			)
-		);
-
-		$this->assertWPError( $result, 'Subscribers should not be able to request raw fields by ID.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Subscriber raw-field by-ID requests should return a permission error.' );
-	}
-
-	/**
 	 * Users who cannot edit another user's post do not receive raw fields by default.
 	 *
 	 * @ticket 66268
@@ -3770,44 +3785,16 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns roles that cannot edit another user's post, with the error that a request for an
-	 * explicit raw path fails with, if any.
-	 *
-	 * A role without `edit_posts` is refused. A role with it runs the query, which is narrowed
-	 * to the posts the role can edit.
-	 *
-	 * @return array<string, array{role: string, error_code: string|null}> Role test cases.
-	 */
-	public function data_raw_path_results_for_roles_without_edit_access_to_other_users_posts(): array {
-		return array(
-			'subscriber'  => array(
-				'role'       => 'subscriber',
-				'error_code' => 'ability_invalid_permissions',
-			),
-			'contributor' => array(
-				'role'       => 'contributor',
-				'error_code' => null,
-			),
-			'author'      => array(
-				'role'       => 'author',
-				'error_code' => null,
-			),
-		);
-	}
-
-	/**
-	 * Users who cannot edit another user's post cannot explicitly request raw fields.
-	 *
-	 * A user without `edit_posts` on the post type is refused. A user with it gets a query
-	 * narrowed to the posts they can edit, which leaves out another user's post.
+	 * Users who cannot edit another user's post get it without the raw fields they explicitly
+	 * request, rather than an error or no post.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_raw_path_results_for_roles_without_edit_access_to_other_users_posts
+	 * @dataProvider data_roles_without_edit_access_to_other_users_posts
+	 * @since 7.2.0
 	 *
-	 * @param string      $role       The role to test.
-	 * @param string|null $error_code The error code the request should fail with, or null when the query should run.
+	 * @param string $role The role to test.
 	 */
-	public function test_raw_field_requests_are_denied_for_roles_without_edit_access_to_other_users_posts( string $role, ?string $error_code ): void {
+	public function test_raw_field_requests_omit_raw_values_for_roles_without_edit_access_to_other_users_posts( string $role ): void {
 		$post_id = self::$post_ids['limited_role_content'];
 
 		$this->login_as( $role );
@@ -3819,27 +3806,72 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type' => 'post',
 					'ids'  => array( $post_id ),
 				),
-				'fields' => array( 'content.raw' ),
+				'fields' => array( 'title.raw', 'excerpt.raw', 'content.raw' ),
 			)
 		);
 
-		if ( null !== $error_code ) {
-			$this->assertWPError( $result, 'Raw field requests should fail for users without edit access.' );
-			$this->assertSame( $error_code, $result->get_error_code(), 'Raw field requests should require edit access to the post type.' );
-			return;
-		}
-
-		$this->assertIsArray( $result, 'Raw field requests from users who can edit posts should run the query.' );
-		$this->assertSame( array(), $result['items'], 'Raw field requests should not return a post the user cannot edit.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $post_id ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			'Raw field requests should return the readable post without the raw values.'
+		);
 	}
 
 	/**
-	 * Subscribers cannot request draft posts.
+	 * Returns statuses that are neither publicly viewable nor `private`: a draft, a public status
+	 * that is not viewable, and a custom status flagged private, which WP_Query does not narrow
+	 * to the current user's own posts as it does `private`.
+	 *
+	 * @return array<string, array{status: string}> Status test cases.
+	 */
+	public function data_statuses_that_require_edit_access(): array {
+		return array(
+			'draft'                         => array(
+				'status' => 'draft',
+			),
+			'public status, not viewable'   => array(
+				'status' => 'public_hidden',
+			),
+			'custom status flagged private' => array(
+				'status' => 'members_only',
+			),
+		);
+	}
+
+	/**
+	 * Subscribers cannot request posts in a status that requires edit access.
 	 *
 	 * @ticket 66268
+	 * @dataProvider data_statuses_that_require_edit_access
 	 * @since 7.2.0
+	 *
+	 * @param string $status The status to request.
 	 */
-	public function test_subscriber_cannot_request_draft_status(): void {
+	public function test_subscriber_cannot_request_statuses_that_require_edit_access( string $status ): void {
+		register_post_status(
+			'public_hidden',
+			array(
+				'label'              => 'Public hidden',
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
+		register_post_status(
+			'members_only',
+			array(
+				'label'   => 'Members only',
+				'private' => true,
+			)
+		);
+
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
 
@@ -3847,36 +3879,75 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array(
 				'where' => array(
 					'type'   => 'post',
-					'status' => array( 'draft' ),
+					'status' => array( $status ),
 				),
 			)
 		);
 
-		$this->assertWPError( $result, 'Subscribers should not be allowed to query draft posts.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Subscriber draft queries should return a permission error.' );
+		$this->assertWPError( $result, 'Subscribers should not be allowed to query posts in a status that requires edit access.' );
+		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'A subscriber query for a status that requires edit access should return a permission error.' );
 	}
 
 	/**
-	 * Subscribers cannot request private posts.
+	 * Subscribers can query private posts, and get only their own.
+	 *
+	 * Another user's private post is neither returned nor counted, because a subscriber lacks
+	 * `read_private_posts`.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_subscriber_cannot_request_private_status(): void {
+	public function test_subscriber_gets_only_their_own_private_posts(): void {
+		$own_id   = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['subscriber'],
+				'post_status' => 'private',
+			)
+		);
+		$other_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'private',
+			)
+		);
+
 		$this->login_as( 'subscriber' );
 		$this->register_ability();
 
-		$result = wp_get_ability( 'core/content-query' )->execute(
+		$ability  = wp_get_ability( 'core/content-query' );
+		$expected = array(
+			'items'      => array(
+				array( 'id' => $own_id ),
+			),
+			'pagination' => array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+		);
+
+		$by_status = $ability->execute(
 			array(
-				'where' => array(
+				'where'  => array(
 					'type'   => 'post',
 					'status' => array( 'private' ),
 				),
+				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertWPError( $result, 'Subscribers should not be allowed to query private posts.' );
-		$this->assertSame( 'ability_invalid_permissions', $result->get_error_code(), 'Subscriber private queries should return a permission error.' );
+		$this->assertSame( $expected, $by_status, 'A query for private posts should return only the subscriber\'s own private post.' );
+
+		$by_ids = $ability->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $own_id, $other_id ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( $expected, $by_ids, 'A query by ID without a status should return only the subscriber\'s own private post.' );
 	}
 
 	/**
@@ -3975,8 +4046,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * and the published post and the `other_` posts to another author.
 	 *
 	 * The total counts the posts that the query covers, including withheld ones. Another user's
-	 * private post is only covered with `read_private_posts`, so the author's total leaves it
-	 * out while the editor's counts it.
+	 * private post is only covered with `read_private_posts`, so the subscriber's and the
+	 * author's totals leave it out while the editor's counts it.
 	 *
 	 * @return array<string, array{role: string, expected: list<string>, total: int}> Role test cases.
 	 */
@@ -4004,10 +4075,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * A query by ID without a status covers every status that the current user may query, and
 	 * returns the posts in them that the user may read.
 	 *
-	 * A subscriber may query published posts only. An author may query every status and reads
-	 * their own posts in any of them, while another user's drafts, pending and scheduled posts
-	 * are withheld, though counted. Another user's private post is neither returned nor counted,
-	 * because the author lacks `read_private_posts`. An editor reads posts in every status.
+	 * A subscriber may query published and private posts. An author may query every status and
+	 * reads their own posts in any of them, while another user's drafts, pending and scheduled
+	 * posts are withheld, though counted. Another user's private post is neither returned nor
+	 * counted, because the subscriber and the author lack `read_private_posts`. An editor reads
+	 * posts in every status.
 	 *
 	 * @ticket 66268
 	 * @dataProvider data_default_statuses_with_ids_by_role
@@ -4150,11 +4222,11 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns roles that can edit another user's trashed post.
+	 * Returns roles that can edit and read another user's post in any status.
 	 *
 	 * @return array<string, array{role: string}> Role test cases.
 	 */
-	public function data_roles_that_can_edit_trashed_posts(): array {
+	public function data_roles_with_edit_access_to_other_users_posts(): array {
 		return array(
 			'administrator' => array(
 				'role' => 'administrator',
@@ -4174,7 +4246,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * post renames its slug.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_roles_that_can_edit_trashed_posts
+	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
 	 * @since 7.2.0
 	 *
 	 * @param string $role The role to query as.
@@ -4223,7 +4295,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * Returns roles that name another user's draft in `where.ids`, with the totals they get.
 	 *
 	 * The default statuses of an author cover drafts, so the query counts the draft that the
-	 * author cannot read. The default statuses of a subscriber are `publish` only.
+	 * author cannot read. The default statuses of a subscriber do not cover drafts.
 	 *
 	 * @return array<string, array{role: string, total: int, total_pages: int}> Role test cases.
 	 */
@@ -4438,15 +4510,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 *
 	 * WP_Query treats the ability's query as the blog home, so a `pre_get_posts` callback
 	 * without an is_main_query() check also runs for it. The read check would let through
-	 * posts of other exposed post types, and the edit check posts of any post type.
+	 * posts of other exposed post types.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_read_and_edit_fields
 	 * @since 7.2.0
-	 *
-	 * @param list<string> $fields The field paths to request.
 	 */
-	public function test_query_mode_skips_posts_of_other_post_types( array $fields ): void {
+	public function test_query_mode_skips_posts_of_other_post_types(): void {
 		register_post_type(
 			'hidden_cpt',
 			array(
@@ -4455,12 +4524,10 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		// With several post types, an editable query keeps only the current user's posts.
 		$ids = array();
 		foreach ( array( 'post', 'page', 'hidden_cpt' ) as $post_type ) {
 			$ids[] = self::factory()->post->create(
 				array(
-					'post_author' => self::$user_ids['administrator'],
 					'post_type'   => $post_type,
 					'post_status' => 'publish',
 				)
@@ -4485,12 +4552,93 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'type' => 'post',
 					'ids'  => $ids,
 				),
-				'fields' => $fields,
+				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertSame( 3, $result['pagination']['total'], 'Precondition: the query filter should add the other post types.' );
-		$this->assertSame( array( $ids[0] ), wp_list_pluck( $result['items'], 'id' ), 'The query should return only posts of the requested type.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $ids[0] ),
+				),
+				'pagination' => array(
+					'total'       => 3,
+					'total_pages' => 1,
+				),
+			),
+			$result,
+			'The query by ID should return only the post of the requested type, and count the posts that the query filter adds.'
+		);
+	}
+
+	/**
+	 * A query by ID or by status returns another user's private post to a role that can read
+	 * it, also when a query filter adds post types to the blog home.
+	 *
+	 * With several post types, WP_Query checks private posts against
+	 * `read_private_multiple_post_types`, which no role has, so a query for the readable posts
+	 * only would leave the post out.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_roles_with_edit_access_to_other_users_posts
+	 * @since 7.2.0
+	 *
+	 * @param string $role The role to query as.
+	 */
+	public function test_another_users_private_post_is_returned_when_a_query_filter_adds_post_types( string $role ): void {
+		$post_id = self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'private',
+			)
+		);
+
+		add_action(
+			'pre_get_posts',
+			static function ( WP_Query $query ): void {
+				if ( $query->is_home() ) {
+					$query->set( 'post_type', array( 'post', 'page' ) );
+				}
+			}
+		);
+
+		$this->login_as( $role );
+		$this->register_ability();
+
+		$ability  = wp_get_ability( 'core/content-query' );
+		$expected = array(
+			'items'      => array(
+				array( 'id' => $post_id ),
+			),
+			'pagination' => array(
+				'total'       => 1,
+				'total_pages' => 1,
+			),
+		);
+
+		$by_ids = $ability->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( $expected, $by_ids, 'A query by ID should return another user\'s private post to a role that can read it.' );
+
+		$by_status = $ability->execute(
+			array(
+				'where'  => array(
+					'type'   => 'post',
+					'status' => array( 'private' ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertSame( $expected, $by_status, 'A query for private posts should return another user\'s private post to a role that can read it.' );
 	}
 
 	/**
@@ -6717,6 +6865,120 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array( 'where[slugs]' => $result->get_error_message() ),
 			$result->get_error_data()['params'],
 			'The error data should map the slugs filter to the error message.'
+		);
+	}
+
+	/**
+	 * Returns `where` filters with a status that is not registered, or is internal, which reach
+	 * the execute callback when it is called directly, or when the input schema lists a status
+	 * that is not registered when the query runs.
+	 *
+	 * @return array<string, array{where: array<string, mixed>}> The `where` filters.
+	 */
+	public function data_where_filters_with_statuses_that_cannot_be_queried(): array {
+		return array(
+			'unregistered status'                 => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'unregistered_status' ),
+				),
+			),
+			'unregistered status next to publish' => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'publish', 'unregistered_status' ),
+				),
+			),
+			'unregistered status next to ids'     => array(
+				'where' => array(
+					'type'   => 'post',
+					'ids'    => array( self::IMPORTED_POST_ID ),
+					'status' => array( 'unregistered_status' ),
+				),
+			),
+			'trash'                               => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'trash' ),
+				),
+			),
+			'inherit'                             => array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'inherit' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Called directly, a status filter with a status that is not registered, or is internal, is
+	 * rejected rather than queried.
+	 *
+	 * WP_Query ignores a status that is not registered, and with no status left it covers every
+	 * status, including `trash`.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_where_filters_with_statuses_that_cannot_be_queried
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $where The `where` filters to send.
+	 */
+	public function test_execute_callback_rejects_statuses_that_cannot_be_queried( array $where ): void {
+		$this->login_as( 'administrator' );
+
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute( array( 'where' => $where ) );
+
+		$this->assertWPError( $result, 'A status filter with a status that cannot be queried must not run the query.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'A status that cannot be queried should fail as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[status]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the status filter to the error message.'
+		);
+	}
+
+	/**
+	 * A status that the input schema still lists, but that is no longer registered when the
+	 * query runs, is rejected rather than queried.
+	 *
+	 * The input schema lists the statuses registered when the ability is registered, so such a
+	 * status passes input validation.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_status_no_longer_registered_is_rejected(): void {
+		register_post_status(
+			'temporary',
+			array(
+				'label'  => 'Temporary',
+				'public' => true,
+			)
+		);
+
+		$this->login_as( 'editor' );
+		$this->register_ability();
+
+		_unregister_post_status( 'temporary' );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'status' => array( 'temporary' ),
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'A status that is no longer registered must not run the query.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'A status that is no longer registered should fail as an invalid filter.' );
+		$this->assertSame(
+			array( 'where[status]' => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should map the status that is no longer registered to the error message.'
 		);
 	}
 

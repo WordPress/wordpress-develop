@@ -191,7 +191,9 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 	/**
 	 * @ticket 66268
 	 */
-	public function test_subscriber_requesting_raw_fields_receives_403(): void {
+	public function test_subscriber_requesting_raw_fields_receives_the_posts_without_them(): void {
+		$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
+
 		wp_set_current_user( self::$subscriber_id );
 
 		$response = $this->server->dispatch(
@@ -203,7 +205,20 @@ class Tests_REST_API_WpRestAbilitiesContentController extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 403, $response->get_status(), 'A subscriber should be forbidden from requesting raw fields.' );
+		$this->assertSame( 200, $response->get_status(), 'A subscriber requesting raw fields should not be forbidden.' );
+		$this->assertSame(
+			array(
+				'items'      => array(
+					array( 'id' => $post_id ),
+				),
+				'pagination' => array(
+					'total'       => 1,
+					'total_pages' => 1,
+				),
+			),
+			$response->get_data(),
+			'The published post should be returned without the raw content.'
+		);
 	}
 
 	/**
