@@ -1128,6 +1128,7 @@ final class WP_Abilities_Content {
 	private function get_fields_input_schema(): array {
 		return array(
 			'type'        => 'array',
+			'uniqueItems' => true,
 			'items'       => array(
 				'type' => 'string',
 				'enum' => $this->get_field_paths(),
@@ -1144,10 +1145,7 @@ final class WP_Abilities_Content {
 	 * the post type to query in `type`, and any of the filters `ids`, `slugs`, `status`,
 	 * `author_slug`, and `parent`, which all combine. Every object sets
 	 * `additionalProperties: false`, so an unknown key, such as a misspelled filter, fails
-	 * validation instead of being silently ignored. The lists leave out `uniqueItems`, which
-	 * the Gemini API rejects in the `parameters` of a function declaration. A repeated value
-	 * is harmless: IDs and slugs are deduplicated, and a repeated status or field path
-	 * changes nothing.
+	 * validation instead of being silently ignored.
 	 *
 	 * @since 7.2.0
 	 *
@@ -1173,6 +1171,7 @@ final class WP_Abilities_Content {
 						),
 						'ids'         => array(
 							'type'        => 'array',
+							'uniqueItems' => true,
 							'minItems'    => 1,
 							'maxItems'    => self::MAX_PER_PAGE,
 							'items'       => array(
@@ -1183,6 +1182,7 @@ final class WP_Abilities_Content {
 						),
 						'slugs'       => array(
 							'type'        => 'array',
+							'uniqueItems' => true,
 							'minItems'    => 1,
 							'maxItems'    => self::MAX_PER_PAGE,
 							'items'       => array(
@@ -1193,6 +1193,7 @@ final class WP_Abilities_Content {
 						),
 						'status'      => array(
 							'type'        => 'array',
+							'uniqueItems' => true,
 							'minItems'    => 1,
 							'items'       => array(
 								'type' => 'string',
