@@ -287,12 +287,38 @@ class WP_Date_Query {
 		 * validation routine continue to be sure that all invalid
 		 * values generate errors too.
 		 */
-		if ( array_key_exists( 'before', $date_query ) && is_array( $date_query['before'] ) ) {
-			$valid = $this->validate_date_values( $date_query['before'] );
+		if ( array_key_exists( 'before', $date_query ) ) {
+			if ( is_array( $date_query['before'] ) ) {
+				$valid = $this->validate_date_values( $date_query['before'] ) && $valid;
+			} elseif ( ! $this->validate_date_string( $date_query['before'] ) ) {
+				_doing_it_wrong(
+					__CLASS__,
+					sprintf(
+						/* translators: %s: The invalid date string. */
+						__( 'Invalid date string %s for before. Expected a date string that can be parsed by date_create().' ),
+						'<code>' . esc_html( $date_query['before'] ) . '</code>'
+					),
+					'7.2.0'
+				);
+				$valid = false;
+			}
 		}
 
-		if ( array_key_exists( 'after', $date_query ) && is_array( $date_query['after'] ) ) {
-			$valid = $this->validate_date_values( $date_query['after'] );
+		if ( array_key_exists( 'after', $date_query ) ) {
+			if ( is_array( $date_query['after'] ) ) {
+				$valid = $this->validate_date_values( $date_query['after'] ) && $valid;
+			} elseif ( ! $this->validate_date_string( $date_query['after'] ) ) {
+				_doing_it_wrong(
+					__CLASS__,
+					sprintf(
+						/* translators: %s: The invalid date string. */
+						__( 'Invalid date string %s for after. Expected a date string that can be parsed by date_create().' ),
+						'<code>' . esc_html( $date_query['after'] ) . '</code>'
+					),
+					'7.2.0'
+				);
+				$valid = false;
+			}
 		}
 
 		// Array containing all min-max checks.
@@ -454,6 +480,22 @@ class WP_Date_Query {
 		}
 
 		return $valid;
+	}
+
+	/**
+	 * Validates a date string for the 'before' or 'after' value of a date query.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $date_string The date string to validate.
+	 * @return bool True if the date string can be parsed, false otherwise.
+	 */
+	protected function validate_date_string( $date_string ) {
+		if ( ! is_string( $date_string ) || '' === $date_string ) {
+			return false;
+		}
+
+		return false !== date_create( $date_string, wp_timezone() );
 	}
 
 	/**
