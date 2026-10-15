@@ -1291,8 +1291,6 @@ class WP_Rewrite {
 	 * @since 1.5.0
 	 *
 	 * @return array<string, string> An associative array of matches and queries.
-	 *
-	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	public function rewrite_rules() {
 		$rewrite = array();
@@ -1508,7 +1506,7 @@ class WP_Rewrite {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param string[] $rules The compiled array of rewrite rules, keyed by their regex pattern.
+		 * @param array<string, string> $rules The compiled array of rewrite rules, keyed by their regex pattern.
 		 */
 		$this->rules = apply_filters( 'rewrite_rules_array', $this->rules );
 
