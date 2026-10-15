@@ -966,4 +966,58 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->assertSame( $fallback, $processor->get_attribute( 'src' ), 'Output should contain fallback icon URL in src.' );
 		$this->assertNull( $processor->get_attribute( 'srcset' ), 'srcset should be omitted when 1x and 2x fallback URLs are identical.' );
 	}
+
+	/**
+	 * @ticket 65702
+	 * @group multisite
+	 * @group ms-required
+	 * @covers ::wp_lostpassword_url
+	 */
+	public function test_wp_lostpassword_url_does_not_duplicate_the_network_path_for_the_main_site() {
+		$lostpassword_url = $this->get_lostpassword_url_for_paths( '/subdir/', '/subdir/' );
+
+		$this->assertStringNotContainsString( '/subdir/subdir/', $lostpassword_url, 'The network base path should not be duplicated in the lost password URL.' );
+		$this->assertStringContainsString( '/subdir/wp-login.php', $lostpassword_url );
+	}
+
+	/**
+	 * @ticket 65702
+	 * @group multisite
+	 * @group ms-required
+	 * @covers ::wp_lostpassword_url
+	 */
+	public function test_wp_lostpassword_url_does_not_duplicate_the_network_path_for_a_subsite() {
+		$lostpassword_url = $this->get_lostpassword_url_for_paths( '/subdir/', '/subdir/site2/' );
+
+		$this->assertStringNotContainsString( '/subdir/subdir/', $lostpassword_url, 'The network base path should not be duplicated for a subsite either.' );
+		$this->assertStringContainsString( '/subdir/site2/wp-login.php', $lostpassword_url );
+	}
+
+	/**
+	 * Retrieves the lost password URL as seen from a site with the given network and site paths.
+	 *
+	 * @param string $network_path The network's base path, e.g. '/subdir/'.
+	 * @param string $site_path    The current site's path, e.g. '/subdir/site2/'.
+	 * @return string The lost password URL.
+	 */
+	private function get_lostpassword_url_for_paths( $network_path, $site_path ) {
+		$set_network_path = static function ( $network ) use ( $network_path ) {
+			$network->path = $network_path;
+			return $network;
+		};
+		$set_site_path    = static function ( $site ) use ( $site_path ) {
+			$site->path = $site_path;
+			return $site;
+		};
+
+		add_filter( 'get_network', $set_network_path );
+		add_filter( 'get_site', $set_site_path );
+
+		$lostpassword_url = wp_lostpassword_url();
+
+		remove_filter( 'get_network', $set_network_path );
+		remove_filter( 'get_site', $set_site_path );
+
+		return $lostpassword_url;
+	}
 }
