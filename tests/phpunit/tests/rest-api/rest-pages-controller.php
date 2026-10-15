@@ -440,10 +440,45 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/pages' );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params(
+			array(
+				'title'   => 'Page Title',
+				'content' => 'Page content',
+				'slug'    => 'page-slug',
+				'status'  => 'publish',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'page', $data['type'] );
+		$this->assertSame( 'Page Title', $data['title']['raw'] );
+		$this->assertSame( 'Page content', $data['content']['raw'] );
+		$this->assertSame( 'page-slug', $data['slug'] );
+		$this->assertSame( 'publish', $data['status'] );
+		$this->assertSame( self::$editor_id, $data['author'] );
+
+		$headers = $response->get_headers();
+		$this->assertArrayHasKey( 'Location', $headers );
+		$this->assertSame( rest_url( sprintf( 'wp/v2/pages/%d', $data['id'] ) ), $headers['Location'] );
+
+		$page = get_post( $data['id'] );
+		$this->assertInstanceOf( WP_Post::class, $page );
+		$this->assertSame( 'page', $page->post_type );
+		$this->assertSame( 'Page Title', $page->post_title );
+		$this->assertSame( 'Page content', $page->post_content );
+		$this->assertSame( 'page-slug', $page->post_name );
+		$this->assertSame( 'publish', $page->post_status );
+		$this->assertSame( self::$editor_id, (int) $page->post_author );
 	}
 
 	public function test_create_item_with_template() {
@@ -508,10 +543,48 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => 'Original title',
+				'post_content' => 'Original content',
+				'post_name'    => 'original-slug',
+			)
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/pages/%d', $page_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$request->set_body_params(
+			array(
+				'title'   => 'Updated title',
+				'content' => 'Updated content',
+				'slug'    => 'updated-slug',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayNotHasKey( 'Location', $response->get_headers() );
+
+		$data = $response->get_data();
+		$this->assertSame( $page_id, $data['id'] );
+		$this->assertSame( 'page', $data['type'] );
+		$this->assertSame( 'Updated title', $data['title']['raw'] );
+		$this->assertSame( 'Updated content', $data['content']['raw'] );
+		$this->assertSame( 'updated-slug', $data['slug'] );
+		$this->assertSame( 'publish', $data['status'], 'Fields that are not sent should be unchanged.' );
+
+		$page = get_post( $page_id );
+		$this->assertSame( 'page', $page->post_type );
+		$this->assertSame( 'Updated title', $page->post_title );
+		$this->assertSame( 'Updated content', $page->post_content );
+		$this->assertSame( 'updated-slug', $page->post_name );
+		$this->assertSame( 'publish', $page->post_status );
 	}
 
 	public function test_delete_item() {
