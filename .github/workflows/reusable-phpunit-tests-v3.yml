@@ -435,4 +435,4 @@ jobs:
         if: ${{ github.ref == 'refs/heads/trunk' && inputs.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+        run: docker compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www -e WPT_DB_HOST=mysql -e WPT_DB_USER=root -e WPT_DB_PASSWORD=password -e WPT_DB_NAME=wordpress_develop_tests php php test-runner/report.php
