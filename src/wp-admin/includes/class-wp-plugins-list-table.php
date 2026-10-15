@@ -1197,13 +1197,44 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$plugin_name = $plugin_data['Name'];
 		}
 
+		$is_plugin_closed   = ! empty( $plugin_data['closed'] ) || 'closed' === ( $plugin_data['status'] ?? '' ) || 'disabled' === ( $plugin_data['status'] ?? '' );
+		$is_plugin_security = ! empty( $plugin_data['is_security'] ) || 'security-issue' === ( $plugin_data['reason'] ?? '' ) || 'security-issue' === ( $plugin_data['closed_reason'] ?? '' );
+		$is_plugin_outdated = ! empty( $plugin_data['is_outdated'] );
+
+		if ( ! $is_plugin_closed && ! $is_plugin_outdated ) {
+			$update_plugins_transient = get_site_transient( 'update_plugins' );
+			if ( is_object( $update_plugins_transient ) ) {
+				$transient_item = null;
+				if ( isset( $update_plugins_transient->response[ $plugin_file ] ) ) {
+					$transient_item = (object) $update_plugins_transient->response[ $plugin_file ];
+				} elseif ( isset( $update_plugins_transient->no_update[ $plugin_file ] ) ) {
+					$transient_item = (object) $update_plugins_transient->no_update[ $plugin_file ];
+				}
+				if ( $transient_item ) {
+					$is_plugin_closed   = ! empty( $transient_item->closed ) || 'closed' === ( $transient_item->status ?? '' ) || 'disabled' === ( $transient_item->status ?? '' );
+					$is_plugin_security = ! empty( $transient_item->is_security ) || 'security-issue' === ( $transient_item->reason ?? '' ) || 'security-issue' === ( $transient_item->closed_reason ?? '' );
+					$is_plugin_outdated = ! empty( $transient_item->is_outdated );
+				}
+			}
+		}
+
 		if (
 			! empty( $totals['upgrade'] ) &&
 			! empty( $plugin_data['update'] ) ||
 			! $compatible_php ||
-			! $compatible_wp
+			! $compatible_wp ||
+			$is_plugin_closed ||
+			$is_plugin_outdated
 		) {
 			$class .= ' update';
+		}
+
+		if ( $is_plugin_closed ) {
+			$class .= ' closed';
+		}
+
+		if ( $is_plugin_outdated ) {
+			$class .= ' outdated';
 		}
 
 		$paused = ! $screen->in_admin( 'network' ) && is_plugin_paused( $plugin_file );
@@ -1238,7 +1269,16 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					echo "<td class='check-column'>$checkbox</td>";
 					break;
 				case 'name':
-					echo "<th scope='row' class='plugin-title column-primary' aria-label='" . esc_attr( $plugin_name ) . "'><strong>$plugin_name</strong>";
+					$badges = '';
+					if ( $is_plugin_closed ) {
+						$badge_text  = $is_plugin_security ? __( 'Closed (Security)' ) : __( 'Closed' );
+						$badge_class = $is_plugin_security ? 'plugin-status-badge-closed plugin-status-badge-security' : 'plugin-status-badge-closed';
+						$badges     .= ' <span class="plugin-status-badge ' . esc_attr( $badge_class ) . '" role="status"><span class="screen-reader-text">' . __( 'Plugin status:' ) . ' </span>' . esc_html( $badge_text ) . '</span>';
+					} elseif ( $is_plugin_outdated ) {
+						$badges .= ' <span class="plugin-status-badge plugin-status-badge-outdated" role="status"><span class="screen-reader-text">' . __( 'Plugin status:' ) . ' </span>' . __( 'Outdated' ) . '</span>';
+					}
+
+					echo "<th scope='row' class='plugin-title column-primary' aria-label='" . esc_attr( $plugin_name ) . "'><strong>$plugin_name</strong>$badges";
 					echo $this->row_actions( $actions, true );
 					echo '</th>';
 					break;

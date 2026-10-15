@@ -444,7 +444,37 @@ foreach ( $themes as $theme ) :
 		<div class="theme-screenshot blank"></div>
 	<?php } ?>
 
-	<?php if ( $theme['hasUpdate'] ) : ?>
+	<?php if ( ! empty( $theme['closed'] ) || ! empty( $theme['is_suspended'] ) ) : ?>
+		<?php
+		if ( ! empty( $theme['is_security'] ) ) {
+			wp_admin_notice(
+				__( 'Warning: This theme was closed due to a security issue and is no longer available for download.' ),
+				array(
+					'type'               => 'error',
+					'additional_classes' => array( 'notice-alt', 'inline', 'theme-status-notice' ),
+				)
+			);
+		} else {
+			wp_admin_notice(
+				__( 'Suspended / Closed: This theme has been removed from the WordPress Theme Directory.' ),
+				array(
+					'type'               => 'warning',
+					'additional_classes' => array( 'notice-alt', 'inline', 'theme-status-notice' ),
+				)
+			);
+		}
+		?>
+	<?php elseif ( ! empty( $theme['is_outdated'] ) ) : ?>
+		<?php
+		wp_admin_notice(
+			__( 'Outdated: This theme has not been updated in over 2 years.' ),
+			array(
+				'type'               => 'warning',
+				'additional_classes' => array( 'notice-alt', 'inline', 'theme-status-notice' ),
+			)
+		);
+		?>
+	<?php elseif ( $theme['hasUpdate'] ) : ?>
 		<?php
 		if ( $theme['updateResponse']['compatibleWP'] && $theme['updateResponse']['compatiblePHP'] ) :
 			if ( $theme['hasPackage'] ) {
@@ -597,12 +627,21 @@ foreach ( $themes as $theme ) :
 	</div>
 
 	<div class="theme-id-container">
+		<?php
+		$theme_badge = '';
+		if ( ! empty( $theme['closed'] ) || ! empty( $theme['is_suspended'] ) ) {
+			$badge_label = ! empty( $theme['is_security'] ) ? __( 'Closed (Security)' ) : __( 'Closed' );
+			$theme_badge = ' <span class="theme-status-badge theme-status-badge-closed" role="status"><span class="screen-reader-text">' . __( 'Theme status:' ) . ' </span>' . esc_html( $badge_label ) . '</span>';
+		} elseif ( ! empty( $theme['is_outdated'] ) ) {
+			$theme_badge = ' <span class="theme-status-badge theme-status-badge-outdated" role="status"><span class="screen-reader-text">' . __( 'Theme status:' ) . ' </span>' . __( 'Outdated' ) . '</span>';
+		}
+		?>
 		<?php if ( $theme['active'] ) { ?>
 			<h2 class="theme-name" id="<?php echo esc_attr( $aria_name ); ?>">
-				<span><?php _ex( 'Active:', 'theme' ); ?></span> <?php echo $theme['name']; ?>
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> <?php echo $theme['name'] . $theme_badge; ?>
 			</h2>
 		<?php } else { ?>
-			<h2 class="theme-name" id="<?php echo esc_attr( $aria_name ); ?>"><?php echo $theme['name']; ?></h2>
+			<h2 class="theme-name" id="<?php echo esc_attr( $aria_name ); ?>"><?php echo $theme['name'] . $theme_badge; ?></h2>
 		<?php } ?>
 
 		<div class="theme-actions">
@@ -842,7 +881,21 @@ function wp_theme_auto_update_setting_template() {
 		<div class="theme-screenshot blank"></div>
 	<# } #>
 
-	<# if ( data.hasUpdate ) { #>
+	<# if ( data.closed || data.is_suspended ) { #>
+		<# if ( data.is_security ) { #>
+			<div class="notice inline notice-error notice-alt theme-status-notice" role="alert"><p>
+				<?php _e( 'Warning: This theme was closed due to a security issue and is no longer available for download.' ); ?>
+			</p></div>
+		<# } else { #>
+			<div class="notice inline notice-warning notice-alt theme-status-notice" role="status"><p>
+				<?php _e( 'Suspended / Closed: This theme has been removed from the WordPress Theme Directory.' ); ?>
+			</p></div>
+		<# } #>
+	<# } else if ( data.is_outdated ) { #>
+		<div class="notice inline notice-warning notice-alt theme-status-notice" role="status"><p>
+			<?php _e( 'Outdated: This theme has not been updated in over 2 years.' ); ?>
+		</p></div>
+	<# } else if ( data.hasUpdate ) { #>
 		<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
 			<div class="update-message notice inline notice-warning notice-alt"><p>
 				<# if ( data.hasPackage ) { #>
@@ -989,12 +1042,18 @@ function wp_theme_auto_update_setting_template() {
 	</div>
 
 	<div class="theme-id-container">
+		<# var themeBadge = ''; #>
+		<# if ( data.closed || data.is_suspended ) { #>
+			<# themeBadge = ' <span class="theme-status-badge theme-status-badge-closed" role="status"><span class="screen-reader-text"><?php _e( 'Theme status:' ); ?> </span>' + ( data.is_security ? '<?php echo esc_js( __( 'Closed (Security)' ) ); ?>' : '<?php echo esc_js( __( 'Closed' ) ); ?>' ) + '</span>'; #>
+		<# } else if ( data.is_outdated ) { #>
+			<# themeBadge = ' <span class="theme-status-badge theme-status-badge-outdated" role="status"><span class="screen-reader-text"><?php _e( 'Theme status:' ); ?> </span><?php echo esc_js( __( 'Outdated' ) ); ?></span>'; #>
+		<# } #>
 		<# if ( data.active ) { #>
 			<h2 class="theme-name" id="{{ data.id }}-name">
-				<span><?php _ex( 'Active:', 'theme' ); ?></span> {{{ data.name }}}
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> {{{ data.name }}}{{{ themeBadge }}}
 			</h2>
 		<# } else { #>
-			<h2 class="theme-name" id="{{ data.id }}-name">{{{ data.name }}}</h2>
+			<h2 class="theme-name" id="{{ data.id }}-name">{{{ data.name }}}{{{ themeBadge }}}</h2>
 		<# } #>
 
 		<div class="theme-actions">
@@ -1152,6 +1211,57 @@ function wp_theme_auto_update_setting_template() {
 							?>
 						<# } #>
 					</p></div>
+				<# } #>
+
+				<# if ( data.closed || data.is_suspended ) { #>
+					<# if ( data.is_security ) { #>
+						<div class="notice notice-error notice-alt notice-large" role="alert">
+							<h3 class="notice-title"><?php _e( 'Suspended / Closed' ); ?></h3>
+							<p>
+								<# if ( data.closedDate ) { #>
+									<?php
+									printf(
+										/* translators: %s: Theme closure date. */
+										__( 'Warning: This theme was closed on %s due to a security issue and is no longer available for download. It should be replaced immediately.' ),
+										'{{ data.closedDate }}'
+									);
+									?>
+								<# } else { #>
+									<?php _e( 'Warning: This theme was closed due to a security issue and is no longer available for download. It should be replaced immediately.' ); ?>
+								<# } #>
+							</p>
+						</div>
+					<# } else { #>
+						<div class="notice notice-warning notice-alt notice-large" role="status">
+							<h3 class="notice-title"><?php _e( 'Suspended / Closed' ); ?></h3>
+							<p>
+								<# if ( data.closedDate && data.closedReason ) { #>
+									<?php
+									printf(
+										/* translators: 1: Theme closure date, 2: Theme closure reason. */
+										__( 'Suspended / Closed: This theme has been removed from the WordPress Theme Directory on %1$s (%2$s).' ),
+										'{{ data.closedDate }}',
+										'{{ data.closedReason }}'
+									);
+									?>
+								<# } else { #>
+									<?php _e( 'Suspended / Closed: This theme has been removed from the WordPress Theme Directory.' ); ?>
+								<# } #>
+							</p>
+						</div>
+					<# } #>
+				<# } #>
+
+				<# if ( data.is_outdated ) { #>
+					<div class="notice notice-warning notice-alt notice-large" role="status">
+						<p>
+							<# if ( data.outdatedNotice ) { #>
+								{{{ data.outdatedNotice }}}
+							<# } else { #>
+								<?php _e( 'This theme has not been updated in over 2 years and may no longer be maintained.' ); ?>
+							<# } #>
+						</p>
+					</div>
 				<# } #>
 
 				<# if ( data.hasUpdate ) { #>
