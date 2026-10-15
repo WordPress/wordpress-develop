@@ -241,7 +241,8 @@ final class WP_Abilities_Content {
 	 * Parses a raw list input into a list of strings.
 	 *
 	 * Like schema validation, it also accepts a scalar or a comma-separated string, and
-	 * parses it the same way, with wp_parse_list().
+	 * parses it the same way, with wp_parse_list(). A number, such as a slug sent as 2024,
+	 * is read as its string form.
 	 *
 	 * @since 7.2.0
 	 *
@@ -251,7 +252,9 @@ final class WP_Abilities_Content {
 	 */
 	private function parse_list_input( array $input, string $key ): array {
 		$value = $input[ $key ] ?? null;
-		if ( ! is_array( $value ) && ! is_string( $value ) ) {
+		if ( is_scalar( $value ) ) {
+			$value = (string) $value;
+		} elseif ( ! is_array( $value ) ) {
 			return array();
 		}
 
@@ -890,11 +893,11 @@ final class WP_Abilities_Content {
 	/**
 	 * Normalizes the post slugs the `slugs` filter lists.
 	 *
-	 * Like schema validation, it also accepts a comma-separated string. Each slug is
-	 * sanitized with sanitize_title(), as WordPress sanitizes a post slug when it saves the
-	 * post, so `Hello-World` matches `hello-world`. A slug that sanitizes to an empty string,
-	 * such as `!!!`, is dropped: it names no post, and querying it would match the posts
-	 * that have no slug yet, such as drafts.
+	 * Like schema validation, it also accepts a single slug, even one sent as a number, or a
+	 * comma-separated string. Each slug is sanitized with sanitize_title(), as WordPress
+	 * sanitizes a post slug when it saves the post, so `Hello-World` matches `hello-world`.
+	 * A slug that sanitizes to an empty string, such as `!!!`, is dropped: it names no post,
+	 * and querying it would match the posts that have no slug yet, such as drafts.
 	 *
 	 * @since 7.2.0
 	 *
