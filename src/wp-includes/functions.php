@@ -5628,7 +5628,7 @@ function wp_widgets_add_menu() {
 	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][9] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
@@ -5663,6 +5663,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
+ * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5675,6 +5676,8 @@ function dead_db() {
 
 	// Load custom DB error template, if present.
 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+		status_header( 500 );
+		nocache_headers();
 		require_once WP_CONTENT_DIR . '/db-error.php';
 		die();
 	}
@@ -9575,7 +9578,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
-	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
 
@@ -9621,6 +9624,7 @@ All at ###SITENAME###
 	 *         The following strings have a special meaning and will get replaced dynamically:
 	 *          - `###USERNAME###`                  The user's display name.
 	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
+	 *          - `###ADMIN_EMAIL###`               The admin email in case this was unexpected.
 	 *          - `###EMAIL###`                     The user's email address.
 	 *          - `###SITENAME###`                  The name of the site.
 	 *          - `###SITEURL###`                   The URL to the site.
@@ -9633,6 +9637,7 @@ All at ###SITENAME###
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
 	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
 	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );
