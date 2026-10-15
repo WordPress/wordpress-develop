@@ -2334,37 +2334,27 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$note_ids        = array_map( 'intval', $note_ids );
 		$current_user_id = get_current_user_id();
-		$id_placeholders = implode( ',', array_fill( 0, count( $note_ids ), '%d' ) );
 
-		// Query 1: aggregated counts per emoji per note.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-		$counts = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT comment_parent, comment_content, COUNT(*) AS reaction_count
-				FROM {$wpdb->comments}
-				WHERE comment_parent IN ( $id_placeholders )
-				AND comment_type = %s
-				AND comment_approved = %s
-				GROUP BY comment_parent, comment_content",
-				...array_merge( $note_ids, array( 'reaction', '1' ) )
-			)
+		$parent_in = $wpdb->prepare(
+			'comment_parent IN (' . implode( ',', array_fill( 0, count( $note_ids ), '%d' ) ) . ')',
+			...$note_ids
 		);
 
-		// Query 2: the current user's own reaction IDs (only when logged in).
+		// Query 1: Get aggregated counts per emoji per note.
+		$query  = "SELECT comment_parent, comment_content, COUNT(*) AS reaction_count FROM $wpdb->comments WHERE comment_type = 'reaction' AND comment_approved = '1' AND ";
+		$query .= $parent_in;
+		$query .= ' GROUP BY comment_parent, comment_content';
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$counts = $wpdb->get_results( $query );
+
+		// Query 2: Get the current user's own reaction IDs (if logged in).
 		$my_reactions = array();
 		if ( $current_user_id ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-			$user_rows = $wpdb->get_results(
-				$wpdb->prepare(
-					"SELECT comment_ID, comment_parent, comment_content
-					FROM {$wpdb->comments}
-					WHERE comment_parent IN ( $id_placeholders )
-					AND comment_type = %s
-					AND comment_approved = %s
-					AND user_id = %d",
-					...array_merge( $note_ids, array( 'reaction', '1', $current_user_id ) )
-				)
-			);
+			$query  = "SELECT comment_ID, comment_parent, comment_content FROM $wpdb->comments WHERE comment_type = 'reaction' AND comment_approved = '1' AND ";
+			$query .= $parent_in;
+			$query .= $wpdb->prepare( ' AND user_id = %d', $current_user_id );
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$user_rows = $wpdb->get_results( $query );
 
 			if ( $user_rows ) {
 				foreach ( $user_rows as $row ) {
