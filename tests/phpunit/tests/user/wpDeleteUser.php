@@ -125,12 +125,11 @@ class Tests_User_wpDeleteUser extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Patterns support authors, so they're deleted with their author. Only posts
-	 * and pages are moved to the trash, so patterns are deleted permanently.
+	 * Patterns may be used across the site, so they're kept when their author is deleted.
 	 *
 	 * @ticket 66307
 	 */
-	public function test_delete_user_deletes_patterns() {
+	public function test_delete_user_keeps_patterns() {
 		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
 		$pattern_id = self::factory()->post->create(
 			array(
@@ -141,7 +140,7 @@ class Tests_User_wpDeleteUser extends WP_UnitTestCase {
 
 		wp_delete_user( $user_id );
 
-		$this->assertNull( get_post( $pattern_id ) );
+		$this->assertSame( 'publish', get_post_status( $pattern_id ) );
 	}
 
 	/**

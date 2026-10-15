@@ -355,6 +355,8 @@ function create_initial_post_types() {
 				'custom-fields',
 				'author',
 			),
+			// Keep patterns when their author is deleted, as they may be used across the site.
+			'delete_with_user'      => false,
 		)
 	);
 
