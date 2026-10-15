@@ -10962,6 +10962,20 @@ mockedApiResponse.Schema = {
                             },
                             "default": [],
                             "required": false
+                        },
+                        "search_columns": {
+                            "default": [],
+                            "description": "Array of column names to be searched. Only applies to post searches.",
+                            "type": "array",
+                            "items": {
+                                "enum": [
+                                    "post_title",
+                                    "post_content",
+                                    "post_excerpt"
+                                ],
+                                "type": "string"
+                            },
+                            "required": false
                         }
                     }
                 }
