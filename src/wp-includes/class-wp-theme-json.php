@@ -127,6 +127,7 @@ class WP_Theme_JSON {
 	 *              Updated the 'prevent_override' value for font size presets to use 'typography.defaultFontSizes'
 	 *              and spacing size presets to use `spacing.defaultSpacingSizes`.
 	 * @since 6.9.0 Added `border.radiusSizes`.
+	 * @since 7.2.0 Added `typography.textShadowPresets`.
 	 * @var array
 	 */
 	const PRESETS_METADATA = array(
@@ -187,6 +188,15 @@ class WP_Theme_JSON {
 			'css_vars'          => '--wp--preset--font-family--$slug',
 			'classes'           => array( '.has-$slug-font-family' => 'font-family' ),
 			'properties'        => array( 'font-family' ),
+		),
+		array(
+			'path'              => array( 'typography', 'textShadowPresets' ),
+			'prevent_override'  => array( 'typography', 'defaultTextShadowPresets' ),
+			'use_default_names' => false,
+			'value_key'         => 'textShadow',
+			'css_vars'          => '--wp--preset--text-shadow--$slug',
+			'classes'           => array( '.has-$slug-text-shadow' => 'text-shadow' ),
+			'properties'        => array( 'text-shadow' ),
 		),
 		array(
 			'path'              => array( 'spacing', 'spacingSizes' ),
@@ -419,6 +429,8 @@ class WP_Theme_JSON {
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
+	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
+	 *              and `typography.defaultTextShadowPresets`.
 	 * @var array
 	 */
 	const VALID_SETTINGS = array(
@@ -496,22 +508,25 @@ class WP_Theme_JSON {
 			'defaultPresets' => null,
 		),
 		'typography'                    => array(
-			'fluid'            => null,
-			'customFontSize'   => null,
-			'defaultFontSizes' => null,
-			'dropCap'          => null,
-			'fontFamilies'     => null,
-			'fontSizes'        => null,
-			'fontStyle'        => null,
-			'fontWeight'       => null,
-			'letterSpacing'    => null,
-			'lineHeight'       => null,
-			'textAlign'        => null,
-			'textColumns'      => null,
-			'textDecoration'   => null,
-			'textIndent'       => null,
-			'textTransform'    => null,
-			'writingMode'      => null,
+			'fluid'                    => null,
+			'customFontSize'           => null,
+			'defaultFontSizes'         => null,
+			'dropCap'                  => null,
+			'fontFamilies'             => null,
+			'fontSizes'                => null,
+			'fontStyle'                => null,
+			'fontWeight'               => null,
+			'letterSpacing'            => null,
+			'lineHeight'               => null,
+			'textAlign'                => null,
+			'textColumns'              => null,
+			'textDecoration'           => null,
+			'textIndent'               => null,
+			'textTransform'            => null,
+			'textShadow'               => null,
+			'defaultTextShadowPresets' => null,
+			'textShadowPresets'        => null,
+			'writingMode'              => null,
 		),
 		'viewport'                      => array(
 			'mobile' => null,
@@ -1125,7 +1140,7 @@ class WP_Theme_JSON {
 		// In addition to presets, spacingScale (which generates presets) is also keyed by origin.
 		$scale_path    = array( 'settings', 'spacing', 'spacingScale' );
 		$spacing_scale = _wp_array_get( $this->theme_json, $scale_path, null );
-		if ( null !== $spacing_scale ) {
+		if ( is_array( $spacing_scale ) ) {
 			// If the spacingScale is not already keyed by origin.
 			if ( empty( array_intersect( array_keys( $spacing_scale ), static::VALID_ORIGINS ) ) ) {
 				_wp_array_set( $this->theme_json, $scale_path, array( $origin => $spacing_scale ) );
@@ -1199,7 +1214,10 @@ class WP_Theme_JSON {
 			foreach ( $registered_variations as $variation_name ) {
 				$block_level_data = $new_theme_json['styles']['blocks'][ $block_type ]['variations'][ $variation_name ] ?? array();
 				$top_level_data   = $variations[ $variation_name ] ?? array();
-				$merged_data      = array_replace_recursive( $top_level_data, $block_level_data );
+				if ( ! is_array( $block_level_data ) || ! is_array( $top_level_data ) ) {
+					continue;
+				}
+				$merged_data = array_replace_recursive( $top_level_data, $block_level_data );
 				if ( ! empty( $merged_data ) ) {
 					_wp_array_set( $new_theme_json, array( 'styles', 'blocks', $block_type, 'variations', $variation_name ), $merged_data );
 				}
@@ -1478,7 +1496,7 @@ class WP_Theme_JSON {
 		if ( ! empty( $input['blockTypes'] ) && is_array( $input['blockTypes'] ) ) {
 			$variation_pseudo_selectors = array();
 			foreach ( $input['blockTypes'] as $variation_block_type ) {
-				if ( isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
+				if ( is_string( $variation_block_type ) && isset( static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ] ) ) {
 					$variation_pseudo_selectors = array_merge(
 						$variation_pseudo_selectors,
 						static::VALID_BLOCK_PSEUDO_SELECTORS[ $variation_block_type ]
@@ -2086,7 +2104,10 @@ class WP_Theme_JSON {
 		// Load the custom CSS last so it has the highest specificity.
 		if ( in_array( 'custom-css', $types, true ) ) {
 			// Add the global styles root CSS.
-			$stylesheet .= _wp_array_get( $this->theme_json, array( 'styles', 'css' ) );
+			$root_css = $this->theme_json['styles']['css'] ?? '';
+			if ( is_string( $root_css ) ) {
+				$stylesheet .= $root_css;
+			}
 		}
 
 		return $stylesheet;
@@ -2106,7 +2127,7 @@ class WP_Theme_JSON {
 	public static function process_blocks_custom_css( $css, $selector ) {
 		$processed_css = '';
 
-		if ( empty( $css ) ) {
+		if ( empty( $css ) || ! is_string( $css ) ) {
 			return $processed_css;
 		}
 
@@ -2302,7 +2323,8 @@ class WP_Theme_JSON {
 		 * Default layout gap styles will be skipped for themes that do not explicitly opt-in to blockGap with a `true` or `false` value.
 		 */
 		if ( $has_block_gap_support || $has_fallback_gap_support ) {
-			$block_gap_value = null;
+			$block_gap_value     = null;
+			$block_gap_row_value = null;
 			// Use a fallback gap value if block gap support is not available.
 			if ( ! $has_block_gap_support ) {
 				$block_gap_value = static::ROOT_BLOCK_SELECTOR === $selector ? '0.5em' : null;
@@ -2312,16 +2334,27 @@ class WP_Theme_JSON {
 			} else {
 				$block_gap_value = static::get_property_value( $node, array( 'spacing', 'blockGap' ) );
 			}
+			$block_gap_row_value = $block_gap_value;
 
 			// Support split row / column values and concatenate to a shorthand value.
 			if ( is_array( $block_gap_value ) ) {
-				if ( isset( $block_gap_value['top'] ) && isset( $block_gap_value['left'] ) ) {
-					$gap_row         = static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) );
-					$gap_column      = static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) );
-					$block_gap_value = $gap_row === $gap_column ? $gap_row : $gap_row . ' ' . $gap_column;
+				$has_block_gap_row_value    = isset( $block_gap_value['top'] );
+				$has_block_gap_column_value = isset( $block_gap_value['left'] );
+
+				if ( $has_block_gap_row_value || $has_block_gap_column_value ) {
+					$block_gap_row_value    = $has_block_gap_row_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'top' ) )
+						: '0';
+					$block_gap_column_value = $has_block_gap_column_value
+						? static::get_property_value( $node, array( 'spacing', 'blockGap', 'left' ) )
+						: '0';
+					$block_gap_value        = $block_gap_row_value === $block_gap_column_value
+						? $block_gap_row_value
+						: $block_gap_row_value . ' ' . $block_gap_column_value;
 				} else {
-					// Skip outputting gap value if not all sides are provided.
-					$block_gap_value = null;
+					// Skip outputting a gap value if neither supported axis is provided.
+					$block_gap_value     = null;
+					$block_gap_row_value = null;
 				}
 			}
 
@@ -2333,8 +2366,11 @@ class WP_Theme_JSON {
 						continue;
 					}
 
-					$class_name    = $layout_definition['className'] ?? false;
-					$spacing_rules = $layout_definition['spacingStyles'] ?? array();
+					$class_name       = $layout_definition['className'] ?? false;
+					$spacing_rules    = $layout_definition['spacingStyles'] ?? array();
+					$layout_gap_value = in_array( $layout_definition_key, array( 'default', 'constrained' ), true )
+						? $block_gap_row_value
+						: $block_gap_value;
 
 					if (
 						! empty( $class_name ) &&
@@ -2349,7 +2385,7 @@ class WP_Theme_JSON {
 							) {
 								// Iterate over each of the styling rules and substitute non-string values such as `null` with the real `blockGap` value.
 								foreach ( $spacing_rule['rules'] as $css_property => $css_value ) {
-									$current_css_value = is_string( $css_value ) ? $css_value : $block_gap_value;
+									$current_css_value = is_string( $css_value ) ? $css_value : $layout_gap_value;
 									if ( static::is_safe_css_declaration( $css_property, $current_css_value ) ) {
 										$declarations[] = array(
 											'name'  => $css_property,
@@ -3211,7 +3247,7 @@ class WP_Theme_JSON {
 		 * In the case of backgroundImage, if both a ref and a URL are present in the value,
 		 * the URL takes precedence and the ref is ignored.
 		 */
-		if ( is_array( $value ) && isset( $value['ref'] ) ) {
+		if ( is_array( $value ) && isset( $value['ref'] ) && is_string( $value['ref'] ) ) {
 			$value_path = explode( '.', $value['ref'] );
 			$ref_value  = _wp_array_get( $theme_json, $value_path );
 			// Background Image refs can refer to a string or an array containing a URL string.
@@ -3400,7 +3436,7 @@ class WP_Theme_JSON {
 	 * @since 6.1.1
 	 *
 	 * @param array $declarations List of declarations.
-	 * @return array $declarations List of declarations filtered.
+	 * @return array List of declarations filtered.
 	 */
 	private static function update_separator_declarations( $declarations ) {
 		$background_color     = '';
@@ -3880,6 +3916,14 @@ class WP_Theme_JSON {
 		$media_query              = $block_metadata['media_query'] ?? null;
 		$responsive_media_queries = static::get_viewport_media_queries( $settings['viewport'] ?? null );
 
+		$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+		if ( is_array( $css_feature_selector ) ) {
+			$css_feature_selector = $css_feature_selector['root'] ?? null;
+		}
+		if ( ! is_string( $css_feature_selector ) ) {
+			$css_feature_selector = null;
+		}
+
 		// Update text indent selector for paragraph blocks based on the textIndent setting.
 		$block_name           = $block_metadata['name'] ?? null;
 		$feature_declarations = self::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
@@ -3929,9 +3973,14 @@ class WP_Theme_JSON {
 				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
 
+				// Custom CSS targets the block's `css` feature selector, if any.
+				$variation_css_selector = null !== $css_feature_selector
+					? static::get_block_style_variation_feature_selector( $style_variation, $css_feature_selector )
+					: $style_variation['selector'];
+
 				// Store custom CSS for the style variation.
 				if ( isset( $style_variation_node['css'] ) ) {
-					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $variation_css_selector );
 				}
 
 				// Store variation metadata and node for layout styles generation.
@@ -3997,7 +4046,7 @@ class WP_Theme_JSON {
 
 					// Process custom CSS for this breakpoint.
 					if ( isset( $breakpoint_node['css'] ) ) {
-						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $style_variation['selector'] );
+						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $variation_css_selector );
 						$variation_responsive_css .= $breakpoint_media . '{' . $breakpoint_custom_css . '}';
 					}
 
@@ -4241,11 +4290,7 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
-			if ( is_array( $css_feature_selector ) ) {
-				$css_feature_selector = $css_feature_selector['root'] ?? null;
-			}
-			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$css_selector = $css_feature_selector ?? $selector;
 			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
@@ -4401,11 +4446,13 @@ class WP_Theme_JSON {
 			$scale_path = array( 'settings', 'spacing', 'spacingScale', $origin );
 
 			// Apply the base spacing scale to the current layer.
-			$base_spacing_scale      = _wp_array_get( $this->theme_json, $scale_path, array() );
-			$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
+			$base_spacing_scale = _wp_array_get( $this->theme_json, $scale_path, array() );
+			if ( is_array( $base_spacing_scale ) ) {
+				$flattened_spacing_scale = array_replace( $flattened_spacing_scale, $base_spacing_scale );
+			}
 
 			$spacing_scale = _wp_array_get( $incoming_data, $scale_path, null );
-			if ( ! isset( $spacing_scale ) ) {
+			if ( ! is_array( $spacing_scale ) ) {
 				continue;
 			}
 
@@ -5539,6 +5586,7 @@ class WP_Theme_JSON {
 			! isset( $spacing_scale['mediumStep'] ) ||
 			! is_numeric( $spacing_scale['mediumStep'] ) ||
 			! isset( $spacing_scale['unit'] ) ||
+			! is_string( $spacing_scale['unit'] ) ||
 			! isset( $spacing_scale['operator'] ) ||
 			( '+' !== $spacing_scale['operator'] && '*' !== $spacing_scale['operator'] ) ||
 			! isset( $spacing_scale['increment'] ) ||
