@@ -135,7 +135,7 @@ final class WP_Abilities_Content {
 			'core/content-query',
 			array(
 				'label'               => __( 'Query Content' ),
-				'description'         => __( 'Reads content from post types exposed to abilities, as a paginated list of posts. Queries the readable posts of a post type, filtered by any of post IDs, slugs, status, author, and parent. Requires an authenticated user. Filters are exact-match only; the ability does not perform full-text search.' ),
+				'description'         => __( 'Retrieves a paginated list of the readable posts of a post type exposed to abilities, filtered by any of post IDs, slugs, status, author, and parent. Requires an authenticated user. Filters are exact-match only; the ability does not perform full-text search.' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_content_query_input_schema( $post_types, $statuses ),
 				'output_schema'       => $this->get_content_query_output_schema(),
@@ -462,7 +462,7 @@ final class WP_Abilities_Content {
 		$ids = null;
 		if ( isset( $where['ids'] ) ) {
 			$ids = $this->normalize_ids( $where );
-			if ( array() === $ids ) {
+			if ( empty( $ids ) ) {
 				return $this->invalid_filter_error(
 					'where[ids]',
 					/* translators: %s: Parameter. */
@@ -474,7 +474,7 @@ final class WP_Abilities_Content {
 		$slugs = null;
 		if ( isset( $where['slugs'] ) ) {
 			$slugs = $this->normalize_slugs( $where );
-			if ( array() === $slugs ) {
+			if ( empty( $slugs ) ) {
 				return $this->invalid_filter_error(
 					'where[slugs]',
 					/* translators: %s: Parameter. */
@@ -735,7 +735,7 @@ final class WP_Abilities_Content {
 
 		$public_post_types = array_values( array_filter( get_post_types(), 'is_post_type_viewable' ) );
 
-		return array() !== $public_post_types && count_user_posts( $user->ID, $public_post_types ) > 0 ? $user : null;
+		return ! empty( $public_post_types ) && count_user_posts( $user->ID, $public_post_types ) > 0 ? $user : null;
 	}
 
 	/**
@@ -786,7 +786,7 @@ final class WP_Abilities_Content {
 	 * @return list<string> Post status slugs.
 	 */
 	private function normalize_statuses( array $statuses, WP_Post_Type $post_type_object, bool $lists_posts ): array {
-		if ( array() !== $statuses ) {
+		if ( ! empty( $statuses ) ) {
 			return $statuses;
 		}
 
@@ -881,7 +881,7 @@ final class WP_Abilities_Content {
 	 */
 	private function normalize_fields( array $input ): array {
 		$fields = $this->parse_list_input( $input, 'fields' );
-		if ( array() === $fields ) {
+		if ( empty( $fields ) ) {
 			return self::DEFAULT_FIELDS;
 		}
 
@@ -1208,10 +1208,6 @@ final class WP_Abilities_Content {
 	 *
 	 * Every request returns the same shape: a page of posts in `items`, and the totals
 	 * across all pages in `pagination`.
-	 *
-	 * Only `id` is required in a post, because it is always returned. The other fields are
-	 * optional because the `fields` input lets the caller request any subset, and a field
-	 * is only present when its post type supports it.
 	 *
 	 * @since 7.2.0
 	 *
