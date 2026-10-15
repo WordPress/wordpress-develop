@@ -340,9 +340,8 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 	$user_info  = get_avatar( $user_id, 64 );
 	$user_info .= "<span class='display-name howdy'>" . $howdy . '</span>';
 
-	if ( $display_name !== $current_user->user_login ) {
-		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
-	}
+	$username_hidden = ( $display_name === $current_user->user_login ) ? ' hidden' : '';
+	$user_info      .= "<span class='username'{$username_hidden}>{$current_user->user_login}</span>";
 
 	if ( false !== $profile_url ) {
 		$user_info .= "<span class='display-name edit-profile'>" . __( 'Edit Profile' ) . '</span>';

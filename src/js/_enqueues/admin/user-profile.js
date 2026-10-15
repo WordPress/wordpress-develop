@@ -498,8 +498,10 @@
 			username     = $( '#user_login' ).val(),
 			myAccount    = $( '#wp-admin-bar-my-account' ),
 			displayNames = myAccount.find( '.user-display-name' ),
-			menus        = myAccount.children( '.ab-sub-wrapper' ).children( '[role="menu"]' ),
-			userInfo     = myAccount.find( '#wp-admin-bar-user-info > .ab-item' );
+			usernameLine = myAccount.find( '#wp-admin-bar-user-info .username' ),
+			menus        = myAccount.children( '.ab-sub-wrapper' ).children( '[role="menu"]' ).filter( function() {
+				return this.getAttribute( 'aria-label' ) === displayNames.first().text();
+			} );
 
 		$( '#pass1' ).val( '' ).on( 'input' + ' pwupdate', check_pass_strength );
 		$('#pass-strength-result').show();
@@ -550,25 +552,13 @@
 					return;
 				}
 
-				var display_name = this.value.trim() || username,
-					usernameLine = userInfo.children( '.username' ),
-					editProfile  = userInfo.children( '.edit-profile' );
+				var display_name = this.value.trim() || username;
 
 				displayNames.text( display_name );
 				menus.attr( 'aria-label', display_name );
 
 				// Only show the username when it differs from the display name.
-				if ( display_name === username ) {
-					usernameLine.remove();
-				} else if ( userInfo.length && ! usernameLine.length ) {
-					usernameLine = $( '<span class="username"></span>' ).text( username );
-
-					if ( editProfile.length ) {
-						usernameLine.insertBefore( editProfile );
-					} else {
-						usernameLine.appendTo( userInfo );
-					}
-				}
+				usernameLine.prop( 'hidden', display_name === username );
 			} );
 		}
 

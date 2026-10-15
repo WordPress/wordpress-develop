@@ -466,6 +466,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 	display: block;
 }
 
+#wpadminbar #wp-admin-bar-user-info .username[hidden] {
+	display: none;
+}
+
 #wpadminbar #wp-admin-bar-user-info .howdy .user-display-name {
 	font: inherit;
 }
