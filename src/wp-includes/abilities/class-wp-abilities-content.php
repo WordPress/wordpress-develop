@@ -924,9 +924,6 @@ final class WP_Abilities_Content {
 	 * validated them against the supported set before the ability executes, and
 	 * {@see self::build_post_fields()} ignores any other path.
 	 *
-	 * The `id` field is always included, so every returned post can be identified. This
-	 * also means a post is never empty, so it always encodes as a JSON object.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<mixed> $input The ability input.
@@ -934,15 +931,8 @@ final class WP_Abilities_Content {
 	 */
 	private function normalize_fields( array $input ): array {
 		$fields = $this->parse_list_input( $input, 'fields' );
-		if ( empty( $fields ) ) {
-			return self::DEFAULT_FIELDS;
-		}
 
-		if ( ! in_array( 'id', $fields, true ) ) {
-			array_unshift( $fields, 'id' );
-		}
-
-		return $fields;
+		return empty( $fields ) ? self::DEFAULT_FIELDS : $fields;
 	}
 
 	/**
@@ -1361,8 +1351,9 @@ final class WP_Abilities_Content {
 	 * Builds the requested field projection for a post.
 	 *
 	 * Fields are selected as the REST API's `_fields` parameter selects them, with
-	 * {@see self::is_field_requested()}. The `id` is always included, since
-	 * {@see self::normalize_fields()} always requests it.
+	 * {@see self::is_field_requested()}. The `id` is always included, whether or not it
+	 * was requested, so every returned post can be identified. This also means a post is
+	 * never empty, so it always encodes as a JSON object.
 	 *
 	 * Only the fields that the post type supports and the current user can see are included,
 	 * and a field none of whose requested sub-fields remain is left out, so it never encodes
