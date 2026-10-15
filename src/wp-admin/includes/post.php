@@ -1047,9 +1047,16 @@ function add_meta( $post_id ) {
 			$metakey = $metakeyinput; // Default.
 		}
 
-		if ( is_protected_meta( $metakey, 'post' ) || ! current_user_can( 'add_post_meta', $post_id, $metakey ) ) {
+		if ( is_protected_meta( $metakey, 'post' ) ) {
 			return new WP_Error(
 				'protected_meta',
+				__( 'Sorry, you are not allowed to add this custom field.' )
+			);
+		}
+
+		if ( ! current_user_can( 'add_post_meta', $post_id, $metakey ) ) {
+			return new WP_Error(
+				'cannot_add_post_meta',
 				__( 'Sorry, you are not allowed to add this custom field.' )
 			);
 		}
