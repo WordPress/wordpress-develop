@@ -350,14 +350,14 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			),
 			'disallowed tag in before_section'        => array(
 				array(
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/"></iframe>',
 					'after_section'  => '</div><!-- end of the test section -->',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/"></iframe>',
 					'after_section'  => '</div><!-- end of the test section -->',
 					'section_class'  => '',
 				),
@@ -367,14 +367,14 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			'disallowed tag in after_section'         => array(
 				array(
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/"></iframe>',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/"></iframe>',
 					'section_class'  => '',
 				),
 				'<div class="video-settings-section">',
@@ -442,21 +442,28 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 
 		$wp_settings_errors = null;
 
-		$expected = sprintf( 'notice %s settings-error is-dismissible', $expected );
-
 		$this->assertStringContainsString( $expected, $output );
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
 	public function data_settings_errors_css_classes() {
 		return array(
-			array( 'error', 'notice-error' ),
-			array( 'success', 'notice-success' ),
-			array( 'warning', 'notice-warning' ),
-			array( 'info', 'notice-info' ),
-			array( 'updated', 'notice-success' ),
-			array( 'notice-error', 'notice-error' ),
-			array( 'error my-own-css-class hello world', 'error my-own-css-class hello world' ),
+			// The admin notices default types will generate CSS classes in this order.
+			array( 'error', 'notice notice-error is-dismissible settings-error' ),
+			array( 'success', 'notice notice-success is-dismissible settings-error' ),
+			array( 'warning', 'notice notice-warning is-dismissible settings-error' ),
+			array( 'info', 'notice notice-info is-dismissible settings-error' ),
+			array( 'updated', 'notice notice-success is-dismissible settings-error' ),
+			/*
+			 * Backward compatibility: custom types and anything else (e.g.
+			 * strings with spaces) are now passed as additional_classes. As
+			 * such, the classes will be appended to the end of the generated
+			 * class attribute.
+			 */
+			array( 'notice-error', 'notice is-dismissible settings-error notice-error' ),
+			array( 'custom', 'notice is-dismissible settings-error custom' ),
+			array( 'error my-own-css-class hello world', 'notice is-dismissible settings-error error my-own-css-class hello world' ),
+			array( 'error my-notice-is-awesome hello world', 'notice is-dismissible settings-error error my-notice-is-awesome hello world' ),
 		);
 	}
 
@@ -509,5 +516,42 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	public function test_get_post_states_with_null_returns_empty_array() {
 		$result = get_post_states( null );
 		$this->assertSame( array(), $result, 'get_post_states() should return an empty array when WP_Post is not supplied.' );
+	}
+
+	/**
+	 * Tests that get_submit_button() expands the type shorthands into their
+	 * `button-*` classes.
+	 *
+	 * @ticket 64892
+	 *
+	 * @covers ::get_submit_button
+	 *
+	 * @dataProvider data_get_submit_button_shorthand
+	 *
+	 * @param string|array $type     The type argument passed to get_submit_button().
+	 * @param string       $expected The expected class attribute value.
+	 */
+	public function test_get_submit_button_expands_type_shorthands( $type, $expected ) {
+		$button = get_submit_button( 'Save', $type, 'submit', false );
+
+		$this->assertStringContainsString( 'class="' . $expected . '"', $button );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_submit_button_shorthand() {
+		return array(
+			'primary shorthand'            => array( 'primary', 'button button-primary' ),
+			'small shorthand'              => array( 'small', 'button button-small' ),
+			'large shorthand'              => array( 'large', 'button button-large' ),
+			'compact shorthand'            => array( 'compact', 'button button-compact' ),
+			'multiple shorthands'          => array( 'primary compact', 'button button-primary button-compact' ),
+			'non-shorthand with compact'   => array( 'action compact', 'button action button-compact' ),
+			'array type with compact'      => array( array( 'primary', 'compact' ), 'button button-primary button-compact' ),
+			'raw button-compact unchanged' => array( 'button-compact', 'button button-compact' ),
+		);
 	}
 }

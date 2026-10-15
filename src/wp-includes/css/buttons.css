@@ -25,7 +25,6 @@ Button States
 Lock the state of a button by adding the name of the pseudoclass as
 an actual class (e.g. `.hover` for `:hover`).
 
-
 TABLE OF CONTENTS:
 ------------------
  1.0 - Button Layouts
@@ -36,9 +35,9 @@ TABLE OF CONTENTS:
 
 ---------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------------
-  1.0 - Button Layouts
----------------------------------------------------------------------------- */
+/**
+ * 1.0 Button Layouts
+ */
 
 .wp-core-ui .button,
 .wp-core-ui .button-primary,
@@ -58,16 +57,6 @@ TABLE OF CONTENTS:
 	border-radius: 2px;
 	white-space: nowrap;
 	box-sizing: border-box;
-}
-
-/* Remove the dotted border on :focus and the extra padding in Firefox */
-.wp-core-ui button::-moz-focus-inner,
-.wp-core-ui input[type="reset"]::-moz-focus-inner,
-.wp-core-ui input[type="button"]::-moz-focus-inner,
-.wp-core-ui input[type="submit"]::-moz-focus-inner {
-	border-width: 0;
-	border-style: none;
-	padding: 0;
 }
 
 /* Compact size - 32px, for space-constrained contexts */
@@ -141,14 +130,14 @@ TABLE OF CONTENTS:
 	width: auto;
 }
 
-/* ----------------------------------------------------------------------------
-  2.0 - Default Button Style
----------------------------------------------------------------------------- */
+/**
+ * 2.0 Default Button Style
+ */
 
 .wp-core-ui .button,
 .wp-core-ui .button-secondary {
-	color: var(--wp-admin-theme-color);
-	border-color: var(--wp-admin-theme-color);
+	color: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	background: transparent;
 	vertical-align: top;
 }
@@ -160,18 +149,18 @@ TABLE OF CONTENTS:
 .wp-core-ui .button.hover,
 .wp-core-ui .button:hover,
 .wp-core-ui .button-secondary:hover {
-	background: rgba(var(--wp-admin-theme-color--rgb), 0.04);
-	border-color: var(--wp-admin-theme-color-darker-20);
-	color: var(--wp-admin-theme-color-darker-20);
+	background: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.04);
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .wp-core-ui .button.focus,
 .wp-core-ui .button:focus,
 .wp-core-ui .button-secondary:focus {
 	background: transparent;
-	border-color: var(--wp-admin-theme-color);
-	color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	/* Only visible in Windows High Contrast mode */
 	outline: 1px solid transparent;
 	/* Reset inherited offset from Gutenberg */
@@ -181,24 +170,29 @@ TABLE OF CONTENTS:
 /* :active state */
 .wp-core-ui .button:active,
 .wp-core-ui .button-secondary:active {
-	background: rgba(var(--wp-admin-theme-color--rgb), 0.08);
-	border-color: var(--wp-admin-theme-color-darker-20);
-	color: var(--wp-admin-theme-color-darker-20);
+	background: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.08);
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	box-shadow: none;
 }
 
 /* pressed state e.g. a selected setting */
 .wp-core-ui .button.active,
 .wp-core-ui .button.active:hover {
-	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.04);
-	color: var(--wp-admin-theme-color);
-	border-color: var(--wp-admin-theme-color);
-	box-shadow: none;
+	background-color: rgba(var(--wp-admin-theme-color--rgb, 56, 88, 233), 0.08);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	border-color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20);
+	outline: 3px solid transparent;
+	outline-offset: -3px;
 }
 
 .wp-core-ui .button.active:focus {
-	border-color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	background-color: rgba(var(--wp-admin-theme-color--rgb), 0.08);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
+	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20), 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
+	outline-width: 4px;
 }
 
 .wp-core-ui .button[disabled],
@@ -208,8 +202,8 @@ TABLE OF CONTENTS:
 .wp-core-ui .button-secondary:disabled,
 .wp-core-ui .button-secondary.disabled,
 .wp-core-ui .button-disabled {
-	color: #949494 !important;
-	border-color: #dddddd !important;
+	color: #8a8a8a !important;
+	border-color: #d8d8d8 !important;
 	background: transparent !important;
 	box-shadow: none !important;
 	cursor: default;
@@ -218,6 +212,7 @@ TABLE OF CONTENTS:
 
 .wp-core-ui .button[aria-disabled="true"],
 .wp-core-ui .button-secondary[aria-disabled="true"] {
+	color: #8a8a8a !important;
 	cursor: default;
 }
 
@@ -232,21 +227,21 @@ TABLE OF CONTENTS:
 	cursor: pointer;
 	text-align: left;
 	/* Mimics the default link style in common.css */
-	color: var(--wp-admin-theme-color);
+	color: var(--wp-admin-theme-color, #3858e9);
 	text-decoration: underline;
 	transition-property: border, background, color;
-	transition-duration: .05s;
+	transition-duration: 0.05s;
 	transition-timing-function: ease-in-out;
 }
 
 .wp-core-ui .button-link:hover,
 .wp-core-ui .button-link:active {
-	color: var(--wp-admin-theme-color-darker-20);
+	color: var(--wp-admin-theme-color-darker-20, #183ad6);
 }
 
 .wp-core-ui .button-link:focus {
-	color: var(--wp-admin-theme-color);
-	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
+	color: var(--wp-admin-theme-color, #3858e9);
+	box-shadow: 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9);
 	border-radius: 2px;
 	/* Only visible in Windows High Contrast mode */
 	outline: 1px solid transparent;
@@ -267,14 +262,13 @@ TABLE OF CONTENTS:
 	background: transparent !important;
 }
 
-
-/* ----------------------------------------------------------------------------
-  3.0 - Primary Button Style
----------------------------------------------------------------------------- */
+/**
+ * 3.0 Primary Button Style
+ */
 
 .wp-core-ui .button-primary {
-	background: var(--wp-admin-theme-color);
-	border-color: var(--wp-admin-theme-color);
+	background: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	color: #fff;
 	text-decoration: none;
 	text-shadow: none;
@@ -282,18 +276,18 @@ TABLE OF CONTENTS:
 
 .wp-core-ui .button-primary.hover,
 .wp-core-ui .button-primary:hover {
-	background: var(--wp-admin-theme-color-darker-10);
-	border-color: var(--wp-admin-theme-color-darker-10);
+	background: var(--wp-admin-theme-color-darker-10, #2145e6);
+	border-color: var(--wp-admin-theme-color-darker-10, #2145e6);
 	color: #fff;
 }
 
 .wp-core-ui .button-primary.focus,
 .wp-core-ui .button-primary:focus {
-	background: var(--wp-admin-theme-color);
-	border-color: var(--wp-admin-theme-color);
+	background: var(--wp-admin-theme-color, #3858e9);
+	border-color: var(--wp-admin-theme-color, #3858e9);
 	color: #fff;
 	box-shadow:
-		0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color),
+		0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color, #3858e9),
 		inset 0 0 0 1px #fff;
 	outline: 1px solid transparent;
 }
@@ -302,8 +296,8 @@ TABLE OF CONTENTS:
 .wp-core-ui .button-primary.active:hover,
 .wp-core-ui .button-primary.active:focus,
 .wp-core-ui .button-primary:active {
-	background: var(--wp-admin-theme-color-darker-20);
-	border-color: var(--wp-admin-theme-color-darker-20);
+	background: var(--wp-admin-theme-color-darker-20, #183ad6);
+	border-color: var(--wp-admin-theme-color-darker-20, #183ad6);
 	box-shadow: none;
 	color: #fff;
 }
@@ -312,9 +306,9 @@ TABLE OF CONTENTS:
 .wp-core-ui .button-primary:disabled,
 .wp-core-ui .button-primary-disabled,
 .wp-core-ui .button-primary.disabled {
-	color: #949494 !important;
-	background: #f0f0f0 !important;
-	border-color: #f0f0f0 !important;
+	color: #8a8a8a !important;
+	background: #e2e2e2 !important;
+	border-color: #e2e2e2 !important;
 	box-shadow: none !important;
 	text-shadow: none !important;
 	cursor: default;
@@ -324,9 +318,9 @@ TABLE OF CONTENTS:
 	cursor: default;
 }
 
-/* ----------------------------------------------------------------------------
-  4.0 - Button Groups
----------------------------------------------------------------------------- */
+/**
+ * 4.0 Button Groups
+ */
 
 .wp-core-ui .button-group {
 	position: relative;
@@ -361,27 +355,23 @@ TABLE OF CONTENTS:
 
 /* pressed state e.g. a selected setting */
 .wp-core-ui .button-group > .button.active {
-	background-color: #dcdcde;
-	color: #135e96;
-	border-color: #0a4b78;
-	box-shadow: inset 0 2px 5px -3px #0a4b78;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20);
 }
 
 .wp-core-ui .button-group > .button.active:focus {
-	border-color: #3582c4;
-	box-shadow:
-		inset 0 2px 5px -3px #0a4b78,
-		0 0 0 1px #3582c4;
+	border-color: var(--wp-admin-theme-color);
+	box-shadow: inset 0 2px 6px -2px  var(--wp-admin-theme-color-darker-20), 0 0 0 var(--wp-admin-border-width-focus, 1.5px) var(--wp-admin-theme-color);
 }
 
-/* ----------------------------------------------------------------------------
-  5.0 - Responsive Button Styles
----------------------------------------------------------------------------- */
+/**
+ * 5.0 Responsive Button Styles
+ */
 
 @media screen and (max-width: 782px) {
-
 	.wp-core-ui .button,
 	.wp-core-ui .button.button-large,
+	.wp-core-ui .button.button-compact,
 	.wp-core-ui .button.button-small,
 	input#publish,
 	input#save-post,
@@ -424,7 +414,6 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles in Press This, Customizer */
-
 	.wp-core-ui.wp-customizer .button {
 		font-size: 13px;
 		line-height: 2.30769231; /* 30px */
@@ -443,11 +432,9 @@ TABLE OF CONTENTS:
 	}
 
 	/* Reset responsive styles on Log in button on iframed login form */
-
 	.interim-login .button.button-large {
 		min-height: 32px;
 		line-height: 2.30769231; /* 30px */
 		padding: 0 12px;
 	}
-
 }

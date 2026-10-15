@@ -31,8 +31,18 @@ function get_locale() {
 	global $locale, $wp_local_package;
 
 	if ( isset( $locale ) ) {
+		if ( empty( $locale ) || ! is_string( $locale ) ) {
+			$locale = 'en_US';
+		}
+
 		/** This filter is documented in wp-includes/l10n.php */
-		return apply_filters( 'locale', $locale );
+		$filtered_locale = apply_filters( 'locale', $locale );
+
+		if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+			return $locale;
+		}
+
+		return $filtered_locale;
 	}
 
 	if ( isset( $wp_local_package ) ) {
@@ -66,18 +76,26 @@ function get_locale() {
 		}
 	}
 
-	if ( empty( $locale ) ) {
+	if ( empty( $locale ) || ! is_string( $locale ) ) {
 		$locale = 'en_US';
 	}
 
 	/**
 	 * Filters the locale ID of the WordPress installation.
 	 *
+	 * A non-string or empty value is ignored.
+	 *
 	 * @since 1.5.0
 	 *
 	 * @param string $locale The locale ID.
 	 */
-	return apply_filters( 'locale', $locale );
+	$filtered_locale = apply_filters( 'locale', $locale );
+
+	if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+		return $locale;
+	}
+
+	return $filtered_locale;
 }
 
 /**
@@ -108,7 +126,11 @@ function get_user_locale( $user = 0 ) {
 
 	$locale = $user_object->locale;
 
-	return $locale ? $locale : get_locale();
+	if ( empty( $locale ) || ! is_string( $locale ) ) {
+		return get_locale();
+	}
+
+	return $locale;
 }
 
 /**
@@ -162,18 +184,26 @@ function determine_locale() {
 		}
 	}
 
-	if ( ! $determined_locale ) {
+	if ( empty( $determined_locale ) || ! is_string( $determined_locale ) ) {
 		$determined_locale = get_locale();
 	}
 
 	/**
 	 * Filters the locale for the current request.
 	 *
+	 * A non-string or empty value is ignored.
+	 *
 	 * @since 5.0.0
 	 *
 	 * @param string $determined_locale The locale.
 	 */
-	return apply_filters( 'determine_locale', $determined_locale );
+	$filtered_locale = apply_filters( 'determine_locale', $determined_locale );
+
+	if ( empty( $filtered_locale ) || ! is_string( $filtered_locale ) ) {
+		return $determined_locale;
+	}
+
+	return $filtered_locale;
 }
 
 /**
@@ -302,6 +332,9 @@ function translate_with_gettext_context( $text, $context, $domain = 'default' ) 
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function __( $text, $domain = 'default' ) {
 	return translate( $text, $domain );
@@ -318,6 +351,9 @@ function __( $text, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text on success, original text on failure.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_attr__( $text, $domain = 'default' ) {
 	return esc_attr( translate( $text, $domain ) );
@@ -335,6 +371,9 @@ function esc_attr__( $text, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_html__( $text, $domain = 'default' ) {
 	return esc_html( translate( $text, $domain ) );
@@ -348,6 +387,9 @@ function esc_html__( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function _e( $text, $domain = 'default' ) {
 	echo translate( $text, $domain );
@@ -366,6 +408,9 @@ function _e( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_attr_e( $text, $domain = 'default' ) {
 	echo esc_attr( translate( $text, $domain ) );
@@ -384,6 +429,9 @@ function esc_attr_e( $text, $domain = 'default' ) {
  * @param string $text   Text to translate.
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $domain
  */
 function esc_html_e( $text, $domain = 'default' ) {
 	echo esc_html( translate( $text, $domain ) );
@@ -405,6 +453,10 @@ function esc_html_e( $text, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated context string without pipe.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _x( $text, $context, $domain = 'default' ) {
 	return translate_with_gettext_context( $text, $context, $domain );
@@ -419,6 +471,10 @@ function _x( $text, $context, $domain = 'default' ) {
  * @param string $context Context information for the translators.
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _ex( $text, $context, $domain = 'default' ) {
 	echo _x( $text, $context, $domain );
@@ -437,6 +493,10 @@ function _ex( $text, $context, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function esc_attr_x( $text, $context, $domain = 'default' ) {
 	return esc_attr( translate_with_gettext_context( $text, $context, $domain ) );
@@ -455,6 +515,10 @@ function esc_attr_x( $text, $context, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string Translated text.
+ *
+ * @phpstan-param literal-string $text
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function esc_html_x( $text, $context, $domain = 'default' ) {
 	return esc_html( translate_with_gettext_context( $text, $context, $domain ) );
@@ -479,6 +543,10 @@ function esc_html_x( $text, $context, $domain = 'default' ) {
  * @param string $domain Optional. Text domain. Unique identifier for retrieving translated strings.
  *                       Default 'default'.
  * @return string The translated singular or plural form.
+ *
+ * @phpstan-param literal-string $single
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $domain
  */
 function _n( $single, $plural, $number, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
@@ -538,6 +606,11 @@ function _n( $single, $plural, $number, $domain = 'default' ) {
  * @param string $domain  Optional. Text domain. Unique identifier for retrieving translated strings.
  *                        Default 'default'.
  * @return string The translated singular or plural form.
+ *
+ * @phpstan-param literal-string $single
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string $domain
  */
 function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
 	$translations = get_translations_for_domain( $domain );
@@ -604,6 +677,18 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
  *     @type null        $context  Context information for the translators.
  *     @type string|null $domain   Text domain.
  * }
+ *
+ * @phpstan-param literal-string $singular
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string|null $domain
+ * @phpstan-return array{
+ *     0: literal-string,
+ *     1: literal-string,
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: null,
+ *     domain: literal-string|null,
+ * }
  */
 function _n_noop( $singular, $plural, $domain = null ) {
 	return array(
@@ -650,6 +735,20 @@ function _n_noop( $singular, $plural, $domain = null ) {
  *     @type string      $context  Context information for the translators.
  *     @type string|null $domain   Text domain.
  * }
+ *
+ * @phpstan-param literal-string $singular
+ * @phpstan-param literal-string $plural
+ * @phpstan-param literal-string $context
+ * @phpstan-param literal-string|null $domain
+ * @phpstan-return array{
+ *     0: literal-string,
+ *     1: literal-string,
+ *     2: literal-string,
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: literal-string,
+ *     domain: literal-string|null,
+ * }
  */
 function _nx_noop( $singular, $plural, $context, $domain = null ) {
 	return array(
@@ -689,6 +788,15 @@ function _nx_noop( $singular, $plural, $context, $domain = null ) {
  * @param string $domain        Optional. Text domain. Unique identifier for retrieving translated strings. If $nooped_plural contains
  *                              a text domain passed to _n_noop() or _nx_noop(), it will override this value. Default 'default'.
  * @return string Either $singular or $plural translated text.
+ *
+ * @phpstan-param array{
+ *     singular: literal-string,
+ *     plural: literal-string,
+ *     context: literal-string|null,
+ *     domain: literal-string|null,
+ *     ...
+ * } $nooped_plural
+ * @phpstan-param literal-string $domain
  */
 function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) {
 	if ( $nooped_plural['domain'] ) {
@@ -714,9 +822,9 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @since 1.5.0
  * @since 6.1.0 Added the `$locale` parameter.
  *
- * @global MO[]                   $l10n                   An array of all currently loaded text domains.
- * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n                   An array of all currently loaded text domains.
+ * @global array<string, true>                                 $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global WP_Textdomain_Registry                              $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string $mofile Path to the .mo file.
@@ -724,7 +832,6 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * @return bool True on success, false on failure.
  */
 function load_textdomain( $domain, $mofile, $locale = null ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -869,8 +976,8 @@ function load_textdomain( $domain, $mofile, $locale = null ) {
  * @since 3.0.0
  * @since 6.1.0 Added the `$reloadable` parameter.
  *
- * @global MO[] $l10n          An array of all currently loaded text domains.
- * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n          An array of all currently loaded text domains.
+ * @global array<string, true>                                 $l10n_unloaded An array of all text domains that have been unloaded again.
  *
  * @param string $domain     Text domain. Unique identifier for retrieving translated strings.
  * @param bool   $reloadable Whether the text domain can be loaded just-in-time again.
@@ -986,8 +1093,8 @@ function load_default_textdomain( $locale = null ) {
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
- * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
+ * @global WP_Textdomain_Registry                              $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n                   An array of all currently loaded text domains.
  *
  * @param string       $domain          Unique identifier for retrieving translated strings
  * @param string|false $deprecated      Optional. Deprecated. Use the $plugin_rel_path parameter instead.
@@ -995,10 +1102,10 @@ function load_default_textdomain( $locale = null ) {
  * @param string|false $plugin_rel_path Optional. Relative path to WP_PLUGIN_DIR where the .mo file resides.
  *                                      Default false.
  * @return bool True when textdomain is successfully loaded, false otherwise.
+ *
+ * @phpstan-param false $deprecated
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1031,8 +1138,8 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
- * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
+ * @global WP_Textdomain_Registry                              $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n                   An array of all currently loaded text domains.
  *
  * @param string $domain             Text domain. Unique identifier for retrieving translated strings.
  * @param string $mu_plugin_rel_path Optional. Relative to `WPMU_PLUGIN_DIR` directory in which the .mo
@@ -1040,8 +1147,6 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1072,8 +1177,8 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  * @since 6.7.0 Translations are no longer immediately loaded, but handed off to the just-in-time loading mechanism.
  *
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
- * @global array<string, WP_Translations|NOOP_Translations> $l10n An array of all currently loaded text domains.
+ * @global WP_Textdomain_Registry                              $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n                   An array of all currently loaded text domains.
  *
  * @param string       $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string|false $path   Optional. Path to the directory containing the .mo file.
@@ -1081,8 +1186,6 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_theme_textdomain( $domain, $path = false ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	/** @var array<string, WP_Translations|NOOP_Translations> $l10n */
 	global $wp_textdomain_registry, $l10n;
 
 	if ( ! is_string( $domain ) ) {
@@ -1134,8 +1237,6 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  *
  * @see WP_Scripts::set_translations()
  *
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
- *
  * @param string $handle Name of the script to register a translation domain to.
  * @param string $domain Optional. Text domain. Default 'default'.
  * @param string $path   Optional. The full file path to the directory containing translation files.
@@ -1143,14 +1244,72 @@ function load_child_theme_textdomain( $domain, $path = false ) {
  *                      false if the script textdomain could not be loaded.
  */
 function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	global $wp_textdomain_registry;
-
 	$wp_scripts = wp_scripts();
 
 	if ( ! isset( $wp_scripts->registered[ $handle ] ) ) {
 		return false;
 	}
+
+	$src = $wp_scripts->registered[ $handle ]->src;
+
+	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
+		$src = $wp_scripts->base_url . $src;
+	}
+
+	return _load_script_textdomain_from_src( $handle, $src, $domain, $path, false );
+}
+
+/**
+ * Loads the translation data for a given script module ID and text domain.
+ *
+ * Works like {@see load_script_textdomain()} but for script modules registered
+ * via {@see wp_register_script_module()}.
+ *
+ * @since 7.0.0
+ *
+ * @param string $id     The script module identifier.
+ * @param string $domain Optional. Text domain. Default 'default'.
+ * @param string $path   Optional. The full file path to the directory containing translation files.
+ * @return string|false The JSON-encoded translated strings for the given script module and text domain.
+ *                      False if there are none.
+ */
+function load_script_module_textdomain( string $id, string $domain = 'default', string $path = '' ) {
+	$module = wp_script_modules()->get_registered( $id );
+	if ( null === $module ) {
+		return false;
+	}
+	$src = $module['src'];
+
+	// Ensure src is an absolute URL for path resolution.
+	if ( ! preg_match( '|^(https?:)?//|', $src ) ) {
+		$src = site_url( $src );
+	}
+
+	return _load_script_textdomain_from_src( $id, $src, $domain, $path, true );
+}
+
+/**
+ * Resolves and loads the translation JSON file for a given script or script module source URL.
+ *
+ * This is a shared implementation used by {@see load_script_textdomain()} and
+ * {@see load_script_module_textdomain()} to avoid duplicating the path
+ * resolution and file lookup logic.
+ *
+ * @since 7.0.0
+ * @access private
+ *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
+ * @param string $handle    Name of the script or script module identifier to register a translation domain to.
+ * @param string $src       Absolute source URL of the script or script module.
+ * @param string $domain    Text domain.
+ * @param string $path      The full file path to the directory containing translation files,
+ *                          or an empty string to use the default path from the text domain registry.
+ * @param bool   $is_module Whether the source belongs to a script module (true) or a classic script (false).
+ * @return string|false The JSON-encoded translated strings on success, false otherwise.
+ */
+function _load_script_textdomain_from_src( string $handle, string $src, string $domain, string $path, bool $is_module ) {
+	global $wp_textdomain_registry;
 
 	$locale = determine_locale();
 
@@ -1158,7 +1317,9 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		$path = $wp_textdomain_registry->get( $domain, $locale );
 	}
 
-	$path = untrailingslashit( $path );
+	if ( $path ) {
+		$path = untrailingslashit( $path );
+	}
 
 	// If a path was given and the handle file exists simply return it.
 	$file_base       = 'default' === $domain ? $locale : $domain . '-' . $locale;
@@ -1172,17 +1333,20 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 		}
 	}
 
-	$src = $wp_scripts->registered[ $handle ]->src;
-
-	if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $wp_scripts->content_url && str_starts_with( $src, $wp_scripts->content_url ) ) ) {
-		$src = $wp_scripts->base_url . $src;
-	}
-
 	$relative       = false;
 	$languages_path = WP_LANG_DIR;
 
-	$src_url     = wp_parse_url( $src );
+	$src_url = wp_parse_url( $src );
+	if ( ! $src_url ) {
+		return load_script_translations( false, $handle, $domain );
+	}
+	$src_url['path'] ??= '';
+
 	$content_url = wp_parse_url( content_url() );
+	if ( ! $content_url ) {
+		return load_script_translations( false, $handle, $domain );
+	}
+
 	$plugins_url = wp_parse_url( plugins_url() );
 	$site_url    = wp_parse_url( site_url() );
 	$theme_root  = get_theme_root();
@@ -1245,14 +1409,16 @@ function load_script_textdomain( $handle, $domain = 'default', $path = '' ) {
 	 * Filters the relative path of scripts used for finding translation files.
 	 *
 	 * @since 5.0.2
+	 * @since 7.0.0 The `$is_module` parameter was added.
 	 *
-	 * @param string|false $relative The relative path of the script. False if it could not be determined.
-	 * @param string       $src      The full source URL of the script.
+	 * @param string|false $relative  The relative path of the script. False if it could not be determined.
+	 * @param string       $src       The full source URL of the script.
+	 * @param bool         $is_module Whether the source belongs to a script module (true) or a classic script (false).
 	 */
-	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src );
+	$relative = apply_filters( 'load_script_textdomain_relative_path', $relative, $src, $is_module );
 
 	// If the source is not from WP.
-	if ( false === $relative ) {
+	if ( ! is_string( $relative ) ) {
 		return load_script_translations( false, $handle, $domain );
 	}
 
@@ -1350,14 +1516,13 @@ function load_script_translations( $file, $handle, $domain ) {
  * @since 4.6.0
  * @access private
  *
- * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global array<string, true>    $l10n_unloaded          An array of all text domains that have been unloaded again.
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 	global $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -1409,10 +1574,10 @@ function _load_textdomain_just_in_time( $domain ) {
  *
  * @since 2.8.0
  *
- * @global MO[] $l10n An array of all currently loaded text domains.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n An array of all currently loaded text domains.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @return Translations|NOOP_Translations A Translations instance.
+ * @return WP_Translations|Translations|NOOP_Translations A Translations instance.
  */
 function get_translations_for_domain( $domain ) {
 	global $l10n;
@@ -1435,7 +1600,7 @@ function get_translations_for_domain( $domain ) {
  *
  * @since 3.0.0
  *
- * @global MO[] $l10n An array of all currently loaded text domains.
+ * @global array<string, WP_Translations|NOOP_Translations|MO> $l10n An array of all currently loaded text domains.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool Whether there are translations.
@@ -1527,7 +1692,20 @@ function get_available_languages( $dir = null ) {
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $type What to search for. Accepts 'plugins', 'themes', 'core'.
- * @return array Array of language data.
+ * @return array<string, array<string, array<string, string>>> Array of language data, keyed by text domain
+ *                                                             and then by locale, each value being the
+ *                                                             translation file headers.
+ *
+ * @phpstan-return (
+ *     $type is 'plugins'|'themes'|'core'
+ *         ? array<string, array<string, array{
+ *             'POT-Creation-Date': string,
+ *             'PO-Revision-Date': string,
+ *             'Project-Id-Version': string,
+ *             'X-Generator': string,
+ *         }>>
+ *         : array{}
+ * )
  */
 function wp_get_installed_translations( $type ) {
 	global $wp_textdomain_registry;
@@ -1587,7 +1765,14 @@ function wp_get_installed_translations( $type ) {
  * @since 3.7.0
  *
  * @param string $po_file Path to PO file.
- * @return string[] Array of PO file header values keyed by header name.
+ * @return array<string, string> Array of PO file header values keyed by header name.
+ *
+ * @phpstan-return array{
+ *     'POT-Creation-Date': string,
+ *     'PO-Revision-Date': string,
+ *     'Project-Id-Version': string,
+ *     'X-Generator': string,
+ * }
  */
 function wp_get_pomo_file_data( $po_file ) {
 	$headers = get_file_data(
@@ -1599,11 +1784,29 @@ function wp_get_pomo_file_data( $po_file ) {
 			'X-Generator'        => '"X-Generator',
 		)
 	);
-	foreach ( $headers as $header => $value ) {
-		// Remove possible contextual '\n' and closing double quote.
-		$headers[ $header ] = preg_replace( '~(\\\n)?"$~', '', $value );
+
+	$result = array(
+		'POT-Creation-Date'  => '',
+		'PO-Revision-Date'   => '',
+		'Project-Id-Version' => '',
+		'X-Generator'        => '',
+	);
+
+	foreach ( array_keys( $result ) as $header ) {
+		$value = $headers[ $header ];
+
+		// Remove possible closing double quote and the contextual '\n' preceding it.
+		if ( str_ends_with( $value, '"' ) ) {
+			$value = substr( $value, 0, -1 );
+			if ( str_ends_with( $value, '\n' ) ) {
+				$value = substr( $value, 0, -2 );
+			}
+		}
+
+		$result[ $header ] = $value;
 	}
-	return $headers;
+
+	return $result;
 }
 
 /**
@@ -1612,7 +1815,14 @@ function wp_get_pomo_file_data( $po_file ) {
  * @since 6.6.0
  *
  * @param string $php_file Path to a `.l10n.php` file.
- * @return string[] Array of file header values keyed by header name.
+ * @return array<string, string> Array of file header values keyed by header name.
+ *
+ * @phpstan-return array{
+ *     'POT-Creation-Date': string,
+ *     'PO-Revision-Date': string,
+ *     'Project-Id-Version': string,
+ *     'X-Generator': string,
+ * }
  */
 function wp_get_l10n_php_file_data( $php_file ) {
 	$data = (array) include $php_file;
@@ -1633,7 +1843,7 @@ function wp_get_l10n_php_file_data( $php_file ) {
 	);
 
 	foreach ( $headers as $po_header => $php_header ) {
-		if ( isset( $data[ $php_header ] ) ) {
+		if ( isset( $data[ $php_header ] ) && is_string( $data[ $php_header ] ) ) {
 			$result[ $po_header ] = $data[ $php_header ];
 		}
 	}
@@ -1671,7 +1881,16 @@ function wp_get_l10n_php_file_data( $php_file ) {
  *     @type bool     $explicit_option_en_us        Whether the English (United States) option uses an explicit value of en_US
  *                                                  instead of an empty value. Default false.
  * }
- * @return string HTML dropdown list of languages.
+ * @return string|void HTML dropdown list of languages. Always returned, whether or not
+ *                     'echo' is true; nothing is returned when the 'id' or 'name'
+ *                     argument is empty.
+ * @phpstan-return (
+ *     $args is array{ id: ''|'0', ... }
+ *         ? void
+ *         : ( $args is array{ name: ''|'0', ... }
+ *             ? void
+ *             : ( $args is array ? string : string|void ) )
+ * )
  */
 function wp_dropdown_languages( $args = array() ) {
 
@@ -1929,7 +2148,6 @@ function is_locale_switched() {
  * @param string|string[]|array[]|object $i18n_schema I18n schema for the setting.
  * @param string|string[]|array[]        $settings    Value for the settings.
  * @param string                         $textdomain  Textdomain to use with translations.
- *
  * @return string|string[]|array[] Translated settings.
  */
 function translate_settings_using_i18n_schema( $i18n_schema, $settings, $textdomain ) {
@@ -1994,6 +2212,8 @@ function wp_get_list_item_separator() {
  *
  * @return string Locale-specific word count type. Possible values are `characters_excluding_spaces`,
  *                `characters_including_spaces`, or `words`. Defaults to `words`.
+ *
+ * @phpstan-return 'characters_excluding_spaces'|'characters_including_spaces'|'words'
  */
 function wp_get_word_count_type() {
 	global $wp_locale;

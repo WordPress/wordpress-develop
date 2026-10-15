@@ -204,6 +204,8 @@ require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
 require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
+require ABSPATH . WPINC . '/class-wp-view-config-data.php';
+require ABSPATH . WPINC . '/view-config.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
 require ABSPATH . WPINC . '/class-wp-user-request.php';
@@ -292,10 +294,15 @@ require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-cache.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-discovery-strategy.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-event-dispatcher.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-ability-function-resolver.php';
+require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-builder.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
+require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-embedding-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
+require ABSPATH . WPINC . '/class-wp-connector-registry.php';
 require ABSPATH . WPINC . '/connectors.php';
+require ABSPATH . WPINC . '/class-wp-icon-collections-registry.php';
 require ABSPATH . WPINC . '/class-wp-icons-registry.php';
+require ABSPATH . WPINC . '/icons.php';
 require ABSPATH . WPINC . '/widgets.php';
 require ABSPATH . WPINC . '/class-wp-widget.php';
 require ABSPATH . WPINC . '/class-wp-widget-factory.php';
@@ -303,17 +310,28 @@ require ABSPATH . WPINC . '/nav-menu-template.php';
 require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/class-wp-application-passwords.php';
+require ABSPATH . WPINC . '/secrets.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secret-version.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secret.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-provider.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-keyring.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-config-key-provider.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-keyring.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-cipher.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-key-manager.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-option-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-libsodium-provider.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-provider.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability-category.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability-categories-registry.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-abilities-registry.php';
 require ABSPATH . WPINC . '/abilities-api.php';
 require ABSPATH . WPINC . '/abilities.php';
-require ABSPATH . WPINC . '/collaboration/interface-wp-sync-storage.php';
-require ABSPATH . WPINC . '/collaboration/class-wp-sync-post-meta-storage.php';
-require ABSPATH . WPINC . '/collaboration/class-wp-http-polling-sync-server.php';
-require ABSPATH . WPINC . '/collaboration.php';
 require ABSPATH . WPINC . '/rest-api.php';
+require ABSPATH . WPINC . '/json-schema.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-response.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-request.php';
@@ -359,6 +377,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-families-contr
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-faces-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';
@@ -429,6 +449,7 @@ require ABSPATH . WPINC . '/block-supports/aria-label.php';
 require ABSPATH . WPINC . '/block-supports/anchor.php';
 require ABSPATH . WPINC . '/block-supports/block-visibility.php';
 require ABSPATH . WPINC . '/block-supports/custom-css.php';
+require ABSPATH . WPINC . '/block-supports/states.php';
 require ABSPATH . WPINC . '/style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine.php';
 require ABSPATH . WPINC . '/style-engine/class-wp-style-engine-css-declarations.php';
@@ -497,6 +518,12 @@ wp_plugin_directory_constants();
  */
 $GLOBALS['wp_plugin_paths'] = array();
 
+// To make get_plugin_data() available for both network-activated and site-activated plugins, see #62244 and #64249.
+require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+// Load the secrets.php drop-in, which may replace the Secrets API's provider, store, or keyring.
+wp_load_secrets_dropin();
+
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
 	$_wp_plugin_file = $mu_plugin;
@@ -519,6 +546,17 @@ if ( is_multisite() ) {
 	foreach ( wp_get_active_network_plugins() as $network_plugin ) {
 		wp_register_plugin_realpath( $network_plugin );
 
+		$plugin_data = get_plugin_data( $network_plugin, false, false );
+
+		$textdomain = $plugin_data['TextDomain'];
+		if ( $textdomain ) {
+			if ( $plugin_data['DomainPath'] ) {
+				$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $network_plugin ) . $plugin_data['DomainPath'] );
+			} else {
+				$GLOBALS['wp_textdomain_registry']->set_custom_path( $textdomain, dirname( $network_plugin ) );
+			}
+		}
+
 		$_wp_plugin_file = $network_plugin;
 		include_once $network_plugin;
 		$network_plugin = $_wp_plugin_file; // Avoid stomping of the $network_plugin variable in a plugin.
@@ -532,7 +570,7 @@ if ( is_multisite() ) {
 		 */
 		do_action( 'network_plugin_loaded', $network_plugin );
 	}
-	unset( $network_plugin, $_wp_plugin_file );
+	unset( $network_plugin, $_wp_plugin_file, $plugin_data, $textdomain );
 }
 
 /**
@@ -569,9 +607,6 @@ if ( ! is_multisite() && wp_is_fatal_error_handler_enabled() ) {
 	// Handle users requesting a recovery mode link and initiating recovery mode.
 	wp_recovery_mode()->initialize();
 }
-
-// To make get_plugin_data() available in a way that's compatible with plugins also loading this file, see #62244.
-require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 // Load active plugins.
 foreach ( wp_get_active_and_valid_plugins() as $plugin ) {

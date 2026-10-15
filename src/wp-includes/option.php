@@ -559,6 +559,8 @@ function wp_set_option_autoload( $option, $autoload ) {
  * @since 2.2.0
  *
  * @param string $option Option name.
+ * @return void Never returns if `$option` is protected, as the function dies in that case.
+ * @phpstan-return ( $option is 'alloptions'|'notoptions' ? never : void )
  */
 function wp_protect_special_option( $option ) {
 	if ( 'alloptions' === $option || 'notoptions' === $option ) {
@@ -1063,6 +1065,8 @@ function update_option( $option, $value, $autoload = null ) {
  *                              to not autoload them, by using false.
  *                              Default is null, which means WordPress will determine the autoload value.
  * @return bool True if the option was added, false otherwise.
+ *
+ * @phpstan-param '' $deprecated
  */
 function add_option( $option, $value = '', $deprecated = '', $autoload = null ) {
 	global $wpdb;
@@ -1928,6 +1932,8 @@ function delete_all_user_settings() {
  * @param mixed  $default_value Optional. Value to return if the option doesn't exist. Default false.
  * @param bool   $deprecated    Whether to use cache. Multisite only. Always set to true.
  * @return mixed Value set for the option.
+ *
+ * @phpstan-param true $deprecated
  */
 function get_site_option( $option, $default_value = false, $deprecated = true ) {
 	return get_network_option( null, $option, $default_value );
@@ -2732,23 +2738,26 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 /**
  * Registers default settings available in WordPress.
  *
- * The settings registered here are primarily useful for the REST API, so this
- * does not encompass all settings available in WordPress.
+ * The settings registered here are primarily useful for the REST API and the
+ * Abilities API, so this does not encompass all settings available in WordPress.
  *
  * @since 4.7.0
  * @since 6.0.1 The `show_on_front`, `page_on_front`, and `page_for_posts` options were added.
+ * @since 7.2.0 The `wp_page_for_privacy_policy` option was registered, exposed as `page_for_privacy_policy`.
+ * @since 7.2.0 Added `show_in_abilities` support for the exposed settings.
  */
 function register_initial_settings() {
 	register_setting(
 		'general',
 		'blogname',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'name' => 'title',
 			),
-			'type'         => 'string',
-			'label'        => __( 'Title' ),
-			'description'  => __( 'Site title.' ),
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'label'             => __( 'Title' ),
+			'description'       => __( 'Site title.' ),
 		)
 	);
 
@@ -2756,12 +2765,13 @@ function register_initial_settings() {
 		'general',
 		'blogdescription',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'name' => 'description',
 			),
-			'type'         => 'string',
-			'label'        => __( 'Tagline' ),
-			'description'  => __( 'Site tagline.' ),
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'label'             => __( 'Tagline' ),
+			'description'       => __( 'Site tagline.' ),
 		)
 	);
 
@@ -2770,14 +2780,15 @@ function register_initial_settings() {
 			'general',
 			'siteurl',
 			array(
-				'show_in_rest' => array(
+				'show_in_rest'      => array(
 					'name'   => 'url',
 					'schema' => array(
 						'format' => 'uri',
 					),
 				),
-				'type'         => 'string',
-				'description'  => __( 'Site URL.' ),
+				'show_in_abilities' => true,
+				'type'              => 'string',
+				'description'       => __( 'The URL where WordPress core files are served. May differ from the public site URL.' ),
 			)
 		);
 	}
@@ -2787,14 +2798,15 @@ function register_initial_settings() {
 			'general',
 			'admin_email',
 			array(
-				'show_in_rest' => array(
+				'show_in_rest'      => array(
 					'name'   => 'email',
 					'schema' => array(
 						'format' => 'email',
 					),
 				),
-				'type'         => 'string',
-				'description'  => __( 'This address is used for admin purposes, like new user notification.' ),
+				'show_in_abilities' => true,
+				'type'              => 'string',
+				'description'       => __( 'This address is used for admin purposes, like new user notification.' ),
 			)
 		);
 	}
@@ -2803,11 +2815,12 @@ function register_initial_settings() {
 		'general',
 		'timezone_string',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'name' => 'timezone',
 			),
-			'type'         => 'string',
-			'description'  => __( 'A city in the same timezone as you.' ),
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'A city in the same timezone as you.' ),
 		)
 	);
 
@@ -2815,9 +2828,10 @@ function register_initial_settings() {
 		'general',
 		'date_format',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'string',
-			'description'  => __( 'A date format for all date strings.' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'A date format for all date strings.' ),
 		)
 	);
 
@@ -2825,9 +2839,10 @@ function register_initial_settings() {
 		'general',
 		'time_format',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'string',
-			'description'  => __( 'A time format for all time strings.' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'A time format for all time strings.' ),
 		)
 	);
 
@@ -2835,9 +2850,10 @@ function register_initial_settings() {
 		'general',
 		'start_of_week',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'integer',
-			'description'  => __( 'A day number of the week that the week should start on.' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'description'       => __( 'A day number of the week that the week should start on.' ),
 		)
 	);
 
@@ -2845,12 +2861,13 @@ function register_initial_settings() {
 		'general',
 		'WPLANG',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'name' => 'language',
 			),
-			'type'         => 'string',
-			'description'  => __( 'WordPress locale code.' ),
-			'default'      => 'en_US',
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'WordPress locale code.' ),
+			'default'           => 'en_US',
 		)
 	);
 
@@ -2858,10 +2875,11 @@ function register_initial_settings() {
 		'writing',
 		'use_smilies',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'boolean',
-			'description'  => __( 'Convert emoticons like :-) and :-P to graphics on display.' ),
-			'default'      => true,
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'boolean',
+			'description'       => __( 'Convert emoticons like :-) and :-P to graphics on display.' ),
+			'default'           => true,
 		)
 	);
 
@@ -2869,9 +2887,10 @@ function register_initial_settings() {
 		'writing',
 		'default_category',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'integer',
-			'description'  => __( 'Default post category.' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'description'       => __( 'Default post category.' ),
 		)
 	);
 
@@ -2879,21 +2898,10 @@ function register_initial_settings() {
 		'writing',
 		'default_post_format',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'string',
-			'description'  => __( 'Default post format.' ),
-		)
-	);
-
-	register_setting(
-		'writing',
-		'wp_enable_real_time_collaboration',
-		array(
-			'type'              => 'boolean',
-			'description'       => __( 'Enable Real-Time Collaboration' ),
-			'sanitize_callback' => 'rest_sanitize_boolean',
-			'default'           => false,
 			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'Default post format.' ),
 		)
 	);
 
@@ -2901,11 +2909,12 @@ function register_initial_settings() {
 		'reading',
 		'posts_per_page',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'integer',
-			'label'        => __( 'Maximum posts per page' ),
-			'description'  => __( 'Blog pages show at most.' ),
-			'default'      => 10,
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'label'             => __( 'Maximum posts per page' ),
+			'description'       => __( 'Blog pages show at most.' ),
+			'default'           => 10,
 		)
 	);
 
@@ -2913,10 +2922,11 @@ function register_initial_settings() {
 		'reading',
 		'show_on_front',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'string',
-			'label'        => __( 'Show on front' ),
-			'description'  => __( 'What to show on the front page' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'label'             => __( 'Show on front' ),
+			'description'       => __( 'What to show on the front page' ),
 		)
 	);
 
@@ -2924,10 +2934,11 @@ function register_initial_settings() {
 		'reading',
 		'page_on_front',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'integer',
-			'label'        => __( 'Page on front' ),
-			'description'  => __( 'The ID of the page that should be displayed on the front page' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'label'             => __( 'Page on front' ),
+			'description'       => __( 'The ID of the page that should be displayed on the front page' ),
 		)
 	);
 
@@ -2935,9 +2946,23 @@ function register_initial_settings() {
 		'reading',
 		'page_for_posts',
 		array(
-			'show_in_rest' => true,
-			'type'         => 'integer',
-			'description'  => __( 'The ID of the page that should display the latest posts' ),
+			'show_in_rest'      => true,
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'description'       => __( 'The ID of the page that should display the latest posts' ),
+		)
+	);
+
+	register_setting(
+		'reading',
+		'wp_page_for_privacy_policy',
+		array(
+			'show_in_rest'      => array(
+				'name' => 'page_for_privacy_policy',
+			),
+			'show_in_abilities' => true,
+			'type'              => 'integer',
+			'description'       => __( 'The ID of the page that should be displayed as the privacy policy page' ),
 		)
 	);
 
@@ -2945,13 +2970,14 @@ function register_initial_settings() {
 		'discussion',
 		'default_ping_status',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'schema' => array(
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'type'         => 'string',
-			'description'  => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'description'       => __( 'Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.' ),
 		)
 	);
 
@@ -2959,16 +2985,51 @@ function register_initial_settings() {
 		'discussion',
 		'default_comment_status',
 		array(
-			'show_in_rest' => array(
+			'show_in_rest'      => array(
 				'schema' => array(
 					'enum' => array( 'open', 'closed' ),
 				),
 			),
-			'type'         => 'string',
-			'label'        => __( 'Allow comments on new posts' ),
-			'description'  => __( 'Allow people to submit comments on new posts.' ),
+			'show_in_abilities' => true,
+			'type'              => 'string',
+			'label'             => __( 'Allow comments on new posts' ),
+			'description'       => __( 'Allow people to submit comments on new posts.' ),
 		)
 	);
+}
+
+/**
+ * Registers the default settings when the Abilities API initializes.
+ *
+ * The default settings are registered on `rest_api_init`, which fires lazily and
+ * independently of `wp_abilities_api_init`: on cron, WP-CLI, or any request where
+ * abilities are used before the REST server loads, it may not have fired, or may be
+ * mid-fire at a priority before register_initial_settings() runs. This makes sure the
+ * settings exist before the core abilities read them. Registering them again later on
+ * `rest_api_init` is harmless.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global array $new_allowed_options
+ */
+function _wp_register_initial_settings_for_abilities(): void {
+	global $new_allowed_options;
+
+	if ( did_action( 'rest_api_init' ) && ! doing_action( 'rest_api_init' ) ) {
+		return;
+	}
+
+	$allowed_options = $new_allowed_options;
+
+	register_initial_settings();
+
+	/*
+	 * Registering a setting also allows it on the options screen of its group. Restore
+	 * the list, so saving Settings > General does not try to save `admin_email`, which
+	 * that screen sends as `new_admin_email`.
+	 */
+	$new_allowed_options = $allowed_options;
 }
 
 /**
@@ -2981,6 +3042,7 @@ function register_initial_settings() {
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
  * @since 6.6.0 Added the `label` argument.
+ * @since 7.2.0 Added the `show_in_abilities` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2988,19 +3050,26 @@ function register_initial_settings() {
  * @param string $option_group A settings group name. Should correspond to an allowed option key name.
  *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', and 'options'.
- * @param string $option_name The name of an option to sanitize and save.
+ * @param string $option_name  The name of an option to sanitize and save.
  * @param array  $args {
  *     Data used to describe the setting when registered.
  *
- *     @type string     $type              The type of data associated with this setting.
- *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *     @type string     $label             A label of the data attached to this setting.
- *     @type string     $description       A description of the data attached to this setting.
- *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                         When registering complex settings, this argument may optionally be an
- *                                         array with a 'schema' key.
- *     @type mixed      $default           Default value when calling `get_option()`.
+ *     @type string        $type              The type of data associated with this setting.
+ *                                            Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                            and 'object'.
+ *     @type string        $label             A label of the data attached to this setting.
+ *     @type string        $description       A description of the data attached to this setting.
+ *     @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *                                            Default null.
+ *     @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                            REST API. When registering complex settings, this argument may
+ *                                            optionally be an array with a 'schema' key.
+ *     @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
+ *                                            When true, it uses the same name and schema as `$show_in_rest`.
+ *                                            It may also be an array with 'name' and 'schema' keys, used instead of
+ *                                            `$show_in_rest` rather than merged with it.
+ *                                            Settings registered after abilities initialize are not exposed.
+ *     @type mixed         $default           Default value when calling `get_option()`.
  * }
  */
 function register_setting( $option_group, $option_name, $args = array() ) {
@@ -3019,6 +3088,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		'description'       => '',
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
+		'show_in_abilities' => false,
 	);
 
 	// Back-compat: old sanitize callback is added.
@@ -3202,6 +3272,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  * Retrieves an array of registered settings.
  *
  * @since 4.7.0
+ * @since 7.2.0 Registered setting data includes the `show_in_abilities` argument.
  *
  * @global array $wp_registered_settings
  *
@@ -3211,15 +3282,22 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
  *     @type array ...$0 {
  *         Data used to describe the setting when registered.
  *
- *         @type string     $type              The type of data associated with this setting.
- *                                             Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
- *         @type string     $label             A label of the data attached to this setting.
- *         @type string     $description       A description of the data attached to this setting.
- *         @type callable   $sanitize_callback A callback function that sanitizes the option's value.
- *         @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
- *                                             When registering complex settings, this argument may optionally be an
- *                                             array with a 'schema' key.
- *         @type mixed      $default           Default value when calling `get_option()`.
+ *         @type string        $type              The type of data associated with this setting.
+ *                                                Valid values are 'string', 'boolean', 'integer', 'number', 'array',
+ *                                                and 'object'.
+ *         @type string        $group             The settings group name the setting was registered in.
+ *         @type string        $label             A label of the data attached to this setting.
+ *         @type string        $description       A description of the data attached to this setting.
+ *         @type callable|null $sanitize_callback A callback function that sanitizes the option's value.
+ *         @type bool|array    $show_in_rest      Whether data associated with this setting should be included in the
+ *                                                REST API. When registering complex settings, this argument may
+ *                                                optionally be an array with a 'schema' key.
+ *         @type bool|array    $show_in_abilities Whether this setting should be exposed through the Abilities API.
+ *                                                When true, it uses the same name and schema as `$show_in_rest`.
+ *                                                It may also be an array with 'name' and 'schema' keys, used
+ *                                                instead of `$show_in_rest` rather than merged with it.
+ *         @type mixed         $default           Default value when calling `get_option()`. Only present when the
+ *                                                setting was registered with a default.
  *     }
  * }
  */

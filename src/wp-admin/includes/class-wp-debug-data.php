@@ -387,56 +387,43 @@ class WP_Debug_Data {
 			'debug' => PHP_SAPI,
 		);
 
-		// Some servers disable `ini_set()` and `ini_get()`, we check this before trying to get configuration values.
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'Server settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
+		$fields['max_input_variables'] = array(
+			'label' => __( 'PHP max input variables' ),
+			'value' => ini_get( 'max_input_vars' ),
+		);
+		$fields['time_limit']          = array(
+			'label' => __( 'PHP time limit' ),
+			'value' => ini_get( 'max_execution_time' ),
+		);
+
+		if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+			$fields['memory_limit']       = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => WP_Site_Health::get_instance()->php_memory_limit,
+			);
+			$fields['admin_memory_limit'] = array(
+				'label' => __( 'PHP memory limit (only for admin screens)' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		} else {
-			$fields['max_input_variables'] = array(
-				'label' => __( 'PHP max input variables' ),
-				'value' => ini_get( 'max_input_vars' ),
-			);
-			$fields['time_limit']          = array(
-				'label' => __( 'PHP time limit' ),
-				'value' => ini_get( 'max_execution_time' ),
-			);
-
-			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
-				$fields['memory_limit']       = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => WP_Site_Health::get_instance()->php_memory_limit,
-				);
-				$fields['admin_memory_limit'] = array(
-					'label' => __( 'PHP memory limit (only for admin screens)' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			} else {
-				$fields['memory_limit'] = array(
-					'label' => __( 'PHP memory limit' ),
-					'value' => ini_get( 'memory_limit' ),
-				);
-			}
-
-			$fields['max_input_time']      = array(
-				'label' => __( 'Max input time' ),
-				'value' => ini_get( 'max_input_time' ),
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Upload max filesize' ),
-				'value' => ini_get( 'upload_max_filesize' ),
-			);
-			$fields['php_post_max_size']   = array(
-				'label' => __( 'PHP post max size' ),
-				'value' => ini_get( 'post_max_size' ),
+			$fields['memory_limit'] = array(
+				'label' => __( 'PHP memory limit' ),
+				'value' => ini_get( 'memory_limit' ),
 			);
 		}
+
+		$fields['max_input_time']      = array(
+			'label' => __( 'Max input time' ),
+			'value' => ini_get( 'max_input_time' ),
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Upload max filesize' ),
+			'value' => ini_get( 'upload_max_filesize' ),
+		);
+		$fields['php_post_max_size']   = array(
+			'label' => __( 'PHP post max size' ),
+			'value' => ini_get( 'post_max_size' ),
+		);
 
 		if ( function_exists( 'curl_version' ) ) {
 			$curl = curl_version();
@@ -656,6 +643,7 @@ class WP_Debug_Data {
 			$imagick             = new Imagick();
 			$imagemagick_version = $imagick->getVersion();
 		} else {
+			$imagick             = null;
 			$imagemagick_version = __( 'Not available' );
 		}
 
@@ -676,50 +664,38 @@ class WP_Debug_Data {
 			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
-		if ( ! function_exists( 'ini_get' ) ) {
-			$fields['ini_get'] = array(
-				'label' => __( 'File upload settings' ),
-				'value' => sprintf(
-				/* translators: %s: ini_get() */
-					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
-					'ini_get()'
-				),
-				'debug' => 'ini_get() is disabled',
-			);
-		} else {
-			// Get the PHP ini directive values.
-			$file_uploads        = ini_get( 'file_uploads' );
-			$post_max_size       = ini_get( 'post_max_size' );
-			$upload_max_filesize = ini_get( 'upload_max_filesize' );
-			$max_file_uploads    = ini_get( 'max_file_uploads' );
-			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
+		// Get the PHP ini directive values.
+		$file_uploads        = ini_get( 'file_uploads' );
+		$post_max_size       = ini_get( 'post_max_size' );
+		$upload_max_filesize = ini_get( 'upload_max_filesize' );
+		$max_file_uploads    = ini_get( 'max_file_uploads' );
+		$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
 
-			// Add info in Media section.
-			$fields['file_uploads']        = array(
-				'label' => __( 'File uploads' ),
-				'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
-				'debug' => $file_uploads,
-			);
-			$fields['post_max_size']       = array(
-				'label' => __( 'Max size of post data allowed' ),
-				'value' => $post_max_size,
-			);
-			$fields['upload_max_filesize'] = array(
-				'label' => __( 'Max size of an uploaded file' ),
-				'value' => $upload_max_filesize,
-			);
-			$fields['max_effective_size']  = array(
-				'label' => __( 'Max effective file size' ),
-				'value' => size_format( $effective ),
-			);
-			$fields['max_file_uploads']    = array(
-				'label' => __( 'Max simultaneous file uploads' ),
-				'value' => $max_file_uploads,
-			);
-		}
+		// Add info in Media section.
+		$fields['file_uploads']        = array(
+			'label' => __( 'File uploads' ),
+			'value' => $file_uploads ? __( 'Enabled' ) : __( 'Disabled' ),
+			'debug' => $file_uploads,
+		);
+		$fields['post_max_size']       = array(
+			'label' => __( 'Max size of post data allowed' ),
+			'value' => $post_max_size,
+		);
+		$fields['upload_max_filesize'] = array(
+			'label' => __( 'Max size of an uploaded file' ),
+			'value' => $upload_max_filesize,
+		);
+		$fields['max_effective_size']  = array(
+			'label' => __( 'Max effective file size' ),
+			'value' => size_format( $effective ),
+		);
+		$fields['max_file_uploads']    = array(
+			'label' => __( 'Max simultaneous file uploads' ),
+			'value' => $max_file_uploads,
+		);
 
 		// If Imagick is used as our editor, provide some more information about its limitations.
-		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
+		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && $imagick instanceof Imagick ) {
 			$limits = array(
 				'area'   => ( defined( 'imagick::RESOURCETYPE_AREA' ) ? size_format( $imagick->getResourceLimit( imagick::RESOURCETYPE_AREA ) ) : $not_available ),
 				'disk'   => ( defined( 'imagick::RESOURCETYPE_DISK' ) ? $imagick->getResourceLimit( imagick::RESOURCETYPE_DISK ) : $not_available ),
@@ -1520,6 +1496,7 @@ class WP_Debug_Data {
 	 * Gets the WordPress constants section of the debug data.
 	 *
 	 * @since 6.7.0
+	 * @since 7.2.0 Removed the obsolete `COMPRESS_SCRIPTS` and `COMPRESS_CSS` constants.
 	 *
 	 * @return array<string, string|array> The WordPress constants debug data.
 	 */
@@ -1539,24 +1516,6 @@ class WP_Debug_Data {
 		} else {
 			$concatenate_scripts       = __( 'Undefined' );
 			$concatenate_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_SCRIPTS.
-		if ( defined( 'COMPRESS_SCRIPTS' ) ) {
-			$compress_scripts       = COMPRESS_SCRIPTS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_scripts_debug = COMPRESS_SCRIPTS ? 'true' : 'false';
-		} else {
-			$compress_scripts       = __( 'Undefined' );
-			$compress_scripts_debug = 'undefined';
-		}
-
-		// Check COMPRESS_CSS.
-		if ( defined( 'COMPRESS_CSS' ) ) {
-			$compress_css       = COMPRESS_CSS ? __( 'Enabled' ) : __( 'Disabled' );
-			$compress_css_debug = COMPRESS_CSS ? 'true' : 'false';
-		} else {
-			$compress_css       = __( 'Undefined' );
-			$compress_css_debug = 'undefined';
 		}
 
 		// Check WP_ENVIRONMENT_TYPE.
@@ -1638,16 +1597,6 @@ class WP_Debug_Data {
 				'label' => 'CONCATENATE_SCRIPTS',
 				'value' => $concatenate_scripts,
 				'debug' => $concatenate_scripts_debug,
-			),
-			'COMPRESS_SCRIPTS'    => array(
-				'label' => 'COMPRESS_SCRIPTS',
-				'value' => $compress_scripts,
-				'debug' => $compress_scripts_debug,
-			),
-			'COMPRESS_CSS'        => array(
-				'label' => 'COMPRESS_CSS',
-				'value' => $compress_css,
-				'debug' => $compress_css_debug,
 			),
 			'WP_ENVIRONMENT_TYPE' => array(
 				'label' => 'WP_ENVIRONMENT_TYPE',
@@ -1977,9 +1926,7 @@ class WP_Debug_Data {
 		 * from causing a timeout. The default value is 30 seconds, and some
 		 * hosts do not allow you to read configuration values.
 		 */
-		if ( function_exists( 'ini_get' ) ) {
-			$max_execution_time = ini_get( 'max_execution_time' );
-		}
+		$max_execution_time = ini_get( 'max_execution_time' );
 
 		/*
 		 * The max_execution_time defaults to 0 when PHP runs from cli.

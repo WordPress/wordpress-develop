@@ -8,7 +8,7 @@
 
 // Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
-	die( '-1' );
+	exit;
 }
 
 /**
@@ -72,7 +72,7 @@ $menu[4] = array( '', 'read', 'separator1', '', 'wp-menu-separator' );
 
 $menu[10] = array( __( 'Media' ), 'upload_files', 'upload.php', '', 'menu-top menu-icon-media', 'menu-media', 'dashicons-admin-media' );
 
-	$submenu['upload.php'][5]  = array( __( 'Library' ), 'upload_files', 'upload.php' );
+	$submenu['upload.php'][5]  = array( _x( 'Library', 'media library menu item' ), 'upload_files', 'upload.php' );
 	$submenu['upload.php'][10] = array( __( 'Add Media File' ), 'upload_files', 'media-new.php' );
 	$submenu_index             = 15;
 
@@ -224,31 +224,35 @@ if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 	/* translators: %s: Number of available theme updates. */
 	$submenu['themes.php'][5] = array( sprintf( __( 'Themes %s' ), $count ), $appearance_capability, 'themes.php' );
 
+if ( ! is_multisite() ) {
+	$submenu['themes.php'][6] = array( __( 'Add Theme' ), 'install_themes', 'theme-install.php', '', 'hide-if-no-js' );
+}
+
 if ( wp_is_block_theme() ) {
-	$submenu['themes.php'][6] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
+	$submenu['themes.php'][7] = array( _x( 'Editor', 'site editor menu item' ), 'edit_theme_options', 'site-editor.php' );
 } else {
 	$supports_stylebook = ( current_theme_supports( 'editor-styles' ) || wp_theme_has_theme_json() );
 
 	if ( $supports_stylebook ) {
-		$submenu['themes.php'][6] = array( _x( 'Design', 'design menu item' ), 'edit_theme_options', 'site-editor.php' );
+		$submenu['themes.php'][7] = array( _x( 'Design', 'design menu item' ), 'edit_theme_options', 'site-editor.php' );
 	} else {
-		$submenu['themes.php'][6] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
+		$submenu['themes.php'][7] = array( _x( 'Patterns', 'patterns menu item' ), 'edit_theme_options', 'site-editor.php?p=/pattern' );
 	}
 }
 
 // Font Library menu item.
-$submenu['themes.php'][9] = array( __( 'Fonts' ), 'edit_theme_options', 'font-library.php' );
+$submenu['themes.php'][10] = array( __( 'Fonts' ), 'edit_theme_options', 'font-library.php' );
 
 $customize_url = add_query_arg( 'return', urlencode( remove_query_arg( wp_removable_query_args(), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ), 'customize.php' );
 
 // Hide Customize link on block themes unless a plugin or theme
 // is using 'customize_register' to add a setting.
 if ( ! wp_is_block_theme() || has_action( 'customize_register' ) ) {
-	$submenu['themes.php'][7] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
+	$submenu['themes.php'][8] = array( __( 'Customize' ), 'customize', esc_url( $customize_url ), '', 'hide-if-no-customize' );
 }
 
 if ( current_theme_supports( 'menus' ) || current_theme_supports( 'widgets' ) ) {
-	$submenu['themes.php'][10] = array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' );
+	$submenu['themes.php'][11] = array( __( 'Menus' ), 'edit_theme_options', 'nav-menus.php' );
 }
 
 if ( current_theme_supports( 'custom-header' ) && current_user_can( 'customize' ) ) {
@@ -404,6 +408,7 @@ if ( ! is_multisite() && defined( 'WP_ALLOW_MULTISITE' ) && WP_ALLOW_MULTISITE )
 
 $menu[80]                               = array( __( 'Settings' ), 'manage_options', 'options-general.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
 	$submenu['options-general.php'][10] = array( _x( 'General', 'settings screen' ), 'manage_options', 'options-general.php' );
+	$submenu['options-general.php'][12] = array( __( 'Connectors' ), 'manage_options', 'options-connectors.php' );
 	$submenu['options-general.php'][15] = array( __( 'Writing' ), 'manage_options', 'options-writing.php' );
 	$submenu['options-general.php'][20] = array( __( 'Reading' ), 'manage_options', 'options-reading.php' );
 	$submenu['options-general.php'][25] = array( __( 'Discussion' ), 'manage_options', 'options-discussion.php' );

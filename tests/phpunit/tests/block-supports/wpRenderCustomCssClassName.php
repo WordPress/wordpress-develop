@@ -29,9 +29,18 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array
+	 * @return array<string, array{
+	 *     block_content: string,
+	 *     block: array{
+	 *         blockName: string,
+	 *         attrs: array{
+	 *             className: string,
+	 *         },
+	 *     },
+	 *     expected_class: string,
+	 * }>
 	 */
-	public function data_adds_class_to_content() {
+	public function data_adds_class_to_content(): array {
 		return array(
 			'class is added to block content'           => array(
 				'block_content'  => '<div class="wp-block-paragraph">Test content</div>',
@@ -52,6 +61,16 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 					),
 				),
 				'expected_class' => 'wp-custom-css-mixed123',
+			),
+			'class between whitespace is added'         => array(
+				'block_content'  => '<div class="wp-block-paragraph">Test content</div>',
+				'block'          => array(
+					'blockName' => 'core/paragraph',
+					'attrs'     => array(
+						'className' => "\twp-custom-css-123abc\t",
+					),
+				),
+				'expected_class' => 'wp-custom-css-123abc',
 			),
 		);
 	}
@@ -110,6 +129,15 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 					'blockName' => 'core/paragraph',
 					'attrs'     => array(
 						'className' => 'some-other-class',
+					),
+				),
+			),
+			'prefixed custom CSS class'     => array(
+				'block_content' => '<div class="wp-block-paragraph">Test content</div>',
+				'block'         => array(
+					'blockName' => 'core/paragraph',
+					'attrs'     => array(
+						'className' => 'my-wp-custom-css-456def',
 					),
 				),
 			),

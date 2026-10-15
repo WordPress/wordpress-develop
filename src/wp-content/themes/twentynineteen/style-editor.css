@@ -1266,7 +1266,7 @@ figcaption,
   margin-left: 0;
 }
 
-/** === Verse === */
+/** === Poetry (Verse) === */
 .wp-block-verse,
 .wp-block-verse pre {
   padding: 0;
@@ -1482,7 +1482,6 @@ ul.wp-block-archives li ul,
   padding: 0.5rem;
   text-align: left;
   text-align: center;
-  -webkit-margin-start: 0;
   margin-inline-start: 0;
 }
 

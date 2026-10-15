@@ -44,7 +44,6 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once ABSPATH . 'wp-admin/includes/export.php';
-		$file = DIR_TESTDATA . '/images/test-image.jpg';
 
 		$dataset = array(
 			'post 1' => array(
@@ -71,8 +70,15 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 			$attachment_key           = "attachment for $post_key";
 			$post_data['post_author'] = $factory->user->create( array( 'role' => 'editor' ) );
 
-			$post_id       = $factory->post->create( $post_data );
-			$attachment_id = $factory->attachment->create_upload_object( $file, $post_id );
+			$post_id = $factory->post->create( $post_data );
+
+			$attachment_id = $factory->attachment->create(
+				array(
+					'file'           => 'test-image.jpg',
+					'post_parent'    => $post_id,
+					'post_mime_type' => 'image/jpeg',
+				)
+			);
 			set_post_thumbnail( $post_id, $attachment_id );
 
 			self::$post_ids[ $post_key ]       = array(
@@ -473,5 +479,42 @@ class Tests_Admin_ExportWp extends WP_UnitTestCase {
 
 		$this->assertNotFalse( $xml, 'Export should not fail with NULL term meta values' );
 		$this->assertGreaterThan( 0, count( $xml->channel->item ), 'Export should contain items' );
+	}
+
+	/**
+	 * Ensure that posts types with 'can_export' set to false are not included in the export.
+	 *
+	 * @ticket 64964
+	 */
+	public function test_export_does_not_include_excluded_post_types() {
+		register_post_type(
+			'wpexport_excluded',
+			array( 'can_export' => false )
+		);
+
+		$excluded_post_id = self::factory()->post->create(
+			array(
+				'post_title'  => 'Excluded Post Type',
+				'post_type'   => 'wpexport_excluded',
+				'post_status' => 'publish',
+			)
+		);
+
+		$xml = $this->get_the_export(
+			array(
+				'content' => 'all',
+			)
+		);
+
+		$found_post = false;
+		foreach ( $xml->channel->item as $item ) {
+			$wp_item = $item->children( 'wp', true );
+			if ( (int) $wp_item->post_id === $excluded_post_id ) {
+				$found_post = true;
+				break;
+			}
+		}
+
+		$this->assertFalse( $found_post, 'Posts of excluded post types should not be included in export' );
 	}
 }

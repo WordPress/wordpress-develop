@@ -3,6 +3,8 @@
  * Tests for WP_Block_Metadata_Registry integration with register_block_type_from_metadata().
  *
  * @group blocks
+ *
+ * @covers ::register_block_type_from_metadata
  */
 class Tests_Blocks_RegisterBlockTypeFromMetadataWithRegistry extends WP_UnitTestCase {
 	private $temp_manifest_file;

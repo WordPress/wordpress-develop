@@ -9,7 +9,7 @@
 class WP_HTTP_IXR_Client extends IXR_Client {
 	public $scheme;
 	/**
-	 * @var IXR_Error
+	 * @var IXR_Error|null
 	 */
 	public $error;
 
@@ -47,10 +47,13 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 	}
 
 	/**
+	 * Makes an XML-RPC request and retrieves the response.
+	 *
 	 * @since 3.1.0
 	 * @since 5.5.0 Formalized the existing `...$args` parameter by adding it
 	 *              to the function signature.
 	 *
+	 * @param mixed ...$args The method name, followed by the arguments to pass to it.
 	 * @return bool True if the request succeeded, false otherwise.
 	 */
 	public function query( ...$args ) {
@@ -89,7 +92,7 @@ class WP_HTTP_IXR_Client extends IXR_Client {
 			echo '<pre class="ixr_request">' . htmlspecialchars( $xml ) . "\n</pre>\n\n";
 		}
 
-		$response = wp_remote_post( $url, $args );
+		$response = wp_safe_remote_post( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
 			$errno       = $response->get_error_code();

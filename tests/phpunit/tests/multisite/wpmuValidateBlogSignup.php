@@ -3,6 +3,8 @@
 /**
  * @group ms-required
  * @group multisite
+ *
+ * @covers ::wpmu_validate_blog_signup
  */
 class Tests_Multisite_wpmuValidateBlogSignup extends WP_UnitTestCase {
 
