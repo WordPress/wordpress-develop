@@ -263,6 +263,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
+	 * @covers wp_interactivity_as_dangerous_html
 	 *
 	 * @dataProvider data_html_strings
 	 *
@@ -302,6 +303,9 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 				'<template data-wp-each="state.list"><i data-wp-text="context.item">t</i></template></div>',
 			),
 			'directives in unbalanced markup' => array( '<template><p data-wp-text="state.text"></template></div><b>marker-7f3a' ),
+			'whitespace'                      => array( " \t\r\n<br>\n " ),
+			'null byte'                       => array( "a\0b" ),
+			'multibyte'                       => array( 'Ünï© 日本 😀' ),
 		);
 	}
 
@@ -346,6 +350,7 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
+	 * @covers WP_Interactivity_Dangerous_HTML::get_html
 	 *
 	 * @dataProvider data_values_that_are_not_tokens
 	 *
@@ -374,10 +379,12 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	public static function data_values_that_are_not_tokens(): array {
 		return array(
 			'string of HTML'             => array( '<p>Hi</p>' ),
+			'empty string'               => array( '' ),
 			'integer'                    => array( 1 ),
 			'boolean'                    => array( true ),
 			'false'                      => array( false ),
 			'array'                      => array( array( '<p>Hi</p>' ) ),
+			'array with an html key'     => array( array( 'html' => '<p>Hi</p>' ) ),
 			'stdClass'                   => array( new stdClass() ),
 			'json_decode object'         => array( json_decode( '{"html":"<p>Hi</p>"}' ) ),
 			'other object'               => array( new ArrayObject( array( '<p>Hi</p>' ) ) ),
@@ -809,18 +816,20 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 	 * listed like any other token: the host keeps its fallback, exactly one
 	 * notice is raised for the unserialization and one for the decline, the
 	 * markup after the host is processed, and the token prints as an empty
-	 * object.
+	 * object. The token that was serialized still renders.
 	 *
 	 * @ticket 66246
 	 *
 	 * @covers ::process_directives
 	 * @covers ::filter_script_module_interactivity_data
+	 * @covers WP_Interactivity_Dangerous_HTML::__wakeup
 	 */
 	public function test_unserialized_token_declines_as_not_a_token() {
 		$this->setExpectedIncorrectUsage( 'WP_Interactivity_Dangerous_HTML::__wakeup' );
 		$this->expect_html_notices();
 
-		$value = unserialize( serialize( $this->token() ) );
+		$original = $this->token();
+		$value    = unserialize( serialize( $original ) );
 
 		$this->assertSame(
 			array( 'WP_Interactivity_Dangerous_HTML::__wakeup' ),
@@ -828,17 +837,25 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 			'Expected exactly one notice at unserialization.'
 		);
 
-		$this->set_state( array( 'html' => $value ) );
+		$this->set_state(
+			array(
+				'html'     => $value,
+				'original' => $original,
+			)
+		);
 
-		$output = wp_interactivity_process_directives( $this->page( '<div data-wp-html="state.html">Fallback</div>' ) );
+		$output = wp_interactivity_process_directives(
+			$this->page( '<div data-wp-html="state.html">Fallback</div><div data-wp-html="state.original">Fallback</div>' )
+		);
 
 		$this->assertSame(
-			$this->processed_page( '<div data-wp-html="state.html">Fallback</div>' ),
-			$output
+			$this->processed_page( '<div data-wp-html="state.html">Fallback</div><div data-wp-html="state.original">' . self::MARKER_HTML . '</div>' ),
+			$output,
+			'Expected the unserialized token to decline and the serialized one to render.'
 		);
 		$this->assertCount( 1, $this->html_notice_messages(), 'Expected exactly one data-wp-html notice.' );
 		$this->assertCount( 2, $this->notices, 'Expected no notice besides those of the unserialization and the decline.' );
-		$this->assertSame( array( 'test' => array( 'state.html' ) ), $this->announced_paths() );
+		$this->assertSame( array( 'test' => array( 'state.html', 'state.original' ) ), $this->announced_paths() );
 		$this->assertEquals(
 			(object) array(),
 			json_decode( $this->printed_client_data() )->state->test->html,
