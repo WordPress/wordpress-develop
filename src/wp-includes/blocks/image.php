@@ -152,13 +152,14 @@ function block_core_image_get_lightbox_settings( $block ) {
 	if ( ! isset( $lightbox_settings ) ) {
 		$lightbox_settings = wp_get_global_settings( array( 'lightbox' ), array( 'block_name' => 'core/image' ) );
 
-		// If not present in global settings, check the top-level global settings.
-		//
-		// NOTE: If no block-level settings are found, the previous call to
-		// `wp_get_global_settings` will return the whole `theme.json` structure in
-		// which case we can check if the "lightbox" key is present at the top-level
-		// of the global settings and use its value.
-		if ( isset( $lightbox_settings['lightbox'] ) ) {
+		/*
+		 * If not present in the block-level settings, check the top-level global settings.
+		 *
+		 * Prior to WordPress 7.2.0, `wp_get_global_settings()` returned all settings
+		 * when the requested path did not exist, so check for the "lightbox" key at
+		 * the top level as well as for null.
+		 */
+		if ( null === $lightbox_settings || isset( $lightbox_settings['lightbox'] ) ) {
 			$lightbox_settings = wp_get_global_settings( array( 'lightbox' ) );
 		}
 	}
