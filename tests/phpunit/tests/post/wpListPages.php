@@ -288,6 +288,60 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
+	/**
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_id_list_callbacks
+	 *
+	 * @param callable $callback Callback to cast each page ID with.
+	 */
+	public function test_wp_list_pages_exclude_should_accept_an_array_of_ids( $callback ) {
+		$args = array(
+			'echo'    => false,
+			'depth'   => 1,
+			'exclude' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: callable }>
+	 */
+	public function data_wp_list_pages_id_list_callbacks() {
+		return array(
+			'integers'        => array( 'intval' ),
+			'numeric strings' => array( 'strval' ),
+		);
+	}
+
+	/**
+	 * Ensures the 'wp_list_pages_excludes' filter keeps receiving an array of numeric strings.
+	 *
+	 * @ticket 66052
+	 */
+	public function test_wp_list_pages_excludes_filter_should_receive_numeric_strings() {
+		$filter = new MockAction();
+		add_filter( 'wp_list_pages_excludes', array( $filter, 'filter' ) );
+
+		wp_list_pages(
+			array(
+				'echo'    => false,
+				'exclude' => ' ' . self::$parent_1 . ', ' . self::$parent_3 . ' ',
+			)
+		);
+
+		$this->assertSame(
+			array( array( (string) self::$parent_1, (string) self::$parent_3 ) ),
+			$filter->get_args()[0]
+		);
+	}
+
 	public function test_wp_list_pages_title_li() {
 		$args = array(
 			'echo'     => false,
@@ -428,6 +482,26 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		$args = array(
 			'echo'    => false,
 			'include' => self::$parent_1 . ',' . self::$parent_3,
+		);
+
+		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
+<li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
+</ul></li>';
+
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
+	}
+
+	/**
+	 * @ticket 66052
+	 *
+	 * @dataProvider data_wp_list_pages_id_list_callbacks
+	 *
+	 * @param callable $callback Callback to cast each page ID with.
+	 */
+	public function test_wp_list_pages_include_should_accept_an_array_of_ids( $callback ) {
+		$args = array(
+			'echo'    => false,
+			'include' => array_map( $callback, array( self::$parent_1, self::$parent_3 ) ),
 		);
 
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
