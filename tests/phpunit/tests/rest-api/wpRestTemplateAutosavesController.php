@@ -826,7 +826,10 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * Template autosaves item route is not editable; update requests should not match a route.
+	 * Template autosaves item route is not editable; update requests are rejected.
+	 *
+	 * Write methods do not match the autosaves item route (GET-only). They fall through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
 	 *
 	 * @ticket 56922
 	 * @ticket 66073
@@ -836,7 +839,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$autosave_post_id = wp_create_post_autosave(
 			array(
-				'post_content' => 'Autosave content.',
+				'post_content' => 'Autosave content for unsupported update.',
 				'post_ID'      => self::$template_post->ID,
 				'post_type'    => self::PARENT_POST_TYPE,
 			)
@@ -851,12 +854,15 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 			$request  = new WP_REST_Request( $method, $route );
 			$response = rest_get_server()->dispatch( $request );
 
-			$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+			$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 		}
 	}
 
 	/**
-	 * Template autosaves item route is not deletable; delete requests should not match a route.
+	 * Template autosaves item route is not deletable; delete requests are rejected.
+	 *
+	 * Delete does not match the autosaves item route (GET-only). It falls through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
 	 *
 	 * @ticket 56922
 	 * @ticket 66073
@@ -866,7 +872,7 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 
 		$autosave_post_id = wp_create_post_autosave(
 			array(
-				'post_content' => 'Autosave content.',
+				'post_content' => 'Autosave content for unsupported delete.',
 				'post_ID'      => self::$template_post->ID,
 				'post_type'    => self::PARENT_POST_TYPE,
 			)
@@ -880,6 +886,6 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 		$request  = new WP_REST_Request( 'DELETE', $route );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 }
