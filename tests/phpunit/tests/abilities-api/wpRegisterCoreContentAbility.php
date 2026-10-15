@@ -4294,6 +4294,76 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the posts whose `the_post` callbacks throw: the requested post, as it is set
+	 * up, and the surrounding post, as it is set up again afterwards.
+	 *
+	 * @return array<string, array{throwing_post: string}> Throwing post test cases.
+	 */
+	public function data_posts_whose_the_post_callbacks_throw(): array {
+		return array(
+			'requested post'   => array(
+				'throwing_post' => 'limited_role_content',
+			),
+			'surrounding post' => array(
+				'throwing_post' => 'published',
+			),
+		);
+	}
+
+	/**
+	 * A `the_post` callback that throws fails the query without leaving the requested post
+	 * in the loop globals.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_posts_whose_the_post_callbacks_throw
+	 * @since 7.2.0
+	 *
+	 * @param string $throwing_post The fixture name of the post whose `the_post` callback throws.
+	 */
+	public function test_post_context_is_restored_when_a_the_post_callback_throws( string $throwing_post ): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		$surrounding = get_post( self::$post_ids['published'] );
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a surrounding context to verify the ability restores it.
+		$GLOBALS['post'] = $surrounding;
+		setup_postdata( $surrounding );
+
+		/*
+		 * Setting up the surrounding post again undoes a `$more` that a template set, so only
+		 * putting back the saved values restores it.
+		 */
+		$GLOBALS['more'] = 1;
+
+		$surrounding_globals = $this->get_loop_globals();
+
+		$throwing_post_id = self::$post_ids[ $throwing_post ];
+		add_action(
+			'the_post',
+			static function ( WP_Post $post ) use ( $throwing_post_id ): void {
+				if ( $throwing_post_id === $post->ID ) {
+					throw new RuntimeException( 'A the_post callback failed.' );
+				}
+			}
+		);
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( self::$post_ids['limited_role_content'] ),
+				),
+				'fields' => array( 'id' ),
+			)
+		);
+
+		$this->assertWPError( $result, 'A throwing the_post callback should fail the query.' );
+		$this->assertSame( 'ability_callback_exception', $result->get_error_code(), 'A throwing the_post callback should return the callback exception error.' );
+		$this->assertSame( $surrounding_globals, $this->get_loop_globals(), 'The surrounding loop globals should be restored as they were.' );
+	}
+
+	/**
 	 * Title and permalink filters run with the requested post as the global post, also when
 	 * no post was set up before, as in a REST request.
 	 *
