@@ -138,8 +138,7 @@ class Tests_Filesystem_WpFilesystemDirect_Rmdir extends WP_Filesystem_Direct_Uni
 		// Set up mock filesystem.
 		$filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Direct' )
 								->setConstructorArgs( array( null ) )
-								// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-								->setMethods( array( 'dirlist' ) )
+								->onlyMethods( array( 'dirlist' ) )
 								->getMock();
 
 		$filesystem_mock->expects( $this->once() )
@@ -176,8 +175,7 @@ class Tests_Filesystem_WpFilesystemDirect_Rmdir extends WP_Filesystem_Direct_Uni
 		// Set up mock filesystem.
 		$filesystem_mock = $this->getMockBuilder( 'WP_Filesystem_Direct' )
 								->setConstructorArgs( array( null ) )
-								// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
-								->setMethods( array( 'is_file', 'dirlist' ) )
+								->onlyMethods( array( 'is_file', 'dirlist' ) )
 								->getMock();
 
 		$filesystem_mock->expects( $this->once() )
