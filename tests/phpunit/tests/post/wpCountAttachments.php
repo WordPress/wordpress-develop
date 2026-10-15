@@ -44,10 +44,12 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 			)
 		);
 
+		$mime_type  = 'image/jpeg';
+		$mock_count = 42;
 		add_filter(
 			'pre_wp_count_attachments',
-			static function () {
-				return (object) array( 'image/jpeg' => 42 );
+			static function () use ( $mime_type, $mock_count ) {
+				return (object) array( $mime_type => $mock_count );
 			}
 		);
 
@@ -55,7 +57,10 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		$counts            = wp_count_attachments();
 
 		$this->assertSame( 0, get_num_queries() - $start_num_queries, 'No database query should run when the filter returns a value.' );
-		$this->assertSame( 42, $counts->{'image/jpeg'}, 'Count is expected to be filtered value (42).' );
+		$this->assertObjectHasProperty( $mime_type, $counts );
+		$this->assertSame( $mock_count, $counts->$mime_type, 'Count is expected to be filtered value.' );
+		$this->assertObjectHasProperty( 'trash', $counts );
+		$this->assertSame( 0, $counts->trash, 'Expected trash to be set to zero.' );
 	}
 
 	/**
@@ -72,14 +77,16 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 
 		wp_count_attachments();
 
+		$mime_type  = 'image/jpeg';
+		$mock_count = 42;
 		add_filter(
 			'pre_wp_count_attachments',
-			static function () {
-				return (object) array( 'image/jpeg' => 42 );
+			static function () use ( $mime_type, $mock_count ) {
+				return (object) array( $mime_type => $mock_count );
 			}
 		);
 
-		$this->assertSame( 42, wp_count_attachments()->{'image/jpeg'}, 'The filtered value should be returned instead of the cached counts.' );
+		$this->assertSame( $mock_count, wp_count_attachments()->$mime_type, 'The filtered value should be returned instead of the cached counts.' );
 	}
 
 	/**
@@ -117,29 +124,16 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 66291
 	 */
-	public function test_pre_wp_count_attachments_fills_missing_trash_count() {
-		add_filter(
-			'pre_wp_count_attachments',
-			static function () {
-				return (object) array( 'image/jpeg' => 5 );
-			}
-		);
-
-		$this->assertSame( 0, wp_count_attachments()->trash, 'A trash count missing from the filtered value should default to 0.' );
-	}
-
-	/**
-	 * @ticket 66291
-	 */
 	public function test_pre_wp_count_attachments_keeps_filtered_trash_count() {
+		$trash_count = 7;
 		add_filter(
 			'pre_wp_count_attachments',
-			static function () {
-				return (object) array( 'trash' => 7 );
+			static function () use ( $trash_count ) {
+				return (object) array( 'trash' => $trash_count );
 			}
 		);
 
-		$this->assertSame( 7, wp_count_attachments()->trash );
+		$this->assertSame( $trash_count, wp_count_attachments()->trash, 'Expected trash count to be the filtered value.' );
 	}
 
 	/**
