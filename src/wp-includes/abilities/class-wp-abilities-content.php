@@ -1320,7 +1320,7 @@ final class WP_Abilities_Content {
 		$can_edit          = current_user_can( 'edit_post', $post->ID );
 		$password_required = post_password_required( $post );
 		$unlock_password   = $password_required && $can_edit;
-		$previous_context  = $this->set_up_post_context( $post );
+		$previous_context  = $this->get_post_context();
 
 		/*
 		 * The filter unlocks only posts the current user can edit, mirroring the REST posts
@@ -1332,15 +1332,18 @@ final class WP_Abilities_Content {
 		$allow_password_content = function ( $required, $checked_post ): bool {
 			return $this->allow_password_content( $required, $checked_post );
 		};
-		if ( $unlock_password ) {
-			add_filter( 'post_password_required', $allow_password_content, 10, 2 );
-		}
 
 		/*
-		 * Undo both in a finally block, so a throw mid-render cannot leave the password gate
-		 * disabled or the global post pointing at this post for the rest of the request.
+		 * Set up both inside the try block and undo them in the finally block, so a throw from
+		 * a `the_post` callback or mid-render cannot leave the password gate disabled or the
+		 * global post pointing at this post for the rest of the request.
 		 */
 		try {
+			$this->set_up_post_context( $post );
+			if ( $unlock_password ) {
+				add_filter( 'post_password_required', $allow_password_content, 10, 2 );
+			}
+
 			return $this->build_post_fields( $post, $fields, $can_edit, $password_required && ! $can_edit );
 		} finally {
 			if ( $unlock_password ) {
@@ -1558,6 +1561,32 @@ final class WP_Abilities_Content {
 	}
 
 	/**
+	 * Returns the global post context, so it can be restored after a post is rendered.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, mixed> The loop globals, keyed by name, leaving out those that are not set.
+	 */
+	private function get_post_context(): array {
+		/*
+		 * Copy each global by value. A calling function that binds a global with `global`,
+		 * as load_template() and WP_Block::render() do, makes it a reference, which
+		 * array_intersect_key( $GLOBALS, ... ) would keep. The saved copy would then follow
+		 * the global to the rendered post, and the restore would put that post back.
+		 */
+		$context = array();
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			if ( ! array_key_exists( $name, $GLOBALS ) ) {
+				continue;
+			}
+
+			$context[ $name ] = $GLOBALS[ $name ];
+		}
+
+		return $context;
+	}
+
+	/**
 	 * Sets up the global post context for rendering a post.
 	 *
 	 * Sets the global post and calls setup_postdata(), as the REST posts controller does
@@ -1567,70 +1596,56 @@ final class WP_Abilities_Content {
 	 * @since 7.2.0
 	 *
 	 * @param WP_Post $post The post to render.
-	 * @return array<string, mixed> The previous loop globals, keyed by name, leaving out those that were not set.
 	 */
-	private function set_up_post_context( WP_Post $post ): array {
-		/*
-		 * Copy each global by value. A calling function that binds a global with `global`,
-		 * as load_template() and WP_Block::render() do, makes it a reference, which
-		 * array_intersect_key( $GLOBALS, ... ) would keep. The saved copy would then follow
-		 * the global to this post, and the restore would put this post back.
-		 */
-		$previous_context = array();
-		foreach ( self::LOOP_GLOBALS as $name ) {
-			if ( ! array_key_exists( $name, $GLOBALS ) ) {
-				continue;
-			}
-
-			$previous_context[ $name ] = $GLOBALS[ $name ];
-		}
-
+	private function set_up_post_context( WP_Post $post ): void {
 		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Temporarily mirrors REST post context for rendering.
 		$GLOBALS['post'] = $post;
 		setup_postdata( $post );
-
-		return $previous_context;
 	}
 
 	/**
-	 * Restores the global post context saved by {@see self::set_up_post_context()}.
+	 * Restores the global post context saved by {@see self::get_post_context()}.
 	 *
 	 * Each loop global gets its previous value back, or is unset again when it was not set.
 	 * wp_reset_postdata() alone is not enough: it does nothing when the main query has no
 	 * post, which would leave the rendered post's data in the globals. When a post was set
 	 * up before, setup_postdata() first runs for it again, as wp_reset_postdata() would, so
-	 * callbacks on the `the_post` action can restore their own globals too. A global post
-	 * that was never set up keeps the loop globals that setup_postdata() gives it.
+	 * callbacks on the `the_post` action can restore their own globals too. The saved values
+	 * are put back even when such a callback throws. A global post that was never set up
+	 * keeps the loop globals that setup_postdata() gives it.
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array<string, mixed> $previous_context The loop globals that set_up_post_context() returned.
+	 * @param array<string, mixed> $previous_context The loop globals that get_post_context() returned.
 	 */
 	private function restore_post_context( array $previous_context ): void {
 		$previous_post = $previous_context['post'] ?? null;
-		if ( $previous_post instanceof WP_Post ) {
-			// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the previous global post context.
-			$GLOBALS['post'] = $previous_post;
-			setup_postdata( $previous_post );
 
-			/*
-			 * A global post that was never set up, such as the main post before the loop
-			 * starts, keeps what setup_postdata() just gave it. Do not put back the values
-			 * saved before: `the_post` has fired now, so get_the_content() called without a
-			 * post, as the Post Content block and the_content() outside the loop do, reads the
-			 * loop globals instead of the post, and an unset `$pages` makes it throw a
-			 * TypeError that breaks the page being rendered.
-			 */
-			if ( ! is_array( $previous_context['pages'] ?? null ) ) {
-				return;
+		/*
+		 * A global post that was never set up, such as the main post before the loop
+		 * starts, keeps what setup_postdata() gives it below. Do not put back the values
+		 * saved before: `the_post` has fired then, so get_the_content() called without a
+		 * post, as the Post Content block and the_content() outside the loop do, reads the
+		 * loop globals instead of the post, and an unset `$pages` makes it throw a
+		 * TypeError that breaks the page being rendered.
+		 */
+		$restore_saved_values = ! $previous_post instanceof WP_Post || is_array( $previous_context['pages'] ?? null );
+
+		try {
+			if ( $previous_post instanceof WP_Post ) {
+				// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the previous global post context.
+				$GLOBALS['post'] = $previous_post;
+				setup_postdata( $previous_post );
 			}
-		}
-
-		foreach ( self::LOOP_GLOBALS as $name ) {
-			if ( array_key_exists( $name, $previous_context ) ) {
-				$GLOBALS[ $name ] = $previous_context[ $name ];
-			} else {
-				unset( $GLOBALS[ $name ] );
+		} finally {
+			if ( $restore_saved_values ) {
+				foreach ( self::LOOP_GLOBALS as $name ) {
+					if ( array_key_exists( $name, $previous_context ) ) {
+						$GLOBALS[ $name ] = $previous_context[ $name ];
+					} else {
+						unset( $GLOBALS[ $name ] );
+					}
+				}
 			}
 		}
 	}
