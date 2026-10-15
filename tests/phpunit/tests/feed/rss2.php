@@ -666,4 +666,42 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 
 		$this->go_to( '/?feed=rss2&withcomments=1' );
 	}
+
+	/**
+	 * Tests that the `the_title_rss` filter encodes bare `<` characters rather than stripping them.
+	 *
+	 * @ticket 9993
+	 * @dataProvider data_title_rss_encodes_special_characters
+	 *
+	 * @covers ::get_the_title_rss
+	 */
+	public function test_title_rss_encodes_special_characters( $title, $expected ) {
+		$this->assertSame( $expected, apply_filters( 'the_title_rss', $title ) );
+	}
+
+	/**
+	 * Data provider for test_title_rss_encodes_special_characters().
+	 *
+	 * @return array[]
+	 */
+	public static function data_title_rss_encodes_special_characters() {
+		return array(
+			'bare less-than at end is encoded not stripped' => array(
+				'& > test <',
+				'&amp; &gt; test &lt;',
+			),
+			'bare less-than in middle is encoded'        => array(
+				'a < b',
+				'a &lt; b',
+			),
+			'html tags are still stripped by strip_tags' => array(
+				'<strong>bold</strong>',
+				'bold',
+			),
+			'plain text passes through unchanged'        => array(
+				'Hello World',
+				'Hello World',
+			),
+		);
+	}
 }

@@ -294,4 +294,30 @@ class Tests_Feed_Atom extends WP_UnitTestCase {
 			}
 		}
 	}
+
+	/**
+	 * Tests that a bare `<` in a post title is encoded inside the Atom feed CDATA block, not stripped.
+	 *
+	 * Atom wraps `the_title_rss()` output in `<![CDATA[…]]>`. This test verifies
+	 * the encoded `<` character survives into that block by writing the raw title
+	 * directly to the database, bypassing kses sanitization on insert.
+	 *
+	 * @ticket 9993
+	 *
+	 * @covers ::get_the_title_rss
+	 */
+	public function test_atom_title_encodes_bare_lt_in_cdata() {
+		global $wpdb;
+
+		$post_id = self::factory()->post->create();
+
+		$wpdb->update( $wpdb->posts, array( 'post_title' => '& > test <' ), array( 'ID' => $post_id ) );
+		clean_post_cache( $post_id );
+
+		$this->go_to( '/?feed=atom&p=' . $post_id );
+		$feed = $this->do_atom();
+
+		$this->assertStringContainsString( 'test &lt;', $feed, 'Bare `<` was stripped from the Atom feed title CDATA block.' );
+		$this->assertStringNotContainsString( 'test ]]>', $feed, 'Bare `<` must not be stripped (leaving title truncated before `]]>`).' );
+	}
 }

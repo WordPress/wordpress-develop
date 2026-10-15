@@ -254,9 +254,11 @@ add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
 add_filter( 'wp_get_custom_css', 'wp_replace_insecure_home_url' );
 
 // RSS filters.
-add_filter( 'the_title_rss', 'strip_tags' );
+
 add_filter( 'the_title_rss', 'ent2ncr', 8 );
-add_filter( 'the_title_rss', 'esc_html' );
+add_filter( 'the_title_rss', 'wp_encode_bare_lt', 9 );
+add_filter( 'the_title_rss', 'strip_tags', 10 );
+add_filter( 'the_title_rss', 'esc_html', 11 );
 add_filter( 'the_content_rss', 'ent2ncr', 8 );
 add_filter( 'the_content_feed', 'wp_staticize_emoji' );
 add_filter( 'the_content_feed', '_oembed_filter_feed_content' );
