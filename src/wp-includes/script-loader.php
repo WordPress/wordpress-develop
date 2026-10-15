@@ -4079,9 +4079,160 @@ function wp_enqueue_classic_theme_styles() {
 }
 
 /**
+ * Retrieves the keywords for the admin menu commands in the Command Palette.
+ *
+ * Keywords let a command be found by words that are not in its label.
+ *
+ * @since 7.2.0
+ *
+ * @return array<string, string[]> Keywords keyed by menu slug.
+ */
+function wp_get_admin_menu_command_keywords() {
+	$keywords = array(
+		'index.php'                   => array(
+			_x( 'overview', 'command palette keyword' ),
+			_x( 'activity', 'command palette keyword' ),
+		),
+		'update-core.php'             => array(
+			_x( 'upgrade', 'command palette keyword' ),
+			_x( 'version', 'command palette keyword' ),
+		),
+		'edit.php'                    => array(
+			_x( 'articles', 'command palette keyword' ),
+			_x( 'blog', 'command palette keyword' ),
+		),
+		'post-new.php'                => array(
+			_x( 'create', 'command palette keyword' ),
+			_x( 'write', 'command palette keyword' ),
+		),
+		'upload.php'                  => array(
+			_x( 'images', 'command palette keyword' ),
+			_x( 'photos', 'command palette keyword' ),
+			_x( 'videos', 'command palette keyword' ),
+			_x( 'files', 'command palette keyword' ),
+		),
+		'media-new.php'               => array(
+			_x( 'upload', 'command palette keyword' ),
+		),
+		'post-new.php?post_type=page' => array(
+			_x( 'create', 'command palette keyword' ),
+		),
+		'edit-comments.php'           => array(
+			_x( 'approve', 'command palette keyword' ),
+			_x( 'spam', 'command palette keyword' ),
+			_x( 'moderate', 'command palette keyword' ),
+		),
+		'themes.php'                  => array(
+			_x( 'design', 'command palette keyword' ),
+		),
+		'site-editor.php'             => array(
+			_x( 'logo', 'command palette keyword' ),
+			_x( 'colors', 'command palette keyword' ),
+			_x( 'header', 'command palette keyword' ),
+			_x( 'footer', 'command palette keyword' ),
+			_x( 'templates', 'command palette keyword' ),
+		),
+		'nav-menus.php'               => array(
+			_x( 'navigation', 'command palette keyword' ),
+		),
+		'widgets.php'                 => array(
+			_x( 'sidebar', 'command palette keyword' ),
+		),
+		'font-library.php'            => array(
+			_x( 'typography', 'command palette keyword' ),
+		),
+		'plugins.php'                 => array(
+			_x( 'activate', 'command palette keyword' ),
+			_x( 'deactivate', 'command palette keyword' ),
+		),
+		'plugin-install.php'          => array(
+			_x( 'install', 'command palette keyword' ),
+			_x( 'extensions', 'command palette keyword' ),
+		),
+		'users.php'                   => array(
+			_x( 'accounts', 'command palette keyword' ),
+			_x( 'roles', 'command palette keyword' ),
+		),
+		'user-new.php'                => array(
+			_x( 'invite', 'command palette keyword' ),
+		),
+		'profile.php'                 => array(
+			_x( 'password', 'command palette keyword' ),
+			_x( 'display name', 'command palette keyword' ),
+			_x( 'color scheme', 'command palette keyword' ),
+		),
+		'import.php'                  => array(
+			_x( 'migrate', 'command palette keyword' ),
+		),
+		'export.php'                  => array(
+			_x( 'backup', 'command palette keyword' ),
+			_x( 'download', 'command palette keyword' ),
+		),
+		'site-health.php'             => array(
+			_x( 'php version', 'command palette keyword' ),
+			_x( 'debug', 'command palette keyword' ),
+		),
+		'theme-editor.php'            => array(
+			_x( 'code', 'command palette keyword' ),
+		),
+		'plugin-editor.php'           => array(
+			_x( 'code', 'command palette keyword' ),
+		),
+		'options-general.php'         => array(
+			_x( 'favicon', 'command palette keyword' ),
+			_x( 'site icon', 'command palette keyword' ),
+			_x( 'site title', 'command palette keyword' ),
+			_x( 'tagline', 'command palette keyword' ),
+			_x( 'timezone', 'command palette keyword' ),
+			_x( 'language', 'command palette keyword' ),
+		),
+		'options-writing.php'         => array(
+			_x( 'default category', 'command palette keyword' ),
+		),
+		'options-reading.php'         => array(
+			_x( 'search engines', 'command palette keyword' ),
+			_x( 'homepage', 'command palette keyword' ),
+			_x( 'front page', 'command palette keyword' ),
+		),
+		'options-discussion.php'      => array(
+			_x( 'comments', 'command palette keyword' ),
+			_x( 'avatars', 'command palette keyword' ),
+			_x( 'moderation', 'command palette keyword' ),
+		),
+		'options-media.php'           => array(
+			_x( 'thumbnail', 'command palette keyword' ),
+			_x( 'image sizes', 'command palette keyword' ),
+		),
+		'options-permalink.php'       => array(
+			_x( 'url structure', 'command palette keyword' ),
+			_x( 'slug', 'command palette keyword' ),
+		),
+		'options-privacy.php'         => array(
+			_x( 'privacy policy', 'command palette keyword' ),
+		),
+		'options-connectors.php'      => array(
+			_x( 'api key', 'command palette keyword' ),
+		),
+	);
+
+	/**
+	 * Filters the keywords for the admin menu commands in the Command Palette.
+	 *
+	 * Keywords are keyed by menu slug, the same `$menu_slug` that is passed to
+	 * add_menu_page() or add_submenu_page().
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, string[]> $keywords Keywords keyed by menu slug.
+	 */
+	return (array) apply_filters( 'admin_menu_command_keywords', $keywords );
+}
+
+/**
  * Enqueues the assets required for the Command Palette.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added keywords to the admin menu commands.
  *
  * @global array  $menu
  * @global array  $submenu
@@ -4140,6 +4291,7 @@ function wp_enqueue_command_palette_assets() {
 	};
 
 	if ( $menu ) {
+		$menu_keywords = wp_get_admin_menu_command_keywords();
 		$menu_commands = array();
 		foreach ( $menu as $menu_item ) {
 			if ( empty( $menu_item[0] ) || ! is_string( $menu_item[0] ) || ! empty( $menu_item[1] ) && ! current_user_can( $menu_item[1] ) ) {
@@ -4158,9 +4310,10 @@ function wp_enqueue_command_palette_assets() {
 
 			if ( $menu_url ) {
 				$menu_commands[] = array(
-					'label' => $menu_label,
-					'url'   => $menu_url,
-					'name'  => $menu_slug,
+					'label'    => $menu_label,
+					'url'      => $menu_url,
+					'name'     => $menu_slug,
+					'keywords' => array_values( (array) ( $menu_keywords[ $menu_slug ] ?? array() ) ),
 				);
 			}
 
@@ -4181,14 +4334,15 @@ function wp_enqueue_command_palette_assets() {
 					}
 					if ( $submenu_url ) {
 						$menu_commands[] = array(
-							'label' => sprintf(
+							'label'    => sprintf(
 								/* translators: 1: Menu label, 2: Submenu label. */
 								__( '%1$s > %2$s' ),
 								$menu_label,
 								$submenu_label
 							),
-							'url'   => $submenu_url,
-							'name'  => $menu_slug . '-' . $submenu_item[2],
+							'url'      => $submenu_url,
+							'name'     => $menu_slug . '-' . $submenu_item[2],
+							'keywords' => array_values( (array) ( $menu_keywords[ $submenu_slug ] ?? array() ) ),
 						);
 					}
 				}
