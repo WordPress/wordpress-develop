@@ -1138,4 +1138,38 @@ class Tests_WP_Interactivity_API_WP_Html extends WP_UnitTestCase {
 
 		$this->assertSame( array(), $this->announced_paths() );
 	}
+
+	/**
+	 * Tests that, in block rendering, each root interactive block renders the
+	 * token its render callback puts in state, as its directives are processed
+	 * as soon as it has rendered.
+	 *
+	 * @ticket 66246
+	 *
+	 * @covers ::process_directives
+	 * @covers WP_Block::render
+	 */
+	public function test_root_interactive_blocks_render_the_tokens_they_set() {
+		register_block_type(
+			'test/dangerous-html',
+			array(
+				'render_callback' => static function ( $attributes ) {
+					wp_interactivity_state( 'test', array( 'html' => wp_interactivity_as_dangerous_html( '<b>' . $attributes['label'] . '</b>' ) ) );
+					return '<div data-wp-interactive="test" data-wp-html="state.html">Fallback</div>';
+				},
+				'supports'        => array(
+					'interactivity' => true,
+				),
+			)
+		);
+
+		$output = do_blocks( '<!-- wp:test/dangerous-html {"label":"one"} /--><!-- wp:test/dangerous-html {"label":"two"} /-->' );
+		unregister_block_type( 'test/dangerous-html' );
+
+		$this->assertSame(
+			'<div data-wp-interactive="test" data-wp-html="state.html"><b>one</b></div>' .
+			'<div data-wp-interactive="test" data-wp-html="state.html"><b>two</b></div>',
+			$output
+		);
+	}
 }
