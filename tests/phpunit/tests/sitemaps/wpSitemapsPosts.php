@@ -112,6 +112,8 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 	/**
 	 * Creates a published post with a fixed modified date.
 	 *
+	 * The local modified date is derived from the GMT date using the current site timezone.
+	 *
 	 * @param string $post_modified_gmt Modified date in GMT, in 'Y-m-d H:i:s' format.
 	 * @return int Post ID.
 	 */
@@ -124,7 +126,7 @@ class Tests_Sitemaps_wpSitemapsPosts extends WP_UnitTestCase {
 		$wpdb->update(
 			$wpdb->posts,
 			array(
-				'post_modified'     => $post_modified_gmt,
+				'post_modified'     => get_date_from_gmt( $post_modified_gmt ),
 				'post_modified_gmt' => $post_modified_gmt,
 			),
 			array( 'ID' => $post_id )
