@@ -263,6 +263,13 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			array( '/2008%20', '/2008' ),
 			array( '//2008////', '/2008/' ),
 
+			// Protocols mid-path.
+			array( '/https://example.com', '/example.com' ),
+			array( '/https://example.com/123/abc', '/example.com/123/abc' ),
+			array( '/https://example.com/https://123123', '/example.com/123123' ),
+			array( '/https://example.com/xyz//https:///abcd', '/example.com/xyz/abcd' ),
+			array( '/http://', '/' ),
+
 			// @todo Endpoints (feeds, trackbacks, etc). More fuzzed mixed query variables, comment paging, Home page (static).
 		);
 	}
