@@ -251,9 +251,10 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 	public function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 20, $settings );
+		$this->assertCount( 21, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertIsArray( $settings['allowedMimeTypes'] );
+		$this->assertTrue( $settings['autoAttachMediaEnabled'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
@@ -349,6 +350,36 @@ class Tests_Blocks_Editor extends WP_UnitTestCase {
 		$this->assertIsInt( $settings['maxUploadFileSize'] );
 		$this->assertSame( admin_url( '/' ), $settings['__experimentalDashboardLink'] );
 		$this->assertTrue( $settings['__unstableGalleryWithImageBlocks'] );
+	}
+
+	/**
+	 * Tests that media is not attached to the post on save when attachment pages are enabled.
+	 *
+	 * @ticket 66321
+	 *
+	 * @dataProvider data_get_default_block_editor_settings_auto_attach_media_enabled
+	 *
+	 * @param int  $attachment_pages_enabled Value of the `wp_attachment_pages_enabled` option.
+	 * @param bool $expected                 Expected value of the `autoAttachMediaEnabled` setting.
+	 */
+	public function test_get_default_block_editor_settings_auto_attach_media_enabled( $attachment_pages_enabled, $expected ) {
+		update_option( 'wp_attachment_pages_enabled', $attachment_pages_enabled );
+
+		$settings = get_default_block_editor_settings();
+
+		$this->assertSame( $expected, $settings['autoAttachMediaEnabled'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_default_block_editor_settings_auto_attach_media_enabled() {
+		return array(
+			'attachment pages disabled' => array( 0, true ),
+			'attachment pages enabled'  => array( 1, false ),
+		);
 	}
 
 	/**
