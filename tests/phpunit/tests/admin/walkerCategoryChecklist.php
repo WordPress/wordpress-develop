@@ -172,10 +172,10 @@ class Tests_Admin_Walker_Category_Checklist extends WP_UnitTestCase {
 		$this->assertStringStartsWith( $id_prefix, $li_id, 'The list item ID should start with the taxonomy and term ID.' );
 		$this->assertSame( $li_class, $processor->get_attribute( 'class' ), 'The list item class did not match.' );
 
-		$this->assertTrue( $processor->next_tag( 'LABEL' ), 'The list item should contain a label.' );
+		$this->assertTrue( $processor->next_tag( 'LABEL' ), 'A label should follow the list item opening tag.' );
 		$this->assertSame( 'selectit', $processor->get_attribute( 'class' ), 'The label class did not match.' );
 
-		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The label should contain an input.' );
+		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'An input should follow the label opening tag.' );
 		$this->assertSame( 'checkbox', $processor->get_attribute( 'type' ), 'The input should be a checkbox.' );
 		$this->assertSame( '5', $processor->get_attribute( 'value' ), 'The checkbox value should be the term ID.' );
 		$this->assertSame( $name, $processor->get_attribute( 'name' ), 'The checkbox name did not match.' );
