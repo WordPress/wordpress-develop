@@ -703,11 +703,13 @@ class WP_Ability {
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
-		// A permission callback may be omitted only when required capabilities are declared.
-		if (
-			! is_callable( $this->permission_callback ) &&
-			( null !== $this->permission_callback || empty( $this->required_capabilities ) )
-		) {
+		// A permission callback that is set must be callable.
+		$is_invalid_callback = null !== $this->permission_callback && ! is_callable( $this->permission_callback );
+
+		// Without a permission callback, the ability must declare required capabilities.
+		$is_missing_check = null === $this->permission_callback && empty( $this->required_capabilities );
+
+		if ( $is_invalid_callback || $is_missing_check ) {
 			return new WP_Error(
 				'ability_invalid_permission_callback',
 				/* translators: %s ability name. */
