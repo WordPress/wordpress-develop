@@ -1123,7 +1123,11 @@ final class WP_Abilities_Content {
 				'type' => 'string',
 				'enum' => $this->get_field_paths(),
 			),
-			'description' => __( 'Limit each returned post to these fields. A field such as `title` returns all of its sub-fields the current user can see, while a path such as `title.rendered` returns only that sub-field. The `id` is always included. If omitted or empty, a lean set of common read fields is returned. Raw sub-fields, such as `content.raw`, are left out of the posts the current user cannot edit.' ),
+			'description' => sprintf(
+				/* translators: %s: Comma-separated list of field paths. */
+				__( 'Limit each returned post to these fields. A field such as `title` returns all of its sub-fields the current user can see, while a path such as `title.rendered` returns only that sub-field. The `id` is always included. If omitted or empty, the default fields are returned: %s. Requested fields that do not apply to a post are left out of it: raw sub-fields, such as `content.raw`, when the current user cannot edit the post, and fields its post type does not support, such as `parent` for a post type that is not hierarchical. A returned post may therefore hold only its `id`. Password-protected posts differ: when the current user cannot edit one, its `excerpt.rendered` and `content.rendered` are returned as empty strings rather than left out, with `protected` set to true.' ),
+				'`' . implode( '`, `', self::DEFAULT_FIELDS ) . '`'
+			),
 		);
 	}
 
@@ -1212,7 +1216,7 @@ final class WP_Abilities_Content {
 						'page'     => array(
 							'type'        => 'integer',
 							'minimum'     => 1,
-							'description' => __( 'Page of results to return. Requesting a page beyond the last one is an error. Check `pagination.total_pages` in the result before requesting later pages.' ),
+							'description' => __( 'Page of results to return. Defaults to 1. Requesting a page beyond the last one is an error, unless no post matches the query: then any page returns empty `items` and zero totals. Check `pagination.total_pages` in the result before requesting later pages.' ),
 						),
 						'per_page' => array(
 							'type'        => 'integer',
@@ -1270,7 +1274,7 @@ final class WP_Abilities_Content {
 			'properties'           => array(
 				'items'      => array(
 					'type'        => 'array',
-					'description' => __( 'The readable posts on the requested page, ordered by post date, newest first.' ),
+					'description' => __( 'The readable posts on the requested page, ordered by post date, newest first. Can be empty even when `pagination.total` is not zero, because the totals can count matching posts the current user cannot read.' ),
 					'items'       => $this->get_content_output_schema(),
 				),
 				'pagination' => array(
