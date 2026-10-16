@@ -44,9 +44,9 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     Settings for the current Categories widget instance.
 	 *
 	 *     @type string $title        Widget title.
-	 *     @type int    $count        Whether to show post counts. Accepts 0 or 1.
-	 *     @type int    $hierarchical Whether to show the category hierarchy. Accepts 0 or 1.
-	 *     @type int    $dropdown     Whether to display the categories as a drop-down. Accepts 0 or 1.
+	 *     @type 0|1    $count        Whether to show post counts.
+	 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
 	public function widget( $args, $instance ) {
@@ -108,9 +108,9 @@ class WP_Widget_Categories extends WP_Widget {
 			 *     Array of settings for the current widget.
 			 *
 			 *     @type string $title        Widget title.
-			 *     @type int    $count        Whether to show post counts. Accepts 0 or 1.
-			 *     @type int    $hierarchical Whether to show the category hierarchy. Accepts 0 or 1.
-			 *     @type int    $dropdown     Whether to display the categories as a drop-down. Accepts 0 or 1.
+			 *     @type 0|1    $count        Whether to show post counts.
+			 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+			 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 			 * }
 			 */
 			wp_dropdown_categories( apply_filters( 'widget_categories_dropdown_args', $cat_args, $instance ) );
@@ -190,9 +190,9 @@ class WP_Widget_Categories extends WP_Widget {
 				 *     Array of settings for the current widget.
 				 *
 				 *     @type string $title        Widget title.
-				 *     @type int    $count        Whether to show post counts. Accepts 0 or 1.
-				 *     @type int    $hierarchical Whether to show the category hierarchy. Accepts 0 or 1.
-				 *     @type int    $dropdown     Whether to display the categories as a drop-down. Accepts 0 or 1.
+				 *     @type 0|1    $count        Whether to show post counts.
+				 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+				 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 				 * }
 				 */
 				wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
@@ -227,17 +227,17 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     Old settings for this instance.
 	 *
 	 *     @type string $title        Widget title.
-	 *     @type int    $count        Whether to show post counts. Accepts 0 or 1.
-	 *     @type int    $hierarchical Whether to show the category hierarchy. Accepts 0 or 1.
-	 *     @type int    $dropdown     Whether to display the categories as a drop-down. Accepts 0 or 1.
+	 *     @type 0|1    $count        Whether to show post counts.
+	 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 * @return array {
 	 *     Updated settings to save.
 	 *
 	 *     @type string $title        Widget title.
-	 *     @type int    $count        Whether to show post counts. Either 0 or 1.
-	 *     @type int    $hierarchical Whether to show the category hierarchy. Either 0 or 1.
-	 *     @type int    $dropdown     Whether to display the categories as a drop-down. Either 0 or 1.
+	 *     @type 0|1    $count        Whether to show post counts.
+	 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
 	public function update( $new_instance, $old_instance ) {
@@ -259,9 +259,9 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     Current settings.
 	 *
 	 *     @type string $title        Widget title.
-	 *     @type int    $count        Whether to show post counts. Accepts 0 or 1.
-	 *     @type int    $hierarchical Whether to show the category hierarchy. Accepts 0 or 1.
-	 *     @type int    $dropdown     Whether to display the categories as a drop-down. Accepts 0 or 1.
+	 *     @type 0|1    $count        Whether to show post counts.
+	 *     @type 0|1    $hierarchical Whether to show the category hierarchy.
+	 *     @type 0|1    $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 */
 	public function form( $instance ) {
