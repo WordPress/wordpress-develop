@@ -717,12 +717,6 @@ class WP_Automatic_Updater {
 			$upgrader->maintenance_mode( false );
 		}
 
-		/*
-		 * PHPStan cannot correlate $type with the types of $item and $upgrade_result here, as the
-		 * narrowing by $type is lost after each switch. This ignore should be removed once a
-		 * conditional parameter type is used for $item; see the comment at the start of this method.
-		 */
-		// @phpstan-ignore assign.propertyType
 		$this->update_results[ $type ][] = (object) array(
 			'item'     => $item,
 			'result'   => $upgrade_result,
