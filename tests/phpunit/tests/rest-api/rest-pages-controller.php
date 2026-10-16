@@ -9,9 +9,15 @@
  * @group restapi
  */
 class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Testcase {
+	protected static $admin_id;
 	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id  = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
 		self::$editor_id = $factory->user->create(
 			array(
 				'role' => 'editor',
@@ -20,6 +26,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$admin_id );
 		self::delete_user( self::$editor_id );
 	}
 
@@ -865,6 +872,191 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
 		$this->assertArrayHasKey( 'class_list', $properties );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_schema_links
+	 */
+	public function test_homepage_action_ldos_registered() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$rels = wp_list_pluck( $schema['links'], 'rel' );
+
+		$this->assertContains( 'https://api.w.org/action-set-homepage', $rels, 'The action-set-homepage LDO should be on the schema.' );
+		$this->assertContains( 'https://api.w.org/action-set-posts-page', $rels, 'The action-set-posts-page LDO should be on the schema.' );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_schema_links
+	 */
+	public function test_homepage_action_ldos_not_registered_for_posts() {
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' ) );
+		$data     = $response->get_data();
+		$schema   = $data['schema'];
+
+		$this->assertArrayHasKey( 'links', $schema );
+		$rels = wp_list_pluck( $schema['links'], 'rel' );
+
+		$this->assertNotContains( 'https://api.w.org/action-set-homepage', $rels, 'The action-set-homepage LDO should not be on the schema.' );
+		$this->assertNotContains( 'https://api.w.org/action-set-posts-page', $rels, 'The action-set-posts-page LDO should not be on the schema.' );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_exist_for_admin() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertSame( $links['self'][0]['href'], $links['https://api.w.org/action-set-homepage'][0]['href'], 'The action-set-homepage link should target the page.' );
+		$this->assertSame( $links['self'][0]['href'], $links['https://api.w.org/action-set-posts-page'][0]['href'], 'The action-set-posts-page link should target the page.' );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_only_available_in_edit_context() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}", 'view' );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_do_not_exist_for_editor() {
+		wp_set_current_user( self::$editor_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * @dataProvider data_unpublished_page_statuses
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 *
+	 * @param string $status Post status.
+	 */
+	public function test_homepage_action_links_do_not_exist_for_unpublished_pages( $status ) {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => $status,
+			)
+		);
+		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_unpublished_page_statuses() {
+		return array(
+			'draft'   => array( 'draft' ),
+			'pending' => array( 'pending' ),
+			'private' => array( 'private' ),
+		);
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_do_not_exist_for_homepage() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', $page_id );
+
+		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_do_not_exist_for_posts_page() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $page_id );
+
+		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_exist_for_other_pages() {
+		wp_set_current_user( self::$admin_id );
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_on_front', self::factory()->post->create( array( 'post_type' => 'page' ) ) );
+		update_option( 'page_for_posts', self::factory()->post->create( array( 'post_type' => 'page' ) ) );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_do_not_exist_for_posts() {
+		wp_set_current_user( self::$admin_id );
+
+		$post_id = self::factory()->post->create();
+		$links   = $this->get_response_links( "/wp/v2/posts/{$post_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+	}
+
+	/**
+	 * Requests a post and returns the links of the response.
+	 *
+	 * @param string $route   Route of the post.
+	 * @param string $context Optional. Request context. Default 'edit'.
+	 * @return array Links of the response.
+	 */
+	protected function get_response_links( $route, $context = 'edit' ) {
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( array( 'context' => $context ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'The post should be found.' );
+
+		return $response->get_links();
 	}
 
 	public function filter_theme_page_templates( $page_templates ) {
