@@ -311,12 +311,12 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 }
 
 .admin-bar {
-	--global--admin-bar--height: 32px;
+	--global--admin-bar--height: 48px;
 }
 @media only screen and (max-width: 782px) {
 
 	.admin-bar {
-		--global--admin-bar--height: 46px;
+		--global--admin-bar--height: 48px;
 	}
 }
 
