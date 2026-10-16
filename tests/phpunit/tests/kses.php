@@ -2131,8 +2131,8 @@ EOF;
 	 * @ticket 46197
 	 * @ticket 46498
 	 *
-	 * @param $input string The style attribute saved in the editor.
-	 * @param $expected string The sanitized style attribute.
+	 * @param string $input    The style attribute saved in the editor.
+	 * @param string $expected The sanitized style attribute.
 	 */
 	public function test_kses_style_attr_with_url( $input, $expected ) {
 		$actual = safecss_filter_attr( $input );
@@ -2559,7 +2559,7 @@ EOF;
 	 * Filter upload directory for tests using port number.
 	 *
 	 * @param  array $param See wp_upload_dir()
-	 * @return array        $param with a modified `url`.
+	 * @return array Upload directory data with a modified `url`.
 	 */
 	public function wp_kses_upload_dir_filter( $param ) {
 		// Take care to replace the entire domain, including cases where it already has a port number.
