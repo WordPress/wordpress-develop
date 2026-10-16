@@ -17,6 +17,13 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	const AI_KEY_SETTING_NAME      = 'connectors_ai_mock_connectors_test_api_key';
 
 	/**
+	 * Administrator user ID.
+	 *
+	 * @var int
+	 */
+	private static $administrator_id;
+
+	/**
 	 * Registers the mock AI provider connector once before any tests in this class run.
 	 */
 	public static function set_up_before_class(): void {
@@ -30,6 +37,22 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	public static function tear_down_after_class(): void {
 		self::unregister_mock_connector_setting();
 		parent::tear_down_after_class();
+	}
+
+	/**
+	 * Creates an administrator for REST settings requests.
+	 *
+	 * @param WP_UnitTest_Factory $factory Test factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$administrator_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
+	/**
+	 * Removes the administrator.
+	 */
+	public static function wpTearDownAfterClass() {
+		self::delete_user( self::$administrator_id );
 	}
 
 	/**
@@ -54,13 +77,15 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 	}
 
 	/**
-	 * Removes the test connector after each test.
+	 * Removes the test connector and its setting after each test.
 	 */
 	public function tear_down(): void {
 		$registry = WP_Connector_Registry::get_instance();
 		if ( null !== $registry && $registry->is_registered( self::CONNECTOR_ID ) ) {
 			$registry->unregister( self::CONNECTOR_ID );
 		}
+
+		unregister_setting( 'connectors', self::CREDENTIALS_SETTING_NAME );
 
 		parent::tear_down();
 	}
@@ -181,6 +206,120 @@ class Tests_Connectors_WpConnectorsRestSettingsDispatch extends WP_UnitTestCase 
 			_wp_connectors_mask_api_key( $submitted_key ),
 			$data[ self::AI_KEY_SETTING_NAME ],
 			'The submitted AI provider key should be masked in the response.'
+		);
+	}
+
+	/**
+	 * Ensures credentials are masked for every spelling of the settings route
+	 * that the REST server matches.
+	 *
+	 * @ticket 66330
+	 *
+	 * @dataProvider data_settings_route_spellings
+	 *
+	 * @param string $route Requested settings route.
+	 */
+	public function test_masks_credentials_for_every_settings_route_spelling( string $route ): void {
+		$response = new WP_REST_Response(
+			array(
+				self::AI_KEY_SETTING_NAME      => 'sk-stored-valid-key',
+				self::CREDENTIALS_SETTING_NAME => array(
+					'username' => 'remote-user',
+					'password' => 'abcd efgh ijkl mnop 1234',
+				),
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', $route );
+
+		$result = _wp_connectors_rest_settings_dispatch( $response, rest_get_server(), $request );
+		$data   = $result->get_data();
+
+		$this->assertSame(
+			_wp_connectors_mask_api_key( 'sk-stored-valid-key' ),
+			$data[ self::AI_KEY_SETTING_NAME ],
+			'The AI provider key should be masked.'
+		);
+		$this->assertSame(
+			str_repeat( "\u{2022}", 16 ),
+			$data[ self::CREDENTIALS_SETTING_NAME ]['password'],
+			'The application password should be masked.'
+		);
+	}
+
+	/**
+	 * Ensures settings endpoint responses mask credentials for every `rest_route`
+	 * query variable value that the REST server dispatches to the settings controller.
+	 *
+	 * @ticket 66330
+	 *
+	 * @dataProvider data_settings_rest_route_query_values
+	 *
+	 * @param string $rest_route Raw `rest_route` query variable value.
+	 */
+	public function test_settings_endpoint_masks_credentials_for_every_rest_route_spelling( string $rest_route ): void {
+		// Parse the request URL without serving it, then read the route as rest_api_loaded() does.
+		remove_action( 'parse_request', 'rest_api_loaded' );
+		rest_api_init();
+		$this->go_to( home_url( '/?rest_route=' . $rest_route ) );
+		$route = untrailingslashit( $GLOBALS['wp']->query_vars['rest_route'] );
+
+		wp_set_current_user( self::$administrator_id );
+		_wp_register_default_connector_settings();
+
+		update_option( self::AI_KEY_SETTING_NAME, 'sk-stored-valid-key' );
+		update_option(
+			self::CREDENTIALS_SETTING_NAME,
+			array(
+				'username' => 'remote-user',
+				'password' => 'abcd efgh ijkl mnop 1234',
+			)
+		);
+
+		// Apply `rest_post_dispatch` the way WP_REST_Server::serve_request() does.
+		$request  = new WP_REST_Request( 'GET', $route );
+		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( rest_do_request( $request ) ), rest_get_server(), $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status(), 'The settings controller should handle the request.' );
+		$this->assertSame(
+			_wp_connectors_mask_api_key( 'sk-stored-valid-key' ),
+			$data[ self::AI_KEY_SETTING_NAME ],
+			'The AI provider key should be masked in the settings response.'
+		);
+		$this->assertSame(
+			str_repeat( "\u{2022}", 16 ),
+			$data[ self::CREDENTIALS_SETTING_NAME ]['password'],
+			'The application password should be masked in the settings response.'
+		);
+	}
+
+	/**
+	 * Data provider for spellings of the settings route that the REST server
+	 * dispatches to the settings controller.
+	 *
+	 * @return array<string, array{string}> Test cases.
+	 */
+	public function data_settings_route_spellings(): array {
+		return array(
+			'lowercase'        => array( '/wp/v2/settings' ),
+			'mixed case'       => array( '/wp/v2/Settings' ),
+			'uppercase'        => array( '/WP/V2/SETTINGS' ),
+			'trailing newline' => array( "/wp/v2/settings\n" ),
+		);
+	}
+
+	/**
+	 * Data provider for raw `rest_route` query variable values that the REST
+	 * server dispatches to the settings controller.
+	 *
+	 * @return array<string, array{string}> Test cases.
+	 */
+	public function data_settings_rest_route_query_values(): array {
+		return array(
+			'lowercase'                => array( '/wp/v2/settings' ),
+			'mixed case'               => array( '/wp/v2/Settings' ),
+			'uppercase'                => array( '/WP/V2/SETTINGS' ),
+			'encoded trailing newline' => array( '/wp/v2/settings%0A' ),
 		);
 	}
 }
