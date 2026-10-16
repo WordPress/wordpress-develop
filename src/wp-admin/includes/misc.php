@@ -86,7 +86,9 @@ function extract_from_markers( $filename, $marker ) {
 				continue;
 			}
 
-			$result[] = $markerline;
+			if ( '' !== $markerline ) {
+				$result[] = $markerline;
+			}
 		}
 
 		if ( str_contains( $markerline, '# BEGIN ' . $marker ) ) {
