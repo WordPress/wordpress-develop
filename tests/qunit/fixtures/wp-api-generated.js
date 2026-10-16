@@ -12756,6 +12756,12 @@ mockedApiResponse.Schema = {
                             },
                             "additionalProperties": true,
                             "required": false
+                        },
+                        "has_required_capabilities": {
+                            "description": "Limit results to abilities whose required capabilities the current user has. Abilities that declare no required capabilities are always included. Permission callbacks and permission result filters are not evaluated, so inclusion does not guarantee permission to execute. False disables capability filtering.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
                         }
                     }
                 }
