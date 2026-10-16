@@ -24,6 +24,15 @@ class WP_Automatic_Updater {
 	protected $update_results = array();
 
 	/**
+	 * Maximum length of a plugin or theme name in an email subject.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @var int
+	 */
+	const SUBJECT_ITEM_NAME_MAX_LENGTH = 35;
+
+	/**
 	 * Determines whether the entire automatic updater is disabled.
 	 *
 	 * @since 3.7.0
@@ -1224,6 +1233,53 @@ class WP_Automatic_Updater {
 	}
 
 	/**
+	 * Builds a subject for a plugin or theme update email.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param object[] $updates      A list of plugin or theme updates.
+	 * @param string   $item_type    The type of item being updated. Either 'plugin' or 'theme'.
+	 * @param string   $update_type  The type of update email. Either 'success' or 'fail'.
+	 * @param array    $subject_args Subject arguments to append after the site title.
+	 * @return string The email subject.
+	 */
+	protected function get_update_email_subject( $updates, $item_type, $update_type, &$subject_args ) {
+		$count = count( $updates );
+
+		if ( 1 === $count && ! empty( $updates[0]->name ) ) {
+			$subject_args[] = wp_html_excerpt( $updates[0]->name, self::SUBJECT_ITEM_NAME_MAX_LENGTH, '…' );
+
+			if ( 'success' === $update_type ) {
+				/* translators: 1: Site title, 2: Plugin or theme name. */
+				return __( '[%1$s] %2$s was automatically updated' );
+			}
+
+			/* translators: 1: Site title, 2: Plugin or theme name. */
+			return __( '[%1$s] %2$s failed to update' );
+		}
+
+		$subject_args[] = $count;
+
+		if ( 'success' === $update_type ) {
+			if ( 'plugin' === $item_type ) {
+				/* translators: 1: Site title, 2: Number of plugins. */
+				return _n( '[%1$s] %2$d plugin was automatically updated', '[%1$s] %2$d plugins were automatically updated', $count );
+			}
+
+			/* translators: 1: Site title, 2: Number of themes. */
+			return _n( '[%1$s] %2$d theme was automatically updated', '[%1$s] %2$d themes were automatically updated', $count );
+		}
+
+		if ( 'plugin' === $item_type ) {
+			/* translators: 1: Site title, 2: Number of plugins. */
+			return _n( '[%1$s] %2$d plugin has failed to update', '[%1$s] %2$d plugins have failed to update', $count );
+		}
+
+		/* translators: 1: Site title, 2: Number of themes. */
+		return _n( '[%1$s] %2$d theme has failed to update', '[%1$s] %2$d themes have failed to update', $count );
+	}
+
+	/**
 	 * Sends an email upon the completion or failure of a plugin or theme background update.
 	 *
 	 * @since 5.5.0
@@ -1275,6 +1331,7 @@ class WP_Automatic_Updater {
 		}
 
 		$body               = array();
+		$subject_args       = array();
 		$successful_plugins = ( ! empty( $successful_updates['plugin'] ) );
 		$successful_themes  = ( ! empty( $successful_updates['theme'] ) );
 		$failed_plugins     = ( ! empty( $failed_updates['plugin'] ) );
@@ -1291,16 +1348,14 @@ class WP_Automatic_Updater {
 						home_url()
 					);
 				} elseif ( $successful_plugins ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins were automatically updated' );
+					$subject = $this->get_update_email_subject( $successful_updates['plugin'], 'plugin', 'success', $subject_args );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Some plugins have automatically updated to their latest versions on your site at %s. No further action is needed on your part.' ),
 						home_url()
 					);
 				} else {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some themes were automatically updated' );
+					$subject = $this->get_update_email_subject( $successful_updates['theme'] ?? array(), 'theme', 'success', $subject_args );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Some themes have automatically updated to their latest versions on your site at %s. No further action is needed on your part.' ),
@@ -1320,16 +1375,14 @@ class WP_Automatic_Updater {
 						home_url()
 					);
 				} elseif ( $failed_plugins ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins have failed to update' );
+					$subject = $this->get_update_email_subject( $failed_updates['plugin'], 'plugin', 'fail', $subject_args );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Plugins failed to update on your site at %s.' ),
 						home_url()
 					);
 				} else {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some themes have failed to update' );
+					$subject = $this->get_update_email_subject( $failed_updates['theme'] ?? array(), 'theme', 'fail', $subject_args );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Themes failed to update on your site at %s.' ),
@@ -1515,7 +1568,7 @@ class WP_Automatic_Updater {
 
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
-		$subject = sprintf( $subject, $site_title );
+		$subject = vsprintf( $subject, array_merge( array( $site_title ), $subject_args ) );
 		$headers = '';
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
