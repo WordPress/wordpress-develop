@@ -395,7 +395,7 @@ class WP_Automatic_Updater {
 	 *
 	 * @param string $type The type of update being checked: 'core', 'theme', 'plugin', 'translation'.
 	 * @param object $item The update offer.
-	 * @return null|WP_Error
+	 * @return null|WP_Error|bool|string|array
 	 */
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
