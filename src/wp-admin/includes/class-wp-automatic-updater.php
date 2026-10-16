@@ -1960,7 +1960,7 @@ Thanks! -- The WordPress Team"
 				'PHP Fatal error: %s in %s on line %d',
 				$result['message'],
 				isset( $result['file'] ) && is_string( $result['file'] ) ? $result['file'] : 'unknown',
-				isset( $result['line'] ) && is_int( $result['line'] ) ? $result['line'] : 0
+				isset( $result['line'] ) && is_numeric( $result['line'] ) ? (int) $result['line'] : 0
 			);
 
 			$errors = get_transient( 'wp_updater_last_fatal_error' );
