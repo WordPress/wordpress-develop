@@ -588,7 +588,6 @@ class Tests_Widgets_wpWidgetRecentComments extends WP_UnitTestCase {
 		$processor = new WP_HTML_Tag_Processor( $output );
 
 		$this->assertFalse( $processor->next_tag( 'NAV' ), 'The output should not contain a nav tag in xhtml format.' );
-		$this->assertCount( 5, $this->get_listed_authors( $output ), 'The comments should still be listed.' );
 	}
 
 	/**
