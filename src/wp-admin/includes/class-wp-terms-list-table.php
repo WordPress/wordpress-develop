@@ -395,8 +395,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 *
 		 * @see WP_Terms_List_Table::column_name()
 		 *
-		 * @param string $pad_tag_name The term name, padded if not top-level.
-		 * @param WP_Term $tag         Term object.
+		 * @param string  $pad_tag_name The term name, padded if not top-level.
+		 * @param WP_Term $tag          Term object.
 		 */
 		$name = apply_filters( 'term_name', $pad . ' ' . $tag->name, $tag );
 
@@ -750,5 +750,21 @@ class WP_Terms_List_Table extends WP_List_Table {
 		</tbody></table>
 		</form>
 		<?php
+	}
+
+	/**
+	 * Returns a clean label for the primary (Name) column's row header `aria-label`.
+	 *
+	 * Provides screen readers with just the term name as the row header name,
+	 * preventing them from computing the name from the full cell content.
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param WP_Term $term Term object.
+	 * @return string The term name.
+	 */
+	protected function get_primary_column_aria_label( $term ) {
+		// Term names are already sanitized via `sanitize_term()` on creation and update.
+		return $term->name;
 	}
 }

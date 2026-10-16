@@ -1175,6 +1175,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		} else {
 			$data = $response->get_data();
 
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $data['capabilities'], new stdClass() );
 			$this->assertEquals( $data['extra_capabilities'], new stdClass() );
 		}
@@ -1995,7 +1996,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$new_data = $response->get_data();
 
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 
 		$user = get_userdata( $user_id );
 		$this->assertArrayHasKey( 'editor', $user->caps );
@@ -2090,7 +2091,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$new_data = $response->get_data();
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
@@ -2104,7 +2105,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$new_data = $response->get_data();
 		$this->assertSame( 'editor', $new_data['roles'][0] );
-		$this->assertNotEquals( 'administrator', $new_data['roles'][0] );
+		$this->assertNotSame( 'administrator', $new_data['roles'][0] );
 	}
 
 
@@ -2387,7 +2388,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2410,7 +2411,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 					'first_name'  => 'div strong',
 					'last_name'   => 'div strong',
 					'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 					'nickname'    => 'div strong',
 					'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 				)
@@ -2469,7 +2470,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 				'first_name'  => 'div strong',
 				'last_name'   => 'div strong',
 				'url'         => 'http://divdiv/div%20strongstrong/strong%20scriptoh%20noes/script',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 				'nickname'    => 'div strong',
 				'password'    => '<div>div</div> <strong>strong</strong> <script>oh noes</script>',
 			)
@@ -2642,7 +2643,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Confidence check to ensure the factory created the post correctly.
 		$post = get_post( $test_post );
-		$this->assertEquals( $user_id, $post->post_author );
+		$this->assertSame( (string) $user_id, $post->post_author );
 
 		wp_set_current_user( self::$user );
 
@@ -2662,7 +2663,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 
 		// Check that the post has been updated correctly.
 		$post = get_post( $test_post );
-		$this->assertEquals( $reassign_id, $post->post_author );
+		$this->assertSame( (string) $reassign_id, $post->post_author );
 	}
 
 	public function test_delete_user_invalid_reassign_id() {
@@ -2810,7 +2811,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 
 		$test_post = get_post( $test_post );
-		$this->assertEquals( 0, $test_post->post_author );
+		$this->assertSame( '0', $test_post->post_author );
 	}
 
 	public function test_get_item_schema() {
@@ -2902,7 +2903,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_user_meta( 1, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_user_meta( 1, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users' );
 		$request->set_body_params(
@@ -2914,7 +2915,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
@@ -3283,7 +3284,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertTrue( isset( $args[0][0] ), 'Query parameters were not captured.' );
 		$this->assertInstanceOf( WP_User_Query::class, $args[0][0], 'Query parameters were not captured.' );
 
-		/** @var WP_User $query */
+		/** @var WP_User_Query $query */
 		$query = $args[0][0];
 
 		if ( $is_head_request ) {
@@ -3355,6 +3356,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 			$this->assertSame( $user->last_name, $data['last_name'] );
 			$this->assertSame( $user->nickname, $data['nickname'] );
 			$this->assertSame( $user->user_email, $data['email'] );
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( (object) $user->allcaps, $data['capabilities'] );
 			$this->assertEquals( (object) $user->caps, $data['extra_capabilities'] );
 			$this->assertSame( gmdate( 'c', strtotime( $user->user_registered ) ), $data['registered_date'] );

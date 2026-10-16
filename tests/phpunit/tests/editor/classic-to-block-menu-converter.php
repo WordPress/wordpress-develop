@@ -29,7 +29,7 @@ class WP_Classic_To_Block_Menu_Converter_Test extends WP_UnitTestCase {
 
 		$result = WP_Classic_To_Block_Menu_Converter::convert( $data );
 
-		$this->assertTrue( is_wp_error( $result ), 'Should be a WP_Error instance' );
+		$this->assertWPError( $result, 'Should be a WP_Error instance' );
 
 		$this->assertSame( 'invalid_menu', $result->get_error_code(), 'Error code should indicate invalidity of menu argument.' );
 
