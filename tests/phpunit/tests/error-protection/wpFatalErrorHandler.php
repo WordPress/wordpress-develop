@@ -113,6 +113,38 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Asserts that handle() will not return early before detecting the error.
+	 *
+	 * handle() returns immediately once WP_SANDBOX_SCRAPING is true, which an earlier
+	 * test in the same process may have defined, so tests relying on this run in a
+	 * separate process.
+	 */
+	private function assert_handler_is_not_sandboxed() {
+		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING, 'WP_SANDBOX_SCRAPING must not be enabled for this test.' );
+		$this->assertFalse( wp_is_maintenance_mode(), 'Maintenance mode must not be enabled for this test.' );
+	}
+
+	/**
+	 * Sends output so that headers_sent() returns true.
+	 *
+	 * The open output buffers, including PHPUnit's own, are closed so the output
+	 * reaches the SAPI and are then reopened at the same level.
+	 */
+	private function send_output() {
+		$levels = ob_get_level();
+
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+
+		echo ' ';
+
+		for ( $i = 0; $i < $levels; $i++ ) {
+			ob_start();
+		}
+	}
+
+	/**
 	 * Makes error_get_last() return a warning raised by this test.
 	 */
 	private function raise_last_error() {
@@ -283,9 +315,16 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::handle
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_does_nothing_without_error() {
+		$this->assert_handler_is_not_sandboxed();
+
 		set_current_screen( 'dashboard' );
+		$this->set_recovery_mode_state( false, false );
+
 		add_filter( 'wp_should_handle_php_error', '__return_true' );
 
 		$handler = new WP_Fatal_Error_Handler();
@@ -300,36 +339,61 @@ class Tests_Error_Protection_wpFatalErrorHandler extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::handle
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_does_nothing_for_error_that_is_not_handled() {
+		$this->assert_handler_is_not_sandboxed();
+
 		set_current_screen( 'dashboard' );
+		$this->set_recovery_mode_state( false, false );
+
+		$filter = new MockAction();
+		add_filter( 'wp_should_handle_php_error', array( $filter, 'filter' ) );
 
 		$this->raise_last_error();
 
 		$handler = new WP_Fatal_Error_Handler();
 		$handler->handle();
 
-		$this->assertSame( array(), $this->wp_die_calls );
+		$this->assertSame( 1, $filter->get_call_count(), 'The error should be checked.' );
+		$this->assertSame( array(), $this->wp_die_calls, 'The error template should not be displayed.' );
 	}
 
 	/**
 	 * Tests that handle() does not display the error template on the front end once headers are sent.
 	 *
+	 * Runs in a separate process so that output can be sent without depending on
+	 * the output of the test runner.
+	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::handle
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_does_not_display_template_on_front_end_after_headers_sent() {
-		$this->assertTrue( headers_sent(), 'Headers must already be sent for this test.' );
+		$this->assert_handler_is_not_sandboxed();
+		$this->assertFalse( is_admin(), 'This test must run on the front end.' );
 
-		add_filter( 'wp_should_handle_php_error', '__return_true' );
+		$this->set_recovery_mode_state( false, false );
+
+		$this->send_output();
+		$this->assertTrue( headers_sent(), 'Headers should be sent.' );
+
+		$filter = new MockAction();
+		add_filter( 'wp_should_handle_php_error', array( $filter, 'filter' ) );
+		add_filter( 'wp_should_handle_php_error', '__return_true', 20 );
 
 		$this->raise_last_error();
 
 		$handler = new WP_Fatal_Error_Handler();
 		$handler->handle();
 
-		$this->assertSame( array(), $this->wp_die_calls );
+		$this->assertSame( 1, $filter->get_call_count(), 'The error should be detected.' );
+		$this->assertSame( array(), $this->wp_die_calls, 'The error template should not be displayed.' );
 	}
 
 	/**
