@@ -160,7 +160,16 @@ class WP_Widget_Categories extends WP_Widget {
 				 * @since 2.8.0
 				 * @since 4.9.0 Added the `$instance` parameter.
 				 *
-				 * @param array $cat_args An array of Categories widget options.
+				 * @param array $cat_args {
+				 *     An array of Categories widget options. See {@see wp_list_categories()} for information on
+				 *     additional accepted arguments.
+				 *
+				 *     @type string $orderby      Which column to use for ordering categories. See {@see get_terms()}
+				 *                                for a list of accepted values. Default 'name'.
+				 *     @type bool   $show_count   Whether to include post counts.
+				 *     @type bool   $hierarchical Whether to traverse the taxonomy hierarchy.
+				 *     @type string $title_li     Text to use for the list title `<li>` element. Default empty string.
+				 * }
 				 * @param array $instance Array of settings for the current widget.
 				 */
 				wp_list_categories( apply_filters( 'widget_categories_args', $cat_args, $instance ) );
