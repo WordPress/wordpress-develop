@@ -396,6 +396,12 @@ class WP_Automatic_Updater {
 	 * @param string $type The type of update being checked: 'core', 'theme', 'plugin', 'translation'.
 	 * @param object $item The update offer.
 	 * @return null|WP_Error|bool|string|array
+	 *
+	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
+	 * @phpstan-return (
+	 *     $type is 'core' ? string|false|WP_Error : (
+	 *     $type is 'translation' ? array<mixed>|bool|WP_Error : bool|WP_Error )
+	 * )
 	 */
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
