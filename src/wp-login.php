@@ -344,7 +344,7 @@ function login_footer( $input_id = '' ) {
 			 *
 			 * @since 5.7.0
 			 *
-			 * @param string $link HTML link to the home URL of the current site.
+			 * @param string $html_link HTML link to the home URL of the current site.
 			 */
 			echo apply_filters( 'login_site_html_link', $html_link );
 			?>
