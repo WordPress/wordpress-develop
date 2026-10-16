@@ -103,8 +103,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 			$query_args['meta'] = array_merge( $request['meta'], $query_args['meta'] );
 		}
 
-		if ( ! empty( $request['current_user_can'] ) ) {
-			$query_args['current_user_can'] = true;
+		if ( ! empty( $request['has_required_capabilities'] ) ) {
+			$query_args['has_required_capabilities'] = true;
 		}
 
 		$abilities = wp_get_abilities( $query_args );
@@ -347,39 +347,39 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `namespace` and `meta` parameters and the `rest_abilities_collection_params` filter.
-	 * @since 7.2.0 Added the `current_user_can` parameter.
+	 * @since 7.2.0 Added the `has_required_capabilities` parameter.
 	 *
 	 * @return array<string, mixed> Collection parameters.
 	 */
 	public function get_collection_params(): array {
 		$query_params = array(
-			'context'          => $this->get_context_param( array( 'default' => 'view' ) ),
-			'page'             => array(
+			'context'                   => $this->get_context_param( array( 'default' => 'view' ) ),
+			'page'                      => array(
 				'description' => __( 'Current page of the collection.' ),
 				'type'        => 'integer',
 				'default'     => 1,
 				'minimum'     => 1,
 			),
-			'per_page'         => array(
+			'per_page'                  => array(
 				'description' => __( 'Maximum number of items to be returned in result set.' ),
 				'type'        => 'integer',
 				'default'     => 50,
 				'minimum'     => 1,
 				'maximum'     => 100,
 			),
-			'category'         => array(
+			'category'                  => array(
 				'description'       => __( 'Limit results to abilities in specific ability category.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'namespace'        => array(
+			'namespace'                 => array(
 				'description'       => __( 'Limit results to abilities in a specific namespace.' ),
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
 				'validate_callback' => 'rest_validate_request_arg',
 			),
-			'meta'             => array(
+			'meta'                      => array(
 				'description'          => __( 'Limit results to abilities matching all of the given meta fields.' ),
 				'type'                 => 'object',
 				'properties'           => array(
@@ -406,8 +406,8 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				),
 				'additionalProperties' => true,
 			),
-			'current_user_can' => array(
-				'description' => __( 'Limit results to abilities whose required capabilities the current user has. Abilities that declare no required capabilities are always included.' ),
+			'has_required_capabilities' => array(
+				'description' => __( 'Limit results to abilities whose required capabilities the current user has. Abilities that declare no required capabilities are always included. Permission callbacks and permission result filters are not evaluated, so inclusion does not guarantee permission to execute. False disables capability filtering.' ),
 				'type'        => 'boolean',
 				'default'     => false,
 			),

@@ -2376,7 +2376,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Creates an ability with a custom class, which skips the registration checks.
+	 * Creates an ability with a custom class, which skips the base class's callback validation.
 	 *
 	 * @param array<string, mixed> $args The ability properties.
 	 * @return WP_Ability The ability instance.
@@ -2400,7 +2400,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$result = $this->create_custom_class_ability( $args )->check_permissions();
 
 		$this->assertWPError( $result );
-		$this->assertSame( 'ability_missing_permission_callback', $result->get_error_code() );
+		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
 	}
 
 	/**

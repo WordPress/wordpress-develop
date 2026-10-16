@@ -1305,11 +1305,11 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the current_user_can parameter leaves out abilities the current user can't run.
+	 * Test that the has_required_capabilities parameter excludes abilities whose declared capabilities the current user lacks.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can(): void {
+	public function test_filter_by_has_required_capabilities(): void {
 		$this->register_admin_only_ability();
 
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
@@ -1318,7 +1318,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
 		$this->assertContains( 'test/admin-only', $names, 'Abilities are not filtered by capabilities by default.' );
 
-		$request->set_param( 'current_user_can', 'true' );
+		$request->set_param( 'has_required_capabilities', 'true' );
 
 		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
 		$this->assertNotContains( 'test/admin-only', $names );
@@ -1326,17 +1326,17 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the current_user_can parameter keeps abilities an administrator can run.
+	 * Test that the has_required_capabilities parameter keeps abilities whose declared capabilities an administrator has.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_as_administrator(): void {
+	public function test_filter_by_has_required_capabilities_as_administrator(): void {
 		$this->register_admin_only_ability();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
 		$request->set_param( 'per_page', 100 );
-		$request->set_param( 'current_user_can', true );
+		$request->set_param( 'has_required_capabilities', true );
 
 		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
 		$this->assertContains( 'test/admin-only', $names );
