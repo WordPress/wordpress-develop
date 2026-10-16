@@ -1881,11 +1881,11 @@ Thanks! -- The WordPress Team"
 	 *
 	 * @global int $upgrading The Unix timestamp marking when upgrading WordPress began.
 	 *
-	 * @param string $plugin_slug Optional. The slug of the plugin being checked, used to
-	 *                             key the stored fatal error by plugin. Default empty string.
+	 * @param string|null $plugin_slug Optional. The slug of the plugin being checked, used to
+	 *                                 key the stored fatal error by plugin. Default null.
 	 * @return bool Whether a fatal error was detected.
 	 */
-	protected function has_fatal_error( $plugin_slug = '' ) {
+	protected function has_fatal_error( $plugin_slug = null ) {
 		global $upgrading;
 
 		$maintenance_file = ABSPATH . '.maintenance';
@@ -1968,8 +1968,7 @@ Thanks! -- The WordPress Team"
 				$errors = array();
 			}
 
-			$slug_key            = is_string( $plugin_slug ) && '' !== $plugin_slug ? $plugin_slug : 'unknown';
-			$errors[ $slug_key ] = $fatal_error;
+			$errors[ $plugin_slug ?? 'unknown' ] = $fatal_error;
 
 			set_transient( 'wp_updater_last_fatal_error', $errors, 5 * MINUTE_IN_SECONDS );
 		}
