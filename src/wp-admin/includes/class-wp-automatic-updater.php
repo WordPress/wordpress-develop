@@ -539,6 +539,7 @@ class WP_Automatic_Updater {
 		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 		if ( 'plugin' === $type ) {
 			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @phpstan-var string $upgrader_item */
 			$was_active = is_plugin_active( $upgrader_item );
 			if ( $is_debug ) {
 				error_log( '    Upgrading plugin ' . var_export( $item->slug, true ) . '...' );
@@ -631,6 +632,7 @@ class WP_Automatic_Updater {
 
 		if ( 'plugin' === $type ) {
 			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @phpstan-var string $upgrader_item */
 			if ( $is_debug ) {
 				error_log( '    Plugin ' . var_export( $item->slug, true ) . ' has been upgraded.' );
 				if ( is_plugin_inactive( $upgrader_item ) ) {
