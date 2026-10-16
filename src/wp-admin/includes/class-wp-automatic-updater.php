@@ -522,6 +522,7 @@ class WP_Automatic_Updater {
 				break;
 			case 'translation':
 				/** @phpstan-var Translation_Update_Offer $item */
+				/** @phpstan-var Language_Pack_Upgrader $upgrader */
 				$language_item_name = $upgrader->get_name_for_update( $item );
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
 				$item_name = sprintf( __( 'Translations for %s' ), $language_item_name );
