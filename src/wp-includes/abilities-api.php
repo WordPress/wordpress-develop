@@ -257,7 +257,10 @@ declare( strict_types = 1 );
  *                                                     Receives optional mixed input data (same as `execute_callback`) and
  *                                                     must return `true`/`false` for simple checks, or `WP_Error` for
  *                                                     detailed error responses. Required unless `$required_capabilities`
- *                                                     is not empty. Public abilities must set it to `__return_true`.
+ *                                                     is not empty. Abilities that allow execution without authorization checks
+ *                                                     must set it to `__return_true` and omit required capabilities.
+ *                                                     This is independent of the `public` metadata flag, which controls
+ *                                                     exposure to clients rather than authorization.
  *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
  *                                                     ability. Each one is checked with `current_user_can()` before
  *                                                     `permission_callback` runs. Use it for checks that don't depend
@@ -482,32 +485,34 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
- * @since 7.2.0 Added the `current_user_can` argument.
+ * @since 7.2.0 Added the `has_required_capabilities` argument.
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
  * @param array $args {
  *     Optional. Arguments to filter the returned abilities. Default empty array (returns all).
  *
- *     @type string          $category              Filter by category slug. Only abilities whose category
- *                                                  exactly matches the given slug are included.
- *     @type string          $namespace             Filter by ability namespace prefix. Pass the namespace
- *                                                  without a trailing slash, e.g. `'woocommerce'` matches
- *                                                  `'woocommerce/create-order'`.
- *     @type array           $meta                  Filter by meta key/value pairs. All conditions must
- *                                                  match (AND logic). Supports nested arrays for structured
- *                                                  meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
- *     @type bool            $current_user_can      Whether to leave out abilities that declare required
- *                                                  capabilities the current user doesn't have. Abilities
- *                                                  without required capabilities are always included,
- *                                                  because their permission may depend on the input.
- *                                                  Permission callbacks are not called. Default false.
- *     @type callable        $item_include_callback Optional. A callback invoked per ability after declarative
- *                                                  filters. Receives a WP_Ability instance, returns bool.
- *                                                  Return true to include, false to exclude.
- *     @type callable        $result_callback       Optional. A callback invoked once on the full matched
- *                                                  array. Receives WP_Ability[], must return WP_Ability[].
- *                                                  Use for sorting, slicing, or reshaping the result.
+ *     @type string          $category                  Filter by category slug. Only abilities whose category
+ *                                                      exactly matches the given slug are included.
+ *     @type string          $namespace                 Filter by ability namespace prefix. Pass the namespace
+ *                                                      without a trailing slash, e.g. `'woocommerce'` matches
+ *                                                      `'woocommerce/create-order'`.
+ *     @type array           $meta                      Filter by meta key/value pairs. All conditions must
+ *                                                      match (AND logic). Supports nested arrays for structured
+ *                                                      meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
+ *     @type bool            $has_required_capabilities Whether to leave out abilities that declare required
+ *                                                      capabilities the current user doesn't have. Abilities
+ *                                                      without required capabilities are always included,
+ *                                                      because their permission may depend on the input.
+ *                                                      Permission callbacks and the `wp_ability_permission_result` filter
+ *                                                      are not called. Inclusion does not guarantee permission to execute.
+ *                                                      False disables capability filtering. Default false.
+ *     @type callable        $item_include_callback     Optional. A callback invoked per ability after declarative
+ *                                                      filters. Receives a WP_Ability instance, returns bool.
+ *                                                      Return true to include, false to exclude.
+ *     @type callable        $result_callback           Optional. A callback invoked once on the full matched
+ *                                                      array. Receives WP_Ability[], must return WP_Ability[].
+ *                                                      Use for sorting, slicing, or reshaping the result.
  * }
  * @return WP_Ability[] An array of registered WP_Ability instances matching the given args,
  *                      keyed by ability name. Returns an empty array if no abilities are
@@ -522,12 +527,12 @@ function wp_get_abilities( array $args = array() ): array {
 
 	$abilities = $registry->get_all_registered();
 
-	$category              = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
-	$namespace             = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
-	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
-	$current_user_can      = ! empty( $args['current_user_can'] );
-	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
-	$result_callback       = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
+	$category                  = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
+	$namespace                 = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
+	$meta                      = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
+	$has_required_capabilities = ! empty( $args['has_required_capabilities'] );
+	$item_include_callback     = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
+	$result_callback           = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
 
 	$matched = array();
 
@@ -548,7 +553,7 @@ function wp_get_abilities( array $args = array() ): array {
 		}
 
 		// Step 1d: Filter by the capabilities the ability requires from the current user.
-		if ( $current_user_can ) {
+		if ( $has_required_capabilities ) {
 			foreach ( $ability->get_required_capabilities() as $capability ) {
 				if ( ! current_user_can( $capability ) ) {
 					continue 2;

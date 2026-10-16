@@ -833,15 +833,15 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the current_user_can filter leaves out abilities the current user can't run.
+	 * Tests that the has_required_capabilities filter excludes abilities whose declared capabilities the current user lacks.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_excludes_missing_capabilities(): void {
+	public function test_filter_by_has_required_capabilities_excludes_missing_capabilities(): void {
 		$this->register_abilities_with_required_capabilities();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$result = wp_get_abilities( array( 'current_user_can' => true ) );
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
 
 		$this->assertArrayNotHasKey( 'test/admin-only', $result );
 		$this->assertArrayHasKey( 'test/editor-and-up', $result );
@@ -849,15 +849,15 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the current_user_can filter keeps abilities the current user can run.
+	 * Tests that the has_required_capabilities filter keeps abilities whose declared capabilities the current user has.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_includes_all_for_administrator(): void {
+	public function test_filter_by_has_required_capabilities_includes_all_for_administrator(): void {
 		$this->register_abilities_with_required_capabilities();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$result = wp_get_abilities( array( 'current_user_can' => true ) );
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
 
 		$this->assertArrayHasKey( 'test/admin-only', $result );
 		$this->assertArrayHasKey( 'test/editor-and-up', $result );
@@ -869,7 +869,7 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_is_off_by_default(): void {
+	public function test_filter_by_has_required_capabilities_is_off_by_default(): void {
 		$this->register_abilities_with_required_capabilities();
 		wp_set_current_user( 0 );
 
@@ -881,11 +881,11 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the current_user_can filter doesn't call permission callbacks.
+	 * Tests that the has_required_capabilities filter doesn't call permission callbacks.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_does_not_call_permission_callbacks(): void {
+	public function test_filter_by_has_required_capabilities_does_not_call_permission_callbacks(): void {
 		$this->simulate_wp_abilities_init();
 
 		$callback_calls = 0;
@@ -901,27 +901,27 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		);
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
-		$result = wp_get_abilities( array( 'current_user_can' => true ) );
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
 
 		$this->assertArrayHasKey( 'test/tracked', $result );
 		$this->assertSame( 0, $callback_calls );
 	}
 
 	/**
-	 * Tests that the current_user_can filter runs before item_include_callback.
+	 * Tests that the has_required_capabilities filter runs before item_include_callback.
 	 *
 	 * @ticket 66325
 	 */
-	public function test_filter_by_current_user_can_runs_before_item_include_callback(): void {
+	public function test_filter_by_has_required_capabilities_runs_before_item_include_callback(): void {
 		$this->register_abilities_with_required_capabilities();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 
 		$seen   = array();
 		$result = wp_get_abilities(
 			array(
-				'namespace'             => 'test',
-				'current_user_can'      => true,
-				'item_include_callback' => static function ( WP_Ability $ability ) use ( &$seen ): bool {
+				'namespace'                 => 'test',
+				'has_required_capabilities' => true,
+				'item_include_callback'     => static function ( WP_Ability $ability ) use ( &$seen ): bool {
 					$seen[] = $ability->get_name();
 					return true;
 				},

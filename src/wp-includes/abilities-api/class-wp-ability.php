@@ -703,23 +703,15 @@ class WP_Ability {
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
-		/*
-		 * Custom ability classes skip the registration checks, so they are repeated here.
-		 * A permission callback that is set must be callable, even when required capabilities pass.
-		 */
-		if ( null !== $this->permission_callback && ! is_callable( $this->permission_callback ) ) {
+		// A permission callback may be omitted only when required capabilities are declared.
+		if (
+			! is_callable( $this->permission_callback ) &&
+			( null !== $this->permission_callback || empty( $this->required_capabilities ) )
+		) {
 			return new WP_Error(
 				'ability_invalid_permission_callback',
 				/* translators: %s ability name. */
 				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), $this->name )
-			);
-		}
-
-		if ( null === $this->permission_callback && empty( $this->required_capabilities ) ) {
-			return new WP_Error(
-				'ability_missing_permission_callback',
-				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a permission callback or required capabilities.' ), $this->name )
 			);
 		}
 
