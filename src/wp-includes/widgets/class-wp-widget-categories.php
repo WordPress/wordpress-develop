@@ -242,7 +242,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 */
 	public function update( $new_instance, $old_instance ) {
 		$instance                 = $old_instance;
-		$instance['title']        = sanitize_text_field( $new_instance['title'] );
+		$instance['title']        = sanitize_text_field( $new_instance['title'] ?? '' );
 		$instance['count']        = ! empty( $new_instance['count'] ) ? 1 : 0;
 		$instance['hierarchical'] = ! empty( $new_instance['hierarchical'] ) ? 1 : 0;
 		$instance['dropdown']     = ! empty( $new_instance['dropdown'] ) ? 1 : 0;
