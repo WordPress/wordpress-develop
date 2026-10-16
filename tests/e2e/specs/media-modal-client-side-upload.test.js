@@ -17,6 +17,14 @@ const TEST_IMAGE_PATH = path.join( __dirname, '../assets/test-image.jpg' );
 // event a file dropped on the modal fires.
 const FILE_INPUT_SELECTOR = '.media-modal .moxie-shim-html5 input[type="file"]';
 
+// A REST error the pipeline surfaces as-is: its message matches none of the
+// transient patterns @wordpress/upload-media retries on.
+const SIMULATED_ERROR = {
+	code: 'rest_upload_simulated_failure',
+	message: 'Simulated server failure for testing',
+	data: { status: 500 },
+};
+
 /**
  * Counts the POST requests that upload a file, per transport.
  *
@@ -47,6 +55,35 @@ function countUploadRequests( page ) {
 		}
 	} );
 	return counts;
+}
+
+/**
+ * Fails the request that creates the attachment, leaving sub-size and
+ * finalize requests alone.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+async function failMediaCreate( page ) {
+	await page.route(
+		( url ) => {
+			const decoded = decodeURIComponent( url.href );
+			return (
+				/\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) &&
+				! /\/(sideload|finalize)/.test( decoded )
+			);
+		},
+		async ( route ) => {
+			if ( route.request().method() !== 'POST' ) {
+				await route.continue();
+				return;
+			}
+			await route.fulfill( {
+				status: 500,
+				contentType: 'application/json',
+				body: JSON.stringify( SIMULATED_ERROR ),
+			} );
+		}
+	);
 }
 
 /**
@@ -158,6 +195,81 @@ test.describe( 'Media modal client-side uploads', () => {
 		await expect(
 			editor.canvas.locator( 'figure.wp-block-image img' )
 		).toHaveAttribute( 'src', attachment.source_url );
+	} );
+
+	test( 'surfaces a pipeline error in the modal', async ( {
+		page,
+		editor,
+	} ) => {
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		await failMediaCreate( page );
+		const counts = countUploadRequests( page );
+		const modal = await openModalFromImageBlock( page, editor );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached' } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		// The modal's uploader status lists the error the same way it lists
+		// a classic upload error: file name and the server's message.
+		const error = modal.locator( '.upload-error' ).first();
+		await expect( error ).toBeVisible( { timeout: 60_000 } );
+		await expect( error.locator( '.upload-error-filename' ) ).toHaveText(
+			'test-image.jpg'
+		);
+		await expect( error.locator( '.upload-error-message' ) ).toHaveText(
+			SIMULATED_ERROR.message
+		);
+
+		// The placeholder tile is removed rather than left spinning, and the
+		// failure did not retry through async-upload.php.
+		await expect( modal.locator( 'li.attachment.uploading' ) ).toHaveCount(
+			0
+		);
+		expect( counts.asyncUpload ).toBe( 0 );
+	} );
+
+	test( 'leaves an uploader that does not post attachments to plupload', async ( {
+		page,
+		editor,
+	} ) => {
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// A plugin uploader with its own action: the pipeline must not take
+		// its files, even though it is a wp.Uploader on an isolated screen.
+		await page.evaluate( () => {
+			window.wp.Uploader.defaults.multipart_params.action =
+				'e2e-plugin-upload';
+		} );
+
+		const counts = countUploadRequests( page );
+		await openModalFromImageBlock( page, editor );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached' } );
+		const classicUpload = page.waitForRequest(
+			( request ) =>
+				request.method() === 'POST' &&
+				request.url().includes( '/async-upload.php' ),
+			{ timeout: 30_000 }
+		);
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+		await classicUpload;
+
+		expect( counts.create + counts.sideload + counts.finalize ).toBe( 0 );
 	} );
 
 	test( 'falls back to the classic uploader when the editor is not isolated', async ( {
