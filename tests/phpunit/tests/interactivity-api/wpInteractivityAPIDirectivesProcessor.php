@@ -405,7 +405,7 @@ class Tests_Interactivity_API_WpInteractivityAPIDirectivesProcessor extends WP_U
 			$this->assertFalse( $p->has_and_visits_its_closer_tag() );
 		}
 
-		$tags_that_dont_visit_closing_tag = array( 'script', 'iframe', 'textarea', 'iframe', 'style' );
+		$tags_that_dont_visit_closing_tag = array( 'script', 'iframe', 'noembed', 'noframes', 'style', 'textarea', 'title', 'xmp' );
 		foreach ( $tags_that_dont_visit_closing_tag as $tag_name ) {
 			$content = "<{$tag_name} id={$tag_name}>Some content</{$tag_name}>";
 			$p       = new WP_Interactivity_API_Directives_Processor( $content );
