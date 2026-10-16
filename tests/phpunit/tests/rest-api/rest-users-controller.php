@@ -1242,11 +1242,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_post() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		$post_id = self::factory()->post->create(
 			array(
@@ -1262,11 +1258,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_pages() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		wp_set_current_user( 0 );
 
@@ -1297,11 +1289,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item_published_author_wrong_context() {
-		$author_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$author_id = self::$author;
 
 		$post_id = self::factory()->post->create(
 			array(
