@@ -41,6 +41,30 @@
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
  * }&\stdClass
+ * @phpstan-type CoreUpdateResult object{
+ *     item: CoreUpdateOffer,
+ *     result: string|WP_Error,
+ *     name: string,
+ *     messages: string[],
+ * }&\stdClass
+ * @phpstan-type PluginUpdateResult object{
+ *     item: PluginUpdateOffer,
+ *     result: true|WP_Error,
+ *     name: string,
+ *     messages: string[],
+ * }&\stdClass
+ * @phpstan-type ThemeUpdateResult object{
+ *     item: ThemeUpdateOffer,
+ *     result: true|WP_Error,
+ *     name: string|false,
+ *     messages: string[],
+ * }&\stdClass
+ * @phpstan-type TranslationUpdateResult object{
+ *     item: TranslationUpdateOffer,
+ *     result: array<mixed>|true|WP_Error,
+ *     name: string,
+ *     messages: string[],
+ * }&\stdClass
  */
 #[AllowDynamicProperties]
 class WP_Automatic_Updater {
@@ -48,7 +72,13 @@ class WP_Automatic_Updater {
 	/**
 	 * Tracks update results during processing.
 	 *
-	 * @var array
+	 * @var array<string, object[]>
+	 * @phpstan-var array{
+	 *     core?: list<CoreUpdateResult>,
+	 *     plugin?: list<PluginUpdateResult>,
+	 *     theme?: list<ThemeUpdateResult>,
+	 *     translation?: list<TranslationUpdateResult>,
+	 * }
 	 */
 	protected $update_results = array();
 
@@ -687,6 +717,12 @@ class WP_Automatic_Updater {
 			$upgrader->maintenance_mode( false );
 		}
 
+		/*
+		 * PHPStan cannot correlate $type with the types of $item and $upgrade_result here, as the
+		 * narrowing by $type is lost after each switch. This ignore should be removed once a
+		 * conditional parameter type is used for $item; see the comment at the start of this method.
+		 */
+		// @phpstan-ignore assign.propertyType
 		$this->update_results[ $type ][] = (object) array(
 			'item'     => $item,
 			'result'   => $upgrade_result,
