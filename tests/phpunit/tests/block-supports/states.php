@@ -161,6 +161,154 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a state escaping a text clip stops the inherited gradient painting.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_adds_background_image_reset_when_a_state_escapes_a_text_clip() {
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'background-clip' => 'border-box' ),
+			array( 'background' => array( 'backgroundClip' => 'border-box' ) ),
+			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		);
+
+		$this->assertSame(
+			array(
+				'background-clip'  => 'border-box',
+				'background-image' => 'unset',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that a background the state paints itself is kept.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_no_background_image_reset_when_the_state_paints_its_own_background() {
+		$state_style = array(
+			'background' => array(
+				'backgroundClip' => 'padding-box',
+				'gradient'       => 'linear-gradient(135deg, #ff0000, #0000ff)',
+			),
+		);
+
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'background-clip' => 'padding-box' ),
+			$state_style,
+			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		);
+
+		$this->assertSame( array( 'background-clip' => 'padding-box' ), $actual );
+	}
+
+	/**
+	 * Tests that a box clip is left alone when nothing above it clips to text.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_no_background_image_reset_without_an_inherited_text_clip() {
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'background-clip' => 'padding-box' ),
+			array( 'background' => array( 'backgroundClip' => 'padding-box' ) ),
+			array( 'background' => array( 'backgroundImage' => array( 'url' => 'image.png' ) ) )
+		);
+
+		$this->assertSame( array( 'background-clip' => 'padding-box' ), $actual );
+	}
+
+	/**
+	 * Tests that a text color set under a text clip is painted.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_adds_text_fill_reset_for_a_text_color_under_a_text_clip() {
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'color' => '#ff0000' ),
+			array( 'color' => array( 'text' => '#ff0000' ) ),
+			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		);
+
+		$this->assertSame(
+			array(
+				'color'                   => '#ff0000',
+				'-webkit-text-fill-color' => 'currentColor',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that a text color is painted under a text clip from global styles,
+	 * which the block's own styles do not show.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_adds_text_fill_reset_for_a_text_color_without_a_known_text_clip() {
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'color' => '#ff0000' ),
+			array( 'color' => array( 'text' => '#ff0000' ) ),
+			array()
+		);
+
+		$this->assertSame(
+			array(
+				'color'                   => '#ff0000',
+				'-webkit-text-fill-color' => 'currentColor',
+			),
+			$actual
+		);
+	}
+
+	/**
+	 * Tests that the fill is left alone when the state paints its own gradient.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_no_text_fill_reset_when_the_state_paints_its_own_gradient() {
+		$state_style = array(
+			'color'      => array( 'text' => '#ff0000' ),
+			'background' => array( 'gradient' => 'linear-gradient(135deg, #ff0000, #0000ff)' ),
+		);
+
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'color' => '#ff0000' ),
+			$state_style,
+			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		);
+
+		$this->assertSame( array( 'color' => '#ff0000' ), $actual );
+	}
+
+	/**
+	 * Tests that the fill is left to the style engine when the state sets its own clip.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 */
+	public function test_no_text_fill_reset_when_the_state_sets_its_own_clip() {
+		$state_style = array(
+			'color'      => array( 'text' => '#ff0000' ),
+			'background' => array( 'backgroundClip' => 'text' ),
+		);
+
+		$actual = wp_get_state_declarations_with_text_clip_escapes(
+			array( 'color' => '#ff0000' ),
+			$state_style,
+			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		);
+
+		$this->assertSame( array( 'color' => '#ff0000' ), $actual );
+	}
+
+	/**
 	 * Tests that background-image reset is not added when the state also sets a legacy gradient.
 	 *
 	 * @covers ::wp_get_state_declarations_with_background_resets
@@ -1014,6 +1162,43 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 
 		$this->assertStringContainsString(
 			'@media (width <= 480px){.' . $matches[0] . '{color:#ff0000 !important;}}',
+			$actual_stylesheet
+		);
+	}
+
+	/**
+	 * Tests that a responsive text color fills the letters again for a block
+	 * that supports the background clip, so a text gradient from global styles
+	 * cannot hide it.
+	 *
+	 * @ticket 66094
+	 */
+	public function test_responsive_text_color_fills_text_for_a_block_that_supports_the_clip() {
+		$this->ensure_block_registered(
+			'test/responsive-text-clip-state',
+			array(),
+			array( 'background' => array( 'backgroundClip' => true ) )
+		);
+
+		$block = array(
+			'blockName' => 'test/responsive-text-clip-state',
+			'attrs'     => array(
+				'style' => array(
+					'@mobile' => array(
+						'color' => array(
+							'text' => '#ff0000',
+						),
+					),
+				),
+			),
+		);
+
+		$actual = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+		preg_match( '/wp-states-[a-f0-9]{8}/', $actual, $matches );
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			'@media (width <= 480px){.' . $matches[0] . '{color:#ff0000 !important;-webkit-text-fill-color:currentColor !important;}}',
 			$actual_stylesheet
 		);
 	}
