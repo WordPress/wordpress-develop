@@ -106,7 +106,7 @@ class WP_Widget_Categories extends WP_Widget {
 			 * @see wp_dropdown_categories()
 			 *
 			 * @param array $cat_args {
-			 *     An array of Categories widget drop-down arguments. See {@see WP_Term_Query::__construct()} for
+			 *     An array of Categories widget drop-down arguments. See {@see wp_dropdown_categories()} for
 			 *     information on additional accepted arguments.
 			 *
 			 *     @type string $orderby          Which column to use for ordering categories. See {@see get_terms()}
