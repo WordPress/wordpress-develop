@@ -58,9 +58,9 @@ final class WP_Abilities_Registry {
 	 *                                                       Defaults to `uncategorized`.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
-	 *     @type callable             $permission_callback   Optional. A callback function to check permissions before execution.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *                                                       Required unless `$required_capabilities` is not empty.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
 	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
 	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
@@ -130,9 +130,9 @@ final class WP_Abilities_Registry {
 		 *                                                       Defaults to `uncategorized`.
 		 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
-		 *     @type callable             $permission_callback   Optional. A callback function to check permissions before execution.
+		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 		 *                                                       Receives optional mixed input and returns bool or WP_Error.
-		 *                                                       Required unless `$required_capabilities` is not empty.
+		 *                                                       Required unless `$required_capabilities` lists at least one capability.
 		 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
 		 *                                                       ability. They are checked before `$permission_callback`.
 		 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.

@@ -407,7 +407,7 @@ class WP_REST_Abilities_V1_List_Controller extends WP_REST_Controller {
 				'additionalProperties' => true,
 			),
 			'has_required_capabilities' => array(
-				'description' => __( 'Limit results to abilities whose required capabilities the current user has. Abilities that declare no required capabilities are always included. Permission callbacks and permission result filters are not evaluated, so inclusion does not guarantee permission to execute. False disables capability filtering.' ),
+				'description' => __( 'Limit results to abilities whose required capabilities the current user has. Abilities without required capabilities are always included. Permission callbacks don\'t run, so an included ability can still deny execution.' ),
 				'type'        => 'boolean',
 				'default'     => false,
 			),
