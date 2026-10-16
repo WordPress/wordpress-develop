@@ -63,7 +63,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 				'<title >Testing &lt;title&gt;: with whitespace in opening tag</title>',
 				'Testing : with whitespace in opening tag',
 			),
-			'when whitepace in closing tag'  => array(
+			'when whitespace in closing tag' => array(
 				'<title>Testing &lt;title&gt;: with whitespace in closing tag</ title>',
 				'Testing : with whitespace in closing tag',
 			),
@@ -198,8 +198,8 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 			),
 			'multiline attributes in reverse order' => array(
 				'<link
-					rel="icon"
 					href="https://wordpress.org/favicon.ico"
+					rel="icon"
 				/>',
 				'https://wordpress.org/favicon.ico',
 			),
@@ -385,7 +385,9 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 				'<meta content="<strong>Description</strong>: has <em>HTML</em> tags" name="description">',
 				'Description: has HTML tags',
 			),
-			'with HTML tags and other attributes'        => array(
+			// Intentionally malformed: the fifth attribute is missing its closing
+			// quote and the tag's closing bracket, testing parser resilience.
+			'with HTML tags, other attributes, and malformed closing' => array(
 				'<meta first="first" name="description" third="third" content="<strong>Description</strong>: has <em>HTML</em> tags" fifth="fifth>',
 				'Description: has HTML tags',
 			),
@@ -583,7 +585,13 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Wraps an HTML snippet in a minimal but well-formed HTML document.
+	 * Wraps an HTML snippet in a minimal HTML document structure.
+	 *
+	 * The returned document includes a DOCTYPE, opening `<html>` and `<head>`
+	 * tags, and a charset `<meta>` element. When `$with_body` is false the
+	 * document omits `<body>` and the closing `</html>` tag, relying on the
+	 * HTML parser to auto-close them. This mirrors real-world pages whose
+	 * markup may be incomplete.
 	 *
 	 * @param string $html      The HTML to wrap.
 	 * @param bool   $with_body Whether to include a body element.
