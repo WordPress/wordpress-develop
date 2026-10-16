@@ -43,6 +43,13 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 	protected static $category_two_id;
 
 	/**
+	 * IDs of the shared bookmarks.
+	 *
+	 * @var int[]
+	 */
+	protected static $bookmark_ids = array();
+
+	/**
 	 * Creates link categories and bookmarks shared by the tests.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
@@ -62,7 +69,7 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 			)
 		);
 
-		$factory->bookmark->create(
+		self::$bookmark_ids[] = $factory->bookmark->create(
 			array(
 				'link_name'        => 'WordPress.org',
 				'link_url'         => 'https://wordpress.org/',
@@ -73,7 +80,7 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 			)
 		);
 
-		$factory->bookmark->create(
+		self::$bookmark_ids[] = $factory->bookmark->create(
 			array(
 				'link_name'        => 'Documentation',
 				'link_url'         => 'https://developer.wordpress.org/',
@@ -82,6 +89,15 @@ class Tests_Widgets_wpWidgetLinks extends WP_UnitTestCase {
 				'link_category'    => array( self::$category_two_id ),
 			)
 		);
+	}
+
+	/**
+	 * Deletes shared bookmarks after the test class finishes.
+	 */
+	public static function wpTearDownAfterClass() {
+		foreach ( self::$bookmark_ids as $bookmark_id ) {
+			wp_delete_link( $bookmark_id );
+		}
 	}
 
 	/**
