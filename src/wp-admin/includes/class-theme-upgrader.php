@@ -290,7 +290,11 @@ class Theme_Upgrader extends WP_Upgrader {
 	 *     @type bool $clear_update_cache Whether to clear the update cache if successful.
 	 *                                    Default true.
 	 * }
-	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
+	 * @return bool|array|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
+	 *                             An empty array if the upgrade failed before the package was installed,
+	 *                             for example when the package could not be downloaded.
+	 *
+	 * @phpstan-return bool|array{}|WP_Error
 	 */
 	public function upgrade( $theme, $args = array() ) {
 		$defaults    = array(

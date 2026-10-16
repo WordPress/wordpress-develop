@@ -130,7 +130,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * @param string|false $update Optional. Whether an update offer is available. Default false.
 	 * @param array        $args   Optional. Other optional arguments, see
 	 *                             Language_Pack_Upgrader::bulk_upgrade(). Default empty array.
-	 * @return array|bool|WP_Error The result of the upgrade, or a WP_Error object instead.
+	 * @return array|bool|WP_Error|null The result of the upgrade, or a WP_Error object instead. Null if the
+	 *                                  upgrade failed before the package was installed, for example when
+	 *                                  the package could not be downloaded.
 	 */
 	public function upgrade( $update = false, $args = array() ) {
 		if ( $update ) {
