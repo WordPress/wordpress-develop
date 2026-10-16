@@ -279,6 +279,47 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that unexpected closing formatting tags are ignored.
+	 *
+	 * @ticket 65383
+	 *
+	 * @dataProvider data_formatting_tag_names
+	 *
+	 * @param string $formatting_tag_name Formatting tag name with no active formatting element.
+	 */
+	public function test_unexpected_closing_formatting_tags_are_ignored( string $formatting_tag_name ) {
+		$this->assertSame(
+			'onetwo',
+			WP_HTML_Processor::normalize( "one</{$formatting_tag_name}>two" ),
+			"Should have ignored unexpected {$formatting_tag_name} closer."
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public static function data_formatting_tag_names(): array {
+		return array(
+			'A tag'      => array( 'a' ),
+			'B tag'      => array( 'b' ),
+			'BIG tag'    => array( 'big' ),
+			'CODE tag'   => array( 'code' ),
+			'EM tag'     => array( 'em' ),
+			'FONT tag'   => array( 'font' ),
+			'I tag'      => array( 'i' ),
+			'NOBR tag'   => array( 'nobr' ),
+			'S tag'      => array( 's' ),
+			'SMALL tag'  => array( 'small' ),
+			'STRIKE tag' => array( 'strike' ),
+			'STRONG tag' => array( 'strong' ),
+			'TT tag'     => array( 'tt' ),
+			'U tag'      => array( 'u' ),
+		);
+	}
+
+	/**
 	 * Ensures that self-closing elements in foreign content retain their self-closing flag.
 	 *
 	 * @ticket 62036

@@ -577,6 +577,7 @@ HTML
 			'Implied P tag opener on unmatched closer'    => array( '</p>', 1, 'P', 'open', array( 'HTML', 'BODY', 'P' ) ),
 			'Implied heading tag closer on heading child' => array( '<h1><h2>', 2, 'H1', 'close', array( 'HTML', 'BODY' ) ),
 			'Implied A tag closer on A tag child'         => array( '<a><a>', 2, 'A', 'close', array( 'HTML', 'BODY' ) ),
+			'Redundant A closer after sibling A'          => array( '<a><a></a></a>', 4, 'A', 'close', array( 'HTML', 'BODY' ) ),
 			'Implied A tag closer on A tag descendent'    => array( '<a><span><a>', 4, 'A', 'close', array( 'HTML', 'BODY' ) ),
 		);
 	}
