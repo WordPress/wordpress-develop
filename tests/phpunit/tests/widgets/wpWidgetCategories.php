@@ -320,6 +320,23 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 				true,
 				true,
 			),
+			// Instances saved before WordPress 2.8 stored booleans.
+			'booleans enabled'  => array(
+				array(
+					'count'        => true,
+					'hierarchical' => true,
+				),
+				true,
+				true,
+			),
+			'booleans disabled' => array(
+				array(
+					'count'        => false,
+					'hierarchical' => false,
+				),
+				false,
+				false,
+			),
 		);
 	}
 
