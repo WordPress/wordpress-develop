@@ -436,13 +436,12 @@ class WP_Automatic_Updater {
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
 
-		$item_name = '';
-		$upgrader  = null;
-
 		/*
 		 * The inline @phpstan-var tags narrow $item by $type. This should be replaced with a conditional
 		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
 		 */
+		$upgrader = null;
+		$context  = null;
 		switch ( $type ) {
 			case 'core':
 				/** @phpstan-var Core_Update_Offer $item */
@@ -485,6 +484,7 @@ class WP_Automatic_Updater {
 		 */
 		do_action( 'pre_auto_update', $type, $item, $context );
 
+		$item_name     = null;
 		$upgrader_item = $item;
 		switch ( $type ) {
 			case 'core':
@@ -536,7 +536,8 @@ class WP_Automatic_Updater {
 			$allow_relaxed_file_ownership = true;
 		}
 
-		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
+		$was_active = null;
+		$is_debug   = WP_DEBUG && WP_DEBUG_LOG;
 		if ( 'plugin' === $type ) {
 			/** @phpstan-var Plugin_Update_Offer $item */
 			/** @phpstan-var string $upgrader_item */
