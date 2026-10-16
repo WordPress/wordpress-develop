@@ -990,6 +990,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_on_front', $page_id );
 
+		// Reload the options from the database, so get_option() returns strings, as on a real request.
+		wp_cache_delete( 'alloptions', 'options' );
+
 		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
@@ -1005,6 +1008,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', $page_id );
+
+		// Reload the options from the database, so get_option() returns strings, as on a real request.
+		wp_cache_delete( 'alloptions', 'options' );
 
 		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
