@@ -209,4 +209,53 @@ class Tests_Connectors_WpConnectorsGetConnectorScriptModuleData extends WP_UnitT
 		$this->assertSame( 'env', $auth['keySource'] );
 		$this->assertTrue( $auth['isConnected'] );
 	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_not_required_for_direct_filesystem_method(): void {
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'direct';
+			}
+		);
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertFalse( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_required_when_credentials_are_not_stored(): void {
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'ftpext';
+			}
+		);
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertTrue( $data['filesystemCredentialsRequired'] );
+	}
+
+	/**
+	 * @ticket 65223
+	 */
+	public function test_filesystem_credentials_not_required_when_credentials_are_stored(): void {
+		add_filter(
+			'filesystem_method',
+			static function () {
+				return 'ftpext';
+			}
+		);
+		add_filter( 'request_filesystem_credentials', '__return_true' );
+
+		$data = _wp_connectors_get_connector_script_module_data( array() );
+
+		$this->assertFalse( $data['filesystemCredentialsRequired'] );
+	}
 }
