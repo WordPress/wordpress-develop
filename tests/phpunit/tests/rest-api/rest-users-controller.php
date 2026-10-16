@@ -656,8 +656,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_include_query() {
 		wp_set_current_user( self::$user );
 
-		$id1 = self::factory()->user->create();
-		$id2 = self::factory()->user->create();
+		$id1 = self::$author;
+		$id2 = self::$subscriber;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 
@@ -691,8 +691,8 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_get_items_exclude_query() {
 		wp_set_current_user( self::$user );
 
-		$id1 = self::factory()->user->create();
-		$id2 = self::factory()->user->create();
+		$id1 = self::$subscriber;
+		$id2 = self::$author;
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/users' );
 		$request->set_param( 'per_page', self::$per_page ); // There are >10 users at this point.
@@ -1089,7 +1089,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_item() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		wp_set_current_user( self::$user );
 
@@ -1286,7 +1286,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_get_user_with_edit_context() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		$this->allow_user_to_manage_multisite();
 
@@ -3316,7 +3316,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param string $path The path to test.
 	 */
 	public function test_head_request_with_specified_fields_returns_success_response( $path ) {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 		wp_set_current_user( self::$user );
 
 		$request = new WP_REST_Request( 'HEAD', sprintf( $path, $user_id ) );
