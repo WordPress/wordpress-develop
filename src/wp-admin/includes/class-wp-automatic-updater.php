@@ -395,7 +395,7 @@ class WP_Automatic_Updater {
 	 *
 	 * @param string $type The type of update being checked: 'core', 'theme', 'plugin', 'translation'.
 	 * @param object $item The update offer.
-	 * @return null|WP_Error|bool|string|array
+	 * @return WP_Error|bool|string|array
 	 *
 	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
 	 * @phpstan-return (
