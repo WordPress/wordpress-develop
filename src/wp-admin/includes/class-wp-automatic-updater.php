@@ -22,49 +22,49 @@
  *     notify_email?: bool|string,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type PluginUpdateOffer object{
  *     slug: string,
  *     plugin: string,
  *     requires_php?: string|false|null,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type ThemeUpdateOffer object{
  *     theme: string,
  *     requires_php?: string|false|null,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type TranslationUpdateOffer object{
  *     language: string,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type CoreUpdateResult object{
  *     item: CoreUpdateOffer,
  *     result: string|WP_Error,
  *     name: string,
  *     messages: string[],
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type PluginUpdateResult object{
  *     item: PluginUpdateOffer,
  *     result: true|WP_Error,
  *     name: string,
  *     messages: string[],
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type ThemeUpdateResult object{
  *     item: ThemeUpdateOffer,
  *     result: true|WP_Error,
  *     name: string|false,
  *     messages: string[],
- * }&\stdClass
+ * }&stdClass
  * @phpstan-type TranslationUpdateResult object{
  *     item: TranslationUpdateOffer,
  *     result: array<mixed>|true|WP_Error,
  *     name: string,
  *     messages: string[],
- * }&\stdClass
+ * }&stdClass
  */
 #[AllowDynamicProperties]
 class WP_Automatic_Updater {
