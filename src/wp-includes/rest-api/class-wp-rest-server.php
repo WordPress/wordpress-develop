@@ -1809,7 +1809,7 @@ class WP_REST_Server {
 		foreach ( $batch_request['requests'] as $args ) {
 			$parsed_url = wp_parse_url( $args['path'] );
 
-			if ( false === $parsed_url ) {
+			if ( false === $parsed_url || ! isset( $parsed_url['path'] ) ) {
 				$requests[] = new WP_Error( 'parse_path_failed', __( 'Could not parse the path.' ), array( 'status' => 400 ) );
 
 				continue;

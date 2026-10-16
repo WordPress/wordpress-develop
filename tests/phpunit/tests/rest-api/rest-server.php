@@ -2463,6 +2463,61 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 'gutenberg', get_option( 'test_project' ) );
 	}
 
+	/**
+	 * A sub-request path that parses but has no path component must be rejected
+	 * like an unparseable one, and must never reach `rest_pre_dispatch` with a
+	 * null route.
+	 *
+	 * @ticket 66136
+	 *
+	 * @dataProvider data_batch_v1_path_without_path_component
+	 *
+	 * @param string $path The sub-request path.
+	 */
+	public function test_batch_v1_path_without_path_component_is_rejected( $path ) {
+		$seen_route = 'unset';
+		add_filter(
+			'rest_pre_dispatch',
+			static function ( $result, $server, $request ) use ( &$seen_route ) {
+				if ( '/batch/v1' !== $request->get_route() ) {
+					$seen_route = $request->get_route();
+				}
+				return $result;
+			},
+			10,
+			3
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array( 'path' => $path ),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertSame( 400, $data['responses'][0]['status'] );
+		$this->assertSame( 'parse_path_failed', $data['responses'][0]['body']['code'] );
+		$this->assertSame( 'unset', $seen_route, 'rest_pre_dispatch must not run for a rejected sub-request.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_batch_v1_path_without_path_component() {
+		return array(
+			'scheme and host only' => array( 'http://host' ),
+			'query string only'    => array( '?x=1' ),
+			'fragment only'        => array( '#top' ),
+		);
+	}
 
 	/**
 	 * @ticket 50244
