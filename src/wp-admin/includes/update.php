@@ -644,7 +644,7 @@ function get_theme_updates() {
 /**
  * Gets plugin names for translation updates.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return string[] Plugin names keyed by plugin file, directory, basename, and slug.
  */
@@ -694,7 +694,7 @@ function wp_get_translation_update_plugin_names() {
 /**
  * Gets the display name for a translation update.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param object        $update       Translation update object.
  * @param string[]|null $plugin_names Optional. Plugin names keyed by plugin file, directory,
@@ -733,7 +733,7 @@ function wp_get_translation_update_name( $update, $plugin_names = null ) {
 /**
  * Gets the display language for a translation update.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param string $locale Translation update locale.
  * @return string The translation update language.
@@ -756,7 +756,7 @@ function wp_get_translation_update_language( $locale ) {
 /**
  * Gets display data for available translation updates.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @return array[] {
  *     An array of translation update display data.
@@ -802,6 +802,48 @@ function wp_get_translation_update_data() {
 	}
 
 	return $translation_updates;
+}
+
+/**
+ * Processes a translation update selection and stores the deferred updates.
+ *
+ * Only currently available updates included in the submitted form can be selected
+ * or deferred. Previously deferred updates outside the form remain deferred, while
+ * newly available updates outside the form are left unchanged.
+ *
+ * The caller must check capabilities and the nonce before calling this function.
+ *
+ * @since 7.2.0
+ *
+ * @param string[] $translation_update_ids          Sanitized identifiers of updates included in the form.
+ * @param string[] $selected_translation_update_ids Sanitized identifiers of selected updates.
+ * @return object[]|false Selected current translation updates keyed by identifier, an empty array
+ *                        if all updates in the form were deferred, or false if the form contains
+ *                        no currently available updates. On false, stored deferrals are unchanged.
+ */
+function wp_process_translation_update_selection( $translation_update_ids, $selected_translation_update_ids ) {
+	if ( empty( $translation_update_ids ) ) {
+		return false;
+	}
+
+	$current_translation_updates = wp_get_translation_updates_by_id();
+	$translation_updates         = array_intersect_key( $current_translation_updates, array_flip( $translation_update_ids ) );
+
+	if ( empty( $translation_updates ) ) {
+		return false;
+	}
+
+	$selected_translation_updates  = array_intersect_key( $translation_updates, array_flip( $selected_translation_update_ids ) );
+	$deferred_translation_updates  = array_intersect_key(
+		$current_translation_updates,
+		wp_get_deferred_translation_updates()
+	);
+	$deferred_translation_updates  = array_diff_key( $deferred_translation_updates, $translation_updates );
+	$deferred_translation_updates += array_diff_key( $translation_updates, $selected_translation_updates );
+
+	wp_set_deferred_translation_updates( $deferred_translation_updates );
+
+	return $selected_translation_updates;
 }
 
 /**

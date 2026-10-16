@@ -1357,48 +1357,26 @@ if ( 'upgrade-core' === $action ) {
 
 	check_admin_referer( 'upgrade-translations' );
 
-	if ( empty( $_POST['translations'] ) ) {
-		wp_redirect( self_admin_url( 'update-core.php' ) );
-		exit;
-	}
-
-	$current_translation_updates = wp_get_translation_updates_by_id();
-
-	$translation_update_ids = array_unique(
+	// Requests without the form's update identifiers must not install all translations.
+	$translation_update_ids          = array_unique(
 		array_map(
 			'sanitize_text_field',
-			wp_unslash( (array) $_POST['translations'] )
+			wp_unslash( (array) ( $_POST['translations'] ?? array() ) )
+		)
+	);
+	$selected_translation_update_ids = array_unique(
+		array_map(
+			'sanitize_text_field',
+			wp_unslash( (array) ( $_POST['checked'] ?? array() ) )
 		)
 	);
 
-	$translation_updates = array_intersect_key( $current_translation_updates, array_flip( $translation_update_ids ) );
+	$selected_translation_updates = wp_process_translation_update_selection( $translation_update_ids, $selected_translation_update_ids );
 
-	if ( empty( $translation_updates ) ) {
+	if ( false === $selected_translation_updates ) {
 		wp_redirect( self_admin_url( 'update-core.php' ) );
 		exit;
 	}
-
-	$selected_translation_updates = array();
-
-	if ( ! empty( $_POST['checked'] ) ) {
-		$selected_translation_update_ids = array_unique(
-			array_map(
-				'sanitize_text_field',
-				wp_unslash( (array) $_POST['checked'] )
-			)
-		);
-
-		$selected_translation_updates = array_intersect_key( $translation_updates, array_flip( $selected_translation_update_ids ) );
-	}
-
-	$deferred_translation_updates  = array_intersect_key(
-		$current_translation_updates,
-		wp_get_deferred_translation_updates( $current_translation_updates )
-	);
-	$deferred_translation_updates  = array_diff_key( $deferred_translation_updates, $translation_updates );
-	$deferred_translation_updates += array_diff_key( $translation_updates, $selected_translation_updates );
-
-	wp_set_deferred_translation_updates( $deferred_translation_updates );
 
 	if ( empty( $selected_translation_updates ) ) {
 		wp_redirect( add_query_arg( 'translation_updates', 'deferred', self_admin_url( 'update-core.php' ) ) );

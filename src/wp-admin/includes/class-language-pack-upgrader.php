@@ -232,6 +232,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		}
 
 		$language_updates_results = array();
+		$successful_update_ids    = array();
 
 		foreach ( $language_updates as $language_update ) {
 
@@ -268,12 +269,25 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 				break;
 			}
 
+			if ( is_array( $result ) ) {
+				$successful_update_ids[ wp_get_translation_update_id( $language_update ) ] = true;
+			}
+
 			$language_updates_results[] = array(
 				'language' => $language_update->language,
 				'type'     => $language_update->type,
 				'slug'     => $language_update->slug ?? 'default',
 				'version'  => $language_update->version,
 			);
+		}
+
+		if ( $successful_update_ids ) {
+			$deferred_updates = wp_get_deferred_translation_updates();
+			$remaining        = array_diff_key( $deferred_updates, $successful_update_ids );
+
+			if ( $remaining !== $deferred_updates ) {
+				wp_set_deferred_translation_updates( $remaining );
+			}
 		}
 
 		// Remove upgrade hooks which are not required for translation updates.

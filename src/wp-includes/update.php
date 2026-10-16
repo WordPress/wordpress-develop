@@ -923,7 +923,7 @@ function wp_get_translation_updates() {
 /**
  * Gets a stable identifier for a translation update.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param array|object $update Translation update data.
  * @return string Translation update identifier.
@@ -946,7 +946,7 @@ function wp_get_translation_update_id( $update ) {
 /**
  * Gets translation updates keyed by their stable identifiers.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param object[]|null $updates Optional. Translation update objects. Default null.
  * @return object[] Translation updates keyed by identifier.
@@ -968,10 +968,11 @@ function wp_get_translation_updates_by_id( $updates = null ) {
 /**
  * Gets deferred translation updates.
  *
- * Deferred translation updates remain available for later installation and are
- * skipped by background translation updates until they are selected again.
+ * Deferred updates remain available but are skipped by background updates by default.
+ * Explicit updates, including WP-CLI, can still install them. Successful installation
+ * through Language_Pack_Upgrader clears the matching deferral; failure leaves it unchanged.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param object[]|null $updates Optional. Translation update objects used to filter deferred updates
  *                               to currently available updates. Default null.
@@ -1011,7 +1012,7 @@ function wp_get_deferred_translation_updates( $updates = null ) {
 /**
  * Determines whether a translation update has been deferred.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param array|object $update           Translation update data.
  * @param array[]|null $deferred_updates Optional. Deferred translation updates keyed by identifier.
@@ -1029,7 +1030,7 @@ function wp_is_translation_update_deferred( $update, $deferred_updates = null ) 
 /**
  * Stores deferred translation updates.
  *
- * @since 7.1.0
+ * @since 7.2.0
  *
  * @param object[]|array[] $updates Translation updates to defer.
  * @return void
