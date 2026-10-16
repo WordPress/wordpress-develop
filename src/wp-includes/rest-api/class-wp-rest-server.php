@@ -1465,23 +1465,19 @@ class WP_REST_Server {
 			$available['image_max_bit_depth'] = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
 
 			/**
-			 * Filters whether sub-sizes of animated images should keep their animation.
+			 * Filters whether client-side media processing preserves animation in image sub-sizes.
 			 *
-			 * By default, every sub-size of an animated GIF or WebP image keeps its
-			 * animation, including cropped sizes such as `thumbnail`, which cut every
-			 * frame with the same crop. Return false to generate static sub-sizes from
-			 * the first frame only, for example when encoding every frame per sub-size
-			 * takes too long on the devices that upload to the site.
+			 * By default, sub-sizes of animated GIF and WebP images retain animation,
+			 * including cropped sizes. Return false to generate static sub-sizes using
+			 * only the first frame, reducing processing time in the browser.
 			 *
-			 * This currently only affects the client-side media processing path,
-			 * where all frames can be decoded and re-encoded in the browser. Uploads
-			 * that take the server-side path still produce static sub-sizes, as
-			 * neither GD nor Imagick resizing preserves animation in core.
+			 * This setting applies only to client-side media processing. Server-side
+			 * processing continues to generate static sub-sizes.
 			 *
 			 * @since 7.2.0
 			 *
-			 * @param bool $generate_animated_image_subsizes Whether to generate animated sub-sizes
-			 *                                               for animated images. Default true.
+			 * @param bool $generate_animated_image_subsizes Whether to preserve animation in image sub-sizes.
+			 *                                               Default true.
 			 */
 			$available['generate_animated_image_subsizes'] = (bool) apply_filters( 'wp_generate_animated_image_subsizes', true );
 		}
