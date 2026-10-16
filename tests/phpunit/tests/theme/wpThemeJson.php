@@ -1969,6 +1969,45 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_handles_select_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'select' => array(
+							'color'          => array(
+								'text' => 'green',
+							),
+							':hover'         => array(
+								'color' => array(
+									'background' => 'blue',
+								),
+							),
+							':focus-visible' => array(
+								'outline' => array(
+									'style' => 'solid',
+								),
+							),
+							':visited'       => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = 'select{color: green;}:root :where(select:hover){background-color: blue;}:root :where(select:focus-visible){outline-style: solid;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
