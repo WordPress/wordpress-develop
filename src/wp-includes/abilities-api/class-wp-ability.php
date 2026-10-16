@@ -161,9 +161,9 @@ class WP_Ability {
 	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
-	 *     @type callable             $permission_callback   Optional. A callback function to check permissions before execution.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *                                                       Required unless `$required_capabilities` is not empty.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
 	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
 	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
@@ -235,9 +235,9 @@ class WP_Ability {
 	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
-	 *     @type callable             $permission_callback   Optional. A callback function to check permissions before execution.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *                                                       Required unless `$required_capabilities` is not empty.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
 	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
 	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input. Required if ability accepts an input.
@@ -271,9 +271,9 @@ class WP_Ability {
 	 *     @type string               $category              The ability category slug this ability belongs to.
 	 *     @type callable             $execute_callback      A callback function to execute when the ability is invoked.
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
-	 *     @type callable             $permission_callback   Optional. A callback function to check permissions before execution.
+	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
-	 *                                                       Required unless `$required_capabilities` is not empty.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
 	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
 	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
@@ -333,8 +333,8 @@ class WP_Ability {
 		}
 
 		/*
-		 * If we are not overriding `ability_class` parameter during instantiation, then we need to validate the permission_callback.
-		 * It can be left out when the ability declares at least one required capability.
+		 * Validate the permission_callback, unless a custom `ability_class` is used.
+		 * It can be left out when the ability declares required capabilities.
 		 */
 		if ( get_class( $this ) === self::class ) {
 			if ( isset( $args['permission_callback'] ) ) {
@@ -695,7 +695,7 @@ class WP_Ability {
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
-	 * @since 7.2.0 Checks the `required_capabilities` before the `permission_callback`.
+	 * @since 7.2.0 Added the `required_capabilities` check.
 	 *
 	 * @see validate_input()
 	 *
@@ -715,10 +715,7 @@ class WP_Ability {
 			);
 		}
 
-		/*
-		 * Both checks must pass. A check that isn't set is skipped, so the other one decides.
-		 * The permission callback only runs when the required capabilities pass.
-		 */
+		// Both checks must pass. A check that isn't set is skipped.
 		$permission = true;
 		foreach ( $this->required_capabilities as $capability ) {
 			if ( ! current_user_can( $capability ) ) {
@@ -734,21 +731,20 @@ class WP_Ability {
 		/**
 		 * Filters the result of an ability's permission check.
 		 *
-		 * Fires after the `required_capabilities` check and the registered `permission_callback`.
-		 * It also fires when a required capability is missing. Plugins can use this to layer
-		 * additional authorization rules on top of the ability's own permission logic — for example,
+		 * Fires after the required capabilities check and the `permission_callback`. Plugins can use this
+		 * to layer additional authorization rules on top of the ability's own permission logic — for example,
 		 * multi-factor authorization gates or temporary permission elevation for trusted contexts.
 		 *
-		 * Filters can return `true` to grant, `false` to deny, or a `WP_Error` to deny with a specific
-		 * error code and message. The filter receives `false` when a required capability is missing.
-		 * Otherwise, it receives whatever the `permission_callback` produced, or `true` when there is none.
-		 * Any other return value is coerced to `false`.
+		 * The filter receives `false` when a required capability is missing. Otherwise, it receives the
+		 * result of `permission_callback`, or `true` when there is none. Filters can return `true` to grant,
+		 * `false` to deny, or a `WP_Error` to deny with a specific error code and message. Any other return
+		 * value is coerced to `false`.
 		 *
 		 * @since 7.1.0
 		 * @since 7.2.0 Also fires with `false` when a required capability is missing.
 		 *
-		 * @param bool|WP_Error $permission   The permission result from the required capabilities check
-		 *                                    and the `permission_callback`.
+		 * @param bool|WP_Error $permission   The result of the required capabilities check and the
+		 *                                    `permission_callback`.
 		 * @param string        $ability_name The name of the ability.
 		 * @param mixed         $input        The input data for the permission check.
 		 * @param WP_Ability    $ability      The ability instance.

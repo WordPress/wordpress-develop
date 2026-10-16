@@ -253,19 +253,17 @@ declare( strict_types = 1 );
  *     @type callable             $execute_callback    Required. A callback function to execute when the ability is invoked.
  *                                                     Receives optional mixed input data and must return either a result
  *                                                     value (any type) or a `WP_Error` object on failure.
- *     @type callable             $permission_callback Optional. A callback function to check permissions before execution.
+ *     @type callable             $permission_callback Required unless `$required_capabilities` lists at least one capability.
+ *                                                     A callback function to check permissions before execution.
  *                                                     Receives optional mixed input data (same as `execute_callback`) and
  *                                                     must return `true`/`false` for simple checks, or `WP_Error` for
- *                                                     detailed error responses. Required unless `$required_capabilities`
- *                                                     is not empty. Abilities that allow execution without authorization checks
- *                                                     must set it to `__return_true` and omit required capabilities.
- *                                                     This is independent of the `public` metadata flag, which controls
- *                                                     exposure to clients rather than authorization.
+ *                                                     detailed error responses. To let everyone run the ability,
+ *                                                     use `__return_true`. The `public` meta flag doesn't affect
+ *                                                     this. It only controls where the ability is shown.
  *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
  *                                                     ability. Each one is checked with `current_user_can()` before
  *                                                     `permission_callback` runs. Use it for checks that don't depend
- *                                                     on the input. Abilities the current user can't run can then be
- *                                                     left out when listing them. Default empty array.
+ *                                                     on the input. Default empty array.
  *     @type array<string, mixed> $input_schema        Optional. JSON Schema definition for validating the ability's input.
  *                                                     Must be a valid JSON Schema object defining the structure and
  *                                                     constraints for input data. Used for automatic validation and
@@ -500,13 +498,11 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     @type array           $meta                      Filter by meta key/value pairs. All conditions must
  *                                                      match (AND logic). Supports nested arrays for structured
  *                                                      meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
- *     @type bool            $has_required_capabilities Whether to leave out abilities that declare required
- *                                                      capabilities the current user doesn't have. Abilities
- *                                                      without required capabilities are always included,
- *                                                      because their permission may depend on the input.
- *                                                      Permission callbacks and the `wp_ability_permission_result` filter
- *                                                      are not called. Inclusion does not guarantee permission to execute.
- *                                                      False disables capability filtering. Default false.
+ *     @type bool            $has_required_capabilities Whether to leave out abilities whose required capabilities
+ *                                                      the current user doesn't have. Abilities without required
+ *                                                      capabilities are always included. Permission callbacks
+ *                                                      and filters don't run, so an included ability can still
+ *                                                      deny execution. Default false.
  *     @type callable        $item_include_callback     Optional. A callback invoked per ability after declarative
  *                                                      filters. Receives a WP_Ability instance, returns bool.
  *                                                      Return true to include, false to exclude.
@@ -552,7 +548,7 @@ function wp_get_abilities( array $args = array() ): array {
 			continue;
 		}
 
-		// Step 1d: Filter by the capabilities the ability requires from the current user.
+		// Step 1d: Leave out abilities whose required capabilities the current user doesn't have.
 		if ( $has_required_capabilities ) {
 			foreach ( $ability->get_required_capabilities() as $capability ) {
 				if ( ! current_user_can( $capability ) ) {
