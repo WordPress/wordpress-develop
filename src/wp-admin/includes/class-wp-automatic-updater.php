@@ -1280,27 +1280,35 @@ class WP_Automatic_Updater {
 		$failed_plugins     = ( ! empty( $failed_updates['plugin'] ) );
 		$failed_themes      = ( ! empty( $failed_updates['theme'] ) );
 
+		if ( '' !== get_option( 'blogname' ) ) {
+			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+		} else {
+			$site_title = parse_url( home_url(), PHP_URL_HOST );
+		}
+
+		$subject_updates = 'success' === $type ? $successful_updates : $failed_updates;
+		$subject_status  = 'success' === $type ? 'success' : 'fail';
+		$subject         = $this->get_plugin_theme_auto_update_email_subject(
+			$site_title,
+			$subject_updates,
+			$subject_status
+		);
+
 		switch ( $type ) {
 			case 'success':
 				if ( $successful_plugins && $successful_themes ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins and themes have automatically updated' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Some plugins and themes have automatically updated to their latest versions on your site at %s. No further action is needed on your part.' ),
 						home_url()
 					);
 				} elseif ( $successful_plugins ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins were automatically updated' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Some plugins have automatically updated to their latest versions on your site at %s. No further action is needed on your part.' ),
 						home_url()
 					);
 				} else {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some themes were automatically updated' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Some themes have automatically updated to their latest versions on your site at %s. No further action is needed on your part.' ),
@@ -1312,24 +1320,18 @@ class WP_Automatic_Updater {
 			case 'fail':
 			case 'mixed':
 				if ( $failed_plugins && $failed_themes ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins and themes have failed to update' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Plugins and themes failed to update on your site at %s.' ),
 						home_url()
 					);
 				} elseif ( $failed_plugins ) {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some plugins have failed to update' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Plugins failed to update on your site at %s.' ),
 						home_url()
 					);
 				} else {
-					/* translators: %s: Site title. */
-					$subject = __( '[%s] Some themes have failed to update' );
 					$body[]  = sprintf(
 						/* translators: %s: Home URL. */
 						__( 'Howdy! Themes failed to update on your site at %s.' ),
@@ -1507,15 +1509,8 @@ class WP_Automatic_Updater {
 		$body[] = __( 'https://wordpress.org/support/forums/' );
 		$body[] = "\n" . __( 'The WordPress Team' );
 
-		if ( '' !== get_option( 'blogname' ) ) {
-			$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-		} else {
-			$site_title = parse_url( home_url(), PHP_URL_HOST );
-		}
-
 		$body    = implode( "\n", $body );
 		$to      = get_site_option( 'admin_email' );
-		$subject = sprintf( $subject, $site_title );
 		$headers = '';
 
 		$email = compact( 'to', 'subject', 'body', 'headers' );
@@ -1549,6 +1544,116 @@ class WP_Automatic_Updater {
 		if ( $switched_locale ) {
 			restore_previous_locale();
 		}
+	}
+
+	/**
+	 * Builds a plugin and theme auto-update email subject.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $site_title Site title.
+	 * @param array  $updates    Plugin and theme update results.
+	 * @param string $status     Update status. Either 'success' or 'fail'.
+	 * @return string Email subject.
+	 */
+	protected function get_plugin_theme_auto_update_email_subject( $site_title, $updates, $status ) {
+		$plugins      = ! empty( $updates['plugin'] ) ? $updates['plugin'] : array();
+		$themes       = ! empty( $updates['theme'] ) ? $updates['theme'] : array();
+		$plugin_count = count( $plugins );
+		$theme_count  = count( $themes );
+		$total_count  = $plugin_count + $theme_count;
+		$is_success   = ( 'success' === $status );
+
+		if ( 1 === $total_count ) {
+			$items     = $plugin_count ? $plugins : $themes;
+			$item      = reset( $items );
+			$item_name = $this->prepare_plugin_theme_auto_update_email_subject_name( $item->name );
+
+			if ( $is_success ) {
+				/* translators: 1: Site title, 2: Plugin or theme name. */
+				return sprintf( __( '[%1$s] %2$s was automatically updated' ), $site_title, $item_name );
+			}
+
+			/* translators: 1: Site title, 2: Plugin or theme name. */
+			return sprintf( __( '[%1$s] %2$s failed to update' ), $site_title, $item_name );
+		}
+
+		$clauses = array();
+
+		if ( $plugin_count ) {
+			if ( $is_success ) {
+				$clauses[] = sprintf(
+					/* translators: %s: Number of plugins. */
+					_n( '%s plugin was automatically updated', '%s plugins were automatically updated', $plugin_count ),
+					number_format_i18n( $plugin_count )
+				);
+			} else {
+				$clauses[] = sprintf(
+					/* translators: %s: Number of plugins. */
+					_n( '%s plugin failed to update', '%s plugins failed to update', $plugin_count ),
+					number_format_i18n( $plugin_count )
+				);
+			}
+		}
+
+		if ( $theme_count ) {
+			if ( $is_success ) {
+				$clauses[] = sprintf(
+					/* translators: %s: Number of themes. */
+					_n( '%s theme was automatically updated', '%s themes were automatically updated', $theme_count ),
+					number_format_i18n( $theme_count )
+				);
+			} else {
+				$clauses[] = sprintf(
+					/* translators: %s: Number of themes. */
+					_n( '%s theme failed to update', '%s themes failed to update', $theme_count ),
+					number_format_i18n( $theme_count )
+				);
+			}
+		}
+
+		if ( 2 === count( $clauses ) ) {
+			return sprintf(
+				/* translators: 1: Site title, 2: Plugin update summary, 3: Theme update summary. */
+				__( '[%1$s] %2$s; %3$s' ),
+				$site_title,
+				$clauses[0],
+				$clauses[1]
+			);
+		}
+
+		return sprintf(
+			/* translators: 1: Site title, 2: Plugin or theme update summary. */
+			__( '[%1$s] %2$s' ),
+			$site_title,
+			$clauses[0]
+		);
+	}
+
+	/**
+	 * Prepares an item name for an auto-update email subject.
+	 *
+	 * Names longer than 40 Unicode code points are shortened to 39 code
+	 * points followed by an ellipsis.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $name Plugin or theme name.
+	 * @return string Prepared item name.
+	 */
+	protected function prepare_plugin_theme_auto_update_email_subject_name( $name ) {
+		$name = wp_scrub_utf8( $name );
+		$name = html_entity_decode(
+			$name,
+			ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401,
+			'UTF-8'
+		);
+
+		if ( 40 < mb_strlen( $name, 'UTF-8' ) ) {
+			$name = mb_substr( $name, 0, 39, 'UTF-8' ) . "\u{2026}";
+		}
+
+		return $name;
 	}
 
 	/**
