@@ -2266,62 +2266,6 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 64638
-	 *
-	 * @covers ::wp_get_note_reaction_ids
-	 */
-	public function test_wp_get_note_reaction_ids_returns_reactions_oldest_first() {
-		$note_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => '1',
-			)
-		);
-
-		$heart  = $this->create_reaction_on_note( $note_id );
-		$rocket = $this->create_reaction_on_note( $note_id, '1f680' );
-
-		// A reply is a child of the note, but it is not a reaction.
-		self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_type'     => 'note',
-				'comment_parent'   => $note_id,
-				'comment_approved' => '1',
-			)
-		);
-
-		$this->assertSame( array( $heart, $rocket ), array_map( 'intval', wp_get_note_reaction_ids( get_comment( $note_id ) ) ) );
-	}
-
-	/**
-	 * @ticket 64638
-	 *
-	 * @covers ::wp_get_note_reaction_ids
-	 */
-	public function test_wp_get_note_reaction_ids_filters_by_status() {
-		$note_id = self::factory()->comment->create(
-			array(
-				'comment_post_ID'  => self::$post_id,
-				'comment_type'     => 'note',
-				'comment_approved' => '1',
-			)
-		);
-
-		$approved = $this->create_reaction_on_note( $note_id );
-		$trashed  = $this->create_reaction_on_note( $note_id, '1f680' );
-		wp_trash_comment( $trashed );
-
-		$note = get_comment( $note_id );
-
-		$this->assertSame( array( $approved ), array_map( 'intval', wp_get_note_reaction_ids( $note, 'approve' ) ), 'Only the approved reaction was expected.' );
-		$this->assertSame( array( $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note, 'trash' ) ), 'Only the trashed reaction was expected.' );
-		$this->assertCount( 2, wp_get_note_reaction_ids( $note ), 'Both reactions were expected by default.' );
-		$this->assertSame( array( $approved, $trashed ), array_map( 'intval', wp_get_note_reaction_ids( $note ) ) );
-	}
-
-	/**
 	 * @ticket 61244
 	 *
 	 * @covers ::get_comment

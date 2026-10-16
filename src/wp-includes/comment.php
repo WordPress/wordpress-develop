@@ -352,32 +352,6 @@ function get_comment_statuses() {
 }
 
 /**
- * Retrieves the IDs of a note's reaction comments.
- *
- * Reactions hang off a note as child comments, so they have to be trashed
- * and deleted along with it.
- *
- * @since 7.2.0
- *
- * @param WP_Comment $note   The note whose reactions to fetch.
- * @param string     $status Optional. Comment status to match. Default 'any', which
- *                           includes trashed reactions.
- * @return int[] Reaction comment IDs, oldest first.
- */
-function wp_get_note_reaction_ids( WP_Comment $note, string $status = 'any' ): array {
-	return get_comments(
-		array(
-			'parent'  => $note->comment_ID,
-			'type'    => 'reaction',
-			'status'  => $status,
-			'fields'  => 'ids',
-			'orderby' => 'comment_ID',
-			'order'   => 'ASC',
-		)
-	);
-}
-
-/**
  * Gets the default comment status for a post type.
  *
  * @since 4.3.0
@@ -1637,7 +1611,16 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	 * covers every status: a reaction the user removed is trashed, not deleted.
 	 */
 	if ( 'note' === $comment->comment_type ) {
-		foreach ( wp_get_note_reaction_ids( $comment ) as $reaction_id ) {
+		$reaction_ids = get_comments(
+			array(
+				'parent' => $comment->comment_ID,
+				'type'   => 'reaction',
+				'status' => 'any',
+				'fields' => 'ids',
+			)
+		);
+
+		foreach ( $reaction_ids as $reaction_id ) {
 			wp_delete_comment( $reaction_id, true );
 		}
 	}
@@ -1769,7 +1752,16 @@ function wp_trash_comment( $comment_id ) {
 		 * children is left to a cascade that covers every child type together.
 		 */
 		if ( 'note' === $comment->comment_type ) {
-			foreach ( wp_get_note_reaction_ids( $comment, 'approve' ) as $reaction_id ) {
+			$reaction_ids = get_comments(
+				array(
+					'parent' => $comment->comment_ID,
+					'type'   => 'reaction',
+					'status' => 'approve',
+					'fields' => 'ids',
+				)
+			);
+
+			foreach ( $reaction_ids as $reaction_id ) {
 				wp_trash_comment( $reaction_id );
 			}
 		}
