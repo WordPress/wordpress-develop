@@ -23,6 +23,104 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 30495
+	 * @dataProvider data_control_characters
+	 *
+	 * @param string $filename Filename containing control characters.
+	 * @param string $expected Expected sanitized filename.
+	 */
+	public function test_sanitizes_control_characters( $filename, $expected ) {
+		$this->assertSame( $expected, sanitize_file_name( $filename ) );
+	}
+
+	/**
+	 * Data provider for test_sanitizes_control_characters().
+	 *
+	 * @return array[]
+	 */
+	public function data_control_characters() {
+		$data = array();
+
+		for ( $control = 0; $control < 32; ++$control ) {
+			$data[ sprintf( 'U+%04X', $control ) ] = array( 'menu' . chr( $control ) . '2026.pdf', 'menu2026.pdf' );
+		}
+
+		// These whitespace controls are already replaced with a dash.
+		$data['U+0009'][1] = 'menu-2026.pdf';
+		$data['U+000A'][1] = 'menu-2026.pdf';
+		$data['U+000D'][1] = 'menu-2026.pdf';
+
+		$data['leading control']           = array( "\x0Bmenu2026.pdf", 'menu2026.pdf' );
+		$data['trailing control']          = array( "menu2026.pdf\x0C", 'menu2026.pdf' );
+		$data['mixed controls and spaces'] = array( "\x01menu\t\x0B\r\n 2026\x1F.pdf\x0C", 'menu-2026.pdf' );
+		$data['multiple extensions']       = array( "te\x0Bst.pht\x01ml.tx\x1Ft", 'test.phtml_.txt' );
+		$data['accented characters']       = array( "café\x0B-menu.pdf", 'cafe-menu.pdf' );
+		$data['Korean characters']         = array( "메뉴\x0B 2026.pdf", '메뉴-2026.pdf' );
+		$data['emoji']                     = array( "menu😀\x0B2026.pdf", 'menu😀2026.pdf' );
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 30495
+	 */
+	public function test_control_characters_are_filterable() {
+		$filename = "menu\x0B2026.pdf";
+		$filter   = function ( $special_chars, $filename_raw ) use ( $filename ) {
+			$this->assertContains( "\x0B", $special_chars );
+			$this->assertSame( $filename, $filename_raw );
+
+			return array_diff( $special_chars, array( "\x0B" ) );
+		};
+
+		add_filter( 'sanitize_file_name_chars', $filter, 10, 2 );
+		try {
+			$actual = sanitize_file_name( $filename );
+		} finally {
+			remove_filter( 'sanitize_file_name_chars', $filter, 10 );
+		}
+
+		$this->assertSame( $filename, $actual );
+	}
+
+	/**
+	 * @ticket 30495
+	 * @dataProvider data_control_characters_final_filter
+	 *
+	 * @param string $filename Filename containing control characters.
+	 * @param string $expected Expected sanitized filename.
+	 */
+	public function test_control_characters_with_final_filter( $filename, $expected ) {
+		$filter = function ( $sanitized, $filename_raw ) use ( $filename, $expected ) {
+			$this->assertSame( $expected, $sanitized );
+			$this->assertSame( $filename, $filename_raw );
+
+			return 'filtered-' . $sanitized;
+		};
+
+		add_filter( 'sanitize_file_name', $filter, 10, 2 );
+		try {
+			$actual = sanitize_file_name( $filename );
+		} finally {
+			remove_filter( 'sanitize_file_name', $filter, 10 );
+		}
+
+		$this->assertSame( 'filtered-' . $expected, $actual );
+	}
+
+	/**
+	 * Data provider for test_control_characters_with_final_filter().
+	 *
+	 * @return array[]
+	 */
+	public function data_control_characters_final_filter() {
+		return array(
+			'single extension'    => array( "menu\x0B2026.pdf", 'menu2026.pdf' ),
+			'multiple extensions' => array( "te\x0Bst.phtml.txt", 'test.phtml_.txt' ),
+		);
+	}
+
+	/**
 	 * @ticket 22363
 	 */
 	public function test_removes_accents() {
