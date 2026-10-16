@@ -1229,13 +1229,18 @@ function wpmu_activate_signup(
 	} else {
 		$meta = array();
 	}
-	$password = wp_generate_password( 12, false );
-
 	$user_id = username_exists( $signup->user_login );
 
 	if ( ! $user_id ) {
-		$user_id = wpmu_create_user( $signup->user_login, $password, $signup->user_email );
+		$password = wp_generate_password( 12, false );
+		$user_id  = wpmu_create_user( $signup->user_login, $password, $signup->user_email );
 	} else {
+		/*
+		 * The user was created earlier, for example by a previous activation attempt
+		 * that failed before the site was created. Their password was not generated
+		 * here, so don't report a new one that was never set on the account.
+		 */
+		$password            = 'N/A';
 		$user_already_exists = true;
 	}
 
