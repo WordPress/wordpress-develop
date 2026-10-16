@@ -35,6 +35,60 @@ function wp_register_background_support( $block_type ) {
 }
 
 /**
+ * Returns background classes and inline styles for block attributes, like the JS
+ * `getBackgroundClassesAndStyles()`. Does not check block support or skipped
+ * serialization.
+ *
+ * @since 7.2.0
+ *
+ * @param array $block_attributes Block attributes.
+ * @return array Array with `class` and `style` keys, each present only when non-empty.
+ */
+function wp_get_background_classes_and_styles( $block_attributes ) {
+	$background = $block_attributes['style']['background'] ?? null;
+
+	if ( ! is_array( $background ) ) {
+		return array();
+	}
+
+	$background_styles = array(
+		'backgroundImage'      => $background['backgroundImage'] ?? null,
+		'backgroundSize'       => $background['backgroundSize'] ?? null,
+		'backgroundPosition'   => $background['backgroundPosition'] ?? null,
+		'backgroundRepeat'     => $background['backgroundRepeat'] ?? null,
+		'backgroundAttachment' => $background['backgroundAttachment'] ?? null,
+		'gradient'             => $background['gradient'] ?? null,
+		'backgroundClip'       => $background['backgroundClip'] ?? null,
+	);
+
+	if ( ! empty( $background_styles['backgroundImage'] ) ) {
+		$background_styles['backgroundSize'] ??= 'cover';
+		if ( 'contain' === $background_styles['backgroundSize'] && ! $background_styles['backgroundPosition'] ) {
+			$background_styles['backgroundPosition'] = '50% 50%';
+		}
+	}
+
+	$styles = wp_style_engine_get_styles( array( 'background' => $background_styles ) );
+
+	if ( empty( $styles['css'] ) ) {
+		return array();
+	}
+
+	$classes_and_styles = array();
+
+	$has_background = ! empty( $background_styles['backgroundImage'] ) || ! empty( $background_styles['gradient'] );
+
+	// A text clip paints the glyphs, not the box, so there is no block background.
+	if ( $has_background && 'text' !== $background_styles['backgroundClip'] ) {
+		$classes_and_styles['class'] = 'has-background';
+	}
+
+	$classes_and_styles['style'] = $styles['css'];
+
+	return $classes_and_styles;
+}
+
+/**
  * Renders the background styles to the block wrapper.
  * This block support uses the `render_block` hook to ensure that
  * it is also applied to non-server-rendered blocks.
@@ -44,6 +98,7 @@ function wp_register_background_support( $block_type ) {
  * @since 6.6.0 Removed requirement for `backgroundImage.source`. A file/url is the default.
  * @since 6.7.0 Added support for `backgroundAttachment` output.
  * @since 7.1.0 Added support for `background.gradient` output.
+ * @since 7.2.0 Added support for `background.backgroundClip` output.
  *
  * @access private
  *
@@ -56,9 +111,10 @@ function wp_render_background_support( $block_content, $block ) {
 	$block_attributes                = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
 	$has_background_image_support    = block_has_support( $block_type, array( 'background', 'backgroundImage' ), false );
 	$has_background_gradient_support = block_has_support( $block_type, array( 'background', 'gradient' ), false );
+	$has_background_clip_support     = block_has_support( $block_type, array( 'background', 'backgroundClip' ), false );
 
 	if (
-		( ! $has_background_image_support && ! $has_background_gradient_support ) ||
+		( ! $has_background_image_support && ! $has_background_gradient_support && ! $has_background_clip_support ) ||
 		! isset( $block_attributes['style']['background'] )
 	) {
 		return $block_content;
@@ -67,37 +123,37 @@ function wp_render_background_support( $block_content, $block ) {
 	// Check serialization skip for each feature individually.
 	$skip_background_image    = ! $has_background_image_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'backgroundImage' );
 	$skip_background_gradient = ! $has_background_gradient_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'gradient' );
+	$skip_background_clip     = ! $has_background_clip_support || wp_should_skip_block_supports_serialization( $block_type, 'background', 'backgroundClip' );
 
-	if ( $skip_background_image && $skip_background_gradient ) {
+	if ( $skip_background_image && $skip_background_gradient && $skip_background_clip ) {
 		return $block_content;
 	}
 
-	$background_styles = array();
+	// The helper ignores a non-array background, so only an array needs filtering.
+	if ( is_array( $block_attributes['style']['background'] ) ) {
+		if ( $skip_background_image ) {
+			unset(
+				$block_attributes['style']['background']['backgroundImage'],
+				$block_attributes['style']['background']['backgroundSize'],
+				$block_attributes['style']['background']['backgroundPosition'],
+				$block_attributes['style']['background']['backgroundRepeat'],
+				$block_attributes['style']['background']['backgroundAttachment']
+			);
+		}
 
-	if ( ! $skip_background_image ) {
-		$background_styles['backgroundImage']      = $block_attributes['style']['background']['backgroundImage'] ?? null;
-		$background_styles['backgroundSize']       = $block_attributes['style']['background']['backgroundSize'] ?? null;
-		$background_styles['backgroundPosition']   = $block_attributes['style']['background']['backgroundPosition'] ?? null;
-		$background_styles['backgroundRepeat']     = $block_attributes['style']['background']['backgroundRepeat'] ?? null;
-		$background_styles['backgroundAttachment'] = $block_attributes['style']['background']['backgroundAttachment'] ?? null;
+		if ( $skip_background_gradient ) {
+			unset( $block_attributes['style']['background']['gradient'] );
+		}
 
-		if ( ! empty( $background_styles['backgroundImage'] ) ) {
-			$background_styles['backgroundSize'] ??= 'cover';
-
-			// If the background size is set to `contain` and no position is set, set the position to `center`.
-			if ( 'contain' === $background_styles['backgroundSize'] && ! $background_styles['backgroundPosition'] ) {
-				$background_styles['backgroundPosition'] = '50% 50%';
-			}
+		// Serialized values only, so a skipped clip cannot drop `has-background`.
+		if ( $skip_background_clip ) {
+			unset( $block_attributes['style']['background']['backgroundClip'] );
 		}
 	}
 
-	if ( ! $skip_background_gradient ) {
-		$background_styles['gradient'] = $block_attributes['style']['background']['gradient'] ?? null;
-	}
+	$styles = wp_get_background_classes_and_styles( $block_attributes );
 
-	$styles = wp_style_engine_get_styles( array( 'background' => $background_styles ) );
-
-	if ( ! empty( $styles['css'] ) ) {
+	if ( ! empty( $styles['style'] ) ) {
 		// Inject background styles to the first element, presuming it's the wrapper, if it exists.
 		$tags = new WP_HTML_Tag_Processor( $block_content );
 
@@ -105,13 +161,16 @@ function wp_render_background_support( $block_content, $block ) {
 			$existing_style = $tags->get_attribute( 'style' );
 			if ( is_string( $existing_style ) && '' !== $existing_style ) {
 				$separator     = str_ends_with( $existing_style, ';' ) ? '' : ';';
-				$updated_style = "{$existing_style}{$separator}{$styles['css']}";
+				$updated_style = "{$existing_style}{$separator}{$styles['style']}";
 			} else {
-				$updated_style = $styles['css'];
+				$updated_style = $styles['style'];
 			}
 
 			$tags->set_attribute( 'style', $updated_style );
-			$tags->add_class( 'has-background' );
+
+			if ( ! empty( $styles['class'] ) ) {
+				$tags->add_class( $styles['class'] );
+			}
 		}
 
 		return $tags->get_updated_html();
