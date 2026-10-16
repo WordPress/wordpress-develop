@@ -529,10 +529,8 @@ class WP_Automatic_Updater {
 				$skin->feedback( __( 'Updating plugin: %s' ), $item_name );
 				break;
 			case 'translation':
-				/**
-				 * @phpstan-var Translation_Update_Offer $item
-				 * @var Language_Pack_Upgrader $upgrader
-				 */
+				/** @phpstan-var Translation_Update_Offer $item */
+				/** @var Language_Pack_Upgrader $upgrader */
 				$language_item_name = $upgrader->get_name_for_update( $item );
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
 				$item_name = sprintf( __( 'Translations for %s' ), $language_item_name );
@@ -549,10 +547,8 @@ class WP_Automatic_Updater {
 		$was_active = null;
 		$is_debug   = WP_DEBUG && WP_DEBUG_LOG;
 		if ( 'plugin' === $type ) {
-			/**
-			 * @phpstan-var Plugin_Update_Offer $item
-			 * @var string $upgrader_item
-			 */
+			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @var string $upgrader_item */
 			$was_active = is_plugin_active( $upgrader_item );
 			if ( $is_debug ) {
 				error_log( '    Upgrading plugin ' . var_export( $item->slug, true ) . '...' );
@@ -642,10 +638,8 @@ class WP_Automatic_Updater {
 		}
 
 		if ( 'plugin' === $type ) {
-			/**
-			 * @phpstan-var Plugin_Update_Offer $item
-			 * @var string $upgrader_item
-			 */
+			/** @phpstan-var Plugin_Update_Offer $item */
+			/** @var string $upgrader_item */
 			if ( $is_debug ) {
 				error_log( '    Plugin ' . var_export( $item->slug, true ) . ' has been upgraded.' );
 				if ( is_plugin_inactive( $upgrader_item ) ) {
