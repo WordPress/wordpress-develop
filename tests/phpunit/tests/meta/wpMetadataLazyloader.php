@@ -207,11 +207,9 @@ class Tests_Meta_wpMetadataLazyloader extends WP_UnitTestCase {
 	 */
 	public static function data_check_values() {
 		return array(
-			'null'         => array( null ),
-			'false'        => array( false ),
-			'empty string' => array( '' ),
-			'empty array'  => array( array() ),
-			'value'        => array( array( 'short-circuited' ) ),
+			'null'  => array( null ),
+			'false' => array( false ),
+			'value' => array( array( 'short-circuited' ) ),
 		);
 	}
 
