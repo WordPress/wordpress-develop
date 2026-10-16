@@ -255,4 +255,39 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'wp_pattern_sync_status', $data );
 		$this->assertArrayNotHasKey( 'wp_pattern_sync_status', $data['meta'] );
 	}
+
+	/**
+	 * Tests that check_meta_is_array correctly handles object types.
+	 *
+	 * @ticket 54484
+	 */
+	public function test_check_meta_is_array_accepts_object() {
+		wp_set_current_user( self::$user_ids['editor'] );
+
+		// Implement all abstract methods required by WP_REST_Meta_Fields.
+		$meta_fields = new class( 'post' ) extends WP_REST_Meta_Fields {
+			protected function get_meta_type() {
+				return 'post';
+			}
+
+			protected function get_rest_field_type() {
+				return 'post';
+			}
+		};
+
+		// Simulate an object parsed from JSON (stdClass).
+		$object_value           = new stdClass();
+		$object_value->test_key = 'test_value';
+
+		// Execute the method from the patch.
+		$result = $meta_fields->check_meta_is_array( $object_value, new WP_REST_Request(), 'meta' );
+
+		// Verify: The object should be converted to an array to pass validation.
+		$this->assertIsArray( $result, 'The object should be converted to an array to pass validation.' );
+		$this->assertArrayHasKey( 'test_key', $result );
+		$this->assertSame( 'test_value', $result['test_key'] );
+
+		// Verify: Values that are neither object nor array (e.g., string) should still return false.
+		$this->assertFalse( $meta_fields->check_meta_is_array( 'not-an-array', new WP_REST_Request(), 'meta' ) );
+	}
 }
