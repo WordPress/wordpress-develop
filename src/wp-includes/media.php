@@ -1619,7 +1619,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
 	 *                                  pixel density value if paired with an 'x' descriptor.
 	 *     }
 	 * }
-	 * @param array $size_array     {
+	 * @param array  $size_array {
 	 *     An array of requested width and height values.
 	 *
 	 *     @type int $0 The width in pixels.
@@ -2120,7 +2120,7 @@ function wp_img_tag_add_auto_sizes( string $image ): string {
 	 *
 	 * @since 6.7.1
 	 *
-	 * @param boolean $enabled Whether auto-sizes for lazy loaded images is enabled.
+	 * @param bool $enabled Whether auto-sizes for lazy loaded images is enabled.
 	 */
 	if ( ! apply_filters( 'wp_img_tag_add_auto_sizes', true ) ) {
 		return $image;
@@ -4124,11 +4124,11 @@ function get_adjacent_image_link( $prev = true, $size = 'thumbnail', $text = fal
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string $output        Adjacent image HTML markup.
-	 * @param int    $attachment_id Attachment ID
-	 * @param string|int[] $size    Requested image size. Can be any registered image size name, or
-	 *                              an array of width and height values in pixels (in that order).
-	 * @param string $text          Link text.
+	 * @param string       $output        Adjacent image HTML markup.
+	 * @param int          $attachment_id Attachment ID
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
+	 * @param string       $text          Link text.
 	 */
 	return apply_filters( "{$adjacent}_image_link", $output, $attachment_id, $size, $text );
 }
@@ -5305,11 +5305,13 @@ function wp_enqueue_media( $args = array() ) {
 	wp_localize_script( 'media-views', '_wpMediaViewsL10n', $strings );
 
 	wp_enqueue_script( 'media-audiovideo' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'media-views' );
 	if ( is_admin() ) {
 		wp_enqueue_script( 'mce-view' );
 		wp_enqueue_script( 'image-edit' );
 	}
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'imgareaselect' );
 	wp_plupload_default_settings();
 

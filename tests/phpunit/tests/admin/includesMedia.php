@@ -12,6 +12,12 @@ class Tests_Admin_IncludesMedia extends WP_UnitTestCase {
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 	}
 
+	public function tear_down() {
+		$this->remove_added_uploads();
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that a `filesize` stored in the attachment metadata is normalized to a positive integer.
 	 *

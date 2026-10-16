@@ -53,6 +53,7 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		$data = generate_postdata( $p );
 
 		$this->assertNotEmpty( $data['authordata'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $u, $data['authordata'] );
 	}
 

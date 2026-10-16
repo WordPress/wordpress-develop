@@ -36,7 +36,7 @@
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
  *
  * @param array $block_styles The style object.
- * @param array $options {
+ * @param array $options      {
  *     Optional. An array of options. Default empty array.
  *
  *     @type string|null $context                    An identifier describing the origin of the style object,
@@ -128,7 +128,7 @@ function wp_style_engine_get_styles( $block_styles, $options = array() ) {
  *                                                                       or a WP_Style_Engine_CSS_Declarations object.
  *     }
  * }
- * @param array $options {
+ * @param array $options   {
  *     Optional. An array of options. Default empty array.
  *
  *     @type string|null $context  An identifier describing the origin of the style object,

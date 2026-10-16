@@ -11153,7 +11153,7 @@ mockedApiResponse.Schema = {
                         },
                         "url": {
                             "title": "",
-                            "description": "Site URL.",
+                            "description": "The URL where WordPress core files are served. May differ from the public site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false
@@ -11234,6 +11234,12 @@ mockedApiResponse.Schema = {
                         "page_for_posts": {
                             "title": "",
                             "description": "The ID of the page that should display the latest posts",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_privacy_policy": {
+                            "title": "",
+                            "description": "The ID of the page that should be displayed as the privacy policy page",
                             "type": "integer",
                             "required": false
                         },
@@ -14932,6 +14938,7 @@ mockedApiResponse.settings = {
     "show_on_front": "posts",
     "page_on_front": 0,
     "page_for_posts": 0,
+    "page_for_privacy_policy": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,

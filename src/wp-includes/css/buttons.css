@@ -25,7 +25,6 @@ Button States
 Lock the state of a button by adding the name of the pseudoclass as
 an actual class (e.g. `.hover` for `:hover`).
 
-
 TABLE OF CONTENTS:
 ------------------
  1.0 - Button Layouts
@@ -58,16 +57,6 @@ TABLE OF CONTENTS:
 	border-radius: 2px;
 	white-space: nowrap;
 	box-sizing: border-box;
-}
-
-/* Remove the dotted border on :focus and the extra padding in Firefox */
-.wp-core-ui button::-moz-focus-inner,
-.wp-core-ui input[type="reset"]::-moz-focus-inner,
-.wp-core-ui input[type="button"]::-moz-focus-inner,
-.wp-core-ui input[type="submit"]::-moz-focus-inner {
-	border-width: 0;
-	border-style: none;
-	padding: 0;
 }
 
 /* Compact size - 32px, for space-constrained contexts */
