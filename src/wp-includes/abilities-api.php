@@ -29,25 +29,23 @@
  *         wp_register_ability(
  *             'my-plugin/export-users',
  *             array(
- *                 'label'               => __( 'Export Users', 'my-plugin' ),
- *                 'description'         => __( 'Exports user data to CSV format.', 'my-plugin' ),
- *                 'category'            => 'data-export',
- *                 'execute_callback'    => 'my_plugin_export_users',
- *                 'permission_callback' => function(): bool {
- *                     return current_user_can( 'export' );
- *                 },
- *                 'input_schema'        => array(
+ *                 'label'                 => __( 'Export Users', 'my-plugin' ),
+ *                 'description'           => __( 'Exports user data to CSV format.', 'my-plugin' ),
+ *                 'category'              => 'data-export',
+ *                 'execute_callback'      => 'my_plugin_export_users',
+ *                 'required_capabilities' => array( 'export' ),
+ *                 'input_schema'          => array(
  *                     'type'        => 'string',
  *                     'enum'        => array( 'subscriber', 'contributor', 'author', 'editor', 'administrator' ),
  *                     'description' => __( 'Limits the export to users with this role.', 'my-plugin' ),
  *                     'required'    => false,
  *                 ),
- *                 'output_schema'       => array(
+ *                 'output_schema'         => array(
  *                     'type'        => 'string',
  *                     'description' => __( 'User data in CSV format.', 'my-plugin' ),
  *                     'required'    => true,
  *                 ),
- *                 'meta'                => array(
+ *                 'meta'                  => array(
  *                     'public' => true,
  *                 ),
  *             )
@@ -234,6 +232,7 @@ declare( strict_types = 1 );
  * @since 6.9.0
  * @since 7.1.0 Added the `public` meta argument.
  * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
+ * @since 7.2.0 Added the `required_capabilities` argument.
  *
  * @see WP_Abilities_Registry::register()
  * @see wp_register_ability_category()
@@ -254,10 +253,16 @@ declare( strict_types = 1 );
  *     @type callable             $execute_callback    Required. A callback function to execute when the ability is invoked.
  *                                                     Receives optional mixed input data and must return either a result
  *                                                     value (any type) or a `WP_Error` object on failure.
- *     @type callable             $permission_callback Required. A callback function to check permissions before execution.
+ *     @type callable             $permission_callback Optional. A callback function to check permissions before execution.
  *                                                     Receives optional mixed input data (same as `execute_callback`) and
  *                                                     must return `true`/`false` for simple checks, or `WP_Error` for
- *                                                     detailed error responses.
+ *                                                     detailed error responses. Required unless `$required_capabilities`
+ *                                                     is not empty. Public abilities must set it to `__return_true`.
+ *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+ *                                                     ability. Each one is checked with `current_user_can()` before
+ *                                                     `permission_callback` runs. Use it for checks that don't depend
+ *                                                     on the input. Abilities the current user can't run can then be
+ *                                                     left out when listing them. Default empty array.
  *     @type array<string, mixed> $input_schema        Optional. JSON Schema definition for validating the ability's input.
  *                                                     Must be a valid JSON Schema object defining the structure and
  *                                                     constraints for input data. Used for automatic validation and
@@ -477,6 +482,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * @since 6.9.0
  * @since 7.1.0 Added the `$args` parameter for filtering support.
+ * @since 7.2.0 Added the `current_user_can` argument.
  *
  * @see WP_Abilities_Registry::get_all_registered()
  *
@@ -491,6 +497,11 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     @type array           $meta                  Filter by meta key/value pairs. All conditions must
  *                                                  match (AND logic). Supports nested arrays for structured
  *                                                  meta, e.g. `array( 'mcp' => array( 'public' => true ) )`.
+ *     @type bool            $current_user_can      Whether to leave out abilities that declare required
+ *                                                  capabilities the current user doesn't have. Abilities
+ *                                                  without required capabilities are always included,
+ *                                                  because their permission may depend on the input.
+ *                                                  Permission callbacks are not called. Default false.
  *     @type callable        $item_include_callback Optional. A callback invoked per ability after declarative
  *                                                  filters. Receives a WP_Ability instance, returns bool.
  *                                                  Return true to include, false to exclude.
@@ -514,6 +525,7 @@ function wp_get_abilities( array $args = array() ): array {
 	$category              = isset( $args['category'] ) && is_string( $args['category'] ) ? $args['category'] : '';
 	$namespace             = isset( $args['namespace'] ) && is_string( $args['namespace'] ) ? rtrim( $args['namespace'], '/' ) . '/' : '';
 	$meta                  = isset( $args['meta'] ) && is_array( $args['meta'] ) ? $args['meta'] : array();
+	$current_user_can      = ! empty( $args['current_user_can'] );
 	$item_include_callback = isset( $args['item_include_callback'] ) && is_callable( $args['item_include_callback'] ) ? $args['item_include_callback'] : null;
 	$result_callback       = isset( $args['result_callback'] ) && is_callable( $args['result_callback'] ) ? $args['result_callback'] : null;
 
@@ -533,6 +545,15 @@ function wp_get_abilities( array $args = array() ): array {
 		// Step 1c: Filter by meta key/value pairs (AND logic, supports nested arrays).
 		if ( ! empty( $meta ) && ! _wp_get_abilities_match_meta( $ability->get_meta(), $meta ) ) {
 			continue;
+		}
+
+		// Step 1d: Filter by the capabilities the ability requires from the current user.
+		if ( $current_user_can ) {
+			foreach ( $ability->get_required_capabilities() as $capability ) {
+				if ( ! current_user_can( $capability ) ) {
+					continue 2;
+				}
+			}
 		}
 
 		// Step 2: Caller-scoped per-item callback.
