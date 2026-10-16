@@ -280,4 +280,43 @@ test.describe( 'Moderate Comments', () => {
 		await expect( firstRow ).toBeVisible();
 		await expect( secondRow ).toBeVisible();
 	} );
+
+	test( 'quick edits a comment and persists its content', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const { post, comment } = await createPostWithComment(
+			requestUtils,
+			'approved'
+		);
+		await admin.visitAdminPage(
+			'/edit-comments.php',
+			`p=${ post.id }`
+		);
+
+		const row = page.locator( `#comment-${ comment.id }` );
+		await row.hover();
+		await row
+			.getByRole( 'button', { name: 'Quick edit this comment inline' } )
+			.click();
+
+		const commentField = page.getByRole( 'textbox', {
+			name: 'Comment',
+			exact: true,
+		} );
+		await expect( commentField ).toHaveValue( COMMENT_CONTENT );
+		await commentField.fill( 'A comment updated with Quick Edit.' );
+		await page
+			.getByRole( 'button', { name: 'Update Comment', exact: true } )
+			.click();
+
+		const updatedContent = row
+			.getByRole( 'paragraph' )
+			.filter( { hasText: /^A comment updated with Quick Edit\.$/ } );
+		await expect( updatedContent ).toBeVisible();
+		await expect( commentField ).toBeHidden();
+		await page.reload();
+		await expect( updatedContent ).toBeVisible();
+	} );
 } );
