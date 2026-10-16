@@ -992,6 +992,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$attachment = get_post( $request['id'] );
+		$schema     = $this->get_item_schema();
 
 		if ( ! empty( $schema['properties']['featured_media'] ) && isset( $request['featured_media'] ) ) {
 			$thumbnail_update = $this->handle_featured_media( $request['featured_media'], $attachment->ID );
