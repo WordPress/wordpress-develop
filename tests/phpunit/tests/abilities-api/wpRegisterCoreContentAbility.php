@@ -3818,6 +3818,83 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Rendering a field with no global post, such as on `init`, does not start the loop, so
+	 * get_the_content() without a post still works for a global post set afterwards.
+	 *
+	 * Rendering fires `the_post`, after which get_the_content() without a post reads the loop
+	 * globals. They are unset again when there was no global post, so the main post that
+	 * WP::register_globals() sets afterwards made it throw a TypeError. The ability resets
+	 * the count when it was the first thing to fire the action and no global post was set.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_rendered_fields_without_a_global_post_do_not_start_the_loop(): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			unset( $GLOBALS[ $name ] );
+		}
+
+		// No loop has started yet, as on `init`.
+		unset( $GLOBALS['wp_actions']['the_post'] );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( self::$post_ids['limited_role_content'] ),
+				),
+				'fields' => array( 'content.rendered' ),
+			)
+		);
+
+		$this->assertArrayHasKey( 'rendered', $result['items'][0]['content'], 'Precondition: the rendered content should be returned.' );
+		$this->assertSame( 0, did_action( 'the_post' ), 'Rendering a field with no global post should not count as starting the loop.' );
+
+		// WP::register_globals() sets the main post this way, before the loop sets it up.
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Establishes a global post that was not set up.
+		$GLOBALS['post'] = get_post( self::$post_ids['published_content'] );
+
+		$this->assertSame( 'Body here.', get_the_content(), 'get_the_content() without a post should return the content of a global post set afterwards.' );
+	}
+
+	/**
+	 * Rendering a field with no global post keeps the `the_post` count of a loop that had
+	 * already started, since the ability resets the count only when it was the first thing
+	 * to fire the action.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_rendered_fields_without_a_global_post_keep_an_earlier_the_post_count(): void {
+		$this->login_as( 'subscriber' );
+		$this->register_ability();
+
+		// Another loop has already set up a post, and the global post was cleared afterwards.
+		setup_postdata( get_post( self::$post_ids['published'] ) );
+		foreach ( self::LOOP_GLOBALS as $name ) {
+			unset( $GLOBALS[ $name ] );
+		}
+
+		$the_post_count = did_action( 'the_post' );
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( self::$post_ids['limited_role_content'] ),
+				),
+				'fields' => array( 'content.rendered' ),
+			)
+		);
+
+		$this->assertArrayHasKey( 'rendered', $result['items'][0]['content'], 'Precondition: the rendered content should be returned.' );
+		$this->assertSame( $the_post_count + 1, did_action( 'the_post' ), 'The ability should keep the `the_post` count of a loop that had already started.' );
+	}
+
+	/**
 	 * Returns the posts whose `the_post` callbacks throw: the requested post, as it is set
 	 * up, and the surrounding post, as it is set up again afterwards.
 	 *
