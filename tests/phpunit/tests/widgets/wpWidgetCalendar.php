@@ -28,30 +28,41 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 	);
 
 	/**
-	 * Reset the private static $instance counter on WP_Widget_Calendar.
+	 * Value of the private static $instance counter before each test.
+	 *
+	 * @var int
+	 */
+	private $original_instance_count;
+
+	/**
+	 * Saves the private static $instance counter on WP_Widget_Calendar, then resets it.
 	 */
 	public function set_up() {
 		parent::set_up();
-		$this->reset_calendar_widget_instance_count();
+		$property                      = $this->get_calendar_widget_instance_property();
+		$this->original_instance_count = $property->getValue();
+		$property->setValue( null, 0 );
 	}
 
 	/**
-	 * Reset the private static $instance counter after each test.
+	 * Restores the private static $instance counter saved in set_up().
 	 */
 	public function tear_down() {
-		$this->reset_calendar_widget_instance_count();
+		$this->get_calendar_widget_instance_property()->setValue( null, $this->original_instance_count );
 		parent::tear_down();
 	}
 
 	/**
-	 * Helper to reset private static $instance count using reflection.
+	 * Helper to access the private static $instance counter using reflection.
+	 *
+	 * @return ReflectionProperty
 	 */
-	private function reset_calendar_widget_instance_count() {
+	private function get_calendar_widget_instance_property() {
 		$property = new ReflectionProperty( 'WP_Widget_Calendar', 'instance' );
 		if ( PHP_VERSION_ID < 80100 ) {
 			$property->setAccessible( true );
 		}
-		$property->setValue( null, 0 );
+		return $property;
 	}
 
 	/**
@@ -107,12 +118,23 @@ class Tests_Widgets_wpWidgetCalendar extends WP_UnitTestCase {
 		 * get_calendar() skips its "no posts" check when the global $posts is populated,
 		 * which can happen when it is left over from a previous test.
 		 */
+		$had_posts = array_key_exists( 'posts', $GLOBALS );
+		$posts     = $had_posts ? $GLOBALS['posts'] : null;
 		unset( $GLOBALS['posts'] );
 
 		$widget   = new WP_Widget_Calendar();
 		$instance = array();
 
-		$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
+		try {
+			$output = get_echo( array( $widget, 'widget' ), array( $this->args, $instance ) );
+		} finally {
+			// The base tear_down() does not restore this global.
+			if ( $had_posts ) {
+				$GLOBALS['posts'] = $posts;
+			} else {
+				unset( $GLOBALS['posts'] );
+			}
+		}
 
 		$this->assertStringContainsString( '<div id="calendar_wrap" class="calendar_wrap"></div>', $output );
 		$this->assertStringNotContainsString( '<table id="wp-calendar"', $output );
