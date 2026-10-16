@@ -293,7 +293,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 
 	/**
-	 * Test that SQL modes are set correctly
+	 * Test that SQL modes are set correctly.
 	 *
 	 * @ticket 26847
 	 */
@@ -308,6 +308,26 @@ class Tests_DB extends WP_UnitTestCase {
 
 		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
 		$this->assertSameSets( $new_modes, explode( ',', $check_new_modes ) );
+
+		$wpdb->set_sql_mode( empty( $current_modes ) ? array() : explode( ',', $current_modes ) );
+	}
+
+	/**
+	 * Test that SQL modes are uppercased correctly.
+	 *
+	 * @ticket 66326
+	 */
+	public function test_set_sql_mode_corrects_lowercase() {
+		global $wpdb;
+
+		$current_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
+
+		$new_modes = array( 'ignore_space', 'no_auto_value_on_zero' );
+
+		$wpdb->set_sql_mode( $new_modes );
+
+		$check_new_modes = $wpdb->get_var( 'SELECT @@SESSION.sql_mode;' );
+		$this->assertSameSets( array_map( 'strtoupper', $new_modes ), explode( ',', $check_new_modes ) );
 
 		$wpdb->set_sql_mode( empty( $current_modes ) ? array() : explode( ',', $current_modes ) );
 	}
