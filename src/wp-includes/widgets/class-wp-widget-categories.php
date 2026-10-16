@@ -58,6 +58,12 @@ class WP_Widget_Categories extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
+		/*
+		 * Although update() stores these flags as 0 or 1, they are checked loosely for back-compat:
+		 * the keys are absent for an instance that has not been saved yet, instances saved before
+		 * WordPress 2.8 stored booleans, and the_widget() passes along whatever values its caller
+		 * supplies.
+		 */
 		$count        = ! empty( $instance['count'] );
 		$hierarchical = ! empty( $instance['hierarchical'] );
 		$dropdown     = ! empty( $instance['dropdown'] );
