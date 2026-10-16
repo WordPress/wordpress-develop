@@ -31,10 +31,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global string $status
-	 * @global int    $page
+	 * @global string $status The current status filter.
+	 * @global int    $page   The current page number.
 	 *
-	 * @param array $args An associative array of arguments.
+	 * @param array<string, mixed> $args An associative array of arguments.
 	 */
 	public function __construct( $args = array() ) {
 		global $status, $page;
