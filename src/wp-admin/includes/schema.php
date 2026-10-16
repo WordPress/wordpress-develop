@@ -1122,6 +1122,21 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 		);
 		$current_site->blog_id = $wpdb->insert_id;
 
+		// Multisite functions are not loaded yet when converting a single site.
+		$site_title = $wpdb->get_row(
+			$wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", 'blogname' )
+		);
+		if ( $site_title ) {
+			$wpdb->insert(
+				$wpdb->blogmeta,
+				array(
+					'blog_id'    => $current_site->blog_id,
+					'meta_key'   => 'blogname',
+					'meta_value' => WP_HTML_Decoder::decode_text_node( $site_title->option_value ),
+				)
+			);
+		}
+
 		$site_user_id = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT meta_value
