@@ -1235,37 +1235,37 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_hooks_fired_with_invalid_arguments
+	 * @dataProvider data_invalid_arguments
 	 *
-	 * @param string $hook The action to fire.
-	 * @param array  $args The arguments to fire it with.
+	 * @param array $args The arguments to call the function with.
 	 */
-	public function test_hooks_fired_with_invalid_arguments_do_not_flush_rewrite_rules( string $hook, array $args ): void {
+	public function test_invalid_arguments_do_not_flush_rewrite_rules( array $args ): void {
 		$this->setExpectedIncorrectUsage( 'wp_random_content_flush_rewrite_rules_for_post' );
 
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
 
-		do_action( $hook, ...$args );
+		wp_random_content_flush_rewrite_rules_for_post( ...$args );
 
-		$this->assertSame( 0, $flushes->get_call_count(), 'Firing the action with invalid arguments should not flush the rewrite rules.' );
+		$this->assertSame( 0, $flushes->get_call_count(), 'Invalid arguments should not flush the rewrite rules.' );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * Core never fires these actions with invalid arguments, but third-party code can.
-	 * Doing so is incorrect usage and must not cause a fatal error.
+	 * Core never fires the `wp_after_insert_post` and `after_delete_post` actions with invalid
+	 * arguments, but third-party code can. Doing so is incorrect usage and must not cause a
+	 * fatal error.
 	 *
-	 * @return array<string, array{string, array}>
+	 * @return array<string, array{array}>
 	 */
-	public function data_hooks_fired_with_invalid_arguments(): array {
+	public function data_invalid_arguments(): array {
 		return array(
-			'wp_after_insert_post with nulls'       => array( 'wp_after_insert_post', array( null, null, false, null ) ),
-			'wp_after_insert_post with wrong types' => array( 'wp_after_insert_post', array( 'random', 'random', 'yes', 'random' ) ),
-			'wp_after_insert_post with arrays'      => array( 'wp_after_insert_post', array( array(), array( 'post_name' => 'random' ), 1, array() ) ),
-			'after_delete_post with nulls'          => array( 'after_delete_post', array( null, null ) ),
-			'after_delete_post with wrong types'    => array( 'after_delete_post', array( 'random', 'random' ) ),
+			'nulls'                           => array( array( null, null, false, null ) ),
+			'strings'                         => array( array( 'random', 'random', 'yes', 'random' ) ),
+			'arrays'                          => array( array( array(), array( 'post_name' => 'random' ), 1, array() ) ),
+			'nulls without optional values'   => array( array( null, null ) ),
+			'strings without optional values' => array( array( 'random', 'random' ) ),
 		);
 	}
 
@@ -1284,7 +1284,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
 
-		do_action( 'wp_after_insert_post', (string) $page->ID, $page, 'yes', false );
+		wp_random_content_flush_rewrite_rules_for_post( (string) $page->ID, $page, 'yes', false );
 
 		$this->assertSame( 1, $flushes->get_call_count(), 'A page at the random base should flush the rewrite rules even when the other arguments are invalid.' );
 	}
