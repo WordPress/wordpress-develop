@@ -198,8 +198,8 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 			),
 			'multiline attributes in reverse order' => array(
 				'<link
-					rel="icon"
 					href="https://wordpress.org/favicon.ico"
+					rel="icon"
 				/>',
 				'https://wordpress.org/favicon.ico',
 			),
