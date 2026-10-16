@@ -151,11 +151,11 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 	public function test_icon_name_is_rendered_as_svg_icon(): void {
 		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
 		$menu = array(
-			array( 'Item', 'read', 'my-plugin', '', 'menu-top', 'toplevel_page_my-plugin', 'core/chart-bar' ),
+			array( 'Item', 'read', 'my-plugin', '', 'menu-top', 'toplevel_page_my-plugin', 'core-admin/pin' ),
 		);
 		$html = get_echo( '_wp_menu_output', array( $menu, array() ) );
 
-		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before svg-icon' aria-hidden='true'>" . wp_get_icon( 'core/chart-bar' ) . '</div>', $html );
+		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before svg-icon' aria-hidden='true'>" . wp_get_icon( 'core-admin/pin' ) . '</div>', $html );
 	}
 
 	/**

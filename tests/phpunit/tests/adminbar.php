@@ -1077,6 +1077,38 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-icon::before` get the given icon in place of the empty icon element.
+	 *
+	 * @ticket 65089
+	 *
+	 * @covers WP_Admin_Bar::_render_item
+	 *
+	 * @dataProvider data_node_ids_with_icon_on_ab_icon_before
+	 *
+	 * @param string $id Node ID.
+	 */
+	public function test_node_with_icon_on_ab_icon_before_gets_given_icon_in_place_of_empty_icon_element( $id ): void {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node(
+			array(
+				'id'    => $id,
+				'title' => '<span class="ab-icon" aria-hidden="true"></span><span class="ab-label">Label</span>',
+				'href'  => 'https://example.org/',
+			)
+		);
+		$admin_bar->add_node(
+			array(
+				'id'   => $id,
+				'icon' => 'core-admin/pencil',
+			)
+		);
+		$html = get_echo( array( $admin_bar, 'render' ) );
+
+		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/pencil' ) . '</span><span class="ab-label">Label</span>', $html );
+		$this->assertStringNotContainsString( '<span class="ab-icon" aria-hidden="true"></span>', $html, 'The empty icon element should be removed.' );
+	}
+
+	/**
 	 * Dashicons back-compat: core nodes whose icon used to be on `.ab-icon::before` get no icon when their title has no empty icon element.
 	 *
 	 * @ticket 65089
@@ -1310,14 +1342,14 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar->add_node(
 			array(
 				'id'    => $id,
-				'icon'  => 'core/chart-bar',
+				'icon'  => 'core-admin/pin',
 				'title' => '<span class="ab-icon" aria-hidden="true"></span>Label',
 				'href'  => 'https://example.org/',
 			)
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core/chart-bar' ) . '</span>', $html );
+		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/pin' ) . '</span>', $html );
 		$this->assertSame( 1, substr_count( $html, 'svg-icon' ) );
 	}
 
@@ -1331,7 +1363,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$admin_bar->add_node(
 			array(
 				'id'    => 'my-plugin',
-				'icon'  => 'core/plus',
+				'icon'  => 'core-admin/plus',
 				'title' => 'Label',
 				'href'  => 'https://example.org/',
 			)
@@ -1344,7 +1376,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$html = get_echo( array( $admin_bar, 'render' ) );
 
-		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core/plus' ) . '</span>New label', $html );
+		$this->assertStringContainsString( '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( 'core-admin/plus' ) . '</span>New label', $html );
 	}
 
 	/**

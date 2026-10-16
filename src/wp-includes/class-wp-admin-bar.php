@@ -645,12 +645,9 @@ class WP_Admin_Bar {
 		$icon_name = $node->icon;
 
 		// Dashicons back-compat: a core node that was given no icon gets its default icon.
-		$default_icon = false;
-		if ( ! $icon_name ) {
-			$default_icon = self::get_default_icon( $node );
-		}
+		$default_icon = self::get_default_icon( $node );
 
-		// Dashicons back-compat: the default icon replaces the first empty `<span class="ab-icon">` in the title; without one, the node gets no default icon.
+		// Dashicons back-compat: the icon replaces the first empty `<span class="ab-icon">` in the title; without one, the node gets no default icon.
 		if ( $default_icon && $default_icon['in_title'] ) {
 			$title = preg_replace( '/<span\b[^>]*\bclass=(["\'])(?:[^"\']*\s)?ab-icon(?:\s[^"\']*)?\1[^>]*>\s*<\/span>/', '', (string) $title, 1, $count );
 			if ( ! $count ) {
@@ -658,7 +655,7 @@ class WP_Admin_Bar {
 			}
 		}
 
-		if ( $default_icon ) {
+		if ( ! $icon_name && $default_icon ) {
 			$icon_name = $default_icon['icon'];
 		}
 
