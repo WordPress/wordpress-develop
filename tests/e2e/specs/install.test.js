@@ -160,7 +160,9 @@ test.describe( 'WordPress installation process', () => {
 			'should redirect to the login page'
 		).toHaveURL( /wp-login\.php$/ );
 
-		await page.getByLabel( 'Username or Email Address' ).fill( 'admin' );
+		const usernameField = page.getByLabel( 'Username or Email Address' );
+		await expect( usernameField ).toBeFocused();
+		await usernameField.fill( 'admin' );
 		await page.getByLabel( 'Password', { exact: true } ).fill( 'password' );
 
 		await page.getByRole( 'button', { name: 'Log In' } ).click();
