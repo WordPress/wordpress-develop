@@ -164,6 +164,35 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests where the ignore block starts and ends, by counting converted smilies.
+	 *
+	 * @ticket 66134
+	 * @dataProvider data_ignore_smilies_block_boundaries
+	 *
+	 * @param string $input    The content to convert.
+	 * @param int    $expected The expected number of converted smilies.
+	 */
+	public function test_ignore_smilies_block_boundaries( $input, $expected ) {
+		$this->assertSame( $expected, substr_count( convert_smilies( $input ), "\xf0\x9f\x99\x82" ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_ignore_smilies_block_boundaries() {
+		return array(
+			'smiley after closing tag is converted'        => array( '<pre class="foo"> :) </pre> :)', 1 ),
+			'uppercase tags'                               => array( '<PRE class="foo"> :) </PRE> :)', 1 ),
+			'whitespace in closing tag'                    => array( '<pre> :) </pre > :)', 1 ),
+			'custom element starting with ignored name'    => array( '<code-snippet> :) </code-snippet> :)', 2 ),
+			'unknown element starting with ignored name'   => array( '<preview> :) </preview> :)', 2 ),
+			'element name prefixed by ignored script name' => array( '<script-loader> :) </script-loader> :)', 2 ),
+		);
+	}
+
+	/**
 	 * Tests that combinations of smilies separated by a single space
 	 * are converted correctly.
 	 *
