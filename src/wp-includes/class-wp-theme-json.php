@@ -878,7 +878,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added `heading`, `button`, and `caption` elements.
-	 * @since 7.1.0 Added `label` element.
+	 * @since 7.2.0 Added `label` element.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
