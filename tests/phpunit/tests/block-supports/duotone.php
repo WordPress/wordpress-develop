@@ -10,6 +10,38 @@
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
+	 * Tests that unsupported duotone attribute types leave the block unchanged.
+	 *
+	 * @ticket 65817
+	 * @dataProvider data_render_duotone_support_invalid_attribute
+	 * @covers ::render_duotone_support
+	 *
+	 * @param mixed $duotone Invalid duotone attribute value.
+	 */
+	public function test_render_duotone_support_invalid_attribute( $duotone ) {
+		$block         = array(
+			'blockName' => 'core/image',
+			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => $duotone ) ) ),
+		);
+		$wp_block      = new WP_Block( $block );
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
+
+		$this->assertSame( $block_content, WP_Duotone::render_duotone_support( $block_content, $block, $wp_block ) );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_render_duotone_support_invalid_attribute() {
+		return array(
+			'false'   => array( false ),
+			'true'    => array( true ),
+			'integer' => array( 1 ),
+			'float'   => array( 1.5 ),
+		);
+	}
+
+	/**
 	 * Tests whether the duotone preset class is added to the block.
 	 *
 	 * @ticket 58555
