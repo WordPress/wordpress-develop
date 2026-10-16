@@ -279,16 +279,17 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$wpdb->query(
+		$create =
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
 				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 				counter SMALLINT UNSIGNED NOT NULL,
 				PRIMARY KEY  (id)
 			) {$this->db_engine};
-			"
-		);
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
 
 		$schema =
 			"
@@ -349,16 +350,17 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_int_test" );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$wpdb->query(
+		$create =
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
 				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 				counter BIGINT NOT NULL,
 				PRIMARY KEY  (id)
 			) {$this->db_engine};
-			"
-		);
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
 
 		$updates = dbDelta(
 			"
@@ -398,16 +400,17 @@ class Tests_DB_dbDelta extends WP_UnitTestCase {
 			$this->markTestSkipped( 'MySQL 8.0.17 or later does not report display width for integer data types.' );
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$wpdb->query(
+		$create =
 			"
 			CREATE TABLE {$wpdb->prefix}dbdelta_int_test (
 				id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 				counter INT(5) NOT NULL,
 				PRIMARY KEY  (id)
 			) {$this->db_engine};
-			"
-		);
+			";
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $create );
 
 		$updates = dbDelta(
 			"
