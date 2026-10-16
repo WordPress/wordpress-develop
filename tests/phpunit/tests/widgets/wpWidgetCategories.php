@@ -521,6 +521,15 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 					'dropdown'     => 0,
 				),
 			),
+			'missing title'        => array(
+				array( 'count' => 'on' ),
+				array(
+					'title'        => '',
+					'count'        => 1,
+					'hierarchical' => 0,
+					'dropdown'     => 0,
+				),
+			),
 		);
 	}
 
