@@ -214,7 +214,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $new_instance {
-	 *     New settings for this instance as input by the user via WP_Widget::form(). A checkbox
+	 *     New settings for this instance as input by the user via {@see WP_Widget::form()}. A checkbox
 	 *     submits 'on' when checked and is omitted when unchecked. A saved instance resubmitted
 	 *     through the REST API passes 0 or 1 instead.
 	 *
