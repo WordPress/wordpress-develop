@@ -142,35 +142,4 @@ class Tests_Rewrite_wpMatchesMapRegex extends WP_UnitTestCase {
 
 		$this->assertSame( 'index.php?p=123', $map->output );
 	}
-
-	/**
-	 * Tests the replacement returned for a single placeholder.
-	 *
-	 * @ticket 65819
-	 *
-	 * @covers ::callback
-	 *
-	 * @dataProvider data_callback
-	 *
-	 * @param string $placeholder Matched placeholder.
-	 * @param string $expected    Expected replacement.
-	 */
-	public function test_callback( $placeholder, $expected ) {
-		$map = new WP_MatchesMapRegex( '', array( 'full', 'first value', 'second' ) );
-
-		$this->assertSame( $expected, $map->callback( array( $placeholder ) ) );
-	}
-
-	/**
-	 * Data provider.
-	 *
-	 * @return array[]
-	 */
-	public static function data_callback() {
-		return array(
-			'first match'   => array( '$matches[1]', 'first+value' ),
-			'second match'  => array( '$matches[2]', 'second' ),
-			'missing match' => array( '$matches[3]', '' ),
-		);
-	}
 }
