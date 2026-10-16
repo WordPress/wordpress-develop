@@ -218,7 +218,7 @@ class WP_Widget_Categories extends WP_Widget {
 	 *     submits 'on' when checked and is omitted when unchecked. A saved instance resubmitted
 	 *     through the REST API passes 0 or 1 instead.
 	 *
-	 *     @type string   $title       Widget title.
+	 *     @type string   $title        Widget title.
 	 *     @type 'on'|0|1 $count        Whether to show post counts.
 	 *     @type 'on'|0|1 $hierarchical Whether to show the category hierarchy.
 	 *     @type 'on'|0|1 $dropdown     Whether to display the categories as a drop-down.
