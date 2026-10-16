@@ -25,7 +25,7 @@ function wp_get_block_style_variation_name_from_registered_style( string $class_
 	$prefix = 'is-style-';
 	$length = strlen( $prefix );
 
-	foreach ( explode( ' ', $class_name ) as $class ) {
+	foreach ( wp_split_space_separated_tokens( $class_name ) as $class ) {
 		if ( str_starts_with( $class, $prefix ) ) {
 			$variation = substr( $class, $length );
 			if ( 'default' !== $variation && in_array( $variation, $registered_names, true ) ) {
