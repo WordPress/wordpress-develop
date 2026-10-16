@@ -5,16 +5,21 @@
  * @package WordPress
  */
 
+namespace WordPress\Tests\Admin\PluginDependencies;
+
+use WP_Plugin_Dependencies;
+use WP_PluginDependencies_UnitTestCase;
+
 require_once __DIR__ . '/base.php';
 
 /**
  * @group admin
  * @group plugins
  *
- * @covers WP_Plugin_Dependencies::has_dependents
- * @covers WP_Plugin_Dependencies::convert_to_slug
+ * @covers \WP_Plugin_Dependencies::has_dependents
+ * @covers \WP_Plugin_Dependencies::convert_to_slug
  */
-class Tests_Admin_WPPluginDependencies_HasDependents extends WP_PluginDependencies_UnitTestCase {
+class HasDependentsTest extends WP_PluginDependencies_UnitTestCase {
 
 	/**
 	 * Tests that a plugin with dependents will return true.
