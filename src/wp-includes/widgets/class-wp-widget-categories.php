@@ -38,8 +38,14 @@ class WP_Widget_Categories extends WP_Widget {
 	 * @since 4.2.0 Creates a unique HTML ID for the `<select>` element
 	 *              if more than one instance is displayed on the page.
 	 *
-	 * @param array $args     Display arguments including 'before_title', 'after_title',
-	 *                        'before_widget', and 'after_widget'.
+	 * @param array $args {
+	 *     Display arguments.
+	 *
+	 *     @type string $before_widget HTML markup to prepend to each widget in the sidebar.
+	 *     @type string $after_widget  HTML markup to append to each widget in the sidebar.
+	 *     @type string $before_title  HTML markup to prepend to the widget title when displayed.
+	 *     @type string $after_title   HTML markup to append to the widget title when displayed.
+	 * }
 	 * @param array $instance {
 	 *     Settings for the current Categories widget instance.
 	 *
