@@ -875,6 +875,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_schema_links
 	 */
 	public function test_homepage_action_ldos_registered() {
@@ -882,14 +884,17 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$schema   = $data['schema'];
 
-		$this->assertArrayHasKey( 'links', $schema );
-		$rels = wp_list_pluck( $schema['links'], 'rel' );
+		$this->assertArrayHasKey( 'links', $schema, 'The schema should have links.' );
+		$set_homepage   = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-set-homepage' ) );
+		$set_posts_page = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-set-posts-page' ) );
 
-		$this->assertContains( 'https://api.w.org/action-set-homepage', $rels, 'The action-set-homepage LDO should be on the schema.' );
-		$this->assertContains( 'https://api.w.org/action-set-posts-page', $rels, 'The action-set-posts-page LDO should be on the schema.' );
+		$this->assertCount( 1, $set_homepage, 'The action-set-homepage LDO should be on the schema once.' );
+		$this->assertCount( 1, $set_posts_page, 'The action-set-posts-page LDO should be on the schema once.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_schema_links
 	 */
 	public function test_homepage_action_ldos_not_registered_for_posts() {
@@ -897,14 +902,17 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$schema   = $data['schema'];
 
-		$this->assertArrayHasKey( 'links', $schema );
-		$rels = wp_list_pluck( $schema['links'], 'rel' );
+		$this->assertArrayHasKey( 'links', $schema, 'The schema should have links.' );
+		$set_homepage   = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-set-homepage' ) );
+		$set_posts_page = wp_list_filter( $schema['links'], array( 'rel' => 'https://api.w.org/action-set-posts-page' ) );
 
-		$this->assertNotContains( 'https://api.w.org/action-set-homepage', $rels, 'The action-set-homepage LDO should not be on the schema.' );
-		$this->assertNotContains( 'https://api.w.org/action-set-posts-page', $rels, 'The action-set-posts-page LDO should not be on the schema.' );
+		$this->assertCount( 0, $set_homepage, 'The action-set-homepage LDO should not be on the schema.' );
+		$this->assertCount( 0, $set_posts_page, 'The action-set-posts-page LDO should not be on the schema.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_exist_for_admin() {
@@ -913,13 +921,15 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should exist.' );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should exist.' );
 		$this->assertSame( $links['self'][0]['href'], $links['https://api.w.org/action-set-homepage'][0]['href'], 'The action-set-homepage link should target the page.' );
 		$this->assertSame( $links['self'][0]['href'], $links['https://api.w.org/action-set-posts-page'][0]['href'], 'The action-set-posts-page link should target the page.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_only_available_in_edit_context() {
@@ -928,11 +938,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}", 'view' );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_do_not_exist_for_editor() {
@@ -941,11 +953,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @dataProvider data_unpublished_page_statuses
 	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
@@ -961,10 +975,11 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_status' => $status,
 			)
 		);
-		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
@@ -981,6 +996,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_do_not_exist_for_homepage() {
@@ -995,11 +1012,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_do_not_exist_for_posts_page() {
@@ -1014,11 +1033,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$links = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_exist_for_other_pages() {
@@ -1031,11 +1052,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
 		$links   = $this->get_response_links( "/wp/v2/pages/{$page_id}" );
 
-		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should exist.' );
+		$this->assertArrayHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should exist.' );
 	}
 
 	/**
+	 * @ticket 66327
+	 *
 	 * @covers WP_REST_Posts_Controller::get_available_actions
 	 */
 	public function test_homepage_action_links_do_not_exist_for_posts() {
@@ -1044,8 +1067,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post_id = self::factory()->post->create();
 		$links   = $this->get_response_links( "/wp/v2/posts/{$post_id}" );
 
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links );
-		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-homepage', $links, 'The action-set-homepage link should not exist.' );
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-set-posts-page', $links, 'The action-set-posts-page link should not exist.' );
 	}
 
 	/**
