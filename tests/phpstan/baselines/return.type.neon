@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Method WP_Automatic_Updater\:\:update\(\) should return WP_Error\|null but returns false\.$#'
-			identifier: return.type
-			count: 2
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
 			message: '#^Function convert_to_screen\(\) should return WP_Screen but returns object\{id\: string, base\: string\}&stdClass\.$#'
 			identifier: return.type
 			count: 1
