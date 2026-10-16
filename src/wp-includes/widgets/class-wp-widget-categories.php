@@ -113,7 +113,7 @@ class WP_Widget_Categories extends WP_Widget {
 			 *                                    for a list of accepted values. Default 'name'.
 			 *     @type bool   $show_count       Whether to include post counts.
 			 *     @type bool   $hierarchical     Whether to traverse the taxonomy hierarchy.
-			 *     @type string $show_option_none Text to display for showing no categories. Default 'Select Category'.
+			 *     @type string $show_option_none Text to display for showing no categories. Set to 'Select Category'.
 			 *     @type string $id               Value for the 'id' attribute of the select element.
 			 * }
 			 * @param array $instance {
