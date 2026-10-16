@@ -22,7 +22,8 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 * Result of the language pack upgrade.
 	 *
 	 * @since 3.7.0
-	 * @var array|WP_Error $result
+	 * @var array|WP_Error|null $result
+	 * @phpstan-var non-empty-array<string, mixed>|WP_Error|null
 	 * @see WP_Upgrader::$result
 	 */
 	public $result;

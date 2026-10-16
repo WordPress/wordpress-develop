@@ -24,7 +24,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * Plugin upgrade result.
 	 *
 	 * @since 2.8.0
-	 * @var array|WP_Error $result
+	 * @var array|WP_Error|null $result
+	 * @phpstan-var non-empty-array<string, mixed>|WP_Error|null
 	 *
 	 * @see WP_Upgrader::$result
 	 */
@@ -185,11 +186,9 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 *     @type bool $clear_update_cache Whether to clear the plugin updates cache if successful.
 	 *                                    Default true.
 	 * }
-	 * @return bool|array|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
-	 *                             An empty array if the upgrade failed before the package was installed,
-	 *                             for example when the package could not be downloaded.
-	 *
-	 * @phpstan-return bool|array{}|WP_Error
+	 * @return bool|WP_Error|null True if the upgrade was successful, false or a WP_Error object otherwise.
+	 *                            Null if the upgrade failed before the package was installed, for example
+	 *                            when the package could not be downloaded.
 	 */
 	public function upgrade( $plugin, $args = array() ) {
 		$defaults    = array(
