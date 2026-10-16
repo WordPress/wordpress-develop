@@ -153,6 +153,55 @@ class Tests_Category_Walker_CategoryDropdown extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the selected value is compared as a string with a category slug of '0'.
+	 *
+	 * A loose comparison would treat the slug '0' as equal to false.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::start_el
+	 *
+	 * @dataProvider data_start_el_with_zero_slug
+	 *
+	 * @param mixed  $selected Selected value.
+	 * @param string $expected Expected option element, without the leading tab and trailing newline.
+	 */
+	public function test_start_el_compares_zero_slug_as_string( $selected, $expected ) {
+		$walker = new Walker_CategoryDropdown();
+		$output = '';
+
+		$walker->start_el(
+			$output,
+			$this->get_category(
+				array(
+					'name' => 'Zero',
+					'slug' => '0',
+				)
+			),
+			0,
+			array(
+				'value_field' => 'slug',
+				'selected'    => $selected,
+				'show_count'  => 0,
+			)
+		);
+
+		$this->assertSame( "\t" . $expected . "\n", $output );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_start_el_with_zero_slug() {
+		return array(
+			'selected value is false' => array( false, '<option class="level-0" value="0">Zero</option>' ),
+			'selected value is \'0\'' => array( '0', '<option class="level-0" value="0" selected="selected">Zero</option>' ),
+		);
+	}
+
+	/**
 	 * Tests that the option value is escaped.
 	 *
 	 * @ticket 65819
