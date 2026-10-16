@@ -14,7 +14,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	/**
 	 * Tests that an error from a network-activated plugin is rejected and not stored.
 	 *
-	 * @ticket 65819
+	 * @ticket 66328
 	 *
 	 * @dataProvider data_network_activated_plugins
 	 *
@@ -63,7 +63,7 @@ class Tests_Error_Protection_wpRecoveryModeNetworkPlugins extends WP_UnitTestCas
 	/**
 	 * Tests that an error from a plugin that is not network-activated is still handled.
 	 *
-	 * @ticket 65819
+	 * @ticket 66328
 	 *
 	 * @dataProvider data_plugins_that_are_not_network_activated
 	 *
