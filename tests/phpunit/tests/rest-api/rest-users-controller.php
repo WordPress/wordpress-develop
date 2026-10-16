@@ -2171,11 +2171,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 40263
 	 */
 	public function test_update_item_only_roles_as_editor() {
-		$user_id = self::factory()->user->create(
-			array(
-				'role' => 'author',
-			)
-		);
+		$user_id = self::$author;
 
 		wp_set_current_user( self::$editor );
 
@@ -2583,7 +2579,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_delete_user_without_permission() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$subscriber;
 
 		$this->allow_user_to_manage_multisite();
 
