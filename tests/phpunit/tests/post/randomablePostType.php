@@ -65,7 +65,7 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_randomable_defaults
 	 *
-	 * @param array{public?: bool, publicly_queryable?: bool, randomable?: bool} $args     Post type registration arguments.
+	 * @param array{public?: bool, publicly_queryable?: bool, has_archive?: bool|string, randomable?: bool} $args     Post type registration arguments.
 	 * @param bool                                                            $expected Expected randomable value.
 	 */
 	public function test_randomable_defaults( $args, $expected ): void {
@@ -86,42 +86,72 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array<string, array{0: array{public?: bool, publicly_queryable?: bool, randomable?: bool}, 1: bool}>
+	 * @return array<string, array{0: array{public?: bool, publicly_queryable?: bool, has_archive?: bool|string, randomable?: bool}, 1: bool}>
 	 */
 	public function data_randomable_defaults(): array {
 		return array(
-			'no arguments'                       => array( array(), false ),
-			'public'                             => array( array( 'public' => true ), true ),
-			'not public'                         => array( array( 'public' => false ), false ),
-			'public, not publicly queryable'     => array(
+			'no arguments'                               => array( array(), false ),
+			'public, no archive'                         => array( array( 'public' => true ), false ),
+			'public, archive'                            => array(
 				array(
-					'public'             => true,
-					'publicly_queryable' => false,
-				),
-				false,
-			),
-			'not public, publicly queryable'     => array(
-				array(
-					'public'             => false,
-					'publicly_queryable' => true,
+					'public'      => true,
+					'has_archive' => true,
 				),
 				true,
 			),
-			'public, explicitly not randomable'  => array(
+			'public, custom archive slug'                => array(
 				array(
-					'public'     => true,
-					'randomable' => false,
+					'public'      => true,
+					'has_archive' => 'books',
+				),
+				true,
+			),
+			'not public, archive'                        => array(
+				array(
+					'public'      => false,
+					'has_archive' => true,
 				),
 				false,
 			),
-			'not public, explicitly randomable'  => array(
+			'public, not publicly queryable'             => array(
+				array(
+					'public'             => true,
+					'publicly_queryable' => false,
+					'has_archive'        => true,
+				),
+				false,
+			),
+			'not public, publicly queryable'             => array(
+				array(
+					'public'             => false,
+					'publicly_queryable' => true,
+					'has_archive'        => true,
+				),
+				true,
+			),
+			'public, archive, explicitly not randomable' => array(
+				array(
+					'public'      => true,
+					'has_archive' => true,
+					'randomable'  => false,
+				),
+				false,
+			),
+			'public, no archive, explicitly randomable'  => array(
+				array(
+					'public'     => true,
+					'randomable' => true,
+				),
+				true,
+			),
+			'not public, explicitly randomable'          => array(
 				array(
 					'public'     => false,
 					'randomable' => true,
 				),
 				true,
 			),
-			'not publicly queryable, randomable' => array(
+			'not publicly queryable, randomable'         => array(
 				array(
 					'public'             => true,
 					'publicly_queryable' => false,
@@ -149,25 +179,39 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 	}
 
 	public function test_get_post_types_can_filter_by_randomable(): void {
-		register_post_type( 'wptests_pt', array( 'public' => true ) );
+		register_post_type(
+			'wptests_pt',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+		register_post_type( 'wptests_noarchive', array( 'public' => true ) );
 
 		$post_types = get_post_types( array( 'randomable' => true ) );
 
 		$this->assertContains( 'post', $post_types, 'Posts should be included in the randomable post types.' );
-		$this->assertContains( 'wptests_pt', $post_types, 'A public custom post type should be included in the randomable post types.' );
+		$this->assertContains( 'wptests_pt', $post_types, 'A public custom post type with an archive should be included in the randomable post types.' );
+		$this->assertNotContains( 'wptests_noarchive', $post_types, 'A public custom post type without an archive should not be included in the randomable post types.' );
 		$this->assertNotContains( 'page', $post_types, 'Pages should not be included in the randomable post types.' );
 		$this->assertNotContains( 'attachment', $post_types, 'Attachments should not be included in the randomable post types.' );
 	}
 
 	public function test_randomable_post_type_is_eligible_for_random_content(): void {
-		register_post_type( 'wptests_pt', array( 'public' => true ) );
+		register_post_type(
+			'wptests_pt',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 
 		$this->go_to( home_url( '/?post_type=wptests_pt' ) );
 
 		$this->assertSame( array( 'wptests_pt' ), wp_get_random_content_post_types( $this->get_main_query() ), 'A randomable, viewable post type should be eligible for random content.' );
 	}
 
-	public function test_randomable_but_not_viewable_post_type_is_not_eligible_for_random_content(): void {
+	public function test_randomable_post_type_that_is_not_viewable_is_eligible_for_random_content(): void {
 		register_post_type(
 			'wptests_pt',
 			array(
@@ -178,6 +222,6 @@ class Tests_Post_RandomablePostType extends WP_UnitTestCase {
 
 		$this->go_to( home_url( '/?post_type=wptests_pt' ) );
 
-		$this->assertSame( array(), wp_get_random_content_post_types( $this->get_main_query() ), 'A randomable post type that is not viewable should not be eligible for random content.' );
+		$this->assertSame( array( 'wptests_pt' ), wp_get_random_content_post_types( $this->get_main_query() ), 'A post type registered as randomable should be eligible for random content regardless of being viewable.' );
 	}
 }

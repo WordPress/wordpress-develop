@@ -1522,7 +1522,8 @@ class WP_Rewrite {
 	 * - `/random/` for any post.
 	 * - `/random/{taxonomy-slug}/{term}/` for a post in a term archive, for example `/random/category/news/`.
 	 * - `/random/{author-base}/{author}/` for a post by an author.
-	 * - `/random/{post-type-archive}/` for a post of a post type with an archive.
+	 * - `/random/{post-type-slug}/` for a post of a post type, using its archive slug if it
+	 *   has one, otherwise its rewrite slug.
 	 *
 	 * Only post types registered as `randomable`, and taxonomies used by them, receive rules.
 	 *
@@ -1600,23 +1601,22 @@ class WP_Rewrite {
 			}
 		}
 
-		$random_post_types = array(
-			'publicly_queryable' => true,
-			'randomable'         => true,
-		);
-
-		foreach ( get_post_types( $random_post_types, 'objects' ) as $post_type ) {
-			if ( ! $post_type->has_archive || empty( $post_type->rewrite['slug'] ) ) {
+		foreach ( get_post_types( array( 'randomable' => true ), 'objects' ) as $post_type ) {
+			// Post types without rewrites have no pretty permalinks, see {@see WP_Post_Type::add_rewrite_rules()}.
+			if ( ! is_array( $post_type->rewrite ) ) {
 				continue;
 			}
 
-			$archive_slug = $post_type->rewrite['slug'];
-
-			if ( ! is_string( $archive_slug ) ) {
+			// Try using `has_archive` if it's a string, then try the rewrite slug, otherwise it shouldn't have gotten here, so just skip the post type.
+			if ( is_string( $post_type->has_archive ) ) {
+				$post_type_slug = $post_type->has_archive;
+			} elseif ( isset( $post_type->rewrite['slug'] ) && is_string( $post_type->rewrite['slug'] ) ) {
+				$post_type_slug = $post_type->rewrite['slug'];
+			} else {
 				continue;
 			}
 
-			$rules[ "{$random_base}/{$archive_slug}/?$" ] = $this->index . "?post_type={$post_type->name}&random=1";
+			$rules[ "{$random_base}/{$post_type_slug}/?$" ] = $this->index . "?post_type={$post_type->name}&random=1";
 		}
 
 		return $rules;

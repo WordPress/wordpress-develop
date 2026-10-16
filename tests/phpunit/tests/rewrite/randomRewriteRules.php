@@ -231,7 +231,7 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		$this->assertSame( 'index.php?post_type=wptests_film&random=1', $rules['random/cinema/?$'], 'The custom post type archive slug rule has an unexpected query.' );
 	}
 
-	public function test_random_rewrite_rules_exclude_post_types_without_archives(): void {
+	public function test_random_rewrite_rules_exclude_post_types_without_archives_by_default(): void {
 		register_post_type(
 			'wptests_note',
 			array(
@@ -243,11 +243,28 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 
 		$rules = $this->get_random_rewrite_rules();
 
-		$this->assertArrayNotHasKey( 'random/notes/?$', $rules, 'Post types without archives should not have a rule.' );
-		$this->assertArrayNotHasKey( 'random/page/?$', $rules, 'Pages do not have an archive.' );
+		$this->assertArrayNotHasKey( 'random/notes/?$', $rules, 'Post types without archives are not randomable by default.' );
+		$this->assertArrayNotHasKey( 'random/page/?$', $rules, 'Pages are not randomable by default.' );
 	}
 
-	public function test_random_rewrite_rules_exclude_non_publicly_queryable_post_types(): void {
+	public function test_random_rewrite_rules_use_the_rewrite_slug_for_randomable_post_types_without_archives(): void {
+		register_post_type(
+			'wptests_note',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'randomable'  => true,
+				'rewrite'     => array( 'slug' => 'notes' ),
+			)
+		);
+
+		$rules = $this->get_random_rewrite_rules();
+
+		$this->assertArrayHasKey( 'random/notes/?$', $rules, 'Randomable post types without archives should have a rule at their rewrite slug.' );
+		$this->assertSame( 'index.php?post_type=wptests_note&random=1', $rules['random/notes/?$'], 'The rewrite slug rule has an unexpected query.' );
+	}
+
+	public function test_random_rewrite_rules_exclude_non_publicly_queryable_post_types_by_default(): void {
 		register_post_type(
 			'wptests_private',
 			array(
@@ -260,7 +277,24 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 
 		$rules = $this->get_random_rewrite_rules();
 
-		$this->assertArrayNotHasKey( 'random/private-things/?$', $rules, 'Non-publicly queryable post types should not have a rule.' );
+		$this->assertArrayNotHasKey( 'random/private-things/?$', $rules, 'Non-publicly queryable post types are not randomable by default.' );
+	}
+
+	public function test_random_rewrite_rules_include_randomable_non_publicly_queryable_post_types(): void {
+		register_post_type(
+			'wptests_private',
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+				'has_archive'        => true,
+				'randomable'         => true,
+				'rewrite'            => array( 'slug' => 'private-things' ),
+			)
+		);
+
+		$rules = $this->get_random_rewrite_rules();
+
+		$this->assertArrayHasKey( 'random/private-things/?$', $rules, 'Post types registered as randomable should have a rule regardless of being publicly queryable.' );
 	}
 
 	public function test_random_rewrite_rules_exclude_post_types_that_are_not_randomable(): void {
@@ -353,6 +387,28 @@ class Tests_Rewrite_RandomRewriteRules extends WP_UnitTestCase {
 		$rules = $this->get_random_rewrite_rules();
 
 		$this->assertStringNotContainsString( 'post_type=wptests_book', implode( ' ', $rules ), 'Post type archives without rewrites should not appear in any rule.' );
+	}
+
+	/**
+	 * The rewrite slug is set when a post type is registered, but the property is
+	 * public so it can be changed afterwards.
+	 */
+	public function test_random_rewrite_rules_exclude_post_type_archives_without_a_rewrite_slug(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
+
+		$post_type = get_post_type_object( 'wptests_book' );
+		$this->assertInstanceOf( WP_Post_Type::class, $post_type, 'The post type is not registered.' );
+		$post_type->rewrite = array( 'with_front' => true );
+
+		$rules = $this->get_random_rewrite_rules();
+
+		$this->assertStringNotContainsString( 'post_type=wptests_book', implode( ' ', $rules ), 'Post type archives without a rewrite slug should not appear in any rule.' );
 	}
 
 	/**

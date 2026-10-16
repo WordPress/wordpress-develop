@@ -422,8 +422,33 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The random post type archive URL should only select posts of the type.' );
 	}
 
+	public function test_random_post_type_rewrite_slug_url_selects_posts_of_a_randomable_type_without_an_archive(): void {
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => false,
+				'randomable'  => true,
+				'rewrite'     => array( 'slug' => 'books' ),
+			)
+		);
+		flush_rewrite_rules();
+
+		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
+
+		$this->go_to( home_url( '/random/books/' ) );
+
+		$this->assertSame( get_permalink( $book ), $this->redirect_location, 'The random rewrite slug URL should select posts of a randomable type without an archive.' );
+	}
+
 	public function test_random_post_type_query_string_selects_posts_of_the_type(): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 
 		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
 
@@ -514,7 +539,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_redirect_with_multiple_post_types_only_selects_randomable_types(): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 
 		$this->create_post( array( 'post_type' => 'page' ) );
 		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
@@ -538,7 +569,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_search_includes_randomable_custom_post_types(): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 
 		$book = $this->create_post(
 			array(
@@ -553,7 +590,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	}
 
 	public function test_random_custom_taxonomy_archive_only_selects_randomable_post_types(): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 		register_taxonomy(
 			'wptests_genre',
 			array( 'page', 'wptests_book' ),
@@ -601,7 +644,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * @param string[] $expected Expected post types.
 	 */
 	public function test_wp_get_random_content_post_types( $url, $expected ): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 		register_post_type(
 			'wptests_hidden',
 			array(
@@ -1222,7 +1271,13 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 */
 
 	public function test_pre_get_posts_can_change_the_eligible_post_type(): void {
-		register_post_type( 'wptests_book', array( 'public' => true ) );
+		register_post_type(
+			'wptests_book',
+			array(
+				'public'      => true,
+				'has_archive' => true,
+			)
+		);
 		$book = $this->create_post( array( 'post_type' => 'wptests_book' ) );
 
 		add_action(
@@ -1636,6 +1691,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'wptests_unsearchable',
 			array(
 				'public'              => true,
+				'has_archive'         => true,
 				'exclude_from_search' => true,
 			)
 		);
@@ -1656,6 +1712,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 			'wptests_unsearchable',
 			array(
 				'public'              => true,
+				'has_archive'         => true,
 				'exclude_from_search' => true,
 			)
 		);

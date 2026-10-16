@@ -129,7 +129,7 @@ final class WP_Post_Type {
 	 * Random content redirects send requests such as `example.com/random/` to a
 	 * randomly selected post.
 	 *
-	 * Default is the value of $publicly_queryable.
+	 * Default is true when $publicly_queryable is true and the post type has an archive.
 	 *
 	 * @since 7.2.0
 	 * @var bool $randomable
@@ -592,8 +592,8 @@ final class WP_Post_Type {
 		// If not set, default to the setting for 'public'.
 		$args['embeddable'] ??= $args['public'];
 
-		// If not set, default to the setting for 'publicly_queryable'.
-		$args['randomable'] ??= $args['publicly_queryable'];
+		// If not set, default to publicly queryable post types with an archive.
+		$args['randomable'] ??= $args['publicly_queryable'] && (bool) $args['has_archive'];
 
 		// If not set, default rest_namespace to wp/v2 if show_in_rest is true.
 		if ( false === $args['rest_namespace'] && ! empty( $args['show_in_rest'] ) ) {

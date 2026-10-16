@@ -1322,7 +1322,7 @@ function wp_is_random_content_query( WP_Query $query ): bool {
  * Retrieves the post types eligible for selection by a random content request.
  *
  * These are the post types the query would otherwise return, limited to those
- * that are viewable and registered as `randomable`.
+ * registered as `randomable`.
  *
  * @since 7.2.0
  *
@@ -1365,7 +1365,7 @@ function wp_get_random_content_post_types( WP_Query $query ): array {
 
 		$post_type_object = get_post_type_object( $post_type );
 
-		if ( $post_type_object && $post_type_object->randomable && is_post_type_viewable( $post_type_object ) ) {
+		if ( $post_type_object && $post_type_object->randomable ) {
 			$random_post_types[] = $post_type_object->name;
 		}
 	}

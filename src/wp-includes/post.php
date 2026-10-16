@@ -1727,7 +1727,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         If not set, the default is inherited from $public.
  *     @type bool         $randomable                      Whether posts of this post type can be selected by random content
  *                                                         redirects, such as example.com/random/. If not set, the default is
- *                                                         inherited from $publicly_queryable.
+ *                                                         true when $publicly_queryable is true and $has_archive is set.
  *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
  *                                                         admin. Default is value of $public.
  *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui
