@@ -2995,4 +2995,39 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * @ticket 66244
+	 * @covers ::wp_kses_post_title
+	 */
+	public function test_wp_kses_post_title_allows_formatting_tags() {
+		$title = 'The <em class="title">page</em> <strong>title</strong>';
+
+		$this->assertSame( $title, wp_kses_post_title( $title ) );
+	}
+
+	/**
+	 * @ticket 66244
+	 * @covers ::wp_kses_post_title
+	 */
+	public function test_wp_kses_post_title_strips_disallowed_tags_and_encodes_ampersands() {
+		$result = wp_kses_post_title( 'The <a href="https://example.com">page</a> & title <script>alert(1)</script>' );
+
+		$this->assertStringNotContainsString( '<a ', $result );
+		$this->assertStringNotContainsString( '<script', $result );
+		$this->assertStringContainsString( 'page', $result );
+		$this->assertStringContainsString( '&amp; title', $result );
+		$this->assertStringContainsString( 'alert(1)', $result );
+	}
+
+	/**
+	 * @ticket 66244
+	 * @covers ::wp_kses_post_title
+	 */
+	public function test_wp_kses_post_title_strips_disallowed_attributes() {
+		$this->assertSame(
+			'<em class="title">page</em>',
+			wp_kses_post_title( '<em class="title" onclick="alert(1)">page</em>' )
+		);
+	}
 }
