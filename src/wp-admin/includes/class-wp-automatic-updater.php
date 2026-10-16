@@ -12,6 +12,35 @@
  *
  * @since 3.7.0
  * @since 4.6.0 Moved to its own file from wp-admin/includes/class-wp-upgrader.php.
+ *
+ * @phpstan-type CoreUpdateOffer object{
+ *     current: string,
+ *     version: string,
+ *     php_version: string,
+ *     mysql_version: string,
+ *     new_files?: bool|string,
+ *     notify_email?: bool|string,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&\stdClass
+ * @phpstan-type PluginUpdateOffer object{
+ *     slug: string,
+ *     plugin: string,
+ *     requires_php?: string|false|null,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&\stdClass
+ * @phpstan-type ThemeUpdateOffer object{
+ *     theme: string,
+ *     requires_php?: string|false|null,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&\stdClass
+ * @phpstan-type TranslationUpdateOffer object{
+ *     language: string,
+ *     autoupdate?: bool,
+ *     disable_autoupdate?: bool,
+ * }&\stdClass
  */
 #[AllowDynamicProperties]
 class WP_Automatic_Updater {
@@ -216,10 +245,17 @@ class WP_Automatic_Updater {
 			return false;
 		}
 
-		// Next up, is this an item we can update?
+		/*
+		 * Next up, is this an item we can update?
+		 *
+		 * The inline @var tags narrow $item by $type. This should be replaced with a conditional
+		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
+		 */
 		if ( 'core' === $type ) {
+			/** @var CoreUpdateOffer $item */
 			$update = Core_Upgrader::should_update_to_version( $item->current );
 		} elseif ( 'plugin' === $type || 'theme' === $type ) {
+			/** @var PluginUpdateOffer|ThemeUpdateOffer $item */
 			$update = ! empty( $item->autoupdate );
 
 			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
@@ -278,6 +314,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
+			/** @var CoreUpdateOffer $item */
 			$php_compat = version_compare( PHP_VERSION, $item->php_version, '>=' );
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
@@ -292,6 +329,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
+			/** @var PluginUpdateOffer|ThemeUpdateOffer $item */
 			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
 				return false;
 			}
@@ -362,22 +400,30 @@ class WP_Automatic_Updater {
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
 
+		/*
+		 * The inline @var tags narrow $item by $type. This should be replaced with a conditional
+		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
+		 */
 		switch ( $type ) {
 			case 'core':
+				/** @var CoreUpdateOffer $item */
 				// The Core upgrader doesn't use the Upgrader's skin during the actual main part of the upgrade, instead, firing a filter.
 				add_filter( 'update_feedback', array( $skin, 'feedback' ) );
 				$upgrader = new Core_Upgrader( $skin );
 				$context  = ABSPATH;
 				break;
 			case 'plugin':
+				/** @var PluginUpdateOffer $item */
 				$upgrader = new Plugin_Upgrader( $skin );
 				$context  = WP_PLUGIN_DIR; // We don't support custom Plugin directories, or updates for WPMU_PLUGIN_DIR.
 				break;
 			case 'theme':
+				/** @var ThemeUpdateOffer $item */
 				$upgrader = new Theme_Upgrader( $skin );
 				$context  = get_theme_root( $item->theme );
 				break;
 			case 'translation':
+				/** @var TranslationUpdateOffer $item */
 				$upgrader = new Language_Pack_Upgrader( $skin );
 				$context  = WP_CONTENT_DIR; // WP_LANG_DIR;
 				break;
@@ -403,12 +449,14 @@ class WP_Automatic_Updater {
 		$upgrader_item = $item;
 		switch ( $type ) {
 			case 'core':
+				/** @var CoreUpdateOffer $item */
 				/* translators: %s: WordPress version. */
 				$skin->feedback( __( 'Updating to WordPress %s' ), $item->version );
 				/* translators: %s: WordPress version. */
 				$item_name = sprintf( __( 'WordPress %s' ), $item->version );
 				break;
 			case 'theme':
+				/** @var ThemeUpdateOffer $item */
 				$upgrader_item = $item->theme;
 				$theme         = wp_get_theme( $upgrader_item );
 				$item_name     = $theme->get( 'Name' );
@@ -421,6 +469,7 @@ class WP_Automatic_Updater {
 				$skin->feedback( __( 'Updating theme: %s' ), $item_name );
 				break;
 			case 'plugin':
+				/** @var PluginUpdateOffer $item */
 				$upgrader_item = $item->plugin;
 				$plugin_data   = get_plugin_data( $context . '/' . $upgrader_item );
 				$item_name     = $plugin_data['Name'];
@@ -433,6 +482,7 @@ class WP_Automatic_Updater {
 				$skin->feedback( __( 'Updating plugin: %s' ), $item_name );
 				break;
 			case 'translation':
+				/** @var TranslationUpdateOffer $item */
 				$language_item_name = $upgrader->get_name_for_update( $item );
 				/* translators: %s: Project name (plugin, theme, or WordPress). */
 				$item_name = sprintf( __( 'Translations for %s' ), $language_item_name );
@@ -448,6 +498,7 @@ class WP_Automatic_Updater {
 
 		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 		if ( 'plugin' === $type ) {
+			/** @var PluginUpdateOffer $item */
 			$was_active = is_plugin_active( $upgrader_item );
 			if ( $is_debug ) {
 				error_log( '    Upgrading plugin ' . var_export( $item->slug, true ) . '...' );
@@ -455,6 +506,7 @@ class WP_Automatic_Updater {
 		}
 
 		if ( 'theme' === $type && $is_debug ) {
+			/** @var ThemeUpdateOffer $item */
 			error_log( '    Upgrading theme ' . var_export( $item->theme, true ) . '...' );
 		}
 
@@ -533,10 +585,12 @@ class WP_Automatic_Updater {
 		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
 
 		if ( 'theme' === $type && $is_debug ) {
+			/** @var ThemeUpdateOffer $item */
 			error_log( '    Theme ' . var_export( $item->theme, true ) . ' has been upgraded.' );
 		}
 
 		if ( 'plugin' === $type ) {
+			/** @var PluginUpdateOffer $item */
 			if ( $is_debug ) {
 				error_log( '    Plugin ' . var_export( $item->slug, true ) . ' has been upgraded.' );
 				if ( is_plugin_inactive( $upgrader_item ) ) {
