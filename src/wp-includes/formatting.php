@@ -560,7 +560,7 @@ function wpautop( $text, $br = true ) {
 	$text = preg_replace( '|<p>(<li.+?)</p>|', '$1', $text );
 
 	// If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-	$text = preg_replace( '|<p><blockquote([^>]*)>|i', '<blockquote$1><p>', $text );
+	$text = preg_replace( '!<p><blockquote((?:[^>"\']|"[^"]*"|\'[^\']*\')*)>!i', '<blockquote$1><p>', $text );
 	$text = str_replace( '</blockquote></p>', '</p></blockquote>', $text );
 
 	// If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
@@ -622,8 +622,11 @@ function wp_html_split( $input ) {
  * @since 4.4.0
  *
  * @return string The regular expression.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_html_split_regex() {
+	/** @var non-falsy-string|null $regex */
 	static $regex;
 
 	if ( ! isset( $regex ) ) {
@@ -2278,6 +2281,8 @@ function sanitize_title_for_query( $title ) {
  *                          When set to 'save', additional entities are converted to hyphens
  *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
+ *
+ * @phpstan-return lowercase-string
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
 	$title = strip_tags( $title );
@@ -2397,7 +2402,36 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 	$title = preg_replace( '|-+|', '-', $title );
 	$title = trim( $title, '-' );
 
+	/** @var lowercase-string $title Only lowercase characters remain after the replacements above. */
 	return $title;
+}
+
+/**
+ * Truncates a slug to a given length.
+ *
+ * Non-ASCII slugs are stored percent-encoded, so the slug is truncated on a
+ * character boundary to avoid cutting a percent-encoded sequence in half.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @see utf8_uri_encode()
+ *
+ * @param string $slug   The slug to truncate.
+ * @param int    $length Optional. Max length of the slug. Default 200 (characters).
+ * @return string The truncated slug.
+ */
+function wp_truncate_slug( $slug, $length = 200 ) {
+	if ( strlen( $slug ) > $length ) {
+		$decoded_slug = urldecode( $slug );
+		if ( $decoded_slug === $slug ) {
+			$slug = substr( $slug, 0, $length );
+		} else {
+			$slug = utf8_uri_encode( $decoded_slug, $length, true );
+		}
+	}
+
+	return rtrim( $slug, '-' );
 }
 
 /**
@@ -2412,6 +2446,10 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
  *
  * @param string $orderby Order by clause to be validated.
  * @return string|false Returns $orderby if valid, false otherwise.
+ *
+ * @phpstan-template T of string
+ * @phpstan-param T $orderby
+ * @phpstan-return ( T is non-empty-string ? T|false : false )
  */
 function sanitize_sql_orderby( $orderby ) {
 	if ( preg_match( '/^\s*(([a-z0-9_]+|`[a-z0-9_]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`])|$))+$/i', $orderby ) || preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby ) ) {
@@ -2466,6 +2504,11 @@ function sanitize_html_class( $classname, $fallback = '' ) {
  * @return string The sanitized value.
  */
 function sanitize_locale_name( $locale_name ) {
+	// Request values can arrive as arrays, and preg_replace() would map over them.
+	if ( ! is_string( $locale_name ) ) {
+		return '';
+	}
+
 	// Limit to A-Z, a-z, 0-9, '_', '-'.
 	$sanitized = preg_replace( '/[^A-Za-z0-9_-]/', '', $locale_name );
 
@@ -2488,6 +2531,8 @@ function sanitize_locale_name( $locale_name ) {
  * @param string $content    String of characters to be converted.
  * @param string $deprecated Not used.
  * @return string Converted string.
+ *
+ * @phpstan-param '' $deprecated
  */
 function convert_chars( $content, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -2788,6 +2833,16 @@ function format_to_edit( $content, $rich_text = false ) {
  * @param int $number     Number to append zeros to if not greater than threshold.
  * @param int $threshold  Digit places number needs to be to not have zeros added.
  * @return string Adds leading zeros to number if needed.
+ *
+ * @phpstan-return (
+ *     $threshold is 0
+ *         ? lowercase-string&non-empty-string&numeric-string
+ *         : (
+ *             $number is int<0, max>
+ *                 ? lowercase-string&non-empty-string&numeric-string
+ *                 : lowercase-string&non-empty-string
+ *         )
+ * )
  */
 function zeroise( $number, $threshold ) {
 	return sprintf( '%0' . $threshold . 's', $number );
@@ -2821,6 +2876,8 @@ function backslashit( $value ) {
  *
  * @param string $value Value to which trailing slash will be added.
  * @return string String with trailing slash added.
+ *
+ * @phpstan-return non-falsy-string
  */
 function trailingslashit( $value ) {
 	return untrailingslashit( $value ) . '/';
@@ -3609,6 +3666,8 @@ function convert_smilies( $text ) {
  * @param string $email      Email address to verify.
  * @param bool   $deprecated Deprecated.
  * @return string|false Valid email address on success, false on failure.
+ *
+ * @phpstan-param false $deprecated
  */
 function is_email( $email, $deprecated = false ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3840,9 +3899,9 @@ function sanitize_email( $email ) {
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param string $sanitized_email The sanitized email address.
-		 * @param string $email           The email address, as provided to sanitize_email().
-		 * @param string|null $message    A message to pass to the user. null if email is sanitized.
+		 * @param string      $sanitized_email The sanitized email address.
+		 * @param string      $email           The email address, as provided to sanitize_email().
+		 * @param string|null $message         A message to pass to the user. null if email is sanitized.
 		 */
 		return apply_filters( 'sanitize_email', '', $email, 'email_too_short' );
 	}
@@ -3953,46 +4012,28 @@ function human_time_diff( $from, $to = 0 ) {
 		}
 		/* translators: Time difference between two dates, in seconds. %s: Number of seconds. */
 		$since = sprintf( _n( '%s second', '%s seconds', $secs ), $secs );
-	} elseif ( $diff < HOUR_IN_SECONDS && $diff >= MINUTE_IN_SECONDS ) {
-		$mins = round( $diff / MINUTE_IN_SECONDS );
-		if ( $mins <= 1 ) {
-			$mins = 1;
-		}
+	} elseif ( $diff < HOUR_IN_SECONDS ) {
+		$mins = (int) round( $diff / MINUTE_IN_SECONDS );
 		/* translators: Time difference between two dates, in minutes. %s: Number of minutes. */
 		$since = sprintf( _n( '%s minute', '%s minutes', $mins ), $mins );
-	} elseif ( $diff < DAY_IN_SECONDS && $diff >= HOUR_IN_SECONDS ) {
-		$hours = round( $diff / HOUR_IN_SECONDS );
-		if ( $hours <= 1 ) {
-			$hours = 1;
-		}
+	} elseif ( $diff < DAY_IN_SECONDS ) {
+		$hours = (int) round( $diff / HOUR_IN_SECONDS );
 		/* translators: Time difference between two dates, in hours. %s: Number of hours. */
 		$since = sprintf( _n( '%s hour', '%s hours', $hours ), $hours );
-	} elseif ( $diff < WEEK_IN_SECONDS && $diff >= DAY_IN_SECONDS ) {
-		$days = round( $diff / DAY_IN_SECONDS );
-		if ( $days <= 1 ) {
-			$days = 1;
-		}
+	} elseif ( $diff < WEEK_IN_SECONDS ) {
+		$days = (int) round( $diff / DAY_IN_SECONDS );
 		/* translators: Time difference between two dates, in days. %s: Number of days. */
 		$since = sprintf( _n( '%s day', '%s days', $days ), $days );
-	} elseif ( $diff < MONTH_IN_SECONDS && $diff >= WEEK_IN_SECONDS ) {
-		$weeks = round( $diff / WEEK_IN_SECONDS );
-		if ( $weeks <= 1 ) {
-			$weeks = 1;
-		}
+	} elseif ( $diff < MONTH_IN_SECONDS ) {
+		$weeks = (int) round( $diff / WEEK_IN_SECONDS );
 		/* translators: Time difference between two dates, in weeks. %s: Number of weeks. */
 		$since = sprintf( _n( '%s week', '%s weeks', $weeks ), $weeks );
-	} elseif ( $diff < YEAR_IN_SECONDS && $diff >= MONTH_IN_SECONDS ) {
-		$months = round( $diff / MONTH_IN_SECONDS );
-		if ( $months <= 1 ) {
-			$months = 1;
-		}
+	} elseif ( $diff < YEAR_IN_SECONDS ) {
+		$months = (int) round( $diff / MONTH_IN_SECONDS );
 		/* translators: Time difference between two dates, in months. %s: Number of months. */
 		$since = sprintf( _n( '%s month', '%s months', $months ), $months );
-	} elseif ( $diff >= YEAR_IN_SECONDS ) {
-		$years = round( $diff / YEAR_IN_SECONDS );
-		if ( $years <= 1 ) {
-			$years = 1;
-		}
+	} else {
+		$years = (int) round( $diff / YEAR_IN_SECONDS );
 		/* translators: Time difference between two dates, in years. %s: Number of years. */
 		$since = sprintf( _n( '%s year', '%s years', $years ), $years );
 	}
@@ -4521,8 +4562,12 @@ function _deep_replace( $search, $subject ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $data Unescaped data.
- * @return string|array Escaped data, in the same type as supplied.
+ * @param string|string[] $data Unescaped data.
+ * @return string|string[] Escaped data, in the same type as supplied.
+ *
+ * @phpstan-template TKey of array-key
+ * @phpstan-param string|array<TKey, string> $data
+ * @phpstan-return ( $data is string ? string : array<TKey, string> )
  */
 function esc_sql( $data ) {
 	global $wpdb;
@@ -4848,10 +4893,6 @@ EOF;
 	$safe_text = (string) preg_replace_callback(
 		$regex,
 		static function ( $matches ) {
-			if ( ! isset( $matches[0] ) ) {
-				return '';
-			}
-
 			if ( isset( $matches['non_cdata'] ) ) {
 				// escape HTML entities in the non-CDATA Section.
 				return _wp_specialchars( $matches['non_cdata'], ENT_XML1 );
@@ -5267,10 +5308,18 @@ function wp_parse_str( $input_string, &$result ) {
  *
  * @since 2.3.0
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string $content Text to be converted.
  * @return string Converted text.
  */
 function wp_pre_kses_less_than( $content ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	return preg_replace_callback( '%<[^>]*?((?=<)|>|$)%', 'wp_pre_kses_less_than_callback', $content );
 }
 
@@ -5295,6 +5344,8 @@ function wp_pre_kses_less_than_callback( $matches ) {
  *
  * @since 5.3.1
  *
+ * @global string $wp_kses_operating_mode Indicates if this filter should run.
+ *
  * @param string         $content           Content to be run through KSES.
  * @param array[]|string $allowed_html      An array of allowed HTML elements
  *                                          and attributes, or a context name
@@ -5303,6 +5354,12 @@ function wp_pre_kses_less_than_callback( $matches ) {
  * @return string Filtered text to run through KSES.
  */
 function wp_pre_kses_block_attributes( $content, $allowed_html, $allowed_protocols ) {
+	global $wp_kses_operating_mode;
+
+	if ( 'legacy' !== ( $wp_kses_operating_mode ?? 'legacy' ) ) {
+		return $content;
+	}
+
 	/*
 	 * `filter_block_content` is expected to call `wp_kses`. Temporarily remove
 	 * the filter to avoid recursion.

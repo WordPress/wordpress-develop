@@ -20,6 +20,13 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-admin-bar.php';
 	}
 
+	public function set_up() {
+		parent::set_up();
+
+		// is_admin_bar_showing() caches its result, so an earlier logged-out test can leave it false.
+		unset( $GLOBALS['show_admin_bar'] );
+	}
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
@@ -902,6 +909,56 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertTrue( is_user_admin() );
 		$this->assertStringNotContainsString( 'site-icon', $node_site_name->title );
 		$this->assertArrayNotHasKey( 'class', $node_site_name->meta );
+	}
+
+	/**
+	 * @ticket 66157
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_has_greeting_in_user_info_only() {
+		$user_id = self::factory()->user->create(
+			array(
+				'role'         => 'editor',
+				'display_name' => 'John Doe',
+			)
+		);
+		wp_set_current_user( $user_id );
+		$current_user = wp_get_current_user();
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertSame( 'John Doe', wp_strip_all_tags( $node_my_account->title ) );
+		$this->assertSame( 'John Doe', $node_my_account->meta['menu_title'] );
+
+		$this->assertSame( 'Howdy, John Doe' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
+	}
+
+	/**
+	 * @ticket 66157
+	 *
+	 * @covers ::wp_admin_bar_my_account_item
+	 * @covers ::wp_admin_bar_my_account_menu
+	 */
+	public function test_my_account_falls_back_to_user_login_when_display_name_is_empty() {
+		add_filter( 'pre_user_display_name', '__return_empty_string' );
+		$user_id = self::factory()->user->create( array( 'role' => 'editor' ) );
+
+		wp_set_current_user( $user_id );
+		$current_user = wp_get_current_user();
+		$this->assertSame( '', $current_user->display_name );
+
+		$wp_admin_bar    = $this->get_standard_admin_bar();
+		$node_my_account = $wp_admin_bar->get_node( 'my-account' );
+		$node_user_info  = $wp_admin_bar->get_node( 'user-info' );
+
+		$this->assertSame( $current_user->user_login, wp_strip_all_tags( $node_my_account->title ) );
+		$this->assertSame( $current_user->user_login, $node_my_account->meta['menu_title'] );
+
+		$this->assertSame( 'Howdy, ' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
 	}
 
 	/**
