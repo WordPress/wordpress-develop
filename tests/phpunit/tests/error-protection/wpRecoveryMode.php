@@ -101,6 +101,57 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Calls handle_error() and returns the location it redirects to.
+	 *
+	 * The redirect is stopped by throwing from the wp_redirect filter, before
+	 * WP_Recovery_Mode::redirect_protected() exits.
+	 *
+	 * @param array $error Error details.
+	 * @return string Redirect location.
+	 */
+	private function handle_error_and_get_redirect( array $error ) {
+		add_filter( 'wp_redirect', array( $this, 'stop_redirect' ) );
+
+		try {
+			wp_recovery_mode()->handle_error( $error );
+		} catch ( RuntimeException $e ) {
+			return $e->getMessage();
+		}
+
+		$this->fail( 'handle_error() should redirect.' );
+	}
+
+	/**
+	 * Stops a redirect by throwing an exception that carries its location.
+	 *
+	 * @param string $location Redirect location.
+	 * @throws RuntimeException Always.
+	 */
+	public function stop_redirect( $location ) {
+		throw new RuntimeException( $location );
+	}
+
+	/**
+	 * Sends output so that headers_sent() returns true.
+	 *
+	 * The open output buffers, including PHPUnit's own, are closed so the output
+	 * reaches the SAPI and are then reopened at the same level.
+	 */
+	private function send_output() {
+		$levels = ob_get_level();
+
+		while ( ob_get_level() ) {
+			ob_end_clean();
+		}
+
+		echo ' ';
+
+		for ( $i = 0; $i < $levels; $i++ ) {
+			ob_start();
+		}
+	}
+
+	/**
 	 * Puts the recovery mode singleton into an active session.
 	 */
 	private function activate_recovery_mode() {
@@ -368,16 +419,25 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that handle_error() pauses the plugin that caused the error while active.
+	 * Tests that handle_error() pauses the plugin that caused the error while active, then redirects.
+	 *
+	 * Runs in a separate process so that headers are not yet sent, regardless of
+	 * the output of the test runner.
 	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::handle_error
 	 * @covers ::store_error
 	 * @covers ::get_extension_for_error
+	 * @covers ::redirect_protected
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_error_stores_plugin_error_when_active() {
-		$this->assertTrue( headers_sent(), 'Headers must already be sent, otherwise handle_error() redirects and exits.' );
+		$this->assertFalse( headers_sent(), 'Headers must not be sent for this test.' );
+
+		$_SERVER['REQUEST_URI'] = '/wp-admin/plugins.php';
 
 		$this->activate_recovery_mode();
 
@@ -388,23 +448,31 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 			'message' => 'Fatal error',
 		);
 
-		$this->assertTrue( wp_recovery_mode()->handle_error( $error ) );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-admin/plugins.php', $this->handle_error_and_get_redirect( $error ), 'The current request should be reloaded.' );
 		$this->assertSame( array( 'my-plugin' => $error ), wp_paused_plugins()->get_all(), 'The plugin error should be stored.' );
 		$this->assertSame( array(), wp_paused_themes()->get_all(), 'No theme error should be stored.' );
 	}
 
 	/**
-	 * Tests that handle_error() pauses the theme that caused the error while active.
+	 * Tests that handle_error() pauses the theme that caused the error while active, then redirects.
+	 *
+	 * Runs in a separate process so that headers are not yet sent, regardless of
+	 * the output of the test runner.
 	 *
 	 * @ticket 65819
 	 *
 	 * @covers ::handle_error
 	 * @covers ::store_error
 	 * @covers ::get_extension_for_error
+	 * @covers ::redirect_protected
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_handle_error_stores_theme_error_when_active() {
-		$this->assertTrue( headers_sent(), 'Headers must already be sent, otherwise handle_error() redirects and exits.' );
+		$this->assertFalse( headers_sent(), 'Headers must not be sent for this test.' );
 
+		$_SERVER['REQUEST_URI']          = '/wp-admin/themes.php';
 		$GLOBALS['wp_theme_directories'] = array( '/srv/www/wp-content/themes' );
 
 		$this->activate_recovery_mode();
@@ -416,9 +484,43 @@ class Tests_Error_Protection_wpRecoveryMode extends WP_UnitTestCase {
 			'message' => 'Fatal error',
 		);
 
-		$this->assertTrue( wp_recovery_mode()->handle_error( $error ) );
+		$this->assertSame( 'http://' . WP_TESTS_DOMAIN . '/wp-admin/themes.php', $this->handle_error_and_get_redirect( $error ), 'The current request should be reloaded.' );
 		$this->assertSame( array( 'my-theme' => $error ), wp_paused_themes()->get_all(), 'The theme error should be stored.' );
 		$this->assertSame( array(), wp_paused_plugins()->get_all(), 'No plugin error should be stored.' );
+	}
+
+	/**
+	 * Tests that handle_error() stores the error and returns true without redirecting once headers are sent.
+	 *
+	 * Runs in a separate process so that output can be sent without depending on
+	 * the output of the test runner.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::handle_error
+	 * @covers ::store_error
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_handle_error_does_not_redirect_after_headers_sent() {
+		$this->send_output();
+		$this->assertTrue( headers_sent(), 'Headers should be sent.' );
+
+		$this->activate_recovery_mode();
+
+		// Stops the test instead of exiting if handle_error() redirects.
+		add_filter( 'wp_redirect', array( $this, 'stop_redirect' ) );
+
+		$error = array(
+			'type'    => E_ERROR,
+			'file'    => WP_PLUGIN_DIR . '/my-plugin/includes/broken.php',
+			'line'    => 12,
+			'message' => 'Fatal error',
+		);
+
+		$this->assertTrue( wp_recovery_mode()->handle_error( $error ), 'The error should be handled without a redirect.' );
+		$this->assertSame( array( 'my-plugin' => $error ), wp_paused_plugins()->get_all(), 'The plugin error should be stored.' );
 	}
 
 	/**
