@@ -5,6 +5,69 @@ import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
 const POST_TITLE = 'Test Title';
 
+test( 'Undo restores a trashed post to its published status', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	let postId;
+	const title = `Undo trash ${ Date.now() }`;
+
+	try {
+		const post = await requestUtils.createPost( {
+			title,
+			status: 'publish',
+		} );
+		postId = post.id;
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: title } ).toString()
+		);
+		const row = page.locator( `#post-${ postId }` );
+		await row.getByRole( 'link', { name: title, exact: true } ).hover();
+		await row
+			.getByRole( 'link', {
+				name: `Move “${ title }” to the Trash`,
+				exact: true,
+			} )
+			.click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'1 post moved to the Trash.'
+		);
+		await expect( row ).toHaveCount( 0 );
+		const trashedPost = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ postId }`,
+			params: { context: 'edit' },
+		} );
+		expect( trashedPost.status ).toBe( 'trash' );
+
+		await page.getByRole( 'link', { name: 'Undo', exact: true } ).click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'1 post restored from the Trash.'
+		);
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: title } ).toString()
+		);
+		await expect(
+			row.getByRole( 'link', { name: title, exact: true } )
+		).toBeVisible();
+		const restoredPost = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ postId }`,
+			params: { context: 'edit' },
+		} );
+		expect( restoredPost.status ).toBe( 'publish' );
+	} finally {
+		if ( postId ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ postId }`,
+				params: { force: true },
+			} );
+		}
+	}
+} );
+
 test.describe( 'Empty Trash', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		await requestUtils.deleteAllPosts();
