@@ -117,7 +117,7 @@ class WP_Admin_Bar {
 	 *     @type string $id     ID of the item.
 	 *     @type string $title  Title of the node.
 	 *     @type string $icon   Optional. Namespaced icon name in the form "collection/icon-name",
-	 *                          e.g. 'core/chart-bar'. Rendered before the title.
+	 *                          e.g. 'core-admin/pin'. Rendered before the title.
 	 *     @type string $parent Optional. ID of the parent node.
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.

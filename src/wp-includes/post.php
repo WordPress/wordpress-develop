@@ -1750,7 +1750,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
  *                                                         of a Dashicons helper class to use a font icon, e.g.
  *                                                        'dashicons-chart-pie'. Pass the namespaced name of a registered icon
- *                                                         to render it as an inline SVG, e.g. 'core/chart-bar'. Pass 'none'
+ *                                                         to render it as an inline SVG, e.g. 'core-admin/pin'. Pass 'none'
  *                                                         to leave div.wp-menu-image empty so an icon can be added via CSS.
  *                                                         Defaults to use the posts icon.
  *     @type string|array $capability_type                 The string to use to build the read, edit, and delete capabilities.
