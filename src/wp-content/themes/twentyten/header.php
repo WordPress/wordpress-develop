@@ -42,7 +42,21 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 ?>
 	</title>
 <link rel="profile" href="https://gmpg.org/xfn/11" />
-<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260819" />
+<?php
+if ( function_exists( 'wp_print_stylesheet_link_tag' ) ) {
+	wp_print_stylesheet_link_tag(
+		array(
+			'rel'   => 'stylesheet',
+			'media' => 'all',
+			'href'  => get_stylesheet_uri() . '?ver=20260819',
+		)
+	);
+} else {
+	?>
+	<link rel="stylesheet" media="all" href="<?php echo esc_url( get_stylesheet_uri() ); ?>?ver=20260819" />
+	<?php
+}
+?>
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <?php
 	/*

@@ -83,6 +83,254 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_style_attributes_filter_runs_before_legacy_style_loader_tag_filter() {
+		$source             = 'https://example.com/style.css?one=1&two=2';
+		$filtered_attrs     = array();
+		$legacy_filter_args = array();
+
+		$attributes_filter = static function ( $attributes ) use ( &$filtered_attrs ) {
+			$filtered_attrs[]    = $attributes;
+			$attributes['nonce'] = 'style-nonce';
+			return $attributes;
+		};
+
+		$legacy_filter = static function ( $tag, $handle, $href, $media ) use ( &$legacy_filter_args ) {
+			$processor = new WP_HTML_Tag_Processor( $tag );
+			$processor->next_tag( 'link' );
+
+			$legacy_filter_args[] = array(
+				'handle' => $handle,
+				'href'   => $href,
+				'media'  => $media,
+				'nonce'  => $processor->get_attribute( 'nonce' ),
+				'tag'    => $tag,
+			);
+
+			return $tag;
+		};
+
+		add_filter( 'wp_style_attributes', $attributes_filter );
+		add_filter( 'style_loader_tag', $legacy_filter, 10, 4 );
+
+		wp_enqueue_style( 'filtered-style', $source, array(), null, 'screen' );
+		$markup = get_echo( 'wp_print_styles' );
+
+		remove_filter( 'wp_style_attributes', $attributes_filter );
+		remove_filter( 'style_loader_tag', $legacy_filter, 10 );
+
+		$this->assertCount( 1, $filtered_attrs );
+		$this->assertSame( $source, $filtered_attrs[0]['href'] );
+		$this->assertSame(
+			array(
+				'handle' => 'filtered-style',
+				'href'   => esc_url( $source ),
+				'media'  => 'screen',
+				'nonce'  => 'style-nonce',
+			),
+			array_diff_key( $legacy_filter_args[0], array( 'tag' => true ) )
+		);
+		$this->assertStringNotContainsString( '"', $legacy_filter_args[0]['tag'] );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'style-nonce', $processor->get_attribute( 'nonce' ) );
+		$this->assertSame( $source, $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_style_attribute_quotes_do_not_create_extra_attributes() {
+		$attribute_value = "It's O'Reilly's \"quoted\" text; data-injected=\"should-remain-text\"";
+		$filter          = static function ( $attributes ) use ( $attribute_value ) {
+			$attributes['data-quote-test'] = $attribute_value;
+			return $attributes;
+		};
+
+		add_filter( 'wp_style_attributes', $filter );
+
+		wp_enqueue_style( 'quoted-style', 'https://example.com/style.css', array(), null );
+		$markup = get_echo( 'wp_print_styles' );
+
+		remove_filter( 'wp_style_attributes', $filter );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( $attribute_value, $processor->get_attribute( 'data-quote-test' ) );
+		$this->assertNull( $processor->get_attribute( 'data-injected' ) );
+	}
+
+	/**
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_rtl_alternate_styles_use_both_attribute_and_legacy_filters() {
+		global $wp_styles;
+
+		$wp_styles->text_direction = 'rtl';
+
+		$filtered_attrs = array();
+		$legacy_hrefs   = array();
+
+		$attributes_filter = static function ( $attributes ) use ( &$filtered_attrs ) {
+			$filtered_attrs[]          = $attributes;
+			$attributes['data-filter'] = 'applied';
+			return $attributes;
+		};
+
+		$legacy_filter = static function ( $tag, $handle, $href, $media ) use ( &$legacy_hrefs ) {
+			$legacy_hrefs[] = $href;
+			return $tag;
+		};
+
+		add_filter( 'wp_style_attributes', $attributes_filter );
+		add_filter( 'style_loader_tag', $legacy_filter, 10, 4 );
+
+		wp_enqueue_style( 'theme-style', 'https://example.com/theme.css', array(), null );
+		wp_style_add_data( 'theme-style', 'alt', true );
+		wp_style_add_data( 'theme-style', 'title', 'Alternate theme' );
+		wp_style_add_data( 'theme-style', 'rtl', true );
+
+		$markup = get_echo( 'wp_print_styles' );
+
+		remove_filter( 'wp_style_attributes', $attributes_filter );
+		remove_filter( 'style_loader_tag', $legacy_filter, 10 );
+
+		$tags      = array();
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		while ( $processor->next_tag( 'link' ) ) {
+			$tags[] = array(
+				'id'          => $processor->get_attribute( 'id' ),
+				'rel'         => $processor->get_attribute( 'rel' ),
+				'title'       => $processor->get_attribute( 'title' ),
+				'href'        => $processor->get_attribute( 'href' ),
+				'data-filter' => $processor->get_attribute( 'data-filter' ),
+			);
+		}
+
+		$this->assertCount( 2, $filtered_attrs );
+		$this->assertCount( 2, $legacy_hrefs );
+		$this->assertSame( 'alternate stylesheet', $tags[0]['rel'] );
+		$this->assertSame( 'theme-style-css', $tags[0]['id'] );
+		$this->assertSame( 'Alternate theme', $tags[0]['title'] );
+		$this->assertSame( 'https://example.com/theme.css', $tags[0]['href'] );
+		$this->assertSame( 'theme-style-rtl-css', $tags[1]['id'] );
+		$this->assertSame( 'https://example.com/theme-rtl.css', $tags[1]['href'] );
+		$this->assertSame( 'applied', $tags[0]['data-filter'] );
+		$this->assertSame( 'applied', $tags[1]['data-filter'] );
+		$this->assertSame( esc_url( 'https://example.com/theme.css' ), $legacy_hrefs[0] );
+		$this->assertSame( esc_url( 'https://example.com/theme-rtl.css' ), $legacy_hrefs[1] );
+	}
+
+	/**
+	 * @covers ::_print_styles
+	 */
+	public function test_concatenated_styles_apply_style_attributes_once_without_legacy_filter() {
+		global $wp_styles;
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		$attributes_filter_calls = 0;
+		$legacy_filter_calls     = 0;
+
+		$attributes_filter = static function ( $attributes ) use ( &$attributes_filter_calls ) {
+			++$attributes_filter_calls;
+			$attributes['nonce'] = 'concatenated-style';
+			return $attributes;
+		};
+
+		$legacy_filter = static function ( $tag ) use ( &$legacy_filter_calls ) {
+			++$legacy_filter_calls;
+			return $tag;
+		};
+
+		add_filter( 'wp_style_attributes', $attributes_filter );
+		add_filter( 'style_loader_tag', $legacy_filter );
+
+		wp_enqueue_style( 'concat-one', '/wp-admin/one.css', array(), null );
+		wp_enqueue_style( 'concat-two', '/wp-admin/two.css', array(), null );
+
+		wp_print_styles();
+		$markup = get_echo( '_print_styles' );
+
+		remove_filter( 'wp_style_attributes', $attributes_filter );
+		remove_filter( 'style_loader_tag', $legacy_filter );
+
+		$this->assertSame( 1, $attributes_filter_calls );
+		$this->assertSame( 0, $legacy_filter_calls );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'concatenated-style', $processor->get_attribute( 'nonce' ) );
+		$this->assertStringContainsString( 'load-styles.php', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * @covers ::wp_admin_css
+	 */
+	public function test_wp_admin_css_uses_style_attributes_and_legacy_filter() {
+		$legacy_files  = array();
+		$legacy_tags   = array();
+		$filter        = static function ( $attributes ) {
+			$attributes['nonce'] = 'admin-style';
+			return $attributes;
+		};
+		$legacy_filter = static function ( $tag, $file ) use ( &$legacy_files, &$legacy_tags ) {
+			$legacy_files[] = $file;
+			$legacy_tags[]  = $tag;
+			$processor      = new WP_HTML_Tag_Processor( $tag );
+			$processor->next_tag( 'link' );
+			if ( 'admin-style' !== $processor->get_attribute( 'nonce' ) ) {
+				return '';
+			}
+			return $tag;
+		};
+
+		add_filter( 'wp_style_attributes', $filter );
+		add_filter( 'wp_admin_css', $legacy_filter, 10, 2 );
+
+		$markup = get_echo( 'wp_admin_css', array( 'stylesheet-link-api-test' ) );
+
+		remove_filter( 'wp_style_attributes', $filter );
+		remove_filter( 'wp_admin_css', $legacy_filter, 10 );
+
+		$this->assertSame( array( 'stylesheet-link-api-test' ), $legacy_files );
+		$this->assertStringNotContainsString( '"', $legacy_tags[0] );
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'admin-style', $processor->get_attribute( 'nonce' ) );
+		$this->assertStringContainsString( 'stylesheet-link-api-test.css', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * @covers ::locale_stylesheet
+	 */
+	public function test_locale_stylesheet_uses_style_attributes_filter() {
+		$stylesheet_uri_filter = static function ( $stylesheet_uri, $stylesheet_dir_uri ) {
+			return 'https://example.com/locale.css?one=1&two=2';
+		};
+		$attributes_filter     = static function ( $attributes ) {
+			$attributes['nonce'] = 'locale-style';
+			return $attributes;
+		};
+
+		add_filter( 'locale_stylesheet_uri', $stylesheet_uri_filter, 10, 2 );
+		add_filter( 'wp_style_attributes', $attributes_filter );
+
+		$markup = get_echo( 'locale_stylesheet' );
+
+		remove_filter( 'locale_stylesheet_uri', $stylesheet_uri_filter, 10 );
+		remove_filter( 'wp_style_attributes', $attributes_filter );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'locale-style', $processor->get_attribute( 'nonce' ) );
+		$this->assertSame( 'https://example.com/locale.css?one=1&two=2', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_style_with_html5_support_does_not_contain_type_attribute() {
@@ -109,9 +357,13 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_awkward_handles_are_supported_consistently( $handle ) {
 		wp_enqueue_style( $handle, 'example.com', array(), null );
 
-		$expected = "<link rel='stylesheet' id='$handle-css' href='http://example.com' media='all' />\n";
+		$processor = new WP_HTML_Tag_Processor( get_echo( 'wp_print_styles' ) );
 
-		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'stylesheet', $processor->get_attribute( 'rel' ) );
+		$this->assertSame( $handle . '-css', $processor->get_attribute( 'id' ) );
+		$this->assertSame( 'http://example.com', $processor->get_attribute( 'href' ) );
+		$this->assertSame( 'all', $processor->get_attribute( 'media' ) );
 	}
 
 	/**
@@ -412,37 +664,23 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @ticket 35921
 	 * @dataProvider data_styles_with_media
 	 */
-	public function test_wp_enqueue_style_with_media( $expected, $media ) {
+	public function test_wp_enqueue_style_with_media( $media ) {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1, $media );
-		$this->assertStringContainsString( $expected, get_echo( 'wp_print_styles' ) );
+
+		$processor = new WP_HTML_Tag_Processor( get_echo( 'wp_print_styles' ) );
+
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( $media, $processor->get_attribute( 'media' ) );
 	}
 
 	public function data_styles_with_media() {
 		return array(
-			array(
-				"media='all'",
-				'all',
-			),
-			array(
-				"media='(orientation: portrait)'",
-				'(orientation: portrait)',
-			),
-			array(
-				"media='(max-width: 640px)'",
-				'(max-width: 640px)',
-			),
-			array(
-				"media='print and (min-width: 25cm)'",
-				'print and (min-width: 25cm)',
-			),
-			array(
-				"media='screen and (color), projection and (color)'",
-				'screen and (color), projection and (color)',
-			),
-			array(
-				"media='not screen and (color)'",
-				'not screen and (color)',
-			),
+			array( 'all' ),
+			array( '(orientation: portrait)' ),
+			array( '(max-width: 640px)' ),
+			array( 'print and (min-width: 25cm)' ),
+			array( 'screen and (color), projection and (color)' ),
+			array( 'not screen and (color)' ),
 		);
 	}
 

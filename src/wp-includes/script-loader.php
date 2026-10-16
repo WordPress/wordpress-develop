@@ -2450,7 +2450,18 @@ function _print_styles() {
 		}
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
+		// Preserve the concatenated link's historical single-quoted markup.
+		echo str_replace(
+			'"',
+			"'",
+			wp_get_stylesheet_link_tag(
+				array(
+					'rel'   => 'stylesheet',
+					'href'  => $href,
+					'media' => 'all',
+				)
+			)
+		);
 
 		if ( ! empty( $wp_styles->print_code ) ) {
 			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
@@ -3670,6 +3681,71 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
+}
+
+/**
+ * Formats `<link rel="stylesheet">` tags.
+ *
+ * It is possible to inject attributes in the stylesheet link tag via the {@see 'wp_style_attributes'} filter.
+ *
+ * @since 7.3.0
+ *
+ * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes. Values of
+ *                                                    `true` or `null` add a bare attribute, `false` omits it, and
+ *                                                    strings (including empty strings) are serialized as values.
+ * @return string String containing a `<link>` tag.
+ *
+ * @phpstan-return non-falsy-string
+ */
+function wp_get_stylesheet_link_tag( $attributes ) {
+	/**
+	 * Filters attributes to be added to a stylesheet link tag.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes.
+	 *                                                    Values of `true` or `null` add a bare attribute; `false`
+	 *                                                    omits the attribute.
+	 */
+	$attributes = apply_filters( 'wp_style_attributes', $attributes );
+
+	$processor = new WP_HTML_Tag_Processor( '<link />' );
+	$processor->next_tag();
+	$seen_attributes = array();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the same attribute in HTML.
+		 * Calling code should rewrite an attribute's value rather than sending a duplicate.
+		 */
+		$normalized_name = strtolower( $name );
+		if ( isset( $seen_attributes[ $normalized_name ] ) ) {
+			continue;
+		}
+		$seen_attributes[ $normalized_name ] = true;
+
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+
+	return "{$processor->get_updated_html()}\n";
+}
+
+/**
+ * Prints a formatted stylesheet link tag.
+ *
+ * It is possible to inject attributes in the stylesheet link tag via the {@see 'wp_style_attributes'} filter.
+ *
+ * @since 7.3.0
+ *
+ * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes. Values of
+ *                                                    `true` or `null` add a bare attribute, `false` omits it, and
+ *                                                    strings (including empty strings) are serialized as values.
+ */
+function wp_print_stylesheet_link_tag( $attributes ) {
+	echo wp_get_stylesheet_link_tag( $attributes );
 }
 
 /**
