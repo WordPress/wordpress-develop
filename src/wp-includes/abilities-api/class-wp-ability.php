@@ -713,7 +713,7 @@ class WP_Ability {
 			return new WP_Error(
 				'ability_invalid_permission_callback',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), $this->name )
+				sprintf( __( 'Ability "%s" must provide a valid permission callback, or omit it and declare required capabilities.' ), $this->name )
 			);
 		}
 
