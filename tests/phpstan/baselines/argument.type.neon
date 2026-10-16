@@ -429,7 +429,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
+			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, show_in_abilities\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -988,11 +988,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Parameter \#1 \$name of method WP_HTML_Tag_Processor\:\:set_bookmark\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type

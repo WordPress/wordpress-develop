@@ -40,10 +40,10 @@ abstract class WP_Test_Adjacent_Image_Link_TestCase extends WP_UnitTestCase {
 	/**
 	 * Sets up the test scenario.
 	 *
-	 * @param integer $current_attachment_index  Current attachment's index number in the self::$attachments array.
-	 * @param integer $expected_attachment_index Expected attachment's index number in the self::$attachments array.
-	 * @param string  $expected                  The expected output string.
-	 * @param array   $args                      Array of arguments to pass to the function being tested.
+	 * @param int    $current_attachment_index  Current attachment's index number in the self::$attachments array.
+	 * @param int    $expected_attachment_index Expected attachment's index number in the self::$attachments array.
+	 * @param string $expected                  The expected output string.
+	 * @param array  $args                      Array of arguments to pass to the function being tested.
 	 * @return array {
 	 *     Array of the prepared test parameters.
 	 *

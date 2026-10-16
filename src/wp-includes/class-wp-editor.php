@@ -940,9 +940,10 @@ final class _WP_Editors {
 		if ( $user_can_richedit ) {
 			$settings = self::default_settings();
 
-			$settings['toolbar1'] = 'bold,italic,bullist,numlist,link';
-			$settings['wpautop']  = false;
-			$settings['indent']   = true;
+			$settings['toolbar1']    = 'bold,italic,bullist,numlist,link';
+			$settings['wpautop']     = false;
+			$settings['indent']      = true;
+			$settings['elementpath'] = false;
 
 			if ( is_rtl() ) {
 				$settings['directionality'] = 'rtl';
@@ -1540,7 +1541,7 @@ final class _WP_Editors {
 		$wp_scripts = wp_scripts();
 
 		$wp_scripts->remove( 'wp-tinymce' );
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( $wp_scripts );
 	}
 
 	/**
@@ -1768,7 +1769,7 @@ final class _WP_Editors {
 	 *     @type int    $pagenum Page number. Default 1.
 	 *     @type string $s       Search keywords.
 	 * }
-	 * @return array|false $results {
+	 * @return array|false {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
 	 *     @type array ...$0 {
