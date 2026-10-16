@@ -384,11 +384,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/options-permalink.php
 		-
-			message: '#^Variable \$wp_rewrite might not be defined\.$#'
-			identifier: variable.undefined
-			count: 8
-			path: ../../../src/wp-admin/options-permalink.php
-		-
 			message: '#^Variable \$options_to_update might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
