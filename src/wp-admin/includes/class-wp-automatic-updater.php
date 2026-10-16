@@ -623,8 +623,6 @@ class WP_Automatic_Updater {
 			}
 		}
 
-		$is_debug = WP_DEBUG && WP_DEBUG_LOG;
-
 		if ( 'theme' === $type && $is_debug ) {
 			/** @phpstan-var Theme_Update_Offer $item */
 			error_log( '    Theme ' . var_export( $item->theme, true ) . ' has been upgraded.' );
