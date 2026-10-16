@@ -284,6 +284,8 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 
 		list( $cat_args, $filter_instance ) = $filter_args[0];
 
+		$this->assertIsArray( $cat_args );
+
 		$this->assertSame( $instance, $filter_instance );
 		$this->assertSameSets( array( 'orderby', 'show_count', 'hierarchical', 'title_li' ), array_keys( $cat_args ) );
 		$this->assertSame( 'name', $cat_args['orderby'] );
@@ -421,6 +423,8 @@ class Tests_Widgets_wpWidgetCategories extends WP_UnitTestCase {
 		$this->assertCount( 1, $filter_args, 'Only the dropdown filter should be applied.' );
 
 		list( $cat_args, $filter_instance ) = $filter_args[0];
+
+		$this->assertIsArray( $cat_args );
 
 		$this->assertSame( $instance, $filter_instance );
 		$this->assertSameSets( array( 'orderby', 'show_count', 'hierarchical', 'show_option_none', 'id' ), array_keys( $cat_args ) );
