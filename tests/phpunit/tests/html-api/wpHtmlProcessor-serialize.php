@@ -45,6 +45,19 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that SELECTEDCONTENT is parsed like an ordinary element.
+	 *
+	 * @ticket 63736
+	 */
+	public function test_selectedcontent_is_not_unsupported() {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( '<select><button><selectedcontent></button><option selected>Y' ),
+			'<select><button><selectedcontent></selectedcontent></button><option selected>Y</option></select>',
+			'Should not bail on SELECTEDCONTENT when selected OPTION cloning would be needed.'
+		);
+	}
+
+	/**
 	 * Ensures that boolean attributes remain boolean and do not gain values.
 	 *
 	 * @ticket 62036
@@ -257,22 +270,6 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * XMP contents are parsed using the generic raw text element parsing algorithm.
-	 * Their contents should not be escaped with HTML character references on normalization.
-	 *
-	 * @ticket 65372
-	 */
-	public function test_xmp_contents_are_not_escaped() {
-		$normalized = WP_HTML_Processor::normalize( "<xmp> < > & \" ' \x00 </xmp>" );
-
-		$this->assertSame(
-			"<xmp> < > & \" ' \u{FFFD} </xmp>",
-			$normalized,
-			'Should have preserved text inside an XMP element, except for replacing NULL bytes.'
-		);
-	}
-
 	public function test_unexpected_closing_tags_are_removed() {
 		$this->assertSame(
 			WP_HTML_Processor::normalize( 'one</div>two</span>three' ),
@@ -382,9 +379,68 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'CDATA look-alike'                      => array( '<!', '[CDATA[inside]]', '>' ),
 			'Immediately-closed markup instruction' => array( '<!', '?', '>' ),
 			'Warning Symbol'                        => array( '<!', '', '>' ),
-			'PHP block look-alike'                  => array( '<', '?php foo(); ?', '>' ),
+			'PHP short echo tag'                    => array( '<', '?= "Hello" ?', '>' ),
 			'Funky comment'                         => array( '</', '%display-name', '>' ),
 			'XML Processing Instruction look-alike' => array( '<', '?xml foo ', '>' ),
+		);
+	}
+
+	/**
+	 * Ensures that processing instructions are serialized in their normative form.
+	 *
+	 * Note that the serialized form separates the target from the data with a
+	 * single space and always terminates with `?>`, regardless of the original
+	 * syntax. The closer's `?` is dropped on parse, so this form represents any
+	 * data, including data ending in `?`.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_serializes_processing_instructions( string $html, string $expected ): void {
+		$this->assertSame(
+			WP_HTML_Processor::normalize( $html ),
+			$expected,
+			'Should have serialized the processing instruction in its normative form.'
+		);
+	}
+
+	/**
+	 * Ensures that normalizing an already-normalized processing instruction does not change it.
+	 *
+	 * @ticket 61530
+	 *
+	 * @dataProvider data_processing_instructions
+	 *
+	 * @param string $html     Input containing a processing instruction.
+	 * @param string $expected Normative serialization of the input.
+	 */
+	public function test_processing_instruction_normalization_is_idempotent( string $html, string $expected ): void {
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $expected ),
+			'Normalizing an already-normalized processing instruction should not change it.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_processing_instructions(): array {
+		return array(
+			'PHP block'                     => array( '<?php foo(); ?>', '<?php foo(); ?>' ),
+			'Unclosed PHP block'            => array( '<?php foo(); >', '<?php foo(); ?>' ),
+			'Empty data'                    => array( '<?wp-bit?>', '<?wp-bit ?>' ),
+			'Whitespace-only data'          => array( '<?wp-bit   ?>', '<?wp-bit ?>' ),
+			'Data ending in question mark'  => array( '<?target data??>', '<?target data??>' ),
+			'Data of a lone question mark'  => array( '<?wp-bit ??>', '<?wp-bit ??>' ),
+			'Data with question mark runs'  => array( '<?wp-bit what?? news??>', '<?wp-bit what?? news??>' ),
+			'Question mark then whitespace' => array( '<?wp-bit sure? >', '<?wp-bit sure? ?>' ),
 		);
 	}
 
@@ -409,9 +465,9 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 *
-	 * @return array[]
+	 * @return array<string, array{string, string}>
 	 */
-	public static function data_tokens_with_null_bytes() {
+	public static function data_tokens_with_null_bytes(): array {
 		return array(
 			'Tag name'             => array( "<img\x00id=5>", "<img\u{FFFD}id=5></img\u{FFFD}id=5>" ),
 			'Attribute name'       => array( "<img/\x00id=5>", "<img \u{FFFD}id=\"5\">" ),
@@ -420,8 +476,42 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'Foreign content text' => array( "<svg>one\x00two</svg>", "<svg>one\u{FFFD}two</svg>" ),
 			'SCRIPT content'       => array( "<script>alert(\x00)</script>", "<script>alert(\u{FFFD})</script>" ),
 			'STYLE content'        => array( "<style>\x00 {}</style>", "<style>\u{FFFD} {}</style>" ),
+			'IFRAME content'       => array( "<iframe>a\x00b</iframe>", "<iframe>a\u{FFFD}b</iframe>" ),
+			'NOEMBED content'      => array( "<noembed>a\x00b</noembed>", "<noembed>a\u{FFFD}b</noembed>" ),
+			'NOFRAMES content'     => array( "<noframes>a\x00b</noframes>", "<noframes>a\u{FFFD}b</noframes>" ),
 			'XMP content'          => array( "<xmp>a\x00b</xmp>", "<xmp>a\u{FFFD}b</xmp>" ),
 			'Comment text'         => array( "<!-- \x00 -->", "<!-- \u{FFFD} -->" ),
+		);
+	}
+
+	/**
+	 * Ensures that contents of rawtext elements are preserved when serializing.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_rawtext_elements_with_html_syntax_character_contents
+	 *
+	 * @param string $html Normalized HTML containing a rawtext element with contents.
+	 */
+	public function test_rawtext_element_contents_are_preserved_when_normalizing( string $html ): void {
+		$this->assertSame(
+			$html,
+			WP_HTML_Processor::normalize( $html ),
+			'Should have preserved the rawtext element contents.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public static function data_rawtext_elements_with_html_syntax_character_contents(): array {
+		return array(
+			'IFRAME'   => array( 'before<iframe> < > &amp; " \' </iframe>after' ),
+			'NOEMBED'  => array( 'before<noembed> < > &amp; " \' </noembed>after' ),
+			'NOFRAMES' => array( 'before<noframes> < > &amp; " \' </noframes>after' ),
+			'XMP'      => array( 'before<xmp> < > &amp; " \' </xmp>after' ),
 		);
 	}
 
@@ -656,6 +746,45 @@ class Tests_HtmlApi_WpHtmlProcessor_Serialize extends WP_UnitTestCase {
 			'NULL byte in SVG child tag'                => array( "<svg><l\x00 '>" ),
 			'NULL byte before slash in SVG child tag'   => array( "<svg><l\x00/r>" ),
 			'XMP generic raw text'                      => array( "<xmp> < > & \" ' \x00 </xmp>" ),
+		);
+	}
+
+	/**
+	 * Ensures that carriage returns are correctly serialized.
+	 *
+	 * @ticket 65372
+	 *
+	 * @dataProvider data_provider_carriage_returns
+	 *
+	 * @param string $input    HTML input containing a decoded carriage return.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_serializes_decoded_carriage_returns_as_character_references( string $input, string $expected ): void {
+		$normalized = WP_HTML_Processor::normalize( $input );
+
+		$this->assertSame( $expected, $normalized, 'Should have serialized the carriage return as a character reference.' );
+		$this->assertSame(
+			$expected,
+			WP_HTML_Processor::normalize( $normalized ),
+			'Normalizing already-normalized HTML should not change the serialized carriage return.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public static function data_provider_carriage_returns(): array {
+		return array(
+			'Decimal character reference' => array( 'a&#13;b', 'a&#xD;b' ),
+			'Hex character reference'     => array( 'a&#x0D;b', 'a&#xD;b' ),
+			'RCDATA title'                => array( '<title>a&#13;b</title>', '<title>a&#xD;b</title>' ),
+			'Attribute value'             => array( '<p attr="a&#13;b"></p>', '<p attr="a&#xD;b"></p>' ),
+			'Table text'                  => array( '<table><td>x&#13;', '<table><tbody><tr><td>x&#xD;</td></tr></tbody></table>' ),
+			'Template text'               => array( '<template>a&#13;b</template>', '<template>a&#xD;b</template>' ),
+			'Raw CR'                      => array( "<p title=\"a\rb\"></p>", "<p title=\"a\nb\"></p>" ),
+			'Raw CRLF pair'               => array( "<p title=\"a\r\nb\">", "<p title=\"a\nb\"></p>" ),
 		);
 	}
 

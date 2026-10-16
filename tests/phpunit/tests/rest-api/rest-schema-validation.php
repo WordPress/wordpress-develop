@@ -1697,18 +1697,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				continue;
 			}
 			// type is required for our implementation
-			if ( ! isset( $suite['schema']['type'] ) ) {
-				$suite['schema']['type'] = 'array';
-			}
+			$suite['schema']['type'] ??= 'array';
 			// items is required for our implementation
-			if ( ! isset( $suite['schema']['items'] ) ) {
-				$suite['schema']['items'] = array(
-					'type'  => $all_types,
-					'items' => array(
-						'type' => $all_types,
-					),
-				);
-			}
+			$suite['schema']['items'] ??= array(
+				'type'  => $all_types,
+				'items' => array(
+					'type' => $all_types,
+				),
+			);
 			foreach ( $suite['tests'] as $test ) {
 				$tests[] = array( $test, $suite );
 			}

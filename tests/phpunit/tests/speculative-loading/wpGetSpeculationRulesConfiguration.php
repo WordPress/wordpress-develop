@@ -12,10 +12,33 @@
  */
 class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_UnitTestCase {
 
-	public function set_up() {
+	/**
+	 * Stores the original speculative loading env values for cleanup.
+	 *
+	 * @var array<string, string|false>
+	 */
+	private array $original_env = array();
+
+	public function set_up(): void {
 		parent::set_up();
 
+		foreach ( array( 'WP_SPECULATIVE_LOADING_DEFAULT_MODE', 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS' ) as $name ) {
+			$this->original_env[ $name ] = getenv( $name );
+		}
+
 		update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+	}
+
+	public function tear_down(): void {
+		foreach ( $this->original_env as $name => $value ) {
+			if ( false === $value ) {
+				putenv( $name );
+			} else {
+				putenv( "{$name}={$value}" );
+			}
+		}
+
+		parent::tear_down();
 	}
 
 	/**
@@ -263,5 +286,64 @@ class Tests_Speculative_Loading_wpGetSpeculationRulesConfiguration extends WP_Un
 				),
 			),
 		);
+	}
+
+	/**
+	 * Tests that an overridden default is what the 'auto' value resolves to.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_with_overridden_default(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'moderate',
+			),
+			wp_get_speculation_rules_configuration()
+		);
+	}
+
+	/**
+	 * Tests that an explicit eagerness from the filter takes precedence over an overridden default.
+	 *
+	 * This ensures a plugin such as Speculative Loading continues to win over a hosting provider's default.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_filter_beats_overridden_default(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		add_filter(
+			'wp_speculation_rules_configuration',
+			static function () {
+				return array(
+					'mode'      => 'auto',
+					'eagerness' => 'conservative',
+				);
+			}
+		);
+
+		$this->assertSame(
+			array(
+				'mode'      => 'prefetch',
+				'eagerness' => 'conservative',
+			),
+			wp_get_speculation_rules_configuration()
+		);
+	}
+
+	/**
+	 * Tests that speculative loading remains disabled when a default is overridden.
+	 *
+	 * @ticket 65624
+	 */
+	public function test_wp_get_speculation_rules_configuration_with_overridden_default_while_disabled(): void {
+		putenv( 'WP_SPECULATIVE_LOADING_DEFAULT_EAGERNESS=moderate' );
+
+		add_filter( 'wp_speculation_rules_configuration', '__return_null' );
+
+		$this->assertNull( wp_get_speculation_rules_configuration() );
 	}
 }
