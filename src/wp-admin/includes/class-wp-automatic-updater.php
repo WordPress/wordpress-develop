@@ -406,6 +406,9 @@ class WP_Automatic_Updater {
 	public function update( $type, $item ) {
 		$skin = new Automatic_Upgrader_Skin();
 
+		$item_name = '';
+		$upgrader  = null;
+
 		/*
 		 * The inline @phpstan-var tags narrow $item by $type. This should be replaced with a conditional
 		 * parameter type once PHPStan supports narrowing nested conditional parameter types.
