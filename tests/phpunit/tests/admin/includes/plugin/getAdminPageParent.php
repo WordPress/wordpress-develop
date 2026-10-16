@@ -279,6 +279,37 @@ class Tests_Admin_Includes_Plugin_GetAdminPageParent extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an existing $parent_file global is kept when the current page has no parent.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_admin_page_parent
+	 *
+	 * @dataProvider data_pages_without_parent_with_parent_file
+	 *
+	 * @param string $pagenow Current admin page.
+	 */
+	public function test_get_admin_page_parent_preserves_existing_parent_file( $pagenow ) {
+		$GLOBALS['pagenow']     = $pagenow;
+		$GLOBALS['parent_file'] = 'edit.php?post_type=page';
+
+		$this->assertSame( '', get_admin_page_parent() );
+		$this->assertSame( 'edit.php?post_type=page', $GLOBALS['parent_file'], 'The $parent_file global should not change.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_pages_without_parent_with_parent_file() {
+		return array(
+			'page that is not in a submenu' => array( 'profile.php' ),
+			'submenu page when the parent file has a query' => array( 'edit.php' ),
+		);
+	}
+
+	/**
 	 * Tests the hook name of a plugin page.
 	 *
 	 * @ticket 65819
