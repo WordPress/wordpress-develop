@@ -53,13 +53,13 @@
  * }&stdClass
  * @phpstan-type Plugin_Update_Result object{
  *     item: Plugin_Update_Offer,
- *     result: true|array{}|WP_Error,
+ *     result: true|WP_Error|null,
  *     name: string,
  *     messages: string[],
  * }&stdClass
  * @phpstan-type Theme_Update_Result object{
  *     item: Theme_Update_Offer,
- *     result: true|array{}|WP_Error,
+ *     result: true|WP_Error|null,
  *     name: string|false,
  *     messages: string[],
  * }&stdClass
@@ -435,15 +435,15 @@ class WP_Automatic_Updater {
 	 * @return WP_Error|bool|string|array|null False if the item should not be updated, otherwise the result
 	 *                                         from the upgrader: the new WordPress version for core, true for
 	 *                                         a successful plugin or theme update, the installation result for
-	 *                                         a translation, or a WP_Error on failure. An empty array (plugins
-	 *                                         and themes) or null (translations) if the update failed before
-	 *                                         the package was installed.
+	 *                                         a translation, or a WP_Error on failure. Null for a plugin, theme,
+	 *                                         or translation if the update failed before the package was
+	 *                                         installed.
 	 *
 	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
 	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
 	 * @phpstan-return (
 	 *     $type is 'core' ? string|false|WP_Error : (
-	 *         $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|array{}|WP_Error
+	 *         $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|WP_Error|null
 	 *     )
 	 * )
 	 */
