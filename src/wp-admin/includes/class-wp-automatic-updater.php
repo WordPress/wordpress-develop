@@ -285,7 +285,7 @@ class WP_Automatic_Updater {
 			/** @phpstan-var Core_Update_Offer $item */
 			$update = Core_Upgrader::should_update_to_version( $item->current );
 		} elseif ( 'plugin' === $type || 'theme' === $type ) {
-			/** @phpstan-var Plugin_Update_Offer|Theme_Update_Offer $item */
+			/** @phpstan-var (Plugin_Update_Offer|Theme_Update_Offer) $item */
 			$update = ! empty( $item->autoupdate );
 
 			if ( ! $update && wp_is_auto_update_enabled_for_type( $type ) ) {
@@ -359,7 +359,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
-			/** @phpstan-var Plugin_Update_Offer|Theme_Update_Offer $item */
+			/** @phpstan-var (Plugin_Update_Offer|Theme_Update_Offer) $item */
 			if ( ! empty( $item->requires_php ) && version_compare( PHP_VERSION, $item->requires_php, '<' ) ) {
 				return false;
 			}
