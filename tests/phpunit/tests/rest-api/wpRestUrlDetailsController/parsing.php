@@ -63,7 +63,7 @@ class Tests_REST_WpRestUrlDetailsController_Parsing extends WP_UnitTestCase {
 				'<title >Testing &lt;title&gt;: with whitespace in opening tag</title>',
 				'Testing : with whitespace in opening tag',
 			),
-			'when whitepace in closing tag'  => array(
+			'when whitespace in closing tag' => array(
 				'<title>Testing &lt;title&gt;: with whitespace in closing tag</ title>',
 				'Testing : with whitespace in closing tag',
 			),
