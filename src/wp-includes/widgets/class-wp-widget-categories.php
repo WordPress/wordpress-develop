@@ -214,14 +214,14 @@ class WP_Widget_Categories extends WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $new_instance {
-	 *     New settings for this instance as input by the user via WP_Widget::form().
+	 *     New settings for this instance as input by the user via WP_Widget::form(). A checkbox
+	 *     submits 'on' when checked and is omitted when unchecked. A saved instance resubmitted
+	 *     through the REST API passes 0 or 1 instead.
 	 *
-	 *     @type string $title        Widget title.
-	 *     @type string $count        Whether to show post counts. Set only when the checkbox is checked.
-	 *     @type string $hierarchical Whether to show the category hierarchy. Set only when the checkbox
-	 *                                is checked.
-	 *     @type string $dropdown     Whether to display the categories as a drop-down. Set only when the
-	 *                                checkbox is checked.
+	 *     @type string   $title       Widget title.
+	 *     @type 'on'|0|1 $count        Whether to show post counts.
+	 *     @type 'on'|0|1 $hierarchical Whether to show the category hierarchy.
+	 *     @type 'on'|0|1 $dropdown     Whether to display the categories as a drop-down.
 	 * }
 	 * @param array $old_instance {
 	 *     Old settings for this instance.
