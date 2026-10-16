@@ -231,7 +231,18 @@ test.describe( 'Dashboard preferences', () => {
 
 	test.afterEach( async ( { requestUtils } ) => {
 		if ( user ) {
-			// Delete the user's Quick Draft auto-drafts along with its preferences.
+			// User deletion only trashes posts; permanently delete this user's Quick Draft auto-drafts first.
+			const drafts = await requestUtils.rest( {
+				path: '/wp/v2/posts',
+				params: { author: user.id, status: 'auto-draft', per_page: 100 },
+			} );
+			for ( const draft of drafts ) {
+				await requestUtils.rest( {
+					method: 'DELETE',
+					path: `/wp/v2/posts/${ draft.id }`,
+					params: { force: true },
+				} );
+			}
 			await requestUtils.rest( {
 				method: 'DELETE',
 				path: `/wp/v2/users/${ user.id }`,
