@@ -544,11 +544,13 @@ class Tests_Widgets_wpWidgetRecentPosts extends WP_UnitTestCase {
 
 		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The form should contain a number input.' );
 		$this->assertSame( 'widget-recent-posts-2-number', $processor->get_attribute( 'id' ) );
+		$this->assertSame( 'widget-recent-posts[2][number]', $processor->get_attribute( 'name' ) );
 		$this->assertSame( 'number', $processor->get_attribute( 'type' ) );
 		$this->assertSame( $number, $processor->get_attribute( 'value' ) );
 
 		$this->assertTrue( $processor->next_tag( 'INPUT' ), 'The form should contain a date checkbox.' );
 		$this->assertSame( 'widget-recent-posts-2-show_date', $processor->get_attribute( 'id' ) );
+		$this->assertSame( 'widget-recent-posts[2][show_date]', $processor->get_attribute( 'name' ) );
 		$this->assertSame( 'checkbox', $processor->get_attribute( 'type' ) );
 		$this->assertSame( $show_date ? 'checked' : null, $processor->get_attribute( 'checked' ) );
 	}
