@@ -1314,6 +1314,7 @@ final class WP_Abilities_Content {
 		$password_required = post_password_required( $post );
 		$unlock_password   = $password_required && $can_edit;
 		$previous_context  = $this->get_post_context();
+		$the_post_fired    = did_action( 'the_post' ) > 0;
 
 		/*
 		 * The filter unlocks only posts the current user can edit, mirroring the REST posts
@@ -1343,7 +1344,7 @@ final class WP_Abilities_Content {
 				remove_filter( 'post_password_required', $allow_password_content, 10 );
 			}
 
-			$this->restore_post_context( $previous_context );
+			$this->restore_post_context( $previous_context, $the_post_fired );
 		}
 	}
 
@@ -1606,13 +1607,16 @@ final class WP_Abilities_Content {
 	 * up before, setup_postdata() first runs for it again, as wp_reset_postdata() would, so
 	 * callbacks on the `the_post` action can restore their own globals too. The saved values
 	 * are put back even when such a callback throws. A global post that was never set up
-	 * keeps the loop globals that setup_postdata() gives it.
+	 * keeps the loop globals that setup_postdata() gives it. The `the_post` count is reset
+	 * only when the ability was the first thing to fire that action and no global post was
+	 * set, so rendering a post before the main query does not count as starting the loop.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<string, mixed> $previous_context The loop globals that get_post_context() returned.
+	 * @param bool                 $the_post_fired   Whether the `the_post` action had fired before the ability set up the post.
 	 */
-	private function restore_post_context( array $previous_context ): void {
+	private function restore_post_context( array $previous_context, bool $the_post_fired ): void {
 		$previous_post = $previous_context['post'] ?? null;
 
 		/*
@@ -1640,6 +1644,19 @@ final class WP_Abilities_Content {
 						unset( $GLOBALS[ $name ] );
 					}
 				}
+			}
+
+			/*
+			 * Only reset the `the_post` count when the ability was the first thing to fire it
+			 * and no global post was set. Setting up the rendered post counted the action, and
+			 * once it has fired, get_the_content() called without a post reads the loop globals
+			 * unset above instead of the post. A global post set later without being set up,
+			 * as WP::register_globals() sets the main post after the ability runs on `init`,
+			 * would then make it throw a TypeError. When a loop had already fired the action,
+			 * or a post was set, the count is left alone.
+			 */
+			if ( ! $previous_post instanceof WP_Post && ! $the_post_fired ) {
+				unset( $GLOBALS['wp_actions']['the_post'] );
 			}
 		}
 	}
