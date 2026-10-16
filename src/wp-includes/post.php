@@ -27,6 +27,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
 			'public'                => true,
+			'randomable'            => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
 			'capability_type'       => 'post',
@@ -50,6 +51,7 @@ function create_initial_post_types() {
 				'post-formats',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'posts',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
@@ -63,6 +65,7 @@ function create_initial_post_types() {
 			),
 			'public'                => true,
 			'publicly_queryable'    => false,
+			'randomable'            => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
 			'capability_type'       => 'page',
@@ -84,6 +87,7 @@ function create_initial_post_types() {
 				'revisions',
 			),
 			'show_in_rest'          => true,
+			'show_in_abilities'     => true,
 			'rest_base'             => 'pages',
 			'rest_controller_class' => 'WP_REST_Posts_Controller',
 		)
@@ -102,6 +106,7 @@ function create_initial_post_types() {
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
+			'randomable'            => false,
 			'show_ui'               => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
@@ -1691,6 +1696,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @since 5.0.0 The `template` and `template_lock` arguments were added.
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
  * @since 5.9.0 The `rest_namespace` argument was added.
+ * @since 7.2.0 The `show_in_abilities` argument was added.
  *
  * @global array $wp_post_types List of post types.
  *
@@ -1722,6 +1728,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                          * ?{post_type_key}={single_post_slug}
  *                                                          * ?{post_type_query_var}={single_post_slug}
  *                                                         If not set, the default is inherited from $public.
+ *     @type bool         $randomable                      Whether posts of this post type can be selected by random content
+ *                                                         redirects, such as example.com/random/. If not set, the default is
+ *                                                         true when $publicly_queryable is true and $has_archive is set.
  *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
  *                                                         admin. Default is value of $public.
  *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui
@@ -1736,6 +1745,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         of $show_in_menu.
  *     @type bool         $show_in_rest                    Whether to include the post type in the REST API. Set this to true
  *                                                         for the post type to be available in the block editor.
+ *     @type bool         $show_in_abilities               Whether to expose this post type through the Abilities API, so the
+ *                                                         core content abilities can access its posts, subject to the current
+ *                                                         user's capabilities. Default false.
  *     @type string       $rest_base                       To change the base URL of REST API route. Default is $post_type.
  *     @type string       $rest_namespace                  To change the namespace URL of REST API route. Default is wp/v2.
  *     @type string       $rest_controller_class           REST API controller class name. Default is 'WP_REST_Posts_Controller'.

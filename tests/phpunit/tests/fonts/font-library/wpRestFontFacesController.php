@@ -578,7 +578,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'lineGapOverride'       => '10%',
 			'sizeAdjust'            => '90%',
 			'unicodeRange'          => 'U+0025-00FF, U+4??',
-			'preview'               => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+			'preview'               => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 			'src'                   => 'https://example.org/wp-content/fonts/open-sans.ttf',
 		);
 
