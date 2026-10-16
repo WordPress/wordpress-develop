@@ -252,7 +252,7 @@ class WP_Automatic_Updater {
 	 * @return bool True if the item should be updated, false otherwise.
 	 *
 	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
-	 * @phpstan-param Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer $item
+	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
 	 */
 	public function should_update( $type, $item, $context ) {
 		// Used to see if WP_Filesystem is set up to allow unattended updates.
@@ -431,7 +431,7 @@ class WP_Automatic_Updater {
 	 * @return WP_Error|bool|string|array
 	 *
 	 * @phpstan-param 'core'|'theme'|'plugin'|'translation' $type
-	 * @phpstan-param Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer $item
+	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
 	 * @phpstan-return (
 	 *     $type is 'core' ? string|false|WP_Error : (
 	 *     $type is 'translation' ? array<mixed>|bool|WP_Error : bool|WP_Error )
