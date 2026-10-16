@@ -12,7 +12,7 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	 * @dataProvider data_streaming_response
 	 *
 	 * @param string   $raw_response Raw response sent by the server.
-	 * @param int|null $status       Expected status, or null for an invalid response.
+	 * @param int|null $status       Expected HTTP status, or null to expect a WP_Error.
 	 * @param string   $body         Expected downloaded body.
 	 * @param bool     $stream       Whether to stream the response to a file.
 	 */
@@ -67,16 +67,20 @@ class Tests_HTTP_WpHttpStreams extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Includes the legacy buffered behavior for empty responses and incomplete headers.
+	 *
 	 * @return array<non-falsy-string, array{ 0: string, 1: int|null, 2: string, 3?: bool }>
 	 */
-	public function data_streaming_response(): array {
+	public static function data_streaming_response(): array {
 		return array(
-			'empty response'      => array( '', null, '' ),
-			'incomplete headers'  => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
-			'normal response'     => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello' ),
-			'empty body'          => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '' ),
-			'buffered response'   => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello', false ),
-			'buffered empty body' => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '', false ),
+			'empty response'              => array( '', null, '' ),
+			'incomplete headers'          => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", null, '' ),
+			'normal response'             => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello' ),
+			'empty body'                  => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '' ),
+			'buffered empty response'     => array( '', 0, '', false ),
+			'buffered incomplete headers' => array( "HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n", 200, '', false ),
+			'buffered response'           => array( "HTTP/1.0 200 OK\r\nContent-Length: 5\r\n\r\nhello", 200, 'hello', false ),
+			'buffered empty body'         => array( "HTTP/1.0 204 No Content\r\n\r\n", 204, '', false ),
 		);
 	}
 }
