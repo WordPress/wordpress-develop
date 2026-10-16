@@ -26,12 +26,16 @@
  * @phpstan-type Plugin_Update_Offer object{
  *     slug: string,
  *     plugin: string,
+ *     new_version: string,
+ *     current_version?: string|false,
  *     requires_php?: string|false|null,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
  * }&stdClass
  * @phpstan-type Theme_Update_Offer object{
  *     theme: string,
+ *     new_version: string,
+ *     current_version?: string|false,
  *     requires_php?: string|false|null,
  *     autoupdate?: bool,
  *     disable_autoupdate?: bool,
