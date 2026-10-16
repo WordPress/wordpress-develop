@@ -52,6 +52,12 @@ class Tests_Admin_Includes_Plugin_PluginNotices extends WP_UnitTestCase {
 		}
 	}
 
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+	}
+
 	public function set_up() {
 		parent::set_up();
 
@@ -248,6 +254,60 @@ class Tests_Admin_Includes_Plugin_PluginNotices extends WP_UnitTestCase {
 			$this->notices->get_args(),
 			'A warning notice should be displayed for the network plugin.'
 		);
+		$this->assertSame( array(), get_site_option( 'wp_force_deactivated_plugins' ), 'The network list of deactivated plugins should be emptied.' );
+	}
+
+	/**
+	 * Tests that plugins deactivated on the site and across the network are both included on multisite.
+	 *
+	 * @ticket 65819
+	 *
+	 * @group ms-required
+	 *
+	 * @covers ::deactivated_plugins_notice
+	 */
+	public function test_deactivated_plugins_notice_includes_site_and_network_plugins() {
+		update_option(
+			'wp_force_deactivated_plugins',
+			array(
+				'site-plugin/site-plugin.php' => array(
+					'plugin_name'         => 'Site Plugin',
+					'version_deactivated' => '1.0',
+					'version_compatible'  => '2.0',
+				),
+			),
+			false
+		);
+		update_site_option(
+			'wp_force_deactivated_plugins',
+			array(
+				'network-plugin/network-plugin.php' => array(
+					'plugin_name'         => 'Network Plugin',
+					'version_deactivated' => '3.0',
+					'version_compatible'  => '4.0',
+				),
+			)
+		);
+
+		$link = '</p><p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/plugins.php?plugin_status=inactive">Go to the Plugins screen</a>';
+
+		get_echo( 'deactivated_plugins_notice' );
+
+		$this->assertSame(
+			array(
+				array(
+					'<strong>Site Plugin plugin deactivated during WordPress upgrade.</strong><br>Site Plugin 1.0 was deactivated due to incompatibility with WordPress 9.9, please upgrade to Site Plugin 2.0 or later.' . $link,
+					array( 'type' => 'warning' ),
+				),
+				array(
+					'<strong>Network Plugin plugin deactivated during WordPress upgrade.</strong><br>Network Plugin 3.0 was deactivated due to incompatibility with WordPress 9.9, please upgrade to Network Plugin 4.0 or later.' . $link,
+					array( 'type' => 'warning' ),
+				),
+			),
+			$this->notices->get_args(),
+			'A warning notice should be displayed for the site plugin, then the network plugin.'
+		);
+		$this->assertSame( array(), get_option( 'wp_force_deactivated_plugins' ), 'The list of deactivated plugins should be emptied.' );
 		$this->assertSame( array(), get_site_option( 'wp_force_deactivated_plugins' ), 'The network list of deactivated plugins should be emptied.' );
 	}
 
