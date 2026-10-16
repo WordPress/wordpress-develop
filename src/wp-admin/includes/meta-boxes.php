@@ -812,6 +812,12 @@ function post_trackback_meta_box( $post ) {
  */
 function post_custom_meta_box( $post ) {
 	?>
+<div id="custom-fields-notice" class="custom-fields-notice notice notice-success is-dismissible hidden">
+	<p></p>
+	<button type="button" class="notice-dismiss">
+		<span class="screen-reader-text"><?php _e( 'Dismiss this notice.' ); ?></span>
+	</button>
+</div>
 <div id="postcustomstuff">
 <div id="ajax-response"></div>
 	<?php
