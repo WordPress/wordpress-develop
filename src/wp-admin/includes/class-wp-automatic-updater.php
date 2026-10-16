@@ -443,7 +443,8 @@ class WP_Automatic_Updater {
 	 * @phpstan-param (Core_Update_Offer|Plugin_Update_Offer|Theme_Update_Offer|Translation_Update_Offer) $item
 	 * @phpstan-return (
 	 *     $type is 'core' ? string|false|WP_Error : (
-	 *     $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|array{}|WP_Error )
+	 *         $type is 'translation' ? array<mixed>|bool|WP_Error|null : bool|array{}|WP_Error
+	 *     )
 	 * )
 	 */
 	public function update( $type, $item ) {
