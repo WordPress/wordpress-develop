@@ -584,10 +584,15 @@ window.wp = window.wp || {};
 					callbacks.onSuccess( attachments[ 0 ] );
 				}
 			},
-			onError: function ( /** @type {UploadError} */ error ) {
+			onError: function ( /** @type {UploadError|string} */ error ) {
 				release( entry );
 				if ( callbacks.onError ) {
-					callbacks.onError( error );
+					// The block editor's mediaUpload() setting, which the
+					// store uses once the editor has configured it, reports
+					// transport failures as a bare message string.
+					callbacks.onError(
+						typeof error === 'string' ? { message: error } : error
+					);
 				}
 			},
 		} );
