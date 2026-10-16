@@ -194,9 +194,9 @@ interface QueueItem {
 	parentId?: string;
 
 	/**
-	 * The file being processed.
+	 * The success callback passed to addItems().
 	 */
-	sourceFile?: File;
+	onSuccess?: ( attachments: PipelineAttachment[] ) => void;
 
 	/**
 	 * Progress percentage, when the store reports one.
@@ -224,16 +224,6 @@ interface QueueItem {
  */
 interface UploadEntry {
 	/**
-	 * Identity key of the file.
-	 */
-	key: string;
-
-	/**
-	 * ID of the queue item it matched.
-	 */
-	itemId: string | null;
-
-	/**
 	 * Progress callback.
 	 */
 	onProgress?: ( percent: number ) => void;
@@ -247,11 +237,6 @@ interface UploadEntry {
 	 * Operation counts.
 	 */
 	totals: { total: number; remaining: number } | null;
-
-	/**
-	 * Whether it finished.
-	 */
-	released: boolean;
 }
 
 /**

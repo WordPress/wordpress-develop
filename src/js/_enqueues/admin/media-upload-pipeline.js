@@ -27,36 +27,16 @@ window.wp = window.wp || {};
 	let uploadStore;
 	let configured = false;
 
-	// Number of queued files that have not succeeded or failed yet.
-	let inFlight = 0;
-
-	// Uploads waiting to be matched to a queue item, keyed by file identity
-	// (concurrent uploads of an identical file share a key and are matched
-	// in order), and uploads already matched, keyed by queue item id. Items
-	// are matched by id from then on because the store swaps `sourceFile`
-	// for HEIC files once they are converted to JPEG.
-	const pending = new Map();
-	const active = new Map();
+	// Uploads in flight, keyed by the onSuccess callback queueFile() passes
+	// to addItems(). The store keeps that callback on the queue item, so it
+	// identifies the item even after HEIC conversion swaps its file.
+	const entries = new Map();
 
 	// Files handed back to classic plupload after the pipeline gave up on
 	// them, so the interceptors let plupload's own handler take them.
 	const classicFiles = new WeakSet();
 
 	const imageSizeCount = Object.keys( settings.allImageSizes || {} ).length;
-
-	/**
-	 * Builds a stable identity key for a File.
-	 *
-	 * The queue item's `sourceFile` is a clone of the original file, so it
-	 * cannot be matched by reference. The clone preserves name, size, and
-	 * last-modified time, which together identify a file within one session.
-	 *
-	 * @param {File} file The file to key.
-	 * @return {string} Identity key.
-	 */
-	function fileKey( file ) {
-		return file.name + '::' + file.size + '::' + file.lastModified;
-	}
 
 	/**
 	 * Recursively appends data to a FormData object, supporting nested objects.
@@ -258,41 +238,26 @@ window.wp = window.wp || {};
 	}
 
 	/**
-	 * Matches queue items to queued uploads and reports their progress.
+	 * Reports the progress of queued uploads.
 	 *
-	 * Runs on every change to the upload-media store. Sub-size children
-	 * carry the parent's file and are skipped; only top-level items drive
-	 * the screen's progress UI. Progress holds at 99 until the upload's
-	 * success callback has run, so nothing looks finished before the
-	 * screen has synced the result.
+	 * Runs on every change to the upload-media store. Sub-size children are
+	 * skipped; only top-level items drive the screen's progress UI. Progress
+	 * holds at 99 until the upload's success callback has run, so nothing
+	 * looks finished before the screen has synced the result.
 	 */
 	function onStoreChange() {
-		if ( inFlight === 0 ) {
+		if ( entries.size === 0 ) {
 			return;
 		}
 
 		const items = wp.data.select( uploadStore ).getItems();
 		items.forEach( function ( /** @type {QueueItem} */ item ) {
-			if ( item.parentId || ! item.sourceFile ) {
+			if ( item.parentId ) {
 				return;
 			}
 
-			let entry = active.get( item.id );
-			if ( ! entry ) {
-				const key = fileKey( item.sourceFile );
-				const list = pending.get( key );
-				if ( ! list || ! list.length ) {
-					return;
-				}
-				entry = list.shift();
-				if ( ! list.length ) {
-					pending.delete( key );
-				}
-				entry.itemId = item.id;
-				active.set( item.id, entry );
-			}
-
-			if ( ! entry.onProgress ) {
+			const entry = entries.get( item.onSuccess );
+			if ( ! entry || ! entry.onProgress ) {
 				return;
 			}
 
@@ -305,34 +270,6 @@ window.wp = window.wp || {};
 				entry.onProgress( percent );
 			}
 		} );
-	}
-
-	/**
-	 * Stops tracking an upload once it has succeeded or failed.
-	 *
-	 * @param {UploadEntry} entry The pipeline's bookkeeping for the upload.
-	 */
-	function release( entry ) {
-		if ( entry.released ) {
-			return;
-		}
-		entry.released = true;
-		inFlight--;
-
-		const list = pending.get( entry.key );
-		if ( list ) {
-			const index = list.indexOf( entry );
-			if ( index !== -1 ) {
-				list.splice( index, 1 );
-			}
-			if ( ! list.length ) {
-				pending.delete( entry.key );
-			}
-		}
-
-		if ( entry.itemId ) {
-			active.delete( entry.itemId );
-		}
 	}
 
 	/**
@@ -427,7 +364,7 @@ window.wp = window.wp || {};
 	 */
 	function addUnloadGuard() {
 		window.addEventListener( 'beforeunload', function ( event ) {
-			if ( inFlight > 0 ) {
+			if ( entries.size > 0 ) {
 				event.preventDefault();
 				// Some Chromium versions only show the prompt for returnValue.
 				event.returnValue = '';
@@ -553,39 +490,32 @@ window.wp = window.wp || {};
 	 * @param {Record<string, unknown>} additionalData Extra fields to send with the attachment.
 	 * @param {QueueFileCallbacks}      [callbacks]    Lifecycle callbacks.
 	 */
-	function queueFile( nativeFile, additionalData, callbacks ) {
-		callbacks = callbacks || {};
-
+	function queueFile( nativeFile, additionalData, callbacks = {} ) {
+		/** @type {UploadEntry} */
 		const entry = {
-			key: fileKey( nativeFile ),
-			itemId: null,
 			onProgress: callbacks.onProgress,
 			lastPercent: -1,
 			totals: null,
-			released: false,
 		};
 
-		const list = pending.get( entry.key );
-		if ( list ) {
-			list.push( entry );
-		} else {
-			pending.set( entry.key, [ entry ] );
+		/**
+		 * @param {PipelineAttachment[]} attachments The uploaded attachments.
+		 */
+		function onSuccess( attachments ) {
+			entries.delete( onSuccess );
+			if ( callbacks.onSuccess ) {
+				callbacks.onSuccess( attachments[ 0 ] );
+			}
 		}
-		inFlight++;
+		entries.set( onSuccess, entry );
 
 		wp.data.dispatch( uploadStore ).addItems( {
 			files: [ nativeFile ],
 			additionalData: additionalData || {},
-			onSuccess: function (
-				/** @type {PipelineAttachment[]} */ attachments
-			) {
-				release( entry );
-				if ( callbacks.onSuccess ) {
-					callbacks.onSuccess( attachments[ 0 ] );
-				}
-			},
+			onSuccess: onSuccess,
 			onError: function ( /** @type {UploadError|string} */ error ) {
-				release( entry );
+				// Also reached for files addItems() rejects before queueing.
+				entries.delete( onSuccess );
 				if ( callbacks.onError ) {
 					// The block editor's mediaUpload() setting, which the
 					// store uses once the editor has configured it, reports
@@ -638,15 +568,6 @@ window.wp = window.wp || {};
 		);
 	}
 
-	/**
-	 * Whether any queued upload has not finished yet.
-	 *
-	 * @return {boolean} True while uploads are in flight.
-	 */
-	function hasInFlight() {
-		return inFlight > 0;
-	}
-
 	wp.mediaUploadPipeline = {
 		isSupported: isSupported,
 		configure: configure,
@@ -656,6 +577,5 @@ window.wp = window.wp || {};
 		additionalDataFromParams: additionalDataFromParams,
 		queueFile: queueFile,
 		getErrorText: getErrorText,
-		hasInFlight: hasInFlight,
 	};
 } )( window.wp );
