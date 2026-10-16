@@ -1534,6 +1534,9 @@ function wp_random_content_redirect(): void {
  * unpublished, renamed, moved or deleted.
  *
  * Runs on the {@see 'wp_after_insert_post'} and {@see 'after_delete_post'} actions.
+ * Third-party code may fire these actions with unexpected values, so the parameters are
+ * not type declared. Passing anything other than a `WP_Post` as `$post`, or anything other
+ * than a `WP_Post` or null as `$post_before`, is incorrect usage and the value is ignored.
  *
  * @since 7.2.0
  *
@@ -1545,8 +1548,36 @@ function wp_random_content_redirect(): void {
  * @param bool         $update      Optional. Whether this is an existing post being updated. Default false.
  * @param WP_Post|null $post_before Optional. Post object before the update, null for new posts. Default null.
  */
-function wp_random_content_flush_rewrite_rules_for_post( int $post_id, WP_Post $post, bool $update = false, ?WP_Post $post_before = null ): void {
+function wp_random_content_flush_rewrite_rules_for_post( $post_id, $post, $update = false, $post_before = null ): void {
 	global $wp_rewrite;
+
+	if ( ! $post instanceof WP_Post ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: $post, 2: WP_Post */
+				__( 'The %1$s argument must be a %2$s object.' ),
+				'<code>$post</code>',
+				'<code>WP_Post</code>'
+			),
+			'7.2.0'
+		);
+		return;
+	}
+
+	if ( null !== $post_before && ! $post_before instanceof WP_Post ) {
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: $post_before, 2: WP_Post */
+				__( 'The %1$s argument must be a %2$s object or null.' ),
+				'<code>$post_before</code>',
+				'<code>WP_Post</code>'
+			),
+			'7.2.0'
+		);
+		$post_before = null;
+	}
 
 	if ( ! $wp_rewrite->using_permalinks() || ! wp_is_random_content_redirect_enabled() ) {
 		return;
