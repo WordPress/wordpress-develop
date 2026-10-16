@@ -366,6 +366,10 @@ class Tests_Admin_Includes_Theme_ThemePausedState extends WP_UnitTestCase {
 		$GLOBALS['wp_stylesheet_path'] = DIR_TESTDATA . $stylesheet_path;
 		$GLOBALS['wp_template_path']   = DIR_TESTDATA . $template_path;
 
+		$functions_file = realpath( DIR_TESTDATA . '/themedir1/sandbox/functions.php' );
+
+		$this->assertNotContains( $functions_file, get_included_files(), 'The functions.php file should not be loaded before the theme is resumed.' );
+
 		$this->activate_recovery_mode();
 
 		wp_paused_themes()->set( 'sandbox', array( 'message' => 'Theme error' ) );
@@ -379,6 +383,7 @@ class Tests_Admin_Includes_Theme_ThemePausedState extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertTrue( $result, 'The theme should be resumed.' );
+		$this->assertContains( $functions_file, get_included_files(), 'The functions.php file should be loaded.' );
 		$this->assertSame( '', $output, 'Output of the functions.php file should be discarded.' );
 		$this->assertTrue( WP_SANDBOX_SCRAPING, 'The functions.php file should be loaded in sandbox scraping mode.' );
 		$this->assertSame( array(), wp_paused_themes()->get_all(), 'The stored error should be removed.' );
