@@ -82,6 +82,7 @@ class WP_Widget_Categories extends WP_Widget {
 			 *
 			 * @since 2.8.0
 			 * @since 4.9.0 Added the `$instance` parameter.
+			 * @since 7.2.0 The `show_count` and `hierarchical` arguments in `$cat_args` are now booleans instead of numeric strings.
 			 *
 			 * @see wp_dropdown_categories()
 			 *
@@ -159,6 +160,7 @@ class WP_Widget_Categories extends WP_Widget {
 				 *
 				 * @since 2.8.0
 				 * @since 4.9.0 Added the `$instance` parameter.
+				 * @since 7.2.0 The `show_count` and `hierarchical` arguments in `$cat_args` are now booleans instead of numeric strings.
 				 *
 				 * @param array $cat_args {
 				 *     An array of Categories widget options. See {@see wp_list_categories()} for information on
