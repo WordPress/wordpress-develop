@@ -14,15 +14,23 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	/**
 	 * Builds a gzip stream with the given header flags and optional header fields.
 	 *
+	 * When the FHCRC flag is set, a valid header checksum is appended after the optional fields.
+	 *
 	 * @param int    $flags  Gzip header flags.
 	 * @param string $fields Optional header fields that follow the fixed ten-byte header.
 	 * @return string Gzip stream.
 	 */
 	private static function build_gzip_stream( $flags, $fields ) {
-		$header  = "\x1f\x8b\x08" . chr( $flags ) . "\x00\x00\x00\x00\x00\x03";
+		$header = "\x1f\x8b\x08" . chr( $flags ) . "\x00\x00\x00\x00\x00\x03" . $fields;
+
+		if ( $flags & 2 ) {
+			// The header checksum is the low 16 bits of the CRC-32 of the preceding header bytes.
+			$header .= pack( 'v', crc32( $header ) & 0xffff );
+		}
+
 		$trailer = pack( 'V', crc32( self::CONTENT ) ) . pack( 'V', strlen( self::CONTENT ) );
 
-		return $header . $fields . gzdeflate( self::CONTENT ) . $trailer;
+		return $header . gzdeflate( self::CONTENT ) . $trailer;
 	}
 
 	/**
@@ -31,6 +39,9 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::compress
+	 *
+	 * @requires function gzdeflate
+	 * @requires function gzinflate
 	 */
 	public function test_compress_returns_raw_deflate_data() {
 		$compressed = WP_Http_Encoding::compress( self::CONTENT );
@@ -46,6 +57,9 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::compress
+	 *
+	 * @requires function gzdeflate
+	 * @requires function gzinflate
 	 */
 	public function test_compress_uses_compression_level() {
 		$stored = WP_Http_Encoding::compress( self::CONTENT, 0 );
@@ -64,25 +78,37 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_compressed_content
 	 *
-	 * @param string $compressed Compressed content.
+	 * @requires function gzdeflate
+	 * @requires function gzinflate
+	 * @requires function gzcompress
+	 * @requires function gzuncompress
+	 * @requires function gzencode
+	 * @requires function gzdecode
+	 *
+	 * @param callable $encoder Function that compresses the content.
+	 * @param array    $args    Arguments passed to the function.
 	 */
-	public function test_decompress( $compressed ) {
+	public function test_decompress( $encoder, $args ) {
+		$compressed = call_user_func_array( $encoder, $args );
+
 		$this->assertSame( self::CONTENT, WP_Http_Encoding::decompress( $compressed ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
+	 * The compressed content is generated in the test, after its required functions are checked.
+	 *
 	 * @return array[]
 	 */
 	public static function data_compressed_content() {
 		return array(
-			'raw deflate'                     => array( gzdeflate( self::CONTENT ) ),
-			'raw deflate without compression' => array( gzdeflate( self::CONTENT, 0 ) ),
-			'zlib'                            => array( gzcompress( self::CONTENT ) ),
-			'gzip'                            => array( gzencode( self::CONTENT ) ),
-			'gzip with a file name'           => array( self::build_gzip_stream( 8, "content.txt\0" ) ),
-			'WP_Http_Encoding::compress()'    => array( WP_Http_Encoding::compress( self::CONTENT ) ),
+			'raw deflate'                     => array( 'gzdeflate', array( self::CONTENT ) ),
+			'raw deflate without compression' => array( 'gzdeflate', array( self::CONTENT, 0 ) ),
+			'zlib'                            => array( 'gzcompress', array( self::CONTENT ) ),
+			'gzip'                            => array( 'gzencode', array( self::CONTENT ) ),
+			'gzip with a file name'           => array( array( self::class, 'build_gzip_stream' ), array( 8, "content.txt\0" ) ),
+			'WP_Http_Encoding::compress()'    => array( array( 'WP_Http_Encoding', 'compress' ), array( self::CONTENT ) ),
 		);
 	}
 
@@ -94,6 +120,9 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @covers ::decompress
 	 *
 	 * @dataProvider data_content_that_is_not_compressed
+	 *
+	 * @requires function gzinflate
+	 * @requires function gzuncompress
 	 *
 	 * @param mixed $content Content.
 	 */
@@ -126,26 +155,38 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_gzip_streams
 	 *
-	 * @param string $gz_data Gzip stream.
+	 * @requires function gzdeflate
+	 * @requires function gzinflate
+	 * @requires function gzcompress
+	 * @requires function gzencode
+	 *
+	 * @param callable $encoder Function that builds the stream.
+	 * @param array    $args    Arguments passed to the function.
 	 */
-	public function test_compatible_gzinflate_decodes_gzip_streams( $gz_data ) {
+	public function test_compatible_gzinflate_decodes_gzip_streams( $encoder, $args ) {
+		$gz_data = call_user_func_array( $encoder, $args );
+
 		$this->assertSame( self::CONTENT, WP_Http_Encoding::compatible_gzinflate( $gz_data ) );
 	}
 
 	/**
 	 * Data provider.
 	 *
+	 * The streams are built in the test, after its required functions are checked.
+	 *
 	 * @return array[]
 	 */
 	public static function data_gzip_streams() {
+		$build = array( self::class, 'build_gzip_stream' );
+
 		return array(
-			'gzencode()'                             => array( gzencode( self::CONTENT ) ),
-			'no optional fields'                     => array( self::build_gzip_stream( 0, '' ) ),
-			'header checksum'                        => array( self::build_gzip_stream( 2, "\x12\x34" ) ),
-			'file name'                              => array( self::build_gzip_stream( 8, "content.txt\0" ) ),
-			'comment'                                => array( self::build_gzip_stream( 16, "A comment\0" ) ),
-			'file name, comment and header checksum' => array( self::build_gzip_stream( 26, "content.txt\0" . "A comment\0" . "\x12\x34" ) ),
-			'zlib stream with a two-byte header'     => array( gzcompress( self::CONTENT ) ),
+			'gzencode()'                             => array( 'gzencode', array( self::CONTENT ) ),
+			'no optional fields'                     => array( $build, array( 0, '' ) ),
+			'header checksum'                        => array( $build, array( 2, '' ) ),
+			'file name'                              => array( $build, array( 8, "content.txt\0" ) ),
+			'comment'                                => array( $build, array( 16, "A comment\0" ) ),
+			'file name, comment and header checksum' => array( $build, array( 26, "content.txt\0" . "A comment\0" ) ),
+			'zlib stream with a two-byte header'     => array( 'gzcompress', array( self::CONTENT ) ),
 		);
 	}
 
@@ -157,6 +198,8 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @covers ::compatible_gzinflate
 	 *
 	 * @dataProvider data_invalid_gzip_streams
+	 *
+	 * @requires function gzinflate
 	 *
 	 * @param string $gz_data Data.
 	 */
@@ -185,6 +228,10 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @covers ::accept_encoding
 	 *
 	 * @dataProvider data_accept_encoding
+	 *
+	 * @requires function gzinflate
+	 * @requires function gzuncompress
+	 * @requires function gzdecode
 	 *
 	 * @param array  $args     Request arguments.
 	 * @param string $expected Expected header value.
@@ -256,6 +303,10 @@ class Tests_HTTP_wpHttpEncoding extends WP_UnitTestCase {
 	 * @ticket 65819
 	 *
 	 * @covers ::accept_encoding
+	 *
+	 * @requires function gzinflate
+	 * @requires function gzuncompress
+	 * @requires function gzdecode
 	 */
 	public function test_accept_encoding_is_filterable() {
 		$args = array(
