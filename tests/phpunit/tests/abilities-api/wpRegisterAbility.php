@@ -297,6 +297,26 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that registering an ability with an invalid eligibility callback fails.
+	 */
+	public function test_register_ability_invalid_eligibility_callback(): void {
+		$this->simulate_doing_wp_abilities_init_action();
+		$this->setExpectedIncorrectUsage( WP_Abilities_Registry::class . '::register' );
+
+		$result = wp_register_ability(
+			self::$test_ability_name,
+			array_merge(
+				self::$test_ability_args,
+				array(
+					'eligibility_callback' => 'this_function_does_not_exist',
+				)
+			)
+		);
+
+		$this->assertNull( $result );
+	}
+
+	/**
 	 * Tests registering an ability with a custom ability class.
 	 *
 	 * @ticket 64098
