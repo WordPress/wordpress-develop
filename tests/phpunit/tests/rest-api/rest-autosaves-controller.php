@@ -1001,6 +1001,27 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	/**
+	 * Sets a post's local and GMT dates directly, so tests can order records
+	 * independently of their IDs.
+	 *
+	 * @param int    $post_id Post ID.
+	 * @param string $date    Date in MySQL format.
+	 */
+	private function set_post_date( $post_id, $date ) {
+		global $wpdb;
+
+		$wpdb->update(
+			$wpdb->posts,
+			array(
+				'post_date'     => $date,
+				'post_date_gmt' => $date,
+			),
+			array( 'ID' => $post_id )
+		);
+		clean_post_cache( $post_id );
+	}
+
+	/**
 	 * Tests that the collection is unscoped without an author.
 	 *
 	 * @ticket 62057
@@ -1102,6 +1123,9 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			)
 		);
 
+		$revisions = wp_get_post_revisions( self::$post_id, array( 'check_enabled' => false ) );
+		$this->set_post_date( reset( $revisions )->ID, '2030-01-01 00:00:00' );
+
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$request->set_param( 'author', $author_id );
 		$response = rest_get_server()->dispatch( $request );
@@ -1172,7 +1196,12 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	 * @ticket 62057
 	 */
 	public function test_get_items_scoped_to_authors_matches_unscoped_order() {
-		$autosave_ids = $this->create_autosaves_for_extra_users();
+		$autosave_ids = array_values( $this->create_autosaves_for_extra_users() );
+
+		// The oldest ID gets the newest date, and the other two tie on date.
+		$this->set_post_date( $autosave_ids[0], '2030-01-02 00:00:00' );
+		$this->set_post_date( $autosave_ids[1], '2030-01-01 00:00:00' );
+		$this->set_post_date( $autosave_ids[2], '2030-01-01 00:00:00' );
 
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
@@ -1186,6 +1215,72 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( $expected, wp_list_pluck( $response->get_data(), 'id' ) );
-		$this->assertSame( array_reverse( array_values( $autosave_ids ) ), $expected, 'Autosaves should be ordered newest first.' );
+		$this->assertSame(
+			array( $autosave_ids[0], $autosave_ids[2], $autosave_ids[1] ),
+			$expected,
+			'Autosaves should be ordered by date, newest first, then by ID.'
+		);
+	}
+
+	/**
+	 * Tests that only the newest of several stored autosaves for one author is returned.
+	 *
+	 * @ticket 62057
+	 *
+	 * @dataProvider data_get_items_with_several_autosaves_for_one_author
+	 *
+	 * @param string $first_date  Date of the autosave created first.
+	 * @param string $second_date Date of the autosave created second.
+	 * @param int    $expected    Index of the autosave expected to be returned.
+	 */
+	public function test_get_items_with_several_autosaves_for_one_author( $first_date, $second_date, $expected ) {
+		$author_id = self::$extra_users[0];
+
+		wp_set_current_user( $author_id );
+		$autosave_ids = array(
+			wp_create_post_autosave(
+				array(
+					'post_content' => 'First autosave.',
+					'post_ID'      => self::$post_id,
+					'post_type'    => 'post',
+				)
+			),
+			// wp_create_post_autosave() updates the existing record, so insert the duplicate directly.
+			self::factory()->post->create(
+				array(
+					'post_type'    => 'revision',
+					'post_status'  => 'inherit',
+					'post_parent'  => self::$post_id,
+					'post_name'    => self::$post_id . '-autosave-v1',
+					'post_author'  => $author_id,
+					'post_content' => 'Second autosave.',
+				)
+			),
+		);
+
+		$this->set_post_date( $autosave_ids[0], $first_date );
+		$this->set_post_date( $autosave_ids[1], $second_date );
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', $author_id );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertSame( $autosave_ids[ $expected ], $data[0]['id'] );
+	}
+
+	/**
+	 * Data provider for test_get_items_with_several_autosaves_for_one_author().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_with_several_autosaves_for_one_author() {
+		return array(
+			'older ID has the newer date' => array( '2030-01-02 00:00:00', '2030-01-01 00:00:00', 0 ),
+			'same date, newer ID wins'    => array( '2030-01-01 00:00:00', '2030-01-01 00:00:00', 1 ),
+		);
 	}
 }
