@@ -27,7 +27,13 @@ if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action']
 	send_nosniff_header();
 	nocache_headers();
 
-	wp_ajax_upload_attachment();
+	/*
+	 * Register the core handler on the dynamic ajax action and then fire it, rather
+	 * than calling it directly. This parallels how admin-ajax.php dispatches core
+	 * ajax actions, so the handler can be unhooked or replaced the same way.
+	 */
+	add_action( 'wp_ajax_upload-attachment', 'wp_ajax_upload_attachment', 1 );
+	do_action( 'wp_ajax_upload-attachment' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	die( '0' );
 }
 
