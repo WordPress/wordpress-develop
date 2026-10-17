@@ -103,7 +103,9 @@ jobs:
 
             // An error is recognized from one run to the next by its file, identifier and message, but not its line,
             // which moves whenever lines above it are added or removed. The same error can occur more than once in a
-            // file, so each occurrence is told apart by its position among the others, in line order.
+            // file, so each occurrence is told apart by its position among the others, in line order. When one of them
+            // is fixed, those after it take over the history of the one before, so their first reports can be off. That
+            // is rarer than lines being added or removed above them, which would throw off matching them by line.
             const errors = results.errors.map( normalize );
             const occurrences = new Map();
             for ( const error of [ ...errors ].sort( ( a, b ) => ( a.line ?? 0 ) - ( b.line ?? 0 ) ) ) {
