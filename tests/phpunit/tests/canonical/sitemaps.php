@@ -104,7 +104,7 @@ class Tests_Canonical_Sitemaps extends WP_Canonical_UnitTestCase {
 	 *     @type string $1 The expected canonical URL.
 	 * }
 	 */
-	public function data_sitemaps_canonical_ugly_redirects() {
+	public static function data_sitemaps_canonical_ugly_redirects() {
 		return array(
 			// Ugly permalinks remain ugly.
 			array( '/?sitemap=index', '/?sitemap=index' ),
