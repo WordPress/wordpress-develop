@@ -81,6 +81,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 * Validates settings when creating or updating a font family.
 	 *
 	 * @since 6.5.0
+	 * @since 7.2.0 Rejects a `fontFamily` value that is not valid CSS or a plain font name.
 	 *
 	 * @param string          $value   Encoded JSON string of font family settings.
 	 * @param WP_REST_Request $request Request object.
@@ -135,7 +136,8 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 
 		// Check that none of the required settings are empty values.
 		foreach ( $required as $key ) {
-			if ( isset( $settings[ $key ] ) && ! $settings[ $key ] ) {
+			// A string such as '0' is not empty. A font can use the name '0'.
+			if ( isset( $settings[ $key ] ) && '' === $settings[ $key ] ) {
 				return new WP_Error(
 					'rest_invalid_param',
 					/* translators: %s: Name of the empty font family setting parameter, e.g. "font_family_settings[slug]". */
@@ -143,6 +145,19 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 					array( 'status' => 400 )
 				);
 			}
+		}
+
+		/*
+		 * Check that the font family value is valid CSS, or a plain font name.
+		 * A value with control characters is an error.
+		 */
+		if ( isset( $settings['fontFamily'] ) && '' === WP_Font_Utils::sanitize_font_family( $settings['fontFamily'] ) ) {
+			return new WP_Error(
+				'rest_invalid_param',
+				/* translators: %s: Name of the font family setting parameter: "font_family_settings[fontFamily]". */
+				sprintf( __( '%s must be a valid CSS font-family value.' ), 'font_family_settings[fontFamily]' ),
+				array( 'status' => 400 )
+			);
 		}
 
 		return true;
