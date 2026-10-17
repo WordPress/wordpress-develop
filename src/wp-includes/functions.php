@@ -3509,7 +3509,7 @@ function wp_get_image_mime( $file ) {
  * @since 4.9.6 Support was added for AAC (.aac) files.
  * @since 6.8.0 Support was added for `audio/x-wav`.
  *
- * @return string[] Array of mime types keyed by the file extension regex corresponding to those types.
+ * @return array<string, string> Array of mime types keyed by the file extension regex corresponding to those types.
  */
 function wp_get_mime_types() {
 	/**
@@ -3520,8 +3520,8 @@ function wp_get_mime_types() {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string[] $wp_get_mime_types Mime types keyed by the file extension regex
-	 *                                    corresponding to those types.
+	 * @param array<string, string> $wp_get_mime_types Mime types keyed by the file extension regex
+	 *                                                 corresponding to those types.
 	 */
 	return apply_filters(
 		'mime_types',
