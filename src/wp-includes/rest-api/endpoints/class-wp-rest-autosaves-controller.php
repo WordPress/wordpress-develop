@@ -554,7 +554,8 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 				'description' => __( 'Limit result set to autosaves assigned to specific authors.' ),
 				'type'        => 'array',
 				'items'       => array(
-					'type' => 'integer',
+					'type'    => 'integer',
+					'minimum' => 1,
 				),
 				'default'     => array(),
 			),
