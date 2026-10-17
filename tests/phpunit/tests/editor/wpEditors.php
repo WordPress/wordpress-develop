@@ -105,4 +105,61 @@ class Tests_Editor_wpEditors extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	/**
+	 * Tests that buttons.css is force-printed when quicktags is enabled in wp_editor().
+	 *
+	 * @ticket 64841
+	 *
+	 * @covers ::editor
+	 */
+	public function test_wp_editor_prints_buttons_style_when_quicktags_enabled() {
+		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
+		$GLOBALS['wp_styles'] = new WP_Styles();
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$output = get_echo(
+			'wp_editor',
+			array(
+				'',
+				'test_editor_quicktags',
+				array(
+					'quicktags' => true,
+				),
+			)
+		);
+
+		$GLOBALS['wp_styles'] = $old_wp_styles;
+
+		$this->assertStringContainsString( "id='buttons-css'", $output );
+	}
+
+	/**
+	 * Tests that buttons.css is not force-printed when quicktags is disabled in wp_editor().
+	 *
+	 * @ticket 64841
+	 *
+	 * @covers ::editor
+	 */
+	public function test_wp_editor_does_not_print_buttons_style_when_quicktags_disabled() {
+		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
+		$GLOBALS['wp_styles'] = new WP_Styles();
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$output = get_echo(
+			'wp_editor',
+			array(
+				'',
+				'test_editor_no_quicktags',
+				array(
+					'quicktags'     => false,
+					'media_buttons' => false,
+				),
+			)
+		);
+
+		$GLOBALS['wp_styles'] = $old_wp_styles;
+
+		$this->assertStringNotContainsString( "id='buttons-css'", $output );
+	}
 }
