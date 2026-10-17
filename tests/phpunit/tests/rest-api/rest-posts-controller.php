@@ -5208,6 +5208,8 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 	}
 
 	/**
+	 * @ticket 66332
+	 *
 	 * @covers WP_REST_Posts_Controller::get_schema_links
 	 */
 	public function test_unfiltered_html_action_ldo_target_schema() {
