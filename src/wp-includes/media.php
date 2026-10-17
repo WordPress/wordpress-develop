@@ -3480,7 +3480,7 @@ function wp_get_audio_extensions() {
  *
  * @param WP_Post $attachment The current attachment, provided for context.
  * @param string  $context    Optional. The context. Accepts 'edit', 'display'. Default 'display'.
- * @return string[] Key/value pairs of field keys to labels.
+ * @return array<string, string> Key/value pairs of field keys to labels.
  */
 function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
 	$fields = array(
@@ -3502,9 +3502,9 @@ function wp_get_attachment_id3_keys( $attachment, $context = 'display' ) {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param array   $fields     Key/value pairs of field keys to labels.
-	 * @param WP_Post $attachment Attachment object.
-	 * @param string  $context    The context. Accepts 'edit', 'display'. Default 'display'.
+	 * @param array<string, string> $fields     Key/value pairs of field keys to labels.
+	 * @param WP_Post               $attachment Attachment object.
+	 * @param string                $context    The context. Accepts 'edit', 'display'. Default 'display'.
 	 */
 	return apply_filters( 'wp_get_attachment_id3_keys', $fields, $attachment, $context );
 }
