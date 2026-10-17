@@ -106,4 +106,61 @@ class Tests_User_RetrievePassword extends WP_UnitTestCase {
 		$error_codes = $error->get_error_codes();
 		$this->assertContains( 'empty_username', $error_codes, 'The "empty_username" error code should be present.' );
 	}
+
+	/**
+	 * The reset link should carry the locale of the user receiving the email.
+	 *
+	 * @ticket 52605
+	 * @ticket 53321
+	 */
+	public function test_retrieve_password_message_should_include_user_locale_in_reset_link() {
+		update_user_meta( $this->user->ID, 'locale', 'de_DE' );
+
+		$message = '';
+		add_filter(
+			'retrieve_password_notification_email',
+			static function ( $defaults ) use ( &$message ) {
+				$message = $defaults['message'];
+				return $defaults;
+			}
+		);
+
+		retrieve_password( $this->user->user_login );
+
+		$this->assertStringContainsString( '&wp_lang=de_DE', $message );
+	}
+
+	/**
+	 * The email content should be built while switched to the recipient's locale, not the requester's.
+	 *
+	 * @ticket 52605
+	 */
+	public function test_retrieve_password_should_switch_to_user_locale_while_building_email() {
+		global $wp_locale_switcher;
+
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
+		add_filter(
+			'get_available_languages',
+			static function ( $languages ) {
+				$languages[] = 'de_DE';
+				return $languages;
+			}
+		);
+		update_user_meta( $this->user->ID, 'locale', 'de_DE' );
+
+		$locale_during_email = '';
+		add_filter(
+			'retrieve_password_title',
+			static function ( $title ) use ( &$locale_during_email ) {
+				$locale_during_email = get_locale();
+				return $title;
+			}
+		);
+
+		retrieve_password( $this->user->user_login );
+
+		$this->assertSame( 'de_DE', $locale_during_email, 'Email should be built in the recipient locale.' );
+		$this->assertNotSame( 'de_DE', get_locale(), 'Locale should be restored after sending.' );
+	}
 }
