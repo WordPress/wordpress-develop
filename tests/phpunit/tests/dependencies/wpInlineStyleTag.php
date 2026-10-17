@@ -83,6 +83,27 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the unfiltered attributes are used when a filter callback fails to return an array.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_returning_non_array() {
+		add_filter( 'wp_inline_style_attributes', '__return_null' );
+
+		$expected = <<<'HTML'
+			<style id="test-inline-css">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_style_tag( $this->get_test_css(), array( 'id' => 'test-inline-css' ) )
+		);
+	}
+
+	/**
 	 * Tests that the attributes filter receives the CSS as printed, after any escaping.
 	 *
 	 * This allows a filter to compute a CSP hash which matches the printed STYLE contents.
