@@ -355,6 +355,7 @@ final class WP_Customize_Nav_Menus {
 	 * Based on WP_Editor::wp_link_query().
 	 *
 	 * @since 4.3.0
+	 * @since 7.2.0 Results now include an exact post/term slug match, if any, ranked first.
 	 *
 	 * @param array $args Optional. Accepts 'pagenum' and 's' (search) arguments.
 	 * @return array Menu items.
@@ -397,9 +398,35 @@ final class WP_Customize_Nav_Menus {
 			$posts           = array_merge( $posts, $stub_post_query->posts );
 		}
 
+		// Look up an exact post slug match, if any, to disambiguate identically-titled items.
+		$exact_match_post = null;
+		if ( 1 === $args['pagenum'] && isset( $args['s'] ) && '' !== trim( $args['s'] ) ) {
+			$exact_match_post = get_page_by_path( trim( $args['s'] ), OBJECT, array_keys( $post_type_objects ) );
+			if ( $exact_match_post && 'publish' !== $exact_match_post->post_status ) {
+				$exact_match_post = null;
+			}
+		}
+
 		// Query posts.
-		$get_posts = new WP_Query( $query );
-		$posts     = array_merge( $posts, $get_posts->posts );
+		$get_posts   = new WP_Query( $query );
+		$fuzzy_posts = $get_posts->posts;
+
+		if ( $exact_match_post ) {
+			$fuzzy_posts = array_values(
+				array_filter(
+					$fuzzy_posts,
+					static function ( $post ) use ( $exact_match_post ) {
+						return $post->ID !== $exact_match_post->ID;
+					}
+				)
+			);
+			$fuzzy_posts = array_merge( array( $exact_match_post ), $fuzzy_posts );
+			if ( count( $fuzzy_posts ) > $query['posts_per_page'] ) {
+				$fuzzy_posts = array_slice( $fuzzy_posts, 0, $query['posts_per_page'] );
+			}
+		}
+
+		$posts = array_merge( $posts, $fuzzy_posts );
 
 		// Create items for posts.
 		foreach ( $posts as $post ) {
@@ -428,7 +455,23 @@ final class WP_Customize_Nav_Menus {
 
 		// Query taxonomy terms.
 		$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => true ), 'names' );
-		$terms      = get_terms(
+
+		// Look up an exact term slug match, if any, to disambiguate identically-named items.
+		$exact_match_terms = array();
+		if ( 1 === $args['pagenum'] && isset( $args['s'] ) && '' !== trim( $args['s'] ) ) {
+			$found_terms = get_terms(
+				array(
+					'taxonomy'   => $taxonomies,
+					'slug'       => trim( $args['s'] ),
+					'hide_empty' => false,
+				)
+			);
+			if ( ! is_wp_error( $found_terms ) ) {
+				$exact_match_terms = $found_terms;
+			}
+		}
+
+		$terms = get_terms(
 			array(
 				'taxonomies' => $taxonomies,
 				'name__like' => $args['s'],
@@ -437,6 +480,25 @@ final class WP_Customize_Nav_Menus {
 				'offset'     => 20 * ( $args['pagenum'] - 1 ),
 			)
 		);
+
+		if ( ! empty( $exact_match_terms ) ) {
+			$exact_match_term_ids = wp_list_pluck( $exact_match_terms, 'term_id' );
+			$fuzzy_terms          = is_array( $terms )
+				? array_values(
+					array_filter(
+						$terms,
+						static function ( $term ) use ( $exact_match_term_ids ) {
+							return ! in_array( $term->term_id, $exact_match_term_ids, true );
+						}
+					)
+				)
+				: array();
+
+			$terms = array_merge( $exact_match_terms, $fuzzy_terms );
+			if ( count( $terms ) > 20 ) {
+				$terms = array_slice( $terms, 0, 20 );
+			}
+		}
 
 		// Check if any taxonomies were found.
 		if ( ! empty( $terms ) ) {
