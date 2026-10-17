@@ -1648,13 +1648,18 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 			),
 
-			'inline_style_attributes_filter_changes_block_library_id' => array(
+			'inline_style_attributes_filter_changes_placeholder_ids' => array(
 				'set_up'            => static function () {
 					add_filter(
 						'wp_inline_style_attributes',
 						static function ( array $attributes ): array {
-							if ( isset( $attributes['id'] ) && 'wp-block-library-inline-css' === $attributes['id'] ) {
-								$attributes['id'] = 'renamed-block-library-inline-css';
+							$ids = array(
+								'wp-block-library-inline-css'             => 'renamed-block-library-inline-css',
+								'wp-block-styles-placeholder-inline-css'  => 'renamed-block-styles-placeholder-inline-css',
+								'wp-global-styles-placeholder-inline-css' => 'renamed-global-styles-placeholder-inline-css',
+							);
+							if ( isset( $attributes['id'] ) && is_string( $attributes['id'] ) && isset( $ids[ $attributes['id'] ] ) ) {
+								$attributes['id'] = $ids[ $attributes['id'] ];
 							}
 							return $attributes;
 						}
@@ -2171,7 +2176,8 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
-		$global_styles_placeholder_regexp = '#<style\s[^>]*\bid="wp-global-styles-placeholder-inline-css"#';
+		$global_styles_placeholder_regexp = '#Placeholder for wp_hoist_late_printed_styles\(\) to replace with the global-styles#';
+		$block_styles_placeholder_regexp  = '#Placeholder for wp_hoist_late_printed_styles\(\) to replace with the block styles#';
 		$block_library_placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 			if ( wp_style_is( 'global-styles', 'enqueued' ) ) {
@@ -2184,11 +2190,13 @@ class Tests_Template extends WP_UnitTestCase {
 
 		// Apply the output buffer filter.
 		$filtered_buffer = apply_filters( 'wp_template_enhancement_output_buffer', $buffer );
+		$this->assertIsString( $filtered_buffer, 'Expected the filtered buffer to be a string.' );
 
 		$this->assertStringContainsString( '</head>', $filtered_buffer, 'Expected the closing HEAD tag to be in the response.' );
 
 		$this->assertDoesNotMatchRegularExpression( $global_styles_placeholder_regexp, $filtered_buffer, 'Expected the global-styles placeholder to be removed.' );
 		$this->assertDoesNotMatchRegularExpression( $block_library_placeholder_regexp, $filtered_buffer, 'Expected the wp-block-library placeholder to be removed.' );
+		$this->assertDoesNotMatchRegularExpression( $block_styles_placeholder_regexp, $filtered_buffer, 'Expected the block styles placeholder to be removed.' );
 		$found_styles = array(
 			'HEAD' => array(),
 			'BODY' => array(),
