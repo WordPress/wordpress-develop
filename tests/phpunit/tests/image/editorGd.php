@@ -587,6 +587,159 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that flipping moves every pixel to the expected position.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_moves_pixels( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$property = new ReflectionProperty( $gd_image_editor, 'image' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+
+		// A 3x2 image in which every pixel has a distinct color.
+		$width  = 3;
+		$height = 2;
+		$image  = imagecreatetruecolor( $width, $height );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				imagesetpixel( $image, $x, $y, ( $x + 1 ) * 0x100000 + ( $y + 1 ) * 0x10 );
+			}
+		}
+		$original = imagecreatetruecolor( $width, $height );
+		imagecopy( $original, $image, 0, 0, 0, 0, $width, $height );
+
+		$property->setValue( $gd_image_editor, $image );
+
+		$size_property = new ReflectionProperty( $gd_image_editor, 'size' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$size_property->setAccessible( true );
+		}
+		$size_property->setValue(
+			$gd_image_editor,
+			array(
+				'width'  => $width,
+				'height' => $height,
+			)
+		);
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ), 'flip() should return true on success.' );
+
+		$flipped = $property->getValue( $gd_image_editor );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				$this->assertSame(
+					imagecolorat( $original, $x, $y ),
+					imagecolorat( $flipped, $vert ? $width - 1 - $x : $x, $horz ? $height - 1 - $y : $y ),
+					"Pixel ($x, $y) was not moved to the expected position."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Tests that the deprecated _flip_image_resource() moves every pixel to the expected position.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip
+	 *
+	 * @covers ::_flip_image_resource
+	 *
+	 * @expectedDeprecated _flip_image_resource
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_image_resource_moves_pixels( $horz, $vert ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		// A 3x2 image in which every pixel has a distinct color.
+		$width  = 3;
+		$height = 2;
+		$image  = imagecreatetruecolor( $width, $height );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				imagesetpixel( $image, $x, $y, ( $x + 1 ) * 0x100000 + ( $y + 1 ) * 0x10 );
+			}
+		}
+		$original = imagecreatetruecolor( $width, $height );
+		imagecopy( $original, $image, 0, 0, 0, 0, $width, $height );
+
+		$flipped = _flip_image_resource( $image, $horz, $vert );
+
+		$this->assertTrue( is_gd_image( $flipped ), '_flip_image_resource() should return a GD image.' );
+		for ( $x = 0; $x < $width; $x++ ) {
+			for ( $y = 0; $y < $height; $y++ ) {
+				$this->assertSame(
+					imagecolorat( $original, $x, $y ),
+					imagecolorat( $flipped, $vert ? $width - 1 - $x : $x, $horz ? $height - 1 - $y : $y ),
+					"Pixel ($x, $y) was not moved to the expected position."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Tests that flipping returns a WP_Error, not false, when the image cannot be flipped.
+	 *
+	 * @ticket 66113
+	 *
+	 * @covers WP_Image_Editor_GD::flip
+	 */
+	public function test_flip_returns_wp_error_on_failure() {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+		$gd_image_editor->load();
+
+		$property = new ReflectionProperty( $gd_image_editor, 'image' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		$property->setValue( $gd_image_editor, false );
+
+		$result = $gd_image_editor->flip( true, false );
+
+		$this->assertWPError( $result, 'flip() should return a WP_Error on failure.' );
+		$this->assertSame( 'image_flip_error', $result->get_error_code(), 'The error code should be image_flip_error.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ horz: bool, vert: bool }>
+	 */
+	public function data_flip() {
+		return array(
+			'horizontal axis' => array(
+				'horz' => true,
+				'vert' => false,
+			),
+			'vertical axis'   => array(
+				'horz' => false,
+				'vert' => true,
+			),
+			'both axes'       => array(
+				'horz' => true,
+				'vert' => true,
+			),
+			'neither axis'    => array(
+				'horz' => false,
+				'vert' => false,
+			),
+		);
+	}
+
+	/**
 	 * Tests that an image created with WP_Image_Editor_GD preserves alpha with no resizing.
 	 *
 	 * @ticket 23039
