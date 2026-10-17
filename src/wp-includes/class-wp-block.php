@@ -516,6 +516,7 @@ class WP_Block {
 	 * @since 5.5.0
 	 * @since 6.5.0 Added block bindings processing.
 	 * @since 7.1.0 Preserve inner blocks when binding a rich text attribute.
+	 * @since 7.2.0 Enqueues the style handles of block styles registered for the block.
 	 *
 	 * @global WP_Post $post Global post object.
 	 *
@@ -701,6 +702,19 @@ class WP_Block {
 		if ( ( ! empty( $this->block_type->view_style_handles ) ) ) {
 			foreach ( $this->block_type->view_style_handles as $view_style_handle ) {
 				wp_enqueue_style( $view_style_handle );
+			}
+		}
+
+		/*
+		 * Enqueue the stylesheets attached to block styles registered for this block. This must happen on render, since
+		 * block themes render the template before `enqueue_block_assets` fires.
+		 */
+		$block_styles = isset( $this->name )
+			? WP_Block_Styles_Registry::get_instance()->get_registered_styles_for_block( $this->name )
+			: array();
+		foreach ( $block_styles as $block_style ) {
+			if ( isset( $block_style['style_handle'] ) ) {
+				wp_enqueue_style( $block_style['style_handle'] );
 			}
 		}
 
