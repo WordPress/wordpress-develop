@@ -29,6 +29,8 @@ function wp_get_elements_class_name(): string {
  * @param array $block   Block object.
  * @param array $options Per element type options e.g. whether to skip serialization.
  * @return bool Whether the block needs an elements class name.
+ *
+ * @phpstan-pure
  */
 function wp_should_add_elements_class_name( $block, $options ) {
 	if ( ! isset( $block['attrs']['style']['elements'] ) ) {

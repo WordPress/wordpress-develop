@@ -592,6 +592,8 @@ function wp_get_abilities( array $args = array() ): array {
  * @param array $meta       The ability's meta array.
  * @param array $conditions The required key/value conditions to match against.
  * @return bool True if all conditions match, false otherwise.
+ *
+ * @phpstan-pure
  */
 function _wp_get_abilities_match_meta( array $meta, array $conditions ): bool {
 	foreach ( $conditions as $key => $value ) {

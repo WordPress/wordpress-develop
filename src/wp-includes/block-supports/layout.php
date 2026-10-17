@@ -44,6 +44,8 @@ function wp_get_block_style_variation_name_from_registered_style( string $class_
  *
  * @param mixed $layout Layout object.
  * @return array Child layout values, or an empty array.
+ *
+ * @phpstan-pure
  */
 function wp_get_layout_child_values( $layout ) {
 	if ( ! is_array( $layout ) ) {
@@ -63,6 +65,8 @@ function wp_get_layout_child_values( $layout ) {
  *
  * @param mixed $layout Layout object.
  * @return array Container layout values, or an empty array.
+ *
+ * @phpstan-pure
  */
 function wp_get_layout_container_values( $layout ) {
 	if ( ! is_array( $layout ) ) {
@@ -300,6 +304,8 @@ function wp_get_child_layout_style_rules( $selector, $child_layout, $parent_layo
  * @access private
  *
  * @return array[] Layout definitions.
+ *
+ * @phpstan-pure
  */
 function wp_get_layout_definitions() {
 	$layout_definitions = array(

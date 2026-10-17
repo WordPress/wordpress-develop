@@ -418,6 +418,8 @@ function _wp_connectors_register_default_ai_providers( WP_Connector_Registry $re
  *
  * @param string $key The API key to mask.
  * @return string The masked key, e.g. "************fj39".
+ *
+ * @phpstan-pure
  */
 function _wp_connectors_mask_api_key( string $key ): string {
 	if ( strlen( $key ) <= 4 ) {
@@ -480,6 +482,8 @@ function _wp_connectors_get_api_key_source( string $setting_name, string $env_va
  * @param string $value The raw credentials string.
  * @return array{username: string, password: string} Parsed credentials. Both values
  *                                                   are empty when the string is malformed.
+ *
+ * @phpstan-pure
  */
 function wp_connectors_parse_application_password_credentials( string $value ): array {
 	$separator = strpos( $value, ':' );

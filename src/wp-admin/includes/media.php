@@ -1351,6 +1351,7 @@ function image_link_input_fields( $post, $url_type = '' ) {
  * @param WP_Post $edit_post Attachment WP_Post object.
  * @return string HTML markup for the textarea element.
  *
+ * @phpstan-pure
  * @phpstan-return non-falsy-string
  */
 function wp_caption_input_textarea( $edit_post ) {

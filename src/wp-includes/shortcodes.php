@@ -576,6 +576,8 @@ function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {
  *
  * @param string $content Content to search for placeholders.
  * @return string Content with placeholders removed.
+ *
+ * @phpstan-pure
  */
 function unescape_invalid_shortcodes( $content ) {
 	// Clean up entire string, avoids re-parsing HTML.
@@ -597,6 +599,7 @@ function unescape_invalid_shortcodes( $content ) {
  * @return string The shortcode attribute regular expression.
  *
  * @phpstan-return non-falsy-string
+ * @phpstan-pure
  */
 function get_shortcode_atts_regex() {
 	return '/([\w-]+)\s*=\s*"([^"]*)"(?:\s|$)|([\w-]+)\s*=\s*\'([^\']*)\'(?:\s|$)|([\w-]+)\s*=\s*([^\s\'"]+)(?:\s|$)|"([^"]*)"(?:\s|$)|\'([^\']*)\'(?:\s|$)|(\S+)(?:\s|$)/';

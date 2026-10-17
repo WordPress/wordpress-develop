@@ -1391,6 +1391,8 @@ function apply_block_hooks_to_content_from_post_object(
  *
  * @param string $serialized_block The serialized markup of a block and its inner blocks.
  * @return string The serialized markup of the inner blocks.
+ *
+ * @phpstan-pure
  */
 function remove_serialized_parent_block( $serialized_block ) {
 	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
@@ -1408,6 +1410,8 @@ function remove_serialized_parent_block( $serialized_block ) {
  *
  * @param string $serialized_block The serialized markup of a block and its inner blocks.
  * @return string The serialized markup of the wrapper block.
+ *
+ * @phpstan-pure
  */
 function extract_serialized_parent_block( $serialized_block ) {
 	$start = strpos( $serialized_block, '-->' ) + strlen( '-->' );
@@ -1597,6 +1601,8 @@ function insert_hooked_blocks_into_rest_response( $response, $post ) {
  *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks before it.
+ *
+ * @phpstan-pure
  */
 function make_before_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
@@ -1654,6 +1660,8 @@ function make_before_block_visitor( $hooked_blocks, $context, $callback = 'inser
  *                                                       Default: 'insert_hooked_blocks'.
  * @return callable A function that returns the serialized markup for the given block,
  *                  including the markup for any hooked blocks after it.
+ *
+ * @phpstan-pure
  */
 function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert_hooked_blocks' ) {
 	/**
@@ -3086,6 +3094,7 @@ function build_query_vars_from_query_block( $block, $page ) {
  * @param bool     $is_next Flag for handling `next/previous` blocks.
  * @return string|null The pagination arrow HTML or null if there is none.
  *
+ * @phpstan-pure
  * @phpstan-return non-falsy-string|null
  */
 function get_query_pagination_arrow( $block, $is_next ) {
@@ -3188,6 +3197,7 @@ function build_comment_query_vars_from_block( $block ) {
  *                                  Accepts 'next' or 'previous'. Default 'next'.
  * @return string|null The pagination arrow HTML or null if there is none.
  *
+ * @phpstan-pure
  * @phpstan-return non-falsy-string|null
  */
 function get_comments_pagination_arrow( $block, $pagination_type = 'next' ) {
