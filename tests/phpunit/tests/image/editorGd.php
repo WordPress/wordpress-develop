@@ -587,6 +587,98 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
+	 * Tests that flip() moves every pixel to its mirrored position.
+	 *
+	 * A small non-square image with a distinct color per pixel is used so that
+	 * mixed up axes, off-by-one shifts and duplicated edges are all detected.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_moves_every_pixel
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_moves_every_pixel( $horz, $vert ) {
+		$w     = 3;
+		$h     = 2;
+		$color = static function ( $x, $y ) {
+			return ( ( $x * 40 + 10 ) << 16 ) | ( ( $y * 90 + 20 ) << 8 ) | 0x77;
+		};
+
+		$image = imagecreatetruecolor( $w, $h );
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				imagesetpixel( $image, $x, $y, $color( $x, $y ) );
+			}
+		}
+
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+
+		$property = new ReflectionProperty( $gd_image_editor, 'image' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		$property->setValue( $gd_image_editor, $image );
+
+		$this->assertTrue( $gd_image_editor->flip( $horz, $vert ) );
+
+		$flipped = $property->getValue( $gd_image_editor );
+
+		$this->assertSame( $w, imagesx( $flipped ), 'The width should not change.' );
+		$this->assertSame( $h, imagesy( $flipped ), 'The height should not change.' );
+
+		for ( $y = 0; $y < $h; $y++ ) {
+			for ( $x = 0; $x < $w; $x++ ) {
+				$source_x = $vert ? $w - 1 - $x : $x;
+				$source_y = $horz ? $h - 1 - $y : $y;
+
+				$this->assertSame(
+					$color( $source_x, $source_y ),
+					imagecolorat( $flipped, $x, $y ),
+					"Pixel ($source_x,$source_y) did not move to ($x,$y)."
+				);
+			}
+		}
+	}
+
+	/**
+	 * Data provider for test_flip_moves_every_pixel().
+	 *
+	 * @return array[]
+	 */
+	public function data_flip_moves_every_pixel() {
+		return array(
+			'no flip'         => array( false, false ),
+			'vertical flip'   => array( true, false ),
+			'horizontal flip' => array( false, true ),
+			'both'            => array( true, true ),
+		);
+	}
+
+	/**
+	 * Tests that flip() returns a WP_Error when no valid GD image is loaded.
+	 *
+	 * @ticket 66113
+	 *
+	 * @dataProvider data_flip_moves_every_pixel
+	 *
+	 * @param bool $horz Whether to flip along the horizontal axis.
+	 * @param bool $vert Whether to flip along the vertical axis.
+	 */
+	public function test_flip_returns_error_for_invalid_image( $horz, $vert ) {
+		$gd_image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/gradient-square.jpg' );
+
+		$property = new ReflectionProperty( $gd_image_editor, 'image' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		$property->setValue( $gd_image_editor, false );
+
+		$this->assertWPError( $gd_image_editor->flip( $horz, $vert ) );
+	}
+
+	/**
 	 * Tests that an image created with WP_Image_Editor_GD preserves alpha with no resizing.
 	 *
 	 * @ticket 23039
