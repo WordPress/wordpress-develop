@@ -3151,11 +3151,11 @@ function wp_check_filetype( $filename, $mimes = null ) {
  *
  * @since 3.0.0
  *
- * @param string        $file     Full path to the file.
- * @param string        $filename The name of the file (may differ from $file due to $file being
- *                                in a tmp directory).
- * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                                Defaults to the result of get_allowed_mime_types().
+ * @param string                     $file     Full path to the file.
+ * @param string                     $filename The name of the file (may differ from $file due to $file being
+ *                                             in a tmp directory).
+ * @param array<string, string>|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                             Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -3197,7 +3197,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 *
 			 * @since 3.0.0
 			 *
-			 * @param array $mime_to_ext Array of image mime types and their matching extensions.
+			 * @param array<string, string> $mime_to_ext Array of image mime types and their matching extensions.
 			 */
 			$mime_to_ext = apply_filters(
 				'getimagesize_mimes_to_exts',
@@ -3378,19 +3378,19 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 	 * @since 3.0.0
 	 * @since 5.1.0 The `$real_mime` parameter was added.
 	 *
-	 * @param array         $wp_check_filetype_and_ext {
+	 * @param array                      $wp_check_filetype_and_ext {
 	 *     Values for the extension, mime type, and corrected filename.
 	 *
 	 *     @type string|false $ext             File extension, or false if the file doesn't match a mime type.
 	 *     @type string|false $type            File mime type, or false if the file doesn't match a mime type.
 	 *     @type string|false $proper_filename File name with its correct extension, or false if it cannot be determined.
 	 * }
-	 * @param string        $file                      Full path to the file.
-	 * @param string        $filename                  The name of the file (may differ from $file due to
-	 *                                                 $file being in a tmp directory).
-	 * @param string[]|null $mimes                     Array of mime types keyed by their file extension regex, or null if
-	 *                                                 none were provided.
-	 * @param string|false  $real_mime                 The actual mime type or false if the type cannot be determined.
+	 * @param string                     $file                      Full path to the file.
+	 * @param string                     $filename                  The name of the file (may differ from $file due to
+	 *                                                              $file being in a tmp directory).
+	 * @param array<string, string>|null $mimes                     Array of mime types keyed by their file extension regex, or null if
+	 *                                                              none were provided.
+	 * @param string|false               $real_mime                 The actual mime type or false if the type cannot be determined.
 	 */
 	return apply_filters( 'wp_check_filetype_and_ext', compact( 'ext', 'type', 'proper_filename' ), $file, $filename, $mimes, $real_mime );
 }
