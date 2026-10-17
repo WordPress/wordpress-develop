@@ -56,6 +56,7 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 	public function test_uses_default_walker_category_dropdown() {
 		$elements = array( self::$parent, self::$child );
 		$args     = array(
+			'selected'    => 0,
 			'show_count'  => 0,
 			'value_field' => 'term_id',
 		);
@@ -75,6 +76,7 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 	public function test_falls_back_to_default_walker_when_walker_arg_is_invalid() {
 		$elements = array( self::$parent, self::$child );
 		$args     = array(
+			'selected'    => 0,
 			'show_count'  => 0,
 			'value_field' => 'term_id',
 			'walker'      => new stdClass(),
