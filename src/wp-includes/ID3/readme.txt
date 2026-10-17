@@ -120,6 +120,7 @@ Reads & parses (to varying degrees):
   * BMP
   * GIF
   * JPEG
+  * JPEG XL
   * PNG
   * TIFF
   * SWF (Flash)

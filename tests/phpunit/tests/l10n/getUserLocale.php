@@ -146,4 +146,16 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$user_locale = get_user_locale( 'string' );
 		$this->assertSame( get_locale(), $user_locale );
 	}
+
+	/**
+	 * An array stored in the `locale` user meta falls back to the site locale.
+	 *
+	 * @ticket 66106
+	 */
+	public function test_returns_site_locale_for_non_string_user_locale_meta(): void {
+		set_current_screen( 'dashboard' );
+		update_user_meta( self::$administrator_de_de, 'locale', array( 'de_DE' ) );
+
+		$this->assertSame( get_locale(), get_user_locale() );
+	}
 }

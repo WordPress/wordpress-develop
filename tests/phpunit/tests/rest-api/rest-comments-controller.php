@@ -30,8 +30,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected static $per_page       = 50;
 	protected static $num_notes      = 10;
 
-	protected $endpoint;
-
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		add_role(
 			'comment_moderator',
@@ -169,7 +167,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 	public function set_up() {
 		parent::set_up();
-		$this->endpoint = new WP_REST_Comments_Controller();
 		wp_create_initial_comment_meta();
 
 		if ( is_multisite() ) {
@@ -647,10 +644,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	public function test_get_items_private_post_no_permissions( $method ) {
 		wp_set_current_user( 0 );
 
-		$post_id = self::factory()->post->create( array( 'post_status' => 'private' ) );
-
 		$request = new WP_REST_Request( $method, '/wp/v2/comments' );
-		$request->set_param( 'post', $post_id );
+		$request->set_param( 'post', self::$private_id );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_cannot_read_post', $response, 401 );
 	}
@@ -930,7 +925,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$headers  = $response->get_headers();
 		$this->assertSame( (string) $total_comments, $headers['X-WP-Total'] );
-		$this->assertEquals( (string) $total_pages, $headers['X-WP-TotalPages'] );
+		$this->assertSame( (string) $total_pages, $headers['X-WP-TotalPages'] );
 		$prev_link = add_query_arg(
 			array(
 				'page' => $total_pages,
@@ -1681,12 +1676,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 38820
 	 */
 	public function test_create_comment_with_invalid_type() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author'       => self::$admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'cbg@androidsdungeon.com',
@@ -1705,12 +1698,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_create_comment_invalid_email() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author'       => self::$admin_id,
 			'author_name'  => 'Comic Book Guy',
 			'author_email' => 'hello:)',
@@ -2024,6 +2015,31 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
 	}
 
+	/**
+	 * A missing post should be reported as a missing post, even when the request
+	 * also sets `status` and the user is not allowed to set it.
+	 *
+	 * @ticket 65761
+	 */
+	public function test_create_comment_status_and_no_post_id_no_permission() {
+		wp_set_current_user( self::$author_id );
+
+		$params = array(
+			'author_name'  => 'Homer Jay Simpson',
+			'author_email' => 'chunkylover53@aol.com',
+			'author_url'   => 'http://compuglobalhypermeganet.com',
+			'content'      => 'Here\’s to alcohol: the cause of, and solution to, all of life\’s problems.',
+			'status'       => 'approved',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
 	public function test_create_comment_invalid_post_id() {
 		wp_set_current_user( self::$admin_id );
 
@@ -2283,7 +2299,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ), 10, 2 );
+		remove_filter( 'rest_allow_anonymous_comments', array( $this, 'anonymous_comments_callback_null' ) );
 
 		$this->assertErrorResponse( 'rest_comment_login_required', $response, 401 );
 	}
@@ -2321,7 +2337,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$params = array(
 			'post'         => self::$post_id,
 			'author_name'  => 'Bleeding Gums Murphy',
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'author_url'   => 'http://jazz.gingivitis.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 			'date'         => '1995-04-30T10:22:00',
@@ -2496,8 +2512,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function test_update_item_no_content() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
@@ -2518,8 +2532,6 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 64049
 	 */
 	public function test_update_item_no_content_allow_empty_comment_filter() {
-		$post_id = self::factory()->post->create();
-
 		wp_set_current_user( self::$admin_id );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
@@ -2579,7 +2591,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 	}
 
 	public function test_update_comment_field_does_not_use_default_values() {
@@ -2607,7 +2619,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$comment = $response->get_data();
 		$updated = get_comment( $comment_id );
 		$this->assertSame( 'approved', $comment['status'] );
-		$this->assertEquals( 1, $updated->comment_approved );
+		$this->assertSame( '1', $updated->comment_approved );
 		$this->assertSame( 'some content', $updated->comment_content );
 	}
 
@@ -2954,7 +2966,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_set_current_user( self::$admin_id );
 
 		$params = array(
-			'author_email' => 'murphy@' . rand_long_str( 60 ) . '.' . rand_long_str( 60 ) . '.com',
+			'author_email' => 'murphy@' . rand_long_str( 190 ) . '.com',
 			'content'      => 'This isn\'t a saxophone. It\'s an umbrella.',
 		);
 
@@ -3024,7 +3036,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_body( wp_json_encode( $params ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
+		remove_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ) );
 
 		$this->assertErrorResponse( 'rest_comment_failed_edit', $response, 500 );
 	}
@@ -3122,8 +3134,8 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 				),
 				array(
 					'content'           => array(
-						'raw'      => 'div <strong>strong</strong> oh noes',
-						'rendered' => '<p>div <strong>strong</strong> oh noes</p>',
+						'raw'      => 'div <strong>strong</strong> ',
+						'rendered' => '<p>div <strong>strong</strong> </p>',
 					),
 					'author_name'       => 'div strong',
 					'author_user_agent' => 'div strong',
@@ -3387,7 +3399,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		wp_set_current_user( 1 );
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( 123, get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
+		$this->assertSame( '123', get_comment_meta( self::$approved_id, 'my_custom_int', true ) );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
 		$request->set_body_params(
@@ -3401,7 +3413,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 123, $response->data['my_custom_int'] );
+		$this->assertSame( '123', $response->data['my_custom_int'] );
 
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
@@ -3458,10 +3470,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	protected function check_comment_data( $data, $context, $links ) {
 		$comment = get_comment( $data['id'] );
 
-		$this->assertEquals( $comment->comment_ID, $data['id'] );
-		$this->assertEquals( $comment->comment_post_ID, $data['post'] );
-		$this->assertEquals( $comment->comment_parent, $data['parent'] );
-		$this->assertEquals( $comment->user_id, $data['author'] );
+		$this->assertSame( (int) $comment->comment_ID, $data['id'] );
+		$this->assertSame( (int) $comment->comment_post_ID, $data['post'] );
+		$this->assertSame( (int) $comment->comment_parent, $data['parent'] );
+		$this->assertSame( (int) $comment->user_id, $data['author'] );
 		$this->assertSame( $comment->comment_author, $data['author_name'] );
 		$this->assertSame( $comment->comment_author_url, $data['author_url'] );
 		$this->assertSame( wpautop( $comment->comment_content ), $data['content']['rendered'] );
@@ -3469,14 +3481,18 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( mysql_to_rfc3339( $comment->comment_date_gmt ), $data['date_gmt'] );
 		$this->assertSame( get_comment_link( $comment ), $data['link'] );
 		$this->assertArrayHasKey( 'author_avatar_urls', $data );
-		$this->assertSameSets(
-			array(
-				'self',
-				'collection',
-				'up',
-			),
-			array_keys( $links )
+
+		$expected_links = array(
+			'self',
+			'collection',
+			'up',
 		);
+
+		if ( 'edit' === $context ) {
+			$expected_links[] = 'https://api.w.org/action-trash';
+		}
+
+		$this->assertSameSets( $expected_links, array_keys( $links ) );
 
 		if ( $comment->comment_post_ID ) {
 			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
@@ -3646,7 +3662,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	/**
 	 * Create a test post with note.
 	 *
-	 * @param int $user_id Post author's user ID.
+	 * @param string $role User role to assign the post author.
 	 * @return int Post ID.
 	 */
 	protected function create_test_post_with_note( $role ) {
@@ -3814,14 +3830,43 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	/**
+	 * A missing post should be reported as a missing post for notes too.
+	 *
+	 * Without a post, the `status` capability check falls back to
+	 * `current_user_can( 'edit_post', 0 )`, which no role can satisfy. An
+	 * administrator is used here to show the missing post is reported even for a
+	 * user holding every capability.
+	 *
+	 * @ticket 65761
+	 */
+	public function test_create_note_status_and_no_post_id() {
+		wp_set_current_user( self::$admin_id );
+
+		$params = array(
+			'author_name'  => 'Ishmael',
+			'author_email' => 'herman-melville@earthlink.net',
+			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
+			'content'      => 'Comic Book Guy',
+			'type'         => 'note',
+			'status'       => 'hold',
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/comments' );
+		$request->add_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_comment_invalid_post_id', $response, 403 );
+	}
+
+	/**
 	 * @ticket 64096
 	 */
 	public function test_cannot_create_with_non_valid_comment_type() {
 		wp_set_current_user( self::$admin_id );
-		$post_id = $this->factory->post->create();
 
 		$params = array(
-			'post'         => $post_id,
+			'post'         => self::$post_id,
 			'author_name'  => 'Ishmael',
 			'author_email' => 'herman-melville@earthlink.net',
 			'author_url'   => 'https://en.wikipedia.org/wiki/Herman_Melville',
@@ -3987,7 +4032,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		if ( $can_read ) {
 			$comments = $response->get_data();
-			$this->assertEquals( self::$num_notes, count( $comments ) );
+			$this->assertSame( self::$num_notes, count( $comments ) );
 		} else {
 			$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 		}
@@ -4050,7 +4095,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		if ( $can_read ) {
 			$comment = $response->get_data();
-			$this->assertEquals( $comment_id, $comment['id'] );
+			$this->assertSame( $comment_id, $comment['id'] );
 		} else {
 			$this->assertErrorResponse( 'rest_forbidden_context', $response, 403 );
 		}
@@ -4132,6 +4177,43 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		// Verify the href attribute contains the expected status and type parameters.
 		$this->assertStringContainsString( 'status=all', $children[0]['href'] );
 		$this->assertStringContainsString( 'type=note', $children[0]['href'] );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Comments_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_when_not_trashable() {
+		add_filter( 'rest_comment_trashable', '__return_false' );
+		wp_set_current_user( self::$moderator_id );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', self::$approved_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $response->get_links() );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Comments_Controller::get_available_actions
+	 */
+	public function test_trash_action_link_does_not_exist_for_trashed_comment() {
+		$comment_id = self::factory()->comment->create(
+			array(
+				'comment_approved' => 'trash',
+				'comment_post_ID'  => self::$post_id,
+			)
+		);
+		wp_set_current_user( self::$moderator_id );
+
+		$request = new WP_REST_Request( 'GET', sprintf( '/wp/v2/comments/%d', $comment_id ) );
+		$request->set_param( 'context', 'edit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $response->get_links() );
 	}
 
 	/**

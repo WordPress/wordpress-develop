@@ -325,7 +325,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$problem_input  = "$nbsp\"A";
 		$problem_output = "$nbsp&#8221;A";
 
-		$this->assertNotEquals( $problem_output, wptexturize( $problem_input ) );
+		$this->assertNotSame( $problem_output, wptexturize( $problem_input ) );
 	}
 
 	/**
@@ -1640,7 +1640,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$result = wptexturize( $input, true );
 
-		remove_filter( 'gettext_with_context', array( $this, 'filter_translate' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'filter_translate' ) );
 		wptexturize( 'reset', true );
 
 		$this->assertSame( $output, $result );
@@ -1918,7 +1918,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
 		$output = $this->assertSame( $output, wptexturize( $input ) );
 
-		remove_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ), 10, 1 );
+		remove_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ) );
 		return $output;
 	}
 
@@ -2065,7 +2065,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 
 		$result = wptexturize( $input, true );
 
-		remove_filter( 'gettext_with_context', array( $this, 'filter_translate2' ), 10, 4 );
+		remove_filter( 'gettext_with_context', array( $this, 'filter_translate2' ) );
 		wptexturize( 'reset', true );
 
 		$this->assertSame( $output, $result );

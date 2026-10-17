@@ -679,7 +679,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @see https://core.trac.wordpress.org/changeset/30466
+	 * @link https://core.trac.wordpress.org/changeset/30466
 	 */
 	public function test_invalid_password_at_phpass_length_limit_is_rejected() {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );
@@ -1520,7 +1520,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_signon_using_email_with_an_apostrophe() {
 		$user_args = array(
-			'user_email' => "mail'@example.com",
+			'user_email' => "mail\'@example.com",
 			'user_pass'  => 'password',
 		);
 		self::factory()->user->create( $user_args );
@@ -1833,7 +1833,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_reset_password_with_apostrophe_in_email() {
 		$user_args = array(
-			'user_email' => "jo\'hn@example.com",
+			'user_email' => "jo'hn@example.com",
 			'user_pass'  => 'password',
 		);
 

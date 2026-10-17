@@ -13,6 +13,11 @@
  */
 class Test_WP_Get_Development_Mode extends WP_UnitTestCase {
 
+	public function tear_down() {
+		unset( $GLOBALS['_wp_tests_development_mode'] );
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that `wp_get_development_mode()` returns the value of the `WP_DEVELOPMENT_MODE` constant.
 	 *

@@ -256,6 +256,8 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
  * Adds the "My Account" item.
  *
  * @since 3.3.0
+ * @since 7.2.0 Removed "Howdy" from the item title and added a fallback to the
+ *              user login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -273,19 +275,22 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
+	$current_user = wp_get_current_user();
+	$display_name = $current_user->display_name;
+	if ( empty( $display_name ) ) {
+		$display_name = $current_user->user_login;
+	}
 
-	$avatar = get_avatar( $user_id, 26 );
+	$avatar = get_avatar( $user_id, 28 );
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => $howdy . $avatar,
+			'title'  => '<span class="display-name">' . $display_name . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
-				'menu_title' => wp_strip_all_tags( $howdy ),
+				'menu_title' => wp_strip_all_tags( $display_name ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
@@ -296,6 +301,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
  * Adds the "My Account" submenu items.
  *
  * @since 3.1.0
+ * @since 7.2.0 Added "Howdy" to the user info item and a fallback to the user
+ *              login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -322,10 +329,18 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		)
 	);
 
-	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= "<span class='display-name'>{$current_user->display_name}</span>";
+	$display_name = $current_user->display_name;
+	if ( empty( $display_name ) ) {
+		$display_name = $current_user->user_login;
+	}
 
-	if ( $current_user->display_name !== $current_user->user_login ) {
+	/* translators: %s: Current user's display name. */
+	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . $display_name . '</span>' );
+
+	$user_info  = get_avatar( $user_id, 64 );
+	$user_info .= '<span class="howdy">' . $howdy . '</span>';
+
+	if ( $display_name !== $current_user->user_login ) {
 		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
 	}
 
@@ -385,15 +400,35 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	}
 
 	$title = wp_html_excerpt( $blogname, 40, '&hellip;' );
+	$meta  = array(
+		'menu_title' => $title,
+	);
+
+	if ( ! is_network_admin() && ! is_user_admin() ) {
+		/** This filter is documented in wp-includes/admin-bar.php */
+		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
+
+		if ( true === $show_site_icons && has_site_icon() ) {
+			$site_icon_url    = get_site_icon_url( 32 );
+			$site_icon_url_2x = get_site_icon_url( 64 );
+			$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+			$site_icon        = sprintf(
+				'<img class="site-icon" src="%s"%s alt="" width="20" height="20" />',
+				esc_url( $site_icon_url ),
+				$srcset
+			);
+
+			$title         = $site_icon . $title;
+			$meta['class'] = 'has-site-icon';
+		}
+	}
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
 			'title' => $title,
 			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta'  => array(
-				'menu_title' => $title,
-			),
+			'meta'  => $meta,
 		)
 	);
 
@@ -1060,7 +1095,7 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'new-content',
 			'title' => $title,
-			'href'  => admin_url( current( array_keys( $actions ) ) ),
+			'href'  => admin_url( array_key_first( $actions ) ),
 			'meta'  => array(
 				'menu_title' => _x( 'New', 'admin bar menu group label' ),
 			),

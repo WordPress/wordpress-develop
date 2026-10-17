@@ -60,7 +60,7 @@ jobs:
     steps:
       - name: Determine the status of the previous attempt
         id: previous-attempt-result
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           retries: 2
           retry-exempt-status-codes: 418
@@ -130,7 +130,7 @@ jobs:
 
       - name: Get the commit message
         id: current-commit-message
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
         with:
           retries: 2
@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     needs: [ prepare ]
-    if: ${{ inputs.calling_status == 'cancelled' || cancelled() }}
+    if: ${{ inputs.calling_status == 'cancelled' && github.run_attempt == 2 || cancelled() }}
 
     steps:
       - name: Post cancelled notifications to Slack

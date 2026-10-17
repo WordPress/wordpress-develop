@@ -26,6 +26,12 @@ use PhpParser\NodeVisitorAbstract;
  * visitor closes the gap so PHPStan can use the existing core annotations
  * without each `global` statement needing its own redundant `@var`.
  *
+ * `@global` tags in a docblock attached directly to a `global` statement are
+ * honored as well, and take precedence over the enclosing function's tags.
+ * This makes `@global` sufficient for file-scope `global` statements (e.g. in
+ * templates included into another scope), which have no enclosing function
+ * docblock at all.
+ *
  * Functions that do not document a global, or that import a global the
  * function docblock does not list, are left untouched and continue to
  * resolve as `mixed` — preserving PHPStan's safety guarantees.
@@ -73,11 +79,25 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 			return null;
 		}
 
-		if ( ! ( $node instanceof Node\Stmt\Global_ ) || $this->stack === array() ) {
+		if ( ! ( $node instanceof Node\Stmt\Global_ ) ) {
 			return null;
 		}
 
-		$map = $this->stack[ count( $this->stack ) - 1 ];
+		$map = $this->stack !== array() ? $this->stack[ count( $this->stack ) - 1 ] : array();
+
+		$existing      = $node->getDocComment();
+		$existing_text = $existing !== null ? $existing->getText() : '';
+
+		/*
+		 * Also honor `@global` tags on the docblock attached directly to the
+		 * `global` statement itself. This covers file-scope statements (which
+		 * have no enclosing function docblock) and takes precedence over the
+		 * enclosing function's tags for the same variable.
+		 */
+		if ( $existing_text !== '' ) {
+			$map = array_merge( $map, $this->parse_global_tags( $existing_text ) );
+		}
+
 		if ( $map === array() ) {
 			return null;
 		}
@@ -87,9 +107,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 		 * statement so we can leave them alone but still inject `@var` lines for
 		 * the remaining variables in a multi-variable `global $a, $b;` statement.
 		 */
-		$existing       = $node->getDocComment();
-		$existing_text  = $existing !== null ? $existing->getText() : '';
-		$already_typed  = array();
+		$already_typed = array();
 		if ( $existing_text !== '' && preg_match_all( '/@(?:phpstan-)?var\s+[^\n]*?\$(\w+)/', $existing_text, $existing_matches ) > 0 ) {
 			$already_typed = array_flip( $existing_matches[1] );
 		}
@@ -147,7 +165,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 		if ( preg_match_all( '/@global\s+(?P<type>\S.*?)\s+\$(?P<variable>\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
 			foreach ( $matches as $match ) {
 				$type = preg_replace( '/\s+/', '', $match['type'] );
-				assert( is_string( $type ) && '' !== $type );
+				assert( is_string( $type ) && '' !== $type, 'Collapsing whitespace in a non-empty type must yield a non-empty string.' );
 				$map[ $match['variable'] ] = $type;
 			}
 		}
