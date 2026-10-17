@@ -3051,7 +3051,7 @@ function wp_prefetch_admin_assets(): void {
 		/**
 		 * Prefetches the page's rel=prefetch links with fetch() in browsers that do not support rel=prefetch.
 		 *
-		 * @see https://caniuse.com/link-rel-prefetch
+		 * @link https://caniuse.com/link-rel-prefetch
 		 */
 		() => {
 			if ( document.createElement( 'link' ).relList?.supports?.( 'prefetch' ) ) {
