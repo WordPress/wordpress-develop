@@ -222,7 +222,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 
 		// Setup a menu with some items.
 		$parent = add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
-		foreach ( $this->submenus_to_add() as $menu_to_add ) {
+		foreach ( self::submenus_to_add() as $menu_to_add ) {
 			add_submenu_page( $parent, $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $menu_to_add[3], $menu_to_add[4] );
 		}
 
@@ -326,7 +326,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 		foreach ( $helper_functions as $helper_function ) {
 
 			// Build up demo pages on the menu root.
-			foreach ( $this->submenus_to_add() as $menu_to_add ) {
+			foreach ( self::submenus_to_add() as $menu_to_add ) {
 				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function['menu_root'], $helper_function['menu_root'] );
 			}
 
@@ -362,7 +362,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	private function submenus_to_add() {
+	private static function submenus_to_add() {
 		return array(
 			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
 			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
@@ -384,8 +384,8 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_submenu_position() {
-		$menu_count = count( $this->submenus_to_add() );
+	public static function data_submenu_position() {
+		$menu_count = count( self::submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
 			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.

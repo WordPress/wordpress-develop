@@ -524,7 +524,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	/**
 	 * @return array[]
 	 */
-	public function data_scheduled_post_date_column_status() {
+	public static function data_scheduled_post_date_column_status() {
 		return array(
 			'future date'   => array( DAY_IN_SECONDS, 'Scheduled' ),
 			'past due date' => array( -DAY_IN_SECONDS, '<strong class="error-message">Missed schedule</strong>' ),
@@ -591,7 +591,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_no_title_excerpt_visibility() {
+	public static function data_no_title_excerpt_visibility() {
 		return array(
 			'compact view, untitled'  => array( 'list', array(), true ),
 			'extended view, untitled' => array( 'excerpt', array(), false ),

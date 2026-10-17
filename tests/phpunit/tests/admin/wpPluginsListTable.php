@@ -291,7 +291,7 @@ class Tests_Admin_wpPluginsListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_status_mustuse_and_dropins() {
+	public static function data_status_mustuse_and_dropins() {
 		return array(
 			'Must-Use' => array( 'mustuse' ),
 			'Drop-ins' => array( 'dropins' ),

@@ -126,7 +126,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 * 4. bool         Expected outcome has_late_cron()
 	 * 5. bool         Expected outcome has_missed_cron()
 	 */
-	public function data_cron_health_checks() {
+	public static function data_cron_health_checks() {
 		return array(
 			array(
 				'+5 minutes',
@@ -269,7 +269,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *     delay_the_response?: bool,
 	 * }>
 	 */
-	public function data_get_page_cache(): array {
+	public static function data_get_page_cache(): array {
 		$recommended_label = 'Page cache is not detected but the server response time is OK';
 		$good_label        = 'Page cache is detected and the server response time is good';
 		$critical_label    = 'Page cache is not detected and the server response time is slow';
@@ -561,7 +561,7 @@ class Tests_Admin_wpSiteHealth extends WP_UnitTestCase {
 	 *
 	 * @ticket 56040
 	 */
-	public function data_object_cache_thresholds() {
+	public static function data_object_cache_thresholds() {
 		return array(
 			array( 'comments_count', 0 ),
 			array( 'posts_count', 0 ),
