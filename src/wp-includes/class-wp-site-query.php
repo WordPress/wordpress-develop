@@ -46,7 +46,7 @@ class WP_Site_Query {
 	 * @since 5.1.0
 	 * @var WP_Meta_Query
 	 */
-	public $meta_query = false;
+	public $meta_query;
 
 	/**
 	 * Metadata query clauses.
@@ -62,7 +62,7 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 * @var WP_Date_Query A date query instance.
 	 */
-	public $date_query = false;
+	public $date_query;
 
 	/**
 	 * Query vars set by the user.
