@@ -5,8 +5,6 @@
  *
  * @group admin
  * @group import
- *
- * @coversDefaultClass WP_Importer
  */
 class Tests_Admin_wpImporter extends WP_UnitTestCase {
 
@@ -52,7 +50,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::get_imported_posts
+	 * @covers WP_Importer::get_imported_posts
 	 */
 	public function test_get_imported_posts_maps_permalinks_to_post_ids() {
 		$first  = self::factory()->post->create();
@@ -77,7 +75,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::get_imported_posts
+	 * @covers WP_Importer::get_imported_posts
 	 */
 	public function test_get_imported_posts_reads_all_chunks() {
 		global $wpdb;
@@ -106,7 +104,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::get_imported_posts
+	 * @covers WP_Importer::get_imported_posts
 	 */
 	public function test_get_imported_posts_returns_empty_array_without_imports() {
 		$this->assertSame( array(), ( new WP_Importer() )->get_imported_posts( 'blogger', 7 ) );
@@ -117,7 +115,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::count_imported_posts
+	 * @covers WP_Importer::count_imported_posts
 	 */
 	public function test_count_imported_posts() {
 		$post_id = self::factory()->post->create();
@@ -137,7 +135,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::get_imported_comments
+	 * @covers WP_Importer::get_imported_comments
 	 */
 	public function test_get_imported_comments_maps_source_ids_for_blog() {
 		$post_id = self::factory()->post->create();
@@ -175,7 +173,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::set_blog
+	 * @covers WP_Importer::set_blog
 	 *
 	 * @group ms-excluded
 	 */
@@ -188,7 +186,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::set_blog
+	 * @covers WP_Importer::set_blog
 	 *
 	 * @group ms-required
 	 *
@@ -233,7 +231,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::set_user
+	 * @covers WP_Importer::set_user
 	 *
 	 * @dataProvider data_set_user
 	 *
@@ -263,7 +261,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::cmpr_strlen
+	 * @covers WP_Importer::cmpr_strlen
 	 */
 	public function test_cmpr_strlen_sorts_longest_first() {
 		$importer = new WP_Importer();
@@ -281,8 +279,8 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::get_page
-	 * @covers ::bump_request_timeout
+	 * @covers WP_Importer::get_page
+	 * @covers WP_Importer::bump_request_timeout
 	 *
 	 * @dataProvider data_get_page_requests
 	 *
@@ -354,7 +352,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::bump_request_timeout
+	 * @covers WP_Importer::bump_request_timeout
 	 */
 	public function test_bump_request_timeout() {
 		$this->assertSame( 60, ( new WP_Importer() )->bump_request_timeout( 5 ) );
@@ -365,7 +363,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::is_user_over_quota
+	 * @covers WP_Importer::is_user_over_quota
 	 *
 	 * @group ms-excluded
 	 */
@@ -378,7 +376,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::is_user_over_quota
+	 * @covers WP_Importer::is_user_over_quota
 	 *
 	 * @group ms-required
 	 *
@@ -426,7 +424,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::min_whitespace
+	 * @covers WP_Importer::min_whitespace
 	 *
 	 * @dataProvider data_min_whitespace
 	 *
@@ -458,7 +456,7 @@ class Tests_Admin_wpImporter extends WP_UnitTestCase {
 	 *
 	 * @ticket 65819
 	 *
-	 * @covers ::stop_the_insanity
+	 * @covers WP_Importer::stop_the_insanity
 	 */
 	public function test_stop_the_insanity_resets_queries_and_actions() {
 		global $wpdb, $wp_actions;
