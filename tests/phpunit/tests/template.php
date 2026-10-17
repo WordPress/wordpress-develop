@@ -1790,6 +1790,58 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 			),
 
+			'standard_classic_theme_config_extra_block_library_inline_style_with_filtered_attributes' => array(
+				'set_up'            => static function () {
+					add_action(
+						'enqueue_block_assets',
+						static function () {
+							// Extra CSS which prevents empty inline style containing placeholder from being removed.
+							wp_add_inline_style( 'wp-block-library', '.wp-block-separator{ outline:solid 1px lime; }' );
+						}
+					);
+					add_filter(
+						'wp_inline_style_attributes',
+						static function ( array $attributes ): array {
+							$attributes['nonce'] = 'test-nonce';
+							return $attributes;
+						}
+					);
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => 0,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-css',
+							'wp-block-separator-css',
+							'wp-block-library-inline-css-extra',
+							'classic-theme-styles-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$processor = new WP_HTML_Tag_Processor( $filtered_buffer );
+					$found     = false;
+					while ( $processor->next_tag( 'STYLE' ) ) {
+						$id = $processor->get_attribute( 'id' );
+						$this->assertSame( 'test-nonce', $processor->get_attribute( 'nonce' ), sprintf( 'Expected the STYLE tag with ID "%s" to have the filtered attributes.', is_string( $id ) ? $id : '' ) );
+						if ( 'wp-block-library-inline-css-extra' === $id ) {
+							$found = true;
+							$this->assertStringContainsString( '.wp-block-separator{ outline:solid 1px lime; }', $processor->get_modifiable_text() );
+						}
+					}
+					$this->assertTrue( $found, 'Expected the hoisted extra inline style to be present.' );
+				},
+			),
+
 			'classic_theme_opt_out_separate_block_styles' => array(
 				'set_up'            => static function () {
 					add_filter( 'should_load_separate_core_block_assets', '__return_false' );
@@ -2089,7 +2141,7 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
-		$global_styles_placeholder_regexp = '#<style id="wp-global-styles-placeholder-inline-css">#';
+		$global_styles_placeholder_regexp = '#<style id="wp-global-styles-placeholder-inline-css"[\s>]#';
 		$block_library_placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 			if ( wp_style_is( 'global-styles', 'enqueued' ) ) {

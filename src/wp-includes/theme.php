@@ -1899,7 +1899,7 @@ function _custom_background_cb() {
 
 	if ( ! $background && ! $color ) {
 		if ( is_customize_preview() ) {
-			echo '<style id="custom-background-css"></style>';
+			wp_print_inline_style_tag( '', array( 'id' => 'custom-background-css' ) );
 		}
 		return;
 	}
@@ -1953,12 +1953,10 @@ function _custom_background_cb() {
 		$style .= $image . $position . $size . $repeat . $attachment;
 	}
 
-	$processor = new WP_HTML_Tag_Processor( '<style id="custom-background-css"></style>' );
-	$processor->next_tag();
-
-	$style_tag_content = 'body.custom-background { ' . trim( $style ) . ' }';
-	$processor->set_modifiable_text( "\n{$style_tag_content}\n" );
-	echo "{$processor->get_updated_html()}\n";
+	wp_print_inline_style_tag(
+		'body.custom-background { ' . trim( $style ) . ' }',
+		array( 'id' => 'custom-background-css' )
+	);
 }
 
 /**
@@ -1972,11 +1970,7 @@ function wp_custom_css_cb() {
 		return;
 	}
 
-	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-	$processor->next_tag();
-	$processor->set_attribute( 'id', 'wp-custom-css' );
-	$processor->set_modifiable_text( "\n{$styles}\n" );
-	echo "{$processor->get_updated_html()}\n";
+	wp_print_inline_style_tag( $styles, array( 'id' => 'wp-custom-css' ) );
 }
 
 /**
@@ -3006,15 +3000,11 @@ function _custom_logo_header_styles() {
 		$classes = (array) get_theme_support( 'custom-logo', 'header-text' );
 		$classes = array_map( 'sanitize_html_class', $classes );
 		$classes = '.' . implode( ', .', $classes );
-		?>
-		<!-- Custom Logo: hide header text -->
-		<style id="custom-logo-css">
-			<?php echo $classes; ?> {
-				position: absolute;
-				clip-path: inset(50%);
-			}
-		</style>
-		<?php
+		echo "<!-- Custom Logo: hide header text -->\n";
+		wp_print_inline_style_tag(
+			"{$classes} {\n\tposition: absolute;\n\tclip-path: inset(50%);\n}",
+			array( 'id' => 'custom-logo-css' )
+		);
 	}
 }
 
