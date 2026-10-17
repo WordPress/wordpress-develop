@@ -3094,7 +3094,12 @@ function wp_ext2type( $ext ) {
  *                      for the given mime type.
  */
 function wp_get_default_extension_for_mime_type( $mime_type ) {
-	$extensions = explode( '|', array_search( $mime_type, wp_get_mime_types(), true ) );
+	$ext_regex = array_search( $mime_type, wp_get_mime_types(), true );
+	if ( false === $ext_regex ) {
+		return false;
+	}
+
+	$extensions = explode( '|', $ext_regex );
 
 	if ( empty( $extensions[0] ) ) {
 		return false;
