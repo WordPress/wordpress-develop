@@ -3645,7 +3645,7 @@ function wp_get_mime_types() {
  *
  * @since 4.6.0
  *
- * @return array[] Multi-dimensional array of file extensions types keyed by the type of file.
+ * @return array<string, string[]> Multi-dimensional array of file extensions types keyed by the type of file.
  */
 function wp_get_ext_types() {
 
@@ -3656,7 +3656,7 @@ function wp_get_ext_types() {
 	 *
 	 * @see wp_ext2type()
 	 *
-	 * @param array[] $ext2type Multi-dimensional array of file extensions types keyed by the type of file.
+	 * @param array<string, string[]> $ext2type Multi-dimensional array of file extensions types keyed by the type of file.
 	 */
 	return apply_filters(
 		'ext2type',
