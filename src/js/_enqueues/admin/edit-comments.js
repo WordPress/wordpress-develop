@@ -172,6 +172,11 @@ var getCount, updateCount, updateCountText, updatePending, updateApproved,
 
 		// Update the "comment in moderation" text across the UI.
 		$( '.comments-in-moderation-text' ).text( response.i18n_moderation_text );
+
+		// The menu's count description is announced via aria-describedby; keep it empty at zero.
+		if ( 0 === parseInt( response.in_moderation, 10 ) ) {
+			$( '#wp-menu-comments-count-description' ).text( '' );
+		}
 		// Hide the "comment in moderation" text in the Dashboard "At a Glance" widget.
 		if ( isDashboard && response.in_moderation ) {
 			$( '.comment-mod-count', '#dashboard_right_now' )
