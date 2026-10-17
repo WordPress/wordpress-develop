@@ -548,7 +548,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function data_build_mysql_datetime() {
+	public static function data_build_mysql_datetime() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
@@ -583,7 +583,7 @@ class Tests_Date_Query extends WP_UnitTestCase {
 		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function data_build_mysql_datetime_with_custom_timezone() {
+	public static function data_build_mysql_datetime_with_custom_timezone() {
 		return array(
 			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
 			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
