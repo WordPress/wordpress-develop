@@ -2687,7 +2687,7 @@ final class WP_Customize_Manager {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) ); // Only future dates are allowed.
 			}
 
-			if ( ! $this->is_theme_active() && ( 'future' === $args['status'] || $is_future_dated ) ) {
+			if ( ! $this->is_theme_active() ) {
 				return new WP_Error( 'cannot_schedule_theme_switches' ); // This should be allowed in the future, when theme is a regular setting.
 			}
 			$will_remain_auto_draft = ( ! $args['status'] && ( ! $changeset_post_id || 'auto-draft' === get_post_status( $changeset_post_id ) ) );
@@ -3250,7 +3250,7 @@ final class WP_Customize_Manager {
 	 * @since 4.9.0
 	 *
 	 * @param int  $changeset_post_id Changeset post ID.
-	 * @param bool $take_over Whether to take over the changeset. Default false.
+	 * @param bool $take_over         Whether to take over the changeset. Default false.
 	 */
 	public function set_changeset_lock( $changeset_post_id, $take_over = false ) {
 		if ( $changeset_post_id ) {

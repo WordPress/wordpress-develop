@@ -22,7 +22,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 	 * @covers ::wp_create_image_subsizes
 	 */
 	public function test_wp_generate_attachment_metadata_includes_filesize_in_jpg_meta() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
@@ -43,7 +43,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 	 * @covers ::wp_create_image_subsizes
 	 */
 	public function test_wp_generate_attachment_metadata_includes_filesize_in_png_meta() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.png' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.png' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
@@ -56,7 +56,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 	 * @ticket 49412
 	 */
 	public function test_wp_generate_attachment_metadata_includes_filesize_in_pdf_meta() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
@@ -80,7 +80,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 			);
 		}
 
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.psd' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.psd' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
@@ -94,7 +94,7 @@ class Tests_Media_wpGenerateAttachmentMetadata extends WP_UnitTestCase {
 	 */
 	public function test_wp_generate_attachment_metadata_png_thumbnail_smaller_than_original() {
 		// Use the test-image-large.png test file.
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/png-tests/test-image-large.png' );
+		$attachment = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/png-tests/test-image-large.png' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 

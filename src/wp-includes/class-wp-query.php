@@ -418,6 +418,16 @@ class WP_Query {
 	public bool $is_sitemap = false;
 
 	/**
+	 * Signifies whether the current query is for random content.
+	 *
+	 * True for a blog home, archive or search request that includes the `random`
+	 * query variable, for example `example.com/random/` or `example.com/?s=foo&random`.
+	 *
+	 * @since 7.2.0
+	 */
+	public bool $is_random = false;
+
+	/**
 	 * Signifies whether the current query is for the page_for_posts page.
 	 *
 	 * Basically, the homepage if the option isn't set for the static homepage.
@@ -527,6 +537,7 @@ class WP_Query {
 		$this->is_robots            = false;
 		$this->is_favicon           = false;
 		$this->is_sitemap           = false;
+		$this->is_random            = false;
 		$this->is_posts_page        = false;
 		$this->is_post_type_archive = false;
 	}
@@ -618,9 +629,7 @@ class WP_Query {
 		);
 
 		foreach ( $keys as $key ) {
-			if ( ! isset( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = '';
-			}
+			$query_vars[ $key ] ??= '';
 		}
 
 		$array_keys = array(
@@ -643,9 +652,7 @@ class WP_Query {
 		);
 
 		foreach ( $array_keys as $key ) {
-			if ( ! isset( $query_vars[ $key ] ) ) {
-				$query_vars[ $key ] = array();
-			}
+			$query_vars[ $key ] ??= array();
 		}
 
 		return $query_vars;
@@ -1151,6 +1158,10 @@ class WP_Query {
 
 		$this->is_embed = $this->is_embed && ( $this->is_singular || $this->is_404 );
 
+		$this->is_random = isset( $query_vars['random'] )
+			&& ! $this->is_feed
+			&& ( $this->is_home || $this->is_archive || $this->is_search );
+
 		$this->query_vars_hash    = md5( serialize( $this->query_vars ) );
 		$this->query_vars_changed = false;
 
@@ -1279,10 +1290,8 @@ class WP_Query {
 		}
 
 		if ( ! empty( $query_vars['category__and'] ) && 1 === count( (array) $query_vars['category__and'] ) ) {
-			$query_vars['category__and'] = (array) $query_vars['category__and'];
-			if ( ! isset( $query_vars['category__in'] ) ) {
-				$query_vars['category__in'] = array();
-			}
+			$query_vars['category__and']  = (array) $query_vars['category__and'];
+			$query_vars['category__in'] ??= array();
 			$query_vars['category__in'][] = absint( reset( $query_vars['category__and'] ) );
 			unset( $query_vars['category__and'] );
 		}
@@ -1967,30 +1976,14 @@ class WP_Query {
 				)
 			);
 
-			if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
-				$query_vars['ignore_sticky_posts'] = $query_vars['caller_get_posts'];
-			}
+			$query_vars['ignore_sticky_posts'] ??= $query_vars['caller_get_posts'];
 		}
 
-		if ( ! isset( $query_vars['ignore_sticky_posts'] ) ) {
-			$query_vars['ignore_sticky_posts'] = false;
-		}
-
-		if ( ! isset( $query_vars['suppress_filters'] ) ) {
-			$query_vars['suppress_filters'] = false;
-		}
-
-		if ( ! isset( $query_vars['cache_results'] ) ) {
-			$query_vars['cache_results'] = true;
-		}
-
-		if ( ! isset( $query_vars['update_post_term_cache'] ) ) {
-			$query_vars['update_post_term_cache'] = true;
-		}
-
-		if ( ! isset( $query_vars['update_menu_item_cache'] ) ) {
-			$query_vars['update_menu_item_cache'] = false;
-		}
+		$query_vars['ignore_sticky_posts']    ??= false;
+		$query_vars['suppress_filters']       ??= false;
+		$query_vars['cache_results']          ??= true;
+		$query_vars['update_post_term_cache'] ??= true;
+		$query_vars['update_menu_item_cache'] ??= false;
 
 		if ( ! isset( $query_vars['lazy_load_term_meta'] ) ) {
 			$query_vars['lazy_load_term_meta'] = $query_vars['update_post_term_cache'];
@@ -1998,9 +1991,7 @@ class WP_Query {
 			$query_vars['update_post_term_cache'] = true;
 		}
 
-		if ( ! isset( $query_vars['update_post_meta_cache'] ) ) {
-			$query_vars['update_post_meta_cache'] = true;
-		}
+		$query_vars['update_post_meta_cache'] ??= true;
 
 		if ( ! isset( $query_vars['post_type'] ) ) {
 			if ( $this->is_search ) {
@@ -3322,9 +3313,7 @@ class WP_Query {
 		}
 
 		if ( 'ids' === $query_vars['fields'] ) {
-			if ( null === $this->posts ) {
-				$this->posts = $wpdb->get_col( $this->request );
-			}
+			$this->posts ??= $wpdb->get_col( $this->request );
 
 			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
@@ -3345,9 +3334,7 @@ class WP_Query {
 		}
 
 		if ( 'id=>parent' === $query_vars['fields'] ) {
-			if ( null === $this->posts ) {
-				$this->posts = $wpdb->get_results( $this->request );
-			}
+			$this->posts ??= $wpdb->get_results( $this->request );
 
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $query_vars, $limits );
@@ -3489,43 +3476,6 @@ class WP_Query {
 			$this->posts = apply_filters_ref_array( 'posts_results', array( $this->posts, &$this ) );
 		}
 
-		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
-			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
-
-			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1' AND {$wpdb->comments}.comment_type != 'note'", &$this ) );
-
-			/** This filter is documented in wp-includes/class-wp-query.php */
-			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
-			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
-
-			/** This filter is documented in wp-includes/class-wp-query.php */
-			$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
-			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
-
-			/** This filter is documented in wp-includes/class-wp-query.php */
-			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
-
-			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
-
-			$comment_key          = md5( $comments_request );
-			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
-
-			$comment_cache_key = "comment_feed:$comment_key";
-			$comment_ids       = wp_cache_get_salted( $comment_cache_key, 'comment-queries', $comment_last_changed );
-			if ( false === $comment_ids ) {
-				$comment_ids = $wpdb->get_col( $comments_request );
-				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
-			}
-			_prime_comment_caches( $comment_ids );
-
-			// Convert to WP_Comment.
-			/** @var WP_Comment[] */
-			$this->comments      = array_map( 'get_comment', $comment_ids );
-			$this->comment_count = count( $this->comments );
-		}
-
 		// Check post status to determine if post should be displayed.
 		if ( ! empty( $this->posts ) && ( $this->is_single || $this->is_page ) ) {
 			$status = get_post_status( $this->posts[0] );
@@ -3582,6 +3532,43 @@ class WP_Query {
 				 */
 				$this->posts[0] = get_post( apply_filters_ref_array( 'the_preview', array( $this->posts[0], &$this ) ) );
 			}
+		}
+
+		if ( ! empty( $this->posts ) && $this->is_comment_feed && $this->is_singular ) {
+			/** This filter is documented in wp-includes/class-wp-query.php */
+			$cjoin = apply_filters_ref_array( 'comment_feed_join', array( '', &$this ) );
+
+			/** This filter is documented in wp-includes/class-wp-query.php */
+			$cwhere = apply_filters_ref_array( 'comment_feed_where', array( "WHERE comment_post_ID = '{$this->posts[0]->ID}' AND comment_approved = '1' AND {$wpdb->comments}.comment_type != 'note'", &$this ) );
+
+			/** This filter is documented in wp-includes/class-wp-query.php */
+			$cgroupby = apply_filters_ref_array( 'comment_feed_groupby', array( '', &$this ) );
+			$cgroupby = ( ! empty( $cgroupby ) ) ? 'GROUP BY ' . $cgroupby : '';
+
+			/** This filter is documented in wp-includes/class-wp-query.php */
+			$corderby = apply_filters_ref_array( 'comment_feed_orderby', array( 'comment_date_gmt DESC', &$this ) );
+			$corderby = ( ! empty( $corderby ) ) ? 'ORDER BY ' . $corderby : '';
+
+			/** This filter is documented in wp-includes/class-wp-query.php */
+			$climits = apply_filters_ref_array( 'comment_feed_limits', array( 'LIMIT ' . get_option( 'posts_per_rss' ), &$this ) );
+
+			$comments_request = "SELECT {$wpdb->comments}.comment_ID FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
+
+			$comment_key          = md5( $comments_request );
+			$comment_last_changed = wp_cache_get_last_changed( 'comment' );
+
+			$comment_cache_key = "comment_feed:$comment_key";
+			$comment_ids       = wp_cache_get_salted( $comment_cache_key, 'comment-queries', $comment_last_changed );
+			if ( false === $comment_ids ) {
+				$comment_ids = $wpdb->get_col( $comments_request );
+				wp_cache_set_salted( $comment_cache_key, $comment_ids, 'comment-queries', $comment_last_changed );
+			}
+			_prime_comment_caches( $comment_ids );
+
+			// Convert to WP_Comment.
+			/** @var WP_Comment[] */
+			$this->comments      = array_map( 'get_comment', $comment_ids );
+			$this->comment_count = count( $this->comments );
 		}
 
 		// Put sticky posts at the top of the posts array.
@@ -4028,9 +4015,8 @@ class WP_Query {
 			} else {
 				// For other tax queries, grab the first term from the first clause.
 				if ( ! empty( $this->tax_query->queried_terms ) ) {
-					$queried_taxonomies = array_keys( $this->tax_query->queried_terms );
-					$matched_taxonomy   = reset( $queried_taxonomies );
-					$query              = $this->tax_query->queried_terms[ $matched_taxonomy ];
+					$matched_taxonomy = array_key_first( $this->tax_query->queried_terms );
+					$query            = $this->tax_query->queried_terms[ $matched_taxonomy ];
 
 					if ( ! empty( $query['terms'] ) ) {
 						if ( 'term_id' === $query['field'] ) {
@@ -4683,6 +4669,19 @@ class WP_Query {
 	}
 
 	/**
+	 * Determines whether the query is for random content.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see wp_is_random_content_query()
+	 *
+	 * @return bool Whether the query is for random content.
+	 */
+	public function is_random(): bool {
+		return $this->is_random;
+	}
+
+	/**
 	 * Determines whether the query is for a search.
 	 *
 	 * @since 3.1.0
@@ -4853,15 +4852,15 @@ class WP_Query {
 	 * @since 4.1.0
 	 * @since 4.4.0 Added the ability to pass a post ID to `$post`.
 	 *
-	 * @global int     $id
-	 * @global WP_User $authordata
-	 * @global string  $currentday
-	 * @global string  $currentmonth
-	 * @global int     $page
-	 * @global array   $pages
-	 * @global int     $multipage
-	 * @global int     $more
-	 * @global int     $numpages
+	 * @global int                $id
+	 * @global WP_User|false|null $authordata
+	 * @global string             $currentday
+	 * @global string             $currentmonth
+	 * @global int                $page
+	 * @global array              $pages
+	 * @global int                $multipage
+	 * @global int                $more
+	 * @global int                $numpages
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
 	 * @return bool True on success, false on failure.
@@ -5082,9 +5081,7 @@ class WP_Query {
 		}
 
 		// Add a default orderby value of date to ensure same cache key generation.
-		if ( ! isset( $args['orderby'] ) ) {
-			$args['orderby'] = 'date';
-		}
+		$args['orderby'] ??= 'date';
 
 		$placeholder = $wpdb->placeholder_escape();
 		array_walk_recursive(

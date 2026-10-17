@@ -425,11 +425,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$real_file = WP_PLUGIN_DIR . '/' . $file;
 
-		$is_active = in_array(
-			$plugin,
-			(array) get_option( 'active_plugins', array() ),
-			true
-		);
+		$is_active = is_plugin_active( $plugin );
 
 	} elseif ( ! empty( $args['theme'] ) ) {
 		$stylesheet = $args['theme'];
@@ -1312,7 +1308,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			 * @since 5.2.0
 			 *
 			 * @param false|string $signature_url The URL where signatures can be found for a file, or false if none are known.
-			 * @param string $url                 The URL being verified.
+			 * @param string       $url           The URL being verified.
 			 */
 			$signature_url = apply_filters( 'wp_signature_url', $signature_url, $url );
 

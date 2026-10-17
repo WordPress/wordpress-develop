@@ -27,6 +27,7 @@
  *              background.backgroundRepeat and dimensions.aspectRatio.
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
+ * @since 7.2.0 Added support for typography.textShadow.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -350,6 +351,18 @@ final class WP_Style_Engine {
 				),
 				'path'          => array( 'typography', 'textIndent' ),
 			),
+			'textShadow'     => array(
+				'property_keys' => array(
+					'default' => 'text-shadow',
+				),
+				'css_vars'      => array(
+					'text-shadow' => '--wp--preset--text-shadow--$slug',
+				),
+				'path'          => array( 'typography', 'textShadow' ),
+				'classnames'    => array(
+					'has-$slug-text-shadow' => 'text-shadow',
+				),
+			),
 			'textTransform'  => array(
 				'property_keys' => array(
 					'default' => 'text-transform',
@@ -398,9 +411,9 @@ final class WP_Style_Engine {
 	 *
 	 * @since 6.1.0
 	 *
-	 * @param string   $style_value  A single CSS preset value.
-	 * @param string[] $css_vars     An associate array of CSS var patterns
-	 *                               used to generate the var string.
+	 * @param string   $style_value A single CSS preset value.
+	 * @param string[] $css_vars    An associate array of CSS var patterns
+	 *                              used to generate the var string.
 	 * @return string The CSS var, or an empty string if no match for slug found.
 	 */
 	protected static function get_css_var_value( $style_value, $css_vars ) {
