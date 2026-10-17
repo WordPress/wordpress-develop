@@ -1,5 +1,7 @@
 <?php
 
+require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+
 /**
  * @group image
  * @group media
@@ -26,6 +28,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			unlink( $file );
 		}
 	}
+
 
 	/**
 	 * Gets the available image editor engine classes.
@@ -379,10 +382,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_image_editor_should_apply_image_edit_thumbnails_separately_filters() {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id       = $this->_make_attachment( $upload );
+		$id = $this->create_image_editor_test_attachment();
 
 		$filter = new MockAction();
 		add_filter( 'image_edit_thumbnails_separately', array( &$filter, 'filter' ) );
@@ -410,10 +410,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_image_editor_should_respect_image_edit_thumbnails_separately_filters( $callback, $expected ) {
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
-		$filename = DIR_TESTDATA . '/images/canola.jpg';
-		$contents = file_get_contents( $filename );
-		$upload   = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$id       = $this->_make_attachment( $upload );
+		$id = $this->create_image_editor_test_attachment();
 
 		add_filter( 'image_edit_thumbnails_separately', $callback );
 
@@ -452,6 +449,42 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'expected' => false,
 			),
 		);
+	}
+
+	/**
+	 * Creates a minimal image attachment for wp_image_editor() filter tests.
+	 *
+	 * Uses static metadata instead of generating real thumbnails. A thumbnail
+	 * size entry is needed for the imgedit-applyto section to render.
+	 *
+	 * @return int Attachment post ID.
+	 */
+	private function create_image_editor_test_attachment() {
+		$attachment_id = self::factory()->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => DIR_TESTDATA . '/images/canola.jpg',
+			)
+		);
+
+		wp_update_attachment_metadata(
+			$attachment_id,
+			array(
+				'width'  => 640,
+				'height' => 480,
+				'file'   => 'canola.jpg',
+				'sizes'  => array(
+					'thumbnail' => array(
+						'file'      => 'canola-150x150.jpg',
+						'width'     => 150,
+						'height'    => 150,
+						'mime-type' => 'image/jpeg',
+					),
+				),
+			)
+		);
+
+		return $attachment_id;
 	}
 
 	/**
@@ -641,20 +674,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_with_url() {
-		$file = wp_crop_image(
-			'https://s.w.org/screenshots/3.9/dashboard.png',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100,
-			false,
-			DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
-		);
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+		WP_Test_Stream::$data['s.w.org']['/screenshots/3.9/dashboard.png'] = file_get_contents( DIR_TESTDATA . '/images/canola.jpg' );
 
-		if ( is_wp_error( $file ) && $file->get_error_code() === 'invalid_image' ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() cannot access remote image.' );
+		try {
+			$file = wp_crop_image(
+				'https://s.w.org/screenshots/3.9/dashboard.png',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100,
+				false,
+				DIR_TESTDATA . '/images/' . __FUNCTION__ . '.png'
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+			WP_Test_Stream::$data = array();
 		}
 
 		$this->assertNotWPError( $file, 'Cropping the image resulted in a WP_Error.' );
@@ -690,16 +728,25 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_should_fail_with_wp_error_object_if_url_does_not_exist() {
-		$file = wp_crop_image(
-			'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
-			0,
-			0,
-			100,
-			100,
-			100,
-			100
-		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		stream_wrapper_unregister( 'https' );
+		stream_wrapper_register( 'https', 'WP_Test_Stream_Http_Mock' );
+
+		try {
+			$file = wp_crop_image(
+				'https://wordpress.org/screenshots/3.9/canoladoesnotexist.jpg',
+				0,
+				0,
+				100,
+				100,
+				100,
+				100
+			);
+		} finally {
+			stream_wrapper_restore( 'https' );
+		}
+
+		$this->assertWPError( $file );
+		$this->assertSame( 'error_loading_image', $file->get_error_code() );
 	}
 
 	/**
@@ -1155,5 +1202,49 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				'expect'   => 2,
 			),
 		);
+	}
+}
+
+/**
+ * Mock stream wrapper for simulating HTTP/HTTPS image requests.
+ */
+class WP_Test_Stream_Http_Mock extends WP_Test_Stream {
+
+	/**
+	 * Opens a URL. Fails if no fixture data has been registered for the path.
+	 *
+	 * @param string $path        URL to open.
+	 * @param string $mode        Mode used to open the file.
+	 * @param int    $options     Options.
+	 * @param string $opened_path Opened path.
+	 * @return bool True on success, false if file does not exist.
+	 */
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		$components = array_merge(
+			array(
+				'host' => '',
+				'path' => '',
+			),
+			parse_url( $path )
+		);
+		$bucket     = $components['host'];
+		$file       = $components['path'] ? $components['path'] : '/';
+
+		if ( ! isset( self::$data[ $bucket ][ $file ] ) ) {
+			return false;
+		}
+
+		return parent::stream_open( $path, $mode, $options, $opened_path );
+	}
+
+	/**
+	 * Simulates url_stat() for URLs. Real HTTP/HTTPS URLs return false from url_stat()/is_file().
+	 *
+	 * @param string $path  URL.
+	 * @param int    $flags Flags.
+	 * @return false Always false for remote URLs.
+	 */
+	public function url_stat( $path, $flags ) {
+		return false;
 	}
 }
