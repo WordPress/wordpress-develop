@@ -42,8 +42,11 @@ $parent_file = 'options-general.php';
  * @since 7.2.0
  * @access private
  *
- * @param array<string|array{ 0: string, 1?: 'GET'|'OPTIONS', 2?: int<100, 599>|int<100, 599>[] }> $preload_paths Paths already queued for preloading.
- * @return array<string|array{ 0: string, 1?: 'GET'|'OPTIONS', 2?: int<100, 599>|int<100, 599>[] }> Paths with the Connectors-specific requests appended.
+ * @param array<string|string[]> $preload_paths Paths already queued for preloading.
+ * @return array<string|string[]> Paths with the Connectors-specific requests appended.
+ *
+ * @phpstan-param array<non-falsy-string|array{ non-falsy-string, 'GET'|'OPTIONS' }> $preload_paths
+ * @phpstan-return array<non-falsy-string|array{ non-falsy-string, 'GET'|'OPTIONS' }>
  */
 function _wp_connectors_preload_paths( array $preload_paths ): array {
 	// getEntityRecord( 'root', 'site' ) in use-connector-plugin.ts / ai-plugin-callout.tsx.
