@@ -1963,6 +1963,42 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 59425
+	 */
+	public function test_get_items_pagination_links_preserve_false_boolean_params() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params(
+			array(
+				'sticky'   => 'false',
+				'per_page' => 1,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$headers  = $response->get_headers();
+
+		$next_link = add_query_arg(
+			array(
+				'sticky'   => '0',
+				'per_page' => 1,
+				'page'     => 2,
+			),
+			rest_url( 'wp/v2/posts' )
+		);
+		$this->assertStringContainsString( '<' . $next_link . '>; rel="next"', $headers['Link'] );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params(
+			array(
+				'sticky'   => '0',
+				'per_page' => 1,
+				'page'     => 2,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'Following the next link should not fail boolean validation.' );
+	}
+
+	/**
 	 * @dataProvider data_readable_http_methods
 	 * @ticket 56481
 	 *
