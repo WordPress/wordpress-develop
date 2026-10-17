@@ -2518,8 +2518,8 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
  * @ignore
  * @since 2.9.0
  *
- * @param string[] $attr Array of thumbnail attributes including src, class, alt, title, keyed by attribute name.
- * @return string[] Modified array of attributes including the new 'wp-post-image' class.
+ * @param array<string, string> $attr Array of thumbnail attributes including src, class, alt, title, keyed by attribute name.
+ * @return array<string, string> Modified array of attributes including the new 'wp-post-image' class.
  */
 function _wp_post_thumbnail_class_filter( $attr ) {
 	$attr['class'] .= ' wp-post-image';
