@@ -4328,7 +4328,7 @@ function wp_expand_dimensions( $example_width, $example_height, $max_width, $max
  *
  * @return int Allowed upload size.
  *
- * @phpstan-return positive-int
+ * @phpstan-return non-negative-int
  */
 function wp_max_upload_size() {
 	$u_bytes = wp_convert_hr_to_bytes( ini_get( 'upload_max_filesize' ) );
@@ -6778,29 +6778,33 @@ function wp_get_media_library_mode(): string {
  *
  * @since 7.2.0
  *
- * @return array {
- *     Settings for the client-side media processing pipeline.
+ * @return array<string, mixed> Settings for the client-side media processing pipeline.
  *
- *     @type int   $maxUploadFileSize     Maximum upload file size in bytes.
- *     @type array $allowedMimeTypes      Allowed mime types keyed by file extension.
- *     @type array $allImageSizes         All registered image sub-sizes.
- *     @type int   $bigImageSizeThreshold Threshold above which originals are scaled down.
- *     @type bool  $imageStripMeta        Whether metadata is stripped from generated images.
- *     @type int   $imageMaxBitDepth      Maximum bit depth for generated images.
+ * @phpstan-return array{
+ *     maxUploadFileSize: non-negative-int,     // Maximum upload file size in bytes.
+ *     allowedMimeTypes: array<string, string>, // Allowed mime types keyed by file extension.
+ *     allImageSizes: array<string, array{      // All registered image sub-sizes.
+ *                        width: non-negative-int,
+ *                        height: non-negative-int,
+ *                        crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *                    }>,
+ *     bigImageSizeThreshold: non-negative-int, // Threshold above which originals are scaled down.
+ *     imageStripMeta: bool,                    // Whether metadata is stripped from generated images.
+ *     imageMaxBitDepth: non-negative-int,      // Maximum bit depth for generated images.
  * }
  */
 function wp_get_media_library_upload_settings(): array {
 	/** This filter is documented in wp-admin/includes/image.php */
-	$big_image_size_threshold = (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 );
+	$big_image_size_threshold = max( 0, (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 ) );
 
 	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
 	$image_strip_meta = (bool) apply_filters( 'image_strip_meta', true );
 
 	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
-	$image_max_bit_depth = (int) apply_filters( 'image_max_bit_depth', 16, 16 );
+	$image_max_bit_depth = (int) max( 0, apply_filters( 'image_max_bit_depth', 16, 16 ) );
 
 	return array(
-		'maxUploadFileSize'     => (int) wp_max_upload_size(),
+		'maxUploadFileSize'     => wp_max_upload_size(),
 		'allowedMimeTypes'      => get_allowed_mime_types(),
 		'allImageSizes'         => wp_get_registered_image_subsizes(),
 		'bigImageSizeThreshold' => $big_image_size_threshold,
