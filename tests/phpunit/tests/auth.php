@@ -1768,6 +1768,55 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53995
+	 */
+	public function test_authenticate_application_password_expired() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		// Create with valid future expiry first.
+		list( $password, $item ) = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'phpunit',
+				'expires' => time() + DAY_IN_SECONDS,
+			)
+		);
+
+		// Simulate passage of time by updating the stored expiry to a past timestamp.
+		WP_Application_Passwords::update_application_password(
+			self::$user_id,
+			$item['uuid'],
+			array( 'expires' => time() - DAY_IN_SECONDS )
+		);
+
+		$error = wp_authenticate_application_password( null, self::$_user->user_login, $password );
+		$this->assertWPError( $error );
+		$this->assertSame( 'application_password_expired', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_authenticate_application_password_with_valid_future_expiry() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'phpunit_future',
+				'expires' => time() + 7 * DAY_IN_SECONDS,
+			)
+		);
+
+		$user = wp_authenticate_application_password( null, self::$_user->user_login, $password );
+		$this->assertNotWPError( $user );
+		$this->assertInstanceOf( WP_User::class, $user );
+		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
 	 * @ticket 51939
 	 */
 	public function test_authenticate_application_password_returns_null_if_not_in_use() {
