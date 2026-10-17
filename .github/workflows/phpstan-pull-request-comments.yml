@@ -123,7 +123,8 @@ jobs:
             const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
 
             // The history of the errors is kept in the comment itself, compressed into a hidden HTML comment: each
-            // error, the commit it was first reported for, and the commit that resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
+            // error, the commit it was first reported for, and the commit that resolved it, if one has. Base64 cannot
+            // contain `--`, so it cannot end the HTML comment early.
             const zlib = require( 'zlib' );
             const historyPattern = /<!-- phpstan-history:([A-Za-z0-9+\/=]+) -->/;
             let history = [];
