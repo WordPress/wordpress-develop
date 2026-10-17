@@ -87,15 +87,15 @@ class Tests_Category_SanitizeCategoryField extends WP_UnitTestCase {
 	 */
 	public static function data_casts_integer_fields() {
 		return array(
-			'parent, raw'                => array( 'parent', '12abc', 'raw', 12 ),
-			'parent, negative value'     => array( 'parent', -5, 'raw', 0 ),
-			'term_id, display'           => array( 'term_id', '5', 'display', 5 ),
-			'count, edit'                => array( 'count', '6', 'edit', 6 ),
-			'count, negative string'     => array( 'count', '-10', 'display', 0 ),
-			'term_group, attribute'      => array( 'term_group', '7', 'attribute', 7 ),
-			'term_taxonomy_id, db'       => array( 'term_taxonomy_id', '8', 'db', 8 ),
-			'object_id, js'              => array( 'object_id', '9', 'js', 9 ),
-			'object_id, empty string'    => array( 'object_id', '', 'display', 0 ),
+			'parent, raw'             => array( 'parent', '12abc', 'raw', 12 ),
+			'parent, negative value'  => array( 'parent', -5, 'raw', 0 ),
+			'term_id, display'        => array( 'term_id', '5', 'display', 5 ),
+			'count, edit'             => array( 'count', '6', 'edit', 6 ),
+			'count, negative string'  => array( 'count', '-10', 'display', 0 ),
+			'term_group, attribute'   => array( 'term_group', '7', 'attribute', 7 ),
+			'term_taxonomy_id, db'    => array( 'term_taxonomy_id', '8', 'db', 8 ),
+			'object_id, js'           => array( 'object_id', '9', 'js', 9 ),
+			'object_id, empty string' => array( 'object_id', '', 'display', 0 ),
 		);
 	}
 
