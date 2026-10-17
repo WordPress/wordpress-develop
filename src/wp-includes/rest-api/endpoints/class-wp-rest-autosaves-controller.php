@@ -327,19 +327,34 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 		$parent_id = $parent->ID;
 
 		if ( ! empty( $request['author'] ) ) {
-			/*
-			 * WordPress stores at most one autosave per author, so scoping by
-			 * author asks for a well defined set of records. Query for those
-			 * directly rather than reading every revision of the post and
-			 * discarding all but the autosaves.
-			 */
-			foreach ( $request['author'] as $author_id ) {
-				$autosave = wp_get_post_autosave( $parent_id, $author_id );
+			$autosaves = get_posts(
+				array(
+					'post_type'        => 'revision',
+					'post_status'      => 'inherit',
+					'post_parent'      => $parent_id,
+					'name'             => $parent_id . '-autosave-v1',
+					'author__in'       => wp_parse_id_list( $request['author'] ),
+					'orderby'          => array(
+						'date' => 'DESC',
+						'ID'   => 'DESC',
+					),
+					'posts_per_page'   => -1,
+					'suppress_filters' => false,
+				)
+			);
 
-				if ( $autosave ) {
-					$data       = $this->prepare_item_for_response( $autosave, $request );
-					$response[] = $this->prepare_response_for_collection( $data );
+			// Each author has at most one autosave; keep only the newest if not.
+			$seen_authors = array();
+
+			foreach ( $autosaves as $autosave ) {
+				if ( isset( $seen_authors[ $autosave->post_author ] ) ) {
+					continue;
 				}
+
+				$seen_authors[ $autosave->post_author ] = true;
+
+				$data       = $this->prepare_item_for_response( $autosave, $request );
+				$response[] = $this->prepare_response_for_collection( $data );
 			}
 
 			return rest_ensure_response( $response );
