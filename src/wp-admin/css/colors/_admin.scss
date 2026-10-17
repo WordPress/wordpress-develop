@@ -521,11 +521,15 @@ ul#adminmenu > li.current > a.current::after {
 	background-color: variables.$adminbar-avatar-frame;
 }
 
+#wpadminbar #wp-admin-bar-user-info .howdy,
 #wpadminbar #wp-admin-bar-user-info .display-name {
 	color: variables.$menu-text;
 }
 
-#wpadminbar #wp-admin-bar-user-info a:hover .display-name {
+#wpadminbar #wp-admin-bar-user-info a:hover .howdy,
+#wpadminbar #wp-admin-bar-user-info a:focus .howdy,
+#wpadminbar #wp-admin-bar-user-info a:hover .display-name,
+#wpadminbar #wp-admin-bar-user-info a:focus .display-name {
 	color: variables.$menu-submenu-focus-text;
 }
 
@@ -773,10 +777,10 @@ div#wp-responsive-toggle a::before {
 
 	&.wp-customizer .theme-overlay .theme-header .close:focus,
 	&.wp-customizer .theme-overlay .theme-header .close:hover,
-	&.wp-customizer .theme-overlay .theme-header .right:focus,
-	&.wp-customizer .theme-overlay .theme-header .right:hover,
-	&.wp-customizer .theme-overlay .theme-header .left:focus,
-	&.wp-customizer .theme-overlay .theme-header .left:hover {
+	&.wp-customizer .theme-overlay .theme-header .right:focus:not(.disabled),
+	&.wp-customizer .theme-overlay .theme-header .right:hover:not(.disabled),
+	&.wp-customizer .theme-overlay .theme-header .left:focus:not(.disabled),
+	&.wp-customizer .theme-overlay .theme-header .left:hover:not(.disabled) {
 		border-bottom-color: variables.$button-color;
 		color: variables.$link;
 	}

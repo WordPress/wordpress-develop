@@ -9,11 +9,15 @@
 
 declare( strict_types = 1 );
 
+require_once __DIR__ . '/abilities/class-wp-abilities-content.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-settings.php';
+require_once __DIR__ . '/abilities/class-wp-abilities-users.php';
+
 /**
  * Registers the core ability categories.
  *
  * @since 6.9.0
- * @since 7.2.0 Added the `uncategorized` category.
+ * @since 7.2.0 Added the `content` and `uncategorized` categories.
  */
 function wp_register_core_ability_categories(): void {
 	wp_register_ability_category(
@@ -33,6 +37,14 @@ function wp_register_core_ability_categories(): void {
 	);
 
 	wp_register_ability_category(
+		'content',
+		array(
+			'label'       => __( 'Content' ),
+			'description' => __( 'Abilities that retrieve or manage posts and other content.' ),
+		)
+	);
+
+	wp_register_ability_category(
 		'uncategorized',
 		array(
 			'label'       => __( 'Uncategorized' ),
@@ -45,6 +57,7 @@ function wp_register_core_ability_categories(): void {
  * Registers the default core abilities.
  *
  * @since 6.9.0
+ * @since 7.2.0 Added the `core/content-query`, `core/settings-get`, and `core/users-query` abilities.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  */
@@ -360,4 +373,13 @@ function wp_register_core_abilities(): void {
 			),
 		)
 	);
+
+	// Register the settings abilities (currently the read-only `core/settings-get`).
+	( new WP_Abilities_Settings() )->register();
+
+	// Register the user abilities (currently the read-only `core/users-query`).
+	( new WP_Abilities_Users() )->register();
+
+	// Register the content abilities (currently the read-only `core/content-query`).
+	( new WP_Abilities_Content() )->register();
 }
