@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "playground": {
+    "cliVersion": "3.1.38",
+    "phpVersion": "8.4",
+    "wordpressVersion": "6.9.1",
+    "blueprintSchema": "https://playground.wordpress.net/blueprint-schema.json"
+  },
+  "budgets": {
+    "compressedWarnBytes": 104857600,
+    "compressedFailBytes": 157286400,
+    "uncompressedFailBytes": 524288000,
+    "maxOuterArtifactEntries": 8,
+    "maxSnapshotEntries": 25000
+  },
+  "upstreams": {
+    "phpdocParser": {
+      "repo": "dmsnell/phpdoc-parser",
+      "ref": "4a30fe65c691aca7ea74ca0dd35f2e5e6ba261dc",
+      "expectedFile": "generate-json-manually.php"
+    },
+    "wporgDeveloper": {
+      "repo": "WordPress/wporg-developer",
+      "ref": "04ff394005b5c4f9efc888803e23e031cda37e6b",
+      "themePath": "source/wp-content/themes/wporg-developer-2023"
+    },
+    "wporgParent2021": {
+      "repo": "WordPress/wporg-parent-2021",
+      "ref": "6ebb648ce929999f014d90a82dec12b9d0799fb6",
+      "themePath": "source/wp-content/themes/wporg-parent-2021"
+    },
+    "wporgMuPlugins": {
+      "repo": "WordPress/wporg-mu-plugins",
+      "ref": "cda0c88c54a82c6c0e3df1c88a70b7a390d4fada",
+      "muPluginsPath": "mu-plugins"
+    },
+    "postsToPosts": {
+      "repo": "scribu/wp-posts-to-posts",
+      "ref": "d2f297dbe257a09438da6ffe22c9a876acb7b49b"
+    },
+    "codeSyntaxBlock": {
+      "url": "https://downloads.wordpress.org/plugin/code-syntax-block.3.2.1.zip",
+      "slug": "code-syntax-block"
+    }
+  },
+  "routes": [
+    "/reference/",
+    "/reference/classes/wp_html_tag_processor/",
+    "/reference/classes/wp_html_tag_processor/next_tag/",
+    "/reference/classes/wp_html_tag_processor/set_attribute/"
+  ],
+  "samplePosts": {
+    "class": "wp_html_tag_processor",
+    "methods": [
+      "wp_html_tag_processor-next_tag",
+      "wp_html_tag_processor-set_attribute"
+    ]
+  }
+}
