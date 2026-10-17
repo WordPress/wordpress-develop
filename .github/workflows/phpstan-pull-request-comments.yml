@@ -195,14 +195,17 @@ jobs:
 
             const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
 
-            // GitHub shows only the first few annotations of each kind from a step, so errors left out of a table are
-            // pointed to in the log of the workflow run, which lists every one.
+            // GitHub shows only the first few annotations of each kind from a step on the page of the workflow run, so
+            // errors left out of a table are pointed to in the log of the step that reported them, which lists every one.
+            const where = `the log of the [workflow run](${ run.html_url }), in the “Report the analysis results” step`;
             const table = ( rows, rowLimit, { withResolution = false } = {} ) => {
               const shown = rows.slice( 0, rowLimit );
-              const more = `…and ${ rows.length - shown.length } more, which are listed in the log of the [workflow run](${ run.html_url }).`;
               if ( shown.length === 0 ) {
-                return more;
+                return rows.length === 1
+                  ? `The error is not listed here, to keep this comment short. It is listed in ${ where }.`
+                  : `The ${ rows.length } errors are not listed here, to keep this comment short. They are listed in ${ where }.`;
               }
+              const more = `…and ${ rows.length - shown.length } more, which are listed in ${ where }.`;
               const lines = [
                 `| Location | Error | Identifier | First reported |${ withResolution ? ' Resolved |' : '' }`,
                 `| --- | --- | --- | --- |${ withResolution ? ' --- |' : '' }`,
