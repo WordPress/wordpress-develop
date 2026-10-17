@@ -157,6 +157,193 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		// $this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
 	}
 
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_quotes_around_inline_html() {
+		$this->assertSame( 'The word is &#8220;<a href="http://example.com/">quoted</a>&#8221;.', wptexturize( 'The word is "<a href="http://example.com/">quoted</a>".' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted</a>&#8217;', wptexturize( 'The word is \'<a href="http://example.com/">quoted</a>\'' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted.</a>&#8217;', wptexturize( 'The word is \'<a href="http://example.com/">quoted.</a>\'' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quoted</a>&#8217;.', wptexturize( 'The word is \'<a href="http://example.com/">quoted</a>\'.' ) );
+		$this->assertSame( 'The word is &#8216;<a href="http://example.com/">quot</a>&#8217;d', wptexturize( 'The word is \'<a href="http://example.com/">quot</a>\'d' ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_texturize_around_html_cases() {
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link and a period</a>&#8221;.', wptexturize( 'Here is "<a href="http://example.com">a test with a link and a period</a>".' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;, and a comma.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>", and a comma.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;; and a semi-colon.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"; and a semi-colon.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;- and a dash.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"- and a dash.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;&#8230; and ellipses.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"... and ellipses.' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;… and a Unicode ellipsis.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"… and a Unicode ellipsis.' ) );
+		$this->assertSame( '&#8220;<em>引用</em>&#8221;。', wptexturize( '"<em>引用</em>"。' ) );
+		$this->assertSame( '&#8220;<em>引用</em>&#8221;，然后继续。', wptexturize( '"<em>引用</em>"，然后继续。' ) );
+		$this->assertSame( 'Here is &#8220;a test <a href="http://example.com">with a link</a>&#8221;.', wptexturize( 'Here is "a test <a href="http://example.com">with a link</a>".' ) );
+		$this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;and a word stuck to the end.', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"and a word stuck to the end.' ) );
+		$this->assertSame( '&#8216;<strong>Quoted Text</strong>&#8217;,', wptexturize( "'<strong>Quoted Text</strong>'," ) );
+		$this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
+		$this->assertSame( '<strong>Read more: </strong>&#8220;<a>Something (else)</a>&#8221;</p>', wptexturize( '<strong>Read more: </strong>"<a>Something (else)</a>"</p>' ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_apostrophe_after_inline_formatting_tag() {
+		$this->assertSame( '<strong>He</strong>&#8217;s here.', wptexturize( "<strong>He</strong>'s here." ) );
+		$this->assertSame( '<em>It</em>&#8217;s fine.', wptexturize( "<em>It</em>'s fine." ) );
+		$this->assertSame( '<a href="http://example.org">Dan</a>&#8217;s truck', wptexturize( '<a href="http://example.org">Dan</a>\'s truck' ) );
+		$this->assertSame( '<strong>rock</strong>&#8217;n&#8217;roll', wptexturize( "<strong>rock</strong>'n'roll" ) );
+		$this->assertSame( '&#038;<strong>x</strong>&#8217;s', wptexturize( "&<strong>x</strong>'s" ) );
+		$this->assertSame( '<em>&#8220;John&#8221;</em>&#8217;s', wptexturize( '<em>"John"</em>\'s' ) );
+		$this->assertSame( '<em>&#8216;John&#8217;</em>&#8217;s', wptexturize( "<em>'John'</em>'s" ) );
+	}
+
+	/**
+	 * @ticket 18549
+	 */
+	public function test_historic_inline_tag_quote_requires_adjacency() {
+		$this->assertSame( '<strong>He</strong> &#8216;go&#8217;', wptexturize( "<strong>He</strong> 'go'" ) );
+		$this->assertSame( '<strong>He said</strong> &#8220;go&#8221;', wptexturize( '<strong>He said</strong> "go"' ) );
+	}
+
+	/**
+	 * The apostrophe after a closing inline tag is localizable (it uses the
+	 * `apostrophe` _x() string) and the preceding word-context check is Unicode
+	 * aware, so Romance-language elision and multibyte words resolve correctly.
+	 *
+	 * @ticket 18549
+	 */
+	public function test_historic_apostrophe_after_inline_tag_i18n() {
+		// French elision exposed by bolding a leading letter.
+		$this->assertSame( '<strong>l</strong>&#8217;homme', wptexturize( "<strong>l</strong>'homme" ) );
+		$this->assertSame( '<em>l</em>&#8217;eau', wptexturize( "<em>l</em>'eau" ) );
+		// Multibyte word context before the closing tag.
+		$this->assertSame( '<strong>café</strong>&#8217;s', wptexturize( "<strong>café</strong>'s" ) );
+		$this->assertSame( '<em>naïve</em>&#8217;s', wptexturize( "<em>naïve</em>'s" ) );
+	}
+
+	/**
+	 * Inline word context works across opening and closing formatting tags.
+	 *
+	 * @ticket 18549
+	 * @ticket 43810
+	 * @dataProvider data_inline_word_context
+	 */
+	public function test_inline_word_context( $input, $expected ) {
+		$this->assertSame( $expected, wptexturize( $input ) );
+	}
+
+	public function data_inline_word_context() {
+		return array(
+			'opening contraction'     => array( "I<strong>'ve been</strong>", 'I<strong>&#8217;ve been</strong>' ),
+			'unicode word'            => array( "café<em>'s</em>", 'café<em>&#8217;s</em>' ),
+			'combining mark'          => array( "cafe\u{0301}<em>'s</em>", "cafe\u{0301}<em>&#8217;s</em>" ),
+			'uppercase opening'       => array( "I<STRONG>'ve</STRONG>", 'I<STRONG>&#8217;ve</STRONG>' ),
+			'tab attribute'           => array( "I<strong\tclass=\"x\">'ve</strong>", "I<strong\tclass=\"x\">&#8217;ve</strong>" ),
+			'newline attribute'       => array( "I<em\nclass=\"x\">'ve</em>", "I<em\nclass=\"x\">&#8217;ve</em>" ),
+			'nested opening'          => array( "I<strong><em>'ve</em></strong>", 'I<strong><em>&#8217;ve</em></strong>' ),
+			'nested closing'          => array( "<strong><em>He</em></strong>'s", '<strong><em>He</em></strong>&#8217;s' ),
+			'shared inline allowlist' => array( "café<bdi>'s</bdi>", 'café<bdi>&#8217;s</bdi>' ),
+			'opening quotation'       => array( "word <em>'Hello'</em>", 'word <em>&#8216;Hello&#8217;</em>' ),
+			'no prior word'           => array( "<em>'Hello'</em>", '<em>&#8216;Hello&#8217;</em>' ),
+			'block boundary'          => array( "word<div><em>'Hello'</em></div>", 'word<div><em>&#8216;Hello&#8217;</em></div>' ),
+			'comment boundary'        => array( "word<!-- gap --><em>'Hello'</em>", 'word<!-- gap --><em>&#8216;Hello&#8217;</em>' ),
+			'whitespace boundary'     => array( "word<em> </em><strong>'Hello'</strong>", 'word<em> </em><strong>&#8216;Hello&#8217;</strong>' ),
+			'self closing boundary'   => array( "word<span/><em>'Hello'</em>", 'word<span/><em>&#8216;Hello&#8217;</em>' ),
+			'opaque code'             => array( "word<code><em>'Hello'</em></code>", "word<code><em>'Hello'</em></code>" ),
+			'opaque boundary'         => array( "word<code>x</code><em>'Hello'</em>", 'word<code>x</code><em>&#8216;Hello&#8217;</em>' ),
+		);
+	}
+
+	/**
+	 * Quote context uses translated glyphs while distinguishing an apostrophe
+	 * from a closing single quote in locales where they are different.
+	 *
+	 * @ticket 18549
+	 * @ticket 43810
+	 * @dataProvider data_inline_localized_context
+	 */
+	public function test_inline_localized_context( $input, $expected, $translations ) {
+		$translate = static function ( $translation, $text, $context ) use ( $translations ) {
+			return isset( $translations[ $context ] ) ? $translations[ $context ] : $translation;
+		};
+		add_filter( 'gettext_with_context', $translate, 10, 3 );
+		try {
+			$this->assertSame( $expected, wptexturize( $input, true ) );
+		} finally {
+			remove_filter( 'gettext_with_context', $translate, 10 );
+			wptexturize( 'reset', true );
+		}
+	}
+
+	public function data_inline_localized_context() {
+		$german   = array(
+			'opening curly double quote' => '&#8222;',
+			'closing curly double quote' => '&#8220;',
+			'opening curly single quote' => '&#8218;',
+			'closing curly single quote' => '&#8216;',
+			'apostrophe'                 => '&#8217;',
+		);
+		$french   = array(
+			'opening curly double quote' => "«\u{00A0}",
+			'closing curly double quote' => "\u{00A0}»",
+			'apostrophe'                 => '’',
+		);
+		$straight = array(
+			'opening curly double quote' => '"',
+			'closing curly double quote' => '"',
+			'opening curly single quote' => "'",
+			'closing curly single quote' => "'",
+			'apostrophe'                 => "'",
+		);
+		return array(
+			'localized quote tail'             => array( "<em>\"John\"</em>'s", '<em>&#8222;John&#8220;</em>&#8217;s', $german ),
+			'localized double close'           => array( '"<em>John</em>"', '&#8222;<em>John</em>&#8220;', $german ),
+			'localized single close'           => array( "'<em>John</em>'", '&#8218;<em>John</em>&#8216;', $german ),
+			'localized possessive'             => array( "<em>James</em>' book", '<em>James</em>&#8217; book', $german ),
+			'localized opening contraction'    => array( "I<strong>'ve</strong>", 'I<strong>&#8217;ve</strong>', $german ),
+			'apostrophe within quotation'      => array( "'He<em>'s</em> here'", '&#8218;He<em>&#8217;s</em> here&#8216;', $german ),
+			'earlier contraction in quotation' => array( "'Don't <em>go</em>'", '&#8218;Don&#8217;t <em>go</em>&#8216;', $german ),
+			'literal closing glyph'            => array( "<em>John“</em>'s", '<em>John“</em>&#8217;s', $german ),
+			'hex closing entity'               => array( "<em>John&#x201C;</em>'s", '<em>John&#x201C;</em>&#8217;s', $german ),
+			'french multi-character tail'      => array( "<em>\"Jean\"</em>'s", "<em>«\u{00A0}Jean\u{00A0}»</em>’s", $french ),
+			'french named entity tail'         => array( "<em>Jean&raquo;</em>'s", '<em>Jean&raquo;</em>’s', $french ),
+			'straight closing'                 => array( "<em>\"John\"</em>'s", "<em>\"John\"</em>'s", $straight ),
+			'straight opening'                 => array( "I<strong>'ve</strong>", "I<strong>'ve</strong>", $straight ),
+		);
+	}
+
+	/**
+	 * Shortcode and custom no-texturize boundaries must not leak quote context.
+	 *
+	 * @ticket 18549
+	 * @ticket 43810
+	 */
+	public function test_inline_context_respects_no_texturize_boundaries() {
+		add_shortcode( 'code', '__return_empty_string' );
+		try {
+			$this->assertSame( "word[code]<em>'Hello'</em>[/code]", wptexturize( "word[code]<em>'Hello'</em>[/code]" ) );
+			$this->assertSame( 'word[code]x[/code]<em>&#8216;Hello&#8217;</em>', wptexturize( "word[code]x[/code]<em>'Hello'</em>" ) );
+			$this->assertSame( 'word[[code]]<em>&#8216;Hello&#8217;</em>', wptexturize( "word[[code]]<em>'Hello'</em>" ) );
+		} finally {
+			remove_shortcode( 'code' );
+		}
+		$disable_span = static function ( $tags ) {
+			$tags[] = 'span';
+			return $tags;
+		};
+		add_filter( 'no_texturize_tags', $disable_span );
+		try {
+			$this->assertSame( "word<span><em>'Hello'</em></span>", wptexturize( "word<span><em>'Hello'</em></span>" ) );
+		} finally {
+			remove_filter( 'no_texturize_tags', $disable_span );
+		}
+	}
+
 	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}
