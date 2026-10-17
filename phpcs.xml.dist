@@ -50,7 +50,6 @@
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
-	<exclude-pattern>/src/wp-admin/includes/class-ftp*</exclude-pattern>
 	<exclude-pattern>/src/wp-admin/includes/class-pclzip\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-admin/includes/deprecated\.php</exclude-pattern>
 	<exclude-pattern>/src/wp-admin/includes/ms-deprecated\.php</exclude-pattern>
