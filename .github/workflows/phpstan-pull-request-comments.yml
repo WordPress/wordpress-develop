@@ -307,11 +307,16 @@ jobs:
               return sections.join( '\n\n' ) + '\n';
             };
 
-            // A comment is limited to 65,536 characters. Should the body exceed that, give up the oldest resolved
-            // errors first, and then list and track fewer of the current errors.
+            // A comment is limited to 65,536 characters. Should the body exceed that, give up the history of the
+            // current errors that are not listed first, then the oldest resolved errors, and then list and track fewer
+            // of the current errors.
             const maxLength = 65000;
             let trackedLimit = 200;
             let body = render( trackedLimit );
+            while ( body.length > maxLength && trackedLimit > maxRows ) {
+              trackedLimit = Math.max( maxRows, Math.floor( trackedLimit / 2 ) );
+              body = render( trackedLimit );
+            }
             while ( body.length > maxLength && resolved.length > 0 ) {
               resolved = resolved.slice( 1 );
               body = render( trackedLimit );
