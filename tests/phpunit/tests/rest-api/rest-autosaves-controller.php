@@ -111,7 +111,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		);
 		self::$extra_users         = array();
 		for ( $i = 0; $i < 3; $i++ ) {
-			// Set a random user ID to ensure a new autosave is created.
+			// Additional editors, each of whom gets their own autosave on the shared post.
 			self::$extra_users[] = $factory->user->create(
 				array(
 					'role' => 'editor',
@@ -1110,5 +1110,82 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 1, $data );
 		$this->assertSame( $autosave_ids[ $author_id ], $data[0]['id'] );
+	}
+
+	/**
+	 * Tests that author IDs below 1 are rejected rather than widening the query.
+	 *
+	 * @ticket 62057
+	 *
+	 * @dataProvider data_get_items_rejects_invalid_author
+	 *
+	 * @param mixed $author Value passed as the author parameter.
+	 */
+	public function test_get_items_rejects_invalid_author( $author ) {
+		$this->create_autosaves_for_extra_users();
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', $author );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Data provider for test_get_items_rejects_invalid_author().
+	 *
+	 * @return array[]
+	 */
+	public function data_get_items_rejects_invalid_author() {
+		return array(
+			'zero'               => array( 0 ),
+			'negative'           => array( -1 ),
+			'zero in a list'     => array( array( 1, 0 ) ),
+			'negative in a list' => array( array( 1, -1 ) ),
+		);
+	}
+
+	/**
+	 * Tests that a repeated author ID returns their autosave once.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_with_repeated_author() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+		$author_id    = self::$extra_users[1];
+
+		wp_set_current_user( self::$editor_id );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$request->set_param( 'author', array( $author_id, $author_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertCount( 1, $data );
+		$this->assertSame( $autosave_ids[ $author_id ], $data[0]['id'] );
+	}
+
+	/**
+	 * Tests that author scoped results share the unscoped ordering, newest first.
+	 *
+	 * @ticket 62057
+	 */
+	public function test_get_items_scoped_to_authors_matches_unscoped_order() {
+		$autosave_ids = $this->create_autosaves_for_extra_users();
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
+		$response = rest_get_server()->dispatch( $request );
+		$expected = array_values(
+			array_intersect( wp_list_pluck( $response->get_data(), 'id' ), $autosave_ids )
+		);
+
+		$request->set_param( 'author', self::$extra_users );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, wp_list_pluck( $response->get_data(), 'id' ) );
+		$this->assertSame( array_reverse( array_values( $autosave_ids ) ), $expected, 'Autosaves should be ordered newest first.' );
 	}
 }
