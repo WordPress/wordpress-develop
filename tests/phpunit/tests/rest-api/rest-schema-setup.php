@@ -206,6 +206,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/icons/(?P<collection>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			'/wp/v2/icons/(?P<name>[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?)',
 			'/wp/v2/view-config',
+			'/wp/v2/fields',
 			'/wp-abilities/v1',
 			'/wp-abilities/v1/categories',
 			'/wp-abilities/v1/categories/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)',
