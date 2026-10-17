@@ -78,15 +78,26 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Sanitize the stylesheet to decode endpoint.
+	 * Decodes the stylesheet and rejects directory traversal.
 	 *
 	 * @since 5.9.0
+	 * @since 7.2.0 Rejects directory traversal.
 	 *
 	 * @param string $stylesheet The stylesheet name.
-	 * @return string Sanitized stylesheet.
+	 * @return string|WP_Error Sanitized stylesheet, or an error for directory traversal.
 	 */
 	public function _sanitize_stylesheet_callback( $stylesheet ) {
-		return urldecode( $stylesheet );
+		$stylesheet = urldecode( $stylesheet );
+
+		// Normalize separators for the check without changing the returned identifier.
+		if ( in_array( '..', explode( '/', wp_normalize_path( $stylesheet ) ), true ) ) {
+			return new WP_Error(
+				'rest_invalid_stylesheet',
+				__( 'Invalid theme stylesheet.' )
+			);
+		}
+
+		return $stylesheet;
 	}
 
 	/**
