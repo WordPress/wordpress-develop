@@ -1652,17 +1652,17 @@ class WP_HTML_Tag_Processor {
 				/**
 				 * These characters trigger state transitions of interest:
 				 *
-				 * - @link https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state
-				 * - @link https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state
-				 * - @link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state
-				 * - @link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-end-tag-name-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-escaped-end-tag-name-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-start-state}
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#script-data-double-escape-end-state}
 				 *
 				 * The "\r" character is not present in the above references. However, "\r" must be
 				 * treated the same as "\n". This is because the HTML Standard requires newline
 				 * normalization during preprocessing which applies this replacement.
 				 *
-				 * - @link https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream
-				 * - @link https://infra.spec.whatwg.org/#normalize-newlines
+				 * - {@link https://html.spec.whatwg.org/multipage/parsing.html#preprocessing-the-input-stream}
+				 * - {@link https://infra.spec.whatwg.org/#normalize-newlines}
 				 */
 				'>' !== $c &&
 				' ' !== $c &&
