@@ -185,7 +185,8 @@ jobs:
             // A location links to its line in the last commit the error was reported for, rather than to the merge
             // commit that was analyzed, which is replaced whenever either side changes, so links to it would not last.
             // Where the base branch has changed the file, the line may be off, so only the file is linked. A resolved
-            // error is linked to its line regardless, as the place it was last reported.
+            // error is linked to its line as the place it was last reported, unless that line was off, in which case
+            // its line is not kept in the history.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
@@ -312,9 +313,10 @@ jobs:
               }
 
               // The errors tracked are taken in the order they are listed, so that each one listed keeps its history.
-              const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
-                { key, file, line, message, identifier, ignorable, introduced, seen, fixed }
-              ) );
+              const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( error ) => {
+                const { key, file, line, message, identifier, ignorable, introduced, seen, fixed } = error;
+                return { key, file, line: lineMayBeOff( error ) ? null : line, message, identifier, ignorable, introduced, seen, fixed };
+              } );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
 
               return sections.join( '\n\n' ) + '\n';
