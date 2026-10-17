@@ -174,13 +174,10 @@ jobs:
             }
 
             // Tips are left out of the results, since they are only shown in the annotations, next to the code.
-            // The commit that was analyzed is the pull request merged into its base branch, so its line numbers
-            // can differ from those of the head commit.
             if ( context.eventName === 'pull_request' ) {
               fs.mkdirSync( `${ process.env.RUNNER_TEMP }/phpstan-results`, { recursive: true } );
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
-                analyzed_sha: context.sha,
                 errors: errors.map( ( { tip, ...error } ) => error ),
               } ) );
             }
