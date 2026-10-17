@@ -64,6 +64,7 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 		$default_walker = new Walker_CategoryDropdown();
 		$expected       = $default_walker->walk( $elements, 0, $args );
 
+		$this->assertStringContainsString( 'value="' . self::$child->term_id . '"', $expected );
 		$this->assertSame( $expected, walk_category_dropdown_tree( $elements, 0, $args ) );
 	}
 
@@ -85,6 +86,7 @@ class Tests_Category_WalkCategoryDropdownTree extends WP_UnitTestCase {
 		$default_walker = new Walker_CategoryDropdown();
 		$expected       = $default_walker->walk( $elements, 0, $args );
 
+		$this->assertStringContainsString( 'value="' . self::$child->term_id . '"', $expected );
 		$this->assertSame( $expected, walk_category_dropdown_tree( $elements, 0, $args ) );
 	}
 
