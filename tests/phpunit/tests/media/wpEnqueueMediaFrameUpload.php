@@ -241,7 +241,11 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 	public function test_allowed_mime_types_respect_upload_mimes_filter() {
 		add_filter(
 			'upload_mimes',
-			static function ( $mimes ) {
+			/**
+			 * @param array<string, string> $mimes Mime types keyed by the file extension regex.
+			 * @return array<string, string> Filtered mime types.
+			 */
+			static function ( array $mimes ): array {
 				unset( $mimes['gif'] );
 				return $mimes;
 			}
