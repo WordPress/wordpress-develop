@@ -50,6 +50,7 @@ function wptexturize( $text, $reset = false ) {
 		$closing_quote                   = null,
 		$opening_single_quote            = null,
 		$closing_single_quote            = null,
+		$closing_quotes                  = null,
 		$open_q_flag                     = '<!--oq-->',
 		$open_sq_flag                    = '<!--osq-->',
 		$apos_flag                       = '<!--apos-->';
@@ -102,6 +103,15 @@ function wptexturize( $text, $reset = false ) {
 		$en_dash = _x( '&#8211;', 'en dash' );
 		/* translators: Em dash. */
 		$em_dash = _x( '&#8212;', 'em dash' );
+
+		// Recognize configured closing glyphs in their emitted and literal forms.
+		$closing_quotes = array( $apos, $closing_single_quote, $closing_quote );
+		foreach ( $closing_quotes as $quote ) {
+			$decoded          = html_entity_decode( $quote, ENT_QUOTES, 'UTF-8' );
+			$closing_quotes[] = $decoded;
+			$closing_quotes[] = preg_replace( '/^[\p{Z}\s]+|[\p{Z}\s]+$/u', '', $decoded );
+		}
+		$closing_quotes = array_unique( array_filter( $closing_quotes ) );
 
 		$default_no_texturize_tags       = array( 'pre', 'code', 'kbd', 'style', 'script', 'tt' );
 		$default_no_texturize_shortcodes = array( 'code' );
@@ -227,10 +237,11 @@ function wptexturize( $text, $reset = false ) {
 	 */
 	$no_texturize_shortcodes = apply_filters( 'no_texturize_shortcodes', $default_no_texturize_shortcodes );
 
-	$no_texturize_tags_stack           = array();
-	$no_texturize_shortcodes_stack     = array();
-	$last_text_ends_with_quote_context = false;
-	$quote_after_inline_tag            = false;
+	$no_texturize_tags_stack       = array();
+	$no_texturize_shortcodes_stack = array();
+	$last_text_context             = 0;
+	$inline_quote_context          = 0;
+	$single_quote_open             = false;
 
 	// Look for shortcodes and HTML elements.
 
@@ -248,24 +259,40 @@ function wptexturize( $text, $reset = false ) {
 		if ( '<' === $first ) {
 			if ( str_starts_with( $curl, '<!--' ) ) {
 				// This is an HTML comment delimiter.
-				$quote_after_inline_tag = false;
+				$inline_quote_context = 0;
+				$last_text_context    = 0;
+				$single_quote_open    = false;
 				continue;
 			} else {
 				// This is an HTML element delimiter.
-				$quote_after_inline_tag = $last_text_ends_with_quote_context && _wptexturize_is_inline_closing_tag( $curl );
+				$inline_tag = ( $last_text_context || $single_quote_open ) ? _wptexturize_get_inline_tag_type( $curl ) : 0;
+				// Opening tags continue words; closing tags can also end quotations.
+				$inline_quote_context = 2 === $inline_tag ? $last_text_context : ( 1 === $inline_tag && 1 === $last_text_context ? 1 : 0 );
+				if ( 0 === $inline_tag ) {
+					$last_text_context = 0;
+					$single_quote_open = false;
+				}
 
 				// Replace each & with &#038; unless it already looks like an entity.
 				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
+				if ( ! empty( $no_texturize_tags_stack ) ) {
+					$inline_quote_context = 0;
+					$last_text_context    = 0;
+					$single_quote_open    = false;
+				}
 			}
 		} elseif ( '' === trim( $curl ) ) {
 			// This is a newline between delimiters. Performance improves when we check this.
-			$quote_after_inline_tag = false;
+			$inline_quote_context = 0;
+			$last_text_context    = 0;
 			continue;
 
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
-			$quote_after_inline_tag = false;
+			$inline_quote_context = 0;
+			$last_text_context    = 0;
+			$single_quote_open    = false;
 			// This is a shortcode delimiter.
 
 			if ( ! str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
@@ -280,18 +307,35 @@ function wptexturize( $text, $reset = false ) {
 
 			$curl = str_replace( $static_characters, $static_replacements, $curl );
 
-			if ( $quote_after_inline_tag ) {
+			$inline_apostrophe = false;
+			if ( $inline_quote_context && ( "'" === $curl[0] || '"' === $curl[0] ) ) {
 				if ( preg_match( "/^'[\p{L}\p{N}\p{Po}\p{Pf}\s.,;:!?\)\}\-&]|^'$/u", $curl ) ) {
-					$curl = $apos . substr( $curl, 1 );
+					// A following letter/number continues a word even inside a quotation.
+					if ( $single_quote_open && ! preg_match( "/^'[\p{L}\p{N}]/u", $curl ) ) {
+						$curl              = $closing_single_quote . substr( $curl, 1 );
+						$single_quote_open = false;
+					} else {
+						$curl              = $apos_flag . substr( $curl, 1 );
+						$inline_apostrophe = true;
+					}
 				} elseif ( preg_match( '/^"[\p{L}\p{N}\p{Po}\p{Pf}\s.,;:!?\)\}\-&]|^"$/u', $curl ) ) {
 					$curl = $closing_quote . substr( $curl, 1 );
 				}
 			}
-			$quote_after_inline_tag = false;
+			$inline_quote_context = 0;
 
-			if ( str_contains( $curl, "'" ) ) {
+			if ( $inline_apostrophe || str_contains( $curl, "'" ) ) {
 				$curl = preg_replace( $dynamic_characters['apos'], $dynamic_replacements['apos'], $curl );
 				$curl = wptexturize_primes( $curl, "'", $prime, $open_sq_flag, $closing_single_quote );
+				// Inspect core's existing markers before restoring apostrophes, which
+				// can share a glyph with closing quotes in the current locale.
+				$last_open  = strrpos( $curl, $open_sq_flag );
+				$last_close = strrpos( $curl, $closing_single_quote );
+				if ( false !== $last_open && ( false === $last_close || $last_open > $last_close ) ) {
+					$single_quote_open = true;
+				} elseif ( false !== $last_close ) {
+					$single_quote_open = false;
+				}
 				$curl = str_replace( $apos_flag, $apos, $curl );
 				$curl = str_replace( $open_sq_flag, $opening_single_quote, $curl );
 			}
@@ -313,9 +357,11 @@ function wptexturize( $text, $reset = false ) {
 			// Replace each & with &#038; unless it already looks like an entity.
 			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
-			$last_text_ends_with_quote_context = _wptexturize_text_ends_with_quote_context( $curl );
+			$last_text_context = _wptexturize_get_text_context( $curl, $closing_quotes );
 		} else {
-			$quote_after_inline_tag = false;
+			$inline_quote_context = 0;
+			$last_text_context    = 0;
+			$single_quote_open    = false;
 		}
 	}
 
@@ -323,64 +369,67 @@ function wptexturize( $text, $reset = false ) {
 }
 
 
-
 /**
- * Determines whether text ends with a character that can provide quote context.
+ * Classifies the trailing text context used at inline HTML boundaries.
  *
- * This avoids running a Unicode regular expression for every text token in
- * wptexturize(). Most tokens end with ASCII letters, numbers, or punctuation; only
- * multibyte text and closing quote entities need a regular expression check.
+ * @since 7.2.0
+ * @access private
  *
- * @since 7.1.0
- *
- * @param string $text Text token from wptexturize().
- * @return bool Whether the text ends with quote context.
+ * @param string   $text           Formatted text token.
+ * @param string[] $closing_quotes Localized closing quote/apostrophe representations.
+ * @return int 1 for a word ending, 2 for closing punctuation/quotes, 0 otherwise.
  */
-function _wptexturize_text_ends_with_quote_context( $text ) {
+function _wptexturize_get_text_context( $text, $closing_quotes ) {
 	if ( '' === $text ) {
-		return false;
+		return 0;
 	}
-
-	$last_character = substr( $text, -1 );
-
-	if ( ctype_alnum( $last_character ) || in_array( $last_character, array( '.', '!', '?', ')' ), true ) ) {
-		return true;
+	$last = substr( $text, -1 );
+	if ( str_contains( " \t\n\r\f\v", $last ) ) {
+		return 0;
 	}
-
-	if ( ';' === $last_character ) {
-		return (bool) preg_match( '/&#(?:8217|8221);$/', $text );
+	if ( ord( $last ) < 0x80 && ctype_alnum( $last ) ) {
+		return 1;
 	}
-
-	if ( ord( $last_character ) >= 0x80 ) {
-		return (bool) preg_match( '/[\p{L}\p{N}]$/u', $text );
+	if ( in_array( $last, array( '.', '!', '?', ')' ), true ) ) {
+		return 2;
 	}
-
-	return false;
+	if ( ord( $last ) >= 0x80 && preg_match( '/[\p{L}\p{N}]\p{M}*$/u', $text ) ) {
+		return 1;
+	}
+	foreach ( $closing_quotes as $quote ) {
+		if ( str_ends_with( $text, $quote ) ) {
+			return 2;
+		}
+	}
+	// Authored entities may use another spelling of the configured closing glyph.
+	if ( ';' === $last && preg_match( '/&(?:\#(?:x[0-9a-f]+|[0-9]+)|[a-z][a-z0-9]+);$/i', $text, $entity )
+		&& in_array( html_entity_decode( $entity[0], ENT_QUOTES, 'UTF-8' ), $closing_quotes, true ) ) {
+		return 2;
+	}
+	return 0;
 }
 
 /**
- * Determines whether a token is a closing tag for a common inline HTML element.
+ * Classifies an inline HTML delimiter without parsing its attribute values.
  *
- * This mirrors the tag-name extraction in {@see wp_kses_split2()}, which is
- * private and far broader, so it is intentionally not reused here. The element
- * list is the inline complement of the block-level tags in {@see wpautop()}.
+ * @since 7.2.0
+ * @access private
  *
- * @since 7.1.0
- *
- * @param string $text A token from wptexturize()'s split input.
- * @return bool Whether the token is a closing inline HTML element.
+ * @param string $text HTML delimiter token.
+ * @return int 1 for an opening inline tag, 2 for a closing inline tag, 0 otherwise.
  */
-function _wptexturize_is_inline_closing_tag( $text ) {
-	// The caller only reaches this for '<'-prefixed tokens, and the $inline_tags
-	// allowlist below validates the tag name, so no regular expression is needed:
-	// require the '</' prefix and '>' suffix, then extract the name directly. The
-	// rtrim() preserves the optional whitespace permitted before '>' in a closing
-	// tag, while a leading space after '</' leaves a non-matching name.
-	if ( '</' !== substr( $text, 0, 2 ) || '>' !== substr( $text, -1 ) ) {
-		return false;
+function _wptexturize_get_inline_tag_type( $text ) {
+	if ( '<' !== substr( $text, 0, 1 ) || '>' !== substr( $text, -1 ) || str_ends_with( $text, '/>' ) ) {
+		return 0;
 	}
-
-	$inline_tags = array(
+	$closing = isset( $text[1] ) && '/' === $text[1];
+	$start   = $closing ? 2 : 1;
+	$length  = strcspn( $text, " \t\n\r\f/>", $start );
+	$name    = strtolower( substr( $text, $start, $length ) );
+	if ( $closing && '' !== trim( substr( $text, $start + $length, -1 ) ) ) {
+		return 0;
+	}
+	static $inline_tags = array(
 		'a',
 		'abbr',
 		'b',
@@ -407,10 +456,7 @@ function _wptexturize_is_inline_closing_tag( $text ) {
 		'u',
 		'var',
 	);
-
-	$tag = strtolower( rtrim( substr( $text, 2, -1 ), " \t\n\r\f\x0B" ) );
-
-	return in_array( $tag, $inline_tags, true );
+	return in_array( $name, $inline_tags, true ) ? ( $closing ? 2 : 1 ) : 0;
 }
 
 /**
