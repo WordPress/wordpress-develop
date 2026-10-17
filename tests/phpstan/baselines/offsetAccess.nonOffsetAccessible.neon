@@ -24,11 +24,6 @@ parameters:
 			count: 4
 			path: ../../../src/wp-admin/includes/class-wp-debug-data.php
 		-
-			message: '#^Cannot access offset mixed on bool\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: ../../../src/wp-admin/includes/plugin.php
-		-
 			message: '#^Cannot access offset ''new_version'' on bool\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1

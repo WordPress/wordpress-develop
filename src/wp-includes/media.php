@@ -2189,9 +2189,9 @@ function wp_sizes_attribute_includes_valid_auto( string $sizes_attr ): bool {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
- * @see https://core.trac.wordpress.org/ticket/62413
- * @see https://core.trac.wordpress.org/ticket/62731
+ * @link https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @link https://core.trac.wordpress.org/ticket/62413
+ * @link https://core.trac.wordpress.org/ticket/62731
  */
 function wp_enqueue_img_auto_sizes_contain_css_fix(): void {
 	// Back-compat for plugins that disable functionality by unhooking this action.
@@ -5305,11 +5305,13 @@ function wp_enqueue_media( $args = array() ) {
 	wp_localize_script( 'media-views', '_wpMediaViewsL10n', $strings );
 
 	wp_enqueue_script( 'media-audiovideo' );
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'media-views' );
 	if ( is_admin() ) {
 		wp_enqueue_script( 'mce-view' );
 		wp_enqueue_script( 'image-edit' );
 	}
+	// Prefetched for the block editor by wp_prefetch_admin_assets(), which needs updating if this changes.
 	wp_enqueue_style( 'imgareaselect' );
 	wp_plupload_default_settings();
 

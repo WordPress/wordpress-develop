@@ -43,7 +43,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Whether the controller supports batching.
 	 *
 	 * @since 5.9.0
-	 * @var array
+	 * @var array|false
 	 */
 	protected $allow_batch = array( 'v1' => true );
 
@@ -455,9 +455,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
+		$posts = array();
 		if ( ! $is_head_request ) {
-			$posts = array();
-
 			update_post_author_caches( $query_result );
 			update_post_parent_caches( $query_result );
 
@@ -703,7 +702,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( ! empty( $request['sticky'] ) && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -914,7 +913,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( isset( $request['sticky'] ) && is_sticky( $post->ID ) !== (bool) $request['sticky'] && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -2334,6 +2333,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Gets the link relations available for the post and current user.
 	 *
 	 * @since 4.9.8
+	 * @since 7.2.0 Added the `action-trash`, `action-set-homepage`, and `action-set-posts-page` link relations.
 	 *
 	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
@@ -2366,6 +2366,31 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( post_type_supports( $post_type->name, 'author' ) ) {
 			if ( current_user_can( $post_type->cap->edit_others_posts ) ) {
 				$rels[] = 'https://api.w.org/action-assign-author';
+			}
+		}
+
+		if ( 'trash' !== $post->post_status && $this->check_delete_permission( $post ) ) {
+			$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
+
+			if ( 'attachment' === $post->post_type ) {
+				$supports_trash = $supports_trash && MEDIA_TRASH;
+			}
+
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+			if ( apply_filters( "rest_{$this->post_type}_trashable", $supports_trash, $post ) ) {
+				$rels[] = 'https://api.w.org/action-trash';
+			}
+		}
+
+		/*
+		 * Setting a page as the homepage or as the posts page changes the site settings,
+		 * so it requires the same capability as the settings route. The current homepage
+		 * and posts page get neither link.
+		 */
+		if ( 'page' === $post_type->name && 'publish' === $post->post_status && current_user_can( 'manage_options' ) ) {
+			if ( (int) get_option( 'page_on_front' ) !== $post->ID && (int) get_option( 'page_for_posts' ) !== $post->ID ) {
+				$rels[] = 'https://api.w.org/action-set-homepage';
+				$rels[] = 'https://api.w.org/action-set-posts-page';
 			}
 		}
 
@@ -2840,6 +2865,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
 	 *
 	 * @since 4.9.8
+	 * @since 7.2.0 Added the `action-trash`, `action-set-homepage`, and `action-set-posts-page` link relations.
 	 *
 	 * @return array
 	 */
@@ -2911,6 +2937,26 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						),
 					),
 				),
+			);
+		}
+
+		$links[] = array(
+			'rel'   => 'https://api.w.org/action-trash',
+			'title' => __( 'The current user can move this post to the trash.' ),
+			'href'  => $href,
+		);
+
+		if ( 'page' === $this->post_type ) {
+			$links[] = array(
+				'rel'   => 'https://api.w.org/action-set-homepage',
+				'title' => __( 'The current user can set this page as the homepage.' ),
+				'href'  => $href,
+			);
+
+			$links[] = array(
+				'rel'   => 'https://api.w.org/action-set-posts-page',
+				'title' => __( 'The current user can set this page as the posts page.' ),
+				'href'  => $href,
 			);
 		}
 

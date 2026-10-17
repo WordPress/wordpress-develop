@@ -3204,6 +3204,8 @@ function wp_update_comment_count_now( $post_id ) {
  * @param string $url        URL to ping.
  * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3900,7 +3902,7 @@ function _close_comments_for_old_posts( $posts, $query ) {
  *
  * @param bool $open    Comments open or closed.
  * @param int  $post_id Post ID.
- * @return bool $open
+ * @return bool True if comments are open, false otherwise.
  */
 function _close_comments_for_old_post( $open, $post_id ) {
 	if ( ! $open ) {

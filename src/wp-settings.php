@@ -294,7 +294,9 @@ require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-cache.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-discovery-strategy.php';
 require ABSPATH . WPINC . '/ai-client/adapters/class-wp-ai-client-event-dispatcher.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-ability-function-resolver.php';
+require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-builder.php';
 require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-prompt-builder.php';
+require ABSPATH . WPINC . '/ai-client/class-wp-ai-client-embedding-builder.php';
 require ABSPATH . WPINC . '/ai-client.php';
 require ABSPATH . WPINC . '/class-wp-connector-registry.php';
 require ABSPATH . WPINC . '/connectors.php';
@@ -308,6 +310,20 @@ require ABSPATH . WPINC . '/nav-menu-template.php';
 require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/admin-bar.php';
 require ABSPATH . WPINC . '/class-wp-application-passwords.php';
+require ABSPATH . WPINC . '/secrets.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secret-version.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secret.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-provider.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-keyring.php';
+require ABSPATH . WPINC . '/secrets/interface-wp-secrets-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-config-key-provider.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-keyring.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-cipher.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-key-manager.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-option-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-store.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-libsodium-provider.php';
+require ABSPATH . WPINC . '/secrets/class-wp-secrets-broken-provider.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability-category.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability-categories-registry.php';
 require ABSPATH . WPINC . '/abilities-api/class-wp-ability.php';
@@ -450,6 +466,7 @@ require ABSPATH . WPINC . '/class-wp-script-modules.php';
 require ABSPATH . WPINC . '/script-modules.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api.php';
 require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-api-directives-processor.php';
+require ABSPATH . WPINC . '/interactivity-api/class-wp-interactivity-dangerous-html.php';
 require ABSPATH . WPINC . '/interactivity-api/interactivity-api.php';
 require ABSPATH . WPINC . '/class-wp-plugin-dependencies.php';
 require ABSPATH . WPINC . '/class-wp-url-pattern-prefixer.php';
@@ -504,6 +521,9 @@ $GLOBALS['wp_plugin_paths'] = array();
 
 // To make get_plugin_data() available for both network-activated and site-activated plugins, see #62244 and #64249.
 require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
+// Load the secrets.php drop-in, which may replace the Secrets API's provider, store, or keyring.
+wp_load_secrets_dropin();
 
 // Load must-use plugins.
 foreach ( wp_get_mu_plugins() as $mu_plugin ) {
