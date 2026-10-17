@@ -3698,6 +3698,10 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	/**
 	 * Filters attributes to be added to an inline style tag.
 	 *
+	 * This filter may run more than once for the same inline style, in which case only the last result is printed.
+	 * For example, the `wp-block-library` inline style is built again by {@see wp_hoist_late_printed_styles()}
+	 * after a placeholder is removed from its CSS.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
