@@ -116,6 +116,19 @@ function wp_admin_bar_render() {
 }
 
 /**
+ * Returns inline SVG markup wrapped for use as an admin bar node icon.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $icon_name Namespaced icon name, e.g. 'core-admin/wordpress'.
+ * @return string Admin bar icon markup. The wrapper is empty if the icon is not found.
+ */
+function _wp_admin_bar_icon( $icon_name ) {
+	return '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( $icon_name ) . '</span>';
+}
+
+/**
  * Adds the WordPress logo menu.
  *
  * @since 3.3.0
@@ -286,6 +299,7 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
+			'icon'   => empty( $avatar ) ? 'core-admin/people' : false,
 			'title'  => '<span class="display-name">' . $display_name . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
@@ -423,11 +437,14 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 		}
 	}
 
+	$links_to_home = is_admin() || ! current_user_can( 'read' );
+
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
+			'icon'  => $links_to_home ? 'core-admin/home' : 'core-admin/dashboard',
 			'title' => $title,
-			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
+			'href'  => $links_to_home ? home_url( '/' ) : admin_url(),
 			'meta'  => $meta,
 		)
 	);
@@ -510,6 +527,7 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Edit Site' ),
 			'href'  => add_query_arg(
 				array(
@@ -565,6 +583,7 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'customize',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Customize' ),
 			'href'  => $customize_url,
 			'meta'  => array(
@@ -602,6 +621,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'my-sites',
+			'icon'  => 'core-admin/sites',
 			'title' => __( 'My Sites' ),
 			'href'  => $my_sites_url,
 		)
@@ -712,6 +732,8 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
+	$default_blavatar = '<div class="blavatar">' . wp_get_icon( 'core-admin/wordpress', array( 'size' => 16 ) ) . '</div>';
+
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
@@ -723,7 +745,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
 			);
 		} else {
-			$blavatar = '<div class="blavatar"></div>';
+			$blavatar = $default_blavatar;
 		}
 
 		$blogname = $blog->blogname;
@@ -937,6 +959,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $post_type_object->labels->edit_item,
 						'href'  => $edit_post_link,
 					)
@@ -949,6 +972,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $tax->labels->edit_item,
 						'href'  => $edit_term_link,
 					)
@@ -960,6 +984,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => __( 'Edit User' ),
 						'href'  => $edit_user_link,
 					)
@@ -1288,6 +1313,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	}
 
 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
+	$form .= _wp_admin_bar_icon( 'core-admin/search' );
 	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
 	$form .= '<label for="adminbar-search" class="screen-reader-text">' .
 			/* translators: Hidden accessibility text. */
