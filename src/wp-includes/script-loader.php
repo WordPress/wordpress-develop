@@ -4618,12 +4618,9 @@ function wp_hoist_late_printed_styles(): void {
 					$processor->set_bookmark( 'wp_block_styles_placeholder' );
 				} elseif (
 					'STYLE' === $processor->get_tag() &&
-					str_contains( $processor->get_modifiable_text(), $placeholder )
+					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
 				) {
-					/*
-					 * The placeholder is added to the wp-block-library inline style above. It is located by the placeholder
-					 * rather than by the ID, since the ID may have been changed by the 'wp_inline_style_attributes' filter.
-					 */
+					/** This is added here in {@see wp_hoist_late_printed_styles()} */
 					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
