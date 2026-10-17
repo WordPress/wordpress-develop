@@ -123,7 +123,7 @@ class Admin_Includes_Plugin_Install_WpGetPluginActionButton_Test extends WP_Unit
 	 *
 	 * @return array[]
 	 */
-	public function data_capabilities() {
+	public static function data_capabilities() {
 		return self::text_array_to_dataprovider( array( 'install_plugins', 'update_plugins' ) );
 	}
 
