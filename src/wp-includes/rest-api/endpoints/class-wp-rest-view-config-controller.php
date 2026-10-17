@@ -140,6 +140,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Returns the default view configuration for the given entity type.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added the item count of each view in the `page` view list.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -160,6 +161,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 			'view_list'       => $this->cast_empty_objects( $config['view_list'], $schema['properties']['view_list'] ),
 			'form'            => $this->cast_empty_objects( $config['form'], $schema['properties']['form'] ),
 		);
+
+		/*
+		 * The counts are added here rather than through the view config filter,
+		 * so that they are computed from the view list after every filter has
+		 * changed it.
+		 */
+		if ( 'postType' === $kind && 'page' === $name && is_array( $response['view_list'] ) ) {
+			$response['view_list'] = _wp_add_counts_to_view_list( 'page', $response['view_list'] );
+		}
 
 		return rest_ensure_response( $response );
 	}
@@ -243,6 +253,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added the `count` property to the view list entries.
 	 *
 	 * @return array Item schema data.
 	 */
@@ -372,6 +383,11 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 									),
 									$view_base_properties
 								),
+							),
+							'count' => array(
+								'description' => __( 'Number of items the view holds.' ),
+								'type'        => 'integer',
+								'readonly'    => true,
 							),
 						),
 					),
