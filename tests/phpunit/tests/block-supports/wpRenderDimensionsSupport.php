@@ -119,7 +119,7 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_dimensions_block_support() {
+	public static function data_dimensions_block_support() {
 		return array(
 			'aspect ratio style is applied, with min-height and height unset' => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',

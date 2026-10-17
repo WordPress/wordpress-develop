@@ -40,7 +40,7 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 	 *     expected_class: string,
 	 * }>
 	 */
-	public function data_adds_class_to_content(): array {
+	public static function data_adds_class_to_content(): array {
 		return array(
 			'class is added to block content'           => array(
 				'block_content'  => '<div class="wp-block-paragraph">Test content</div>',
@@ -121,7 +121,7 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returns_unchanged_content() {
+	public static function data_returns_unchanged_content() {
 		return array(
 			'no custom CSS class in attrs'  => array(
 				'block_content' => '<div class="wp-block-paragraph">Test content</div>',

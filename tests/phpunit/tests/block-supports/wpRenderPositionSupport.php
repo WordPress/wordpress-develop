@@ -132,7 +132,7 @@ class Tests_Block_Supports_WpRenderPositionSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_position_block_support() {
+	public static function data_position_block_support() {
 		return array(
 			'sticky position style is applied' => array(
 				'theme_name'        => 'block-theme-child-with-fluid-typography',
