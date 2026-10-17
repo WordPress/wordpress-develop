@@ -75,7 +75,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * These are valid custom elements but we don't support them yet.
 	 *
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @link https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 */
 	public function data_unsupported_valid_tag_names() {
 		return array(
@@ -143,7 +143,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * These are invalid custom elements but we support them right now in order to keep the parser simpler.
 	 *
-	 * @see https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
+	 * @link https://w3c.github.io/webcomponents/spec/custom/#valid-custom-element-name
 	 */
 	public function data_supported_invalid_tag_names() {
 		return array(
