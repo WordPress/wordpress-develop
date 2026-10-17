@@ -41,8 +41,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -53,8 +53,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -65,8 +65,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-beforehead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-beforehead
 	 *
 	 * @var string
 	 */
@@ -77,8 +77,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inhead
 	 *
 	 * @var string
 	 */
@@ -89,8 +89,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 *
 	 * @var string
 	 */
@@ -101,8 +101,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-afterhead
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterhead
 	 *
 	 * @var string
 	 */
@@ -113,8 +113,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.4.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @var string
 	 */
@@ -125,8 +125,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 *
 	 * @var string
 	 */
@@ -137,8 +137,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 *
 	 * @var string
 	 */
@@ -149,8 +149,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 *
 	 * @var string
 	 */
@@ -161,8 +161,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incolumngroup
 	 *
 	 * @var string
 	 */
@@ -173,8 +173,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intablebody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intablebody
 	 *
 	 * @var string
 	 */
@@ -185,8 +185,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inrow
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inrow
 	 *
 	 * @var string
 	 */
@@ -197,8 +197,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-incell
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-incell
 	 *
 	 * @var string
 	 */
@@ -237,8 +237,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 *
 	 * @var string
 	 */
@@ -249,8 +249,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 *
 	 * @var string
 	 */
@@ -261,8 +261,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 *
 	 * @var string
 	 */
@@ -273,8 +273,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 *
 	 * @var string
 	 */
@@ -285,8 +285,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 *
 	 * @var string
 	 */
@@ -297,8 +297,8 @@ class WP_HTML_Processor_State {
 	 *
 	 * @since 6.7.0
 	 *
-	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 * @see WP_HTML_Processor_State::$insertion_mode
+	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 *
 	 * @var string
 	 */

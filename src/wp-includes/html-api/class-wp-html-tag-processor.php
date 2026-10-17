@@ -4514,9 +4514,9 @@ class WP_HTML_Tag_Processor {
 	 *               as “tag-name-terminating characters.” This sequence forms the start
 	 *               of what could be a SCRIPT opening or closing tag.
 	 *
+	 * @see wp_html_api_script_element_escaping_diagram_source()
 	 * @link https://html.spec.whatwg.org/#restrictions-for-contents-of-script-elements
 	 * @link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#specifications
-	 * @see wp_html_api_script_element_escaping_diagram_source()
 	 *
 	 * @since 7.0.0
 	 * @ignore
