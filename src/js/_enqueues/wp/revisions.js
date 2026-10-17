@@ -1122,11 +1122,37 @@ window.wp = window.wp || {};
 	revisions.view.Diff = wp.Backbone.View.extend({
 		className: 'revisions-diff',
 		template:  wp.template('revisions-diff'),
-
+		events: {
+			'click .button-copy': 'copyContent',
+		},
 		// Generate the options to be passed to the template.
 		prepare: function() {
 			return _.extend({ fields: this.model.fields.toJSON() }, this.options );
-		}
+		},
+		copyContent: function(e) {
+			const button = e.currentTarget;
+			const side = button.getAttribute('data-side');
+			const fields = this.model.fields.toJSON();
+			if (side === 'left') {
+				navigator.clipboard.writeText(fields[1].from.post_content).then(() => {
+					button.value = wp.i18n.__('Copied');
+					button.disabled = true;
+                    setTimeout( () => {
+                        button.value = wp.i18n.__('Copy');
+						button.disabled = false;
+                    }, 5000 );
+				});
+			} else if (side === 'right') {
+				navigator.clipboard.writeText(fields[1].to.post_content).then(() => {
+					button.value = wp.i18n.__('Copied');
+					button.disabled = true;
+                    setTimeout( () => {
+                        button.value = wp.i18n.__('Copy');
+						button.disabled = false;
+                    }, 5000 );
+				});
+			}
+		},
 	});
 
 	// The revisions router.
