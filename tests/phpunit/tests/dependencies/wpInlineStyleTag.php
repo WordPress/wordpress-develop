@@ -52,18 +52,16 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter() {
-		$filtered_data = null;
-
 		add_filter(
 			'wp_inline_style_attributes',
-			static function ( array $attributes, string $data ) use ( &$filtered_data ) {
+			static function ( array $attributes ) {
 				$attributes['nonce'] = 'test-nonce';
-				$filtered_data       = $data;
 				return $attributes;
-			},
-			10,
-			2
+			}
 		);
+
+		$filter = new MockAction();
+		add_filter( 'wp_inline_style_attributes', array( $filter, 'filter' ), 20, 2 );
 
 		$expected = <<<'HTML'
 			<style nonce="test-nonce">
@@ -73,7 +71,15 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 			HTML;
 
 		$this->assertEqualHTML( $expected, wp_get_inline_style_tag( $this->get_test_css() ) );
-		$this->assertSame( "\n{$this->get_test_css()}\n", $filtered_data );
+		$this->assertSame(
+			array(
+				array(
+					array( 'nonce' => 'test-nonce' ),
+					"\n{$this->get_test_css()}\n",
+				),
+			),
+			$filter->get_args()
+		);
 	}
 
 	/**
@@ -84,20 +90,14 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	 * @ticket 51325
 	 */
 	public function test_inline_style_attributes_filter_receives_escaped_data() {
-		$filtered_data = null;
-
-		add_filter(
-			'wp_inline_style_attributes',
-			static function ( array $attributes, string $data ) use ( &$filtered_data ) {
-				$filtered_data = $data;
-				return $attributes;
-			},
-			10,
-			2
-		);
+		$filter = new MockAction();
+		add_filter( 'wp_inline_style_attributes', array( $filter, 'filter' ), 10, 2 );
 
 		$processor = new WP_HTML_Tag_Processor( wp_get_inline_style_tag( 'a::after { content: "</style>"; }' ) );
 
+		$this->assertSame( 1, $filter->get_call_count(), 'Expected the filter to be called once.' );
+		$filtered_data = $filter->get_args()[0][1];
+		$this->assertIsString( $filtered_data, 'Expected the filtered data to be a string.' );
 		$this->assertTrue( $processor->next_tag( 'STYLE' ), 'Expected a STYLE tag.' );
 		$this->assertStringNotContainsString( '</style>', $filtered_data, 'Expected the filtered data to be escaped.' );
 		$this->assertSame( $processor->get_modifiable_text(), $filtered_data );
