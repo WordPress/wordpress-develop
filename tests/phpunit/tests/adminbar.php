@@ -345,6 +345,102 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 38636
+	 *
+	 * @dataProvider data_admin_bar_nodes_with_attribute_meta
+	 *
+	 * @param array  $node_data     The data for a node, passed to `WP_Admin_Bar::add_node()`.
+	 * @param string $expected_html The expected HTML when admin menu is rendered.
+	 */
+	public function test_admin_bar_with_attribute_meta( $node_data, $expected_html ) {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node( $node_data );
+		$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+		$this->assertStringContainsString( $expected_html, $admin_bar_html );
+	}
+
+	/**
+	 * Data provider for test_admin_bar_with_attribute_meta().
+	 *
+	 * @return array[]
+	 */
+	public function data_admin_bar_nodes_with_attribute_meta() {
+		return array(
+			'hreflang on a link'               => array(
+				array(
+					'id'   => 'test-node',
+					'href' => 'https://example.org/nl/',
+					'meta' => array( 'hreflang' => 'nl' ),
+				),
+				"<a class='ab-item' role=\"menuitem\" href='https://example.org/nl/' hreflang='nl'>",
+			),
+			'hreflang without a link'          => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'hreflang' => 'nl' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem">',
+			),
+			'aria-describedby'                 => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'aria-describedby' => 'test-description' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem" aria-describedby=\'test-description\'>',
+			),
+			'data attribute'                   => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-test' => 'a "quoted" value' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem" data-test=\'a &quot;quoted&quot; value\'>',
+			),
+			'data attribute with 0'            => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-count' => 0 ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem" data-count=\'0\'>',
+			),
+			'data attribute with empty string' => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-flag' => '' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem" data-flag=\'\'>',
+			),
+			'data attribute with an array'     => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-list' => array( 'a' ) ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem">',
+			),
+			'data attribute with false'        => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-flag' => false ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem">',
+			),
+			'invalid data attribute name'      => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'data-x onmouseover' => 'alert(1)' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem">',
+			),
+			'other attribute is not added'     => array(
+				array(
+					'id'   => 'test-node',
+					'meta' => array( 'onmouseover' => 'alert(1)' ),
+				),
+				'<div class="ab-item ab-empty-item" role="menuitem">',
+			),
+		);
+	}
+
+	/**
 	 * @ticket 22247
 	 */
 	public function test_admin_bar_has_edit_link_for_existing_posts() {

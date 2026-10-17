@@ -109,6 +109,7 @@ class WP_Admin_Bar {
 	 * @since 3.1.0
 	 * @since 4.5.0 Added the ability to pass 'lang' and 'dir' meta data.
 	 * @since 6.5.0 Added the ability to pass 'menu_title' for an ARIA menu name.
+	 * @since 7.2.0 Added the ability to pass 'hreflang', 'aria-describedby' and 'data-*' meta data.
 	 *
 	 * @param array $args {
 	 *     Arguments for adding a node.
@@ -119,7 +120,8 @@ class WP_Admin_Bar {
 	 *     @type string $href   Optional. Link for the item.
 	 *     @type bool   $group  Optional. Whether or not the node is a group. Default false.
 	 *     @type array  $meta   Meta data including the following keys: 'html', 'class', 'rel', 'lang', 'dir',
-	 *                          'onclick', 'target', 'title', 'tabindex', 'menu_title'. Default empty.
+	 *                          'onclick', 'target', 'title', 'tabindex', 'menu_title', 'hreflang' (links only),
+	 *                          'aria-describedby', and any 'data-*' attribute. Default empty.
 	 * }
 	 */
 	public function add_node( $args ) {
@@ -578,10 +580,10 @@ class WP_Admin_Bar {
 		echo "<li role='group' id='" . esc_attr( 'wp-admin-bar-' . $node->id ) . "'$menuclass>";
 
 		if ( $has_link ) {
-			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
+			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir', 'hreflang', 'aria-describedby' );
 			echo "<a class='ab-item'$aria_attributes href='" . esc_url( $node->href ) . "'";
 		} else {
-			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir' );
+			$attributes = array( 'onclick', 'target', 'title', 'rel', 'lang', 'dir', 'aria-describedby' );
 			echo '<div class="ab-item ab-empty-item"' . $aria_attributes;
 		}
 
@@ -594,6 +596,13 @@ class WP_Admin_Bar {
 				echo " $attribute='" . esc_js( $node->meta[ $attribute ] ) . "'";
 			} else {
 				echo " $attribute='" . esc_attr( $node->meta[ $attribute ] ) . "'";
+			}
+		}
+
+		// Data attributes with a valid name. Values such as '0' and '' are kept.
+		foreach ( (array) $node->meta as $attribute => $value ) {
+			if ( is_string( $attribute ) && preg_match( '/^data-[a-z0-9_.-]+$/i', $attribute ) && is_scalar( $value ) && false !== $value ) {
+				echo " $attribute='" . esc_attr( $value ) . "'";
 			}
 		}
 
