@@ -797,4 +797,138 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 		$this->assertNotContains( 'test/ability-beta', $names );
 		$this->assertNotContains( 'other/ability-gamma', $names );
 	}
+
+	// -------------------------------------------------------------------------
+	// Current user capabilities filter
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Registers abilities with and without required capabilities.
+	 */
+	private function register_abilities_with_required_capabilities(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/admin-only',
+			array(
+				'permission_callback'   => null,
+				'required_capabilities' => array( 'manage_options' ),
+			)
+		);
+		$this->register_test_ability(
+			'test/editor-and-up',
+			array(
+				'permission_callback'   => null,
+				'required_capabilities' => array( 'edit_others_posts' ),
+			)
+		);
+		$this->register_test_ability(
+			'test/input-dependent',
+			array(
+				'permission_callback' => static function (): bool {
+					return false;
+				},
+			)
+		);
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter excludes abilities whose declared capabilities the current user lacks.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_excludes_missing_capabilities(): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
+
+		$this->assertArrayNotHasKey( 'test/admin-only', $result );
+		$this->assertArrayHasKey( 'test/editor-and-up', $result );
+		$this->assertArrayHasKey( 'test/input-dependent', $result, 'Abilities without required capabilities should stay in the result.' );
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter keeps abilities whose declared capabilities the current user has.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_includes_all_for_administrator(): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
+
+		$this->assertArrayHasKey( 'test/admin-only', $result );
+		$this->assertArrayHasKey( 'test/editor-and-up', $result );
+		$this->assertArrayHasKey( 'test/input-dependent', $result );
+	}
+
+	/**
+	 * Tests that abilities are not filtered by capabilities unless the caller asks for it.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_is_off_by_default(): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( 0 );
+
+		$result = wp_get_abilities();
+
+		$this->assertArrayHasKey( 'test/admin-only', $result );
+		$this->assertArrayHasKey( 'test/editor-and-up', $result );
+		$this->assertArrayHasKey( 'test/input-dependent', $result );
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter doesn't call permission callbacks.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_does_not_call_permission_callbacks(): void {
+		$this->simulate_wp_abilities_init();
+
+		$callback_calls = 0;
+		$this->register_test_ability(
+			'test/tracked',
+			array(
+				'required_capabilities' => array( 'read' ),
+				'permission_callback'   => static function () use ( &$callback_calls ): bool {
+					++$callback_calls;
+					return true;
+				},
+			)
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
+
+		$this->assertArrayHasKey( 'test/tracked', $result );
+		$this->assertSame( 0, $callback_calls );
+	}
+
+	/**
+	 * Tests that the has_required_capabilities filter runs before item_include_callback.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_runs_before_item_include_callback(): void {
+		$this->register_abilities_with_required_capabilities();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$seen   = array();
+		$result = wp_get_abilities(
+			array(
+				'namespace'                 => 'test',
+				'has_required_capabilities' => true,
+				'item_include_callback'     => static function ( WP_Ability $ability ) use ( &$seen ): bool {
+					$seen[] = $ability->get_name();
+					return true;
+				},
+			)
+		);
+
+		$this->assertSame( array( 'test/input-dependent' ), $seen );
+		$this->assertSame( array( 'test/input-dependent' ), array_keys( $result ) );
+	}
 }

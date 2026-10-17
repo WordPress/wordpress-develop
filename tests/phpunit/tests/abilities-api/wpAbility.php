@@ -2126,4 +2126,333 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$this->assertSame( 'raw value', $result, 'Input should reach the execute callback unmodified (no sanitization).' );
 		$this->assertFalse( $callback_invoked, 'Schema sanitize_callback must not run.' );
 	}
+
+	/**
+	 * Returns the test ability properties with required capabilities and no permission callback.
+	 *
+	 * @param string[] $capabilities The required capabilities.
+	 * @return array<string, mixed> The ability properties.
+	 */
+	private function get_properties_with_required_capabilities( array $capabilities ): array {
+		$args = self::$test_ability_properties;
+		unset( $args['permission_callback'] );
+		$args['required_capabilities'] = $capabilities;
+
+		return $args;
+	}
+
+	/**
+	 * Tests that required capabilities default to an empty array.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::get_required_capabilities
+	 */
+	public function test_required_capabilities_default_to_empty_array() {
+		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
+
+		$this->assertSame( array(), $ability->get_required_capabilities() );
+	}
+
+	/**
+	 * Tests that null required capabilities are treated as an empty array.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 * @covers WP_Ability::get_required_capabilities
+	 */
+	public function test_null_required_capabilities_default_to_empty_array() {
+		$args                          = self::$test_ability_properties;
+		$args['required_capabilities'] = null;
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( array(), $ability->get_required_capabilities() );
+	}
+
+	/**
+	 * Tests that an ability can declare required capabilities without a permission callback.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 * @covers WP_Ability::get_required_capabilities
+	 */
+	public function test_required_capabilities_replace_permission_callback() {
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			$this->get_properties_with_required_capabilities( array( 'edit_posts', 'manage_options' ) )
+		);
+
+		$this->assertSame( array( 'edit_posts', 'manage_options' ), $ability->get_required_capabilities() );
+	}
+
+	/**
+	 * Tests that an empty list of required capabilities doesn't replace the permission callback.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_empty_required_capabilities_without_permission_callback_throws_exception() {
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties must provide a valid `permission_callback` function or a non-empty `required_capabilities` list.' );
+
+		new WP_Ability( self::$test_ability_name, $this->get_properties_with_required_capabilities( array() ) );
+	}
+
+	/**
+	 * Tests that an invalid permission callback throws even when required capabilities are set.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 */
+	public function test_invalid_permission_callback_with_required_capabilities_throws_exception() {
+		$args                        = $this->get_properties_with_required_capabilities( array( 'read' ) );
+		$args['permission_callback'] = 'not_a_callable_function';
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties must provide a valid `permission_callback` function.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Data provider for invalid required capabilities.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_required_capabilities(): array {
+		return array(
+			'string'           => array( 'manage_options' ),
+			'empty string'     => array( array( '' ) ),
+			'whitespace only'  => array( array( " \t" ) ),
+			'non-string'       => array( array( 'read', 1 ) ),
+			'associative'      => array( array( 'cap' => 'manage_options' ) ),
+			'non-sequential'   => array( array( 1 => 'manage_options' ) ),
+			'nested array'     => array( array( array( 'manage_options' ) ) ),
+			'boolean'          => array( true ),
+			'null in the list' => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * Tests that invalid required capabilities throw an exception.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::prepare_properties
+	 *
+	 * @dataProvider data_invalid_required_capabilities
+	 *
+	 * @param mixed $capabilities The invalid required capabilities.
+	 */
+	public function test_invalid_required_capabilities_throw_exception( $capabilities ) {
+		$args                          = self::$test_ability_properties;
+		$args['required_capabilities'] = $capabilities;
+
+		$this->expectException( InvalidArgumentException::class );
+		$this->expectExceptionMessage( 'The ability properties should provide a valid `required_capabilities` list of non-empty strings.' );
+
+		new WP_Ability( self::$test_ability_name, $args );
+	}
+
+	/**
+	 * Tests that check_permissions() grants access when the user has all required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_grants_when_user_has_required_capabilities() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			$this->get_properties_with_required_capabilities( array( 'edit_posts', 'manage_options' ) )
+		);
+
+		$this->assertTrue( $ability->check_permissions() );
+	}
+
+	/**
+	 * Tests that check_permissions() denies access when the user misses one required capability.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_denies_when_user_misses_a_required_capability() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			$this->get_properties_with_required_capabilities( array( 'edit_posts', 'manage_options' ) )
+		);
+
+		$this->assertFalse( $ability->check_permissions() );
+	}
+
+	/**
+	 * Tests that the permission callback doesn't run when a required capability is missing.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_skips_permission_callback_when_capability_is_missing() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$callback_calls                = 0;
+		$args                          = self::$test_ability_properties;
+		$args['required_capabilities'] = array( 'manage_options' );
+		$args['permission_callback']   = static function () use ( &$callback_calls ): bool {
+			++$callback_calls;
+			return true;
+		};
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse( $ability->check_permissions() );
+		$this->assertSame( 0, $callback_calls, 'The permission callback should not run when a required capability is missing.' );
+	}
+
+	/**
+	 * Tests that the permission callback runs with the input when all required capabilities pass.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_runs_permission_callback_after_required_capabilities() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$args                          = self::$test_ability_properties;
+		$args['input_schema']          = array( 'type' => 'integer' );
+		$args['required_capabilities'] = array( 'manage_options' );
+		$args['permission_callback']   = static function ( int $input ) {
+			return 7 === $input ? true : new WP_Error( 'wrong_input', 'Wrong input.' );
+		};
+
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertTrue( $ability->check_permissions( 7 ) );
+
+		$result = $ability->check_permissions( 3 );
+		$this->assertWPError( $result );
+		$this->assertSame( 'wrong_input', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that the wp_ability_permission_result filter fires when a required capability is missing.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_permission_result_filter_can_grant_missing_required_capability() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$filter = static function ( $permission, $ability_name ) {
+			if ( false === $permission && self::$test_ability_name === $ability_name ) {
+				return true;
+			}
+			return $permission;
+		};
+
+		add_filter( 'wp_ability_permission_result', $filter, 10, 2 );
+
+		$ability = new WP_Ability(
+			self::$test_ability_name,
+			$this->get_properties_with_required_capabilities( array( 'manage_options' ) )
+		);
+		$result  = $ability->execute();
+
+		remove_filter( 'wp_ability_permission_result', $filter, 10 );
+
+		$this->assertSame( 0, $result, 'The filter should be able to grant a missing required capability.' );
+	}
+
+	/**
+	 * Creates an ability with a custom class, which skips the base class's callback validation.
+	 *
+	 * @param array<string, mixed> $args The ability properties.
+	 * @return WP_Ability The ability instance.
+	 */
+	private function create_custom_class_ability( array $args ): WP_Ability {
+		return new class( self::$test_ability_name, $args ) extends WP_Ability {};
+	}
+
+	/**
+	 * Tests that check_permissions() returns an error when a custom class has neither a
+	 * permission callback nor required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_custom_class_without_permission_callback_or_capabilities() {
+		$args = self::$test_ability_properties;
+		unset( $args['permission_callback'] );
+
+		$result = $this->create_custom_class_ability( $args )->check_permissions();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that check_permissions() returns an error when a custom class has a permission
+	 * callback that is not callable and no required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_custom_class_with_invalid_permission_callback() {
+		$args                        = self::$test_ability_properties;
+		$args['permission_callback'] = 'not_a_callable_function';
+
+		$result = $this->create_custom_class_ability( $args )->check_permissions();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that check_permissions() doesn't grant access when a custom class has a permission
+	 * callback that is not callable, even if the user has all required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_custom_class_with_invalid_permission_callback_and_capabilities() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$args                        = $this->get_properties_with_required_capabilities( array( 'manage_options' ) );
+		$args['permission_callback'] = 'not_a_callable_function';
+
+		$result = $this->create_custom_class_ability( $args )->check_permissions();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'ability_invalid_permission_callback', $result->get_error_code() );
+	}
+
+	/**
+	 * Tests that check_permissions() works for a custom class with only required capabilities.
+	 *
+	 * @ticket 66325
+	 *
+	 * @covers WP_Ability::check_permissions
+	 */
+	public function test_check_permissions_custom_class_with_required_capabilities_only() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$ability = $this->create_custom_class_ability( $this->get_properties_with_required_capabilities( array( 'manage_options' ) ) );
+
+		$this->assertTrue( $ability->check_permissions() );
+	}
 }
