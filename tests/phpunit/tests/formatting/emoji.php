@@ -6,8 +6,16 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/17.0.2/72x72/';
-	private $svg_cdn = 'https://s.w.org/images/core/emoji/17.0.2/svg/';
+	private $png_cdn;
+	private $svg_cdn;
+
+	public function set_up() {
+		parent::set_up();
+
+		// Emoji image assets are now served locally from wp-includes.
+		$this->png_cdn = includes_url( 'images/emoji/72x72/' );
+		$this->svg_cdn = includes_url( 'images/emoji/svg/' );
+	}
 
 	/**
 	 * Tests that the emoji detection script is hooked onto the front end footer
@@ -336,6 +344,9 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	}
 
 	public function data_wp_staticize_emoji() {
+		// Data providers run before set_up(), so compute the local base URL here.
+		$png_cdn = includes_url( 'images/emoji/72x72/' );
+
 		$data = array(
 			array(
 				// Not emoji.
@@ -345,22 +356,22 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 			array(
 				// Simple emoji.
 				'🙂',
-				'<img src="' . $this->png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $png_cdn . '1f642.png" alt="🙂" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Skin tone, gender, ZWJ, emoji selector.
 				'👮🏼‍♀️',
-				'<img src="' . $this->png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $png_cdn . '1f46e-1f3fc-200d-2640-fe0f.png" alt="👮🏼‍♀️" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Unicode 10.
 				'🧚',
-				'<img src="' . $this->png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $png_cdn . '1f9da.png" alt="🧚" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 			array(
 				// Hairy creature (Unicode 17).
 				'🫈',
-				'<img src="' . $this->png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
+				'<img src="' . $png_cdn . '1fac8.png" alt="🫈" class="wp-smiley" style="height: 1em; max-height: 1em;" />',
 			),
 		);
 
