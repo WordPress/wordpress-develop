@@ -4,10 +4,11 @@
  * Tests for get_the_tags().
  *
  * @group taxonomy
+ * @group category
  *
  * @covers ::get_the_tags
  */
-class Tests_Term_GetTheTags extends WP_UnitTestCase {
+class Tests_Category_GetTheTags extends WP_UnitTestCase {
 
 	/**
 	 * Tag object.
