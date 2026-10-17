@@ -7257,8 +7257,8 @@ function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.V
  *
  * @since 3.0.0
  *
- * @link https://blogs.msdn.com/ie/archive/2008/07/02/ie8-security-part-v-comprehensive-protection.aspx
- * @link https://src.chromium.org/viewvc/chrome?view=rev&revision=6985
+ * @link https://learn.microsoft.com/en-us/archive/blogs/ie/ie8-security-part-v-comprehensive-protection
+ * @link https://fetch.spec.whatwg.org/#x-content-type-options-header
  */
 function send_nosniff_header() {
 	header( 'X-Content-Type-Options: nosniff' );
