@@ -15,7 +15,7 @@ class Tests_Media_wpIsDocumentIsolationPolicySupported extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+		$this->original_user_agent = isset( $_SERVER['HTTP_USER_AGENT'] ) && is_string( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : null;
 	}
 
 	public function tear_down() {
