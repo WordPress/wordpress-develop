@@ -31,7 +31,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		wp_redirect( $location, $status );
 	}
 
-	public function data_wp_redirect_bad_status_code() {
+	public static function data_wp_redirect_bad_status_code() {
 		return array(
 			// Tests for bad arguments.
 			array( '/wp-admin', 404 ),
@@ -84,7 +84,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_validate_redirect( $url ) );
 	}
 
-	public function data_wp_validate_redirect_valid_url() {
+	public static function data_wp_validate_redirect_valid_url() {
 		return array(
 			array( 'http://example.com', 'http://example.com' ),
 			array( 'http://example.com/', 'http://example.com/' ),
@@ -112,7 +112,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_validate_redirect( $url, false ) );
 	}
 
-	public function data_wp_validate_redirect_invalid_url() {
+	public static function data_wp_validate_redirect_invalid_url() {
 		return array(
 			// parse_url() fails.
 			array( '', '' ),
@@ -221,7 +221,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 *      string Expected destination.
 	 * }
 	 */
-	public function data_wp_validate_redirect_relative_url() {
+	public static function data_wp_validate_redirect_relative_url() {
 		return array(
 			array(
 				'/',
