@@ -2649,6 +2649,81 @@ function wp_get_note_mentioned_user_ids( string $content ): array {
 }
 
 /**
+ * Unwraps the mention chips in note content.
+ *
+ * An @mention is stored as `<span class="wp-note-mention user-N">@Name</span>`.
+ * The chip is unwrapped, opener and closer, so the name stays and the markup
+ * goes. Whether a `<span>` is a chip is read from its class names, so
+ * `wp-note-mention` inside another class name or in the text does not count.
+ *
+ * The content is parsed by the {@see WP_HTML_Processor} and written back token
+ * by token without the chips, the way {@see WP_HTML_Processor::serialize()} writes a
+ * document, as the HTML API has no public way to remove a tag. The rest of the
+ * content therefore comes back normalized rather than byte for byte: tag names
+ * in lower case, attributes double quoted, an unclosed tag closed and a stray
+ * closer dropped. Text is written back with only `&`, `<` and `>` as entities,
+ * which {@see wp_specialchars_decode()} turns back into the text the author typed.
+ * Content the processor cannot parse to the end is returned as stored, chips
+ * included, rather than cut short.
+ *
+ * @since 7.2.0
+ *
+ * @param string $content Note content, as stored.
+ * @return string The content with the mention chips unwrapped.
+ */
+function wp_unwrap_note_mentions( string $content ): string {
+	if ( ! str_contains( $content, 'wp-note-mention' ) ) {
+		return $content;
+	}
+
+	$processor = WP_HTML_Processor::create_fragment( $content );
+	if ( null === $processor ) {
+		return $content;
+	}
+
+	/*
+	 * A stack of the open `<span>` elements, true for a chip, pairs each chip
+	 * opener with its own closer: the processor visits the closers in nesting
+	 * order and closes an unclosed element itself at the end.
+	 */
+	$span_stack = array();
+	$unwrapped  = '';
+	while ( $processor->next_token() ) {
+		if ( 'SPAN' === $processor->get_tag() ) {
+			if ( $processor->is_tag_closer() ) {
+				$is_mention = array_pop( $span_stack );
+			} else {
+				$is_mention   = true === $processor->has_class( 'wp-note-mention' );
+				$span_stack[] = $is_mention;
+			}
+
+			if ( true === $is_mention ) {
+				continue;
+			}
+		}
+
+		if ( '#text' === $processor->get_token_type() ) {
+			/*
+			 * The processor's own serialization also turns the quotes into
+			 * entities, which wp_specialchars_decode() leaves as they are, so
+			 * they would show up as entities in the email.
+			 */
+			$unwrapped .= htmlspecialchars( $processor->get_modifiable_text(), ENT_NOQUOTES | ENT_SUBSTITUTE | ENT_HTML5, 'UTF-8' );
+			continue;
+		}
+
+		$unwrapped .= $processor->serialize_token();
+	}
+
+	// Cut short by markup the processor does not support, or by an incomplete tag.
+	if ( null !== $processor->get_last_error() || $processor->paused_at_incomplete_token() ) {
+		return $content;
+	}
+
+	return $unwrapped;
+}
+
+/**
  * Notifies mentioned users about a new note.
  *
  * Runs on {@see 'rest_insert_comment'} alongside the post author notification.
