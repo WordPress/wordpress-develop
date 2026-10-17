@@ -4657,8 +4657,8 @@ function wp_hoist_late_printed_styles(): void {
  *
  * @since 6.9.0
  *
- * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_html_custom_data_attribute_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $html_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if interpretable as a custom data attribute, else `null`.
@@ -4735,8 +4735,8 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
  *
  * @since 6.9.0
  *
- * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_js_dataset_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $js_dataset_name Name of JS `dataset` property to transform.
  * @return string|null Corresponding name of an HTML custom data attribute for the given dataset name,

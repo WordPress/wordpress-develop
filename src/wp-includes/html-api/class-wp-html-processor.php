@@ -1563,8 +1563,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-initial-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1636,8 +1636,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-before-html-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1734,8 +1734,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-before-head-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-before-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -1832,8 +1832,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/multipage/parsing.html#parsing-main-inhead
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2055,8 +2055,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inheadnoscript
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2159,8 +2159,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-after-head-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-head-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -2304,8 +2304,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3370,8 +3370,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 * @see WP_HTML_Processor::step_in_body
+	 * @link https://html.spec.whatwg.org/#parsing-main-inbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3422,8 +3422,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intable
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3680,8 +3680,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intabletext
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3700,8 +3700,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-incaption
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3785,8 +3785,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-incolgroup
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-incolgroup
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3894,8 +3894,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -3998,8 +3998,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intr
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intr
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4109,8 +4109,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intd
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intd
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4214,8 +4214,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-intemplate
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4346,8 +4346,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterbody
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4437,8 +4437,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inframeset
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4559,8 +4559,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-afterframeset
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4647,8 +4647,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-after-body-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4712,8 +4712,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#the-after-after-frameset-insertion-mode
 	 *
 	 * @return bool Whether an element was found.
 	 */
@@ -4783,8 +4783,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 *
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
-	 * @link https://html.spec.whatwg.org/#parsing-main-inforeign
 	 * @see WP_HTML_Processor::step
+	 * @link https://html.spec.whatwg.org/#parsing-main-inforeign
 	 *
 	 * @return bool Whether an element was found.
 	 */

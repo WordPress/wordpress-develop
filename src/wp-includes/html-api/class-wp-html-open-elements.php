@@ -25,8 +25,8 @@
  * @access private
  * @ignore
  *
- * @link https://html.spec.whatwg.org/#stack-of-open-elements
  * @see WP_HTML_Processor
+ * @link https://html.spec.whatwg.org/#stack-of-open-elements
  */
 class WP_HTML_Open_Elements {
 	/**
