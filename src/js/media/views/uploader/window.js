@@ -55,7 +55,7 @@ UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.pr
 
 	ready: function() {
 		var postId = wp.media.view.settings.post.id,
-			dropzone;
+			dropzone, blockDrop;
 
 		// If the uploader already exists, bail.
 		if ( this.uploader ) {
@@ -71,7 +71,44 @@ UploaderWindow = wp.media.View.extend(/** @lends wp.media.view.UploaderWindow.pr
 		dropzone.on( 'dropzone:enter', _.bind( this.show, this ) );
 		dropzone.on( 'dropzone:leave', _.bind( this.hide, this ) );
 
+		// Ignore files dragged onto states that don't support uploading, e.g. cropping.
+		// Listen in the capture phase to run before the uploader's own drag and drop handlers.
+		blockDrop = _.bind( this.blockDrop, this );
+		dropzone.each( function() {
+			var element = this;
+
+			_.each( [ 'dragenter', 'dragover', 'drop' ], function( type ) {
+				element.addEventListener( type, blockDrop, true );
+			} );
+		} );
+
 		$( this.uploader ).on( 'uploader:ready', _.bind( this._ready, this ) );
+	},
+
+	/**
+	 * Prevents dropping files when the current state doesn't support uploading.
+	 *
+	 * States opt out of uploading by setting their `uploader` attribute to false.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {DragEvent} event The drag event.
+	 */
+	blockDrop: function( event ) {
+		var state = this.controller.state();
+
+		if ( ! state || false !== state.get( 'uploader' ) ) {
+			return;
+		}
+
+		// Only block files; other content, such as text, can still be dragged.
+		if ( ! event.dataTransfer || -1 === _.indexOf( event.dataTransfer.types, 'Files' ) ) {
+			return;
+		}
+
+		event.stopPropagation();
+		event.preventDefault();
+		event.dataTransfer.dropEffect = 'none';
 	},
 
 	_ready: function() {

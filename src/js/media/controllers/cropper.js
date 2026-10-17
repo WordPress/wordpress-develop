@@ -20,6 +20,7 @@ Cropper = wp.media.controller.State.extend(/** @lends wp.media.controller.Croppe
 		toolbar:     'crop',
 		content:     'crop',
 		router:      false,
+		uploader:    false,
 		canSkipCrop: false,
 
 		// Default doCrop Ajax arguments to allow the Customizer (for example) to inject state.
