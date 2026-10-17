@@ -50,6 +50,11 @@ define( 'ARRAY_N', 'ARRAY_N' );
  * @link https://developer.wordpress.org/reference/classes/wpdb/
  *
  * @since 0.71
+ *
+ * @property-read string            $dbuser Database username.
+ * @property-read string            $dbname Database name.
+ * @property-read string            $dbhost Database host.
+ * @property-read mysqli|false|null $dbh    Database handle.
  */
 #[AllowDynamicProperties]
 class wpdb {
