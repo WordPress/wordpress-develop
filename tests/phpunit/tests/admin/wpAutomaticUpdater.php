@@ -766,18 +766,8 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 * @covers WP_Automatic_Updater::send_plugin_theme_email
 	 */
 	public function test_send_plugin_theme_email_should_include_fatal_error_details(): void {
-		$message = null;
-		add_filter(
-			'wp_mail',
-			/**
-			 * @param array{ message: string, ... } $args
-			 * @return array{ message: string, ... }
-			 */
-			static function ( array $args ) use ( &$message ): array {
-				$message = $args['message'];
-				return $args;
-			}
-		);
+		$filter = new MockAction();
+		add_filter( 'wp_mail', array( $filter, 'filter' ) );
 
 		$fatal_error = 'PHP Fatal error: Uncaught Error: Call to undefined function failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12';
 
@@ -798,10 +788,15 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		self::$send_plugin_theme_email->invokeArgs( self::$updater, array( 'fail', array(), array( 'plugin' => $failed ) ) );
 
-		$this->assertIsString( $message, 'An email should have been sent.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'An email should have been sent.' );
+
+		$mail_args = $filter->get_args()[0][0];
+		$this->assertIsArray( $mail_args );
+		$this->assertArrayHasKey( 'message', $mail_args );
+		$this->assertIsString( $mail_args['message'] );
 		$this->assertStringContainsString(
 			"- Failed Plugin (from version 1.0.0 to 2.0.0)\n  {$fatal_error}\n",
-			$message,
+			$mail_args['message'],
 			'The fatal error should be listed under the plugin that failed to update.'
 		);
 	}
