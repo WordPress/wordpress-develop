@@ -28,13 +28,3 @@ parameters:
 			identifier: offsetAccess.notFound
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-themes-list-table.php
-		-
-			message: '#^Offset ''basedir'' does not exist on string\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: ../../../src/wp-includes/fonts.php
-		-
-			message: '#^Offset ''baseurl'' does not exist on string\.$#'
-			identifier: offsetAccess.notFound
-			count: 2
-			path: ../../../src/wp-includes/fonts.php
