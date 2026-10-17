@@ -262,9 +262,7 @@ function wp_delete_site( $site_id ) {
 
 	if ( is_site_meta_supported() ) {
 		$blog_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->blogmeta WHERE blog_id = %d ", $old_site->id ) );
-		foreach ( $blog_meta_ids as $mid ) {
-			delete_metadata_by_mid( 'blog', $mid );
-		}
+		bulk_delete_metadata_by_mid( 'blog', $blog_meta_ids );
 	}
 
 	if ( false === $wpdb->delete( $wpdb->blogs, array( 'blog_id' => $old_site->id ) ) ) {

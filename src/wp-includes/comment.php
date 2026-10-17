@@ -1610,9 +1610,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 
 	// Delete metadata.
 	$meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->commentmeta WHERE comment_id = %d", $comment->comment_ID ) );
-	foreach ( $meta_ids as $mid ) {
-		delete_metadata_by_mid( 'comment', $mid );
-	}
+	bulk_delete_metadata_by_mid( 'comment', $meta_ids );
 
 	if ( ! $wpdb->delete( $wpdb->comments, array( 'comment_ID' => $comment->comment_ID ) ) ) {
 		return false;

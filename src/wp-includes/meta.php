@@ -1166,6 +1166,106 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 }
 
 /**
+ * Deletes multiple metadata entries by meta ID.
+ *
+ * Fetches and deletes all entries with one query each, instead of two queries
+ * per entry when calling delete_metadata_by_mid() in a loop. The same filters
+ * and actions fire for each entry as in delete_metadata_by_mid().
+ *
+ * @since 7.3.0
+ *
+ * @see delete_metadata_by_mid()
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $meta_type Type of object metadata is for. Accepts 'blog', 'post', 'comment', 'term',
+ *                          'user', or any other object type with an associated meta table.
+ * @param int[]  $meta_ids  IDs of the meta rows to delete.
+ * @return bool True if at least one entry was deleted, false otherwise.
+ */
+function bulk_delete_metadata_by_mid( $meta_type, $meta_ids ) {
+	global $wpdb;
+
+	if ( ! $meta_type || ! is_array( $meta_ids ) ) {
+		return false;
+	}
+
+	$table = _get_meta_table( $meta_type );
+	if ( ! $table ) {
+		return false;
+	}
+
+	// Object and ID columns.
+	$column    = sanitize_key( $meta_type . '_id' );
+	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+
+	$deleted     = false;
+	$ids_to_drop = array();
+
+	foreach ( $meta_ids as $meta_id ) {
+		if ( ! is_numeric( $meta_id ) || floor( $meta_id ) != $meta_id || (int) $meta_id <= 0 ) {
+			continue;
+		}
+
+		$meta_id = (int) $meta_id;
+
+		/** This filter is documented in wp-includes/meta.php */
+		$check = apply_filters( "delete_{$meta_type}_metadata_by_mid", null, $meta_id );
+		if ( null !== $check ) {
+			$deleted = $deleted || (bool) $check;
+			continue;
+		}
+
+		$ids_to_drop[ $meta_id ] = $meta_id;
+	}
+
+	if ( ! $ids_to_drop ) {
+		return $deleted;
+	}
+
+	$metas = $wpdb->get_results( "SELECT * FROM $table WHERE $id_column IN ( " . implode( ',', $ids_to_drop ) . ' )' );
+	if ( ! $metas ) {
+		return $deleted;
+	}
+
+	foreach ( $metas as $meta ) {
+		$meta->meta_value = maybe_unserialize( $meta->meta_value );
+		$meta_id          = (int) $meta->{$id_column};
+
+		/** This action is documented in wp-includes/meta.php */
+		do_action( "delete_{$meta_type}_meta", (array) $meta_id, (int) $meta->{$column}, $meta->meta_key, $meta->meta_value );
+
+		// Old-style action.
+		if ( 'post' === $meta_type || 'comment' === $meta_type ) {
+			/** This action is documented in wp-includes/meta.php */
+			do_action( "delete_{$meta_type}meta", $meta_id );
+		}
+	}
+
+	$found_ids = array_map( 'intval', wp_list_pluck( $metas, $id_column ) );
+
+	$count = $wpdb->query( "DELETE FROM $table WHERE $id_column IN ( " . implode( ',', $found_ids ) . ' )' );
+
+	// Clear the caches.
+	wp_cache_delete_multiple( array_unique( wp_list_pluck( $metas, $column ) ), $meta_type . '_meta' );
+
+	foreach ( $metas as $meta ) {
+		$meta_id = (int) $meta->{$id_column};
+
+		/** This action is documented in wp-includes/meta.php */
+		do_action( "deleted_{$meta_type}_meta", (array) $meta_id, (int) $meta->{$column}, $meta->meta_key, $meta->meta_value );
+
+		// Old-style action.
+		if ( 'post' === $meta_type || 'comment' === $meta_type ) {
+			/** This action is documented in wp-includes/meta.php */
+			do_action( "deleted_{$meta_type}meta", $meta_id );
+		}
+	}
+
+	return $deleted || (bool) $count;
+}
+
+/**
  * Updates the metadata cache for the specified objects.
  *
  * @since 2.9.0

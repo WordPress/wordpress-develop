@@ -2257,9 +2257,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	}
 
 	$term_meta_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_id FROM $wpdb->termmeta WHERE term_id = %d ", $term ) );
-	foreach ( $term_meta_ids as $mid ) {
-		delete_metadata_by_mid( 'term', $mid );
-	}
+	bulk_delete_metadata_by_mid( 'term', $term_meta_ids );
 
 	/**
 	 * Fires immediately before a term taxonomy ID is deleted.
