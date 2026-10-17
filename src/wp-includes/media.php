@@ -6851,9 +6851,16 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 
 	wp_enqueue_script( $handle );
 
+	$settings    = wp_get_media_library_upload_settings();
+	$js_function = <<<'JS'
+		( settings ) => {
+			window._wpMediaUploadPipelineSettings = settings;
+		}
+		JS;
+
 	wp_add_inline_script(
 		'media-upload-pipeline',
-		'window._wpMediaUploadPipelineSettings = ' . wp_json_encode( wp_get_media_library_upload_settings() ) . ';',
+		sprintf( '( %s )( %s );', $js_function, wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) ),
 		'before'
 	);
 }
