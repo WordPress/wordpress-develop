@@ -4583,36 +4583,25 @@ function wp_hoist_late_printed_styles(): void {
 			};
 
 			/*
-			 * The CSS of the placeholder STYLE tags, keyed by the name of the bookmark for each. They are located by
-			 * their CSS rather than by their IDs, since the IDs may have been changed by the 'wp_inline_style_attributes'
-			 * filter.
+			 * The CSS of the placeholder STYLE tags, by which they are located below. They are not located by their IDs,
+			 * since the IDs may have been changed by the 'wp_inline_style_attributes' filter.
 			 */
-			$style_placeholders = array(
-				/** This is added in {@see wp_enqueue_global_styles()} */
-				'wp_global_styles_placeholder' => ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }',
-
-				/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
-				'wp_block_styles_placeholder'  => ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }',
-
-				// This is added to the wp-block-library inline style above.
-				'wp_block_library'             => $placeholder,
-			);
+			$global_styles_placeholder = ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }';
+			$block_styles_placeholder  = ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }';
 
 			// Locate the insertion points in the HEAD.
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
 				if ( 'STYLE' === $processor->get_tag() ) {
-					// Once all placeholders have been located, avoid needlessly reading the CSS of the remaining STYLE tags.
-					if ( count( $style_placeholders ) === 0 ) {
-						continue;
-					}
-
 					$style_text = $processor->get_modifiable_text();
-					foreach ( $style_placeholders as $bookmark_name => $style_placeholder ) {
-						if ( str_contains( $style_text, $style_placeholder ) ) {
-							$processor->set_bookmark( $bookmark_name );
-							unset( $style_placeholders[ $bookmark_name ] );
-							break;
-						}
+					if ( str_contains( $style_text, $global_styles_placeholder ) ) {
+						/** This is added in {@see wp_enqueue_global_styles()} */
+						$processor->set_bookmark( 'wp_global_styles_placeholder' );
+					} elseif ( str_contains( $style_text, $block_styles_placeholder ) ) {
+						/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
+						$processor->set_bookmark( 'wp_block_styles_placeholder' );
+					} elseif ( str_contains( $style_text, $placeholder ) ) {
+						// This is added to the wp-block-library inline style above.
+						$processor->set_bookmark( 'wp_block_library' );
 					}
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
