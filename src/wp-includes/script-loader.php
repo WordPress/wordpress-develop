@@ -3678,10 +3678,10 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  *
  * @param string                     $data       CSS for the style tag.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
- * @return string HTML style tag containing the provided CSS or the empty string `""` if the CSS cannot be safely embedded in a style tag.
+ * @return string HTML style tag containing the provided CSS. Any `</style` in the CSS is escaped as `\3c\2fstyle`.
  *
  * @phpstan-param array<non-falsy-string, string|bool> $attributes
- * @phpstan-return non-falsy-string|''
+ * @phpstan-return non-falsy-string
  */
 function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	$data = "\n" . trim( (string) $data, " \t\f\r\n" ) . "\n";
@@ -3689,10 +3689,11 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
 	$processor->next_tag();
 
-	// Set the text first so the filter receives the CSS as it will be printed, which may differ from $data after escaping.
-	if ( ! $processor->set_modifiable_text( $data ) ) {
-		return '';
-	}
+	/*
+	 * Set the text first so the filter receives the CSS as it will be printed, which may differ from $data after escaping.
+	 * This cannot fail for a STYLE tag, since any closing tag in the CSS is escaped rather than rejected.
+	 */
+	$processor->set_modifiable_text( $data );
 
 	/**
 	 * Filters attributes to be added to an inline style tag.
