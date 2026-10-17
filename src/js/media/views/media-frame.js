@@ -45,9 +45,11 @@ MediaFrame = Frame.extend(/** @lends wp.media.view.MediaFrame.prototype */{
 
 		// Initialize modal container view.
 		if ( this.options.modal ) {
+			// The frame renders its own close button after the title, see `tmpl-media-frame`.
 			this.modal = new wp.media.view.Modal({
-				controller: this,
-				title:      this.options.title
+				controller:     this,
+				title:          this.options.title,
+				hasCloseButton: false
 			});
 
 			this.modal.content( this );
