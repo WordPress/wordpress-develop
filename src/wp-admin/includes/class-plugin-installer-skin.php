@@ -152,12 +152,6 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 				self_admin_url( 'plugin-install.php' ),
 				__( 'Go to Plugin Installer' )
 			);
-		} elseif ( 'upload' === $this->type && 'plugins' === $from ) {
-			$install_actions['plugins_page'] = sprintf(
-				'<a href="%s">%s</a>',
-				self_admin_url( 'plugin-install.php' ),
-				__( 'Go to Plugin Installer' )
-			);
 		} else {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
