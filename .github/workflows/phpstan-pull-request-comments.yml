@@ -309,7 +309,8 @@ jobs:
                 );
               }
 
-              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
+              // The errors tracked are taken in the order they are listed, so that each one listed keeps its history.
+              const tracked = [ ...unignorable, ...ignorable ].slice( 0, trackedLimit ).concat( resolved ).map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
                 { key, file, line, message, identifier, ignorable, introduced, seen, fixed }
               ) );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
