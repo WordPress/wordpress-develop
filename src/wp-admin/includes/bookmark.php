@@ -56,6 +56,8 @@ function edit_link( $link_id = 0 ) {
  * @since 2.0.0
  *
  * @return stdClass Default link object.
+ *
+ * @phpstan-return object{link_url: string, link_name: string, link_visible: 'Y'}&stdClass
  */
 function get_default_link_to_edit() {
 	$link = new stdClass();
@@ -122,6 +124,8 @@ function wp_delete_link( $link_id ) {
  *
  * @param int $link_id Link ID to look up.
  * @return int[]|WP_Error The IDs of the requested link's categories, or else a WP_Error if the `link_category` taxonomy was unregistered.
+ *
+ * @phpstan-return array<int, int<1, max>>|WP_Error
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
