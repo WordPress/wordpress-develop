@@ -142,11 +142,12 @@ final class WP_oEmbed_Controller {
 	 * Checks if current user can make a proxy oEmbed request.
 	 *
 	 * @since 4.8.0
+	 * @since 7.2.0 Uses the `embed_url` meta capability instead of `edit_posts`.
 	 *
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_proxy_item_permissions_check() {
-		if ( ! current_user_can( 'edit_posts' ) ) {
+		if ( ! current_user_can( 'embed_url' ) ) {
 			return new WP_Error( 'rest_forbidden', __( 'Sorry, you are not allowed to make proxied oEmbed requests.' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 		return true;
