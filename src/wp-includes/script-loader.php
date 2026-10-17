@@ -4599,9 +4599,12 @@ function wp_hoist_late_printed_styles(): void {
 					$processor->set_bookmark( 'wp_block_styles_placeholder' );
 				} elseif (
 					'STYLE' === $processor->get_tag() &&
-					'wp-block-library-inline-css' === $processor->get_attribute( 'id' )
+					str_contains( $processor->get_modifiable_text(), $placeholder )
 				) {
-					/** This is added here in {@see wp_hoist_late_printed_styles()} */
+					/*
+					 * The placeholder is added to the wp-block-library inline style above. It is located by the placeholder
+					 * rather than by the ID, since the ID may have been changed by the 'wp_inline_style_attributes' filter.
+					 */
 					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
@@ -4663,7 +4666,18 @@ function wp_hoist_late_printed_styles(): void {
 				if ( '' === trim( $css_text ) ) {
 					$processor->remove();
 				} else {
-					$processor->set_modifiable_text( $css_text );
+					/*
+					 * Rebuild the STYLE tag rather than only replacing its text, so that the 'wp_inline_style_attributes'
+					 * filter runs again with the CSS as it is now printed. Otherwise, any attribute derived from the CSS,
+					 * such as a hash for a Content Security Policy, would no longer match it. The trailing newline is
+					 * removed since the newline which followed the original tag remains in the buffer.
+					 */
+					$processor->replace(
+						rtrim(
+							wp_get_inline_style_tag( $css_text, array( 'id' => 'wp-block-library-inline-css' ) ),
+							"\n"
+						)
+					);
 				}
 
 				$inserted_after            = $printed_core_block_styles;
