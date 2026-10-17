@@ -74,17 +74,11 @@ jobs:
             // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
             // current head is the commit that the run was for. That also discards the results of a run that was
             // overtaken by a newer push.
-            //
-            // Line numbers belong to the commit that was analyzed, which is the pull request merged into its base
-            // branch, so the current errors link to that commit. It is not checked against the pull request, since
-            // linking to some other commit in this repository would show nothing that the pull request could not
-            // already put in its own commits.
             const asString = ( value ) => ( typeof value === 'string' ? value : null );
             const asSha = ( value ) => ( typeof value === 'string' && /^[0-9a-f]{40}$/.test( value ) ? value : null );
             const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
             const issue_number = results.pull_request;
-            const analyzedSha = asSha( results.analyzed_sha );
-            if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! analyzedSha || ! Array.isArray( results.errors ) ) {
+            if ( ! Number.isSafeInteger( issue_number ) || issue_number <= 0 || ! Array.isArray( results.errors ) ) {
               core.setFailed( 'The analysis results are malformed.' );
               return;
             }
@@ -98,6 +92,12 @@ jobs:
               core.info( `Pull request #${ issue_number } is not open, so the results are not reported.` );
               return;
             }
+
+            // Line numbers belong to the commit that was analyzed, which is the pull request merged into its base
+            // branch, so the current errors link to that commit. The commit is only trusted when it is the pull
+            // request's current merge commit, which also confirms the base branch it was merged into. Otherwise, as
+            // when the base branch has moved on since the analysis, locations are shown without links.
+            const analyzedSha = pr.merge_commit_sha && results.analyzed_sha === pr.merge_commit_sha ? pr.merge_commit_sha : null;
 
             const normalize = ( error ) => ( {
               file: asString( error.file ),
@@ -180,14 +180,15 @@ jobs:
 
             const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
 
-            // A current error links to its line in the commit that was analyzed. A resolved error is not linked: its line
-            // number belongs to a merge commit that was since replaced, and no other commit is sure to have the file.
+            // A current error links to its line in the commit that was analyzed, if that commit is known. A resolved
+            // error is not linked: its line number belongs to a merge commit that was since replaced, and no other
+            // commit is sure to have the file.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
               }
               const label = code( error.line ? `${ error.file }:${ error.line }` : error.file );
-              if ( error.fixed || ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
+              if ( ! analyzedSha || error.fixed || ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
                 return label;
               }
               return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ analyzedSha }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
@@ -225,7 +226,7 @@ jobs:
               const sections = [ marker, '## PHPStan Static Analysis' ];
 
               if ( active.length > 0 ) {
-                sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) } merged into ${ code( pr.base.ref ) } as ${ commit( analyzedSha ) } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
+                sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) }${ analyzedSha ? ` merged into ${ code( pr.base.ref ) } as ${ commit( analyzedSha ) }` : '' } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
               } else {
                 // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
                 const resolvedBy = resolved.at( -1 )?.fixed ?? run.head_sha;
