@@ -645,6 +645,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 'Sample content', $data['content']['raw'] );
 		$this->assertSame( 'publish', $data['status'] );
 		$this->assertSame( self::$editor_id, $data['author'] );
+		$this->assertSame( $page->post_excerpt, $data['excerpt']['raw'] );
+		$this->assertSame( 0, $data['parent'] );
+		$this->assertSame( 0, $data['menu_order'] );
 
 		$links = test_rest_expand_compact_links( $response->get_links() );
 		$this->assertSame( rest_url( sprintf( 'wp/v2/pages/%d', $page_id ) ), $links['self'][0]['href'] );
