@@ -132,10 +132,11 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		} elseif ( is_numeric( $s ) && empty( $wild ) ) {
 			$args['ID'] = $s;
 		} else {
-			$args['search'] = $s;
+			$args['search']         = $s;
+			$args['search_columns'] = array( 'domain', 'path', 'blogname' );
 
 			if ( ! is_subdomain_install() ) {
-				$args['search_columns'] = array( 'path' );
+				$args['search_columns'] = array( 'path', 'blogname' );
 			}
 		}
 

@@ -54,6 +54,13 @@ add_action( 'wp_initialize_site', 'newblog_notify_siteadmin', 100, 1 );
 add_action( 'wp_uninitialize_site', 'wp_uninitialize_site', 10, 1 );
 add_action( 'update_blog_public', 'wp_update_blog_public_option_on_site_update', 1, 2 );
 
+// Keep searchable site titles synchronized and populate existing sites during upgrades.
+add_action( 'add_option_blogname', '_wp_update_site_title', 10, 0 );
+add_action( 'update_option_blogname', '_wp_update_site_title', 10, 0 );
+add_action( 'delete_option_blogname', '_wp_update_site_title', 10, 0 );
+add_action( 'wp_upgrade', '_wp_update_site_title', 10, 0 );
+add_action( 'wpmu_upgrade_site', '_wp_update_site_title' );
+
 // Site meta.
 add_action( 'added_blog_meta', 'wp_cache_set_sites_last_changed' );
 add_action( 'updated_blog_meta', 'wp_cache_set_sites_last_changed' );

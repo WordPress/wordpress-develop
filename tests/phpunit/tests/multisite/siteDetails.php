@@ -89,8 +89,9 @@ class Tests_Multisite_SiteDetails extends WP_UnitTestCase {
 	 * @dataProvider data_allowed_options
 	 *
 	 * @ticket 40063
+	 * @ticket 58795
 	 */
-	public function test_update_allowed_option_does_not_update_sites_last_changed( $allowed_option, $temporary_value ) {
+	public function test_update_allowed_option_updates_sites_last_changed_only_for_site_title( $allowed_option, $temporary_value ) {
 		$last_changed = wp_cache_get_last_changed( 'sites' );
 
 		$original_value = get_option( $allowed_option );
@@ -101,7 +102,11 @@ class Tests_Multisite_SiteDetails extends WP_UnitTestCase {
 		/* Reset to original value. */
 		update_option( $allowed_option, $original_value );
 
-		$this->assertSame( $new_last_changed, $last_changed );
+		if ( 'blogname' === $allowed_option ) {
+			$this->assertNotSame( $new_last_changed, $last_changed );
+		} else {
+			$this->assertSame( $new_last_changed, $last_changed );
+		}
 	}
 
 	public function data_allowed_options() {
