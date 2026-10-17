@@ -137,6 +137,101 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 35805
+	 *
+	 * With 'reverse_top_level' => true, page 1 should start with the newest
+	 * comments: page numbering must follow the display order.
+	 */
+	public function test_paged_comments_should_follow_display_order_when_reversed() {
+		$p = self::factory()->post->create();
+
+		$comments = array();
+		$now      = time();
+		for ( $i = 0; $i <= 4; $i++ ) {
+			$comments[] = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $p,
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
+					'comment_author'   => 'Commenter ' . $i,
+				)
+			);
+		}
+
+		update_option( 'page_comments', true );
+		update_option( 'comments_per_page', 2 );
+
+		$this->go_to( get_permalink( $p ) );
+
+		// comments_template() populates $wp_query->comments.
+		get_echo( 'comments_template' );
+
+		// Page 1 of the reversed list contains the two newest comments.
+		$found1 = wp_list_comments(
+			array(
+				'reverse_top_level' => true,
+				'per_page'          => 2,
+				'page'              => 1,
+				'echo'              => false,
+			)
+		);
+		preg_match_all( '|id="comment\-([0-9]+)"|', $found1, $matches );
+		$this->assertSame( array( $comments[4], $comments[3] ), array_map( 'intval', $matches[1] ) );
+
+		// Page 2 of the reversed list contains the next two older comments.
+		$found2 = wp_list_comments(
+			array(
+				'reverse_top_level' => true,
+				'per_page'          => 2,
+				'page'              => 2,
+				'echo'              => false,
+			)
+		);
+		preg_match_all( '|id="comment\-([0-9]+)"|', $found2, $matches );
+		$this->assertSame( array( $comments[2], $comments[1] ), array_map( 'intval', $matches[1] ) );
+	}
+
+	/**
+	 * @ticket 35805
+	 *
+	 * Without reversal, paging is unchanged: page 1 shows the two oldest
+	 * comments in chronological order.
+	 */
+	public function test_paged_comments_should_be_unchanged_when_not_reversed() {
+		$p = self::factory()->post->create();
+
+		$comments = array();
+		$now      = time();
+		for ( $i = 0; $i <= 4; $i++ ) {
+			$comments[] = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $p,
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - $i ),
+					'comment_author'   => 'Commenter ' . $i,
+				)
+			);
+		}
+
+		update_option( 'page_comments', true );
+		update_option( 'comments_per_page', 2 );
+
+		$this->go_to( get_permalink( $p ) );
+
+		// comments_template() populates $wp_query->comments.
+		get_echo( 'comments_template' );
+
+		$found = wp_list_comments(
+			array(
+				'reverse_top_level' => false,
+				'per_page'          => 2,
+				'page'              => 1,
+				'echo'              => false,
+			)
+		);
+		preg_match_all( '|id="comment\-([0-9]+)"|', $found, $matches );
+		$this->assertSame( array( $comments[0], $comments[1] ), array_map( 'intval', $matches[1] ) );
+	}
+
+	/**
 	 * @ticket 35356
 	 * @ticket 35175
 	 */

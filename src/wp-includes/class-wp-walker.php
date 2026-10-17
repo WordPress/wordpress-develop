@@ -324,9 +324,6 @@ class Walker {
 		if ( -1 === $max_depth ) {
 			if ( ! empty( $args[0]['reverse_top_level'] ) ) {
 				$elements = array_reverse( $elements );
-				$oldstart = $start;
-				$start    = $total_top - $end;
-				$end      = $total_top - $oldstart;
 			}
 
 			$empty_array = array();
@@ -367,9 +364,6 @@ class Walker {
 
 		if ( ! empty( $args[0]['reverse_top_level'] ) ) {
 			$top_level_elements = array_reverse( $top_level_elements );
-			$oldstart           = $start;
-			$start              = $total_top - $end;
-			$end                = $total_top - $oldstart;
 		}
 		if ( ! empty( $args[0]['reverse_children'] ) ) {
 			foreach ( $children_elements as $parent => $children ) {
