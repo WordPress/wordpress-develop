@@ -945,8 +945,10 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
  *
  * @param WP_Comment $note       The most recent open note of the post.
  * @param int        $open_notes Optional. Number of open notes the post has. Default 1.
+ * 
+ * @phpstan-param non-negative-int $open_notes
  */
-function _wp_dashboard_recent_notes_row( $note, $open_notes = 1 ) {
+function _wp_dashboard_recent_notes_row( WP_Comment $note, int $open_notes = 1 ): void {
 	$note_post_id = (int) $note->comment_post_ID;
 
 	$time = strtotime( $note->comment_date_gmt . ' +0000' );
@@ -1205,8 +1207,10 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
  *
  * @param int $total_items Optional. Number of posts to display. Default 5.
  * @return bool False if no posts with open notes were found. True otherwise.
+ *
+ * @phpstan-param positive-int $total_items
  */
-function wp_dashboard_recent_notes( $total_items = 5 ) {
+function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 	/*
 	 * Replies are queried alongside the notes that start a thread, so that a
 	 * thread someone replied to counts as added to when it was replied to.
