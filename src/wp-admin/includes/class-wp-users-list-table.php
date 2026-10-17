@@ -303,9 +303,9 @@ class WP_Users_List_Table extends WP_List_Table {
 		?>
 	<div class="alignleft actions">
 		<?php if ( current_user_can( 'promote_users' ) && $this->has_items() ) : ?>
-		<label class="screen-reader-text" for="<?php echo $id; ?>">
+		<div class="tablenav-filter">
+		<label for="<?php echo $id; ?>">
 			<?php
-			/* translators: Hidden accessibility text. */
 			_e( 'Change role to&hellip;' );
 			?>
 		</label>
@@ -314,6 +314,7 @@ class WP_Users_List_Table extends WP_List_Table {
 			<?php wp_dropdown_roles(); ?>
 			<option value="none"><?php _e( '&mdash; No role for this site &mdash;' ); ?></option>
 		</select>
+		</div>
 			<?php
 			submit_button( __( 'Change' ), '', $button_id, false );
 		endif;

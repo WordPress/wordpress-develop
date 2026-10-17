@@ -720,4 +720,40 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'Select (no title) Hello world example excerpt.', $output );
 	}
+
+	/**
+	 * @ticket 63971
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
+	 */
+	public function test_filter_labels_are_visible() {
+		$post_id = self::factory()->post->create();
+		set_post_format( $post_id, 'aside' );
+
+		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+
+		ob_start();
+		$table->extra_tablenav( 'top' );
+		$output = ob_get_clean();
+
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter">\s*<label for="filter-by-date">Filter by date</label>\s*<select name="m" id="filter-by-date">#', $output );
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter">\s*<label for="cat">Filter by category</label>\s*<select\s+name=\'cat\' id=\'cat\'#', $output );
+		$this->assertMatchesRegularExpression( '#<div class="tablenav-filter">\s*<label for="filter-by-format">\s*Filter by post format\s*</label>\s*<select name="post_format" id="filter-by-format">#', $output );
+		$this->assertSame( 3, substr_count( $output, '<div class="tablenav-filter">' ), 'Each filter should have its own wrapper.' );
+		$this->assertStringNotContainsString( 'screen-reader-text', $output );
+	}
+
+	/**
+	 * @ticket 63971
+	 *
+	 * @covers WP_List_Table::bulk_actions
+	 */
+	public function test_bulk_actions_label_is_visible() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$table  = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
+		$output = get_echo( array( $table, 'bulk_actions' ), array( 'top' ) );
+
+		$this->assertStringContainsString( '<label for="bulk-action-selector-top">Bulk actions</label>', $output );
+	}
 }
