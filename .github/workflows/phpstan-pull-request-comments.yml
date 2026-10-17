@@ -101,6 +101,22 @@ jobs:
               ignorable: error.ignorable === true,
             } );
 
+            // Line numbers belong to the commit that was analyzed, which is the pull request merged into its base
+            // branch, so file links point to that commit. It is only trusted once it is confirmed to be a merge of the
+            // head commit; otherwise, the head commit is linked instead.
+            let analyzedSha = run.head_sha;
+            const reportedAnalyzedSha = asSha( results.analyzed_sha );
+            if ( reportedAnalyzedSha && reportedAnalyzedSha !== run.head_sha ) {
+              try {
+                const { data: analyzed } = await github.rest.git.getCommit( { owner, repo, commit_sha: reportedAnalyzedSha } );
+                if ( analyzed.parents.some( ( parent ) => parent.sha === run.head_sha ) ) {
+                  analyzedSha = reportedAnalyzedSha;
+                }
+              } catch ( error ) {
+                core.info( `The analyzed commit could not be confirmed, so files are linked at the head commit: ${ error.message }` );
+              }
+            }
+
             // An error is recognized from one run to the next by its file, identifier and message, but not its line,
             // which moves whenever lines above it are added or removed. The same error can occur more than once in a
             // file, so each occurrence is told apart by its position among the others, in line order.
@@ -117,8 +133,8 @@ jobs:
             const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
 
             // The history of the errors is kept in the comment itself, compressed into a hidden HTML comment: each
-            // error, the commit it was first reported for, the last commit it was reported for, and the commit that
-            // resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
+            // error, the commit it was first reported for, the commit that was analyzed when it was last reported, and
+            // the commit that resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
             const zlib = require( 'zlib' );
             const historyPattern = /<!-- phpstan-history:([A-Za-z0-9+\/=]+) -->/;
             let history = [];
@@ -131,10 +147,10 @@ jobs:
                     ...normalize( entry ),
                     key: asString( entry.key ),
                     introduced: asSha( entry.introduced ),
-                    seen: asSha( entry.seen ),
+                    analyzed: asSha( entry.analyzed ),
                     fixed: asSha( entry.fixed ),
                   } ) )
-                  .filter( ( entry ) => entry.key && entry.introduced && entry.seen );
+                  .filter( ( entry ) => entry.key && entry.introduced && entry.analyzed );
               } catch ( error ) {
                 core.warning( `The error history in the PHPStan comment could not be read, so it starts over: ${ error.message }` );
               }
@@ -146,7 +162,7 @@ jobs:
             const historyByKey = new Map( history.map( ( entry ) => [ entry.key, entry ] ) );
             const active = errors.map( ( error ) => {
               const before = historyByKey.get( error.key );
-              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, seen: run.head_sha, fixed: null };
+              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, analyzed: analyzedSha, fixed: null };
             } );
             const activeKeys = new Set( active.map( ( error ) => error.key ) );
             let resolved = [
@@ -176,8 +192,8 @@ jobs:
 
             const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
 
-            // A location links to the file as of the last commit the error was reported for, which is the one its
-            // line number belongs to.
+            // A location links to the file as of the commit that was analyzed when the error was last reported, which
+            // is the one its line number belongs to.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
@@ -186,7 +202,7 @@ jobs:
               if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
                 return label;
               }
-              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.seen }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.analyzed }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
             };
 
             const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
@@ -288,8 +304,8 @@ jobs:
                 );
               }
 
-              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
-                { key, file, line, message, identifier, ignorable, introduced, seen, fixed }
+              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, analyzed, fixed } ) => (
+                { key, file, line, message, identifier, ignorable, introduced, analyzed, fixed }
               ) );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
 
