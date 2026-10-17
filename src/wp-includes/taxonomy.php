@@ -3060,6 +3060,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 
 	if ( $new_tt_ids ) {
 		wp_update_term_count( $new_tt_ids, $taxonomy );
+		wp_cache_set_terms_last_changed();
 	}
 
 	if ( ! $append ) {
