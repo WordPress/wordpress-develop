@@ -117,6 +117,24 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
+	public function test_should_render_a_row_for_the_post() {
+		$post_id = $this->create_post( 'A post with notes' );
+		$this->create_note( $post_id, '0', 0, current_datetime()->modify( '-3 hours' )->format( 'Y-m-d H:i:s' ) );
+
+		list( , $output ) = $this->render();
+
+		$this->assertMatchesRegularExpression(
+			sprintf(
+				'#<li>\s*<span>3 hours ago</span>\s*<a href="%s" aria-label="Edit &\#8220;A post with notes&\#8221;">A post with notes</a>\s*<span class="open-notes-count">1 open note</span>\s*</li>#',
+				preg_quote( esc_url( get_edit_post_link( $post_id ) ), '#' )
+			),
+			$output
+		);
+	}
+
+	/**
+	 * @ticket 65890
+	 */
 	public function test_should_render_one_row_per_post_with_its_open_note_count() {
 		$older_id = $this->create_post( 'An older post' );
 		$this->create_note( $older_id, '0', 0, '2026-01-01 10:00:00' );
@@ -139,8 +157,8 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 
 		$this->assertTrue( $returned );
 		$this->assertSame( array( 'A newer post', 'An older post' ), $this->get_linked_titles( $output ) );
-		$this->assertMatchesRegularExpression( '#A newer post</a> <span class="open-notes-count">1 open note</span>#', $output );
-		$this->assertMatchesRegularExpression( '#An older post</a> <span class="open-notes-count">2 open notes</span>#', $output );
+		$this->assertMatchesRegularExpression( '#A newer post</a>\s*<span class="open-notes-count">1 open note</span>#', $output );
+		$this->assertMatchesRegularExpression( '#An older post</a>\s*<span class="open-notes-count">2 open notes</span>#', $output );
 	}
 
 	/**
@@ -168,6 +186,29 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 		list( , $output ) = $this->render();
 
 		$this->assertSame( array( 'A post of their own' ), $this->get_linked_titles( $output ) );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_skip_posts_without_an_edit_link() {
+		$this->create_note( $this->create_post( 'A post with an edit link' ), '0', 0, '2026-01-01 10:00:00' );
+
+		$unlinked_id = $this->create_post( 'A post without an edit link' );
+		$this->create_note( $unlinked_id, '0', 0, '2026-01-02 10:00:00' );
+
+		add_filter(
+			'get_edit_post_link',
+			static function ( $link, $post_id ) use ( $unlinked_id ) {
+				return $unlinked_id === $post_id ? '' : $link;
+			},
+			10,
+			2
+		);
+
+		list( , $output ) = $this->render( 1 );
+
+		$this->assertSame( array( 'A post with an edit link' ), $this->get_linked_titles( $output ) );
 	}
 
 	/**

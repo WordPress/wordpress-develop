@@ -936,49 +936,6 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 }
 
 /**
- * Outputs a row for the Recent Notes widget. Notes are implemented as a type of comment.
- *
- * Each row represents a post with open notes, not an individual note.
- *
- * @access private
- * @since 7.2.0
- *
- * @param WP_Comment $note       The most recent open note of the post.
- * @param int        $open_notes Optional. Number of open notes the post has. Default 1.
- * 
- * @phpstan-param non-negative-int $open_notes
- */
-function _wp_dashboard_recent_notes_row( WP_Comment $note, int $open_notes = 1 ): void {
-	$note_post_id = (int) $note->comment_post_ID;
-
-	$time = strtotime( $note->comment_date_gmt . ' +0000' );
-
-	$note_post_title = _draft_or_post_title( $note_post_id );
-
-	// The post may have been deleted since the note was queried.
-	$note_post_link = get_edit_post_link( $note_post_id );
-
-	if ( ! $note_post_link ) {
-		return;
-	}
-
-	printf(
-		'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a> <span class="open-notes-count">%5$s</span></li>',
-		/* translators: %s: Human-readable time difference. */
-		sprintf( __( '%s ago' ), human_time_diff( $time ) ),
-		esc_url( $note_post_link ),
-		/* translators: %s: Post title. */
-		esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title ) ),
-		$note_post_title,
-		sprintf(
-			/* translators: %s: Number of open notes. */
-			_n( '%s open note', '%s open notes', $open_notes ),
-			number_format_i18n( $open_notes )
-		)
-	);
-}
-
-/**
  * Outputs the Activity widget.
  *
  * Callback function for {@see 'dashboard_activity'}.
@@ -1284,8 +1241,11 @@ function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 				}
 			}
 
-			// Notes are only visible to users who can edit the post they belong to.
-			if ( ! current_user_can( 'edit_post', $note_post_id ) ) {
+			/*
+			 * Notes are only visible to users who can edit the post they belong to,
+			 * and each row links to the post's edit screen.
+			 */
+			if ( ! current_user_can( 'edit_post', $note_post_id ) || ! get_edit_post_link( $note_post_id ) ) {
 				continue;
 			}
 
@@ -1324,16 +1284,35 @@ function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 		);
 	}
 
-	echo '<div id="latest-notes" class="activity-block">';
-	echo '<h3>' . __( 'Recent Notes' ) . '</h3>';
+	?>
+	<div id="latest-notes" class="activity-block">
+		<h3><?php _e( 'Recent Notes' ); ?></h3>
+		<ul>
+		<?php
+		foreach ( $latest_notes as $note_post_id => $note ) :
+			$note_post_title = _draft_or_post_title( $note_post_id );
 
-	echo '<ul>';
-	foreach ( $latest_notes as $note_post_id => $note ) {
-		_wp_dashboard_recent_notes_row( $note, $open_notes[ $note_post_id ] );
-	}
-	echo '</ul>';
+			/* translators: %s: Human-readable time difference. */
+			$note_time_diff = sprintf( __( '%s ago' ), human_time_diff( strtotime( $note->comment_date_gmt . ' +0000' ) ) );
 
-	echo '</div>';
+			/* translators: %s: Post title. */
+			$note_post_label = sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title );
+
+			$note_count = sprintf(
+				/* translators: %s: Number of open notes. */
+				_n( '%s open note', '%s open notes', $open_notes[ $note_post_id ] ),
+				number_format_i18n( $open_notes[ $note_post_id ] )
+			);
+			?>
+			<li>
+				<span><?php echo $note_time_diff; ?></span>
+				<a href="<?php echo esc_url( get_edit_post_link( $note_post_id ) ); ?>" aria-label="<?php echo esc_attr( $note_post_label ); ?>"><?php echo $note_post_title; ?></a>
+				<span class="open-notes-count"><?php echo $note_count; ?></span>
+			</li>
+		<?php endforeach; ?>
+		</ul>
+	</div>
+	<?php
 
 	return true;
 }
