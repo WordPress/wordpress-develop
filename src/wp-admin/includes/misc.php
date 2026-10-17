@@ -1506,18 +1506,18 @@ All at ###SITENAME###
 	 */
 	$content = apply_filters( 'new_admin_email_content', $email_text, $new_admin_email );
 
-	$current_user = wp_get_current_user();
-	$content      = str_replace( '###USERNAME###', $current_user->user_login, $content );
-	$content      = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash=' . $hash ) ), $content );
-	$content      = str_replace( '###EMAIL###', $value, $content );
-	$content      = str_replace( '###SITENAME###', wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $content );
-	$content      = str_replace( '###SITEURL###', home_url(), $content );
-
 	if ( '' !== get_option( 'blogname' ) ) {
 		$site_title = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	} else {
 		$site_title = parse_url( home_url(), PHP_URL_HOST );
 	}
+
+	$current_user = wp_get_current_user();
+	$content      = str_replace( '###USERNAME###', $current_user->user_login, $content );
+	$content      = str_replace( '###ADMIN_URL###', esc_url( self_admin_url( 'options.php?adminhash=' . $hash ) ), $content );
+	$content      = str_replace( '###EMAIL###', $value, $content );
+	$content      = str_replace( '###SITENAME###', $site_title, $content );
+	$content      = str_replace( '###SITEURL###', home_url(), $content );
 
 	$subject = sprintf(
 		/* translators: New admin email address notification email subject. %s: Site title. */

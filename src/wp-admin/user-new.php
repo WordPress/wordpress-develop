@@ -142,7 +142,7 @@ Please click the following link to confirm the invite:
 			);
 			$new_user_email['message'] = sprintf(
 				$message,
-				get_option( 'blogname' ),
+				$site_title,
 				home_url(),
 				wp_specialchars_decode( translate_user_role( $role['name'] ) ),
 				home_url( "/newbloguser/$newuser_key/" )
