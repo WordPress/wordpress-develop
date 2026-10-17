@@ -1180,6 +1180,108 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		)
 	);
 
+	return _wp_handle_download_response( $response, $tmpfname, $url, $signature_verification );
+}
+
+/**
+ * Downloads multiple URLs to local temporary files concurrently using the WordPress HTTP API.
+ *
+ * Please note that the calling function must delete or move the files.
+ *
+ * @since 7.2.0
+ *
+ * @param string[] $urls                   An array of URLs to download, optionally keyed by an identifier.
+ * @param int      $timeout                Optional. The timeout for the requests to download the files.
+ *                                         Default 300 seconds.
+ * @param bool     $signature_verification Optional. Whether to perform Signature Verification.
+ *                                         Default false.
+ * @return array<array-key, string|WP_Error> An array of results keyed identically to $urls. Each element
+ *                                           is the path to the downloaded temporary file on success,
+ *                                           or a WP_Error on failure.
+ */
+function download_url_multiple( array $urls, $timeout = 300, $signature_verification = false ) {
+	if ( empty( $urls ) ) {
+		return array();
+	}
+
+	$results    = array();
+	$requests   = array();
+	$temp_files = array();
+
+	foreach ( $urls as $id => $url ) {
+		if ( ! $url ) {
+			$results[ $id ] = new WP_Error( 'http_no_url', __( 'No URL Provided.' ) );
+			continue;
+		}
+
+		$url_path     = parse_url( $url, PHP_URL_PATH );
+		$url_filename = '';
+		if ( is_string( $url_path ) && '' !== $url_path ) {
+			$url_filename = basename( $url_path );
+		}
+
+		$tmpfname = wp_tempnam( $url_filename );
+		if ( ! $tmpfname ) {
+			$results[ $id ] = new WP_Error( 'http_no_file', __( 'Could not create temporary file.' ) );
+			continue;
+		}
+
+		$temp_files[ $id ] = $tmpfname;
+		$requests[ $id ]   = array(
+			'url'  => $url,
+			'args' => array(
+				'timeout'  => $timeout,
+				'stream'   => true,
+				'filename' => $tmpfname,
+			),
+		);
+	}
+
+	if ( ! empty( $requests ) ) {
+		if ( function_exists( 'wp_safe_remote_request_multiple' ) ) {
+			$responses = wp_safe_remote_request_multiple( $requests );
+		} else {
+			$responses = array();
+			foreach ( $requests as $id => $request ) {
+				$responses[ $id ] = wp_safe_remote_get( $request['url'], $request['args'] );
+			}
+		}
+
+		foreach ( $responses as $id => $response ) {
+			$results[ $id ] = _wp_handle_download_response(
+				$response,
+				$temp_files[ $id ],
+				$urls[ $id ],
+				$signature_verification
+			);
+		}
+	}
+
+	// Preserve original key ordering.
+	$ordered_results = array();
+	foreach ( array_keys( $urls ) as $id ) {
+		$ordered_results[ $id ] = $results[ $id ];
+	}
+
+	return $ordered_results;
+}
+
+/**
+ * Processes a downloaded file response, handling HTTP status verification,
+ * content disposition renaming, MIME validation, and signature verification.
+ *
+ * For internal use by download_url() and download_url_multiple().
+ *
+ * @access private
+ * @since 7.2.0
+ *
+ * @param array|WP_Error $response               The HTTP response or WP_Error.
+ * @param string         $tmpfname               The temporary file path where the stream was written.
+ * @param string         $url                    The URL that was requested.
+ * @param bool           $signature_verification Whether signature verification should be performed.
+ * @return string|WP_Error The path to the verified temporary file, or WP_Error on failure.
+ */
+function _wp_handle_download_response( $response, $tmpfname, $url, $signature_verification = false ) {
 	if ( is_wp_error( $response ) ) {
 		unlink( $tmpfname );
 		return $response;
@@ -1288,6 +1390,12 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 
 	// Perform signature validation if supported.
 	if ( $signature_verification ) {
+		$url_path     = parse_url( $url, PHP_URL_PATH );
+		$url_filename = '';
+		if ( is_string( $url_path ) && '' !== $url_path ) {
+			$url_filename = basename( $url_path );
+		}
+
 		$signature = wp_remote_retrieve_header( $response, 'X-Content-Signature' );
 
 		if ( ! $signature ) {
