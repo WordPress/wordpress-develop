@@ -3730,8 +3730,7 @@ function wp_filesize( $path ): int {
  * @since 2.8.6
  *
  * @param int|WP_User $user Optional. User to check. Defaults to current user.
- * @return string[] Array of mime types keyed by the file extension regex corresponding
- *                  to those types.
+ * @return array<string, string> Array of mime types keyed by the file extension regex corresponding to those types.
  */
 function get_allowed_mime_types( $user = null ) {
 	$t = wp_get_mime_types();
@@ -3750,8 +3749,8 @@ function get_allowed_mime_types( $user = null ) {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param array            $t    Mime types keyed by the file extension regex corresponding to those types.
-	 * @param int|WP_User|null $user User ID, User object or null if not provided (indicates current user).
+	 * @param array<string, string> $t    Mime types keyed by the file extension regex corresponding to those types.
+	 * @param int|WP_User|null      $user User ID, User object or null if not provided (indicates current user).
 	 */
 	return apply_filters( 'upload_mimes', $t, $user );
 }
