@@ -756,4 +756,53 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 
 		$this->assertFalse( $updater_mock->is_vcs_checkout( get_temp_dir() ) );
 	}
+
+	/**
+	 * Tests that {@see WP_Automatic_Updater::send_plugin_theme_email()} lists the details of a
+	 * fatal error under the plugin whose update was rolled back.
+	 *
+	 * @ticket 64155
+	 *
+	 * @covers WP_Automatic_Updater::send_plugin_theme_email
+	 */
+	public function test_send_plugin_theme_email_should_include_fatal_error_details(): void {
+		$message = null;
+		add_filter(
+			'wp_mail',
+			/**
+			 * @param array{ message: string, ... } $args
+			 * @return array{ message: string, ... }
+			 */
+			static function ( array $args ) use ( &$message ): array {
+				$message = $args['message'];
+				return $args;
+			}
+		);
+
+		$fatal_error = 'PHP Fatal error: Uncaught Error: Call to undefined function failed_plugin_init() in wp-content/plugins/failed-plugin/failed-plugin.php on line 12';
+
+		$result = new WP_Error( 'plugin_update_fatal_error_rollback_successful', "The update for 'failed-plugin' contained a fatal error. The previously installed version has been restored." );
+		$result->add( 'plugin_update_fatal_error', $fatal_error );
+
+		$failed = array(
+			(object) array(
+				'name'   => 'Failed Plugin',
+				'result' => $result,
+				'item'   => (object) array(
+					'current_version' => '1.0.0',
+					'new_version'     => '2.0.0',
+					'plugin'          => 'failed-plugin/failed-plugin.php',
+				),
+			),
+		);
+
+		self::$send_plugin_theme_email->invokeArgs( self::$updater, array( 'fail', array(), array( 'plugin' => $failed ) ) );
+
+		$this->assertIsString( $message, 'An email should have been sent.' );
+		$this->assertStringContainsString(
+			"- Failed Plugin (from version 1.0.0 to 2.0.0)\n  {$fatal_error}\n",
+			$message,
+			'The fatal error should be listed under the plugin that failed to update.'
+		);
+	}
 }
