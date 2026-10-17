@@ -2914,10 +2914,13 @@ class wp_xmlrpc_server extends IXR_Server {
 		$users = get_users( $query );
 
 		$_users = array();
+
+		if ( is_multisite() && ! is_super_admin() ) {
+			$fields = array( 'basic' );
+		}
+
 		foreach ( $users as $user_data ) {
-			if ( current_user_can( 'edit_user', $user_data->ID ) ) {
-				$_users[] = $this->_prepare_user( $user_data, $fields );
-			}
+			$_users[] = $this->_prepare_user( $user_data, $fields );
 		}
 		return $_users;
 	}
