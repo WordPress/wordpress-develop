@@ -1648,6 +1648,55 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 			),
 
+			'block_library_inline_style_attributes_preserved' => array(
+				'set_up'            => static function () {
+					// Add an attribute to the block library inline style before wp_hoist_late_printed_styles() rebuilds it.
+					add_filter(
+						'wp_template_enhancement_output_buffer',
+						static function ( string $buffer ): string {
+							$processor = new WP_HTML_Tag_Processor( $buffer );
+							while ( $processor->next_tag( 'STYLE' ) ) {
+								if ( 'wp-block-library-inline-css' === $processor->get_attribute( 'id' ) ) {
+									$processor->set_attribute( 'data-preserved', 'yes' );
+								}
+							}
+							return $processor->get_updated_html();
+						},
+						0
+					);
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-separator-inline-css',
+							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$processor = new WP_HTML_Tag_Processor( $filtered_buffer );
+					$found     = false;
+					while ( $processor->next_tag( 'STYLE' ) ) {
+						if ( 'wp-block-library-inline-css' === $processor->get_attribute( 'id' ) ) {
+							$found = true;
+							$this->assertSame( 'yes', $processor->get_attribute( 'data-preserved' ), 'Expected the existing attribute to be preserved.' );
+						}
+					}
+					$this->assertTrue( $found, 'Expected the wp-block-library inline style to be present.' );
+				},
+			),
+
 			'inline_style_attributes_filter_changes_placeholder_ids' => array(
 				'set_up'            => static function () {
 					add_filter(

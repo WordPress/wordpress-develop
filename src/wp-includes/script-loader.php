@@ -3680,7 +3680,7 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
  * @return string HTML style tag containing the provided CSS. Any `</style` in the CSS is escaped as `\3c\2fstyle`.
  *
- * @phpstan-param array<non-falsy-string, string|bool> $attributes
+ * @phpstan-param array<non-empty-string, string|bool> $attributes
  * @phpstan-return non-falsy-string
  */
 function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
@@ -3743,7 +3743,7 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
  * @param string                     $data       CSS for the style tag.
  * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
  *
- * @phpstan-param array<non-falsy-string, string|bool> $attributes
+ * @phpstan-param array<non-empty-string, string|bool> $attributes
  */
 function wp_print_inline_style_tag( $data, array $attributes = array() ): void {
 	echo wp_get_inline_style_tag( $data, $attributes );
@@ -4662,12 +4662,20 @@ function wp_hoist_late_printed_styles(): void {
 					/*
 					 * Rebuild the STYLE tag rather than only replacing its text, so that the 'wp_inline_style_attributes'
 					 * filter runs again with the CSS as it is now printed. Otherwise, any attribute derived from the CSS,
-					 * such as a hash for a Content Security Policy, would no longer match it. The trailing newline is
-					 * removed since the newline which followed the original tag remains in the buffer.
+					 * such as a hash for a Content Security Policy, would no longer match it. The attributes already on
+					 * the tag are passed along so that they are preserved, while the filter may still override them. The
+					 * trailing newline is removed since the newline which followed the original tag remains in the buffer.
 					 */
+					$attributes = array();
+					foreach ( $processor->get_attribute_names_with_prefix( '' ) ?? array() as $attribute_name ) {
+						$attribute_value = $processor->get_attribute( $attribute_name );
+						if ( null !== $attribute_value ) {
+							$attributes[ $attribute_name ] = $attribute_value;
+						}
+					}
 					$processor->replace(
 						rtrim(
-							wp_get_inline_style_tag( $css_text, array( 'id' => 'wp-block-library-inline-css' ) ),
+							wp_get_inline_style_tag( $css_text, $attributes ),
 							"\n"
 						)
 					);
