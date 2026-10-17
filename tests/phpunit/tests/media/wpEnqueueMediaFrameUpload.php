@@ -27,7 +27,12 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 	 */
 	private $original_wp_scripts;
 
+	/**
+	 * @global WP_Scripts|null $wp_scripts
+	 */
 	public function set_up() {
+		global $wp_scripts;
+
 		parent::set_up();
 		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
 		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
@@ -48,8 +53,8 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 		 * from an admin context.
 		 */
 		set_current_screen( 'upload' );
-		$this->original_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
-		$GLOBALS['wp_scripts']     = new WP_Scripts();
+		$this->original_wp_scripts = $wp_scripts;
+		$wp_scripts                = new WP_Scripts();
 
 		// The screen was cross-origin isolated, as wp_set_up_cross_origin_isolation() records.
 		$GLOBALS['_wp_cross_origin_isolated'] = true;
