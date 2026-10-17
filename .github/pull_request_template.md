@@ -3,7 +3,7 @@ Hi there! Thanks for contributing to WordPress!
 
 Pull Requests in this GitHub repository **must** be linked to a ticket in the WordPress Core Trac instance (https://core.trac.wordpress.org), and are only used for code review. **No pull requests will be merged on GitHub.**
 
-See the WordPress Handbook page on using PRs for Code Review more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
+See the WordPress Handbook page on using PRs for Code Review for more information: https://make.wordpress.org/core/handbook/contribute/git/github-pull-requests-for-code-review/
 
 If this is your first time contributing, you may also find reviewing these guides first to be helpful:
 - FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
