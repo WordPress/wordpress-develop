@@ -28,6 +28,7 @@
  * @since 6.7.0 Added support for typography.writingMode.
  * @since 7.0.0 Added support for typography.textIndent.
  * @since 7.2.0 Added support for typography.textShadow.
+ * @since 7.2.0 Added support for spacing presets in typography.textIndent.
  */
 #[AllowDynamicProperties]
 final class WP_Style_Engine {
@@ -350,6 +351,9 @@ final class WP_Style_Engine {
 					'default' => 'text-indent',
 				),
 				'path'          => array( 'typography', 'textIndent' ),
+				'css_vars'      => array(
+					'spacing' => '--wp--preset--spacing--$slug',
+				),
 			),
 			'textShadow'     => array(
 				'property_keys' => array(
