@@ -235,7 +235,7 @@ jobs:
                 sections.push( `All errors reported by PHPStan were resolved as of ${ commit( resolvedBy ) }.` );
               }
 
-              let rowsLeft = maxRows;
+              let rowsLeft = Math.min( maxRows, trackedLimit );
               if ( unignorable.length > 0 ) {
                 if ( hasIgnoreErrors ) {
                   sections.push( [
@@ -313,7 +313,8 @@ jobs:
             };
 
             // A comment is limited to 65,536 characters. Should the body exceed that, give up the oldest resolved
-            // errors first, and then the history of errors beyond those listed.
+            // errors first, and then list and track fewer of the current errors. Those left out of the tables are
+            // still listed in the workflow run, which the tables link to.
             const maxLength = 65000;
             let trackedLimit = 200;
             let body = render( trackedLimit );
