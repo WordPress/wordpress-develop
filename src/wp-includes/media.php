@@ -6833,6 +6833,8 @@ function wp_get_media_library_upload_settings(): array {
  * @access private
  *
  * @param string $handle The screen script to enqueue.
+ *
+ * @phpstan-param non-empty-string $handle
  */
 function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
