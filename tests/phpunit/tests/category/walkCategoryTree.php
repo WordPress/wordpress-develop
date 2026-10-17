@@ -62,6 +62,7 @@ class Tests_Category_WalkCategoryTree extends WP_UnitTestCase {
 		$default_walker = new Walker_Category();
 		$expected       = $default_walker->walk( $elements, 0, $args );
 
+		$this->assertStringContainsString( 'cat-item-' . self::$child->term_id, $expected );
 		$this->assertSame( $expected, walk_category_tree( $elements, 0, $args ) );
 	}
 
@@ -82,6 +83,7 @@ class Tests_Category_WalkCategoryTree extends WP_UnitTestCase {
 		$default_walker = new Walker_Category();
 		$expected       = $default_walker->walk( $elements, 0, $args );
 
+		$this->assertStringContainsString( 'cat-item-' . self::$child->term_id, $expected );
 		$this->assertSame( $expected, walk_category_tree( $elements, 0, $args ) );
 	}
 
