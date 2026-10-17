@@ -227,10 +227,9 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 		$before = wp_scripts()->get_data( 'media-upload-pipeline', 'before' );
 		$inline = implode( "\n", (array) $before );
 
-		$this->assertStringContainsString(
-			wp_json_encode( wp_get_media_library_upload_settings() ),
-			$inline
-		);
+		$json = wp_json_encode( wp_get_media_library_upload_settings(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
+		$this->assertIsString( $json );
+		$this->assertStringContainsString( $json, $inline );
 	}
 
 	/**
