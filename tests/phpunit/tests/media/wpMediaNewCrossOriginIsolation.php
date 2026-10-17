@@ -51,7 +51,7 @@ class Tests_Media_wpMediaNewCrossOriginIsolation extends WP_UnitTestCase {
 	 * Sets up the environment for the isolation happy path: a secure
 	 * origin, a Chromium 137+ User-Agent, and a user who can upload.
 	 */
-	private function set_up_isolation_environment() {
+	private function set_up_isolation_environment(): void {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 		$_SERVER['HTTP_HOST']       = 'localhost';
 
