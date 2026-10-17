@@ -544,7 +544,7 @@ class Tests_Sitemaps_Sitemaps extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ non-falsy-string }>
 	 */
-	public function data_unusable_sitemap_query_vars(): array {
+	public static function data_unusable_sitemap_query_vars(): array {
 		return array(
 			'value stripped by sanitizing' => array( '?sitemap=<>' ),
 			'array sitemap value'          => array( '?sitemap[]=index' ),
