@@ -223,6 +223,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Deletes a meta value for an object.
 	 *
 	 * @since 4.7.0
+	 * @since 7.2.0 Authorization is no longer checked when there is no stored value to delete.
 	 *
 	 * @param int    $object_id Object ID the field belongs to.
 	 * @param string $meta_key  Key for the field.
@@ -234,6 +235,10 @@ abstract class WP_REST_Meta_Fields {
 	protected function delete_meta_value( $object_id, $meta_key, $name ) {
 		$meta_type = $this->get_meta_type();
 
+		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+			return true;
+		}
+
 		if ( ! current_user_can( "delete_{$meta_type}_meta", $object_id, $meta_key ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
@@ -244,10 +249,6 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
-		}
-
-		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
-			return true;
 		}
 
 		if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
@@ -271,6 +272,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 * @since 6.7.0 Stores values into DB even if provided registered default value.
+	 * @since 7.2.0 Authorization is only checked when the values are changed.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -282,18 +284,6 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function update_multi_meta_value( $object_id, $meta_key, $name, $values ) {
 		$meta_type = $this->get_meta_type();
-
-		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
-			return new WP_Error(
-				'rest_cannot_update',
-				/* translators: %s: Custom field key. */
-				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
-				array(
-					'key'    => $name,
-					'status' => rest_authorization_required_code(),
-				)
-			);
-		}
 
 		$current_values = get_metadata_raw( $meta_type, $object_id, $meta_key, false );
 		$subtype        = get_object_subtype( $meta_type, $object_id );
@@ -337,6 +327,27 @@ abstract class WP_REST_Meta_Fields {
 		 */
 		$to_remove = array_map( 'maybe_unserialize', array_unique( array_map( 'maybe_serialize', $to_remove ) ) );
 
+		if ( empty( $to_add ) && empty( $to_remove ) ) {
+			return true;
+		}
+
+		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
+			// Values that match the default for a key with no stored values are unchanged.
+			if ( empty( $current_values ) && $this->is_meta_value_same_as_default_value( $object_id, $meta_key, $values ) ) {
+				return true;
+			}
+
+			return new WP_Error(
+				'rest_cannot_update',
+				/* translators: %s: Custom field key. */
+				sprintf( __( 'Sorry, you are not allowed to edit the %s custom field.' ), $name ),
+				array(
+					'key'    => $name,
+					'status' => rest_authorization_required_code(),
+				)
+			);
+		}
+
 		foreach ( $to_remove as $value ) {
 			if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ), wp_slash( $value ) ) ) {
 				return new WP_Error(
@@ -373,6 +384,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 * @since 6.7.0 Stores values into DB even if provided registered default value.
+	 * @since 7.2.0 Authorization is not checked when the default value is provided for a key with no stored value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -394,6 +406,14 @@ abstract class WP_REST_Meta_Fields {
 		}
 
 		if ( ! current_user_can( "edit_{$meta_type}_meta", $object_id, $meta_key ) ) {
+			/*
+			 * Clients such as the block editor send back the default value of a key with
+			 * no stored value. That is not a change, so it does not need authorization.
+			 */
+			if ( empty( $old_value ) && $this->is_meta_value_same_as_default_value( $object_id, $meta_key, $value ) ) {
+				return true;
+			}
+
 			return new WP_Error(
 				'rest_cannot_update',
 				/* translators: %s: Custom field key. */
@@ -441,6 +461,31 @@ abstract class WP_REST_Meta_Fields {
 		}
 
 		return $sanitized === $stored_value;
+	}
+
+	/**
+	 * Checks if the user provided value is equivalent to the value returned for a meta key with no stored value.
+	 *
+	 * This mirrors WP_REST_Meta_Fields::get_value(), which returns the default value of a single
+	 * field, and the registered default value wrapped in an array for a multi field.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param int    $object_id  Object ID the field belongs to.
+	 * @param string $meta_key   The meta key being checked.
+	 * @param mixed  $user_value The value provided by the user, sanitized against the field schema.
+	 * @return bool Whether the value is the same as the default value.
+	 */
+	protected function is_meta_value_same_as_default_value( $object_id, $meta_key, $user_value ) {
+		$args = $this->get_registered_fields()[ $meta_key ];
+
+		if ( $args['single'] ) {
+			$default = $args['schema']['default'];
+		} else {
+			$default = get_metadata_default( $this->get_meta_type(), $object_id, $meta_key, false );
+		}
+
+		return rest_sanitize_value_from_schema( $default, $args['schema'] ) === $user_value;
 	}
 
 	/**
