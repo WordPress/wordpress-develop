@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
+      contents: read
       issues: write
       pull-requests: write
     timeout-minutes: 5
@@ -159,6 +160,40 @@ jobs:
               return;
             }
 
+            // The analysis ran on the head commit merged into the base branch, so a line number is off in the head
+            // commit if the base branch has changed the file since the pull request branched from it. Those files are
+            // found by comparing the head commit with the base branch. The comparison lists at most 300 files, which a
+            // branch that is not up to date soon exceeds, so in that case each file with errors is looked up in the
+            // history of the base branch instead, and beyond a limit, the rest are taken to have changed.
+            const changedInBase = new Set();
+            const filesWithLines = [ ...new Set( active.filter( ( error ) => error.file && error.line ).map( ( error ) => error.file ) ) ];
+            if ( filesWithLines.length > 0 ) {
+              try {
+                const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead( { owner, repo, basehead: `${ run.head_sha }...${ pr.base.ref }` } );
+                const files = comparison.files ?? [];
+                if ( files.length < 300 ) {
+                  files.forEach( ( file ) => changedInBase.add( file.filename ).add( file.previous_filename ) );
+                } else {
+                  const mergeBase = comparison.merge_base_commit;
+                  for ( const [ index, file ] of filesWithLines.entries() ) {
+                    if ( index >= 20 ) {
+                      changedInBase.add( file );
+                      continue;
+                    }
+                    // Commits since the merge base include the merge base itself, which is not a change.
+                    const { data: commits } = await github.rest.repos.listCommits( { owner, repo, sha: pr.base.ref, path: file, since: mergeBase.commit.committer.date, per_page: 2 } );
+                    if ( commits.some( ( item ) => item.sha !== mergeBase.sha ) ) {
+                      changedInBase.add( file );
+                    }
+                  }
+                }
+              } catch ( error ) {
+                core.warning( `The files changed in the base branch could not be found, so all lines are linked: ${ error.message }` );
+              }
+            }
+            const lineMayBeOff = ( error ) => ! error.fixed && Boolean( error.line ) && changedInBase.has( error.file );
+            const filesWithLinesOff = new Set( active.filter( lineMayBeOff ).map( ( error ) => error.file ) );
+
             // Every message is rendered as a code span. Within one, Markdown is not interpreted, and neither are
             // mentions nor references to issues, both of which PHPStan messages can resemble, as in `Parameter #1`.
             // In a table, a pipe still ends the cell even within a code span, unless it is escaped.
@@ -176,10 +211,10 @@ jobs:
 
             const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
 
-            // A location links to its line in the last commit the error was reported for. The analysis ran on that
-            // commit merged into the base branch, so the line is off if the base branch has changed the file above
-            // it. That is accepted: a merge commit is replaced whenever either side changes, so links to it would not
-            // last.
+            // A location links to its line in the last commit the error was reported for, rather than to the merge
+            // commit that was analyzed, which is replaced whenever either side changes, so links to it would not last.
+            // Where the base branch has changed the file, the line may be off, so only the file is linked. A resolved
+            // error is linked to its line regardless, as the place it was last reported.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
@@ -188,7 +223,7 @@ jobs:
               if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
                 return label;
               }
-              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.seen }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.seen }/${ error.file }${ error.line && ! lineMayBeOff( error ) ? `#L${ error.line }` : '' })`;
             };
 
             const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
@@ -224,6 +259,12 @@ jobs:
 
               if ( active.length > 0 ) {
                 sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
+                if ( filesWithLinesOff.size > 0 ) {
+                  sections.push( [
+                    '> [!NOTE]',
+                    `> ${ filesWithLinesOff.size === 1 ? 'A file with errors has' : `${ filesWithLinesOff.size } files with errors have` } changed in ${ code( pr.base.ref ) } since this branch was last updated, so the line numbers reported in ${ filesWithLinesOff.size === 1 ? 'it' : 'them' } may be off and are not linked. Merge the latest ${ code( pr.base.ref ) } into this branch for accurate links.`,
+                  ].join( '\n' ) );
+                }
               } else {
                 // Resolved by the last commit that resolved anything, so that later commits do not change the comment.
                 const resolvedBy = resolved.at( -1 )?.fixed ?? run.head_sha;
