@@ -660,4 +660,41 @@ line 2<br/>
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * wpautop() should not wrap the opening and closing tags of a link in paragraphs
+	 * when the link contains block-level elements.
+	 *
+	 * @ticket 40676
+	 *
+	 * @dataProvider data_links_containing_block_elements
+	 *
+	 * @param string $content  Content to pass to wpautop().
+	 * @param string $expected Expected result.
+	 */
+	public function test_that_wpautop_does_not_wrap_link_tags_around_block_elements( $content, $expected ) {
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_links_containing_block_elements() {
+		return array(
+			'div'        => array(
+				'<a href="https://example.com/"><div>DIV inside link</div></a>',
+				"<a href=\"https://example.com/\">\n<div>DIV inside link</div>\n</a>",
+			),
+			'h1'         => array(
+				'<a href="https://example.com/"><h1>H1 inside link</h1></a>',
+				"<a href=\"https://example.com/\">\n<h1>H1 inside link</h1>\n</a>",
+			),
+			'whitespace' => array(
+				"<a href=\"https://example.com/\">\n<div>DIV inside link</div>\n</a>",
+				"<a href=\"https://example.com/\">\n<div>DIV inside link</div>\n</a>",
+			),
+		);
+	}
 }
