@@ -4582,27 +4582,29 @@ function wp_hoist_late_printed_styles(): void {
 				}
 			};
 
-			/*
-			 * The CSS of the placeholder STYLE tags, by which they are located below. They are not located by their IDs,
-			 * since the IDs may have been changed by the 'wp_inline_style_attributes' filter.
-			 */
-			$global_styles_placeholder = ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the global-styles printed at wp_footer." }';
-			$block_styles_placeholder  = ':root { --wp-internal-comment: "Placeholder for wp_hoist_late_printed_styles() to replace with the block styles printed at wp_footer." }';
-
 			// Locate the insertion points in the HEAD.
 			while ( $processor->next_tag( array( 'tag_closers' => 'visit' ) ) ) {
-				if ( 'STYLE' === $processor->get_tag() ) {
-					$style_text = $processor->get_modifiable_text();
-					if ( str_contains( $style_text, $global_styles_placeholder ) ) {
-						/** This is added in {@see wp_enqueue_global_styles()} */
-						$processor->set_bookmark( 'wp_global_styles_placeholder' );
-					} elseif ( str_contains( $style_text, $block_styles_placeholder ) ) {
-						/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
-						$processor->set_bookmark( 'wp_block_styles_placeholder' );
-					} elseif ( str_contains( $style_text, $placeholder ) ) {
-						// This is added to the wp-block-library inline style above.
-						$processor->set_bookmark( 'wp_block_library' );
-					}
+				if (
+					'STYLE' === $processor->get_tag() &&
+					'wp-global-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					/** This is added in {@see wp_enqueue_global_styles()} */
+					$processor->set_bookmark( 'wp_global_styles_placeholder' );
+				} elseif (
+					'STYLE' === $processor->get_tag() &&
+					'wp-block-styles-placeholder-inline-css' === $processor->get_attribute( 'id' )
+				) {
+					/** This is added in {@see wp_enqueue_registered_block_scripts_and_styles()} */
+					$processor->set_bookmark( 'wp_block_styles_placeholder' );
+				} elseif (
+					'STYLE' === $processor->get_tag() &&
+					str_contains( $processor->get_modifiable_text(), $placeholder )
+				) {
+					/*
+					 * The placeholder is added to the wp-block-library inline style above. It is located by the placeholder
+					 * rather than by the ID, since the ID may have been changed by the 'wp_inline_style_attributes' filter.
+					 */
+					$processor->set_bookmark( 'wp_block_library' );
 				} elseif ( 'HEAD' === $processor->get_tag() && $processor->is_tag_closer() ) {
 					$processor->set_bookmark( 'head_end' );
 					break;
