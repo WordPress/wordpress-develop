@@ -962,6 +962,93 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the toolbar has a link to skip it when rendered on 'wp_body_open'.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 */
+	public function test_render_outputs_skip_toolbar_link_when_rendered_on_wp_body_open() {
+		$admin_bar_html = $this->render_admin_bar_on_action( 'wp_body_open' );
+
+		$processor = new WP_HTML_Tag_Processor( $admin_bar_html );
+		$processor->next_tag( array( 'tag_name' => 'A' ) );
+		$this->assertSame( '#wp-toolbar-skip-target', $processor->get_attribute( 'href' ), 'The "Skip toolbar" link should be the first link in the toolbar.' );
+		$this->assertStringContainsString( '>Skip toolbar</a>', $admin_bar_html, 'The "Skip toolbar" link text should be output.' );
+
+		$this->assertGreaterThan(
+			strrpos( $admin_bar_html, 'ab-item' ),
+			strpos( $admin_bar_html, '<div id="wp-toolbar-skip-target" tabindex="-1"></div>' ),
+			'The "Skip toolbar" link target should follow all toolbar items.'
+		);
+	}
+
+	/**
+	 * Tests that the toolbar has no link to skip it when it doesn't precede the page content.
+	 *
+	 * @ticket 66331
+	 *
+	 * @covers WP_Admin_Bar::render
+	 *
+	 * @dataProvider data_render_does_not_output_skip_toolbar_link
+	 *
+	 * @param bool   $is_admin          Whether the toolbar is rendered in the admin.
+	 * @param bool   $fire_wp_body_open Whether the 'wp_body_open' action fires before the toolbar is rendered.
+	 * @param string $hook_name         The action on which the toolbar is rendered.
+	 */
+	public function test_render_does_not_output_skip_toolbar_link( $is_admin, $fire_wp_body_open, $hook_name ) {
+		if ( $is_admin ) {
+			set_current_screen( 'dashboard' );
+		}
+
+		if ( $fire_wp_body_open ) {
+			remove_all_actions( 'wp_body_open' );
+			do_action( 'wp_body_open' );
+		}
+
+		$admin_bar_html = $this->render_admin_bar_on_action( $hook_name );
+
+		$this->assertStringNotContainsString( 'wp-toolbar-skip-target', $admin_bar_html, 'The "Skip toolbar" link and its target should not be output.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_render_does_not_output_skip_toolbar_link() {
+		return array(
+			'theme without wp_body_open support' => array( false, false, 'wp_footer' ),
+			'toolbar moved to the footer'        => array( false, true, 'wp_footer' ),
+			'admin'                              => array( true, true, 'in_admin_header' ),
+		);
+	}
+
+	/**
+	 * Renders a toolbar with a single node while the given action is running.
+	 *
+	 * @param string $hook_name The action on which to render the toolbar.
+	 * @return string The toolbar HTML.
+	 */
+	private function render_admin_bar_on_action( $hook_name ) {
+		$admin_bar = new WP_Admin_Bar();
+		$admin_bar->add_node( array( 'id' => 'test-node' ) );
+
+		$admin_bar_html = '';
+
+		remove_all_actions( $hook_name );
+		add_action(
+			$hook_name,
+			static function () use ( $admin_bar, &$admin_bar_html ) {
+				$admin_bar_html = get_echo( array( $admin_bar, 'render' ) );
+			}
+		);
+		do_action( $hook_name );
+
+		return $admin_bar_html;
+	}
+
+	/**
 	 * This test ensures that WP_Admin_Bar::$proto is not defined (including magic methods).
 	 *
 	 * @ticket 56876
