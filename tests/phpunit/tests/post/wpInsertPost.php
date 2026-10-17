@@ -653,6 +653,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31168
+	 * @ticket 38207
 	 */
 	public function test_wp_insert_post_default_comment_ping_status_open() {
 		$post_id = self::factory()->post->create(
@@ -663,7 +664,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		$this->assertSame( 'open', $post->comment_status );
-		$this->assertSame( 'open', $post->ping_status );
+		$this->assertSame( 'closed', $post->ping_status );
 	}
 
 	/**
@@ -684,6 +685,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31168
+	 * @ticket 38207
 	 */
 	public function test_wp_insert_post_cpt_default_comment_ping_status_open() {
 		register_post_type(
@@ -704,7 +706,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 		_unregister_post_type( 'cpt' );
 
 		$this->assertSame( 'open', $post->comment_status );
-		$this->assertSame( 'open', $post->ping_status );
+		$this->assertSame( 'closed', $post->ping_status );
 	}
 
 	/**
