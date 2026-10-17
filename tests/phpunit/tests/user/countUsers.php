@@ -278,6 +278,19 @@ class Tests_User_CountUsers extends WP_UnitTestCase {
 		$this->assertSameSets( $count, $count2 );
 	}
 
+	/**
+	 * @ticket 18499
+	 */
+	public function test_count_users_should_count_users_with_only_unregistered_roles_as_having_no_role() {
+		$user_id = self::factory()->user->create();
+		update_user_meta( $user_id, $GLOBALS['wpdb']->get_blog_prefix() . 'capabilities', array( 'removed_role' => true ) );
+
+		$count = count_users( 'time' );
+
+		$this->assertSame( 1, $count['avail_roles']['none'] );
+		$this->assertContains( (string) $user_id, wp_get_users_with_no_role() );
+	}
+
 	public function data_count_users_strategies() {
 		return array(
 			array(
