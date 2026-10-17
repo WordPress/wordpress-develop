@@ -5808,6 +5808,48 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies that downloaded content which does not match an allowed type is
+	 * reported as a client error rather than a server error.
+	 *
+	 * @ticket 65810
+	 *
+	 * @covers WP_REST_Attachments_Controller::upload_from_url
+	 */
+	public function test_create_item_from_url_rejects_disallowed_content_type() {
+		$this->enable_client_side_media_processing();
+
+		wp_set_current_user( self::$superadmin_id );
+
+		// A URL that looks like an image but serves an HTML page.
+		$mock_html_download = static function ( $response, $args ) {
+			if ( ! empty( $args['filename'] ) ) {
+				file_put_contents( $args['filename'], '<!DOCTYPE html><html><body>Not an image</body></html>' );
+			}
+
+			return array(
+				'response' => array(
+					'code'    => 200,
+					'message' => 'OK',
+				),
+				'headers'  => array(),
+				'cookies'  => array(),
+				'body'     => '',
+			);
+		};
+		add_filter( 'pre_http_request', $mock_html_download, 10, 2 );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_param( 'url', 'https://example.com/not-an-image.jpg' );
+		$request->set_param( 'generate_sub_sizes', false );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'pre_http_request', $mock_html_download, 10 );
+
+		$this->assertErrorResponse( 'rest_upload_invalid_file_type', $response, 400 );
+	}
+
+	/**
 	 * Verifies that the URL sideload path enforces the multisite maximum file
 	 * size, for parity with the multipart and raw-body upload paths.
 	 *

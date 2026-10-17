@@ -771,6 +771,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				wp_delete_file( $tmp_file );
 			}
 
+			// Content that does not match an allowed type is a client error, not a server one.
+			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $sideloaded['error'] ) {
+				return new WP_Error(
+					'rest_upload_invalid_file_type',
+					$sideloaded['error'],
+					array( 'status' => 400 )
+				);
+			}
+
 			return new WP_Error(
 				'rest_upload_sideload_error',
 				$sideloaded['error'],
