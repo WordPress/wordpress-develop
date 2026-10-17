@@ -779,6 +779,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.2 Refactored so subclasses may extend.
 	 *
 	 * @return bool Whether a token was parsed.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		return $this->next_visitable_token();
@@ -1585,7 +1587,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto initial_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1678,7 +1679,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_html_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "html"
@@ -1700,7 +1700,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto before_html_anything_else;
-				break;
 		}
 
 		/*
@@ -1760,7 +1759,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step();
 				}
 				goto before_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1805,7 +1803,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			case '-BODY':
 			case '-HTML':
 				goto before_head_anything_else;
-				break;
 		}
 
 		if ( $is_closer ) {
@@ -1861,7 +1858,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -1993,7 +1989,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto in_head_anything_else;
-				break;
 
 			/*
 			 * > A start tag whose tag name is "template"
@@ -2086,7 +2081,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_head_noscript_anything_else;
-				break;
 
 			/*
 			 * > A DOCTYPE token
@@ -2190,7 +2184,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return true;
 				}
 				goto after_head_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -2279,7 +2272,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				 * > Act as described in the "anything else" entry below.
 				 */
 				goto after_head_anything_else;
-				break;
 		}
 
 		/*
@@ -3368,8 +3360,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3386,6 +3376,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return bool Whether an element was found.
 	 */
 	private function in_body_any_other_end_tag(): bool {
+		$node       = null;
 		$token_name = $this->get_token_name();
 
 		/*
@@ -3418,8 +3409,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of "any other end tag" IN BODY processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**
@@ -3496,7 +3485,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 
 					// Non-whitespace would trigger fostering, unsupported at this time.
 					$this->bail( 'Foster parenting is not supported.' );
-					break;
 				}
 				break;
 
@@ -3821,7 +3809,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				}
 
 				goto in_column_group_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4382,7 +4369,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_body_anything_else;
-				break;
 
 			/*
 			 * > A comment token
@@ -4705,7 +4691,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 					return $this->step_in_body();
 				}
 				goto after_after_body_anything_else;
-				break;
 		}
 
 		/*
@@ -5099,8 +5084,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have been able to reach end of IN FOREIGN CONTENT processing. Check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/*
@@ -5119,7 +5102,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string Name of created bookmark.
 	 */
 	private function bookmark_token() {
-		if ( ! parent::set_bookmark( ++$this->bookmark_counter ) ) {
+		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
 			$this->last_error = self::ERROR_EXCEEDED_MAX_BOOKMARKS;
 			throw new Exception( 'could not allocate bookmark' );
 		}
@@ -6388,8 +6371,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 		}
 
 		$this->bail( 'Should not have reached end of HTML Integration Point detection: check HTML API code.' );
-		// This unnecessary return prevents tools from inaccurately reporting type errors.
-		return false;
 	}
 
 	/**

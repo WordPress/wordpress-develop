@@ -182,7 +182,7 @@ class Tests_Theme_WPThemeGetBlockPatterns extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_block_patterns() {
+	public static function data_get_block_patterns() {
 		return array(
 			array(
 				'theme'    => 'block-theme',
