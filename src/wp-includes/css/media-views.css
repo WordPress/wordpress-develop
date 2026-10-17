@@ -1010,7 +1010,7 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	box-sizing: border-box;
 }
 
-.wp-core-ui .attachment:not(:has(.filename))::after {
+.wp-core-ui .attachment:not(:has(.filename)):not(:has(.describe))::after {
 	content: attr(aria-label);
 	position: absolute;
 	bottom: 8px;
@@ -1029,7 +1029,8 @@ select#media-attachment-filters ~ select#media-attachment-date-filters {
 	font-weight: 600;
 }
 
-/* Do not show the aria-label overlay on thumbnails in the gallery selection strip. */
+/* Do not show the aria-label overlay on thumbnails in the gallery selection strip or when editing captions/details. */
+.wp-core-ui .attachment:has(.describe)::after,
 .wp-core-ui .media-selection .attachment::after {
 	content: none;
 }
