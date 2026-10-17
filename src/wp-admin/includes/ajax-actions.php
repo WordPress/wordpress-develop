@@ -738,6 +738,7 @@ function _wp_ajax_add_hierarchical_term() {
  * @since 3.1.0
  */
 function wp_ajax_delete_comment() {
+
 	$id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
 
 	$comment = get_comment( $id );
@@ -800,6 +801,82 @@ function wp_ajax_delete_comment() {
 	}
 
 	wp_die( 0 );
+}
+
+/**
+ * Handles emptying spam or trash comments via AJAX.
+ *
+ * @since 6.9.0
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ */
+function wp_ajax_empty_comments() {
+
+	global $wpdb;
+
+	check_ajax_referer( 'bulk-comments' );
+
+	if ( ! current_user_can( 'moderate_comments' ) ) {
+		wp_send_json_error( array( 'message' => __( 'Sorry, you are not allowed to moderate comments on this site.' ) ), 403 );
+	}
+
+	$comment_status = isset( $_POST['comment_status'] ) ? sanitize_key( wp_unslash( $_POST['comment_status'] ) ) : '';
+
+	if ( ! in_array( $comment_status, array( 'spam', 'trash' ), true ) ) {
+		wp_send_json_error( array( 'message' => __( 'Invalid comment status.' ) ), 400 );
+	}
+
+	$delete_time = isset( $_POST['pagegen_timestamp'] ) ? sanitize_text_field( wp_unslash( $_POST['pagegen_timestamp'] ) ) : '';
+
+	if ( '' === $delete_time ) {
+		wp_send_json_error( array( 'message' => __( 'Missing delete timestamp.' ) ), 400 );
+	}
+
+	$batch_size  = (int) apply_filters( 'wp_empty_comments_batch_size', 20, $comment_status );
+	$batch_size  = max( 1, min( 100, $batch_size ) );
+	$deleted     = 0;
+	$comment_ids = $wpdb->get_col(
+		$wpdb->prepare(
+			"SELECT comment_ID FROM $wpdb->comments
+			WHERE comment_approved = %s AND %s > comment_date_gmt
+			ORDER BY comment_ID ASC
+			LIMIT %d",
+			$comment_status,
+			$delete_time,
+			$batch_size
+		)
+	);
+
+	wp_defer_comment_counting( true );
+
+	foreach ( $comment_ids as $comment_id ) {
+		if ( ! current_user_can( 'edit_comment', $comment_id ) ) {
+			continue;
+		}
+
+		if ( wp_delete_comment( $comment_id ) ) {
+			++$deleted;
+		}
+	}
+
+	wp_defer_comment_counting( false );
+
+	$remaining = (int) $wpdb->get_var(
+		$wpdb->prepare(
+			"SELECT COUNT(*) FROM $wpdb->comments
+			WHERE comment_approved = %s AND %s > comment_date_gmt",
+			$comment_status,
+			$delete_time
+		)
+	);
+
+	wp_send_json_success(
+		array(
+			'deleted'   => $deleted,
+			'remaining' => $remaining,
+			'done'      => 0 === $remaining || ( 0 === $deleted && ! empty( $comment_ids ) ),
+		)
+	);
 }
 
 /**
