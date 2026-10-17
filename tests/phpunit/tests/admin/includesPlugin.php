@@ -384,7 +384,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_submenu_position() {
+	public static function data_submenu_position() {
 		$menu_count = count( $this->submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
