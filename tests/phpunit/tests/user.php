@@ -2005,6 +2005,42 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The reset link in the new user notification email should not be wrapped
+	 * in angle brackets, as that caused some email clients to include the
+	 * closing bracket as part of the URL and break the link.
+	 *
+	 * @ticket 44589
+	 */
+	public function test_wp_new_user_notification_does_not_wrap_reset_link_in_angle_brackets() {
+		$message = '';
+
+		add_filter(
+			'wp_new_user_notification_email',
+			static function ( $email ) use ( &$message ) {
+				$message = $email['message'];
+				return $email;
+			}
+		);
+
+		wp_new_user_notification( self::$contrib_id, null, 'user' );
+
+		$this->assertNotEmpty( $message, 'The notification email message should not be empty.' );
+
+		$reset_link_line = '';
+
+		foreach ( explode( "\r\n", $message ) as $line ) {
+			if ( str_contains( $line, 'wp-login.php' ) ) {
+				$reset_link_line = $line;
+				break;
+			}
+		}
+
+		$this->assertNotEmpty( $reset_link_line, 'The reset password link should be present in the email message.' );
+		$this->assertFalse( str_starts_with( $reset_link_line, '<' ), 'The reset password link should not start with an angle bracket.' );
+		$this->assertFalse( str_ends_with( $reset_link_line, '>' ), 'The reset password link should not end with an angle bracket.' );
+	}
+
+	/**
 	 * Callback that returns 0.0.
 	 *
 	 * @return float 0.0.
