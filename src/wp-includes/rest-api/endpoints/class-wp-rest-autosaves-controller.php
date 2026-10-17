@@ -333,7 +333,7 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 					'post_status'      => 'inherit',
 					'post_parent'      => $parent_id,
 					'name'             => $parent_id . '-autosave-v1',
-					'author__in'       => wp_parse_id_list( $request['author'] ),
+					'author__in'       => $request['author'],
 					'orderby'          => array(
 						'date' => 'DESC',
 						'ID'   => 'DESC',
@@ -347,11 +347,11 @@ class WP_REST_Autosaves_Controller extends WP_REST_Revisions_Controller {
 			$seen_authors = array();
 
 			foreach ( $autosaves as $autosave ) {
-				if ( isset( $seen_authors[ $autosave->post_author ] ) ) {
+				if ( in_array( $autosave->post_author, $seen_authors, true ) ) {
 					continue;
 				}
 
-				$seen_authors[ $autosave->post_author ] = true;
+				$seen_authors[] = $autosave->post_author;
 
 				$data       = $this->prepare_item_for_response( $autosave, $request );
 				$response[] = $this->prepare_response_for_collection( $data );
