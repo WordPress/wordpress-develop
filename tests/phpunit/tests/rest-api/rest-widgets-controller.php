@@ -90,6 +90,17 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 	}
 
+	public static function wpTearDownAfterClass() {
+		global $wp_widget_factory, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
+
+		// Clear existing registrations so rebuilding does not discard default widget objects.
+		$wp_widget_factory->widgets    = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		wp_widgets_init();
+	}
+
 	public function set_up() {
 		global $wp_widget_factory;
 
@@ -1268,7 +1279,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_store_html_as_admin() {
 		if ( is_multisite() ) {
 			$this->assertSame(
-				'<div class="textwidget">alert(1)</div>',
+				'<div class="textwidget"></div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
 		} else {

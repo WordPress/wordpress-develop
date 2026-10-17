@@ -316,7 +316,7 @@ class WP_Dependencies {
 		}
 		if ( 'conditional' === $key && '_required-conditional-dependency_' !== $value ) {
 			_deprecated_argument(
-				'WP_Dependencies->add_data()',
+				'WP_Dependencies::add_data()',
 				'6.9.0',
 				__( 'IE conditional comments are ignored by all supported browsers.' )
 			);
@@ -539,6 +539,8 @@ class WP_Dependencies {
 	 *
 	 * @param string[] $load Array of script or style handles to load.
 	 * @return string Etag header.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function get_etag( $load ) {
 		/*
