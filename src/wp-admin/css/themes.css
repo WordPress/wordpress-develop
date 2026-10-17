@@ -1071,9 +1071,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 /**
  * Install Themes
  */
-.update-php .wrap {
-	max-width: 40rem;
-}
 
 /* Already installed theme */
 .theme-browser .theme .theme-installed {
