@@ -4327,6 +4327,8 @@ function wp_expand_dimensions( $example_width, $example_height, $max_width, $max
  * @since 2.5.0
  *
  * @return int Allowed upload size.
+ *
+ * @phpstan-return positive-int
  */
 function wp_max_upload_size() {
 	$u_bytes = wp_convert_hr_to_bytes( ini_get( 'upload_max_filesize' ) );
@@ -4341,7 +4343,7 @@ function wp_max_upload_size() {
 	 * @param int $u_bytes Maximum upload filesize in bytes.
 	 * @param int $p_bytes Maximum size of POST data in bytes.
 	 */
-	return apply_filters( 'upload_size_limit', min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes );
+	return max( 0, (int) apply_filters( 'upload_size_limit', min( $u_bytes, $p_bytes ), $u_bytes, $p_bytes ) );
 }
 
 /**
