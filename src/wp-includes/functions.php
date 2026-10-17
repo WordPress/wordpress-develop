@@ -5628,7 +5628,7 @@ function wp_widgets_add_menu() {
 	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][9] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
@@ -5663,6 +5663,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
+ * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5675,6 +5676,8 @@ function dead_db() {
 
 	// Load custom DB error template, if present.
 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+		status_header( 500 );
+		nocache_headers();
 		require_once WP_CONTENT_DIR . '/db-error.php';
 		die();
 	}

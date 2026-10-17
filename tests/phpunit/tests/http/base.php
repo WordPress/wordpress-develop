@@ -49,6 +49,20 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	private static $file_stream_fixture_url = null;
 
+	/**
+	 * Skip reason when a fixture prerequisite is unavailable.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_skip_reason = null;
+
+	/**
+	 * Failure reason when fixture server startup fails unexpectedly.
+	 *
+	 * @var string|null
+	 */
+	private static $file_stream_fixture_fail_reason = null;
+
 	protected $http_request_args;
 
 	/**
@@ -56,22 +70,38 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Uses a deterministic payload and the real Requests transports so coverage
 	 * does not depend on a live s.w.org download.
+	 *
+	 * Missing prerequisites (for example no `proc_open()`) skip fixture-dependent
+	 * tests. Unexpected startup failures are recorded and surfaced as test
+	 * failures rather than silent skips.
 	 */
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
+		self::$file_stream_fixture_skip_reason = null;
+		self::$file_stream_fixture_fail_reason = null;
+
 		if ( ! function_exists( 'proc_open' ) ) {
+			self::$file_stream_fixture_skip_reason = 'proc_open() is not available.';
 			return;
 		}
 
 		$fixture_dir = get_temp_dir() . 'wp-http-stream-fixture-' . uniqid( '', true );
 		if ( ! mkdir( $fixture_dir ) && ! is_dir( $fixture_dir ) ) {
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not create the local HTTP stream fixture directory: %s',
+				$fixture_dir
+			);
 			return;
 		}
 
 		$payload = str_repeat( 'a', self::$file_stream_size );
 		if ( false === file_put_contents( $fixture_dir . '/dashboard.bin', $payload ) ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not write the local HTTP stream fixture payload in: %s',
+				$fixture_dir
+			);
 			return;
 		}
 
@@ -88,6 +118,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		if ( ! $socket ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not reserve a local TCP port for the HTTP stream fixture server (%d: %s).',
+				(int) $errno,
+				$errstr ? $errstr : 'unknown error'
+			);
 			return;
 		}
 
@@ -97,6 +132,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$port = (int) substr( strrchr( $address, ':' ), 1 );
 		if ( $port <= 0 ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not determine a local TCP port from socket address: %s',
+				$address ? $address : '(empty)'
+			);
 			return;
 		}
 
@@ -117,6 +156,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$process = proc_open( $command, $descriptors, $pipes, $fixture_dir );
 		if ( ! is_resource( $process ) ) {
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'Could not start the local HTTP stream fixture server with %s on 127.0.0.1:%d.',
+				PHP_BINARY,
+				$port
+			);
 			return;
 		}
 
@@ -153,6 +197,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			proc_terminate( $process );
 			proc_close( $process );
 			self::remove_file_stream_fixture_dir( $fixture_dir );
+			self::$file_stream_fixture_fail_reason = sprintf(
+				'The local HTTP stream fixture server at 127.0.0.1:%d did not accept connections within 5 seconds.',
+				$port
+			);
 			return;
 		}
 
@@ -176,7 +224,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			self::$file_stream_fixture_dir = null;
 		}
 
-		self::$file_stream_fixture_url = null;
+		self::$file_stream_fixture_url         = null;
+		self::$file_stream_fixture_skip_reason = null;
+		self::$file_stream_fixture_fail_reason = null;
 
 		parent::tear_down_after_class();
 	}
@@ -439,12 +489,25 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Skips when the local stream fixture server is unavailable.
+	 * Ensures the local stream fixture server is available.
+	 *
+	 * Skips when a prerequisite is missing. Fails with a diagnostic when
+	 * fixture startup failed unexpectedly.
 	 */
-	private function require_file_stream_fixture() {
-		if ( empty( $this->file_stream_url ) ) {
-			$this->markTestSkipped( 'The local HTTP stream fixture server could not be started.' );
+	protected function require_file_stream_fixture() {
+		if ( ! empty( $this->file_stream_url ) ) {
+			return;
 		}
+
+		if ( self::$file_stream_fixture_skip_reason ) {
+			$this->markTestSkipped( self::$file_stream_fixture_skip_reason );
+		}
+
+		if ( self::$file_stream_fixture_fail_reason ) {
+			$this->fail( self::$file_stream_fixture_fail_reason );
+		}
+
+		$this->fail( 'The local HTTP stream fixture server was not started.' );
 	}
 
 	/**
