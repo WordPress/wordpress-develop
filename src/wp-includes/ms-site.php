@@ -717,12 +717,26 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 
 	$home_scheme    = 'http';
 	$siteurl_scheme = 'http';
+	$siteurl_subdir = '';
 	if ( ! is_subdomain_install() ) {
 		if ( 'https' === parse_url( get_home_url( $network->site_id ), PHP_URL_SCHEME ) ) {
 			$home_scheme = 'https';
 		}
 		if ( 'https' === parse_url( get_network_option( $network->id, 'siteurl' ), PHP_URL_SCHEME ) ) {
 			$siteurl_scheme = 'https';
+		}
+	} else {
+		/*
+		 * When WordPress is installed in its own subdirectory, the network siteurl
+		 * includes that directory (e.g. example.com/wp/). Carry it over to the new
+		 * site so its siteurl points at the real core location.
+		 *
+		 * Subdirectory installs are excluded because the rewrite rules generated
+		 * during network setup already route /site/wp-admin/ to the core directory.
+		 */
+		$network_siteurl_path = trailingslashit( (string) parse_url( (string) get_network_option( $network->id, 'siteurl' ), PHP_URL_PATH ) );
+		if ( str_starts_with( $network_siteurl_path, $network->path ) ) {
+			$siteurl_subdir = trim( substr( $network_siteurl_path, strlen( $network->path ) ), '/' );
 		}
 	}
 
@@ -731,7 +745,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 		array_merge(
 			array(
 				'home'        => untrailingslashit( $home_scheme . '://' . $site->domain . $site->path ),
-				'siteurl'     => untrailingslashit( $siteurl_scheme . '://' . $site->domain . $site->path ),
+				'siteurl'     => untrailingslashit( $siteurl_scheme . '://' . $site->domain . $site->path . $siteurl_subdir ),
 				'blogname'    => wp_unslash( $args['title'] ),
 				'admin_email' => '',
 				'upload_path' => get_network_option( $network->id, 'ms_files_rewriting' ) ? UPLOADBLOGSDIR . "/{$site->id}/files" : get_blog_option( $network->site_id, 'upload_path' ),

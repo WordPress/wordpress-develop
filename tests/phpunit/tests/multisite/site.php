@@ -2038,6 +2038,58 @@ class Tests_Multisite_Site extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 27287
+	 * @dataProvider data_wp_initialize_site_siteurl_subdomain
+	 *
+	 * @param string $network_siteurl  Network siteurl to set before creating the site.
+	 * @param string $expected_siteurl Expected siteurl of the new site.
+	 */
+	public function test_wp_initialize_site_siteurl_subdomain( $network_siteurl, $expected_siteurl ) {
+		if ( ! is_subdomain_install() ) {
+			$this->markTestSkipped( 'This test is only valid in a subdomain configuration.' );
+		}
+
+		$original = get_site_option( 'siteurl' );
+		update_site_option( 'siteurl', $network_siteurl );
+
+		$site_id = wpmu_create_blog( 'ticket27287.example.org', '/', 'Ticket 27287', get_current_user_id() );
+
+		update_site_option( 'siteurl', $original );
+
+		$this->assertNotWPError( $site_id );
+		$this->assertSame( 'http://ticket27287.example.org', get_blog_option( $site_id, 'home' ), 'Home should not include the core directory.' );
+		$this->assertSame( $expected_siteurl, get_blog_option( $site_id, 'siteurl' ) );
+	}
+
+	public function data_wp_initialize_site_siteurl_subdomain() {
+		return array(
+			'core in network root'  => array( 'http://example.org/', 'http://ticket27287.example.org' ),
+			'core in subdirectory'  => array( 'http://example.org/wp/', 'http://ticket27287.example.org/wp' ),
+			'core in nested subdir' => array( 'http://example.org/app/wp/', 'http://ticket27287.example.org/app/wp' ),
+			'no trailing slash'     => array( 'http://example.org/wp', 'http://ticket27287.example.org/wp' ),
+		);
+	}
+
+	/**
+	 * @ticket 27287
+	 */
+	public function test_wp_initialize_site_siteurl_subdirectory_ignores_core_directory() {
+		if ( is_subdomain_install() ) {
+			$this->markTestSkipped( 'This test is only valid in a subdirectory configuration.' );
+		}
+
+		$original = get_site_option( 'siteurl' );
+		update_site_option( 'siteurl', untrailingslashit( $original ) . '/wp/' );
+
+		$site_id = wpmu_create_blog( get_current_site()->domain, '/ticket27287/', 'Ticket 27287', get_current_user_id() );
+
+		update_site_option( 'siteurl', $original );
+
+		$this->assertNotWPError( $site_id );
+		$this->assertStringEndsWith( '/ticket27287', get_blog_option( $site_id, 'siteurl' ), 'Subdirectory installs rely on rewrite rules, so the core directory should not be appended.' );
+	}
+
 	public function filter_wp_initialize_site_args( $args, $site, $network ) {
 		$args['title'] = sprintf( 'My Site %1$d in Network %2$d', $site->id, $network->id );
 
