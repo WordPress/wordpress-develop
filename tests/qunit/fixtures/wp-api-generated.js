@@ -1383,7 +1383,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -2542,7 +2543,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -4461,7 +4463,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -5474,7 +5477,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -5862,7 +5866,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -6555,7 +6560,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
@@ -7981,7 +7987,8 @@ mockedApiResponse.Schema = {
                             "description": "Limit result set to autosaves assigned to specific authors.",
                             "type": "array",
                             "items": {
-                                "type": "integer"
+                                "type": "integer",
+                                "minimum": 1
                             },
                             "default": [],
                             "required": false
