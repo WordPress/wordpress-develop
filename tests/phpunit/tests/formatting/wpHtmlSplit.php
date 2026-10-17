@@ -16,7 +16,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 		return $this->assertSame( $output, wp_html_split( $input ) );
 	}
 
-	public function data_basic_features() {
+	public static function data_basic_features() {
 		return array(
 			array(
 				'abcd efgh',
@@ -50,7 +50,7 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 		return $this->assertLessThan( 200, $result );
 	}
 
-	public function data_whole_posts() {
+	public static function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}

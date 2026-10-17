@@ -271,7 +271,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_spaces_around_quotes() {
+	public static function data_spaces_around_quotes() {
 		$nbsp = "\xC2\xA0";
 		$pi   = "\xCE\xA0";
 
@@ -327,7 +327,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_apos_before_digits() {
+	public static function data_apos_before_digits() {
 		return array(
 			array(
 				"word '99 word",
@@ -368,7 +368,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_opening_single_quote() {
+	public static function data_opening_single_quote() {
 		return array(
 			array(
 				"word 'word word",
@@ -497,7 +497,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_double_prime() {
+	public static function data_double_prime() {
 		return array(
 			array(
 				'word 99" word',
@@ -530,7 +530,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_single_prime() {
+	public static function data_single_prime() {
 		return array(
 			array(
 				"word 99' word",
@@ -563,7 +563,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_contractions() {
+	public static function data_contractions() {
 		return array(
 			array(
 				"word word's word",
@@ -604,7 +604,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_opening_quote() {
+	public static function data_opening_quote() {
 		return array(
 			array(
 				'word "word word',
@@ -681,7 +681,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_closing_quote() {
+	public static function data_closing_quote() {
 		return array(
 			array(
 				'word word" word',
@@ -770,7 +770,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_closing_single_quote() {
+	public static function data_closing_single_quote() {
 		return array(
 			array(
 				"word word' word",
@@ -860,7 +860,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_multiplication() {
+	public static function data_multiplication() {
 		return array(
 			array(
 				'9x9',
@@ -910,7 +910,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_ampersand() {
+	public static function data_ampersand() {
 		return array(
 			array(
 				'word & word',
@@ -975,7 +975,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_cockney() {
+	public static function data_cockney() {
 		return array(
 			array(
 				"word 'tain't word",
@@ -1036,7 +1036,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_smart_dashes() {
+	public static function data_smart_dashes() {
 		return array(
 			array(
 				'word --- word',
@@ -1089,7 +1089,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_misc_static_replacements() {
+	public static function data_misc_static_replacements() {
 		return array(
 			array(
 				'word ... word',
@@ -1144,7 +1144,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_quoted_numbers() {
+	public static function data_quoted_numbers() {
 		return array(
 			array(
 				'word "42.00" word',
@@ -1195,7 +1195,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_quotes_and_dashes() {
+	public static function data_quotes_and_dashes() {
 		return array(
 			array(
 				'word---"quote"',
@@ -1258,7 +1258,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_tag_avoidance() {
+	public static function data_tag_avoidance() {
 		return array(
 			array(
 				'[ ... ]',
@@ -1481,7 +1481,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_year_abbr() {
+	public static function data_year_abbr() {
 		return array(
 			array(
 				"word '99 word",
@@ -1606,7 +1606,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_translate() {
+	public static function data_translate() {
 		return array(
 			array(
 				"word '99 word",
@@ -1797,7 +1797,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_element_stack() {
+	public static function data_element_stack() {
 		return array(
 			array(
 				'<span>hello</code>---</span>',
@@ -1858,7 +1858,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		return $disabled;
 	}
 
-	public function data_unregistered_shortcodes() {
+	public static function data_unregistered_shortcodes() {
 		return array(
 			array(
 				'[a]a--b[audio]---[/audio]a--b[/a]',
@@ -1933,7 +1933,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	public function data_primes_vs_quotes() {
+	public static function data_primes_vs_quotes() {
 		return array(
 			array(
 				"George's porch is 99' long.",
@@ -2029,7 +2029,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 		}
 	}
 
-	public function data_primes_quotes_translation() {
+	public static function data_primes_quotes_translation() {
 		return array(
 			array(
 				"George's porch is 99' long.",
@@ -2111,7 +2111,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 		$this->assertSame( 'F&#8211;oo<', wptexturize( 'F--oo<', true ) );
 	}
 
-	public function data_whole_posts() {
+	public static function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}

@@ -23,7 +23,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	/**
 	 * Data provider.
 	 */
-	public function data_urlencode_deep() {
+	public static function data_urlencode_deep() {
 		return array(
 			array( 'qwerty123456', 'qwerty123456' ),
 			array( '|!"£$%&/()=?', '%7C%21%22%C2%A3%24%25%26%2F%28%29%3D%3F' ),
