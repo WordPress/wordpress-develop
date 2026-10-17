@@ -303,6 +303,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * Inspired from https://codepen.io/aaroniker/pen/KGpXZo (MIT-licensed)
 	 *
 	 * @since Twenty Twenty-One 1.0
+	 * @since Twenty Twenty-One 3.0 Added `wp_print_inline_style_tag()` support.
 	 *
 	 * @param array $attrs The attributes to add to our <button> element.
 	 * @return void
@@ -328,18 +329,35 @@ class Twenty_Twenty_One_Dark_Mode {
 			'<span aria-hidden="true"></span>'
 		);
 		echo '</button>';
-		?>
-		<style>
+
+		/*
+		 * Escape the labels for use in single-quoted CSS strings. HTML character references
+		 * are not decoded in STYLE elements, so esc_attr() would not be appropriate here.
+		 */
+		$escape_css_string = static function ( $text ) {
+			return str_replace(
+				array( '\\', "'", '<', "\n", "\r" ),
+				array( '\\\\', "\\'", '\\3C ', '\\A ', '\\D ' ),
+				$text
+			);
+		};
+
+		$margin_side = is_rtl() ? 'right' : 'left';
+
+		$css = <<<CSS
 			#dark-mode-toggler > span {
-				margin-<?php echo is_rtl() ? 'right' : 'left'; ?>: 5px;
+				margin-{$margin_side}: 5px;
 			}
 			#dark-mode-toggler > span::before {
-				content: '<?php esc_attr_e( 'Off', 'twentytwentyone' ); ?>';
+				content: '{$escape_css_string( __( 'Off', 'twentytwentyone' ) )}';
 			}
 			#dark-mode-toggler[aria-pressed="true"] > span::before {
-				content: '<?php esc_attr_e( 'On', 'twentytwentyone' ); ?>';
+				content: '{$escape_css_string( __( 'On', 'twentytwentyone' ) )}';
 			}
-			<?php if ( is_admin() || wp_is_json_request() ) : ?>
+CSS;
+
+		if ( is_admin() || wp_is_json_request() ) {
+			$css .= "\n" . <<<CSS
 				.components-editor-notices__pinned ~ .edit-post-visual-editor #dark-mode-toggler {
 					z-index: 20;
 				}
@@ -351,10 +369,14 @@ class Twenty_Twenty_One_Dark_Mode {
 						margin-top: 32px;
 					}
 				}
-			<?php endif; ?>
-		</style>
+CSS;
+		}
 
-		<?php
+		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
+			wp_print_inline_style_tag( $css );
+		} else {
+			echo "<style>\n{$css}\n</style>\n";
+		}
 	}
 
 	/**
