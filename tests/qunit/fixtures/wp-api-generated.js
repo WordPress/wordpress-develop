@@ -11158,7 +11158,7 @@ mockedApiResponse.Schema = {
                         },
                         "url": {
                             "title": "",
-                            "description": "Site URL.",
+                            "description": "The URL where WordPress core files are served. May differ from the public site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false

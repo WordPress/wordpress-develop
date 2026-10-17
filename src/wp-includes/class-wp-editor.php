@@ -913,7 +913,10 @@ final class _WP_Editors {
 
 		self::enqueue_scripts( true );
 
-		// Also add wp-includes/css/editor.css.
+		/*
+		 * Also add wp-includes/css/editor.css. It is prefetched for the block editor by
+		 * wp_prefetch_admin_assets(), which needs updating if this changes.
+		 */
 		wp_enqueue_style( 'editor-buttons' );
 
 		if ( is_admin() ) {
@@ -1538,7 +1541,7 @@ final class _WP_Editors {
 		$wp_scripts = wp_scripts();
 
 		$wp_scripts->remove( 'wp-tinymce' );
-		wp_register_tinymce_scripts( $wp_scripts, true );
+		wp_register_tinymce_scripts( $wp_scripts );
 	}
 
 	/**
@@ -1766,7 +1769,7 @@ final class _WP_Editors {
 	 *     @type int    $pagenum Page number. Default 1.
 	 *     @type string $s       Search keywords.
 	 * }
-	 * @return array|false $results {
+	 * @return array|false {
 	 *     An array of associative arrays of query results, false if there are none.
 	 *
 	 *     @type array ...$0 {
