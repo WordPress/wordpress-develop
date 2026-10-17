@@ -3110,9 +3110,9 @@ function wp_get_default_extension_for_mime_type( $mime_type ) {
  *
  * @since 2.0.4
  *
- * @param string        $filename File name or path.
- * @param string[]|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
- *                                Defaults to the result of get_allowed_mime_types().
+ * @param string                     $filename File name or path.
+ * @param array<string, string>|null $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
+ *                                             Defaults to the result of get_allowed_mime_types().
  * @return array {
  *     Values for the extension and mime type.
  *
