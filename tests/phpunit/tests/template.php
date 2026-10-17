@@ -1697,39 +1697,6 @@ class Tests_Template extends WP_UnitTestCase {
 				},
 			),
 
-			'inline_style_attributes_filter_changes_block_library_id' => array(
-				'set_up'            => static function () {
-					add_filter(
-						'wp_inline_style_attributes',
-						static function ( array $attributes ): array {
-							if ( isset( $attributes['id'] ) && 'wp-block-library-inline-css' === $attributes['id'] ) {
-								$attributes['id'] = 'renamed-block-library-inline-css';
-							}
-							return $attributes;
-						}
-					);
-				},
-				'content'           => $blocks_content,
-				'inline_size_limit' => PHP_INT_MAX,
-				'expected_styles'   => array(
-					'HEAD' => array_merge(
-						$early_common_styles,
-						array(
-							'renamed-block-library-inline-css',
-							'wp-block-separator-inline-css',
-							'classic-theme-styles-inline-css',
-							'third-party-test-block-css',
-							'custom-block-styles-css',
-							'global-styles-inline-css',
-						),
-						$common_at_wp_enqueue_scripts,
-						$common_late_in_head,
-						$common_late_in_body
-					),
-					'BODY' => array(),
-				),
-			),
-
 			'classic_theme_styles_omitted'                => array(
 				'set_up'            => static function () {
 					// Note that wp_enqueue_scripts is used instead of enqueue_block_assets because it runs again at the former action.

@@ -3702,6 +3702,9 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	 * For example, the `wp-block-library` inline style is built again by {@see wp_hoist_late_printed_styles()}
 	 * after a placeholder is removed from its CSS.
 	 *
+	 * The `id` attribute, when supplied, cannot be changed or removed by this filter, since other code may locate the
+	 * `<style>` tag by it. For example, the Customizer preview locates the `wp-custom-css` style to update it.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
@@ -3709,9 +3712,26 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	 *                                               entries with a boolean value, and that are true.
 	 * @param string                     $data       Inline CSS, as it will be printed in the `<style>` tag.
 	 */
-	$attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
+	$filtered_attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
 
-	foreach ( $attributes as $name => $value ) {
+	// Ensure the supplied ID is retained. Setting it first also prevents a lexical variation of the name from overriding it.
+	if ( isset( $attributes['id'] ) ) {
+		if ( ( $filtered_attributes['id'] ?? null ) !== $attributes['id'] ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: id, 2: wp_inline_style_attributes */
+					__( 'The %1$s attribute cannot be changed by the %2$s filter.' ),
+					'<code>id</code>',
+					'<code>wp_inline_style_attributes</code>'
+				),
+				'7.2.0'
+			);
+		}
+		$processor->set_attribute( 'id', $attributes['id'] );
+	}
+
+	foreach ( $filtered_attributes as $name => $value ) {
 		/*
 		 * Lexical variations of an attribute name may represent the
 		 * same attribute in HTML, therefore it is possible that the

@@ -83,6 +83,86 @@ class Tests_Dependencies_wpInlineStyleTag extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: Closure( array<string, string|bool> ): array<string, string|bool> }>
+	 */
+	public function data_inline_style_attributes_filter_changing_id(): array {
+		return array(
+			'changed'           => array(
+				static function ( array $attributes ): array {
+					$attributes['id'] = 'changed-inline-css';
+					return $attributes;
+				},
+			),
+			'removed'           => array(
+				static function ( array $attributes ): array {
+					unset( $attributes['id'] );
+					return $attributes;
+				},
+			),
+			'lexical_variation' => array(
+				static function ( array $attributes ): array {
+					unset( $attributes['id'] );
+					$attributes['ID'] = 'changed-inline-css';
+					return $attributes;
+				},
+			),
+		);
+	}
+
+	/**
+	 * Tests that the attributes filter cannot change or remove the supplied ID.
+	 *
+	 * @ticket 51325
+	 *
+	 * @dataProvider data_inline_style_attributes_filter_changing_id
+	 *
+	 * @param Closure $filter Filter callback for the attributes.
+	 */
+	public function test_inline_style_attributes_filter_cannot_change_id( Closure $filter ) {
+		$this->setExpectedIncorrectUsage( 'wp_get_inline_style_tag' );
+
+		add_filter( 'wp_inline_style_attributes', $filter );
+
+		$expected = <<<'HTML'
+			<style id="test-inline-css">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML(
+			$expected,
+			wp_get_inline_style_tag( $this->get_test_css(), array( 'id' => 'test-inline-css' ) )
+		);
+	}
+
+	/**
+	 * Tests that the attributes filter can add an ID when none is supplied.
+	 *
+	 * @ticket 51325
+	 */
+	public function test_inline_style_attributes_filter_can_add_id() {
+		add_filter(
+			'wp_inline_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['id'] = 'added-inline-css';
+				return $attributes;
+			}
+		);
+
+		$expected = <<<'HTML'
+			<style id="added-inline-css">
+			body { color: #123456; }
+			</style>
+
+			HTML;
+
+		$this->assertEqualHTML( $expected, wp_get_inline_style_tag( $this->get_test_css() ) );
+	}
+
+	/**
 	 * Tests that the attributes filter receives the CSS as printed, after any escaping.
 	 *
 	 * This allows a filter to compute a CSP hash which matches the printed STYLE contents.
