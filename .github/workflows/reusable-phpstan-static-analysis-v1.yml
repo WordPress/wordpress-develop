@@ -46,11 +46,14 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      # For a pull request, the parents of the merge commit are fetched too, to find the files that the base branch
+      # has changed since the pull request branched from it.
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
           persist-credentials: false
+          fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 1 }}
 
       - name: Set up PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -174,10 +177,25 @@ jobs:
             }
 
             // Tips are left out of the results, since they are only shown in the annotations, next to the code.
+            //
+            // The commit analyzed is the pull request merged into its base branch, whose second parent is the head
+            // commit. The files with errors that differ between the two are those the base branch has changed, in
+            // which the line numbers reported can be off in the head commit.
             if ( context.eventName === 'pull_request' ) {
+              let changedInBase = [];
+              try {
+                const filesWithErrors = new Set( errors.map( ( error ) => error.file ) );
+                changedInBase = require( 'child_process' )
+                  .execFileSync( 'git', [ 'diff', '--name-only', '--no-renames', 'HEAD^2', 'HEAD' ], { encoding: 'utf8' } )
+                  .split( '\n' )
+                  .filter( ( file ) => filesWithErrors.has( file ) );
+              } catch ( error ) {
+                core.warning( `The files changed in the base branch could not be found: ${ error.message }` );
+              }
               fs.mkdirSync( `${ process.env.RUNNER_TEMP }/phpstan-results`, { recursive: true } );
               fs.writeFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, JSON.stringify( {
                 pull_request: context.payload.pull_request.number,
+                changed_in_base: changedInBase,
                 errors: errors.map( ( { tip, ...error } ) => error ),
               } ) );
             }

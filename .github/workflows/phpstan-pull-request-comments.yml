@@ -35,7 +35,6 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       actions: read
-      contents: read
       issues: write
       pull-requests: write
     timeout-minutes: 5
@@ -160,37 +159,9 @@ jobs:
               return;
             }
 
-            // The analysis ran on the head commit merged into the base branch, so a line number is off in the head
-            // commit if the base branch has changed the file since the pull request branched from it. Those files are
-            // found by comparing the head commit with the base branch. The comparison lists at most 300 files, which a
-            // branch that is not up to date soon exceeds, so in that case each file with errors is looked up in the
-            // history of the base branch instead, and beyond a limit, the rest are taken to have changed.
-            const changedInBase = new Set();
-            const filesWithLines = [ ...new Set( active.filter( ( error ) => error.file && error.line ).map( ( error ) => error.file ) ) ];
-            if ( filesWithLines.length > 0 ) {
-              try {
-                const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead( { owner, repo, basehead: `${ run.head_sha }...${ pr.base.ref }` } );
-                const files = comparison.files ?? [];
-                if ( files.length < 300 ) {
-                  files.forEach( ( file ) => changedInBase.add( file.filename ).add( file.previous_filename ) );
-                } else {
-                  const mergeBase = comparison.merge_base_commit;
-                  for ( const [ index, file ] of filesWithLines.entries() ) {
-                    if ( index >= 20 ) {
-                      changedInBase.add( file );
-                      continue;
-                    }
-                    // Commits since the merge base include the merge base itself, which is not a change.
-                    const { data: commits } = await github.rest.repos.listCommits( { owner, repo, sha: pr.base.ref, path: file, since: mergeBase.commit.committer.date, per_page: 2 } );
-                    if ( commits.some( ( item ) => item.sha !== mergeBase.sha ) ) {
-                      changedInBase.add( file );
-                    }
-                  }
-                }
-              } catch ( error ) {
-                core.warning( `The files changed in the base branch could not be found, so all lines are linked: ${ error.message }` );
-              }
-            }
+            // Files the base branch has changed since the pull request branched from it, in which the line numbers
+            // reported can be off in the head commit, since the analysis ran on the head commit merged into the base.
+            const changedInBase = new Set( Array.isArray( results.changed_in_base ) ? results.changed_in_base.filter( ( file ) => typeof file === 'string' ) : [] );
             const lineMayBeOff = ( error ) => ! error.fixed && Boolean( error.line ) && changedInBase.has( error.file );
             const filesWithLinesOff = new Set( active.filter( lineMayBeOff ).map( ( error ) => error.file ) );
 
