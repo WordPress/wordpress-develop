@@ -549,6 +549,126 @@ endif;
 }
 
 /**
+ * Displays a single-term taxonomy meta box.
+ *
+ * Used as the default meta box callback for taxonomies registered with
+ * `allow_multiple_terms` set to false. Renders radio buttons for hierarchical
+ * taxonomies and a dropdown for non-hierarchical ones, so that at most one
+ * term can be selected.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_Post $post Current post object.
+ * @param array   $box {
+ *     Single-term meta box arguments.
+ *
+ *     @type string   $id       Meta box 'id' attribute.
+ *     @type string   $title    Meta box title.
+ *     @type callable $callback Meta box display callback.
+ *     @type array    $args {
+ *         Extra meta box arguments.
+ *
+ *         @type string $taxonomy Taxonomy name.
+ *     }
+ * }
+ */
+function post_single_term_meta_box( $post, $box ) {
+	$defaults = array( 'taxonomy' => 'category' );
+	if ( ! isset( $box['args'] ) || ! is_array( $box['args'] ) ) {
+		$args = array();
+	} else {
+		$args = $box['args'];
+	}
+	$parsed_args = wp_parse_args( $args, $defaults );
+	$tax_name    = esc_attr( $parsed_args['taxonomy'] );
+	$taxonomy    = get_taxonomy( $parsed_args['taxonomy'] );
+
+	if ( ! $taxonomy ) {
+		return;
+	}
+
+	// Input field name matches what the core save path expects.
+	$name = ( 'category' === $tax_name ) ? 'post_category' : 'tax_input[' . $tax_name . ']';
+
+	// Current term for this post, if any.
+	$current_terms = get_the_terms( $post->ID, $tax_name );
+	$current_id    = 0;
+	if ( is_array( $current_terms ) && ! empty( $current_terms ) ) {
+		$current_term = reset( $current_terms );
+		$current_id   = (int) $current_term->term_id;
+	}
+
+	// A "None" option is only offered when no default term is configured.
+	$has_default_term = ! empty( $taxonomy->default_term );
+
+	?>
+	<div id="taxonomy-<?php echo $tax_name; ?>" class="single-term-taxonomy-div">
+		<?php
+		// Always submit a sentinel value so an empty set is sent when nothing is chosen.
+		echo '<input type="hidden" name="' . esc_attr( $name ) . '[]" value="0" />';
+
+		if ( $taxonomy->hierarchical ) :
+			$terms = get_terms(
+				array(
+					'taxonomy'   => $tax_name,
+					'hide_empty' => false,
+				)
+			);
+
+			if ( is_wp_error( $terms ) || empty( $terms ) ) {
+				echo '<p>' . esc_html( $taxonomy->labels->not_found ) . '</p>';
+			} else {
+				?>
+				<fieldset>
+					<legend class="screen-reader-text"><?php echo esc_html( $taxonomy->labels->name ); ?></legend>
+					<ul class="single-term-taxonomy-radiolist">
+						<?php if ( ! $has_default_term ) : ?>
+							<li>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $name ); ?>[]" value="0" <?php checked( 0, $current_id ); ?> />
+									<?php
+									/* translators: Option shown when no single-term value is selected. */
+									esc_html_e( 'None' );
+									?>
+								</label>
+							</li>
+						<?php endif; ?>
+						<?php foreach ( $terms as $term ) : ?>
+							<li>
+								<label>
+									<input type="radio" name="<?php echo esc_attr( $name ); ?>[]" value="<?php echo (int) $term->term_id; ?>" <?php checked( (int) $term->term_id, $current_id ); ?> />
+									<?php echo esc_html( $term->name ); ?>
+								</label>
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</fieldset>
+				<?php
+			}
+		else :
+			$dropdown_args = array(
+				'taxonomy'         => $tax_name,
+				'hide_empty'       => false,
+				'hierarchical'     => false,
+				'orderby'          => 'name',
+				'name'             => $name . '[]',
+				'id'               => 'taxonomy-' . $tax_name . '-select',
+				'selected'         => $current_id,
+				'show_option_none' => $has_default_term ? '' : __( 'None' ),
+				'option_none_value' => 0,
+				'value_field'      => 'term_id',
+			);
+			?>
+			<label for="taxonomy-<?php echo $tax_name; ?>-select" class="screen-reader-text"><?php echo esc_html( $taxonomy->labels->name ); ?></label>
+			<?php wp_dropdown_categories( $dropdown_args ); ?>
+			<?php
+		endif;
+		?>
+	</div>
+	<?php
+}
+
+/**
  * Displays post tags form fields.
  *
  * @since 2.6.0
