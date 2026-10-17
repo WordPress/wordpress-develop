@@ -258,7 +258,7 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		}
 
 		if ( rest_is_field_included( 'template', $fields ) ) {
-			$data['template'] = $post_type->template ?? array();
+			$data['template'] = $post_type->template;
 		}
 
 		if ( rest_is_field_included( 'template_lock', $fields ) ) {
