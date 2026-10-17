@@ -1227,6 +1227,30 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( $attachment_id, $data['id'] );
 	}
 
+	public function test_get_item_inherit_status_with_self_parent() {
+		global $wpdb;
+
+		$attachment_id = self::factory()->attachment->create_object(
+			self::$test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+			)
+		);
+
+		// wp_insert_post() refuses to make a post its own parent, but imports and direct writes can.
+		$wpdb->update( $wpdb->posts, array( 'post_parent' => $attachment_id ), array( 'ID' => $attachment_id ) );
+		clean_post_cache( $attachment_id );
+
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/media/%d', $attachment_id ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $attachment_id, $data['id'] );
+	}
+
 	public function test_get_item_auto_status_with_invalid_parent_not_authenticated_returns_error() {
 		$attachment_id = self::factory()->attachment->create_object(
 			self::$test_file,
