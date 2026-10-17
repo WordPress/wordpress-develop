@@ -392,10 +392,14 @@ function get_post_permalink( $post = 0, $leavename = false, $sample = false ) {
  * @param bool        $leavename Optional. Whether to keep the page name. Default false.
  * @param bool        $sample    Optional. Whether it should be treated as a sample permalink.
  *                               Default false.
- * @return string The page permalink.
+ * @return string|false The page permalink. False if the post does not exist.
  */
 function get_page_link( $post = 0, $leavename = false, $sample = false ) {
 	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
 
 	if ( 'page' === get_option( 'show_on_front' ) && (int) get_option( 'page_on_front' ) === $post->ID ) {
 		$link = home_url( '/' );
@@ -429,18 +433,22 @@ function get_page_link( $post = 0, $leavename = false, $sample = false ) {
  * @param bool        $leavename Optional. Whether to keep the page name. Default false.
  * @param bool        $sample    Optional. Whether it should be treated as a sample permalink.
  *                               Default false.
- * @return string The page permalink.
+ * @return string|false The page permalink. False if the post does not exist.
  */
 function _get_page_link( $post = 0, $leavename = false, $sample = false ) {
 	global $wp_rewrite;
 
 	$post = get_post( $post );
 
+	if ( ! $post ) {
+		return false;
+	}
+
 	$force_plain_link = wp_force_plain_post_permalink( $post );
 
 	$link = $wp_rewrite->get_page_permastruct();
 
-	if ( ! empty( $link ) && ( ( isset( $post->post_status ) && ! $force_plain_link ) || $sample ) ) {
+	if ( ! empty( $link ) && ( ! $force_plain_link || $sample ) ) {
 		if ( ! $leavename ) {
 			$link = str_replace( '%pagename%', get_page_uri( $post ), $link );
 		}
