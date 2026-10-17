@@ -34,6 +34,7 @@ on:
       - '!phpcs.xml.dist'
       - '!phpstan.neon.dist'
       - '!phpunit.xml.dist'
+      - '!phpunit10.xml.dist'
       - '!tsconfig.json'
       # Tests, unrelated tools, and other workflows do not affect the build.
       - '!tests/**'
