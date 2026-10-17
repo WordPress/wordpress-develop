@@ -30,6 +30,32 @@ window.wpWidgets = {
 			sidebars = $('div.widgets-sortables'),
 			isRTL = !! ( 'undefined' !== typeof isRtl && isRtl );
 
+		// Keep the single-widget screen link for keyboard and screen reader users only.
+		$( '#widgets-left, #widgets-right' ).find( '.widget-control-edit' )
+			.removeClass( 'hide-if-js' )
+			.addClass( 'screen-reader-text' );
+
+		// Point the link at the widget's current sidebar and position, which change without a reload.
+		$( '#widgets-left, #widgets-right' ).on( 'focusin', '.widget-control-edit', function() {
+			var link = $( this ),
+				widget = link.closest( 'div.widget' ),
+				sidebar = widget.closest( 'div.widgets-sortables' ),
+				url = new URL( link.prop( 'href' ) );
+
+			if ( sidebar.length ) {
+				url.searchParams.set( 'editwidget', widget.find( 'input.widget-id' ).val() );
+				url.searchParams.set( 'sidebar', sidebar.attr( 'id' ) );
+				url.searchParams.set( 'key', sidebar.children( '.widget' ).index( widget ) );
+				url.searchParams.delete( 'addnew' );
+				url.searchParams.delete( 'num' );
+				url.searchParams.delete( 'base' );
+			} else if ( url.searchParams.has( 'num' ) ) {
+				url.searchParams.set( 'num', widget.find( 'input.multi_number' ).val() );
+			}
+
+			link.attr( 'href', url.toString() );
+		} );
+
 		// Handle the widgets containers in the right column.
 		$( '#widgets-right .sidebar-name' )
 			/*
