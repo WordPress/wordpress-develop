@@ -11,24 +11,30 @@
 class Tests_Category_CleanCategoryCache extends WP_UnitTestCase {
 
 	/**
-	 * Tests that clean_category_cache() removes the category from the terms cache
+	 * Tests that clean_category_cache() invalidates stale category data in the terms cache
 	 * and fires the clean_term_cache action for the 'category' taxonomy.
 	 *
 	 * @ticket 65819
 	 */
 	public function test_cleans_cached_category_and_fires_action() {
-		$category_id = self::factory()->category->create();
+		$category_id = self::factory()->category->create(
+			array(
+				'name' => 'Original Category',
+			)
+		);
 
-		// Prime the term cache.
-		get_category( $category_id );
-		$this->assertNotFalse( wp_cache_get( $category_id, 'terms' ) );
+		// Seed stale category data in the term cache.
+		$stale_category       = clone get_category( $category_id );
+		$stale_category->name = 'Stale Category';
+		wp_cache_set( $category_id, $stale_category, 'terms' );
+		$this->assertSame( 'Stale Category', get_category( $category_id )->name );
 
 		$action = new MockAction();
 		add_action( 'clean_term_cache', array( $action, 'action' ), 10, 3 );
 
 		clean_category_cache( $category_id );
 
-		$this->assertFalse( wp_cache_get( $category_id, 'terms' ) );
+		$this->assertSame( 'Original Category', get_category( $category_id )->name );
 		$this->assertSame( 1, $action->get_call_count() );
 		$this->assertSame(
 			array(
@@ -41,7 +47,7 @@ class Tests_Category_CleanCategoryCache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that clean_category_cache() regenerates the category_children hierarchy option.
+	 * Tests that clean_category_cache() replaces a stale category_children hierarchy option.
 	 *
 	 * @ticket 65819
 	 */
@@ -49,8 +55,9 @@ class Tests_Category_CleanCategoryCache extends WP_UnitTestCase {
 		$parent_id = self::factory()->category->create();
 		$child_id  = self::factory()->category->create( array( 'parent' => $parent_id ) );
 
-		delete_option( 'category_children' );
-		$this->assertFalse( get_option( 'category_children' ) );
+		// Seed a stale empty hierarchy option.
+		update_option( 'category_children', array() );
+		$this->assertSame( array(), get_option( 'category_children' ) );
 
 		clean_category_cache( $parent_id );
 
