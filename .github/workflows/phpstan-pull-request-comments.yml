@@ -6,7 +6,7 @@
 #
 # A `workflow_run` workflow runs with write permissions even for a pull request from a fork, so nothing from the pull
 # request is checked out or executed here. The results it uploaded are treated as untrusted data, and are only
-# accepted for the pull request whose current head is the commit that was analyzed.
+# accepted for the pull request whose current head is the commit that the analysis ran for.
 name: PHPStan Pull Request Comments
 
 on: # zizmor: ignore[dangerous-triggers]
@@ -72,7 +72,7 @@ jobs:
 
             // The results were written by a run on the pull request, whose code may have been changed to write
             // anything at all. They are therefore checked for shape, and only accepted for the pull request whose
-            // current head is the commit that the run analyzed. That also discards the results of a run that was
+            // current head is the commit that the run was for. That also discards the results of a run that was
             // overtaken by a newer push.
             const results = JSON.parse( fs.readFileSync( `${ process.env.RUNNER_TEMP }/phpstan-results/results.json`, 'utf8' ) );
             const issue_number = results.pull_request;
@@ -102,11 +102,14 @@ jobs:
             } );
 
             // Line numbers belong to the commit that was analyzed, which is the pull request merged into its base
-            // branch, so file links point to that commit. It is only trusted once it is confirmed to be a merge of the
-            // head commit; otherwise, the head commit is linked instead.
+            // branch, so the current errors link to that commit. It is only trusted once it is confirmed to be a merge
+            // of the head commit; otherwise, the head commit is linked instead. It usually is the pull request's
+            // current merge commit, unless the base branch has moved since.
             let analyzedSha = run.head_sha;
             const reportedAnalyzedSha = asSha( results.analyzed_sha );
-            if ( reportedAnalyzedSha && reportedAnalyzedSha !== run.head_sha ) {
+            if ( reportedAnalyzedSha && reportedAnalyzedSha === pr.merge_commit_sha ) {
+              analyzedSha = reportedAnalyzedSha;
+            } else if ( reportedAnalyzedSha && reportedAnalyzedSha !== run.head_sha ) {
               try {
                 const { data: analyzed } = await github.rest.git.getCommit( { owner, repo, commit_sha: reportedAnalyzedSha } );
                 if ( analyzed.parents.some( ( parent ) => parent.sha === run.head_sha ) ) {
@@ -133,8 +136,8 @@ jobs:
             const comment = comments.find( ( item ) => item.user?.login === 'github-actions[bot]' && item.body?.includes( marker ) );
 
             // The history of the errors is kept in the comment itself, compressed into a hidden HTML comment: each
-            // error, the commit it was first reported for, the commit that was analyzed when it was last reported, and
-            // the commit that resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
+            // error, the commit it was first reported for, the last commit it was reported for, and the commit that
+            // resolved it, if one has. Base64 cannot contain `--`, so it cannot end the HTML comment early.
             const zlib = require( 'zlib' );
             const historyPattern = /<!-- phpstan-history:([A-Za-z0-9+\/=]+) -->/;
             let history = [];
@@ -147,10 +150,10 @@ jobs:
                     ...normalize( entry ),
                     key: asString( entry.key ),
                     introduced: asSha( entry.introduced ),
-                    analyzed: asSha( entry.analyzed ),
+                    seen: asSha( entry.seen ),
                     fixed: asSha( entry.fixed ),
                   } ) )
-                  .filter( ( entry ) => entry.key && entry.introduced && entry.analyzed );
+                  .filter( ( entry ) => entry.key && entry.introduced && entry.seen );
               } catch ( error ) {
                 core.warning( `The error history in the PHPStan comment could not be read, so it starts over: ${ error.message }` );
               }
@@ -162,7 +165,7 @@ jobs:
             const historyByKey = new Map( history.map( ( entry ) => [ entry.key, entry ] ) );
             const active = errors.map( ( error ) => {
               const before = historyByKey.get( error.key );
-              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, analyzed: analyzedSha, fixed: null };
+              return { ...error, introduced: before && ! before.fixed ? before.introduced : run.head_sha, seen: run.head_sha, fixed: null };
             } );
             const activeKeys = new Set( active.map( ( error ) => error.key ) );
             let resolved = [
@@ -192,8 +195,9 @@ jobs:
 
             const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
 
-            // A location links to the file as of the commit that was analyzed when the error was last reported, which
-            // is the one its line number belongs to.
+            // A current error links to its line in the commit that was analyzed. A resolved error links to the file in
+            // the last commit it was reported for, but not to the line: its line number belongs to a merge commit,
+            // which is replaced whenever the pull request or its base branch changes, so linking to it would not last.
             const location = ( error ) => {
               if ( ! error.file ) {
                 return '_Not specific to a file_';
@@ -202,7 +206,8 @@ jobs:
               if ( ! /^[\w.\/-]+$/.test( error.file ) || error.file.split( '/' ).includes( '..' ) ) {
                 return label;
               }
-              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.analyzed }/${ error.file }${ error.line ? `#L${ error.line }` : '' })`;
+              const anchor = error.line && ! error.fixed ? `#L${ error.line }` : '';
+              return `[${ label }](https://github.com/${ owner }/${ repo }/blob/${ error.fixed ? error.seen : analyzedSha }/${ error.file }${ anchor })`;
             };
 
             const identifier = ( error ) => ( error.identifier ? `[${ code( error.identifier ) }](https://phpstan.org/error-identifiers/${ error.identifier })` : '' );
@@ -304,8 +309,8 @@ jobs:
                 );
               }
 
-              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, analyzed, fixed } ) => (
-                { key, file, line, message, identifier, ignorable, introduced, analyzed, fixed }
+              const tracked = [ ...active.slice( 0, trackedLimit ), ...resolved ].map( ( { key, file, line, message, identifier, ignorable, introduced, seen, fixed } ) => (
+                { key, file, line, message, identifier, ignorable, introduced, seen, fixed }
               ) );
               sections.push( `<!-- phpstan-history:${ zlib.deflateRawSync( JSON.stringify( tracked ) ).toString( 'base64' ) } -->` );
 
