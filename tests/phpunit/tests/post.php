@@ -187,6 +187,7 @@ class Tests_Post extends WP_UnitTestCase {
 
 		_unregister_post_type( $post_type );
 		$count = wp_count_posts( $post_type, 'readable' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $count );
 	}
 

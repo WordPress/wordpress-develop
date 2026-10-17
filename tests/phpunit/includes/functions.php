@@ -4,7 +4,7 @@ require_once __DIR__ . '/class-basic-object.php';
 /**
  * Retrieves PHPUnit runner version.
  *
- * @return double The version number.
+ * @return string|int The version number, or 0 if PHPUnit is not loaded.
  */
 function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
