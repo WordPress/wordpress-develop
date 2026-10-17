@@ -2689,6 +2689,62 @@ HTML;
 	}
 
 	/**
+	 * @ticket 59209
+	 *
+	 * @covers WP_HTML_Tag_Processor::class_list
+	 *
+	 * @dataProvider data_class_list
+	 *
+	 * @param string   $html                 HTML containing a DIV with a class attribute.
+	 * @param string[] $expected_class_names Class names class_list() should yield.
+	 */
+	public function test_class_list( string $html, array $expected_class_names ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$this->assertTrue( $processor->next_tag(), 'Should have found the DIV tag.' );
+
+		$this->assertSame(
+			$expected_class_names,
+			iterator_to_array( $processor->class_list() ),
+			'Should have yielded the expected class names.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: string, 1: string[]}>
+	 */
+	public static function data_class_list(): array {
+		return array(
+			'Leading whitespace'                      => array( "<div class='  foo'>", array( 'foo' ) ),
+			'Trailing whitespace'                     => array( "<div class='foo  '>", array( 'foo' ) ),
+			'Only spaces'                             => array( "<div class='   '>", array() ),
+			'Only mixed whitespace'                   => array( "<div class=' \t\n'>", array() ),
+			'Form feed separator'                     => array( "<div class='a\fb'>", array( 'a', 'b' ) ),
+			'Encoded carriage return separator'       => array( "<div class='a&#13;b'>", array( 'a', 'b' ) ),
+			'Encoded space separator'                 => array( "<div class='a&#x20;b'>", array( 'a', 'b' ) ),
+			'Encoded leading and trailing whitespace' => array( "<div class='&#x20;a&#9;'>", array( 'a' ) ),
+			'Vertical tab is not a separator'         => array( "<div class='a\vb'>", array( "a\vb" ) ),
+			'No-break space is not a separator'       => array( "<div class='a\u{A0}b'>", array( "a\u{A0}b" ) ),
+			'Legacy reference at end'                 => array( "<div class='&amp'>", array( '&' ) ),
+			'Legacy reference before space'           => array( "<div class='&amp x'>", array( '&', 'x' ) ),
+			'Legacy reference before hyphen'          => array( "<div class='&amp-x'>", array( '&-x' ) ),
+			'Legacy reference before ampersand'       => array( "<div class='&lt&gt'>", array( '<>' ) ),
+			'Uppercase legacy reference'              => array( "<div class='&AMP'>", array( '&' ) ),
+			'Legacy reference before letter'          => array( "<div class='&ampx'>", array( '&ampx' ) ),
+			'Legacy reference before digit'           => array( "<div class='&copy2026'>", array( '&copy2026' ) ),
+			'Legacy reference before equals sign'     => array( "<div class='&amp='>", array( '&amp=' ) ),
+			'Legacy prefix of a longer reference'     => array( "<div class='&notin'>", array( '&notin' ) ),
+			'Legacy and full forms are duplicates'    => array( "<div class='&amp &amp;'>", array( '&' ) ),
+			'Non-legacy reference without semicolon'  => array( "<div class='&hellip'>", array( '&hellip' ) ),
+			'Unknown reference'                       => array( "<div class='&foo;'>", array( '&foo;' ) ),
+			'Decimal reference without semicolon'     => array( "<div class='a&#32b'>", array( 'a', 'b' ) ),
+			'Hex reference without semicolon'         => array( "<div class='a&#x20g'>", array( 'a', 'g' ) ),
+			'Bare ampersand'                          => array( "<div class='&'>", array( '&' ) ),
+		);
+	}
+
+	/**
 	 * Ensures that the tag processor matches class names with null bytes correctly.
 	 *
 	 * @ticket 61531
