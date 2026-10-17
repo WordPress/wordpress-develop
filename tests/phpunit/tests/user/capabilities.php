@@ -126,6 +126,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
+			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -209,6 +210,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'import'                  => array( 'administrator' ),
 			'list_users'              => array( 'administrator' ),
 			'manage_options'          => array( 'administrator' ),
+			'manage_secrets'          => array( 'administrator' ),
 			'promote_users'           => array( 'administrator' ),
 			'remove_users'            => array( 'administrator' ),
 			'switch_themes'           => array( 'administrator' ),
@@ -275,6 +277,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
+			'manage_network_secrets'      => array(),
 			'delete_site'                 => array(),
 			'upgrade_network'             => array(),
 
@@ -314,6 +317,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'manage_network_plugins'      => array(),
 			'manage_network_themes'       => array(),
 			'manage_network_options'      => array(),
+			'manage_network_secrets'      => array(),
 			'setup_network'               => array(),
 			'upload_plugins'              => array(),
 			'upload_themes'               => array(),
@@ -2134,6 +2138,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 		$role = $wp_roles->get_role( $this->role_test_wp_roles_init['role'] );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $role );
 		$this->assertContains( $this->role_test_wp_roles_init['info']['name'], $wp_roles->role_names );
 	}

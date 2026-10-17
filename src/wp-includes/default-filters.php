@@ -306,6 +306,7 @@ add_filter( 'tiny_mce_before_init', '_mce_set_direction' );
 add_filter( 'teeny_mce_before_init', '_mce_set_direction' );
 add_filter( 'pre_kses', 'wp_pre_kses_less_than' );
 add_filter( 'pre_kses', 'wp_pre_kses_block_attributes', 10, 3 );
+add_filter( 'wp_kses_force_legacy_parser', '__return_false' );
 add_filter( 'sanitize_title', 'sanitize_title_with_dashes', 10, 3 );
 add_action( 'check_comment_flood', 'check_comment_flood_db', 10, 4 );
 add_filter( 'comment_flood_filter', 'wp_throttle_comment_flood', 10, 3 );
@@ -318,6 +319,7 @@ add_filter( 'pre_comment_content', '_wp_kses_sanitize_note_mention_classes', 11 
 add_filter( 'comment_email', 'antispambot' );
 add_filter( 'option_tag_base', '_wp_filter_taxonomy_base' );
 add_filter( 'option_category_base', '_wp_filter_taxonomy_base' );
+add_filter( 'option_wp_random_base', '_wp_filter_taxonomy_base' );
 add_filter( 'the_posts', '_close_comments_for_old_posts', 10, 2 );
 add_filter( 'comments_open', '_close_comments_for_old_post', 10, 2 );
 add_filter( 'pings_open', '_close_comments_for_old_post', 10, 2 );
@@ -398,6 +400,7 @@ add_action( 'login_head', 'wp_print_head_scripts', 9 );
 add_action( 'login_head', 'print_admin_styles', 9 );
 add_action( 'login_head', 'wp_site_icon', 99 );
 add_action( 'login_footer', 'wp_print_footer_scripts', 20 );
+add_action( 'login_footer', 'wp_prefetch_admin_assets', 21 ); // By the footer, the login screen has enqueued everything it loads, so those are skipped.
 add_action( 'login_init', 'send_frame_options_header', 10, 0 );
 add_action( 'login_init', 'wp_admin_headers' );
 
@@ -492,6 +495,15 @@ add_action( 'attachment_updated', 'wp_check_for_changed_slugs', 12, 3 );
 add_action( 'post_updated', 'wp_check_for_changed_dates', 12, 3 );
 add_action( 'attachment_updated', 'wp_check_for_changed_dates', 12, 3 );
 
+// Random content redirects, see WP::handle_random().
+add_filter( 'split_the_query', 'wp_random_content_split_the_query', 10, 2 );
+add_action( 'wp_after_insert_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 4 );
+add_action( 'after_delete_post', 'wp_random_content_flush_rewrite_rules_for_post', 10, 2 );
+
+// Regenerate rewrite rules in the new site language, they can contain translated slugs.
+add_action( 'add_option_WPLANG', 'wp_flush_rewrite_rules_on_site_language_change', 10, 0 );
+add_action( 'update_option_WPLANG', 'wp_flush_rewrite_rules_on_site_language_change', 10, 0 );
+
 // Nonce check for post previews.
 add_action( 'init', '_show_post_preview' );
 
@@ -554,6 +566,7 @@ add_action( 'parse_request', 'rest_api_loaded' );
 
 // Abilities API.
 add_action( 'wp_abilities_api_categories_init', 'wp_register_core_ability_categories' );
+add_action( 'wp_abilities_api_init', '_wp_register_initial_settings_for_abilities', 1 );
 add_action( 'wp_abilities_api_init', 'wp_register_core_abilities' );
 
 // Connectors API.
@@ -696,6 +709,7 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
 add_action( 'customize_controls_enqueue_scripts', 'wp_plupload_default_settings' );
 add_action( 'plugins_loaded', '_wp_add_additional_image_sizes', 0 );
 add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
+add_action( 'delete_attachment', '_wp_delete_edit_root_attachment_id' );
 
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );
