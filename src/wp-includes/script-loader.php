@@ -3705,12 +3705,7 @@ function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
 	 *                                               entries with a boolean value, and that are true.
 	 * @param string                     $data       Inline CSS, as it will be printed in the `<style>` tag.
 	 */
-	$filtered_attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
-
-	// Fall back to the unfiltered attributes if a filter callback failed to return an array, such as by omitting a return statement.
-	if ( is_array( $filtered_attributes ) ) {
-		$attributes = $filtered_attributes;
-	}
+	$attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
 
 	foreach ( $attributes as $name => $value ) {
 		/*
