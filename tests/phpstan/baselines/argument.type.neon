@@ -99,11 +99,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/class-custom-image-header.php
 		-
-			message: '#^Parameter \#1 \$language_updates of method Language_Pack_Upgrader\:\:bulk_upgrade\(\) expects array\<object\>, list\<string\>\|string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
-		-
 			message: '#^Parameter \#1 \$str of function md5 expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -303,11 +298,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
-		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/translation-install.php
 		-
 			message: '#^Parameter \#3 \$overwrite of method WP_Filesystem_Base\:\:copy\(\) expects bool, int given\.$#'
 			identifier: argument.type
