@@ -1583,7 +1583,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return preg_replace( '~[ \t\n]*,[ \t\n]*~', "{$to_append}, ", trim( $selector, " \t\n" ) ) . $to_append;
@@ -1632,7 +1632,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return $to_prepend . preg_replace( '~[ \t\n]*,[ \t\n]*~', ", {$to_prepend}", trim( $selector, " \t\n" ) );
@@ -1677,8 +1677,8 @@ class WP_Theme_JSON {
 	 *     // Comments stay with the selector they follow.
 	 *     array( '.a /* a, the first *\/', '.b' ) === self::split_selector_list( '.a /* a, the first *\/,.b' );
 	 *
-	 * @see https://www.w3.org/TR/selectors/#parse-selector
-	 * @see https://www.w3.org/TR/css-syntax-3/
+	 * @link https://www.w3.org/TR/selectors/#parse-selector
+	 * @link https://www.w3.org/TR/css-syntax-3/
 	 *
 	 * @since 7.1.0
 	 *
@@ -1785,8 +1785,8 @@ class WP_Theme_JSON {
 				 * > not included in this definition, as they are converted
 				 * > to U+000A LINE FEED during preprocessing.
 				 *
-				 * @see https://www.w3.org/TR/css-syntax/#whitespace
-				 * @see https://www.w3.org/TR/css-syntax/#newline
+				 * @link https://www.w3.org/TR/css-syntax/#whitespace
+				 * @link https://www.w3.org/TR/css-syntax/#newline
 				 */
 				$selectors[] = trim( substr( $selector, $was_at, $next_at - $was_at ), " \t\n" );
 				$at          = $next_at + 1;
@@ -3916,6 +3916,14 @@ class WP_Theme_JSON {
 		$media_query              = $block_metadata['media_query'] ?? null;
 		$responsive_media_queries = static::get_viewport_media_queries( $settings['viewport'] ?? null );
 
+		$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
+		if ( is_array( $css_feature_selector ) ) {
+			$css_feature_selector = $css_feature_selector['root'] ?? null;
+		}
+		if ( ! is_string( $css_feature_selector ) ) {
+			$css_feature_selector = null;
+		}
+
 		// Update text indent selector for paragraph blocks based on the textIndent setting.
 		$block_name           = $block_metadata['name'] ?? null;
 		$feature_declarations = self::update_paragraph_text_indent_selector( $feature_declarations, $settings, $block_name );
@@ -3965,9 +3973,14 @@ class WP_Theme_JSON {
 				$variation_pseudo_declarations = $this->process_pseudo_selectors( $style_variation_node, $style_variation['selector'], $settings, $block_name, $block_metadata, $style_variation );
 				$style_variation_declarations  = array_merge( $style_variation_declarations, $variation_pseudo_declarations );
 
+				// Custom CSS targets the block's `css` feature selector, if any.
+				$variation_css_selector = null !== $css_feature_selector
+					? static::get_block_style_variation_feature_selector( $style_variation, $css_feature_selector )
+					: $style_variation['selector'];
+
 				// Store custom CSS for the style variation.
 				if ( isset( $style_variation_node['css'] ) ) {
-					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $style_variation['selector'] );
+					$style_variation_custom_css[ $style_variation['selector'] ] = $this->process_blocks_custom_css( $style_variation_node['css'], $variation_css_selector );
 				}
 
 				// Store variation metadata and node for layout styles generation.
@@ -4033,7 +4046,7 @@ class WP_Theme_JSON {
 
 					// Process custom CSS for this breakpoint.
 					if ( isset( $breakpoint_node['css'] ) ) {
-						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $style_variation['selector'] );
+						$breakpoint_custom_css     = static::process_blocks_custom_css( $breakpoint_node['css'], $variation_css_selector );
 						$variation_responsive_css .= $breakpoint_media . '{' . $breakpoint_custom_css . '}';
 					}
 
@@ -4277,11 +4290,7 @@ class WP_Theme_JSON {
 
 		// 7. Generate and append any custom CSS rules.
 		if ( isset( $node['css'] ) && ! $is_root_selector ) {
-			$css_feature_selector = $block_metadata['selectors']['css'] ?? null;
-			if ( is_array( $css_feature_selector ) ) {
-				$css_feature_selector = $css_feature_selector['root'] ?? null;
-			}
-			$css_selector = is_string( $css_feature_selector ) ? $css_feature_selector : $selector;
+			$css_selector = $css_feature_selector ?? $selector;
 			$block_rules .= $this->process_blocks_custom_css( $node['css'], $css_selector );
 		}
 
