@@ -65,6 +65,7 @@ includes:
 	- tests/phpstan/baselines/return.unusedType.neon
 	- tests/phpstan/baselines/varTag.noVariable.neon
 	- tests/phpstan/baselines/variable.undefined.neon
+	- tests/phpstan/baselines/wordpress.hookDocReferenceHookMissing.neon
 	# phpstan:baselines end
 
 parameters:
