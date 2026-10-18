@@ -6605,7 +6605,7 @@ function _truncate_post_slug( $slug, $length = 200 ) {
  * Determines the concatenation settings for scripts and styles.
  *
  * Scripts and styles are no longer concatenated, so this only gives the `$concatenate_scripts`,
- * `$compress_scripts` and `$compress_css` globals a value of false when they are not already set,
+ * `$compress_scripts`, and `$compress_css` globals a value of false when they are not already set,
  * for code that still reads them.
  *
  * @since 2.8.0
