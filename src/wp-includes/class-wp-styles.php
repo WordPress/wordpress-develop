@@ -103,6 +103,8 @@ class WP_Styles extends WP_Dependencies {
 	/**
 	 * List of default directories.
 	 *
+	 * Core no longer reads this, but wp_default_styles() still sets it for plugins that do.
+	 *
 	 * @since 2.8.0
 	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @see wp_default_styles()
