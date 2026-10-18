@@ -6617,7 +6617,7 @@ function _truncate_post_slug( $slug, $length = 200 ) {
  * @global bool $compress_scripts
  * @global bool $compress_css
  */
-function script_concat_settings() {
+function script_concat_settings(): void {
 	global $concatenate_scripts, $compress_scripts, $compress_css;
 
 	_deprecated_function( __FUNCTION__, '7.2.0' );
@@ -6645,7 +6645,7 @@ function script_concat_settings() {
  *
  * @global WP_Scripts $wp_scripts
  */
-function _print_scripts() {
+function _print_scripts(): void {
 	global $wp_scripts;
 
 	_deprecated_function( __FUNCTION__, '7.2.0' );
@@ -6662,7 +6662,7 @@ function _print_scripts() {
  * @since 3.3.0
  * @deprecated 7.2.0 Styles are no longer concatenated.
  */
-function _print_styles() {
+function _print_styles(): void {
 	_deprecated_function( __FUNCTION__, '7.2.0' );
 
 	$wp_styles = wp_styles();
