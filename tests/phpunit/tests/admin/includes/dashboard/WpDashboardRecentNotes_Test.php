@@ -78,13 +78,13 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * Renders the section.
 	 *
-	 * @param int $total_items Optional. Number of posts to display. Default 5.
-	 * @return array The return value of the function, and the rendered markup.
+	 * @param positive-int $total_items Optional. Number of posts to display. Default 5.
+	 * @return array{0: bool, 1: string} The return value of the function, and the rendered markup.
 	 */
-	private function render( $total_items = 5 ) {
+	private function render( $total_items = 5 ): array {
 		ob_start();
 		$returned = wp_dashboard_recent_notes( $total_items );
-		$output   = ob_get_clean();
+		$output   = (string) ob_get_clean();
 
 		return array( $returned, $output );
 	}
