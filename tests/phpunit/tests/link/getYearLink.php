@@ -74,6 +74,17 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that get_year_link() respects permastructs without a trailing slash.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_get_year_link_pretty_permalinks_without_trailing_slash() {
+		$this->set_permalink_structure( '/%year%/%postname%' );
+
+		$this->assertSame( home_url( '/2024' ), get_year_link( 2024 ) );
+	}
+
+	/**
 	 * Tests that the 'year_link' filter modifies the return value and receives expected arguments.
 	 *
 	 * @ticket 65819
@@ -93,6 +104,11 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 		$filter_args = $filter->get_args();
 		$this->assertSame( home_url( '?m=2024' ), $filter_args[0][0] );
 		$this->assertSame( 2024, $filter_args[0][1] );
+
+		// Verify filter receives fallback year when given empty or falsy input.
+		get_year_link( false );
+		$filter_args = $filter->get_args();
+		$this->assertSame( current_time( 'Y' ), $filter_args[1][1] );
 	}
 
 	/**
@@ -109,7 +125,6 @@ class Tests_Link_GetYearLink extends WP_UnitTestCase {
 
 		add_filter( 'year_link', $custom_callback, 10, 2 );
 		$actual = get_year_link( 2026 );
-		remove_filter( 'year_link', $custom_callback, 10 );
 
 		$this->assertSame( 'https://example.org/custom-archive/2026', $actual );
 	}
