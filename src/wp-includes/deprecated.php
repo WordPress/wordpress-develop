@@ -6600,3 +6600,37 @@ function _truncate_post_slug( $slug, $length = 200 ) {
 
 	return wp_truncate_slug( $slug, $length );
 }
+
+/**
+ * Determines the concatenation settings for scripts and styles.
+ *
+ * Scripts and styles are no longer concatenated, so this only gives the `$concatenate_scripts`,
+ * `$compress_scripts` and `$compress_css` globals a value of false when they are not already set,
+ * for code that still reads them.
+ *
+ * @since 2.8.0
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 4.9.9.
+ * @deprecated 7.2.0 Scripts and styles are no longer concatenated.
+ *
+ * @global bool $concatenate_scripts
+ * @global bool $compress_scripts
+ * @global bool $compress_css
+ */
+function script_concat_settings() {
+	global $concatenate_scripts, $compress_scripts, $compress_css;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! isset( $concatenate_scripts ) ) {
+		$concatenate_scripts = false;
+	}
+
+	if ( ! isset( $compress_scripts ) ) {
+		$compress_scripts = false;
+	}
+
+	if ( ! isset( $compress_css ) ) {
+		$compress_css = false;
+	}
+}

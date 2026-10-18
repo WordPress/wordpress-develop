@@ -1548,21 +1548,13 @@ final class _WP_Editors {
 	 * Print (output) the main TinyMCE scripts.
 	 *
 	 * @since 4.8.0
-	 *
-	 * @global bool $concatenate_scripts
 	 */
 	public static function print_tinymce_scripts() {
-		global $concatenate_scripts;
-
 		if ( self::$tinymce_scripts_printed ) {
 			return;
 		}
 
 		self::$tinymce_scripts_printed = true;
-
-		if ( ! isset( $concatenate_scripts ) ) {
-			script_concat_settings();
-		}
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 

@@ -31,11 +31,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
 
 	/**
-	 * @var bool
-	 */
-	protected $old_concatenate_scripts;
-
-	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -51,9 +46,8 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
-		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
-		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
+		$this->old_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
+		$this->old_wp_styles  = $GLOBALS['wp_styles'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -74,9 +68,8 @@ JS;
 	}
 
 	public function tear_down() {
-		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
-		$GLOBALS['wp_styles']           = $this->old_wp_styles;
-		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
+		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+		$GLOBALS['wp_styles']  = $this->old_wp_styles;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -3431,16 +3424,8 @@ HTML;
 	 * @ticket 57548
 	 *
 	 * @covers ::wp_register_tinymce_scripts
-	 *
-	 * @dataProvider data_register_tinymce_scripts_unbundled
-	 *
-	 * @param bool $concatenate Value of the `$concatenate_scripts` global.
 	 */
-	public function test_register_tinymce_scripts_unbundled( bool $concatenate ): void {
-		global $concatenate_scripts;
-
-		$concatenate_scripts = $concatenate;
-
+	public function test_register_tinymce_scripts_unbundled(): void {
 		$wp_scripts = wp_scripts();
 		wp_register_tinymce_scripts( $wp_scripts );
 
@@ -3454,22 +3439,6 @@ HTML;
 		$this->assertIsString( $tinymce->src );
 		$this->assertMatchesRegularExpression( '#/js/tinymce/plugins/compat3x/plugin(\.min)?\.js$#', $tinymce->src );
 		$this->assertSame( array( 'wp-tinymce-root' ), $tinymce->deps );
-	}
-
-	/**
-	 * Data provider for test_register_tinymce_scripts_unbundled().
-	 *
-	 * @return array<non-falsy-string, array{ concatenate: bool }>
-	 */
-	public function data_register_tinymce_scripts_unbundled(): array {
-		return array(
-			'concatenated'     => array(
-				'concatenate' => true,
-			),
-			'not concatenated' => array(
-				'concatenate' => false,
-			),
-		);
 	}
 
 	/**
