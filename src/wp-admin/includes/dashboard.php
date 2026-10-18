@@ -1167,7 +1167,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
  *
  * @phpstan-param positive-int $total_items
  */
-function wp_dashboard_recent_notes( $total_items = 5 ): bool {
+function wp_dashboard_recent_notes( int $total_items = 5 ): bool {
 	/*
 	 * Replies are queried alongside the notes that start a thread, so that a
 	 * thread someone replied to counts as added to when it was replied to.
