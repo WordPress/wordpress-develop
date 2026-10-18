@@ -749,11 +749,6 @@ parameters:
 			count: 4
 			path: ../../../src/wp-includes/feed-atom-comments.php
 		-
-			message: '#^Variable \$post might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/feed-rdf.php
-		-
 			message: '#^Variable \$comment might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2

@@ -92,7 +92,7 @@ do_action( 'rss_tag_pre', 'rss2' );
 		<?php endif; ?>
 
 		<dc:creator><![CDATA[<?php the_author(); ?>]]></dc:creator>
-		<pubDate><?php echo mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ); ?></pubDate>
+		<pubDate><?php echo get_post_time( 'D, d M Y H:i:s +0000', true ); ?></pubDate>
 		<?php the_category_rss( 'rss2' ); ?>
 		<guid isPermaLink="false"><?php the_guid(); ?></guid>
 

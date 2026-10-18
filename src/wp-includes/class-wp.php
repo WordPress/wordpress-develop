@@ -487,8 +487,8 @@ class WP {
 					)
 				)
 			) {
-				$wp_last_modified_post    = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
-				$wp_last_modified_comment = mysql2date( $date_format, get_lastcommentmodified( 'GMT' ), false );
+				$wp_last_modified_post    = get_lastpostmodified( 'GMT' );
+				$wp_last_modified_comment = get_lastcommentmodified( 'GMT' );
 
 				if ( strtotime( $wp_last_modified_post ) > strtotime( $wp_last_modified_comment ) ) {
 					$wp_last_modified = $wp_last_modified_post;
@@ -496,10 +496,12 @@ class WP {
 					$wp_last_modified = $wp_last_modified_comment;
 				}
 			} else {
-				$wp_last_modified = mysql2date( $date_format, get_lastpostmodified( 'GMT' ), false );
+				$wp_last_modified = get_lastpostmodified( 'GMT' );
 			}
 
-			if ( ! $wp_last_modified ) {
+			if ( $wp_last_modified ) {
+				$wp_last_modified = gmdate( $date_format, strtotime( $wp_last_modified . ' +0000' ) );
+			} else {
 				$wp_last_modified = gmdate( $date_format );
 			}
 

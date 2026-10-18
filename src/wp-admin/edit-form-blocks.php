@@ -302,7 +302,7 @@ $editor_settings['__experimentalAdditionalBlockPatternCategories'] = WP_Block_Pa
 
 $autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {
-	if ( mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
+	if ( strtotime( $autosave->post_modified_gmt ) > strtotime( $post->post_modified_gmt ) ) {
 		$editor_settings['autosave'] = array(
 			'editLink' => get_edit_post_link( $autosave->ID ),
 		);

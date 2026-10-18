@@ -2682,7 +2682,7 @@ final class WP_Customize_Manager {
 		// Validate date.
 		$now = gmdate( 'Y-m-d H:i:59' );
 		if ( $args['date_gmt'] ) {
-			$is_future_dated = ( mysql2date( 'U', $args['date_gmt'], false ) > mysql2date( 'U', $now, false ) );
+			$is_future_dated = ( strtotime( $args['date_gmt'] ) > strtotime( $now ) );
 			if ( ! $is_future_dated ) {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) ); // Only future dates are allowed.
 			}
@@ -2698,7 +2698,7 @@ final class WP_Customize_Manager {
 
 			// Fail if the new status is future but the existing post's date is not in the future.
 			$changeset_post = get_post( $changeset_post_id );
-			if ( mysql2date( 'U', $changeset_post->post_date_gmt, false ) <= mysql2date( 'U', $now, false ) ) {
+			if ( strtotime( $changeset_post->post_date_gmt ) <= strtotime( $now ) ) {
 				return new WP_Error( 'not_future_date', __( 'You must supply a future date to schedule.' ) );
 			}
 		}
