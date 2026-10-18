@@ -15,17 +15,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		if ( empty( $GLOBALS['wp_styles'] ) ) {
-			$GLOBALS['wp_styles'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_styles'];
-
-		if ( empty( $GLOBALS['wp_scripts'] ) ) {
-			$GLOBALS['wp_scripts'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_scripts'];
+		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
+		$old_wp_scripts       = $GLOBALS['wp_scripts'] ?? null;
+		$this->old_wp_styles  = $old_wp_styles instanceof WP_Styles ? $old_wp_styles : null;
+		$this->old_wp_scripts = $old_wp_scripts instanceof WP_Scripts ? $old_wp_scripts : null;
 
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
