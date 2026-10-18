@@ -367,6 +367,19 @@ final class WP_Screen {
 				break;
 		}
 
+		/**
+		 * Filters the admin context of a screen in WordPress admin panels.
+		 *
+		 * Allows modification of the `$in_admin` property of a `WP_Screen` instance.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param string $in_admin  The current admin context. Possible values are 'site', 'network', 'user', etc.
+		 * @param string $hook_name The hook name for the current screen.
+		 * @param string $id        The unique ID of the screen.
+		 */
+		$in_admin = apply_filters( 'screen_admin_context', $in_admin, $hook_name, $id );
+
 		if ( 'network' === $in_admin ) {
 			$id   .= '-network';
 			$base .= '-network';
