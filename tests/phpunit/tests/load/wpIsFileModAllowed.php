@@ -79,10 +79,20 @@ class Tests_Load_WpIsFileModAllowed extends WP_UnitTestCase {
 	/**
 	 * @ticket 65819
 	 */
-	public function test_filter_can_override_result() {
+	public function test_filter_can_disallow_when_file_mods_are_allowed() {
 		add_filter( 'file_mod_allowed', '__return_false' );
 		$this->assertFalse( wp_is_file_mod_allowed( 'install_plugins' ) );
 		remove_filter( 'file_mod_allowed', '__return_false' );
+	}
+
+	/**
+	 * @ticket 65819
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_filter_can_allow_when_disallow_file_mods_is_true() {
+		define( 'DISALLOW_FILE_MODS', true );
 
 		add_filter( 'file_mod_allowed', '__return_true' );
 		$this->assertTrue( wp_is_file_mod_allowed( 'install_plugins' ) );
