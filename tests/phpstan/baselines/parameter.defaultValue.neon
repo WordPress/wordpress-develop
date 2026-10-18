@@ -99,6 +99,11 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/plugin.php
 		-
+			message: '#^Default value of the parameter \#2 \$args \(array\{\}\) of function wp_initialize_site\(\) is incompatible with type array\{user_id\: int, title\?\: string, options\?\: array, meta\?\: array, \.\.\.\}\.$#'
+			identifier: parameter.defaultValue
+			count: 1
+			path: ../../../src/wp-includes/ms-site.php
+		-
 			message: '#^Default value of the parameter \#3 \$deprecated \(''''\) of function unregister_setting\(\) is incompatible with type callable\(\)\: mixed\.$#'
 			identifier: parameter.defaultValue
 			count: 1
