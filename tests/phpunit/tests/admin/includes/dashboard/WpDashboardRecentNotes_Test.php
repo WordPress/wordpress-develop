@@ -123,10 +123,13 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 
 		list( , $output ) = $this->render();
 
+		$edit_post_link = get_edit_post_link( $post_id );
+		$this->assertIsString( $edit_post_link, 'The post should have an edit link.' );
+
 		$this->assertMatchesRegularExpression(
 			sprintf(
 				'#<li>\s*<span>3 hours ago</span>\s*<a href="%s" aria-label="Edit &\#8220;A post with notes&\#8221;">A post with notes</a>\s*<span class="open-notes-count">1 open note</span>\s*</li>#',
-				preg_quote( esc_url( get_edit_post_link( $post_id ) ), '#' )
+				preg_quote( esc_url( $edit_post_link ), '#' )
 			),
 			$output
 		);
