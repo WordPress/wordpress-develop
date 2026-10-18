@@ -233,7 +233,7 @@ class WP_Scripts extends WP_Dependencies {
 	 */
 	public function print_extra_script( $handle, $display = true ) {
 		$output = $this->get_data( $handle, 'data' );
-		if ( ! $output ) {
+		if ( ! is_string( $output ) || '' === $output ) {
 			return null;
 		}
 

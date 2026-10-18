@@ -2265,6 +2265,21 @@ HTML;
 	}
 
 	/**
+	 * Tests that extra data which is not a string is not printed.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::print_extra_script
+	 */
+	public function test_print_extra_script_skips_non_string_data(): void {
+		wp_register_script( 'test-example', '/example.js', array(), null );
+		wp_script_add_data( 'test-example', 'data', array( 'foo' => 'bar' ) );
+
+		$this->assertNull( wp_scripts()->print_extra_script( 'test-example', false ), 'Expected no extra script to be returned.' );
+		$this->assertEqualHTML( "<script src='/example.js' id='test-example-js'></script>\n", get_echo( 'wp_print_scripts', array( 'test-example' ) ), '<body>', 'Expected only the script tag to be printed.' );
+	}
+
+	/**
 	 * Tests that the deprecated filters for printing scripts no longer keep them from being printed.
 	 *
 	 * @ticket 57548
