@@ -2215,6 +2215,8 @@ HTML;
 
 		$wp_scripts->do_concat = true;
 
+		// A plain blocking script comes first, since anything with inline scripts stopped concatenation.
+		wp_enqueue_script( 'zero', '/wp-includes/js/zero.js' );
 		wp_enqueue_script( 'one', '/wp-includes/js/one.js' );
 		wp_localize_script( 'one', 'one', array( 'key' => 'val' ) );
 		wp_add_inline_script( 'one', 'console.log("before one");', 'before' );
@@ -2223,6 +2225,7 @@ HTML;
 		wp_enqueue_script( 'two', '/plugins/two.js', array( 'alias' ), null, array( 'strategy' => 'defer' ) );
 
 		$expected = <<<HTML
+<script src="/wp-includes/js/zero.js?ver={$wp_version}" id="zero-js"></script>
 <script id="one-js-extra">
 var one = {"key":"val"};
 //# sourceURL=one-js-extra
