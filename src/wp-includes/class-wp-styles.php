@@ -58,6 +58,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds a list of style handles which will be concatenated.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $concat = '';
@@ -72,16 +73,18 @@ class WP_Styles extends WP_Dependencies {
 	public $concat_version = '';
 
 	/**
-	 * Whether to perform concatenation.
+	 * Whether to hold the markup of processed styles in `$print_html` instead of printing it.
+	 *
+	 * The markup is printed when _print_styles() is called.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Styles are no longer concatenated, so this only defers printing their markup.
 	 * @var bool
 	 */
 	public $do_concat = false;
 
 	/**
-	 * Holds HTML markup of styles and additional data if concatenation
-	 * is enabled.
+	 * Holds the HTML markup of processed styles while `$do_concat` is enabled.
 	 *
 	 * @since 2.8.0
 	 * @var string
@@ -92,6 +95,7 @@ class WP_Styles extends WP_Dependencies {
 	 * Holds inline styles if concatenation is enabled.
 	 *
 	 * @since 3.3.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $print_code = '';
@@ -144,15 +148,6 @@ class WP_Styles extends WP_Dependencies {
 
 			return false;
 		}
-		if ( null === $obj->ver ) {
-			$ver = '';
-		} else {
-			$ver = $obj->ver ? $obj->ver : $this->default_version;
-		}
-
-		if ( isset( $this->args[ $handle ] ) ) {
-			$ver = $ver ? $ver . '&amp;' . $this->args[ $handle ] : $this->args[ $handle ];
-		}
 
 		$src          = $obj->src;
 		$inline_style = $this->print_inline_style( $handle, false );
@@ -165,17 +160,6 @@ class WP_Styles extends WP_Dependencies {
 			$inline_style_tag = "{$processor->get_updated_html()}\n";
 		} else {
 			$inline_style_tag = '';
-		}
-
-		if ( $this->do_concat ) {
-			if ( is_string( $src ) && $this->in_default_dir( $src ) && ! isset( $obj->extra['alt'] ) ) {
-				$this->concat         .= "$handle,";
-				$this->concat_version .= "$handle$ver";
-
-				$this->print_code .= $inline_style;
-
-				return true;
-			}
 		}
 
 		$media = $obj->args ?? 'all';
@@ -350,25 +334,22 @@ class WP_Styles extends WP_Dependencies {
 			return false;
 		}
 
-		if ( ! $this->do_concat ) {
+		// Obtain the original `src` for a stylesheet possibly inlined by wp_maybe_inline_styles().
+		$inlined_src = $this->get_data( $handle, 'inlined_src' );
 
-			// Obtain the original `src` for a stylesheet possibly inlined by wp_maybe_inline_styles().
-			$inlined_src = $this->get_data( $handle, 'inlined_src' );
-
-			// If there's only one `after` inline style, and that inline style had been inlined, then use the $inlined_src
-			// as the sourceURL. Otherwise, if there is more than one inline `after` style associated with the handle,
-			// then resort to using the handle to construct the sourceURL since there isn't a single source.
-			if ( count( $output ) === 1 && is_string( $inlined_src ) && strlen( $inlined_src ) > 0 ) {
-				$source_url = esc_url_raw( $inlined_src );
-			} else {
-				$source_url = rawurlencode( "{$handle}-inline-css" );
-			}
-
-			$output[] = sprintf(
-				'/*# sourceURL=%s */',
-				$source_url
-			);
+		// If there's only one `after` inline style, and that inline style had been inlined, then use the $inlined_src
+		// as the sourceURL. Otherwise, if there is more than one inline `after` style associated with the handle,
+		// then resort to using the handle to construct the sourceURL since there isn't a single source.
+		if ( count( $output ) === 1 && is_string( $inlined_src ) && strlen( $inlined_src ) > 0 ) {
+			$source_url = esc_url_raw( $inlined_src );
+		} else {
+			$source_url = rawurlencode( "{$handle}-inline-css" );
 		}
+
+		$output[] = sprintf(
+			'/*# sourceURL=%s */',
+			$source_url
+		);
 
 		$output = implode( "\n", $output );
 

@@ -2157,22 +2157,15 @@ function wp_style_loader_src( $src, $handle ) {
  *
  * @see wp_print_scripts()
  *
- * @global bool $concatenate_scripts
- *
  * @return string[] Handles of the scripts that were printed.
  */
 function print_head_scripts() {
-	global $concatenate_scripts;
-
 	if ( ! did_action( 'wp_print_scripts' ) ) {
 		/** This action is documented in wp-includes/functions.wp-scripts.php */
 		do_action( 'wp_print_scripts' );
 	}
 
 	$wp_scripts = wp_scripts();
-
-	script_concat_settings();
-	$wp_scripts->do_concat = $concatenate_scripts;
 	$wp_scripts->do_head_items();
 
 	/**
@@ -2196,18 +2189,15 @@ function print_head_scripts() {
  * @since 2.8.0
  *
  * @global WP_Scripts $wp_scripts
- * @global bool       $concatenate_scripts
  *
  * @return string[] Handles of the scripts that were printed.
  */
 function print_footer_scripts() {
-	global $wp_scripts, $concatenate_scripts;
+	global $wp_scripts;
 
 	if ( ! ( $wp_scripts instanceof WP_Scripts ) ) {
 		return array(); // No need to run if not instantiated.
 	}
-	script_concat_settings();
-	$wp_scripts->do_concat = $concatenate_scripts;
 	$wp_scripts->do_footer_items();
 
 	/**
@@ -2228,7 +2218,10 @@ function print_footer_scripts() {
 /**
  * Prints scripts (internal use only)
  *
+ * Prints the markup that was held in `WP_Scripts::$print_html` while `WP_Scripts::$do_concat` was enabled.
+ *
  * @since 2.8.0
+ * @since 7.2.0 Scripts are no longer concatenated.
  *
  * @ignore
  *
@@ -2236,24 +2229,6 @@ function print_footer_scripts() {
  */
 function _print_scripts() {
 	global $wp_scripts;
-
-	$concat = trim( $wp_scripts->concat, ', ' );
-
-	if ( $concat ) {
-		if ( ! empty( $wp_scripts->print_code ) ) {
-			wp_print_inline_script_tag( $wp_scripts->print_code . "\n//# sourceURL=" . rawurlencode( 'js-inline-concat-' . $concat ) );
-		}
-
-		$concat       = str_split( $concat, 128 );
-		$concatenated = '';
-
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
-
-		$src = $wp_scripts->base_url . '/wp-admin/load-scripts.php?' . ltrim( $concatenated, '&' ) . '&ver=' . $wp_scripts->default_version;
-		wp_print_script_tag( array( 'src' => $src ) );
-	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
 		echo $wp_scripts->print_html;
@@ -2342,17 +2317,10 @@ function wp_enqueue_scripts() {
  *
  * @since 2.8.0
  *
- * @global bool $concatenate_scripts
- *
  * @return string[] Handles of the styles that were printed.
  */
 function print_admin_styles() {
-	global $concatenate_scripts;
-
 	$wp_styles = wp_styles();
-
-	script_concat_settings();
-	$wp_styles->do_concat = $concatenate_scripts;
 	$wp_styles->do_items( false );
 
 	/**
@@ -2376,19 +2344,16 @@ function print_admin_styles() {
  * @since 3.3.0
  *
  * @global WP_Styles $wp_styles
- * @global bool      $concatenate_scripts
  *
  * @return string[]|null
  */
 function print_late_styles() {
-	global $wp_styles, $concatenate_scripts;
+	global $wp_styles;
 
 	if ( ! ( $wp_styles instanceof WP_Styles ) ) {
 		return null;
 	}
 
-	script_concat_settings();
-	$wp_styles->do_concat = $concatenate_scripts;
 	$wp_styles->do_footer_items();
 
 	/**
@@ -2409,38 +2374,14 @@ function print_late_styles() {
 /**
  * Prints styles (internal use only).
  *
+ * Prints the markup that was held in `WP_Styles::$print_html` while `WP_Styles::$do_concat` was enabled.
+ *
  * @ignore
  * @since 3.3.0
+ * @since 7.2.0 Styles are no longer concatenated.
  */
 function _print_styles() {
 	$wp_styles = wp_styles();
-
-	$concat = trim( $wp_styles->concat, ', ' );
-
-	if ( $concat ) {
-		$dir = $wp_styles->text_direction;
-		$ver = $wp_styles->default_version;
-
-		$concat_source_url = 'css-inline-concat-' . $concat;
-		$concat            = str_split( $concat, 128 );
-		$concatenated      = '';
-
-		foreach ( $concat as $key => $chunk ) {
-			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
-		}
-
-		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
-
-		if ( ! empty( $wp_styles->print_code ) ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$style_tag_contents = "\n{$wp_styles->print_code}\n"
-				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
-			$processor->set_modifiable_text( $style_tag_contents );
-			echo "{$processor->get_updated_html()}\n";
-		}
-	}
 
 	if ( ! empty( $wp_styles->print_html ) ) {
 		echo $wp_styles->print_html;

@@ -202,6 +202,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
+	 * @ticket 57548
 	 */
 	public function test_inline_styles_concat() {
 		global $wp_styles;
@@ -216,6 +217,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' media='all' />\n";
 		$expected .= "<style id='handle-inline-css'>\n";
 		$expected .= "$style\n";
+		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -911,6 +913,7 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 * @ticket 57548
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @global string    $wp_version
@@ -931,14 +934,15 @@ HTML;
 		$printed = get_echo( '_print_styles' );
 
 		$expected = <<<HTML
-<link
-	rel="stylesheet"
-	href="/wp-admin/load-styles.php?dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
-	media="all"
->
-<style>
-h1 { background: blue; }h2 { color: green; }
-/*# sourceURL=css-inline-concat-one%2Ctwo */
+<link rel="stylesheet" id="one-css" href="/wp-admin/1.css?ver={$wp_version}" media="all">
+<style id="one-inline-css">
+h1 { background: blue; }
+/*# sourceURL=one-inline-css */
+</style>
+<link rel="stylesheet" id="two-css" href="/wp-admin/2.css?ver={$wp_version}" media="all">
+<style id="two-inline-css">
+h2 { color: green; }
+/*# sourceURL=two-inline-css */
 </style>
 
 HTML;
