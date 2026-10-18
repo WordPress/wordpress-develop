@@ -1,4 +1,13 @@
 <?php
+/**
+ * Outputs the core stylesheets named in the `load` query parameter, concatenated.
+ *
+ * WordPress no longer uses this file since 7.2.0, when stylesheets stopped being concatenated. It is
+ * kept so that code which still links to it directly keeps working.
+ *
+ * @package WordPress
+ * @subpackage Administration
+ */
 
 /*
  * The error_reporting() function can be disabled in php.ini. On systems where that is the case,
