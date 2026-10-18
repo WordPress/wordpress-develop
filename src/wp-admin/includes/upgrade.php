@@ -892,6 +892,10 @@ function upgrade_all() {
 		upgrade_700();
 	}
 
+	if ( $wp_current_db_version < 64337 ) {
+		upgrade_720();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2503,6 +2507,23 @@ function upgrade_700() {
 }
 
 /**
+ * Executes changes made in WordPress 7.2.
+ *
+ * @ignore
+ * @since 7.2.0
+ *
+ * @global int $wp_current_db_version The old (current) database version.
+ */
+function upgrade_720(): void {
+	global $wp_current_db_version;
+
+	// Grant the Secrets API's site-level capability to administrators.
+	if ( $wp_current_db_version < 64337 ) {
+		populate_roles_720();
+	}
+}
+
+/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
@@ -2871,7 +2892,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 		return __get_option( 'siteurl' );
 	}
 
-	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
+	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base', 'wp_random_base' ), true ) ) {
 		$option = untrailingslashit( $option );
 	}
 

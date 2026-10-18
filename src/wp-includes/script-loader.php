@@ -112,7 +112,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
-		'moment'                      => '2.30.1',
+		'moment'                      => '2.31.0',
 		'lodash'                      => '4.18.1',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -173,7 +173,7 @@ function wp_default_packages_vendor( $scripts ) {
  * These scripts enable hot module replacement (HMR) for block development
  * when using `wp-scripts start --hot`.
  *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ * @link https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
  *
  * @since 6.0.0
  *
@@ -3012,7 +3012,7 @@ function wp_prefetch_admin_assets(): void {
 		/**
 		 * Prefetches the page's rel=prefetch links with fetch() in browsers that do not support rel=prefetch.
 		 *
-		 * @see https://caniuse.com/link-rel-prefetch
+		 * @link https://caniuse.com/link-rel-prefetch
 		 */
 		() => {
 			if ( document.createElement( 'link' ).relList?.supports?.( 'prefetch' ) ) {
@@ -4618,8 +4618,8 @@ function wp_hoist_late_printed_styles(): void {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_html_custom_data_attribute_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $html_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if interpretable as a custom data attribute, else `null`.
@@ -4645,7 +4645,7 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
 	 * > U+002D HYPHEN-MINUS character (-) and replace the character that
 	 * > followed it by the same character converted to ASCII uppercase.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
+	 * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
 	 */
 	$custom_name = '';
 	$at          = 5;
@@ -4696,8 +4696,8 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_js_dataset_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $js_dataset_name Name of JS `dataset` property to transform.
  * @return string|null Corresponding name of an HTML custom data attribute for the given dataset name,
