@@ -103,11 +103,12 @@ class WP_Styles extends WP_Dependencies {
 	/**
 	 * List of default directories.
 	 *
-	 * Only the deprecated in_default_dir() reads this, but wp_default_styles() still sets it for
-	 * plugins that read it.
+	 * Only the deprecated {@see WP_Styles::in_default_dir()} reads this, but
+	 * {@see wp_default_styles()} still sets it for plugins that read it.
 	 *
 	 * @since 2.8.0
 	 * @deprecated 7.2.0 Styles are no longer concatenated.
+	 * @see WP_Styles::in_default_dir()
 	 * @see wp_default_styles()
 	 * @var string[]|null
 	 */
