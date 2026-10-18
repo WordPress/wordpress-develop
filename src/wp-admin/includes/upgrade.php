@@ -166,10 +166,12 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 	/**
 	 * Creates the initial content for a newly-installed site.
 	 *
-	 * Adds the default "Uncategorized" category, the first post (with comment),
-	 * first page, and default widgets for default theme for the current version.
+	 * Adds the default "Uncategorized" category, the first post (with comment
+	 * and note), first page, and default widgets for default theme for the
+	 * current version.
 	 *
 	 * @since 2.1.0
+	 * @since 7.2.0 Adds a note to the first block of the first post.
 	 *
 	 * @global wpdb       $wpdb         WordPress database abstraction object.
 	 * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
@@ -305,6 +307,58 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 				'comment_type'         => 'comment',
 			)
 		);
+
+		/*
+		 * Default note, attached to the first block of the first post.
+		 * A note is linked to its block through the block's `metadata.noteId`
+		 * attribute, so no note is added when the post has no blocks.
+		 */
+		$first_post_blocks = parse_blocks( $first_post );
+		$first_block_index = null;
+
+		foreach ( $first_post_blocks as $index => $block ) {
+			if ( null !== $block['blockName'] ) {
+				$first_block_index = $index;
+				break;
+			}
+		}
+
+		$note_author = get_userdata( $user_id );
+
+		if ( null !== $first_block_index && $note_author ) {
+			$note_inserted = $wpdb->insert(
+				$wpdb->comments,
+				array(
+					'comment_post_ID'      => 1,
+					'comment_author'       => $note_author->display_name,
+					'comment_author_email' => $note_author->user_email,
+					'comment_author_url'   => $note_author->user_url,
+					'comment_date'         => $now,
+					'comment_date_gmt'     => $now_gmt,
+					'comment_content'      => __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select a block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' ),
+					// Notes are open until they are resolved, which approves them.
+					'comment_approved'     => '0',
+					'comment_type'         => 'note',
+					'user_id'              => $user_id,
+				)
+			);
+
+			if ( $note_inserted ) {
+				$first_block_attrs = $first_post_blocks[ $first_block_index ]['attrs'];
+				$first_block_meta  = isset( $first_block_attrs['metadata'] ) && is_array( $first_block_attrs['metadata'] ) ? $first_block_attrs['metadata'] : array();
+
+				$first_block_meta['noteId']    = $wpdb->insert_id;
+				$first_block_attrs['metadata'] = $first_block_meta;
+
+				$first_post_blocks[ $first_block_index ]['attrs'] = $first_block_attrs;
+
+				$wpdb->update(
+					$wpdb->posts,
+					array( 'post_content' => serialize_blocks( $first_post_blocks ) ),
+					array( 'ID' => 1 )
+				);
+			}
+		}
 
 		// First page.
 		if ( is_multisite() ) {
