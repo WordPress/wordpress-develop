@@ -1297,6 +1297,11 @@ function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 				continue;
 			}
 
+			$edit_post_link = get_edit_post_link( $note_post_id );
+			if ( ! $edit_post_link ) {
+				continue;
+			}
+
 			$note_post_title = _draft_or_post_title( $note_post_id );
 
 			/* translators: %s: Human-readable time difference. */
@@ -1313,7 +1318,7 @@ function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 			?>
 			<li>
 				<span><?php echo $note_time_diff; ?></span>
-				<a href="<?php echo esc_url( get_edit_post_link( $note_post_id ) ); ?>" aria-label="<?php echo esc_attr( $note_post_label ); ?>"><?php echo $note_post_title; ?></a>
+				<a href="<?php echo esc_url( $edit_post_link ); ?>" aria-label="<?php echo esc_attr( $note_post_label ); ?>"><?php echo $note_post_title; ?></a>
 				<span class="open-notes-count"><?php echo $note_count; ?></span>
 			</li>
 		<?php endforeach; ?>
