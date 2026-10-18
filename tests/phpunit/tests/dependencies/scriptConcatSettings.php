@@ -24,7 +24,7 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 *
 	 * @var array<non-empty-string, mixed>
 	 */
-	private $original_globals = array();
+	private array $original_globals = array();
 
 	/**
 	 * Backs up and unsets the globals, so that script_concat_settings() sets their defaults.

@@ -2452,7 +2452,7 @@ function _print_styles() {
  *
  * @since 2.8.0
  * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
- *              of scripts and styles was removed in 5.0.0.
+ *              of scripts and styles was removed in 4.9.9.
  *
  * @global bool $concatenate_scripts
  * @global bool $compress_scripts

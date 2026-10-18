@@ -913,7 +913,7 @@ HTML;
 	 * @ticket 63887
 	 *
 	 * @global WP_Styles $wp_styles
-	 * @global string $wp_version
+	 * @global string    $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_styles, $wp_version;
