@@ -2172,8 +2172,8 @@ HTML;
 	 * @covers ::wp_register_script
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global bool $concatenate_scripts
-	 * @global string $wp_version
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2207,8 +2207,8 @@ HTML;
 	 * @covers ::wp_register_script
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global bool $concatenate_scripts
-	 * @global string $wp_version
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_async_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2243,8 +2243,8 @@ HTML;
 	 * @covers ::wp_register_script
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global bool $concatenate_scripts
-	 * @global string $wp_version
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_blocking_script_before_and_after_script_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2758,7 +2758,7 @@ HTML;
 	 * @ticket 14853
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_after_with_concat() {
 		global $wp_scripts, $wp_version;
@@ -2815,7 +2815,7 @@ HTML;
 	 * @ticket 36392
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -2866,7 +2866,7 @@ HTML;
 	 * @ticket 36392
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_with_concat_and_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -2894,7 +2894,7 @@ HTML;
 	 * @ticket 36392
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_after_concat_with_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -3006,7 +3006,7 @@ HTML;
 	 * @ticket 36392
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_third_core_script_prints_two_concat_scripts() {
 		global $wp_scripts, $wp_version;
@@ -3823,7 +3823,7 @@ HTML;
 	 * @covers ::wp_set_script_translations
 	 *
 	 * @global WP_Scripts $wp_scripts
-	 * @global string $wp_version
+	 * @global string     $wp_version
 	 */
 	public function test_wp_external_wp_i18n_print_order() {
 		global $wp_scripts, $wp_version;
