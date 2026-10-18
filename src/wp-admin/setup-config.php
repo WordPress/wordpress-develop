@@ -511,7 +511,8 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				}
 			}
 
-			chmod( $path_to_wp_config, 0666 );
+			// Match the permissions of the other core files rather than making the file world-writable.
+			chmod( $path_to_wp_config, fileperms( ABSPATH . 'index.php' ) & 0777 | 0644 );
 			setup_config_display_header();
 
 			if ( false !== $handle ) :
