@@ -934,13 +934,13 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( $handle, 'custom-el { content: "ok"; }' );
 
 		$expected = <<<HTML
-<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all">
-<style id="# test/</style> #-inline-css">
-custom-el { content: "ok"; }
-/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
-</style>
+		<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all">
+		<style id="# test/</style> #-inline-css">
+		custom-el { content: "ok"; }
+		/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
+		</style>
 
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
 	}
