@@ -1290,10 +1290,17 @@ function wp_dashboard_recent_notes( $total_items = 5 ): bool {
 		<ul>
 		<?php
 		foreach ( $latest_notes as $note_post_id => $note ) :
+			$note_time = strtotime( $note->comment_date_gmt . ' +0000' );
+
+			// Skip a note whose date cannot be parsed.
+			if ( ! is_int( $note_time ) ) {
+				continue;
+			}
+
 			$note_post_title = _draft_or_post_title( $note_post_id );
 
 			/* translators: %s: Human-readable time difference. */
-			$note_time_diff = sprintf( __( '%s ago' ), human_time_diff( strtotime( $note->comment_date_gmt . ' +0000' ) ) );
+			$note_time_diff = sprintf( __( '%s ago' ), human_time_diff( $note_time ) );
 
 			/* translators: %s: Post title. */
 			$note_post_label = sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title );
