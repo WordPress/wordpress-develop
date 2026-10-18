@@ -708,8 +708,10 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * labels keyed by name does, and an entry of any other type would contradict
 	 * the declared element type rather than narrow it. The one exception is a bare
 	 * `array` entry for an `array[]` element, which is how the `array[][]` of
-	 * `wp_print_font_faces()` is written: its own hash then says what the inner
-	 * arrays hold, so the element is still only narrowed.
+	 * `wp_print_font_faces()` is written. Its own hash must then describe the
+	 * elements of that `array[]` in turn, so the inner arrays are still only
+	 * narrowed: named keys there, or no hash at all, would type an array of
+	 * arrays as a single shape, or drop a level of it.
 	 *
 	 * @param string      $member  One member of a union type.
 	 * @param list<mixed> $entries Entries of the hash describing it.
@@ -728,7 +730,17 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		$element = strtolower( substr( $member, 0, -2 ) );
 		$type    = strtolower( $entry['type'] );
 
-		return $element === $type || ( 'array' === $type && preg_match( '#^array(?:\[\])+$#', $element ) === 1 );
+		if ( $element === $type ) {
+			return true;
+		}
+
+		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
+			return false;
+		}
+
+		$children = $entry['children'] ?? null;
+
+		return is_array( $children ) && $this->describes_elements( $element, array_values( $children ) );
 	}
 
 	/**
