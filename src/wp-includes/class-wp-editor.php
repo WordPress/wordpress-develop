@@ -1519,9 +1519,10 @@ final class _WP_Editors {
 	/**
 	 * Force uncompressed TinyMCE when a custom theme has been defined.
 	 *
-	 * The compressed TinyMCE file cannot deal with custom themes, so this makes
-	 * sure that WordPress uses the uncompressed TinyMCE file if a theme is defined.
-	 * Even if the website is running on a production environment.
+	 * The `wp-tinymce.js` bundle cannot deal with custom themes. Core registers
+	 * the separate TinyMCE files, but a site can still register the bundle under
+	 * the `wp-tinymce` handle, so this makes sure that the separate files are used
+	 * if a theme is defined.
 	 *
 	 * @since 5.0.0
 	 */

@@ -1549,7 +1549,7 @@ function wp_default_styles( $styles ) {
 	$styles->base_url        = $guessurl;
 	$styles->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$styles->default_version = get_bloginfo( 'version' );
-	$styles->text_direction  = function_exists( 'is_rtl' ) && is_rtl() ? 'rtl' : 'ltr';
+	$styles->text_direction  = is_rtl() ? 'rtl' : 'ltr';
 	$styles->default_dirs    = array( '/wp-admin/', '/wp-includes/css/' );
 
 	// Open Sans is no longer used by core, but may be relied upon by themes and plugins.
@@ -2318,9 +2318,9 @@ function print_late_styles() {
  *
  * - The login screen, which is followed by an admin screen. That screen downloads each core script
  *   and stylesheet separately, which is what makes an uncached admin load slow. Requesting the
- *   ones that block its first paint
- *   while the login form is on screen puts them in the HTTP cache during the time the user spends
- *   typing credentials, so the redirect that follows finds them already there.
+ *   ones that block its first paint while the login form is on screen puts them in the HTTP cache
+ *   during the time the user spends typing credentials, so the redirect that follows finds them
+ *   already there.
  * - The Dashboard and the post list tables, from which the editor is the usual next stop. Only the
  *   editor's stylesheets are prefetched, not its scripts: the scripts run to well over a megabyte
  *   compressed, which is far too much to spend on a screen the user may never open, whereas the
@@ -2364,9 +2364,9 @@ function wp_prefetch_admin_assets(): void {
 	/*
 	 * The context is told apart by the request rather than by the hook this runs on, so it works
 	 * from whichever hook it is added to. The 'login_init' action is fired by wp-login.php however
-	 * it is reached. The is_login() function would not do: it compares the login URL with the script handling the request, and a
-	 * plugin serving the login screen at a URL of its own runs wp-login.php from another script,
-	 * such as index.php.
+	 * it is reached. The is_login() function would not do: it compares the login URL with the
+	 * script handling the request, and a plugin serving the login screen at a URL of its own runs
+	 * wp-login.php from another script, such as index.php.
 	 */
 	$on_login = (bool) did_action( 'login_init' );
 
