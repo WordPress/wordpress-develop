@@ -43,7 +43,7 @@ if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	check_admin_referer( 'dismiss_new_network_admin_email' );
 	delete_site_option( 'network_admin_hash' );
 	delete_site_option( 'new_admin_email' );
-	wp_redirect( network_admin_url( add_query_arg( array( 'updated' => 'true' ), 'settings.php' ) ) );
+	wp_redirect( network_admin_url( 'settings.php' ) );
 	exit;
 }
 
@@ -143,7 +143,7 @@ if ( $_POST ) {
 
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
-if ( isset( $_GET['updated'] ) && ! isset( $_GET['network_admin_email_updated'] ) ) {
+if ( isset( $_GET['updated'] ) && 'true' === $_GET['updated'] && ! isset( $_GET['network_admin_email_updated'] ) ) {
 	wp_admin_notice(
 		'<strong>' . __( 'Settings saved.' ) . '</strong>',
 		array(
@@ -175,12 +175,12 @@ $pending_new_network_admin_email = $new_network_admin_email && get_site_option( 
 	$pending_network_admin_email_cancel_request_link = sprintf(
 		' <a href="%1$s">%2$s</a>',
 		esc_url( wp_nonce_url( network_admin_url( 'settings.php?dismiss=new_network_admin_email' ), 'dismiss_new_network_admin_email' ) ),
-		_x( 'Cancel request', 'network admin email change' )
+		_x( 'Cancel request', 'admin email change' )
 	);
 
 	if ( $pending_new_network_admin_email ) {
 		$message = sprintf(
-		/* translators: %s: New network admin email address. */
+			/* translators: %s: New network admin email address. */
 			__( 'The network admin email address has not been updated yet. Please check the inbox at %s for a confirmation email.' ),
 			'<code>' . esc_html( $new_network_admin_email ) . '</code>'
 		);
