@@ -9,8 +9,9 @@
  * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
-	private $old_wp_styles;
-	private $old_wp_scripts;
+	private ?WP_Styles $old_wp_styles = null;
+
+	private ?WP_Scripts $old_wp_scripts = null;
 
 	public function set_up() {
 		parent::set_up();

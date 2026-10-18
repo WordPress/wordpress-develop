@@ -25,15 +25,9 @@
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
-	/**
-	 * @var WP_Scripts|null
-	 */
-	protected $old_wp_scripts;
+	protected ?WP_Scripts $old_wp_scripts = null;
 
-	/**
-	 * @var WP_Styles|null
-	 */
-	protected $old_wp_styles;
+	protected ?WP_Styles $old_wp_styles = null;
 
 	protected $wp_scripts_print_translations_output;
 
