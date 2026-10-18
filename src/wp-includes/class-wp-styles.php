@@ -229,7 +229,7 @@ class WP_Styles extends WP_Dependencies {
 		}
 
 		echo $tag;
-		$this->print_inline_style( $handle );
+		echo $inline_style_tag;
 
 		return true;
 	}
