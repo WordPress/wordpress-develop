@@ -275,4 +275,196 @@ OPTIONS;
 			'all type requested'             => array( 'all' ),
 		);
 	}
+
+	/**
+	 * A type added to the default-excluded set is not listed unless it is requested.
+	 *
+	 * The list table forces the default exclusions through 'type__not_in', so an
+	 * excluded type stays hidden even for a 'type=all' request.
+	 *
+	 * @ticket 65537
+	 *
+	 * @dataProvider data_unrequested_comment_type
+	 *
+	 * @param string $comment_type The comment_type request value to test.
+	 */
+	public function test_comments_list_table_hides_filtered_excluded_comment_type( string $comment_type ) {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		$regular_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_add_private_comment_type' ) );
+
+		$_REQUEST['comment_type'] = $comment_type;
+		$this->table->prepare_items();
+
+		$this->assertSame(
+			array( $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
+		);
+	}
+
+	/**
+	 * Data provider for test_comments_list_table_hides_filtered_excluded_comment_type().
+	 *
+	 * @return array<string, string[]>
+	 */
+	public function data_unrequested_comment_type(): array {
+		return array(
+			'no type requested'  => array( '' ),
+			'all type requested' => array( 'all' ),
+		);
+	}
+
+	/**
+	 * A type added to the default-excluded set is listed when explicitly requested.
+	 *
+	 * A plugin can surface its own excluded type through the
+	 * 'admin_comment_types_dropdown' filter, so selecting it has to return results.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comments_list_table_shows_explicitly_requested_excluded_comment_type() {
+		$post_id = self::factory()->post->create();
+
+		$private_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_add_private_comment_type' ) );
+
+		$_REQUEST['comment_type'] = 'private';
+		$this->table->prepare_items();
+
+		$this->assertSame(
+			array( $private_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) )
+		);
+	}
+
+	/**
+	 * Emptying the excluded set surfaces notes in the untyped views, but the table
+	 * still cannot be filtered to notes: the request for that type is dropped
+	 * separately from the exclusions, because notes have their own visibility rules.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comments_list_table_note_request_is_dropped_with_an_empty_excluded_set() {
+		$post_id = self::factory()->post->create();
+
+		$note_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'note',
+				'comment_approved' => '1',
+			)
+		);
+
+		$regular_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', '__return_empty_array' );
+
+		$_REQUEST['comment_type'] = '';
+		$this->table->prepare_items();
+
+		$this->assertSameSets(
+			array( $note_id, $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'An empty excluded set should surface notes in the untyped view.'
+		);
+
+		$_REQUEST['comment_type'] = 'note';
+		$this->table->prepare_items();
+
+		$this->assertSameSets(
+			array( $note_id, $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'A request for the note type should be dropped rather than filter the table.'
+		);
+	}
+
+	/**
+	 * A non-string 'comment_type' request is ignored rather than raising a warning.
+	 *
+	 * The requested type is subtracted from the default-excluded set with
+	 * array_diff(), which casts its arguments to strings. An array request such as
+	 * comment_type[]=private would otherwise raise an "Array to string conversion"
+	 * warning and could skip the exclusion it names.
+	 *
+	 * @ticket 65537
+	 */
+	public function test_comments_list_table_ignores_a_non_string_comment_type_request() {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => 'private',
+				'comment_approved' => '1',
+			)
+		);
+
+		$regular_comment_id = self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_type'     => '',
+				'comment_approved' => '1',
+			)
+		);
+
+		add_filter( 'default_excluded_comment_types', array( $this, 'filter_add_private_comment_type' ) );
+
+		$_REQUEST['comment_type'] = array( 'private' );
+		$this->table->prepare_items();
+
+		$this->assertSame(
+			array( $regular_comment_id ),
+			array_map( 'intval', wp_list_pluck( $this->table->items, 'comment_ID' ) ),
+			'An array request should be treated as no type filter and keep the excluded type hidden.'
+		);
+	}
+
+	/**
+	 * Adds the 'private' comment type to the default-excluded set.
+	 *
+	 * @param string[] $excluded_types Comment types excluded by default.
+	 * @return string[] Filtered comment types.
+	 */
+	public function filter_add_private_comment_type( $excluded_types ): array {
+		$excluded_types[] = 'private';
+
+		return $excluded_types;
+	}
 }
