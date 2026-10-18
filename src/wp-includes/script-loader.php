@@ -2453,6 +2453,8 @@ function _print_styles() {
  * Determines the concatenation settings for scripts and styles.
  *
  * @since 2.8.0
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 5.0.0.
  *
  * @global bool $concatenate_scripts
  * @global bool $compress_scripts
@@ -2466,11 +2468,11 @@ function script_concat_settings() {
 	}
 
 	if ( ! isset( $compress_scripts ) ) {
-		$compress_scripts = true;
+		$compress_scripts = false;
 	}
 
 	if ( ! isset( $compress_css ) ) {
-		$compress_css = true;
+		$compress_css = false;
 	}
 }
 
