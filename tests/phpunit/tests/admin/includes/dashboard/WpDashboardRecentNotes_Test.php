@@ -35,16 +35,16 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * Creates a draft post.
 	 *
-	 * @param string $title  The post title.
-	 * @param int    $author Optional. The post author. Default is the administrator.
+	 * @param string   $title  The post title.
+	 * @param int|null $author Optional. The post author. Default is the administrator.
 	 * @return int The post ID.
 	 */
-	private function create_post( string $title, int $author = 0 ): int {
+	private function create_post( string $title, ?int $author = null ): int {
 		return self::factory()->post->create(
 			array(
 				'post_title'  => $title,
 				'post_status' => 'draft',
-				'post_author' => $author ? $author : self::$admin_id,
+				'post_author' => $author ?? self::$admin_id,
 			)
 		);
 	}
