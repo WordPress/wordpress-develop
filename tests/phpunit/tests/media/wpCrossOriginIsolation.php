@@ -223,7 +223,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_classic_theme_site_editor_home_routes() {
+	public static function data_classic_theme_site_editor_home_routes() {
 		return array(
 			'no p query var'   => array( array() ),
 			'p query var is /' => array( array( 'p' => '/' ) ),
@@ -392,7 +392,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_elements_that_should_get_crossorigin() {
+	public static function data_elements_that_should_get_crossorigin() {
 		return array(
 			'cross-origin script'              => array(
 				'<script src="https://external.example.com/script.js"></script>',
@@ -447,7 +447,7 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_elements_that_should_not_get_crossorigin() {
+	public static function data_elements_that_should_not_get_crossorigin() {
 		return array(
 			'cross-origin img'                        => array(
 				'<img src="https://external.example.com/image.jpg" />',
