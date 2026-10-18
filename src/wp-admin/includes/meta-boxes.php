@@ -1010,6 +1010,7 @@ function page_attributes_meta_box( $post ) {
 			'show_option_none' => __( '(no parent)' ),
 			'sort_column'      => 'menu_order, post_title',
 			'echo'             => 0,
+			'post_status'      => array( 'publish', 'draft', 'pending', 'private' ),
 		);
 
 		/**
