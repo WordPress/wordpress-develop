@@ -87,7 +87,7 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 	 * @param int    $user_id    Optional. The site admin. Default is a new administrator.
 	 * @return array{0: WP_Post, 1: WP_Comment[]} The first post and the site's notes.
 	 */
-	private function create_site_and_get_first_post_notes( string $first_post, int $user_id = 0 ) {
+	private function create_site_and_get_first_post_notes( string $first_post, int $user_id = 0 ): array {
 		update_site_option( 'first_post', $first_post );
 
 		if ( ! $user_id ) {

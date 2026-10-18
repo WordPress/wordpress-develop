@@ -12,12 +12,12 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @var int
 	 */
-	public static $admin_id;
+	public static int $admin_id;
 
 	/**
 	 * @var int
 	 */
-	public static $author_id;
+	public static int $author_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$admin_id  = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -39,7 +39,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param int    $author Optional. The post author. Default is the administrator.
 	 * @return int The post ID.
 	 */
-	private function create_post( string $title, int $author = 0 ) {
+	private function create_post( string $title, int $author = 0 ): int {
 		return self::factory()->post->create(
 			array(
 				'post_title'  => $title,
@@ -58,7 +58,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param string $date      Optional. Local date, in MySQL format. Default is the current local time.
 	 * @return int The note ID.
 	 */
-	private function create_note( int $post_id, string $approved = '0', int $parent_id = 0, string $date = '' ) {
+	private function create_note( int $post_id, string $approved = '0', int $parent_id = 0, string $date = '' ): int {
 		if ( '' === $date ) {
 			$date = current_time( 'mysql' );
 		}
@@ -95,7 +95,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param string $output The rendered section.
 	 * @return string[] The linked post titles.
 	 */
-	private function get_linked_titles( string $output ) {
+	private function get_linked_titles( string $output ): array {
 		preg_match_all( '#<a [^>]*>([^<]*)</a>#', $output, $matches );
 
 		return $matches[1];
