@@ -197,6 +197,9 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
 	 * @ticket 57548
+	 *
+	 * @expectedIncorrectUsage WP_Styles::__get
+	 * @expectedIncorrectUsage WP_Styles::__set
 	 */
 	public function test_inline_styles_concat() {
 		global $wp_styles;
@@ -253,12 +256,127 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * @covers WP_Styles::in_default_dir
 	 *
 	 * @expectedDeprecated WP_Styles::in_default_dir
+	 * @expectedIncorrectUsage WP_Styles::__set
 	 */
 	public function test_in_default_dir_is_deprecated(): void {
-		$wp_styles               = wp_styles();
-		$wp_styles->default_dirs = array( '/wp-includes/css/' );
+		$wp_styles = wp_styles();
 
-		$this->assertTrue( $wp_styles->in_default_dir( '/wp-includes/css/file' ) );
+		$this->assertTrue( $wp_styles->in_default_dir( '/wp-includes/css/file' ), 'Expected a style in a default directory.' );
+		$this->assertFalse( $wp_styles->in_default_dir( '/wp-content/css/file' ), 'Expected a style outside the default directories.' );
+
+		$wp_styles->default_dirs = array( '/wp-content/css/' );
+
+		$this->assertTrue( $wp_styles->in_default_dir( '/wp-content/css/file' ), 'Expected the set default directories to be used.' );
+	}
+
+	/**
+	 * Tests that the deprecated properties can still be used, with a notice.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::__get
+	 * @covers WP_Styles::__set
+	 * @covers WP_Styles::__isset
+	 * @covers WP_Styles::__unset
+	 *
+	 * @expectedIncorrectUsage WP_Styles::__get
+	 * @expectedIncorrectUsage WP_Styles::__set
+	 * @expectedIncorrectUsage WP_Styles::__isset
+	 * @expectedIncorrectUsage WP_Styles::__unset
+	 *
+	 * @dataProvider data_deprecated_properties
+	 *
+	 * @param string $name          Property name.
+	 * @param mixed  $default_value Default value of the property.
+	 */
+	public function test_deprecated_properties( string $name, $default_value ): void {
+		$wp_styles = wp_styles();
+
+		$this->assertSame( $default_value, $wp_styles->$name, 'Expected the default value.' );
+		$this->assertTrue( isset( $wp_styles->$name ), 'Expected the default value to be set.' );
+
+		$wp_styles->$name = 'foo';
+		$this->assertSame( 'foo', $wp_styles->$name, 'Expected the set value.' );
+
+		unset( $wp_styles->$name );
+		$this->assertSame( $default_value, $wp_styles->$name, 'Expected unsetting to restore the default value.' );
+
+		$wp_styles->$name = null;
+		$this->assertFalse( isset( $wp_styles->$name ), 'Expected a null value not to be set.' );
+	}
+
+	/**
+	 * Data provider for test_deprecated_properties().
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: mixed }>
+	 */
+	public function data_deprecated_properties(): array {
+		return array(
+			'concat'         => array( 'concat', '' ),
+			'concat_version' => array( 'concat_version', '' ),
+			'do_concat'      => array( 'do_concat', false ),
+			'print_html'     => array( 'print_html', '' ),
+			'print_code'     => array( 'print_code', '' ),
+			'default_dirs'   => array( 'default_dirs', array( '/wp-admin/', '/wp-includes/css/' ) ),
+		);
+	}
+
+	/**
+	 * Tests that the deprecated properties can still be modified in place, and that resetting clears them.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::__get
+	 * @covers WP_Styles::reset
+	 *
+	 * @expectedIncorrectUsage WP_Styles::__get
+	 * @expectedIncorrectUsage WP_Styles::__set
+	 */
+	public function test_deprecated_properties_can_be_modified_in_place(): void {
+		$wp_styles = wp_styles();
+
+		$wp_styles->default_dirs[] = '/wp-content/css/';
+		$wp_styles->print_html    .= '<link>';
+
+		$this->assertSame( array( '/wp-admin/', '/wp-includes/css/', '/wp-content/css/' ), $wp_styles->default_dirs, 'Expected the directory to be appended.' );
+		$this->assertSame( '<link>', $wp_styles->print_html, 'Expected the markup to be appended.' );
+
+		$wp_styles->reset();
+
+		$this->assertSame( '', $wp_styles->print_html, 'Expected resetting to clear the markup.' );
+		$this->assertSame( array( '/wp-admin/', '/wp-includes/css/', '/wp-content/css/' ), $wp_styles->default_dirs, 'Expected resetting to keep the directories.' );
+	}
+
+	/**
+	 * Tests that other undefined properties are still set as dynamic properties.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::__set
+	 * @covers WP_Styles::__isset
+	 */
+	public function test_other_undefined_properties_are_dynamic(): void {
+		$wp_styles = wp_styles();
+
+		$this->assertFalse( isset( $wp_styles->undefined_property ), 'Expected the property not to be set initially.' );
+
+		$wp_styles->undefined_property = 'foo'; // @phpstan-ignore property.notFound (An undefined property is set on purpose.)
+
+		$this->assertSame( 'foo', $wp_styles->undefined_property, 'Expected the dynamic property to be set.' );
+	}
+
+	/**
+	 * Tests that the magic methods do not expose the properties which are not public.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::__set
+	 */
+	public function test_non_public_properties_are_inaccessible(): void {
+		$this->expectException( Error::class );
+		$this->expectExceptionMessage( 'Cannot access non-public property WP_Styles::$deprecated_property_values' );
+
+		wp_styles()->deprecated_property_values = array(); // @phpstan-ignore property.private (A private property is set on purpose.)
 	}
 
 	/**

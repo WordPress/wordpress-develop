@@ -2182,6 +2182,9 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Scripts::do_item
 	 *
+	 * @expectedIncorrectUsage WP_Scripts::__get
+	 * @expectedIncorrectUsage WP_Scripts::__set
+	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global string     $wp_version
 	 */
@@ -2231,12 +2234,129 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	 * @covers WP_Scripts::in_default_dir
 	 *
 	 * @expectedDeprecated WP_Scripts::in_default_dir
+	 * @expectedIncorrectUsage WP_Scripts::__set
 	 */
 	public function test_in_default_dir_is_deprecated(): void {
-		$wp_scripts               = wp_scripts();
-		$wp_scripts->default_dirs = array( '/wp-includes/js/' );
+		$wp_scripts = wp_scripts();
 
-		$this->assertTrue( $wp_scripts->in_default_dir( '/wp-includes/js/file' ) );
+		$this->assertTrue( $wp_scripts->in_default_dir( '/wp-includes/js/file' ), 'Expected a script in a default directory.' );
+		$this->assertFalse( $wp_scripts->in_default_dir( '/wp-content/js/file' ), 'Expected a script outside the default directories.' );
+
+		$wp_scripts->default_dirs = array( '/wp-content/js/' );
+
+		$this->assertTrue( $wp_scripts->in_default_dir( '/wp-content/js/file' ), 'Expected the set default directories to be used.' );
+	}
+
+	/**
+	 * Tests that the deprecated properties can still be used, with a notice.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::__get
+	 * @covers WP_Scripts::__set
+	 * @covers WP_Scripts::__isset
+	 * @covers WP_Scripts::__unset
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::__get
+	 * @expectedIncorrectUsage WP_Scripts::__set
+	 * @expectedIncorrectUsage WP_Scripts::__isset
+	 * @expectedIncorrectUsage WP_Scripts::__unset
+	 *
+	 * @dataProvider data_deprecated_properties
+	 *
+	 * @param string $name          Property name.
+	 * @param mixed  $default_value Default value of the property.
+	 */
+	public function test_deprecated_properties( string $name, $default_value ): void {
+		$wp_scripts = wp_scripts();
+
+		$this->assertSame( $default_value, $wp_scripts->$name, 'Expected the default value.' );
+		$this->assertTrue( isset( $wp_scripts->$name ), 'Expected the default value to be set.' );
+
+		$wp_scripts->$name = 'foo';
+		$this->assertSame( 'foo', $wp_scripts->$name, 'Expected the set value.' );
+
+		unset( $wp_scripts->$name );
+		$this->assertSame( $default_value, $wp_scripts->$name, 'Expected unsetting to restore the default value.' );
+
+		$wp_scripts->$name = null;
+		$this->assertFalse( isset( $wp_scripts->$name ), 'Expected a null value not to be set.' );
+	}
+
+	/**
+	 * Data provider for test_deprecated_properties().
+	 *
+	 * @return array<non-falsy-string, array{ 0: non-falsy-string, 1: mixed }>
+	 */
+	public function data_deprecated_properties(): array {
+		return array(
+			'concat'         => array( 'concat', '' ),
+			'concat_version' => array( 'concat_version', '' ),
+			'do_concat'      => array( 'do_concat', false ),
+			'print_html'     => array( 'print_html', '' ),
+			'print_code'     => array( 'print_code', '' ),
+			'ext_handles'    => array( 'ext_handles', '' ),
+			'ext_version'    => array( 'ext_version', '' ),
+			'default_dirs'   => array( 'default_dirs', array( '/wp-admin/js/', '/wp-includes/js/' ) ),
+		);
+	}
+
+	/**
+	 * Tests that the deprecated properties can still be modified in place, and that resetting clears them.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::__get
+	 * @covers WP_Scripts::reset
+	 *
+	 * @expectedIncorrectUsage WP_Scripts::__get
+	 * @expectedIncorrectUsage WP_Scripts::__set
+	 */
+	public function test_deprecated_properties_can_be_modified_in_place(): void {
+		$wp_scripts = wp_scripts();
+
+		$wp_scripts->default_dirs[] = '/wp-content/js/';
+		$wp_scripts->print_html    .= '<script></script>';
+
+		$this->assertSame( array( '/wp-admin/js/', '/wp-includes/js/', '/wp-content/js/' ), $wp_scripts->default_dirs, 'Expected the directory to be appended.' );
+		$this->assertSame( '<script></script>', $wp_scripts->print_html, 'Expected the markup to be appended.' );
+
+		$wp_scripts->reset();
+
+		$this->assertSame( '', $wp_scripts->print_html, 'Expected resetting to clear the markup.' );
+		$this->assertSame( array( '/wp-admin/js/', '/wp-includes/js/', '/wp-content/js/' ), $wp_scripts->default_dirs, 'Expected resetting to keep the directories.' );
+	}
+
+	/**
+	 * Tests that other undefined properties are still set as dynamic properties.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::__set
+	 * @covers WP_Scripts::__isset
+	 */
+	public function test_other_undefined_properties_are_dynamic(): void {
+		$wp_scripts = wp_scripts();
+
+		$this->assertFalse( isset( $wp_scripts->undefined_property ), 'Expected the property not to be set initially.' );
+
+		$wp_scripts->undefined_property = 'foo'; // @phpstan-ignore property.notFound (An undefined property is set on purpose.)
+
+		$this->assertSame( 'foo', $wp_scripts->undefined_property, 'Expected the dynamic property to be set.' );
+	}
+
+	/**
+	 * Tests that the magic methods do not expose the properties which are not public.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::__set
+	 */
+	public function test_non_public_properties_are_inaccessible(): void {
+		$this->expectException( Error::class );
+		$this->expectExceptionMessage( 'Cannot access non-public property WP_Scripts::$dependents_map' );
+
+		wp_scripts()->dependents_map = array(); // @phpstan-ignore property.private (A private property is set on purpose.)
 	}
 
 	/**
