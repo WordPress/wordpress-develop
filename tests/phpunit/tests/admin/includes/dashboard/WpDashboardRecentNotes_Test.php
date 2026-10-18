@@ -10,12 +10,12 @@
 class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCase {
 
 	/**
-	 * @var int
+	 * @var positive-int
 	 */
 	public static int $admin_id;
 
 	/**
-	 * @var int
+	 * @var positive-int
 	 */
 	public static int $author_id;
 
