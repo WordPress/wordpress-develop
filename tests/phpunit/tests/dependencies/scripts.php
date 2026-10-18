@@ -2213,6 +2213,7 @@ HTML;
 	public function test_do_concat_is_ignored(): void {
 		global $wp_scripts, $wp_version;
 
+		// The deprecated property is set as plugins may still do, to verify that it no longer has any effect.
 		$wp_scripts->do_concat = true;
 
 		// A plain blocking script comes first, since anything with inline scripts stopped concatenation.

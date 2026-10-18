@@ -207,6 +207,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_inline_styles_concat() {
 		global $wp_styles;
 
+		// The deprecated property is set as plugins may still do, to verify that it no longer has any effect.
 		$wp_styles->do_concat = true;
 
 		$style  = ".thing {\n";
