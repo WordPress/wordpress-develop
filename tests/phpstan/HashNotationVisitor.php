@@ -57,7 +57,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   or `object`, or a class, on its own or as one member of a union such as
  *   `string|array` or `array|WP_Error`, where the bare member is the one the
  *   hash is about. A type that is already more specific than the hash, such as
- *   `array<string, string|bool>`, is left as written. A shape derived for a
+ *   `array<string, string|bool>`, is left as written, except for a `T[]` whose
+ *   hash is a single `...$0` entry typed as that `T`, which describes the
+ *   elements the way a hash on a bare `array` would. A shape derived for a
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
  *   would not be assignable to a property declared `stdClass`.
@@ -600,8 +602,21 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$bare      = array();
 		$shapeable = array();
+		$elements  = array();
 
 		foreach ( $members as $position => $member ) {
+			/*
+			 * A `T[]` member describes its elements, so it takes a hash that does the
+			 * same: a single `...$0` entry documenting the repeated value as a `T`, as
+			 * the blocks `parse_blocks()` returns are. It is then as bare as an `array`,
+			 * since the hash is all there is to say about its keys.
+			 */
+			if ( $this->describes_elements( $member, $entries ) ) {
+				$bare[]     = $position;
+				$elements[] = $position;
+				continue;
+			}
+
 			if ( ! $this->is_shapeable( $member ) ) {
 				continue;
 			}
@@ -631,8 +646,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$member     = $members[ $target ];
 		$normalized = strtolower( $member );
-		$named      = 'array' !== $normalized && 'object' !== $normalized;
-		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized, $named );
+		$is_array   = 'array' === $normalized || in_array( $target, $elements, true );
+		$named      = ! $is_array && 'object' !== $normalized;
+		$shape      = $this->resolve_container( $entries, $for_param, $is_array, $named );
 		if ( null === $shape ) {
 			return null;
 		}
@@ -681,6 +697,37 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return preg_match( '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#', $member ) === 1;
+	}
+
+	/**
+	 * Reports whether a hash documents the elements of a `T[]` member of a union type.
+	 *
+	 * Only a single `...$0` entry whose own type is that `T` qualifies. Named keys
+	 * beside a `T[]` describe the array itself, as the `string[]` of a list of
+	 * labels keyed by name does, and an entry of any other type would contradict
+	 * the declared element type rather than narrow it. The one exception is a bare
+	 * `array` entry for an `array[]` element, which is how the `array[][]` of
+	 * `wp_print_font_faces()` is written: its own hash then says what the inner
+	 * arrays hold, so the element is still only narrowed.
+	 *
+	 * @param string      $member  One member of a union type.
+	 * @param list<mixed> $entries Entries of the hash describing it.
+	 * @return bool
+	 */
+	private function describes_elements( string $member, array $entries ): bool {
+		if ( ! str_ends_with( $member, '[]' ) || 1 !== count( $entries ) ) {
+			return false;
+		}
+
+		$entry = $entries[0];
+		if ( ! is_array( $entry ) || true !== ( $entry['variadic'] ?? null ) || ! is_string( $entry['type'] ?? null ) ) {
+			return false;
+		}
+
+		$element = strtolower( substr( $member, 0, -2 ) );
+		$type    = strtolower( $entry['type'] );
+
+		return $element === $type || ( 'array' === $type && preg_match( '#^array(?:\[\])+$#', $element ) === 1 );
 	}
 
 	/**
