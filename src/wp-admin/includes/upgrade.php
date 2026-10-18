@@ -335,7 +335,7 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 					'comment_author_url'   => $note_author->user_url,
 					'comment_date'         => $now,
 					'comment_date_gmt'     => $now_gmt,
-					'comment_content'      => __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select a block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' ),
+					'comment_content'      => __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select some text or an entire block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' ),
 					// Notes are open until they are resolved, which approves them.
 					'comment_approved'     => '0',
 					'comment_type'         => 'note',
