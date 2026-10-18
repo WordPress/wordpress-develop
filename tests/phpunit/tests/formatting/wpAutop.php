@@ -660,4 +660,64 @@ line 2<br/>
 
 		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
+
+	/**
+	 * wpautop() should not leave a stray closing P tag behind when the text contains an empty paragraph.
+	 *
+	 * @ticket 63148
+	 *
+	 * @dataProvider data_wpautop_removes_empty_paragraphs
+	 *
+	 * @param string $input    Content to pass to wpautop().
+	 * @param string $expected Expected output.
+	 */
+	public function test_wpautop_removes_empty_paragraphs( $input, $expected ) {
+		$this->assertSame( $expected, wpautop( $input ) );
+	}
+
+	/**
+	 * Data provider for test_wpautop_removes_empty_paragraphs().
+	 *
+	 * @return array[]
+	 */
+	public static function data_wpautop_removes_empty_paragraphs() {
+		return array(
+			'empty paragraph at the end'                 => array(
+				'input'    => "<p>test</p>\n<p></p>",
+				'expected' => "<p>test</p>\n",
+			),
+			'empty paragraph at the end with no newline' => array(
+				'input'    => '<p>test</p><p></p>',
+				'expected' => "<p>test</p>\n",
+			),
+			'empty paragraph in the middle'              => array(
+				'input'    => "<p>first</p>\n<p></p>\n<p>second</p>",
+				'expected' => "<p>first</p>\n<p>second</p>\n",
+			),
+			'empty paragraph only'                       => array(
+				'input'    => '<p></p>',
+				'expected' => '',
+			),
+			'newline only paragraph on its own'          => array(
+				'input'    => "<p>\n</p>",
+				'expected' => '',
+			),
+			'paragraph containing only whitespace'       => array(
+				'input'    => "<p>test</p>\n<p> \t</p>",
+				'expected' => "<p>test</p>\n",
+			),
+			'paragraph containing only a newline'        => array(
+				'input'    => "<p>test</p>\n<p>\n</p>",
+				'expected' => "<p>test</p>\n",
+			),
+			'paragraph containing a non-breaking space'  => array(
+				'input'    => "<p>test</p>\n<p>&nbsp;</p>",
+				'expected' => "<p>test</p>\n<p>&nbsp;</p>\n",
+			),
+			'empty paragraph inside a pre element'       => array(
+				'input'    => '<pre><p></p></pre>',
+				'expected' => "<pre><p></p></pre>\n",
+			),
+		);
+	}
 }
