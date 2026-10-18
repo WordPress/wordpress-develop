@@ -143,7 +143,7 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $notes, 'The site should have one note.' );
 		$this->assertSame( 'core/paragraph', $blocks[0]['blockName'], 'The first block should be a paragraph.' );
-		$this->assertSame( (int) $notes[0]->comment_ID, $blocks[0]['attrs']['metadata']['noteId'] ?? null, 'The first block should be linked to the note.' );
+		$this->assertSame( array( 'metadata' => array( 'noteId' => (int) $notes[0]->comment_ID ) ), $blocks[0]['attrs'], 'The first block should be linked to the note.' );
 	}
 
 	/**
@@ -199,8 +199,8 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $notes, 'The site should have one note.' );
 		$this->assertSame( 'core/heading', $blocks[0]['blockName'], 'The first block should be the heading.' );
-		$this->assertSame( (int) $notes[0]->comment_ID, $blocks[0]['attrs']['metadata']['noteId'] ?? null, 'The heading should be linked to the note.' );
-		$this->assertSame( array( 'name' => 'Intro' ), $blocks[2]['attrs']['metadata'], 'Later blocks should keep their metadata.' );
+		$this->assertSame( array( 'metadata' => array( 'noteId' => (int) $notes[0]->comment_ID ) ), $blocks[0]['attrs'], 'The heading should be linked to the note.' );
+		$this->assertSame( array( 'metadata' => array( 'name' => 'Intro' ) ), $blocks[2]['attrs'], 'Later blocks should keep their metadata.' );
 	}
 
 	/**
@@ -214,10 +214,12 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 		$this->assertCount( 1, $notes, 'The site should have one note.' );
 		$this->assertSame(
 			array(
-				'name'   => 'Intro',
-				'noteId' => (int) $notes[0]->comment_ID,
+				'metadata' => array(
+					'name'   => 'Intro',
+					'noteId' => (int) $notes[0]->comment_ID,
+				),
 			),
-			$blocks[0]['attrs']['metadata'],
+			$blocks[0]['attrs'],
 			'The note should be added to the existing block metadata.'
 		);
 	}
