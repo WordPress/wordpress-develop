@@ -106,12 +106,13 @@ class Tests_Load_WpIsMobile extends WP_UnitTestCase {
 	public static function data_mobile_user_agents() {
 		return array(
 			'iphone'     => array( 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148' ),
-			'android'    => array( 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36' ),
-			'silk'       => array( 'Mozilla/5.0 (Linux; U; Android 4.0.3; en-us; KFTT Build/IML74K) AppleWebKit/535.19 (KHTML, like Gecko) Silk/2.9' ),
-			'kindle'     => array( 'Mozilla/5.0 (X11; U; Linux armv7l like Android; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/533.2+ Kindle/3.0+' ),
-			'blackberry' => array( 'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+' ),
-			'opera mini' => array( 'Opera/9.80 (Android; Opera Mini/36.2.2254/119.132; U; en) Presto/2.12.423 Version/12.16' ),
-			'opera mobi' => array( 'Opera/9.80 (Android 2.3.3; Linux; Opera Mobi/ADR-1111101157; U; es-ES) Presto/2.9.201 Version/11.50' ),
+			'android'    => array( 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Safari/537.36' ),
+			// Isolated tokens so each detector is covered without earlier Mobile/Android matches.
+			'silk'       => array( 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Silk/3.0 Safari/537.36' ),
+			'kindle'     => array( 'Kindle/3.0+' ),
+			'blackberry' => array( 'BlackBerry9000/4.6.0.167 Profile/MIDP-2.0 Configuration/CLDC-1.1 VendorID/102' ),
+			'opera mini' => array( 'Opera/9.80 (Series 60; Opera Mini/7.1.32444/35.2346; U; en) Presto/2.5.25 Version/10.54' ),
+			'opera mobi' => array( 'Opera/9.80 (S60; SymbOS; Opera Mobi/275; U; en) Presto/2.4.15 Version/10.00' ),
 		);
 	}
 
