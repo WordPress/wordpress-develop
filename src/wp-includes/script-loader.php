@@ -2,7 +2,7 @@
 /**
  * WordPress scripts and styles default loader.
  *
- * Several constants are used to manage the loading and concatenating of scripts and CSS:
+ * These constants are used to manage the loading and concatenating of scripts and CSS:
  * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables concatenation,
  * define('CONCATENATE_SCRIPTS', true); enables concatenation of scripts and CSS in the admin and on the login screen (disabled by default).
  *
@@ -2451,15 +2451,26 @@ function _print_styles() {
  * Determines the concatenation settings for scripts and styles.
  *
  * @since 2.8.0
- * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals are no longer set.
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 5.0.0.
  *
  * @global bool $concatenate_scripts
+ * @global bool $compress_scripts
+ * @global bool $compress_css
  */
 function script_concat_settings() {
-	global $concatenate_scripts;
+	global $concatenate_scripts, $compress_scripts, $compress_css;
 
 	if ( ! isset( $concatenate_scripts ) ) {
 		$concatenate_scripts = ( is_admin() || did_action( 'login_init' ) ) && wp_should_concatenate_admin_scripts();
+	}
+
+	if ( ! isset( $compress_scripts ) ) {
+		$compress_scripts = false;
+	}
+
+	if ( ! isset( $compress_css ) ) {
+		$compress_css = false;
 	}
 }
 
