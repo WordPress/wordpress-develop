@@ -81,8 +81,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  * they describe a value core itself builds. Numbered keys such as `$0`, `$1`
  * used for positional arguments are required in either case, because they are
  * passed in order. A description opening with `Optional.` overrides all of
- * that, and is the only thing that does; the word elsewhere in a description is
- * prose, not a marker.
+ * that, and a `Required.` sentence opening or closing it makes a `@param` key
+ * required, for a value such as a parsed block whose keys are always set. Those
+ * are the only markers; either word elsewhere in a description is prose.
  *
  * The shape of a `@param` hash is left open, with a trailing `...`, because the
  * hash lists the keys core reads rather than the only keys a caller may pass.
@@ -842,6 +843,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		/*
+		 * Core marks the keys a caller must pass with a `Required.` sentence. It is
+		 * redundant in a `@return` hash, whose keys are required already, but says
+		 * what the default cannot in a `@param` hash.
+		 */
+		if ( $this->is_required( $entry['description'] ) ) {
+			return false;
+		}
+
+		/*
 		 * A `@return` hash describes a value core builds, so its keys are
 		 * present unless the description says otherwise. `Default ...` is not
 		 * that: a key documented with a default is still always set.
@@ -856,6 +866,21 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Reports whether a description marks its key as required.
+	 *
+	 * The marker is a `Required.` sentence, written either first, as `Optional.`
+	 * is, or last, as some of core's hashes have it. Only the whole sentence
+	 * counts: the word inside one is prose, as in a "Capability required for the
+	 * panel", or the "Required for multi-widgets" of a key that is not.
+	 *
+	 * @param string $description Description of the entry.
+	 * @return bool
+	 */
+	private function is_required( string $description ): bool {
+		return preg_match( '#^\s*Required\.(?:\s|$)|(?:^|[.!?]\s+)Required\.\s*$#', $description ) === 1;
 	}
 
 	/**

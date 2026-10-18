@@ -84,7 +84,20 @@ A hash whose translation would be a guess is left alone, and the value keeps wha
 - A hash on a bare `object` that would have to stay open is skipped, because PHPStan's object shapes have a fixed member list and no `...`, and sealing one would report every member the hash does not name. A hash on a named class is kept: `stdClass&object{...}` is not sealed, since the intersection leaves the class to say what else may be read and a `stdClass` accepts anything. That is what lets the theme data `WP_Theme_Install_List_Table::single_row()` documents keep its shape while the wordpress.org API is still free to add to it.
 - A parameter taken by reference is skipped, because PHPStan checks a by-reference argument in both directions, and a shape there would be a contract every caller's variable has to satisfy before the call rather than a description of what the function reads.
 
-Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds. Numbered keys such as `$0` and `$1` are required in either case, because positional arguments are passed in order. A description opening with `Optional.` overrides all of that, and is the only thing that does: the word further into a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set.
+Keys of a `@param` hash are optional, at every level, and the shape is left open with a trailing `...`, because the hash lists the keys core reads rather than the only keys a caller may pass. Keys of a `@return` hash are required and the shape is sealed, since they describe a value core itself builds. Numbered keys such as `$0` and `$1` are required in either case, because positional arguments are passed in order. A description opening with `Optional.` overrides all of that, making the key optional. A `Required.` sentence, opening or closing the description, makes a `@param` key required, which is what a value such as a parsed block needs, since its keys are always set:
+
+```php
+ * @param array[] $blocks {
+ *     An array of blocks.
+ *
+ *     @type array ...$0 {
+ *         @type string|null $blockName Required. Name of block.
+ *         @type array       $attrs     Required. Attributes from block comment delimiters.
+ *     }
+ * }
+```
+
+Those two sentences are the only markers. Either word elsewhere in a description is prose, as in the "Optional self closing slash" of a match array whose every group is always set, or a "Capability required for the panel".
 
 Reading a key that a `@return` hash does not document is therefore reported rather than silently typed as `mixed` — unless the hash says otherwise itself, by listing a `...$N` entry beside its named keys, which is how core writes "and the rest" for the positional hashes of `wp_maybe_grant_site_health_caps()` and `WP_Meta_Query`.
 
