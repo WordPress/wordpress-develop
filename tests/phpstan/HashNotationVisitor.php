@@ -609,11 +609,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 			/*
 			 * A `T[]` member describes its elements, so it takes a hash that does the
 			 * same: a single `...$0` entry documenting the repeated value as a `T`, as
-			 * the blocks `parse_blocks()` returns are. It is then as bare as an `array`,
-			 * since the hash is all there is to say about its keys.
+			 * the blocks `parse_blocks()` returns are.
 			 */
 			if ( $this->describes_elements( $member, $entries ) ) {
-				$bare[]     = $position;
 				$elements[] = $position;
 				continue;
 			}
@@ -636,10 +634,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * `WP_Error` carries no keys. So the bare member takes the shape whenever
 		 * there is exactly one. Two of them, or two classes and no bare member,
 		 * would leave it a guess which one the hash is about.
+		 *
+		 * A `T[]` member comes next, so a bare `array` beside it keeps the shape it
+		 * had before `T[]` members could take one, as in `array|array[]`.
 		 */
 		if ( 1 === count( $bare ) ) {
 			$target = $bare[0];
-		} elseif ( array() === $bare && 1 === count( $shapeable ) ) {
+		} elseif ( array() === $bare && 1 === count( $elements ) ) {
+			$target = $elements[0];
+		} elseif ( array() === $bare && array() === $elements && 1 === count( $shapeable ) ) {
 			$target = $shapeable[0];
 		} else {
 			return null;
