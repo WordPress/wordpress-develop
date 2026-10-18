@@ -62,18 +62,30 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the `$concatenate_scripts` global no longer stops prefetching, as nothing is concatenated.
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from the login screen,
+	 * as nothing is concatenated.
 	 *
 	 * @ticket 57548
 	 */
-	public function test_concatenate_scripts_global_is_ignored(): void {
+	public function test_login_ignores_concatenate_scripts_global(): void {
 		$GLOBALS['concatenate_scripts'] = true;
 
-		$this->assertNotSame( array(), $this->get_prefetched_on_login(), 'Expected prefetching from the login screen.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_login() );
+	}
 
+	/**
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from an admin screen,
+	 * as nothing is concatenated.
+	 *
+	 * @ticket 57548
+	 */
+	public function test_admin_screen_ignores_concatenate_scripts_global(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected prefetching from the Dashboard.' );
+		$GLOBALS['concatenate_scripts'] = true;
+
+		$this->assertSame( 0, did_action( 'login_init' ), 'Expected the request not to be one for the login screen.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
 	}
 
 	/**
