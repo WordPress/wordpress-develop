@@ -19,7 +19,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 */
 	public static $author_id;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$admin_id  = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$author_id = $factory->user->create( array( 'role' => 'author' ) );
 	}
@@ -104,7 +104,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_return_false_when_there_are_no_open_notes() {
+	public function test_should_return_false_when_there_are_no_open_notes(): void {
 		$post_id = $this->create_post( 'A post with a resolved note' );
 		$this->create_note( $post_id, '1' );
 
@@ -117,7 +117,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_render_a_row_for_the_post() {
+	public function test_should_render_a_row_for_the_post(): void {
 		$post_id = $this->create_post( 'A post with notes' );
 		$this->create_note( $post_id, '0', 0, current_datetime()->modify( '-3 hours' )->format( 'Y-m-d H:i:s' ) );
 
@@ -135,7 +135,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_render_one_row_per_post_with_its_open_note_count() {
+	public function test_should_render_one_row_per_post_with_its_open_note_count(): void {
 		$older_id = $this->create_post( 'An older post' );
 		$this->create_note( $older_id, '0', 0, '2026-01-01 10:00:00' );
 		$this->create_note( $older_id, '0', 0, '2026-01-01 11:00:00' );
@@ -164,7 +164,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_limit_the_number_of_posts() {
+	public function test_should_limit_the_number_of_posts(): void {
 		for ( $i = 0; $i < 3; $i++ ) {
 			$this->create_note( $this->create_post( 'Post ' . $i ) );
 		}
@@ -177,7 +177,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_exclude_posts_the_user_cannot_edit() {
+	public function test_should_exclude_posts_the_user_cannot_edit(): void {
 		$this->create_note( $this->create_post( 'A post of their own', self::$author_id ) );
 		$this->create_note( $this->create_post( 'A post of somebody else' ) );
 
@@ -191,7 +191,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_skip_posts_without_an_edit_link() {
+	public function test_should_skip_posts_without_an_edit_link(): void {
 		$this->create_note( $this->create_post( 'A post with an edit link' ), '0', 0, '2026-01-01 10:00:00' );
 
 		$unlinked_id = $this->create_post( 'A post without an edit link' );
@@ -214,7 +214,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_exclude_open_replies_to_a_resolved_thread() {
+	public function test_should_exclude_open_replies_to_a_resolved_thread(): void {
 		$post_id = $this->create_post( 'A post with a resolved thread' );
 		$note_id = $this->create_note( $post_id, '1' );
 		$this->create_note( $post_id, '0', $note_id );
@@ -227,7 +227,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_order_posts_by_their_most_recent_reply() {
+	public function test_should_order_posts_by_their_most_recent_reply(): void {
 		$replied_to_id = $this->create_post( 'A post replied to recently' );
 		$note_id       = $this->create_note( $replied_to_id, '0', 0, '2026-01-01 10:00:00' );
 		$this->create_note( $replied_to_id, '0', $note_id, '2026-01-03 10:00:00' );
@@ -246,7 +246,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_page_past_notes_the_user_cannot_see() {
+	public function test_should_page_past_notes_the_user_cannot_see(): void {
 		$other_id = $this->create_post( 'A post of somebody else' );
 
 		// More notes than the first page of the query holds.
@@ -266,7 +266,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_stop_paging_after_a_hundred_notes_per_row() {
+	public function test_should_stop_paging_after_a_hundred_notes_per_row(): void {
 		$other_id = $this->create_post( 'A post of somebody else' );
 
 		for ( $i = 0; $i < 100; $i++ ) {
