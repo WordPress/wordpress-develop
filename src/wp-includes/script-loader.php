@@ -3385,6 +3385,7 @@ function wp_enqueue_registered_block_scripts_and_styles() {
  * Function responsible for enqueuing the styles required for block styles functionality on the editor and on the frontend.
  *
  * @since 5.3.0
+ * @since 7.2.0 Block style stylesheets loaded on demand are enqueued by WP_Block::render().
  *
  * @global WP_Styles $wp_styles
  */
@@ -3395,24 +3396,12 @@ function enqueue_block_styles_assets() {
 
 	foreach ( $block_styles as $block_name => $styles ) {
 		foreach ( $styles as $style_properties ) {
-			if ( isset( $style_properties['style_handle'] ) ) {
-
-				// If the site loads block styles on demand, enqueue the stylesheet on render.
-				if ( wp_should_load_block_assets_on_demand() ) {
-					add_filter(
-						'render_block',
-						static function ( $html, $block ) use ( $block_name, $style_properties ) {
-							if ( $block['blockName'] === $block_name ) {
-								wp_enqueue_style( $style_properties['style_handle'] );
-							}
-							return $html;
-						},
-						10,
-						2
-					);
-				} else {
-					wp_enqueue_style( $style_properties['style_handle'] );
-				}
+			/*
+			 * If the site loads block styles on demand, the stylesheet is enqueued
+			 * when the block renders. See WP_Block::render().
+			 */
+			if ( isset( $style_properties['style_handle'] ) && ! wp_should_load_block_assets_on_demand() ) {
+				wp_enqueue_style( $style_properties['style_handle'] );
 			}
 			if ( isset( $style_properties['inline_style'] ) ) {
 
