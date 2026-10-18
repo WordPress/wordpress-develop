@@ -9,6 +9,12 @@
  */
 class Tests_Load_WpGetEnvironmentType extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		putenv( 'WP_ENVIRONMENT_TYPE=' );
+	}
+
 	/**
 	 * @ticket 65819
 	 *
