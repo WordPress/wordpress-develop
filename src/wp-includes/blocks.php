@@ -1934,12 +1934,12 @@ function traverse_and_serialize_block( $block, $pre_callback = null, $post_callb
  *     @type array ...$0 {
  *         An associative array of a single parsed block object. See WP_Block_Parser_Block.
  *
- *         @type string|null $blockName    Name of block.
- *         @type array       $attrs        Attributes from block comment delimiters.
- *         @type array[]     $innerBlocks  List of inner blocks. An array of arrays that
+ *         @type string|null $blockName    Required. Name of block.
+ *         @type array       $attrs        Required. Attributes from block comment delimiters.
+ *         @type array[]     $innerBlocks  Required. List of inner blocks. An array of arrays that
  *                                         have the same structure as this one.
- *         @type string      $innerHTML    HTML from inside block comment delimiters.
- *         @type array       $innerContent List of string fragments and null markers where
+ *         @type string      $innerHTML    Required. HTML from inside block comment delimiters.
+ *         @type array       $innerContent Required. List of string fragments and null markers where
  *                                         inner blocks were found.
  *     }
  * }
