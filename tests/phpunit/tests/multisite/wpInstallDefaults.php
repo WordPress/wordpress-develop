@@ -110,6 +110,8 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 
 		wp_delete_site( $blog_id );
 
+		$this->assertInstanceOf( WP_Post::class, $post, 'The site should have a first post.' );
+
 		return array( $post, $notes );
 	}
 
@@ -155,23 +157,24 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 
 		switch_to_blog( $blog_id );
 
-		$note_count    = get_comments(
+		$note_count = get_comments(
 			array(
 				'type'  => 'note',
 				'count' => true,
 			)
 		);
-		$counts        = wp_count_comments( 1 );
-		$comment_count = get_post( 1 )->comment_count;
+		$counts     = wp_count_comments( 1 );
+		$post       = get_post( 1 );
 
 		restore_current_blog();
 
 		wp_delete_site( $blog_id );
 
+		$this->assertInstanceOf( WP_Post::class, $post, 'The site should have a first post.' );
 		$this->assertSame( 1, $note_count, 'The site should have one note.' );
 		$this->assertSame( 1, $counts->approved, 'The default comment should be the only approved comment.' );
 		$this->assertSame( 0, $counts->moderated, 'The open note should not be counted as awaiting moderation.' );
-		$this->assertSame( '1', $comment_count, 'The note should not be counted as a comment on the post.' );
+		$this->assertSame( '1', $post->comment_count, 'The note should not be counted as a comment on the post.' );
 	}
 
 	/**
