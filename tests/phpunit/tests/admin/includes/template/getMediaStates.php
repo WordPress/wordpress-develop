@@ -55,7 +55,7 @@ class Tests_Admin_Includes_Template_GetMediaStates extends WP_UnitTestCase {
 	 * @return string Attachment URL.
 	 */
 	private function attachment_url() {
-		return 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/media-state.jpg';
+		return wp_get_attachment_url( $this->attachment->ID );
 	}
 
 	/**
