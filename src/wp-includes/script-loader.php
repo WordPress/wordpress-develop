@@ -1536,10 +1536,6 @@ function wp_default_scripts( $scripts ) {
 function wp_default_styles( $styles ) {
 	global $editor_styles;
 
-	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
-		define( 'SCRIPT_DEBUG', str_contains( wp_get_wp_version(), '-src' ) );
-	}
-
 	$guessurl = site_url();
 
 	if ( ! $guessurl ) {
@@ -1583,7 +1579,7 @@ function wp_default_styles( $styles ) {
 	// Register a stylesheet for the selected admin color scheme.
 	$styles->add( 'colors', true, array( 'wp-admin', 'buttons' ) );
 
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = wp_scripts_get_suffix();
 
 	// Admin CSS.
 	$styles->add( 'wp-tooltip', "/wp-admin/css/wp-tooltip$suffix.css", array( 'dashicons' ) );
