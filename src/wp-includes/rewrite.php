@@ -247,6 +247,8 @@ function remove_permastruct( $name ) {
  * @param string   $feedname Feed name. Should not start with '_'.
  * @param callable $callback Callback to run on feed display.
  * @return string Feed action name.
+ *
+ * @phpstan-return non-falsy-string
  */
 function add_feed( $feedname, $callback ) {
 	global $wp_rewrite;
@@ -281,6 +283,25 @@ function flush_rewrite_rules( $hard = true ) {
 	if ( is_callable( array( $wp_rewrite, 'flush_rules' ) ) ) {
 		$wp_rewrite->flush_rules( $hard );
 	}
+}
+
+/**
+ * Clears the rewrite rules when the site language changes.
+ *
+ * Rewrite rules can contain translated slugs, such as the default random content
+ * base, see {@see WP_Rewrite::get_random_base()}. Clearing the rules causes them to be
+ * regenerated in the new site language.
+ *
+ * The rules are regenerated on the next request rather than immediately, because
+ * the new language is not loaded until after the option is saved. Clearing the
+ * rules also avoids rewriting the .htaccess file.
+ *
+ * Runs on the {@see 'add_option_WPLANG'} and {@see 'update_option_WPLANG'} actions.
+ *
+ * @since 7.2.0
+ */
+function wp_flush_rewrite_rules_on_site_language_change(): void {
+	update_option( 'rewrite_rules', '' );
 }
 
 /**
@@ -412,7 +433,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 
 	// This is the potentially clashing slug.
 	$value = '';
-	if ( $compare && array_key_exists( $compare, $query_vars ) ) {
+	if ( array_key_exists( $compare, $query_vars ) ) {
 		$value = $query_vars[ $compare ];
 	}
 
@@ -460,9 +481,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	}
 
 	// If we've gotten to this point, we have a slug/date clash. First, adjust for nextpage.
-	if ( '' !== $maybe_page ) {
-		$query_vars['page'] = (int) $maybe_page;
-	}
+	$query_vars['page'] = $maybe_page;
 
 	// Next, unset autodetected date-related query vars.
 	unset( $query_vars['year'] );
@@ -504,7 +523,8 @@ function url_to_postid( $url ) {
 	$url_host = parse_url( $url, PHP_URL_HOST );
 
 	if ( is_string( $url_host ) ) {
-		$url_host = str_replace( 'www.', '', $url_host );
+		// Only a leading 'www.' is optional. Removing it anywhere else would match a different host.
+		$url_host = preg_replace( '|^www\.|', '', $url_host );
 	} else {
 		$url_host = '';
 	}
@@ -512,7 +532,7 @@ function url_to_postid( $url ) {
 	$home_url_host = parse_url( home_url(), PHP_URL_HOST );
 
 	if ( is_string( $home_url_host ) ) {
-		$home_url_host = str_replace( 'www.', '', $home_url_host );
+		$home_url_host = preg_replace( '|^www\.|', '', $home_url_host );
 	} else {
 		$home_url_host = '';
 	}
@@ -579,7 +599,7 @@ function url_to_postid( $url ) {
 	} else {
 		// Chop off /path/to/blog.
 		$home_path = parse_url( home_url( '/' ) );
-		$home_path = isset( $home_path['path'] ) ? $home_path['path'] : '';
+		$home_path = $home_path['path'] ?? '';
 		$url       = preg_replace( sprintf( '#^%s#', preg_quote( $home_path ) ), '', trailingslashit( $url ) );
 	}
 

@@ -9,6 +9,31 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 	private static $blogmeta;
 	private static $sitemeta;
 
+	private $orig_options;
+	private $orig_blogmeta;
+	private $orig_sitemeta;
+
+	public function set_up() {
+		parent::set_up();
+		global $wpdb;
+
+		$this->orig_options  = $wpdb->options;
+		$this->orig_blogmeta = $wpdb->blogmeta;
+		$this->orig_sitemeta = $wpdb->sitemeta;
+	}
+
+	public function tear_down() {
+		global $wpdb;
+
+		$wpdb->options  = $this->orig_options;
+		$wpdb->blogmeta = $this->orig_blogmeta;
+		$wpdb->sitemeta = $this->orig_sitemeta;
+
+		wp_cache_delete( 'alloptions', 'options' );
+
+		parent::tear_down();
+	}
+
 	/**
 	 * Make sure the schema code is loaded before the tests are run.
 	 */
@@ -24,6 +49,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$sitemeta = self::$sitemeta;
 
 		require_once ABSPATH . 'wp-admin/includes/schema.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate  = $wpdb->get_charset_collate();
 		$max_index_length = 191;
@@ -110,10 +136,12 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 
 		$wpdb->options = $orig_options;
 
+		wp_cache_delete( 'alloptions', 'options' );
+
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_options() {
+	public static function data_populate_options() {
 		return array(
 			array(
 				array(),
@@ -190,15 +218,16 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$wpdb->options = self::$options;
 
 		// Set the "default" value for the timezone to a deprecated timezone.
+		$filter_callback = static function ( $translation, $text, $context ) {
+			if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
+				return 'America/Buenos_Aires';
+			}
+
+			return $translation;
+		};
 		add_filter(
 			'gettext_with_context',
-			static function ( $translation, $text, $context ) {
-				if ( '0' === $text && 'default GMT offset or timezone string' === $context ) {
-					return 'America/Buenos_Aires';
-				}
-
-				return $translation;
-			},
+			$filter_callback,
 			10,
 			3
 		);
@@ -213,6 +242,8 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		// Reset.
 		$wpdb->query( "TRUNCATE TABLE {$wpdb->options}" );
 		$wpdb->options = $orig_options;
+		remove_filter( 'gettext_with_context', $filter_callback, 10 );
+		wp_cache_delete( 'alloptions', 'options' );
 
 		// Assert.
 		$this->assertSame( 'America/Buenos_Aires', $result );
@@ -244,7 +275,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_site_meta() {
+	public static function data_populate_site_meta() {
 		return array(
 			array(
 				array(),
@@ -292,7 +323,7 @@ class Tests_Admin_IncludesSchema extends WP_UnitTestCase {
 		$this->assertSame( $expected, $results );
 	}
 
-	public function data_populate_network_meta() {
+	public static function data_populate_network_meta() {
 		return array(
 			array(
 				array(),

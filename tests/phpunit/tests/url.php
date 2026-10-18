@@ -364,11 +364,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$post_id  = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now - 1 ) ) );
 		$post_id2 = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now ) ) );
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post       = $GLOBALS['post'];
-		$GLOBALS['post'] = get_post( $post_id2 );
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
+		$GLOBALS['post']   = get_post( $post_id2 );
 
 		$p = get_adjacent_post();
 		$this->assertInstanceOf( 'WP_Post', $p );
@@ -416,10 +414,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p2 );
 
@@ -456,10 +452,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p2 );
 
@@ -502,10 +496,8 @@ class Tests_URL extends WP_UnitTestCase {
 			)
 		);
 
-		if ( ! isset( $GLOBALS['post'] ) ) {
-			$GLOBALS['post'] = null;
-		}
-		$orig_post = $GLOBALS['post'];
+		$GLOBALS['post'] ??= null;
+		$orig_post         = $GLOBALS['post'];
 
 		$GLOBALS['post'] = get_post( $p3 );
 
@@ -568,5 +560,63 @@ class Tests_URL extends WP_UnitTestCase {
 				call_user_func( $function, null, 'something...here' )
 			);
 		}
+	}
+
+	/**
+	 * Test get_adjacent_post with posts having identical post_date.
+	 *
+	 * @ticket 8107
+	 * @covers ::get_adjacent_post
+	 */
+	public function test_get_adjacent_post_with_identical_dates() {
+		$identical_date = gmdate( 'Y-m-d H:i:s', time() );
+
+		// Create 3 posts with identical dates but different IDs.
+		$post_ids = array();
+		for ( $i = 1; $i <= 3; $i++ ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_title' => "Identical Post $i",
+					'post_date'  => $identical_date,
+				)
+			);
+		}
+
+		// Test from the middle post (2nd post).
+		$GLOBALS['post'] = get_post( $post_ids[1] );
+
+		// Previous post should be the 1st post (lower ID, same date).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertSame( $post_ids[0], $previous->ID );
+
+		// Next post should be the 3rd post (higher ID, same date).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertSame( $post_ids[2], $next->ID );
+
+		// Test from the first post.
+		$GLOBALS['post'] = get_post( $post_ids[0] );
+
+		// Previous should be empty (no earlier posts).
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertSame( '', $previous );
+
+		// Next should be the 2nd post.
+		$next = get_adjacent_post( false, '', false );
+		$this->assertInstanceOf( 'WP_Post', $next );
+		$this->assertSame( $post_ids[1], $next->ID );
+
+		// Test from the last post.
+		$GLOBALS['post'] = get_post( $post_ids[2] );
+
+		// Previous should be the 2nd post.
+		$previous = get_adjacent_post( false, '', true );
+		$this->assertInstanceOf( 'WP_Post', $previous );
+		$this->assertSame( $post_ids[1], $previous->ID );
+
+		// Next should be empty (no later posts).
+		$next = get_adjacent_post( false, '', false );
+		$this->assertSame( '', $next );
 	}
 }

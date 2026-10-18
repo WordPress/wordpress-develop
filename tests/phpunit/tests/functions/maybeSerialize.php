@@ -44,6 +44,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 		}
 
 		if ( is_object( $expected ) ) {
+			// Keep assertEquals() because the objects are intentionally compared by value.
 			$this->assertEquals( $expected, maybe_unserialize( $value ) );
 		} else {
 			$this->assertSame( $expected, maybe_unserialize( $value ) );
@@ -55,7 +56,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_serialized() {
+	public static function data_is_serialized() {
 		return array(
 			'serialized empty array'            => array(
 				'data'     => serialize( array() ),
@@ -123,7 +124,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_not_serialized() {
+	public static function data_is_not_serialized() {
 		return array(
 			'an empty array'                             => array(
 				'data'     => array(),
@@ -217,10 +218,12 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 		if ( get_class( $value ) === 'WpOrg\Requests\Utility\FilteredIterator' ) {
 			$new_value = unserialize( $serialized );
 			$property  = ( new ReflectionClass( 'WpOrg\Requests\Utility\FilteredIterator' ) )->getProperty( 'callback' );
-			$property->setAccessible( true );
+			if ( PHP_VERSION_ID < 80100 ) {
+				$property->setAccessible( true );
+			}
 			$callback_value = $property->getValue( $new_value );
 
-			$this->assertSame( null, $callback_value );
+			$this->assertNull( $callback_value );
 		} else {
 			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
 		}
@@ -231,7 +234,7 @@ class Tests_Functions_MaybeSerialize extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_serialize_deserialize_objects() {
+	public static function data_serialize_deserialize_objects() {
 		return array(
 			'filtered iterator using md5'  => array(
 				new WpOrg\Requests\Utility\FilteredIterator( array( 1 ), 'md5' ),

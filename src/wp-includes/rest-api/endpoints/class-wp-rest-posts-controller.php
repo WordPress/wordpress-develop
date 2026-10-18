@@ -43,7 +43,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Whether the controller supports batching.
 	 *
 	 * @since 5.9.0
-	 * @var array
+	 * @var array|false
 	 */
 	protected $allow_batch = array( 'v1' => true );
 
@@ -441,7 +441,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Array of arguments for WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$args = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		if ( ! is_array( $args ) ) {
+			$args = array();
+		}
 		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
@@ -452,9 +455,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			add_filter( 'post_password_required', array( $this, 'check_password_required' ), 10, 2 );
 		}
 
+		$posts = array();
 		if ( ! $is_head_request ) {
-			$posts = array();
-
 			update_post_author_caches( $query_result );
 			update_post_parent_caches( $query_result );
 
@@ -463,7 +465,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			foreach ( $query_result as $post ) {
-				if ( ! $this->check_read_permission( $post ) ) {
+				if ( 'edit' === $request['context'] ) {
+					$permission = $this->check_update_permission( $post );
+				} else {
+					$permission = $this->check_read_permission( $post );
+				}
+
+				if ( ! $permission ) {
 					continue;
 				}
 
@@ -477,14 +485,19 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			remove_filter( 'post_password_required', array( $this, 'check_password_required' ) );
 		}
 
-		$page        = isset( $query_args['paged'] ) ? (int) $query_args['paged'] : 0;
+		$page        = (int) ( $query_args['paged'] ?? 0 );
 		$total_posts = $posts_query->found_posts;
 
 		if ( $total_posts < 1 && $page > 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $query_args['paged'] );
 
-			$count_query = new WP_Query();
+			$count_query                          = new WP_Query();
+			$query_args['fields']                 = 'ids';
+			$query_args['posts_per_page']         = 1;
+			$query_args['update_post_meta_cache'] = false;
+			$query_args['update_post_term_cache'] = false;
+
 			$count_query->query( $query_args );
 			$total_posts = $count_query->found_posts;
 		}
@@ -689,7 +702,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( ! empty( $request['sticky'] ) && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -900,7 +913,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( isset( $request['sticky'] ) && is_sticky( $post->ID ) !== (bool) $request['sticky'] && ( ! current_user_can( $post_type->cap->edit_others_posts ) || ! current_user_can( $post_type->cap->publish_posts ) ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -1200,6 +1213,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
+		if ( ! is_array( $prepared_args ) ) {
+			$prepared_args = array();
+		}
 
 		foreach ( $prepared_args as $key => $value ) {
 			/**
@@ -1463,6 +1479,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		if ( ! empty( $schema['properties']['template'] ) ) {
 			// Force template to null so that it can be handled exclusively by the REST controller.
 			$prepared_post->page_template = null;
+		}
+
+		/**
+		 * Applies Block Hooks to content-like post types.
+		 *
+		 * Content-like post types are those that support the editor and would benefit
+		 * from Block Hooks functionality. This replaces the individual post type filters
+		 * that were previously hardcoded in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/**
+		 * Filters which post types should have Block Hooks applied.
+		 *
+		 * Allows themes and plugins to add or remove post types that should
+		 * have Block Hooks functionality enabled in the REST API.
+		 *
+		 * @since 7.0.0
+		 *
+		 * @param string[]         $content_like_post_types Array of post type names that support Block Hooks.
+		 * @param string           $post_type               The current post type being processed.
+		 * @param stdClass|WP_Post $prepared_post           The prepared post object.
+		 */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $prepared_post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$prepared_post = update_ignored_hooked_blocks_postmeta( $prepared_post );
 		}
 
 		/**
@@ -1977,7 +2022,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				add_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 
@@ -1997,7 +2042,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				remove_filter(
 					'excerpt_length',
 					$override_excerpt_length,
-					20
+					PHP_INT_MAX
 				);
 			}
 		}
@@ -2117,6 +2162,23 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
+		 * Applies Block Hooks to content-like post types for REST response.
+		 *
+		 * This replaces the individual post type filters that were previously hardcoded
+		 * in default-filters.php.
+		 *
+		 * @since 7.0.0
+		 */
+		$content_like_post_types = array( 'post', 'page', 'wp_block', 'wp_navigation' );
+
+		/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+		$content_like_post_types = apply_filters( 'rest_block_hooks_post_types', $content_like_post_types, $this->post_type, $post );
+
+		if ( in_array( $this->post_type, $content_like_post_types, true ) ) {
+			$response = insert_hooked_blocks_into_rest_response( $response, $post );
+		}
+
+		/**
 		 * Filters the post data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
@@ -2220,7 +2282,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// If we have a featured media, add that.
 		$featured_media = get_post_thumbnail_id( $post->ID );
-		if ( $featured_media ) {
+		if ( $featured_media && ( 'publish' === get_post_status( $featured_media ) || current_user_can( 'read_post', $featured_media ) ) ) {
 			$image_url = rest_url( rest_get_route_for_post( $featured_media ) );
 
 			$links['https://api.w.org/featuredmedia'] = array(
@@ -2271,6 +2333,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Gets the link relations available for the post and current user.
 	 *
 	 * @since 4.9.8
+	 * @since 7.2.0 Added the `action-trash`, `action-set-homepage`, and `action-set-posts-page` link relations.
 	 *
 	 * @param WP_Post         $post    Post object.
 	 * @param WP_REST_Request $request Request object.
@@ -2306,6 +2369,31 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		if ( 'trash' !== $post->post_status && $this->check_delete_permission( $post ) ) {
+			$supports_trash = ( EMPTY_TRASH_DAYS > 0 );
+
+			if ( 'attachment' === $post->post_type ) {
+				$supports_trash = $supports_trash && MEDIA_TRASH;
+			}
+
+			/** This filter is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
+			if ( apply_filters( "rest_{$this->post_type}_trashable", $supports_trash, $post ) ) {
+				$rels[] = 'https://api.w.org/action-trash';
+			}
+		}
+
+		/*
+		 * Setting a page as the homepage or as the posts page changes the site settings,
+		 * so it requires the same capability as the settings route. The current homepage
+		 * and posts page get neither link.
+		 */
+		if ( 'page' === $post_type->name && 'publish' === $post->post_status && current_user_can( 'manage_options' ) ) {
+			if ( (int) get_option( 'page_on_front' ) !== $post->ID && (int) get_option( 'page_for_posts' ) !== $post->ID ) {
+				$rels[] = 'https://api.w.org/action-set-homepage';
+				$rels[] = 'https://api.w.org/action-set-posts-page';
+			}
+		}
+
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 
 		foreach ( $taxonomies as $tax ) {
@@ -2330,6 +2418,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @return array Item schema data.
+	 *
+	 * @phpstan-return array{
+	 *     title: non-empty-string,
+	 *     type: non-empty-string,
+	 *     properties: array<string, array<string, mixed>>,
+	 *     ...
+	 * }
 	 */
 	public function get_item_schema() {
 		if ( $this->schema ) {
@@ -2770,6 +2865,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Retrieves Link Description Objects that should be added to the Schema for the posts collection.
 	 *
 	 * @since 4.9.8
+	 * @since 7.2.0 Added the `action-trash`, `action-set-homepage`, and `action-set-posts-page` link relations.
 	 *
 	 * @return array
 	 */
@@ -2804,8 +2900,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'type'       => 'object',
 				'properties' => array(
 					'content' => array(
-						'raw' => array(
-							'type' => 'string',
+						'type'       => 'object',
+						'properties' => array(
+							'raw' => array(
+								'type' => 'string',
+							),
 						),
 					),
 				),
@@ -2841,6 +2940,26 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 						),
 					),
 				),
+			);
+		}
+
+		$links[] = array(
+			'rel'   => 'https://api.w.org/action-trash',
+			'title' => __( 'The current user can move this post to the trash.' ),
+			'href'  => $href,
+		);
+
+		if ( 'page' === $this->post_type ) {
+			$links[] = array(
+				'rel'   => 'https://api.w.org/action-set-homepage',
+				'title' => __( 'The current user can set this page as the homepage.' ),
+				'href'  => $href,
+			);
+
+			$links[] = array(
+				'rel'   => 'https://api.w.org/action-set-posts-page',
+				'title' => __( 'The current user can set this page as the posts page.' ),
+				'href'  => $href,
 			);
 		}
 

@@ -1,0 +1,33 @@
+// https://html.spec.whatwg.org/multipage/parsing.html#script-data-state
+digraph {
+	rankdir=TB;
+	node [width=1, height=1, fixedsize=true];
+
+	// Entry point
+	entry [shape=plaintext label="Open script"];
+	entry -> script_data;
+
+	// Double-circle states arranged more compactly
+	data [shape=doublecircle label="Close script"];
+	script_data [shape=doublecircle color=blue label="script\ndata"];
+	script_data_escaped [shape=circle color=orange label="escaped"];
+	script_data_double_escaped [shape=circle color=red label="double\nescaped"];
+
+	// Group related nodes on same ranks where possible
+	{rank=same; script_data script_data_escaped script_data_double_escaped}
+
+	script_data -> script_data [headport=sw, tailport=sw, label=<<font face="Courier">&lt;!--<i>*</i>&gt;</font><br/>(all dashes)>];
+	script_data -> script_data_escaped [label=<<font face="Courier">&lt;!--</font>>];
+	script_data -> data [label=<<font face="Courier">&lt;/script¹</font>>];
+
+	script_data_escaped -> script_data [label=<<font face="Courier">--&gt;</font>>];
+	script_data_escaped -> script_data_double_escaped [label=<<font face="Courier">&lt;script</font>¹>];
+	script_data_escaped -> data [label=<<font face="Courier">&lt;/script</font>¹>];
+
+	// The newline before the label prevents the edge from drawing over it.
+	script_data_double_escaped -> script_data [label=<<br/><font face="Courier">--&gt;</font>>];
+	script_data_double_escaped -> script_data_escaped [label=<<font face="Courier">&lt;/script¹</font>>];
+
+	label=<¹ = Case insensitive “<font face="Courier">script</font>” followed by one of &nbsp;“<font face="Courier"> \\t\\f\\r\\n/&gt;</font>”>;
+	labelloc=b;
+}

@@ -29,7 +29,14 @@ class WP_Network_Query {
 	 * SQL query clauses.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array{
+	 *     select: string,
+	 *     from: string,
+	 *     where: array<string, string>,
+	 *     groupby: string,
+	 *     orderby: string,
+	 *     limits: string
+	 * }
 	 */
 	protected $sql_clauses = array(
 		'select'  => '',
@@ -44,7 +51,7 @@ class WP_Network_Query {
 	 * Query vars set by the user.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	public $query_vars;
 
@@ -52,7 +59,7 @@ class WP_Network_Query {
 	 * Default values for query vars.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var array<string, mixed>
 	 */
 	public $query_var_defaults;
 
@@ -60,7 +67,7 @@ class WP_Network_Query {
 	 * List of networks located by the query.
 	 *
 	 * @since 4.6.0
-	 * @var array
+	 * @var WP_Network[]|int[]
 	 */
 	public $networks;
 
@@ -69,6 +76,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $found_networks = 0;
 
@@ -77,6 +85,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 * @var int
+	 * @phpstan-var non-negative-int
 	 */
 	public $max_num_pages = 0;
 
@@ -170,8 +179,14 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
-	 *                   or the number of networks when 'count' is passed as a query var.
+	 * @return WP_Network[]|int[]|int List of WP_Network objects, a list of network IDs when 'fields' is set
+	 *                                to 'ids', or the number of networks when 'count' is passed as a query var.
+	 *
+	 * @phpstan-return (
+	 *     $query is array{ count: true, ... } ? int : (
+	 *         $query is array{ fields: 'ids', ... } ? int[] : array<int, WP_Network>
+	 *     )
+	 * )
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -183,8 +198,8 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
-	 *                   or the number of networks when 'count' is passed as a query var.
+	 * @return WP_Network[]|int[]|int List of WP_Network objects, a list of network IDs when 'fields' is set
+	 *                                to 'ids', or the number of networks when 'count' is passed as a query var.
 	 */
 	public function get_networks() {
 		$this->parse_query();
@@ -225,10 +240,11 @@ class WP_Network_Query {
 		 * @since 5.6.0 The returned array of network data is assigned to the `networks` property
 		 *              of the current WP_Network_Query instance.
 		 *
-		 * @param array|int|null   $network_data Return an array of network data to short-circuit WP's network query,
-		 *                                       the network count as an integer if `$this->query_vars['count']` is set,
-		 *                                       or null to allow WP to run its normal queries.
-		 * @param WP_Network_Query $query        The WP_Network_Query instance, passed by reference.
+		 * @param WP_Network[]|int[]|int|null $network_data Return an array of network data to short-circuit WP's
+		 *                                                  network query, the network count as an integer if
+		 *                                                  `$this->query_vars['count']` is set, or null to allow WP
+		 *                                                  to run its normal queries.
+		 * @param WP_Network_Query            $query        The WP_Network_Query instance, passed by reference.
 		 */
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
@@ -249,8 +265,8 @@ class WP_Network_Query {
 		$key          = md5( serialize( $_args ) );
 		$last_changed = wp_cache_get_last_changed( 'networks' );
 
-		$cache_key   = "get_network_ids:$key:$last_changed";
-		$cache_value = wp_cache_get( $cache_key, 'network-queries' );
+		$cache_key   = "get_network_ids:$key";
+		$cache_value = wp_cache_get_salted( $cache_key, 'network-queries', $last_changed );
 
 		if ( false === $cache_value ) {
 			$network_ids = $this->get_network_ids();
@@ -262,7 +278,7 @@ class WP_Network_Query {
 				'network_ids'    => $network_ids,
 				'found_networks' => $this->found_networks,
 			);
-			wp_cache_add( $cache_key, $cache_value, 'network-queries' );
+			wp_cache_set_salted( $cache_key, $cache_value, 'network-queries', $last_changed );
 		} else {
 			$network_ids          = $cache_value['network_ids'];
 			$this->found_networks = $cache_value['found_networks'];
@@ -460,12 +476,12 @@ class WP_Network_Query {
 		 */
 		$clauses = apply_filters_ref_array( 'networks_clauses', array( compact( $pieces ), &$this ) );
 
-		$fields  = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
-		$join    = isset( $clauses['join'] ) ? $clauses['join'] : '';
-		$where   = isset( $clauses['where'] ) ? $clauses['where'] : '';
-		$orderby = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
-		$limits  = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
-		$groupby = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+		$fields  = $clauses['fields'] ?? '';
+		$join    = $clauses['join'] ?? '';
+		$where   = $clauses['where'] ?? '';
+		$orderby = $clauses['orderby'] ?? '';
+		$limits  = $clauses['limits'] ?? '';
+		$groupby = $clauses['groupby'] ?? '';
 
 		if ( $where ) {
 			$where = 'WHERE ' . $where;

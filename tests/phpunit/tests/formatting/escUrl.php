@@ -90,16 +90,48 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 23605
+	 * @ticket 52886
+	 *
 	 * @covers ::wp_allowed_protocols
 	 */
 	public function test_protocol() {
 		$this->assertSame( 'http://example.com', esc_url( 'http://example.com' ) );
 		$this->assertSame( '', esc_url( 'nasty://example.com/' ) );
 		$this->assertSame(
-			'',
+			'https://example.com',
 			esc_url(
 				'example.com',
 				array(
+					'https',
+				)
+			)
+		);
+		$this->assertSame(
+			'http://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'http',
+				)
+			)
+		);
+		$this->assertSame(
+			'https://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'https',
+					'http',
+				)
+			)
+		);
+		$this->assertSame(
+			'http://example.com',
+			esc_url(
+				'example.com',
+				array(
+					'http',
 					'https',
 				)
 			)
