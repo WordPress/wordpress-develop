@@ -29,11 +29,11 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 */
 	public static function data_valid_callbacks() {
 		return array(
-			'simple'        => array( 'callback' ),
-			'dotted'        => array( 'jQuery.callback' ),
-			'underscores'   => array( 'my_callback' ),
-			'alphanumeric'  => array( 'cb123' ),
-			'empty string'  => array( '' ),
+			'simple'       => array( 'callback' ),
+			'dotted'       => array( 'jQuery.callback' ),
+			'underscores'  => array( 'my_callback' ),
+			'alphanumeric' => array( 'cb123' ),
+			'empty string' => array( '' ),
 		);
 	}
 
