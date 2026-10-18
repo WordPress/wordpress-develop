@@ -36,11 +36,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_concatenate_scripts;
 
 	/**
-	 * @var mixed
-	 */
-	protected $old_compress_scripts;
-
-	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -59,7 +54,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
 		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
 		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
-		$this->old_compress_scripts    = $GLOBALS['compress_scripts'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -83,7 +77,6 @@ JS;
 		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
 		$GLOBALS['wp_styles']           = $this->old_wp_styles;
 		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
-		$GLOBALS['compress_scripts']    = $this->old_compress_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -3885,13 +3878,11 @@ HTML;
 	 * @dataProvider data_register_tinymce_scripts_unbundled
 	 *
 	 * @param bool $concatenate Value of the `$concatenate_scripts` global.
-	 * @param bool $compress    Value of the `$compress_scripts` global.
 	 */
-	public function test_register_tinymce_scripts_unbundled( bool $concatenate, bool $compress ): void {
-		global $concatenate_scripts, $compress_scripts;
+	public function test_register_tinymce_scripts_unbundled( bool $concatenate ): void {
+		global $concatenate_scripts;
 
 		$concatenate_scripts = $concatenate;
-		$compress_scripts    = $compress;
 
 		$wp_scripts = wp_scripts();
 		wp_register_tinymce_scripts( $wp_scripts );
@@ -3911,25 +3902,15 @@ HTML;
 	/**
 	 * Data provider for test_register_tinymce_scripts_unbundled().
 	 *
-	 * @return array<non-falsy-string, array{ concatenate: bool, compress: bool }>
+	 * @return array<non-falsy-string, array{ concatenate: bool }>
 	 */
 	public function data_register_tinymce_scripts_unbundled(): array {
 		return array(
-			'concatenated and compressed' => array(
+			'concatenated'     => array(
 				'concatenate' => true,
-				'compress'    => true,
 			),
-			'concatenated only'           => array(
-				'concatenate' => true,
-				'compress'    => false,
-			),
-			'compressed only'             => array(
+			'not concatenated' => array(
 				'concatenate' => false,
-				'compress'    => true,
-			),
-			'neither'                     => array(
-				'concatenate' => false,
-				'compress'    => false,
 			),
 		);
 	}
