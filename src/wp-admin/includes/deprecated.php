@@ -1604,7 +1604,7 @@ function delete_users_add_js() {
 /**
  * Was used to output JavaScript that tested whether compressing scripts from PHP works.
  *
- * The scripts and styles have not been compressed from PHP since 5.0.0, so the result
+ * The scripts and styles have not been compressed from PHP since 4.9.9, so the result
  * of the test went unused.
  *
  * @since 2.8.0
