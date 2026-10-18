@@ -118,10 +118,9 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_fields_argument
 	 *
-	 * @param string $fields   Fields argument value.
-	 * @param string $expected Type of elements expected.
+	 * @param string $fields Fields argument value.
 	 */
-	public function test_supports_fields_argument( $fields, $expected ) {
+	public function test_supports_fields_argument( $fields ) {
 		$tags = get_tags(
 			array(
 				'fields'     => $fields,
@@ -129,16 +128,17 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertIsArray( $tags );
-		$this->assertNotEmpty( $tags );
+		$all_ids = array_merge( self::$tag_ids, array( self::$empty_tag_id ) );
 
-		foreach ( $tags as $tag ) {
-			if ( 'int' === $expected ) {
-				$this->assertIsInt( $tag );
-			} elseif ( 'string' === $expected ) {
-				$this->assertIsString( $tag );
-			}
+		if ( 'ids' === $fields ) {
+			$expected = $all_ids;
+		} elseif ( 'names' === $fields ) {
+			$expected = array( 'Alpha Tag', 'Beta Tag', 'Gamma Tag', 'Zeta Empty Tag' );
+		} elseif ( 'slugs' === $fields ) {
+			$expected = array( 'alpha-tag', 'beta-tag', 'gamma-tag', 'zeta-empty-tag' );
 		}
+
+		$this->assertSameSets( $expected, $tags );
 	}
 
 	/**
@@ -148,9 +148,9 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 	 */
 	public static function data_fields_argument() {
 		return array(
-			'ids'   => array( 'ids', 'int' ),
-			'names' => array( 'names', 'string' ),
-			'slugs' => array( 'slugs', 'string' ),
+			'ids'   => array( 'ids' ),
+			'names' => array( 'names' ),
+			'slugs' => array( 'slugs' ),
 		);
 	}
 
@@ -168,11 +168,24 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 			)
 		);
 
-		$names          = wp_list_pluck( $tags, 'name' );
-		$expected_names = $names;
-		rsort( $expected_names );
+		$this->assertSame(
+			array( 'Zeta Empty Tag', 'Gamma Tag', 'Beta Tag', 'Alpha Tag' ),
+			wp_list_pluck( $tags, 'name' )
+		);
 
-		$this->assertSame( $expected_names, $names );
+		$shuffled_ids    = array( self::$tag_ids[1], self::$empty_tag_id, self::$tag_ids[0], self::$tag_ids[2] );
+		$tags_by_include = get_tags(
+			array(
+				'include'    => $shuffled_ids,
+				'orderby'    => 'include',
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertSame(
+			$shuffled_ids,
+			wp_list_pluck( $tags_by_include, 'term_id' )
+		);
 	}
 
 	/**
@@ -182,12 +195,14 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 	 */
 	public function test_applies_get_tags_filter() {
 		$filter_ran  = false;
+		$filter_tags = null;
 		$filter_args = null;
 
 		add_filter(
 			'get_tags',
-			static function ( $tags, $args ) use ( &$filter_ran, &$filter_args ) {
+			static function ( $tags, $args ) use ( &$filter_ran, &$filter_tags, &$filter_args ) {
 				$filter_ran  = true;
+				$filter_tags = $tags;
 				$filter_args = $args;
 				return array( 'filtered_tag_output' );
 			},
@@ -195,12 +210,17 @@ class Tests_Category_GetTags extends WP_UnitTestCase {
 			2
 		);
 
-		$tags = get_tags( array( 'hide_empty' => false ) );
+		$result = get_tags( array( 'hide_empty' => false ) );
 
 		$this->assertTrue( $filter_ran, 'The get_tags filter did not run.' );
+		$this->assertIsArray( $filter_tags, 'The filter incoming tags were not an array.' );
 		$this->assertIsArray( $filter_args, 'The filter arguments were not an array.' );
+
+		$all_ids = array_merge( self::$tag_ids, array( self::$empty_tag_id ) );
+		$this->assertSameSets( $all_ids, wp_list_pluck( $filter_tags, 'term_id' ) );
 		$this->assertSame( 'post_tag', $filter_args['taxonomy'] );
-		$this->assertSame( array( 'filtered_tag_output' ), $tags );
+		$this->assertFalse( $filter_args['hide_empty'] );
+		$this->assertSame( array( 'filtered_tag_output' ), $result );
 	}
 
 	/**
