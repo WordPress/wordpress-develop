@@ -126,7 +126,8 @@ class WP_Scripts extends WP_Dependencies {
 	/**
 	 * List of default directories.
 	 *
-	 * Core no longer reads this, but wp_default_scripts() still sets it for plugins that do.
+	 * Only the deprecated in_default_dir() reads this, but wp_default_scripts() still sets it for
+	 * plugins that read it.
 	 *
 	 * @since 2.8.0
 	 * @deprecated 7.2.0 Scripts are no longer concatenated.
