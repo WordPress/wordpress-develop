@@ -12,4 +12,6 @@
  */
 
 http_response_code( 410 );
+header( 'Content-Type: text/plain; charset=UTF-8' );
+echo 'Scripts are no longer concatenated.';
 exit;
