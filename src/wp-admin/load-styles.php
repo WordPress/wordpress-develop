@@ -3,19 +3,13 @@
  * Formerly concatenated the core styles named in the `load` query parameter.
  *
  * Styles are no longer concatenated, so this file now only responds with 410 Gone, for code
- * that still links to it directly.
+ * that still links to it directly. WordPress is not loaded, so that requests from bots and stale
+ * links cost next to nothing and do not trigger deprecation notices.
  *
  * @package WordPress
  * @subpackage Administration
  * @deprecated 7.2.0 Styles are no longer concatenated.
  */
 
-/** Load WordPress Bootstrap */
-require_once dirname( __DIR__ ) . '/wp-load.php';
-
-// Send the status first, since a deprecation notice that is displayed would prevent wp_die() from sending it.
-status_header( 410 );
-
-_deprecated_file( basename( __FILE__ ), '7.2.0', '', __( 'Styles are no longer concatenated.' ) );
-
-wp_die( __( 'Styles are no longer concatenated.' ), '', array( 'response' => 410 ) );
+http_response_code( 410 );
+exit;
