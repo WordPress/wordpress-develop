@@ -895,7 +895,7 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 	 * @return bool
 	 */
 	private function is_required( string $description ): bool {
-		return preg_match( '#^\s*Required\.(?:\s|$)|(?:^|[.!?]\s+)Required\.\s*$#', $description ) === 1;
+		return preg_match( '#^\s*Required\.(?:\s|$)|(?:^|[.!?]\s+)Required\.\s*$#i', $description ) === 1;
 	}
 
 	/**
