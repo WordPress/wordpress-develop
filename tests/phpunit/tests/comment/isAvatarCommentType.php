@@ -40,6 +40,9 @@ class Tests_Comment_IsAvatarCommentType extends WP_UnitTestCase {
 			array( '', false ),
 			array( 'non-existing-comment-type', false ),
 			array( 'comment', true ),
+			// Internal comment types are authored by a user, so they get an avatar.
+			array( 'note', true ),
+			array( 'reaction', true ),
 		);
 	}
 
