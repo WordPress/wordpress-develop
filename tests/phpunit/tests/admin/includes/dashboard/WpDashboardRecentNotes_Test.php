@@ -39,7 +39,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param int    $author Optional. The post author. Default is the administrator.
 	 * @return int The post ID.
 	 */
-	private function create_post( $title, $author = 0 ) {
+	private function create_post( string $title, int $author = 0 ) {
 		return self::factory()->post->create(
 			array(
 				'post_title'  => $title,
@@ -58,7 +58,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param string $date      Optional. Local date, in MySQL format. Default is the current local time.
 	 * @return int The note ID.
 	 */
-	private function create_note( $post_id, $approved = '0', $parent_id = 0, $date = '' ) {
+	private function create_note( int $post_id, string $approved = '0', int $parent_id = 0, string $date = '' ) {
 		if ( '' === $date ) {
 			$date = current_time( 'mysql' );
 		}
@@ -81,7 +81,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param positive-int $total_items Optional. Number of posts to display. Default 5.
 	 * @return array{0: bool, 1: string} The return value of the function, and the rendered markup.
 	 */
-	private function render( $total_items = 5 ): array {
+	private function render( int $total_items = 5 ): array {
 		ob_start();
 		$returned = wp_dashboard_recent_notes( $total_items );
 		$output   = (string) ob_get_clean();
@@ -95,7 +95,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	 * @param string $output The rendered section.
 	 * @return string[] The linked post titles.
 	 */
-	private function get_linked_titles( $output ) {
+	private function get_linked_titles( string $output ) {
 		preg_match_all( '#<a [^>]*>([^<]*)</a>#', $output, $matches );
 
 		return $matches[1];
@@ -202,7 +202,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 
 		add_filter(
 			'get_edit_post_link',
-			static function ( $link, $post_id ) use ( $unlinked_id ) {
+			static function ( string $link, int $post_id ) use ( $unlinked_id ) {
 				return $unlinked_id === $post_id ? '' : $link;
 			},
 			10,
