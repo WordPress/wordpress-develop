@@ -251,6 +251,22 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that WP_Styles::in_default_dir() is deprecated but still works.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::in_default_dir
+	 *
+	 * @expectedDeprecated WP_Styles::in_default_dir
+	 */
+	public function test_in_default_dir_is_deprecated(): void {
+		$wp_styles               = wp_styles();
+		$wp_styles->default_dirs = array( '/wp-includes/css/' );
+
+		$this->assertTrue( $wp_styles->in_default_dir( '/wp-includes/css/file' ) );
+	}
+
+	/**
 	 * Test normalizing relative links in CSS.
 	 *
 	 * @dataProvider data_normalize_relative_css_links

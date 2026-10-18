@@ -2245,6 +2245,22 @@ HTML;
 	}
 
 	/**
+	 * Tests that WP_Scripts::in_default_dir() is deprecated but still works.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Scripts::in_default_dir
+	 *
+	 * @expectedDeprecated WP_Scripts::in_default_dir
+	 */
+	public function test_in_default_dir_is_deprecated(): void {
+		$wp_scripts               = wp_scripts();
+		$wp_scripts->default_dirs = array( '/wp-includes/js/' );
+
+		$this->assertTrue( $wp_scripts->in_default_dir( '/wp-includes/js/file' ) );
+	}
+
+	/**
 	 * Tests that the deprecated filters for printing scripts no longer keep them from being printed.
 	 *
 	 * @ticket 57548

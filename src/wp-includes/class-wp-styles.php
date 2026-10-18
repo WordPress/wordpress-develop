@@ -104,6 +104,7 @@ class WP_Styles extends WP_Dependencies {
 	 * List of default directories.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @see wp_default_styles()
 	 * @var string[]|null
 	 */
@@ -522,11 +523,14 @@ class WP_Styles extends WP_Dependencies {
 	 * Whether a handle's source is in a default directory.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 *
 	 * @param string $src The source of the enqueued style.
 	 * @return bool True if found, false if not.
 	 */
 	public function in_default_dir( $src ) {
+		_deprecated_function( __METHOD__, '7.2.0' );
+
 		if ( ! $this->default_dirs ) {
 			return true;
 		}
