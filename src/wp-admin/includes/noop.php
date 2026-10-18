@@ -12,5 +12,5 @@
  */
 
 if ( function_exists( '_deprecated_file' ) ) {
-	_deprecated_file( basename( __FILE__ ), '7.2.0', '', __( 'Scripts and styles are no longer concatenated.' ) );
+	_deprecated_file( basename( __FILE__ ), '7.2.0' );
 }
