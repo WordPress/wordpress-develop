@@ -728,6 +728,7 @@ function wp_default_scripts( $scripts ) {
 	$scripts->base_url        = $guessurl;
 	$scripts->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$scripts->default_version = get_bloginfo( 'version' );
+	$scripts->default_dirs    = array( '/wp-admin/js/', '/wp-includes/js/' ); // Deprecated, but still set for plugins that read it.
 
 	$scripts->add( 'utils', "/wp-includes/js/utils$suffix.js" );
 	did_action( 'init' ) && $scripts->localize(
@@ -1545,6 +1546,7 @@ function wp_default_styles( $styles ) {
 	$styles->content_url     = defined( 'WP_CONTENT_URL' ) ? WP_CONTENT_URL : '';
 	$styles->default_version = get_bloginfo( 'version' );
 	$styles->text_direction  = is_rtl() ? 'rtl' : 'ltr';
+	$styles->default_dirs    = array( '/wp-admin/', '/wp-includes/css/' ); // Deprecated, but still set for plugins that read it.
 
 	// Open Sans is no longer used by core, but may be relied upon by themes and plugins.
 	$open_sans_font_url = '';

@@ -14,22 +14,6 @@
  * @since 2.1.0
  *
  * @see WP_Dependencies
- *
- * @property string        $concat         Handles of the scripts to concatenate. Deprecated in 7.2.0, as scripts
- *                                         are no longer concatenated.
- * @property string        $concat_version Handles and versions of the scripts to concatenate. Deprecated in 3.4.0.
- * @property bool          $do_concat      Whether to concatenate scripts. Deprecated in 7.2.0, as scripts are
- *                                         no longer concatenated.
- * @property string        $print_html     Markup of the scripts held while concatenating. Deprecated in 7.2.0,
- *                                         as scripts are no longer concatenated.
- * @property string        $print_code     Inline code held while concatenating. Deprecated in 7.2.0, as scripts
- *                                         are no longer concatenated.
- * @property string        $ext_handles    Handles of the scripts outside the default directories. Deprecated
- *                                         in 7.2.0, as scripts are no longer concatenated.
- * @property string        $ext_version    Handles and versions of the scripts outside the default directories.
- *                                         Deprecated in 7.2.0, as scripts are no longer concatenated.
- * @property string[]|null $default_dirs   Directories of the scripts that could be concatenated. Deprecated in
- *                                         7.2.0, as scripts are no longer concatenated.
  */
 class WP_Scripts extends WP_Dependencies {
 	/**
@@ -70,32 +54,88 @@ class WP_Scripts extends WP_Dependencies {
 	public $in_footer = array();
 
 	/**
-	 * Default values of the deprecated properties, which are now handled by the magic methods.
+	 * Holds a list of script handles which will be concatenated.
 	 *
-	 * @since 7.2.0
-	 * @see WP_Scripts::__get()
-	 * @var array<string, string|bool|string[]>
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var string
 	 */
-	private const DEPRECATED_PROPERTIES = array(
-		'concat'         => '',
-		'concat_version' => '',
-		'do_concat'      => false,
-		'print_html'     => '',
-		'print_code'     => '',
-		'ext_handles'    => '',
-		'ext_version'    => '',
-		'default_dirs'   => array( '/wp-admin/js/', '/wp-includes/js/' ),
-	);
+	public $concat = '';
 
 	/**
-	 * Values of the deprecated properties which have been read or written.
+	 * Holds a string which contains script handles and their version.
 	 *
-	 * @since 7.2.0
-	 * @see WP_Scripts::DEPRECATED_PROPERTIES
-	 * @var array<string, mixed>
-	 * @phpstan-var array{ concat?: string, concat_version?: string, do_concat?: bool, print_html?: string, print_code?: string, ext_handles?: string, ext_version?: string, default_dirs?: string[]|null }
+	 * @since 2.8.0
+	 * @deprecated 3.4.0
+	 * @var string
 	 */
-	private $deprecated_property_values = array();
+	public $concat_version = '';
+
+	/**
+	 * Whether to perform concatenation.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var bool
+	 */
+	public $do_concat = false;
+
+	/**
+	 * Holds HTML markup of scripts and additional data if concatenation
+	 * is enabled.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var string
+	 */
+	public $print_html = '';
+
+	/**
+	 * Holds inline code if concatenation is enabled.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var string
+	 */
+	public $print_code = '';
+
+	/**
+	 * Holds a list of script handles which are not in the default directory
+	 * if concatenation is enabled.
+	 *
+	 * Unused in core.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var string
+	 */
+	public $ext_handles = '';
+
+	/**
+	 * Holds a string which contains handles and versions of scripts which
+	 * are not in the default directory if concatenation is enabled.
+	 *
+	 * Unused in core.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @var string
+	 */
+	public $ext_version = '';
+
+	/**
+	 * List of default directories.
+	 *
+	 * Only the deprecated {@see WP_Scripts::in_default_dir()} reads this, but
+	 * {@see wp_default_scripts()} still sets it for plugins that read it.
+	 *
+	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
+	 * @see WP_Scripts::in_default_dir()
+	 * @see wp_default_scripts()
+	 * @var string[]|null
+	 */
+	public $default_dirs;
 
 	/**
 	 * Holds a mapping of dependents (as handles) for a given script handle.
@@ -139,148 +179,6 @@ class WP_Scripts extends WP_Dependencies {
 		 * @param WP_Scripts $wp_scripts WP_Scripts instance (passed by reference).
 		 */
 		do_action_ref_array( 'wp_default_scripts', array( &$this ) );
-	}
-
-	/**
-	 * Gets a deprecated property.
-	 *
-	 * The value is returned by reference, so that plugins can still modify an
-	 * array or string in place, as in `$wp_scripts->default_dirs[] = $dir`.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @see WP_Scripts::DEPRECATED_PROPERTIES
-	 *
-	 * @param string $name Property name.
-	 * @return mixed Property value, or null if the property is undefined.
-	 *
-	 * @throws Error If the property is not public.
-	 */
-	public function &__get( string $name ) {
-		if ( ! array_key_exists( $name, self::DEPRECATED_PROPERTIES ) ) {
-			$this->check_property_access( $name );
-			wp_trigger_error(
-				__METHOD__,
-				sprintf( 'Undefined property: %s::$%s', static::class, $name ),
-				E_USER_WARNING
-			);
-			$value = null;
-			return $value;
-		}
-
-		$this->deprecated_property_used( __METHOD__, $name );
-
-		if ( ! array_key_exists( $name, $this->deprecated_property_values ) ) {
-			$this->deprecated_property_values[ $name ] = self::DEPRECATED_PROPERTIES[ $name ];
-		}
-		return $this->deprecated_property_values[ $name ];
-	}
-
-	/**
-	 * Sets a deprecated property.
-	 *
-	 * Other undefined properties are set as dynamic properties, as before.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @see WP_Scripts::DEPRECATED_PROPERTIES
-	 *
-	 * @param string $name  Property name.
-	 * @param mixed  $value Property value.
-	 *
-	 * @throws Error If the property is not public.
-	 */
-	public function __set( string $name, $value ): void {
-		if ( ! array_key_exists( $name, self::DEPRECATED_PROPERTIES ) ) {
-			$this->check_property_access( $name );
-			$this->$name = $value;
-			return;
-		}
-
-		$this->deprecated_property_used( __METHOD__, $name );
-		$this->deprecated_property_values[ $name ] = $value;
-	}
-
-	/**
-	 * Checks whether a deprecated property is set.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @see WP_Scripts::DEPRECATED_PROPERTIES
-	 *
-	 * @param string $name Property name.
-	 * @return bool Whether the property is set and not null.
-	 */
-	public function __isset( string $name ): bool {
-		if ( ! array_key_exists( $name, self::DEPRECATED_PROPERTIES ) ) {
-			return false;
-		}
-
-		$this->deprecated_property_used( __METHOD__, $name );
-
-		if ( array_key_exists( $name, $this->deprecated_property_values ) ) {
-			return isset( $this->deprecated_property_values[ $name ] );
-		}
-		return true;
-	}
-
-	/**
-	 * Unsets a deprecated property, which restores its default value.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @see WP_Scripts::DEPRECATED_PROPERTIES
-	 *
-	 * @param string $name Property name.
-	 *
-	 * @throws Error If the property is not public.
-	 */
-	public function __unset( string $name ): void {
-		if ( ! array_key_exists( $name, self::DEPRECATED_PROPERTIES ) ) {
-			$this->check_property_access( $name );
-			return;
-		}
-
-		$this->deprecated_property_used( __METHOD__, $name );
-		unset( $this->deprecated_property_values[ $name ] );
-	}
-
-	/**
-	 * Warns that a deprecated property was used.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $method Magic method through which the property was used.
-	 * @param string $name   Property name.
-	 */
-	private function deprecated_property_used( string $method, string $name ): void {
-		_doing_it_wrong(
-			$method,
-			sprintf(
-				/* translators: %s: Property name. */
-				__( 'The %s property is deprecated, as scripts are no longer concatenated.' ),
-				'<code>' . __CLASS__ . '::$' . $name . '</code>'
-			),
-			'7.2.0'
-		);
-	}
-
-	/**
-	 * Throws the error PHP would throw when a property which is not public is accessed.
-	 *
-	 * Without this check, the magic methods would expose the private and
-	 * protected properties, since they run in the scope of the class.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param string $name Property name.
-	 *
-	 * @throws Error If the property is not public.
-	 */
-	private function check_property_access( string $name ): void {
-		if ( property_exists( $this, $name ) && ! ( new ReflectionProperty( $this, $name ) )->isPublic() ) {
-			throw new Error( sprintf( 'Cannot access non-public property %s::$%s', static::class, $name ) );
-		}
 	}
 
 	/**
@@ -928,11 +826,7 @@ JS;
 	public function in_default_dir( $src ) {
 		_deprecated_function( __METHOD__, '7.2.0' );
 
-		$default_dirs = array_key_exists( 'default_dirs', $this->deprecated_property_values )
-			? $this->deprecated_property_values['default_dirs']
-			: self::DEPRECATED_PROPERTIES['default_dirs'];
-
-		if ( ! $default_dirs ) {
+		if ( ! $this->default_dirs ) {
 			return true;
 		}
 
@@ -940,7 +834,7 @@ JS;
 			return false;
 		}
 
-		return array_any( (array) $default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
+		return array_any( (array) $this->default_dirs, fn( $test ) => str_starts_with( $src, $test ) );
 	}
 
 	/**
@@ -1311,9 +1205,13 @@ JS;
 	 * @since 2.8.0
 	 */
 	public function reset() {
-		foreach ( array( 'do_concat', 'print_code', 'concat', 'concat_version', 'print_html', 'ext_version', 'ext_handles' ) as $name ) {
-			unset( $this->deprecated_property_values[ $name ] );
-		}
+		$this->do_concat      = false;
+		$this->print_code     = '';
+		$this->concat         = '';
+		$this->concat_version = '';
+		$this->print_html     = '';
+		$this->ext_version    = '';
+		$this->ext_handles    = '';
 	}
 
 	/**
