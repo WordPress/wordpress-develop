@@ -473,7 +473,14 @@ class WP_Scripts extends WP_Dependencies {
 			}
 		}
 
-		/** This filter is documented in wp-includes/class-wp-scripts.php */
+		/**
+		 * Filters the script loader source.
+		 *
+		 * @since 2.2.0
+		 *
+		 * @param string $src    Script loader source path.
+		 * @param string $handle Script handle.
+		 */
 		$src = apply_filters( 'script_loader_src', $src, $handle );
 
 		return is_string( $src ) ? $src : '';
