@@ -2135,12 +2135,11 @@ function print_head_scripts() {
 	 * Filters whether to print the head scripts.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the head scripts. Default true.
 	 */
-	if ( apply_filters( 'print_head_scripts', true ) ) {
-		_print_scripts();
-	}
+	apply_filters_deprecated( 'print_head_scripts', array( true ), '7.2.0' );
 
 	$wp_scripts->reset();
 	return $wp_scripts->done;
@@ -2167,35 +2166,14 @@ function print_footer_scripts() {
 	 * Filters whether to print the footer scripts.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the footer scripts. Default true.
 	 */
-	if ( apply_filters( 'print_footer_scripts', true ) ) {
-		_print_scripts();
-	}
+	apply_filters_deprecated( 'print_footer_scripts', array( true ), '7.2.0' );
 
 	$wp_scripts->reset();
 	return $wp_scripts->done;
-}
-
-/**
- * Prints scripts (internal use only)
- *
- * Prints the markup that was held in `WP_Scripts::$print_html` while `WP_Scripts::$do_concat` was enabled.
- *
- * @since 2.8.0
- * @since 7.2.0 Scripts are no longer concatenated.
- *
- * @ignore
- *
- * @global WP_Scripts $wp_scripts
- */
-function _print_scripts() {
-	global $wp_scripts;
-
-	if ( ! empty( $wp_scripts->print_html ) ) {
-		echo $wp_scripts->print_html;
-	}
 }
 
 /**
@@ -2290,12 +2268,11 @@ function print_admin_styles() {
 	 * Filters whether to print the admin styles.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the admin styles. Default true.
 	 */
-	if ( apply_filters( 'print_admin_styles', true ) ) {
-		_print_styles();
-	}
+	apply_filters_deprecated( 'print_admin_styles', array( true ), '7.2.0' );
 
 	$wp_styles->reset();
 	return $wp_styles->done;
@@ -2323,32 +2300,14 @@ function print_late_styles() {
 	 * Filters whether to print the styles queued too late for the HTML head.
 	 *
 	 * @since 3.3.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated, so there is nothing for this filter to control.
 	 *
 	 * @param bool $print Whether to print the 'late' styles. Default true.
 	 */
-	if ( apply_filters( 'print_late_styles', true ) ) {
-		_print_styles();
-	}
+	apply_filters_deprecated( 'print_late_styles', array( true ), '7.2.0' );
 
 	$wp_styles->reset();
 	return $wp_styles->done;
-}
-
-/**
- * Prints styles (internal use only).
- *
- * Prints the markup that was held in `WP_Styles::$print_html` while `WP_Styles::$do_concat` was enabled.
- *
- * @ignore
- * @since 3.3.0
- * @since 7.2.0 Styles are no longer concatenated.
- */
-function _print_styles() {
-	$wp_styles = wp_styles();
-
-	if ( ! empty( $wp_styles->print_html ) ) {
-		echo $wp_styles->print_html;
-	}
 }
 
 /**

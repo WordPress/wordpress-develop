@@ -198,7 +198,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatenation
+	 * Tests that inline styles are printed right away when the deprecated `do_concat` property is set.
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
@@ -207,8 +207,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	public function test_inline_styles_concat() {
 		global $wp_styles;
 
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/', '/wp-includes/css/' ); // Default dirs as in wp-includes/script-loader.php.
+		$wp_styles->do_concat = true;
 
 		$style  = ".thing {\n";
 		$style .= "\tbackground: red;\n";
@@ -223,8 +222,32 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 		wp_add_inline_style( 'handle', $style );
 
-		wp_print_styles();
-		$this->assertEqualHTML( $expected, $wp_styles->print_html );
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertSame( '', $wp_styles->print_html );
+	}
+
+	/**
+	 * Tests that the deprecated filters for printing styles no longer keep them from being printed.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers ::print_admin_styles
+	 * @covers ::print_late_styles
+	 *
+	 * @expectedDeprecated print_admin_styles
+	 * @expectedDeprecated print_late_styles
+	 */
+	public function test_print_styles_filters_are_deprecated(): void {
+		add_filter( 'print_admin_styles', '__return_false' );
+		add_filter( 'print_late_styles', '__return_false' );
+
+		wp_enqueue_style( 'admin', '/admin.css', array(), null );
+
+		$this->assertEqualHTML( "<link rel='stylesheet' id='admin-css' href='/admin.css' media='all' />\n", get_echo( 'print_admin_styles' ), '<body>', 'Expected the admin styles to be printed.' );
+
+		wp_enqueue_style( 'late', '/late.css', array(), null );
+
+		$this->assertEqualHTML( "<link rel='stylesheet' id='late-css' href='/late.css' media='all' />\n", get_echo( 'print_late_styles' ), '<body>', 'Expected the late styles to be printed.' );
 	}
 
 	/**
@@ -909,45 +932,6 @@ custom-el { content: "ok"; }
 HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
-	}
-
-	/**
-	 * @ticket 63887
-	 * @ticket 57548
-	 *
-	 * @global WP_Styles $wp_styles
-	 * @global string    $wp_version
-	 */
-	public function test_source_url_with_concat() {
-		global $wp_styles, $wp_version;
-		add_theme_support( 'html5', array( 'style' ) );
-
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/' );
-
-		wp_enqueue_style( 'one', '/wp-admin/1.css' );
-		wp_enqueue_style( 'two', '/wp-admin/2.css' );
-		wp_add_inline_style( 'one', 'h1 { background: blue; }' );
-		wp_add_inline_style( 'two', 'h2 { color: green; }' );
-
-		wp_print_styles();
-		$printed = get_echo( '_print_styles' );
-
-		$expected = <<<HTML
-<link rel="stylesheet" id="one-css" href="/wp-admin/1.css?ver={$wp_version}" media="all">
-<style id="one-inline-css">
-h1 { background: blue; }
-/*# sourceURL=one-inline-css */
-</style>
-<link rel="stylesheet" id="two-css" href="/wp-admin/2.css?ver={$wp_version}" media="all">
-<style id="two-inline-css">
-h2 { color: green; }
-/*# sourceURL=two-inline-css */
-</style>
-
-HTML;
-
-		$this->assertEqualHTML( $expected, $printed );
 	}
 
 	/**

@@ -6634,3 +6634,40 @@ function script_concat_settings() {
 		$compress_css = false;
 	}
 }
+
+/**
+ * Prints scripts (internal use only)
+ *
+ * @since 2.8.0
+ * @deprecated 7.2.0 Scripts are no longer concatenated.
+ *
+ * @ignore
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function _print_scripts() {
+	global $wp_scripts;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! empty( $wp_scripts->print_html ) ) {
+		echo $wp_scripts->print_html;
+	}
+}
+
+/**
+ * Prints styles (internal use only).
+ *
+ * @ignore
+ * @since 3.3.0
+ * @deprecated 7.2.0 Styles are no longer concatenated.
+ */
+function _print_styles() {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	$wp_styles = wp_styles();
+
+	if ( ! empty( $wp_styles->print_html ) ) {
+		echo $wp_styles->print_html;
+	}
+}

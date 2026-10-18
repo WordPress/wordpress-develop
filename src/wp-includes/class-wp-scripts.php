@@ -72,20 +72,20 @@ class WP_Scripts extends WP_Dependencies {
 	public $concat_version = '';
 
 	/**
-	 * Whether to hold the markup of processed scripts in `$print_html` instead of printing it.
-	 *
-	 * The markup is printed when _print_scripts() is called.
+	 * Whether to perform concatenation.
 	 *
 	 * @since 2.8.0
-	 * @since 7.2.0 Scripts are no longer concatenated, so this only defers printing their markup.
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
 	 * @var bool
 	 */
 	public $do_concat = false;
 
 	/**
-	 * Holds the HTML markup of processed scripts while `$do_concat` is enabled.
+	 * Holds HTML markup of scripts and additional data if concatenation
+	 * is enabled.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Scripts are no longer concatenated.
 	 * @var string
 	 */
 	public $print_html = '';
@@ -349,23 +349,12 @@ class WP_Scripts extends WP_Dependencies {
 			$translations  = wp_get_inline_script_tag( $translations, array( 'id' => "{$handle}-js-translations" ) );
 		}
 
-		if ( $this->do_concat ) {
-			$extra_script = $this->print_extra_script( $handle, false );
-			if ( $extra_script ) {
-				$this->print_html .= wp_get_inline_script_tag( $extra_script, array( 'id' => "{$handle}-js-extra" ) );
-			}
-		} else {
-			$this->print_extra_script( $handle );
-		}
+		$this->print_extra_script( $handle );
 
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
 			if ( $inline_script_tag ) {
-				if ( $this->do_concat ) {
-					$this->print_html .= $inline_script_tag;
-				} else {
-					echo $inline_script_tag;
-				}
+				echo $inline_script_tag;
 			}
 
 			return true;
@@ -421,11 +410,7 @@ class WP_Scripts extends WP_Dependencies {
 		 */
 		$tag = apply_filters( 'script_loader_tag', $tag, $handle, $src );
 
-		if ( $this->do_concat ) {
-			$this->print_html .= $tag;
-		} else {
-			echo $tag;
-		}
+		echo $tag;
 
 		return true;
 	}

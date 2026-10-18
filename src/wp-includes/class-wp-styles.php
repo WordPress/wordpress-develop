@@ -73,20 +73,20 @@ class WP_Styles extends WP_Dependencies {
 	public $concat_version = '';
 
 	/**
-	 * Whether to hold the markup of processed styles in `$print_html` instead of printing it.
-	 *
-	 * The markup is printed when _print_styles() is called.
+	 * Whether to perform concatenation.
 	 *
 	 * @since 2.8.0
-	 * @since 7.2.0 Styles are no longer concatenated, so this only defers printing their markup.
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var bool
 	 */
 	public $do_concat = false;
 
 	/**
-	 * Holds the HTML markup of processed styles while `$do_concat` is enabled.
+	 * Holds HTML markup of styles and additional data if concatenation
+	 * is enabled.
 	 *
 	 * @since 2.8.0
+	 * @deprecated 7.2.0 Styles are no longer concatenated.
 	 * @var string
 	 */
 	public $print_html = '';
@@ -167,11 +167,7 @@ class WP_Styles extends WP_Dependencies {
 		// A single item may alias a set of items, by having dependencies, but no source.
 		if ( ! $src ) {
 			if ( $inline_style_tag ) {
-				if ( $this->do_concat ) {
-					$this->print_html .= $inline_style_tag;
-				} else {
-					echo $inline_style_tag;
-				}
+				echo $inline_style_tag;
 			}
 
 			return true;
@@ -231,15 +227,8 @@ class WP_Styles extends WP_Dependencies {
 			}
 		}
 
-		if ( $this->do_concat ) {
-			$this->print_html .= $tag;
-			if ( $inline_style_tag ) {
-				$this->print_html .= $inline_style_tag;
-			}
-		} else {
-			echo $tag;
-			$this->print_inline_style( $handle );
-		}
+		echo $tag;
+		$this->print_inline_style( $handle );
 
 		return true;
 	}

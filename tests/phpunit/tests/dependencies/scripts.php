@@ -2201,19 +2201,16 @@ HTML;
 	}
 
 	/**
-	 * Tests that the markup of scripts is held until _print_scripts() while `do_concat` is enabled.
-	 *
-	 * Scripts are no longer concatenated, but some plugins enable `do_concat` to print the markup later.
+	 * Tests that the deprecated `do_concat` property no longer holds back the markup of scripts.
 	 *
 	 * @ticket 57548
 	 *
 	 * @covers WP_Scripts::do_item
-	 * @covers ::_print_scripts
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global string     $wp_version
 	 */
-	public function test_do_concat_holds_markup_until_printed(): void {
+	public function test_do_concat_is_ignored(): void {
 		global $wp_scripts, $wp_version;
 
 		$wp_scripts->do_concat = true;
@@ -2224,8 +2221,6 @@ HTML;
 		wp_register_script( 'alias', false, array( 'one' ) );
 		wp_add_inline_script( 'alias', 'console.log("after alias");' );
 		wp_enqueue_script( 'two', '/plugins/two.js', array( 'alias' ), null, array( 'strategy' => 'defer' ) );
-
-		$this->assertSame( '', get_echo( 'wp_print_scripts' ), 'Expected nothing to be printed while do_concat is enabled.' );
 
 		$expected = <<<HTML
 <script id="one-js-extra">
@@ -2245,8 +2240,30 @@ console.log("after alias");
 
 HTML;
 
-		$this->assertEqualHTML( $expected, $wp_scripts->print_html, '<body>', 'Expected each script to be held in print_html as its own tag.' );
-		$this->assertEqualHTML( $expected, get_echo( '_print_scripts' ), '<body>', 'Expected _print_scripts() to print the held markup.' );
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_scripts' ), '<body>', 'Expected each script to be printed right away.' );
+		$this->assertSame( '', $wp_scripts->print_html, 'Expected nothing to be held in print_html.' );
+	}
+
+	/**
+	 * Tests that the deprecated filters for printing scripts no longer keep them from being printed.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers ::print_head_scripts
+	 * @covers ::print_footer_scripts
+	 *
+	 * @expectedDeprecated print_head_scripts
+	 * @expectedDeprecated print_footer_scripts
+	 */
+	public function test_print_scripts_filters_are_deprecated(): void {
+		add_filter( 'print_head_scripts', '__return_false' );
+		add_filter( 'print_footer_scripts', '__return_false' );
+
+		wp_enqueue_script( 'head', '/head.js', array(), null );
+		wp_enqueue_script( 'footer', '/footer.js', array(), null, array( 'in_footer' => true ) );
+
+		$this->assertEqualHTML( "<script src='/head.js' id='head-js'></script>\n", get_echo( 'print_head_scripts' ), '<body>', 'Expected the head scripts to be printed.' );
+		$this->assertEqualHTML( "<script src='/footer.js' id='footer-js'></script>\n", get_echo( 'print_footer_scripts' ), '<body>', 'Expected the footer scripts to be printed.' );
 	}
 
 	/**
