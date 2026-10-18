@@ -26,12 +26,12 @@
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	/**
-	 * @var WP_Scripts
+	 * @var WP_Scripts|null
 	 */
 	protected $old_wp_scripts;
 
 	/**
-	 * @var WP_Styles
+	 * @var WP_Styles|null
 	 */
 	protected $old_wp_styles;
 
@@ -46,8 +46,10 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->old_wp_scripts = $GLOBALS['wp_scripts'] ?? null;
-		$this->old_wp_styles  = $GLOBALS['wp_styles'] ?? null;
+		$old_wp_scripts       = $GLOBALS['wp_scripts'] ?? null;
+		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
+		$this->old_wp_scripts = $old_wp_scripts instanceof WP_Scripts ? $old_wp_scripts : null;
+		$this->old_wp_styles  = $old_wp_styles instanceof WP_Styles ? $old_wp_styles : null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
