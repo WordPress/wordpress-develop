@@ -679,11 +679,6 @@ parameters:
 			count: 5
 			path: ../../../src/wp-includes/class-wp-block-processor.php
 		-
-			message: '#^Variable \$filter_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-duotone.php
-		-
 			message: '#^Variable \$processed_response might not be defined\.$#'
 			identifier: variable.undefined
 			count: 5
