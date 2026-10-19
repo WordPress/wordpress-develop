@@ -46,6 +46,7 @@ on:
       - 'tools/vendors/**'
       - 'tools/webpack/**'
       - 'phpunit.xml.dist'
+      - '.github/actions/setup-npm/**'
       - '.github/workflows/phpunit-tests.yml'
       - '.github/workflows/phpunit-tests-full-matrix.yml'
       - '.github/workflows/reusable-phpunit-tests-*.yml'
@@ -83,6 +84,88 @@ concurrency:
 permissions: {}
 
 jobs:
+  # Reduce PR testing only for audited Core assets and unrelated companion files.
+  select-test-coverage:
+    name: Select PHPUnit coverage
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
+    outputs:
+      assets-only: ${{ steps.select.outputs.assets-only }}
+    steps:
+      - name: Checkout the PR merge commit
+        if: github.event_name == 'pull_request' && ! contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' )
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+
+      - name: Select test coverage
+        id: select
+        env:
+          CHECK_ASSETS: ${{ github.event_name == 'pull_request' && ! contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) }}
+        run: |
+          assets_only=false
+          if [[ "$CHECK_ASSETS" == 'true' ]]; then
+            # Compare the tested merge result with its base parent. Include both paths of a rename.
+            changed_files="$RUNNER_TEMP/phpunit-changed-files"
+            if git diff --no-renames --name-only -z HEAD^1 HEAD > "$changed_files" && [[ -s "$changed_files" ]]; then
+              while IFS= read -r -d '' file; do
+                case "$file" in
+                  # Preserve the workflow's explicit inclusions before ignoring Markdown files.
+                  SECURITY.md|tests/phpunit/*|tools/gutenberg/*|tools/local-env/*|tools/vendors/*|tools/webpack/*)
+                    ;;
+                  src/js/*.js|src/js/*.css|src/wp-admin/css/*.css|src/wp-admin/css/colors/*.scss|src/wp-includes/css/*.css|src/wp-includes/build/*.js)
+                    assets_only=true
+                    continue
+                    ;;
+                  # These companion files are excluded by the workflow's path filters.
+                  *.md|tests/qunit/*|typings/*|.eslintrc-jsdoc.js|.prettierrc.js|eslint.config.js|jsdoc.conf.json|tsconfig.json)
+                    continue
+                    ;;
+                esac
+                printf 'Running the normal PHPUnit matrix: %q is outside the audited asset paths.\n' "$file"
+                assets_only=false
+                break
+              done < "$changed_files"
+              if [[ "$assets_only" == 'false' ]]; then
+                echo 'Reduced coverage requires an audited asset change and no other relevant changes.'
+              fi
+            else
+              echo 'Running the normal PHPUnit matrix: changed paths are unavailable or empty.'
+            fi
+          else
+            echo 'Keeping the existing PHPUnit matrix for this event or the Full PHPUnit Matrix label.'
+          fi
+          echo "assets-only=$assets_only" >> "$GITHUB_OUTPUT"
+
+  # One configuration keeps asset-dependent PHP tests visible on Core asset-only PRs.
+  # Single site only. Asset tests must not also belong to groups excluded by phpunit.xml.dist.
+  test-assets:
+    name: Core assets
+    uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
+    needs: [ select-test-coverage, prepare-gutenberg ]
+    permissions:
+      contents: read
+    if: needs.select-test-coverage.outputs.assets-only == 'true'
+    with:
+      php: '8.3'
+      db-type: 'mysql'
+      db-version: '8.4'
+      phpunit-test-groups: 'assets'
+      gutenberg-artifact: ${{ needs.prepare-gutenberg.result != 'skipped' }}
+      gutenberg-sha: ${{ needs.prepare-gutenberg.outputs.gutenberg-sha }}
+
   # Downloads and verifies the Gutenberg build once for all PHPUnit jobs.
   prepare-gutenberg:
     name: Prepare Gutenberg Assets
@@ -108,7 +191,7 @@ jobs:
   test-with-mysql:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
@@ -116,6 +199,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -129,14 +213,30 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
-        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql' ]
-        # Scheduled and labeled runs test the full database matrix. Other runs retain MySQL 5.7 compatibility and the widely used 8.x releases.
-        db-version: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["5.7","8.0","8.4","9.7"]') || fromJSON('["5.7","8.0","8.4"]') }}
+        db-version: [ '5.7', '8.0', '8.4', '9.7' ]
         tests-domain: [ 'example.org' ]
         multisite: [ false, true ]
         memcached: [ false ]
+        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP and MySQL version above.
+        # All other runs exclude the versions noted below to keep the number of jobs manageable.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
+
+        exclude:
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
+          # Outside the full matrix, MySQL 5.7 compatibility and the widely used 8.x releases are tested.
+          - full-matrix: false
+            db-version: '9.7'
 
         include:
           # Include jobs that test with memcached.
@@ -202,13 +302,14 @@ jobs:
   test-with-mariadb:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -222,13 +323,31 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
-        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mariadb' ]
-        # Scheduled and labeled runs test the full database matrix. Other runs retain MariaDB 5.5 compatibility, 10.6, and newer LTS releases.
-        db-version: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["5.5","10.3","10.5","10.6","10.11","11.4","11.8"]') || fromJSON('["5.5","10.6","10.11","11.4","11.8"]') }}
+        db-version: [ '5.5', '10.3', '10.5', '10.6', '10.11', '11.4', '11.8' ]
         multisite: [ false, true ]
         memcached: [ false ]
+        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every PHP and MariaDB version above.
+        # All other runs exclude the versions noted below to keep the number of jobs manageable.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
+
+        exclude:
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
+          # Outside the full matrix, MariaDB 5.5 compatibility, 10.6, and newer LTS releases are tested.
+          - full-matrix: false
+            db-version: '10.3'
+          - full-matrix: false
+            db-version: '10.5'
 
         include:
         # Include jobs that test with memcached.
@@ -270,13 +389,14 @@ jobs:
   test-innovation-releases:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -290,18 +410,30 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04 ]
-        # Scheduled and labeled runs test every supported PHP version. Other runs test the highest and lowest of each major.
-        php: ${{ ( github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) ) && fromJSON('["7.4","8.0","8.1","8.2","8.3","8.4","8.5"]') || fromJSON('["7.4","8.0","8.5"]') }}
+        php: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
         db-type: [ 'mysql', 'mariadb' ]
         db-version: [ '12.1' ]
         multisite: [ false, true ]
         memcached: [ false ]
         db-innovation: [ true ]
+        # Scheduled runs and pull requests labeled with 'Full PHPUnit Matrix' test every version above.
+        # All other runs exclude the versions noted below to keep the number of jobs manageable.
+        full-matrix:
+          - ${{ github.event_name == 'schedule' || ( github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'Full PHPUnit Matrix' ) ) }}
 
         exclude:
           # Exclude version combinations that don't exist.
           - db-type: 'mysql'
             db-version: '12.1'
+          # Outside the full matrix, only the highest and lowest PHP version of each major are tested.
+          - full-matrix: false
+            php: '8.1'
+          - full-matrix: false
+            php: '8.2'
+          - full-matrix: false
+            php: '8.3'
+          - full-matrix: false
+            php: '8.4'
     with:
       os: ${{ matrix.os }}
       php: ${{ matrix.php }}
@@ -326,13 +458,14 @@ jobs:
   html-api-test-groups:
     name: ${{ matrix.label }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -369,13 +502,14 @@ jobs:
   limited-matrix-for-forks:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       ! startsWith( github.repository, 'WordPress/' ) &&
       github.event_name == 'pull_request' && (
         ! github.event.repository.private ||
@@ -436,10 +570,11 @@ jobs:
   pre-release-php-8-6:
     name: PHP ${{ matrix.php }}
     uses: ./.github/workflows/reusable-phpunit-tests-v3.yml
-    needs: prepare-gutenberg
+    needs: [ select-test-coverage, prepare-gutenberg ]
     permissions:
       contents: read
     if: |
+      needs.select-test-coverage.outputs.assets-only != 'true' &&
       startsWith( github.repository, 'WordPress/' ) && (
         github.repository == 'WordPress/wordpress-develop' || (
           github.event_name == 'pull_request' && (
@@ -479,7 +614,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-    needs: [ prepare-gutenberg, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
+    needs: [ select-test-coverage, prepare-gutenberg, test-assets, test-with-mysql, test-with-mariadb, test-innovation-releases, html-api-test-groups, limited-matrix-for-forks, pre-release-php-8-6 ]
     if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
     with:
       calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}

@@ -43,7 +43,7 @@ class Tests_Admin_WPPluginDependencies_GetDependentFilepath extends WP_PluginDep
 	 *
 	 * @return array[]
 	 */
-	public function data_get_dependent_filepath() {
+	public static function data_get_dependent_filepath() {
 		return array(
 			'a plugin that exists'            => array(
 				'dependent_slug' => 'dependent',

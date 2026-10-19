@@ -906,6 +906,9 @@ function activate_plugins( $plugins, $redirect = '', $network_wide = false, $sil
  * @param string   $deprecated Not used.
  * @return bool|null|WP_Error True on success, false if `$plugins` is empty, `WP_Error` on failure.
  *                            `null` if filesystem credentials are required to proceed.
+ *
+ * @phpstan-param '' $deprecated
+ * @phpstan-return ( $plugins is empty ? false : true|null|WP_Error )
  */
 function delete_plugins( $plugins, $deprecated = '' ) {
 	global $wp_filesystem;
@@ -1111,6 +1114,8 @@ function validate_active_plugins() {
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
  * @return int|WP_Error 0 on success, WP_Error on failure.
+ *
+ * @phpstan-return ( $plugin is empty ? WP_Error : 0|WP_Error )
  */
 function validate_plugin( $plugin ) {
 	if ( validate_file( $plugin ) ) {
@@ -1394,6 +1399,8 @@ function uninstall_plugin( $plugin ) {
  *                              * Pass 'none' to leave div.wp-menu-image empty so an icon can be added via CSS.
  * @param int|float $position   Optional. The position in the menu order this item should appear.
  * @return string The resulting page's hook_suffix.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '', $position = null ) {
 	global $menu, $admin_page_hooks, $_registered_pages, $_parent_pages;
@@ -1470,12 +1477,13 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @since 1.5.0
  * @since 5.3.0 Added the `$position` parameter.
  *
- * @global array $submenu
- * @global array $menu
- * @global array $_wp_real_parent_file
- * @global bool  $_wp_submenu_nopriv
- * @global array $_registered_pages
- * @global array $_parent_pages
+ * @global array                              $submenu
+ * @global array                              $menu
+ * @global array                              $_wp_real_parent_file
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv
+ * @global array<string, true>                $_wp_nopriv_pages
+ * @global array<string, true>                $_registered_pages
+ * @global array                              $_parent_pages
  *
  * @param string    $parent_slug The slug name for the parent menu (or the file name of a standard
  *                               WordPress admin page).
@@ -1489,10 +1497,12 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $call
  * @param callable  $callback    Optional. The function to be called to output the content for this page.
  * @param int|float $position    Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	global $submenu, $menu, $_wp_real_parent_file, $_wp_submenu_nopriv,
-		$_registered_pages, $_parent_pages;
+		$_wp_nopriv_pages, $_registered_pages, $_parent_pages;
 
 	$menu_slug   = plugin_basename( $menu_slug );
 	$parent_slug = plugin_basename( $parent_slug );
@@ -1503,6 +1513,7 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
 
 	if ( ! current_user_can( $capability ) ) {
 		$_wp_submenu_nopriv[ $parent_slug ][ $menu_slug ] = true;
+		$_wp_nopriv_pages[ $menu_slug ]                   = true;
 		return false;
 	}
 
@@ -1602,6 +1613,8 @@ function add_submenu_page( $parent_slug, $page_title, $menu_title, $capability, 
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_management_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'tools.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1626,6 +1639,8 @@ function add_management_page( $page_title, $menu_title, $capability, $menu_slug,
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'options-general.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1650,6 +1665,8 @@ function add_options_page( $page_title, $menu_title, $capability, $menu_slug, $c
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'themes.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1674,6 +1691,8 @@ function add_theme_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'plugins.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1698,6 +1717,8 @@ function add_plugins_page( $page_title, $menu_title, $capability, $menu_slug, $c
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	if ( current_user_can( 'edit_users' ) ) {
@@ -1727,6 +1748,8 @@ function add_users_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'index.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1751,6 +1774,8 @@ function add_dashboard_page( $page_title, $menu_title, $capability, $menu_slug, 
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'edit.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1775,6 +1800,8 @@ function add_posts_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'upload.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1799,6 +1826,8 @@ function add_media_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'link-manager.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1823,6 +1852,8 @@ function add_links_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'edit.php?post_type=page', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -1847,6 +1878,8 @@ function add_pages_page( $page_title, $menu_title, $capability, $menu_slug, $cal
  * @param callable $callback   Optional. The function to be called to output the content for this page.
  * @param int      $position   Optional. The position in the menu order this item should appear.
  * @return string|false The resulting page's hook_suffix, or false if the user does not have the capability required.
+ *
+ * @phpstan-param non-falsy-string $menu_slug
  */
 function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $callback = '', $position = null ) {
 	return add_submenu_page( 'edit-comments.php', $page_title, $menu_title, $capability, $menu_slug, $callback, $position );
@@ -2132,6 +2165,54 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
 }
 
 /**
+ * Determines whether the requested admin page is registered.
+ *
+ * This does not check whether the current user has the capability to access
+ * the page, only whether the page itself exists. Pages registered for a
+ * capability the current user lacks are recorded in the no-privilege
+ * registries rather than in $_registered_pages, and are still considered
+ * to exist so that the caller can report a permission error instead of a
+ * "page not found" error.
+ *
+ * @since 7.2.0
+ *
+ * @global string|null                        $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
+ * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ * @global array<string, true>                $_wp_nopriv_pages   Array of page slugs registered for a capability the current user lacks.
+ *
+ * @return bool True if the admin page exists, false otherwise.
+ */
+function wp_admin_page_exists(): bool {
+	global $plugin_page, $_registered_pages, $_wp_menu_nopriv, $_wp_submenu_nopriv,
+		$_wp_nopriv_pages;
+
+	if ( ! isset( $plugin_page ) ) {
+		return true;
+	}
+
+	$hookname = get_plugin_page_hookname( $plugin_page, get_admin_page_parent() );
+
+	if ( isset( $_registered_pages[ $hookname ] ) ) {
+		return true;
+	}
+
+	// The page may be registered for a capability the current user lacks.
+	if ( isset( $_wp_menu_nopriv[ $plugin_page ] ) || isset( $_wp_nopriv_pages[ $plugin_page ] ) ) {
+		return true;
+	}
+
+	foreach ( (array) $_wp_submenu_nopriv as $nopriv_submenus ) {
+		if ( isset( $nopriv_submenus[ $plugin_page ] ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Gets the hook name for the administrative page of a plugin.
  *
  * @since 1.5.0
@@ -2142,6 +2223,8 @@ function get_plugin_page_hook( $plugin_page, $parent_page ) {
  * @param string $parent_page The slug name for the parent menu (or the file name of a standard
  *                            WordPress admin page).
  * @return string Hook name for the plugin page.
+ *
+ * @phpstan-return non-falsy-string
  */
 function get_plugin_page_hookname( $plugin_page, $parent_page ) {
 	global $admin_page_hooks;
@@ -2169,17 +2252,17 @@ function get_plugin_page_hookname( $plugin_page, $parent_page ) {
  *
  * @since 1.5.0
  *
- * @global string $pagenow            The filename of the current screen.
- * @global array  $menu
- * @global array  $submenu
- * @global array  $_wp_menu_nopriv
- * @global array  $_wp_submenu_nopriv
- * @global string $plugin_page
- * @global array  $_registered_pages
+ * @global string                             $pagenow            The filename of the current screen.
+ * @global array                              $menu               The top-level admin menu items.
+ * @global array                              $submenu            The admin submenu items, keyed by parent slug.
+ * @global array<string, true>                $_wp_menu_nopriv    Array of top-level menu slugs the current user cannot access.
+ * @global array<string, array<string, true>> $_wp_submenu_nopriv Array of submenu slugs the current user cannot access, keyed by parent slug.
+ * @global string|null                        $plugin_page        The plugin page slug being loaded.
+ * @global array<string, true>                $_registered_pages  Array of all registered admin page hooks.
  *
  * @return bool True if the current user can access the admin page, false otherwise.
  */
-function user_can_access_admin_page() {
+function user_can_access_admin_page(): bool {
 	global $pagenow, $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv,
 		$plugin_page, $_registered_pages;
 

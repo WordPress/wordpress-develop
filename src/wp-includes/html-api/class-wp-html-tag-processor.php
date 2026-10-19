@@ -689,7 +689,8 @@ class WP_HTML_Tag_Processor {
 	/**
 	 * Whether the current tag is an opening tag, e.g. <div>, or a closing tag, e.g. </div>.
 	 *
-	 * @var bool
+	 * @since 6.2.0
+	 * @var bool|null
 	 */
 	private $is_closing_tag;
 
@@ -1207,21 +1208,12 @@ class WP_HTML_Tag_Processor {
 
 		$is_quirks = self::QUIRKS_MODE === $this->compat_mode;
 
-		$at = 0;
-		while ( $at < strlen( $class ) ) {
-			// Skip past any initial boundary characters.
-			$at += strspn( $class, " \t\f\r\n", $at );
-			if ( $at >= strlen( $class ) ) {
-				return;
-			}
-
+		$at           = strspn( $class, " \t\f\r\n" );
+		$class_length = strlen( $class );
+		while ( $at < $class_length ) {
 			// Find the byte length until the next boundary.
 			$length = strcspn( $class, " \t\f\r\n", $at );
-			if ( 0 === $length ) {
-				return;
-			}
-
-			$name = substr( $class, $at, $length );
+			$name   = substr( $class, $at, $length );
 			if ( $is_quirks ) {
 				$name = strtolower( $name );
 			}
@@ -1232,12 +1224,12 @@ class WP_HTML_Tag_Processor {
 			 * Given this, it is probably faster overall to scan an array for a value rather
 			 * than to use the class name as a key and check if it's a key of $seen.
 			 */
-			if ( in_array( $name, $seen, true ) ) {
-				continue;
+			if ( ! in_array( $name, $seen, true ) ) {
+				$seen[] = $name;
+				yield $name;
 			}
 
-			$seen[] = $name;
-			yield $name;
+			$at += strspn( $class, " \t\f\r\n", $at );
 		}
 	}
 
@@ -1380,6 +1372,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * Releasing a bookmark frees up the small
 	 * performance overhead it requires.
+	 *
+	 * @since 6.2.0
 	 *
 	 * @param string $name Name of the bookmark to remove.
 	 * @return bool Whether the bookmark already existed before removal.
@@ -2764,7 +2758,7 @@ class WP_HTML_Tag_Processor {
 			return $by_start;
 		}
 
-		$by_text = isset( $a->text, $b->text ) ? strcmp( $a->text, $b->text ) : 0;
+		$by_text = strcmp( $a->text, $b->text );
 		if ( 0 !== $by_text ) {
 			return $by_text;
 		}
@@ -5085,6 +5079,8 @@ class WP_HTML_Tag_Processor {
 	 *
 	 * This method can be called to perform a full parse of the DOCTYPE token and retrieve
 	 * its information.
+	 *
+	 * @since 6.7.0
 	 *
 	 * @return WP_HTML_Doctype_Info|null The DOCTYPE declaration information or `null` if not
 	 *                                   currently at a DOCTYPE node.
