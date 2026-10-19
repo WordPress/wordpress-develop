@@ -23,7 +23,6 @@ includes:
 	# and the list between the markers. Do not edit that list by hand.
 	# phpstan:baselines start
 	- tests/phpstan/baselines/argument.type.neon
-	- tests/phpstan/baselines/argument.unresolvableType.neon
 	- tests/phpstan/baselines/assign.propertyType.neon
 	- tests/phpstan/baselines/binaryOp.invalid.neon
 	- tests/phpstan/baselines/booleanAnd.alwaysFalse.neon
