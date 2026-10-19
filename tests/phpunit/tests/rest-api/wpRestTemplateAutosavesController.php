@@ -826,28 +826,66 @@ class Tests_REST_wpRestTemplateAutosavesController extends WP_Test_REST_Controll
 	}
 
 	/**
-	 * @coversNothing
+	 * Template autosaves item route is not editable; update requests are rejected.
+	 *
+	 * Write methods do not match the autosaves item route (GET-only). They fall through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to update template autosaves.",
-				WP_REST_Template_Autosaves_Controller::class
+		wp_set_current_user( self::$admin_id );
+
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content for unsupported update.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
 			)
 		);
+
+		$route = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		foreach ( array( 'POST', 'PUT', 'PATCH' ) as $method ) {
+			$request  = new WP_REST_Request( $method, $route );
+			$response = rest_get_server()->dispatch( $request );
+
+			$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
+		}
 	}
 
 	/**
-	 * @coversNothing
+	 * Template autosaves item route is not deletable; delete requests are rejected.
+	 *
+	 * Delete does not match the autosaves item route (GET-only). It falls through to the
+	 * templates controller, which rejects the unknown template id with rest_template_not_found.
+	 *
 	 * @ticket 56922
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		$this->markTestSkipped(
-			sprintf(
-				"The '%s' controller doesn't currently support the ability to delete template autosaves.",
-				WP_REST_Template_Autosaves_Controller::class
+		wp_set_current_user( self::$admin_id );
+
+		$autosave_post_id = wp_create_post_autosave(
+			array(
+				'post_content' => 'Autosave content for unsupported delete.',
+				'post_ID'      => self::$template_post->ID,
+				'post_type'    => self::PARENT_POST_TYPE,
 			)
 		);
+
+		$route = '/wp/v2/templates/' . self::TEST_THEME . '//' . self::TEMPLATE_NAME . '/autosaves/' . $autosave_post_id;
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', $route ) );
+		$this->assertSame( 200, $response->get_status() );
+
+		$request  = new WP_REST_Request( 'DELETE', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
 	}
 }

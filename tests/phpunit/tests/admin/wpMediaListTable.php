@@ -206,7 +206,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_row_actions_should_include_action() {
+	public static function data_get_row_actions_should_include_action() {
 		return array(
 			'"edit" while not on "trash"'  => array(
 				'action'   => 'edit',
@@ -291,7 +291,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_row_actions_should_not_include_action() {
+	public static function data_get_row_actions_should_not_include_action() {
 		return array(
 			'"edit" while on "trash"'               => array(
 				'action'   => 'edit',

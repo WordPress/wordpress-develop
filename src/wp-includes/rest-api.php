@@ -436,6 +436,14 @@ function create_initial_rest_routes() {
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
+
+	// Entity Actions.
+	$entity_actions_controller = new WP_REST_Entity_Actions_Controller();
+	$entity_actions_controller->register_routes();
+
+	// Entity Fields.
+	$entity_fields_controller = new WP_REST_Entity_Fields_Controller();
+	$entity_fields_controller->register_routes();
 }
 
 /**
@@ -694,6 +702,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -1060,8 +1070,8 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				// Skip any sub-properties if their parent prop is already marked for inclusion.
 				break 2;
 			}
-			$ref[ $next ] = $ref[ $next ] ?? array();
-			$ref          = &$ref[ $next ];
+			$ref[ $next ] ??= array();
+			$ref            = &$ref[ $next ];
 		}
 		$last         = array_shift( $parts );
 		$ref[ $last ] = true;
@@ -1618,6 +1628,12 @@ function rest_is_ip_address( $ip ) {
  *
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
+ *
+ * @phpstan-return (
+ *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
+ *         ? false
+ *         : ( $value is true|int|lowercase-string ? true : bool )
+ * )
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.
@@ -1972,7 +1988,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
  * @since 5.6.0
  *
  * @param string $param The parameter name.
- * @param array $error  The error details.
+ * @param array  $error The error details.
  * @return WP_Error
  */
 function rest_format_combining_operation_error( $param, $error ) {
@@ -3307,6 +3323,80 @@ function rest_default_additional_properties_to_false( $schema ) {
 }
 
 /**
+ * Recursively casts empty arrays to objects where the schema types them as objects.
+ *
+ * PHP cannot distinguish an empty associative array from an empty list, so
+ * `json_encode()` always serializes `array()` as a JSON array (`[]`). A REST
+ * schema, however, may type a value as an object, which must encode as `{}`.
+ * This walks the value against its schema and casts any empty, object-typed
+ * array to an object. Non-empty associative arrays already encode as objects,
+ * so they are left as arrays and only recursed into to fix any nested empty
+ * objects.
+ *
+ * Union schemas (`oneOf`/`anyOf`) are handled only for the empty-array case:
+ * an empty value is cast to an object when any branch allows an object. Such
+ * values are not recursed into.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed $value  The value to normalize.
+ * @param array $schema The schema node describing the value.
+ * @return mixed The normalized value, with empty object-typed arrays cast to objects.
+ */
+function _rest_cast_empty_objects_from_schema( $value, $schema ) {
+	if ( ! is_array( $value ) || ! is_array( $schema ) ) {
+		return $value;
+	}
+
+	if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
+		$branches = $schema['oneOf'] ?? $schema['anyOf'];
+		if ( array() === $value ) {
+			foreach ( $branches as $branch ) {
+				if ( is_array( $branch ) && in_array( 'object', (array) ( $branch['type'] ?? array() ), true ) ) {
+					return (object) array();
+				}
+			}
+		}
+		return $value;
+	}
+
+	$types = (array) ( $schema['type'] ?? array() );
+
+	if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
+		foreach ( $value as $index => $item ) {
+			$value[ $index ] = _rest_cast_empty_objects_from_schema( $item, $schema['items'] );
+		}
+		return $value;
+	}
+
+	if ( in_array( 'object', $types, true ) ) {
+		if ( isset( $schema['properties'] ) ) {
+			foreach ( $schema['properties'] as $property => $property_schema ) {
+				if ( array_key_exists( $property, $value ) ) {
+					$value[ $property ] = _rest_cast_empty_objects_from_schema( $value[ $property ], $property_schema );
+				}
+			}
+		}
+		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+			foreach ( $value as $key => $item ) {
+				if ( isset( $schema['properties'][ $key ] ) ) {
+					continue;
+				}
+				$value[ $key ] = _rest_cast_empty_objects_from_schema( $item, $schema['additionalProperties'] );
+			}
+		}
+
+		// Empty object-typed arrays must serialize as {} to match the schema.
+		if ( array() === $value ) {
+			return (object) array();
+		}
+	}
+
+	return $value;
+}
+
+/**
  * Gets the REST API route for a post.
  *
  * @since 5.5.0
@@ -3534,6 +3624,27 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	return $endpoint_args;
 }
 
+/**
+ * Prevents users without the `manage_privacy_options` capability from
+ * changing the privacy policy page through the REST API.
+ *
+ * The settings endpoint only checks `manage_options`. On multisite the
+ * `manage_privacy_options` capability maps to `manage_network`, so a site
+ * administrator can read the setting but must not change it, matching the
+ * Settings > Privacy screen.
+ *
+ * @since 7.2.0
+ *
+ * @param bool   $updated Whether the setting update has already been handled.
+ * @param string $name    Setting name (as shown in REST API responses).
+ * @return bool Whether to short-circuit the update.
+ */
+function rest_restrict_privacy_policy_page_setting_update( $updated, $name ) {
+	if ( 'page_for_privacy_policy' === $name && ! current_user_can( 'manage_privacy_options' ) ) {
+		return true;
+	}
+	return $updated;
+}
 
 /**
  * Converts an error to a response object.
@@ -3545,7 +3656,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
  * @since 5.7.0
  *
  * @param WP_Error $error WP_Error instance.
- *
  * @return WP_REST_Response List of associative arrays with code and message keys.
  */
 function rest_convert_error_to_response( $error ) {

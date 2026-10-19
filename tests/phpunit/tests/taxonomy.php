@@ -391,10 +391,10 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$posts_with_terms = array_merge( $posts_with_tag, $posts_with_category );
 
-		$this->assertEquals( $posts_with_tag, get_objects_in_term( $tag_id, 'post_tag' ) );
-		$this->assertEquals( $posts_with_category, get_objects_in_term( $cat_id, 'category' ) );
-		$this->assertEquals( $posts_with_terms, get_objects_in_term( array( $tag_id, $cat_id ), array( 'post_tag', 'category' ) ) );
-		$this->assertEquals( array_reverse( $posts_with_tag ), get_objects_in_term( $tag_id, 'post_tag', array( 'order' => 'desc' ) ) );
+		$this->assertSame( array_map( 'strval', $posts_with_tag ), get_objects_in_term( $tag_id, 'post_tag' ) );
+		$this->assertSame( array_map( 'strval', $posts_with_category ), get_objects_in_term( $cat_id, 'category' ) );
+		$this->assertSame( array_map( 'strval', $posts_with_terms ), get_objects_in_term( array( $tag_id, $cat_id ), array( 'post_tag', 'category' ) ) );
+		$this->assertSame( array_map( 'strval', array_reverse( $posts_with_tag ) ), get_objects_in_term( $tag_id, 'post_tag', array( 'order' => 'desc' ) ) );
 	}
 
 	/**
@@ -470,23 +470,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$after = get_objects_in_term( $term_id, 'wptests_tax' );
 		$this->assertSame( array(), $after );
-	}
-
-	/**
-	 * @ticket 25706
-	 */
-	public function test_in_category() {
-		$post = self::factory()->post->create_and_get();
-
-		// in_category() returns false when first parameter is empty().
-		$this->assertFalse( in_category( '', $post ) );
-		$this->assertFalse( in_category( false, $post ) );
-		$this->assertFalse( in_category( null, $post ) );
-
-		// Test expected behavior of in_category().
-		$term = wp_insert_term( 'Test', 'category' );
-		wp_set_object_terms( $post->ID, $term['term_id'], 'category' );
-		$this->assertTrue( in_category( $term['term_id'], $post ) );
 	}
 
 	public function test_insert_category_create() {

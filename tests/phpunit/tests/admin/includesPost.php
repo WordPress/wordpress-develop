@@ -58,7 +58,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( false, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to create posts as this user.', $_results->get_error_message() );
 
@@ -71,7 +71,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		$_post_data['saveasdraft'] = true;
 
 		$_results = _wp_translate_postdata( true, $_post_data );
-		$this->assertInstanceOf( 'WP_Error', $_results );
+		$this->assertWPError( $_results );
 		$this->assertSame( 'edit_others_posts', $_results->get_error_code() );
 		$this->assertSame( 'Sorry, you are not allowed to edit posts as this user.', $_results->get_error_message() );
 	}
@@ -253,7 +253,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 
 		// Check that the first post's values don't stomp the second post.
 		$this->assertSame( 'draft', $post->post_status );
-		$this->assertEquals( self::$author_ids[1], $post->post_author );
+		$this->assertSame( (string) self::$author_ids[1], $post->post_author );
 		$this->assertSame( 'closed', $post->comment_status );
 		$this->assertSame( 'closed', $post->ping_status );
 	}
@@ -967,6 +967,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		add_filter(
 			'get_sample_permalink',
 			function ( $permalink, $post_id, $title, $name, $post ) use ( $post_original ) {
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( $post_original, $post, 'Modified post object passed to get_sample_permalink filter.' );
 				return $permalink;
 			},
@@ -975,6 +976,7 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 		);
 
 		get_sample_permalink( $post );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_original, $post, 'get_sample_permalink() modifies the post object.' );
 	}
 

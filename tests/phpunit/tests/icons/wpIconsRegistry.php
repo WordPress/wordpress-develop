@@ -23,8 +23,18 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	 */
 	private $temp_file = null;
 
+	/**
+	 * Registry instance in place before the test, restored in tear_down.
+	 *
+	 * @var WP_Icons_Registry|null
+	 */
+	private $original_registry = null;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_registry = WP_Icons_Registry::get_instance();
+		$this->set_registry_instance( null );
 		$this->registry = WP_Icons_Registry::get_instance();
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
@@ -34,12 +44,7 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$reflection        = new ReflectionClass( WP_Icons_Registry::class );
-		$instance_property = $reflection->getProperty( 'instance' );
-		if ( PHP_VERSION_ID < 80100 ) {
-			$instance_property->setAccessible( true );
-		}
-		$instance_property->setValue( null, null );
+		$this->set_registry_instance( null );
 
 		$collections = WP_Icon_Collections_Registry::get_instance();
 		if ( $collections->is_registered( 'test-collection' ) ) {
@@ -54,8 +59,23 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		}
 		$this->temp_file = null;
 
-		$this->registry = null;
+		$this->set_registry_instance( $this->original_registry );
+		$this->original_registry = null;
+		$this->registry          = null;
 		parent::tear_down();
+	}
+
+	/**
+	 * Replaces the WP_Icons_Registry singleton instance.
+	 *
+	 * @param WP_Icons_Registry|null $instance The instance to use.
+	 */
+	private function set_registry_instance( $instance ) {
+		$instance_property = new ReflectionProperty( WP_Icons_Registry::class, 'instance' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$instance_property->setAccessible( true );
+		}
+		$instance_property->setValue( null, $instance );
 	}
 
 	/**
@@ -72,6 +92,20 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 			file_put_contents( $this->temp_file, $contents );
 		}
 		return $this->temp_file;
+	}
+
+	/**
+	 * Invokes the WP_Icons_Registry::sanitize_icon_content method on the registry instance.
+	 *
+	 * @param string $icon_content The icon SVG content to sanitize.
+	 * @return string The sanitized icon SVG content.
+	 */
+	private function sanitize_icon_content( string $icon_content ): string {
+		$method = new ReflectionMethod( $this->registry, 'sanitize_icon_content' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$method->setAccessible( true );
+		}
+		return $method->invoke( $this->registry, $icon_content );
 	}
 
 	/**
@@ -281,7 +315,59 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$icon = $this->registry->get_registered_icon( 'test-collection/unsafe-content' );
-		$this->assertSame( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
+		$this->assertEqualHTML( '<svg viewbox="0 0 24 24"><path d="M0 0" /></svg>', $icon['content'] );
+	}
+
+	/**
+	 * @ticket 65795
+	 *
+	 * @covers ::sanitize_icon_content
+	 *
+	 * @dataProvider data_sanitize_icon_content
+	 *
+	 * @param non-falsy-string $input    The icon content to sanitize.
+	 * @param non-falsy-string $expected The expected sanitized output.
+	 */
+	public function test_sanitize_icon_content( $input, $expected ) {
+		$this->assertEqualHTML( $expected, $this->sanitize_icon_content( $input ) );
+	}
+
+	/**
+	 * Provides data for {@see self::test_sanitize_icon_content()}.
+	 *
+	 * @return array<non-falsy-string, array{ input: non-falsy-string, expected: non-falsy-string }>
+	 */
+	public function data_sanitize_icon_content(): array {
+		return array(
+			'allows fill and clip rules on svg'            => array(
+				'input'    => '<svg fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"><path d="M0 0" /></svg>',
+				'expected' => '<svg fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"><path d="M0 0" /></svg>',
+			),
+			'allows stroke attributes and style on svg'    => array(
+				'input'    => '<svg style="fill: none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" vector-effect="non-scaling-stroke"><path d="M0 0" /></svg>',
+				'expected' => '<svg style="fill: none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" vector-effect="non-scaling-stroke"><path d="M0 0" /></svg>',
+			),
+			'allows clip rule, opacity and stroke on path' => array(
+				'input'    => '<svg><path d="M0 0" fill-rule="evenodd" clip-rule="evenodd" opacity="0.4" style="fill: none" stroke="currentColor" vector-effect="non-scaling-stroke" /></svg>',
+				'expected' => '<svg><path d="M0 0" fill-rule="evenodd" clip-rule="evenodd" opacity="0.4" style="fill: none" stroke="currentColor" vector-effect="non-scaling-stroke" /></svg>',
+			),
+			'allows clip rule and stroke on polygon'       => array(
+				'input'    => '<svg><polygon points="0,0 1,1" clip-rule="evenodd" stroke="currentColor" vector-effect="non-scaling-stroke" /></svg>',
+				'expected' => '<svg><polygon points="0,0 1,1" clip-rule="evenodd" stroke="currentColor" vector-effect="non-scaling-stroke" /></svg>',
+			),
+			'allows rect'                                  => array(
+				'input'    => '<svg><rect x="4" y="5" width="16" height="14" rx="2" ry="2" fill="currentColor" stroke="currentColor" transform="rotate(45)" vector-effect="non-scaling-stroke" /></svg>',
+				'expected' => '<svg><rect x="4" y="5" width="16" height="14" rx="2" ry="2" fill="currentColor" stroke="currentColor" transform="rotate(45)" vector-effect="non-scaling-stroke" /></svg>',
+			),
+			'allows circle'                                => array(
+				'input'    => '<svg><circle cx="12" cy="12" r="3" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" transform="rotate(45)" vector-effect="non-scaling-stroke" /></svg>',
+				'expected' => '<svg><circle cx="12" cy="12" r="3" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" transform="rotate(45)" vector-effect="non-scaling-stroke" /></svg>',
+			),
+			'strips opacity on elements other than path'   => array(
+				'input'    => '<svg opacity="0.4"><rect width="1" height="1" opacity="0.4" /></svg>',
+				'expected' => '<svg><rect width="1" height="1" /></svg>',
+			),
+		);
 	}
 
 	/**
@@ -452,5 +538,157 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 		remove_filter( 'wp_trigger_error_trigger_error', '__return_false' );
 
 		$this->assertNull( $icon['content'] );
+	}
+
+	/**
+	 * Should register an icon that provides a valid `keywords` array.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_register_icon_with_keywords() {
+		$name = 'test-collection/with-keywords';
+
+		$result = $this->registry->register(
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'alpha', 'beta' ),
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertSame( array( 'alpha', 'beta' ), $icon['keywords'] );
+	}
+
+	/**
+	 * Should register an icon that omits `keywords`, since the property is optional.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_register_icon_without_keywords() {
+		$name = 'test-collection/without-keywords';
+
+		$result = $this->registry->register(
+			$name,
+			array(
+				'label'   => 'Icon',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		$this->assertTrue( $result );
+
+		$icon = $this->registry->get_registered_icon( $name );
+		$this->assertArrayNotHasKey( 'keywords', $icon );
+	}
+
+	/**
+	 * Provides values that are not an array of strings.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function data_invalid_keywords() {
+		return array(
+			'null'                 => array( null ),
+			'a string'             => array( 'alpha' ),
+			'an integer'           => array( 5 ),
+			'an array of integers' => array( array( 1, 2 ) ),
+			'a mixed array'        => array( array( 'alpha', 5 ) ),
+			'a nested array'       => array( array( array( 'alpha' ) ) ),
+			'an array of null'     => array( array( null ) ),
+		);
+	}
+
+	/**
+	 * Should fail to register an icon whose `keywords` is not an array of strings.
+	 *
+	 * @ticket 66158
+	 *
+	 * @dataProvider data_invalid_keywords
+	 * @expectedIncorrectUsage WP_Icons_Registry::register
+	 *
+	 * @param mixed $keywords Invalid keywords candidate.
+	 */
+	public function test_register_icon_with_invalid_keywords( $keywords ) {
+		$name = 'test-collection/invalid-keywords';
+
+		$result = $this->registry->register(
+			$name,
+			array(
+				'label'    => 'Icon',
+				'content'  => '<svg></svg>',
+				'keywords' => $keywords,
+			)
+		);
+
+		$this->assertFalse( $result );
+		$this->assertFalse( $this->registry->is_registered( $name ) );
+	}
+
+	/**
+	 * Should match an icon by keyword when neither its name nor its label match.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+		$this->registry->register(
+			'test-collection/anvil',
+			array(
+				'label'   => 'Anvil',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		/*
+		 * The search term is deliberately absent from both the name and the label,
+		 * so a match can only come from the keywords.
+		 */
+		$icon = $this->registry->get_registered_icon( 'test-collection/dove' );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['name'] );
+		$this->assertStringNotContainsStringIgnoringCase( 'peace', $icon['label'] );
+
+		$names = array_column( $this->registry->get_registered_icons( 'peace' ), 'name' );
+
+		$this->assertContains(
+			'test-collection/dove',
+			$names,
+			'Search results should include an icon matched only by its keyword'
+		);
+		$this->assertNotContains(
+			'test-collection/anvil',
+			$names,
+			'Search results should exclude an icon that matches on no property'
+		);
+	}
+
+	/**
+	 * Should match keywords case-insensitively, as names and labels are.
+	 *
+	 * @ticket 66158
+	 */
+	public function test_get_registered_icons_matches_keywords_case_insensitively() {
+		$this->registry->register(
+			'test-collection/dove',
+			array(
+				'label'    => 'Dove',
+				'content'  => '<svg></svg>',
+				'keywords' => array( 'peace' ),
+			)
+		);
+
+		$names = array_column( $this->registry->get_registered_icons( 'PEACE' ), 'name' );
+
+		$this->assertContains( 'test-collection/dove', $names );
 	}
 }

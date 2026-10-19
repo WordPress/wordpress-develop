@@ -72,9 +72,10 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		}
 	}
 
-	public function set_up() {
-		parent::set_up();
-
+	/**
+	 * Registers metadata fields for tests that exercise term metadata.
+	 */
+	private function register_test_meta() {
 		register_meta(
 			'term',
 			'test_single',
@@ -729,6 +730,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 39122
 	 */
 	public function test_get_item_meta() {
+		$this->register_test_meta();
+
 		$id = self::factory()->tag->create();
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
@@ -751,6 +754,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @ticket 39122
 	 */
 	public function test_get_item_meta_registered_for_different_taxonomy() {
+		$this->register_test_meta();
+
 		$id = self::factory()->tag->create();
 
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/tags/' . $id );
@@ -869,6 +874,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_create_item_with_meta() {
+		$this->register_test_meta();
+
 		wp_set_current_user( self::$administrator );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/tags' );
@@ -884,6 +891,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_create_item_with_meta_wrong_id() {
+		$this->register_test_meta();
+
 		wp_set_current_user( self::$administrator );
 
 		$existing_tag_id = self::factory()->tag->create( array( 'name' => 'My Not So Awesome Term' ) );
@@ -903,6 +912,8 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function test_update_item() {
+		$this->register_test_meta();
+
 		wp_set_current_user( self::$administrator );
 
 		$orig_args = array(
@@ -988,7 +999,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_edit_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'user_has_cap', array( $this, 'grant_edit_term' ), 10, 2 );
+		remove_filter( 'user_has_cap', array( $this, 'grant_edit_term' ) );
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -1015,7 +1026,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_edit_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'user_has_cap', array( $this, 'revoke_edit_term' ), 10, 2 );
+		remove_filter( 'user_has_cap', array( $this, 'revoke_edit_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_update', $response, 403 );
 	}
@@ -1104,7 +1115,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 				),
 				array(
 					'name'        => 'div strong',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 				)
 			);
 		} else {
@@ -1116,7 +1127,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 				),
 				array(
 					'name'        => 'div strong',
-					'description' => 'div <strong>strong</strong> oh noes',
+					'description' => 'div <strong>strong</strong> ',
 				)
 			);
 		}
@@ -1149,7 +1160,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 			),
 			array(
 				'name'        => 'div strong',
-				'description' => 'div <strong>strong</strong> oh noes',
+				'description' => 'div <strong>strong</strong> ',
 			)
 		);
 	}
@@ -1213,7 +1224,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ), 10, 2 );
+		remove_filter( 'map_meta_cap', array( $this, 'grant_delete_term' ) );
 
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
@@ -1241,7 +1252,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 
 		add_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ), 10, 2 );
 		$response = rest_get_server()->dispatch( $request );
-		remove_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ), 10, 2 );
+		remove_filter( 'map_meta_cap', array( $this, 'revoke_delete_term' ) );
 
 		$this->assertErrorResponse( 'rest_cannot_delete', $response, 403 );
 	}

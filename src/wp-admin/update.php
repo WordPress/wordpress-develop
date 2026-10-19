@@ -87,7 +87,7 @@ if ( isset( $_GET['action'] ) ) {
 			wp_redirect( admin_url( 'update.php?action=activate-plugin&success=true&plugin=' . urlencode( $plugin ) . '&_wpnonce=' . $_GET['_wpnonce'] ) );
 			die();
 		}
-		iframe_header( __( 'Plugin Reactivation' ), true );
+		iframe_header( __( 'Plugin Reactivation' ) );
 		if ( isset( $_GET['success'] ) ) {
 			echo '<p>' . __( 'Plugin reactivated successfully.' ) . '</p>';
 		}
@@ -283,7 +283,7 @@ if ( isset( $_GET['action'] ) ) {
 		// Used in the HTML title tag.
 		$title        = __( 'Install Themes' );
 		$parent_file  = 'themes.php';
-		$submenu_file = 'themes.php';
+		$submenu_file = 'theme-install.php';
 
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 

@@ -431,7 +431,6 @@ function _strip_template_file_suffix( $template_file ) {
  * @since 5.8.0
  *
  * @param array $context Default context.
- *
  * @return array Filtered context.
  */
 function _block_template_render_without_post_block_context( $context ) {
@@ -502,6 +501,8 @@ function _resolve_template_for_new_post( $wp_query ) {
  *     @type string        $plugin                Optional. Slug of the plugin that registers the template.
  * }
  * @return WP_Block_Template|WP_Error The registered template object on success, WP_Error object on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $template_name
  */
 function register_block_template( $template_name, $args = array() ) {
 	return WP_Block_Templates_Registry::get_instance()->register( $template_name, $args );

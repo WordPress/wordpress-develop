@@ -165,7 +165,7 @@ final class GlobalDocBlockVisitor extends NodeVisitorAbstract {
 		if ( preg_match_all( '/@global\s+(?P<type>\S.*?)\s+\$(?P<variable>\w+)/', $docblock, $matches, PREG_SET_ORDER ) > 0 ) {
 			foreach ( $matches as $match ) {
 				$type = preg_replace( '/\s+/', '', $match['type'] );
-				assert( is_string( $type ) && '' !== $type );
+				assert( is_string( $type ) && '' !== $type, 'Collapsing whitespace in a non-empty type must yield a non-empty string.' );
 				$map[ $match['variable'] ] = $type;
 			}
 		}

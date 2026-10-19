@@ -7,6 +7,11 @@
  */
 class Tests_Admin_Includes_Misc_UpdateOptionNewAdminEmail_Test extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+		reset_phpmailer_instance();
+	}
+
 	/**
 	 * @ticket 59520
 	 */

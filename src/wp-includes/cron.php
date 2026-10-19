@@ -44,6 +44,8 @@
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? bool : true|WP_Error )
  */
 function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -248,6 +250,8 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? bool : true|WP_Error )
  */
 function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -363,6 +367,8 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
  *                           database performance issues.
  * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully rescheduled. False or WP_Error on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? bool : true|WP_Error )
  */
 function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -485,6 +491,8 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  *                          arguments do not match exactly, the event will not be found. Default empty array.
  * @param bool   $wp_error  Optional. Whether to return a WP_Error on failure. Default false.
  * @return bool|WP_Error True if event successfully unscheduled. False or WP_Error on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? bool : true|WP_Error )
  */
 function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
@@ -572,6 +580,8 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
  * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
  *                            events were registered with the hook and arguments combination), false or WP_Error
  *                            if unscheduling one or more events fail.
+ *
+ * @phpstan-return ( int|( $wp_error is false ? false : WP_Error ) )
  */
 function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 	/*
@@ -677,6 +687,8 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
  * @param bool   $wp_error Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
  *                            events were registered on the hook), false or WP_Error if unscheduling fails.
+ *
+ * @phpstan-return ( $wp_error is false ? int|false : int|WP_Error )
  */
 function wp_unschedule_hook( $hook, $wp_error = false ) {
 	/**
@@ -765,7 +777,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
  *                            Default empty array.
  * @param int|null $timestamp Optional. Unix timestamp (UTC) of the event. If not specified, the next scheduled event
  *                            is returned. Default null.
- * @return object|false {
+ * @return stdClass|false {
  *     The event object. False if the event does not exist.
  *
  *     @type string       $hook      Action hook to execute when the event is run.
@@ -787,12 +799,12 @@ function wp_get_scheduled_event( $hook, $args = array(), $timestamp = null ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param null|false|object $pre  Value to return instead. Default null to continue retrieving the event.
-	 * @param string            $hook Action hook of the event.
-	 * @param array             $args Array containing each separate argument to pass to the hook's callback function.
-	 *                                Although not passed to a callback, these arguments are used to uniquely identify
-	 *                                the event.
-	 * @param int|null  $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
+	 * @param null|false|object $pre       Value to return instead. Default null to continue retrieving the event.
+	 * @param string            $hook      Action hook of the event.
+	 * @param array             $args      Array containing each separate argument to pass to the hook's callback function.
+	 *                                     Although not passed to a callback, these arguments are used to uniquely identify
+	 *                                     the event.
+	 * @param int|null          $timestamp Unix timestamp (UTC) of the event. Null to retrieve next scheduled event.
 	 */
 	$pre = apply_filters( 'pre_get_scheduled_event', null, $hook, $args, $timestamp );
 
@@ -929,8 +941,7 @@ function spawn_cron( $gmt_time = 0 ) {
 		return false;
 	}
 
-	$keys = array_keys( $crons );
-	if ( isset( $keys[0] ) && $keys[0] > $gmt_time ) {
+	if ( array_key_first( $crons ) > $gmt_time ) {
 		return false;
 	}
 
@@ -966,7 +977,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 * @since 3.5.0
 	 * @since 4.5.0 The `$doing_wp_cron` parameter was added.
 	 *
-	 * @param array $cron_request_array {
+	 * @param array  $cron_request_array {
 	 *     An array of cron request URL arguments.
 	 *
 	 *     @type string $url  The cron request URL.
@@ -979,7 +990,7 @@ function spawn_cron( $gmt_time = 0 ) {
 	 *         @type bool $sslverify Whether SSL should be verified for the request. Default false.
 	 *     }
 	 * }
-	 * @param string $doing_wp_cron The Unix timestamp (UTC) of the cron lock with microseconds.
+	 * @param string $doing_wp_cron      The Unix timestamp (UTC) of the cron lock with microseconds.
 	 */
 	$cron_request = apply_filters(
 		'cron_request',
@@ -1059,8 +1070,7 @@ function _wp_cron() {
 	}
 
 	$gmt_time = microtime( true );
-	$keys     = array_keys( $crons );
-	if ( isset( $keys[0] ) && $keys[0] > $gmt_time ) {
+	if ( array_key_first( $crons ) > $gmt_time ) {
 		return 0;
 	}
 

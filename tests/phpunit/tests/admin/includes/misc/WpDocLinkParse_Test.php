@@ -28,7 +28,7 @@ class Tests_Admin_Includes_Misc_WpDocLinkParse_Test extends WP_UnitTestCase {
 	 *     expected: string[],
 	 * }>
 	 */
-	public function data_wp_doc_link_parse(): array {
+	public static function data_wp_doc_link_parse(): array {
 		return array(
 			'empty string'              => array(
 				'content'  => '',

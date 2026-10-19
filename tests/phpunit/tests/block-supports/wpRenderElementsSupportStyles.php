@@ -130,7 +130,7 @@ class Tests_Block_Supports_WpRenderElementsSupportStyles extends WP_UnitTestCase
 	 *
 	 * @return array
 	 */
-	public function data_elements_block_support_styles() {
+	public static function data_elements_block_support_styles() {
 		$color_styles    = array(
 			'text'       => 'var:preset|color|vivid-red',
 			'background' => '#fff',

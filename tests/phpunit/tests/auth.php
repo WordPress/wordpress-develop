@@ -679,7 +679,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @see https://core.trac.wordpress.org/changeset/30466
+	 * @link https://core.trac.wordpress.org/changeset/30466
 	 */
 	public function test_invalid_password_at_phpass_length_limit_is_rejected() {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );

@@ -10,6 +10,13 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 	const TEST_THEME = 'block-theme';
 
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * @var WP_Post
 	 */
 	private static $index_template;
@@ -91,7 +98,16 @@ class Tests_Blocks_GetBlockTemplates extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( self::TEST_THEME );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	/**

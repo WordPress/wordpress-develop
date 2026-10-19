@@ -456,6 +456,8 @@ function delete_blog_option( $id, $option ) {
  * @param mixed  $value      The option value.
  * @param mixed  $deprecated Not used.
  * @return bool True if the value was updated, false otherwise.
+ *
+ * @phpstan-param null $deprecated
  */
 function update_blog_option( $id, $option, $value, $deprecated = null ) {
 	$id = (int) $id;
@@ -496,6 +498,8 @@ function update_blog_option( $id, $option, $value, $deprecated = null ) {
  * @param int  $new_blog_id The ID of the blog to switch to. Default: current blog.
  * @param bool $deprecated  Not used.
  * @return true Always returns true.
+ *
+ * @phpstan-param null $deprecated
  */
 function switch_to_blog( $new_blog_id, $deprecated = null ) {
 	global $wpdb;
@@ -737,7 +741,7 @@ function is_archived( $id ) {
  *
  * @param int    $id       Blog ID.
  * @param string $archived The new status.
- * @return string $archived
+ * @return string The new archived status.
  */
 function update_archived( $id, $archived ) {
 	update_blog_status( $id, 'archived', $archived );
@@ -756,7 +760,7 @@ function update_archived( $id, $archived ) {
  * @param string $pref       Field name.
  * @param string $value      Field value.
  * @param mixed  $deprecated Not used.
- * @return string|false $value
+ * @return string|false The passed field value, or false if the update failed.
  */
 function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
 	global $wpdb;
@@ -794,7 +798,7 @@ function update_blog_status( $blog_id, $pref, $value, $deprecated = null ) {
  *
  * @param int    $id   Blog ID.
  * @param string $pref Field name.
- * @return bool|string|null $value
+ * @return bool|string|null The field value, or null if not found.
  */
 function get_blog_status( $id, $pref ) {
 	global $wpdb;
@@ -819,6 +823,8 @@ function get_blog_status( $id, $pref ) {
  *                          Can be used for pagination. Default 0.
  * @param int   $quantity   Optional. The maximum number of blogs to retrieve. Default 40.
  * @return array The list of blogs.
+ *
+ * @phpstan-param '' $deprecated
  */
 function get_last_updated( $deprecated = '', $start = 0, $quantity = 40 ) {
 	global $wpdb;

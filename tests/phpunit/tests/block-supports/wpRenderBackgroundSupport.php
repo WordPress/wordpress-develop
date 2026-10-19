@@ -124,7 +124,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_background_block_support() {
+	public static function data_background_block_support() {
 		return array(
 			'background image style is applied'      => array(
 				'theme_name'          => 'block-theme-child-with-fluid-typography',
@@ -312,7 +312,7 @@ class Tests_Block_Supports_WpRenderBackgroundSupport extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_background_gradient_values_pass_kses() {
+	public static function data_background_gradient_values_pass_kses() {
 		return array(
 			'gradient first with rgb colors'     => array(
 				'background-image: linear-gradient(135deg, rgb(255,0,0) 0%, rgb(0,0,255) 100%), url(https://example.com/image.jpg)',

@@ -29,7 +29,7 @@ class Tests_Admin_Includes_Misc_CustomizerMobileViewportMeta_Test extends WP_Uni
 	 *     expected:      string,
 	 * }>
 	 */
-	public function data_customizer_mobile_viewport_meta(): array {
+	public static function data_customizer_mobile_viewport_meta(): array {
 		return array(
 			'default'                       => array(
 				'viewport_meta' => 'width=device-width,initial-scale=1.0',

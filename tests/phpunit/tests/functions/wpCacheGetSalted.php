@@ -74,7 +74,7 @@ class Tests_Functions_wpCacheGetSalted extends WP_UnitTestCase {
 	 *
 	 * @return array[] Data provider.
 	 */
-	public function data_wp_cache_get_salted_return_false() {
+	public static function data_wp_cache_get_salted_return_false() {
 		return array(
 			array( false ),
 			array( null ),

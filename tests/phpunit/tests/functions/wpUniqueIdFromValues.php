@@ -73,7 +73,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_unique_id_from_values() {
+	public static function data_wp_unique_id_from_values() {
 		return array(
 			'string'          => array( array( 'value' => 'text' ) ),
 			'integer'         => array( array( 'value' => 123 ) ),
@@ -141,7 +141,7 @@ class Tests_Functions_WpUniqueIdFromValues extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_unique_id_from_values_invalid_data() {
+	public static function data_wp_unique_id_from_values_invalid_data() {
 		return array(
 			'string'  => array( 'text' ),
 			'integer' => array( 123 ),

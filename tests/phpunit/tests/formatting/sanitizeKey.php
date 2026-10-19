@@ -23,7 +23,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_key() {
+	public static function data_sanitize_key() {
 		return array(
 			'an empty string key'            => array(
 				'key'      => '',
@@ -76,7 +76,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_key_nonstring_scalar() {
+	public static function data_sanitize_key_nonstring_scalar() {
 		return array(
 			'integer type'  => array(
 				'key'      => 0,
@@ -122,7 +122,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_key_with_non_scalars() {
+	public static function data_sanitize_key_with_non_scalars() {
 		return array(
 			'array type' => array(
 				'key'      => array( 'key' ),

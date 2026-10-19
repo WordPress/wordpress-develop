@@ -37,6 +37,7 @@ function wp_register_typography_support( $block_type ) {
 	$has_text_decoration_support = $typography_supports['__experimentalTextDecoration'] ?? false;
 	$has_text_transform_support  = $typography_supports['__experimentalTextTransform'] ?? false;
 	$has_text_indent_support     = $typography_supports['textIndent'] ?? false;
+	$has_text_shadow_support     = $typography_supports['textShadow'] ?? false;
 	$has_writing_mode_support    = $typography_supports['__experimentalWritingMode'] ?? false;
 
 	$has_typography_support = $has_font_family_support
@@ -50,6 +51,7 @@ function wp_register_typography_support( $block_type ) {
 		|| $has_text_decoration_support
 		|| $has_text_transform_support
 		|| $has_text_indent_support
+		|| $has_text_shadow_support
 		|| $has_writing_mode_support;
 
 	if ( ! $block_type->attributes ) {
@@ -70,6 +72,12 @@ function wp_register_typography_support( $block_type ) {
 
 	if ( $has_font_family_support && ! array_key_exists( 'fontFamily', $block_type->attributes ) ) {
 		$block_type->attributes['fontFamily'] = array(
+			'type' => 'string',
+		);
+	}
+
+	if ( $has_text_shadow_support && ! array_key_exists( 'textShadow', $block_type->attributes ) ) {
+		$block_type->attributes['textShadow'] = array(
 			'type' => 'string',
 		);
 	}
@@ -115,6 +123,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$has_text_decoration_support = $typography_supports['__experimentalTextDecoration'] ?? false;
 	$has_text_transform_support  = $typography_supports['__experimentalTextTransform'] ?? false;
 	$has_text_indent_support     = $typography_supports['textIndent'] ?? false;
+	$has_text_shadow_support     = $typography_supports['textShadow'] ?? false;
 	$has_writing_mode_support    = $typography_supports['__experimentalWritingMode'] ?? false;
 
 	// Whether to skip individual block support features.
@@ -129,6 +138,7 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 	$should_skip_text_transform  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textTransform' );
 	$should_skip_letter_spacing  = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'letterSpacing' );
 	$should_skip_text_indent     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textIndent' );
+	$should_skip_text_shadow     = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'textShadow' );
 	$should_skip_writing_mode    = wp_should_skip_block_supports_serialization( $block_type, 'typography', 'writingMode' );
 
 	$typography_block_styles = array();
@@ -232,6 +242,12 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 		$typography_block_styles['textIndent'] = $block_attributes['style']['typography']['textIndent'] ?? null;
 	}
 
+	if ( $has_text_shadow_support && ! $should_skip_text_shadow ) {
+		$preset_text_shadow                    = array_key_exists( 'textShadow', $block_attributes ) ? "var:preset|text-shadow|{$block_attributes['textShadow']}" : null;
+		$custom_text_shadow                    = $block_attributes['style']['typography']['textShadow'] ?? null;
+		$typography_block_styles['textShadow'] = $preset_text_shadow ? $preset_text_shadow : $custom_text_shadow;
+	}
+
 	$attributes = array();
 	$classnames = array();
 	$styles     = wp_style_engine_get_styles(
@@ -304,13 +320,14 @@ function wp_typography_get_preset_inline_style_value( $style_value, $css_propert
  * @return string Filtered block content.
  */
 function wp_render_typography_support( $block_content, $block ) {
-	if ( ! empty( $block['attrs']['fitText'] ) && $block['attrs']['fitText'] && ! is_admin() ) {
+	if ( ! empty( $block['attrs']['fitText'] ) && ! is_admin() ) {
 		wp_enqueue_script_module( '@wordpress/block-editor/utils/fit-text-frontend' );
 
 		// Add Interactivity API directives for fit text to work with client-side navigation.
 		if ( ! empty( $block_content ) ) {
 			$processor = new WP_HTML_Tag_Processor( $block_content );
 			if ( $processor->next_tag() ) {
+				$processor->add_class( 'has-fit-text' );
 				if ( ! $processor->get_attribute( 'data-wp-interactive' ) ) {
 					$processor->set_attribute( 'data-wp-interactive', true );
 				}
@@ -556,12 +573,12 @@ function wp_get_computed_fluid_typography_value( $args = array() ) {
  *     @type string           $slug Kebab-case, unique identifier for the font size preset.
  *     @type string|int|float $size CSS font-size value, including units if applicable.
  * }
- * @param bool|array $settings Optional Theme JSON settings array that overrides any global theme settings.
- *                             Default is false.
+ * @param bool|array $settings Optional. Theme JSON settings array that overrides any global theme settings.
+ *                             Passing a boolean is deprecated. Default empty array.
  * @return string|null Font-size value or null if a size is not passed in $preset.
+ *
+ * @phpstan-param array $settings
  */
-
-
 function wp_get_typography_font_size_value( $preset, $settings = array() ) {
 	if ( ! isset( $preset['size'] ) ) {
 		return null;

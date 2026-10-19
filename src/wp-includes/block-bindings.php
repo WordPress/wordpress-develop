@@ -90,6 +90,8 @@
  *     @type string[] $uses_context       Optional. Array of values to add to block `uses_context` needed by the source.
  * }
  * @return WP_Block_Bindings_Source|false Source when the registration was successful, or `false` on failure.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $source_name
  */
 function register_block_bindings_source( string $source_name, array $source_properties ) {
 	return WP_Block_Bindings_Registry::get_instance()->register( $source_name, $source_properties );
@@ -135,6 +137,7 @@ function get_block_bindings_source( string $source_name ) {
  *
  * @since 6.9.0
  * @since 7.1.0 Added support for the List Item block.
+ * @since 7.2.0 Added support for the Icon block.
  *
  * @param string $block_type The block type whose supported attributes are being retrieved.
  * @return array The list of block attributes that are supported by block bindings.
@@ -149,6 +152,7 @@ function get_block_bindings_supported_attributes( $block_type ) {
 		'core/post-date'          => array( 'datetime' ),
 		'core/navigation-link'    => array( 'url' ),
 		'core/navigation-submenu' => array( 'url' ),
+		'core/icon'               => array( 'icon' ),
 	);
 
 	$supported_block_attributes =

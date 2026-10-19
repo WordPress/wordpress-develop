@@ -31,7 +31,7 @@ class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_array_slice_assoc_arrays() {
+	public static function data_wp_array_slice_assoc_arrays() {
 		return array(
 			array(
 				array( 1 => 1 ),

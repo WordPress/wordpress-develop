@@ -44,7 +44,7 @@ class Tests_Rewrite_wpResolveNumericSlugConflicts extends WP_UnitTestCase {
 	 *
 	 * @return array Test data.
 	 */
-	public function data_should_not_throw_warning_for_malformed_date_queries() {
+	public static function data_should_not_throw_warning_for_malformed_date_queries() {
 		return array(
 			'/%postname%/ with missing year'         => array(
 				'permalink_structure' => '/%postname%/',

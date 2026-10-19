@@ -40,7 +40,7 @@ class Tests_Admin_Includes_Misc_WpPrivacySettingsFilterDraftPageTitles_Test exte
 	 *     screen_id:   string,
 	 * }>
 	 */
-	public function data_wp_privacy_settings_filter_draft_page_titles(): array {
+	public static function data_wp_privacy_settings_filter_draft_page_titles(): array {
 		return array(
 			'draft page on privacy screen'     => array(
 				'expected'    => 'Privacy Policy (Draft)',

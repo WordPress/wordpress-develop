@@ -21,7 +21,6 @@ class Tests_Block_Template extends WP_UnitTestCase {
 	public function tear_down() {
 		global $_wp_current_template_id, $_wp_current_template_content;
 		unset( $_wp_current_template_id, $_wp_current_template_content );
-
 		parent::tear_down();
 	}
 
@@ -507,6 +506,126 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		// Should return empty array for invalid path.
 		$template_paths = _get_block_templates_paths( '/tmp/random-invalid-theme-path' );
 		$this->assertSame( array(), $template_paths );
+	}
+
+	/**
+	 * Tests that `_get_block_templates_files()` derives the correct template
+	 * slugs from the theme's template files.
+	 *
+	 * The base path (e.g. `parts` or `templates`) must not end up in the slug,
+	 * even when the theme folder name itself ends with the base path.
+	 *
+	 * @ticket 65580
+	 *
+	 * @covers ::_get_block_templates_files
+	 *
+	 * @dataProvider data_get_block_templates_files_slugs
+	 *
+	 * @param string $theme_directory Directory name used as the theme directory.
+	 * @param string $template_type   Template type. Either 'wp_template' or 'wp_template_part'.
+	 * @param array  $expected_slugs  Expected template slugs.
+	 */
+	public function test_get_block_templates_files_slugs( $theme_directory, $template_type, $expected_slugs ) {
+		$theme_root = sys_get_temp_dir() . '/wp-tests-block-template-slug-' . uniqid();
+		$theme_dir  = $theme_root . '/' . $theme_directory;
+
+		$relative_paths = array(
+			'parts/header.html',
+			'parts/footer.html',
+			'parts/footer-parts/header.html',
+			'templates/index.html',
+			'templates/footer.html',
+		);
+
+		$files = array();
+		foreach ( $relative_paths as $relative_path ) {
+			$file_path = $theme_dir . '/' . $relative_path;
+			wp_mkdir_p( dirname( $file_path ) );
+			touch( $file_path );
+			$files[] = $file_path;
+		}
+
+		add_filter(
+			'stylesheet_directory',
+			static function () use ( $theme_dir ) {
+				return $theme_dir;
+			}
+		);
+
+		$slugs = wp_list_pluck( _get_block_templates_files( $template_type ), 'slug' );
+		sort( $slugs );
+
+		// Collect every directory for cleanup.
+		$directories = array( $theme_root );
+		foreach ( $files as $file_path ) {
+			$directory = dirname( $file_path );
+			while ( strlen( $directory ) >= strlen( $theme_root ) ) {
+				$directories[] = $directory;
+				$directory     = dirname( $directory );
+			}
+		}
+		$directories = array_values( array_unique( $directories ) );
+
+		rsort( $directories );
+
+		foreach ( $files as $file_path ) {
+			unlink( $file_path );
+		}
+		foreach ( $directories as $directory ) {
+			rmdir( $directory );
+		}
+
+		$this->assertSame( $expected_slugs, $slugs );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{theme_directory: string, template_type: string, expected_slugs: string[]}>
+	 */
+	public function data_get_block_templates_files_slugs() {
+		return array(
+			'template parts in a theme whose directory name does not end with parts' => array(
+				'theme_directory' => 'default',
+				'template_type'   => 'wp_template_part',
+				'expected_slugs'  => array( 'footer', 'footer-parts/header', 'header' ),
+			),
+			'templates in a theme whose directory name does not end with parts' => array(
+				'theme_directory' => 'default',
+				'template_type'   => 'wp_template',
+				'expected_slugs'  => array( 'footer', 'index' ),
+			),
+			'template parts in a theme whose directory name ends with parts' => array(
+				'theme_directory' => 'auto-parts',
+				'template_type'   => 'wp_template_part',
+				'expected_slugs'  => array( 'footer', 'footer-parts/header', 'header' ),
+			),
+			'templates in a theme whose directory name ends with parts' => array(
+				'theme_directory' => 'auto-parts',
+				'template_type'   => 'wp_template',
+				'expected_slugs'  => array( 'footer', 'index' ),
+			),
+			'template parts in a theme whose directory name is exactly parts' => array(
+				'theme_directory' => 'parts',
+				'template_type'   => 'wp_template_part',
+				'expected_slugs'  => array( 'footer', 'footer-parts/header', 'header' ),
+			),
+			'templates in a theme whose directory name ends with templates' => array(
+				'theme_directory' => 'my-templates',
+				'template_type'   => 'wp_template',
+				'expected_slugs'  => array( 'footer', 'index' ),
+			),
+			'template parts in a theme placed inside a directory named parts' => array(
+				'theme_directory' => 'parts/default',
+				'template_type'   => 'wp_template_part',
+				'expected_slugs'  => array( 'footer', 'footer-parts/header', 'header' ),
+			),
+			'templates in a theme placed inside a directory named templates' => array(
+				'theme_directory' => 'templates/default',
+				'template_type'   => 'wp_template',
+				'expected_slugs'  => array( 'footer', 'index' ),
+			),
+		);
 	}
 
 	/**

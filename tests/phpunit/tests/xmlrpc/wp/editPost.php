@@ -88,7 +88,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $author_id, $out->post_author );
+		$this->assertSame( (string) $author_id, $out->post_author );
 	}
 
 	public function test_incapable_reassign_author() {
@@ -107,7 +107,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 401, $result->code );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $contributor_id, $out->post_author );
+		$this->assertSame( (string) $contributor_id, $out->post_author );
 	}
 
 	/**
@@ -129,7 +129,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $editor_id, $out->post_author );
+		$this->assertSame( (string) $editor_id, $out->post_author );
 	}
 
 	/**
@@ -156,20 +156,20 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$post2  = array( 'post_thumbnail' => $attachment_id );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post2 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+		$this->assertSame( (string) $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// Fetch the post to verify that it appears.
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $post_id ) );
 		$this->assertNotIXRError( $result );
 		$this->assertArrayHasKey( 'post_thumbnail', $result );
 		$this->assertIsArray( $result['post_thumbnail'] );
-		$this->assertEquals( $attachment_id, $result['post_thumbnail']['attachment_id'] );
+		$this->assertSame( (string) $attachment_id, $result['post_thumbnail']['attachment_id'] );
 
 		// Edit the post without supplying a post_thumbnail and check that it didn't change.
 		$post3  = array( 'post_content' => 'Updated post' );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post3 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+		$this->assertSame( (string) $attachment_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// Create another attachment.
 		$attachment2_id = self::factory()->attachment->create_upload_object( $filename, $post_id );
@@ -178,7 +178,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$post4  = array( 'post_thumbnail' => $attachment2_id );
 		$result = $this->myxmlrpcserver->wp_editPost( array( 1, 'author', 'author', $post_id, $post4 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( $attachment2_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
+		$this->assertSame( (string) $attachment2_id, get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// Unset the post's post_thumbnail.
 		$post5  = array( 'post_thumbnail' => '' );

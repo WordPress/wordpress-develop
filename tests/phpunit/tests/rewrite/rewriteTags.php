@@ -35,7 +35,7 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->assertSameSets( $this->queryreplace, $wp_rewrite->queryreplace );
 	}
 
-	public function data_add_rewrite_tag_invalid() {
+	public static function data_add_rewrite_tag_invalid() {
 		return array(
 			array( 'foo', 'bar' ),
 			array( '%', 'bar' ),

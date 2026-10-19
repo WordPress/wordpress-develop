@@ -767,6 +767,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_network_plugins':
 		case 'manage_network_themes':
 		case 'manage_network_options':
+		case 'manage_network_secrets':
 		case 'upgrade_network':
 			$caps[] = $cap;
 			break;
@@ -909,6 +910,8 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  * @param mixed  ...$args    Optional further parameters, typically starting with an object ID.
  * @return bool Whether the current user has the given capability. If `$capability` is a meta cap and `$object_id` is
  *              passed, whether the current user has the given meta capability for the given object.
+ *
+ * @phpstan-impure
  */
 function current_user_can( $capability, ...$args ) {
 	return user_can( wp_get_current_user(), $capability, ...$args );
@@ -1078,10 +1081,10 @@ function user_can_for_site( $user, $site_id, $capability, ...$args ) {
  *
  * @return WP_Roles WP_Roles global instance if not already instantiated.
  */
-function wp_roles() {
+function wp_roles(): WP_Roles {
 	global $wp_roles;
 
-	if ( ! isset( $wp_roles ) ) {
+	if ( ! ( $wp_roles instanceof WP_Roles ) ) {
 		$wp_roles = new WP_Roles();
 	}
 	return $wp_roles;

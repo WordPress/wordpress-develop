@@ -156,7 +156,12 @@ class Tests_User_CountUserPosts extends WP_UnitTestCase {
 	 */
 	public function test_count_user_posts_for_user_created_after_being_assigned_posts() {
 		global $wpdb;
-		$next_user_id = (int) $wpdb->get_var( "SELECT `auto_increment` FROM INFORMATION_SCHEMA.TABLES WHERE table_name = '$wpdb->users'" );
+		$next_user_id = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT AUTO_INCREMENT FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s',
+				$wpdb->users
+			)
+		);
 
 		// Assign post to next user.
 		self::factory()->post->create(

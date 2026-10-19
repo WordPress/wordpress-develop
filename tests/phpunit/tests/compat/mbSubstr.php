@@ -45,7 +45,7 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_utf8_substrings() {
+	public static function data_utf8_substrings() {
 		return array(
 			'positive start, positive length'              => array( 'баба', 0, 3 ),
 			'positive start, negative length'              => array( 'баба', 0, -1 ),
@@ -113,7 +113,7 @@ class Tests_Compat_mbSubstr extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_mb_substr_phpcore_input_type_handling() {
+	public static function data_mb_substr_phpcore_input_type_handling() {
 		$heredoc = <<<EOT
 hello world
 EOT;

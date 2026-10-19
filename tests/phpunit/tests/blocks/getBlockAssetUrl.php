@@ -18,10 +18,18 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		global $wp_theme_directories;
 
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->orig_theme_dir = $wp_theme_directories;
@@ -33,6 +41,10 @@ class Tests_Get_Block_Asset_Url extends WP_UnitTestCase {
 
 	public function tear_down() {
 		global $wp_theme_directories;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		$wp_theme_directories = $this->orig_theme_dir;
 

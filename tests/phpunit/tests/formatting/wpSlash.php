@@ -29,7 +29,7 @@ class Tests_Formatting_wpSlash extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_slash() {
+	public static function data_wp_slash() {
 		return array(
 			array( 123, 123 ),
 			array( 123.4, 123.4 ),

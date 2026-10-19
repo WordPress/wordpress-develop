@@ -131,10 +131,89 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$this->assertSame( array( 'title' ), $prepared['required'] );
 		$this->assertArrayNotHasKey( 'required', $prepared['properties']['title'] );
 		$this->assertArrayNotHasKey( 'validate_callback', $prepared['properties']['title'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( new stdClass(), $prepared['properties']['settings']['default'] );
 		$this->assertSame( array( 'settings' ), $prepared['dependencies']['title'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $prepared['dependencies']['settings'] );
 		$this->assertArrayNotHasKey( 'sanitize_callback', $prepared['additionalProperties'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: string}> Schemas, and the JSON their default is encoded as.
+	 */
+	public static function data_wp_prepare_json_schema_for_client_encodes_default() {
+		return array(
+			'empty default on an object schema'          => array(
+				array(
+					'type'    => 'object',
+					'default' => array(),
+				),
+				'{}',
+			),
+			'non-empty default on an object schema'      => array(
+				array(
+					'type'    => 'object',
+					'default' => array( 'a' => 1 ),
+				),
+				'{"a":1}',
+			),
+			'empty default on an array schema'           => array(
+				array(
+					'type'    => 'array',
+					'default' => array(),
+				),
+				'[]',
+			),
+			'empty default on an object or null schema'  => array(
+				array(
+					'type'    => array( 'object', 'null' ),
+					'default' => array(),
+				),
+				'{}',
+			),
+			'empty default on a null or object schema'   => array(
+				array(
+					'type'    => array( 'null', 'object' ),
+					'default' => array(),
+				),
+				'{}',
+			),
+			'empty default on an object or array schema' => array(
+				array(
+					'type'    => array( 'object', 'array' ),
+					'default' => array(),
+				),
+				'[]',
+			),
+			'empty default on an array or object schema' => array(
+				array(
+					'type'    => array( 'array', 'object' ),
+					'default' => array(),
+				),
+				'[]',
+			),
+		);
+	}
+
+	/**
+	 * Tests that an empty default on an object schema is sent to clients as a JSON object.
+	 *
+	 * An empty PHP array is encoded as `[]`, which does not match an object schema.
+	 * Other defaults stay unchanged.
+	 *
+	 * @ticket 66267
+	 *
+	 * @dataProvider data_wp_prepare_json_schema_for_client_encodes_default
+	 *
+	 * @param array<string, mixed> $schema   The schema to prepare.
+	 * @param string               $expected The expected JSON for the default.
+	 */
+	public function test_wp_prepare_json_schema_for_client_encodes_default( $schema, $expected ) {
+		$prepared = wp_prepare_json_schema_for_client( $schema );
+
+		$this->assertSame( $expected, wp_json_encode( $prepared['default'] ) );
 	}
 
 	/**

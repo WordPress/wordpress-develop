@@ -35,7 +35,7 @@ class Admin_Includes_User_WpIsAuthorizeApplicationPasswordRequestValid_Test exte
 		}
 	}
 
-	public function data_is_authorize_application_password_request_valid() {
+	public static function data_is_authorize_application_password_request_valid() {
 		$environment_types = array( 'local', 'development', 'staging', 'production' );
 
 		$datasets = array();

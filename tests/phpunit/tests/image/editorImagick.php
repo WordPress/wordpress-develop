@@ -665,8 +665,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
 		}
 
-		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
-		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$test_file = DIR_TESTDATA . '/images/test-alpha.pdf';
+
+		$editor = wp_get_image_editor( $test_file );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );

@@ -42,7 +42,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_example_urls() {
+	public static function data_example_urls() {
 		return array(
 			array( 'http', 'http://example.com' ),                                 // RFC7230
 			array( 'https', 'https://example.com' ),                               // RFC7230

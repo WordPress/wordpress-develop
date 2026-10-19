@@ -901,7 +901,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_only_allow_replying_to_an_approved_parent_comment() {
+	public static function data_should_only_allow_replying_to_an_approved_parent_comment() {
 		return array(
 			'an approved parent comment'   => array( 'approved' => 1 ),
 			'an unapproved parent comment' => array( 'approved' => 0 ),
@@ -963,7 +963,7 @@ class Tests_Comment_wpHandleCommentSubmission extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_only_allow_replying_to_an_existing_parent_comment() {
+	public static function data_should_only_allow_replying_to_an_existing_parent_comment() {
 		return array(
 			'an existing parent comment'    => array( 'exists' => true ),
 			'a non-existent parent comment' => array( 'exists' => false ),

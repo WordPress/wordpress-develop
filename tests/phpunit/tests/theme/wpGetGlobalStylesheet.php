@@ -87,7 +87,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_conditionally_include_font_sizes() {
+	public static function data_should_conditionally_include_font_sizes() {
 		return array(
 			'block theme using defaults'                   => array(
 				'expected' => array(
@@ -185,7 +185,7 @@ class Tests_Theme_WpGetGlobalStylesheet extends WP_Theme_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_not_conditionally_include_font_sizes() {
+	public static function data_should_not_conditionally_include_font_sizes() {
 		return array(
 			'block theme using presets'                   => array(
 				'expected' => array(

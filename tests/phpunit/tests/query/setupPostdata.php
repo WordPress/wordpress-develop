@@ -64,6 +64,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		setup_postdata( $p );
 
 		$this->assertNotEmpty( $GLOBALS['authordata'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $u, $GLOBALS['authordata'] );
 	}
 
@@ -111,6 +112,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 		// Main loop.
 		$this->assertSame( $post1->ID, $GLOBALS['id'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_userdata( $users[0] ), $GLOBALS['authordata'] );
 		$this->assertSame( '02.02.12', $GLOBALS['currentday'] );
 		$this->assertSame( '02', $GLOBALS['currentmonth'] );
@@ -130,6 +132,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 				// Should refer to the current loop.
 				$this->assertSame( $post2->ID, $GLOBALS['id'] );
+				// Keep assertEquals() because the objects are intentionally compared by value.
 				$this->assertEquals( get_userdata( $users[1] ), $GLOBALS['authordata'] );
 				$this->assertSame( '03.03.13', $GLOBALS['currentday'] );
 				$this->assertSame( '03', $GLOBALS['currentmonth'] );
@@ -139,6 +142,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 		// Should be reset to main loop.
 		$this->assertSame( $post1->ID, $GLOBALS['id'] );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( get_userdata( $users[0] ), $GLOBALS['authordata'] );
 		$this->assertSame( '02.02.12', $GLOBALS['currentday'] );
 		$this->assertSame( '02', $GLOBALS['currentmonth'] );
@@ -410,7 +414,7 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 		setup_postdata( $a_post );
 		$content = get_echo( 'the_content' );
 		$this->assertSame( $post_id, $GLOBALS['post']->ID );
-		$this->assertNotEquals( '<p>global post</p>', strip_ws( $content ) );
+		$this->assertNotSame( '<p>global post</p>', strip_ws( $content ) );
 		wp_reset_postdata();
 	}
 

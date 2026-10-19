@@ -62,6 +62,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 	 * @param string $name       Comment author name.
 	 * @param int    $comment_id Comment ID.
 	 * @return string Avatar with the user name.
+	 *
+	 * @phpstan-return non-falsy-string
 	 */
 	public function floated_admin_avatar( $name, $comment_id ) {
 		$comment = get_comment( $comment_id );
@@ -105,7 +107,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$comment_type = '';
 
-		if ( ! empty( $_REQUEST['comment_type'] ) && 'note' !== $_REQUEST['comment_type'] ) {
+		if ( ! empty( $_REQUEST['comment_type'] ) && ! in_array( $_REQUEST['comment_type'], array( 'note', 'reaction' ), true ) ) {
 			$comment_type = $_REQUEST['comment_type'];
 		}
 
@@ -155,7 +157,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			'number'                    => $number,
 			'post_id'                   => $post_id,
 			'type'                      => $comment_type,
-			'type__not_in'              => array( 'note' ),
+			'type__not_in'              => array( 'note', 'reaction' ),
 			'orderby'                   => $orderby,
 			'order'                     => $order,
 			'post_type'                 => $post_type,
