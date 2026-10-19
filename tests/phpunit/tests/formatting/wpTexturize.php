@@ -344,6 +344,54 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * Locale entry and restoration must refresh tables without rerunning the gate.
+	 *
+	 * @ticket 18549
+	 */
+	public function test_locale_changes_refresh_quote_tables_without_reset() {
+		$locale        = 'en_US';
+		$runs          = 0;
+		$filter_locale = static function () use ( &$locale ) {
+			return $locale;
+		};
+		$translate     = static function ( $translation, $text, $context ) use ( &$locale ) {
+			if ( 'de_DE' === $locale ) {
+				$quotes = array(
+					'opening curly single quote' => '&#8218;',
+					'closing curly single quote' => '&#8216;',
+					'opening curly double quote' => '&#8222;',
+					'closing curly double quote' => '&#8220;',
+				);
+				return isset( $quotes[ $context ] ) ? $quotes[ $context ] : $translation;
+			}
+			return $translation;
+		};
+		$gate          = static function ( $enabled ) use ( &$runs ) {
+			++$runs;
+			return $enabled;
+		};
+		add_filter( 'locale', $filter_locale );
+		add_filter( 'gettext_with_context', $translate, 10, 3 );
+		add_filter( 'run_wptexturize', $gate );
+		try {
+			$this->assertSame( '&#8216;<em>Hello</em>&#8217;', wptexturize( "'<em>Hello</em>'", true ) );
+			$locale = 'de_DE';
+			$this->assertSame( '&#8218;<em>Hallo</em>&#8216;', wptexturize( "'<em>Hallo</em>'" ) );
+			$this->assertSame( '<em>&#8222;John&#8220;</em>&#8217;s', wptexturize( "<em>\"John\"</em>'s" ) );
+			$locale = 'en_US';
+			$this->assertSame( '&#8216;<em>Hello</em>&#8217;', wptexturize( "'<em>Hello</em>'" ) );
+			$this->assertSame( 1, $runs, 'Locale refresh must preserve the request gate.' );
+			wptexturize( 'reset', true );
+			$this->assertSame( 2, $runs, 'An explicit reset still reevaluates the gate.' );
+		} finally {
+			remove_filter( 'locale', $filter_locale );
+			remove_filter( 'gettext_with_context', $translate, 10 );
+			remove_filter( 'run_wptexturize', $gate );
+			wptexturize( 'reset', true );
+		}
+	}
+
 	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}

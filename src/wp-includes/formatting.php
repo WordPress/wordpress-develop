@@ -51,6 +51,7 @@ function wptexturize( $text, $reset = false ) {
 		$opening_single_quote            = null,
 		$closing_single_quote            = null,
 		$closing_quotes                  = null,
+		$texturize_locale                = null,
 		$open_q_flag                     = '<!--oq-->',
 		$open_sq_flag                    = '<!--osq-->',
 		$apos_flag                       = '<!--apos-->';
@@ -60,26 +61,31 @@ function wptexturize( $text, $reset = false ) {
 		return $text;
 	}
 
-	// Set up static variables. Run once only.
-	if ( $reset || ! isset( $static_characters ) ) {
-		/**
-		 * Filters whether to skip running wptexturize().
-		 *
-		 * Returning false from the filter will effectively short-circuit wptexturize()
-		 * and return the original text passed to the function instead.
-		 *
-		 * The filter runs only once, the first time wptexturize() is called.
-		 *
-		 * @since 4.0.0
-		 *
-		 * @see wptexturize()
-		 *
-		 * @param bool $run_texturize Whether to short-circuit wptexturize().
-		 */
-		$run_texturize = apply_filters( 'run_wptexturize', $run_texturize );
+	// Keep one set of replacement tables for the currently loaded locale.
+	$current_locale = get_locale();
+	if ( $reset || ! isset( $static_characters ) || $texturize_locale !== $current_locale ) {
+		if ( $reset || ! isset( $static_characters ) ) {
+			/**
+			 * Filters whether to skip running wptexturize().
+			 *
+			 * Returning false from the filter will effectively short-circuit wptexturize()
+			 * and return the original text passed to the function instead.
+			 *
+			 * The filter runs only once, the first time wptexturize() is called.
+			 *
+			 * @since 4.0.0
+			 *
+			 * @see wptexturize()
+			 *
+			 * @param bool $run_texturize Whether to short-circuit wptexturize().
+			 */
+			$run_texturize = apply_filters( 'run_wptexturize', $run_texturize );
+		}
 		if ( false === $run_texturize ) {
 			return $text;
 		}
+
+		$texturize_locale = $current_locale;
 
 		/* translators: Opening curly double quote. */
 		$opening_quote = _x( '&#8220;', 'opening curly double quote' );
@@ -239,8 +245,8 @@ function wptexturize( $text, $reset = false ) {
 
 	$no_texturize_tags_stack       = array();
 	$no_texturize_shortcodes_stack = array();
-	$last_text_context             = 0;
-	$inline_quote_context          = 0;
+	$last_text                     = '';
+	$inline_start                  = null;
 	$single_quote_open             = false;
 
 	// Look for shortcodes and HTML elements.
@@ -253,24 +259,26 @@ function wptexturize( $text, $reset = false ) {
 
 	$textarr = preg_split( $regex, $text, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 
-	foreach ( $textarr as &$curl ) {
+	foreach ( $textarr as $key => &$curl ) {
 		// Only call _wptexturize_pushpop_element if $curl is a delimiter.
 		$first = $curl[0];
 		if ( '<' === $first ) {
 			if ( str_starts_with( $curl, '<!--' ) ) {
 				// This is an HTML comment delimiter.
-				$inline_quote_context = 0;
-				$last_text_context    = 0;
-				$single_quote_open    = false;
+				$inline_start      = null;
+				$last_text         = '';
+				$single_quote_open = false;
 				continue;
 			} else {
 				// This is an HTML element delimiter.
-				$inline_tag = ( $last_text_context || $single_quote_open ) ? _wptexturize_get_inline_tag_type( $curl ) : 0;
-				// Opening tags continue words; closing tags can also end quotations.
-				$inline_quote_context = 2 === $inline_tag ? $last_text_context : ( 1 === $inline_tag && 1 === $last_text_context ? 1 : 0 );
-				if ( 0 === $inline_tag ) {
-					$last_text_context = 0;
+				// An open quotation needs block boundaries immediately. Otherwise
+				// classify delimiters only if the next text starts with a quote.
+				if ( $single_quote_open && 0 === _wptexturize_get_inline_tag_type( $curl ) ) {
+					$last_text         = '';
+					$inline_start      = null;
 					$single_quote_open = false;
+				} elseif ( '' !== $last_text && null === $inline_start ) {
+					$inline_start = $key;
 				}
 
 				// Replace each & with &#038; unless it already looks like an entity.
@@ -278,21 +286,21 @@ function wptexturize( $text, $reset = false ) {
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 				if ( ! empty( $no_texturize_tags_stack ) ) {
-					$inline_quote_context = 0;
-					$last_text_context    = 0;
-					$single_quote_open    = false;
+					$inline_start      = null;
+					$last_text         = '';
+					$single_quote_open = false;
 				}
 			}
 		} elseif ( '' === trim( $curl ) ) {
 			// This is a newline between delimiters. Performance improves when we check this.
-			$inline_quote_context = 0;
-			$last_text_context    = 0;
+			$inline_start = null;
+			$last_text    = '';
 			continue;
 
 		} elseif ( '[' === $first && $found_shortcodes && 1 === preg_match( '/^' . $shortcode_regex . '$/', $curl ) ) {
-			$inline_quote_context = 0;
-			$last_text_context    = 0;
-			$single_quote_open    = false;
+			$inline_start      = null;
+			$last_text         = '';
+			$single_quote_open = false;
 			// This is a shortcode delimiter.
 
 			if ( ! str_starts_with( $curl, '[[' ) && ! str_ends_with( $curl, ']]' ) ) {
@@ -307,8 +315,21 @@ function wptexturize( $text, $reset = false ) {
 
 			$curl = str_replace( $static_characters, $static_replacements, $curl );
 
-			$inline_apostrophe = false;
-			if ( $inline_quote_context && ( "'" === $curl[0] || '"' === $curl[0] ) ) {
+			$inline_apostrophe    = false;
+			$inline_quote_context = 0;
+			if ( null !== $inline_start && ( "'" === $curl[0] || '"' === $curl[0] ) ) {
+				$context = _wptexturize_get_text_context( $last_text, $closing_quotes );
+				for ( $index = $inline_start; $context && $index < $key; ++$index ) {
+					$inline_tag           = _wptexturize_get_inline_tag_type( $textarr[ $index ] );
+					$inline_quote_context = 2 === $inline_tag ? $context : ( 1 === $inline_tag && 1 === $context ? 1 : 0 );
+					if ( 0 === $inline_tag ) {
+						$context           = 0;
+						$single_quote_open = false;
+					}
+				}
+			}
+			$inline_start = null;
+			if ( $inline_quote_context ) {
 				if ( preg_match( "/^'[\p{L}\p{N}\p{Po}\p{Pf}\s.,;:!?\)\}\-&]|^'$/u", $curl ) ) {
 					// A following letter/number continues a word even inside a quotation.
 					if ( $single_quote_open && ! preg_match( "/^'[\p{L}\p{N}]/u", $curl ) ) {
@@ -322,7 +343,6 @@ function wptexturize( $text, $reset = false ) {
 					$curl = $closing_quote . substr( $curl, 1 );
 				}
 			}
-			$inline_quote_context = 0;
 
 			if ( $inline_apostrophe || str_contains( $curl, "'" ) ) {
 				$curl = preg_replace( $dynamic_characters['apos'], $dynamic_replacements['apos'], $curl );
@@ -357,11 +377,11 @@ function wptexturize( $text, $reset = false ) {
 			// Replace each & with &#038; unless it already looks like an entity.
 			$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
-			$last_text_context = _wptexturize_get_text_context( $curl, $closing_quotes );
+			$last_text = $curl;
 		} else {
-			$inline_quote_context = 0;
-			$last_text_context    = 0;
-			$single_quote_open    = false;
+			$inline_start      = null;
+			$last_text         = '';
+			$single_quote_open = false;
 		}
 	}
 
@@ -430,33 +450,33 @@ function _wptexturize_get_inline_tag_type( $text ) {
 		return 0;
 	}
 	static $inline_tags = array(
-		'a',
-		'abbr',
-		'b',
-		'bdi',
-		'bdo',
-		'cite',
-		'data',
-		'del',
-		'dfn',
-		'em',
-		'i',
-		'ins',
-		'label',
-		'mark',
-		'q',
-		's',
-		'samp',
-		'small',
-		'span',
-		'strong',
-		'sub',
-		'sup',
-		'time',
-		'u',
-		'var',
+		'a'      => true,
+		'abbr'   => true,
+		'b'      => true,
+		'bdi'    => true,
+		'bdo'    => true,
+		'cite'   => true,
+		'data'   => true,
+		'del'    => true,
+		'dfn'    => true,
+		'em'     => true,
+		'i'      => true,
+		'ins'    => true,
+		'label'  => true,
+		'mark'   => true,
+		'q'      => true,
+		's'      => true,
+		'samp'   => true,
+		'small'  => true,
+		'span'   => true,
+		'strong' => true,
+		'sub'    => true,
+		'sup'    => true,
+		'time'   => true,
+		'u'      => true,
+		'var'    => true,
 	);
-	return in_array( $name, $inline_tags, true ) ? ( $closing ? 2 : 1 ) : 0;
+	return isset( $inline_tags[ $name ] ) ? ( $closing ? 2 : 1 ) : 0;
 }
 
 /**
