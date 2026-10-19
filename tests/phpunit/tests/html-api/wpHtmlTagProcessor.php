@@ -1573,7 +1573,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 65372
+	 * @ticket 65967
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 *

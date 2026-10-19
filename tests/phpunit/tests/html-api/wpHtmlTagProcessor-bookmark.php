@@ -182,7 +182,7 @@ HTML;
 	}
 
 	/**
-	 * @ticket 65372
+	 * @ticket 65967
 	 *
 	 * @covers WP_HTML_Tag_Processor::remove_attribute
 	 * @covers WP_HTML_Tag_Processor::seek

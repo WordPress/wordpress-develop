@@ -611,7 +611,7 @@ class Tests_HtmlApi_WpHtmlProcessor extends WP_UnitTestCase {
 	/**
 	 * Ensures that removing attributes preserves foreign-content tree semantics.
 	 *
-	 * @ticket 65372
+	 * @ticket 65967
 	 *
 	 * @covers ::remove_attribute
 	 *
