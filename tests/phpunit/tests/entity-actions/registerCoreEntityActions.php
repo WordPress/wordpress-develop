@@ -85,6 +85,20 @@ class Tests_Entity_Actions_RegisterCoreEntityActions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Sets up each test.
+	 *
+	 * The core actions are copied from the Gutenberg build, so the tests are
+	 * skipped until the pinned build includes them.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		if ( ! function_exists( 'register_core_entity_actions' ) ) {
+			$this->markTestSkipped( 'The pinned Gutenberg build does not include the core actions.' );
+		}
+	}
+
+	/**
 	 * Tears down each test.
 	 *
 	 * Resetting the registry drops the actions registered for the user and
