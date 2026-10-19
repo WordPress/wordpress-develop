@@ -322,7 +322,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test getting a specific ability.
 	 *
 	 * @ticket 64098
-	 * @ticket 66325
 	 */
 	public function test_get_item(): void {
 		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/calculator' );
@@ -654,7 +653,6 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 	 * Test schema retrieval.
 	 *
 	 * @ticket 64098
-	 * @ticket 66325
 	 */
 	public function test_get_schema(): void {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities' );

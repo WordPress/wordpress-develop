@@ -833,51 +833,49 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the has_required_capabilities filter excludes abilities whose declared capabilities the current user lacks.
+	 * Data provider for filtering by the current user's required capabilities.
 	 *
-	 * @ticket 66325
+	 * @return array<string, array{0: string, 1: array<string, mixed>, 2: string[]}>
 	 */
-	public function test_filter_by_has_required_capabilities_excludes_missing_capabilities(): void {
-		$this->register_abilities_with_required_capabilities();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-
-		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
-
-		$this->assertArrayNotHasKey( 'test/admin-only', $result );
-		$this->assertArrayHasKey( 'test/editor-and-up', $result );
-		$this->assertArrayHasKey( 'test/input-dependent', $result, 'Abilities without required capabilities should stay in the result.' );
+	public static function data_filter_by_has_required_capabilities(): array {
+		return array(
+			'editor misses a capability' => array(
+				'editor',
+				array( 'has_required_capabilities' => true ),
+				array( 'test/editor-and-up', 'test/input-dependent' ),
+			),
+			'administrator has all'      => array(
+				'administrator',
+				array( 'has_required_capabilities' => true ),
+				array( 'test/admin-only', 'test/editor-and-up', 'test/input-dependent' ),
+			),
+			'filter is off by default'   => array(
+				'',
+				array(),
+				array( 'test/admin-only', 'test/editor-and-up', 'test/input-dependent' ),
+			),
+		);
 	}
 
 	/**
-	 * Tests that the has_required_capabilities filter keeps abilities whose declared capabilities the current user has.
+	 * Tests that the has_required_capabilities filter leaves out abilities whose declared
+	 * capabilities the current user lacks. Abilities without required capabilities stay.
 	 *
 	 * @ticket 66325
-	 */
-	public function test_filter_by_has_required_capabilities_includes_all_for_administrator(): void {
-		$this->register_abilities_with_required_capabilities();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$result = wp_get_abilities( array( 'has_required_capabilities' => true ) );
-
-		$this->assertArrayHasKey( 'test/admin-only', $result );
-		$this->assertArrayHasKey( 'test/editor-and-up', $result );
-		$this->assertArrayHasKey( 'test/input-dependent', $result );
-	}
-
-	/**
-	 * Tests that abilities are not filtered by capabilities unless the caller asks for it.
 	 *
-	 * @ticket 66325
+	 * @dataProvider data_filter_by_has_required_capabilities
+	 *
+	 * @param string               $role     The role of the current user. Empty for a logged-out user.
+	 * @param array<string, mixed> $args     The arguments passed to wp_get_abilities().
+	 * @param string[]             $expected The expected ability names.
 	 */
-	public function test_filter_by_has_required_capabilities_is_off_by_default(): void {
+	public function test_filter_by_has_required_capabilities( string $role, array $args, array $expected ): void {
 		$this->register_abilities_with_required_capabilities();
-		wp_set_current_user( 0 );
+		wp_set_current_user( '' === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) ) );
 
-		$result = wp_get_abilities();
+		$result = wp_get_abilities( array_merge( array( 'namespace' => 'test' ), $args ) );
 
-		$this->assertArrayHasKey( 'test/admin-only', $result );
-		$this->assertArrayHasKey( 'test/editor-and-up', $result );
-		$this->assertArrayHasKey( 'test/input-dependent', $result );
+		$this->assertSameSets( $expected, array_keys( $result ) );
 	}
 
 	/**
