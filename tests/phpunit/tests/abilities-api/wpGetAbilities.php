@@ -381,6 +381,155 @@ class Tests_Abilities_API_WpGetAbilities extends WP_UnitTestCase {
 	}
 
 	// -------------------------------------------------------------------------
+	// eligibility_context
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Tests that eligibility callbacks are not consulted when no context is passed.
+	 *
+	 * The result without a context is the upper bound. Even an ability whose
+	 * callback always returns false must be included.
+	 */
+	public function test_no_eligibility_context_returns_every_ability(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/never-eligible',
+			array( 'eligibility_callback' => '__return_false' )
+		);
+		$this->register_test_ability( 'test/no-callback' );
+
+		$result = wp_get_abilities();
+
+		$this->assertArrayHasKey( 'test/never-eligible', $result );
+		$this->assertArrayHasKey( 'test/no-callback', $result );
+	}
+
+	/**
+	 * Tests that a context excludes abilities whose callback returns false.
+	 */
+	public function test_eligibility_context_excludes_ineligible_abilities(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/product-only',
+			array(
+				'eligibility_callback' => static function ( array $context ): bool {
+					return isset( $context['post_type'] ) && 'product' === $context['post_type'];
+				},
+			)
+		);
+		$this->register_test_ability( 'test/no-callback' );
+
+		$result = wp_get_abilities( array( 'eligibility_context' => array( 'post_type' => 'page' ) ) );
+
+		$this->assertArrayNotHasKey( 'test/product-only', $result );
+		$this->assertArrayHasKey( 'test/no-callback', $result, 'An ability without an eligibility callback should always be included.' );
+
+		$result = wp_get_abilities( array( 'eligibility_context' => array( 'post_type' => 'product' ) ) );
+
+		$this->assertArrayHasKey( 'test/product-only', $result );
+		$this->assertArrayHasKey( 'test/no-callback', $result );
+	}
+
+	/**
+	 * Tests that a context lacking the key a callback cares about keeps the ability.
+	 *
+	 * Callbacks follow the upper bound rule and return true for a missing key, so
+	 * adding context keys can only narrow a result.
+	 */
+	public function test_eligibility_context_missing_key_keeps_ability(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/product-only',
+			array(
+				'eligibility_callback' => static function ( array $context ): bool {
+					return ! isset( $context['post_type'] ) || 'product' === $context['post_type'];
+				},
+			)
+		);
+
+		$result = wp_get_abilities( array( 'eligibility_context' => array( 'surface' => 'rest' ) ) );
+
+		$this->assertArrayHasKey( 'test/product-only', $result );
+	}
+
+	/**
+	 * Tests that a non-boolean callback return is treated as eligible.
+	 */
+	public function test_eligibility_callback_non_boolean_return_keeps_ability(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability(
+			'test/non-boolean',
+			array(
+				'eligibility_callback' => static function (): string {
+					return 'not-a-boolean';
+				},
+			)
+		);
+
+		$result = wp_get_abilities( array( 'eligibility_context' => array( 'surface' => 'rest' ) ) );
+
+		$this->assertArrayHasKey( 'test/non-boolean', $result );
+	}
+
+	/**
+	 * Tests that the eligibility callback receives the context passed by the caller.
+	 */
+	public function test_eligibility_callback_receives_context(): void {
+		$this->simulate_wp_abilities_init();
+
+		$received = null;
+		$this->register_test_ability(
+			'test/receives-context',
+			array(
+				'eligibility_callback' => static function ( array $context ) use ( &$received ): bool {
+					$received = $context;
+					return true;
+				},
+			)
+		);
+
+		$context = array(
+			'surface'         => 'webmcp-admin',
+			'screen'          => 'post.php',
+			'my-plugin/color' => 'blue',
+		);
+		wp_get_abilities( array( 'eligibility_context' => $context ) );
+
+		$this->assertSame( $context, $received );
+	}
+
+	/**
+	 * Tests that the context is available to the item include filter through $args.
+	 */
+	public function test_eligibility_context_available_to_item_include_filter(): void {
+		$this->simulate_wp_abilities_init();
+
+		$this->register_test_ability( 'test/ability-one' );
+
+		$received_args = null;
+		add_filter(
+			'wp_get_abilities_item_include',
+			static function ( bool $should_include, WP_Ability $ability, array $args ) use ( &$received_args ): bool {
+				$received_args = $args;
+				return $should_include;
+			},
+			10,
+			3
+		);
+
+		$context = array( 'surface' => 'webmcp-frontend' );
+		wp_get_abilities( array( 'eligibility_context' => $context ) );
+
+		$this->assertIsArray( $received_args );
+		$this->assertArrayHasKey( 'eligibility_context', $received_args );
+		$this->assertSame( $context, $received_args['eligibility_context'] );
+	}
+
+	// -------------------------------------------------------------------------
 	// item_include_callback
 	// -------------------------------------------------------------------------
 
