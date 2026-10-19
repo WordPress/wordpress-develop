@@ -2411,6 +2411,8 @@ function print_late_styles() {
  *
  * @ignore
  * @since 3.3.0
+ * @since 7.3.0 The attributes of the concatenated stylesheet link tag can be filtered with
+ *              {@see 'wp_style_attributes'}.
  */
 function _print_styles() {
 	$wp_styles = wp_styles();
@@ -2430,7 +2432,15 @@ function _print_styles() {
 		}
 
 		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
-		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
+		echo _wp_get_legacy_style_link_tag(
+			array(
+				'rel'   => 'stylesheet',
+				'href'  => $href,
+				'media' => 'all',
+			),
+			__FUNCTION__,
+			array( 'href' => esc_attr( $href ) )
+		);
 
 		if ( ! empty( $wp_styles->print_code ) ) {
 			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
@@ -3648,6 +3658,226 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
  */
 function wp_print_inline_script_tag( $data, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $data, $attributes );
+}
+
+/**
+ * Formats a `<link rel="stylesheet">` tag.
+ *
+ * It is possible to inject attributes in the stylesheet link tag via the {@see 'wp_style_attributes'} filter.
+ *
+ * Attributes are printed in the order they are given, so `rel` can be printed first, as is conventional.
+ *
+ * @since 7.3.0
+ *
+ * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes. Only
+ *                                                    the attribute name is added for entries whose value is `true`
+ *                                                    or `null`, as for wp_get_script_tag(), and entries whose value
+ *                                                    is `false` are omitted.
+ * @return string String containing a `<link>` tag.
+ *
+ * @phpstan-param array<non-empty-string, string|bool|null> $attributes
+ * @phpstan-return non-falsy-string
+ */
+function wp_get_style_link_tag( array $attributes ): string {
+	return _wp_build_style_link_tag( _wp_filter_style_link_attributes( $attributes, __FUNCTION__ ) );
+}
+
+/**
+ * Prints a formatted stylesheet link tag.
+ *
+ * It is possible to inject attributes in the stylesheet link tag via the {@see 'wp_style_attributes'} filter.
+ *
+ * @since 7.3.0
+ *
+ * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes. Only
+ *                                                    the attribute name is added for entries whose value is `true`
+ *                                                    or `null`, as for wp_get_script_tag(), and entries whose value
+ *                                                    is `false` are omitted.
+ *
+ * @phpstan-param array<non-empty-string, string|bool|null> $attributes
+ */
+function wp_print_style_link_tag( array $attributes ): void {
+	echo wp_get_style_link_tag( $attributes );
+}
+
+/**
+ * Formats a stylesheet link tag in the markup Core printed before wp_get_style_link_tag().
+ *
+ * Callbacks for filters such as {@see 'style_loader_tag'} and {@see 'wp_admin_css'} have long
+ * edited that markup as a string, so the values supplied here are printed as they were before:
+ * escaped with esc_url() for the `href` attribute and with esc_attr() otherwise, and single-quoted.
+ * A value which the {@see 'wp_style_attributes'} filter adds or changes is escaped by the Tag
+ * Processor instead.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<string, string|bool> $attributes     Key-value pairs representing `<link>` tag attributes.
+ * @param string                     $function_name  The function printing the tag, named in the notice
+ *                                                   issued when the filter changes the `id` attribute.
+ * @param array<string, string>      $escaped_values Optional. Values from `$attributes` which have already
+ *                                                   been escaped, keyed by attribute name, such as an `href`
+ *                                                   escaped with esc_url() for another use, so that they are
+ *                                                   not escaped again. Default empty array.
+ * @return string String containing a `<link>` tag.
+ *
+ * @phpstan-param array<non-empty-string, string|bool> $attributes
+ * @phpstan-return non-falsy-string
+ */
+function _wp_get_legacy_style_link_tag( array $attributes, string $function_name, array $escaped_values = array() ): string {
+	$filtered_attributes = _wp_filter_style_link_attributes( $attributes, $function_name );
+
+	$legacy_values = array();
+	foreach ( $attributes as $name => $value ) {
+		if ( ! is_string( $value ) || ! array_key_exists( $name, $filtered_attributes ) || $filtered_attributes[ $name ] !== $value ) {
+			continue;
+		}
+
+		if ( isset( $escaped_values[ $name ] ) ) {
+			$legacy_values[ $name ] = $escaped_values[ $name ];
+		} elseif ( 'href' === $name ) {
+			$legacy_values[ $name ] = esc_url( $value );
+		} else {
+			$legacy_values[ $name ] = esc_attr( $value );
+		}
+	}
+
+	// Attribute values are escaped, so the only double quotes in the tag are those delimiting them.
+	return str_replace( '"', "'", _wp_build_style_link_tag( $filtered_attributes, $legacy_values ) );
+}
+
+/**
+ * Applies the {@see 'wp_style_attributes'} filter to the attributes of a stylesheet link tag.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<string, string|bool|null> $attributes    Key-value pairs representing `<link>` tag attributes.
+ * @param string                          $function_name The function printing the tag, named in the notice
+ *                                                       issued when the filter changes the `id` attribute.
+ * @return array<string, string|bool|null> Filtered attributes.
+ *
+ * @phpstan-param array<non-empty-string, string|bool|null> $attributes
+ */
+function _wp_filter_style_link_attributes( array $attributes, string $function_name ) {
+	/**
+	 * Filters attributes to be added to a stylesheet link tag.
+	 *
+	 * This applies to the stylesheet links printed by Core, including those for enqueued styles,
+	 * whose `id` attribute is the style's handle with `-css` appended, or `-rtl-css` for a
+	 * right-to-left stylesheet. For an enqueued style the URL passed to the
+	 * {@see 'style_loader_tag'} filter is the one from before this filter, even when this
+	 * filter changes the `href` attribute.
+	 *
+	 * Attribute values are not yet escaped. The `href` attribute is escaped with esc_url() when the
+	 * tag is printed, which applies the {@see 'clean_url'} filter and omits a URL with a disallowed
+	 * protocol, so the printed URL may differ from the one passed to this filter.
+	 *
+	 * The `id` attribute, when supplied, cannot be changed or removed by this filter, since other
+	 * code may locate the `<link>` tag by it. For example, the user profile screen locates the
+	 * `colors-css` stylesheet to preview a color scheme.
+	 *
+	 * @since 7.3.0
+	 *
+	 * @param array<string, string|bool|null> $attributes Key-value pairs representing `<link>` tag attributes.
+	 *                                                    Only the attribute name is added to the `<link>` tag
+	 *                                                    for entries whose value is `true` or `null`, and
+	 *                                                    entries whose value is `false` are omitted.
+	 */
+	$filtered_attributes = apply_filters( 'wp_style_attributes', $attributes );
+
+	if ( ! isset( $attributes['id'] ) ) {
+		return $filtered_attributes;
+	}
+
+	if ( ( $filtered_attributes['id'] ?? null ) !== $attributes['id'] ) {
+		_doing_it_wrong(
+			$function_name,
+			sprintf(
+				/* translators: 1: id, 2: wp_style_attributes */
+				__( 'The %1$s attribute cannot be changed by the %2$s filter.' ),
+				'<code>id</code>',
+				'<code>wp_style_attributes</code>'
+			),
+			'7.3.0'
+		);
+	}
+
+	// Retain the supplied ID in place of the first lexical variation of its name, or after the others when removed.
+	$retained_attributes = array();
+	foreach ( $filtered_attributes as $name => $value ) {
+		if ( 'id' !== strtolower( (string) $name ) ) {
+			$retained_attributes[ $name ] = $value;
+		} elseif ( ! isset( $retained_attributes['id'] ) ) {
+			$retained_attributes['id'] = $attributes['id'];
+		}
+	}
+	$retained_attributes['id'] = $attributes['id'];
+
+	return $retained_attributes;
+}
+
+/**
+ * Builds a `<link>` tag from attributes which have already been filtered.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param array<string, string|bool|null> $attributes     Key-value pairs representing `<link>` tag attributes.
+ * @param array<string, string>           $escaped_values Optional. Values which have already been escaped, keyed
+ *                                                        by attribute name, to print as-is. Default empty array.
+ * @return string String containing a `<link>` tag.
+ *
+ * @phpstan-return non-falsy-string
+ */
+function _wp_build_style_link_tag( $attributes, array $escaped_values = array() ): string {
+	$html = '<link';
+	$seen = array();
+
+	foreach ( $attributes as $name => $value ) {
+		$name = (string) $name;
+
+		/*
+		 * Lexical variations of an attribute name may represent the same attribute in HTML.
+		 * Calling code should rewrite an attribute's value rather than sending a duplicate,
+		 * so only the first is used, even when its value omits the attribute.
+		 */
+		$normalized_name = strtolower( $name );
+		if ( isset( $seen[ $normalized_name ] ) ) {
+			continue;
+		}
+		$seen[ $normalized_name ] = true;
+
+		if ( false === $value ) {
+			continue;
+		}
+
+		if ( isset( $escaped_values[ $name ] ) ) {
+			// Escaping functions are filterable, so a quote must not end the value early.
+			$html .= " {$name}=\"" . strtr(
+				$escaped_values[ $name ],
+				array(
+					'"' => '&quot;',
+					"'" => '&#039;',
+				)
+			) . '"';
+			continue;
+		}
+
+		/*
+		 * The Tag Processor adds new attributes to a tag in alphabetical order, so each attribute
+		 * is set on a tag of its own, which escapes and validates it, and then printed in the
+		 * order given. A rejected name or value, such as a URL with a disallowed protocol, is
+		 * left out.
+		 */
+		$processor = new WP_HTML_Tag_Processor( '<link>' );
+		$processor->next_tag();
+		if ( $processor->set_attribute( $name, $value ?? true ) ) {
+			$html .= substr( $processor->get_updated_html(), strlen( '<link' ), -1 );
+		}
+	}
+
+	return "{$html} />\n";
 }
 
 /**

@@ -83,6 +83,551 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_style_attributes_filter_runs_before_legacy_style_loader_tag_filter() {
+		$source = 'https://example.com/style.css?one=1&two=2';
+
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'style-nonce';
+				return $attributes;
+			}
+		);
+		$attributes_filter = new MockAction();
+		add_filter( 'wp_style_attributes', array( $attributes_filter, 'filter' ), 20 );
+		$legacy_filter = new MockAction();
+		add_filter( 'style_loader_tag', array( $legacy_filter, 'filter' ), 10, 4 );
+
+		wp_enqueue_style( 'filtered-style', $source, array(), null, 'screen' );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$this->assertSame( 1, $attributes_filter->get_call_count() );
+		$this->assertSame( $source, $attributes_filter->get_args()[0][0]['href'], 'The attributes filter should be passed the unescaped URL.' );
+
+		$this->assertSame( 1, $legacy_filter->get_call_count() );
+		list( $tag, $handle, $href, $media ) = $legacy_filter->get_args()[0];
+		$this->assertSame( 'filtered-style', $handle );
+		$this->assertSame( esc_url( $source ), $href, 'The style_loader_tag filter should be passed the escaped URL.' );
+		$this->assertSame( 'screen', $media );
+		$this->assertSame( $markup, $tag );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'style-nonce', $processor->get_attribute( 'nonce' ) );
+		$this->assertSame( $source, $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_style_attribute_quotes_do_not_create_extra_attributes() {
+		$attribute_value = "It's O'Reilly's \"quoted\" text; data-injected=\"should-remain-text\"";
+
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ) use ( $attribute_value ): array {
+				$attributes['data-quote-test'] = $attribute_value;
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'quoted-style', 'https://example.com/style.css', array(), null );
+
+		$processor = new WP_HTML_Tag_Processor( get_echo( 'wp_print_styles' ) );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( $attribute_value, $processor->get_attribute( 'data-quote-test' ) );
+		$this->assertNull( $processor->get_attribute( 'data-injected' ) );
+	}
+
+	/**
+	 * Attributes added by the wp_style_attributes filter are printed after Core's, in the same quotes.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_rtl_alternate_styles_use_both_attribute_and_legacy_filters() {
+		global $wp_styles;
+
+		$wp_styles->text_direction = 'rtl';
+
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['data-filter'] = 'applied';
+				return $attributes;
+			}
+		);
+		$legacy_filter = new MockAction();
+		add_filter( 'style_loader_tag', array( $legacy_filter, 'filter' ), 10, 4 );
+
+		wp_enqueue_style( 'theme-style', 'https://example.com/theme.css', array(), null );
+		wp_style_add_data( 'theme-style', 'alt', true );
+		wp_style_add_data( 'theme-style', 'title', 'Alternate theme' );
+		wp_style_add_data( 'theme-style', 'rtl', true );
+
+		$expected = <<<'HTML'
+<link rel='alternate stylesheet' id='theme-style-css' title='Alternate theme' href='https://example.com/theme.css' media='all' data-filter='applied' />
+<link rel='alternate stylesheet' id='theme-style-rtl-css' title='Alternate theme' href='https://example.com/theme-rtl.css' media='all' data-filter='applied' />
+
+HTML;
+
+		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertSame(
+			array( esc_url( 'https://example.com/theme.css' ), esc_url( 'https://example.com/theme-rtl.css' ) ),
+			array_column( $legacy_filter->get_args(), 2 ),
+			'The style_loader_tag filter should be passed each escaped URL.'
+		);
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers ::_print_styles
+	 */
+	public function test_concatenated_styles_apply_style_attributes_once_without_legacy_filter() {
+		global $wp_styles;
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'concatenated-style';
+				return $attributes;
+			}
+		);
+		$attributes_filter = new MockAction();
+		add_filter( 'wp_style_attributes', array( $attributes_filter, 'filter' ), 20 );
+		$legacy_filter = new MockAction();
+		add_filter( 'style_loader_tag', array( $legacy_filter, 'filter' ) );
+
+		wp_enqueue_style( 'concat-one', '/wp-admin/one.css', array(), null );
+		wp_enqueue_style( 'concat-two', '/wp-admin/two.css', array(), null );
+
+		wp_print_styles();
+		$markup = get_echo( '_print_styles' );
+
+		$this->assertSame( 1, $attributes_filter->get_call_count() );
+		$this->assertSame( 0, $legacy_filter->get_call_count() );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'concatenated-style', $processor->get_attribute( 'nonce' ) );
+		$this->assertStringContainsString( 'load-styles.php', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers ::wp_admin_css
+	 */
+	public function test_wp_admin_css_uses_style_attributes_and_legacy_filter() {
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'admin-style';
+				return $attributes;
+			}
+		);
+		$legacy_filter = new MockAction();
+		add_filter( 'wp_admin_css', array( $legacy_filter, 'filter' ), 10, 2 );
+
+		$markup = get_echo( 'wp_admin_css', array( 'style-link-api-test' ) );
+
+		$this->assertSame(
+			array( array( $markup, 'style-link-api-test' ) ),
+			$legacy_filter->get_args(),
+			'The wp_admin_css filter should be passed the tag with the filtered attributes.'
+		);
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertSame( 'admin-style', $processor->get_attribute( 'nonce' ) );
+		$this->assertStringContainsString( 'style-link-api-test.css', $processor->get_attribute( 'href' ) );
+	}
+
+	/**
+	 * The URL printed by locale_stylesheet() is escaped.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers ::locale_stylesheet
+	 */
+	public function test_locale_stylesheet_uses_style_attributes_filter() {
+		add_filter(
+			'locale_stylesheet_uri',
+			static function (): string {
+				return 'https://example.com/locale.css?one=1&two=2';
+			}
+		);
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'locale-style';
+				return $attributes;
+			}
+		);
+
+		$this->assertSame(
+			"<link rel=\"stylesheet\" href=\"https://example.com/locale.css?one=1&#038;two=2\" media=\"screen\" nonce=\"locale-style\" />\n",
+			get_echo( 'locale_stylesheet' )
+		);
+	}
+
+	/**
+	 * Callbacks for the style_loader_tag filter edit the markup as a string, so it must not change.
+	 *
+	 * This compares exact strings, rather than equivalent HTML, since the quoting style and the order
+	 * of the attributes are what such callbacks rely on.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_style_loader_tag_markup_is_unchanged() {
+		global $wp_styles;
+
+		$wp_styles->text_direction = 'rtl';
+
+		$legacy_filter = new MockAction();
+		add_filter( 'style_loader_tag', array( $legacy_filter, 'filter' ) );
+
+		wp_enqueue_style( 'unchanged', 'https://example.com/style.css?a=1&b=2', array(), '1.0', 'screen' );
+		wp_style_add_data( 'unchanged', 'alt', true );
+		wp_style_add_data( 'unchanged', 'title', 'Black & "white"' );
+		wp_style_add_data( 'unchanged', 'rtl', true );
+
+		$markup = get_echo( 'wp_print_styles' );
+
+		$expected = array(
+			"<link rel='alternate stylesheet' id='unchanged-css' title='Black &amp; &quot;white&quot;' href='https://example.com/style.css?a=1&#038;b=2&#038;ver=1.0' media='screen' />\n",
+			"<link rel='alternate stylesheet' id='unchanged-rtl-css' title='Black &amp; &quot;white&quot;' href='https://example.com/style-rtl.css?a=1&#038;b=2&#038;ver=1.0' media='screen' />\n",
+		);
+
+		$this->assertSame( $expected, array_column( $legacy_filter->get_args(), 0 ), 'The style_loader_tag filter should be passed the historical markup.' );
+		$this->assertSame( implode( '', $expected ), $markup, 'The historical markup should be printed.' );
+	}
+
+	/**
+	 * Values are escaped with esc_attr() in the markup passed to the style_loader_tag filter, as before.
+	 *
+	 * Each value is one which esc_attr() escapes differently from the Tag Processor, which builds the
+	 * tags printed by wp_get_style_link_tag().
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 *
+	 * @dataProvider data_style_loader_tag_markup_escapes_values_as_before
+	 *
+	 * @param string      $handle   Style handle.
+	 * @param string|bool $media    The media argument passed to wp_enqueue_style().
+	 * @param string|bool $title    Title of the style, or false for none.
+	 * @param string      $expected Expected markup.
+	 */
+	public function test_style_loader_tag_markup_escapes_values_as_before( $handle, $media, $title, $expected ) {
+		wp_enqueue_style( $handle, 'https://example.com/style.css', array(), null, $media );
+		if ( false !== $title ) {
+			wp_style_add_data( $handle, 'title', $title );
+		}
+
+		$this->assertSame( $expected, get_echo( 'wp_print_styles' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ 0: string, 1: string|bool, 2: string|bool, 3: string }>
+	 */
+	public static function data_style_loader_tag_markup_escapes_values_as_before(): array {
+		return array(
+			'apostrophe in title'           => array( 'apostrophe', 'all', "Editor's choice", "<link rel='stylesheet' id='apostrophe-css' title='Editor&#039;s choice' href='https://example.com/style.css' media='all' />\n" ),
+			'character references in title' => array( 'references', 'all', 'L&#039;ancienne &amp; co', "<link rel='stylesheet' id='references-css' title='L&#039;ancienne &amp; co' href='https://example.com/style.css' media='all' />\n" ),
+			'invalid UTF-8 in title'        => array( 'invalid', 'all', "bad\xC3\x28", "<link rel='stylesheet' id='invalid-css' title='' href='https://example.com/style.css' media='all' />\n" ),
+			'true title'                    => array( 'true-title', 'all', true, "<link rel='stylesheet' id='true-title-css' title='1' href='https://example.com/style.css' media='all' />\n" ),
+			'apostrophe in handle'          => array( "editor's", 'all', false, "<link rel='stylesheet' id='editor&#039;s-css' href='https://example.com/style.css' media='all' />\n" ),
+			'character reference in handle' => array( 'a&amp;b', 'all', false, "<link rel='stylesheet' id='a&amp;b-css' href='https://example.com/style.css' media='all' />\n" ),
+			'true media'                    => array( 'true-media', true, false, "<link rel='stylesheet' id='true-media-css' href='https://example.com/style.css' media='1' />\n" ),
+			'false media'                   => array( 'false-media', false, false, "<link rel='stylesheet' id='false-media-css' href='https://example.com/style.css' media='' />\n" ),
+		);
+	}
+
+	/**
+	 * A media value which is not a string, such as the `$args` array of wp_enqueue_script() passed to
+	 * wp_enqueue_style() by mistake, is printed as before rather than causing a fatal error.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 */
+	public function test_array_media_is_printed_as_before() {
+		$errors = array();
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$errors ) {
+				$errors[] = $errstr;
+				return true;
+			},
+			E_WARNING | E_NOTICE
+		);
+
+		try {
+			wp_enqueue_style( 'array-media', 'https://example.com/style.css', array(), null, array( 'in_footer' => true ) );
+			$markup = get_echo( 'wp_print_styles' );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( array( 'Array to string conversion' ), $errors );
+		$this->assertSame( "<link rel='stylesheet' id='array-media-css' href='https://example.com/style.css' media='Array' />\n", $markup );
+	}
+
+	/**
+	 * A right-to-left URL which escaping empties is printed as an empty `href`, as before, without being escaped again.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_rtl_style_url_emptied_by_escaping_is_printed_empty_and_escaped_once() {
+		global $wp_styles;
+
+		$wp_styles->text_direction = 'rtl';
+
+		$escaped_urls = array();
+		add_filter(
+			'clean_url',
+			static function ( $url ) use ( &$escaped_urls ) {
+				$escaped_urls[] = $url;
+				return str_contains( $url, '-rtl.css' ) ? '' : $url;
+			}
+		);
+
+		wp_enqueue_style( 'blocked', 'https://example.com/style.css', array(), null );
+		wp_style_add_data( 'blocked', 'rtl', true );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='blocked-css' href='https://example.com/style.css' media='all' />\n" .
+			"<link rel='stylesheet' id='blocked-rtl-css' href='' media='all' />\n",
+			get_echo( 'wp_print_styles' )
+		);
+		$this->assertSame(
+			array( 'https://example.com/style.css', 'https://example.com/style-rtl.css' ),
+			$escaped_urls,
+			'Each URL should be escaped once.'
+		);
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_style_attributes_are_printed_after_core_attributes() {
+		$filter = static function ( $attributes ) {
+			$attributes['crossorigin']   = 'anonymous';
+			$attributes['fetchpriority'] = 'high';
+			return $attributes;
+		};
+
+		add_filter( 'wp_style_attributes', $filter );
+
+		wp_enqueue_style( 'ordered', 'https://example.com/style.css', array(), null );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='ordered-css' href='https://example.com/style.css' media='all' crossorigin='anonymous' fetchpriority='high' />\n",
+			$markup
+		);
+	}
+
+	/**
+	 * Scripts such as the user profile screen's color scheme picker locate a stylesheet by its ID.
+	 *
+	 * The notice names the method which printed the tag.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_filter_style_link_attributes
+	 */
+	public function test_style_attributes_filter_cannot_change_enqueued_style_id() {
+		$this->setExpectedIncorrectUsage( 'WP_Styles::do_item' );
+
+		$filter = static function ( $attributes ) {
+			$attributes['id'] = 'changed';
+			return $attributes;
+		};
+
+		add_filter( 'wp_style_attributes', $filter );
+
+		wp_enqueue_style( 'scheme', 'https://example.com/scheme.css', array(), null );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='scheme-css' href='https://example.com/scheme.css' media='all' />\n",
+			$markup
+		);
+	}
+
+	/**
+	 * An `href` changed by the wp_style_attributes filter is escaped, while the style_loader_tag filter
+	 * is still passed the URL from before that filter.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_style_attributes_filter_can_change_href() {
+		$filter = static function ( $attributes ) {
+			$attributes['href'] = 'https://cdn.example.com/style.css?a=1&b=2"onload="alert(1)';
+			return $attributes;
+		};
+
+		add_filter( 'wp_style_attributes', $filter );
+		$legacy_filter = new MockAction();
+		add_filter( 'style_loader_tag', array( $legacy_filter, 'filter' ), 10, 4 );
+
+		wp_enqueue_style( 'cdn', 'https://example.com/style.css?a=1&b=2', array(), null );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='cdn-css' href='https://cdn.example.com/style.css?a=1&#038;b=2onload=alert(1)' media='all' />\n",
+			$markup
+		);
+		$this->assertSame(
+			array( 'https://example.com/style.css?a=1&#038;b=2' ),
+			array_column( $legacy_filter->get_args(), 2 ),
+			'The style_loader_tag filter should be passed the escaped URL from before the wp_style_attributes filter.'
+		);
+	}
+
+	/**
+	 * An `href` which the wp_style_attributes filter changes to a URL with a disallowed protocol is
+	 * left out, without leaving an extra space in the markup passed to the style_loader_tag filter.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_build_style_link_tag
+	 */
+	public function test_style_attributes_filter_changing_href_to_disallowed_protocol_omits_it() {
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['href'] = 'javascript:alert(1)';
+				return $attributes;
+			}
+		);
+
+		wp_enqueue_style( 'disallowed', 'https://example.com/style.css', array(), null );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='disallowed-css' media='all' />\n",
+			get_echo( 'wp_print_styles' )
+		);
+	}
+
+	/**
+	 * A double quote from a filtered escaping function must not end the `href` attribute's value.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers WP_Styles::do_item
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_double_quote_from_clean_url_filter_stays_in_href() {
+		$filter = static function ( $url ) {
+			return $url . '"onload="alert(1)';
+		};
+
+		add_filter( 'clean_url', $filter );
+
+		wp_enqueue_style( 'quoted-url', 'https://example.com/style.css', array(), null );
+		$markup = get_echo( 'wp_print_styles' );
+
+		$this->assertSame(
+			"<link rel='stylesheet' id='quoted-url-css' href='https://example.com/style.css&quot;onload=&quot;alert(1)' media='all' />\n",
+			$markup
+		);
+	}
+
+	/**
+	 * A double quote from a filtered escaping function must not end the `href` attribute's value
+	 * in the tag printed by wp_admin_css(), whose URL was printed in single quotes before.
+	 *
+	 * @ticket 66342
+	 *
+	 * @covers ::wp_admin_css
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_double_quote_from_clean_url_filter_stays_in_wp_admin_css_href() {
+		add_filter(
+			'clean_url',
+			static function ( $url ) {
+				return $url . '"onload="alert(1)';
+			}
+		);
+
+		$markup = get_echo( 'wp_admin_css', array( 'style-link-api-test' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $markup );
+		$this->assertTrue( $processor->next_tag( 'link' ) );
+		$this->assertNull( $processor->get_attribute( 'onload' ), 'The double quote should not end the href attribute.' );
+		$this->assertStringEndsWith( "&quot;onload=&quot;alert(1)' />\n", $markup );
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers ::_print_styles
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_concatenated_styles_markup_is_unchanged() {
+		global $wp_styles;
+
+		$wp_styles->do_concat    = true;
+		$wp_styles->default_dirs = array( '/wp-admin/' );
+
+		wp_enqueue_style( 'concat-one', '/wp-admin/one.css', array(), null );
+		wp_enqueue_style( 'concat-two', '/wp-admin/two.css', array(), null );
+
+		wp_print_styles();
+		$markup = get_echo( '_print_styles' );
+
+		$this->assertMatchesRegularExpression(
+			"#^<link rel='stylesheet' href='[^']*/wp-admin/load-styles\\.php\\?dir=ltr&amp;load%5Bchunk_0%5D=concat-one,concat-two&amp;ver=[^']*' media='all' />\n$#",
+			$markup
+		);
+	}
+
+	/**
+	 * @ticket 66342
+	 *
+	 * @covers ::wp_admin_css
+	 * @covers ::_wp_get_legacy_style_link_tag
+	 */
+	public function test_wp_admin_css_markup_is_unchanged() {
+		$this->assertSame(
+			"<link rel='stylesheet' href='" . esc_url( wp_admin_css_uri( 'style-link-api-test' ) ) . "' />\n",
+			get_echo( 'wp_admin_css', array( 'style-link-api-test' ) )
+		);
+	}
+
+	/**
 	 * @ticket 42804
 	 */
 	public function test_wp_enqueue_style_with_html5_support_does_not_contain_type_attribute() {
