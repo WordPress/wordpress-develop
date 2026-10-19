@@ -344,9 +344,13 @@ function wptexturize( $text, $reset = false ) {
 				}
 			}
 
-			if ( $inline_apostrophe || str_contains( $curl, "'" ) ) {
-				$curl = preg_replace( $dynamic_characters['apos'], $dynamic_replacements['apos'], $curl );
-				$curl = wptexturize_primes( $curl, "'", $prime, $open_sq_flag, $closing_single_quote );
+			$has_apostrophe = str_contains( $curl, "'" );
+			if ( $inline_apostrophe || $has_apostrophe ) {
+				// A classified inline apostrophe only needs its marker restored.
+				if ( $has_apostrophe ) {
+					$curl = preg_replace( $dynamic_characters['apos'], $dynamic_replacements['apos'], $curl );
+					$curl = wptexturize_primes( $curl, "'", $prime, $open_sq_flag, $closing_single_quote );
+				}
 				// Inspect core's existing markers before restoring apostrophes, which
 				// can share a glyph with closing quotes in the current locale.
 				$last_open  = strrpos( $curl, $open_sq_flag );
