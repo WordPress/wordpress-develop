@@ -5,9 +5,6 @@
  *
  * @group load
  *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- *
  * @covers ::wp_start_scraping_edited_file_errors
  */
 class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
@@ -101,6 +98,9 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		$_REQUEST['wp_scrape_key']   = $key;
 		$_REQUEST['wp_scrape_nonce'] = $nonce;
 
+		// This registers wp_finalize_scraping_edited_file_errors() as a shutdown function.
+		// It only prints scrape markers when the isolated child process exits, after
+		// PHPUnit has reported the result, so it doesn't affect the test outcome.
 		wp_start_scraping_edited_file_errors();
 
 		$this->assertTrue( defined( 'WP_SANDBOX_SCRAPING' ) );
