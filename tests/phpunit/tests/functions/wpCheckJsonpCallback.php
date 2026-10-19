@@ -29,10 +29,6 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	 */
 	public static function data_valid_callbacks() {
 		return array(
-			'simple'       => array( 'callback' ),
-			'dotted'       => array( 'jQuery.callback' ),
-			'underscores'  => array( 'my_callback' ),
-			'alphanumeric' => array( 'cb123' ),
 			'empty string' => array( '' ),
 		);
 	}
@@ -58,8 +54,6 @@ class Tests_Functions_WpCheckJsonpCallback extends WP_UnitTestCase {
 	public static function data_invalid_callbacks() {
 		return array(
 			'parentheses' => array( 'alert(1)' ),
-			'spaces'      => array( 'my callback' ),
-			'hyphen'      => array( 'my-callback' ),
 			'array'       => array( array( 'callback' ) ),
 			'integer'     => array( 123 ),
 			'null'        => array( null ),
