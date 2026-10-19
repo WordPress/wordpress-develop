@@ -5,6 +5,9 @@
  *
  * @group load
  *
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ *
  * @covers ::wp_start_scraping_edited_file_errors
  */
 class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
