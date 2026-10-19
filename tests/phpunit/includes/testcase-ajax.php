@@ -23,7 +23,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	protected static $_core_actions_get = array(
 		'fetch-list',
 		'ajax-tag-search',
-		'wp-compression-test',
 		'imgedit-preview',
 		'oembed-cache',
 		'autocomplete-user',
