@@ -68,6 +68,14 @@ class Tests_Load_WpIsMaintenanceMode extends WP_UnitTestCase {
 	/**
 	 * Writes a `.maintenance` file with the given upgrading timestamp.
 	 *
+	 * Note: wp_is_maintenance_mode() hard-codes the path to ABSPATH . '.maintenance',
+	 * so this writes a real file there rather than into a temporary directory.
+	 * tear_down() removes it. If a test run stops partway through (for example,
+	 * a fatal error or an interrupted process), the file can be left behind, and
+	 * the next WordPress bootstrap will stop in maintenance mode until the
+	 * timestamp expires (up to 10 minutes). If that happens, delete the
+	 * `.maintenance` file from the WordPress root manually.
+	 *
 	 * @param int $upgrading Unix timestamp.
 	 */
 	private function write_maintenance_file( $upgrading ) {
