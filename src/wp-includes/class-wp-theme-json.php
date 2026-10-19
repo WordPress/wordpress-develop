@@ -3973,8 +3973,6 @@ class WP_Theme_JSON {
 	 *
 	 * @param array<string, mixed> $settings Settings from theme.json.
 	 * @return string[] Style-state keys.
-	 *
-	 * @phpstan-return list<string>
 	 */
 	private static function get_style_state_keys( array $settings ): array {
 		$keys = array_keys( static::get_viewport_media_queries( $settings['viewport'] ?? null ) );
@@ -4005,8 +4003,6 @@ class WP_Theme_JSON {
 	 * @param array<string, mixed> $tree     The theme.json tree to read from.
 	 * @param array<string, mixed> $settings Settings from theme.json.
 	 * @return array[] Style objects, nearest first.
-	 *
-	 * @phpstan-return list<array<string, mixed>>
 	 */
 	private static function get_state_base_styles( array $path, array $tree, array $settings ): array {
 		$state_keys  = self::get_style_state_keys( $settings );
@@ -4039,21 +4035,6 @@ class WP_Theme_JSON {
 	 * @return array[] Declarations with the escapes applied where needed.
 	 *
 	 * @phpstan-param list<array{ name: non-falsy-string, value: scalar }> $declarations
-	 * @phpstan-param array{
-	 *     background?: array{
-	 *         backgroundClip?: mixed,
-	 *         backgroundImage?: mixed,
-	 *         gradient?: mixed,
-	 *         ...
-	 *     },
-	 *     color?: array{
-	 *         gradient?: mixed,
-	 *         text?: mixed,
-	 *         ...
-	 *     },
-	 *     ...
-	 * } $state_style
-	 * @phpstan-param list<array<string, mixed>> $base_styles
 	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
 	 */
 	private static function get_state_declarations_with_text_clip_escapes( array $declarations, array $state_style, array $base_styles ): array {

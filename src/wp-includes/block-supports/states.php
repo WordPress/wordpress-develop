@@ -452,8 +452,6 @@ function wp_get_block_state_element_selectors( $root_selector ) {
  * @param array<string, mixed>      $style       Style object.
  * @param string|null               $rules_group Optional CSS grouping rule, e.g. a media query.
  * @param array<string, mixed>|null $base_style  Optional styles the state layers over.
- *
- * @phpstan-param list<array<string, mixed>> $css_rules
  */
 function wp_add_block_state_style_rule( &$css_rules, $state, $selector, $style, $rules_group = null, $base_style = null ) {
 	if ( empty( $style ) || ! is_array( $style ) ) {
@@ -507,8 +505,6 @@ function wp_add_block_state_style_rule( &$css_rules, $state, $selector, $style, 
  * @param string|null               $rules_group  Optional CSS grouping rule, e.g. a media query.
  * @param array<string, mixed>|null $base_style   Optional styles the state layers over.
  * @return array[] State style rules.
- *
- * @phpstan-return list<array<string, mixed>>
  */
 function wp_get_block_state_style_rules( $state_styles, $block_type, $rules_group = null, $base_style = null ) {
 	// Only a block that supports the clip can sit under a text clip to escape.
