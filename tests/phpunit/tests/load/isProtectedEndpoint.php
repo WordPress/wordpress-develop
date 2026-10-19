@@ -103,12 +103,9 @@ class Tests_Load_IsProtectedEndpoint extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_returns_true_for_protected_ajax_action() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		$_REQUEST['action'] = 'heartbeat';
 
 		$this->assertTrue( is_protected_endpoint() );
@@ -116,12 +113,9 @@ class Tests_Load_IsProtectedEndpoint extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_returns_false_for_unprotected_ajax_action() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		$_REQUEST['action'] = 'custom-action';
 
 		$this->assertFalse( is_protected_endpoint() );
@@ -129,12 +123,9 @@ class Tests_Load_IsProtectedEndpoint extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_admin_ajax_without_protected_action_is_not_protected() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		set_current_screen( 'dashboard' );
 		$_REQUEST['action'] = 'custom-action';
 
