@@ -6917,7 +6917,9 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 	}
 
 	$settings = wp_get_media_library_upload_settings();
-	$screen   = get_current_screen();
+
+	// wp_enqueue_media() can run on the front end, where there is no screen.
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
 
 	// The block editor configures the upload-media store itself; the pipeline waits for it.
 	$settings['isBlockEditor'] = $screen && $screen->is_block_editor();
