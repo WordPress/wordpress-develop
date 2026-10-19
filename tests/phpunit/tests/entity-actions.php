@@ -438,6 +438,83 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The script modules of every entity are listed by entity kind, then by
+	 * entity name, in registration order.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_are_listed_by_kind_and_name() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ), 'plugin/post-actions' );
+		$this->register_actions( 'taxonomy', 'category', array( $this->action( 'merge' ) ), 'plugin/term-actions' );
+
+		$this->assertSame(
+			array(
+				'postType' => array(
+					'page' => array( 'core/defaults' ),
+					'post' => array( 'plugin/post-actions' ),
+				),
+				'taxonomy' => array(
+					'category' => array( 'plugin/term-actions' ),
+				),
+			),
+			wp_get_all_registered_entity_action_modules()
+		);
+	}
+
+	/**
+	 * A numeric script module id is listed as a string, although PHP turns it
+	 * into an integer as an array key.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_lists_a_numeric_module_id_as_a_string() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ), '42' );
+
+		$modules = wp_get_all_registered_entity_action_modules();
+
+		$this->assertSame( array( '42' ), $modules['postType']['post'] );
+	}
+
+	/**
+	 * An entity whose actions have no script module is not listed.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_skips_entities_without_a_module() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ) );
+
+		$modules = wp_get_all_registered_entity_action_modules();
+
+		$this->assertArrayNotHasKey( 'post', $modules['postType'] );
+		$this->assertSame( array( 'core/defaults' ), $modules['postType']['page'], 'The entities with a module are still listed.' );
+	}
+
+	/**
+	 * Reading the script modules while `init` runs is refused: nothing is
+	 * listed, and the registry is not read, so the action is not fired.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_are_empty_while_init_runs() {
+		global $wp_current_filter;
+
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
+		self::reset_registry();
+		$fired = did_action( 'wp_entity_actions_api_init' );
+
+		// Act as if a callback hooked to `init` read the modules.
+		$wp_current_filter[] = 'init';
+		try {
+			$modules = wp_get_all_registered_entity_action_modules();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
+
+		$this->assertSame( array(), $modules );
+		$this->assertSame( $fired, did_action( 'wp_entity_actions_api_init' ), 'The action is not fired.' );
+	}
+
+	/**
 	 * Reading the registry fires `wp_entity_actions_api_init` once, whichever
 	 * getter is read first and however many times it is read.
 	 *
