@@ -1330,6 +1330,8 @@ function wp_map_nav_menu_locations( $new_nav_menu_locations, $old_nav_menu_locat
  *
  * @param array $menu_item_data The menu item data array.
  * @return array The menu item data with reset menu_item_parent.
+ *
+ * @phpstan-pure
  */
 function _wp_reset_invalid_menu_item_parent( $menu_item_data ) {
 	if ( ! is_array( $menu_item_data ) ) {

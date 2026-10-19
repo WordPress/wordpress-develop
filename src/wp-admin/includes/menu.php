@@ -211,6 +211,7 @@ unset( $id, $data, $subs, $first_sub );
  *
  * @phpstan-template T of string
  * @phpstan-param T $class_to_add
+ * @phpstan-pure
  * @phpstan-return ( $classes is empty ? T : non-empty-string )
  */
 function add_cssclass( $class_to_add, $classes ) {

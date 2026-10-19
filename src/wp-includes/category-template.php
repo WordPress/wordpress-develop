@@ -803,6 +803,8 @@ function wp_tag_cloud( $args = '' ) {
  *
  * @param int $count Number of posts with that tag.
  * @return int Scaled count.
+ *
+ * @phpstan-pure
  */
 function default_topic_count_scale( $count ) {
 	return (int) round( log10( $count + 1 ) * 100 );

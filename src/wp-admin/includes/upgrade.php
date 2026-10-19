@@ -3716,6 +3716,8 @@ function make_site_theme() {
  *
  * @param int $level User level.
  * @return string User role name.
+ *
+ * @phpstan-pure
  */
 function translate_level_to_role( $level ) {
 	switch ( $level ) {

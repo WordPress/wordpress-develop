@@ -252,6 +252,8 @@ function _register_core_block_patterns_and_categories() {
  *
  * @param array $pattern Pattern as returned from the Pattern Directory API.
  * @return array Normalized pattern.
+ *
+ * @phpstan-pure
  */
 function wp_normalize_remote_block_pattern( $pattern ) {
 	if ( isset( $pattern['block_types'] ) ) {

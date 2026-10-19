@@ -262,6 +262,8 @@ function translate( $text, $domain = 'default' ) {
  *
  * @param string $text A pipe-delimited string.
  * @return string Either $text or everything before the last pipe.
+ *
+ * @phpstan-pure
  */
 function before_last_bar( $text ) {
 	$last_bar = strrpos( $text, '|' );
@@ -678,6 +680,7 @@ function _nx( $single, $plural, $number, $context, $domain = 'default' ) {
  *     @type string|null $domain   Text domain.
  * }
  *
+ * @phpstan-pure
  * @phpstan-param literal-string $singular
  * @phpstan-param literal-string $plural
  * @phpstan-param literal-string|null $domain
@@ -736,6 +739,7 @@ function _n_noop( $singular, $plural, $domain = null ) {
  *     @type string|null $domain   Text domain.
  * }
  *
+ * @phpstan-pure
  * @phpstan-param literal-string $singular
  * @phpstan-param literal-string $plural
  * @phpstan-param literal-string $context
