@@ -36,7 +36,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * Links related to the response.
 	 *
 	 * @since 4.4.0
-	 * @var array<string, array[]> Map of link relation to list of links.
+	 * @var array<string, array<string, mixed>[]> Map of link relation to list of links.
 	 * @phpstan-var array<string, array<Link>>
 	 */
 	protected $links = array();
@@ -53,7 +53,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * The handler that was used to create the response.
 	 *
 	 * @since 4.4.0
-	 * @var null|array
+	 * @var array<string, mixed>|null
 	 * @phpstan-var Route_Handler|null
 	 */
 	protected $matched_handler = null;
@@ -124,7 +124,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array<string, array> $links Map of link relation to a link's attributes, or to a list of these.
+	 * @param array<string, array<mixed>> $links Map of link relation to a link's attributes, or to a list of these.
 	 *
 	 * @phpstan-param array<string, Link_Input|list<Link_Input>> $links
 	 */
@@ -146,7 +146,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array<string, array[]> Map of link relation to list of links.
+	 * @return array<string, array<string, mixed>[]> Map of link relation to list of links.
 	 *
 	 * @phpstan-return array<string, array<Link>>
 	 */
@@ -209,7 +209,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return null|array The handler that was used to create the response.
+	 * @return array<string, mixed>|null The handler that was used to create the response.
 	 *
 	 * @phpstan-return Route_Handler|null
 	 */
@@ -222,7 +222,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $handler The matched handler.
+	 * @param array<string, mixed> $handler The matched handler.
 	 *
 	 * @phpstan-param Route_Handler $handler
 	 */
@@ -276,7 +276,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @return array[] Compact URIs.
+	 * @return array<string, string|bool>[] Compact URIs.
 	 *
 	 * @phpstan-return array<Curie>
 	 */
@@ -312,7 +312,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param array[] $additional Additional CURIEs to register with the REST API.
+		 * @param array<string, string|bool>[] $additional Additional CURIEs to register with the REST API.
 		 *
 		 * @phpstan-param array<array{name: string, href: string, templated?: bool}> $additional
 		 */

@@ -79,7 +79,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * superglobals when being created from the global scope.
 	 *
 	 * @since 4.4.0
-	 * @var array Contains GET, POST and FILES keys mapping to arrays of data.
+	 * @var array<string, mixed> Contains GET, POST and FILES keys mapping to arrays of data.
 	 * @phpstan-var Params
 	 */
 	protected $params;
@@ -116,7 +116,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * containing the callback as well as the valid methods for the route.
 	 *
 	 * @since 4.4.0
-	 * @var array Attributes for the request.
+	 * @var array<string, mixed> Attributes for the request.
 	 * @phpstan-var Attributes
 	 */
 	protected $attributes = array();
@@ -144,9 +144,9 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $method     Optional. Request method. Default empty.
-	 * @param string $route      Optional. Request route. Default empty.
-	 * @param array  $attributes Optional. Request attributes. Default empty array.
+	 * @param string               $method     Optional. Request method. Default empty.
+	 * @param string               $route      Optional. Request route. Default empty.
+	 * @param array<string, mixed> $attributes Optional. Request attributes. Default empty array.
 	 *
 	 * @phpstan-param Attributes $attributes
 	 */
@@ -644,7 +644,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<string, array<string, string|int>> Parameter map of key to value.
 	 *
 	 * @phpstan-return array<string, File_Param>
 	 */
@@ -659,7 +659,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $params Parameter map of key to value.
+	 * @param array<string, array<string, string|int>> $params Parameter map of key to value.
 	 *
 	 * @phpstan-param array<string, File_Param> $params
 	 */
@@ -848,7 +848,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Attributes for the request.
+	 * @return array<string, mixed> Attributes for the request.
 	 *
 	 * @phpstan-return Attributes
 	 */
@@ -861,7 +861,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $attributes Attributes for the request.
+	 * @param array<string, mixed> $attributes Attributes for the request.
 	 *
 	 * @phpstan-param Attributes $attributes
 	 */

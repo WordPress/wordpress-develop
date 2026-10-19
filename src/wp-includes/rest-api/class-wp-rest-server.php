@@ -1216,7 +1216,7 @@ class WP_REST_Server {
 	 * @since 5.6.0
 	 *
 	 * @param WP_REST_Request $request The request object.
-	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 * @return array<int, string|array<string, mixed>>|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
 	 *
 	 * @phpstan-return array{non-empty-string, Route_Handler}|WP_Error
 	 */
@@ -1299,10 +1299,10 @@ class WP_REST_Server {
 	 * @access private
 	 * @since 5.6.0
 	 *
-	 * @param WP_REST_Request $request  The request object.
-	 * @param string          $route    The matched route regex.
-	 * @param array           $handler  The matched route handler.
-	 * @param WP_Error|null   $response The current error object if any.
+	 * @param WP_REST_Request      $request  The request object.
+	 * @param string               $route    The matched route regex.
+	 * @param array<string, mixed> $handler  The matched route handler.
+	 * @param WP_Error|null        $response The current error object if any.
 	 * @return WP_REST_Response
 	 *
 	 * @phpstan-param Route_Handler $handler
