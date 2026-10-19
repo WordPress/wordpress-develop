@@ -10588,9 +10588,14 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "status": {
-                            "default": "approve",
-                            "description": "Limit result set to comments assigned a specific status. Requires authorization.",
-                            "type": "string",
+                            "default": [
+                                "approve"
+                            ],
+                            "description": "Limit result set to comments assigned one or more statuses. Requires authorization.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "type": {
@@ -11153,7 +11158,7 @@ mockedApiResponse.Schema = {
                         },
                         "url": {
                             "title": "",
-                            "description": "Site URL.",
+                            "description": "The URL where WordPress core files are served. May differ from the public site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false
@@ -13078,6 +13083,7 @@ mockedApiResponse.Schema = {
     "image_size_threshold": 2560,
     "image_strip_meta": true,
     "image_max_bit_depth": 16,
+    "generate_animated_image_subsizes": true,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
