@@ -6932,7 +6932,8 @@ function wp_send_document_isolation_policy_header(): bool {
  * @return bool True when the response will be cross-origin isolated.
  */
 function wp_is_cross_origin_isolated_request(): bool {
-	if ( ! empty( $GLOBALS['_wp_cross_origin_isolated'] ) ) {
+	global $_wp_cross_origin_isolated;
+	if ( $_wp_cross_origin_isolated ) {
 		return true;
 	}
 
