@@ -236,6 +236,23 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A plugin calling wp_enqueue_media() on media-new.php enqueues both
+	 * screen scripts, which share the pipeline script and its settings.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_inline_settings_added_once_when_both_scripts_enqueued() {
+		wp_enqueue_media_frame_upload();
+		wp_enqueue_media_new_upload();
+
+		$inline = wp_scripts()->get_inline_script_data( 'media-upload-pipeline', 'before' );
+
+		$this->assertTrue( wp_script_is( 'media-frame-upload', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'media-new-upload', 'enqueued' ) );
+		$this->assertSame( 1, substr_count( $inline, '_wpMediaUploadPipelineSettings' ) );
+	}
+
+	/**
 	 * wp_max_upload_size() passes the `upload_size_limit` filter result through
 	 * unchanged; only the pipeline settings clamp it.
 	 *
