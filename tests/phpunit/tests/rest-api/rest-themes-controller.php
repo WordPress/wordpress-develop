@@ -37,15 +37,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $admin_id;
 
 	/**
-	 * The current theme object.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @var WP_Theme $current_theme
-	 */
-	protected static $current_theme;
-
-	/**
 	 * Theme support state before the class tests run.
 	 *
 	 * @var array
@@ -128,7 +119,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		self::$current_theme             = wp_get_theme();
 		self::$theme_features            = $GLOBALS['_wp_theme_features'];
 		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
@@ -158,7 +148,14 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		parent::set_up();
 
 		wp_set_current_user( self::$contributor_id );
-		switch_theme( 'rest-api' );
+
+		// Select the fixture theme without running theme activation side effects.
+		update_option( 'template', 'default' );
+		update_option( 'stylesheet', 'rest-api' );
+		update_option( 'template_root', DIR_TESTDATA . '/themedir1' );
+		update_option( 'stylesheet_root', DIR_TESTDATA . '/themedir1' );
+		wp_set_template_globals();
+		wp_clean_theme_json_cache();
 	}
 
 	public function tear_down() {
