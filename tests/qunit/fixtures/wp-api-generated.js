@@ -10588,9 +10588,14 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "status": {
-                            "default": "approve",
-                            "description": "Limit result set to comments assigned a specific status. Requires authorization.",
-                            "type": "string",
+                            "default": [
+                                "approve"
+                            ],
+                            "description": "Limit result set to comments assigned one or more statuses. Requires authorization.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "type": {
@@ -11153,7 +11158,7 @@ mockedApiResponse.Schema = {
                         },
                         "url": {
                             "title": "",
-                            "description": "Site URL.",
+                            "description": "The URL where WordPress core files are served. May differ from the public site URL.",
                             "type": "string",
                             "format": "uri",
                             "required": false
@@ -11234,6 +11239,12 @@ mockedApiResponse.Schema = {
                         "page_for_posts": {
                             "title": "",
                             "description": "The ID of the page that should display the latest posts",
+                            "type": "integer",
+                            "required": false
+                        },
+                        "page_for_privacy_policy": {
+                            "title": "",
+                            "description": "The ID of the page that should be displayed as the privacy policy page",
                             "type": "integer",
                             "required": false
                         },
@@ -13072,6 +13083,7 @@ mockedApiResponse.Schema = {
     "image_size_threshold": 2560,
     "image_strip_meta": true,
     "image_max_bit_depth": 16,
+    "generate_animated_image_subsizes": true,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""
@@ -14932,6 +14944,7 @@ mockedApiResponse.settings = {
     "show_on_front": "posts",
     "page_on_front": 0,
     "page_for_posts": 0,
+    "page_for_privacy_policy": 0,
     "default_ping_status": "open",
     "default_comment_status": "open",
     "site_logo": null,
