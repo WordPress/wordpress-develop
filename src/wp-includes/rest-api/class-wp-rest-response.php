@@ -13,6 +13,22 @@
  * @since 4.4.0
  *
  * @see WP_HTTP_Response
+ *
+ * @phpstan-import-type Route_Handler from WP_REST_Server
+ *
+ * @phpstan-type Link array{
+ *     href: string,
+ *     attributes: array<string, mixed>,
+ * }
+ * @phpstan-type Link_Input array{
+ *     href: string,
+ *     ...
+ * }
+ * @phpstan-type Curie array{
+ *     name: string,
+ *     href: string,
+ *     templated?: bool,
+ * }
  */
 class WP_REST_Response extends WP_HTTP_Response {
 
@@ -20,7 +36,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * Links related to the response.
 	 *
 	 * @since 4.4.0
-	 * @var array
+	 * @var array<string, array[]> Map of link relation to list of links.
+	 * @phpstan-var array<string, array<Link>>
 	 */
 	protected $links = array();
 
@@ -37,6 +54,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 * @var null|array
+	 * @phpstan-var Route_Handler|null
 	 */
 	protected $matched_handler = null;
 
@@ -50,10 +68,11 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @link https://tools.ietf.org/html/rfc5988
 	 * @link https://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $rel        Link relation. Either an IANA registered type,
-	 *                           or an absolute URL.
-	 * @param string $href       Target URI for the link.
-	 * @param array  $attributes Optional. Link parameters to send along with the URL. Default empty array.
+	 * @param string               $rel        Link relation. Either an IANA registered type,
+	 *                                         or an absolute URL.
+	 * @param string               $href       Target URI for the link.
+	 * @param array<string, mixed> $attributes Optional. Link parameters to send along with the URL. Default empty array.
+	 * @return void
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
@@ -79,6 +98,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param string      $rel  Link relation. Either an IANA registered type, or an absolute URL.
 	 * @param string|null $href Optional. Only remove links for the relation matching the given href.
 	 *                          Default null.
+	 * @return void
 	 */
 	public function remove_link( $rel, $href = null ) {
 		if ( ! isset( $this->links[ $rel ] ) ) {
@@ -106,7 +126,10 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $links Map of link relation to list of links.
+	 * @param array<string, array> $links Map of link relation to a link's attributes, or to a list of these.
+	 * @return void
+	 *
+	 * @phpstan-param array<string, Link_Input|list<Link_Input>> $links
 	 */
 	public function add_links( $links ) {
 		foreach ( $links as $rel => $set ) {
@@ -126,7 +149,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array List of links.
+	 * @return array<string, array[]> Map of link relation to list of links.
+	 *
+	 * @phpstan-return array<string, array<Link>>
 	 */
 	public function get_links() {
 		return $this->links;
@@ -142,10 +167,11 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @link https://tools.ietf.org/html/rfc5988
 	 * @link https://www.iana.org/assignments/link-relations/link-relations.xml
 	 *
-	 * @param string $rel   Link relation. Either an IANA registered type, or an absolute URL.
-	 * @param string $link  Target IRI for the link.
-	 * @param array  $other Optional. Other parameters to send, as an associative array.
-	 *                      Default empty array.
+	 * @param string                $rel   Link relation. Either an IANA registered type, or an absolute URL.
+	 * @param string                $link  Target IRI for the link.
+	 * @param array<string, string> $other Optional. Other parameters to send, as an associative array.
+	 *                                     Default empty array.
+	 * @return void
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
@@ -177,6 +203,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route name.
+	 * @return void
 	 */
 	public function set_matched_route( $route ) {
 		$this->matched_route = $route;
@@ -188,6 +215,8 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @return null|array The handler that was used to create the response.
+	 *
+	 * @phpstan-return Route_Handler|null
 	 */
 	public function get_matched_handler() {
 		return $this->matched_handler;
@@ -199,6 +228,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param array $handler The matched handler.
+	 * @return void
+	 *
+	 * @phpstan-param Route_Handler $handler
 	 */
 	public function set_matched_handler( $handler ) {
 		$this->matched_handler = $handler;
@@ -250,7 +282,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @return array Compact URIs.
+	 * @return array[] Compact URIs.
+	 *
+	 * @phpstan-return array<Curie>
 	 */
 	public function get_curies() {
 		$curies = array(
@@ -284,7 +318,9 @@ class WP_REST_Response extends WP_HTTP_Response {
 		 *
 		 * @since 4.5.0
 		 *
-		 * @param array $additional Additional CURIEs to register with the REST API.
+		 * @param array[] $additional Additional CURIEs to register with the REST API.
+		 *
+		 * @phpstan-param array<array{name: string, href: string, templated?: bool}> $additional
 		 */
 		$additional = apply_filters( 'rest_response_link_curies', array() );
 
