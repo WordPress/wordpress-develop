@@ -857,7 +857,7 @@ function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_R
 		 */
 		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request );
 
-		if ( ! empty( $allow_methods ) {
+		if ( ! empty( $allow_methods ) ) {
 			header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
 		}
 		header( 'Access-Control-Allow-Credentials: true' );
