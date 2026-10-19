@@ -6912,9 +6912,10 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 	wp_enqueue_script( $handle );
 
 	// Both screen scripts share the pipeline script, so add its settings once.
-	if ( str_contains( wp_scripts()->get_inline_script_data( 'media-upload-pipeline', 'before' ), '_wpMediaUploadPipelineSettings' ) ) {
+	if ( wp_scripts()->get_data( 'media-upload-pipeline', 'settings_added' ) ) {
 		return;
 	}
+	wp_scripts()->add_data( 'media-upload-pipeline', 'settings_added', true );
 
 	$settings = wp_get_media_library_upload_settings();
 
