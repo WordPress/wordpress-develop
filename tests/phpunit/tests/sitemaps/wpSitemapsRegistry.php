@@ -54,7 +54,7 @@ class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_provider_should_return_null_with_non_string_name() {
+	public static function data_get_provider_should_return_null_with_non_string_name() {
 		return array(
 			'array'        => array( array() ),
 			'object'       => array( new stdClass() ),
@@ -121,7 +121,7 @@ class Tests_Sitemaps_wpSitemapsRegistry extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_invalid_sitemap_providers() {
+	public static function data_invalid_sitemap_providers() {
 		return array(
 			'null'     => array( null ),
 			'false'    => array( false ),
