@@ -31,7 +31,7 @@
  * @phpstan-type Link_Input array{
  *     href: non-falsy-string,
  *     embeddable?: bool,
- *     targetHints?: array<string, mixed>, // Not narrowed like in Link_Attributes, since PHPStan merges this shape with its list form in add_links(), where the nested shape would then be reported at level 5.
+ *     targetHints?: array<string, mixed>, // Not narrowed like in Link_Attributes, since PHPStan merges this shape with its list form in add_links(), and passing the merged attributes to add_link() would then be an argument.type error.
  *     ...<string, mixed>
  * }
  * @phpstan-type Curie array{
