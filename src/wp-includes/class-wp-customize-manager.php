@@ -2055,8 +2055,8 @@ final class WP_Customize_Manager {
 	 * @since 4.2.0
 	 */
 	public function customize_preview_loading_style() {
-		?>
-		<style>
+		wp_print_inline_style_tag(
+			<<<'CSS'
 			body.wp-customizer-unloading {
 				opacity: 0.25;
 				cursor: progress !important;
@@ -2074,8 +2074,8 @@ final class WP_Customize_Manager {
 			area.customize-unpreviewable {
 				cursor: not-allowed !important;
 			}
-		</style>
-		<?php
+			CSS
+		);
 	}
 
 	/**
