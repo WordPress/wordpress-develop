@@ -1994,7 +1994,6 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 *
 	 * @param int $code HTTP status.
-	 * @return void
 	 *
 	 * @phpstan-param int<100, 599> $code
 	 */
@@ -2009,7 +2008,6 @@ class WP_REST_Server {
 	 *
 	 * @param string $key   Header key.
 	 * @param string $value Header value.
-	 * @return void
 	 */
 	public function send_header( $key, $value ) {
 		/*
@@ -2029,7 +2027,6 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, string> $headers Map of header name to header value.
-	 * @return void
 	 */
 	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {

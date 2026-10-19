@@ -72,7 +72,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *                                         or an absolute URL.
 	 * @param string               $href       Target URI for the link.
 	 * @param array<string, mixed> $attributes Optional. Link parameters to send along with the URL. Default empty array.
-	 * @return void
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
@@ -98,7 +97,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param string      $rel  Link relation. Either an IANA registered type, or an absolute URL.
 	 * @param string|null $href Optional. Only remove links for the relation matching the given href.
 	 *                          Default null.
-	 * @return void
 	 */
 	public function remove_link( $rel, $href = null ) {
 		if ( ! isset( $this->links[ $rel ] ) ) {
@@ -127,7 +125,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, array> $links Map of link relation to a link's attributes, or to a list of these.
-	 * @return void
 	 *
 	 * @phpstan-param array<string, Link_Input|list<Link_Input>> $links
 	 */
@@ -171,7 +168,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param string                $link  Target IRI for the link.
 	 * @param array<string, string> $other Optional. Other parameters to send, as an associative array.
 	 *                                     Default empty array.
-	 * @return void
 	 */
 	public function link_header( $rel, $link, $other = array() ) {
 		$header = '<' . $link . '>; rel="' . $rel . '"';
@@ -203,7 +199,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route name.
-	 * @return void
 	 */
 	public function set_matched_route( $route ) {
 		$this->matched_route = $route;
@@ -228,7 +223,6 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param array $handler The matched handler.
-	 * @return void
 	 *
 	 * @phpstan-param Route_Handler $handler
 	 */

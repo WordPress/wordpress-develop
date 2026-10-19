@@ -186,7 +186,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $method HTTP method.
-	 * @return void
 	 */
 	public function set_method( $method ) {
 		$this->method = strtoupper( $method );
@@ -287,7 +286,6 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string          $key   Header name.
 	 * @param string|string[] $value Header value, or list of values.
-	 * @return void
 	 */
 	public function set_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -303,7 +301,6 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string          $key   Header name.
 	 * @param string|string[] $value Header value, or list of values.
-	 * @return void
 	 */
 	public function add_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -322,7 +319,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Header name.
-	 * @return void
 	 */
 	public function remove_header( $key ) {
 		$key = static::canonicalize_header_name( $key );
@@ -336,7 +332,6 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param array<string, string|string[]> $headers  Map of header name to value, or list of values.
 	 * @param bool                           $override If true, replace the request's headers. Otherwise, merge with existing.
-	 * @return void
 	 */
 	public function set_headers( $headers, $override = true ) {
 		if ( true === $override ) {
@@ -509,7 +504,6 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $key   Parameter name.
 	 * @param mixed  $value Parameter value.
-	 * @return void
 	 */
 	public function set_param( $key, $value ) {
 		$order     = $this->get_parameter_order();
@@ -581,7 +575,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, mixed> $params Parameter map of key to value.
-	 * @return void
 	 */
 	public function set_url_params( $params ) {
 		$this->params['URL'] = $params;
@@ -608,7 +601,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<mixed> $params Parameter map of key to value.
-	 * @return void
 	 */
 	public function set_query_params( $params ) {
 		$this->params['GET'] = $params;
@@ -635,7 +627,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<mixed> $params Parameter map of key to value.
-	 * @return void
 	 */
 	public function set_body_params( $params ) {
 		$this->params['POST'] = $params;
@@ -664,7 +655,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $params Parameter map of key to value.
-	 * @return void
 	 *
 	 * @phpstan-param array<string, File_Param> $params
 	 */
@@ -693,7 +683,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, mixed> $params Parameter map of key to value.
-	 * @return void
 	 */
 	public function set_default_params( $params ) {
 		$this->params['defaults'] = $params;
@@ -716,7 +705,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $data Binary data from the request body.
-	 * @return void
 	 */
 	public function set_body( $data ) {
 		$this->body = $data;
@@ -799,8 +787,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * natively by PHP.
 	 *
 	 * @since 4.4.0
-	 *
-	 * @return void
 	 */
 	protected function parse_body_params() {
 		if ( $this->parsed_body ) {
@@ -845,7 +831,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route matching regex.
-	 * @return void
 	 */
 	public function set_route( $route ) {
 		$this->route = $route;
@@ -872,7 +857,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $attributes Attributes for the request.
-	 * @return void
 	 *
 	 * @phpstan-param Attributes $attributes
 	 */
@@ -1088,7 +1072,6 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $offset Parameter name.
 	 * @param mixed  $value  Parameter value.
-	 * @return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -1101,7 +1084,6 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $offset Parameter name.
-	 * @return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {

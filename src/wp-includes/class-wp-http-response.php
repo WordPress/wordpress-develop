@@ -74,7 +74,6 @@ class WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param array<string, string> $headers Map of header name to header value.
-	 * @return void
 	 */
 	public function set_headers( $headers ) {
 		$this->headers = $headers;
@@ -89,7 +88,6 @@ class WP_HTTP_Response {
 	 * @param string $value   Header value.
 	 * @param bool   $replace Optional. Whether to replace an existing header of the same name.
 	 *                        Default true.
-	 * @return void
 	 */
 	public function header( $key, $value, $replace = true ) {
 		if ( $replace || ! isset( $this->headers[ $key ] ) ) {
@@ -118,7 +116,6 @@ class WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param int $code HTTP status.
-	 * @return void
 	 *
 	 * @phpstan-param int<100, 599> $code
 	 */
@@ -143,7 +140,6 @@ class WP_HTTP_Response {
 	 * @since 4.4.0
 	 *
 	 * @param mixed $data Response data.
-	 * @return void
 	 */
 	public function set_data( $data ) {
 		$this->data = $data;
