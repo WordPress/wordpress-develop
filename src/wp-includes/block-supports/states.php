@@ -200,6 +200,9 @@ function wp_state_paints_own_background( array $state_style ): bool {
  */
 function wp_get_state_text_clip_escape( array $state_style, string $base_clip ): array {
 	$state_clip = $state_style['background']['backgroundClip'] ?? '';
+	if ( ! in_array( $state_clip, WP_Style_Engine::VALID_BACKGROUND_CLIP_VALUES, true ) ) {
+		$state_clip = '';
+	}
 	if ( empty( $state_clip ) || 'text' === $state_clip || 'text' !== $base_clip || wp_state_paints_own_background( $state_style ) ) {
 		return array();
 	}
@@ -220,7 +223,11 @@ function wp_get_state_text_clip_escape( array $state_style, string $base_clip ):
  * @return array<string, string> CSS declarations, empty when no reset is needed.
  */
 function wp_get_state_text_fill_reset( array $state_style ): array {
-	if ( ! empty( $state_style['background']['backgroundClip'] ) || empty( $state_style['color']['text'] ) || wp_state_paints_own_background( $state_style ) ) {
+	$state_clip = $state_style['background']['backgroundClip'] ?? '';
+	if ( ! in_array( $state_clip, WP_Style_Engine::VALID_BACKGROUND_CLIP_VALUES, true ) ) {
+		$state_clip = '';
+	}
+	if ( ! empty( $state_clip ) || empty( $state_style['color']['text'] ) || wp_state_paints_own_background( $state_style ) ) {
 		return array();
 	}
 	return array( '-webkit-text-fill-color' => 'currentColor' );

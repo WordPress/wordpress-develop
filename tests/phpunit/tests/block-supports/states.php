@@ -306,6 +306,38 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an invalid state clip over a base text clip does not unset the gradient.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_text_clip_escape
+	 */
+	public function test_text_clip_escape_ignores_an_invalid_state_clip() {
+		$actual = wp_get_state_text_clip_escape(
+			array( 'background' => array( 'backgroundClip' => 'borderbox' ) ),
+			'text'
+		);
+
+		$this->assertSame( array(), $actual );
+	}
+
+	/**
+	 * Tests that a text color with an invalid state clip gets its fill back.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_text_fill_reset
+	 */
+	public function test_text_fill_reset_ignores_an_invalid_state_clip() {
+		$actual = wp_get_state_text_fill_reset(
+			array(
+				'color'      => array( 'text' => '#ff0000' ),
+				'background' => array( 'backgroundClip' => 'borderbox' ),
+			)
+		);
+
+		$this->assertSame( array( '-webkit-text-fill-color' => 'currentColor' ), $actual );
+	}
+
+	/**
 	 * Tests that a state without its own clip, or keeping the text clip, needs no escape.
 	 *
 	 * @ticket 66094
