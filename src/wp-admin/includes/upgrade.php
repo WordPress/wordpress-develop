@@ -313,7 +313,11 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 		 * A note is linked to its block through the block's `metadata.noteId`
 		 * attribute, so no note is added when the post has no blocks.
 		 */
-		$first_note = __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select some text or an entire block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' );
+		if ( is_multisite() ) {
+			$first_note = get_site_option( 'first_note' );
+		}
+
+		$first_note = ! empty( $first_note ) ? $first_note : __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select some text or an entire block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' );
 
 		$first_block = new WP_Block_Processor( $first_post );
 		$note_author = get_userdata( $user_id );

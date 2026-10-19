@@ -239,4 +239,18 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 			'Only the first block delimiter should change.'
 		);
 	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_first_note_option_should_set_the_note_content() {
+		update_site_option( 'first_note', 'Some note content' );
+
+		list( , $notes ) = $this->create_site_and_get_first_post_notes( '' );
+
+		delete_site_option( 'first_note' );
+
+		$this->assertCount( 1, $notes, 'The site should have one note.' );
+		$this->assertSame( 'Some note content', $notes[0]->comment_content, 'The note should use the network option.' );
+	}
 }
