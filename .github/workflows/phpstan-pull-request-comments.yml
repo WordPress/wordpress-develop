@@ -283,7 +283,7 @@ jobs:
               if ( ignorable.length > 0 ) {
                 sections.push(
                   '### Errors',
-                  `These are also shown as annotations on the changed files. They do not fail the check, but they should still be fixed before the pull request is committed. An error that is a false positive may instead warrant being added to a baseline. See [Ignoring and baselining errors](${ readmeUrl }#ignoring-and-baselining-errors) for details.`,
+                  `These are also shown as annotations on the changed files. They do not fail the check, but they should still be fixed before the pull request is committed. An error that is a false positive may instead warrant being [added to a baseline](${ readmeUrl }#ignoring-and-baselining-errors).`,
                   table( ignorable, rowsLeft )
                 );
               }
