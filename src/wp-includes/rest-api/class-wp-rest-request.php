@@ -89,6 +89,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 * @var array<string, string[]> Map of key to list of values. Key is always lowercase, as per HTTP specification.
+	 * @phpstan-var array<lowercase-string, string[]>
 	 */
 	protected $headers = array();
 
@@ -197,6 +198,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @return array<string, string[]> Map of key to list of values. Key is always lowercase, as per HTTP specification.
+	 *
+	 * @phpstan-return array<lowercase-string, string[]>
 	 */
 	public function get_headers() {
 		return $this->headers;
@@ -231,6 +234,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $key Header name.
 	 * @return string Canonicalized name.
+	 *
+	 * @phpstan-return lowercase-string
 	 */
 	public static function canonicalize_header_name( $key ) {
 		$key = strtolower( $key );
