@@ -130,7 +130,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string, expires?: int|string }, 1: int|false|null }>
 	 */
-	public function data_expires(): array {
+	public static function data_expires(): array {
 		return array(
 			'timestamp from array'    => array(
 				array(
@@ -190,7 +190,7 @@ class Tests_HTTP_WpHttpCookie extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: string|array{ name: string, value: string, host_only?: bool }, 1: bool|null }>
 	 */
-	public function data_host_only(): array {
+	public static function data_host_only(): array {
 		return array(
 			'true from array'     => array(
 				array(

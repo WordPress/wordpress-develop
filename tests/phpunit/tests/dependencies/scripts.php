@@ -36,11 +36,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_concatenate_scripts;
 
 	/**
-	 * @var mixed
-	 */
-	protected $old_compress_scripts;
-
-	/**
 	 * @var WP_Styles
 	 */
 	protected $old_wp_styles;
@@ -59,7 +54,6 @@ class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 		$this->old_wp_scripts          = $GLOBALS['wp_scripts'] ?? null;
 		$this->old_wp_styles           = $GLOBALS['wp_styles'] ?? null;
 		$this->old_concatenate_scripts = $GLOBALS['concatenate_scripts'] ?? null;
-		$this->old_compress_scripts    = $GLOBALS['compress_scripts'] ?? null;
 		remove_action( 'wp_default_scripts', 'wp_default_scripts' );
 		remove_action( 'wp_default_scripts', 'wp_default_packages' );
 		$GLOBALS['wp_scripts']                  = new WP_Scripts();
@@ -83,7 +77,6 @@ JS;
 		$GLOBALS['wp_scripts']          = $this->old_wp_scripts;
 		$GLOBALS['wp_styles']           = $this->old_wp_styles;
 		$GLOBALS['concatenate_scripts'] = $this->old_concatenate_scripts;
-		$GLOBALS['compress_scripts']    = $this->old_compress_scripts;
 		add_action( 'wp_default_scripts', 'wp_default_scripts' );
 		parent::tear_down();
 	}
@@ -2177,6 +2170,10 @@ HTML;
 	 * @covers WP_Scripts::do_item
 	 * @covers ::wp_enqueue_script
 	 * @covers ::wp_register_script
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2194,7 +2191,7 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one-concat-dep,two-concat-dep,three-concat-dep&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='/main-script.js' id='main-defer-script-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with a "defer" loading strategy. Deferred scripts should not be part of the script concat loading query.' );
@@ -2208,6 +2205,10 @@ HTML;
 	 * @covers WP_Scripts::do_item
 	 * @covers ::wp_enqueue_script
 	 * @covers ::wp_register_script
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_async_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2225,7 +2226,7 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one-concat-dep-1,two-concat-dep-1,three-concat-dep-1&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='/main-script.js' id='main-async-script-1-js' async data-wp-strategy='async'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered with an "async" loading strategy. Async scripts should not be part of the script concat loading query.' );
@@ -2240,6 +2241,10 @@ HTML;
 	 * @covers WP_Scripts::do_item
 	 * @covers ::wp_enqueue_script
 	 * @covers ::wp_register_script
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global bool       $concatenate_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_concatenate_with_blocking_script_before_and_after_script_with_defer_strategy() {
 		global $wp_scripts, $concatenate_scripts, $wp_version;
@@ -2260,7 +2265,7 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one-concat-dep-2,two-concat-dep-2,three-concat-dep-2,four-concat-dep-2,five-concat-dep-2,six-concat-dep-2&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='/main-script.js' id='deferred-script-2-js' defer data-wp-strategy='defer'></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts, '<body>', 'Scripts are being incorrectly concatenated when a main script is registered as deferred after other blocking scripts are registered. Deferred scripts should not be part of the script concat loader query string. ' );
@@ -2330,7 +2335,7 @@ HTML;
 		wp_print_scripts();
 		$print_scripts = get_echo( '_print_scripts' );
 
-		$expected = "<script src=\"/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
+		$expected = "<script src=\"/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one,two,three&#038;ver={$wp_version}\"></script>\n";
 
 		$this->assertEqualHTML( $expected, $print_scripts );
 	}
@@ -2751,6 +2756,9 @@ HTML;
 
 	/**
 	 * @ticket 14853
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_after_with_concat() {
 		global $wp_scripts, $wp_version;
@@ -2766,7 +2774,7 @@ HTML;
 		wp_add_inline_script( 'two', 'console.log("after two");' );
 		wp_add_inline_script( 'three', 'console.log("after three");' );
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}two.js?ver={$wp_version}' id='two-js'></script>\n";
 		$expected .= "<script id='two-js-after'>\nconsole.log(\"after two\");\n//# sourceURL=two-js-after\n</script>\n";
 		$expected .= "<script src='{$this->default_scripts_dir}three.js?ver={$wp_version}' id='three-js'></script>\n";
@@ -2805,6 +2813,9 @@ HTML;
 
 	/**
 	 * @ticket 36392
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -2814,7 +2825,7 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script id='test-example-js-after'>\nconsole.log(\"after\");\n//# sourceURL=test-example-js-after\n</script>\n";
 
@@ -2853,6 +2864,9 @@ HTML;
 
 	/**
 	 * @ticket 36392
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_with_concat_and_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -2863,7 +2877,7 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script id='test-example-js-before'>\nconsole.log(\"before\");\n//# sourceURL=test-example-js-before\n</script>\n";
 		$expected .= "<script src='http://example.com' id='test-example-js'></script>\n";
 
@@ -2878,6 +2892,9 @@ HTML;
 
 	/**
 	 * @ticket 36392
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_after_concat_with_core_dependency() {
 		global $wp_scripts, $wp_version;
@@ -2888,7 +2905,7 @@ HTML;
 		$wp_scripts->base_url  = '';
 		$wp_scripts->do_concat = true;
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-dom-ready,wp-hooks&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script id='test-example-js-before'>\n";
 		$expected .= "console.log(\"before\");\n//# sourceURL=test-example-js-before\n";
 		$expected .= "</script>\n";
@@ -2987,6 +3004,9 @@ HTML;
 
 	/**
 	 * @ticket 36392
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_add_inline_script_before_third_core_script_prints_two_concat_scripts() {
 		global $wp_scripts, $wp_version;
@@ -3000,7 +3020,7 @@ HTML;
 		wp_add_inline_script( 'three', 'console.log("before three");', 'before' );
 		wp_enqueue_script( 'four', '/wp-includes/js/script4.js' );
 
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one,two&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script id='three-js-before'>\nconsole.log(\"before three\");\n//# sourceURL=three-js-before\n</script>\n";
 		$expected .= "<script src='/wp-includes/js/script3.js?ver={$wp_version}' id='three-js'></script>\n";
 		$expected .= "<script src='/wp-includes/js/script4.js?ver={$wp_version}' id='four-js'></script>\n";
@@ -3801,6 +3821,9 @@ HTML;
 	 * @ticket 55628
 	 *
 	 * @covers ::wp_set_script_translations
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 * @global string     $wp_version
 	 */
 	public function test_wp_external_wp_i18n_print_order() {
 		global $wp_scripts, $wp_version;
@@ -3824,7 +3847,7 @@ HTML;
 		);
 
 		// The non-default script should end concatenation and maintain order.
-		$expected  = "<script src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core&amp;ver={$wp_version}'></script>\n";
+		$expected  = "<script src='/wp-admin/load-scripts.php?load%5Bchunk_0%5D=jquery-core&amp;ver={$wp_version}'></script>\n";
 		$expected .= "<script src='/plugins/wp-i18n.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script src='/default/common.js' id='common-js'></script>\n";
 
@@ -3855,13 +3878,11 @@ HTML;
 	 * @dataProvider data_register_tinymce_scripts_unbundled
 	 *
 	 * @param bool $concatenate Value of the `$concatenate_scripts` global.
-	 * @param bool $compress    Value of the `$compress_scripts` global.
 	 */
-	public function test_register_tinymce_scripts_unbundled( bool $concatenate, bool $compress ): void {
-		global $concatenate_scripts, $compress_scripts;
+	public function test_register_tinymce_scripts_unbundled( bool $concatenate ): void {
+		global $concatenate_scripts;
 
 		$concatenate_scripts = $concatenate;
-		$compress_scripts    = $compress;
 
 		$wp_scripts = wp_scripts();
 		wp_register_tinymce_scripts( $wp_scripts );
@@ -3881,25 +3902,15 @@ HTML;
 	/**
 	 * Data provider for test_register_tinymce_scripts_unbundled().
 	 *
-	 * @return array<non-falsy-string, array{ concatenate: bool, compress: bool }>
+	 * @return array<non-falsy-string, array{ concatenate: bool }>
 	 */
 	public function data_register_tinymce_scripts_unbundled(): array {
 		return array(
-			'concatenated and compressed' => array(
+			'concatenated'     => array(
 				'concatenate' => true,
-				'compress'    => true,
 			),
-			'concatenated only'           => array(
-				'concatenate' => true,
-				'compress'    => false,
-			),
-			'compressed only'             => array(
+			'not concatenated' => array(
 				'concatenate' => false,
-				'compress'    => true,
-			),
-			'neither'                     => array(
-				'concatenate' => false,
-				'compress'    => false,
 			),
 		);
 	}
@@ -4436,7 +4447,7 @@ HTML;
 		var one = {"key":"val"};var two = {"key":"val"};
 		//# sourceURL=js-inline-concat-one%2Ctwo
 		</script>
-		<script src="/wp-admin/load-scripts.php?c=0&#038;load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
+		<script src="/wp-admin/load-scripts.php?load%5Bchunk_0%5D=one,two&#038;ver={$wp_version}"></script>
 
 		HTML;
 
