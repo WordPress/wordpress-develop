@@ -50,19 +50,23 @@
 	const sprintf = wp.i18n.sprintf;
 
 	// Number of pipeline uploads currently in flight, used to fire
-	// uploadComplete() when the queue drains.
+	// uploadComplete() once both the pipeline and plupload are done.
 	let inFlightCount = 0;
 
 	/**
 	 * Marks one pipeline upload as finished, firing uploadComplete() when
-	 * the queue drains.
+	 * nothing is left uploading.
 	 *
 	 * The built-in UploadComplete binding never fires for pipeline uploads
 	 * because every file is removed from plupload before its queue starts.
+	 * Files plupload is still uploading (a batch's classic share, a HEIC
+	 * handed back) end with plupload's own UploadComplete instead.
+	 *
+	 * @param {plupload.Uploader} up The plupload uploader.
 	 */
-	function finishUpload() {
+	function finishUpload( up ) {
 		inFlightCount--;
-		if ( inFlightCount === 0 ) {
+		if ( inFlightCount === 0 && up.state !== plupload.STARTED ) {
 			uploadComplete();
 		}
 	}
@@ -195,97 +199,72 @@
 	/**
 	 * Intercepts files added to the plupload uploader.
 	 *
-	 * Returns undefined (not false) when the pipeline cannot take the batch
-	 * so the built-in handler runs and uploads server-side - a degradation,
-	 * never data loss. Otherwise builds the screen's progress items, routes
-	 * the files the pipeline can take through it, re-queues the rest on
-	 * plupload, and returns false to suppress the built-in handler (which
-	 * would otherwise queue and start a classic upload of every file).
+	 * Builds the screen's progress items for the files the pipeline takes
+	 * (see wp.mediaUploadPipeline.routeBatch()). Returns undefined to leave
+	 * the whole batch to plupload's built-in handler.
 	 *
 	 * @param {plupload.Uploader} up    The plupload uploader instance.
 	 * @param {plupload.File[]}   files Files added to the queue.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( up, files ) {
-		if ( ! pipeline.isReady() ) {
-			return;
-		}
+		return pipeline.routeBatch( up, files, {
+			// Without the parent post a file uploaded from
+			// media-new.php?post_id=N would land unattached even though the
+			// screen counts it against that post.
+			postId: getParentPostId(),
+			onStart: function ( /** @type {plupload.File[]} */ queued ) {
+				// Parity with the built-in handler: clear stale queue errors
+				// and run the shared upload-start housekeeping.
+				const queueErrors = document.getElementById( 'media-upload-error' );
+				if ( queueErrors ) {
+					queueErrors.replaceChildren();
+				}
+				uploadStart();
 
-		const batch = pipeline.partitionBatch( up, files );
-		if ( ! batch ) {
-			return;
-		}
+				// Count the whole batch first: addItems() can reject a file
+				// synchronously, which must not drain the count mid-batch.
+				inFlightCount += queued.length;
+			},
+			onQueue: function (
+				/** @type {plupload.File} */ file,
+				/** @type {File} */ nativeFile
+			) {
+				// Build the screen's progress item for this file.
+				fileQueued( file );
 
-		// Parity with the built-in handler: clear stale queue errors and run
-		// the shared upload-start housekeeping.
-		const queueErrors = document.getElementById( 'media-upload-error' );
-		if ( queueErrors ) {
-			queueErrors.replaceChildren();
-		}
-		uploadStart();
-
-		// The classic flow posts plupload's multipart params to
-		// async-upload.php; forward them so plugins reading $_POST see the
-		// same fields. Without the parent post a file uploaded from
-		// media-new.php?post_id=N would land unattached even though the
-		// screen counts it against that post.
-		const params = ( up.settings && up.settings.multipart_params ) || {};
-		const additionalData = pipeline.additionalDataFromParams(
-			params,
-			getParentPostId()
-		);
-
-		batch.pipeline.forEach( function ( /** @type {plupload.File} */ file ) {
-			// Build the screen's progress item for this file.
-			fileQueued( file );
-
-			// partitionBatch() already established that every file has one.
-			const nativeFile = /** @type {File} */ ( file.getNative() );
-
-			// Remove the file from plupload so it is not uploaded twice.
-			up.removeFile( file );
-
-			inFlightCount++;
-
-			pipeline.queueFile( nativeFile, additionalData, {
-				onSuccess: function (
-					/** @type {PipelineAttachment} */ attachment
-				) {
-					// uploadSuccess() renders the finished attachment row via
-					// the existing async-upload.php markup endpoint; the
-					// server normally returns the ID as a string.
-					uploadSuccess( file, String( attachment.id ) );
-					finishUpload();
-				},
-				onError: function ( /** @type {UploadError} */ error ) {
-					// When the server can convert what the browser could
-					// not, plupload takes the file from here and builds
-					// its own progress item, so this one goes away.
-					if ( pipeline.handOffToClassic( up, error, nativeFile ) ) {
+				return {
+					onSuccess: function (
+						/** @type {PipelineAttachment} */ attachment
+					) {
+						// uploadSuccess() renders the finished attachment row
+						// via the existing async-upload.php markup endpoint;
+						// the server normally returns the ID as a string.
+						uploadSuccess( file, String( attachment.id ) );
+						finishUpload( up );
+					},
+					onError: function ( /** @type {UploadError} */ error ) {
+						renderError(
+							file,
+							pipeline.getErrorText( error, nativeFile.name )
+						);
+						finishUpload( up );
+					},
+					// plupload builds its own progress item for the file it
+					// took over, so this one goes away.
+					onHandOff: function () {
 						const item = getItem( file );
 						if ( item ) {
 							item.remove();
 						}
-						finishUpload();
-						return;
-					}
-					renderError(
-						file,
-						pipeline.getErrorText( error, nativeFile.name )
-					);
-					finishUpload();
-				},
-				onProgress: function ( /** @type {number} */ percent ) {
-					renderProgress( file, percent );
-				},
-			} );
+						finishUpload( up );
+					},
+					onProgress: function ( /** @type {number} */ percent ) {
+						renderProgress( file, percent );
+					},
+				};
+			},
 		} );
-
-		pipeline.handOffBatchToClassic( up, batch.classic );
-
-		up.refresh();
-
-		return false;
 	}
 
 	/**
@@ -293,7 +272,7 @@
 	 *
 	 * plupload sorts handlers by priority (descending) and a `false` return
 	 * breaks the chain, so priority 100 runs before and suppresses the
-	 * built-in FilesAdded handler.
+	 * built-in FilesAdded and UploadComplete handlers.
 	 *
 	 * @param {plupload.Uploader} up The uploader that initialized.
 	 */
@@ -307,6 +286,17 @@
 			'FilesAdded',
 			function ( up, files ) {
 				return handleFilesAdded( up, files );
+			},
+			null,
+			100
+		);
+
+		// Hold back the built-in uploadComplete() while pipeline uploads
+		// are still running; finishUpload() fires it once they are done.
+		up.bind(
+			'UploadComplete',
+			function () {
+				return inFlightCount > 0 ? false : undefined;
 			},
 			null,
 			100

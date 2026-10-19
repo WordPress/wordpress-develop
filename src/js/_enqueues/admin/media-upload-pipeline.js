@@ -238,18 +238,24 @@ window.wp = window.wp || {};
 	}
 
 	/**
-	 * Reports the progress of queued uploads.
+	 * Tracks queued uploads on every change to the upload-media store.
 	 *
-	 * Runs on every change to the upload-media store. Sub-size children are
-	 * skipped; only top-level items drive the screen's progress UI. Progress
-	 * holds at 99 until the upload's success callback has run, so nothing
-	 * looks finished before the screen has synced the result.
+	 * Reports progress, which holds at 99 until the upload's success
+	 * callback has run so nothing looks finished before the screen has
+	 * synced the result, and notes the attachment once the original is
+	 * uploaded. Sub-size children are skipped; only top-level items matter.
+	 *
+	 * The store can also remove an item without calling either of its
+	 * callbacks (it only calls onSuccess when the item has an attachment),
+	 * so an upload that was seen in the store and is gone fails here
+	 * instead of staying in flight, and holding the unload guard, for good.
 	 */
 	function onStoreChange() {
 		if ( entries.size === 0 ) {
 			return;
 		}
 
+		const present = new Set();
 		const items = wp.data.select( uploadStore ).getItems();
 		items.forEach( function ( /** @type {QueueItem} */ item ) {
 			if ( item.parentId ) {
@@ -257,7 +263,17 @@ window.wp = window.wp || {};
 			}
 
 			const entry = entries.get( item.onSuccess );
-			if ( ! entry || ! entry.onProgress ) {
+			if ( ! entry ) {
+				return;
+			}
+
+			present.add( item.onSuccess );
+			entry.seen = true;
+			if ( item.attachment && item.attachment.id ) {
+				entry.attachmentId = item.attachment.id;
+			}
+
+			if ( ! entry.onProgress ) {
 				return;
 			}
 
@@ -268,6 +284,14 @@ window.wp = window.wp || {};
 			if ( percent !== entry.lastPercent ) {
 				entry.lastPercent = percent;
 				entry.onProgress( percent );
+			}
+		} );
+
+		entries.forEach( function ( entry, key ) {
+			if ( entry.seen && ! present.has( key ) ) {
+				entry.fail( {
+					message: __( 'An error occurred while uploading the file.' ),
+				} );
 			}
 		} );
 	}
@@ -545,13 +569,6 @@ window.wp = window.wp || {};
 	 * @param {QueueFileCallbacks}      [callbacks]    Lifecycle callbacks.
 	 */
 	function queueFile( nativeFile, additionalData, callbacks = {} ) {
-		/** @type {UploadEntry} */
-		const entry = {
-			onProgress: callbacks.onProgress,
-			lastPercent: -1,
-			totals: null,
-		};
-
 		/**
 		 * @param {PipelineAttachment[]} attachments The uploaded attachments.
 		 */
@@ -561,6 +578,30 @@ window.wp = window.wp || {};
 				callbacks.onSuccess( attachments[ 0 ] );
 			}
 		}
+
+		/** @type {UploadEntry} */
+		const entry = {
+			onProgress: callbacks.onProgress,
+			lastPercent: -1,
+			totals: null,
+			seen: false,
+			attachmentId: 0,
+			fail: function ( error ) {
+				if ( ! entries.delete( onSuccess ) ) {
+					return;
+				}
+				// The original already reached the server (finalize failed,
+				// say), so delete it: otherwise a retry leaves a duplicate
+				// next to an attachment whose metadata was never finalized.
+				// The store only deletes it itself when every sub-size failed.
+				if ( entry.attachmentId ) {
+					mediaDelete( entry.attachmentId ).catch( function () {} );
+				}
+				if ( callbacks.onError ) {
+					callbacks.onError( error );
+				}
+			},
+		};
 		entries.set( onSuccess, entry );
 
 		wp.data.dispatch( uploadStore ).addItems( {
@@ -569,17 +610,85 @@ window.wp = window.wp || {};
 			onSuccess: onSuccess,
 			onError: function ( /** @type {UploadError|string} */ error ) {
 				// Also reached for files addItems() rejects before queueing.
-				entries.delete( onSuccess );
-				if ( callbacks.onError ) {
-					// The block editor's mediaUpload() setting, which the
-					// store uses once the editor has configured it, reports
-					// transport failures as a bare message string.
-					callbacks.onError(
-						typeof error === 'string' ? { message: error } : error
-					);
-				}
+				// The block editor's mediaUpload() setting, which the store
+				// uses once the editor has configured it, reports transport
+				// failures as a bare message string.
+				entry.fail(
+					typeof error === 'string' ? { message: error } : error
+				);
 			},
 		} );
+	}
+
+	/**
+	 * Routes a batch of files added to a plupload uploader through the
+	 * pipeline.
+	 *
+	 * Returns undefined (not false) when the pipeline cannot take the batch
+	 * so plupload's built-in FilesAdded handler runs and uploads it
+	 * server-side - a degradation, never data loss. Otherwise queues the
+	 * files the pipeline can take, re-queues the rest on plupload, and
+	 * returns false to suppress the built-in handler, which would otherwise
+	 * start a classic upload of every file.
+	 *
+	 * The classic flow posts plupload's multipart params to
+	 * async-upload.php, so they are forwarded to the REST request for
+	 * plugins reading $_POST, with `post_id` replaced by `options.postId`.
+	 *
+	 * @param {plupload.Uploader}  up      The plupload uploader the files were added to.
+	 * @param {plupload.File[]}    files   Files added to the queue.
+	 * @param {RouteBatchOptions}  options The screen's hooks.
+	 * @return {boolean|undefined} False to suppress the built-in handler.
+	 */
+	function routeBatch( up, files, options ) {
+		if ( ! isReady() ) {
+			return;
+		}
+
+		const batch = partitionBatch( up, files );
+		if ( ! batch ) {
+			return;
+		}
+
+		const params = ( up.settings && up.settings.multipart_params ) || {};
+		const additionalData = additionalDataFromParams(
+			params,
+			options.postId
+		);
+
+		if ( options.onStart ) {
+			options.onStart( batch.pipeline );
+		}
+
+		batch.pipeline.forEach( function ( /** @type {plupload.File} */ file ) {
+			// partitionBatch() already established that every file has one.
+			const nativeFile = /** @type {File} */ ( file.getNative() );
+			const callbacks = options.onQueue( file, nativeFile );
+
+			// Remove the file from plupload so it is not uploaded twice.
+			up.removeFile( file );
+
+			queueFile( nativeFile, additionalData, {
+				onSuccess: callbacks.onSuccess,
+				onProgress: callbacks.onProgress,
+				onError: function ( /** @type {UploadError} */ error ) {
+					// When the server can convert what the browser could
+					// not, plupload takes the file from here and shows its
+					// own progress.
+					if ( handOffToClassic( up, error, nativeFile ) ) {
+						callbacks.onHandOff();
+						return;
+					}
+					callbacks.onError( error );
+				},
+			} );
+		} );
+
+		handOffBatchToClassic( up, batch.classic );
+
+		up.refresh();
+
+		return false;
 	}
 
 	/**
@@ -626,11 +735,7 @@ window.wp = window.wp || {};
 		isSupported: isSupported,
 		configure: configure,
 		isReady: isReady,
-		partitionBatch: partitionBatch,
-		handOffBatchToClassic: handOffBatchToClassic,
-		handOffToClassic: handOffToClassic,
-		additionalDataFromParams: additionalDataFromParams,
-		queueFile: queueFile,
+		routeBatch: routeBatch,
 		getErrorText: getErrorText,
 	};
 } )( window.wp );

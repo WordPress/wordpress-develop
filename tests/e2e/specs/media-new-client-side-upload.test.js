@@ -976,4 +976,52 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		).toBeVisible( { timeout: 60_000 } );
 		expect( restUploadCount ).toBe( 1 );
 	} );
+	test( 'fires uploadComplete only once plupload has finished its share of a batch', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// Hold the audio file's classic upload so the image's pipeline
+		// upload finishes first.
+		await page.route( '**/wp-admin/async-upload.php', async ( route ) => {
+			if ( ! /(^|&)fetch=/.test( route.request().postData() || '' ) ) {
+				await new Promise( ( resolve ) => setTimeout( resolve, 4000 ) );
+			}
+			await route.continue();
+		} );
+
+		// Record plupload's state each time the screen is told the queue drained.
+		await page.evaluate( () => {
+			const original = window.uploadComplete;
+			window.__uploadCompleteStates = [];
+			window.uploadComplete = function () {
+				window.__uploadCompleteStates.push( window.uploader.state );
+				return original.apply( this, arguments );
+			};
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
+
+		await expect(
+			page.locator( '#media-items .media-item:has(.edit-attachment)' )
+		).toHaveCount( 2, { timeout: 90_000 } );
+
+		const states = await page.evaluate( () => ( {
+			calls: window.__uploadCompleteStates,
+			started: window.plupload.STARTED,
+		} ) );
+		expect( states.calls.length ).toBeGreaterThan( 0 );
+		expect( states.calls ).not.toContain( states.started );
+	} );
 } );

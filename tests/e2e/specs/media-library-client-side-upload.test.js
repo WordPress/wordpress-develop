@@ -902,4 +902,55 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			0
 		);
 	} );
+	test( 'deletes the attachment when finalizing the upload fails', async ( {
+		page,
+		admin,
+		requestUtils,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// The original and its sub-sizes reach the server; only finalize fails.
+		await page.route(
+			( url ) =>
+				/\/wp\/v2\/media\/\d+\/finalize/.test(
+					decodeURIComponent( url.href )
+				),
+			( route ) =>
+				route.fulfill( {
+					status: 500,
+					contentType: 'application/json',
+					body: JSON.stringify( SIMULATED_ERROR ),
+				} )
+		);
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect( page.locator( '.upload-error' ).first() ).toBeVisible( {
+			timeout: 60_000,
+		} );
+
+		// Nothing is left behind for a retry to duplicate.
+		await expect
+			.poll(
+				async () =>
+					(
+						await requestUtils.rest( {
+							path: '/wp/v2/media',
+							params: { per_page: 100 },
+						} )
+					).length,
+				{ timeout: 30_000 }
+			)
+			.toBe( 0 );
+	} );
 } );

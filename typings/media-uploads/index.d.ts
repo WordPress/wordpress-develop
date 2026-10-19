@@ -58,6 +58,9 @@ declare namespace plupload {
 	interface Uploader {
 		settings?: UploaderSettings;
 
+		/** plupload.STARTED while the queue is uploading, else plupload.STOPPED. */
+		state: number;
+
 		bind(
 			name: 'FilesAdded',
 			callback: ( up: Uploader, files: File[] ) => unknown,
@@ -84,6 +87,11 @@ declare namespace plupload {
 	 * Status of a file that could not be queued.
 	 */
 	const FAILED: number;
+
+	/**
+	 * Uploader state while its queue is uploading.
+	 */
+	const STARTED: number;
 }
 
 declare var pluploadL10n: Record< string, string >;
@@ -210,6 +218,11 @@ interface QueueItem {
 	onSuccess?: ( attachments: PipelineAttachment[] ) => void;
 
 	/**
+	 * The uploaded attachment, or a blob URL placeholder before that.
+	 */
+	attachment?: { id?: number; url?: string };
+
+	/**
 	 * Progress percentage, when the store reports one.
 	 */
 	progress?: number;
@@ -248,6 +261,21 @@ interface UploadEntry {
 	 * Operation counts.
 	 */
 	totals: { total: number; remaining: number } | null;
+
+	/**
+	 * Whether the upload's item has shown up in the store.
+	 */
+	seen: boolean;
+
+	/**
+	 * The attachment the original was uploaded as, once it exists.
+	 */
+	attachmentId: number;
+
+	/**
+	 * Ends the upload as failed, once.
+	 */
+	fail: ( error: UploadError ) => void;
 }
 
 /**
@@ -293,6 +321,38 @@ interface QueueFileCallbacks {
 	 * Called with an integer percentage (0-99) whenever it changes.
 	 */
 	onProgress?: ( percent: number ) => void;
+}
+
+/**
+ * A screen's callbacks for one file routeBatch() queued.
+ */
+interface RouteBatchCallbacks extends QueueFileCallbacks {
+	/**
+	 * Called instead of onError when the file was handed back to plupload.
+	 */
+	onHandOff: () => void;
+
+	onError: ( error: UploadError ) => void;
+}
+
+/**
+ * How a screen takes part in wp.mediaUploadPipeline.routeBatch().
+ */
+interface RouteBatchOptions {
+	/**
+	 * The validated post to attach uploads to, or 0.
+	 */
+	postId: number;
+
+	/**
+	 * Called with the files the pipeline takes, before any is queued.
+	 */
+	onStart?: ( files: plupload.File[] ) => void;
+
+	/**
+	 * Builds the screen's UI for a file and returns its callbacks.
+	 */
+	onQueue: ( file: plupload.File, nativeFile: File ) => RouteBatchCallbacks;
 }
 
 interface Window {

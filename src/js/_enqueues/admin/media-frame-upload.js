@@ -112,11 +112,11 @@
 	 * @param {WPUploader}   wpUploader The wp.Uploader instance that queued the file.
 	 * @param {WPAttachment} model      The placeholder Attachment model.
 	 * @param {UploadError}  error      The upload error.
-	 * @param {File}         nativeFile The original file (for the error label).
+	 * @param {string}       fileName   Name of the file (for the error label).
 	 */
-	function handleError( wpUploader, model, error, nativeFile ) {
-		const message = pipeline.getErrorText( error, nativeFile.name );
-		const file = { name: nativeFile.name };
+	function handleError( wpUploader, model, error, fileName ) {
+		const message = pipeline.getErrorText( error, fileName );
+		const file = { name: fileName };
 
 		model.destroy();
 
@@ -160,12 +160,9 @@
 	/**
 	 * Intercepts files added to a plupload uploader.
 	 *
-	 * Returns undefined (not false) when the pipeline cannot take the batch
-	 * so the built-in handler runs and uploads server-side - a degradation,
-	 * never data loss. Otherwise builds the same placeholder tiles as
-	 * wp-plupload, routes the files the pipeline can take through it,
-	 * re-queues the rest on plupload, and returns false to suppress the
-	 * built-in handler.
+	 * Builds the same placeholder tiles as wp-plupload for the files the
+	 * pipeline takes (see wp.mediaUploadPipeline.routeBatch()). Returns
+	 * undefined to leave the whole batch to plupload's built-in handler.
 	 *
 	 * @param {WPUploader}        wpUploader The wp.Uploader instance.
 	 * @param {plupload.Uploader} up         The plupload uploader instance.
@@ -173,92 +170,74 @@
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( wpUploader, up, files ) {
-		if ( ! isAttachmentUploader( up ) || ! pipeline.isReady() ) {
+		if ( ! isAttachmentUploader( up ) ) {
 			return;
 		}
 
-		const batch = pipeline.partitionBatch( up, files );
-		if ( ! batch ) {
-			return;
-		}
-
-		// The classic flow posts plupload's multipart params to
-		// async-upload.php; forward them so plugins reading $_POST see the
-		// same fields, with `post_id` spelled `post` for the REST API.
+		// The classic flow attaches to `post_id` the same way, and rejects
+		// a post the user cannot edit just as the REST API does.
 		const params = ( up.settings && up.settings.multipart_params ) || {};
-		const additionalData = pipeline.additionalDataFromParams(
-			params,
-			parseInt( params.post_id, 10 ) || 0
-		);
 
-		batch.pipeline.forEach( function ( /** @type {plupload.File} */ file ) {
-			// Build the same placeholder attributes as wp-plupload.js so the
-			// grid's progress tiles and "Uploading n/m" status work unchanged.
-			/** @type {PlaceholderAttributes} */
-			const attributes = {
-				file: file,
-				uploading: true,
-				date: new Date(),
-				filename: file.name,
-				menuOrder: 0,
-				uploadedTo: wp.media.model.settings.post.id,
-				loaded: file.loaded,
-				size: file.size,
-				percent: file.percent,
-			};
+		return pipeline.routeBatch( up, files, {
+			postId: parseInt( params.post_id, 10 ) || 0,
+			onQueue: function (
+				/** @type {plupload.File} */ file,
+				/** @type {File} */ nativeFile
+			) {
+				// Build the same placeholder attributes as wp-plupload.js so
+				// the grid's progress tiles and "Uploading n/m" status work
+				// unchanged.
+				/** @type {PlaceholderAttributes} */
+				const attributes = {
+					file: file,
+					uploading: true,
+					date: new Date(),
+					filename: file.name,
+					menuOrder: 0,
+					uploadedTo: wp.media.model.settings.post.id,
+					loaded: file.loaded,
+					size: file.size,
+					percent: file.percent,
+				};
 
-			/*
-			 * Early mime type scanning for images, as wp-plupload.js does,
-			 * extended with the formats the client-side pipeline accepts.
-			 */
-			const image = /(?:jpe?g|png|gif|webp|avif|heic|heif)$/i.exec(
-				file.name
-			);
-			if ( image ) {
-				attributes.type = 'image';
-				// `jpg` is not a valid subtype, so map it to `jpeg`.
-				const subtype = image[ 0 ].toLowerCase();
-				attributes.subtype = 'jpg' === subtype ? 'jpeg' : subtype;
-			}
+				/*
+				 * Early mime type scanning for images, as wp-plupload.js does,
+				 * extended with the formats the client-side pipeline accepts.
+				 */
+				const image = /(?:jpe?g|png|gif|webp|avif|heic|heif)$/i.exec(
+					file.name
+				);
+				if ( image ) {
+					attributes.type = 'image';
+					// `jpg` is not a valid subtype, so map it to `jpeg`.
+					const subtype = image[ 0 ].toLowerCase();
+					attributes.subtype = 'jpg' === subtype ? 'jpeg' : subtype;
+				}
 
-			const model = wp.media.model.Attachment.create( attributes );
-			wp.Uploader.queue.add( model );
-			wpUploader.added( model );
+				const model = wp.media.model.Attachment.create( attributes );
+				wp.Uploader.queue.add( model );
+				wpUploader.added( model );
 
-			// partitionBatch() already established that every file has one.
-			const nativeFile = /** @type {File} */ ( file.getNative() );
-
-			// Remove the file from plupload so it is not uploaded twice.
-			up.removeFile( file );
-
-			pipeline.queueFile( nativeFile, additionalData, {
-				onSuccess: function (
-					/** @type {PipelineAttachment} */ attachment
-				) {
-					handleSuccess( wpUploader, model, attachment );
-				},
-				onError: function ( /** @type {UploadError} */ error ) {
-					// When the server can convert what the browser could
-					// not, plupload takes the file from here and builds
-					// its own tile, so this one goes away.
-					if ( pipeline.handOffToClassic( up, error, nativeFile ) ) {
+				return {
+					onSuccess: function (
+						/** @type {PipelineAttachment} */ attachment
+					) {
+						handleSuccess( wpUploader, model, attachment );
+					},
+					onError: function ( /** @type {UploadError} */ error ) {
+						handleError( wpUploader, model, error, nativeFile.name );
+					},
+					// plupload builds its own tile for the file it took over.
+					onHandOff: function () {
 						model.destroy();
-						return;
-					}
-					handleError( wpUploader, model, error, nativeFile );
-				},
-				onProgress: function ( /** @type {number} */ percent ) {
-					model.set( { percent: percent } );
-					wpUploader.progress( model );
-				},
-			} );
+					},
+					onProgress: function ( /** @type {number} */ percent ) {
+						model.set( { percent: percent } );
+						wpUploader.progress( model );
+					},
+				};
+			},
 		} );
-
-		pipeline.handOffBatchToClassic( up, batch.classic );
-
-		up.refresh();
-
-		return false;
 	}
 
 	// Wrap wp.Uploader.prototype.init (an empty stub called once per instance
