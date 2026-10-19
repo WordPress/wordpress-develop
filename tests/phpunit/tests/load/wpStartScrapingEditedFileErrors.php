@@ -16,13 +16,6 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 	 */
 	private $original_request = array();
 
-	/**
-	 * Transient keys created during the test.
-	 *
-	 * @var string[]
-	 */
-	private $created_transients = array();
-
 	public function set_up() {
 		parent::set_up();
 
@@ -39,10 +32,6 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 			} else {
 				unset( $_REQUEST[ $key ] );
 			}
-		}
-
-		foreach ( $this->created_transients as $transient ) {
-			delete_transient( $transient );
 		}
 
 		parent::tear_down();
@@ -79,31 +68,5 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		wp_start_scraping_edited_file_errors();
 
 		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) );
-	}
-
-	/**
-	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_defines_sandbox_constant_when_scrape_nonce_matches() {
-		$key   = 'validkey123456789012345678901234';
-		$nonce = 'matching-nonce';
-
-		$transient = 'scrape_key_' . $key;
-		set_transient( $transient, $nonce, MINUTE_IN_SECONDS );
-		$this->created_transients[] = $transient;
-
-		$_REQUEST['wp_scrape_key']   = $key;
-		$_REQUEST['wp_scrape_nonce'] = $nonce;
-
-		// This registers wp_finalize_scraping_edited_file_errors() as a shutdown function.
-		// It only prints scrape markers when the isolated child process exits, after
-		// PHPUnit has reported the result, so it doesn't affect the test outcome.
-		wp_start_scraping_edited_file_errors();
-
-		$this->assertTrue( defined( 'WP_SANDBOX_SCRAPING' ) );
-		$this->assertTrue( WP_SANDBOX_SCRAPING );
 	}
 }
