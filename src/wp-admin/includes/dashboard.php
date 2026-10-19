@@ -1162,126 +1162,123 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
  *
  * @since 7.2.0
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $total_items Optional. Number of posts to display. Default 5.
  * @return bool False if no posts with open notes were found. True otherwise.
  *
  * @phpstan-param positive-int $total_items
  */
 function wp_dashboard_recent_notes( int $total_items = 5 ): bool {
-	/*
-	 * Replies are queried alongside the notes that start a thread, so that a
-	 * thread someone replied to counts as added to when it was replied to.
-	 * Resolving a thread approves the note that starts it, while the replies
-	 * stay on hold, so a reply is only recent activity while its thread is.
-	 */
-	$notes_query = array(
-		'type'                      => 'note',
-		'status'                    => 'hold',
-		'orderby'                   => 'comment_date_gmt',
-		'order'                     => 'DESC',
-		'number'                    => $total_items * 5,
-		'offset'                    => 0,
-		// The posts are needed for the capability checks below, the note meta is not.
-		'update_comment_post_cache' => true,
-		'update_comment_meta_cache' => false,
-	);
+	global $wpdb;
 
-	// The most recent open note or reply of each post, keyed by post ID.
-	$latest_notes = array();
-
-	/*
-	 * Only notes on posts the current user can edit are listed, and a user who
-	 * can edit none of them would otherwise page through every open note on the
-	 * site. Paging stops once a hundred notes per row have been looked at, so
-	 * that the section costs a bounded number of queries however many notes the
-	 * site has.
-	 */
-	$max_notes_examined = $total_items * 100;
-	$notes_examined     = 0;
-
-	do {
-		$possible = get_comments( $notes_query );
-
-		if ( empty( $possible ) || ! is_array( $possible ) ) {
-			break;
-		}
-
-		$notes_examined += count( $possible );
-
-		/*
-		 * Prime the threads the replies belong to, so that they are not
-		 * queried for one at a time below.
-		 */
-		$thread_ids = array();
-
-		foreach ( $possible as $note ) {
-			if ( $note->comment_parent ) {
-				$thread_ids[] = (int) $note->comment_parent;
-			}
-		}
-
-		if ( $thread_ids ) {
-			_prime_comment_caches( array_unique( $thread_ids ), false );
-		}
-
-		foreach ( $possible as $note ) {
-			$note_post_id = (int) $note->comment_post_ID;
-
-			// Only the first note of a post is kept, as notes are ordered by date.
-			if ( isset( $latest_notes[ $note_post_id ] ) ) {
-				continue;
-			}
-
-			// A reply is resolved along with the thread it belongs to.
-			if ( $note->comment_parent ) {
-				$thread = get_comment( (int) $note->comment_parent );
-
-				if ( ! $thread || '0' !== $thread->comment_approved ) {
-					continue;
-				}
-			}
-
-			/*
-			 * Notes are only visible to users who can edit the post they belong to,
-			 * and each row links to the post's edit screen.
-			 */
-			if ( ! current_user_can( 'edit_post', $note_post_id ) || ! get_edit_post_link( $note_post_id ) ) {
-				continue;
-			}
-
-			$latest_notes[ $note_post_id ] = $note;
-
-			if ( count( $latest_notes ) === $total_items ) {
-				break 2;
-			}
-		}
-
-		$notes_query['offset'] += $notes_query['number'];
-		$notes_query['number']  = min( $total_items * 10, $max_notes_examined - $notes_examined );
-	} while ( count( $latest_notes ) < $total_items && $notes_examined < $max_notes_examined );
-
-	if ( ! $latest_notes ) {
+	if ( $total_items < 1 ) {
 		return false;
 	}
 
 	/*
-	 * Count the open notes of each of the posts about to be displayed. A count
-	 * query per post is cheaper than one query for every open note on them: the
-	 * count is a single value, so the notes themselves are never loaded.
+	 * Only look at posts the current user may be able to edit: any post of a type
+	 * they can edit others' posts of, and their own posts of the other types.
 	 */
-	$open_notes = array();
+	$any_author_types = array();
+	$own_types        = array();
 
-	foreach ( array_keys( $latest_notes ) as $note_post_id ) {
-		$open_notes[ $note_post_id ] = (int) get_comments(
-			array(
-				'type'    => 'note',
-				'parent'  => 0,
-				'status'  => 'hold',
-				'post_id' => $note_post_id,
-				'count'   => true,
-				'orderby' => 'none',
-			)
+	foreach ( get_post_types( array( 'show_ui' => true ), 'objects' ) as $post_type ) {
+		if ( current_user_can( $post_type->cap->edit_others_posts ) ) {
+			$any_author_types[] = $post_type->name;
+		} elseif ( current_user_can( $post_type->cap->edit_posts ) ) {
+			$own_types[] = $post_type->name;
+		}
+	}
+
+	if ( ! $any_author_types && ! $own_types ) {
+		return false;
+	}
+
+	$post_type_clauses = array();
+
+	if ( $any_author_types ) {
+		$post_type_clauses[] = $wpdb->prepare(
+			'posts.post_type IN (' . implode( ', ', array_fill( 0, count( $any_author_types ), '%s' ) ) . ')',
+			$any_author_types
 		);
+	}
+
+	if ( $own_types ) {
+		$post_type_clauses[] = $wpdb->prepare(
+			'( posts.post_type IN (' . implode( ', ', array_fill( 0, count( $own_types ), '%s' ) ) . ') AND posts.post_author = %d )',
+			array_merge( $own_types, array( get_current_user_id() ) )
+		);
+	}
+
+	/*
+	 * One row per post, dated by its most recent open note or reply, with the
+	 * number of open threads on it. Resolving a thread approves the note that
+	 * starts it while its replies stay on hold, so a reply only counts while its
+	 * thread is open.
+	 */
+	$notes_sql = "SELECT notes.comment_post_ID AS post_id, MAX( notes.comment_date_gmt ) AS latest_date_gmt, SUM( notes.comment_parent = 0 ) AS open_threads
+		FROM {$wpdb->comments} AS notes
+		INNER JOIN {$wpdb->posts} AS posts ON ( posts.ID = notes.comment_post_ID )
+		LEFT JOIN {$wpdb->comments} AS threads ON ( threads.comment_ID = notes.comment_parent )
+		WHERE notes.comment_type = 'note'
+			AND notes.comment_approved = '0'
+			AND ( notes.comment_parent = 0 OR threads.comment_approved = '0' )
+			AND ( " . implode( ' OR ', $post_type_clauses ) . ' )
+		GROUP BY notes.comment_post_ID
+		ORDER BY latest_date_gmt DESC';
+
+	$salt = array( wp_cache_get_last_changed( 'comment' ), wp_cache_get_last_changed( 'posts' ) );
+	$rows = array();
+
+	/*
+	 * A post can still be one the user cannot edit, such as a private post of
+	 * someone else, so the posts are checked and paged through. Paging stops
+	 * after a few pages, so the section costs a bounded number of queries.
+	 */
+	$page_size = $total_items * 2;
+
+	for ( $page = 0; $page < 5; $page++ ) {
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query is built from prepared clauses above.
+		$page_sql  = $wpdb->prepare( $notes_sql . ' LIMIT %d, %d', $page * $page_size, $page_size );
+		$cache_key = 'wp_dashboard_recent_notes:' . md5( $page_sql );
+		$page_rows = wp_cache_get_salted( $cache_key, 'comment-queries', $salt );
+
+		if ( ! is_array( $page_rows ) ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared above.
+			$page_rows = $wpdb->get_results( $page_sql );
+			wp_cache_set_salted( $cache_key, $page_rows, 'comment-queries', $salt );
+		}
+
+		_prime_post_caches( wp_list_pluck( $page_rows, 'post_id' ), false, false );
+
+		foreach ( $page_rows as $row ) {
+			$edit_post_link = get_edit_post_link( (int) $row->post_id );
+
+			// Notes are only visible to users who can edit the post they belong to.
+			if ( ! $edit_post_link ) {
+				continue;
+			}
+
+			$rows[] = array(
+				'post_id'         => (int) $row->post_id,
+				'latest_date_gmt' => $row->latest_date_gmt,
+				'open_threads'    => (int) $row->open_threads,
+				'edit_post_link'  => $edit_post_link,
+			);
+
+			if ( count( $rows ) === $total_items ) {
+				break 2;
+			}
+		}
+
+		if ( count( $page_rows ) < $page_size ) {
+			break;
+		}
+	}
+
+	if ( ! $rows ) {
+		return false;
 	}
 
 	?>
@@ -1289,36 +1286,30 @@ function wp_dashboard_recent_notes( int $total_items = 5 ): bool {
 		<h3><?php _e( 'Recent Notes' ); ?></h3>
 		<ul>
 		<?php
-		foreach ( $latest_notes as $note_post_id => $note ) :
-			$note_time = strtotime( $note->comment_date_gmt . ' +0000' );
+		foreach ( $rows as $row ) :
+			$note_time      = strtotime( $row['latest_date_gmt'] . ' +0000' );
+			$note_time_diff = '';
 
-			// Skip a note whose date cannot be parsed.
-			if ( ! is_int( $note_time ) ) {
-				continue;
+			// Leave the date out for a note with no valid date.
+			if ( is_int( $note_time ) && $note_time > 0 ) {
+				/* translators: %s: Human-readable time difference. */
+				$note_time_diff = sprintf( __( '%s ago' ), human_time_diff( min( $note_time, time() ) ) );
 			}
 
-			$edit_post_link = get_edit_post_link( $note_post_id );
-			if ( ! $edit_post_link ) {
-				continue;
-			}
-
-			$note_post_title = _draft_or_post_title( $note_post_id );
-
-			/* translators: %s: Human-readable time difference. */
-			$note_time_diff = sprintf( __( '%s ago' ), human_time_diff( $note_time ) );
+			$note_post_title = _draft_or_post_title( $row['post_id'] );
 
 			/* translators: %s: Post title. */
 			$note_post_label = sprintf( __( 'Edit &#8220;%s&#8221;' ), $note_post_title );
 
 			$note_count = sprintf(
-				/* translators: %s: Number of open notes. */
-				_n( '%s open note', '%s open notes', $open_notes[ $note_post_id ] ),
-				number_format_i18n( $open_notes[ $note_post_id ] )
+				/* translators: %s: Number of open note threads. */
+				_n( '%s open thread', '%s open threads', $row['open_threads'] ),
+				number_format_i18n( $row['open_threads'] )
 			);
 			?>
 			<li>
 				<span><?php echo $note_time_diff; ?></span>
-				<a href="<?php echo esc_url( $edit_post_link ); ?>" aria-label="<?php echo esc_attr( $note_post_label ); ?>"><?php echo $note_post_title; ?></a>
+				<a href="<?php echo esc_url( $row['edit_post_link'] ); ?>" aria-label="<?php echo esc_attr( $note_post_label ); ?>"><?php echo $note_post_title; ?></a>
 				<span class="open-notes-count"><?php echo $note_count; ?></span>
 			</li>
 		<?php endforeach; ?>

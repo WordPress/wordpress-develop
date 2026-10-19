@@ -128,7 +128,7 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 
 		$this->assertMatchesRegularExpression(
 			sprintf(
-				'#<li>\s*<span>3 hours ago</span>\s*<a href="%s" aria-label="Edit &\#8220;A post with notes&\#8221;">A post with notes</a>\s*<span class="open-notes-count">1 open note</span>\s*</li>#',
+				'#<li>\s*<span>3 hours ago</span>\s*<a href="%s" aria-label="Edit &\#8220;A post with notes&\#8221;">A post with notes</a>\s*<span class="open-notes-count">1 open thread</span>\s*</li>#',
 				preg_quote( esc_url( $edit_post_link ), '#' )
 			),
 			$output
@@ -160,8 +160,8 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 
 		$this->assertTrue( $returned );
 		$this->assertSame( array( 'A newer post', 'An older post' ), $this->get_linked_titles( $output ) );
-		$this->assertMatchesRegularExpression( '#A newer post</a>\s*<span class="open-notes-count">1 open note</span>#', $output );
-		$this->assertMatchesRegularExpression( '#An older post</a>\s*<span class="open-notes-count">2 open notes</span>#', $output );
+		$this->assertMatchesRegularExpression( '#A newer post</a>\s*<span class="open-notes-count">1 open thread</span>#', $output );
+		$this->assertMatchesRegularExpression( '#An older post</a>\s*<span class="open-notes-count">2 open threads</span>#', $output );
 	}
 
 	/**
@@ -269,19 +269,86 @@ class Admin_Includes_Dashboard_WpDashboardRecentNotes_Test extends WP_UnitTestCa
 	/**
 	 * @ticket 65890
 	 */
-	public function test_should_stop_paging_after_a_hundred_notes_per_row(): void {
-		$other_id = $this->create_post( 'A post of somebody else' );
+	public function test_should_find_the_user_notes_behind_many_posts_of_others(): void {
+		// More posts than the section pages through, with more notes than it used to examine.
+		for ( $i = 0; $i < 11; $i++ ) {
+			$other_id = $this->create_post( 'A post of somebody else ' . $i );
 
-		for ( $i = 0; $i < 100; $i++ ) {
-			$this->create_note( $other_id, '0', 0, '2026-01-02 10:00:00' );
+			for ( $j = 0; $j < 10; $j++ ) {
+				$this->create_note( $other_id, '0', 0, '2026-01-02 10:00:00' );
+			}
 		}
 
 		$this->create_note( $this->create_post( 'A post of their own', self::$author_id ), '0', 0, '2026-01-01 10:00:00' );
 
 		wp_set_current_user( self::$author_id );
 
-		list( $returned ) = $this->render( 1 );
+		list( , $output ) = $this->render( 1 );
+
+		$this->assertSame( array( 'A post of their own' ), $this->get_linked_titles( $output ) );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_page_past_posts_of_their_own_the_user_cannot_edit(): void {
+		$contributor_id = self::factory()->user->create( array( 'role' => 'contributor' ) );
+
+		// Contributors cannot edit their published posts.
+		for ( $i = 0; $i < 3; $i++ ) {
+			$published_id = self::factory()->post->create(
+				array(
+					'post_title'  => 'A published post ' . $i,
+					'post_author' => $contributor_id,
+				)
+			);
+			$this->create_note( $published_id, '0', 0, '2026-01-02 10:00:00' );
+		}
+
+		$this->create_note( $this->create_post( 'A draft of their own', $contributor_id ), '0', 0, '2026-01-01 10:00:00' );
+
+		wp_set_current_user( $contributor_id );
+
+		list( , $output ) = $this->render( 1 );
+
+		$this->assertSame( array( 'A draft of their own' ), $this->get_linked_titles( $output ) );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_return_false_for_a_user_who_cannot_edit_posts(): void {
+		$this->create_note( $this->create_post( 'A post with notes' ) );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		list( $returned ) = $this->render();
 
 		$this->assertFalse( $returned );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_return_false_when_no_posts_are_requested(): void {
+		$this->create_note( $this->create_post( 'A post with notes' ) );
+
+		ob_start();
+		$returned = wp_dashboard_recent_notes( 0 ); // @phpstan-ignore argument.type (Testing an invalid value.)
+		$output   = ob_get_clean();
+
+		$this->assertFalse( $returned );
+		$this->assertSame( '', $output );
+	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_should_not_date_a_note_in_the_future(): void {
+		$this->create_note( $this->create_post( 'A post with notes' ), '0', 0, current_datetime()->modify( '+3 hours' )->format( 'Y-m-d H:i:s' ) );
+
+		list( , $output ) = $this->render();
+
+		$this->assertMatchesRegularExpression( '#<span>\d+ seconds? ago</span>#', $output );
 	}
 }
