@@ -9,8 +9,10 @@
  *
  * @covers ::_wp_add_entity_action_modules_to_editor_script
  * @covers ::_wp_preload_entity_actions
+ * @covers ::wp_get_all_registered_entity_action_modules
  * @covers ::wp_register_entity_actions
  * @covers ::wp_unregister_entity_actions
+ * @covers WP_Entity_Actions_Registry::get_all_registered_action_modules
  * @covers WP_Entity_Actions_Registry::initialize
  * @covers WP_Entity_Actions_Registry::register
  * @covers WP_Entity_Actions_Registry::unregister
