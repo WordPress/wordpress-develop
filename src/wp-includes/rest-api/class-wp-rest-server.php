@@ -1322,7 +1322,7 @@ class WP_REST_Server {
 		 *
 		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
-		 * @param array                                            $handler  Route handler used for the request.
+		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
 		 */
 		$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
@@ -1351,10 +1351,10 @@ class WP_REST_Server {
 			 * @since 4.4.0
 			 * @since 4.5.0 Added `$route` and `$handler` parameters.
 			 *
-			 * @param mixed           $dispatch_result Dispatch result, will be used if not empty.
-			 * @param WP_REST_Request $request         Request used to generate the response.
-			 * @param string          $route           Route matched for the request.
-			 * @param array           $handler         Route handler used for the request.
+			 * @param mixed                $dispatch_result Dispatch result, will be used if not empty.
+			 * @param WP_REST_Request      $request         Request used to generate the response.
+			 * @param string               $route           Route matched for the request.
+			 * @param array<string, mixed> $handler         Route handler used for the request.
 			 */
 			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
 
@@ -1384,7 +1384,7 @@ class WP_REST_Server {
 		 *
 		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
-		 * @param array                                            $handler  Route handler used for the request.
+		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
 		 */
 		$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
