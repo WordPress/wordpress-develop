@@ -18,7 +18,10 @@
  *
  * @phpstan-type Link_Attributes array{
  *     embeddable?: bool,
- *     targetHints?: array<string, mixed>,
+ *     targetHints?: array{
+ *         allow?: list<uppercase-string>,
+ *         ...<lowercase-string, mixed>
+ *     },
  *     ...<string, mixed>
  * }
  * @phpstan-type Link array{
@@ -28,7 +31,7 @@
  * @phpstan-type Link_Input array{
  *     href: non-falsy-string,
  *     embeddable?: bool,
- *     targetHints?: array<string, mixed>,
+ *     targetHints?: array<string, mixed>, // Not narrowed like in Link_Attributes, since PHPStan merges this shape with its list form in add_links(), where the nested shape would then be reported at level 5.
  *     ...<string, mixed>
  * }
  * @phpstan-type Curie array{
