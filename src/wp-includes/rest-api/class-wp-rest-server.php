@@ -28,6 +28,8 @@
  *     sanitize_callback?: callable|false|null,
  *     ...
  * }
+ * @phpstan-import-type Target_Hints from WP_REST_Response
+ *
  * @phpstan-type Route_Handler array{
  *     methods: array<uppercase-string, true>,
  *     callback?: callable|null,
@@ -709,6 +711,11 @@ class WP_REST_Server {
 	 *                                      allows no methods. Null if the link already has an `allow` hint,
 	 *                                      or its URL does not resolve to a valid REST API request.
 	 *
+	 * @phpstan-param array{
+	 *     href: non-falsy-string,
+	 *     targetHints?: Target_Hints,
+	 *     ...<string, mixed>
+	 * } $link
 	 * @phpstan-return array<lowercase-string, list<string>>|null
 	 */
 	protected static function get_target_hints_for_link( $link ) {

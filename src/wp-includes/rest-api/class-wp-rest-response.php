@@ -16,12 +16,13 @@
  *
  * @phpstan-import-type Route_Handler from WP_REST_Server
  *
+ * @phpstan-type Target_Hints array{
+ *     allow?: list<uppercase-string>,
+ *     ...<lowercase-string, mixed>
+ * }
  * @phpstan-type Link_Attributes array{
  *     embeddable?: bool,
- *     targetHints?: array{
- *         allow?: list<uppercase-string>,
- *         ...<lowercase-string, mixed>
- *     },
+ *     targetHints?: Target_Hints,
  *     ...<string, mixed>
  * }
  * @phpstan-type Link array{
