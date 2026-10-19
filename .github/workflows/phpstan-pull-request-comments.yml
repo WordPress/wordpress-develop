@@ -183,7 +183,8 @@ jobs:
               return `${ fence }${ padding }${ content }${ padding }${ fence }`;
             };
 
-            const commit = ( sha ) => `[${ sha.slice( 0, 7 ) }](https://github.com/${ owner }/${ repo }/commit/${ sha })`;
+            // A bare URL to a commit is shortened by GitHub to its abbreviated hash, with a hovercard for the commit.
+            const commit = ( sha ) => `https://github.com/${ owner }/${ repo }/commit/${ sha }`;
 
             // A location links to its line in the last commit the error was reported for, rather than to the merge
             // commit that was analyzed, which is replaced whenever either side changes, so links to it would not last.
