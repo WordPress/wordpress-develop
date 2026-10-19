@@ -27,12 +27,14 @@ abstract class WP_Entity_Fields_UnitTestCase extends WP_UnitTestCase {
 	 * Sets up each test.
 	 *
 	 * Registers the fixture defaults, see register_default_fields(), at
-	 * priority 0, before the callbacks of the tests, and resets the registry
-	 * so its next read fires `wp_entity_fields_api_init` anew.
+	 * priority 0, before the callbacks of the tests, in place of the fields
+	 * WordPress core registers, and resets the registry so its next read
+	 * fires `wp_entity_fields_api_init` anew.
 	 */
 	public function set_up() {
 		parent::set_up();
 
+		remove_action( 'wp_entity_fields_api_init', 'wp_register_core_field_collections', 0 );
 		add_action( 'wp_entity_fields_api_init', array( static::class, 'register_default_fields' ), 0 );
 		self::reset_registry();
 	}
