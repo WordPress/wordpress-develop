@@ -63,6 +63,7 @@ class Tests_Load_WpSetInternalEncoding extends WP_UnitTestCase {
 	public function test_falls_back_to_utf8_when_blog_charset_is_empty() {
 		update_option( 'blog_charset', '' );
 
+		mb_internal_encoding( 'ISO-8859-1' );
 		wp_set_internal_encoding();
 
 		$this->assertSame( 'UTF-8', mb_internal_encoding() );
