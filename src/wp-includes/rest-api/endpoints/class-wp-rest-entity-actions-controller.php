@@ -328,7 +328,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 				'context'           => array(
 					'description' => __( 'The context the action is limited to, such as `list` for the lists of items. Without it, the action shows everywhere.' ),
 					'type'        => 'string',
-					'enum'        => array( 'list', 'single' ),
+					'enum'        => WP_Entity_Actions_Registry::SUPPORTED_VALUES['context'],
 				),
 				'modalHeader'       => array(
 					'description' => __( 'The header of the modal of the action.' ),
@@ -341,7 +341,7 @@ class WP_REST_Entity_Actions_Controller extends WP_REST_Controller {
 				'modalSize'         => array(
 					'description' => __( 'The size of the modal of the action.' ),
 					'type'        => 'string',
-					'enum'        => array( 'small', 'medium', 'large', 'fill' ),
+					'enum'        => WP_Entity_Actions_Registry::SUPPORTED_VALUES['modalSize'],
 				),
 				'modalFocusOnMount' => array(
 					'description' => __( 'Where the focus goes when the modal of the action opens.' ),
