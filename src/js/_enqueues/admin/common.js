@@ -874,32 +874,17 @@ $( function() {
 	 * @return {void}
 	 */
 	$( '#collapse-button' ).on( 'click.collapse-menu', function() {
-		var viewportWidth = getViewportWidth() || 961;
-
 		// Reset any compensation for submenus near the bottom of the screen.
 		$('#adminmenu div.wp-submenu').css('margin-top', '');
 
-		if ( viewportWidth <= 960 ) {
-			if ( $body.hasClass('auto-fold') ) {
-				$body.removeClass('auto-fold').removeClass('folded');
-				setUserSetting('unfold', 1);
-				setUserSetting('mfold', 'o');
-				menuState = 'open';
-			} else {
-				$body.addClass('auto-fold');
-				setUserSetting('unfold', 0);
-				menuState = 'folded';
-			}
+		if ( $body.hasClass('folded') ) {
+			$body.removeClass('folded');
+			setUserSetting('mfold', 'o');
+			menuState = 'open';
 		} else {
-			if ( $body.hasClass('folded') ) {
-				$body.removeClass('folded');
-				setUserSetting('mfold', 'o');
-				menuState = 'open';
-			} else {
-				$body.addClass('folded');
-				setUserSetting('mfold', 'f');
-				menuState = 'folded';
-			}
+			$body.addClass('folded');
+			setUserSetting('mfold', 'f');
+			menuState = 'folded';
 		}
 
 		$document.trigger( 'wp-collapse-menu', { state: menuState } );
@@ -1871,9 +1856,11 @@ $( function() {
 		 * Changes properties of body and admin menu.
 		 *
 		 * Pins and unpins the menu and adds the auto-fold class to the body.
-		 * Makes the admin menu responsive and disables the metabox sortables.
+		 * Makes the admin menu responsive and disables the metabox sortables
+		 * when the viewport is narrow enough.
 		 *
 		 * @since 3.8.0
+		 * @since 7.2.0 Metabox sortables are only disabled at 782px and below.
 		 *
 		 * @return {void}
 		 */
@@ -1885,7 +1872,7 @@ $( function() {
 			}
 
 			$adminmenu.data( 'wp-responsive', 1 );
-			this.disableSortables();
+			this.maybeDisableSortables();
 		},
 
 		/**
@@ -1948,7 +1935,7 @@ $( function() {
 				return;
 			}
 
-			if ( viewportWidth <= 782 ) {
+			if ( viewportWidth <= 960 ) {
 				if ( ! wpResponsiveActive ) {
 					$document.trigger( 'wp-responsive-activate' );
 					wpResponsiveActive = true;
@@ -2084,9 +2071,9 @@ $( function() {
 	function setMenuState() {
 		var viewportWidth = getViewportWidth() || 961;
 
-		if ( viewportWidth <= 782  ) {
+		if ( viewportWidth <= 960 ) {
 			menuState = 'responsive';
-		} else if ( $body.hasClass( 'folded' ) || ( $body.hasClass( 'auto-fold' ) && viewportWidth <= 960 && viewportWidth > 782 ) ) {
+		} else if ( $body.hasClass( 'folded' ) ) {
 			menuState = 'folded';
 		} else {
 			menuState = 'open';

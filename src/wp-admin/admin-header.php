@@ -202,9 +202,12 @@ if ( 'f' === get_user_setting( 'mfold' ) ) {
 	$admin_body_class .= ' folded';
 }
 
-if ( ! get_user_setting( 'unfold' ) ) {
-	$admin_body_class .= ' auto-fold';
-}
+/*
+ * The admin menu no longer folds automatically. The `auto-fold` class is kept
+ * because it scopes the responsive admin menu styles and is relied on by
+ * plugins and the block editor.
+ */
+$admin_body_class .= ' auto-fold';
 
 if ( is_admin_bar_showing() ) {
 	$admin_body_class .= ' admin-bar';
