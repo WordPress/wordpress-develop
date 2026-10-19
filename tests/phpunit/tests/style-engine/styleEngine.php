@@ -25,6 +25,7 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 	 * @ticket 63799
 	 * @ticket 64974
 	 * @ticket 65037
+	 * @ticket 66306
 	 *
 	 * @covers ::wp_style_engine_get_styles
 	 *
@@ -443,6 +444,21 @@ class Tests_wpStyleEngine extends WP_UnitTestCase {
 					'declarations' => array(
 						'padding' => 'var(--wp--preset--spacing--20)',
 						'margin'  => 'var(--wp--preset--spacing--10)',
+					),
+				),
+			),
+
+			'valid_text_indent_spacing_preset_value'       => array(
+				'block_styles'    => array(
+					'typography' => array(
+						'textIndent' => 'var:preset|spacing|30',
+					),
+				),
+				'options'         => array(),
+				'expected_output' => array(
+					'css'          => 'text-indent:var(--wp--preset--spacing--30);',
+					'declarations' => array(
+						'text-indent' => 'var(--wp--preset--spacing--30)',
 					),
 				),
 			),
