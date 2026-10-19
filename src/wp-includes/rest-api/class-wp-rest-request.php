@@ -29,7 +29,7 @@
  * @phpstan-import-type Endpoint_Arg from WP_REST_Server
  *
  * @phpstan-type Attributes array{
- *     methods?: array<string, true>,
+ *     methods?: array<uppercase-string, true>,
  *     callback?: callable|null,
  *     permission_callback?: callable|null,
  *     validate_callback?: callable|null,
