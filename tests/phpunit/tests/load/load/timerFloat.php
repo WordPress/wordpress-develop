@@ -42,6 +42,7 @@ class Tests_Load_TimerFloat extends WP_UnitTestCase {
 
 		$this->assertIsFloat( $result );
 		$this->assertGreaterThanOrEqual( 1.25, $result );
+		$this->assertLessThanOrEqual( microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'], $result );
 	}
 
 	/**
