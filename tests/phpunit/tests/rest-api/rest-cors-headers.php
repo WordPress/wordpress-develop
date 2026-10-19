@@ -35,6 +35,8 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		 */
 		global $wp_rest_server;
 		$wp_rest_server = new WP_REST_Server();
+
+		/** This action is documented in wp-includes/rest-api.php */
 		do_action( 'rest_api_init', $wp_rest_server );
 	}
 
@@ -50,14 +52,17 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	/**
 	 * Serves a request through the full pipeline and returns the emitted headers.
 	 *
-	 * @return string[] Headers as xdebug reports them, after replace semantics apply.
+	 * @return list<string> Headers as xdebug reports them, after replace semantics apply.
 	 */
 	protected function serve_and_get_headers() {
 		ob_start();
 		rest_get_server()->serve_request( '/wp/v2/types' );
 		ob_end_clean();
 
-		return xdebug_get_headers();
+		/** @var list<string> $headers */
+		$headers = xdebug_get_headers();
+
+		return $headers;
 	}
 
 	/**
@@ -74,7 +79,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_can_set_access_control_allow_methods() {
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
 				return $response;
 			}
@@ -98,7 +103,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_suppresses_the_default_and_vary_still_appends() {
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
 				$response->header( 'Vary', 'Accept-Encoding' );
 				return $response;
@@ -124,7 +129,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_is_matched_case_insensitively() {
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'access-control-allow-methods', 'OPTIONS, GET' );
 				return $response;
 			}
@@ -213,7 +218,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_origin_and_credentials_headers_are_not_response_settable() {
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Origin', 'http://plugin.example' );
 				$response->header( 'Access-Control-Allow-Credentials', 'false' );
 				return $response;
@@ -236,7 +241,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_allowed_cors_methods_filter_changes_the_list() {
 		add_filter(
 			'rest_allowed_cors_methods',
-			static function ( $methods ) {
+			static function ( array $methods ) {
 				$methods[] = 'HEAD';
 				return $methods;
 			}
@@ -295,7 +300,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
 				return $response;
 			}
@@ -329,7 +334,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
 				return $response;
 			}
@@ -365,7 +370,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		add_filter(
 			'rest_post_dispatch',
-			static function ( $response ) {
+			static function ( WP_HTTP_Response $response ) {
 				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
 				return $response;
 			}
