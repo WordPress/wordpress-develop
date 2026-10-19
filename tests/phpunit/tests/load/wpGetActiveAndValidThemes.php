@@ -179,7 +179,7 @@ class Tests_Load_WpGetActiveAndValidThemes extends WP_UnitTestCase {
 	 */
 	public function test_includes_stylesheet_path_for_child_theme() {
 		global $wp_stylesheet_path, $wp_template_path;
-
+		// These are not a real parent/child pair. is_child_theme() only compares the two paths.
 		$wp_template_path   = get_theme_root() . '/twentytwentyone';
 		$wp_stylesheet_path = get_theme_root() . '/twentytwentyfive';
 		update_option( 'template', 'twentytwentyone' );
