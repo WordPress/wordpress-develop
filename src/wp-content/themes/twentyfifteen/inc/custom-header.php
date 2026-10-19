@@ -82,6 +82,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 	 * Styles the header image and text displayed on the blog.
 	 *
 	 * @since Twenty Fifteen 1.0
+	 * @since Twenty Fifteen 4.4 Added `wp_print_inline_style_tag()` support.
 	 *
 	 * @see twentyfifteen_custom_header_setup()
 	 */
@@ -94,12 +95,11 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 		}
 
 		// If we get this far, we have custom styles. Let's do this.
-		?>
-		<style id="twentyfifteen-header-css">
-		<?php
+		$css = array();
+
 		// Short header for when there is no Custom Header and Header Text is hidden.
-		if ( empty( $header_image ) && ! display_header_text() ) :
-			?>
+		if ( empty( $header_image ) && ! display_header_text() ) {
+			$css[] = <<<CSS
 		.site-header {
 			padding-top: 14px;
 			padding-bottom: 14px;
@@ -136,19 +136,21 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				min-height: 0;
 			}
 		}
-			<?php
-		endif;
+CSS;
+		}
 
 		// Has a Custom Header been added?
-		if ( ! empty( $header_image ) ) :
-			?>
+		if ( ! empty( $header_image ) ) {
+			$esc_url_raw = 'esc_url_raw';
+
+			$css[] = <<<CSS
 		.site-header {
 
 			/*
 			 * No shorthand so the Customizer can override individual properties.
 			 * @link https://core.trac.wordpress.org/ticket/31460
 			 */
-			background-image: url(<?php header_image(); ?>);
+			background-image: url("{$esc_url_raw( $header_image )}");
 			background-repeat: no-repeat;
 			background-position: 50% 50%;
 			-webkit-background-size: cover;
@@ -164,7 +166,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				 * No shorthand so the Customizer can override individual properties.
 				 * @link https://core.trac.wordpress.org/ticket/31460
 				 */
-				background-image: url(<?php header_image(); ?>);
+				background-image: url("{$esc_url_raw( $header_image )}");
 				background-repeat: no-repeat;
 				background-position: 100% 50%;
 				-webkit-background-size: cover;
@@ -178,20 +180,27 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				background: transparent;
 			}
 		}
-			<?php
-		endif;
+CSS;
+		}
 
 		// Has the text been hidden?
-		if ( ! display_header_text() ) :
-			?>
+		if ( ! display_header_text() ) {
+			$css[] = <<<CSS
 		.site-title,
 		.site-description {
 			clip-path: inset(50%);
 			position: absolute;
 		}
-	<?php endif; ?>
-	</style>
-		<?php
+CSS;
+		}
+
+		$css = implode( "\n", $css );
+
+		if ( function_exists( 'wp_print_inline_style_tag' ) ) {
+			wp_print_inline_style_tag( $css, array( 'id' => 'twentyfifteen-header-css' ) );
+		} else {
+			echo "<style id=\"twentyfifteen-header-css\">\n{$css}\n</style>\n";
+		}
 	}
 endif; // twentyfifteen_header_style()
 

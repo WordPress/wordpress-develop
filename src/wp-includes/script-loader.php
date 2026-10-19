@@ -2433,12 +2433,9 @@ function _print_styles() {
 		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$style_tag_contents = "\n{$wp_styles->print_code}\n"
-				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
-			$processor->set_modifiable_text( $style_tag_contents );
-			echo "{$processor->get_updated_html()}\n";
+			$style_tag_contents = $wp_styles->print_code . "\n"
+				. sprintf( '/*# sourceURL=%s */', rawurlencode( $concat_source_url ) );
+			wp_print_inline_style_tag( $style_tag_contents );
 		}
 	}
 
@@ -3651,6 +3648,81 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
 }
 
 /**
+ * Constructs an inline style tag.
+ *
+ * It is possible to inject attributes in the `<style>` tag via the {@see 'wp_inline_style_attributes'} filter.
+ *
+ * @since 7.2.0
+ *
+ * @param string                     $data       CSS for the style tag.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ * @return string HTML style tag containing the provided CSS.
+ *
+ * @phpstan-param array<non-falsy-string, string|bool> $attributes
+ * @phpstan-return non-falsy-string
+ */
+function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
+	$data = "\n" . trim( (string) $data, "\n\r " ) . "\n";
+
+	/**
+	 * Filters attributes to be added to an inline style tag.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
+	 *                                               Only the attribute name is added to the `<style>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline CSS.
+	 */
+	$attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $data );
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+	foreach ( $attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it is possible that the
+		 * input array might contain duplicate attributes even though
+		 * it is keyed on their name. Calling code should rewrite an
+		 * attribute's value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the STYLE tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+
+	$processor->set_modifiable_text( $data );
+
+	return "{$processor->get_updated_html()}\n";
+}
+
+/**
+ * Prints an inline style tag.
+ *
+ * It is possible to inject attributes in the `<style>` tag via the {@see 'wp_inline_style_attributes'} filter.
+ *
+ * @since 7.2.0
+ *
+ * @param string                     $data       CSS for the style tag.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ *
+ * @phpstan-param array<non-falsy-string, string|bool> $attributes
+ */
+function wp_print_inline_style_tag( $data, array $attributes = array() ): void {
+	echo wp_get_inline_style_tag( $data, $attributes );
+}
+
+/**
  * Allows small styles to be inlined.
  *
  * This improves performance and sustainability, and is opt-in. Stylesheets can opt in
@@ -3847,10 +3919,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	add_action(
 		$action_hook_name,
 		static function () use ( $style ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$processor->set_modifiable_text( $style );
-			echo "{$processor->get_updated_html()}\n";
+			wp_print_inline_style_tag( $style );
 		},
 		$priority
 	);
@@ -4575,11 +4644,10 @@ function wp_hoist_late_printed_styles(): void {
 				 * a sourceURL comment after the placeholder above is removed.
 				 */
 				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
-					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
-					$style_processor->next_tag();
-					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
-					$style_processor->set_modifiable_text( $extra_inline_styles );
-					$inserted_after .= "{$style_processor->get_updated_html()}\n";
+					$inserted_after .= wp_get_inline_style_tag(
+						$extra_inline_styles,
+						array( 'id' => 'wp-block-library-inline-css-extra' )
+					);
 				}
 
 				if ( '' !== $inserted_after ) {
