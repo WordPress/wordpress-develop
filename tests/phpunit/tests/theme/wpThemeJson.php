@@ -805,6 +805,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 * @ticket 54336
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
@@ -828,7 +829,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			'.wp-block-heading.has-white-color{color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.wp-block-heading.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
+			':where(.wp-block-heading).has-white-color{color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-background-color{background-color: var(--wp--preset--color--white) !important;}:where(.wp-block-heading).has-white-border-color{border-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( array( 'presets' ) )
 		);
 	}
@@ -894,6 +895,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 58550
 	 * @ticket 60936
 	 * @ticket 61165
+	 * @ticket 65724
 	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
@@ -926,7 +928,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$styles    = ':root :where(.wp-block-group){color: red;}';
-		$presets   = '.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
+		$presets   = ':where(.wp-block-group).has-grey-color{color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}:where(.wp-block-group).has-grey-border-color{border-color: var(--wp--preset--color--grey) !important;}';
 		$variables = '.wp-block-group{--wp--preset--color--grey: grey;}';
 
 		$all = $variables . $styles . $presets;
@@ -979,6 +981,86 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame(
 			':root{--wp--preset--color--grey: grey;--wp--preset--color--dark-grey: grey;--wp--preset--color--light-grey: grey;--wp--preset--color--white-2-black: grey;--wp--custom--white-2-black: value;}',
 			$theme_json->get_stylesheet( array( 'variables' ) )
+		);
+	}
+
+	/**
+	 * References to presets (`var:preset|type|slug`) are converted using the
+	 * same kebab-cased slug as the custom properties generated from the
+	 * presets, so both sides match for slugs that change when kebab-cased.
+	 */
+	public function test_get_stylesheet_kebab_cases_preset_reference_slugs() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'typography' => array(
+						'fontFamilies' => array(
+							array(
+								'name'       => 'N27',
+								'slug'       => 'n27',
+								'fontFamily' => 'N27, sans-serif',
+							),
+						),
+					),
+					'spacing'    => array(
+						'spacingSizes' => array(
+							array(
+								'name' => 'Small 2',
+								'slug' => 'small2',
+								'size' => '8px',
+							),
+						),
+					),
+					'color'      => array(
+						'duotone' => array(
+							array(
+								'colors' => array( '#000000', '#ffffff' ),
+								'name'   => 'Blue Orange 2',
+								'slug'   => 'blueOrange2',
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'typography' => array(
+						'fontFamily' => 'var:preset|font-family|n27',
+					),
+					'spacing'    => array(
+						'padding' => array(
+							'top' => 'var:preset|spacing|small2',
+						),
+					),
+					'blocks'     => array(
+						'core/image' => array(
+							'filter' => array(
+								'duotone' => 'var:preset|duotone|blueOrange2',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$stylesheet = $theme_json->get_stylesheet();
+
+		// The custom properties generated from the presets kebab-case the slug.
+		$this->assertStringContainsString(
+			'--wp--preset--font-family--n-27: N27, sans-serif',
+			$stylesheet
+		);
+		// References resolve to the same kebab-cased custom property names.
+		$this->assertStringContainsString(
+			'font-family: var(--wp--preset--font-family--n-27)',
+			$stylesheet
+		);
+		$this->assertStringContainsString(
+			'padding-top: var(--wp--preset--spacing--small-2)',
+			$stylesheet
+		);
+		$this->assertStringContainsString(
+			'var(--wp--preset--duotone--blue-orange-2)',
+			$stylesheet
 		);
 	}
 
@@ -1447,6 +1529,162 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button))){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_pseudo_styles_defined_only_in_a_breakpoint() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'red',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = '@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: red;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_renders_element_styles_defined_only_in_separate_breakpoints() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'@mobile' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'red',
+										),
+									),
+								),
+							),
+							'@tablet' => array(
+								'elements' => array(
+									'link' => array(
+										'color' => array(
+											'text' => 'blue',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = '@media (width <= 480px){' . $link_selector . '{color: red;}}' .
+			'@media (480px < width <= 782px){' . $link_selector . '{color: blue;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
+	 * @ticket 65827
+	 */
+	public function test_get_stylesheet_does_not_duplicate_base_element_styles_into_pseudo_rule() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'text' => 'blue',
+									),
+								),
+							),
+							'@mobile'  => array(
+								'elements' => array(
+									'link' => array(
+										':hover' => array(
+											'color' => array(
+												'text' => 'darkred',
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$link_selector = ':root :where(.wp-block-group a:where(:not(.wp-element-button)))';
+		$expected      = $link_selector . '{color: blue;}' .
+			'@media (width <= 480px){:root :where(.wp-block-group a:where(:not(.wp-element-button)):hover){color: darkred;}}';
+
+		$this->assertSame(
+			$expected,
+			$theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) )
+		);
+	}
+
+	/**
 	 * @ticket 65164
 	 */
 	public function test_get_styles_for_block_responsive_element_pseudo_styles_preserve_order_and_do_not_duplicate_pseudo() {
@@ -1858,6 +2096,73 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSame(
 			':root { --wp--style--global--content-size: 640px;--wp--style--global--wide-size: 1200px; }:where(body) { margin: 0; }.wp-site-blocks > .alignleft { float: left; margin-right: 2em; }.wp-site-blocks > .alignright { float: right; margin-left: 2em; }.wp-site-blocks > .aligncenter { justify-content: center; margin-left: auto; margin-right: auto; }:where(.wp-site-blocks) > * { margin-block-start: 1em; margin-block-end: 0; }:where(.wp-site-blocks) > :first-child { margin-block-start: 0; }:where(.wp-site-blocks) > :last-child { margin-block-end: 0; }:root { --wp--style--block-gap: 1em; }:root :where(.is-layout-flow) > :first-child{margin-block-start: 0;}:root :where(.is-layout-flow) > :last-child{margin-block-end: 0;}:root :where(.is-layout-flow) > *{margin-block-start: 1em;margin-block-end: 0;}:root :where(.is-layout-constrained) > :first-child{margin-block-start: 0;}:root :where(.is-layout-constrained) > :last-child{margin-block-end: 0;}:root :where(.is-layout-constrained) > *{margin-block-start: 1em;margin-block-end: 0;}:root :where(.is-layout-flex){gap: 1em;}:root :where(.is-layout-grid){gap: 1em;}.is-layout-flow > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-flow > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignleft{float: left;margin-inline-start: 0;margin-inline-end: 2em;}.is-layout-constrained > .alignright{float: right;margin-inline-start: 2em;margin-inline-end: 0;}.is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}.is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}',
 			$theme_json->get_stylesheet( array( 'styles' ) )
+		);
+	}
+
+	/**
+	 * @ticket 66263
+	 *
+	 * @dataProvider data_get_stylesheet_with_axial_block_gap
+	 *
+	 * @param array  $block_gap           Block gap value.
+	 * @param string $expected_row_gap    Expected row gap value.
+	 * @param string $expected_column_gap Expected column gap value.
+	 */
+	public function test_get_stylesheet_generates_layout_styles_with_axial_block_gap( $block_gap, $expected_row_gap, $expected_column_gap ) {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'spacing' => array(
+								'blockGap' => $block_gap,
+							),
+						),
+					),
+				),
+			),
+			'default'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) );
+
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-flow\) > \*\{margin-block-start:\s*' . preg_quote( $expected_row_gap, '/' ) . ';margin-block-end:\s*0;\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-constrained\) > \*\{margin-block-start:\s*' . preg_quote( $expected_row_gap, '/' ) . ';margin-block-end:\s*0;\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-flex\)\{gap:\s*' . preg_quote( $expected_row_gap, '/' ) . ' ' . preg_quote( $expected_column_gap, '/' ) . ';\}/', $stylesheet );
+		$this->assertMatchesRegularExpression( '/:where\(\.wp-block-group-is-layout-grid\)\{gap:\s*' . preg_quote( $expected_row_gap, '/' ) . ' ' . preg_quote( $expected_column_gap, '/' ) . ';\}/', $stylesheet );
+	}
+
+	/**
+	 * Data provider for test_get_stylesheet_generates_layout_styles_with_axial_block_gap().
+	 *
+	 * @return array[] Test data.
+	 */
+	public function data_get_stylesheet_with_axial_block_gap() {
+		return array(
+			'different row and column gaps' => array(
+				array(
+					'top'  => '1em',
+					'left' => '2em',
+				),
+				'1em',
+				'2em',
+			),
+			'row gap only'                  => array(
+				array( 'top' => '1em' ),
+				'1em',
+				'0',
+			),
+			'column gap only'               => array(
+				array( 'left' => '2em' ),
+				'0',
+				'2em',
+			),
 		);
 	}
 
@@ -3259,7 +3564,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
@@ -3340,7 +3645,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $block_nodes );
+		$this->assertSame( $expected, $block_nodes );
 	}
 
 	/**
@@ -4903,7 +5208,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
+	public static function data_get_property_value_should_return_string_for_invalid_paths_or_null_values() {
 		return array(
 			'empty string' => array(
 				'styles' => array(),
@@ -5356,7 +5661,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_for_block_with_style_variations() {
+	public static function data_sanitize_for_block_with_style_variations() {
 		return array(
 			'1 variation with 1 valid property'     => array(
 				'theme_json_variations' => array(
@@ -5576,7 +5881,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_with_invalid_style_variation() {
+	public static function data_sanitize_with_invalid_style_variation() {
 		return array(
 			'empty string variation' => array(
 				array(
@@ -5588,6 +5893,220 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'variations' => false,
 				),
 			),
+		);
+	}
+
+	/**
+	 * @ticket 66286
+	 * @ticket 66304
+	 *
+	 * @dataProvider data_get_stylesheet_ignores_values_of_unexpected_types
+	 *
+	 * @param array $theme_json_data The theme.json data, without the version.
+	 */
+	public function test_get_stylesheet_ignores_values_of_unexpected_types( $theme_json_data ) {
+		$theme_json = new WP_Theme_JSON(
+			array_merge( array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ), $theme_json_data )
+		);
+
+		$this->assertIsString( $theme_json->get_stylesheet( array( 'variables', 'styles', 'presets', 'custom-css' ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array
+	 */
+	public static function data_get_stylesheet_ignores_values_of_unexpected_types() {
+		return array(
+			'root custom css as an object'          => array(
+				array( 'styles' => array( 'css' => array( 'color' => 'red' ) ) ),
+			),
+			'element custom css as an object'       => array(
+				array( 'styles' => array( 'elements' => array( 'link' => array( 'css' => array( 'color' => 'red' ) ) ) ) ),
+			),
+			'block custom css as a list'            => array(
+				array( 'styles' => array( 'blocks' => array( 'core/paragraph' => array( 'css' => array( 'color: red;' ) ) ) ) ),
+			),
+			'ref as an array'                       => array(
+				array( 'styles' => array( 'color' => array( 'text' => array( 'ref' => array( 'styles', 'color' ) ) ) ) ),
+			),
+			'palette as a list of strings'          => array(
+				array( 'settings' => array( 'color' => array( 'palette' => array( '#000', '#fff' ) ) ) ),
+			),
+			'palette keyed by origin with a string' => array(
+				array( 'settings' => array( 'color' => array( 'palette' => array( 'custom' => array( '#000' ) ) ) ) ),
+			),
+			'palette mixing a list and an origin'   => array(
+				array(
+					'settings' => array(
+						'color' => array(
+							'palette' => array(
+								0       => '#000',
+								'theme' => '#fff',
+							),
+						),
+					),
+				),
+			),
+			'preset slug as an array'               => array(
+				array(
+					'settings' => array(
+						'typography' => array(
+							'fontSizes' => array(
+								array(
+									'slug' => array( 'small' ),
+									'size' => '1rem',
+								),
+							),
+						),
+					),
+				),
+			),
+			'font families as a list of strings'    => array(
+				array( 'settings' => array( 'typography' => array( 'fontFamilies' => array( 'Inter' ) ) ) ),
+			),
+			'spacing scale as a string'             => array(
+				array( 'settings' => array( 'spacing' => array( 'spacingScale' => '1.5' ) ) ),
+			),
+			'spacing scale unit as an array'        => array(
+				array(
+					'settings' => array(
+						'spacing' => array(
+							'spacingScale' => array(
+								'operator'   => '*',
+								'increment'  => 1.5,
+								'steps'      => 7,
+								'mediumStep' => 1.5,
+								'unit'       => array( 'rem' ),
+							),
+						),
+					),
+				),
+			),
+			'shared style variation as a string'    => array(
+				array( 'styles' => array( 'variations' => array( 'plain' => 'red' ) ) ),
+			),
+			'block types item as an array'          => array(
+				array( 'blockTypes' => array( array( 'core/button' ) ) ),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 66304
+	 */
+	public function test_sanitize_removes_preset_items_of_unexpected_types() {
+		$valid_color = array(
+			'slug'  => 'black',
+			'color' => '#000',
+			'name'  => 'Black',
+		);
+		$int_slug    = array(
+			'slug'  => 50,
+			'color' => '#888',
+			'name'  => 'Grey',
+		);
+		$invalid     = array(
+			'#fff',
+			array(
+				'slug'  => array( 'white' ),
+				'color' => '#fff',
+			),
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array( 'palette' => array_merge( $invalid, array( $valid_color, $int_slug ) ) ),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array( 'palette' => array( 'custom' => array_merge( $invalid, array( $valid_color, $int_slug ) ) ) ),
+						),
+					),
+				),
+			)
+		);
+		$settings   = $theme_json->get_settings();
+
+		$this->assertSame( array( $valid_color, $int_slug ), $settings['color']['palette']['theme'], 'Top-level preset list' );
+		$this->assertSame( array( $valid_color, $int_slug ), $settings['blocks']['core/paragraph']['color']['palette']['custom'], 'Block-level presets keyed by origin' );
+	}
+
+	/**
+	 * @ticket 66304
+	 */
+	public function test_remove_insecure_properties_removes_preset_items_of_unexpected_types() {
+		$valid_color = array(
+			'slug'  => 'black',
+			'color' => '#000',
+			'name'  => 'Black',
+		);
+
+		$sanitized = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array( 'color' => array( 'palette' => array( 'custom' => array( '#fff', $valid_color ) ) ) ),
+			),
+			'custom'
+		);
+
+		$this->assertSame( array( $valid_color ), $sanitized['settings']['color']['palette']['custom'] );
+	}
+
+	/**
+	 * @ticket 66286
+	 */
+	public function test_merge_does_not_generate_spacing_sizes_from_a_non_array_per_origin_spacing_scale() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'spacingScale' => array(
+							'operator'   => '*',
+							'increment'  => 1.5,
+							'steps'      => 3,
+							'mediumStep' => 1.5,
+							'unit'       => 'rem',
+						),
+					),
+				),
+			),
+			'default'
+		);
+		$theme_json->merge(
+			new WP_Theme_JSON(
+				array(
+					'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+					'settings' => array( 'spacing' => array( 'spacingScale' => array( 'theme' => '1.5' ) ) ),
+				)
+			)
+		);
+		$spacing_sizes = $theme_json->get_settings()['spacing']['spacingSizes'];
+
+		$this->assertSame( array(), $spacing_sizes['theme'], 'The theme layer with a non-array spacing scale should generate no sizes.' );
+		$this->assertSame(
+			array(
+				array(
+					'name' => 'Small',
+					'slug' => '40',
+					'size' => '1rem',
+				),
+				array(
+					'name' => 'Medium',
+					'slug' => '50',
+					'size' => '1.5rem',
+				),
+				array(
+					'name' => 'Large',
+					'slug' => '60',
+					'size' => '2.25rem',
+				),
+			),
+			$spacing_sizes['default'],
+			'The default layer sizes should be unaffected.'
 		);
 	}
 
@@ -5628,7 +6147,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_styles_for_block_with_style_variations() {
+	public static function data_get_styles_for_block_with_style_variations() {
 		$plain = array(
 			'metadata' => array(
 				'path'     => array( 'styles', 'blocks', 'core/quote', 'variations', 'plain' ),
@@ -6100,7 +6619,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_spacing_sizes() {
+	public static function data_set_spacing_sizes() {
 		return array(
 			'only one value when single step in spacing scale' => array(
 				'spacing_scale'   => array(
@@ -6391,7 +6910,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_set_spacing_sizes_when_invalid() {
+	public static function data_set_spacing_sizes_when_invalid() {
 		return array(
 			'missing operator value'  => array(
 				'spacing_scale'   => array(
@@ -6484,7 +7003,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_update_separator_declarations() {
+	public static function data_update_separator_declarations() {
 		return array(
 			// If only background is defined, test that includes border-color to the style so it is applied on the front end.
 			'only background'                      => array(
@@ -6538,6 +7057,178 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'expected_output' => ':root :where(.wp-block-separator){background-color: blue;border-color: pink;}',
+			),
+		);
+	}
+
+	/**
+	 * Tests that button block width declarations are updated for percentage values.
+	 *
+	 * @ticket 65388
+	 *
+	 * @dataProvider data_update_button_width_declarations
+	 *
+	 * @param array  $theme_json_args Theme JSON arguments including styles and optional settings.
+	 * @param string $expected_output Expected CSS output.
+	 */
+	public function test_update_button_width_declarations( $theme_json_args, $expected_output ) {
+		$theme_json = new WP_Theme_JSON(
+			array_merge(
+				array( 'version' => WP_Theme_JSON::LATEST_SCHEMA ),
+				$theme_json_args
+			),
+			'default'
+		);
+
+		$button_node = array(
+			'name'       => 'core/button',
+			'path'       => array( 'styles', 'blocks', 'core/button' ),
+			'selector'   => '.wp-block-button .wp-block-button__link',
+			'selectors'  => array(
+				'root'       => '.wp-block-button .wp-block-button__link',
+				'dimensions' => array(
+					'root'  => '.wp-block-button',
+					'width' => '.wp-block-button',
+				),
+			),
+			'duotone'    => null,
+			'variations' => array(),
+			'css'        => '.wp-block-button .wp-block-button__link',
+		);
+		$this->assertSame( $expected_output, $theme_json->get_styles_for_block( $button_node ) );
+	}
+
+	/**
+	 * Data provider for button width declaration tests.
+	 *
+	 * @return array
+	 */
+	public static function data_update_button_width_declarations() {
+		return array(
+			'direct percentage value'                   => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '25%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'decimal percentage value'                  => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '33.33%',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(33.33 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 33.33 / 100)));}',
+			),
+			'non-percentage value is unchanged'         => array(
+				array(
+					'styles' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => '200px',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: 200px;}',
+			),
+			'preset dimension with percentage size (block-level settings)' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => '50',
+											'name' => '50%',
+											'size' => '50%',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--50)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(50 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 50 / 100)));}',
+			),
+			'preset dimension with percentage size (top-level settings)' => array(
+				array(
+					'settings' => array(
+						'dimensions' => array(
+							'dimensionSizes' => array(
+								array(
+									'slug' => '25',
+									'name' => '25%',
+									'size' => '25%',
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--25)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: calc(25 * 1% - (var(--wp--style--block-gap, 0.5em) * (1 - 25 / 100)));}',
+			),
+			'preset dimension with non-percentage size' => array(
+				array(
+					'settings' => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'dimensionSizes' => array(
+										array(
+											'slug' => 'wide',
+											'name' => 'Wide',
+											'size' => '400px',
+										),
+									),
+								),
+							),
+						),
+					),
+					'styles'   => array(
+						'blocks' => array(
+							'core/button' => array(
+								'dimensions' => array(
+									'width' => 'var(--wp--preset--dimension--wide)',
+								),
+							),
+						),
+					),
+				),
+				'expected_output' => ':root :where(.wp-block-button){width: var(--wp--preset--dimension--wide);}',
 			),
 		);
 	}
@@ -6895,7 +7586,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_custom_css_for_user_caps() {
+	public static function data_custom_css_for_user_caps() {
 		return array(
 			'allows custom css for users with caps'     => array(
 				'user_property' => 'administrator_id',
@@ -6934,6 +7625,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 61165
 	 * @ticket 61769
+	 * @ticket 66286
 	 *
 	 * @dataProvider data_process_blocks_custom_css
 	 *
@@ -6960,13 +7652,27 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_process_blocks_custom_css() {
+	public static function data_process_blocks_custom_css() {
 		return array(
 			// Simple CSS without any nested selectors.
 			'empty css'                    => array(
 				'input'    => array(
 					'selector' => '.foo',
 					'css'      => '',
+				),
+				'expected' => '',
+			),
+			'css as an object'             => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => array( 'color' => 'red' ),
+				),
+				'expected' => '',
+			),
+			'css as a list of strings'     => array(
+				'input'    => array(
+					'selector' => '.foo',
+					'css'      => array( 'color: red;' ),
 				),
 				'expected' => '',
 			),
@@ -7278,8 +7984,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_get_block_style_variation_selector
 	 *
-	 * @param string $selector  CSS selector.
-	 * @param string $expected  Expected block style variation CSS selector.
+	 * @param string $selector CSS selector.
+	 * @param string $expected Expected block style variation CSS selector.
 	 */
 	public function test_get_block_style_variation_selector( $selector, $expected ) {
 		$theme_json = new ReflectionClass( 'WP_Theme_JSON' );
@@ -7299,7 +8005,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_block_style_variation_selector() {
+	public static function data_get_block_style_variation_selector() {
 		return array(
 			'empty block selector'     => array(
 				'selector' => '',
@@ -7497,6 +8203,193 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, $button_variations );
+	}
+
+	/**
+	 * Tests that a block style variation declaring `spacing.blockGap` emits a layout
+	 * gap rule scoped to the variation.
+	 *
+	 * The variation node carries the variation slug in its `name`, which
+	 * `get_layout_styles()` reads as a block name. The metadata passed to that
+	 * method therefore has to name the block the variation belongs to.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_with_block_gap_emits_layout_styles() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/group', array( 'name' => 'custom-group' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'custom-group' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/group', 'custom-group' );
+
+		$this->assertStringContainsString(
+			':root :where(.wp-block-group.is-style-custom-group.wp-block-group-is-layout-flex){gap: 3em;}',
+			$stylesheet,
+			'The variation should emit a gap rule scoped to itself.'
+		);
+	}
+
+	/**
+	 * Tests that a block style variation declaring `spacing.blockGap` inside a
+	 * viewport breakpoint emits a layout gap rule within the media query.
+	 *
+	 * The responsive branch takes its own copy of the variation metadata, so it
+	 * needs the owning block name for the same reason the base branch does.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_with_responsive_block_gap_emits_layout_styles() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/group', array( 'name' => 'custom-group' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing'  => array(
+						'blockGap' => true,
+					),
+					'viewport' => array(
+						'mobile' => '599px',
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'custom-group' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+									'@mobile' => array(
+										'spacing' => array(
+											'blockGap' => '1em',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/group', 'custom-group' );
+
+		$this->assertStringContainsString(
+			'@media (width <= 599px)',
+			$stylesheet,
+			'The breakpoint media query should be emitted.'
+		);
+		$this->assertStringContainsString(
+			':root :where(.wp-block-group.is-style-custom-group.wp-block-group-is-layout-flex){gap: 1em;}',
+			$stylesheet,
+			'The variation should emit a gap rule inside the breakpoint.'
+		);
+	}
+
+	/**
+	 * Tests that the layout support check still applies to a variation's blockGap.
+	 *
+	 * The variation metadata carries the block it belongs to, so a block without
+	 * layout support emits no gap rule -- the check is answered, not skipped.
+	 *
+	 * @ticket 66044
+	 *
+	 * @covers WP_Theme_JSON::get_styles_for_block
+	 */
+	public function test_block_style_variation_block_gap_respects_layout_support() {
+		$registry = WP_Block_Styles_Registry::get_instance();
+		$registry->register( 'core/paragraph', array( 'name' => 'custom-paragraph' ) );
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'spacing' => array(
+						'blockGap' => true,
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'variations' => array(
+								'custom-paragraph' => array(
+									'spacing' => array(
+										'blockGap' => '3em',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'blocks'
+		);
+
+		$stylesheet = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			array( 'custom' ),
+			array(
+				'include_block_style_variations' => true,
+				'skip_root_layout_styles'        => true,
+			)
+		);
+
+		$registry->unregister( 'core/paragraph', 'custom-paragraph' );
+
+		$this->assertStringNotContainsString(
+			'is-style-custom-paragraph',
+			$stylesheet,
+			'core/paragraph has no layout support, so its variation should emit no gap rule.'
+		);
 	}
 
 	/**
@@ -7913,6 +8806,94 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that responsive pseudo-states are kept only for supported blocks.
+	 *
+	 * @covers WP_Theme_JSON::sanitize
+	 *
+	 * @ticket 66003
+	 */
+	public function test_sanitize_keeps_responsive_pseudo_states_on_supported_blocks_only() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/button'          => array(
+							'@mobile' => array(
+								':hover' => array(
+									'color' => array(
+										'text' => 'blue',
+									),
+								),
+							),
+						),
+						'core/paragraph'       => array(
+							'color'   => array(
+								'text' => 'black',
+							),
+							'@mobile' => array(
+								'color'  => array(
+									'text' => 'green',
+								),
+								':hover' => array(
+									'color' => array(
+										'text' => 'red',
+									),
+								),
+							),
+						),
+						'core/navigation-link' => array(
+							'-current' => array(
+								'color' => array(
+									'text' => 'purple',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = $theme_json->get_raw_data();
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'blocks' => array(
+					'core/button'          => array(
+						'@mobile' => array(
+							':hover' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+					'core/paragraph'       => array(
+						'color'   => array(
+							'text' => 'black',
+						),
+						'@mobile' => array(
+							'color' => array(
+								'text' => 'green',
+							),
+						),
+					),
+					'core/navigation-link' => array(
+						'-current' => array(
+							'color' => array(
+								'text' => 'purple',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
 	 * Test that block pseudo selectors work with elements within blocks.
 	 */
 	public function test_block_pseudo_selectors_with_elements() {
@@ -8313,7 +9294,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array<string, {selector: string, to_append: string, expeted: string}>
 	 */
-	public function data_append_to_selector() {
+	public static function data_append_to_selector() {
 		return array(
 			'single class selector'                        => array(
 				'selector'  => '.inner',
@@ -8453,7 +9434,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 *
 	 * @return array<string, {selector: string, to_prepend: string, expeted: string}>
 	 */
-	public function data_prepend_to_selector() {
+	public static function data_prepend_to_selector() {
 		return array(
 			'single class selector'                        => array(
 				'selector'   => '.inner',
@@ -8670,5 +9651,66 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			':root :where(.custom-p){color:red;}',
 			$theme_json->get_styles_for_block( $paragraph_node )
 		);
+	}
+
+	/**
+	 * Tests that block style variation custom CSS, including breakpoint custom
+	 * CSS, uses the block's css feature selector when defined.
+	 *
+	 * @ticket 66297
+	 *
+	 */
+	public function test_get_styles_for_block_variation_custom_css_uses_css_feature_selector() {
+		register_block_style(
+			'core/paragraph',
+			array(
+				'name'  => 'fancy',
+				'label' => 'Fancy',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'variations' => array(
+								'fancy' => array(
+									'css'     => 'color:red;',
+									'@tablet' => array(
+										'css' => 'color:blue;',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$paragraph_node = array(
+			'name'       => 'core/paragraph',
+			'path'       => array( 'styles', 'blocks', 'core/paragraph' ),
+			'selector'   => 'p',
+			'selectors'  => array(
+				'root' => 'p',
+				'css'  => '.custom-p',
+			),
+			'variations' => array(
+				array(
+					'path'     => array( 'styles', 'blocks', 'core/paragraph', 'variations', 'fancy' ),
+					'selector' => 'p.is-style-fancy',
+				),
+			),
+		);
+
+		$actual = $theme_json->get_styles_for_block( $paragraph_node );
+
+		unregister_block_style( 'core/paragraph', 'fancy' );
+
+		$this->assertStringContainsString( ':root :where(.custom-p.is-style-fancy){color:red;}', $actual );
+		$this->assertStringContainsString( '{:root :where(.custom-p.is-style-fancy){color:blue;}}', $actual );
+		$this->assertStringNotContainsString( ':root :where(p.is-style-fancy){color:', $actual );
 	}
 }

@@ -312,21 +312,51 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that `public` metadata is not added to the stored meta when not provided.
+	 * Tests that `public` metadata defaults to false when not provided.
 	 *
 	 * @ticket 65568
 	 */
-	public function test_meta_public_is_not_defaulted_when_unset() {
+	public function test_meta_public_defaults_to_false_when_unset() {
 		$ability = new WP_Ability( self::$test_ability_name, self::$test_ability_properties );
 
-		$this->assertArrayNotHasKey(
+		$this->assertArrayHasKey(
 			'public',
 			$ability->get_meta(),
-			'`public` metadata should only be present when provided during registration.'
+			'`public` metadata should always be present in the stored meta.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'public' ),
+			'`public` metadata should default to false when not provided.'
 		);
 		$this->assertFalse(
 			$ability->get_meta_item( 'show_in_rest' ),
 			'`show_in_rest` metadata should still default to false.'
+		);
+	}
+
+	/**
+	 * Tests that a null `public` value is treated as unset.
+	 *
+	 * @ticket 65568
+	 */
+	public function test_meta_public_null_is_treated_as_unset() {
+		$args    = array_merge(
+			self::$test_ability_properties,
+			array(
+				'meta' => array(
+					'public' => null,
+				),
+			)
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertFalse(
+			$ability->get_meta_item( 'public' ),
+			'A null `public` value should use the default value of false.'
+		);
+		$this->assertFalse(
+			$ability->get_meta_item( 'show_in_rest' ),
+			'`show_in_rest` should use its default value when `public` is null.'
 		);
 	}
 
@@ -356,7 +386,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: callable, 2: mixed, 3: mixed}> Data sets with different configurations.
 	 */
-	public function data_execute_input() {
+	public static function data_execute_input() {
 		return array(
 			'null input'    => array(
 				array(
@@ -494,7 +524,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: array, 1: mixed, 2: bool}> Data sets.
 	 */
-	public function data_validate_input_top_level_required() {
+	public static function data_validate_input_top_level_required() {
 		$required_true   = array(
 			'type'     => 'string',
 			'required' => true,
@@ -604,7 +634,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: callable}> Data sets with different execute callbacks.
 	 */
-	public function data_execute_callback() {
+	public static function data_execute_callback() {
 		return array(
 			'function name string'       => array(
 				'strlen',
@@ -621,7 +651,14 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 				array( 'Tests_Abilities_API_WpAbility', 'my_static_execute_callback' ),
 			),
 			'object method'              => array(
-				array( $this, 'my_instance_execute_callback' ),
+				array(
+					new class() {
+						public function my_instance_execute_callback( string $input ): int {
+							return strlen( $input );
+						}
+					},
+					'my_instance_execute_callback',
+				),
 			),
 		);
 	}

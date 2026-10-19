@@ -88,8 +88,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * Ensure that the previous escape form can be parsed compatibly and serialized back to
 	 * the new form.
 	 *
-	 * @see https://github.com/WordPress/wordpress-develop/pull/9558
-	 * @see https://github.com/WordPress/gutenberg/pull/71291
+	 * @link https://github.com/WordPress/wordpress-develop/pull/9558
+	 * @link https://github.com/WordPress/gutenberg/pull/71291
 	 *
 	 * @ticket 63917
 	 *

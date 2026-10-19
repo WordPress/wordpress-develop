@@ -92,14 +92,18 @@ function edit_comment() {
 				return new WP_Error( 'comment_parent_invalid', __( 'A comment cannot be a reply to itself.' ) );
 			}
 
-			$parent = get_comment( $comment_parent );
+			$parent              = get_comment( $comment_parent );
+			$parent_status       = $parent ? wp_get_comment_status( $parent ) : false;
+			$comment_status      = $_POST['comment_approved'] ?? $comment->comment_approved;
+			$comment_is_approved = in_array( $comment_status, array( 1, '1', 'approve' ), true );
 
-			// The parent must be a comment of the same type, on the same post, and not in the Trash or marked as spam.
+			// The parent must be a comment of the same type, on the same post, and publicly visible if the comment is approved.
 			if (
 				! $parent
 				|| (int) $parent->comment_post_ID !== (int) $comment->comment_post_ID
 				|| $parent->comment_type !== $comment->comment_type
-				|| in_array( wp_get_comment_status( $parent ), array( 'spam', 'trash' ), true )
+				|| in_array( $parent_status, array( 'spam', 'trash' ), true )
+				|| ( $comment_is_approved && 'approved' !== $parent_status )
 			) {
 				return new WP_Error( 'comment_parent_invalid', __( 'Invalid parent comment.' ) );
 			}
@@ -219,6 +223,7 @@ function get_comment_to_edit( $id ) {
  *
  * @since 2.3.0
  * @since 6.9.0 Exclude the 'note' comment type from the count.
+ * @since 7.2.0 Exclude the 'reaction' comment type from the count.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -238,7 +243,7 @@ function get_pending_comments_num( $post_id ) {
 	$post_id_array = array_map( 'intval', $post_id_array );
 	$post_id_in    = "'" . implode( "', '", $post_id_array ) . "'";
 
-	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type != 'note' GROUP BY comment_post_ID", ARRAY_A );
+	$pending = $wpdb->get_results( "SELECT comment_post_ID, COUNT(comment_ID) as num_comments FROM $wpdb->comments WHERE comment_post_ID IN ( $post_id_in ) AND comment_approved = '0' AND comment_type NOT IN ( 'note', 'reaction' ) GROUP BY comment_post_ID", ARRAY_A );
 
 	if ( $single ) {
 		if ( empty( $pending ) ) {
