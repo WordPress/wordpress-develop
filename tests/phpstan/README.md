@@ -133,7 +133,7 @@ As we adopt PHPStan iteratively, you may be faced with false positives due to le
 
 PHPStan errors can be ignored in the following ways:
 
-- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. This should be used to suppress false positives with a specific line of code.
+- Using the `@phpstan-ignore {error-identifier} (Reason for ignoring)` annotation in the code itself. **Avoid this if at all possible.** An ignore comment stays in the code, hiding the error from every later analysis of that line, so first try to fix the error, or to correct the types that PHPStan relies on, such as those in a docblock. It is only for a false positive with a specific line of code that cannot be resolved any other way.
 
 - Adding the error pattern to the `ignoreErrors` section of the `phpstan.neon.dist` configuration file. This should be used to handle conflicts with WordPress Coding Standards or similar project decisions, or to allowlist legacy code that is not worth refactoring solely to satisfy the tests.
 
