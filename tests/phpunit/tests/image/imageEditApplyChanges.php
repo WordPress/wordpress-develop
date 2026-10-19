@@ -27,11 +27,16 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	/**
 	 * Gets an image editor mock that records the rotate, flip and crop calls made on it.
 	 *
-	 * @param int $width  Image width returned by get_size().
-	 * @param int $height Image height returned by get_size().
+	 * @param int        $width      Image width returned by get_size().
+	 * @param int        $height     Image height returned by get_size().
+	 * @param array|null $operations Optional. Array to record the calls in. Default the operations property.
 	 * @return WP_Image_Editor&PHPUnit\Framework\MockObject\MockObject Image editor mock.
 	 */
-	private function get_recording_editor( $width = 1200, $height = 900 ) {
+	private function get_recording_editor( $width = 1200, $height = 900, ?array &$operations = null ) {
+		if ( null === $operations ) {
+			$operations = &$this->operations;
+		}
+
 		$editor = $this->createMock( WP_Image_Editor::class );
 
 		$editor->method( 'get_size' )->willReturn(
@@ -50,8 +55,8 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 
 		foreach ( $arg_counts as $method => $arg_count ) {
 			$editor->method( $method )->willReturnCallback(
-				function ( ...$args ) use ( $method, $arg_count ) {
-					$this->operations[] = array_merge( array( $method ), array_slice( $args, 0, $arg_count ) );
+				static function ( ...$args ) use ( $method, $arg_count, &$operations ) {
+					$operations[] = array_merge( array( $method ), array_slice( $args, 0, $arg_count ) );
 
 					return true;
 				}
@@ -257,8 +262,11 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_wp_image_editor_before_change_filter() {
-		$editor      = $this->get_recording_editor();
-		$replacement = $this->get_recording_editor();
+		$editor_operations      = array();
+		$replacement_operations = array();
+
+		$editor      = $this->get_recording_editor( 1200, 900, $editor_operations );
+		$replacement = $this->get_recording_editor( 1200, 900, $replacement_operations );
 
 		$filter = new MockAction();
 		add_filter( 'wp_image_editor_before_change', array( $filter, 'filter' ), 10, 2 );
@@ -291,6 +299,16 @@ class Tests_Image_ImageEditApplyChanges extends WP_UnitTestCase {
 			),
 			json_decode( wp_json_encode( $args[0][1] ), true ),
 			'The filter should receive the expanded and combined changes.'
+		);
+
+		$this->assertSame( array(), $editor_operations, 'No operation should be applied to the original editor.' );
+		$this->assertSame(
+			array(
+				array( 'rotate', 180 ),
+				array( 'flip', false, true ),
+			),
+			$replacement_operations,
+			'The operations should be applied to the filtered editor.'
 		);
 	}
 
