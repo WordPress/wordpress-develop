@@ -16,20 +16,32 @@ class Tests_Menu_HasNavMenu extends WP_UnitTestCase {
 	 */
 	private static $menu_id;
 
+	/**
+	 * Menu locations registered before the test.
+	 *
+	 * @var array
+	 */
+	private $original_nav_menus;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$menu_id = wp_create_nav_menu( 'Primary Menu' );
 	}
 
 	public function set_up() {
+		global $_wp_registered_nav_menus;
+
 		parent::set_up();
+
+		$this->original_nav_menus = $_wp_registered_nav_menus;
 
 		register_nav_menu( 'primary', 'Primary' );
 	}
 
 	public function tear_down() {
-		foreach ( array_keys( get_registered_nav_menus() ) as $location ) {
-			unregister_nav_menu( $location );
-		}
+		global $_wp_registered_nav_menus;
+
+		// Restore the registrations exactly, including any this test overwrote.
+		$_wp_registered_nav_menus = $this->original_nav_menus;
 
 		parent::tear_down();
 	}
