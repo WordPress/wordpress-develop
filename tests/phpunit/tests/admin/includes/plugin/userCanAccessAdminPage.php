@@ -240,6 +240,15 @@ class Tests_Admin_Includes_Plugin_UserCanAccessAdminPage extends WP_UnitTestCase
 				'administrator',
 				false,
 			),
+			'top-level plugin page not in a menu'     => array(
+				array(
+					'pagenow'           => 'admin.php',
+					'plugin_page'       => 'hidden-plugin',
+					'_registered_pages' => array( 'admin_page_hidden-plugin' => true ),
+				),
+				'administrator',
+				true,
+			),
 
 			// Pages without a parent are accessible unless a menu marks them as not accessible.
 			'page without a parent'                   => array(
