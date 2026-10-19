@@ -3114,6 +3114,7 @@ class WP_Theme_JSON {
 	 * @since 6.5.0 Output a `min-height: unset` rule when `aspect-ratio` is set.
 	 * @since 6.6.0 Pass current theme JSON settings to wp_get_typography_font_size_value(), and process background properties.
 	 * @since 6.7.0 `ref` resolution of background properties, and assigning custom default values.
+	 * @since 7.2.0 Output a custom duotone (a list of colors) as an SVG filter URL.
 	 *
 	 * @param array  $styles           Styles to process.
 	 * @param array  $settings         Theme settings.
@@ -3190,6 +3191,12 @@ class WP_Theme_JSON {
 					$background_size = $styles['background']['backgroundSize'] ?? null;
 					$value           = 'contain' === $background_size ? '50% 50%' : null;
 				}
+			}
+
+			// A custom duotone is a list of colors, rendered as an SVG filter by WP_Duotone.
+			if ( 'filter' === $css_property && is_array( $value ) ) {
+				$filter_id = WP_Duotone::get_custom_filter_id( $value );
+				$value     = $filter_id ? "url(#$filter_id)" : null;
 			}
 
 			// Skip if empty and not "0" or value represents array of longhand values.
@@ -5170,6 +5177,7 @@ class WP_Theme_JSON {
 	 * without the insecure styles.
 	 *
 	 * @since 5.9.0
+	 * @since 7.2.0 Keeps a custom duotone (a list of colors) when every color is valid.
 	 *
 	 * @param array $input Node to process.
 	 * @return array
@@ -5195,6 +5203,12 @@ class WP_Theme_JSON {
 
 		// Ensure indirect properties not handled by `compute_style_properties` are allowed.
 		self::remove_indirect_properties( $input, $output );
+
+		// The loop above skips arrays, so keep a custom duotone only when every color is valid.
+		$duotone = $input['filter']['duotone'] ?? null;
+		if ( is_array( $duotone ) && null !== WP_Duotone::get_custom_filter_id( $duotone ) ) {
+			_wp_array_set( $output, array( 'filter', 'duotone' ), $duotone );
+		}
 
 		return $output;
 	}
