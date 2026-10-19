@@ -812,7 +812,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value, $result = null, $request = null ) {
+function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_REST_Request $request = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
