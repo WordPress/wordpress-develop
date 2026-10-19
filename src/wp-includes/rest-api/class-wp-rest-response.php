@@ -32,7 +32,7 @@
  *     ...<string, mixed>
  * }
  * @phpstan-type Curie array{
- *     name: string,
+ *     name: string, // An empty name is a valid empty CURIE prefix, which WP_REST_Server::get_compact_response_links() handles consistently.
  *     href: non-falsy-string,
  *     templated?: bool,
  * }
