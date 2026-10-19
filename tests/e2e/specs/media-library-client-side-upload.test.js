@@ -576,10 +576,28 @@ test.describe( 'Media Library grid client-side uploads', () => {
 			{ timeout: 60_000 }
 		);
 
+		// Record the grid uploader's progress callback, which wp-plupload.js
+		// calls on every UploadProgress.
+		await page.evaluate( () => {
+			window.__uploaderProgress = [];
+			const uploader = window.wp.media.frame.uploader.uploader;
+			const original = uploader.progress;
+			uploader.progress = function ( model ) {
+				window.__uploaderProgress.push( model.get( 'percent' ) );
+				return original.apply( this, arguments );
+			};
+		} );
+
 		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
 		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
 		await fileInput.setInputFiles( TEST_IMAGE_PATH );
 		await sideloadRequested;
+
+		await expect
+			.poll( () =>
+				page.evaluate( () => Math.max( 0, ...window.__uploaderProgress ) )
+			)
+			.toBeGreaterThan( 0 );
 
 		// The placeholder tile's progress bar has advanced past zero but
 		// is not reported complete while work remains.

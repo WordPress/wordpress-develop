@@ -252,6 +252,7 @@
 				},
 				onProgress: function ( /** @type {number} */ percent ) {
 					model.set( { percent: percent } );
+					wpUploader.progress( model );
 				},
 			} );
 		} );

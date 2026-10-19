@@ -116,6 +116,11 @@ interface WPUploader {
 	added( model: WPAttachment ): void;
 
 	/**
+	 * Runs whenever an upload's progress changes.
+	 */
+	progress( model: WPAttachment ): void;
+
+	/**
 	 * Runs when an upload finished.
 	 */
 	success( model: WPAttachment ): void;
