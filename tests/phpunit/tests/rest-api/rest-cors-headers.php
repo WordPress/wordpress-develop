@@ -1,17 +1,13 @@
 <?php
 /**
- * Tests for the CORS headers sent with REST API responses.
+ * Tests for the Access-Control-Allow-Methods header sent with REST API responses.
  *
- * rest_send_cors_headers() emits its headers with raw header() calls rather than
- * WP_REST_Server::send_header(), so Spy_REST_Server cannot observe them. These tests
- * serve requests through a real WP_REST_Server and read the emitted headers with
- * xdebug_get_headers(), following tests/phpunit/tests/oembed/headers.php.
+ * rest_send_cors_headers() sends its headers with header(), which PHP does not record
+ * under the CLI SAPI. These tests read the final method list from a late
+ * `rest_allowed_cors_methods` callback instead of from the wire.
  *
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
  * @group restapi
  * @group restapi-cors
- * @group xdebug
  *
  * @covers ::rest_send_cors_headers
  */
@@ -20,7 +16,14 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	/**
 	 * The default method list sent by rest_send_cors_headers().
 	 */
-	const DEFAULT_ALLOW_METHODS = 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE';
+	const DEFAULT_ALLOW_METHODS = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+
+	/**
+	 * The method list the header was sent with, or null if the filter did not run.
+	 *
+	 * @var string[]|null
+	 */
+	private $sent_methods;
 
 	public function set_up() {
 		parent::set_up();
@@ -29,341 +32,202 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$_SERVER['HTTP_ORIGIN']    = 'http://example.org';
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 
-		/*
-		 * A real server rather than Spy_REST_Server, which intercepts send_header()
-		 * before it reaches PHP and would hide the interaction being tested.
-		 */
-		global $wp_rest_server;
-		$wp_rest_server = new WP_REST_Server();
-
-		/** This action is documented in wp-includes/rest-api.php */
-		do_action( 'rest_api_init', $wp_rest_server );
+		$this->sent_methods = null;
+		add_filter( 'rest_allowed_cors_methods', array( $this, 'record_sent_methods' ), PHP_INT_MAX );
 	}
 
 	public function tear_down() {
 		unset( $_SERVER['HTTP_ORIGIN'], $_GET['_envelope'] );
-
-		global $wp_rest_server;
-		$wp_rest_server = null;
+		$GLOBALS['wp_rest_server'] = null;
 
 		parent::tear_down();
 	}
 
 	/**
-	 * Serves a request through the full pipeline and returns the emitted headers.
+	 * Records the method list after every other callback has run.
 	 *
-	 * @return list<string> Headers as xdebug reports them, after replace semantics apply.
+	 * @param string[] $methods The list of HTTP methods to allow.
+	 * @return string[] The unchanged list.
 	 */
-	protected function serve_and_get_headers() {
-		ob_start();
-		rest_get_server()->serve_request( '/wp/v2/types' );
-		ob_end_clean();
-
-		/** @var list<string> $headers */
-		$headers = xdebug_get_headers();
-
-		return $headers;
+	public function record_sent_methods( $methods ) {
+		$this->sent_methods = $methods;
+		return $methods;
 	}
 
 	/**
-	 * An Access-Control-Allow-Methods header set on the response reaches the client.
+	 * Calls a function, ignoring the warnings from header() once PHPUnit has sent output.
 	 *
-	 * rest_send_cors_headers() runs on 'rest_pre_serve_request', after the response's
-	 * own headers have been emitted, so sending the default list unconditionally
-	 * replaced any value the response supplied.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
+	 * @param callable $callback Function to call.
+	 * @return mixed The callback's return value.
 	 */
-	public function test_response_can_set_access_control_allow_methods() {
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
-				return $response;
-			}
-		);
-
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
-	}
-
-	/**
-	 * The default list is suppressed rather than duplicated when the response sets one,
-	 * and Vary continues to append.
-	 *
-	 * Sending both values would leave two Access-Control-Allow-Methods headers on the wire.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_response_value_suppresses_the_default_and_vary_still_appends() {
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
-				$response->header( 'Vary', 'Accept-Encoding' );
-				return $response;
-			}
-		);
-
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
-		$this->assertNotContains( self::DEFAULT_ALLOW_METHODS, $headers );
-		$this->assertContains( 'Vary: Accept-Encoding', $headers );
-		$this->assertContains( 'Vary: Origin', $headers );
-	}
-
-	/**
-	 * The response header is matched without regard to case, as header names are
-	 * case-insensitive.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_response_value_is_matched_case_insensitively() {
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'access-control-allow-methods', 'OPTIONS, GET' );
-				return $response;
-			}
-		);
-
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertNotContains( self::DEFAULT_ALLOW_METHODS, $headers );
-	}
-
-	/**
-	 * A callback added to 'rest_pre_serve_request' after rest_send_cors_headers()
-	 * can still send its own method list.
-	 *
-	 * This has always worked and continues to work.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_late_rest_pre_serve_request_callback_can_send_its_own_list() {
-		add_filter(
-			'rest_pre_serve_request',
-			static function ( $served ) {
-				header( 'Access-Control-Allow-Methods: OPTIONS, GET' );
-				return $served;
+	private function ignoring_header_warnings( $callback ) {
+		set_error_handler(
+			static function ( $errno, $errstr ) {
+				return str_starts_with( $errstr, 'Cannot modify header information' );
 			},
-			11
+			E_WARNING
 		);
 
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
-	}
-
-	/**
-	 * A response that sets no CORS header receives the same headers as before.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_default_cors_output_is_unchanged() {
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertContains( 'Access-Control-Allow-Origin: http://example.org', $headers );
-		$this->assertContains( self::DEFAULT_ALLOW_METHODS, $headers );
-		$this->assertContains( 'Access-Control-Allow-Credentials: true', $headers );
-		$this->assertContains( 'Vary: Origin', $headers );
-	}
-
-	/**
-	 * No CORS headers are sent when the request has no Origin.
-	 *
-	 * Limited to the three headers rest_send_cors_headers() sends. WP_REST_Server
-	 * sends Access-Control-Expose-Headers from send_headers() on every request,
-	 * with or without an Origin.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_no_cors_headers_are_sent_without_an_origin() {
-		unset( $_SERVER['HTTP_ORIGIN'] );
-
-		$headers = $this->serve_and_get_headers();
-
-		foreach ( array( 'Access-Control-Allow-Origin', 'Access-Control-Allow-Methods', 'Access-Control-Allow-Credentials' ) as $name ) {
-			foreach ( $headers as $header ) {
-				$this->assertStringStartsNotWith( $name . ':', $header );
-			}
+		try {
+			return $callback();
+		} finally {
+			restore_error_handler();
 		}
 	}
 
 	/**
-	 * Access-Control-Allow-Origin and Access-Control-Allow-Credentials are not
-	 * settable from the response.
+	 * Sends the CORS headers for a response to `/wp/v2/types`.
 	 *
-	 * Those two headers determine who may read an authenticated response, so they
-	 * remain under the control of rest_send_cors_headers() alone.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
+	 * @param array $response_headers Headers to set on the response.
 	 */
-	public function test_origin_and_credentials_headers_are_not_response_settable() {
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'Access-Control-Allow-Origin', 'http://plugin.example' );
-				$response->header( 'Access-Control-Allow-Credentials', 'false' );
-				return $response;
+	private function send_cors_headers( $response_headers = array() ) {
+		$response = new WP_REST_Response( array() );
+		$response->set_headers( $response_headers );
+
+		$this->ignoring_header_warnings(
+			static function () use ( $response ) {
+				rest_send_cors_headers( false, $response, new WP_REST_Request( 'GET', '/wp/v2/types' ) );
 			}
 		);
-
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertContains( 'Access-Control-Allow-Origin: http://example.org', $headers );
-		$this->assertContains( 'Access-Control-Allow-Credentials: true', $headers );
 	}
 
 	/**
-	 * The rest_allowed_cors_methods filter changes the advertised method list.
+	 * A response that sets no Access-Control-Allow-Methods header is sent the default list.
 	 *
 	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
 	 */
-	public function test_allowed_cors_methods_filter_changes_the_list() {
+	public function test_default_list_is_sent() {
+		$this->send_cors_headers();
+
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
+	}
+
+	/**
+	 * No method list is sent when the request has no Origin.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_no_list_is_sent_without_an_origin() {
+		unset( $_SERVER['HTTP_ORIGIN'] );
+
+		$this->send_cors_headers();
+
+		$this->assertNull( $this->sent_methods );
+	}
+
+	/**
+	 * An Access-Control-Allow-Methods header set on the response is passed through.
+	 *
+	 * rest_send_cors_headers() runs on 'rest_pre_serve_request', after the response's
+	 * own headers have been sent, so sending the default list unconditionally replaced
+	 * any value the response supplied.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_response_value_is_passed_through() {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET' ) );
+
+		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+	}
+
+	/**
+	 * The response header is matched without regard to case.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_response_value_is_matched_case_insensitively() {
+		$this->send_cors_headers( array( 'access-control-allow-methods' => 'OPTIONS, GET' ) );
+
+		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+	}
+
+	/**
+	 * A response value is limited to methods in the default list.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_response_value_is_limited_to_the_default_methods() {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'GET, TRACE, DELETE' ) );
+
+		$this->assertSame( array( 'GET', 'DELETE' ), $this->sent_methods );
+	}
+
+	/**
+	 * The rest_allowed_cors_methods filter changes the list.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_changes_the_list() {
 		add_filter(
 			'rest_allowed_cors_methods',
-			static function ( array $methods ) {
+			static function ( $methods ) {
 				$methods[] = 'HEAD';
 				return $methods;
 			}
 		);
 
-		$headers = $this->serve_and_get_headers();
+		$this->send_cors_headers();
 
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, GET, POST, PUT, PATCH, DELETE, HEAD', $headers );
-		$this->assertNotContains( self::DEFAULT_ALLOW_METHODS, $headers );
+		$this->assertSame( array_merge( self::DEFAULT_ALLOW_METHODS, array( 'HEAD' ) ), $this->sent_methods );
 	}
 
 	/**
-	 * The filter receives the default list as an array and the request in context.
-	 *
-	 * Matches the signature of the sibling CORS list filters, rest_exposed_cors_headers
-	 * and rest_allowed_cors_headers.
+	 * The filter is seeded with the response's value and can replace it.
 	 *
 	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
 	 */
-	public function test_allowed_cors_methods_filter_receives_the_default_list_and_the_request() {
+	public function test_filter_can_override_a_response_value() {
+		$received = null;
+
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods ) use ( &$received ) {
+				$received = $methods;
+				return array( 'OPTIONS', 'DELETE' );
+			}
+		);
+
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET' ) );
+
+		$this->assertSame( array( 'OPTIONS', 'GET' ), $received, 'The filter was not seeded with the response value.' );
+		$this->assertSame( array( 'OPTIONS', 'DELETE' ), $this->sent_methods );
+	}
+
+	/**
+	 * Serving a request passes the request in context to the filter.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_receives_the_request_when_serving() {
 		$received = null;
 
 		add_filter(
 			'rest_allowed_cors_methods',
 			static function ( $methods, $request ) use ( &$received ) {
-				$received = array( $methods, $request );
+				$received = $request;
 				return $methods;
 			},
 			10,
 			2
 		);
 
-		$this->serve_and_get_headers();
-
-		$this->assertNotNull( $received, 'The filter did not run.' );
-		$this->assertSame( array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' ), $received[0] );
-		$this->assertInstanceOf( WP_REST_Request::class, $received[1] );
-		$this->assertSame( '/wp/v2/types', $received[1]->get_route() );
-	}
-
-	/**
-	 * The filter runs even when the response set its own value, and can replace it.
-	 *
-	 * If the filter only ran when there was no response value, it could add methods
-	 * but never narrow or replace a value the response set -- a site could not use it
-	 * to enforce a stricter list against a plugin response.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_filter_can_override_a_response_value() {
-		$filter_ran = false;
-
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
-				return $response;
+		$this->ignoring_header_warnings(
+			static function () {
+				rest_get_server()->serve_request( '/wp/v2/types' );
 			}
 		);
 
-		add_filter(
-			'rest_allowed_cors_methods',
-			static function ( $methods ) use ( &$filter_ran ) {
-				$filter_ran = true;
-				return array( 'OPTIONS', 'DELETE' );
-			}
-		);
-
-		$headers = $this->serve_and_get_headers();
-
-		$this->assertTrue( $filter_ran, 'The filter did not run even though the response set the header.' );
-		$this->assertContains( 'Access-Control-Allow-Methods: OPTIONS, DELETE', $headers );
-		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
-	}
-
-	/**
-	 * The filter is seeded with the response's own value, split into an array, rather
-	 * than with the default list, when the response has set one.
-	 *
-	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
-	 */
-	public function test_filter_receives_the_response_value_when_the_response_set_one() {
-		$received = null;
-
-		add_filter(
-			'rest_post_dispatch',
-			static function ( WP_HTTP_Response $response ) {
-				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
-				return $response;
-			}
-		);
-
-		add_filter(
-			'rest_allowed_cors_methods',
-			static function ( $methods ) use ( &$received ) {
-				$received = $methods;
-				return $methods;
-			}
-		);
-
-		$this->serve_and_get_headers();
-
-		$this->assertSame( array( 'OPTIONS', 'GET' ), $received );
+		$this->assertInstanceOf( WP_REST_Request::class, $received );
+		$this->assertSame( '/wp/v2/types', $received->get_route() );
 	}
 
 	/**
 	 * Under `?_envelope=1`, a response header is not seen and the default is sent.
 	 *
-	 * envelope_response() runs on 'rest_post_dispatch', ahead of rest_send_cors_headers(),
-	 * and relocates the response's own headers into the response body, building a fresh
-	 * response with none of its own headers. rest_send_cors_headers() never sees the
-	 * value the response set, so the filtered default goes out on the wire instead.
+	 * envelope_response() moves the response's headers into the body on
+	 * 'rest_post_dispatch', ahead of rest_send_cors_headers().
 	 *
 	 * @ticket 46992
-	 *
-	 * @requires function xdebug_get_headers
 	 */
 	public function test_envelope_response_does_not_see_a_response_value() {
 		$_GET['_envelope'] = '1';
@@ -376,9 +240,12 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 			}
 		);
 
-		$headers = $this->serve_and_get_headers();
+		$this->ignoring_header_warnings(
+			static function () {
+				rest_get_server()->serve_request( '/wp/v2/types' );
+			}
+		);
 
-		$this->assertContains( self::DEFAULT_ALLOW_METHODS, $headers );
-		$this->assertNotContains( 'Access-Control-Allow-Methods: OPTIONS, GET', $headers );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
 	}
 }

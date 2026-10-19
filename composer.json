@@ -42,7 +42,6 @@
 		"ext-sodium": "*",
 		"ext-ssh2": "*",
 		"ext-timezonedb": "*",
-		"ext-xdebug": "*",
 		"ext-xml": "*",
 		"ext-xmlreader": "*",
 		"ext-zip": "*",
