@@ -6837,11 +6837,7 @@ function wp_get_media_library_upload_settings(): array {
  * @phpstan-param non-empty-string $handle
  */
 function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
-	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
-	}
-
-	if ( ! wp_is_document_isolation_policy_supported() ) {
+	if ( ! wp_is_client_side_media_processing_enabled() || ! wp_is_document_isolation_policy_supported() ) {
 		return;
 	}
 
