@@ -705,8 +705,9 @@ class WP_REST_Server {
 	 * @since 6.7.0
 	 *
 	 * @param array<string, mixed> $link The link to get target hints for.
-	 * @return array<string, string[]>|null Map of hint name to list of values, or null if the link
-	 *                                      already has hints or none could be determined.
+	 * @return array<string, string[]>|null Map of hint name to list of values, which is empty if the route
+	 *                                      allows no methods. Null if the link already has an `allow` hint,
+	 *                                      or its URL does not resolve to a valid REST API request.
 	 *
 	 * @phpstan-return array<lowercase-string, list<string>>|null
 	 */
