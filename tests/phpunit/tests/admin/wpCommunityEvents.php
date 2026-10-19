@@ -573,7 +573,7 @@ class Tests_Admin_wpCommunityEvents extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_unsafe_client_ip() {
+	public static function data_get_unsafe_client_ip() {
 		return array(
 			// Handle '::' returned from `wp_privacy_anonymize_ip()`.
 			array(
