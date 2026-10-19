@@ -391,30 +391,74 @@ window.wp = window.wp || {};
 	}
 
 	/**
-	 * Whether a batch of plupload files can be routed through the pipeline.
+	 * Splits a batch of plupload files between the pipeline and classic
+	 * plupload.
 	 *
-	 * Suppressing plupload's built-in FilesAdded handler is all-or-nothing,
-	 * so the whole batch stays on the classic path when any file cannot be
-	 * handled: plupload returns no native File for sources it cannot expose
-	 * as one (the html4 runtime, say), audio files are left to the classic
-	 * upload so they keep the title and description that
+	 * Audio files stay classic so they keep the title and description that
 	 * media_handle_upload() derives from their ID3 tags, which the REST
-	 * endpoint does not do, and a file the pipeline already handed back to
-	 * plupload (see handOffToClassic()) is plupload's to upload.
+	 * endpoint does not do.
 	 *
-	 * @param {plupload.File[]} files Files added to the plupload queue.
-	 * @return {boolean} True when every file can go through the pipeline.
+	 * The whole batch stays classic when a file cannot be re-queued on
+	 * plupload or is already plupload's: plupload returns no native File
+	 * for sources it cannot expose as one (the html4 runtime, say), and a
+	 * file the pipeline handed back (see handOffToClassic()) is plupload's
+	 * to upload.
+	 *
+	 * @param {plupload.Uploader} up    The plupload uploader the files were added to.
+	 * @param {plupload.File[]}   files Files added to the plupload queue.
+	 * @return {{ pipeline: plupload.File[], classic: plupload.File[] }|null} The split,
+	 *         or null when the whole batch stays on the classic path.
 	 */
-	function canHandleBatch( files ) {
-		return files.every( function ( file ) {
+	function partitionBatch( up, files ) {
+		/** @type {{ pipeline: plupload.File[], classic: plupload.File[] }} */
+		const batch = { pipeline: [], classic: [] };
+
+		for ( const file of files ) {
 			if ( plupload.FAILED === file.status ) {
-				return true;
+				continue;
 			}
 			const nativeFile = file.getNative && file.getNative();
 			if ( ! nativeFile || classicFiles.has( nativeFile ) ) {
-				return false;
+				return null;
 			}
-			return ! /^audio\//i.test( file.type || '' );
+			if ( /^audio\//i.test( file.type || '' ) ) {
+				batch.classic.push( file );
+			} else {
+				batch.pipeline.push( file );
+			}
+		}
+
+		return batch.pipeline.length ? batch : null;
+	}
+
+	/**
+	 * Hands a file to classic plupload, whose own FilesAdded handler queues
+	 * and starts the upload.
+	 *
+	 * @param {plupload.Uploader} up         The plupload uploader.
+	 * @param {File}              nativeFile The file to upload.
+	 */
+	function addClassicFile( up, nativeFile ) {
+		classicFiles.add( nativeFile );
+		up.addFile( nativeFile );
+	}
+
+	/**
+	 * Re-queues the classic share of a batch on plupload.
+	 *
+	 * Suppressing plupload's built-in FilesAdded handler covers the whole
+	 * batch, so the files partitionBatch() left to plupload are removed and
+	 * added back on their own.
+	 *
+	 * @param {plupload.Uploader} up    The plupload uploader.
+	 * @param {plupload.File[]}   files The files to upload classically.
+	 */
+	function handOffBatchToClassic( up, files ) {
+		files.forEach( function ( file ) {
+			// partitionBatch() already established that every file has one.
+			const nativeFile = /** @type {File} */ ( file.getNative() );
+			up.removeFile( file );
+			addClassicFile( up, nativeFile );
 		} );
 	}
 
@@ -448,8 +492,7 @@ window.wp = window.wp || {};
 			return false;
 		}
 
-		classicFiles.add( nativeFile );
-		up.addFile( nativeFile );
+		addClassicFile( up, nativeFile );
 		return true;
 	}
 
@@ -572,7 +615,8 @@ window.wp = window.wp || {};
 		isSupported: isSupported,
 		configure: configure,
 		isReady: isReady,
-		canHandleBatch: canHandleBatch,
+		partitionBatch: partitionBatch,
+		handOffBatchToClassic: handOffBatchToClassic,
 		handOffToClassic: handOffToClassic,
 		additionalDataFromParams: additionalDataFromParams,
 		queueFile: queueFile,

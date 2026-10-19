@@ -163,8 +163,9 @@
 	 * Returns undefined (not false) when the pipeline cannot take the batch
 	 * so the built-in handler runs and uploads server-side - a degradation,
 	 * never data loss. Otherwise builds the same placeholder tiles as
-	 * wp-plupload, routes each file through the pipeline, and returns false
-	 * to suppress the built-in handler.
+	 * wp-plupload, routes the files the pipeline can take through it,
+	 * re-queues the rest on plupload, and returns false to suppress the
+	 * built-in handler.
 	 *
 	 * @param {WPUploader}        wpUploader The wp.Uploader instance.
 	 * @param {plupload.Uploader} up         The plupload uploader instance.
@@ -172,11 +173,12 @@
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( wpUploader, up, files ) {
-		if (
-			! isAttachmentUploader( up ) ||
-			! pipeline.isReady() ||
-			! pipeline.canHandleBatch( files )
-		) {
+		if ( ! isAttachmentUploader( up ) || ! pipeline.isReady() ) {
+			return;
+		}
+
+		const batch = pipeline.partitionBatch( up, files );
+		if ( ! batch ) {
 			return;
 		}
 
@@ -189,12 +191,7 @@
 			parseInt( params.post_id, 10 ) || 0
 		);
 
-		files.forEach( function ( file ) {
-			// Ignore failed uploads.
-			if ( plupload.FAILED === file.status ) {
-				return;
-			}
-
+		batch.pipeline.forEach( function ( /** @type {plupload.File} */ file ) {
 			// Build the same placeholder attributes as wp-plupload.js so the
 			// grid's progress tiles and "Uploading n/m" status work unchanged.
 			/** @type {PlaceholderAttributes} */
@@ -228,7 +225,7 @@
 			wp.Uploader.queue.add( model );
 			wpUploader.added( model );
 
-			// canHandleBatch() already established that every file has one.
+			// partitionBatch() already established that every file has one.
 			const nativeFile = /** @type {File} */ ( file.getNative() );
 
 			// Remove the file from plupload so it is not uploaded twice.
@@ -256,6 +253,8 @@
 				},
 			} );
 		} );
+
+		pipeline.handOffBatchToClassic( up, batch.classic );
 
 		up.refresh();
 

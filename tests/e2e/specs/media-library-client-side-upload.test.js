@@ -693,6 +693,47 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		expect( restUploadCount ).toBe( 0 );
 	} );
 
+	test( 'splits a batch of an image and audio between the pipeline and the classic uploader', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		let asyncUploadCount = 0;
+		let restCreateCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			const decoded = decodeURIComponent( request.url() );
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if ( /\/wp\/v2\/media(?:[?&]|$)/.test( decoded ) ) {
+				restCreateCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( [ TEST_IMAGE_PATH, TEST_AUDIO_PATH ] );
+
+		await expect(
+			page.locator( 'li.attachment:not(.uploading)' )
+		).toHaveCount( 2, { timeout: 90_000 } );
+
+		// The image went through the pipeline, the audio file through plupload.
+		expect( restCreateCount ).toBe( 1 );
+		expect( asyncUploadCount ).toBe( 1 );
+	} );
+
 	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
 		page,
 		admin,

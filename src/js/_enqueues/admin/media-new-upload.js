@@ -198,16 +198,21 @@
 	 * Returns undefined (not false) when the pipeline cannot take the batch
 	 * so the built-in handler runs and uploads server-side - a degradation,
 	 * never data loss. Otherwise builds the screen's progress items, routes
-	 * each file through the pipeline, and returns false to suppress the
-	 * built-in handler (which would otherwise queue and start a classic
-	 * upload).
+	 * the files the pipeline can take through it, re-queues the rest on
+	 * plupload, and returns false to suppress the built-in handler (which
+	 * would otherwise queue and start a classic upload of every file).
 	 *
 	 * @param {plupload.Uploader} up    The plupload uploader instance.
 	 * @param {plupload.File[]}   files Files added to the queue.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function handleFilesAdded( up, files ) {
-		if ( ! pipeline.isReady() || ! pipeline.canHandleBatch( files ) ) {
+		if ( ! pipeline.isReady() ) {
+			return;
+		}
+
+		const batch = pipeline.partitionBatch( up, files );
+		if ( ! batch ) {
 			return;
 		}
 
@@ -230,16 +235,11 @@
 			getParentPostId()
 		);
 
-		files.forEach( function ( file ) {
-			// Ignore failed uploads.
-			if ( plupload.FAILED === file.status ) {
-				return;
-			}
-
+		batch.pipeline.forEach( function ( /** @type {plupload.File} */ file ) {
 			// Build the screen's progress item for this file.
 			fileQueued( file );
 
-			// canHandleBatch() already established that every file has one.
+			// partitionBatch() already established that every file has one.
 			const nativeFile = /** @type {File} */ ( file.getNative() );
 
 			// Remove the file from plupload so it is not uploaded twice.
@@ -280,6 +280,8 @@
 				},
 			} );
 		} );
+
+		pipeline.handOffBatchToClassic( up, batch.classic );
 
 		up.refresh();
 
