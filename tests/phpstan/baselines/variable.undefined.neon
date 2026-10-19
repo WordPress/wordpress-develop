@@ -159,27 +159,7 @@ parameters:
 			count: 9
 			path: ../../../src/wp-admin/includes/class-core-upgrader.php
 		-
-			message: '#^Variable \$context might not be defined\.$#'
-			identifier: variable.undefined
-			count: 3
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$item_name might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
 			message: '#^Variable \$subject might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$upgrader might not be defined\.$#'
-			identifier: variable.undefined
-			count: 8
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
-			message: '#^Variable \$was_active might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
 			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
@@ -382,11 +362,6 @@ parameters:
 			message: '#^Variable \$is_nginx might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
-			path: ../../../src/wp-admin/options-permalink.php
-		-
-			message: '#^Variable \$wp_rewrite might not be defined\.$#'
-			identifier: variable.undefined
-			count: 8
 			path: ../../../src/wp-admin/options-permalink.php
 		-
 			message: '#^Variable \$options_to_update might not be defined\.$#'
@@ -703,11 +678,6 @@ parameters:
 			identifier: variable.undefined
 			count: 5
 			path: ../../../src/wp-includes/class-wp-block-processor.php
-		-
-			message: '#^Variable \$filter_id might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-includes/class-wp-duotone.php
 		-
 			message: '#^Variable \$processed_response might not be defined\.$#'
 			identifier: variable.undefined

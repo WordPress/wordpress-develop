@@ -86,7 +86,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_create_font_collection() {
+	public static function data_create_font_collection() {
 		return array(
 			'font collection with required data' => array(
 				'slug'          => 'my-collection',
@@ -225,7 +225,7 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_error_when_missing_properties() {
+	public static function data_should_error_when_missing_properties() {
 		return array(
 			'missing name'          => array(
 				'config' => array(

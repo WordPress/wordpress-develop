@@ -93,7 +93,7 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	 *
 	 * @return array
 	 */
-	public function data_should_replace_src_file_placeholder() {
+	public static function data_should_replace_src_file_placeholder() {
 		return array(
 			// Theme's theme.json.
 			'DM Sans: 400 normal'              => array(
@@ -174,7 +174,7 @@ class Tests_Fonts_WPFontFaceResolver_GetFontsFromThemeJson extends WP_Font_Face_
 	 *
 	 * @return array
 	 */
-	public function data_should_get_font_family_name() {
+	public static function data_should_get_font_family_name() {
 		$font_face = array(
 			array(
 				'fontFamily'  => 'DM Sans',
