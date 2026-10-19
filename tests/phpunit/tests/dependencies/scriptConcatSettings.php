@@ -56,9 +56,26 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that the `$concatenate_scripts` global defaults to false, even on an admin screen.
+	 *
+	 * @ticket 57548
+	 *
+	 * @expectedDeprecated script_concat_settings
+	 */
+	public function test_concatenate_scripts_global_defaults_to_false(): void {
+		set_current_screen( 'dashboard' );
+
+		script_concat_settings();
+
+		$this->assertFalse( $GLOBALS['concatenate_scripts'] );
+	}
+
+	/**
 	 * Tests that the compression globals default to false, as scripts and styles are not compressed from PHP.
 	 *
 	 * @ticket 63017
+	 *
+	 * @expectedDeprecated script_concat_settings
 	 */
 	public function test_compression_globals_default_to_false(): void {
 		// The result of the compression test, which used to turn the compression globals on.
@@ -74,6 +91,8 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 * Tests that the obsolete `COMPRESS_SCRIPTS` and `COMPRESS_CSS` constants no longer set the compression globals.
 	 *
 	 * @ticket 63017
+	 *
+	 * @expectedDeprecated script_concat_settings
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
@@ -93,6 +112,8 @@ class Tests_Dependencies_ScriptConcatSettings extends WP_UnitTestCase {
 	 * Tests that values a plugin has already set for the compression globals are kept.
 	 *
 	 * @ticket 63017
+	 *
+	 * @expectedDeprecated script_concat_settings
 	 */
 	public function test_compression_globals_already_set_are_kept(): void {
 		$GLOBALS['compress_scripts'] = true;
