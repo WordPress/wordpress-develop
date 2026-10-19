@@ -330,11 +330,12 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertCount( 7, $data, 'Response should contain all fields.' );
+		$this->assertCount( 8, $data, 'Response should contain all fields.' );
 		$this->assertSame( 'test/calculator', $data['name'] );
 		$this->assertSame( 'Calculator', $data['label'] );
 		$this->assertSame( 'Performs basic calculations', $data['description'] );
 		$this->assertSame( 'math', $data['category'] );
+		$this->assertSame( array(), $data['required_capabilities'] );
 		$this->assertArrayHasKey( 'input_schema', $data );
 		$this->assertArrayHasKey( 'output_schema', $data );
 		$this->assertArrayHasKey( 'meta', $data );
@@ -668,7 +669,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$properties = $schema['properties'];
 
 		// Assert the count of properties to catch when new keys are added
-		$this->assertCount( 7, $properties, 'Schema should have exactly 7 properties. If this fails, update this test to include the new property.' );
+		$this->assertCount( 8, $properties, 'Schema should have exactly 8 properties. If this fails, update this test to include the new property.' );
 
 		// Check all expected properties exist
 		$this->assertArrayHasKey( 'name', $properties );
@@ -678,6 +679,7 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'output_schema', $properties );
 		$this->assertArrayHasKey( 'meta', $properties );
 		$this->assertArrayHasKey( 'category', $properties );
+		$this->assertArrayHasKey( 'required_capabilities', $properties );
 	}
 
 	/**
@@ -1266,5 +1268,75 @@ class Tests_REST_API_WpRestAbilitiesV1ListController extends WP_UnitTestCase {
 		// Output schemas are normalized the same way.
 		$this->assertSame( array( 'id' ), $data['output_schema']['required'] );
 		$this->assertArrayNotHasKey( 'required', $data['output_schema']['properties']['id'] );
+	}
+
+	/**
+	 * Registers an ability that only administrators can run.
+	 */
+	private function register_admin_only_ability(): void {
+		$this->register_test_ability(
+			'test/admin-only',
+			array(
+				'label'                 => 'Admin only',
+				'description'           => 'Requires the manage_options capability.',
+				'category'              => 'general',
+				'execute_callback'      => '__return_true',
+				'required_capabilities' => array( 'manage_options' ),
+				'meta'                  => array( 'show_in_rest' => true ),
+			)
+		);
+	}
+
+	/**
+	 * Test that the response includes the required capabilities.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_get_item_includes_required_capabilities(): void {
+		$this->register_admin_only_ability();
+
+		$request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/admin-only' );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'manage_options' ), $response->get_data()['required_capabilities'] );
+	}
+
+	/**
+	 * Test that the has_required_capabilities parameter excludes abilities whose declared capabilities the current user lacks.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities(): void {
+		$this->register_admin_only_ability();
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertContains( 'test/admin-only', $names, 'Abilities are not filtered by capabilities by default.' );
+
+		$request->set_param( 'has_required_capabilities', 'true' );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertNotContains( 'test/admin-only', $names );
+		$this->assertContains( 'test/calculator', $names, 'Abilities without required capabilities stay in the result.' );
+	}
+
+	/**
+	 * Test that the has_required_capabilities parameter keeps abilities whose declared capabilities an administrator has.
+	 *
+	 * @ticket 66325
+	 */
+	public function test_filter_by_has_required_capabilities_as_administrator(): void {
+		$this->register_admin_only_ability();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$request = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities' );
+		$request->set_param( 'per_page', 100 );
+		$request->set_param( 'has_required_capabilities', true );
+
+		$names = wp_list_pluck( $this->server->dispatch( $request )->get_data(), 'name' );
+		$this->assertContains( 'test/admin-only', $names );
 	}
 }
