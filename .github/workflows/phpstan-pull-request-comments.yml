@@ -231,7 +231,14 @@ jobs:
             const hasIgnoreErrors = unignorable.some( ( error ) => error.identifier?.startsWith( 'ignore.' ) );
 
             const render = ( trackedLimit ) => {
-              const sections = [ marker, '## PHPStan Static Analysis' ];
+              // The heading shows at a glance whether the check fails, has only warnings, or has nothing left to report.
+              let status = '✅';
+              if ( unignorable.length > 0 ) {
+                status = '❌';
+              } else if ( active.length > 0 ) {
+                status = '⚠️';
+              }
+              const sections = [ marker, `## ${ status } PHPStan Static Analysis` ];
 
               if ( active.length > 0 ) {
                 sections.push( `PHPStan reported ${ active.length === 1 ? '1 error' : `${ active.length } errors` } when analyzing ${ commit( run.head_sha ) } ([workflow run](${ run.html_url })). This comment is updated as new commits are pushed.` );
