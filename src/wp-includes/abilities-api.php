@@ -244,34 +244,34 @@ declare( strict_types = 1 );
  * @param array<string, mixed> $args {
  *     An associative array of arguments for configuring the ability.
  *
- *     @type string               $label               Required. The human-readable label for the ability.
- *     @type string               $description         Required. A detailed description of what the ability does
- *                                                     and when it should be used.
- *     @type string               $category            Optional. The ability category slug this ability belongs to.
- *                                                     Defaults to `uncategorized`. Custom categories must be registered
- *                                                     via `wp_register_ability_category()` before registering the ability.
- *     @type callable             $execute_callback    Required. A callback function to execute when the ability is invoked.
- *                                                     Receives optional mixed input data and must return either a result
- *                                                     value (any type) or a `WP_Error` object on failure.
- *     @type callable             $permission_callback Required unless `$required_capabilities` lists at least one capability.
- *                                                     A callback function to check permissions before execution.
- *                                                     Receives optional mixed input data (same as `execute_callback`) and
- *                                                     must return `true`/`false` for simple checks, or `WP_Error` for
- *                                                     detailed error responses. To let everyone run the ability,
- *                                                     use `__return_true`. The `public` meta flag doesn't affect
- *                                                     this. It only controls where the ability is shown.
+ *     @type string               $label                 Required. The human-readable label for the ability.
+ *     @type string               $description           Required. A detailed description of what the ability does
+ *                                                       and when it should be used.
+ *     @type string               $category              Optional. The ability category slug this ability belongs to.
+ *                                                       Defaults to `uncategorized`. Custom categories must be registered
+ *                                                       via `wp_register_ability_category()` before registering the ability.
+ *     @type callable             $execute_callback      Required. A callback function to execute when the ability is invoked.
+ *                                                       Receives optional mixed input data and must return either a result
+ *                                                       value (any type) or a `WP_Error` object on failure.
+ *     @type callable             $permission_callback   Required unless `$required_capabilities` lists at least one capability.
+ *                                                       A callback function to check permissions before execution.
+ *                                                       Receives optional mixed input data (same as `execute_callback`) and
+ *                                                       must return `true`/`false` for simple checks, or `WP_Error` for
+ *                                                       detailed error responses. To let everyone run the ability,
+ *                                                       use `__return_true`. The `public` meta flag doesn't affect
+ *                                                       this. It only controls where the ability is shown.
  *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
- *                                                     ability. Each one is checked with `current_user_can()` before
- *                                                     `permission_callback` runs. Use it for checks that don't depend
- *                                                     on the input. Default empty array.
- *     @type array<string, mixed> $input_schema        Optional. JSON Schema definition for validating the ability's input.
- *                                                     Must be a valid JSON Schema object defining the structure and
- *                                                     constraints for input data. Used for automatic validation and
- *                                                     API documentation.
- *     @type array<string, mixed> $output_schema       Optional. JSON Schema definition for the ability's output.
- *                                                     Describes the structure of successful return values from
- *                                                     `execute_callback`. Used for documentation and validation.
- *     @type array<string, mixed> $meta                {
+ *                                                       ability. Each one is checked with `current_user_can()` before
+ *                                                       `permission_callback` runs. Use it for checks that don't depend
+ *                                                       on the input. Default empty array.
+ *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for validating the ability's input.
+ *                                                       Must be a valid JSON Schema object defining the structure and
+ *                                                       constraints for input data. Used for automatic validation and
+ *                                                       API documentation.
+ *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
+ *                                                       Describes the structure of successful return values from
+ *                                                       `execute_callback`. Used for documentation and validation.
+ *     @type array<string, mixed> $meta                  {
  *         Optional. Additional metadata for the ability.
  *
  *         @type array<string, bool|null> $annotations  {
