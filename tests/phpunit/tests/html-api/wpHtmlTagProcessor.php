@@ -1680,6 +1680,98 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that attributes added and removed on the same tag don't interfere
+	 * when only `/` separates the removed attribute from the tag name.
+	 *
+	 * New attributes are inserted directly after the tag name, so in `<g/attr>`
+	 * the insertion and the removal are separated only by the `/`.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 * @covers WP_HTML_Tag_Processor::set_attribute
+	 *
+	 * @dataProvider data_set_and_remove_attribute_at_tag_name_end
+	 *
+	 * @param string                                                                              $html                HTML containing a G tag.
+	 * @param list<array{0: 'set_attribute'|'remove_attribute'|'add_class', 1: string, 2?: string}> $ops                 Operations to apply, each a method name followed by its arguments.
+	 * @param string                                                                              $expected            Expected HTML after applying the operations.
+	 * @param array<string, string|true>                                                          $expected_attributes Expected attributes on the updated G tag.
+	 */
+	public function test_set_and_remove_attribute_at_tag_name_end( string $html, array $ops, string $expected, array $expected_attributes ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( 'G' );
+		$had_self_closing_flag = $processor->has_self_closing_flag();
+		foreach ( $ops as $op ) {
+			$method = array_shift( $op );
+			$processor->$method( ...$op );
+		}
+
+		$updated_html = $processor->get_updated_html();
+		$this->assertSame( $expected, $updated_html, 'Updated HTML did not match the expected output.' );
+
+		$this->assert_svg_g_tag_semantics( $updated_html, $had_self_closing_flag, $expected_attributes );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, list<array{0: 'set_attribute'|'remove_attribute'|'add_class', 1: string, 2?: string}>, string, array<string, string|true>}>
+	 */
+	public static function data_set_and_remove_attribute_at_tag_name_end(): array {
+		return array(
+			'Set then remove'                    => array(
+				'<svg><g/a>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x"/ >ok',
+				array( 'b' => 'x' ),
+			),
+			'Remove then set'                    => array(
+				'<svg><g/a>ok',
+				array( array( 'remove_attribute', 'a' ), array( 'set_attribute', 'b', 'x' ) ),
+				'<svg><g b="x"/ >ok',
+				array( 'b' => 'x' ),
+			),
+			'Set two then remove'                => array(
+				'<svg><g/a>ok',
+				array( array( 'set_attribute', 'c', 'y' ), array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x" c="y"/ >ok',
+				array(
+					'b' => 'x',
+					'c' => 'y',
+				),
+			),
+			'Add class then remove'              => array(
+				'<svg><g/a>ok',
+				array( array( 'add_class', 'c' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g class="c"/ >ok',
+				array( 'class' => 'c' ),
+			),
+			'Set then remove, self-closing'      => array(
+				'<svg><g/a/>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x"/ />ok',
+				array( 'b' => 'x' ),
+			),
+			'Set then remove, attribute follows' => array(
+				'<svg><g/a="1"c>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ) ),
+				'<svg><g b="x"/ c>ok',
+				array(
+					'b' => 'x',
+					'c' => true,
+				),
+			),
+			'Set, remove both'                   => array(
+				'<svg><g/a/c>ok',
+				array( array( 'set_attribute', 'b', 'x' ), array( 'remove_attribute', 'a' ), array( 'remove_attribute', 'c' ) ),
+				'<svg><g b="x"/ / >ok',
+				array( 'b' => 'x' ),
+			),
+		);
+	}
+
+	/**
 	 * Asserts that the tag following SVG in the given HTML is a G tag with the
 	 * expected self-closing flag and attributes, followed by the text "ok".
 	 *
@@ -1706,7 +1798,7 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 		}
 		ksort( $expected_attributes );
 		ksort( $actual_attributes );
-		$this->assertSame( $expected_attributes, $actual_attributes, 'The update changed the other attributes.' );
+		$this->assertSame( $expected_attributes, $actual_attributes, 'The updated tag has the wrong attributes.' );
 
 		$processor->next_token();
 		$this->assertSame( 'ok', $processor->get_modifiable_text(), 'The update changed the content following the tag.' );
