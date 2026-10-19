@@ -5,11 +5,15 @@ require_once __DIR__ . '/base.php';
 /**
  * Tests for the fields WordPress core registers through the entity fields API.
  *
+ * The core fields are copied from the Gutenberg build, so the tests are
+ * skipped until the pinned build includes them.
+ *
  * @package WordPress
  * @subpackage Entity Fields API
  * @since 7.2.0
  *
  * @group entity-fields
+ * @requires function wp_register_core_field_collections
  *
  * @covers ::wp_register_core_post_type_supports_fields
  * @covers ::wp_register_core_field_collections
@@ -41,18 +45,11 @@ class Tests_Entity_Fields_WpRegisterCoreFieldCollections extends WP_Entity_Field
 	 *
 	 * Registers the fields WordPress core registers instead of the fixture
 	 * defaults of the other entity fields tests.
-	 *
-	 * The core fields are copied from the Gutenberg build, so the tests are
-	 * skipped until the pinned build includes them.
 	 */
 	public function set_up() {
 		global $_wp_theme_features;
 
 		parent::set_up();
-
-		if ( ! function_exists( 'wp_register_core_field_collections' ) ) {
-			$this->markTestSkipped( 'The pinned Gutenberg build does not include the core fields.' );
-		}
 
 		$this->theme_features = $_wp_theme_features;
 		remove_action( 'wp_entity_fields_api_init', array( static::class, 'register_default_fields' ), 0 );

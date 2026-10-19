@@ -150,16 +150,6 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Skips a test of the fields WordPress core registers, which are copied
-	 * from the Gutenberg build, until the pinned build includes them.
-	 */
-	private function skip_without_core_fields() {
-		if ( ! function_exists( 'wp_register_core_field_collections' ) ) {
-			$this->markTestSkipped( 'The pinned Gutenberg build does not include the core fields.' );
-		}
-	}
-
-	/**
 	 * Dispatches a request to the fields route.
 	 *
 	 * @param string|null $kind Entity kind.
@@ -443,9 +433,9 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 	 * @covers ::get_items
 	 *
 	 * @ticket 66229
+	 * @requires function wp_register_core_field_collections
 	 */
 	public function test_get_items_exposes_the_default_post_type_fields() {
-		$this->skip_without_core_fields();
 		wp_set_current_user( self::$editor_id );
 
 		$data = $this->dispatch_request( 'postType', 'page' )->get_data();
@@ -476,9 +466,9 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 	 * @covers ::get_items
 	 *
 	 * @ticket 66229
+	 * @requires function wp_register_core_field_collections
 	 */
 	public function test_get_items_exposes_pattern_fields_and_their_script_module() {
-		$this->skip_without_core_fields();
 		wp_set_current_user( self::$editor_id );
 
 		$data    = $this->dispatch_request( 'postType', 'wp_block' )->get_data();
@@ -502,9 +492,9 @@ class WP_REST_Entity_Fields_Controller_Test extends WP_Test_REST_TestCase {
 	 * @covers ::get_items
 	 *
 	 * @ticket 66229
+	 * @requires function wp_register_core_field_collections
 	 */
 	public function test_get_items_exposes_the_default_fields_with_the_core_origin() {
-		$this->skip_without_core_fields();
 		wp_set_current_user( self::$editor_id );
 
 		$data = $this->dispatch_request( 'postType', 'page' )->get_data();
