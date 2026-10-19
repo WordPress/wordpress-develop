@@ -4031,8 +4031,6 @@ class WP_Theme_JSON {
 	/**
 	 * Adds the declarations a state needs to escape a text clip set below it.
 	 *
-	 * Mirror of `wp_get_state_declarations_with_text_clip_escapes()`.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @param array[]              $declarations Declarations generated for the state.
@@ -4059,10 +4057,10 @@ class WP_Theme_JSON {
 	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
 	 */
 	private static function get_state_declarations_with_text_clip_escapes( array $declarations, array $state_style, array $base_styles ): array {
-		$base_clip = null;
+		$base_clip = '';
 		foreach ( $base_styles as $base_style ) {
 			if ( ! empty( $base_style['background']['backgroundClip'] ) ) {
-				$base_clip = $base_style['background']['backgroundClip'];
+				$base_clip = is_string( $base_style['background']['backgroundClip'] ) ? $base_style['background']['backgroundClip'] : '';
 				break;
 			}
 		}
@@ -4071,28 +4069,15 @@ class WP_Theme_JSON {
 			return $declarations;
 		}
 
-		$state_clip = $state_style['background']['backgroundClip'] ?? null;
+		$escapes = array_merge(
+			wp_get_state_text_clip_escape( $state_style, $base_clip ),
+			wp_get_state_text_fill_reset( $state_style )
+		);
 
-		$paints_its_own_background =
-			! empty( $state_style['background']['gradient'] ) ||
-			! empty( $state_style['background']['backgroundImage'] ) ||
-			! empty( $state_style['color']['gradient'] );
-
-		if ( $state_clip && 'text' !== $state_clip ) {
-			if ( ! $paints_its_own_background ) {
-				$declarations[] = array(
-					'name'  => 'background-image',
-					'value' => 'unset',
-				);
-			}
-
-			return $declarations;
-		}
-
-		if ( ! $state_clip && ! $paints_its_own_background && ! empty( $state_style['color']['text'] ) ) {
+		foreach ( $escapes as $name => $value ) {
 			$declarations[] = array(
-				'name'  => '-webkit-text-fill-color',
-				'value' => 'currentColor',
+				'name'  => $name,
+				'value' => $value,
 			);
 		}
 

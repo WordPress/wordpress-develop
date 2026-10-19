@@ -164,148 +164,246 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	 * Tests that a state escaping a text clip stops the inherited gradient painting.
 	 *
 	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @covers ::wp_get_state_text_clip_escape
 	 */
-	public function test_adds_background_image_reset_when_a_state_escapes_a_text_clip() {
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'background-clip' => 'border-box' ),
+	public function test_text_clip_escape_unsets_the_background_image_when_a_state_escapes_a_text_clip() {
+		$actual = wp_get_state_text_clip_escape(
 			array( 'background' => array( 'backgroundClip' => 'border-box' ) ),
-			array( 'background' => array( 'backgroundClip' => 'text' ) )
+			'text'
 		);
 
-		$this->assertSame(
-			array(
-				'background-clip'  => 'border-box',
-				'background-image' => 'unset',
-			),
-			$actual
-		);
+		$this->assertSame( array( 'background-image' => 'unset' ), $actual );
 	}
 
 	/**
 	 * Tests that a background the state paints itself is kept.
 	 *
 	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @covers ::wp_get_state_text_clip_escape
+	 * @covers ::wp_get_state_text_fill_reset
+	 * @covers ::wp_state_paints_own_background
+	 *
+	 * @dataProvider data_state_styles_that_paint_their_own_background
+	 *
+	 * @param array $state_style State style object.
 	 */
-	public function test_no_background_image_reset_when_the_state_paints_its_own_background() {
-		$state_style = array(
-			'background' => array(
-				'backgroundClip' => 'padding-box',
-				'gradient'       => 'linear-gradient(135deg, #ff0000, #0000ff)',
-			),
-		);
-
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'background-clip' => 'padding-box' ),
-			$state_style,
-			array( 'background' => array( 'backgroundClip' => 'text' ) )
-		);
-
-		$this->assertSame( array( 'background-clip' => 'padding-box' ), $actual );
+	public function test_text_clip_helpers_add_nothing_when_the_state_paints_its_own_background( $state_style ) {
+		$this->assertSame( array(), wp_get_state_text_clip_escape( $state_style, 'text' ), 'Expected no text clip escape.' );
+		$this->assertSame( array(), wp_get_state_text_fill_reset( $state_style ), 'Expected no text fill reset.' );
 	}
 
 	/**
-	 * Tests that a box clip is left alone when nothing above it clips to text.
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_state_styles_that_paint_their_own_background() {
+		$color = array( 'text' => '#ff0000' );
+
+		return array(
+			'background gradient' => array(
+				array(
+					'color'      => $color,
+					'background' => array(
+						'backgroundClip' => 'padding-box',
+						'gradient'       => 'linear-gradient(135deg, #ff0000, #0000ff)',
+					),
+				),
+			),
+			'background image'    => array(
+				array(
+					'color'      => $color,
+					'background' => array(
+						'backgroundClip'  => 'padding-box',
+						'backgroundImage' => array( 'url' => 'image.png' ),
+					),
+				),
+			),
+			'color gradient'      => array(
+				array(
+					'color'      => array_merge( $color, array( 'gradient' => 'linear-gradient(135deg, #ff0000, #0000ff)' ) ),
+					'background' => array( 'backgroundClip' => 'padding-box' ),
+				),
+			),
+			'gradient, no clip'   => array(
+				array(
+					'color'      => $color,
+					'background' => array( 'gradient' => 'linear-gradient(135deg, #ff0000, #0000ff)' ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that a box clip is left alone when nothing below it clips to text.
 	 *
 	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @covers ::wp_get_state_text_clip_escape
+	 *
+	 * @dataProvider data_base_clips_that_are_not_text
+	 *
+	 * @param string $base_clip Background clip the state layers over.
 	 */
-	public function test_no_background_image_reset_without_an_inherited_text_clip() {
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'background-clip' => 'padding-box' ),
+	public function test_text_clip_escape_adds_nothing_without_a_base_text_clip( $base_clip ) {
+		$actual = wp_get_state_text_clip_escape(
 			array( 'background' => array( 'backgroundClip' => 'padding-box' ) ),
-			array( 'background' => array( 'backgroundImage' => array( 'url' => 'image.png' ) ) )
+			$base_clip
 		);
 
-		$this->assertSame( array( 'background-clip' => 'padding-box' ), $actual );
+		$this->assertSame( array(), $actual );
 	}
 
 	/**
-	 * Tests that a text color set under a text clip is painted.
+	 * Data provider.
 	 *
-	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @return array[]
 	 */
-	public function test_adds_text_fill_reset_for_a_text_color_under_a_text_clip() {
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'color' => '#ff0000' ),
-			array( 'color' => array( 'text' => '#ff0000' ) ),
-			array( 'background' => array( 'backgroundClip' => 'text' ) )
-		);
-
-		$this->assertSame(
-			array(
-				'color'                   => '#ff0000',
-				'-webkit-text-fill-color' => 'currentColor',
-			),
-			$actual
+	public function data_base_clips_that_are_not_text() {
+		return array(
+			'no base clip' => array( '' ),
+			'border-box'   => array( 'border-box' ),
 		);
 	}
 
 	/**
-	 * Tests that a text color is painted under a text clip from global styles,
-	 * which the block's own styles do not show.
+	 * Tests that an empty state clip of any type counts as no clip.
 	 *
 	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
-	 */
-	public function test_adds_text_fill_reset_for_a_text_color_without_a_known_text_clip() {
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'color' => '#ff0000' ),
-			array( 'color' => array( 'text' => '#ff0000' ) ),
-			array()
-		);
-
-		$this->assertSame(
-			array(
-				'color'                   => '#ff0000',
-				'-webkit-text-fill-color' => 'currentColor',
-			),
-			$actual
-		);
-	}
-
-	/**
-	 * Tests that the fill is left alone when the state paints its own gradient.
+	 * @covers ::wp_get_state_text_clip_escape
+	 * @covers ::wp_get_state_text_fill_reset
 	 *
-	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @dataProvider data_empty_state_clips
+	 *
+	 * @param mixed $state_clip Background clip set by the state.
 	 */
-	public function test_no_text_fill_reset_when_the_state_paints_its_own_gradient() {
+	public function test_text_clip_helpers_treat_an_empty_state_clip_as_no_clip( $state_clip ) {
 		$state_style = array(
 			'color'      => array( 'text' => '#ff0000' ),
-			'background' => array( 'gradient' => 'linear-gradient(135deg, #ff0000, #0000ff)' ),
+			'background' => array( 'backgroundClip' => $state_clip ),
 		);
 
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'color' => '#ff0000' ),
-			$state_style,
-			array( 'background' => array( 'backgroundClip' => 'text' ) )
+		$this->assertSame( array(), wp_get_state_text_clip_escape( $state_style, 'text' ), 'Expected no text clip escape.' );
+		$this->assertSame(
+			array( '-webkit-text-fill-color' => 'currentColor' ),
+			wp_get_state_text_fill_reset( $state_style ),
+			'Expected the text fill reset.'
 		);
+	}
 
-		$this->assertSame( array( 'color' => '#ff0000' ), $actual );
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_empty_state_clips() {
+		return array(
+			'false'        => array( false ),
+			'zero'         => array( 0 ),
+			'zero string'  => array( '0' ),
+			'empty string' => array( '' ),
+			'empty array'  => array( array() ),
+		);
+	}
+
+	/**
+	 * Tests that a state without its own clip, or keeping the text clip, needs no escape.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_text_clip_escape
+	 */
+	public function test_text_clip_escape_adds_nothing_when_the_state_keeps_the_text_clip() {
+		$this->assertSame(
+			array(),
+			wp_get_state_text_clip_escape( array( 'background' => array( 'backgroundClip' => 'text' ) ), 'text' ),
+			'Expected no escape for a state that also clips to text.'
+		);
+		$this->assertSame(
+			array(),
+			wp_get_state_text_clip_escape( array( 'color' => array( 'text' => '#ff0000' ) ), 'text' ),
+			'Expected no escape for a state without a clip.'
+		);
+	}
+
+	/**
+	 * Tests that a text color set without a clip gets its fill back.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_text_fill_reset
+	 */
+	public function test_text_fill_reset_refills_a_text_color() {
+		$actual = wp_get_state_text_fill_reset( array( 'color' => array( 'text' => '#ff0000' ) ) );
+
+		$this->assertSame( array( '-webkit-text-fill-color' => 'currentColor' ), $actual );
 	}
 
 	/**
 	 * Tests that the fill is left to the style engine when the state sets its own clip.
 	 *
 	 * @ticket 66094
-	 * @covers ::wp_get_state_declarations_with_text_clip_escapes
+	 * @covers ::wp_get_state_text_fill_reset
 	 */
-	public function test_no_text_fill_reset_when_the_state_sets_its_own_clip() {
+	public function test_text_fill_reset_adds_nothing_when_the_state_sets_its_own_clip() {
 		$state_style = array(
 			'color'      => array( 'text' => '#ff0000' ),
 			'background' => array( 'backgroundClip' => 'text' ),
 		);
 
-		$actual = wp_get_state_declarations_with_text_clip_escapes(
-			array( 'color' => '#ff0000' ),
-			$state_style,
+		$this->assertSame( array(), wp_get_state_text_fill_reset( $state_style ) );
+	}
+
+	/**
+	 * Tests that the fill is left alone when the state sets no text color.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_get_state_text_fill_reset
+	 */
+	public function test_text_fill_reset_adds_nothing_without_a_text_color() {
+		$this->assertSame( array(), wp_get_state_text_fill_reset( array( 'color' => array( 'background' => '#ff0000' ) ) ) );
+	}
+
+	/**
+	 * Tests that a block state escapes its base text clip.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_add_block_state_style_rule
+	 */
+	public function test_block_state_rule_escapes_a_base_text_clip() {
+		$css_rules = array();
+
+		wp_add_block_state_style_rule(
+			$css_rules,
+			':hover',
+			'.wp-block-test',
+			array( 'background' => array( 'backgroundClip' => 'border-box' ) ),
+			null,
 			array( 'background' => array( 'backgroundClip' => 'text' ) )
 		);
 
-		$this->assertSame( array( 'color' => '#ff0000' ), $actual );
+		$this->assertSame( 'unset', $css_rules[0]['declarations']['background-image'] ?? null );
+	}
+
+	/**
+	 * Tests that a block state text color gets its fill back over a base box clip,
+	 * since a text clip from global styles cannot be seen from the block.
+	 *
+	 * @ticket 66094
+	 * @covers ::wp_add_block_state_style_rule
+	 */
+	public function test_block_state_rule_refills_a_text_color_over_a_base_box_clip() {
+		$css_rules = array();
+
+		wp_add_block_state_style_rule(
+			$css_rules,
+			':hover',
+			'.wp-block-test',
+			array( 'color' => array( 'text' => '#ff0000' ) ),
+			null,
+			array( 'background' => array( 'backgroundClip' => 'border-box' ) )
+		);
+
+		$declarations = $css_rules[0]['declarations'];
+		$this->assertSame( 'currentColor', $declarations['-webkit-text-fill-color'] ?? null, 'Expected the text fill reset.' );
+		$this->assertArrayNotHasKey( 'background-image', $declarations, 'Expected no text clip escape.' );
 	}
 
 	/**
