@@ -34,7 +34,7 @@ class Tests_Compat_StrStartsWith extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_str_starts_with() {
+	public static function data_str_starts_with() {
 		return array(
 			'empty needle'              => array(
 				'expected' => true,

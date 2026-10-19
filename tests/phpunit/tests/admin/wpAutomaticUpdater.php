@@ -112,7 +112,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_append_plugin_urls() {
 		return array(
 			'successful updates, the current version and the plugin url'       => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -380,7 +380,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_send_plugin_theme_email_should_not_append_plugin_urls() {
+	public static function data_send_plugin_theme_email_should_not_append_plugin_urls() {
 		return array(
 			'successful updates, the current version, but no plugin url'    => array(
 				'urls'       => array( 'http://example.org/successful-plugin' ),
@@ -704,7 +704,7 @@ class Tests_Admin_WpAutomaticUpdater extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
+	public static function data_is_allowed_dir_should_throw_doing_it_wrong_with_invalid_dir() {
 		return array(
 			// Type checks and boolean comparisons.
 			'null'                              => array( 'dir' => null ),

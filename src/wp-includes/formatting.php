@@ -2054,9 +2054,9 @@ function sanitize_file_name( $filename ) {
 		 * The “Zs” in the pattern selects characters in the `Space_Separator`
 		 * category, which is what Unicode considers space characters.
 		 *
-		 * @see https://www.unicode.org/reports/tr44/#General_Category_Values
-		 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
-		 * @see https://www.php.net/manual/en/regexp.reference.unicode.php
+		 * @link https://www.unicode.org/reports/tr44/#General_Category_Values
+		 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-6/#G17548
+		 * @link https://www.php.net/manual/en/regexp.reference.unicode.php
 		 */
 		$filename = preg_replace( '#\p{Zs}#siu', ' ', $filename );
 	}
@@ -2655,8 +2655,8 @@ function force_balance_tags( $text ) {
 	 * To get the pattern as a string without the comments paste into a PHP
 	 * REPL like `php -a`.
 	 *
-	 * @see https://html.spec.whatwg.org/#elements-2
-	 * @see https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+	 * @link https://html.spec.whatwg.org/#elements-2
+	 * @link https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
 	 *
 	 * @example
 	 * ~# php -a
@@ -5184,6 +5184,7 @@ function sanitize_option( $option, $value ) {
 		case 'permalink_structure':
 		case 'category_base':
 		case 'tag_base':
+		case 'wp_random_base':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
