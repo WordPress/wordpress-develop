@@ -700,7 +700,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, core actions).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
@@ -719,6 +719,8 @@ module.exports = function(grunt) {
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
+						// The actions Core registers through the entity actions API.
+						'scripts/core-actions/**/*.php',
 					],
 					dest: SOURCE_DIR + 'wp-includes/build/',
 				} ],

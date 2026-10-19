@@ -6675,16 +6675,19 @@ function wp_is_document_isolation_policy_supported(): bool {
  *
  * @since 7.1.0
  * @since 7.2.0 Also isolates the Media Library grid and the "Add New Media File" screen.
+ *              Returns whether the header was sent.
+ *
+ * @return bool Whether the Document-Isolation-Policy header was sent.
  */
-function wp_set_up_cross_origin_isolation(): void {
+function wp_set_up_cross_origin_isolation(): bool {
 	if ( ! wp_is_client_side_media_processing_enabled() ) {
-		return;
+		return false;
 	}
 
 	$screen = get_current_screen();
 
 	if ( ! $screen ) {
-		return;
+		return false;
 	}
 
 	$is_media_screen = 'media' === $screen->id || ( 'upload' === $screen->id && 'grid' === wp_get_media_library_mode() );
@@ -6695,7 +6698,7 @@ function wp_set_up_cross_origin_isolation(): void {
 		'site-editor' !== $screen->id &&
 		! ( 'widgets' === $screen->id && wp_use_widgets_block_editor() )
 	) {
-		return;
+		return false;
 	}
 
 	/*
@@ -6711,7 +6714,7 @@ function wp_set_up_cross_origin_isolation(): void {
 
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	if ( 'site-editor.php' === $pagenow && ! wp_is_block_theme() && ( ! isset( $_GET['p'] ) || '/' === $_GET['p'] ) ) {
-		return;
+		return false;
 	}
 
 	/*
@@ -6720,15 +6723,15 @@ function wp_set_up_cross_origin_isolation(): void {
 	 * which blocks same-origin iframe access that these editors rely on.
 	 */
 	if ( ! $is_media_screen && isset( $_GET['action'] ) && 'edit' !== $_GET['action'] ) {
-		return;
+		return false;
 	}
 
 	// Cross-origin isolation is not needed if users can't upload files anyway.
 	if ( ! current_user_can( 'upload_files' ) ) {
-		return;
+		return false;
 	}
 
-	wp_start_cross_origin_isolation_output_buffer();
+	return wp_send_document_isolation_policy_header();
 }
 
 /**
@@ -6889,30 +6892,33 @@ function wp_enqueue_media_new_upload(): void {
 /**
  * Sends the Document-Isolation-Policy header for cross-origin isolation.
  *
- * Uses an output buffer to add crossorigin="anonymous" where needed.
+ * The `isolate-and-credentialless` directive loads cross-origin subresources
+ * without credentials instead of blocking them, so no `crossorigin` attribute
+ * is needed on scripts, styles, images, audio, or video for the page to work.
+ * Forcing `crossorigin="anonymous"` would turn those into CORS requests
+ * and break any resource served without `Access-Control-Allow-Origin`.
  *
- * @since 7.1.0
+ * @since 7.2.0
+ *
+ * @return bool Whether the header was sent. False if the browser does not
+ *              support Document-Isolation-Policy or headers were already sent.
  */
-function wp_start_cross_origin_isolation_output_buffer(): void {
-	if ( ! wp_is_document_isolation_policy_supported() ) {
-		return;
+function wp_send_document_isolation_policy_header(): bool {
+	if ( headers_sent() || ! wp_is_document_isolation_policy_supported() ) {
+		return false;
 	}
 
-	ob_start(
-		static function ( string $output ): string {
-			header( 'Document-Isolation-Policy: isolate-and-credentialless' );
-
-			return wp_add_crossorigin_attributes( $output );
-		}
-	);
+	header( 'Document-Isolation-Policy: isolate-and-credentialless' );
 
 	$GLOBALS['_wp_cross_origin_isolated'] = true;
+
+	return true;
 }
 
 /**
  * Whether the current request has been set up for cross-origin isolation.
  *
- * True once wp_set_up_cross_origin_isolation() has armed the
+ * True once wp_set_up_cross_origin_isolation() has sent the
  * Document-Isolation-Policy header for the screen being rendered, which is
  * what lets scripts that need a cross-origin isolated page, such as the
  * client-side media upload integration, decide whether to load at all.
@@ -6937,80 +6943,5 @@ function wp_is_cross_origin_isolated_request(): bool {
 	}
 
 	return false;
-}
-
-/**
- * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
- *
- * @since 7.1.0
- *
- * @param string $html HTML input.
- * @return string Modified HTML.
- */
-function wp_add_crossorigin_attributes( string $html ): string {
-	$site_url = site_url();
-
-	$processor = new WP_HTML_Tag_Processor( $html );
-
-	// See https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/crossorigin.
-	$cross_origin_tag_attributes = array(
-		'AUDIO'  => array( 'src' ),
-		'LINK'   => array( 'href' ),
-		'SCRIPT' => array( 'src' ),
-		'VIDEO'  => array( 'src', 'poster' ),
-		'SOURCE' => array( 'src' ),
-	);
-
-	while ( $processor->next_tag() ) {
-		$tag = $processor->get_tag();
-
-		if ( ! isset( $cross_origin_tag_attributes[ $tag ] ) ) {
-			continue;
-		}
-		$crossorigin = $processor->get_attribute( 'crossorigin' );
-		if ( null !== $crossorigin ) {
-			continue;
-		}
-
-		if ( 'AUDIO' === $tag || 'VIDEO' === $tag ) {
-			$processor->set_bookmark( 'audio-video-parent' );
-		}
-
-		$processor->set_bookmark( 'resume' );
-
-		$sought = false;
-
-		$is_cross_origin = false;
-
-		foreach ( $cross_origin_tag_attributes[ $tag ] as $attr ) {
-			$url = $processor->get_attribute( $attr );
-			if ( is_string( $url ) && ! str_starts_with( $url, $site_url ) && ! str_starts_with( $url, '/' ) ) {
-				$is_cross_origin = true;
-			}
-
-			if ( $is_cross_origin ) {
-				break;
-			}
-		}
-
-		if ( $is_cross_origin ) {
-			if ( 'SOURCE' === $tag ) {
-				$sought = $processor->seek( 'audio-video-parent' );
-
-				if ( $sought ) {
-					$processor->set_attribute( 'crossorigin', 'anonymous' );
-				}
-			} else {
-				$processor->set_attribute( 'crossorigin', 'anonymous' );
-			}
-
-			if ( $sought ) {
-				$processor->seek( 'resume' );
-				$processor->release_bookmark( 'audio-video-parent' );
-			}
-		}
-	}
-
-	return $processor->get_updated_html();
 }
 
