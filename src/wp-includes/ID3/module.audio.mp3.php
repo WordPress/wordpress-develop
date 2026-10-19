@@ -748,6 +748,7 @@ class getid3_mp3 extends getid3_handler
 						$thisfile_mpeg_audio_lame['numeric_version'] = $matches[1];
 					}
 					if (strlen($thisfile_mpeg_audio_lame['numeric_version']) > 0) {
+						$thisfile_mpeg_audio_lame['integer_version'] = array(0, 0); // initialize to prevent undefined array keys later in case of malformed numeric_version -- https://github.com/JamesHeinrich/getID3/issues/477
 						foreach (explode('.', $thisfile_mpeg_audio_lame['numeric_version']) as $key => $number) {
 							$thisfile_mpeg_audio_lame['integer_version'][$key] = intval($number);
 						}

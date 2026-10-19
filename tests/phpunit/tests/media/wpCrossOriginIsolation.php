@@ -5,7 +5,7 @@
  *
  * @group media
  * @covers ::wp_set_up_cross_origin_isolation
- * @covers ::wp_start_cross_origin_isolation_output_buffer
+ * @covers ::wp_send_document_isolation_policy_header
  * @covers ::wp_is_client_side_media_processing_enabled
  */
 class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
@@ -30,12 +30,24 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 */
 	private ?string $original_get_action;
 
+	/**
+	 * Original $_GET['p'] value.
+	 */
+	private ?string $original_get_p;
+
+	/**
+	 * Original $pagenow value.
+	 */
+	private ?string $original_pagenow;
+
 	public function set_up() {
 		parent::set_up();
 		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
 		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
 		$this->original_https      = $_SERVER['HTTPS'] ?? null;
 		$this->original_get_action = $_GET['action'] ?? null;
+		$this->original_get_p      = $_GET['p'] ?? null;
+		$this->original_pagenow    = $GLOBALS['pagenow'] ?? null;
 	}
 
 	public function tear_down() {
@@ -63,10 +75,19 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 			$_GET['action'] = $this->original_get_action;
 		}
 
-		// Clean up any output buffers started during tests.
-		while ( ob_get_level() > 1 ) {
-			ob_end_clean();
+		if ( null === $this->original_get_p ) {
+			unset( $_GET['p'] );
+		} else {
+			$_GET['p'] = $this->original_get_p;
 		}
+
+		if ( null === $this->original_pagenow ) {
+			unset( $GLOBALS['pagenow'] );
+		} else {
+			$GLOBALS['pagenow'] = $this->original_pagenow;
+		}
+
+		$GLOBALS['current_screen'] = null;
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
@@ -78,85 +99,156 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	public function test_returns_early_when_client_side_processing_disabled() {
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_false' );
 
-		// Should not error or start an output buffer.
-		$level_before = ob_get_level();
-		wp_set_up_cross_origin_isolation();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before, $level_after );
+		$this->assertFalse( wp_set_up_cross_origin_isolation() );
 	}
 
 	/**
 	 * @ticket 64766
 	 */
 	public function test_returns_early_when_no_screen() {
-		// No screen is set, so it should return early.
-		$level_before = ob_get_level();
-		wp_set_up_cross_origin_isolation();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before, $level_after );
+		$this->assertFalse( wp_set_up_cross_origin_isolation() );
 	}
 
 	/**
-	 * This test must run in a separate process because the output buffer
-	 * callback sends HTTP headers via header(), which would fail in the
-	 * main PHPUnit process where output has already started.
-	 *
 	 * @ticket 64766
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_starts_output_buffer_for_chrome_137() {
+	public function test_sends_header_for_chrome_137() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
 
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before + 1, $level_after, 'Output buffer should be started for Chrome 137.' );
-
-		ob_end_clean();
+		$this->assertTrue( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header should be sent for Chrome 137.' );
 	}
 
 	/**
 	 * @ticket 64766
 	 */
-	public function test_does_not_start_output_buffer_for_chrome_136() {
+	public function test_does_not_send_header_for_chrome_136() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Chrome < 137.' );
+		$this->assertFalse( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header should not be sent for Chrome < 137.' );
 	}
 
 	/**
 	 * @ticket 64766
 	 */
-	public function test_does_not_start_output_buffer_for_firefox() {
+	public function test_does_not_send_header_for_firefox() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0';
 
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
-
-		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Firefox.' );
+		$this->assertFalse( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header should not be sent for Firefox.' );
 	}
 
 	/**
 	 * @ticket 64766
 	 */
-	public function test_does_not_start_output_buffer_for_safari() {
+	public function test_does_not_send_header_for_safari() {
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15';
 
-		$level_before = ob_get_level();
-		wp_start_cross_origin_isolation_output_buffer();
-		$level_after = ob_get_level();
+		$this->assertFalse( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header should not be sent for Safari.' );
+	}
 
-		$this->assertSame( $level_before, $level_after, 'Output buffer should not be started for Safari.' );
+	/**
+	 * Runs in the main PHPUnit process, where output has already started.
+	 *
+	 * @ticket 65930
+	 */
+	public function test_does_not_send_header_when_headers_already_sent() {
+		if ( ! headers_sent() ) {
+			$this->markTestSkipped( 'Requires output to have already been sent.' );
+		}
+
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		$this->assertFalse( wp_send_document_isolation_policy_header(), 'The Document-Isolation-Policy header cannot be sent once headers are sent.' );
+	}
+
+	/**
+	 * The site editor home route on a classic theme skips DIP, because the
+	 * editor renders the front end in a same-origin iframe and must reach its
+	 * `contentDocument` to neutralize interactive elements. DIP would block
+	 * that access.
+	 *
+	 * @ticket 65399
+	 *
+	 * @dataProvider data_classic_theme_site_editor_home_routes
+	 *
+	 * @param array $get The $_GET state representing the home route.
+	 */
+	public function test_skips_cross_origin_isolation_for_classic_theme_site_editor_home( array $get ) {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyone' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		unset( $_GET['p'] );
+		foreach ( $get as $key => $value ) {
+			$_GET[ $key ] = $value;
+		}
+
+		$this->assertFalse( wp_set_up_cross_origin_isolation(), 'DIP should be skipped on the classic-theme site editor home route.' );
+	}
+
+	/**
+	 * Data provider for the classic-theme site editor home route.
+	 *
+	 * @return array[]
+	 */
+	public function data_classic_theme_site_editor_home_routes() {
+		return array(
+			'no p query var'   => array( array() ),
+			'p query var is /' => array( array( 'p' => '/' ) ),
+		);
+	}
+
+	/**
+	 * The site editor on a classic theme still sets up cross-origin isolation
+	 * for routes other than the home route.
+	 *
+	 * @ticket 65399
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_sets_up_cross_origin_isolation_for_classic_theme_site_editor_non_home_route() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyone' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		$_GET['p'] = '/page/about';
+
+		$this->assertTrue( wp_set_up_cross_origin_isolation(), 'DIP should be set up on a non-home site editor route.' );
+	}
+
+	/**
+	 * The site editor on a block theme always sets up cross-origin isolation,
+	 * including on the home route, because block themes do not render the
+	 * classic site preview iframe.
+	 *
+	 * @ticket 65399
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_sets_up_cross_origin_isolation_for_block_theme_site_editor_home() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+		$_SERVER['HTTP_HOST']       = 'localhost';
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		switch_theme( 'twentytwentyfour' );
+		set_current_screen( 'site-editor' );
+		$GLOBALS['pagenow'] = 'site-editor.php';
+
+		unset( $_GET['p'] );
+
+		$this->assertTrue( wp_set_up_cross_origin_isolation(), 'DIP should be set up on the block-theme site editor home route.' );
 	}
 
 	/**
@@ -186,37 +278,96 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that cross-origin elements get crossorigin="anonymous" added.
+	 * Verifies that setting the client-side media processing flag does not
+	 * clobber the script module dependencies of the upload-media script.
 	 *
-	 * @ticket 64766
+	 * Re-registering `@wordpress/vips/worker` via WP_Scripts::add_data(),
+	 * which overwrites rather than merges, dropped the module dependencies
+	 * declared in the packages asset file. This removed
+	 * `@wordpress/video-conversion/worker` from the import map and broke
+	 * animated GIF to video conversion.
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
+	 * @ticket 65664
 	 *
-	 * @dataProvider data_elements_that_should_get_crossorigin
-	 *
-	 * @param string $html HTML input to process.
+	 * @covers ::wp_set_client_side_media_processing_flag
 	 */
-	public function test_output_buffer_adds_crossorigin( $html ) {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+	public function test_set_flag_preserves_upload_media_module_dependencies() {
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
-		ob_start();
+		$before = wp_scripts()->get_data( 'wp-upload-media', 'module_dependencies' );
 
-		wp_start_cross_origin_isolation_output_buffer();
-		echo $html;
+		wp_set_client_side_media_processing_flag();
 
-		ob_end_flush();
-		$output = ob_get_clean();
+		$after = wp_scripts()->get_data( 'wp-upload-media', 'module_dependencies' );
 
-		$this->assertStringContainsString( 'crossorigin="anonymous"', $output );
+		$this->assertSame(
+			$before,
+			$after,
+			'The module dependencies of the upload-media script should not be modified.'
+		);
+
+		$ids = array();
+		foreach ( (array) $after as $module ) {
+			$ids[] = is_array( $module ) ? $module['id'] : $module;
+		}
+
+		$this->assertContains(
+			'@wordpress/vips/worker',
+			$ids,
+			'The vips worker should be a module dependency of the upload-media script.'
+		);
+		$this->assertContains(
+			'@wordpress/video-conversion/worker',
+			$ids,
+			'The video-conversion worker should be a module dependency of the upload-media script.'
+		);
 	}
 
 	/**
-	 * Data provider for elements that should receive crossorigin="anonymous".
+	 * The deprecated output buffer helper only sends the header now.
 	 *
-	 * @return array[]
+	 * @ticket 65930
+	 *
+	 * @expectedDeprecated wp_start_cross_origin_isolation_output_buffer
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
-	public function data_elements_that_should_get_crossorigin() {
+	public function test_deprecated_output_buffer_helper_does_not_buffer() {
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+
+		$level_before = ob_get_level();
+		wp_start_cross_origin_isolation_output_buffer();
+
+		$this->assertSame( $level_before, ob_get_level(), 'No output buffer should be started.' );
+	}
+
+	/**
+	 * The deprecated attribute injector leaves the HTML untouched.
+	 *
+	 * Under Document-Isolation-Policy: isolate-and-credentialless, cross-origin
+	 * scripts, styles, images, audio, and video load without a crossorigin
+	 * attribute. Adding one forces a CORS request that fails for resources
+	 * served without Access-Control-Allow-Origin headers.
+	 *
+	 * @ticket 65930
+	 *
+	 * @expectedDeprecated wp_add_crossorigin_attributes
+	 *
+	 * @dataProvider data_cross_origin_elements
+	 *
+	 * @param string $html HTML input to process.
+	 */
+	public function test_deprecated_attribute_injector_returns_html_unchanged( string $html ) {
+		$this->assertSame( $html, wp_add_crossorigin_attributes( $html ) );
+	}
+
+	/**
+	 * Data provider of cross-origin elements that used to receive crossorigin="anonymous".
+	 *
+	 * @return array<non-falsy-string, array{ non-falsy-string }>
+	 */
+	public function data_cross_origin_elements(): array {
 		return array(
 			'cross-origin script'              => array(
 				'<script src="https://external.example.com/script.js"></script>',
@@ -237,129 +388,27 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Verifies that certain elements do not get crossorigin="anonymous" added.
+	 * The media manager templates must not carry crossorigin="anonymous".
 	 *
-	 * Images are excluded because under Document-Isolation-Policy:
-	 * isolate-and-credentialless, the browser handles cross-origin images
-	 * in credentialless mode without needing explicit CORS headers.
+	 * Adding the attribute forces a CORS request that breaks previews and
+	 * playback of media served without Access-Control-Allow-Origin headers,
+	 * such as media offloaded to a CDN.
 	 *
-	 * @ticket 64766
+	 * @ticket 65673
+	 * @ticket 65930
 	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 *
-	 * @dataProvider data_elements_that_should_not_get_crossorigin
-	 *
-	 * @param string $html HTML input to process.
+	 * @covers ::wp_print_media_templates
 	 */
-	public function test_output_buffer_does_not_add_crossorigin( $html ) {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+	public function test_print_media_templates_does_not_add_crossorigin() {
+		require_once ABSPATH . WPINC . '/media-template.php';
+
+		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
 		ob_start();
-
-		wp_start_cross_origin_isolation_output_buffer();
-		echo $html;
-
-		ob_end_flush();
+		wp_print_media_templates();
 		$output = ob_get_clean();
 
-		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
-	}
-
-	/**
-	 * Data provider for elements that should not receive crossorigin="anonymous".
-	 *
-	 * @return array[]
-	 */
-	public function data_elements_that_should_not_get_crossorigin() {
-		return array(
-			'cross-origin img'                        => array(
-				'<img src="https://external.example.com/image.jpg" />',
-			),
-			'cross-origin img with srcset'            => array(
-				'<img src="https://external.example.com/image.jpg" srcset="https://external.example.com/image-2x.jpg 2x" />',
-			),
-			'link with cross-origin imagesrcset only' => array(
-				'<link rel="preload" as="image" imagesrcset="https://external.example.com/image.jpg 1x" href="/local-fallback.jpg" />',
-			),
-			'relative URL script'                     => array(
-				'<script src="/wp-includes/js/wp-embed.min.js"></script>',
-			),
-		);
-	}
-
-	/**
-	 * Same-origin URLs should not get crossorigin="anonymous".
-	 *
-	 * Uses site_url() at runtime since the test domain varies by CI config.
-	 *
-	 * @ticket 64766
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_output_buffer_does_not_add_crossorigin_to_same_origin() {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
-
-		ob_start();
-
-		wp_start_cross_origin_isolation_output_buffer();
-		echo '<script src="' . site_url( '/wp-includes/js/wp-embed.min.js' ) . '"></script>';
-
-		ob_end_flush();
-		$output = ob_get_clean();
-
-		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
-	}
-
-	/**
-	 * Elements that already have a crossorigin attribute should not be modified.
-	 *
-	 * @ticket 64766
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_output_buffer_does_not_override_existing_crossorigin() {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
-
-		ob_start();
-
-		wp_start_cross_origin_isolation_output_buffer();
-		echo '<script src="https://external.example.com/script.js" crossorigin="use-credentials"></script>';
-
-		ob_end_flush();
-		$output = ob_get_clean();
-
-		$this->assertStringContainsString( 'crossorigin="use-credentials"', $output, 'Existing crossorigin attribute should not be overridden.' );
-		$this->assertStringNotContainsString( 'crossorigin="anonymous"', $output );
-	}
-
-	/**
-	 * Multiple tags in the same output should each be handled correctly.
-	 *
-	 * @ticket 64766
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
-	public function test_output_buffer_handles_mixed_tags() {
-		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
-
-		ob_start();
-
-		wp_start_cross_origin_isolation_output_buffer();
-		echo '<img src="https://external.example.com/image.jpg" />';
-		echo '<script src="https://external.example.com/script.js"></script>';
-		echo '<audio src="https://external.example.com/audio.mp3"></audio>';
-
-		ob_end_flush();
-		$output = ob_get_clean();
-
-		// IMG should NOT have crossorigin.
-		$this->assertStringContainsString( '<img src="https://external.example.com/image.jpg" />', $output, 'IMG should not be modified.' );
-
-		// Script and audio should have crossorigin.
-		$this->assertSame( 2, substr_count( $output, 'crossorigin="anonymous"' ), 'Script and audio should both get crossorigin, but not img.' );
+		$this->assertMatchesRegularExpression( '/<(?:img|audio|video)\b/i', $output, 'Expected the media templates to contain media tags.' );
+		$this->assertDoesNotMatchRegularExpression( '/<(?:img|audio|video)\b[^>]*\bcrossorigin\b/i', $output, 'Media tags in the media templates must not receive a crossorigin attribute.' );
 	}
 }

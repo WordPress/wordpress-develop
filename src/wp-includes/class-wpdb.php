@@ -638,6 +638,7 @@ class wpdb {
 	 * A list of incompatible SQL modes.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Added `NO_BACKSLASH_ESCAPES`.
 	 *
 	 * @var string[]
 	 */
@@ -648,6 +649,7 @@ class wpdb {
 		'STRICT_ALL_TABLES',
 		'TRADITIONAL',
 		'ANSI',
+		'NO_BACKSLASH_ESCAPES',
 	);
 
 	/**
@@ -963,7 +965,7 @@ class wpdb {
 			$modes = explode( ',', $modes_array[0] );
 		}
 
-		$modes = array_change_key_case( $modes, CASE_UPPER );
+		$modes = array_map( 'strtoupper', $modes );
 
 		/**
 		 * Filters the list of incompatible SQL modes to exclude.
@@ -1291,12 +1293,23 @@ class wpdb {
 	/**
 	 * Escapes data. Works on arrays.
 	 *
+	 * The `$data is string` case must come first in the conditional return type below. PHPStan
+	 * does not treat the documented types as certain, so it still analyzes the nested
+	 * `is_array()` check even though `$v` is a `string`, narrowing `$v` to `never` there. A
+	 * `never` argument satisfies whichever case is tested first, so testing for `string` first
+	 * makes the recursive call resolve to `string`. Testing for the array case first would
+	 * instead resolve it to an array, widening `$data` and contradicting the return type.
+	 *
 	 * @since 2.8.0
 	 *
 	 * @uses wpdb::_real_escape()
 	 *
-	 * @param string|array $data Data to escape.
-	 * @return string|array Escaped data, in the same type as supplied.
+	 * @param string|string[] $data Data to escape.
+	 * @return string|string[] Escaped data, in the same type as supplied.
+	 *
+	 * @phpstan-template TKey of array-key
+	 * @phpstan-param string|array<TKey, string> $data
+	 * @phpstan-return ( $data is string ? string : array<TKey, string> )
 	 */
 	public function _escape( $data ) {
 		if ( is_array( $data ) ) {
@@ -1794,7 +1807,7 @@ class wpdb {
 	 * @global array $EZSQL_ERROR Stores error information of query and error string.
 	 *
 	 * @param string $str The error to display.
-	 * @return null|false Null if the showing of errors is enabled, false if disabled.
+	 * @return void|false Void if the showing of errors is enabled, false if disabled.
 	 */
 	public function print_error( $str = '' ) {
 		global $EZSQL_ERROR;
@@ -1855,8 +1868,6 @@ class wpdb {
 				$query
 			);
 		}
-
-		return null;
 	}
 
 	/**
@@ -1948,7 +1959,8 @@ class wpdb {
 	 * If `$allow_bail` is false, the lack of database connection will need to be handled manually.
 	 *
 	 * @since 3.0.0
-	 * @since 3.9.0 $allow_bail parameter added.
+	 * @since 3.9.0 Added `$allow_bail` parameter.
+	 * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
 	 *
 	 * @param bool $allow_bail Optional. Allows the function to bail. Default true.
 	 * @return bool True with a successful connection, false on failure.
@@ -1980,7 +1992,7 @@ class wpdb {
 		/*
 		 * If using the `mysqlnd` library, the IPv6 address needs to be enclosed
 		 * in square brackets, whereas it doesn't while using the `libmysqlclient` library.
-		 * @see https://bugs.php.net/bug.php?id=67563
+		 * @link https://bugs.php.net/bug.php?id=67563
 		 */
 		if ( $is_ipv6 && extension_loaded( 'mysqlnd' ) ) {
 			$host = "[$host]";
@@ -2000,8 +2012,13 @@ class wpdb {
 		if ( ! $this->dbh && $allow_bail ) {
 			wp_load_translations_early();
 
-			// Load custom DB error template, if present.
+			/*
+			 * Load custom DB error template, if present.
+			 * A 500 status header and no-cache headers are now sent before loading a custom db-error.php drop-in.
+			 */
 			if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+				status_header( 500 );
+				nocache_headers();
 				require_once WP_CONTENT_DIR . '/db-error.php';
 				die();
 			}
@@ -2065,7 +2082,7 @@ class wpdb {
 	 *     False if the host couldn't be parsed.
 	 *
 	 *     @type string      $0 Host name.
-	 *     @type string|null $1 Port.
+	 *     @type int|null    $1 Port.
 	 *     @type string|null $2 Socket.
 	 *     @type bool        $3 Whether it is an IPv6 address.
 	 * }
@@ -3934,7 +3951,7 @@ class wpdb {
 	 * @since 3.5.0
 	 */
 	protected function load_col_info() {
-		if ( $this->col_info ) {
+		if ( $this->col_info || ! $this->result instanceof mysqli_result ) {
 			return;
 		}
 
@@ -4068,7 +4085,7 @@ class wpdb {
 	 * @since 2.5.0
 	 *
 	 * @global string $required_mysql_version The minimum required MySQL version string.
-	 * @return WP_Error|null
+	 * @return void|WP_Error Void if the server meets the minimum version, WP_Error if not.
 	 */
 	public function check_database_version() {
 		global $required_mysql_version;
@@ -4079,8 +4096,6 @@ class wpdb {
 			/* translators: 1: WordPress version number, 2: Minimum required MySQL version number. */
 			return new WP_Error( 'database_version', sprintf( __( '<strong>Error:</strong> WordPress %1$s requires MySQL %2$s or higher' ), $wp_version, $required_mysql_version ) );
 		}
-
-		return null;
 	}
 
 	/**

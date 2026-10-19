@@ -12,7 +12,7 @@
 //
 
 /**
- * Handles the Heartbeat API in the no-privilege context via AJAX .
+ * Handles the Heartbeat API in the no-privilege context via AJAX.
  *
  * Runs when the user is not logged in.
  *
@@ -128,7 +128,7 @@ function wp_ajax_ajax_tag_search() {
 
 	if ( str_contains( $search, ',' ) ) {
 		$search = explode( ',', $search );
-		$search = $search[ count( $search ) - 1 ];
+		$search = array_last( $search );
 	}
 
 	$search = trim( $search );
@@ -178,76 +178,6 @@ function wp_ajax_ajax_tag_search() {
 }
 
 /**
- * Handles compression testing via AJAX.
- *
- * @since 3.1.0
- */
-function wp_ajax_wp_compression_test() {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		wp_die( -1 );
-	}
-
-	if ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) ) {
-		// Use `update_option()` on single site to mark the option for autoloading.
-		if ( is_multisite() ) {
-			update_site_option( 'can_compress_scripts', 0 );
-		} else {
-			update_option( 'can_compress_scripts', 0, true );
-		}
-		wp_die( 0 );
-	}
-
-	if ( isset( $_GET['test'] ) ) {
-		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
-		header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s' ) . ' GMT' );
-		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
-		header( 'Content-Type: application/javascript; charset=UTF-8' );
-		$force_gzip = ( defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP );
-		$test_str   = '"wpCompressionTest Lorem ipsum dolor sit amet consectetuer mollis sapien urna ut a. Eu nonummy condimentum fringilla tempor pretium platea vel nibh netus Maecenas. Hac molestie amet justo quis pellentesque est ultrices interdum nibh Morbi. Cras mattis pretium Phasellus ante ipsum ipsum ut sociis Suspendisse Lorem. Ante et non molestie. Porta urna Vestibulum egestas id congue nibh eu risus gravida sit. Ac augue auctor Ut et non a elit massa id sodales. Elit eu Nulla at nibh adipiscing mattis lacus mauris at tempus. Netus nibh quis suscipit nec feugiat eget sed lorem et urna. Pellentesque lacus at ut massa consectetuer ligula ut auctor semper Pellentesque. Ut metus massa nibh quam Curabitur molestie nec mauris congue. Volutpat molestie elit justo facilisis neque ac risus Ut nascetur tristique. Vitae sit lorem tellus et quis Phasellus lacus tincidunt nunc Fusce. Pharetra wisi Suspendisse mus sagittis libero lacinia Integer consequat ac Phasellus. Et urna ac cursus tortor aliquam Aliquam amet tellus volutpat Vestibulum. Justo interdum condimentum In augue congue tellus sollicitudin Quisque quis nibh."';
-
-		if ( '1' === $_GET['test'] ) {
-			echo $test_str;
-			wp_die();
-		} elseif ( '2' === $_GET['test'] ) {
-			if ( ! isset( $_SERVER['HTTP_ACCEPT_ENCODING'] ) ) {
-				wp_die( -1 );
-			}
-
-			if ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'deflate' ) && function_exists( 'gzdeflate' ) && ! $force_gzip ) {
-				header( 'Content-Encoding: deflate' );
-				$output = gzdeflate( $test_str, 1 );
-			} elseif ( false !== stripos( $_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip' ) && function_exists( 'gzencode' ) ) {
-				header( 'Content-Encoding: gzip' );
-				$output = gzencode( $test_str, 1 );
-			} else {
-				wp_die( -1 );
-			}
-
-			echo $output;
-			wp_die();
-		} elseif ( 'no' === $_GET['test'] ) {
-			check_ajax_referer( 'update_can_compress_scripts' );
-			// Use `update_option()` on single site to mark the option for autoloading.
-			if ( is_multisite() ) {
-				update_site_option( 'can_compress_scripts', 0 );
-			} else {
-				update_option( 'can_compress_scripts', 0, true );
-			}
-		} elseif ( 'yes' === $_GET['test'] ) {
-			check_ajax_referer( 'update_can_compress_scripts' );
-			// Use `update_option()` on single site to mark the option for autoloading.
-			if ( is_multisite() ) {
-				update_site_option( 'can_compress_scripts', 1 );
-			} else {
-				update_option( 'can_compress_scripts', 1, true );
-			}
-		}
-	}
-
-	wp_die( 0 );
-}
-
-/**
  * Handles image editor previews via AJAX.
  *
  * @since 3.1.0
@@ -285,6 +215,10 @@ function wp_ajax_oembed_cache() {
  * Handles user autocomplete via AJAX.
  *
  * @since 3.4.0
+ * @since 7.1.0 The search term is now sanitized, and a missing, non-string,
+ *              or empty term results in a `0` response instead of an empty array.
+ *
+ * @return never
  */
 function wp_ajax_autocomplete_user() {
 	if ( ! is_multisite() || ! current_user_can( 'promote_users' ) || wp_is_large_network( 'users' ) ) {
@@ -297,6 +231,20 @@ function wp_ajax_autocomplete_user() {
 	}
 
 	$return = array();
+
+	// Obtain the search term, and short-circuit missing/invalid search term.
+	if ( ! isset( $_REQUEST['term'] ) || ! is_string( $_REQUEST['term'] ) ) {
+		wp_die( 0 );
+	}
+	/*
+	 * Asterisks are trimmed since wildcards are appended below. Without this, a
+	 * term consisting only of asterisks would result in an empty search that
+	 * matches all users.
+	 */
+	$term = trim( sanitize_text_field( wp_unslash( $_REQUEST['term'] ) ), '*' );
+	if ( '' === $term ) {
+		wp_die( 0 );
+	}
 
 	/*
 	 * Check the type of request.
@@ -342,7 +290,7 @@ function wp_ajax_autocomplete_user() {
 	$users = get_users(
 		array(
 			'blog_id'        => false,
-			'search'         => '*' . $_REQUEST['term'] . '*',
+			'search'         => '*' . $term . '*',
 			'include'        => $include_blog_users,
 			'exclude'        => $exclude_blog_users,
 			'search_columns' => array( 'user_login', 'user_nicename', 'user_email' ),
@@ -1621,7 +1569,7 @@ function wp_ajax_add_meta() {
 	$post    = get_post( $post_id );
 
 	if ( isset( $_POST['metakeyselect'] ) || isset( $_POST['metakeyinput'] ) ) {
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! $post || ! current_user_can( 'edit_post', $post_id ) ) {
 			wp_die( -1 );
 		}
 
@@ -1729,7 +1677,7 @@ function wp_ajax_add_meta() {
 						'meta_value' => $value,
 						'meta_id'    => $meta_id,
 					),
-					$c
+					$count
 				),
 				'position'     => 0,
 				'supplemental' => array( 'postid' => $meta->post_id ),
@@ -1852,6 +1800,20 @@ function wp_ajax_hidden_columns() {
 
 	$hidden = ! empty( $_POST['hidden'] ) ? explode( ',', $_POST['hidden'] ) : array();
 	update_user_meta( $user->ID, "manage{$page}columnshidden", $hidden );
+
+	wp_die( 1 );
+}
+
+/**
+ * Handles the meta box reordering setting via Ajax.
+ *
+ * @since 7.2.0
+ */
+function wp_ajax_meta_box_reordering() {
+	check_ajax_referer( 'screen-options-nonce', 'screenoptionnonce' );
+
+	$enabled = isset( $_POST['enabled'] ) && '1' === (string) $_POST['enabled'];
+	update_user_option( get_current_user_id(), 'meta_box_reordering', $enabled ? 'enabled' : 'disabled' );
 
 	wp_die( 1 );
 }
@@ -2041,6 +2003,13 @@ function wp_ajax_menu_quick_search() {
 function wp_ajax_get_permalink() {
 	check_ajax_referer( 'getpermalink', 'getpermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
+	if ( ! $post_id ) {
+		// Bypass call to get_preview_post_link() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
 	wp_die( get_preview_post_link( $post_id ) );
 }
 
@@ -2052,8 +2021,15 @@ function wp_ajax_get_permalink() {
 function wp_ajax_sample_permalink() {
 	check_ajax_referer( 'samplepermalink', 'samplepermalinknonce' );
 	$post_id = isset( $_POST['post_id'] ) ? (int) $_POST['post_id'] : 0;
-	$title   = $_POST['new_title'] ?? '';
-	$slug    = $_POST['new_slug'] ?? null;
+	if ( ! $post_id ) {
+		// Bypass call to get_sample_permalink_html() for unspecified post ID.
+		wp_die( '' );
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		wp_die( -1 );
+	}
+	$title = $_POST['new_title'] ?? '';
+	$slug  = $_POST['new_slug'] ?? null;
 	wp_die( get_sample_permalink_html( $post_id, $title, $slug ) );
 }
 
@@ -2106,6 +2082,9 @@ function wp_ajax_inline_save() {
 	$data = &$_POST;
 
 	$post = get_post( $post_id, ARRAY_A );
+	if ( ! $post ) {
+		wp_die();
+	}
 
 	// Since it's coming from the database.
 	$post = wp_slash( $post );
@@ -3134,6 +3113,9 @@ function wp_ajax_save_attachment() {
 
 	$changes = $_REQUEST['changes'];
 	$post    = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3225,6 +3207,9 @@ function wp_ajax_save_attachment_compat() {
 	}
 
 	$post = get_post( $id, ARRAY_A );
+	if ( ! $post ) {
+		wp_send_json_error();
+	}
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -4585,6 +4570,12 @@ function wp_ajax_activate_plugin() {
 
 	if ( ! current_user_can( 'activate_plugin', $status['plugin'] ) ) {
 		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate plugins on this site.' );
+		wp_send_json_error( $status );
+	}
+
+	// A network-only plugin is activated for the entire network.
+	if ( is_multisite() && is_network_only_plugin( $status['plugin'] ) && ! current_user_can( 'manage_network_plugins' ) ) {
+		$status['errorMessage'] = __( 'Sorry, you are not allowed to activate this plugin.' );
 		wp_send_json_error( $status );
 	}
 
