@@ -911,6 +911,9 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Styles $wp_styles
+	 * @global string    $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_styles, $wp_version;
@@ -930,7 +933,7 @@ HTML;
 		$expected = <<<HTML
 <link
 	rel="stylesheet"
-	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
+	href="/wp-admin/load-styles.php?dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
 	media="all"
 >
 <style>

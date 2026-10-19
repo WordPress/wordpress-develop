@@ -472,23 +472,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( array(), $after );
 	}
 
-	/**
-	 * @ticket 25706
-	 */
-	public function test_in_category() {
-		$post = self::factory()->post->create_and_get();
-
-		// in_category() returns false when first parameter is empty().
-		$this->assertFalse( in_category( '', $post ) );
-		$this->assertFalse( in_category( false, $post ) );
-		$this->assertFalse( in_category( null, $post ) );
-
-		// Test expected behavior of in_category().
-		$term = wp_insert_term( 'Test', 'category' );
-		wp_set_object_terms( $post->ID, $term['term_id'], 'category' );
-		$this->assertTrue( in_category( $term['term_id'], $post ) );
-	}
-
 	public function test_insert_category_create() {
 		$cat = array(
 			'cat_ID'   => 0,

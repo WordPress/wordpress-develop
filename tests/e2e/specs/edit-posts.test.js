@@ -18,13 +18,14 @@ test.describe( 'Edit Posts', () => {
 		).toBeVisible();
 	} );
 
-	test( 'shows a single post after one is published with the correct title',async ( {
+	test( 'lists a published post and renders its title and content on the front end', async ( {
 		admin,
 		editor,
 		page,
 	} ) => {
 		const title = 'Test Title';
-		await admin.createNewPost( { title } );
+		const content = 'This content should be visible on the published post.';
+		await admin.createNewPost( { title, content } );
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
@@ -37,6 +38,11 @@ test.describe( 'Edit Posts', () => {
 
 		// Expect the title of the post to be correct.
 		await expect( posts.first() ).toHaveText( title );
+
+		await posts.first().hover();
+		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
+		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
+		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
 	} );
 
 	test( 'allows an existing post to be edited using the Edit button', async ( {

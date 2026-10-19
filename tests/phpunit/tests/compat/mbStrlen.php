@@ -55,7 +55,7 @@ class Tests_Compat_mbStrlen extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_utf8_strings() {
+	public static function data_utf8_strings() {
 		return array(
 			array( 'баба' ),
 			array( 'баб' ),
