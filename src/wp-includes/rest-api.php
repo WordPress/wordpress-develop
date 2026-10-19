@@ -834,9 +834,10 @@ function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_R
 		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
 		$response_headers = array_change_key_case( $response_headers );
 
-		$allow_methods = isset( $response_headers['access-control-allow-methods'] )
-			? array_map( 'trim', explode( ',', $response_headers['access-control-allow-methods'] ) )
-			: array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+		$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+		if ( isset( $response_headers['access-control-allow-methods'] ) ) {
+			$allow_methods = array_values( array_intersect( $allow_methods, wp_parse_list( $response_headers['access-control-allow-methods'] ) ) );
+		}
 
 		/**
 		 * Filters the list of HTTP methods advertised to REST API CORS requests.
@@ -856,7 +857,9 @@ function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_R
 		 */
 		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request );
 
-		header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
+		if ( ! empty( $allow_methods ) {
+			header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
+		}
 		header( 'Access-Control-Allow-Credentials: true' );
 		header( 'Vary: Origin', false );
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
