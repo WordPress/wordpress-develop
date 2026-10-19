@@ -421,6 +421,111 @@ class Tests_User_Multisite extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Patterns may be used across the site, so they're kept when their author is deleted.
+	 *
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 */
+	public function test_wpmu_delete_user_keeps_patterns() {
+		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id    = self::factory()->post->create( array( 'post_author' => $user_id ) );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		$this->assertSame( 'trash', get_post_status( $post_id ), 'The post should have been deleted.' );
+		$this->assertSame( 'publish', get_post_status( $pattern_id ), 'The pattern should have been kept.' );
+	}
+
+	/**
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 */
+	public function test_wpmu_delete_user_keeps_patterns_on_every_site() {
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$site_id = self::factory()->blog->create();
+
+		add_user_to_blog( $site_id, $user_id, 'author' );
+
+		switch_to_blog( $site_id );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+		restore_current_blog();
+
+		wpmu_delete_user( $user_id );
+
+		switch_to_blog( $site_id );
+		$status = get_post_status( $pattern_id );
+		restore_current_blog();
+
+		wp_delete_site( $site_id );
+
+		$this->assertSame( 'publish', $status );
+	}
+
+	/**
+	 * @ticket 66307
+	 *
+	 * @covers ::wpmu_delete_user
+	 *
+	 * @dataProvider data_wpmu_delete_user_respects_delete_with_user
+	 *
+	 * @param bool|null $delete_with_user Value of the post type's `delete_with_user` argument.
+	 * @param bool      $supports_author  Whether the post type supports authors.
+	 * @param bool      $should_delete    Whether the post should be deleted with its author.
+	 */
+	public function test_wpmu_delete_user_respects_delete_with_user( $delete_with_user, $supports_author, $should_delete ) {
+		register_post_type(
+			'wptests_pt',
+			array(
+				'delete_with_user' => $delete_with_user,
+				'supports'         => $supports_author ? array( 'title', 'author' ) : array( 'title' ),
+			)
+		);
+
+		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
+		$post_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wptests_pt',
+				'post_author' => $user_id,
+			)
+		);
+
+		wpmu_delete_user( $user_id );
+
+		if ( $should_delete ) {
+			$this->assertNull( get_post( $post_id ) );
+		} else {
+			$this->assertSame( 'publish', get_post_status( $post_id ) );
+		}
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{ bool|null, bool, bool }>
+	 */
+	public static function data_wpmu_delete_user_respects_delete_with_user() {
+		return array(
+			'delete_with_user true'                    => array( true, false, true ),
+			'delete_with_user false'                   => array( false, true, false ),
+			'delete_with_user null, supports author'   => array( null, true, true ),
+			'delete_with_user null, no author support' => array( null, false, true ),
+		);
+	}
+
+	/**
 	 * @ticket 38356
 	 */
 	public function test_add_user_to_blog_subscriber() {

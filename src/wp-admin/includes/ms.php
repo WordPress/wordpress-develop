@@ -130,12 +130,14 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
  *
  * This function:
  *
- * - Deletes all posts (of all post types) authored by the user on all sites on the network
+ * - Deletes all posts authored by the user on all sites on the network, except those
+ *   of post types registered with `delete_with_user` set to false, such as patterns
  * - Deletes all links owned by the user on all sites on the network
  * - Removes the user from all sites on the network
  * - Deletes the user from the database
  *
  * @since 3.0.0
+ * @since 7.2.0 Posts of post types with `delete_with_user` set to false are no longer deleted.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -176,11 +178,28 @@ function wpmu_delete_user( $id ) {
 	$blogs = get_blogs_of_user( $id );
 
 	if ( ! empty( $blogs ) ) {
+		// Keep content of post types that opt out of being deleted with their author, such as patterns.
+		$post_types_to_keep = array();
+		foreach ( get_post_types( array(), 'objects' ) as $post_type ) {
+			if ( false === $post_type->delete_with_user ) {
+				$post_types_to_keep[] = $post_type->name;
+			}
+		}
+
 		foreach ( $blogs as $blog ) {
 			switch_to_blog( $blog->userblog_id );
 			remove_user_from_blog( $id, $blog->userblog_id );
 
-			$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
+			if ( $post_types_to_keep ) {
+				$post_ids = $wpdb->get_col(
+					$wpdb->prepare(
+						"SELECT ID FROM $wpdb->posts WHERE post_author = %d AND post_type NOT IN (" . implode( ', ', array_fill( 0, count( $post_types_to_keep ), '%s' ) ) . ')',
+						array_merge( array( $id ), $post_types_to_keep )
+					)
+				);
+			} else {
+				$post_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_author = %d", $id ) );
+			}
 			foreach ( (array) $post_ids as $post_id ) {
 				wp_delete_post( $post_id );
 			}
