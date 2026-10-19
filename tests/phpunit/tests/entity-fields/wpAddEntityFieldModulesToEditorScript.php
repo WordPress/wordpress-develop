@@ -79,6 +79,9 @@ class Tests_Entity_Fields_WpAddEntityFieldModulesToEditorScript extends WP_Entit
 			$wp_scripts->enqueue( 'wp-editor' );
 			$wp_scripts->add_data( 'wp-editor', 'module_dependencies', array() );
 
+			// The core entity actions add their own modules to the editor script.
+			remove_action( 'admin_footer', '_wp_add_entity_action_modules_to_editor_script', 10 );
+
 			// Other callbacks of the action may print markup.
 			get_echo( 'do_action', array( 'admin_footer', 'site-editor.php' ) );
 
