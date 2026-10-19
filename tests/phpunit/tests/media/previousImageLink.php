@@ -24,7 +24,7 @@ class Tests_Media_PreviousImageLink extends WP_Test_Adjacent_Image_Link_TestCase
 		$this->assertNull( previous_image_link( ...$args ) );
 	}
 
-	public function data_previous_image_link() {
+	public static function data_previous_image_link() {
 		return array(
 			// Happy paths.
 			'when has previous link'           => array(
