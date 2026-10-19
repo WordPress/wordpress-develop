@@ -41,9 +41,15 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_early_without_scrape_request_params() {
+		// Other tests in the same run may already have defined the constant,
+		// so check that this call does not change its state.
+		$was_defined = defined( 'WP_SANDBOX_SCRAPING' );
+
+		$this->expectOutputString( '' );
+
 		wp_start_scraping_edited_file_errors();
 
-		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) );
+		$this->assertSame( $was_defined, defined( 'WP_SANDBOX_SCRAPING' ) );
 	}
 
 	/**
@@ -53,9 +59,13 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		$_REQUEST['wp_scrape_key']   = '';
 		$_REQUEST['wp_scrape_nonce'] = '';
 
+		$was_defined = defined( 'WP_SANDBOX_SCRAPING' );
+
+		$this->expectOutputString( '' );
+
 		wp_start_scraping_edited_file_errors();
 
-		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) );
+		$this->assertSame( $was_defined, defined( 'WP_SANDBOX_SCRAPING' ) );
 	}
 
 	/**
@@ -65,14 +75,20 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		$_REQUEST['wp_scrape_key']   = 'missingkey1234567890123456789012';
 		$_REQUEST['wp_scrape_nonce'] = 'nonce-value';
 
+		$was_defined = defined( 'WP_SANDBOX_SCRAPING' );
+
+		// A nonce mismatch would print an error and die, so returning quietly
+		// proves the missing transient path was taken.
+		$this->expectOutputString( '' );
+
 		wp_start_scraping_edited_file_errors();
 
-		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) );
+		$this->assertSame( $was_defined, defined( 'WP_SANDBOX_SCRAPING' ) );
 	}
 
 	/**
 	 * Only this test defines WP_SANDBOX_SCRAPING, so it is the only one that
-	 * needs its own process. The tests above can run in the normal process.
+	 * needs its own process.
 	 *
 	 * @ticket 65819
 	 *
@@ -88,23 +104,11 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		$_REQUEST['wp_scrape_key']   = $key;
 		$_REQUEST['wp_scrape_nonce'] = $nonce;
 
-		/*
-		 * A matching nonce registers wp_finalize_scraping_edited_file_errors() as a
-		 * shutdown function. It prints the scrape markers when this child process
-		 * exits, which is after PHPUnit has written the serialized test result to
-		 * stdout. That trailing output would corrupt the result the parent process
-		 * reads back, so discard it.
-		 *
-		 * Shutdown functions run in the order they were registered, so this one
-		 * runs first and opens an output buffer that throws away everything the
-		 * scraping function prints afterwards.
-		 */
-		register_shutdown_function(
-			static function () {
-				ob_start( static fn() => '' );
-			}
-		);
-
+		// A matching nonce registers wp_finalize_scraping_edited_file_errors() as a
+		// shutdown function. It prints the scrape markers when this child process
+		// exits, after PHPUnit has already recorded the test result. This is safe
+		// because the test runs in an isolated process, so the output does not
+		// affect the result or any other test.
 		wp_start_scraping_edited_file_errors();
 
 		$this->assertTrue( defined( 'WP_SANDBOX_SCRAPING' ) );
