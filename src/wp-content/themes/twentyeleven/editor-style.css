@@ -218,7 +218,8 @@ table {
 tr th {
 	border: none !important;
 	color: #666;
-	font-size: 10px;
+	font-size: 10px; /* Fallback for older browsers */
+	font-size: max(10px, 0.66666667em);
 	font-weight: 500;
 	letter-spacing: 0.1em;
 	line-height: 2.6em;
