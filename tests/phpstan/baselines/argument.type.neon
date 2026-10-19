@@ -1179,7 +1179,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/rest-api.php
 		-
-			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, int given\.$#'
+			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, int\<100, 599\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/rest-api/class-wp-rest-server.php
