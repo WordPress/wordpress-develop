@@ -364,7 +364,7 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	 * Test to make sure that inline styles attached to conditional
 	 * stylesheets are also conditional.
 	 *
-	 * @expectedDeprecated WP_Dependencies->add_data()
+	 * @expectedDeprecated WP_Dependencies::add_data()
 	 */
 	public function test_conditional_inline_styles_are_also_conditional() {
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
@@ -911,6 +911,9 @@ HTML;
 
 	/**
 	 * @ticket 63887
+	 *
+	 * @global WP_Styles $wp_styles
+	 * @global string    $wp_version
 	 */
 	public function test_source_url_with_concat() {
 		global $wp_styles, $wp_version;
@@ -930,7 +933,7 @@ HTML;
 		$expected = <<<HTML
 <link
 	rel="stylesheet"
-	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
+	href="/wp-admin/load-styles.php?dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
 	media="all"
 >
 <style>
