@@ -2994,7 +2994,8 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			if ( '' === $update->text ) {
+			// A removal replaces the attribute with nothing, or with a space when a slash precedes it.
+			if ( '' === $update->text || ' ' === $update->text ) {
 				$removals[ $update_name ] = true;
 			} elseif ( ! isset( $this->attributes[ $update_name ] ) && str_starts_with( $update_name, $comparable ) ) {
 				$additions[] = $update_name;

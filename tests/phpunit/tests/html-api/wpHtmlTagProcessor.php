@@ -561,6 +561,38 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that an attribute removed via remove_attribute() is no longer reported
+	 * by get_attribute_names_with_prefix() when a slash precedes the attribute.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers WP_HTML_Tag_Processor::get_attribute_names_with_prefix
+	 */
+	public function test_get_attribute_names_with_prefix_immediately_reflects_removed_attribute_after_slash() {
+		$processor = new WP_HTML_Tag_Processor( '<g /data-x>' );
+		$processor->next_tag();
+
+		$this->assertSame(
+			array( 'data-x' ),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Failed to report the existing attribute: check test setup.'
+		);
+
+		$processor->remove_attribute( 'data-x' );
+
+		$this->assertNull(
+			$processor->get_attribute( 'data-x' ),
+			'Expected get_attribute() to report the removed attribute as missing.'
+		);
+
+		$this->assertSame(
+			array(),
+			$processor->get_attribute_names_with_prefix( 'data-' ),
+			'Expected no custom data attributes after removing the only one.'
+		);
+	}
+
+	/**
 	 * Ensures that when the `class` attribute is newly added via add_class(), that
 	 * it’s reported by get_attribute_names_with_prefix() immediately after being added.
 	 *
