@@ -6840,11 +6840,11 @@ function wp_get_media_library_upload_settings(): array {
  * @phpstan-param non-empty-string $handle
  */
 function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
-	if ( ! wp_is_client_side_media_processing_enabled() || ! wp_is_document_isolation_policy_supported() ) {
-		return;
-	}
-
-	if ( ! wp_is_cross_origin_isolated_request() ) {
+	if (
+		! wp_is_client_side_media_processing_enabled() ||
+		! wp_is_document_isolation_policy_supported() ||
+		! wp_is_cross_origin_isolated_request()
+	) {
 		return;
 	}
 
@@ -6900,17 +6900,21 @@ function wp_enqueue_media_new_upload(): void {
  *
  * @since 7.2.0
  *
+ * @global bool $_wp_cross_origin_isolated Whether the Document-Isolation-Policy header was sent.
+ *
  * @return bool Whether the header was sent. False if the browser does not
  *              support Document-Isolation-Policy or headers were already sent.
  */
 function wp_send_document_isolation_policy_header(): bool {
+	global $_wp_cross_origin_isolated;
+
 	if ( headers_sent() || ! wp_is_document_isolation_policy_supported() ) {
 		return false;
 	}
 
 	header( 'Document-Isolation-Policy: isolate-and-credentialless' );
 
-	$GLOBALS['_wp_cross_origin_isolated'] = true;
+	$_wp_cross_origin_isolated = true;
 
 	return true;
 }
@@ -6929,13 +6933,14 @@ function wp_send_document_isolation_policy_header(): bool {
  *
  * @since 7.2.0
  *
- * @return bool True when the response will be cross-origin isolated.
+ * @global bool $_wp_cross_origin_isolated Whether the Document-Isolation-Policy header was sent.
  *
- * @global bool $_wp_cross_origin_isolated Whether the DIP header was sent.
+ * @return bool True when the response will be cross-origin isolated.
  */
 function wp_is_cross_origin_isolated_request(): bool {
 	global $_wp_cross_origin_isolated;
-	if ( $_wp_cross_origin_isolated ) {
+
+	if ( true === $_wp_cross_origin_isolated ) {
 		return true;
 	}
 
