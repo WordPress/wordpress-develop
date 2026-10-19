@@ -445,6 +445,8 @@ HTML
 			'STYLE tag (trailing characters)' => array( '<style></style>', 1, "p::before { content: \"<img> & </style\t>\"; }", "<style>p::before { content: \"<img> & </\\73tyle\t>\"; }</style>" ),
 			'STYLE tag (non-closing tag)'     => array( '<style></style>', 1, 'p::before { content: "<img> & </stylesheet>"; }', '<style>p::before { content: "<img> & </stylesheet>"; }</style>' ),
 			'STYLE tag (repeats)'             => array( '<style></style>', 1, '*{ content: "</style></STYLE></style</style>" }', '<style>*{ content: "</\73tyle></\53TYLE></style</\73tyle>" }</style>' ),
+			'STYLE tag (terminators)'         => array( '<style></style>', 1, "*{ content: \"</style </style\f</style\r</style\n</style/\" }", "<style>*{ content: \"</\\73tyle </\\73tyle\f</\\73tyle\r</\\73tyle\n</\\73tyle/\" }</style>" ),
+			'STYLE tag (start tag)'           => array( '<style></style>', 1, '*{ content: "<style><STYLE>" }', '<style>*{ content: "<style><STYLE>" }</style>' ),
 			'TEXTAREA tag'                    => array( 'a<textarea>has no need to escape</textarea>b', 2, "so it <doesn't>", "a<textarea>so it <doesn't></textarea>b" ),
 			'TEXTAREA (escape)'               => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea>', 'a<textarea>but it does for &lt;/textarea></textarea>b' ),
 			'TEXTAREA (escape+attrs)'         => array( 'a<textarea>has no need to escape</textarea>b', 2, 'but it does for </textarea not an="attribute">', 'a<textarea>but it does for &lt;/textarea not an="attribute"></textarea>b' ),
