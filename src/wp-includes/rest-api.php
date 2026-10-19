@@ -850,6 +850,9 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 
 		if ( ! empty( $allow_methods ) ) {
 			header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
+		} else {
+			// Remove a value the response already sent.
+			header_remove( 'Access-Control-Allow-Methods' );
 		}
 		header( 'Access-Control-Allow-Credentials: true' );
 		header( 'Vary: Origin', false );
