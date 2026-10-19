@@ -1376,8 +1376,7 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		$flushes = new MockAction();
 		add_filter( 'pre_update_option_rewrite_rules', array( $flushes, 'filter' ) );
 
-		/** This action is documented in wp-includes/post.php */
-		do_action( 'after_delete_post', $post_id ); // @phpstan-ignore wordpress.hookParamCountMismatch (Intentionally omitting the post object.)
+		do_action( 'after_delete_post', $post_id ); // @phpstan-ignore WordPress.hookParamCountMismatch (Intentionally omitting the post object.)
 
 		$this->assertSame( 0, $flushes->get_call_count(), 'Firing after_delete_post for a deleted post without the post object should not flush the rewrite rules.' );
 	}
