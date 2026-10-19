@@ -153,6 +153,45 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Methods in a response value are matched without regard to case.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_response_value_methods_are_matched_case_insensitively() {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'options, Get' ) );
+
+		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+	}
+
+	/**
+	 * Unexpected values passed through 'rest_pre_serve_request' are ignored.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_unexpected_result_and_request_are_ignored() {
+		$received = false;
+
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( $methods, $request ) use ( &$received ) {
+				$received = $request;
+				return $methods;
+			},
+			10,
+			2
+		);
+
+		$this->ignoring_header_warnings(
+			static function () {
+				rest_send_cors_headers( false, 'not a response', 'not a request' );
+			}
+		);
+
+		$this->assertNull( $received );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
+	}
+
+	/**
 	 * The rest_allowed_cors_methods filter changes the list.
 	 *
 	 * @ticket 46992
