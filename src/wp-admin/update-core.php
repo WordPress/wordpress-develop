@@ -392,7 +392,13 @@ function core_auto_updates_settings() {
 		'major' => $upgrade_major,
 	);
 
-	if ( $upgrade_major ) {
+	// Automatic updates cannot run in either case, regardless of the settings above.
+	$is_vcs_checkout   = $updater->is_vcs_checkout( ABSPATH );
+	$skin              = new Automatic_Upgrader_Skin();
+	$needs_credentials = ! $is_vcs_checkout && ! $skin->request_filesystem_credentials( false, ABSPATH );
+
+	// The notice below takes the place of the schedule.
+	if ( $upgrade_major && ! $is_vcs_checkout && ! $needs_credentials ) {
 		$wp_version = wp_get_wp_version();
 		$updates    = get_core_updates();
 
@@ -407,8 +413,10 @@ function core_auto_updates_settings() {
 	<p class="auto-update-status">
 		<?php
 
-		if ( $updater->is_vcs_checkout( ABSPATH ) ) {
+		if ( $is_vcs_checkout ) {
 			_e( 'This site appears to be under version control. Automatic updates are disabled.' );
+		} elseif ( $needs_credentials ) {
+			_e( 'WordPress needs FTP credentials to update files. Automatic updates are disabled.' );
 		} elseif ( $upgrade_major ) {
 			_e( 'This site is automatically kept up to date with each new version of WordPress.' );
 
@@ -508,7 +516,7 @@ function list_plugin_updates() {
 	$auto_updates = array();
 	if ( wp_is_auto_update_enabled_for_type( 'plugin' ) ) {
 		$auto_updates       = (array) get_site_option( 'auto_update_plugins', array() );
-		$auto_update_notice = ' | ' . wp_get_auto_update_message();
+		$auto_update_notice = ' | ' . wp_get_auto_update_message( 'plugin' );
 	}
 
 	foreach ( (array) $plugins as $plugin_file => $plugin_data ) {
@@ -683,7 +691,7 @@ function list_theme_updates() {
 	$auto_updates = array();
 	if ( wp_is_auto_update_enabled_for_type( 'theme' ) ) {
 		$auto_updates       = (array) get_site_option( 'auto_update_themes', array() );
-		$auto_update_notice = ' | ' . wp_get_auto_update_message();
+		$auto_update_notice = ' | ' . wp_get_auto_update_message( 'theme' );
 	}
 
 	foreach ( $themes as $stylesheet => $theme ) {
