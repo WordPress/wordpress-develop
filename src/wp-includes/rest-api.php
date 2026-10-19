@@ -848,7 +848,8 @@ function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_R
 		 * serving routes that accept other methods can advertise them here.
 		 *
 		 * If the response already set its own `Access-Control-Allow-Methods` header,
-		 * `$allow_methods` is that value, split on commas, instead of the default list.
+		 * `$allow_methods` is the default list narrowed to the methods it names.
+		 * An empty list omits the header.
 		 *
 		 * @since 7.2.0
 		 *
