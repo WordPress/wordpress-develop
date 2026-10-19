@@ -1645,6 +1645,73 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		}
 	}
 
+	/**
+	 * Tests that no-cache headers are sent for a client error response to a request whose method was overridden.
+	 *
+	 * @covers WP_REST_Server::serve_request
+	 *
+	 * @dataProvider data_nocache_headers_on_method_overridden_requests
+	 *
+	 * @param int<100, 599> $status         Response status code.
+	 * @param bool          $expect_nocache Whether no-cache headers are expected.
+	 */
+	public function test_nocache_headers_on_method_overridden_requests( int $status, bool $expect_nocache ): void {
+		$server = rest_get_server();
+		$this->assertInstanceOf( Spy_REST_Server::class, $server );
+
+		$server->register_route(
+			'test',
+			'/test/status',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => static function () use ( $status ) {
+						return new WP_REST_Response( null, $status );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$_SERVER['REQUEST_METHOD']              = 'POST';
+		$_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = 'GET';
+
+		$server->serve_request( '/test/status' );
+
+		$this->assertSame( $status, $server->status, 'The response status is not the one returned by the callback.' );
+
+		$headers = $server->sent_headers;
+		$this->assertIsArray( $headers );
+
+		foreach ( wp_get_nocache_headers() as $header => $value ) {
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$this->assertSame(
+				$expect_nocache,
+				isset( $headers[ $header ] ) && $headers[ $header ] === $value,
+				sprintf( 'Header %s is not as expected.', $header )
+			);
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_nocache_headers_on_method_overridden_requests()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int<100, 599>, 1: bool }>
+	 */
+	public static function data_nocache_headers_on_method_overridden_requests(): array {
+		return array(
+			'200 OK'                    => array( 200, false ),
+			'302 Found'                 => array( 302, false ),
+			'400 Bad Request'           => array( 400, true ),
+			'404 Not Found'             => array( 404, true ),
+			'499 unassigned client'     => array( 499, true ),
+			'500 Internal Server Error' => array( 500, false ),
+		);
+	}
+
 	public function test_serve_request_url_params_are_unslashed() {
 
 		rest_get_server()->register_route(
