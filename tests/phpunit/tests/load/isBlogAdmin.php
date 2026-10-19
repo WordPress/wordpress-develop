@@ -63,9 +63,7 @@ class Tests_Load_IsBlogAdmin extends WP_UnitTestCase {
 	public function test_returns_constant_value_when_screen_is_unset() {
 		unset( $GLOBALS['current_screen'] );
 
-		if ( ! defined( 'WP_BLOG_ADMIN' ) ) {
-			define( 'WP_BLOG_ADMIN', true );
-		}
+		define( 'WP_BLOG_ADMIN', true );
 
 		$this->assertTrue( is_blog_admin() );
 	}
