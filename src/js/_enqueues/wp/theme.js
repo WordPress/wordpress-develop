@@ -16,6 +16,30 @@ themes = wp.themes = wp.themes || {};
 themes.data = _wpThemeSettings;
 l10n = themes.data.l10n;
 
+/**
+ * Announces to screen readers the theme shown after previous/next navigation.
+ *
+ * @since 7.1.0
+ *
+ * @param {Object} model The theme model.
+ * @return {void}
+ */
+themes.announceThemeDebounced = _.debounce( function( model ) {
+	var name;
+
+	if ( ! model ) {
+		return;
+	}
+
+	name = model.get( 'name' ) || model.get( 'id' );
+
+	if ( ! name ) {
+		return;
+	}
+
+	wp.a11y.speak( l10n.themeViewed.replace( '%s', name ) );
+}, 500 );
+
 // Shortcut for isInstall check.
 themes.isInstall = !! themes.data.settings.isInstall;
 
@@ -184,7 +208,7 @@ themes.Collection = Backbone.Collection.extend({
 	/**
 	 * Performs a search within the collection.
 	 *
-	 * @uses RegExp
+	 * @param {string} term The search term.
 	 */
 	search: function( term ) {
 		var match, results, haystack, name, description, author;
@@ -251,10 +275,6 @@ themes.Collection = Backbone.Collection.extend({
 	 * which triggers events of `query:success` or `query:fail`.
 	 */
 	query: function( request ) {
-		/**
-		 * @static
-		 * @type Array
-		 */
 		var queries = this.queries,
 			self = this,
 			query, isPaginated, count;
@@ -460,7 +480,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			return;
 		}
 
-		// Set focused theme to current element.
+		// Store the theme that had focus when expand is called.
 		themes.focusedTheme = this.$el;
 
 		this.trigger( 'theme:expand', self.model.cid );
@@ -500,7 +520,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 
 		event = event || window.event;
 
-		// Set focus to current theme.
+		// Store the theme that had focus when preview is called.
 		themes.focusedTheme = this.$el;
 
 		// Construct a new Preview view.
@@ -549,6 +569,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.next-theme' ).trigger( 'focus' );
+			themes.announceThemeDebounced( self.current );
 		})
 		.listenTo( preview, 'theme:previous', function() {
 
@@ -579,6 +600,7 @@ themes.view.Theme = wp.Backbone.View.extend({
 			preview.render();
 			this.setNavButtonsState();
 			$( '.previous-theme' ).trigger( 'focus' );
+			themes.announceThemeDebounced( self.current );
 		});
 
 		this.listenTo( preview, 'preview:close', function() {
@@ -598,18 +620,16 @@ themes.view.Theme = wp.Backbone.View.extend({
 		if ( 0 === this.model.collection.indexOf( current ) ) {
 			previousThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			nextThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 
 		// Disable next if the next model is undefined.
 		if ( _.isUndefined( this.model.collection.at( this.model.collection.indexOf( current ) + 1 ) ) ) {
 			nextThemeButton
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
-
-			previousThemeButton.trigger( 'focus' );
+				.attr( 'aria-disabled', true )
+				.trigger( 'focus' );
 		}
 	},
 
@@ -703,11 +723,14 @@ themes.view.Details = wp.Backbone.View.extend({
 
 	// Set initial focus and constrain tabbing within the theme browser modal.
 	containFocus: function( $el ) {
+		// Set initial focus on the theme overlay modal dialog, only on first render.
+		var $themeOverlay = $( '.theme-overlay' );
+		if ( $themeOverlay.hasClass( 'theme-overlay-initial' ) ) {
+			_.delay( function() {
+				$themeOverlay.trigger( 'focus' ).removeClass( 'theme-overlay-initial' );
+			}, 100 );
+		}
 
-		// Set initial focus on the primary action control.
-		_.delay( function() {
-			$( '.theme-overlay' ).trigger( 'focus' );
-		}, 100 );
 
 		// Constrain tabbing within the modal.
 		$el.on( 'keydown.wp-themes', function( event ) {
@@ -763,12 +786,18 @@ themes.view.Details = wp.Backbone.View.extend({
 				// Restore scroll position.
 				document.body.scrollTop = scroll;
 
-				// Return focus to the theme div.
+				// Return focus to the opener theme 'more-details' button.
 				if ( themes.focusedTheme ) {
-					themes.focusedTheme.find('.more-details').trigger( 'focus' );
+					themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 				}
+
+				// Add back the `theme-overlay-initial` class for the theme overlay.
+				$( '.theme-overlay' ).addClass( 'theme-overlay-initial' );
 			});
 		}
+
+		// Cancel any pending navigation announcement.
+		themes.announceThemeDebounced.cancel();
 	},
 
 	// Handles .disabled classes for next/previous buttons.
@@ -778,12 +807,12 @@ themes.view.Details = wp.Backbone.View.extend({
 		if ( this.model.cid === this.model.collection.at(0).cid ) {
 			this.$el.find( '.left' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 		if ( this.model.cid === this.model.collection.at( this.model.collection.length - 1 ).cid ) {
 			this.$el.find( '.right' )
 				.addClass( 'disabled' )
-				.prop( 'disabled', true );
+				.attr( 'aria-disabled', true );
 		}
 	},
 
@@ -886,6 +915,10 @@ themes.view.Details = wp.Backbone.View.extend({
 		var screenshot, image;
 
 		screenshot = el.find( '.screenshot img' );
+		if ( ! screenshot.length ) {
+			return;
+		}
+
 		image = new Image();
 		image.src = screenshot.attr( 'src' );
 
@@ -909,7 +942,7 @@ themes.view.Preview = themes.view.Details.extend({
 		'click .devices button': 'previewDevice',
 		'click .previous-theme': 'previousTheme',
 		'click .next-theme': 'nextTheme',
-		'keyup': 'keyEvent',
+		'keydown': 'keyEvent',
 		'click .theme-install': 'installTheme'
 	},
 
@@ -935,6 +968,8 @@ themes.view.Preview = themes.view.Details.extend({
 
 		this.$el.fadeIn( 200, function() {
 			$body.addClass( 'theme-installer-active full-overlay-active' );
+			// Set initial focus on the theme installer overlay modal dialog.
+			self.$el.trigger( 'focus' );
 		});
 
 		this.$el.find( 'iframe' ).one( 'load', function() {
@@ -951,9 +986,9 @@ themes.view.Preview = themes.view.Details.extend({
 		this.$el.fadeOut( 200, function() {
 			$( 'body' ).removeClass( 'theme-installer-active full-overlay-active' );
 
-			// Return focus to the theme div.
+			// Return focus to the opener theme 'more-details' button.
 			if ( themes.focusedTheme ) {
-				themes.focusedTheme.find('.more-details').trigger( 'focus' );
+				themes.focusedTheme.find( '.more-details' ).trigger( 'focus' );
 			}
 		}).removeClass( 'iframe-ready' );
 
@@ -967,6 +1002,9 @@ themes.view.Preview = themes.view.Details.extend({
 		this.trigger( 'preview:close' );
 		this.undelegateEvents();
 		this.unbind();
+
+		// Cancel any pending navigation announcement.
+		themes.announceThemeDebounced.cancel();
 		return false;
 	},
 
@@ -1011,13 +1049,21 @@ themes.view.Preview = themes.view.Details.extend({
 			this.undelegateEvents();
 			this.close();
 		}
+
+		// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+		if ( ! event.altKey ) {
+			return;
+		}
+
 		// The right arrow key, next theme.
 		if ( event.keyCode === 39 ) {
-			_.once( this.nextTheme() );
+			event.preventDefault();
+			this.nextTheme();
 		}
 
 		// The left arrow key, previous theme.
 		if ( event.keyCode === 37 ) {
+			event.preventDefault();
 			this.previousTheme();
 		}
 	},
@@ -1105,7 +1151,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 		} );
 
 		// Bind keyboard events.
-		$( 'body' ).on( 'keyup', function( event ) {
+		$( 'body' ).on( 'keydown.wp-themes', function( event ) {
 			if ( ! self.overlay ) {
 				return;
 			}
@@ -1115,19 +1161,26 @@ themes.view.Themes = wp.Backbone.View.extend({
 				return;
 			}
 
-			// Pressing the right arrow key fires a theme:next event.
-			if ( event.keyCode === 39 ) {
-				self.overlay.nextTheme();
-			}
-
-			// Pressing the left arrow key fires a theme:previous event.
-			if ( event.keyCode === 37 ) {
-				self.overlay.previousTheme();
-			}
-
 			// Pressing the escape key fires a theme:collapse event.
 			if ( event.keyCode === 27 ) {
 				self.overlay.collapse( event );
+			}
+
+			// Arrow key navigation requires Alt key to avoid interfering with screen reader navigation.
+			if ( ! event.altKey ) {
+				return;
+			}
+
+			// Pressing Alt + right arrow key fires a theme:next event.
+			if ( event.keyCode === 39 ) {
+				event.preventDefault();
+				self.overlay.nextTheme();
+			}
+
+			// Pressing Alt + left arrow key fires a theme:previous event.
+			if ( event.keyCode === 37 ) {
+				event.preventDefault();
+				self.overlay.previousTheme();
 			}
 		});
 	},
@@ -1210,7 +1263,7 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 		// 'Add new theme' element shown at the end of the grid.
 		if ( ! themes.isInstall && themes.data.settings.canInstall ) {
-			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
+			this.$el.append( '<div class="theme add-new-theme"><a href="' + themes.data.settings.installURI + '"><div class="theme-screenshot"><span aria-hidden="true"></span></div><h2 class="theme-name">' + l10n.addNew + '</h2></a></div>' );
 		}
 
 		this.parent.page++;
@@ -1311,7 +1364,9 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', nextModel.cid );
-
+			// Set focus again to the 'Next' navigation button after the view fully re-rendeers.
+			$( '.theme-header .right' ).trigger( 'focus' );
+			themes.announceThemeDebounced( nextModel );
 		}
 	},
 
@@ -1323,12 +1378,20 @@ themes.view.Themes = wp.Backbone.View.extend({
 	 */
 	previous: function( args ) {
 		var self = this,
-			model, previousModel;
+			model, previousModel, index;
 
 		// Get the current theme.
 		model = self.collection.get( args[0] );
+
+		index = self.collection.indexOf( model );
+
+		// Bail early if the current theme is the first one or the model does not exist.
+		if ( index <= 0 ) {
+			return;
+		}
+
 		// Find the previous model within the collection.
-		previousModel = self.collection.at( self.collection.indexOf( model ) - 1 );
+		previousModel = self.collection.at( index - 1 );
 
 		if ( previousModel !== undefined ) {
 
@@ -1338,7 +1401,9 @@ themes.view.Themes = wp.Backbone.View.extend({
 
 			// Trigger a route update for the current model.
 			self.theme.trigger( 'theme:expand', previousModel.cid );
-
+			// Set focus again to the 'Previous' navigation button after the view fully re-rendeers.
+			$( '.theme-header .left' ).trigger( 'focus' );
+			themes.announceThemeDebounced( previousModel );
 		}
 	},
 
@@ -1430,8 +1495,8 @@ themes.view.Search = wp.Backbone.View.extend({
  *
  * @since 4.9.0
  *
- * @param {string} url - URL to navigate to.
- * @param {Object} state - State.
+ * @param {string} url   URL to navigate to.
+ * @param {Object} state State.
  * @return {void}
  */
 function navigateRouter( url, state ) {
@@ -1665,7 +1730,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 		this.listenTo( this.collection, 'query:fail', function() {
 			$( 'body' ).removeClass( 'loading-content' );
 			$( '.theme-browser' ).find( 'div.error' ).remove();
-			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
+			$( '.theme-browser' ).find( 'div.themes' ).before( '<div class="notice notice-error"><p>' + l10n.error + '</p><p><button class="button try-again">' + l10n.tryAgain + '</button></p></div>' );
 			$( '.theme-browser .error .try-again' ).on( 'click', function( e ) {
 				e.preventDefault();
 				$( 'input.wp-filter-search' ).trigger( 'input' );
@@ -1914,7 +1979,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	/**
 	 * Clears all the checked filters.
 	 *
-	 * @uses filtersChecked()
+	 * @param {Event} event The click event.
 	 */
 	clearFilters: function( event ) {
 		var items = $( '.filter-group' ).find( ':checkbox' ),
@@ -2027,9 +2092,9 @@ themes.RunInstaller = {
 				self.view.collection.query( request );
 				self.view.collection.trigger( 'update' );
 
-				// Open the theme preview.
+				// Open the theme preview. The slug comes from the URL, so escape it.
 				self.view.collection.once( 'query:success', function() {
-					$( 'div[data-slug="' + slug + '"]' ).trigger( 'click' );
+					$( 'div.theme[data-slug="' + $.escapeSelector( slug ) + '"]' ).trigger( 'click' );
 				});
 
 			}

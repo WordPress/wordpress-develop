@@ -18,13 +18,14 @@ test.describe( 'Edit Posts', () => {
 		).toBeVisible();
 	} );
 
-	test( 'shows a single post after one is published with the correct title',async ( {
+	test( 'lists a published post and renders its title and content on the front end', async ( {
 		admin,
 		editor,
 		page,
 	} ) => {
 		const title = 'Test Title';
-		await admin.createNewPost( { title } );
+		const content = 'This content should be visible on the published post.';
+		await admin.createNewPost( { title, content } );
 		await editor.publishPost();
 		await admin.visitAdminPage( '/edit.php' );
 
@@ -36,7 +37,12 @@ test.describe( 'Edit Posts', () => {
 		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		expect( posts.first() ).toHaveText( title );
+		await expect( posts.first() ).toHaveText( title );
+
+		await posts.first().hover();
+		await listTable.getByRole( 'link', { name: `View “${ title }”`, exact: true } ).click();
+		await expect( page.getByRole( 'heading', { name: title, exact: true } ) ).toBeVisible();
+		await expect( page.getByText( content, { exact: true } ) ).toBeVisible();
 	} );
 
 	test( 'allows an existing post to be edited using the Edit button', async ( {
@@ -53,7 +59,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Click the post title (edit) link
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).click();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).click();
 
 		// Wait for the editor iframe to load, and switch to it as the active content frame.
 		await page
@@ -84,7 +90,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// // Focus on the post title link.
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Quick Edit button and press Enter to quick edit.
 		await pageUtils.pressKeys( 'Tab', { times: 2 } )
@@ -104,7 +110,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( posts ).toHaveCount( 1 );
 
 		// Expect the title of the post to be correct.
-		expect( posts.first() ).toHaveText( `${ title } Edited` );
+		await expect( posts.first() ).toHaveText( `${ title } Edited` );
 	} );
 
 	test( 'allows an existing post to be deleted using the Trash button', async ( {
@@ -122,7 +128,7 @@ test.describe( 'Edit Posts', () => {
 		await expect( listTable ).toBeVisible();
 
 		// Focus on the post title link.
-		await listTable.getByRole( 'link', { name: `“${ title }” (Edit)` } ).focus();
+		await listTable.getByRole( 'link', { name: title, exact: true } ).focus();
 
 		// Tab to the Trash button and press Enter to delete the post.
 		await pageUtils.pressKeys( 'Tab', { times: 3 } )

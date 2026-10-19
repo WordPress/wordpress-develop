@@ -28,6 +28,21 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 
 require_once $config_file_path;
+
+/*
+ * The Secrets API will not derive a key from the placeholder salts that
+ * wp-tests-config-sample.php ships with, so give the suite a fixed test key.
+ *
+ * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
+ * while it loads this file in a child process, and the Secrets API tests that
+ * run isolated do so precisely to define WP_SECRETS_KEY themselves, or to
+ * leave it undefined.
+ */
+if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] )
+	&& defined( 'LOGGED_IN_KEY' ) && 'put your unique phrase here' === LOGGED_IN_KEY
+) {
+	define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+}
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
@@ -181,7 +196,7 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			'Error: The following required PHP extensions are missing from the testing environment: %s.' . PHP_EOL,
 			implode( ', ', $missing_extensions )
 		);
-		echo 'Please make sure they are installed and enabled.' . PHP_EOL,
+		echo 'Please make sure they are installed and enabled.' . PHP_EOL;
 		exit( 1 );
 	}
 }
@@ -205,7 +220,7 @@ if ( $missing_constants ) {
 		'Error: The following required constants are not defined: %s.' . PHP_EOL,
 		implode( ', ', $missing_constants )
 	);
-	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL,
+	echo 'Please check out `wp-tests-config-sample.php` for an example.' . PHP_EOL;
 	exit( 1 );
 }
 
@@ -244,10 +259,6 @@ $_SERVER['PHP_SELF'] = '/index.php';
 $multisite = ( '1' === getenv( 'WP_MULTISITE' ) );
 $multisite = $multisite || ( defined( 'WP_TESTS_MULTISITE' ) && WP_TESTS_MULTISITE );
 $multisite = $multisite || ( defined( 'MULTISITE' ) && MULTISITE );
-
-// Override the PHPMailer.
-require_once __DIR__ . '/mock-mailer.php';
-$phpmailer = new MockPHPMailer( true );
 
 if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
 	define( 'WP_DEFAULT_THEME', 'default' );
@@ -304,6 +315,11 @@ if ( isset( $GLOBALS['wp_tests_options'] ) ) {
 // Load WordPress.
 require_once ABSPATH . 'wp-settings.php';
 
+// Override the PHPMailer.
+require_once __DIR__ . '/mock-mailer.php';
+
+$phpmailer = new MockPHPMailer( true );
+
 // Delete any default posts & related data.
 _delete_all_posts();
 
@@ -328,9 +344,15 @@ require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-fake-hasher.php';
 require __DIR__ . '/class-wp-sitemaps-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
+require __DIR__ . '/secrets/trait-wp-secrets-assertions.php';
+require __DIR__ . '/secrets/class-mock-store.php';
+require __DIR__ . '/secrets/class-mock-keyring.php';
+require __DIR__ . '/secrets/class-wp-secrets-provider-conformance.php';
+require __DIR__ . '/secrets/class-wp-secrets-keyring-conformance.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

@@ -11,6 +11,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $wp_meta_keys_saved;
 	protected static $post_id;
 	protected static $cpt_post_id;
+	protected static $editor_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
@@ -21,15 +22,17 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
-		self::$wp_meta_keys_saved = isset( $GLOBALS['wp_meta_keys'] ) ? $GLOBALS['wp_meta_keys'] : array();
+		self::$wp_meta_keys_saved = $GLOBALS['wp_meta_keys'] ?? array();
 		self::$post_id            = $factory->post->create();
 		self::$cpt_post_id        = $factory->post->create( array( 'post_type' => 'cpt' ) );
+		self::$editor_id          = $factory->user->create( array( 'role' => 'editor' ) );
 	}
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['wp_meta_keys'] = self::$wp_meta_keys_saved;
 		wp_delete_post( self::$post_id, true );
 		wp_delete_post( self::$cpt_post_id, true );
+		self::delete_user( self::$editor_id );
 
 		unregister_post_type( 'cpt' );
 	}
@@ -243,6 +246,18 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 			)
 		);
 
+		register_post_meta(
+			'post',
+			'with_label',
+			array(
+				'type'         => 'string',
+				'single'       => true,
+				'show_in_rest' => true,
+				'label'        => 'Meta Label',
+				'default'      => '',
+			)
+		);
+
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = new Spy_REST_Server();
@@ -251,12 +266,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 
 	protected function grant_write_permission() {
 		// Ensure we have write permission.
-		$user = self::factory()->user->create(
-			array(
-				'role' => 'editor',
-			)
-		);
-		wp_set_current_user( $user );
+		wp_set_current_user( self::$editor_id );
 	}
 
 	public function test_get_value() {
@@ -844,12 +854,12 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 3, $meta[0] );
+		$this->assertSame( '3', $meta[0] );
 
 		$data = $response->get_data();
 		$meta = (array) $data['meta'];
 		$this->assertArrayHasKey( 'test_custom_schema', $meta );
-		$this->assertEquals( 3, $meta['test_custom_schema'] );
+		$this->assertSame( 3.0, $meta['test_custom_schema'] );
 	}
 
 	public function test_set_value_multiple_custom_schema() {
@@ -873,7 +883,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$meta = get_post_meta( self::$post_id, 'test_custom_schema_multi', false );
 		$this->assertNotEmpty( $meta );
 		$this->assertCount( 1, $meta );
-		$this->assertEquals( 2, $meta[0] );
+		$this->assertSame( '2', $meta[0] );
 
 		// Add another value.
 		$data = array(
@@ -2336,7 +2346,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( false, $data['meta']['authenticated'] );
+		$this->assertFalse( $data['meta']['authenticated'] );
 	}
 
 	/**
@@ -3091,8 +3101,21 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$response = rest_do_request( $request );
 
 		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_default'];
-		$this->assertArrayHasKey( 'default', $schema );
-		$this->assertSame( 'Goodnight Moon', $schema['default'] );
+		$this->assertArrayHasKey( 'default', $schema, 'Schema is expected to have the default property' );
+		$this->assertSame( 'Goodnight Moon', $schema['default'], 'Schema default is expected to be defined and contain the value of the meta default argument.' );
+	}
+
+	/**
+	 * @ticket 61998
+	 */
+	public function test_title_is_added_to_schema() {
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts' );
+		$response = rest_do_request( $request );
+
+		$schema = $response->get_data()['schema']['properties']['meta']['properties']['with_label'];
+
+		$this->assertArrayHasKey( 'title', $schema, 'Schema is expected to have the title property' );
+		$this->assertSame( 'Meta Label', $schema['title'], 'Schema title is expected to be defined and contain the value of the meta label argument.' );
 	}
 
 	/**
@@ -3885,7 +3908,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 
 		// Set up a new post.
-		$post_id = $this->factory->post->create(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_content' => 'initial content',
 				'post_type'    => $post_type,

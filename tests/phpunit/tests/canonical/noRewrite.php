@@ -28,7 +28,7 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data() {
+	public static function data() {
 		/*
 		 * Test URL.
 		 * [0]: Test URL.
@@ -274,6 +274,45 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 			array( '/?feed=rss&p=1', '/?feed=rss2&p=1', 24623 ),
 
 			array( '/?comp=East+(North)', '/?comp=East+(North)', 49347 ),
+
+			array( null, '/', 63316 ), // No Path and Query
+		);
+	}
+
+	/**
+	 * Test the canonical URL when the host header is not set.
+	 *
+	 * @ticket 63316
+	 * @dataProvider data_missing_host_header
+	 * @param string $wp_home The WP_HOME value to set.
+	 * @param string $expected_url The expected canonical URL.
+	 */
+	public function test_missing_host_header( $wp_home, $expected_url ) {
+		$_SERVER['HTTP_HOST'] = null;
+		add_filter(
+			'pre_option_home',
+			static function () use ( $wp_home ) {
+				return $wp_home;
+			}
+		);
+		$this->assertCanonical( '/', $expected_url, 63316 );
+	}
+
+	/**
+	 * Data provider for test_missing_host_header().
+	 *
+	 * @return array[]
+	 */
+	public static function data_missing_host_header() {
+		return array(
+			'no port'   => array(
+				'wp_home'      => 'http://example.com',
+				'expected_url' => ':///',
+			),
+			'with port' => array(
+				'wp_home'      => 'http://example.com:8889',
+				'expected_url' => '://:8889/',
+			),
 		);
 	}
 }

@@ -2,14 +2,32 @@
 
 /**
  * @group oembed
+ *
+ * @coversDefaultClass WP_oEmbed
  */
-class Tests_WP_oEmbed extends WP_UnitTestCase {
+class Tests_oEmbed_wpOembed extends WP_UnitTestCase {
 	/**
 	 * @var WP_oEmbed
 	 */
 	protected $oembed;
 
 	public $pre_oembed_result_filtered = false;
+
+	/**
+	 * ID of the user.
+	 *
+	 * @var int
+	 */
+	public static $user_id;
+
+	/**
+	 * Set up the shared fixture.
+	 *
+	 * @param WP_UnitTest_Factory $factory Factory instance.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$user_id = $factory->user->create();
+	}
 
 	public function set_up() {
 		parent::set_up();
@@ -31,6 +49,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		return $result ? $result : false;
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_prevents_http_request_for_internal_permalinks() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -43,6 +64,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $this->pre_oembed_result_filtered, $actual );
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_prevents_http_request_when_viewing_the_post() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -58,6 +82,9 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertSame( $this->pre_oembed_result_filtered, $actual );
 	}
 
+	/**
+	 * @covers ::get_html
+	 */
 	public function test_wp_filter_pre_oembed_result_non_existent_post() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -77,6 +104,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_root_root() {
 		$post_id   = self::factory()->post->create();
@@ -94,9 +123,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_samesub() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create(
 			array(
@@ -123,9 +154,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_othersub() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create(
 			array(
@@ -160,11 +193,13 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_sub_main() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
-		$user_id   = self::factory()->user->create();
+		$user_id   = self::$user_id;
 		$blog_id   = self::factory()->blog->create(
 			array(
 				'user_id' => $user_id,
@@ -187,9 +222,11 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_preserves_switched_state() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$blog_id = self::factory()->blog->create( array( 'user_id' => $user_id ) );
 		switch_to_blog( $blog_id );
@@ -216,11 +253,13 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 	 * @ticket 40673
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::get_html
 	 */
 	public function test_wp_filter_pre_oembed_result_multisite_restores_state_if_no_post_is_found() {
 		$current_blog_id = get_current_blog_id();
 
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 		$blog_id = self::factory()->blog->create(
 			array(
 				'user_id' => $user_id,
@@ -236,5 +275,99 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->assertNull( $this->pre_oembed_result_filtered );
 		$this->assertFalse( $actual );
 		$this->assertSame( $current_blog_id, get_current_blog_id() );
+	}
+
+	/**
+	 * @ticket 65068
+	 * @covers WP_oEmbed::__construct
+	 */
+	public function test_malformed_provider_triggers_doing_it_wrong(): void {
+		$filter = static function ( array $providers ): array {
+			$providers['bad_provider'] = array(
+				'url'      => '#https?://example\.site/.*#i',
+				'endpoint' => 'https://example.site/api/oembed',
+			);
+			return $providers;
+		};
+
+		add_filter( 'oembed_providers', $filter );
+		$this->setExpectedIncorrectUsage( 'WP_oEmbed::__construct' );
+		$oembed = new WP_oEmbed();
+
+		$this->assertArrayNotHasKey( 'bad_provider', $oembed->providers );
+	}
+
+	/**
+	 * @ticket 65068
+	 * @covers ::get_provider
+	 */
+	public function test_get_provider_handles_provider_without_regex_flag(): void {
+		// Use a dedicated instance to avoid leaking the test provider into the shared singleton.
+		$oembed = new WP_oEmbed();
+
+		// Provider with only index 0 set (no regex flag) — should default $regex to false.
+		$oembed->providers['https://example.site/*'] = array( 'https://example.site/api/oembed' ); // @phpstan-ignore assign.propertyType (Intentionally omitted second item of array.)
+
+		$result = $oembed->get_provider( 'https://example.site/video/123' );
+
+		$this->assertSame( 'https://example.site/api/oembed', $result );
+	}
+	/**
+	 * Tests that ReverbNation URLs use the legacy.reverbnation.com oEmbed endpoint.
+	 *
+	 * @ticket 65819
+	 * @ticket 66079
+	 *
+	 * @covers ::get_provider
+	 *
+	 * @dataProvider data_reverbnation_urls
+	 *
+	 * @param string $url ReverbNation URL.
+	 */
+	public function test_get_provider_uses_legacy_reverbnation_endpoint( $url ) {
+		$this->assertSame( 'https://legacy.reverbnation.com/oembed', ( new WP_oEmbed() )->get_provider( $url, array( 'discover' => false ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_reverbnation_urls() {
+		return array(
+			'www subdomain'    => array( 'https://www.reverbnation.com/artist/song/123' ),
+			'legacy subdomain' => array( 'https://legacy.reverbnation.com/artist/song/123' ),
+			'no subdomain'     => array( 'https://reverbnation.com/artist' ),
+			'http scheme'      => array( 'http://www.reverbnation.com/artist' ),
+		);
+	}
+
+	/**
+	 * Tests that someecards.com URLs no longer match a trusted oEmbed provider.
+	 *
+	 * @ticket 65819
+	 * @ticket 66078
+	 *
+	 * @covers ::get_provider
+	 *
+	 * @dataProvider data_someecards_urls
+	 *
+	 * @param string $url someecards.com URL.
+	 */
+	public function test_get_provider_does_not_match_someecards( $url ) {
+		$this->assertFalse( ( new WP_oEmbed() )->get_provider( $url, array( 'discover' => false ) ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_someecards_urls() {
+		return array(
+			'card'       => array( 'https://www.someecards.com/birthday-cards/funny-birthday-card/' ),
+			'user card'  => array( 'https://www.someecards.com/usercards/viewcard/MjAxMy0xMjM0NTY3ODk/' ),
+			'short link' => array( 'https://some.ly/abc123' ),
+		);
 	}
 }

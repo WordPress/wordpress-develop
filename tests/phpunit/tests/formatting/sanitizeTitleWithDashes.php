@@ -85,6 +85,20 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &mdash; the &#8212; Dash', '', 'save' ) );
 	}
 
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do‑the Dash', '', 'save' ) );
+	}
+
+	/**
+	 * @ticket 64089
+	 */
+	public function test_replaces_non_breaking_hyphen_entity() {
+		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &#8209; the Dash', '', 'save' ) );
+	}
+
 	public function test_replaces_iexcel_iquest() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just ¡a Slug', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just a Slug¿', '', 'save' ) );
@@ -166,7 +180,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_removes_non_visible_characters_without_width() {
+	public static function data_removes_non_visible_characters_without_width() {
 		return array(
 			// Only the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b' ),
@@ -219,7 +233,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_visible_characters_without_width_when_not_save() {
+	public static function data_non_visible_characters_without_width_when_not_save() {
 		return array(
 			// Just the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b', '%e2%80%8b' ),
@@ -271,7 +285,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_converts_non_visible_characters_with_width_to_hyphen() {
+	public static function data_converts_non_visible_characters_with_width_to_hyphen() {
 		return array(
 			// Only the non-visible characters.
 			'only %e2%80%80'     => array( '%e2%80%80' ),
@@ -329,7 +343,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_non_visible_characters_with_width_to_hyphen_when_not_save() {
+	public static function data_non_visible_characters_with_width_to_hyphen_when_not_save() {
 		return array(
 			// Just the non-visible characters.
 			'only %e2%80%8b'     => array( '%e2%80%8b', '%e2%80%8b' ),

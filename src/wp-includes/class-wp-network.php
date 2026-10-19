@@ -18,8 +18,11 @@
  *
  * @since 4.4.0
  *
- * @property int $id
- * @property int $site_id
+ * @property int    $id
+ * @property string $blog_id
+ * @property int    $site_id
+ *
+ * @phpstan-property numeric-string $blog_id
  */
 #[AllowDynamicProperties]
 class WP_Network {
@@ -61,6 +64,7 @@ class WP_Network {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var numeric-string
 	 */
 	private $blog_id = '0';
 
@@ -86,6 +90,7 @@ class WP_Network {
 	 * Retrieves a network from the database by its ID.
 	 *
 	 * @since 4.4.0
+	 * @since 7.2.0 Cache values that are neither a network object nor the -1 miss sentinel are now treated as a cache miss and replaced.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
@@ -102,14 +107,20 @@ class WP_Network {
 
 		$_network = wp_cache_get( $network_id, 'networks' );
 
-		if ( false === $_network ) {
+		// A cached -1 records a previous lookup that found nothing. Any other non-numeric value that is not a network object is treated as a cache miss.
+		if (
+			( ! is_object( $_network ) || ! isset( $_network->id ) )
+			&&
+			! is_numeric( $_network )
+		) {
 			$_network = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->site} WHERE id = %d LIMIT 1", $network_id ) );
 
 			if ( empty( $_network ) || is_wp_error( $_network ) ) {
 				$_network = -1;
 			}
 
-			wp_cache_add( $network_id, $_network, 'networks' );
+			// Not wp_cache_add(), since an unusable cached value may still be present and must be replaced.
+			wp_cache_set( $network_id, $_network, 'networks' );
 		}
 
 		if ( is_numeric( $_network ) ) {
@@ -131,7 +142,7 @@ class WP_Network {
 	 */
 	public function __construct( $network ) {
 		foreach ( get_object_vars( $network ) as $key => $value ) {
-			$this->$key = $value;
+			$this->__set( $key, $value );
 		}
 
 		$this->_set_site_name();

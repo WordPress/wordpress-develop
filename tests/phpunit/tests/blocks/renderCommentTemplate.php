@@ -79,6 +79,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	public function test_build_comment_query_vars_from_block_with_context() {
@@ -110,6 +111,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55567
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	public function test_build_comment_query_vars_from_block_with_context_no_pagination() {
@@ -140,6 +142,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 55505
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	public function test_build_comment_query_vars_from_block_no_context() {
@@ -170,6 +173,7 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	 * Regression: https://github.com/WordPress/gutenberg/issues/40758.
 	 *
 	 * @ticket 55658
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	public function test_build_comment_query_vars_from_block_pagination_with_no_comments() {
@@ -219,12 +223,13 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 	/**
 	 * Test that both "Older Comments" and "Newer Comments" are displayed in the correct order
 	 * inside the Comment Query Loop when we enable pagination on Discussion Settings.
-	 * In order to do that, it should exist a query var 'cpage' set with the $comment_args['paged'] value.
 	 *
 	 * @ticket 55505
+	 * @ticket 60806
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
-	public function test_build_comment_query_vars_from_block_sets_cpage_var() {
+	public function test_build_comment_query_vars_from_block_sets_max_num_pages() {
 
 		// This could be any number, we set a fixed one instead of a random for better performance.
 		$comment_query_max_num_pages = 5;
@@ -253,7 +258,6 @@ class Tests_Blocks_RenderReusableCommentTemplate extends WP_UnitTestCase {
 		);
 		$actual = build_comment_query_vars_from_block( $block );
 		$this->assertSame( $comment_query_max_num_pages, $actual['paged'] );
-		$this->assertSame( $comment_query_max_num_pages, get_query_var( 'cpage' ) );
 	}
 
 	/**
@@ -422,6 +426,7 @@ END
 	 * Test that unapproved comments are included if it is a preview.
 	 *
 	 * @ticket 55634
+	 *
 	 * @covers ::build_comment_query_vars_from_block
 	 */
 	public function test_build_comment_query_vars_from_block_with_comment_preview() {
@@ -538,9 +543,9 @@ END
 			'render_block',
 			static function ( $block_content, $block ) use ( $parsed_comment_author_name_block ) {
 				/*
-				* Insert a Comment Author Name block (which requires `commentId`
-				* block context to work) after the Comment Content block.
-				*/
+				 * Insert a Comment Author Name block (which requires `commentId`
+				 * block context to work) after the Comment Content block.
+				 */
 				if ( 'core/comment-content' !== $block['blockName'] ) {
 					return $block_content;
 				}

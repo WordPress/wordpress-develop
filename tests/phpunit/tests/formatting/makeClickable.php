@@ -25,7 +25,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_valid_mailto() {
+	public static function data_valid_mailto() {
 		return array(
 			array( 'foo@example.com' ),
 			array( 'foo.bar@example.com' ),
@@ -49,7 +49,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_invalid_mailto() {
+	public static function data_invalid_mailto() {
 		return array(
 			array( 'foo' ),
 			array( 'foo@' ),
@@ -81,7 +81,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_urls() {
+	public static function data_urls() {
 		return array(
 			// Does not link trailing periods, commas, and (semi-)colons in URLs with protocol (i.e. http://wordpress.org).
 			'URL only'                                   => array(
@@ -243,6 +243,16 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 				'expected' => 'In his famous speech “You and Your research” (here:
 							   <a href="http://www.cs.virginia.edu/~robins/YouAndYourResearch.html" rel="nofollow">http://www.cs.virginia.edu/~robins/YouAndYourResearch.html</a>)
 							   Richard Hamming wrote about people getting more done with their doors closed, but',
+			),
+
+			// @ticket #62037
+			'URL with brackets in path before the extension' => array(
+				'text'     => 'http://example-image(2).jpg',
+				'expected' => '<a href="http://example-image(2).jpg" rel="nofollow">http://example-image(2).jpg</a>',
+			),
+			'URL with brackets within path and with a extension' => array(
+				'text'     => 'http://example-(2)-image.jpg',
+				'expected' => '<a href="http://example-(2)-image.jpg" rel="nofollow">http://example-(2)-image.jpg</a>',
 			),
 
 			// @ticket 11211
@@ -453,7 +463,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		$this->assertSame( $tag, make_clickable( $tag ) );
 	}
 
-	public function data_script_and_style_tags() {
+	public static function data_script_and_style_tags() {
 		return array(
 			array(
 				'<script>http://wordpress.org</script>',
@@ -489,7 +499,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, make_clickable( $comment_text ) );
 	}
 
-	public function data_add_rel_ugc_in_comments() {
+	public static function data_add_rel_ugc_in_comments() {
 		$home_url_http  = set_url_scheme( home_url(), 'http' );
 		$home_url_https = set_url_scheme( home_url(), 'https' );
 
