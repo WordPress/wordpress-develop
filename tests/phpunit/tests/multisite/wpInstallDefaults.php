@@ -223,4 +223,20 @@ class Tests_Multisite_wpInstallDefaults extends WP_UnitTestCase {
 			'The note should be added to the existing block metadata.'
 		);
 	}
+
+	/**
+	 * @ticket 65890
+	 */
+	public function test_first_post_should_keep_the_content_after_the_first_block_delimiter() {
+		$rest = "\n<p>Welcome.</p>\n<!-- /wp:paragraph -->\n\n<!-- wp:paragraph   {\"metadata\":{\"name\":\"Tom & Jerry <3\"}}   -->\n<p>Bye.</p>\n<!-- /wp:paragraph -->";
+
+		list( $post, $notes ) = $this->create_site_and_get_first_post_notes( '<!-- wp:paragraph -->' . $rest );
+
+		$this->assertCount( 1, $notes, 'The site should have one note.' );
+		$this->assertSame(
+			'<!-- wp:paragraph {"metadata":{"noteId":' . $notes[0]->comment_ID . '}} -->' . $rest,
+			$post->post_content,
+			'Only the first block delimiter should change.'
+		);
+	}
 }
