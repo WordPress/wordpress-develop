@@ -1906,9 +1906,19 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 									'background' => 'blue',
 								),
 							),
+							':focus'         => array(
+								'outline' => array(
+									'style' => 'dotted',
+								),
+							),
 							':focus-visible' => array(
 								'outline' => array(
 									'style' => 'solid',
+								),
+							),
+							':active'        => array(
+								'color' => array(
+									'background' => 'yellow',
 								),
 							),
 							':visited'       => array(
@@ -1922,7 +1932,40 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = 'select{color: green;}:root :where(select:hover){background-color: blue;}:root :where(select:focus-visible){outline-style: solid;}';
+		$expected = 'select{color: green;}:root :where(select:hover){background-color: blue;}:root :where(select:focus){outline-style: dotted;}:root :where(select:focus-visible){outline-style: solid;}:root :where(select:active){background-color: yellow;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_handles_block_level_select_pseudo_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/categories' => array(
+							'elements' => array(
+								'select' => array(
+									'color'  => array(
+										'text' => 'green',
+									),
+									':hover' => array(
+										'color' => array(
+											'background' => 'blue',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-categories select){color: green;}:root :where(.wp-block-categories select:hover){background-color: blue;}';
 
 		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
 	}
