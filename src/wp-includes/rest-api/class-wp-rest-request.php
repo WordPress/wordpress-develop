@@ -25,6 +25,40 @@
  * @since 4.4.0
  *
  * @link https://www.php.net/manual/en/class.arrayaccess.php
+ *
+ * @phpstan-import-type Endpoint_Arg from WP_REST_Server
+ *
+ * @phpstan-type Attributes array{
+ *     methods?: array<string, true>,
+ *     callback?: callable|null,
+ *     permission_callback?: callable|null,
+ *     validate_callback?: callable|null,
+ *     args?: array<non-empty-string, Endpoint_Arg>,
+ *     accept_json?: bool,
+ *     accept_raw?: bool,
+ *     show_in_index?: bool,
+ *     allow_batch?: array{v1?: bool}|false,
+ *     ...
+ * }
+ * @phpstan-type File_Param array{
+ *     name: non-empty-string,
+ *     type: non-empty-string,
+ *     size: non-negative-int,
+ *     tmp_name: non-empty-string,
+ *     error: int<0, 8>,
+ *     full_path?: non-empty-string,
+ * }
+ * @phpstan-type Parameter_Type 'URL'|'GET'|'POST'|'FILES'|'JSON'|'defaults'
+ * @phpstan-type Params array{
+ *     URL: array<string, mixed>,
+ *     GET: array<mixed>,
+ *     POST: array<mixed>,
+ *     FILES: array<string, File_Param>,
+ *     JSON: array<mixed>|string|int|float|bool|null,
+ *     defaults: array<string, mixed>,
+ * }
+ *
+ * @phpstan-implements ArrayAccess<string, mixed>
  */
 #[AllowDynamicProperties]
 class WP_REST_Request implements ArrayAccess {
@@ -34,6 +68,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 * @var string
+	 * @phpstan-var uppercase-string
 	 */
 	protected $method = '';
 
@@ -45,6 +80,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 * @var array Contains GET, POST and FILES keys mapping to arrays of data.
+	 * @phpstan-var Params
 	 */
 	protected $params;
 
@@ -52,7 +88,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * HTTP headers for the request.
 	 *
 	 * @since 4.4.0
-	 * @var array Map of key to value. Key is always lowercase, as per HTTP specification.
+	 * @var array<string, string[]> Map of key to list of values. Key is always lowercase, as per HTTP specification.
 	 */
 	protected $headers = array();
 
@@ -60,7 +96,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * Body data.
 	 *
 	 * @since 4.4.0
-	 * @var string Binary data from the request.
+	 * @var string|null Binary data from the request, or null if no body has been set.
 	 */
 	protected $body = null;
 
@@ -80,6 +116,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 * @var array Attributes for the request.
+	 * @phpstan-var Attributes
 	 */
 	protected $attributes = array();
 
@@ -109,6 +146,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @param string $method     Optional. Request method. Default empty.
 	 * @param string $route      Optional. Request route. Default empty.
 	 * @param array  $attributes Optional. Request attributes. Default empty array.
+	 *
+	 * @phpstan-param Attributes $attributes
 	 */
 	public function __construct( $method = '', $route = '', $attributes = array() ) {
 		$this->params = array(
@@ -134,6 +173,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @return string HTTP method.
+	 *
+	 * @phpstan-return uppercase-string
 	 */
 	public function get_method() {
 		return $this->method;
@@ -145,6 +186,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $method HTTP method.
+	 * @return void
 	 */
 	public function set_method( $method ) {
 		$this->method = strtoupper( $method );
@@ -155,7 +197,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Map of key to value. Key is always lowercase, as per HTTP specification.
+	 * @return array<string, string[]> Map of key to list of values. Key is always lowercase, as per HTTP specification.
 	 */
 	public function get_headers() {
 		return $this->headers;
@@ -226,7 +268,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Header name, will be canonicalized to lowercase.
-	 * @return array|null List of string values if set, null otherwise.
+	 * @return string[]|null List of string values if set, null otherwise.
 	 */
 	public function get_header_as_array( $key ) {
 		$key = static::canonicalize_header_name( $key );
@@ -243,8 +285,9 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $key   Header name.
-	 * @param string $value Header value, or list of values.
+	 * @param string          $key   Header name.
+	 * @param string|string[] $value Header value, or list of values.
+	 * @return void
 	 */
 	public function set_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -258,8 +301,9 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $key   Header name.
-	 * @param string $value Header value, or list of values.
+	 * @param string          $key   Header name.
+	 * @param string|string[] $value Header value, or list of values.
+	 * @return void
 	 */
 	public function add_header( $key, $value ) {
 		$key   = static::canonicalize_header_name( $key );
@@ -278,6 +322,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $key Header name.
+	 * @return void
 	 */
 	public function remove_header( $key ) {
 		$key = static::canonicalize_header_name( $key );
@@ -289,8 +334,9 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $headers  Map of header name to value.
-	 * @param bool  $override If true, replace the request's headers. Otherwise, merge with existing.
+	 * @param array<string, string|string[]> $headers  Map of header name to value, or list of values.
+	 * @param bool                           $override If true, replace the request's headers. Otherwise, merge with existing.
+	 * @return void
 	 */
 	public function set_headers( $headers, $override = true ) {
 		if ( true === $override ) {
@@ -307,9 +353,16 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array|null Map containing 'value' and 'parameters' keys
-	 *                    or null when no valid Content-Type header was
-	 *                    available.
+	 * @return array|null {
+	 *     The parsed Content-Type header, or null when no valid Content-Type
+	 *     header was available.
+	 *
+	 *     @type string $value      Media type, lowercased, such as `application/json`.
+	 *     @type string $type       Top-level type, such as `application`.
+	 *     @type string $subtype    Subtype, such as `json`.
+	 *     @type string $parameters Parameters following the media type, such as
+	 *                              `charset=UTF-8`. Empty string if none.
+	 * }
 	 */
 	public function get_content_type() {
 		$value = $this->get_header( 'Content-Type' );
@@ -357,6 +410,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @return string[] Array of types to check, in order of priority.
+	 *
+	 * @phpstan-return list<Parameter_Type>
 	 */
 	protected function get_parameter_order() {
 		$order = array();
@@ -393,6 +448,8 @@ class WP_REST_Request implements ArrayAccess {
 		 *
 		 * @param string[]        $order   Array of types to check, in order of priority.
 		 * @param WP_REST_Request $request The request object.
+		 *
+		 * @phpstan-param list<'URL'|'GET'|'POST'|'FILES'|'JSON'|'defaults'> $order
 		 */
 		return apply_filters( 'rest_request_parameter_order', $order, $this );
 	}
@@ -452,6 +509,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $key   Parameter name.
 	 * @param mixed  $value Parameter value.
+	 * @return void
 	 */
 	public function set_param( $key, $value ) {
 		$order     = $this->get_parameter_order();
@@ -477,7 +535,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Map of key to value.
+	 * @return array<mixed> Map of key to value.
 	 */
 	public function get_params() {
 		$order = $this->get_parameter_order();
@@ -509,7 +567,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<string, mixed> Parameter map of key to value.
 	 */
 	public function get_url_params() {
 		return $this->params['URL'];
@@ -522,7 +580,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $params Parameter map of key to value.
+	 * @param array<string, mixed> $params Parameter map of key to value.
+	 * @return void
 	 */
 	public function set_url_params( $params ) {
 		$this->params['URL'] = $params;
@@ -535,7 +594,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<mixed> Parameter map of key to value.
 	 */
 	public function get_query_params() {
 		return $this->params['GET'];
@@ -548,7 +607,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $params Parameter map of key to value.
+	 * @param array<mixed> $params Parameter map of key to value.
+	 * @return void
 	 */
 	public function set_query_params( $params ) {
 		$this->params['GET'] = $params;
@@ -561,7 +621,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<mixed> Parameter map of key to value.
 	 */
 	public function get_body_params() {
 		return $this->params['POST'];
@@ -574,7 +634,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $params Parameter map of key to value.
+	 * @param array<mixed> $params Parameter map of key to value.
+	 * @return void
 	 */
 	public function set_body_params( $params ) {
 		$this->params['POST'] = $params;
@@ -589,14 +650,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @return array Parameter map of key to value.
 	 *
-	 * @phpstan-return array<string, array{
-	 *                                   name: non-empty-string,
-	 *                                   type: non-empty-string,
-	 *                                   size: non-negative-int,
-	 *                                   tmp_name: non-empty-string,
-	 *                                   error: int<0, 8>,
-	 *                                   full_path?: non-empty-string,
-	 *                               }>
+	 * @phpstan-return array<string, File_Param>
 	 */
 	public function get_file_params() {
 		return $this->params['FILES'];
@@ -610,15 +664,9 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $params Parameter map of key to value.
+	 * @return void
 	 *
-	 * @phpstan-param array<string, array{
-	 *                                  name: non-empty-string,
-	 *                                  type: non-empty-string,
-	 *                                  size: non-negative-int,
-	 *                                  tmp_name: non-empty-string,
-	 *                                  error: int<0, 8>,
-	 *                                  full_path?: non-empty-string,
-	 *                              }> $params
+	 * @phpstan-param array<string, File_Param> $params
 	 */
 	public function set_file_params( $params ) {
 		$this->params['FILES'] = $params;
@@ -631,7 +679,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<string, mixed> Parameter map of key to value.
 	 */
 	public function get_default_params() {
 		return $this->params['defaults'];
@@ -644,7 +692,8 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $params Parameter map of key to value.
+	 * @param array<string, mixed> $params Parameter map of key to value.
+	 * @return void
 	 */
 	public function set_default_params( $params ) {
 		$this->params['defaults'] = $params;
@@ -655,7 +704,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return string Binary data from the request body.
+	 * @return string|null Binary data from the request body, or null if no body has been set.
 	 */
 	public function get_body() {
 		return $this->body;
@@ -667,6 +716,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $data Binary data from the request body.
+	 * @return void
 	 */
 	public function set_body( $data ) {
 		$this->body = $data;
@@ -682,7 +732,9 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array Parameter map of key to value.
+	 * @return array<mixed>|string|int|float|bool|null Parameter map of key to value, or null if the request
+	 *                                                 has no valid JSON body. A JSON body that is not an
+	 *                                                 object or array decodes to the scalar it contains.
 	 */
 	public function get_json_params() {
 		// Ensure the parameters have been parsed out.
@@ -747,6 +799,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * natively by PHP.
 	 *
 	 * @since 4.4.0
+	 *
+	 * @return void
 	 */
 	protected function parse_body_params() {
 		if ( $this->parsed_body ) {
@@ -791,6 +845,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $route Route matching regex.
+	 * @return void
 	 */
 	public function set_route( $route ) {
 		$this->route = $route;
@@ -804,6 +859,8 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @return array Attributes for the request.
+	 *
+	 * @phpstan-return Attributes
 	 */
 	public function get_attributes() {
 		return $this->attributes;
@@ -815,6 +872,9 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param array $attributes Attributes for the request.
+	 * @return void
+	 *
+	 * @phpstan-param Attributes $attributes
 	 */
 	public function set_attributes( $attributes ) {
 		$this->attributes = $attributes;
@@ -1028,6 +1088,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @param string $offset Parameter name.
 	 * @param mixed  $value  Parameter value.
+	 * @return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetSet( $offset, $value ) {
@@ -1040,6 +1101,7 @@ class WP_REST_Request implements ArrayAccess {
 	 * @since 4.4.0
 	 *
 	 * @param string $offset Parameter name.
+	 * @return void
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetUnset( $offset ) {
