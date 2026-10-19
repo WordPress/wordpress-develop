@@ -734,6 +734,56 @@ test.describe( 'Media Library grid client-side uploads', () => {
 		expect( asyncUploadCount ).toBe( 1 );
 	} );
 
+	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'upload.php', 'mode=grid' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// What the "Scale images" setting or a `resize` passed through
+		// plupload_init turns on.
+		await page.evaluate( () => {
+			window.wp.media.frame.uploader.uploader.uploader.setOption(
+				'resize',
+				{ enabled: true, width: 1024, height: 1024, quality: 100 }
+			);
+		} );
+
+		let asyncUploadCount = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				asyncUploadCount++;
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( 'li.attachment:not(.uploading)' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncUploadCount ).toBe( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
 	test( 'leaves files to the classic uploader until the pipeline settings have landed', async ( {
 		page,
 		admin,

@@ -396,7 +396,10 @@ window.wp = window.wp || {};
 	 *
 	 * Audio files stay classic so they keep the title and description that
 	 * media_handle_upload() derives from their ID3 tags, which the REST
-	 * endpoint does not do.
+	 * endpoint does not do. So do JPEG and PNG images while plupload's own
+	 * client-side resize is enabled (the "Scale images" setting, or a
+	 * `resize` passed through `plupload_init`): plupload scales those down
+	 * before uploading them, the pipeline would not.
 	 *
 	 * The whole batch stays classic when a file cannot be re-queued on
 	 * plupload or is already plupload's: plupload returns no native File
@@ -410,6 +413,8 @@ window.wp = window.wp || {};
 	 *         or null when the whole batch stays on the classic path.
 	 */
 	function partitionBatch( up, files ) {
+		const resize = up.settings && up.settings.resize;
+		const isResizing = Boolean( resize && resize.enabled );
 		/** @type {{ pipeline: plupload.File[], classic: plupload.File[] }} */
 		const batch = { pipeline: [], classic: [] };
 
@@ -421,7 +426,11 @@ window.wp = window.wp || {};
 			if ( ! nativeFile || classicFiles.has( nativeFile ) ) {
 				return null;
 			}
-			if ( /^audio\//i.test( file.type || '' ) ) {
+			const type = file.type || '';
+			if (
+				/^audio\//i.test( type ) ||
+				( isResizing && /^image\/(?:jpeg|png)$/i.test( type ) )
+			) {
 				batch.classic.push( file );
 			} else {
 				batch.pipeline.push( file );

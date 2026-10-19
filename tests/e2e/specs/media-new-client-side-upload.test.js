@@ -774,6 +774,52 @@ test.describe( 'Add New Media File client-side uploads', () => {
 		expect( asyncFileUploads ).toBe( 1 );
 	} );
 
+	test( 'leaves JPEG images to the classic uploader while plupload resizes them', async ( {
+		page,
+		admin,
+	} ) => {
+		await admin.visitAdminPage( 'media-new.php' );
+
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// What checking the "Scale images" setting does.
+		await page.evaluate( () => window.setResize( true ) );
+
+		let asyncFileUploads = 0;
+		let restUploadCount = 0;
+		page.on( 'request', ( request ) => {
+			if ( request.method() !== 'POST' ) {
+				return;
+			}
+			if ( request.url().includes( '/async-upload.php' ) ) {
+				if ( ! /(^|&)fetch=/.test( request.postData() || '' ) ) {
+					asyncFileUploads++;
+				}
+			} else if (
+				/\/wp\/v2\/media/.test( decodeURIComponent( request.url() ) )
+			) {
+				restUploadCount++;
+			}
+		} );
+
+		const fileInput = page.locator( FILE_INPUT_SELECTOR ).first();
+		await fileInput.waitFor( { state: 'attached', timeout: 30_000 } );
+		await fileInput.setInputFiles( TEST_IMAGE_PATH );
+
+		await expect(
+			page.locator( '#media-items .media-item .edit-attachment' ).first()
+		).toBeVisible( { timeout: 60_000 } );
+
+		expect( asyncFileUploads ).toBe( 1 );
+		expect( restUploadCount ).toBe( 0 );
+	} );
+
 	test( 'renders a failed upload with an accessible Dismiss button', async ( {
 		page,
 		admin,

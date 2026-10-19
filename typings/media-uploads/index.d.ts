@@ -36,6 +36,12 @@ declare namespace plupload {
 		multipart_params?: Record< string, string >;
 
 		/**
+		 * Client-side resizing plupload applies to JPEG and PNG images
+		 * before uploading them.
+		 */
+		resize?: { enabled?: boolean; width?: number; height?: number };
+
+		/**
 		 * Event handlers bound while the uploader initializes, keyed by event
 		 * name, or a function called with the uploader instead.
 		 */
