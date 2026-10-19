@@ -190,6 +190,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * The modules are added on `admin_footer`, which fires before the import
 	 * map is printed, both in the admin template and in the pages rendered
 	 * outside it.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_the_modules_are_added_on_admin_footer() {
 		$this->assertSame( 10, has_action( 'admin_footer', '_wp_add_entity_action_modules_to_editor_script' ) );
@@ -198,6 +200,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * A page that registers the editor script without loading it is left
 	 * untouched, and the registry is not read.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_nothing_happens_when_the_editor_script_is_not_enqueued() {
 		$scripts = new WP_Scripts();
@@ -216,6 +220,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * The modules are added when the editor script is only a dependency of
 	 * the scripts the page enqueues, as on the pages booted by
 	 * `@wordpress/boot`.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_the_modules_are_added_when_the_editor_script_is_a_dependency() {
 		$this->unregister_all_action_modules();
@@ -234,6 +240,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * A scripts registry without the editor script is left untouched, even
 	 * when action script modules are registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_nothing_happens_without_the_editor_script() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) ), 'plugin/feature' );
@@ -250,6 +258,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * The dependencies of the editor script stay untouched when no entity has
 	 * a script module registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_nothing_happens_without_registered_action_modules() {
 		$this->unregister_all_action_modules();
@@ -267,6 +277,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * The script module of an action becomes a dynamic dependency of the
 	 * editor script.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_action_script_modules_become_dynamic_dependencies_of_the_editor_script() {
 		$this->unregister_all_action_modules();
@@ -293,6 +305,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * The dependencies already declared are kept, and the modules are added
 	 * once: a second run adds nothing.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_declared_dependencies_are_kept_and_modules_are_added_once() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) ), 'plugin/feature' );
@@ -321,6 +335,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 
 	/**
 	 * A module registered for several entities is declared once.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_a_module_shared_by_several_entities_is_declared_once() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) ), 'plugin/actions' );
@@ -340,6 +356,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * The script modules of the actions reach the import map of a page that
 	 * loads the editor script.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_action_script_modules_reach_the_import_map() {
 		global $wp_scripts;
@@ -372,6 +390,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * Reading the registry fires `wp_entity_actions_api_init` once, whichever
 	 * getter is read first and however many times it is read.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_reading_the_registry_fires_the_action_once() {
 		self::reset_registry();
@@ -391,6 +411,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * Firing the action again once the registry has been read does not reopen
 	 * it: the registrations made then are refused.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_firing_the_action_again_does_not_reopen_the_registry() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -412,6 +434,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * it can remove a default action, or replace it by unregistering it and
 	 * registering it again with the script module of the default, which keeps
 	 * its JavaScript parts.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_a_callback_at_the_default_priority_alters_the_defaults() {
 		$callback = static function () {
@@ -456,6 +480,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * The origin an action is registered with is stored on its definition,
 	 * over any `origin` the definition sets; the default actions come from
 	 * `core`.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_actions_carry_the_origin_they_are_registered_with() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) + array( 'origin' => 'spoofed' ) ) );
@@ -469,6 +495,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * An action can only be registered once: an action with the id of a
 	 * registered action is skipped and leaves it untouched, and the rest of
 	 * the actions of the call are registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_a_registered_action_is_skipped() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -501,6 +529,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * A `context` or `modalSize` DataViews does not support is reported, and
 	 * registered anyway. A property only a script module can provide is
 	 * reported and removed. The other actions of the call are not reported.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_an_action_with_invalid_values_is_reported() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -541,6 +571,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * An id that appears more than once in a call is registered once, with
 	 * its first definition, and the rest of the actions of the call are
 	 * registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_the_same_action_twice_keeps_the_first_definition() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -570,6 +602,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * The actions of an entity keep their registration order: the order the
 	 * client shows them in.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_actions_keep_their_registration_order() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ), $this->action( 'archive' ) ), 'plugin/actions' );
@@ -594,6 +628,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * Entities are told apart by their kind and name, not by a key joining
 	 * them: `a/b` + `c` and `a` + `b/c` are two entities, whose actions and
 	 * script modules do not mix.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_entities_whose_kind_and_name_join_alike_are_kept_apart() {
 		$result = array();
@@ -620,6 +656,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * order and with their origin, whatever the order of the ids asked for;
 	 * ids not registered are ignored, and nothing is returned when none is.
 	 * A module left without actions is forgotten.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_unregistering_returns_the_unregistered_actions() {
 		$unregistered = array();
@@ -661,6 +699,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * A definition that is not an array with a non-empty string `id` is
 	 * reported by its position and skipped, like a duplicated action: the
 	 * rest of the actions of the call are registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_an_invalid_definition_is_skipped() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -691,6 +731,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * A call whose definitions are all invalid registers nothing, and its
 	 * notice does not mention the rest of the call.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_a_call_with_only_invalid_definitions_registers_nothing() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -704,6 +746,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 
 	/**
 	 * An origin that is not a non-empty string is refused.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_with_an_invalid_origin_is_refused() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -721,6 +765,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * Actions that are not a list, such as actions keyed by id, are refused,
 	 * and so is an empty list or a script module that is not an id.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_actions_that_are_not_a_list_is_refused() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -751,6 +797,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * Unregistering with an entity kind or name that is not a non-empty
 	 * string is refused with a notice rather than a fatal error, and the
 	 * registry is left untouched.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_unregistering_with_an_invalid_entity_is_refused() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
@@ -775,6 +823,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * An id that is not a non-empty string is reported and skipped: the
 	 * other ids of the call are unregistered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_unregistering_with_an_invalid_id_skips_it() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
@@ -794,6 +844,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * A call whose ids are all invalid unregisters nothing, and its notice
 	 * does not mention the rest of the call.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_unregistering_only_invalid_ids_unregisters_nothing() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
@@ -814,6 +866,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	/**
 	 * Reading the actions or the script modules of an entity whose kind or
 	 * name is not a non-empty string is reported, and returns nothing.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_reading_an_invalid_entity_is_reported() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::get_registered' );
@@ -825,6 +879,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 
 	/**
 	 * A numeric script module id is read back as a string, like any other.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_a_numeric_module_id_is_read_as_a_string() {
 		$this->register_actions( 'postType', 'page', array( $this->action( 'feature' ) ), '123' );
@@ -837,6 +893,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * registry is left untouched. Before the action a registration would
 	 * keep the defaults from being registered; after it the actions have been
 	 * read and the import map of the editor script built from them.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_registering_outside_the_action_is_refused() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::register' );
@@ -854,6 +912,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * reading the registry, so a stray call, from an `init` callback say,
 	 * neither drops a default action nor fires the action early against
 	 * post types still being registered.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_unregistering_outside_the_action_is_refused() {
 		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::unregister' );
@@ -870,6 +930,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * A read before `init` is refused and returns nothing, without firing
 	 * the action: the post types the defaults derive from are registered on
 	 * `init`, and the action fires once. The next read after `init` fires it.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_reading_before_init_does_not_fire_the_action() {
 		global $wp_actions;
@@ -899,6 +961,8 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 * A read during `init` is refused too: did_action() is true from the
 	 * first `init` callback on, while the post types are still being
 	 * registered. The next read after `init` fires the action.
+	 *
+	 * @ticket 66343
 	 */
 	public function test_reading_during_init_does_not_fire_the_action() {
 		global $wp_current_filter;

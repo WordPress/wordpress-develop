@@ -133,6 +133,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * The route is registered once, and served by the controller.
 	 *
 	 * @covers ::register_routes
+	 *
+	 * @ticket 66343
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -148,6 +150,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::register_routes
 	 * @covers ::is_route_of_entity_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_the_route_of_a_taxonomy_with_the_same_base_is_kept() {
 		global $wp_rest_server;
@@ -175,6 +179,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_allows_users_with_edit_posts() {
 		wp_set_current_user( self::$editor_id );
@@ -188,6 +194,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * Subscribers (without `edit_posts`) are forbidden.
 	 *
 	 * @covers ::get_items_permissions_check
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_forbids_users_without_edit_posts() {
 		wp_set_current_user( self::$subscriber_id );
@@ -201,6 +209,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * Logged-out users are unauthorized.
 	 *
 	 * @covers ::get_items_permissions_check
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_requires_authentication() {
 		wp_set_current_user( 0 );
@@ -219,6 +229,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_uses_post_type_specific_capability() {
 		wp_set_current_user( self::$editor_id );
@@ -240,6 +252,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_unknown_post_type_is_not_found() {
 		wp_set_current_user( self::$admin_id );
@@ -255,6 +269,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_post_type_hidden_from_rest_is_not_found() {
 		register_post_type( 'hidden_post_type', array( 'show_in_rest' => false ) );
@@ -285,6 +301,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_uses_taxonomy_capability() {
 		wp_set_current_user( self::$editor_id );
@@ -306,6 +324,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_unknown_taxonomy_is_not_found() {
 		wp_set_current_user( self::$admin_id );
@@ -320,6 +340,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_root_requires_manage_options() {
 		wp_set_current_user( self::$editor_id );
@@ -341,6 +363,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items_permissions_check
 	 * @covers ::get_required_capability
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_unknown_kind_falls_back_to_edit_posts() {
 		wp_set_current_user( self::$editor_id );
@@ -361,6 +385,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * Both `kind` and `name` are required, and cannot be empty.
 	 *
 	 * @covers ::register_routes
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_requires_kind_and_name() {
 		wp_set_current_user( self::$admin_id );
@@ -382,6 +408,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * A numeric script module id is returned as a string, like any other.
 	 *
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_returns_a_numeric_module_id_as_a_string() {
 		wp_set_current_user( self::$editor_id );
@@ -396,6 +424,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * The response echoes the entity and lists its actions and script modules.
 	 *
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_returns_entity_and_actions_shape() {
 		wp_set_current_user( self::$editor_id );
@@ -415,6 +445,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * as JSON arrays.
 	 *
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_returns_empty_lists_without_registered_actions() {
 		wp_set_current_user( self::$editor_id );
@@ -436,6 +468,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * to.
 	 *
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_exposes_registered_actions_and_their_script_modules() {
 		$feature = array(
@@ -481,6 +515,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 * Actions registered without a script module have none listed.
 	 *
 	 * @covers ::get_items
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_lists_no_script_module_for_plain_actions() {
 		$this->register_actions(
@@ -506,6 +542,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_item_schema
 	 * @covers ::get_action_schema
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_item_schema() {
 		$controller = new WP_REST_Entity_Actions_Controller();
@@ -532,6 +570,8 @@ class WP_REST_Entity_Actions_Controller_Test extends WP_Test_REST_TestCase {
 	 *
 	 * @covers ::get_items
 	 * @covers ::get_item_schema
+	 *
+	 * @ticket 66343
 	 */
 	public function test_get_items_response_matches_the_schema() {
 		$this->register_actions(
