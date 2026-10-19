@@ -279,7 +279,11 @@ class WP_REST_Entity_Fields_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 				),
 				'origin'             => array(
-					'description' => __( 'Who registered and updated the field: `core`, or the slug of a plugin or theme.' ),
+					'description' => sprintf(
+						/* translators: %s: core */
+						__( 'Who registered and updated the field: %s, or the slug of a plugin or theme.' ),
+						'core'
+					),
 					'type'        => 'object',
 					'properties'  => array(
 						'registeredBy' => array(

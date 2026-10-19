@@ -165,11 +165,12 @@ class WP_Entity_Fields_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of field ids. */
-					__( 'A field can only be registered once. These fields of %1$s "%2$s" are skipped because they are already registered: %3$s. Use update() to change a registered field, or unregister it first to replace it.' ),
+					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of field ids. 4: update() */
+					__( 'A field can only be registered once. These fields of %1$s "%2$s" are skipped because they are already registered: %3$s. Use %4$s to change a registered field, or unregister it first to replace it.' ),
 					$kind,
 					$name,
-					implode( ', ', $registered_ids )
+					implode( ', ', $registered_ids ),
+					'<code>update()</code>'
 				),
 				'7.2.0'
 			);
@@ -265,11 +266,12 @@ class WP_Entity_Fields_Registry {
 			_doing_it_wrong(
 				__METHOD__,
 				sprintf(
-					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of field ids. */
-					__( 'Only registered fields can be updated. These fields of %1$s "%2$s" are skipped because they are not registered: %3$s. Use register() to add a field.' ),
+					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of field ids. 4: register() */
+					__( 'Only registered fields can be updated. These fields of %1$s "%2$s" are skipped because they are not registered: %3$s. Use %4$s to add a field.' ),
 					$kind,
 					$name,
-					implode( ', ', $unregistered_ids )
+					implode( ', ', $unregistered_ids ),
+					'<code>register()</code>'
 				),
 				'7.2.0'
 			);
@@ -528,7 +530,12 @@ class WP_Entity_Fields_Registry {
 		if ( ! did_action( 'init' ) || doing_action( 'init' ) ) {
 			_doing_it_wrong(
 				__METHOD__,
-				__( 'The registered fields cannot be read until the `init` action has completed: the post types and supports they derive from are registered on `init`. Read them once `init` has completed, or hook `wp_entity_fields_api_init`.' ),
+				sprintf(
+					/* translators: 1: init, 2: wp_entity_fields_api_init */
+					__( 'The registered fields cannot be read until the %1$s action has completed: the post types and supports they derive from are registered on %1$s. Read them once %1$s has completed, or hook %2$s.' ),
+					'<code>init</code>',
+					'<code>wp_entity_fields_api_init</code>'
+				),
 				'7.2.0'
 			);
 			return;
@@ -577,7 +584,11 @@ class WP_Entity_Fields_Registry {
 
 		_doing_it_wrong(
 			$method,
-			__( 'Fields can only be registered, updated, and unregistered on the `wp_entity_fields_api_init` action.' ),
+			sprintf(
+				/* translators: %s: wp_entity_fields_api_init */
+				__( 'Fields can only be registered, updated, and unregistered on the %s action.' ),
+				'<code>wp_entity_fields_api_init</code>'
+			),
 			'7.2.0'
 		);
 		return false;
@@ -731,11 +742,12 @@ class WP_Entity_Fields_Registry {
 			_doing_it_wrong(
 				$method,
 				sprintf(
-					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of positions, e.g. #2, #4. */
-					__( 'Every field definition must be an array with a non-empty string `id`. These definitions of %1$s "%2$s" are skipped: %3$s. The rest of the fields of the call are stored.' ),
+					/* translators: 1: Entity kind, e.g. postType. 2: Entity name, e.g. page. 3: Comma-separated list of positions, e.g. #2, #4. 4: id */
+					__( 'Every field definition must be an array with a non-empty string %4$s. These definitions of %1$s "%2$s" are skipped: %3$s. The rest of the fields of the call are stored.' ),
 					$kind,
 					$name,
-					implode( ', ', $invalid )
+					implode( ', ', $invalid ),
+					'<code>id</code>'
 				),
 				'7.2.0'
 			);
@@ -809,15 +821,35 @@ class WP_Entity_Fields_Registry {
 		$error  = null;
 
 		if ( ! is_array( $config ) ) {
-			$error = __( 'The `index.php` of a field collection must return an array.' );
+			$error = sprintf(
+				/* translators: %s: index.php */
+				__( 'The %s of a field collection must return an array.' ),
+				'<code>index.php</code>'
+			);
 		} elseif ( ! isset( $config['origin'] ) || ! is_string( $config['origin'] ) || '' === $config['origin'] ) {
-			$error = __( 'The `origin` of a field collection must be a non-empty string.' );
+			$error = sprintf(
+				/* translators: %s: origin */
+				__( 'The %s of a field collection must be a non-empty string.' ),
+				'<code>origin</code>'
+			);
 		} elseif ( ! isset( $config['kind'] ) || ! is_string( $config['kind'] ) || '' === $config['kind'] ) {
-			$error = __( 'The `kind` of a field collection must be a non-empty string.' );
+			$error = sprintf(
+				/* translators: %s: kind */
+				__( 'The %s of a field collection must be a non-empty string.' ),
+				'<code>kind</code>'
+			);
 		} elseif ( ! isset( $config['name'] ) || ! is_string( $config['name'] ) || '' === $config['name'] ) {
-			$error = __( 'The `name` of a field collection must be a non-empty string.' );
+			$error = sprintf(
+				/* translators: %s: name */
+				__( 'The %s of a field collection must be a non-empty string.' ),
+				'<code>name</code>'
+			);
 		} elseif ( isset( $config['module'] ) && ( ! is_string( $config['module'] ) || '' === $config['module'] ) ) {
-			$error = __( 'The `module` of a field collection must be the id of a script module.' );
+			$error = sprintf(
+				/* translators: %s: module */
+				__( 'The %s of a field collection must be the id of a script module.' ),
+				'<code>module</code>'
+			);
 		}
 
 		if ( null !== $error ) {
@@ -902,10 +934,12 @@ class WP_Entity_Fields_Registry {
 			_doing_it_wrong(
 				$method,
 				sprintf(
-					/* translators: 1: The name of a field collection. 2: Comma-separated list of folder names. */
-					__( 'The `field.php` of a field must return an array, with a non-empty string `id` if it sets one. These fields of the field collection "%1$s" are skipped: %2$s.' ),
+					/* translators: 1: The name of a field collection. 2: Comma-separated list of folder names. 3: field.php 4: id */
+					__( 'The %3$s of a field must return an array, with a non-empty string %4$s if it sets one. These fields of the field collection "%1$s" are skipped: %2$s.' ),
 					$collection,
-					implode( ', ', $invalid )
+					implode( ', ', $invalid ),
+					'<code>field.php</code>',
+					'<code>id</code>'
 				),
 				'7.2.0'
 			);
