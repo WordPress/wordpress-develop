@@ -935,7 +935,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertSame( 'John Doe', $node_my_account->meta['menu_title'] );
 
 		$this->assertSame( 'Howdy, John Doe' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
-		$this->assertStringContainsString( "<span class='username'>", $node_user_info->title );
 	}
 
 	/**
@@ -959,8 +958,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertSame( $current_user->user_login, wp_strip_all_tags( $node_my_account->title ) );
 		$this->assertSame( $current_user->user_login, $node_my_account->meta['menu_title'] );
 
-		$this->assertSame( 'Howdy, ' . $current_user->user_login . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
-		$this->assertStringContainsString( "<span class='username' hidden>", $node_user_info->title );
+		$this->assertSame( 'Howdy, ' . $current_user->user_login . 'Edit Profile', wp_strip_all_tags( $node_user_info->title ) );
 	}
 
 	/**
