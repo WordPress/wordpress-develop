@@ -236,6 +236,26 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 	}
 
 	/**
+	 * wp_max_upload_size() passes the `upload_size_limit` filter result through
+	 * unchanged; only the pipeline settings clamp it.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_max_upload_file_size_clamps_negative_filter_result() {
+		add_filter(
+			'upload_size_limit',
+			static function () {
+				return -1;
+			}
+		);
+
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertSame( -1, wp_max_upload_size() );
+		$this->assertSame( 0, $settings['maxUploadFileSize'] );
+	}
+
+	/**
 	 * @ticket 65661
 	 */
 	public function test_allowed_mime_types_respect_upload_mimes_filter() {
