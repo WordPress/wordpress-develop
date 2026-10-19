@@ -88,11 +88,23 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 		$_REQUEST['wp_scrape_key']   = $key;
 		$_REQUEST['wp_scrape_nonce'] = $nonce;
 
-		// A matching nonce registers wp_finalize_scraping_edited_file_errors() as a
-		// shutdown function. It prints the scrape markers when this child process
-		// exits, after PHPUnit has already recorded the test result. This is safe
-		// because the test runs in an isolated process, so the output does not
-		// affect the result or any other test.
+		/*
+		 * A matching nonce registers wp_finalize_scraping_edited_file_errors() as a
+		 * shutdown function. It prints the scrape markers when this child process
+		 * exits, which is after PHPUnit has written the serialized test result to
+		 * stdout. That trailing output would corrupt the result the parent process
+		 * reads back, so discard it.
+		 *
+		 * Shutdown functions run in the order they were registered, so this one
+		 * runs first and opens an output buffer that throws away everything the
+		 * scraping function prints afterwards.
+		 */
+		register_shutdown_function(
+			static function () {
+				ob_start( static fn() => '' );
+			}
+		);
+
 		wp_start_scraping_edited_file_errors();
 
 		$this->assertTrue( defined( 'WP_SANDBOX_SCRAPING' ) );
