@@ -16,13 +16,20 @@
  *
  * @phpstan-import-type Route_Handler from WP_REST_Server
  *
+ * @phpstan-type Link_Attributes array{
+ *     embeddable?: bool,
+ *     targetHints?: array<string, mixed>,
+ *     ...<string, mixed>
+ * }
  * @phpstan-type Link array{
  *     href: non-falsy-string,
- *     attributes: array<string, mixed>,
+ *     attributes: Link_Attributes,
  * }
  * @phpstan-type Link_Input array{
  *     href: non-falsy-string,
- *     ...
+ *     embeddable?: bool,
+ *     targetHints?: array<string, mixed>,
+ *     ...<string, mixed>
  * }
  * @phpstan-type Curie array{
  *     name: string,
@@ -75,6 +82,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 *
 	 * @phpstan-param non-falsy-string $rel
 	 * @phpstan-param non-falsy-string $href
+	 * @phpstan-param Link_Attributes  $attributes
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
