@@ -166,6 +166,7 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 			'bigImageSizeThreshold',
 			'imageStripMeta',
 			'imageMaxBitDepth',
+			'generateAnimatedImageSubsizes',
 		) as $key ) {
 			$this->assertStringContainsString( $key, $inline );
 		}

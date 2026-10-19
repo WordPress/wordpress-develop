@@ -306,6 +306,7 @@ interface Window {
 		bigImageSizeThreshold?: number | false;
 		imageStripMeta?: boolean;
 		imageMaxBitDepth?: number;
+		generateAnimatedImageSubsizes?: boolean;
 
 		/**
 		 * Whether the block editor configures the upload-media store on

@@ -213,6 +213,7 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 			'bigImageSizeThreshold',
 			'imageStripMeta',
 			'imageMaxBitDepth',
+			'generateAnimatedImageSubsizes',
 		) as $key ) {
 			$this->assertStringContainsString( $key, $inline );
 		}
@@ -288,6 +289,43 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 
 		$this->assertSame( -1, wp_max_upload_size() );
 		$this->assertSame( 0, $settings['maxUploadFileSize'] );
+	}
+
+	/**
+	 * @ticket 65661
+	 */
+	public function test_generate_animated_image_subsizes_filter() {
+		add_filter( 'wp_generate_animated_image_subsizes', '__return_false' );
+
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertFalse( $settings['generateAnimatedImageSubsizes'] );
+	}
+
+	/**
+	 * The Media Library pipeline and the REST index the block editor reads
+	 * must apply the same image processing filters.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_image_settings_match_rest_index() {
+		add_filter(
+			'big_image_size_threshold',
+			static function () {
+				return 4096;
+			}
+		);
+		add_filter( 'wp_generate_animated_image_subsizes', '__return_false' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$index    = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/' ) )->get_data();
+		$settings = wp_get_media_library_upload_settings();
+
+		$this->assertSame( $index['image_sizes'], $settings['allImageSizes'] );
+		$this->assertSame( $index['image_size_threshold'], $settings['bigImageSizeThreshold'] );
+		$this->assertSame( $index['image_strip_meta'], $settings['imageStripMeta'] );
+		$this->assertSame( $index['image_max_bit_depth'], $settings['imageMaxBitDepth'] );
+		$this->assertSame( $index['generate_animated_image_subsizes'], $settings['generateAnimatedImageSubsizes'] );
 	}
 
 	/**

@@ -6769,13 +6769,81 @@ function wp_get_media_library_mode(): string {
 }
 
 /**
+ * Returns the image processing settings for client-side media processing.
+ *
+ * Shared by the REST API index, which the block editor reads, and
+ * wp_get_media_library_upload_settings(), so both pipelines apply the
+ * same filters.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @return array<string, mixed> Image processing settings.
+ *
+ * @phpstan-return array{
+ *     image_sizes: array<string, array{
+ *         width: non-negative-int,
+ *         height: non-negative-int,
+ *         crop: array{ 'left'|'center'|'right', 'top'|'center'|'bottom' }|bool,
+ *     }>,
+ *     image_size_threshold: non-negative-int,
+ *     image_strip_meta: bool,
+ *     image_max_bit_depth: non-negative-int,
+ *     generate_animated_image_subsizes: bool,
+ * }
+ */
+function _wp_get_client_side_media_image_settings(): array {
+	/** This filter is documented in wp-admin/includes/image.php */
+	$image_size_threshold = max( 0, (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 ) );
+
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_strip_meta = (bool) apply_filters( 'image_strip_meta', true );
+
+	/*
+	 * On the server, this filter receives the decoded image's actual bit depth.
+	 * The client path never decodes the image on the server, so the filter is
+	 * applied with 16 (the maximum depth the client encoder can produce) as
+	 * both the value and the current depth. The client caps its output bit
+	 * depth at the filtered value, so a plugin lowering it (e.g. to 8) takes
+	 * effect on client-generated images too.
+	 */
+	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
+	$image_max_bit_depth = max( 0, (int) apply_filters( 'image_max_bit_depth', 16, 16 ) );
+
+	/**
+	 * Filters whether client-side media processing preserves animation in image sub-sizes.
+	 *
+	 * By default, sub-sizes of animated GIF and WebP images retain animation,
+	 * including cropped sizes. Return false to generate static sub-sizes using
+	 * only the first frame, reducing processing time in the browser.
+	 *
+	 * This setting applies only to client-side media processing. Server-side
+	 * processing continues to generate static sub-sizes.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool $generate_animated_image_subsizes Whether to preserve animation in image sub-sizes.
+	 *                                               Default true.
+	 */
+	$generate_animated_image_subsizes = (bool) apply_filters( 'wp_generate_animated_image_subsizes', true );
+
+	return array(
+		'image_sizes'                      => wp_get_registered_image_subsizes(),
+		'image_size_threshold'             => $image_size_threshold,
+		'image_strip_meta'                 => $image_strip_meta,
+		'image_max_bit_depth'              => $image_max_bit_depth,
+		'generate_animated_image_subsizes' => $generate_animated_image_subsizes,
+	);
+}
+
+/**
  * Returns the settings for the client-side media processing pipeline
  * in the Media Library.
  *
  * These mirror the values the block editor consumes for the same
- * pipeline: the REST index (image sizes and the big-image threshold)
- * and get_block_editor_settings() (max upload size and allowed mime
- * types), plus the image encoding filters.
+ * pipeline: the REST index (the image processing settings, shared through
+ * _wp_get_client_side_media_image_settings()) and get_block_editor_settings()
+ * (max upload size and allowed mime types).
  *
  * @since 7.2.0
  *
@@ -6792,25 +6860,20 @@ function wp_get_media_library_mode(): string {
  *     bigImageSizeThreshold: non-negative-int, // Threshold above which originals are scaled down.
  *     imageStripMeta: bool,                    // Whether metadata is stripped from generated images.
  *     imageMaxBitDepth: non-negative-int,      // Maximum bit depth for generated images.
+ *     generateAnimatedImageSubsizes: bool,     // Whether sub-sizes of animated images stay animated.
  * }
  */
 function wp_get_media_library_upload_settings(): array {
-	/** This filter is documented in wp-admin/includes/image.php */
-	$big_image_size_threshold = max( 0, (int) apply_filters( 'big_image_size_threshold', 2560, array( 0, 0 ), '', 0 ) );
-
-	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
-	$image_strip_meta = (bool) apply_filters( 'image_strip_meta', true );
-
-	/** This filter is documented in wp-includes/class-wp-image-editor-imagick.php */
-	$image_max_bit_depth = (int) max( 0, apply_filters( 'image_max_bit_depth', 16, 16 ) );
+	$image_settings = _wp_get_client_side_media_image_settings();
 
 	return array(
-		'maxUploadFileSize'     => max( 0, (int) wp_max_upload_size() ),
-		'allowedMimeTypes'      => get_allowed_mime_types(),
-		'allImageSizes'         => wp_get_registered_image_subsizes(),
-		'bigImageSizeThreshold' => $big_image_size_threshold,
-		'imageStripMeta'        => $image_strip_meta,
-		'imageMaxBitDepth'      => $image_max_bit_depth,
+		'maxUploadFileSize'             => max( 0, (int) wp_max_upload_size() ),
+		'allowedMimeTypes'              => get_allowed_mime_types(),
+		'allImageSizes'                 => $image_settings['image_sizes'],
+		'bigImageSizeThreshold'         => $image_settings['image_size_threshold'],
+		'imageStripMeta'                => $image_settings['image_strip_meta'],
+		'imageMaxBitDepth'              => $image_settings['image_max_bit_depth'],
+		'generateAnimatedImageSubsizes' => $image_settings['generate_animated_image_subsizes'],
 	);
 }
 

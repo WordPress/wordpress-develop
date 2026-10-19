@@ -344,6 +344,8 @@ window.wp = window.wp || {};
 						bigImageSizeThreshold: settings.bigImageSizeThreshold,
 						imageStripMeta: settings.imageStripMeta,
 						imageMaxBitDepth: settings.imageMaxBitDepth,
+						generateAnimatedImageSubsizes:
+							settings.generateAnimatedImageSubsizes,
 					},
 					useSubRegistry: false,
 				} )
