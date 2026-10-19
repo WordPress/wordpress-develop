@@ -1612,6 +1612,107 @@ class Tests_HtmlApi_WpHtmlTagProcessor extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensures that removing an attribute does not change anything else about the tag.
+	 *
+	 * Inside a tag, `/` is ignored unless immediately followed by `>`, where it's the
+	 * self-closing flag; otherwise it merely separates attributes. Removing only the
+	 * attribute's own span can leave a stray `/` which changes the meaning of the tag,
+	 * e.g. `<g /attr>` becoming `<g />`. Conversely, removing too much can merge the
+	 * tag name or a neighboring attribute into whatever follows, e.g. `<g/a="b"c>`
+	 * becoming `<gc>`.
+	 *
+	 * @ticket 65967
+	 *
+	 * @covers WP_HTML_Tag_Processor::remove_attribute
+	 *
+	 * @dataProvider data_remove_attribute_preserves_tag_semantics
+	 *
+	 * @param string $html                HTML containing a G tag whose attribute will be removed.
+	 * @param string $attribute_to_remove Name of the attribute to remove.
+	 * @param string $expected            Expected HTML after removing the attribute.
+	 */
+	public function test_remove_attribute_preserves_tag_semantics( string $html, string $attribute_to_remove, string $expected ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag( 'G' );
+		$had_self_closing_flag = $processor->has_self_closing_flag();
+		$expected_attributes   = array();
+		foreach ( $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+			if ( strtolower( $attribute_to_remove ) !== $name ) {
+				$expected_attributes[ $name ] = $processor->get_attribute( $name );
+			}
+		}
+
+		$this->assertTrue( $processor->remove_attribute( $attribute_to_remove ), 'Failed to remove the attribute.' );
+		$updated_html = $processor->get_updated_html();
+		$this->assertSame( $expected, $updated_html, 'Updated HTML did not match the expected output.' );
+
+		$this->assert_svg_g_tag_semantics( $updated_html, $had_self_closing_flag, $expected_attributes );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function data_remove_attribute_preserves_tag_semantics(): array {
+		return array(
+			'Slash before attribute'                    => array( '<svg><g /attr>ok', 'attr', '<svg><g / >ok' ),
+			'Slash before attribute, no whitespace'     => array( '<svg><g/attr>ok', 'attr', '<svg><g/ >ok' ),
+			'Multiple slashes before attribute'         => array( '<svg><g //attr>ok', 'attr', '<svg><g // >ok' ),
+			'Slash separating attributes, remove last'  => array( '<svg><g a/b>ok', 'b', '<svg><g a/ >ok' ),
+			'Slash separating attributes, remove first' => array( '<svg><g a/b>ok', 'a', '<svg><g /b>ok' ),
+			'Slash after quoted value, remove last'     => array( '<svg><g a="x"/b>ok', 'b', '<svg><g a="x"/ >ok' ),
+			'Slash before duplicated attributes'        => array( '<svg><g /a /a>ok', 'a', '<svg><g /  / >ok' ),
+			'Slash and whitespace before attribute'     => array( '<svg><g / attr>ok', 'attr', '<svg><g / >ok' ),
+			'Slash inside unquoted value'               => array( '<svg><g attr=/>ok', 'attr', '<svg><g >ok' ),
+			'Slash ending unquoted value'               => array( '<svg><g attr=a/>ok', 'attr', '<svg><g >ok' ),
+			'Slash ending unquoted value, remove other' => array( '<svg><g a=x/ b>ok', 'b', '<svg><g a=x/ >ok' ),
+			'Self-closing flag is preserved'            => array( '<svg><g attr/>ok', 'attr', '<svg><g />ok' ),
+			'Self-closing flag after quoted value'      => array( '<svg><g attr="x"/>ok', 'attr', '<svg><g />ok' ),
+			'Self-closing flag, slash before attribute' => array( '<svg><g /attr/>ok', 'attr', '<svg><g / />ok' ),
+			'Attribute directly after quoted value'     => array( '<svg><g/a="x"b>ok', 'a', '<svg><g/ b>ok' ),
+			'Attribute directly after quoted value, middle' => array( '<svg><g c/a="x"b>ok', 'a', '<svg><g c/ b>ok' ),
+			'Equals directly after quoted value'        => array( '<svg><g/a="x"=b>ok', 'a', '<svg><g/ =b>ok' ),
+			'Quote directly after quoted value'         => array( '<svg><g/a="x""b">ok', 'a', '<svg><g/ "b">ok' ),
+			'Slash directly after quoted value'         => array( '<svg><g/a="x"/b>ok', 'a', '<svg><g/ /b>ok' ),
+			'Whitespace after quoted value'             => array( '<svg><g/a="x" b>ok', 'a', '<svg><g/  b>ok' ),
+		);
+	}
+
+	/**
+	 * Asserts that the tag following SVG in the given HTML is a G tag with the
+	 * expected self-closing flag and attributes, followed by the text "ok".
+	 *
+	 * @param string                     $html                           HTML of the form `<svg><g …>ok`.
+	 * @param bool                       $expected_has_self_closing_flag Expected self-closing flag state.
+	 * @param array<string, string|true> $expected_attributes            Expected attribute values by name.
+	 */
+	private function assert_svg_g_tag_semantics( string $html, bool $expected_has_self_closing_flag, array $expected_attributes ): void {
+		$processor = new WP_HTML_Tag_Processor( $html );
+		$processor->next_tag();
+		$processor->next_tag();
+		$this->assertSame( 'G', $processor->get_tag(), 'The update changed the tag name.' );
+		$this->assertSame(
+			$expected_has_self_closing_flag,
+			$processor->has_self_closing_flag(),
+			$expected_has_self_closing_flag
+				? 'The update dropped the self-closing flag.'
+				: 'The update introduced a self-closing flag.'
+		);
+
+		$actual_attributes = array();
+		foreach ( $processor->get_attribute_names_with_prefix( '' ) as $name ) {
+			$actual_attributes[ $name ] = $processor->get_attribute( $name );
+		}
+		ksort( $expected_attributes );
+		ksort( $actual_attributes );
+		$this->assertSame( $expected_attributes, $actual_attributes, 'The update changed the other attributes.' );
+
+		$processor->next_token();
+		$this->assertSame( 'ok', $processor->get_modifiable_text(), 'The update changed the content following the tag.' );
+	}
+
+	/**
 	 * @ticket 58119
 	 *
 	 * @since 6.3.2 Removes all duplicated attributes as expected.
