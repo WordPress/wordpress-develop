@@ -142,25 +142,36 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A response value is limited to methods in the default list.
+	 * A response value may name methods outside the default list.
 	 *
 	 * @ticket 46992
 	 */
-	public function test_response_value_is_limited_to_the_default_methods() {
-		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'GET, TRACE, DELETE' ) );
+	public function test_response_value_can_add_methods_beyond_the_default() {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET, PROPFIND' ) );
+
+		$this->assertSame( array( 'OPTIONS', 'GET', 'PROPFIND' ), $this->sent_methods );
+	}
+
+	/**
+	 * Entries in a response value that are not valid method tokens are dropped.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_response_value_drops_invalid_method_tokens() {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'GET, P@TCH, <script>, DELETE' ) );
 
 		$this->assertSame( array( 'GET', 'DELETE' ), $this->sent_methods );
 	}
 
 	/**
-	 * Methods in a response value are matched without regard to case.
+	 * Methods in a response value keep their case, as methods are case-sensitive.
 	 *
 	 * @ticket 46992
 	 */
-	public function test_response_value_methods_are_matched_case_insensitively() {
+	public function test_response_value_method_case_is_preserved() {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'options, Get' ) );
 
-		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+		$this->assertSame( array( 'options', 'Get' ), $this->sent_methods );
 	}
 
 	/**

@@ -826,7 +826,8 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 
 		$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
 		if ( isset( $response_headers['access-control-allow-methods'] ) ) {
-			$allow_methods = array_values( array_intersect( $allow_methods, array_map( 'strtoupper', wp_parse_list( $response_headers['access-control-allow-methods'] ) ) ) );
+			// Keep only syntactically valid method tokens (RFC 9110, section 9.1).
+			$allow_methods = array_values( preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $response_headers['access-control-allow-methods'] ) ) );
 		}
 
 		/**
@@ -838,7 +839,7 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 		 * serving routes that accept other methods can advertise them here.
 		 *
 		 * If the response already set its own `Access-Control-Allow-Methods` header,
-		 * `$allow_methods` is the default list narrowed to the methods it names.
+		 * `$allow_methods` is the valid methods it names instead of the default list.
 		 * An empty list omits the header.
 		 *
 		 * @since 7.2.0
