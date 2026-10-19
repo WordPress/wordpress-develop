@@ -64,12 +64,9 @@ class Tests_Load_IsProtectedAjaxAction extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_returns_false_when_doing_ajax_without_action() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		unset( $_REQUEST['action'] );
 
 		$this->assertFalse( is_protected_ajax_action() );
@@ -77,12 +74,9 @@ class Tests_Load_IsProtectedAjaxAction extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_returns_true_for_default_protected_actions() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 
 		$actions = array(
 			'edit-theme-plugin-file',
@@ -105,12 +99,9 @@ class Tests_Load_IsProtectedAjaxAction extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_returns_false_for_unprotected_ajax_action() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		$_REQUEST['action'] = 'custom-action';
 
 		$this->assertFalse( is_protected_ajax_action() );
@@ -118,12 +109,9 @@ class Tests_Load_IsProtectedAjaxAction extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_filter_can_protect_additional_ajax_actions() {
-		define( 'DOING_AJAX', true );
+		add_filter( 'wp_doing_ajax', '__return_true' );
 		$_REQUEST['action'] = 'custom-action';
 
 		add_filter(
