@@ -2307,9 +2307,6 @@ function wp_insert_user( $userdata ) {
 			return new WP_Error( 'invalid_user_id', __( 'Invalid user ID.' ) );
 		}
 
-		// Slash current user email to compare it later with slashed new user email.
-		$old_user_data->user_email = wp_slash( $old_user_data->user_email );
-
 		// Hashed in wp_update_user(), plaintext if called directly.
 		$user_pass = ! empty( $userdata['user_pass'] ) ? $userdata['user_pass'] : $old_user_data->user_pass;
 	} else {
@@ -2424,13 +2421,20 @@ function wp_insert_user( $userdata ) {
 	$user_email = apply_filters( 'pre_user_email', $raw_user_email );
 
 	/*
+	 * The default `pre_user_email` filters leave the email slashed, so an address
+	 * containing an apostrophe becomes `o\'brien@example.com`. Compare and look it up
+	 * unslashed so it matches the value stored in the database.
+	 */
+	$unslashed_user_email = wp_unslash( $user_email );
+
+	/*
 	 * If there is no update, just check for `email_exists`. If there is an update,
 	 * check if current email and new email are the same, and check `email_exists`
 	 * accordingly.
 	 */
-	if ( ( ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $user_email, $old_user_data->user_email ) ) )
+	if ( ( ! $update || ( ! empty( $old_user_data ) && 0 !== strcasecmp( $unslashed_user_email, $old_user_data->user_email ) ) )
 		&& ! defined( 'WP_IMPORTING' )
-		&& email_exists( $user_email )
+		&& email_exists( $unslashed_user_email )
 	) {
 		return new WP_Error( 'existing_user_email', __( 'Sorry, that email address is already used!' ) );
 	}
@@ -2597,7 +2601,7 @@ function wp_insert_user( $userdata ) {
 	}
 
 	if ( $update ) {
-		if ( $user_email !== $old_user_data->user_email || $user_pass !== $old_user_data->user_pass ) {
+		if ( $unslashed_user_email !== $old_user_data->user_email || $user_pass !== $old_user_data->user_pass ) {
 			$data['user_activation_key'] = '';
 		}
 		$wpdb->update( $wpdb->users, $data, array( 'ID' => $user_id ) );
