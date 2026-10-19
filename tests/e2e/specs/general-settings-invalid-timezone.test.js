@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-function timezoneOptions( values ) {
+function timezoneOptions( baseURL, values ) {
 	const restore = values === undefined ? '' : `
 		$values = json_decode( base64_decode( '${ Buffer.from( JSON.stringify( values ) ).toString( 'base64' ) }' ), true );
 		foreach ( $values as $option => $value ) {
@@ -12,7 +12,7 @@ function timezoneOptions( values ) {
 
 	return JSON.parse( execFileSync( process.execPath, [
 		join( process.cwd(), 'tools/local-env/scripts/docker.js' ),
-		'exec', '--user', 'wp_php', 'cli', 'wp', 'eval',
+		'exec', '--user', 'wp_php', 'cli', 'wp', `--url=${ baseURL }`, 'eval',
 		`
 			// Read and restore the stored offset, not the value calculated for a named timezone.
 			remove_filter( 'pre_option_gmt_offset', 'wp_timezone_override_offset' );
@@ -22,26 +22,26 @@ function timezoneOptions( values ) {
 				'gmt_offset' => get_option( 'gmt_offset' ),
 			) );
 		`,
-	], { encoding: 'utf-8' } ) );
+	], { encoding: 'utf-8', env: { ...process.env, DOTENV_CONFIG_QUIET: 'true' } } ) );
 }
 
 test.describe( 'Settings -> General', () => {
 	const invalidTimezones = [ '', '0', 'Barry/Gary' ];
 	let originalOptions;
 
-	test.beforeEach( async ( { admin } ) => {
+	test.beforeEach( async ( { admin, baseURL } ) => {
 		originalOptions = undefined;
-		originalOptions = timezoneOptions();
+		originalOptions = timezoneOptions( baseURL );
 		await admin.visitAdminPage( '/options-general.php' );
 	} );
 
-	test.afterEach( async () => {
+	test.afterEach( async ( { baseURL } ) => {
 		if ( originalOptions === undefined ) {
 			return;
 		}
 
 		// The settings form can normalize stored UTC offsets, so restore the options directly.
-		expect( timezoneOptions( originalOptions ) ).toEqual( originalOptions );
+		expect( timezoneOptions( baseURL, originalOptions ) ).toEqual( originalOptions );
 	} );
 
 	for ( const invalidTimezone of invalidTimezones ) {
