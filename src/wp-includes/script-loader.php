@@ -2,16 +2,11 @@
 /**
  * WordPress scripts and styles default loader.
  *
- * Several constants are used to manage the loading, concatenating and compression of scripts and CSS:
- * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables compression and concatenation,
- * define('CONCATENATE_SCRIPTS', false); disables compression and concatenation of scripts and CSS,
- * define('COMPRESS_SCRIPTS', false); disables compression of scripts,
- * define('COMPRESS_CSS', false); disables compression of CSS,
- * define('ENFORCE_GZIP', true); forces gzip for compression (default is deflate).
+ * These constants are used to manage the loading and concatenating of scripts and CSS:
+ * define('SCRIPT_DEBUG', true); loads the development (non-minified) versions of all scripts and CSS, and disables concatenation,
+ * define('CONCATENATE_SCRIPTS', true); enables concatenation of scripts and CSS in the admin and on the login screen (disabled by default).
  *
- * The globals $concatenate_scripts, $compress_scripts and $compress_css can be set by plugins
- * to temporarily override the above settings. Also a compression test is run once and the result is saved
- * as option 'can_compress_scripts' (0/1). The test will run again if that option is deleted.
+ * The global $concatenate_scripts can be set by plugins to temporarily override the above settings.
  *
  * @package WordPress
  */
@@ -37,35 +32,42 @@ require ABSPATH . WPINC . '/functions.wp-styles.php';
 /**
  * Registers TinyMCE scripts.
  *
+ * TinyMCE core and the compat3x plugin are registered as separate files. TinyMCE loads its theme
+ * and any other plugins itself when an editor is initialized. The `wp-tinymce.js` bundle of all of
+ * them is no longer registered, but it can still be registered in their place under the
+ * `wp-tinymce` handle.
+ *
  * @since 5.0.0
+ * @since 7.2.0 The `wp-tinymce.js` bundle is no longer registered, regardless of whether scripts
+ *              are concatenated or compressed.
+ * @since 7.2.0 The `$force_uncompressed` parameter was deprecated and renamed to `$deprecated`.
  *
  * @global string $tinymce_version
- * @global bool   $concatenate_scripts
- * @global bool   $compress_scripts
  *
- * @param WP_Scripts $scripts            WP_Scripts object.
- * @param bool       $force_uncompressed Whether to forcibly prevent gzip compression. Default false.
+ * @param WP_Scripts $scripts    WP_Scripts object.
+ * @param bool       $deprecated Not used.
+ *
+ * @phpstan-param false $deprecated
  */
-function wp_register_tinymce_scripts( $scripts, $force_uncompressed = false ) {
-	global $tinymce_version, $concatenate_scripts, $compress_scripts;
+function wp_register_tinymce_scripts( $scripts, $deprecated = false ): void {
+	global $tinymce_version;
+
+	if ( false !== $deprecated ) {
+		_deprecated_argument( __FUNCTION__, '7.2.0' );
+	}
 
 	$suffix     = wp_scripts_get_suffix();
 	$dev_suffix = wp_scripts_get_suffix( 'dev' );
 
+	/*
+	 * This no longer depends on the concatenation settings, but it is where an admin screen has
+	 * settled them until now, which the 'wp_should_concatenate_admin_scripts' filter documents.
+	 */
 	script_concat_settings();
 
-	$compressed = $compress_scripts && $concatenate_scripts && ! $force_uncompressed;
-
-	/*
-	 * Load tinymce.js when running from /src, otherwise load wp-tinymce.js (in production)
-	 * or tinymce.min.js (when SCRIPT_DEBUG is true).
-	 */
-	if ( $compressed ) {
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . 'wp-tinymce.js', array(), $tinymce_version );
-	} else {
-		$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
-		$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
-	}
+	// Load tinymce.js when running from /src, otherwise tinymce.min.js.
+	$scripts->add( 'wp-tinymce-root', includes_url( 'js/tinymce/' ) . "tinymce$dev_suffix.js", array(), $tinymce_version );
+	$scripts->add( 'wp-tinymce', includes_url( 'js/tinymce/' ) . "plugins/compat3x/plugin$dev_suffix.js", array( 'wp-tinymce-root' ), $tinymce_version );
 
 	$scripts->add( 'wp-tinymce-lists', includes_url( "js/tinymce/plugins/lists/plugin$suffix.js" ), array( 'wp-tinymce' ), $tinymce_version );
 }
@@ -110,7 +112,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom'                   => '18.3.1.1', // Final .1 due to switch to UMD build, can be removed in the next update.
 		'react-jsx-runtime'           => '18.3.1',
 		'regenerator-runtime'         => '0.14.1',
-		'moment'                      => '2.30.1',
+		'moment'                      => '2.31.0',
 		'lodash'                      => '4.18.1',
 		'wp-polyfill-fetch'           => '3.6.20',
 		'wp-polyfill-formdata'        => '4.0.10',
@@ -171,7 +173,7 @@ function wp_default_packages_vendor( $scripts ) {
  * These scripts enable hot module replacement (HMR) for block development
  * when using `wp-scripts start --hot`.
  *
- * @see https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
+ * @link https://github.com/WordPress/gutenberg/tree/trunk/packages/scripts#start
  *
  * @since 6.0.0
  *
@@ -2231,15 +2233,9 @@ function print_footer_scripts() {
  * @ignore
  *
  * @global WP_Scripts $wp_scripts
- * @global bool       $compress_scripts
  */
 function _print_scripts() {
-	global $wp_scripts, $compress_scripts;
-
-	$zip = $compress_scripts ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
+	global $wp_scripts;
 
 	$concat = trim( $wp_scripts->concat, ', ' );
 
@@ -2255,7 +2251,7 @@ function _print_scripts() {
 			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
 		}
 
-		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
+		$src = $wp_scripts->base_url . '/wp-admin/load-scripts.php?' . ltrim( $concatenated, '&' ) . '&ver=' . $wp_scripts->default_version;
 		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
@@ -2415,18 +2411,9 @@ function print_late_styles() {
  *
  * @ignore
  * @since 3.3.0
- *
- * @global bool $compress_css
  */
 function _print_styles() {
-	global $compress_css;
-
 	$wp_styles = wp_styles();
-
-	$zip = $compress_css ? 1 : 0;
-	if ( $zip && defined( 'ENFORCE_GZIP' ) && ENFORCE_GZIP ) {
-		$zip = 'gzip';
-	}
 
 	$concat = trim( $wp_styles->concat, ', ' );
 
@@ -2442,7 +2429,7 @@ function _print_styles() {
 			$concatenated .= "&load%5Bchunk_{$key}%5D={$chunk}";
 		}
 
-		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?c={$zip}&dir={$dir}" . $concatenated . '&ver=' . $ver;
+		$href = $wp_styles->base_url . "/wp-admin/load-styles.php?dir={$dir}" . $concatenated . '&ver=' . $ver;
 		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
@@ -2461,9 +2448,11 @@ function _print_styles() {
 }
 
 /**
- * Determines the concatenation and compression settings for scripts and styles.
+ * Determines the concatenation settings for scripts and styles.
  *
  * @since 2.8.0
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 4.9.9.
  *
  * @global bool $concatenate_scripts
  * @global bool $compress_scripts
@@ -2472,33 +2461,23 @@ function _print_styles() {
 function script_concat_settings() {
 	global $concatenate_scripts, $compress_scripts, $compress_css;
 
-	$compressed_output = ( ini_get( 'zlib.output_compression' ) || 'ob_gzhandler' === ini_get( 'output_handler' ) );
-
-	$can_compress_scripts = ! wp_installing() && get_site_option( 'can_compress_scripts' );
-
 	if ( ! isset( $concatenate_scripts ) ) {
 		$concatenate_scripts = ( is_admin() || did_action( 'login_init' ) ) && wp_should_concatenate_admin_scripts();
 	}
 
 	if ( ! isset( $compress_scripts ) ) {
-		$compress_scripts = defined( 'COMPRESS_SCRIPTS' ) ? COMPRESS_SCRIPTS : true;
-		if ( $compress_scripts && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_scripts = false;
-		}
+		$compress_scripts = false;
 	}
 
 	if ( ! isset( $compress_css ) ) {
-		$compress_css = defined( 'COMPRESS_CSS' ) ? COMPRESS_CSS : true;
-		if ( $compress_css && ( ! $can_compress_scripts || $compressed_output ) ) {
-			$compress_css = false;
-		}
+		$compress_css = false;
 	}
 }
 
 /**
  * Determines whether scripts and styles are concatenated on admin screens and the login screen.
  *
- * Concatenation is on unless the `CONCATENATE_SCRIPTS` constant turns it off, and `SCRIPT_DEBUG`
+ * Concatenation is off unless the `CONCATENATE_SCRIPTS` constant turns it on, and `SCRIPT_DEBUG`
  * turns it off regardless. Scripts and styles are never concatenated elsewhere.
  *
  * This is the default that script_concat_settings() gives the `$concatenate_scripts` global when
@@ -2515,7 +2494,7 @@ function script_concat_settings() {
  * @return bool Whether scripts and styles are concatenated on admin screens and the login screen.
  */
 function wp_should_concatenate_admin_scripts(): bool {
-	$concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? (bool) CONCATENATE_SCRIPTS : true )
+	$concatenate = ( defined( 'CONCATENATE_SCRIPTS' ) ? (bool) CONCATENATE_SCRIPTS : false )
 		&& ! ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
 
 	/**
@@ -2532,8 +2511,8 @@ function wp_should_concatenate_admin_scripts(): bool {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param bool $concatenate Whether scripts and styles are concatenated. Default true, unless the
-	 *                          `CONCATENATE_SCRIPTS` constant is false or `SCRIPT_DEBUG` is true.
+	 * @param bool $concatenate Whether scripts and styles are concatenated. Default false, unless the
+	 *                          `CONCATENATE_SCRIPTS` constant is true and `SCRIPT_DEBUG` is not.
 	 */
 	return (bool) apply_filters( 'wp_should_concatenate_admin_scripts', $concatenate );
 }
@@ -3044,7 +3023,7 @@ function wp_prefetch_admin_assets(): void {
 		/**
 		 * Prefetches the page's rel=prefetch links with fetch() in browsers that do not support rel=prefetch.
 		 *
-		 * @see https://caniuse.com/link-rel-prefetch
+		 * @link https://caniuse.com/link-rel-prefetch
 		 */
 		() => {
 			if ( document.createElement( 'link' ).relList?.supports?.( 'prefetch' ) ) {
@@ -3608,6 +3587,12 @@ function wp_get_inline_script_tag( $data, $attributes = array() ) {
 
 	/**
 	 * Filters attributes to be added to a script tag.
+	 *
+	 * Escaping and normalization can make the text a browser parses from the printed tag differ
+	 * from `$data`. A callback that needs that text, such as one computing a CSP hash, can set
+	 * `$data` as the modifiable text of a SCRIPT tag in a `WP_HTML_Tag_Processor` with the
+	 * filtered attributes applied and then read {@see WP_HTML_Tag_Processor::get_modifiable_text()},
+	 * at a late priority so that the attributes are final.
 	 *
 	 * @since 5.7.0
 	 *
@@ -4650,8 +4635,8 @@ function wp_hoist_late_printed_styles(): void {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_html_custom_data_attribute_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $html_attribute_name Raw attribute name as found in the source HTML.
  * @return string|null Transformed `dataset` name, if interpretable as a custom data attribute, else `null`.
@@ -4677,7 +4662,7 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
 	 * > U+002D HYPHEN-MINUS character (-) and replace the character that
 	 * > followed it by the same character converted to ASCII uppercase.
 	 *
-	 * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
+	 * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
 	 */
 	$custom_name = '';
 	$at          = 5;
@@ -4728,8 +4713,8 @@ function wp_js_dataset_name( string $html_attribute_name ): ?string {
  *
  * @since 6.9.0
  *
- * @see https://html.spec.whatwg.org/#concept-domstringmap-pairs
  * @see \wp_js_dataset_name()
+ * @link https://html.spec.whatwg.org/#concept-domstringmap-pairs
  *
  * @param string $js_dataset_name Name of JS `dataset` property to transform.
  * @return string|null Corresponding name of an HTML custom data attribute for the given dataset name,

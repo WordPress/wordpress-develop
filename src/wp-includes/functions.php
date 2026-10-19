@@ -1077,7 +1077,7 @@ function build_query( $data ) {
  * @since 3.2.0
  * @access private
  *
- * @see https://www.php.net/manual/en/function.http-build-query.php
+ * @link https://www.php.net/manual/en/function.http-build-query.php
  *
  * @param array|object $data      An array or object of data. Converted to array.
  * @param string       $prefix    Optional. Numeric index. If set, start parameter numbering with it.
@@ -2330,8 +2330,8 @@ function wp_is_writable( $path ) {
  *
  * @since 2.8.0
  *
- * @see https://bugs.php.net/bug.php?id=27609
- * @see https://bugs.php.net/bug.php?id=30931
+ * @link https://bugs.php.net/bug.php?id=27609
+ * @link https://bugs.php.net/bug.php?id=30931
  *
  * @param string $path Windows path to check for write-ability.
  * @return bool Whether the path is writable.
@@ -3265,8 +3265,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * finfo_file() can return duplicate mime type for Google docs,
 			 * this conditional reduces it to a single instance.
 			 *
-			 * @see https://bugs.php.net/bug.php?id=77784
-			 * @see https://core.trac.wordpress.org/ticket/57898
+			 * @link https://bugs.php.net/bug.php?id=77784
+			 * @link https://core.trac.wordpress.org/ticket/57898
 			 */
 			if ( 2 === substr_count( $real_mime, $google_docs_type ) ) {
 				$real_mime = $google_docs_type;
@@ -5628,7 +5628,7 @@ function wp_widgets_add_menu() {
 	if ( wp_is_block_theme() ) {
 		$submenu['themes.php'][] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	} else {
-		$submenu['themes.php'][8] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
+		$submenu['themes.php'][9] = array( $menu_name, 'edit_theme_options', 'widgets.php' );
 	}
 
 	ksort( $submenu['themes.php'], SORT_NUMERIC );
@@ -5663,6 +5663,7 @@ function wp_ob_end_flush_all() {
  * in WordPress 2.5.0.
  *
  * @since 2.3.2
+ * @since 7.2.0 Added status and no-cache headers before loading a custom `db-error.php` drop-in.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5675,6 +5676,8 @@ function dead_db() {
 
 	// Load custom DB error template, if present.
 	if ( file_exists( WP_CONTENT_DIR . '/db-error.php' ) ) {
+		status_header( 500 );
+		nocache_headers();
 		require_once WP_CONTENT_DIR . '/db-error.php';
 		die();
 	}
@@ -7044,7 +7047,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
  * @since 2.8.0
  * @access private
  *
- * @see https://core.trac.wordpress.org/ticket/8497
+ * @link https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
  * @return string Cleaned header comment.
@@ -7254,8 +7257,8 @@ function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.V
  *
  * @since 3.0.0
  *
- * @see https://blogs.msdn.com/ie/archive/2008/07/02/ie8-security-part-v-comprehensive-protection.aspx
- * @see https://src.chromium.org/viewvc/chrome?view=rev&revision=6985
+ * @link https://learn.microsoft.com/en-us/archive/blogs/ie/ie8-security-part-v-comprehensive-protection
+ * @link https://fetch.spec.whatwg.org/#x-content-type-options-header
  */
 function send_nosniff_header() {
 	header( 'X-Content-Type-Options: nosniff' );
@@ -7372,8 +7375,8 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
  *
  * @since 3.1.3
  *
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
  */
 function send_frame_options_header() {
 	if ( ! headers_sent() ) {
@@ -7451,7 +7454,7 @@ function wp_allowed_protocols() {
  *
  * @since 3.4.0
  *
- * @see https://core.trac.wordpress.org/ticket/19589
+ * @link https://core.trac.wordpress.org/ticket/19589
  *
  * @param string $ignore_class Optional. A class to ignore all function calls within - useful
  *                             when you want to just give info about the callee. Default null.
@@ -7824,7 +7827,7 @@ function is_utf8_charset( $blog_charset = null ) {
  * @since 3.6.0
  * @access private
  *
- * @see https://core.trac.wordpress.org/ticket/23688
+ * @link https://core.trac.wordpress.org/ticket/23688
  *
  * @param string $charset A charset name, e.g. "UTF-8", "Windows-1252", "SJIS".
  * @return string The canonical form of the charset.
@@ -9575,7 +9578,7 @@ function wp_application_password_created_notification( $user_id, $new_item ) {
 		return;
 	}
 
-	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, SITENAME, SITEURL, EMAIL: those are placeholders. */
+	/* translators: Do not translate USERNAME, APPLICATION_PASSWORD_NAME, ADMIN_EMAIL, SITENAME, SITEURL, EMAIL: those are placeholders. */
 	$application_password_create_text = __(
 		'Hi ###USERNAME###,
 
@@ -9621,6 +9624,7 @@ All at ###SITENAME###
 	 *         The following strings have a special meaning and will get replaced dynamically:
 	 *          - `###USERNAME###`                  The user's display name.
 	 *          - `###APPLICATION_PASSWORD_NAME###` The name of the application password.
+	 *          - `###ADMIN_EMAIL###`               The admin email in case this was unexpected.
 	 *          - `###EMAIL###`                     The user's email address.
 	 *          - `###SITENAME###`                  The name of the site.
 	 *          - `###SITEURL###`                   The URL to the site.
@@ -9633,6 +9637,7 @@ All at ###SITENAME###
 
 	$email['message'] = str_replace( '###USERNAME###', $user->display_name, $email['message'] );
 	$email['message'] = str_replace( '###APPLICATION_PASSWORD_NAME###', $new_item['name'], $email['message'] );
+	$email['message'] = str_replace( '###ADMIN_EMAIL###', get_option( 'admin_email' ), $email['message'] );
 	$email['message'] = str_replace( '###EMAIL###', $user->user_email, $email['message'] );
 	$email['message'] = str_replace( '###SITENAME###', $site_name, $email['message'] );
 	$email['message'] = str_replace( '###SITEURL###', home_url(), $email['message'] );

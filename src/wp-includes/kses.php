@@ -1689,23 +1689,28 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							}
 
 							// Filter block attributes for opening delimiters.
+							$attributes = $block_processor->allocate_and_return_parsed_attributes();
+							$voider     = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
 							if ( $block_processor->opens_block() ) {
-								$original_attributes = $block_processor->allocate_and_return_parsed_attributes();
-
-								if ( isset( $original_attributes ) ) {
-									$filtered_attributes = filter_block_kses_value(
-										$original_attributes,
+								if ( isset( $attributes ) ) {
+									$attributes = filter_block_kses_value(
+										$attributes,
 										$this->specified_allowed_html,
 										$this->allowed_protocols,
 										array( 'blockName' => $block_type )
 									);
-
-									if ( $original_attributes !== $filtered_attributes ) {
-										$serialized_attributes = serialize_block_attributes( $filtered_attributes );
-										$voider                = WP_Block_Processor::VOID === $block_processor->get_delimiter_type() ? '/' : '';
-										$text                  = " wp:{$implicit_block_type} {$serialized_attributes} {$voider}";
-									}
 								}
+							}
+
+							// Fully normalize all block delimiters: name, whitespace, attributes, flags.
+							if ( WP_Block_Processor::CLOSER === $block_processor->get_delimiter_type() ) {
+								$text = " /wp:{$implicit_block_type} ";
+							} elseif ( ! empty( $attributes ) ) {
+								$serialized_attributes = serialize_block_attributes( $attributes );
+
+								$text = " wp:{$implicit_block_type} {$serialized_attributes} {$voider}";
+							} else {
+								$text = " wp:{$implicit_block_type} {$voider}";
 							}
 						}
 
@@ -2484,7 +2489,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	 *
 	 * Preserve these comments and do not treat them like tags.
 	 *
-	 * @see https://html.spec.whatwg.org/#bogus-comment-state
+	 * @link https://html.spec.whatwg.org/#bogus-comment-state
 	 */
 	if ( 1 === preg_match( '~^(?:</[^a-zA-Z][^>]*>|<![a-z][^>]*>)$~', $content ) ) {
 		/**
@@ -3384,7 +3389,7 @@ function wp_kses_normalize_entities3( $matches ) {
  *
  * @since 2.7.0
  *
- * @see https://www.w3.org/TR/xml/#charsets
+ * @link https://www.w3.org/TR/xml/#charsets
  *
  * @param int $i Unicode codepoint.
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
