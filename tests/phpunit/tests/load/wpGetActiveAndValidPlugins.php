@@ -206,15 +206,16 @@ class Tests_Load_WpGetActiveAndValidPlugins extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_skips_missing_and_invalid_plugin_entries() {
-		$valid = $this->create_plugin_file( '65819-valid-plugin.php' );
+		$valid   = $this->create_plugin_file( '65819-valid-plugin/plugin.php' );
+		$non_php = $this->create_plugin_file( '65819-not-a-php-file.txt' );
 
 		update_option(
 			'active_plugins',
 			array(
 				$valid,
 				'65819-missing-plugin.php',
-				'not-a-php-file.txt',
-				'../invalid.php',
+				$non_php,
+				'65819-valid-plugin/../' . $valid,
 			)
 		);
 
