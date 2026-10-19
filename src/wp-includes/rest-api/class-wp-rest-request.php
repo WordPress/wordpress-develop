@@ -644,7 +644,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return array<string, array<string, string|int>> Parameter map of key to value.
+	 * @return array<string, array<string, mixed>> Parameter map of key to value.
 	 *
 	 * @phpstan-return array<string, File_Param>
 	 */
@@ -659,7 +659,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array<string, array<string, string|int>> $params Parameter map of key to value.
+	 * @param array<string, array<string, mixed>> $params Parameter map of key to value.
 	 *
 	 * @phpstan-param array<string, File_Param> $params
 	 */
