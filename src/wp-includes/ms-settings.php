@@ -42,6 +42,9 @@ require_once ABSPATH . WPINC . '/class-wp-network.php';
 /** WP_Site class */
 require_once ABSPATH . WPINC . '/class-wp-site.php';
 
+/** WP_Site_State class */
+require_once ABSPATH . WPINC . '/class-wp-site-state.php';
+
 /** Multisite loader */
 require_once ABSPATH . WPINC . '/ms-load.php';
 
