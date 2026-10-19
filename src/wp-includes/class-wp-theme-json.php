@@ -1036,7 +1036,7 @@ class WP_Theme_JSON {
 
 				$combined_selector = static::append_to_selector( $base_selector, $pseudo_selector );
 				$declarations      = static::compute_style_properties( $pseudo_node, $settings, null, null );
-				$declarations      = static::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $base_styles );
+				$declarations      = self::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $base_styles );
 				$add_declarations( $combined_selector, $declarations );
 			}
 		}
@@ -3971,10 +3971,12 @@ class WP_Theme_JSON {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array|null $settings Settings from theme.json.
+	 * @param array<string, mixed> $settings Settings from theme.json.
 	 * @return string[] Style-state keys.
+	 *
+	 * @phpstan-return list<string>
 	 */
-	private static function get_style_state_keys( $settings ) {
+	private static function get_style_state_keys( array $settings ): array {
 		$keys = array_keys( static::get_viewport_media_queries( $settings['viewport'] ?? null ) );
 
 		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS as $pseudo_selectors ) {
@@ -3999,17 +4001,15 @@ class WP_Theme_JSON {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array      $path     Path to the node within the theme.json tree.
-	 * @param array      $tree     The theme.json tree to read from.
-	 * @param array|null $settings Settings from theme.json.
+	 * @param string[]             $path     Path to the node within the theme.json tree.
+	 * @param array<string, mixed> $tree     The theme.json tree to read from.
+	 * @param array<string, mixed> $settings Settings from theme.json.
 	 * @return array[] Style objects, nearest first.
+	 *
+	 * @phpstan-return list<array<string, mixed>>
 	 */
-	private static function get_state_base_styles( $path, $tree, $settings ) {
-		if ( ! is_array( $path ) ) {
-			return array();
-		}
-
-		$state_keys  = static::get_style_state_keys( $settings );
+	private static function get_state_base_styles( array $path, array $tree, array $settings ): array {
+		$state_keys  = self::get_style_state_keys( $settings );
 		$base_path   = $path;
 		$base_styles = array();
 
@@ -4035,16 +4035,30 @@ class WP_Theme_JSON {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @param array   $declarations Declarations generated for the state.
-	 * @param array   $state_style  State style object.
-	 * @param array[] $base_styles  Style objects the state layers over, nearest first.
-	 * @return array Declarations with the escapes applied where needed.
+	 * @param array[]              $declarations Declarations generated for the state.
+	 * @param array<string, mixed> $state_style  State style object.
+	 * @param array[]              $base_styles  Style objects the state layers over, nearest first.
+	 * @return array[] Declarations with the escapes applied where needed.
+	 *
+	 * @phpstan-param list<array{ name: non-falsy-string, value: scalar }> $declarations
+	 * @phpstan-param array{
+	 *     background?: array{
+	 *         backgroundClip?: mixed,
+	 *         backgroundImage?: mixed,
+	 *         gradient?: mixed,
+	 *         ...
+	 *     },
+	 *     color?: array{
+	 *         gradient?: mixed,
+	 *         text?: mixed,
+	 *         ...
+	 *     },
+	 *     ...
+	 * } $state_style
+	 * @phpstan-param list<array<string, mixed>> $base_styles
+	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
 	 */
-	private static function get_state_declarations_with_text_clip_escapes( $declarations, $state_style, $base_styles ) {
-		if ( ! is_array( $declarations ) || ! is_array( $state_style ) || ! is_array( $base_styles ) ) {
-			return $declarations;
-		}
-
+	private static function get_state_declarations_with_text_clip_escapes( array $declarations, array $state_style, array $base_styles ): array {
 		$base_clip = null;
 		foreach ( $base_styles as $base_style ) {
 			if ( ! empty( $base_style['background']['backgroundClip'] ) ) {
@@ -4220,7 +4234,7 @@ class WP_Theme_JSON {
 
 					// Process base properties for this breakpoint.
 					$breakpoint_declarations = static::compute_style_properties( $breakpoint_node, $settings, null, $this->theme_json );
-					$breakpoint_declarations = static::get_state_declarations_with_text_clip_escapes(
+					$breakpoint_declarations = self::get_state_declarations_with_text_clip_escapes(
 						$breakpoint_declarations,
 						$breakpoint_node,
 						array( $style_variation_node, $node )
@@ -4349,14 +4363,14 @@ class WP_Theme_JSON {
 		 * element then compute the style properties for it.
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
-		$base_styles = static::get_state_base_styles( $block_metadata['path'] ?? array(), $this->theme_json, $settings );
+		$base_styles = self::get_state_base_styles( $block_metadata['path'] ?? array(), $this->theme_json, $settings );
 
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
 			isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
-			$declarations = static::get_state_declarations_with_text_clip_escapes(
+			$declarations = self::get_state_declarations_with_text_clip_escapes(
 				$declarations,
 				$node[ $pseudo_selector ],
 				array_merge( array( $node ), $base_styles )
@@ -4368,7 +4382,7 @@ class WP_Theme_JSON {
 			 * so those properties are not output twice.
 			 */
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
-			$declarations = static::get_state_declarations_with_text_clip_escapes( $declarations, $node, $base_styles );
+			$declarations = self::get_state_declarations_with_text_clip_escapes( $declarations, $node, $base_styles );
 		}
 
 		$block_rules = '';
