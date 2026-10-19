@@ -159,11 +159,6 @@ parameters:
 			count: 9
 			path: ../../../src/wp-admin/includes/class-core-upgrader.php
 		-
-			message: '#^Variable \$subject might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: ../../../src/wp-admin/includes/class-wp-automatic-updater.php
-		-
 			message: '#^Variable \$wp_version might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
