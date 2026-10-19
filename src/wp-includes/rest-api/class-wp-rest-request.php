@@ -42,11 +42,25 @@
  * }
  * @phpstan-type File_Param array{
  *     name: non-empty-string,
- *     type: non-empty-string,
+ *     type: string,
  *     size: non-negative-int,
  *     tmp_name: non-empty-string,
- *     error: int<0, 8>,
+ *     error: 0,
  *     full_path?: non-empty-string,
+ * }|array{
+ *     name: string,
+ *     type: string,
+ *     size: non-negative-int,
+ *     tmp_name: string,
+ *     error: int<1, 8>,
+ *     full_path?: string,
+ * }|array{
+ *     name: array<mixed>,
+ *     type: array<mixed>,
+ *     size: array<mixed>,
+ *     tmp_name: array<mixed>,
+ *     error: array<mixed>,
+ *     full_path?: array<mixed>,
  * }
  * @phpstan-type Parameter_Type 'URL'|'GET'|'POST'|'FILES'|'JSON'|'defaults'
  * @phpstan-type Params array{
