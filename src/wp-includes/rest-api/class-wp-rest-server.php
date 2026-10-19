@@ -20,6 +20,8 @@
  *
  * @since 4.4.0
  *
+ * @phpstan-import-type Target_Hints from WP_REST_Response
+ *
  * @phpstan-type Endpoint_Arg array{
  *     required?: bool,
  *     default?: mixed,
@@ -28,8 +30,6 @@
  *     sanitize_callback?: callable|false|null,
  *     ...
  * }
- * @phpstan-import-type Target_Hints from WP_REST_Response
- *
  * @phpstan-type Route_Handler array{
  *     methods: array<uppercase-string, true>,
  *     callback?: callable|null,
