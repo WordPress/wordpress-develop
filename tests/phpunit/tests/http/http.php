@@ -21,7 +21,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_make_absolute_url() {
+	public static function data_make_absolute_url() {
 		// 0: The Location header, 1: The current URL, 3: The expected URL.
 		return array(
 			// Absolute URL provided.
@@ -89,7 +89,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_parse_url() {
+	public static function data_wp_parse_url() {
 		// 0: The URL, 1: The expected resulting structure.
 		return array(
 			array(
@@ -226,7 +226,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_parse_url_with_component() {
+	public static function data_wp_parse_url_with_component() {
 		// 0: The URL, 1: The requested component, 2: The expected resulting structure.
 		return array(
 			array( self::FULL_TEST_URL, PHP_URL_SCHEME, 'http' ),
@@ -326,7 +326,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_get_component_from_parsed_url_array() {
+	public static function data_get_component_from_parsed_url_array() {
 		// 0: A URL, 1: PHP URL constant, 2: The expected result.
 		return array(
 			array(
@@ -366,7 +366,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_wp_translate_php_url_constant_to_key() {
+	public static function data_wp_translate_php_url_constant_to_key() {
 		// 0: PHP URL constant, 1: The expected result.
 		return array(
 			array( PHP_URL_SCHEME, 'scheme' ),
@@ -416,7 +416,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_http_validate_url_should_validate() {
+	public static function data_wp_http_validate_url_should_validate() {
 		return array(
 			'no port specified'                 => array(
 				'url' => 'http://example.com/caniload.php',
@@ -490,7 +490,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_http_validate_url_should_not_validate() {
+	public static function data_wp_http_validate_url_should_not_validate() {
 		return array(
 			'url as false'                                 => array(
 				'url' => false,

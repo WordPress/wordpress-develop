@@ -616,7 +616,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertSame( $method, wp_remote_retrieve_body( $res ) );
 	}
 
-	public function data_post_redirect_to_method_300() {
+	public static function data_post_redirect_to_method_300() {
 		return array(
 			// Test 300 - POST to POST.
 			array(
