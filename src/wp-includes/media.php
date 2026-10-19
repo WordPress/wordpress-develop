@@ -6930,6 +6930,8 @@ function wp_send_document_isolation_policy_header(): bool {
  * @since 7.2.0
  *
  * @return bool True when the response will be cross-origin isolated.
+ *
+ * @global bool $_wp_cross_origin_isolated Whether the DIP header was sent.
  */
 function wp_is_cross_origin_isolated_request(): bool {
 	global $_wp_cross_origin_isolated;
