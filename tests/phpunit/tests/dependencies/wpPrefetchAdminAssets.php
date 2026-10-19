@@ -2,10 +2,6 @@
 /**
  * Tests for {@see wp_prefetch_admin_assets()}.
  *
- * Prefetching only happens when concatenation is off. Each test turns it off with the
- * {@see 'wp_should_concatenate_admin_scripts'} filter, so that it does not depend on the
- * `CONCATENATE_SCRIPTS` and `SCRIPT_DEBUG` constants, which cannot be changed once defined.
- *
  * @package WordPress
  * @subpackage Script Loader
  *
@@ -31,8 +27,7 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	private $original_script_name;
 
 	/**
-	 * Gives each test fresh script and style registries, since several tests modify them, and turns
-	 * concatenation off.
+	 * Gives each test fresh script and style registries, since several tests modify them.
 	 */
 	public function set_up(): void {
 		parent::set_up();
@@ -43,8 +38,6 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 		}
 
 		$this->original_script_name = $_SERVER['SCRIPT_NAME'] ?? null;
-
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_false' );
 	}
 
 	/**
@@ -69,65 +62,30 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that nothing is prefetched from the login screen when the admin concatenates its assets.
-	 *
-	 * @ticket 57548
-	 */
-	public function test_login_prints_nothing_when_admin_concatenates(): void {
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_login() );
-	}
-
-	/**
-	 * Tests that the login screen predicts what the admin will do rather than reading the
-	 * `$concatenate_scripts` global, which script_concat_settings() may have settled on false before
-	 * 'login_init' fired.
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from the login screen,
+	 * as nothing is concatenated.
 	 *
 	 * @ticket 57548
 	 */
 	public function test_login_ignores_concatenate_scripts_global(): void {
 		$GLOBALS['concatenate_scripts'] = true;
 
-		$this->assertNotSame( array(), $this->get_prefetched_on_login(), 'Expected prefetching when the admin will not concatenate.' );
-
-		$GLOBALS['concatenate_scripts'] = false;
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_login(), 'Expected no prefetching when the admin will concatenate.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_login() );
 	}
 
 	/**
-	 * Tests that an admin screen goes by the `$concatenate_scripts` global, which has settled by the
-	 * time its head is printed, so a plugin setting the global is respected.
+	 * Tests that the `$concatenate_scripts` global no longer stops prefetching from an admin screen,
+	 * as nothing is concatenated.
 	 *
 	 * @ticket 57548
 	 */
-	public function test_admin_screen_uses_concatenate_scripts_global(): void {
+	public function test_admin_screen_ignores_concatenate_scripts_global(): void {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
 		$GLOBALS['concatenate_scripts'] = true;
 
-		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected no prefetching when the global says to concatenate.' );
-
-		$GLOBALS['concatenate_scripts'] = false;
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ), 'Expected prefetching when the global says not to concatenate.' );
-	}
-
-	/**
-	 * Tests that an admin screen settles the `$concatenate_scripts` global with script_concat_settings()
-	 * when nothing has done so yet.
-	 *
-	 * @ticket 57548
-	 */
-	public function test_admin_screen_settles_concatenate_scripts_global(): void {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		add_filter( 'wp_should_concatenate_admin_scripts', '__return_true' );
-
-		$this->assertSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
-		$this->assertTrue( $GLOBALS['concatenate_scripts'] );
+		$this->assertSame( 0, did_action( 'login_init' ), 'Expected the request not to be one for the login screen.' );
+		$this->assertNotSame( array(), $this->get_prefetched_on_admin_screen( 'dashboard' ) );
 	}
 
 	/**
