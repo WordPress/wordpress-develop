@@ -2590,7 +2590,7 @@ class WP_HTML_Tag_Processor {
 	 * with no attributes. When adding attributes to such a token, the existing
 	 * attribute-like text must be discarded before new attributes can appear.
 	 *
-	 * @since 6.9.0
+	 * @since 7.2.0
 	 * @ignore
 	 */
 	private function rewrite_br_tag_closer(): void {
