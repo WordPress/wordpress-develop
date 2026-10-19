@@ -66,7 +66,7 @@ class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 		return self::SHORTCODE_RETURN_VALUE;
 	}
 
-	public function shortcode_provider() {
+	public static function shortcode_provider() {
 		return array(
 			'gallery_shortcode_is_allowed'         => array(
 				'payload'  => array( 'shortcode' => '[gallery ids=" ' . self::$media_id . '"]' ),
