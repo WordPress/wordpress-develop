@@ -303,16 +303,7 @@ jobs:
               if ( active.length > 0 ) {
                 sections.push(
                   '### Running PHPStan locally',
-                  [
-                    'To run the analysis on your own machine, use:',
-                    '',
-                    '```bash',
-                    'npm run typecheck:php',
-                    '```',
-                    '',
-                    'or `composer phpstan` outside the Docker environment.',
-                    `See [\`tests/phpstan/README.md\`](${ readmeUrl }) for details.`,
-                  ].join( '\n' )
+                  `To [run the analysis](${ readmeUrl }#running-the-tests) on your own machine, use \`npm run typecheck:php\`, or \`composer phpstan\` outside the Docker environment.`
                 );
               }
 
