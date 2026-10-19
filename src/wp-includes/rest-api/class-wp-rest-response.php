@@ -17,16 +17,16 @@
  * @phpstan-import-type Route_Handler from WP_REST_Server
  *
  * @phpstan-type Link array{
- *     href: string,
+ *     href: non-falsy-string,
  *     attributes: array<string, mixed>,
  * }
  * @phpstan-type Link_Input array{
- *     href: string,
+ *     href: non-falsy-string,
  *     ...
  * }
  * @phpstan-type Curie array{
- *     name: string,
- *     href: string,
+ *     name: non-falsy-string,
+ *     href: non-falsy-string,
  *     templated?: bool,
  * }
  */
@@ -74,6 +74,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @param array<string, mixed> $attributes Optional. Link parameters to send along with the URL. Default empty array.
 	 *
 	 * @phpstan-param non-falsy-string $rel
+	 * @phpstan-param non-falsy-string $href
 	 */
 	public function add_link( $rel, $href, $attributes = array() ) {
 		if ( empty( $this->links[ $rel ] ) ) {
