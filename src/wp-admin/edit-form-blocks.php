@@ -129,18 +129,6 @@ $preload_paths = array(
 	'/wp/v2/view-config?kind=postType&name=' . $post_type . '&_fields=form',
 );
 
-if ( post_type_supports( $post_type, 'author' ) && $post->post_author > 0 ) {
-	// The post summary of the inspector queries the author through the users collection.
-	$preload_paths[] = add_query_arg(
-		array(
-			'context' => 'view',
-			'include' => array( (int) $post->post_author ),
-			'who'     => 'authors',
-		),
-		'/wp/v2/users'
-	);
-}
-
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
 wp_add_inline_script(
