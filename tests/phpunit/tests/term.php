@@ -147,7 +147,7 @@ class Tests_Term extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_remove_object_terms( $posts[0], $tags[1], 'post_tag' ) );
 		$this->assertFalse( wp_remove_object_terms( $posts[0], $tags[0], 'post_tag' ) );
-		$this->assertInstanceOf( 'WP_Error', wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
+		$this->assertWPError( wp_remove_object_terms( $posts[0], $tags[1], 'non_existing_taxonomy' ) );
 		$this->assertTrue( wp_remove_object_terms( $posts[1], $three_tags, 'post_tag' ) );
 		$this->assertCount( 0, wp_get_object_terms( $posts[1], 'post_tag' ) );
 
