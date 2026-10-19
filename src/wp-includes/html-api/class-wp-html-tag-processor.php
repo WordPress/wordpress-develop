@@ -4802,6 +4802,24 @@ class WP_HTML_Tag_Processor {
 		 *    replacement: ``
 		 *
 		 *    Result: <div />
+		 *
+		 * Inside a tag, `/` is ignored unless `>` immediately follows it, which
+		 * makes it the self-closing flag. A `/` directly before an attribute is
+		 * always one of these ignored separators: tag names and attribute names
+		 * end at `/`, and when a `/` appears in an unquoted value, the characters
+		 * after it belong to the value, not to a new attribute. Removing the
+		 * attribute could leave that `/` directly before the `>`, so a space
+		 * replaces the attribute instead.
+		 *
+		 * Example – remove the attribute attr from <g /attr>:
+		 *    <g /attr>
+		 *        ^--^
+		 *    replacement: ` `
+		 *
+		 *    Result: <g / >
+		 *
+		 * get_enqueued_attribute_value() and get_attribute_names_with_prefix()
+		 * read a replacement of a single space as a removal.
 		 */
 		$attribute_token = $this->attributes[ $name ];
 		$replacement     = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
