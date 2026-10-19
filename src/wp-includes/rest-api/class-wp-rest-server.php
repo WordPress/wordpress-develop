@@ -1324,6 +1324,8 @@ class WP_REST_Server {
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
 		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 *
+		 * @phpstan-param Route_Handler $handler
 		 */
 		$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
 
@@ -1355,6 +1357,8 @@ class WP_REST_Server {
 			 * @param WP_REST_Request      $request         Request used to generate the response.
 			 * @param string               $route           Route matched for the request.
 			 * @param array<string, mixed> $handler         Route handler used for the request.
+			 *
+			 * @phpstan-param Route_Handler $handler
 			 */
 			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
 
@@ -1386,6 +1390,8 @@ class WP_REST_Server {
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
 		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 *
+		 * @phpstan-param Route_Handler $handler
 		 */
 		$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
 
