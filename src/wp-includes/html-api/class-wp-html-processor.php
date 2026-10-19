@@ -5624,6 +5624,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			$this->state->current_token                     = null;
 			$this->current_element                          = null;
 			$this->element_queue                            = array();
+			$this->has_produced_after_body_content          = false;
+			$this->has_procuded_after_html_content          = false;
 
 			/*
 			 * The absence of a context node indicates a full parse.
