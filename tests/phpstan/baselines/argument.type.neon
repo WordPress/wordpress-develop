@@ -99,11 +99,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-admin/includes/class-custom-image-header.php
 		-
-			message: '#^Parameter \#1 \$language_updates of method Language_Pack_Upgrader\:\:bulk_upgrade\(\) expects array\<object\>, list\<string\>\|string\|false given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/class-language-pack-upgrader.php
-		-
 			message: '#^Parameter \#1 \$str of function md5 expects string, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -304,22 +299,12 @@ parameters:
 			count: 1
 			path: ../../../src/wp-admin/includes/template.php
 		-
-			message: '#^Parameter \#1 \$update of method Language_Pack_Upgrader\:\:upgrade\(\) expects string\|false, object\{language\: string, version\: string, updated\: string, english_name\: string, native_name\: string, package\: string, iso\: array\<string\>, strings\: array\}&stdClass given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/translation-install.php
-		-
 			message: '#^Parameter \#3 \$overwrite of method WP_Filesystem_Base\:\:copy\(\) expects bool, int given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/update-core.php
 		-
 			message: '#^Parameter \#1 \$timestamp of function wp_schedule_event expects int, float given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-admin/includes/upgrade.php
-		-
-			message: '#^Parameter \#3 \$deprecated of function add_option expects string, null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-admin/includes/upgrade.php
@@ -434,7 +419,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
+			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, show_in_abilities\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
@@ -689,16 +674,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/blocks.php
 		-
-			message: '#^Parameter \#1 \$post of function get_permalink expects int\|WP_Post, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/canonical.php
-		-
-			message: '#^Parameter \#1 \$post_id of function get_post_comments_feed_link expects int, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/canonical.php
-		-
 			message: '#^Parameter \#2 \$callback of function preg_replace_callback expects callable\(array\<string\>\)\: string, ''lowercase_octets'' given\.$#'
 			identifier: argument.type
 			count: 1
@@ -729,7 +704,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\|string\|false\> given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<int\<min, \-1\>\|int\<1, max\>\|string\|false\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-customize-manager.php
@@ -773,11 +748,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/class-wp-embed.php
-		-
-			message: '#^Parameter \#1 \$handle of function curl_getinfo expects resource, \(resource\|false\) given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/class-wp-http-curl.php
 		-
 			message: '#^Parameter \#3 \$value of function curl_setopt expects int, string given\.$#'
 			identifier: argument.type
@@ -849,7 +819,7 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/class-wp-widget.php
 		-
-			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: int\|string, post_date_gmt\: int\|string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
+			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\{post_author\: int, post_date\: string, post_date_gmt\: string, post_content\: string, post_title\: string, post_category\: array\<string\>\|string, post_status\: ''draft''\|''publish''\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/class-wp-xmlrpc-server.php
@@ -934,11 +904,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/formatting.php
 		-
-			message: '#^Parameter \#1 \$finfo of function finfo_file expects resource, resource\|false given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/functions.php
-		-
 			message: '#^Parameter \#1 \$prefix of function uniqid expects string, int\<0, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -994,6 +959,11 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
+			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: ../../../src/wp-includes/general-template.php
+		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
@@ -1008,11 +978,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/general-template.php
-		-
-			message: '#^Parameter \#1 \$name of method WP_HTML_Tag_Processor\:\:set_bookmark\(\) expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			message: '#^Parameter \#1 \$user_id of function get_userdata expects int, string given\.$#'
 			identifier: argument.type

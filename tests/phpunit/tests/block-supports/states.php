@@ -377,16 +377,24 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 	public function test_converts_state_preset_vars_to_css_vars() {
 		$actual = wp_normalize_state_preset_vars(
 			array(
-				'border' => array(
+				'border'     => array(
 					'color' => 'var:preset|color|accent-1',
+				),
+				'typography' => array(
+					'fontSize'   => 'var:preset|font-size|3xl',
+					'fontFamily' => 'var:preset|font-family|heavenlyBlue',
 				),
 			)
 		);
 
 		$this->assertSame(
 			array(
-				'border' => array(
+				'border'     => array(
 					'color' => 'var(--wp--preset--color--accent-1)',
+				),
+				'typography' => array(
+					'fontSize'   => 'var(--wp--preset--font-size--3-xl)',
+					'fontFamily' => 'var(--wp--preset--font-family--heavenly-blue)',
 				),
 			),
 			$actual
@@ -873,6 +881,51 @@ class Tests_Block_Supports_States extends WP_UnitTestCase {
 		$actual   = wp_render_block_states_support( $block_content, $block );
 
 		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that rendered state CSS includes fallback dimension declarations.
+	 *
+	 * @covers ::wp_render_block_states_support
+	 * @covers ::wp_add_block_state_style_rule
+	 *
+	 * @ticket 66275
+	 */
+	public function test_responsive_height_generates_aspect_ratio_unset_in_stylesheet() {
+		$this->ensure_block_registered( 'test/responsive-root-state' );
+
+		$block = array(
+			'blockName' => 'test/responsive-root-state',
+			'attrs'     => array(
+				'style' => array(
+					'@mobile' => array(
+						'dimensions' => array( 'minHeight' => '300px' ),
+					),
+				),
+			),
+		);
+
+		$actual    = wp_render_block_states_support( '<div class="wp-block-test">Hello</div>', $block );
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag() );
+
+		$state_class = null;
+		foreach ( $processor->class_list() as $class_name ) {
+			if ( str_starts_with( $class_name, 'wp-states-' ) ) {
+				$state_class = $class_name;
+				break;
+			}
+		}
+		$this->assertIsString( $state_class, 'Expected a wp-states-* class on the first tag.' );
+
+		$actual_stylesheet = wp_style_engine_get_stylesheet_from_context( 'block-supports', array( 'prettify' => false ) );
+
+		$this->assertStringContainsString(
+			"@media (width <= 480px){.{$state_class}{",
+			$actual_stylesheet
+		);
+		$this->assertStringContainsString( 'min-height:300px', $actual_stylesheet );
+		$this->assertStringContainsString( 'aspect-ratio:unset', $actual_stylesheet );
 	}
 
 	/**

@@ -98,7 +98,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_should_only_add_primary_column_when_needed() {
+	public static function data_should_only_add_primary_column_when_needed() {
 		/*
 		 * `WP_Post_Comments_List_Table` overrides `get_column_info()` rather than
 		 * use the default `WP_List_Table::get_column_info()`. Therefore it is
@@ -187,7 +187,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_views_links() {
+	public static function data_get_views_links() {
 		return array(
 			'one "current" link'                           => array(
 				'link_data' => array(
@@ -301,7 +301,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_get_views_links_doing_it_wrong() {
+	public static function data_get_views_links_doing_it_wrong() {
 		return array(
 			'non-array $link_data'               => array(
 				'link_data' => 'https://example.org, All, class="current" aria-current="page"',
@@ -509,7 +509,7 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_compat_fields() {
+	public static function data_compat_fields() {
 		return array(
 			'_args'            => array(
 				'property_name' => '_args',
@@ -600,5 +600,60 @@ class Tests_Admin_WpListTable extends WP_UnitTestCase {
 		$expected_html = '<input type="hidden" name="orderby" value="title" />';
 
 		$this->assertStringContainsString( $expected_html, $actual );
+	}
+
+	/**
+	 * Tests that `WP_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_List_Table::_js_vars
+	 */
+	public function test_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-list-table-nonce';
+				return $attributes;
+			}
+		);
+
+		$actual = get_echo( array( $this->list_table, '_js_vars' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
+	}
+
+	/**
+	 * Tests that `WP_Themes_List_Table::_js_vars()` prints its data through
+	 * `wp_print_inline_script_tag()`, so attributes such as a per-request nonce
+	 * can be attached via the `wp_inline_script_attributes` filter.
+	 *
+	 * @ticket 59446
+	 *
+	 * @covers WP_Themes_List_Table::_js_vars
+	 */
+	public function test_themes_list_table_js_vars_prints_inline_script_tag_with_filterable_attributes() {
+		$themes_list_table = _get_list_table( WP_Themes_List_Table::class, array( 'screen' => 'themes' ) );
+		$this->assertInstanceOf( WP_Themes_List_Table::class, $themes_list_table, 'Expected list table class.' );
+
+		add_filter(
+			'wp_inline_script_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'test-themes-list-table-nonce';
+				return $attributes;
+			}
+		);
+
+		$actual = get_echo( array( $themes_list_table, '_js_vars' ) );
+
+		$processor = new WP_HTML_Tag_Processor( $actual );
+		$this->assertTrue( $processor->next_tag( 'SCRIPT' ), 'The expected SCRIPT tag was not printed.' );
+		$this->assertSame( 'test-themes-list-table-nonce', $processor->get_attribute( 'nonce' ), 'The nonce attribute added via wp_inline_script_attributes was not printed.' );
+		$this->assertStringContainsString( 'theme_list_args =', $processor->get_modifiable_text(), 'The expected JavaScript variable was not printed.' );
 	}
 }
