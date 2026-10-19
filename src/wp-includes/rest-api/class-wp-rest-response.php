@@ -320,7 +320,7 @@ class WP_REST_Response extends WP_HTTP_Response {
 		 *
 		 * @param array<string, string|bool>[] $additional Additional CURIEs to register with the REST API.
 		 *
-		 * @phpstan-param array<array{name: string, href: string, templated?: bool}> $additional
+		 * @phpstan-param array<Curie> $additional
 		 */
 		$additional = apply_filters( 'rest_response_link_curies', array() );
 
