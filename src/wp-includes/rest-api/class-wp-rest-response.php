@@ -25,7 +25,7 @@
  *     ...
  * }
  * @phpstan-type Curie array{
- *     name: non-falsy-string,
+ *     name: string,
  *     href: non-falsy-string,
  *     templated?: bool,
  * }
