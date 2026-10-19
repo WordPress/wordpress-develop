@@ -69,4 +69,35 @@ class Tests_Load_WpStartScrapingEditedFileErrors extends WP_UnitTestCase {
 
 		$this->assertFalse( defined( 'WP_SANDBOX_SCRAPING' ) );
 	}
+
+	/**
+	 * Only this test defines WP_SANDBOX_SCRAPING, so it is the only one that
+	 * needs its own process. The tests above can run in the normal process.
+	 *
+	 * @ticket 65819
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_defines_sandbox_scraping_when_nonce_matches() {
+		$key   = 'matchingkey12345678901234567890';
+		$nonce = 'nonce-value';
+
+		set_transient( 'scrape_key_' . $key, $nonce, 60 );
+
+		$_REQUEST['wp_scrape_key']   = $key;
+		$_REQUEST['wp_scrape_nonce'] = $nonce;
+
+		// A matching nonce registers wp_finalize_scraping_edited_file_errors() as a
+		// shutdown function. It prints the scrape markers when this child process
+		// exits, after PHPUnit has already recorded the test result. This is safe
+		// because the test runs in an isolated process, so the output does not
+		// affect the result or any other test.
+		wp_start_scraping_edited_file_errors();
+
+		$this->assertTrue( defined( 'WP_SANDBOX_SCRAPING' ) );
+		$this->assertTrue( WP_SANDBOX_SCRAPING );
+
+		delete_transient( 'scrape_key_' . $key );
+	}
 }
