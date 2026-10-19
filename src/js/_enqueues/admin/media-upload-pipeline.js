@@ -296,9 +296,10 @@ window.wp = window.wp || {};
 	 *
 	 * Rendering the provider with useSubRegistry: false wires the settings
 	 * into the store that wp.data.dispatch/select address. The block editor
-	 * does the same for its own uploads, so on a screen where it already
-	 * has, its settings are used as they are and no second provider is
-	 * rendered.
+	 * does the same for its own uploads, so on its screens no second
+	 * provider is rendered: whichever committed last would win, and this
+	 * one could replace the editor's mediaUpload. Uploads wait for the
+	 * editor's settings instead (see isReady()).
 	 *
 	 * @return {boolean} True when the pipeline is configured and usable.
 	 */
@@ -314,7 +315,7 @@ window.wp = window.wp || {};
 		configured = true;
 		uploadStore = wp.uploadMedia.store;
 
-		if ( isStoreConfigured() ) {
+		if ( settings.isBlockEditor || isStoreConfigured() ) {
 			wp.data.subscribe( onStoreChange, uploadStore );
 			addUnloadGuard();
 			return true;
@@ -380,9 +381,8 @@ window.wp = window.wp || {};
 	 * never data loss. The store's default state already carries a no-op
 	 * `mediaUpload`, so only settings a provider alone supplies prove the
 	 * real ones have landed: a file queued before that would be handed to
-	 * the no-op and never upload. The block editor's provider counts too:
-	 * when it renders after this script's, its settings replace them, and
-	 * they drive the same pipeline.
+	 * the no-op and never upload. On block editor screens only the
+	 * editor's provider supplies them.
 	 *
 	 * @return {boolean} True when the store is ready to accept files.
 	 */

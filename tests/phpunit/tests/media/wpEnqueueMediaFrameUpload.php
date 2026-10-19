@@ -230,7 +230,8 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 
 		$inline = wp_scripts()->get_inline_script_data( 'media-upload-pipeline', 'before' );
 
-		$json = wp_json_encode( wp_get_media_library_upload_settings(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
+		$settings = array_merge( wp_get_media_library_upload_settings(), array( 'isBlockEditor' => false ) );
+		$json     = wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
 		$this->assertIsString( $json );
 		$this->assertStringContainsString( $json, $inline );
 	}
@@ -250,6 +251,23 @@ class Tests_Media_wpEnqueueMediaFrameUpload extends WP_UnitTestCase {
 		$this->assertTrue( wp_script_is( 'media-frame-upload', 'enqueued' ) );
 		$this->assertTrue( wp_script_is( 'media-new-upload', 'enqueued' ) );
 		$this->assertSame( 1, substr_count( $inline, '_wpMediaUploadPipelineSettings' ) );
+	}
+
+	/**
+	 * On block editor screens the editor configures the upload-media store,
+	 * so the pipeline must not render a second provider.
+	 *
+	 * @ticket 65661
+	 */
+	public function test_inline_settings_flag_block_editor_screen() {
+		set_current_screen( 'post' );
+		get_current_screen()->is_block_editor( true );
+
+		wp_enqueue_media_frame_upload();
+
+		$inline = wp_scripts()->get_inline_script_data( 'media-upload-pipeline', 'before' );
+
+		$this->assertStringContainsString( '"isBlockEditor":true', $inline );
 	}
 
 	/**

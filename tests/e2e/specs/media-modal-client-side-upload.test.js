@@ -129,6 +129,46 @@ test.describe( 'Media modal client-side uploads', () => {
 		).toHaveCount( 1 );
 	} );
 
+	test( 'leaves the upload-media store configured by the block editor', async ( {
+		page,
+	} ) => {
+		const isolated = await page.evaluate( () =>
+			Boolean( window.crossOriginIsolated )
+		);
+		test.skip(
+			! isolated,
+			'The client-side pipeline requires a cross-origin isolated context'
+		);
+
+		// The editor's provider passes its own mediaUpload setting; a second
+		// provider from the media frame script would pass the raw media-utils one.
+		await expect
+			.poll( () =>
+				page.evaluate( () => {
+					const settings = window.wp.data
+						.select( window.wp.uploadMedia.store )
+						.getSettings();
+					return Boolean( settings.mediaFinalize ) &&
+						settings.mediaUpload !== window.wp.mediaUtils.uploadMedia;
+				} )
+			)
+			.toBe( true );
+
+		// Give a late provider render the chance to commit.
+		await page.evaluate(
+			() => new Promise( ( resolve ) => setTimeout( resolve, 500 ) )
+		);
+		expect(
+			await page.evaluate(
+				() =>
+					window.wp.data
+						.select( window.wp.uploadMedia.store )
+						.getSettings().mediaUpload !==
+					window.wp.mediaUtils.uploadMedia
+			)
+		).toBe( true );
+	} );
+
 	test( 'uploads an image from the media modal through the client-side pipeline', async ( {
 		page,
 		editor,

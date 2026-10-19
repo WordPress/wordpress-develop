@@ -6853,7 +6853,12 @@ function _wp_enqueue_media_upload_pipeline_script( string $handle ): void {
 		return;
 	}
 
-	$settings    = wp_get_media_library_upload_settings();
+	$settings = wp_get_media_library_upload_settings();
+	$screen   = get_current_screen();
+
+	// The block editor configures the upload-media store itself; the pipeline waits for it.
+	$settings['isBlockEditor'] = $screen && $screen->is_block_editor();
+
 	$js_function = <<<'JS'
 		( settings ) => {
 			window._wpMediaUploadPipelineSettings = settings;

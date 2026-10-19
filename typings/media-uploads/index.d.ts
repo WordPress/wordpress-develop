@@ -295,6 +295,12 @@ interface Window {
 		bigImageSizeThreshold?: number | false;
 		imageStripMeta?: boolean;
 		imageMaxBitDepth?: number;
+
+		/**
+		 * Whether the block editor configures the upload-media store on
+		 * this screen.
+		 */
+		isBlockEditor?: boolean;
 	};
 
 	/**

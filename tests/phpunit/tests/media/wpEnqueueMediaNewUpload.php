@@ -183,7 +183,8 @@ class Tests_Media_wpEnqueueMediaNewUpload extends WP_UnitTestCase {
 
 		$inline = wp_scripts()->get_inline_script_data( 'media-upload-pipeline', 'before' );
 
-		$json = wp_json_encode( wp_get_media_library_upload_settings(), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
+		$settings = array_merge( wp_get_media_library_upload_settings(), array( 'isBlockEditor' => false ) );
+		$json     = wp_json_encode( $settings, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES );
 		$this->assertIsString( $json );
 		$this->assertStringContainsString( $json, $inline );
 	}
