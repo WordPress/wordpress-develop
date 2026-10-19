@@ -37,15 +37,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $admin_id;
 
 	/**
-	 * The current theme object.
-	 *
-	 * @since 5.0.0
-	 *
-	 * @var WP_Theme $current_theme
-	 */
-	protected static $current_theme;
-
-	/**
 	 * Theme support state before the class tests run.
 	 *
 	 * @var array
@@ -128,7 +119,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		self::$current_theme             = wp_get_theme();
 		self::$theme_features            = $GLOBALS['_wp_theme_features'];
 		self::$registered_theme_features = $GLOBALS['_wp_registered_theme_features'];
 
