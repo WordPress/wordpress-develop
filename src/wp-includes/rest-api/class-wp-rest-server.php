@@ -32,6 +32,7 @@
  *     methods: array<uppercase-string, true>,
  *     callback?: callable|null,
  *     permission_callback?: callable|null,
+ *     validate_callback?: callable|null,
  *     args: array<non-empty-string, Endpoint_Arg>,
  *     accept_json: bool,
  *     accept_raw: bool,
@@ -270,6 +271,8 @@ class WP_REST_Server {
 	 * @param string   $message Human-readable message.
 	 * @param int|null $status  Optional. HTTP status code to send. Default null.
 	 * @return string JSON representation of the error.
+	 *
+	 * @phpstan-param int<100, 599>|null $status
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status ) {
@@ -1214,6 +1217,8 @@ class WP_REST_Server {
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 *
+	 * @phpstan-return array{non-empty-string, Route_Handler}|WP_Error
 	 */
 	protected function match_request_to_handler( $request ) {
 		$method = $request->get_method();
@@ -1299,6 +1304,8 @@ class WP_REST_Server {
 	 * @param array           $handler  The matched route handler.
 	 * @param WP_Error|null   $response The current error object if any.
 	 * @return WP_REST_Response
+	 *
+	 * @phpstan-param Route_Handler $handler
 	 */
 	protected function respond_to_request( $request, $route, $handler, $response ) {
 		/**
@@ -1987,6 +1994,9 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 *
 	 * @param int $code HTTP status.
+	 * @return void
+	 *
+	 * @phpstan-param int<100, 599> $code
 	 */
 	protected function set_status( $code ) {
 		status_header( $code );
@@ -1999,6 +2009,7 @@ class WP_REST_Server {
 	 *
 	 * @param string $key   Header key.
 	 * @param string $value Header value.
+	 * @return void
 	 */
 	public function send_header( $key, $value ) {
 		/*
@@ -2017,7 +2028,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $headers Map of header name to header value.
+	 * @param array<string, string> $headers Map of header name to header value.
+	 * @return void
 	 */
 	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
