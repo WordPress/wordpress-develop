@@ -1599,6 +1599,104 @@ class Tests_Template extends WP_UnitTestCase {
 				),
 			),
 
+			'inline_style_attributes_filter_adds_hash'    => array(
+				'set_up'            => static function () {
+					add_filter(
+						'wp_inline_style_attributes',
+						static function ( array $attributes, string $data ): array {
+							$attributes['data-hash'] = hash( 'sha256', $data );
+							return $attributes;
+						},
+						10,
+						2
+					);
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-separator-inline-css',
+							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$processor = new WP_HTML_Tag_Processor( $filtered_buffer );
+					$found     = false;
+					while ( $processor->next_tag( 'STYLE' ) ) {
+						$hash = $processor->get_attribute( 'data-hash' );
+						if ( null === $hash ) {
+							continue;
+						}
+						$id = $processor->get_attribute( 'id' );
+						$this->assertSame( hash( 'sha256', $processor->get_modifiable_text() ), $hash, "Expected the hash to match the printed CSS for the STYLE with ID: $id" );
+						if ( 'wp-block-library-inline-css' === $id ) {
+							$found = true;
+						}
+					}
+					$this->assertTrue( $found, 'Expected the hoisted wp-block-library inline style to have a hash.' );
+				},
+			),
+
+			'block_library_inline_style_attributes_preserved' => array(
+				'set_up'            => static function () {
+					// Add an attribute to the block library inline style before wp_hoist_late_printed_styles() rebuilds it.
+					add_filter(
+						'wp_template_enhancement_output_buffer',
+						static function ( string $buffer ): string {
+							$processor = new WP_HTML_Tag_Processor( $buffer );
+							while ( $processor->next_tag( 'STYLE' ) ) {
+								if ( 'wp-block-library-inline-css' === $processor->get_attribute( 'id' ) ) {
+									$processor->set_attribute( 'data-preserved', 'yes' );
+								}
+							}
+							return $processor->get_updated_html();
+						},
+						0
+					);
+				},
+				'content'           => $blocks_content,
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-separator-inline-css',
+							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+				'assert'            => function ( string $buffer, string $filtered_buffer ) {
+					$processor = new WP_HTML_Tag_Processor( $filtered_buffer );
+					$found     = false;
+					while ( $processor->next_tag( 'STYLE' ) ) {
+						if ( 'wp-block-library-inline-css' === $processor->get_attribute( 'id' ) ) {
+							$found = true;
+							$this->assertSame( 'yes', $processor->get_attribute( 'data-preserved' ), 'Expected the existing attribute to be preserved.' );
+						}
+					}
+					$this->assertTrue( $found, 'Expected the wp-block-library inline style to be present.' );
+				},
+			),
+
 			'classic_theme_styles_omitted'                => array(
 				'set_up'            => static function () {
 					// Note that wp_enqueue_scripts is used instead of enqueue_block_assets because it runs again at the former action.
@@ -2089,7 +2187,7 @@ class Tests_Template extends WP_UnitTestCase {
 		// Create a simulated output buffer.
 		$buffer = '<html lang="en"><head><meta charset="utf-8">' . $head_output . '</head><body><main>' . $content . '</main>' . $footer_output . '</body></html>';
 
-		$global_styles_placeholder_regexp = '#<style id="wp-global-styles-placeholder-inline-css">#';
+		$global_styles_placeholder_regexp = '#<style\s[^>]*\bid="wp-global-styles-placeholder-inline-css"#';
 		$block_library_placeholder_regexp = '#/\*wp_block_styles_on_demand_placeholder:[a-f0-9]+\*/#';
 		if ( has_action( 'wp_template_enhancement_output_buffer_started', 'wp_hoist_late_printed_styles' ) ) {
 			if ( wp_style_is( 'global-styles', 'enqueued' ) ) {

@@ -2433,12 +2433,9 @@ function _print_styles() {
 		echo "<link rel='stylesheet' href='" . esc_attr( $href ) . "' media='all' />\n";
 
 		if ( ! empty( $wp_styles->print_code ) ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$style_tag_contents = "\n{$wp_styles->print_code}\n"
-				. sprintf( "/*# sourceURL=%s */\n", rawurlencode( $concat_source_url ) );
-			$processor->set_modifiable_text( $style_tag_contents );
-			echo "{$processor->get_updated_html()}\n";
+			$style_tag_contents = $wp_styles->print_code . "\n"
+				. sprintf( '/*# sourceURL=%s */', rawurlencode( $concat_source_url ) );
+			wp_print_inline_style_tag( $style_tag_contents );
 		}
 	}
 
@@ -3651,6 +3648,110 @@ function wp_print_inline_script_tag( $data, $attributes = array() ) {
 }
 
 /**
+ * Constructs an inline style tag.
+ *
+ * It is possible to inject attributes in the `<style>` tag via the {@see 'wp_inline_style_attributes'} filter.
+ *
+ * @since 7.2.0
+ *
+ * @param string                     $data       CSS for the style tag.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ * @return string HTML style tag containing the provided CSS. Any `</style` in the CSS is escaped as `\3c\2fstyle`.
+ *
+ * @phpstan-param array<non-empty-string, string|bool> $attributes
+ * @phpstan-return non-falsy-string
+ */
+function wp_get_inline_style_tag( $data, array $attributes = array() ): string {
+	$data = "\n" . trim( (string) $data, " \t\f\r\n" ) . "\n";
+
+	$processor = new WP_HTML_Tag_Processor( '<style></style>' );
+	$processor->next_tag();
+
+	/*
+	 * Set the text first so the filter receives the CSS as it will be printed, which may differ from $data after escaping.
+	 * This cannot fail for a STYLE tag, since any closing tag in the CSS is escaped rather than rejected.
+	 */
+	$processor->set_modifiable_text( $data );
+
+	/**
+	 * Filters attributes to be added to an inline style tag.
+	 *
+	 * This filter may run more than once for the same inline style, in which case only the last result is printed.
+	 * For example, the `wp-block-library` inline style is built again by {@see wp_hoist_late_printed_styles()}
+	 * after a placeholder is removed from its CSS.
+	 *
+	 * The `id` attribute, when supplied, cannot be changed or removed by this filter, since other code may locate the
+	 * `<style>` tag by it. For example, the Customizer preview locates the `wp-custom-css` style to update it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, string|bool> $attributes Key-value pairs representing `<style>` tag attributes.
+	 *                                               Only the attribute name is added to the `<style>` tag for
+	 *                                               entries with a boolean value, and that are true.
+	 * @param string                     $data       Inline CSS, as it will be printed in the `<style>` tag.
+	 */
+	$filtered_attributes = apply_filters( 'wp_inline_style_attributes', $attributes, $processor->get_modifiable_text() );
+
+	// Ensure the supplied ID is retained. Setting it first also prevents a lexical variation of the name from overriding it.
+	if ( isset( $attributes['id'] ) ) {
+		if ( ( $filtered_attributes['id'] ?? null ) !== $attributes['id'] ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: id, 2: wp_inline_style_attributes */
+					__( 'The %1$s attribute cannot be changed by the %2$s filter.' ),
+					'<code>id</code>',
+					'<code>wp_inline_style_attributes</code>'
+				),
+				'7.2.0'
+			);
+		}
+		$processor->set_attribute( 'id', $attributes['id'] );
+	}
+
+	foreach ( $filtered_attributes as $name => $value ) {
+		/*
+		 * Lexical variations of an attribute name may represent the
+		 * same attribute in HTML, therefore it is possible that the
+		 * input array might contain duplicate attributes even though
+		 * it is keyed on their name. Calling code should rewrite an
+		 * attribute's value rather than sending a duplicate attribute.
+		 *
+		 * Example:
+		 *
+		 *     array( 'id' => 'main', 'ID' => 'nav' )
+		 *
+		 * In this example, there are two keys both describing the `id`
+		 * attribute. PHP array iteration is in key-insertion order so
+		 * the 'id' value will be set in the STYLE tag.
+		 */
+		if ( null !== $processor->get_attribute( $name ) ) {
+			continue;
+		}
+
+		$processor->set_attribute( $name, $value ?? true );
+	}
+
+	return "{$processor->get_updated_html()}\n";
+}
+
+/**
+ * Prints an inline style tag.
+ *
+ * It is possible to inject attributes in the `<style>` tag via the {@see 'wp_inline_style_attributes'} filter.
+ *
+ * @since 7.2.0
+ *
+ * @param string                     $data       CSS for the style tag.
+ * @param array<string, string|bool> $attributes Optional. Key-value pairs representing `<style>` tag attributes.
+ *
+ * @phpstan-param array<non-empty-string, string|bool> $attributes
+ */
+function wp_print_inline_style_tag( $data, array $attributes = array() ): void {
+	echo wp_get_inline_style_tag( $data, $attributes );
+}
+
+/**
  * Allows small styles to be inlined.
  *
  * This improves performance and sustainability, and is opt-in. Stylesheets can opt in
@@ -3847,10 +3948,7 @@ function wp_enqueue_block_support_styles( $style, $priority = 10 ) {
 	add_action(
 		$action_hook_name,
 		static function () use ( $style ) {
-			$processor = new WP_HTML_Tag_Processor( '<style></style>' );
-			$processor->next_tag();
-			$processor->set_modifiable_text( $style );
-			echo "{$processor->get_updated_html()}\n";
+			wp_print_inline_style_tag( $style );
 		},
 		$priority
 	);
@@ -4562,7 +4660,26 @@ function wp_hoist_late_printed_styles(): void {
 				if ( '' === trim( $css_text ) ) {
 					$processor->remove();
 				} else {
-					$processor->set_modifiable_text( $css_text );
+					/*
+					 * Rebuild the STYLE tag rather than only replacing its text, so that the 'wp_inline_style_attributes'
+					 * filter runs again with the CSS as it is now printed. Otherwise, any attribute derived from the CSS,
+					 * such as a hash for a Content Security Policy, would no longer match it. The attributes already on
+					 * the tag are passed along so that they are preserved, while the filter may still override them. The
+					 * trailing newline is removed since the newline which followed the original tag remains in the buffer.
+					 */
+					$attributes = array();
+					foreach ( $processor->get_attribute_names_with_prefix( '' ) ?? array() as $attribute_name ) {
+						$attribute_value = $processor->get_attribute( $attribute_name );
+						if ( null !== $attribute_value ) {
+							$attributes[ $attribute_name ] = $attribute_value;
+						}
+					}
+					$processor->replace(
+						rtrim(
+							wp_get_inline_style_tag( $css_text, $attributes ),
+							"\n"
+						)
+					);
 				}
 
 				$inserted_after            = $printed_core_block_styles;
@@ -4575,11 +4692,10 @@ function wp_hoist_late_printed_styles(): void {
 				 * a sourceURL comment after the placeholder above is removed.
 				 */
 				if ( ! preg_match( ':^\s*(/\*# sourceURL=\S+? \*/\s*)?$:s', $extra_inline_styles ) ) {
-					$style_processor = new WP_HTML_Tag_Processor( '<style></style>' );
-					$style_processor->next_tag();
-					$style_processor->set_attribute( 'id', 'wp-block-library-inline-css-extra' );
-					$style_processor->set_modifiable_text( $extra_inline_styles );
-					$inserted_after .= "{$style_processor->get_updated_html()}\n";
+					$inserted_after .= wp_get_inline_style_tag(
+						$extra_inline_styles,
+						array( 'id' => 'wp-block-library-inline-css-extra' )
+					);
 				}
 
 				if ( '' !== $inserted_after ) {
