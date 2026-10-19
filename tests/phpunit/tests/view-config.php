@@ -140,6 +140,84 @@ class Tests_View_Config_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Post types with their own form do not receive the default form groups.
+	 *
+	 * @ticket 66229
+	 *
+	 * @dataProvider data_post_types_with_own_form
+	 *
+	 * @param string $post_type The post type.
+	 */
+	public function test_own_form_post_types_do_not_get_default_groups( $post_type ) {
+		$config = wp_get_entity_view_config( 'postType', $post_type );
+
+		$this->assertNull( $this->get_form_field( $config, 'status' ), 'The `status` group is absent.' );
+		$this->assertNull( $this->get_form_field( $config, 'discussion' ), 'The `discussion` group is absent.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_post_types_with_own_form() {
+		return array(
+			'attachment'       => array( 'attachment' ),
+			'wp_block'         => array( 'wp_block' ),
+			'wp_template'      => array( 'wp_template' ),
+			'wp_template_part' => array( 'wp_template_part' ),
+		);
+	}
+
+	/**
+	 * The `attachment` post type provides the form of the media editor: the
+	 * editable fields in a regular layout, then the rest in panels.
+	 *
+	 * @ticket 66229
+	 *
+	 * @covers ::_wp_get_entity_view_config_posttype_attachment
+	 */
+	public function test_attachment_form() {
+		$config = wp_get_entity_view_config( 'postType', 'attachment' );
+
+		$this->assertSame( array( 'type' => 'panel' ), $config['form']['layout'], 'The form uses a panel layout.' );
+
+		$regular_layout = array(
+			'type'          => 'regular',
+			'labelPosition' => 'top',
+		);
+		$this->assertSame(
+			array(
+				array(
+					'id'     => 'title',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'alt_text',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'caption',
+					'layout' => $regular_layout,
+				),
+				array(
+					'id'     => 'description',
+					'layout' => $regular_layout,
+				),
+				'date',
+				'author',
+				'filename',
+				'mime_type',
+				'filesize',
+				'media_dimensions',
+				'attached_to',
+			),
+			$config['form']['fields'],
+			'The form lists the media editor fields in order.'
+		);
+	}
+
+	/**
 	 * The default configuration exposes the documented shape for an unknown entity.
 	 */
 	public function test_default_config_for_unknown_entity() {
