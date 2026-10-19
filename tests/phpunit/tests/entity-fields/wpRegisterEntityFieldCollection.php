@@ -194,6 +194,46 @@ class Tests_Entity_Fields_WpRegisterEntityFieldCollection extends WP_Entity_Fiel
 	}
 
 	/**
+	 * A `field.php` that does not return an array with a non-empty string
+	 * id, or whose id an earlier folder took, is reported and skipped
+	 * before its id is used as a key: an array id does not cause a fatal
+	 * error, and a later folder does not replace an earlier one.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_invalid_collection_fields_are_skipped() {
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::get_collection_fields' );
+		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::get_collection_fields' );
+		$fields   = wp_get_entity_field_collection_fields( DIR_TESTDATA . '/entity-fields/collections/invalid_fields/book' );
+
+		$this->assertSame( array( 'valid' ), array_keys( $fields ), 'Only the valid field is read.' );
+		$this->assertSame( 'Valid', $fields['valid']['label'], 'A later folder with the same id does not replace the earlier one.' );
+		$this->assertCount( 2, $reported, 'The invalid fields and the duplicated ones are reported once each.' );
+		$this->assertStringContainsString( 'array_id, empty_id, int_id, not_array, null_id', $reported[0], 'The invalid fields are named by folder.' );
+		$this->assertStringContainsString( 'valid_again', $reported[1], 'The duplicated fields are named by folder.' );
+	}
+
+	/**
+	 * A collection with invalid fields registers its valid ones, and returns
+	 * false since not all of its fields are registered.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_a_collection_with_invalid_fields_registers_the_valid_ones() {
+		$this->register_post_types( array( 'test_book' => array( 'title' ) ) );
+
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Fields_Registry::register_collection' );
+		$reported = &$this->record_notices( 'WP_Entity_Fields_Registry::register_collection' );
+		$results  = $this->register_fixture_collections( 'invalid_fields', array( 'book' ) );
+		$fields   = wp_get_registered_entity_fields( 'postType', 'test_book' );
+
+		$this->assertSame( array( 'book' => false ), $results, 'A collection that skips a field returns false.' );
+		$this->assertSame( array( 'valid' ), array_column( $fields, 'id' ) );
+		$this->assertSame( 'Valid', $fields[0]['label'] );
+		$this->assertCount( 2, $reported, 'The notices name the method that registers the collection.' );
+	}
+
+	/**
 	 * A collection is registered on the action, like fields are: elsewhere
 	 * it is refused and the registry is left untouched.
 	 *

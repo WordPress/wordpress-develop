@@ -383,14 +383,17 @@ class WP_Entity_Fields_Registry {
 	 * register().
 	 *
 	 * Like register(), it only runs on the `wp_entity_fields_api_init` action. An
-	 * invalid configuration is reported with _doing_it_wrong() and skipped.
+	 * invalid configuration is reported with _doing_it_wrong() and skipped. So
+	 * is an invalid `field.php`, see get_collection_fields(): the rest of the
+	 * fields of the collection are registered.
 	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $directory The directory of the collection.
 	 * @return bool Whether the collection is valid and all of its fields are
 	 *              registered. True as well when it has no fields; false when
-	 *              called outside the `wp_entity_fields_api_init` action.
+	 *              a `field.php` is skipped, or when called outside the
+	 *              `wp_entity_fields_api_init` action.
 	 */
 	public function register_collection( $directory ) {
 		if ( ! $this->doing_entity_fields_api_init( __METHOD__ ) ) {
@@ -403,11 +406,11 @@ class WP_Entity_Fields_Registry {
 		}
 
 		if ( empty( $collection['fields'] ) ) {
-			return true;
+			return ! $collection['skipped'];
 		}
 		$registered = $this->register( $collection['origin'], $collection['kind'], $collection['name'], $collection['fields'], $collection['module'] );
 
-		return count( $registered ) === count( $collection['fields'] );
+		return ! $collection['skipped'] && count( $registered ) === count( $collection['fields'] );
 	}
 
 	/**
@@ -423,27 +426,13 @@ class WP_Entity_Fields_Registry {
 	 *                              the alphabetical order of their folders. The
 	 *                              id of a field is the name of its folder,
 	 *                              unless its `field.php` sets an `id`, and it
-	 *                              comes first in the field.
+	 *                              comes first in the field. A `field.php`
+	 *                              that does not return an array with a
+	 *                              non-empty string id, or whose id an earlier
+	 *                              folder took, is reported and skipped.
 	 */
 	public function get_collection_fields( $directory ) {
-		$files = glob( $directory . '/*/field.php' );
-		if ( empty( $files ) ) {
-			return array();
-		}
-		sort( $files, SORT_STRING );
-
-		$fields = array();
-		foreach ( $files as $file ) {
-			$field = self::require_file( $file );
-			if ( ! is_array( $field ) ) {
-				continue;
-			}
-			// The id comes first, like in the fields registered directly.
-			$field                  = array_merge( array( 'id' => basename( dirname( $file ) ) ), $field );
-			$fields[ $field['id'] ] = $field;
-		}
-
-		return $fields;
+		return $this->read_collection_fields( __METHOD__, $directory )['fields'];
 	}
 
 	/**
@@ -808,7 +797,9 @@ class WP_Entity_Fields_Registry {
 	 * @param string $method    The calling method, for the notice.
 	 * @param string $directory The directory of the collection.
 	 * @return array|null The configuration of the collection, with the `module`
-	 *                    key set and its `fields` as a list, or null when the
+	 *                    key set, its valid `fields` as a list, and `skipped`
+	 *                    telling whether a `field.php` was skipped, see
+	 *                    read_collection_fields(); or null when the
 	 *                    configuration is invalid.
 	 */
 	protected function get_collection( $method, $directory ) {
@@ -839,12 +830,103 @@ class WP_Entity_Fields_Registry {
 			return null;
 		}
 
+		$read = $this->read_collection_fields( $method, $directory );
+
 		return array_merge(
 			$config,
 			array(
-				'module' => $config['module'] ?? null,
-				'fields' => array_values( $this->get_collection_fields( $directory ) ),
+				'module'  => $config['module'] ?? null,
+				'fields'  => array_values( $read['fields'] ),
+				'skipped' => $read['skipped'],
 			)
+		);
+	}
+
+	/**
+	 * Reads the fields of a field collection, see get_collection_fields().
+	 *
+	 * The id of a field is used as a key, so it is checked before: a
+	 * `field.php` that does not return an array with a non-empty string id
+	 * is reported with _doing_it_wrong() and skipped, and so is one whose
+	 * id an earlier folder of the collection took. The rest of the fields
+	 * are read.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $method    The calling method, for the notice.
+	 * @param string $directory The directory of the collection.
+	 * @return array {
+	 *     The fields of the collection.
+	 *
+	 *     @type array<string, array> $fields  The valid fields, keyed by id,
+	 *                                         in the alphabetical order of
+	 *                                         their folders.
+	 *     @type bool                 $skipped Whether a `field.php` was skipped.
+	 * }
+	 */
+	protected function read_collection_fields( $method, $directory ) {
+		$files = glob( $directory . '/*/field.php' );
+		if ( empty( $files ) ) {
+			return array(
+				'fields'  => array(),
+				'skipped' => false,
+			);
+		}
+		sort( $files, SORT_STRING );
+
+		$fields     = array();
+		$invalid    = array();
+		$duplicated = array();
+		foreach ( $files as $file ) {
+			$folder = basename( dirname( $file ) );
+			$field  = self::require_file( $file );
+			if ( ! is_array( $field ) ) {
+				$invalid[] = $folder;
+				continue;
+			}
+
+			// The id comes first, like in the fields registered directly.
+			$field = array_merge( array( 'id' => $folder ), $field );
+			$id    = $field['id'];
+			if ( ! is_string( $id ) || '' === $id ) {
+				$invalid[] = $folder;
+			} elseif ( isset( $fields[ $id ] ) ) {
+				$duplicated[] = $folder;
+			} else {
+				$fields[ $id ] = $field;
+			}
+		}
+
+		$collection = basename( $directory );
+		if ( $invalid ) {
+			_doing_it_wrong(
+				$method,
+				sprintf(
+					/* translators: 1: The name of a field collection. 2: Comma-separated list of folder names. */
+					__( 'The `field.php` of a field must return an array, with a non-empty string `id` if it sets one. These fields of the field collection "%1$s" are skipped: %2$s.' ),
+					$collection,
+					implode( ', ', $invalid )
+				),
+				'7.2.0'
+			);
+		}
+
+		if ( $duplicated ) {
+			_doing_it_wrong(
+				$method,
+				sprintf(
+					/* translators: 1: The name of a field collection. 2: Comma-separated list of folder names. */
+					__( 'A field can only be defined once in a field collection. These fields of the field collection "%1$s" are skipped because an earlier folder defines their id: %2$s.' ),
+					$collection,
+					implode( ', ', $duplicated )
+				),
+				'7.2.0'
+			);
+		}
+
+		return array(
+			'fields'  => $fields,
+			'skipped' => $invalid || $duplicated,
 		);
 	}
 
