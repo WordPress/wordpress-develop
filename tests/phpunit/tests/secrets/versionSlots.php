@@ -57,6 +57,21 @@ class Tests_Secrets_VersionSlots extends WP_UnitTestCase {
 		$this->assertNeverContainsPlaintext( 'value-a', get_option( '_wp_secret_myplugin/api-key' ) );
 	}
 
+	/**
+	 * Saving the current value again, as a settings form does, must not discard
+	 * the previous value a rotation still depends on.
+	 *
+	 * @ticket 66353
+	 */
+	public function test_rewriting_the_current_value_keeps_the_previous_slot(): void {
+		wp_set_secret( 'myplugin/api-key', 'first-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+		wp_set_secret( 'myplugin/api-key', 'second-value' );
+
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::PREVIOUS, 'first-value' );
+		$this->assertRecordSlotDecryptsTo( 'myplugin/api-key', WP_Secret_Version::CURRENT, 'second-value' );
+	}
+
 	public function test_previous_preserves_its_original_fingerprint(): void {
 		wp_set_secret( 'myplugin/api-key', 'first-value' );
 		$original = wp_get_secret( 'myplugin/api-key' );
