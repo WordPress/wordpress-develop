@@ -849,14 +849,18 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
 		$response_headers = array_change_key_case( $response_headers );
 
+		// Parses a list of methods, keeping only syntactically valid method tokens (RFC 9110, section 9.1).
+		$parse_methods = static function ( $methods ): array {
+			if ( ! is_array( $methods ) && ! is_string( $methods ) ) {
+				return array();
+			}
+			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $methods ) );
+			return is_array( $methods ) ? array_values( $methods ) : array();
+		};
+
 		$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
 		if ( isset( $response_headers['access-control-allow-methods'] ) ) {
-			// Keep only syntactically valid method tokens (RFC 9110, section 9.1).
-			$allow_methods = array_values(
-				array_filter(
-					(array) preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $response_headers['access-control-allow-methods'] ) )
-				)
-			);
+			$allow_methods = $parse_methods( $response_headers['access-control-allow-methods'] );
 		}
 
 		/**
@@ -869,14 +873,15 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		 *
 		 * If the response already set its own `Access-Control-Allow-Methods` header,
 		 * `$allow_methods` is the valid methods it names instead of the default list.
-		 * An empty list omits the header.
+		 * Entries that are not valid method tokens are dropped, and an empty list
+		 * omits the header.
 		 *
 		 * @since 7.2.0
 		 *
 		 * @param string[]             $allow_methods The list of HTTP methods to allow.
 		 * @param WP_REST_Request|null $request       The request in context, if available.
 		 */
-		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
+		$allow_methods = $parse_methods( apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null ) );
 
 		if ( ! empty( $allow_methods ) ) {
 			$send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );

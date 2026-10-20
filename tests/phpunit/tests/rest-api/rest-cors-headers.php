@@ -220,6 +220,76 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A filter may return the list as a string, as in the header value.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_may_return_a_string() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function () {
+				return 'OPTIONS, GET';
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( 'OPTIONS, GET', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * Entries in the filtered list that are not valid method tokens are dropped.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_drops_invalid_method_tokens() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function () {
+				return array( 'GET', 'P@TCH', "DELETE\r\nX-Injected: 1", '0' );
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( 'GET, 0', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * An empty filtered list removes a value the response already sent.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_empty_filter_value_removes_the_header() {
+		add_filter(
+			'rest_post_dispatch',
+			static function ( WP_HTTP_Response $response ) {
+				$response->header( 'Access-Control-Allow-Methods', 'OPTIONS, GET' );
+				return $response;
+			}
+		);
+		add_filter( 'rest_allowed_cors_methods', '__return_empty_array' );
+
+		$server = $this->get_rest_server();
+		$server->serve_request( '/wp/v2/types' );
+
+		$this->assertArrayNotHasKey( 'Access-Control-Allow-Methods', $server->sent_headers );
+	}
+
+	/**
+	 * A filtered value that is not a list omits the header.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_that_is_not_a_list_omits_the_header() {
+		add_filter( 'rest_allowed_cors_methods', '__return_null' );
+
+		$this->send_cors_headers();
+
+		$this->assertArrayNotHasKey( 'Access-Control-Allow-Methods', $this->get_rest_server()->sent_headers );
+	}
+
+	/**
 	 * Serving a request passes the request in context to the filter.
 	 *
 	 * @ticket 46992
