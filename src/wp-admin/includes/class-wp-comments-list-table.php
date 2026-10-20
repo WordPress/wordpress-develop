@@ -20,6 +20,26 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 	public $pending_count = array();
 
+	/**
+	 * The current list of items.
+	 *
+	 * @since 3.1.0
+	 *
+	 * @var array<int, WP_Comment>
+	 */
+	public $items;
+
+	/**
+	 * Extra comments fetched beyond the current page.
+	 *
+	 * These are rendered in the hidden `the-extra-comment-list` table body so that
+	 * rows can be backfilled when comments are removed from the list via Ajax.
+	 *
+	 * @since 3.1.0
+	 * @since 4.2.0 Declared a previously dynamic property.
+	 *
+	 * @var array<int, WP_Comment>
+	 */
 	public $extra_items;
 
 	private $user_can;
