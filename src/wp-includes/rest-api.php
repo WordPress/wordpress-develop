@@ -896,6 +896,8 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		} elseif ( $server ) {
 			// Remove a value the response already sent.
 			$server->remove_header( 'Access-Control-Allow-Methods' );
+		} elseif ( ! headers_sent() ) {
+			header_remove( 'Access-Control-Allow-Methods' );
 		}
 
 		$send_header( 'Access-Control-Allow-Credentials', 'true' );
