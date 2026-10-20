@@ -1802,12 +1802,22 @@ div.action-links,
 	/* Share the table's scrollable area so the fades stick to the viewport. */
 	.wp-list-table-scroll {
 		display: grid;
+		container-type: inline-size;
 		clear: both;
 		overflow-x: auto;
 		overflow-y: hidden;
 		overscroll-behavior-x: none;
 		border: 1px solid #c3c4c7;
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	}
+
+	/* Keep inline editing forms within the visible table container. */
+	.wp-list-table-scroll .inline-edit-wrapper {
+		position: sticky;
+		inset-inline-start: 0;
+		z-index: 2;
+		box-sizing: border-box;
+		width: 100cqi;
 	}
 
 	.wp-list-table-scroll > .widefat {
