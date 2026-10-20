@@ -42,6 +42,13 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 	 */
 	private static $admin_id;
 
+	/**
+	 * Subscriber user ID.
+	 *
+	 * @var int
+	 */
+	private static $subscriber_id;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$parent_page_id = $factory->post->create(
 			array(
@@ -74,7 +81,8 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 			)
 		);
 
-		self::$admin_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$subscriber_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 	}
 
 	/**
@@ -196,6 +204,10 @@ class Tests_Link_GetPageLink extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 
 		$this->assertSame( home_url( '?page_id=' . self::$private_page_id ), get_page_link( self::$private_page_id ), 'A logged-out user should get a plain link.' );
+
+		wp_set_current_user( self::$subscriber_id );
+
+		$this->assertSame( home_url( '?page_id=' . self::$private_page_id ), get_page_link( self::$private_page_id ), 'A subscriber should get a plain link.' );
 
 		wp_set_current_user( self::$admin_id );
 
