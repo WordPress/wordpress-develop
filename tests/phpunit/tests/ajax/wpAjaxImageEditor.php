@@ -326,4 +326,131 @@ class Tests_Ajax_wpAjaxImageEditor extends WP_Ajax_UnitTestCase {
 			'boolean sizes' => array( array( 'sizes' => false ) ),
 		);
 	}
+
+	/**
+	 * Tests image-save errors and the normal image-save result.
+	 *
+	 * @ticket 64902
+	 *
+	 * @covers ::wp_save_image
+	 *
+	 * @requires function imagecreatetruecolor
+	 * @dataProvider data_save_image_handles_save_results
+	 *
+	 * @param string $result_type    Whether to return an error, false, or the real save result.
+	 * @param string $message        Image editor error message.
+	 * @param string $expected_error Expected error in the response.
+	 */
+	public function test_save_image_handles_save_results( $result_type, $message, $expected_error ) {
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
+
+		$request     = $_REQUEST;
+		$editors     = static function () {
+			return array( 'WP_Image_Editor_GD' );
+		};
+		$save_filter = null;
+		add_filter( 'wp_image_editors', $editors );
+
+		try {
+			$filename = DIR_TESTDATA . '/images/test-image.jpg';
+			$contents = file_get_contents( $filename );
+			$this->assertIsString( $contents );
+
+			$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
+			$this->assertFalse( $upload['error'] );
+			$id = $this->_make_attachment( $upload );
+			$this->assertIsInt( $id );
+
+			$original_meta = wp_get_attachment_metadata( $id );
+			$this->assertIsArray( $original_meta );
+			$this->assertSame( 50, $original_meta['width'] );
+			$this->assertSame( 50, $original_meta['height'] );
+			$original_file   = get_attached_file( $id );
+			$original_backup = get_post_meta( $id, '_wp_attachment_backup_sizes', true );
+
+			$result = null;
+			if ( 'error' === $result_type ) {
+				$result = new WP_Error( 'image_save_error', $message );
+				$result->add( 'another_image_save_error', 'Another error should not replace the first message.' );
+			} elseif ( 'false' === $result_type ) {
+				$result = false;
+			}
+
+			$calls       = 0;
+			$save_filter = function ( $override, $new_filename, $image, $mime_type, $post_id ) use ( $id, $original_file, $result, &$calls ) {
+				++$calls;
+				$this->assertNull( $override );
+				$this->assertSame( $id, $post_id );
+				$this->assertInstanceOf( 'WP_Image_Editor_GD', $image );
+				$this->assertSame(
+					array(
+						'width'  => 25,
+						'height' => 25,
+					),
+					$image->get_size()
+				);
+				$this->assertSame( 'image/jpeg', $mime_type );
+				$this->assertSame( dirname( $original_file ), dirname( $new_filename ) );
+
+				return $result;
+			};
+
+			// Arm the failure only after the real attachment and its metadata exist.
+			add_filter( 'wp_save_image_editor_file', $save_filter, 10, 5 );
+			$_REQUEST = array(
+				'action'  => 'image-editor',
+				'context' => 'edit-attachment',
+				'postid'  => $id,
+				'target'  => 'all',
+				'do'      => 'scale',
+				'fwidth'  => 25,
+				'fheight' => 25,
+			);
+
+			$response = wp_save_image( $id );
+
+			$this->assertSame( 1, $calls, 'The edited full-size image should be saved once.' );
+			$this->assertInstanceOf( 'stdClass', $response );
+			if ( 'success' !== $result_type ) {
+				$this->assertObjectHasProperty( 'error', $response );
+				$this->assertSame( $expected_error, $response->error );
+				$this->assertObjectNotHasProperty( 'msg', $response );
+				$this->assertSame( $original_meta, wp_get_attachment_metadata( $id ), 'A failed save must preserve attachment metadata.' );
+				$this->assertSame( $original_file, get_attached_file( $id ), 'A failed save must preserve the attached file.' );
+				$this->assertSame( $original_backup, get_post_meta( $id, '_wp_attachment_backup_sizes', true ), 'A failed save must preserve backup sizes.' );
+				return;
+			}
+
+			$this->assertObjectNotHasProperty( 'error', $response );
+			$this->assertSame( 'Image saved', $response->msg );
+			$saved_file = get_attached_file( $id );
+			$this->assertFileExists( $saved_file );
+			$this->assertNotSame( $original_file, $saved_file );
+			$saved_meta = wp_get_attachment_metadata( $id );
+			$this->assertIsArray( $saved_meta );
+			$this->assertSame( 25, $saved_meta['width'] );
+			$this->assertSame( 25, $saved_meta['height'] );
+			$this->assertSame( array( 25, 25 ), array_slice( wp_getimagesize( $saved_file ), 0, 2 ) );
+		} finally {
+			$_REQUEST = $request;
+			remove_filter( 'wp_image_editors', $editors );
+			if ( null !== $save_filter ) {
+				remove_filter( 'wp_save_image_editor_file', $save_filter );
+			}
+		}
+	}
+
+	/**
+	 * Data provider for image-save results.
+	 *
+	 * @return array<string, array{string, string, string}>
+	 */
+	public static function data_save_image_handles_save_results(): array {
+		return array(
+			'plain error message'   => array( 'error', 'The edited image could not be written.', 'The edited image could not be written.' ),
+			'escaped error message' => array( 'error', 'Can\'t save <strong>"image"</strong> & retry.', 'Can\\\'t save &lt;strong&gt;&quot;image&quot;&lt;/strong&gt; &amp; retry.' ),
+			'false result'          => array( 'false', '', 'Unable to save the image.' ),
+			'real save result'      => array( 'success', '', '' ),
+		);
+	}
 }
