@@ -28,6 +28,21 @@ if ( ! is_readable( $config_file_path ) ) {
 }
 
 require_once $config_file_path;
+
+/*
+ * The Secrets API will not derive a key from the placeholder salts that
+ * wp-tests-config-sample.php ships with, so give the suite a fixed test key.
+ *
+ * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
+ * while it loads this file in a child process, and the Secrets API tests that
+ * run isolated do so precisely to define WP_SECRETS_KEY themselves, or to
+ * leave it undefined.
+ */
+if ( ! defined( 'WP_SECRETS_KEY' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] )
+	&& defined( 'LOGGED_IN_KEY' ) && 'put your unique phrase here' === LOGGED_IN_KEY
+) {
+	define( 'WP_SECRETS_KEY', base64_encode( str_repeat( 'k', 32 ) ) );
+}
 require_once __DIR__ . '/functions.php';
 
 if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
@@ -333,6 +348,11 @@ require __DIR__ . '/class-wp-fake-hasher.php';
 require __DIR__ . '/class-wp-sitemaps-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
 require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
+require __DIR__ . '/secrets/trait-wp-secrets-assertions.php';
+require __DIR__ . '/secrets/class-mock-store.php';
+require __DIR__ . '/secrets/class-mock-keyring.php';
+require __DIR__ . '/secrets/class-wp-secrets-provider-conformance.php';
+require __DIR__ . '/secrets/class-wp-secrets-keyring-conformance.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.
