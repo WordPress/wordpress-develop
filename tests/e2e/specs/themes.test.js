@@ -36,22 +36,25 @@ test.describe( 'Theme management', () => {
 		).toBeVisible();
 	} );
 
-	test.afterEach( async ( { admin, page, requestUtils } ) => {
+	test.afterEach( async ( { requestUtils } ) => {
 		if ( ! ownsTheme ) {
 			return;
 		}
 		await requestUtils.activateTheme( previousTheme );
 		const themes = await requestUtils.rest( { path: '/wp/v2/themes' } );
 		if ( themes.some( ( theme ) => theme.stylesheet === themeSlug ) ) {
-			await admin.visitAdminPage( 'themes.php' );
-			await page.locator( `.theme[data-slug="${ themeSlug }"]` ).click();
-			const deleteUrl = await page
-				.getByRole( 'link', {
-					name: `Delete ${ themeName }`,
-					exact: true,
-				} )
-				.getAttribute( 'href' );
-			const response = await requestUtils.request.get( deleteUrl );
+			const themesResponse = await requestUtils.request.get(
+				'wp-admin/themes.php'
+			);
+			const html = await themesResponse.text();
+			await themesResponse.dispose();
+			const deleteQuery = html.match(
+				`action=delete&amp;stylesheet=${ themeSlug }&amp;_wpnonce=[a-z0-9]+`
+			);
+			expect( deleteQuery ).not.toBeNull();
+			const response = await requestUtils.request.get(
+				`wp-admin/themes.php?${ deleteQuery[ 0 ].replace( /&amp;/g, '&' ) }`
+			);
 			expect( response.ok() ).toBe( true );
 			await response.dispose();
 		}
