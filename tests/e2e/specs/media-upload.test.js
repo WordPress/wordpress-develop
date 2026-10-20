@@ -33,3 +33,60 @@ test( 'Test dismissing failed upload works correctly', async ({ page, admin, req
 		page.getByText('“sample.svg” has failed to upload.')
 	).not.toBeVisible();
 } );
+
+test( 'uploads a JPEG and shows the completed attachment', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	let attachmentId;
+
+	try {
+		await admin.visitAdminPage( '/media-new.php' );
+		const fileChooserPromise = page.waitForEvent( 'filechooser' );
+		await page
+			.getByRole( 'button', { name: 'Select Files', exact: true } )
+			.click();
+		const fileChooser = await fileChooserPromise;
+		const uploadResponsePromise = page.waitForResponse(
+			( response ) =>
+				new URL( response.url() ).pathname.endsWith(
+					'/async-upload.php'
+				) &&
+				response.request().method() === 'POST' &&
+				response
+					.request()
+					.headers()
+					[ 'content-type' ]?.startsWith( 'multipart/form-data' )
+		);
+		await fileChooser.setFiles(
+			path.join( __dirname, '../../phpunit/data/images/test-image.jpg' )
+		);
+		const uploadResponse = await uploadResponsePromise;
+		attachmentId = Number(
+			uploadResponse.headers()[ 'x-wp-upload-attachment-id' ]
+		);
+		if ( ! attachmentId ) {
+			attachmentId = Number( await uploadResponse.text() );
+		}
+		expect( uploadResponse.ok() ).toBe( true );
+		expect( attachmentId ).toBeGreaterThan( 0 );
+
+		await expect(
+			page.getByText( 'test-image', { exact: true } )
+		).toBeVisible();
+		const editLink = page.getByRole( 'link', {
+			name: 'Edit',
+			exact: true,
+		} );
+		await expect( editLink ).toBeVisible();
+		await expect( editLink ).toHaveAttribute(
+			'href',
+			new RegExp( `[?&]post=${ attachmentId }&` )
+		);
+	} finally {
+		if ( Number.isInteger( attachmentId ) && attachmentId > 0 ) {
+			await requestUtils.deleteMedia( attachmentId );
+		}
+	}
+} );
