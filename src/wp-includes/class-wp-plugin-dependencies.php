@@ -477,7 +477,7 @@ class WP_Plugin_Dependencies {
 			);
 		}
 
-		if ( is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
+		if ( isset( $status['activateUrl'] ) && is_multisite() && current_user_can( 'manage_network_plugins' ) ) {
 			$status['activateUrl'] = add_query_arg( array( 'networkwide' => 1 ), $status['activateUrl'] );
 		}
 
