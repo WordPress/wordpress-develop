@@ -442,41 +442,20 @@
 	content: "\f159" / "";
 }
 
-#dashboard_right_now .page-count a::before,
-#dashboard_right_now .page-count span::before {
-	content: "\f105";
-	content: "\f105" / "";
-}
-
-#dashboard_right_now .post-count a::before,
-#dashboard_right_now .post-count span::before {
-	content: "\f109";
-	content: "\f109" / "";
-}
-
-#dashboard_right_now .comment-count a::before {
-	content: "\f101";
-	content: "\f101" / "";
-}
-
-#dashboard_right_now .comment-mod-count a::before {
-	content: "\f125";
-	content: "\f125" / "";
-}
-
-#dashboard_right_now .storage-count a::before {
-	content: "\f104";
-	content: "\f104" / "";
-}
-
-#dashboard_right_now .storage-count.warning a::before {
-	content: "\f153";
-	content: "\f153" / "";
-}
-
+#dashboard_right_now li .glance-item::before,
 #dashboard_right_now .search-engines-info::before {
-	content: "\f348";
-	content: "\f348" / "";
+	display: none;
+}
+
+#dashboard_right_now .glance-item svg {
+	fill: currentColor;
+	color: #646970;
+	margin-right: 5px;
+	vertical-align: top;
+}
+
+#dashboard_right_now .warning .glance-item svg,
+#dashboard_right_now .search-engines-info svg {
 	color: #d63638;
 }
 
