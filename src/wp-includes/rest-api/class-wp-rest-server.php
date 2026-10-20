@@ -2022,13 +2022,11 @@ class WP_REST_Server {
 	 * Sends an HTTP header.
 	 *
 	 * @since 4.4.0
-	 * @since 7.2.0 Added the `$replace` parameter.
 	 *
-	 * @param string $key     Header key.
-	 * @param string $value   Header value.
-	 * @param bool   $replace Whether to replace any previous header of the same type. Default true.
+	 * @param string $key   Header key.
+	 * @param string $value Header value.
 	 */
-	public function send_header( $key, $value, $replace = true ) {
+	public function send_header( $key, $value ) {
 		/*
 		 * Sanitize as per RFC2616 (Section 4.2):
 		 *
@@ -2037,7 +2035,7 @@ class WP_REST_Server {
 		 * message downstream.
 		 */
 		$value = preg_replace( '/\s+/', ' ', $value );
-		header( sprintf( '%s: %s', $key, $value ), $replace );
+		header( sprintf( '%s: %s', $key, $value ) );
 	}
 
 	/**

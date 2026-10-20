@@ -872,10 +872,13 @@ function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_R
 		}
 
 		$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
-		$server->send_header( 'Vary', 'Origin', false );
+
+		// WP_REST_Server::send_header() replaces a header, and Vary must be appended to.
+		if ( ! headers_sent() ) {
+			header( 'Vary: Origin', false );
+		}
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
-		$server = $server instanceof WP_REST_Server ? $server : rest_get_server();
-		$server->send_header( 'Vary', 'Origin', false );
+		header( 'Vary: Origin', false );
 	}
 
 	return $value;

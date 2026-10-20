@@ -36,16 +36,11 @@ class Spy_REST_Server extends WP_REST_Server {
 	/**
 	 * Adds a header to the list of sent headers.
 	 *
-	 * @param string $header  Header name.
-	 * @param string $value   Header value.
-	 * @param bool   $replace Whether to replace any previous header of the same type. Default true.
+	 * @param string $header Header name.
+	 * @param string $value  Header value.
 	 */
-	public function send_header( $header, $value, $replace = true ): void {
-		if ( $replace || ! isset( $this->sent_headers[ $header ] ) ) {
-			$this->sent_headers[ $header ] = $value;
-		} else {
-			$this->sent_headers[ $header ] .= ', ' . $value;
-		}
+	public function send_header( $header, $value ) {
+		$this->sent_headers[ $header ] = $value;
 	}
 
 	/**
