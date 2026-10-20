@@ -38,8 +38,12 @@ class Spy_REST_Server extends WP_REST_Server {
 	 * @param string $header Header name.
 	 * @param string $value  Header value.
 	 */
-	public function send_header( $header, $value ) {
-		$this->sent_headers[ $header ] = $value;
+	public function send_header( $header, $value, $replace = true ) {
+		if ( $replace || ! isset( $this->sent_headers[ $header ] ) ) {
+			$this->sent_headers[ $header ] = $value;
+		} else {
+			$this->sent_headers[ $header ] .= ', ' . $value;
+		}
 	}
 
 	/**

@@ -18,13 +18,6 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	 */
 	const DEFAULT_ALLOW_METHODS = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
 
-	/**
-	 * The method list the header was sent with, or null if the filter did not run.
-	 *
-	 * @var string[]|null
-	 */
-	private $sent_methods;
-
 	public function set_up() {
 		parent::set_up();
 
@@ -32,8 +25,9 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$_SERVER['HTTP_ORIGIN']    = 'http://example.org';
 		$_SERVER['REQUEST_METHOD'] = 'GET';
 
-		$this->sent_methods = null;
-		add_filter( 'rest_allowed_cors_methods', array( $this, 'record_sent_methods' ), PHP_INT_MAX );
+		// Create a spy server to capture headers.
+		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
+		do_action( 'rest_api_init', $GLOBALS['wp_rest_server'] );
 	}
 
 	public function tear_down() {
@@ -41,38 +35,6 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$GLOBALS['wp_rest_server'] = null;
 
 		parent::tear_down();
-	}
-
-	/**
-	 * Records the method list after every other callback has run.
-	 *
-	 * @param string[] $methods The list of HTTP methods to allow.
-	 * @return string[] The unchanged list.
-	 */
-	public function record_sent_methods( $methods ) {
-		$this->sent_methods = $methods;
-		return $methods;
-	}
-
-	/**
-	 * Calls a function, ignoring the warnings from header() once PHPUnit has sent output.
-	 *
-	 * @param callable $callback Function to call.
-	 * @return mixed The callback's return value.
-	 */
-	private function ignoring_header_warnings( $callback ) {
-		set_error_handler(
-			static function ( $errno, $errstr ) {
-				return str_starts_with( $errstr, 'Cannot modify header information' );
-			},
-			E_WARNING
-		);
-
-		try {
-			return $callback();
-		} finally {
-			restore_error_handler();
-		}
 	}
 
 	/**
@@ -84,11 +46,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$response = new WP_REST_Response( array() );
 		$response->set_headers( $response_headers );
 
-		$this->ignoring_header_warnings(
-			static function () use ( $response ) {
-				rest_send_cors_headers( false, $response, new WP_REST_Request( 'GET', '/wp/v2/types' ) );
-			}
-		);
+		rest_send_cors_headers( false, $response, new WP_REST_Request( 'GET', '/wp/v2/types' ), $GLOBALS['wp_rest_server'] );
 	}
 
 	/**
@@ -99,7 +57,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_default_list_is_sent() {
 		$this->send_cors_headers();
 
-		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -112,7 +70,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		$this->send_cors_headers();
 
-		$this->assertNull( $this->sent_methods );
+		$this->assertArrayNotHasKey( 'Access-Control-Allow-Methods', $GLOBALS['wp_rest_server']->sent_headers );
 	}
 
 	/**
@@ -127,7 +85,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_is_passed_through() {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET' ) );
 
-		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -138,7 +96,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_is_matched_case_insensitively() {
 		$this->send_cors_headers( array( 'access-control-allow-methods' => 'OPTIONS, GET' ) );
 
-		$this->assertSame( array( 'OPTIONS', 'GET' ), $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -149,7 +107,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_can_add_methods_beyond_the_default() {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET, PROPFIND' ) );
 
-		$this->assertSame( array( 'OPTIONS', 'GET', 'PROPFIND' ), $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET, PROPFIND', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -160,7 +118,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_drops_invalid_method_tokens() {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'GET, P@TCH, <script>, DELETE' ) );
 
-		$this->assertSame( array( 'GET', 'DELETE' ), $this->sent_methods );
+		$this->assertSame( 'GET, DELETE', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -171,7 +129,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_method_case_is_preserved() {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'options, Get' ) );
 
-		$this->assertSame( array( 'options', 'Get' ), $this->sent_methods );
+		$this->assertSame( 'options, Get', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -192,14 +150,10 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 			2
 		);
 
-		$this->ignoring_header_warnings(
-			static function () {
-				rest_send_cors_headers( false, 'not a response', 'not a request' );
-			}
-		);
+		rest_send_cors_headers( false, 'not a response', 'not a request', $GLOBALS['wp_rest_server'] );
 
 		$this->assertNull( $received );
-		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -218,7 +172,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		$this->send_cors_headers();
 
-		$this->assertSame( array_merge( self::DEFAULT_ALLOW_METHODS, array( 'HEAD' ) ), $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE, HEAD', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -240,7 +194,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET' ) );
 
 		$this->assertSame( array( 'OPTIONS', 'GET' ), $received, 'The filter was not seeded with the response value.' );
-		$this->assertSame( array( 'OPTIONS', 'DELETE' ), $this->sent_methods );
+		$this->assertSame( 'OPTIONS, DELETE', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -261,11 +215,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 			2
 		);
 
-		$this->ignoring_header_warnings(
-			static function () {
-				rest_get_server()->serve_request( '/wp/v2/types' );
-			}
-		);
+		rest_get_server()->serve_request( '/wp/v2/types' );
 
 		$this->assertInstanceOf( WP_REST_Request::class, $received );
 		$this->assertSame( '/wp/v2/types', $received->get_route() );
@@ -290,12 +240,8 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 			}
 		);
 
-		$this->ignoring_header_warnings(
-			static function () {
-				rest_get_server()->serve_request( '/wp/v2/types' );
-			}
-		);
+		rest_get_server()->serve_request( '/wp/v2/types' );
 
-		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->sent_methods );
+		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $GLOBALS['wp_rest_server']->sent_headers['Access-Control-Allow-Methods'] );
 	}
 }

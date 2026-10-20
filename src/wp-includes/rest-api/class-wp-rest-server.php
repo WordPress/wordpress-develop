@@ -2000,7 +2000,7 @@ class WP_REST_Server {
 	 * @param string $key   Header key.
 	 * @param string $value Header value.
 	 */
-	public function send_header( $key, $value ) {
+	public function send_header( $key, $value, $replace = true ) {
 		/*
 		 * Sanitize as per RFC2616 (Section 4.2):
 		 *
@@ -2009,7 +2009,7 @@ class WP_REST_Server {
 		 * message downstream.
 		 */
 		$value = preg_replace( '/\s+/', ' ', $value );
-		header( sprintf( '%s: %s', $key, $value ) );
+		header( sprintf( '%s: %s', $key, $value ), $replace );
 	}
 
 	/**

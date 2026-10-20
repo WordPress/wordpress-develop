@@ -249,7 +249,7 @@ function rest_api_default_filters() {
 	}
 
 	// Default serving.
-	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 3 );
+	add_filter( 'rest_pre_serve_request', 'rest_send_cors_headers', 10, 4 );
 	add_filter( 'rest_post_dispatch', 'rest_send_allow_header', 10, 3 );
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
@@ -807,7 +807,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value, $result = null, $request = null ) {
+function rest_send_cors_headers( $value, $result = null, $request = null, $server = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -815,7 +815,9 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 		if ( 'null' !== $origin ) {
 			$origin = sanitize_url( $origin );
 		}
-		header( 'Access-Control-Allow-Origin: ' . $origin );
+
+		$server = $server instanceof WP_REST_Server ? $server : rest_get_server();
+		$server->send_header( 'Access-Control-Allow-Origin', $origin );
 
 		/*
 		 * The response's own headers have already been sent, and header() replaces them,
@@ -850,15 +852,17 @@ function rest_send_cors_headers( $value, $result = null, $request = null ) {
 		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
 
 		if ( ! empty( $allow_methods ) ) {
-			header( 'Access-Control-Allow-Methods: ' . implode( ', ', $allow_methods ) );
+			$server->send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
 		} else {
 			// Remove a value the response already sent.
-			header_remove( 'Access-Control-Allow-Methods' );
+			$server->remove_header( 'Access-Control-Allow-Methods' );
 		}
-		header( 'Access-Control-Allow-Credentials: true' );
-		header( 'Vary: Origin', false );
+
+		$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
+		$server->send_header( 'Vary', 'Origin', false );
 	} elseif ( ! headers_sent() && 'GET' === $_SERVER['REQUEST_METHOD'] && ! is_user_logged_in() ) {
-		header( 'Vary: Origin', false );
+		$server = $server instanceof WP_REST_Server ? $server : rest_get_server();
+		$server->send_header( 'Vary', 'Origin', false );
 	}
 
 	return $value;
