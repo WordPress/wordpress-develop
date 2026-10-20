@@ -2022,6 +2022,7 @@ class WP_REST_Server {
 	 * Sends an HTTP header.
 	 *
 	 * @since 4.4.0
+	 * @since 7.2.0 Added the `$replace` parameter.
 	 *
 	 * @param string $key     Header key.
 	 * @param string $value   Header value.
