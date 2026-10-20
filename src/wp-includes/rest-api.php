@@ -849,7 +849,11 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		$response_headers = ( $result instanceof WP_HTTP_Response ) ? $result->get_headers() : array();
 		$response_headers = array_change_key_case( $response_headers );
 
-		// Parses a list of methods, keeping only syntactically valid method tokens (RFC 9110, section 9.1).
+		/**
+		 * Parses a list of methods, keeping only syntactically valid method tokens (RFC 9110, section 9.1).
+		 *
+		 * @phpstan-var Closure(mixed): list<non-empty-string> $parse_methods
+		 */
 		$parse_methods = static function ( $methods ): array {
 			if ( ! is_array( $methods ) && ! is_string( $methods ) ) {
 				return array();
