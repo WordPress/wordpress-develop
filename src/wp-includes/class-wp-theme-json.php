@@ -648,7 +648,6 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
-	 * @since 7.2.0 Added ':hover', ':focus', ':focus-visible', and ':active' support for the select element.
 	 * @since 7.2.0 Added ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible',
 	 *              and '::placeholder' support for the text input element.
 	 * @var array
@@ -656,7 +655,6 @@ class WP_Theme_JSON {
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
 		'link'      => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
 		'button'    => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
-		'select'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
 		'textInput' => array( ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible', '::placeholder' ),
 	);
 
