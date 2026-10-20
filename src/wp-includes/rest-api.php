@@ -825,8 +825,22 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 			$origin = sanitize_url( $origin );
 		}
 
-		$server = $server instanceof WP_REST_Server ? $server : rest_get_server();
-		$server->send_header( 'Access-Control-Allow-Origin', $origin );
+		/*
+		 * Send through the server when serving a REST request. A direct call without one
+		 * sends the headers itself, so that it does not set up the REST server.
+		 */
+		if ( ! $server instanceof WP_REST_Server ) {
+			$server = null;
+		}
+		$send_header = static function ( string $key, string $header_value ) use ( $server ): void {
+			if ( $server ) {
+				$server->send_header( $key, $header_value );
+			} elseif ( ! headers_sent() ) {
+				header( "{$key}: {$header_value}" );
+			}
+		};
+
+		$send_header( 'Access-Control-Allow-Origin', $origin );
 
 		/*
 		 * The response's own headers have already been sent, and header() replaces them,
@@ -865,13 +879,13 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		$allow_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
 
 		if ( ! empty( $allow_methods ) ) {
-			$server->send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
-		} else {
+			$send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
+		} elseif ( $server ) {
 			// Remove a value the response already sent.
 			$server->remove_header( 'Access-Control-Allow-Methods' );
 		}
 
-		$server->send_header( 'Access-Control-Allow-Credentials', 'true' );
+		$send_header( 'Access-Control-Allow-Credentials', 'true' );
 
 		// WP_REST_Server::send_header() replaces a header, and Vary must be appended to.
 		if ( ! headers_sent() ) {

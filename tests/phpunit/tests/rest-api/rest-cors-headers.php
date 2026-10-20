@@ -161,6 +161,21 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A direct call without a server does not set up the REST server.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_direct_call_without_a_server_does_not_set_up_the_server() {
+		$GLOBALS['wp_rest_server'] = null;
+		$init_count                = did_action( 'rest_api_init' );
+
+		$this->assertSame( 'value', rest_send_cors_headers( 'value' ) );
+
+		$this->assertNull( $GLOBALS['wp_rest_server'], 'The REST server was set up.' );
+		$this->assertSame( $init_count, did_action( 'rest_api_init' ), 'The rest_api_init action was fired.' );
+	}
+
+	/**
 	 * The rest_allowed_cors_methods filter changes the list.
 	 *
 	 * @ticket 46992
