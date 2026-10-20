@@ -77,11 +77,11 @@ function wp_register_colors_support( $block_type ) {
  * @since 7.2.0 Skips `has-background` for a background color clipped to the text.
  * @access private
  *
- * @param WP_Block_Type $block_type       Block type.
- * @param array         $block_attributes Block attributes.
- * @return array Colors CSS classes and inline styles.
+ * @param WP_Block_Type        $block_type       Block type.
+ * @param array<string, mixed> $block_attributes Block attributes.
+ * @return array<string, mixed> Colors CSS classes and inline styles.
  */
-function wp_apply_colors_support( $block_type, $block_attributes ) {
+function wp_apply_colors_support( WP_Block_Type $block_type, array $block_attributes ): array {
 	$color_support = $block_type->supports['color'] ?? false;
 
 	if (
