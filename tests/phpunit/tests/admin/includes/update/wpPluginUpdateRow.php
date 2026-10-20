@@ -206,7 +206,7 @@ class Tests_Admin_Includes_Update_WpPluginUpdateRow extends WP_UnitTestCase {
 		$this->assertSame(
 			$this->get_row_start( '', 'notice-error' )
 			. 'There is a new version of My Plugin available, but it does not work with your version of PHP. ' . $this->get_details_link( 'My Plugin' )
-			. ' or <a href="' . esc_url( wp_get_update_php_url() ) . '">learn more about updating PHP</a>.'
+			. ' or <a href="https://wordpress.org/support/update-php/">learn more about updating PHP</a>.'
 			. '</p></div></td></tr>',
 			$output
 		);
