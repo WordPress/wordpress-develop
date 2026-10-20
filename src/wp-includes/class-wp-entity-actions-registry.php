@@ -43,9 +43,6 @@ class WP_Entity_Actions_Registry {
 	 * The values DataViews supports for the properties of an action that
 	 * take one of a set of values, see packages/dataviews/src/types/dataviews.ts.
 	 *
-	 * The DataViews types also list `single` for `context`, but no screen
-	 * shows the actions of that context, so it is not supported here.
-	 *
 	 * @since 7.2.0
 	 *
 	 * @var array<string, string[]>
