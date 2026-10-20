@@ -95,7 +95,7 @@ class Tests_Widgets_wpConvertWidgetSettings extends WP_UnitTestCase {
 			),
 			'numeric string keys'           => array(
 				array(
-					'5' => array( 'title' => 'Fifth' ),
+					'05' => array( 'title' => 'Fifth' ),
 				),
 			),
 			'only a number'                 => array( array( 'number' => 2 ) ),
