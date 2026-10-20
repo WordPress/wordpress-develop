@@ -587,6 +587,77 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a failed read does not leave a false "missing" marker for later requests.
+	 *
+	 * A persistent object cache keeps `notoptions` after the request ends. The cache is
+	 * flushed and only the persisted `options` group entries are restored to simulate the
+	 * next request, so a poisoned `notoptions` entry would hide an option that exists.
+	 *
+	 * @ticket 61762
+	 *
+	 * @covers ::get_option
+	 */
+	public function test_get_option_failed_read_does_not_hide_option_on_next_request() {
+		global $wpdb;
+
+		$option_name = 'ticket_61762_persisted_option';
+
+		add_option( $option_name, 'value1', '', false );
+		wp_cache_delete( $option_name, 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$suppress = $wpdb->suppress_errors( true );
+		add_filter( 'query', array( $this, 'break_option_select_query' ) );
+
+		get_option( $option_name );
+
+		remove_filter( 'query', array( $this, 'break_option_select_query' ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// End of the first request: keep only what a persistent cache would have stored.
+		$persisted_notoptions = wp_cache_get( 'notoptions', 'options' );
+		wp_cache_flush();
+		if ( false !== $persisted_notoptions ) {
+			wp_cache_set( 'notoptions', $persisted_notoptions, 'options' );
+		}
+
+		$this->assertSame( 'value1', get_option( $option_name ), 'The option should be readable on the next request.' );
+	}
+
+	/**
+	 * Tests that a failed delete does not leave a false "missing" marker for later requests.
+	 *
+	 * @ticket 61762
+	 *
+	 * @covers ::delete_option
+	 */
+	public function test_delete_option_failed_delete_does_not_hide_option_on_next_request() {
+		global $wpdb;
+
+		$option_name = 'ticket_61762_persisted_option';
+
+		add_option( $option_name, 'value1', '', false );
+		wp_cache_delete( 'notoptions', 'options' );
+
+		$suppress = $wpdb->suppress_errors( true );
+		add_filter( 'query', array( $this, 'break_option_delete_query' ) );
+
+		delete_option( $option_name );
+
+		remove_filter( 'query', array( $this, 'break_option_delete_query' ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// End of the first request: keep only what a persistent cache would have stored.
+		$persisted_notoptions = wp_cache_get( 'notoptions', 'options' );
+		wp_cache_flush();
+		if ( false !== $persisted_notoptions ) {
+			wp_cache_set( 'notoptions', $persisted_notoptions, 'options' );
+		}
+
+		$this->assertSame( 'value1', get_option( $option_name ), 'The option should be readable on the next request.' );
+	}
+
+	/**
 	 * Rewrites the option read query to reference a table that does not exist.
 	 *
 	 * @param string $query The query to filter.

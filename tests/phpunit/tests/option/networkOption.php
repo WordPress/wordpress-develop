@@ -190,6 +190,88 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a failed read on one network leaves the other network's notoptions untouched.
+	 *
+	 * Network notoptions are stored per network in the `site-options` group under
+	 * `{network_id}:notoptions`.
+	 *
+	 * @ticket 61762
+	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 */
+	public function test_get_network_option_failed_read_keeps_notoptions_isolated_per_network() {
+		global $wpdb;
+
+		$network_id  = self::factory()->network->create();
+		$option_name = 'ticket_61762_isolated_option';
+
+		add_network_option( $network_id, $option_name, 'network_value' );
+		wp_cache_delete( "$network_id:$option_name", 'site-options' );
+		wp_cache_delete( "$network_id:notoptions", 'site-options' );
+		wp_cache_delete( '1:notoptions', 'site-options' );
+
+		$suppress = $wpdb->suppress_errors( true );
+		add_filter( 'query', array( $this, 'break_network_option_select_query' ) );
+
+		get_network_option( $network_id, $option_name );
+
+		remove_filter( 'query', array( $this, 'break_network_option_select_query' ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// A genuine miss on the main network is still cached, under its own key only.
+		$this->assertFalse( get_network_option( 1, $option_name ), 'The option does not exist on the main network.' );
+
+		$main_notoptions    = wp_cache_get( '1:notoptions', 'site-options' );
+		$network_notoptions = wp_cache_get( "$network_id:notoptions", 'site-options' );
+
+		$this->assertIsArray( $main_notoptions, 'The main network notoptions cache is expected to be an array.' );
+		$this->assertArrayHasKey( $option_name, $main_notoptions, 'A real miss on the main network should still be cached.' );
+		$this->assertTrue(
+			! is_array( $network_notoptions ) || ! isset( $network_notoptions[ $option_name ] ),
+			'A failed read should not add the option to the other network notoptions cache.'
+		);
+		$this->assertSame( 'network_value', get_network_option( $network_id, $option_name ), 'The option should still be readable on its own network.' );
+	}
+
+	/**
+	 * Tests that a failed network option read does not hide the option on the next request.
+	 *
+	 * @ticket 61762
+	 * @group ms-required
+	 *
+	 * @covers ::get_network_option
+	 */
+	public function test_get_network_option_failed_read_does_not_hide_option_on_next_request() {
+		global $wpdb;
+
+		$network_id  = self::factory()->network->create();
+		$option_name = 'ticket_61762_persisted_option';
+		$notoptions  = "$network_id:notoptions";
+
+		add_network_option( $network_id, $option_name, 'value1' );
+		wp_cache_delete( "$network_id:$option_name", 'site-options' );
+		wp_cache_delete( $notoptions, 'site-options' );
+
+		$suppress = $wpdb->suppress_errors( true );
+		add_filter( 'query', array( $this, 'break_network_option_select_query' ) );
+
+		get_network_option( $network_id, $option_name );
+
+		remove_filter( 'query', array( $this, 'break_network_option_select_query' ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// End of the first request: keep only what a persistent cache would have stored.
+		$persisted_notoptions = wp_cache_get( $notoptions, 'site-options' );
+		wp_cache_flush();
+		if ( false !== $persisted_notoptions ) {
+			wp_cache_set( $notoptions, $persisted_notoptions, 'site-options' );
+		}
+
+		$this->assertSame( 'value1', get_network_option( $network_id, $option_name ), 'The network option should be readable on the next request.' );
+	}
+
+	/**
 	 * Rewrites the network option read query to reference a table that does not exist.
 	 *
 	 * @param string $query The query to filter.
