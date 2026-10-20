@@ -306,17 +306,44 @@ test.describe( 'Moderate Comments', () => {
 			exact: true,
 		} );
 		await expect( commentField ).toHaveValue( COMMENT_CONTENT );
-		await commentField.fill( 'A comment updated with Quick Edit.' );
+		const newContent = 'A comment updated with Quick Edit.';
+		await commentField.fill( newContent );
 		await page
 			.getByRole( 'button', { name: 'Update Comment', exact: true } )
 			.click();
 
-		const updatedContent = row
-			.getByRole( 'paragraph' )
-			.filter( { hasText: /^A comment updated with Quick Edit\.$/ } );
-		await expect( updatedContent ).toBeVisible();
+		await expect(
+			row
+				.getByRole( 'paragraph' )
+				.and( row.getByText( newContent, { exact: true } ) )
+		).toBeVisible();
 		await expect( commentField ).toBeHidden();
-		await page.reload();
-		await expect( updatedContent ).toBeVisible();
+		await expect
+			.poll(
+				async () => {
+					const saved = await requestUtils.rest( {
+						path: `/wp/v2/comments/${ comment.id }`,
+						params: { context: 'edit' },
+					} );
+					return {
+						content: saved.content.raw,
+						status: saved.status,
+						authorName: saved.author_name,
+						authorEmail: saved.author_email,
+						authorUrl: saved.author_url,
+					};
+				},
+				{
+					message:
+						'the comment should be saved with the new content and unchanged author and status',
+				}
+			)
+			.toEqual( {
+				content: newContent,
+				status: 'approved',
+				authorName: comment.author_name,
+				authorEmail: comment.author_email,
+				authorUrl: comment.author_url,
+			} );
 	} );
 } );
