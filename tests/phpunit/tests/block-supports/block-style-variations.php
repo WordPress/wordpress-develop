@@ -656,7 +656,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 * @param string $class_name Value of the `className` block attribute.
 	 * @param string $expected   Expected rendered block content.
 	 */
-	public function test_block_style_variation_class_name( $class_name, $expected ) {
+	public function test_block_style_variation_class_name( string $class_name, string $expected ): void {
 		$block = array(
 			'blockName' => 'core/paragraph',
 			'attrs'     => array(
@@ -675,7 +675,7 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{ 0: string, 1: string }>
 	 */
-	public function data_block_style_variation_class_name() {
+	public static function data_block_style_variation_class_name(): array {
 		return array(
 			'instance class name'                  => array(
 				'custom is-style-fancy--1',

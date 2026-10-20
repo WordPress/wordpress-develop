@@ -5111,16 +5111,15 @@ function wp_parse_list( $input_list ): array {
  * Generator for a foreach loop to step through each token in a string of
  * space-separated tokens.
  *
- * This generator function is designed to be used inside a "foreach" loop.
- *
  * Tokens are separated by one or more ASCII whitespace characters (space, tab,
  * form feed, carriage return, or line feed), matching how browsers split a
  * set of space-separated tokens, such as a list of CSS class names.
  *
- * This is a purely lexical operation on a plain-text string: no character
- * references are decoded, and tokens are neither deduplicated nor
- * case-normalized. To read the class names of an HTML tag, use
- * {@see WP_HTML_Tag_Processor::class_list()} instead.
+ * This is conceptually similar to the Web platform's `DOMTokenList`, but
+ * without its deduplication: it is a purely lexical operation on a
+ * plain-text string, so no character references are decoded, and tokens are
+ * neither deduplicated nor case-normalized. To read the class names of an
+ * HTML tag, use {@see WP_HTML_Tag_Processor::class_list()} instead.
  *
  * ```php
  * foreach ( wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
@@ -5132,6 +5131,7 @@ function wp_parse_list( $input_list ): array {
  * @since 7.2.0
  *
  * @link https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#set-of-space-separated-tokens
+ * @link https://developer.mozilla.org/en-US/docs/Web/API/DOMTokenList
  *
  * @param string $input Plain-text string of space-separated tokens.
  * @return Generator<int, non-empty-string> Tokens in order of appearance.
