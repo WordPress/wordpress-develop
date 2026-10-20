@@ -76,6 +76,9 @@ for ( const { taxonomy, endpoint, label } of [
 				`taxonomy=${ taxonomy }&s=${ prefix }`
 			);
 			await expect( link ).toBeVisible();
+			await expect(
+				page.locator( 'tr', { has: link } ).locator( '.column-slug' )
+			).toHaveText( name );
 		} );
 
 		test( 'quick edits a term', async ( { admin, page, requestUtils } ) => {
