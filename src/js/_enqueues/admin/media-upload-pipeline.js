@@ -391,8 +391,6 @@ window.wp = window.wp || {};
 		window.addEventListener( 'beforeunload', function ( event ) {
 			if ( entries.size > 0 ) {
 				event.preventDefault();
-				// Some Chromium versions only show the prompt for returnValue.
-				event.returnValue = '';
 			}
 		} );
 	}
