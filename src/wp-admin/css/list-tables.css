@@ -1836,6 +1836,11 @@ div.action-links,
 		table-layout: auto;
 	}
 
+	/* Preserve the checkbox column's spacing under automatic table layout. */
+	.wp-list-table-scroll > .fixed .check-column {
+		min-width: 2.2em;
+	}
+
 	:where(.wp-list-table-scroll) > .fixed .column-author,
 	:where(.wp-list-table-scroll) > .fixed .column-categories,
 	:where(.wp-list-table-scroll) > .fixed .column-tags,
