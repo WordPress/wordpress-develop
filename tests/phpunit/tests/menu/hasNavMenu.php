@@ -23,27 +23,39 @@ class Tests_Menu_HasNavMenu extends WP_UnitTestCase {
 	 */
 	private $original_nav_menus;
 
+	/**
+	 * Theme features before the test: register_nav_menu() adds menu support.
+	 *
+	 * @var array
+	 */
+	private $original_theme_features;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$menu_id = wp_create_nav_menu( 'Primary Menu' );
 	}
 
 	public function set_up() {
-		global $_wp_registered_nav_menus;
+		global $_wp_registered_nav_menus, $_wp_theme_features;
 
 		parent::set_up();
 
-		$this->original_nav_menus = $_wp_registered_nav_menus;
+		$this->original_nav_menus      = $_wp_registered_nav_menus;
+		$this->original_theme_features = $_wp_theme_features;
 
 		register_nav_menu( 'primary', 'Primary' );
 	}
 
 	public function tear_down() {
-		global $_wp_registered_nav_menus;
+		global $_wp_registered_nav_menus, $_wp_theme_features;
 
-		// Restore the registrations exactly, including any this test overwrote.
-		$_wp_registered_nav_menus = $this->original_nav_menus;
-
-		parent::tear_down();
+		try {
+			parent::tear_down();
+		} finally {
+			// Restore the registrations and theme support exactly as they were,
+			// including any this test overwrote or added.
+			$_wp_registered_nav_menus = $this->original_nav_menus;
+			$_wp_theme_features       = $this->original_theme_features;
+		}
 	}
 
 	/**
