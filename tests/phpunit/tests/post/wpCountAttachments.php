@@ -181,6 +181,36 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 66291
 	 */
+	public function test_pre_wp_count_attachments_value_is_passed_to_wp_count_attachments_filter() {
+		add_filter(
+			'pre_wp_count_attachments',
+			static function () {
+				return (object) array( 'image/jpeg' => 5 );
+			}
+		);
+		$filter = new MockAction();
+		add_filter( 'wp_count_attachments', array( $filter, 'filter' ), 10, 2 );
+
+		wp_count_attachments( 'image' );
+
+		$args = $filter->get_args();
+		$this->assertSame( 1, $filter->get_call_count(), 'Expected the wp_count_attachments filter to run once.' );
+		$this->assertEquals(
+			array(
+				(object) array(
+					'image/jpeg' => 5,
+					'trash'      => 0,
+				),
+				'image',
+			),
+			$args[0],
+			'Expected the wp_count_attachments filter to receive the filtered counts and MIME type.'
+		);
+	}
+
+	/**
+	 * @ticket 66291
+	 */
 	public function test_pre_wp_count_attachments_does_not_modify_filtered_object() {
 		$stored_counts = (object) array( 'image/jpeg' => 5 );
 		add_filter(

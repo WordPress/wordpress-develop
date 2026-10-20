@@ -140,6 +140,31 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 	/**
 	 * @ticket 66098
 	 */
+	public function test_pre_wp_count_posts_value_is_passed_to_wp_count_posts_filter() {
+		add_filter(
+			'pre_wp_count_posts',
+			static function () {
+				return (object) array( 'publish' => 5 );
+			}
+		);
+		$filter = new MockAction();
+		add_filter( 'wp_count_posts', array( $filter, 'filter' ), 10, 3 );
+
+		wp_count_posts( 'page', 'readable' );
+
+		$expected_counts = (object) array_merge(
+			array_fill_keys( get_post_stati(), 0 ),
+			array( 'publish' => 5 )
+		);
+
+		$args = $filter->get_args();
+		$this->assertSame( 1, $filter->get_call_count(), 'Expected the wp_count_posts filter to run once.' );
+		$this->assertEquals( array( $expected_counts, 'page', 'readable' ), $args[0], 'Expected the wp_count_posts filter to receive the filtered counts, type, and permission.' );
+	}
+
+	/**
+	 * @ticket 66098
+	 */
 	public function test_pre_wp_count_posts_does_not_modify_filtered_object() {
 		$stored_counts = (object) array( 'publish' => 5 );
 		add_filter(
