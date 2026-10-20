@@ -2023,8 +2023,9 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $key   Header key.
-	 * @param string $value Header value.
+	 * @param string $key     Header key.
+	 * @param string $value   Header value.
+	 * @param bool   $replace Whether to replace any previous header of the same type. Default true.
 	 */
 	public function send_header( $key, $value, $replace = true ) {
 		/*

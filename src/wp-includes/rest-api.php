@@ -813,9 +813,10 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * @param mixed                 $value   Response data.
  * @param WP_HTTP_Response|null $result  Optional. Result to send to the client. Default null.
  * @param WP_REST_Request|null  $request Optional. The request in context. Default null.
+ * @param WP_REST_Server|null   $server  Optional. The server instance. Default null.
  * @return mixed Response data.
  */
-function rest_send_cors_headers( $value, $result = null, $request = null, $server = null ) {
+function rest_send_cors_headers( $value, ?WP_HTTP_Response $result = null, ?WP_REST_Request $request = null, ?WP_REST_Server $server = null ) {
 	$origin = get_http_origin();
 
 	if ( $origin ) {
@@ -837,7 +838,11 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
 		if ( isset( $response_headers['access-control-allow-methods'] ) ) {
 			// Keep only syntactically valid method tokens (RFC 9110, section 9.1).
-			$allow_methods = array_values( preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $response_headers['access-control-allow-methods'] ) ) );
+			$allow_methods = array_values(
+				array_filter(
+					(array) preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $response_headers['access-control-allow-methods'] ) )
+				)
+			);
 		}
 
 		/**
