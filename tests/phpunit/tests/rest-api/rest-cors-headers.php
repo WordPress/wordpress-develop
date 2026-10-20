@@ -373,16 +373,35 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A filtered value that is not a list omits the header.
+	 * A filtered value that is not a list is ignored, keeping the unfiltered list.
 	 *
 	 * @ticket 46992
+	 *
+	 * @dataProvider data_filter_value_that_is_not_a_list
+	 *
+	 * @param callable              $callback         Filter callback returning a value that is not a list.
+	 * @param array<string, string> $response_headers Headers to set on the response.
+	 * @param string                $expected         Expected Access-Control-Allow-Methods value.
 	 */
-	public function test_filter_value_that_is_not_a_list_omits_the_header() {
-		add_filter( 'rest_allowed_cors_methods', '__return_null' );
+	public function test_filter_value_that_is_not_a_list_is_ignored( callable $callback, array $response_headers, string $expected ) {
+		add_filter( 'rest_allowed_cors_methods', $callback );
 
-		$this->send_cors_headers();
+		$this->send_cors_headers( $response_headers );
 
-		$this->assertArrayNotHasKey( 'Access-Control-Allow-Methods', $this->get_rest_server()->sent_headers );
+		$this->assertSame( $expected, $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: callable, 1: array<string, string>, 2: string }>
+	 */
+	public function data_filter_value_that_is_not_a_list(): array {
+		return array(
+			'null'                    => array( '__return_null', array(), self::DEFAULT_ALLOW_METHODS ),
+			'false'                   => array( '__return_false', array(), self::DEFAULT_ALLOW_METHODS ),
+			'null with response list' => array( '__return_null', array( 'Access-Control-Allow-Methods' => 'OPTIONS, GET' ), 'OPTIONS, GET' ),
+		);
 	}
 
 	/**

@@ -882,14 +882,19 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		 * If the response already set its own `Access-Control-Allow-Methods` header
 		 * naming valid methods, `$allow_methods` is those methods instead of the default list.
 		 * Entries that are not valid method tokens are dropped, and an empty list
-		 * omits the header.
+		 * omits the header. A value that is neither an array nor a string is ignored.
 		 *
 		 * @since 7.2.0
 		 *
 		 * @param string[]             $allow_methods The list of HTTP methods to allow.
 		 * @param WP_REST_Request|null $request       The request in context, if available.
 		 */
-		$allow_methods = $parse_methods( apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null ) );
+		$filtered_methods = apply_filters( 'rest_allowed_cors_methods', $allow_methods, $request instanceof WP_REST_Request ? $request : null );
+
+		// Keep the unfiltered list for a callback that does not return one, rather than omitting the header.
+		if ( is_array( $filtered_methods ) || is_string( $filtered_methods ) ) {
+			$allow_methods = $parse_methods( $filtered_methods );
+		}
 
 		if ( ! empty( $allow_methods ) ) {
 			$send_header( 'Access-Control-Allow-Methods', implode( ', ', $allow_methods ) );
