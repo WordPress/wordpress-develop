@@ -111,6 +111,30 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 66291
 	 */
+	public function test_pre_wp_count_attachments_non_object_runs_default_query() {
+		self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image/jpeg',
+			)
+		);
+
+		add_filter(
+			'pre_wp_count_attachments',
+			static function () {
+				return array( 'image/jpeg' => 42 );
+			}
+		);
+		$start_num_queries = get_num_queries();
+
+		$this->assertSame( '3', wp_count_attachments()->{'image/jpeg'}, 'A non-object filtered value is expected to be ignored.' );
+		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'wp_count_attachments() is expected to trigger database queries.' );
+	}
+
+	/**
+	 * @ticket 66291
+	 */
 	public function test_pre_wp_count_attachments_receives_mime_type() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_count_attachments', array( $filter, 'filter' ), 10, 2 );
