@@ -221,7 +221,7 @@ class Tests_Link_EditBookmarkLink extends WP_UnitTestCase {
 	 */
 	public function test_edit_bookmark_link_default_output() {
 		$this->expectOutputString(
-			'<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/link.php?action=edit&#038;link_id=' . self::$bookmark_id . '">Edit This</a>'
+			'<a href="' . admin_url( 'link.php?action=edit&#038;link_id=' . self::$bookmark_id ) . '">Edit This</a>'
 		);
 
 		edit_bookmark_link( '', '', '', self::$bookmark_id );
@@ -236,7 +236,7 @@ class Tests_Link_EditBookmarkLink extends WP_UnitTestCase {
 	 */
 	public function test_edit_bookmark_link_custom_text_and_wrapper() {
 		$this->expectOutputString(
-			'<p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/link.php?action=edit&#038;link_id=' . self::$bookmark_id . '">Edit bookmark</a></p>'
+			'<p><a href="' . admin_url( 'link.php?action=edit&#038;link_id=' . self::$bookmark_id ) . '">Edit bookmark</a></p>'
 		);
 
 		edit_bookmark_link( 'Edit bookmark', '<p>', '</p>', self::$bookmark_id );
@@ -253,7 +253,7 @@ class Tests_Link_EditBookmarkLink extends WP_UnitTestCase {
 		$GLOBALS['link'] = get_bookmark( self::$global_bookmark_id );
 
 		$this->expectOutputString(
-			'<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/link.php?action=edit&#038;link_id=' . self::$global_bookmark_id . '">Edit This</a>'
+			'<a href="' . admin_url( 'link.php?action=edit&#038;link_id=' . self::$global_bookmark_id ) . '">Edit This</a>'
 		);
 
 		edit_bookmark_link();
@@ -330,7 +330,7 @@ class Tests_Link_EditBookmarkLink extends WP_UnitTestCase {
 			2
 		);
 
-		$anchor = '<a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/link.php?action=edit&#038;link_id=' . self::$bookmark_id . '">Edit bookmark</a>';
+		$anchor = '<a href="' . admin_url( 'link.php?action=edit&#038;link_id=' . self::$bookmark_id ) . '">Edit bookmark</a>';
 
 		$this->expectOutputString( '<p><span data-id="' . self::$bookmark_id . '">' . $anchor . '</span></p>' );
 
