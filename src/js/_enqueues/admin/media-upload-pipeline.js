@@ -121,19 +121,17 @@ window.wp = window.wp || {};
 	 * @param {Object[]} subSizes Accumulated sub-size data.
 	 * @return {Promise<PipelineAttachment|undefined>} Resolves with the transformed attachment.
 	 */
-	function mediaFinalize( id, subSizes ) {
-		return wp
-			.apiFetch( {
-				path: '/wp/v2/media/' + id + '/finalize',
-				method: 'POST',
-				data: { sub_sizes: subSizes || [] },
-			} )
-			.then( function ( /** @type {Object|undefined} */ response ) {
-				if ( ! response ) {
-					return undefined;
-				}
-				return wp.mediaUtils.transformAttachment( response );
-			} );
+	async function mediaFinalize( id, subSizes ) {
+		/** @type {Object|undefined} */
+		const response = await wp.apiFetch( {
+			path: '/wp/v2/media/' + id + '/finalize',
+			method: 'POST',
+			data: { sub_sizes: subSizes || [] },
+		} );
+		if ( ! response ) {
+			return undefined;
+		}
+		return wp.mediaUtils.transformAttachment( response );
 	}
 
 	/**
