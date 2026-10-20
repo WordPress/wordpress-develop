@@ -436,6 +436,14 @@ function create_initial_rest_routes() {
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
+
+	// Entity Actions.
+	$entity_actions_controller = new WP_REST_Entity_Actions_Controller();
+	$entity_actions_controller->register_routes();
+
+	// Entity Fields.
+	$entity_fields_controller = new WP_REST_Entity_Fields_Controller();
+	$entity_fields_controller->register_routes();
 }
 
 /**
@@ -3225,6 +3233,80 @@ function rest_default_additional_properties_to_false( $schema ) {
 	}
 
 	return $schema;
+}
+
+/**
+ * Recursively casts empty arrays to objects where the schema types them as objects.
+ *
+ * PHP cannot distinguish an empty associative array from an empty list, so
+ * `json_encode()` always serializes `array()` as a JSON array (`[]`). A REST
+ * schema, however, may type a value as an object, which must encode as `{}`.
+ * This walks the value against its schema and casts any empty, object-typed
+ * array to an object. Non-empty associative arrays already encode as objects,
+ * so they are left as arrays and only recursed into to fix any nested empty
+ * objects.
+ *
+ * Union schemas (`oneOf`/`anyOf`) are handled only for the empty-array case:
+ * an empty value is cast to an object when any branch allows an object. Such
+ * values are not recursed into.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param mixed $value  The value to normalize.
+ * @param array $schema The schema node describing the value.
+ * @return mixed The normalized value, with empty object-typed arrays cast to objects.
+ */
+function _rest_cast_empty_objects_from_schema( $value, $schema ) {
+	if ( ! is_array( $value ) || ! is_array( $schema ) ) {
+		return $value;
+	}
+
+	if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
+		$branches = $schema['oneOf'] ?? $schema['anyOf'];
+		if ( array() === $value ) {
+			foreach ( $branches as $branch ) {
+				if ( is_array( $branch ) && in_array( 'object', (array) ( $branch['type'] ?? array() ), true ) ) {
+					return (object) array();
+				}
+			}
+		}
+		return $value;
+	}
+
+	$types = (array) ( $schema['type'] ?? array() );
+
+	if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
+		foreach ( $value as $index => $item ) {
+			$value[ $index ] = _rest_cast_empty_objects_from_schema( $item, $schema['items'] );
+		}
+		return $value;
+	}
+
+	if ( in_array( 'object', $types, true ) ) {
+		if ( isset( $schema['properties'] ) ) {
+			foreach ( $schema['properties'] as $property => $property_schema ) {
+				if ( array_key_exists( $property, $value ) ) {
+					$value[ $property ] = _rest_cast_empty_objects_from_schema( $value[ $property ], $property_schema );
+				}
+			}
+		}
+		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
+			foreach ( $value as $key => $item ) {
+				if ( isset( $schema['properties'][ $key ] ) ) {
+					continue;
+				}
+				$value[ $key ] = _rest_cast_empty_objects_from_schema( $item, $schema['additionalProperties'] );
+			}
+		}
+
+		// Empty object-typed arrays must serialize as {} to match the schema.
+		if ( array() === $value ) {
+			return (object) array();
+		}
+	}
+
+	return $value;
 }
 
 /**
