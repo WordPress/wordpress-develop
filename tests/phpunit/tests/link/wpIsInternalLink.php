@@ -57,7 +57,7 @@ class Tests_Link_WpIsInternalLink extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_internal_links
 	 *
-	 * @param string $path Path appended to the home host.
+	 * @param string $scheme_and_path URL format with a `%s` placeholder for the home host.
 	 */
 	public function test_wp_is_internal_link_returns_true_for_internal_urls( $scheme_and_path ) {
 		$host = wp_parse_url( home_url(), PHP_URL_HOST );
