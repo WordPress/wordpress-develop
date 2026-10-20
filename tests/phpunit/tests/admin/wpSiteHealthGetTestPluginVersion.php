@@ -88,7 +88,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 					'color' => 'blue',
 				),
 				'description' => '<p>Plugins extend your site&#8217;s functionality with things like contact forms, ecommerce and much more. That means they have deep access to your site, so it&#8217;s vital to keep them up to date.</p><p>' . $sentence . '</p>',
-				'actions'     => '<p><a href="' . admin_url( 'plugins.php' ) . '">Manage your plugins</a></p>',
+				'actions'     => '<p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/plugins.php">Manage your plugins</a></p>',
 				'test'        => 'plugin_version',
 			),
 			$this->get_result()
@@ -126,8 +126,8 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 		$this->assertSame( 'You have plugins waiting to be updated', $result['label'], 'The label should match.' );
 		$this->assertStringEndsWith( '</p><p>' . $sentence . '</p>', $result['description'], 'The description should count the outdated plugins.' );
 		$this->assertSame(
-			'<p><a href="' . admin_url( 'plugins.php' ) . '">Manage your plugins</a></p>'
-			. '<p><a href="' . esc_url( network_admin_url( 'plugins.php?plugin_status=upgrade' ) ) . '">Update your plugins</a></p>',
+			'<p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/plugins.php">Manage your plugins</a></p>'
+			. '<p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/' . ( is_multisite() ? 'network/' : '' ) . 'plugins.php?plugin_status=upgrade">Update your plugins</a></p>',
 			$result['actions'],
 			'The actions should link to the plugin updates.'
 		);
@@ -189,7 +189,7 @@ class Tests_Admin_wpSiteHealthGetTestPluginVersion extends WP_UnitTestCase {
 			'The description should count the inactive plugins.'
 		);
 		$this->assertStringEndsWith(
-			'<p><a href="' . esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ) . '">Manage inactive plugins</a></p>',
+			'<p><a href="http://' . WP_TESTS_DOMAIN . '/wp-admin/plugins.php?plugin_status=inactive">Manage inactive plugins</a></p>',
 			$result['actions'],
 			'The actions should link to the inactive plugins.'
 		);
