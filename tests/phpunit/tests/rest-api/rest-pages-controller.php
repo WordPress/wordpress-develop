@@ -1107,6 +1107,34 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * The pages of a collection have the links, compacted with the `wp` CURIE
+	 * as the editors read them.
+	 *
+	 * @ticket 66327
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_homepage_action_links_exist_for_pages_in_a_collection() {
+		wp_set_current_user( self::$admin_id );
+
+		$page_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_query_params(
+			array(
+				'context' => 'edit',
+				'include' => array( $page_id ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = rest_get_server()->response_to_data( $response, false );
+
+		$this->assertCount( 1, $data, 'The page should be listed.' );
+		$this->assertArrayHasKey( 'wp:action-set-homepage', $data[0]['_links'], 'The link should be compacted as `wp:action-set-homepage`.' );
+		$this->assertArrayHasKey( 'wp:action-set-posts-page', $data[0]['_links'], 'The link should be compacted as `wp:action-set-posts-page`.' );
+	}
+
+	/**
 	 * Requests a post and returns the links of the response.
 	 *
 	 * @param string $route   Route of the post.
