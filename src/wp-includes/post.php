@@ -3566,6 +3566,8 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
 
 	if ( $counts instanceof stdClass ) {
+		$counts = clone $counts;
+
 		foreach ( get_post_stati() as $status ) {
 			if ( ! isset( $counts->{$status} ) ) {
 				$counts->{$status} = 0;
@@ -3696,6 +3698,8 @@ function wp_count_attachments( $mime_type = '' ) {
 	$counts = apply_filters( 'pre_wp_count_attachments', null, $mime_type );
 
 	if ( $counts instanceof stdClass ) {
+		$counts = clone $counts;
+
 		if ( ! isset( $counts->trash ) ) {
 			$counts->trash = 0;
 		}

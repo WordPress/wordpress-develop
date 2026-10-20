@@ -140,6 +140,24 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 	/**
 	 * @ticket 66098
 	 */
+	public function test_pre_wp_count_posts_does_not_modify_filtered_object() {
+		$stored_counts = (object) array( 'publish' => 5 );
+		add_filter(
+			'pre_wp_count_posts',
+			static function () use ( $stored_counts ) {
+				return $stored_counts;
+			}
+		);
+
+		$counts = wp_count_posts();
+
+		$this->assertSame( 0, $counts->draft, 'A status missing from the filtered value should default to 0.' );
+		$this->assertEquals( (object) array( 'publish' => 5 ), $stored_counts, 'The object returned by the filter should not be modified.' );
+	}
+
+	/**
+	 * @ticket 66098
+	 */
 	public function test_pre_wp_count_posts_result_is_not_cached() {
 		add_filter(
 			'pre_wp_count_posts',

@@ -180,6 +180,24 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	/**
 	 * @ticket 66291
 	 */
+	public function test_pre_wp_count_attachments_does_not_modify_filtered_object() {
+		$stored_counts = (object) array( 'image/jpeg' => 5 );
+		add_filter(
+			'pre_wp_count_attachments',
+			static function () use ( $stored_counts ) {
+				return $stored_counts;
+			}
+		);
+
+		$counts = wp_count_attachments();
+
+		$this->assertSame( 0, $counts->trash, 'Expected trash to be set to zero.' );
+		$this->assertEquals( (object) array( 'image/jpeg' => 5 ), $stored_counts, 'The object returned by the filter should not be modified.' );
+	}
+
+	/**
+	 * @ticket 66291
+	 */
 	public function test_pre_wp_count_attachments_result_is_not_cached() {
 		add_filter(
 			'pre_wp_count_attachments',
