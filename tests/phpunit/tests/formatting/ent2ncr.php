@@ -19,7 +19,7 @@ class Tests_Formatting_Ent2ncr extends WP_UnitTestCase {
 	 * Get test data from files, one test per line.
 	 * Comments start with "###".
 	 */
-	public function data_entities() {
+	public static function data_entities() {
 		$entities      = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$data_provided = array();
 		foreach ( $entities as $line ) {

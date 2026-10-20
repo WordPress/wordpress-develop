@@ -692,7 +692,7 @@ $('.contextual-help-tabs').on( 'click', 'a', function(e) {
 	$('.contextual-help-tabs .active').removeClass('active');
 	link.parent('li').addClass('active');
 
-	panel = $( link.attr('href') );
+	panel = $( document ).find( link.attr('href') );
 
 	// Panels.
 	$('.help-tab-content').not( panel ).removeClass('active').hide();
@@ -1843,7 +1843,7 @@ $( function() {
 			$document.on( 'postbox-toggled', this.maybeDisableSortables );
 
 			// When the screen columns are changed, potentially disable sortables.
-			$( '#screen-options-wrap input' ).on( 'click', this.maybeDisableSortables );
+			$( '#screen-options-wrap input:not(.meta-box-reordering-toggle)' ).on( 'click', this.maybeDisableSortables );
 		},
 
 		/**
@@ -1857,6 +1857,7 @@ $( function() {
 			var width = navigator.userAgent.indexOf('AppleWebKit/') > -1 ? $window.width() : window.innerWidth;
 
 			if (
+				$body.hasClass( 'meta-box-reordering-disabled' ) ||
 				( width <= 782 ) ||
 				( 1 >= $sortables.find( '.ui-sortable-handle:visible' ).length && jQuery( '.columns-prefs-1 input' ).prop( 'checked' ) )
 			) {
