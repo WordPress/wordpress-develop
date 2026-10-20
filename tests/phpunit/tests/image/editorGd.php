@@ -493,7 +493,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$actual = $gd_image_editor->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs );
 
-		$this->assertInstanceOf( 'WP_Error', $actual );
+		$this->assertWPError( $actual );
 		$this->assertSame( 'image_crop_error', $actual->get_error_code() );
 	}
 
