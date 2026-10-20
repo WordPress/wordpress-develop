@@ -1048,7 +1048,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$this->assertSame( $expected['offset'], $offset );
 	}
 
-	public function data_comments_template_top_level_query_args() {
+	public static function data_comments_template_top_level_query_args() {
 		return array(
 			array(
 				array(
