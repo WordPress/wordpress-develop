@@ -3973,6 +3973,8 @@ class WP_Theme_JSON {
 	 *
 	 * @param array<string, mixed> $settings Settings from theme.json.
 	 * @return string[] Style-state keys.
+	 *
+	 * @phpstan-return list<non-falsy-string>
 	 */
 	private static function get_style_state_keys( array $settings ): array {
 		$keys = array_keys( static::get_viewport_media_queries( $settings['viewport'] ?? null ) );

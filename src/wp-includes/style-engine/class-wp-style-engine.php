@@ -791,13 +791,11 @@ final class WP_Style_Engine {
 	 *
 	 * @param string $style_value      A single raw style value from $block_styles array.
 	 * @param array  $style_definition A single style definition from BLOCK_STYLE_DEFINITIONS_METADATA.
-	 * @return string[] An associative array of CSS definitions, e.g., array( "$property" => "$value", "$property" => "$value" ).
+	 * @return array<string, string> An associative array of CSS definitions, mapping properties to values.
+	 *
+	 * @phpstan-return array<non-falsy-string, non-falsy-string>
 	 */
 	protected static function get_background_clip_css_declarations( $style_value, $style_definition ) {
-		if ( empty( $style_value ) || ! is_string( $style_value ) ) {
-			return array();
-		}
-
 		if ( ! in_array( $style_value, static::VALID_BACKGROUND_CLIP_VALUES, true ) ) {
 			return array();
 		}
