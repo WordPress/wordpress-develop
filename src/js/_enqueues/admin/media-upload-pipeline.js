@@ -570,6 +570,8 @@ window.wp = window.wp || {};
 	 */
 	function queueFile( nativeFile, additionalData, callbacks = {} ) {
 		/**
+		 * Handles successful upload.
+		 *
 		 * @param {PipelineAttachment[]} attachments The uploaded attachments.
 		 */
 		function onSuccess( attachments ) {
@@ -635,9 +637,9 @@ window.wp = window.wp || {};
 	 * async-upload.php, so they are forwarded to the REST request for
 	 * plugins reading $_POST, with `post_id` replaced by `options.postId`.
 	 *
-	 * @param {plupload.Uploader}  up      The plupload uploader the files were added to.
-	 * @param {plupload.File[]}    files   Files added to the queue.
-	 * @param {RouteBatchOptions}  options The screen's hooks.
+	 * @param {plupload.Uploader} up      The plupload uploader the files were added to.
+	 * @param {plupload.File[]}   files   Files added to the queue.
+	 * @param {RouteBatchOptions} options The screen's hooks.
 	 * @return {boolean|undefined} False to suppress the built-in handler.
 	 */
 	function routeBatch( up, files, options ) {
