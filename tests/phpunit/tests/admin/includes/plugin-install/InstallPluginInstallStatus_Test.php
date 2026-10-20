@@ -32,20 +32,6 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	private static $subscriber_id;
 
 	/**
-	 * Files created by the current test, removed in tear_down().
-	 *
-	 * @var string[]
-	 */
-	private $created_files = array();
-
-	/**
-	 * Whether the current test created the plugin directory.
-	 *
-	 * @var bool
-	 */
-	private $created_dir = false;
-
-	/**
 	 * Update check requests made by the current test.
 	 *
 	 * @var string[]
@@ -70,31 +56,24 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 
 	/**
 	 * Resets the update transient and the plugins cache before each test.
+	 *
+	 * Also removes a test plugin directory left behind by an interrupted run.
 	 */
 	public function set_up() {
 		parent::set_up();
 
+		$this->remove_plugin_directory();
+
 		delete_site_transient( 'update_plugins' );
 		wp_cache_delete( 'plugins', 'plugins' );
 		unset( $_GET['from'] );
-
-		$this->assertDirectoryDoesNotExist( WP_PLUGIN_DIR . '/' . self::SLUG, 'The test plugin directory should not exist before the test.' );
 	}
 
 	/**
-	 * Removes the files and directory created by the test.
+	 * Removes the test plugin directory created by the test.
 	 */
 	public function tear_down() {
-		foreach ( $this->created_files as $file ) {
-			unlink( $file );
-		}
-
-		if ( $this->created_dir ) {
-			rmdir( WP_PLUGIN_DIR . '/' . self::SLUG );
-		}
-
-		$this->created_files = array();
-		$this->created_dir   = false;
+		$this->remove_plugin_directory();
 
 		unset( $_GET['from'] );
 		delete_site_transient( 'update_plugins' );
@@ -474,17 +453,26 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	private function create_plugin_file( $name, $contents ) {
 		$dir = WP_PLUGIN_DIR . '/' . self::SLUG;
 
-		if ( ! $this->created_dir ) {
+		if ( ! is_dir( $dir ) ) {
 			$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
-			$this->created_dir = true;
 		}
 
 		$file = $dir . '/' . $name;
 
 		$this->assertFileDoesNotExist( $file, 'The test plugin file should not exist yet.' );
 		$this->assertNotFalse( file_put_contents( $file, $contents ), 'The test plugin file should be written.' );
+	}
 
-		$this->created_files[] = $file;
+	/**
+	 * Removes the test plugin directory and its files, if it exists.
+	 */
+	private function remove_plugin_directory() {
+		$dir = WP_PLUGIN_DIR . '/' . self::SLUG;
+
+		if ( is_dir( $dir ) ) {
+			$this->rmdir( $dir );
+			$this->delete_folders( $dir );
+		}
 	}
 
 	/**
