@@ -27,26 +27,24 @@
  * they match only when byte-for-byte identical (no-quirks mode).
  *
  * All HTML documents should start with the standard HTML5 DOCTYPE: `<!DOCTYPE html>`.
+ * The {@link https://html.spec.whatwg.org/#the-doctype HTML Standard} explains why:
  *
  * > DOCTYPEs are required for legacy reasons. When omitted, browsers tend to use a different
  * > rendering mode that is incompatible with some specifications. Including the DOCTYPE in a
  * > document ensures that the browser makes a best-effort attempt at following the
  * > relevant specifications.
  *
- * {@link https://html.spec.whatwg.org/#the-doctype}
- *
  * DOCTYPE declarations comprise four properties: a name, public identifier, system identifier,
  * and an indication of which document compatibility mode they would imply if an HTML parser
- * hadn't already determined it from other information.
+ * hadn't already determined it from other information. The HTML parser's
+ * {@link https://html.spec.whatwg.org/#the-initial-insertion-mode initial insertion mode}
+ * defines which compatibility mode a DOCTYPE declaration implies.
  *
- * {@link https://html.spec.whatwg.org/#the-initial-insertion-mode}
- *
- * Historically, the DOCTYPE declaration was used in SGML documents to instruct a parser how
+ * Historically, the DOCTYPE declaration was used in
+ * {@link https://www.iso.org/standard/16387.html SGML documents} to instruct a parser how
  * to interpret the various tags and entities within a document. Its role in HTML diverged
  * from how it was used in SGML and no meaning should be back-read into HTML based on how it
  * is used in SGML, XML, or XHTML documents.
- *
- * {@link https://www.iso.org/standard/16387.html}
  *
  * @since 6.7.0
  * @since 7.1.0 Spec update: missing and empty SYSTEM identifiers are handled
