@@ -308,15 +308,16 @@ class Tests_Admin_Includes_Theme_wpPrepareThemesForJs extends WP_UnitTestCase {
 		wp_set_current_user( self::$subscriber_id );
 		add_filter( 'themes_auto_update_enabled', '__return_true' );
 
-		$this->assertSame(
-			array(
-				'activate'   => null,
-				'customize'  => null,
-				'delete'     => null,
-				'autoupdate' => null,
-			),
-			$this->prepare( $this->get_themes( 'page-templates', 'block-theme' ) )['page-templates']['actions']
+		$no_actions = array(
+			'activate'   => null,
+			'customize'  => null,
+			'delete'     => null,
+			'autoupdate' => null,
 		);
+		$prepared   = $this->prepare( $this->get_themes( 'page-templates', 'block-theme' ) );
+
+		$this->assertSame( $no_actions, $prepared['page-templates']['actions'], 'A classic theme should have no actions.' );
+		$this->assertSame( $no_actions, $prepared['block-theme']['actions'], 'A block theme should have no actions.' );
 	}
 
 	/**
@@ -335,12 +336,14 @@ class Tests_Admin_Includes_Theme_wpPrepareThemesForJs extends WP_UnitTestCase {
 						'theme'        => 'page-templates',
 						'new_version'  => '2.0',
 						'package'      => 'https://downloads.wordpress.org/theme/page-templates.2.0.zip',
+						'url'          => 'https://wordpress.org/themes/page-templates/',
 						'requires'     => '99.0',
 						'requires_php' => '5.6',
 					),
 					'theme1'         => array(
 						'theme'       => 'theme1',
 						'new_version' => '2.0',
+						'url'         => 'https://wordpress.org/themes/theme1/',
 						'package'     => '',
 					),
 				),
@@ -511,5 +514,24 @@ class Tests_Admin_Includes_Theme_wpPrepareThemesForJs extends WP_UnitTestCase {
 		$this->assertSame( 'theme1', $ids[0], 'The active theme should be first.' );
 		$this->assertContains( 'page-templates', $ids, 'The other installed themes should be listed.' );
 		$this->assertSame( count( $ids ), count( array_unique( $ids ) ), 'Each theme should be listed once.' );
+	}
+
+	/**
+	 * Tests that only the allowed themes are prepared by default on multisite, with the active theme added first.
+	 *
+	 * @ticket 65819
+	 *
+	 * @group ms-required
+	 */
+	public function test_prepares_allowed_themes_and_active_theme_on_multisite() {
+		add_filter(
+			'network_allowed_themes',
+			static function () {
+				return array( 'page-templates' => true );
+			}
+		);
+		add_filter( 'site_allowed_themes', '__return_empty_array' );
+
+		$this->assertSame( array( 'theme1', 'page-templates' ), wp_list_pluck( wp_prepare_themes_for_js(), 'id' ) );
 	}
 }
