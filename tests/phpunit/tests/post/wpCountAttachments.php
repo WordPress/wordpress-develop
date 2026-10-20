@@ -76,6 +76,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 		);
 
 		wp_count_attachments();
+		$this->assertNotFalse( wp_cache_get( 'attachments', 'counts' ), 'Expected the counts to be cached before the filter is added.' );
 
 		$mime_type  = 'image/jpeg';
 		$mock_count = 42;
