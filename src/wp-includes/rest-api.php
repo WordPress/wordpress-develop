@@ -808,7 +808,7 @@ function rest_handle_doing_it_wrong( $function_name, $message, $version ) {
  * Sends Cross-Origin Resource Sharing headers with API requests.
  *
  * @since 4.4.0
- * @since 7.2.0 Added the `$result` and `$request` parameters and the `rest_allowed_cors_methods` filter.
+ * @since 7.2.0 Added the `$result`, `$request`, and `$server` parameters and the `rest_allowed_cors_methods` filter.
  *
  * @param mixed                 $value   Response data.
  * @param WP_HTTP_Response|null $result  Optional. Result to send to the client. Default null.
