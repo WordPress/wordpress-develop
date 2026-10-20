@@ -379,6 +379,70 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an empty object.
+		$this->register_test_ability(
+			'test/empty-object-output',
+			array(
+				'label'               => 'Empty Object Output',
+				'description'         => 'Returns an empty object.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns an empty object nested in an object.
+		$this->register_test_ability(
+			'test/nested-empty-object-output',
+			array(
+				'label'               => 'Nested Empty Object Output',
+				'description'         => 'Returns an object with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return array( 'settings' => array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a list of empty objects.
+		$this->register_test_ability(
+			'test/empty-object-list-output',
+			array(
+				'label'               => 'Empty Object List Output',
+				'description'         => 'Returns a list of empty objects.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'execute_callback'    => static function () {
+					return array( array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -564,6 +628,44 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'Ability "test/invalid-output" has invalid output. Reason: output is not of type number.',
 			$data['message']
 		);
+	}
+
+	/**
+	 * Data provider for test_output_is_prepared_for_json_clients().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_output_is_prepared_for_json_clients(): array {
+		return array(
+			'root empty object stays unchanged'  => array( 'test/empty-object-output', '[]' ),
+			'nested empty object'                => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
+			'numeric collection stays unchanged' => array( 'test/empty-object-list-output', '[[]]' ),
+		);
+	}
+
+	/**
+	 * Tests that ability results are prepared for JSON clients without breaking
+	 * the global `_fields` and `_embed` parameters.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_output_is_prepared_for_json_clients
+	 *
+	 * @param string $ability_name The ability name.
+	 * @param string $expected     The expected encoded result.
+	 */
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
+		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ) );
+
+		$request->set_param( '_fields', 'settings' );
+
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+
+		$this->assertSame( $expected, wp_json_encode( $this->server->response_to_data( $response, true ) ) );
 	}
 
 	/**
