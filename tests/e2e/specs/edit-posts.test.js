@@ -139,3 +139,85 @@ test.describe( 'Edit Posts', () => {
 		).toBeVisible();
 	} );
 } );
+
+test( 'bulk edits only the selected posts', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	const posts = [];
+	const titlePrefix = `Bulk edit ${ Date.now() }`;
+
+	try {
+		for ( const suffix of [ 'first', 'second', 'control' ] ) {
+			posts.push(
+				await requestUtils.createPost( {
+					title: `${ titlePrefix } ${ suffix }`,
+					status: 'publish',
+				} )
+			);
+		}
+
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: titlePrefix } ).toString()
+		);
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await page
+				.locator( `#post-${ post.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+		}
+		await page
+			.getByRole( 'combobox', {
+				name: 'Select bulk action',
+				exact: true,
+			} )
+			.first()
+			.selectOption( 'edit' );
+		await page
+			.getByRole( 'button', { name: 'Apply', exact: true } )
+			.first()
+			.click();
+		const bulkEdit = page.getByRole( 'region', {
+			name: 'Bulk Edit',
+			exact: true,
+		} );
+		await bulkEdit
+			.getByRole( 'combobox', { name: 'Status', exact: true } )
+			.selectOption( 'draft' );
+		await bulkEdit
+			.getByRole( 'button', { name: 'Update', exact: true } )
+			.click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'2 posts updated.'
+		);
+
+		await page.reload();
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await expect(
+				page
+					.locator( `#post-${ post.id }` )
+					.getByText( 'Draft', { exact: true } )
+			).toBeVisible();
+			const savedPost = await requestUtils.rest( {
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( savedPost.status ).toBe( 'draft' );
+		}
+		const control = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ posts[ 2 ].id }`,
+			params: { context: 'edit' },
+		} );
+		expect( control.status ).toBe( 'publish' );
+	} finally {
+		for ( const post of posts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { force: true },
+			} );
+		}
+	}
+} );
