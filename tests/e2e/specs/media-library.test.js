@@ -149,13 +149,11 @@ test.describe( 'Media library', () => {
 		await page
 			.getByRole( 'combobox', { name: 'Filter by type', exact: true } )
 			.selectOption( 'audio' );
-		await expect( imageTile ).toBeHidden();
 		await expect( audioTile ).toBeVisible();
 		await expect( imageTile ).toBeHidden();
 		await page
 			.getByRole( 'combobox', { name: 'Filter by type', exact: true } )
 			.selectOption( 'image' );
-		await expect( audioTile ).toBeHidden();
 		await expect( imageTile ).toBeVisible();
 		await expect( audioTile ).toBeHidden();
 	} );
