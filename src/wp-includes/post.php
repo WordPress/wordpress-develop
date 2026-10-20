@@ -3544,9 +3544,9 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	/**
 	 * Filters the post counts before the query is run.
 	 *
-	 * Returning a non-null value short-circuits wp_count_posts(), skipping both
-	 * the object cache lookup and the database query. This allows the counts to
-	 * be served from another source, such as a value pre-computed in the
+	 * Returning an object short-circuits wp_count_posts(), skipping both the
+	 * object cache lookup and the database query. This allows the counts to be
+	 * served from another source, such as a value pre-computed in the
 	 * background, when an exact real-time count is not required.
 	 *
 	 * Any registered post status missing from the filtered value are added
@@ -3565,9 +3565,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 */
 	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
 
-	if ( null !== $counts ) {
-		$counts = (object) $counts;
-
+	if ( is_object( $counts ) ) {
 		foreach ( get_post_stati() as $status ) {
 			if ( ! isset( $counts->{$status} ) ) {
 				$counts->{$status} = 0;

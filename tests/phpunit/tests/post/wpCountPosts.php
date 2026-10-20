@@ -45,6 +45,24 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 	/**
 	 * @ticket 66098
 	 */
+	public function test_pre_wp_count_posts_non_object_runs_default_query() {
+		self::factory()->post->create_many( 3 );
+
+		add_filter(
+			'pre_wp_count_posts',
+			static function () {
+				return array( 'publish' => 42 );
+			}
+		);
+		$start_num_queries = get_num_queries();
+
+		$this->assertSame( '3', wp_count_posts()->publish, 'A non-object filtered value is expected to be ignored.' );
+		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'wp_count_posts() is expected to trigger database queries.' );
+	}
+
+	/**
+	 * @ticket 66098
+	 */
 	public function test_pre_wp_count_posts_receives_type_and_perm() {
 		$filter = new MockAction();
 		add_filter( 'pre_wp_count_posts', array( $filter, 'filter' ), 10, 3 );
