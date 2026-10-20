@@ -2,9 +2,9 @@
 /**
  * Tests for the Access-Control-Allow-Methods header sent with REST API responses.
  *
- * rest_send_cors_headers() sends its headers with header(), which PHP does not record
- * under the CLI SAPI. These tests read the final method list from a late
- * `rest_allowed_cors_methods` callback instead of from the wire.
+ * PHP does not record headers sent with header() under the CLI SAPI. When it is passed
+ * a server, rest_send_cors_headers() sends its headers through the server instead, so
+ * these tests read them from Spy_REST_Server::$sent_headers.
  *
  * @group restapi
  * @group restapi-cors
