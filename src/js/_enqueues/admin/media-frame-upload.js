@@ -149,11 +149,11 @@
 	function isAttachmentUploader( up ) {
 		const settings = up.settings || {};
 		const params = settings.multipart_params || {};
-		const url = String( settings.url || '' ).split( '?' )[ 0 ];
+		const url = new URL( settings.url || '', location.href );
 
 		return (
 			'upload-attachment' === params.action &&
-			url.endsWith( 'async-upload.php' )
+			url.pathname.endsWith( 'async-upload.php' )
 		);
 	}
 
