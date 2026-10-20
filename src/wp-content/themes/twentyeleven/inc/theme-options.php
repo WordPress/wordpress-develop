@@ -28,24 +28,19 @@ add_action( 'admin_print_styles-appearance_page_theme_options', 'twentyeleven_ad
  *
  * This function is attached to the admin_init action hook.
  *
- * The validation callback, twentyeleven_theme_options_validate(), is used when the option is saved,
- * to ensure that our option values are complete, properly formatted, and safe. It is attached to the
- * option's sanitize filter directly, which is what register_setting() does with the sanitize callback
- * passed in its $args array. That array only exists since WordPress 4.7, and passing the callback
- * as the third argument instead is the signature from before, so this keeps the theme working on
- * both.
+ * This call to register_setting() registers a validation callback, twentyeleven_theme_options_validate(),
+ * which is used when the option is saved, to ensure that our option values are complete, properly
+ * formatted, and safe.
  *
  * @since Twenty Eleven 1.0
  */
 function twentyeleven_theme_options_init() {
 
 	register_setting(
-		'twentyeleven_options',      // Options group, see settings_fields() call in twentyeleven_theme_options_render_page().
-		'twentyeleven_theme_options' // Database option, see twentyeleven_get_theme_options().
+		'twentyeleven_options',               // Options group, see settings_fields() call in twentyeleven_theme_options_render_page().
+		'twentyeleven_theme_options',         // Database option, see twentyeleven_get_theme_options().
+		'twentyeleven_theme_options_validate' // The sanitization callback, see twentyeleven_theme_options_validate().
 	);
-
-	// The sanitization callback, see twentyeleven_theme_options_validate().
-	add_filter( 'sanitize_option_twentyeleven_theme_options', 'twentyeleven_theme_options_validate' );
 
 	// Register our settings field group.
 	add_settings_section(
