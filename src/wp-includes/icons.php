@@ -25,6 +25,8 @@
  *                               via {@see wp_get_icon()}. Default true.
  * }
  * @return bool True if the icon collection was registered successfully, else false.
+ *
+ * @phpstan-param lowercase-string&non-empty-string $slug
  */
 function wp_register_icon_collection( $slug, $args ) {
 	return WP_Icon_Collections_Registry::get_instance()->register( $slug, $args );
@@ -65,6 +67,8 @@ function wp_unregister_icon_collection( $slug ) {
  *                               `get_registered_icons()` alongside the name and label.
  * }
  * @return bool True if the icon was registered successfully, else false.
+ *
+ * @phpstan-param lowercase-string&non-falsy-string $icon_name
  */
 function wp_register_icon( $icon_name, $args ) {
 	return WP_Icons_Registry::get_instance()->register( $icon_name, $args );
@@ -125,6 +129,14 @@ function _wp_register_default_icons() {
 		return;
 	}
 
+	/**
+	 * @var array<lowercase-string&non-falsy-string, array{
+	 *     label: string,
+	 *     filePath: non-empty-string,
+	 *     collections: non-empty-list<lowercase-string&non-falsy-string>,
+	 *     keywords?: list<string>
+	 * }> $collection
+	 */
 	$collection = include $manifest_path;
 
 	if ( empty( $collection ) ) {
@@ -170,6 +182,19 @@ function _wp_register_default_icons() {
 			wp_register_icon( $collection_slug . '/' . $icon_name, $icon_args );
 		}
 	}
+}
+
+/**
+ * Checks whether a value has the form of a namespaced icon name, i.e. "collection/icon-name".
+ *
+ * @since 7.2.0
+ *
+ * @param mixed $icon_name The value to check.
+ * @return bool True if the value has the form of a namespaced icon name, else false.
+ */
+function wp_is_valid_icon_name( $icon_name ) {
+	return is_string( $icon_name )
+		&& preg_match( '#^[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?/[a-z0-9](?:[a-z0-9_-]*[a-z0-9])?$#D', $icon_name );
 }
 
 /**

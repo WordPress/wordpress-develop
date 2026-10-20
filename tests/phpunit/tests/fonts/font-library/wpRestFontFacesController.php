@@ -178,7 +178,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_get_context_param() {
+	public static function data_get_context_param() {
 		return array(
 			'Collection' => array( false ),
 			'Single'     => array( true ),
@@ -578,7 +578,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 			'lineGapOverride'       => '10%',
 			'sizeAdjust'            => '90%',
 			'unicodeRange'          => 'U+0025-00FF, U+4??',
-			'preview'               => 'https://s.w.org/images/fonts/wp-7.1/previews/open-sans/open-sans-400-normal.svg',
+			'preview'               => 'https://s.w.org/images/fonts/wp-7.2/previews/open-sans/open-sans-400-normal.svg',
 			'src'                   => 'https://example.org/wp-content/fonts/open-sans.ttf',
 		);
 
@@ -682,7 +682,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_theme_json_version() {
+	public static function data_create_item_invalid_theme_json_version() {
 		return array(
 			array( 1 ),
 			array( 4 ),
@@ -712,7 +712,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_create_item_invalid_settings() {
+	public static function data_create_item_invalid_settings() {
 		return array(
 			'Missing fontFamily'     => array(
 				'settings' => array_diff_key( self::$default_settings, array( 'fontFamily' => '' ) ),
@@ -860,7 +860,7 @@ class Tests_REST_WpRestFontFacesController extends WP_Test_REST_Controller_Testc
 	 *
 	 * @return array
 	 */
-	public function data_sanitize_font_face_settings() {
+	public static function data_sanitize_font_face_settings() {
 		return array(
 			'settings with tags, extra whitespace, new lines' => array(
 				'settings' => array(
