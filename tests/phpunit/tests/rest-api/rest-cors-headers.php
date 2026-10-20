@@ -334,6 +334,28 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Duplicate methods in the filtered list are sent once.
+	 *
+	 * Methods are case-sensitive, so entries differing only in case are kept.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_duplicates_are_removed() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function ( array $methods ): array {
+				$methods[] = 'GET, POST';
+				$methods[] = 'get';
+				return $methods;
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS . ', get', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
 	 * Entries in the filtered list that are not strings are dropped.
 	 *
 	 * @ticket 46992
