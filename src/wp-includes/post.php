@@ -3544,10 +3544,10 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	/**
 	 * Filters the post counts before the query is run.
 	 *
-	 * Returning an object short-circuits wp_count_posts(), skipping both the
-	 * object cache lookup and the database query. This allows the counts to be
-	 * served from another source, such as a value pre-computed in the
-	 * background, when an exact real-time count is not required.
+	 * Returning a stdClass object short-circuits wp_count_posts(), skipping
+	 * both the object cache lookup and the database query. This allows the
+	 * counts to be served from another source, such as a value pre-computed in
+	 * the background, when an exact real-time count is not required.
 	 *
 	 * Any registered post status missing from the filtered value is added
 	 * to the result and set to zero.
@@ -3565,7 +3565,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 */
 	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
 
-	if ( is_object( $counts ) ) {
+	if ( $counts instanceof stdClass ) {
 		foreach ( get_post_stati() as $status ) {
 			if ( ! isset( $counts->{$status} ) ) {
 				$counts->{$status} = 0;
@@ -3670,10 +3670,11 @@ function wp_count_attachments( $mime_type = '' ) {
 	/**
 	 * Filters the attachment counts before the query is run.
 	 *
-	 * Returning an object short-circuits wp_count_attachments(), skipping
-	 * both the object cache lookup and the database queries. This allows the
-	 * counts to be served from another source, such as a value pre-computed in
-	 * the background, when an exact real-time count is not required.
+	 * Returning a stdClass object short-circuits wp_count_attachments(),
+	 * skipping both the object cache lookup and the database queries. This
+	 * allows the counts to be served from another source, such as a value
+	 * pre-computed in the background, when an exact real-time count is not
+	 * required.
 	 *
 	 * If the filtered value does not contain a trash count, one is added to the
 	 * result and set to zero. Missing MIME types are not added, as they depend on
@@ -3694,7 +3695,7 @@ function wp_count_attachments( $mime_type = '' ) {
 	 */
 	$counts = apply_filters( 'pre_wp_count_attachments', null, $mime_type );
 
-	if ( is_object( $counts ) ) {
+	if ( $counts instanceof stdClass ) {
 		if ( ! isset( $counts->trash ) ) {
 			$counts->trash = 0;
 		}

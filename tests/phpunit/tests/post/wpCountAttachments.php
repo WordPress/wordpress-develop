@@ -110,8 +110,12 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 66291
+	 *
+	 * @dataProvider data_non_stdclass_values
+	 *
+	 * @param mixed $value Filtered value.
 	 */
-	public function test_pre_wp_count_attachments_non_object_runs_default_query() {
+	public function test_pre_wp_count_attachments_non_stdclass_runs_default_query( $value ) {
 		self::factory()->post->create_many(
 			3,
 			array(
@@ -122,14 +126,27 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 
 		add_filter(
 			'pre_wp_count_attachments',
-			static function () {
-				return array( 'image/jpeg' => 42 );
+			static function () use ( $value ) {
+				return $value;
 			}
 		);
 		$start_num_queries = get_num_queries();
 
-		$this->assertSame( '3', wp_count_attachments()->{'image/jpeg'}, 'A non-object filtered value is expected to be ignored.' );
+		$this->assertSame( '3', wp_count_attachments()->{'image/jpeg'}, 'A filtered value that is not a stdClass object is expected to be ignored.' );
 		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'wp_count_attachments() is expected to trigger database queries.' );
+	}
+
+	/**
+	 * Data provider for {@see self::test_pre_wp_count_attachments_non_stdclass_runs_default_query()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed }>
+	 */
+	public function data_non_stdclass_values(): array {
+		return array(
+			'array'       => array( array( 'image/jpeg' => 42 ) ),
+			'false'       => array( false ),
+			'ArrayObject' => array( new ArrayObject( array( 'image/jpeg' => 42 ) ) ),
+		);
 	}
 
 	/**
