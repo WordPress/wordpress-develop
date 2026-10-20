@@ -447,11 +447,16 @@
 	display: none;
 }
 
+#dashboard_right_now .glance-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
 #dashboard_right_now .glance-item svg {
+	flex: none;
 	fill: currentColor;
 	color: #646970;
-	margin-right: 5px;
-	vertical-align: top;
 }
 
 #dashboard_right_now .warning .glance-item svg,
