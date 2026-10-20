@@ -166,10 +166,12 @@ if ( ! function_exists( 'wp_install_defaults' ) ) :
 	/**
 	 * Creates the initial content for a newly-installed site.
 	 *
-	 * Adds the default "Uncategorized" category, the first post (with comment),
-	 * first page, and default widgets for default theme for the current version.
+	 * Adds the default "Uncategorized" category, the first post (with comment
+	 * and note), first page, and default widgets for default theme for the
+	 * current version.
 	 *
 	 * @since 2.1.0
+	 * @since 7.2.0 Adds a note to the first block of the first post.
 	 *
 	 * @global wpdb       $wpdb         WordPress database abstraction object.
 	 * @global WP_Rewrite $wp_rewrite   WordPress rewrite component.
@@ -305,6 +307,68 @@ Commenter avatars come from <a href="%s">Gravatar</a>.'
 				'comment_type'         => 'comment',
 			)
 		);
+
+		/*
+		 * Default note, attached to the first block of the first post.
+		 * A note is linked to its block through the block's `metadata.noteId`
+		 * attribute, so no note is added when the post has no blocks.
+		 */
+		if ( is_multisite() ) {
+			$first_note = get_site_option( 'first_note' );
+		}
+
+		$first_note = ! empty( $first_note ) ? $first_note : __( 'Hi, this is a note. Notes let you leave feedback on a block for anyone else working on this post. To add one, select some text or an entire block and choose Add note from its options menu. Resolve a note once its feedback has been addressed.' );
+
+		$first_block = new WP_Block_Processor( $first_post );
+		$note_author = get_userdata( $user_id );
+
+		if ( $first_block->next_block() && $note_author ) {
+			$first_block_span  = $first_block->get_span();
+			$first_block_name  = $first_block->get_printable_block_type();
+			$first_block_attrs = $first_block->allocate_and_return_parsed_attributes() ?? array();
+			$first_block_void  = WP_Block_Processor::VOID === $first_block->get_delimiter_type();
+
+			// Leave a block with attributes that cannot be parsed untouched.
+			if ( JSON_ERROR_NONE === $first_block->get_last_json_error() && $first_block_span && $first_block_name ) {
+				$note_inserted = $wpdb->insert(
+					$wpdb->comments,
+					array(
+						'comment_post_ID'      => 1,
+						'comment_author'       => $note_author->display_name,
+						'comment_author_email' => $note_author->user_email,
+						'comment_author_url'   => $note_author->user_url,
+						'comment_date'         => $now,
+						'comment_date_gmt'     => $now_gmt,
+						'comment_content'      => $first_note,
+						// Notes are open until they are resolved, which approves them.
+						'comment_approved'     => '0',
+						'comment_type'         => 'note',
+						'user_id'              => $user_id,
+					)
+				);
+
+				if ( $note_inserted ) {
+					$first_block_meta = isset( $first_block_attrs['metadata'] ) && is_array( $first_block_attrs['metadata'] ) ? $first_block_attrs['metadata'] : array();
+
+					$first_block_meta['noteId']    = $wpdb->insert_id;
+					$first_block_attrs['metadata'] = $first_block_meta;
+
+					// Only the first block's opening delimiter is rewritten, the rest of the post is kept as is.
+					$first_block_delimiter = sprintf(
+						'<!-- wp:%s %s %s-->',
+						strip_core_block_namespace( $first_block_name ),
+						serialize_block_attributes( $first_block_attrs ),
+						$first_block_void ? '/' : ''
+					);
+
+					$wpdb->update(
+						$wpdb->posts,
+						array( 'post_content' => substr_replace( $first_post, $first_block_delimiter, $first_block_span->start, $first_block_span->length ) ),
+						array( 'ID' => 1 )
+					);
+				}
+			}
+		}
 
 		// First page.
 		if ( is_multisite() ) {
