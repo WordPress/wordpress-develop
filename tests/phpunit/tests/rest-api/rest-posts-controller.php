@@ -5481,6 +5481,48 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
 	}
 
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_in_view_context() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'view' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
+	/**
+	 * @ticket 63670
+	 *
+	 * @covers WP_REST_Posts_Controller::get_available_actions
+	 */
+	public function test_trash_action_does_not_exist_when_user_cannot_delete() {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'delete_post' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id );
+		$request->set_query_params( array( 'context' => 'edit' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$links    = $response->get_links();
+
+		$this->assertArrayNotHasKey( 'https://api.w.org/action-trash', $links );
+	}
+
 
 	public function test_assign_author_action_exists_for_editor() {
 		wp_set_current_user( self::$editor_id );
