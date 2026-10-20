@@ -154,7 +154,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		);
 
 		$server = $this->get_rest_server();
-		rest_send_cors_headers( false, null, null, $server );
+		rest_send_cors_headers( false, new WP_Error( 'unexpected' ), array( 'unexpected' ), $server ); // @phpstan-ignore argument.type, argument.type (Intentionally passing invalid values.)
 
 		$this->assertNull( $received );
 		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $server->sent_headers['Access-Control-Allow-Methods'] );
