@@ -53,7 +53,11 @@ function wp_register_background_support( $block_type ) {
  * @return string Filtered block content.
  */
 function wp_render_background_support( $block_content, $block ) {
-	$block_type                      = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+	if ( ! $block_type ) {
+		return $block_content;
+	}
+
 	$block_attributes                = ( isset( $block['attrs'] ) && is_array( $block['attrs'] ) ) ? $block['attrs'] : array();
 	$has_background_image_support    = block_has_support( $block_type, array( 'background', 'backgroundImage' ), false );
 	$has_background_gradient_support = block_has_support( $block_type, array( 'background', 'gradient' ), false );
