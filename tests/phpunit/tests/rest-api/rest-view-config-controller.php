@@ -340,7 +340,7 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 		$this->assertSame( $config['default_view'], $data['default_view'] );
 		$this->assertSame( $config['default_layouts'], $data['default_layouts'] );
 		// The controller adds the item counts to the `page` view list.
-		$this->assertSame( _wp_add_counts_to_view_list( 'page', $config['view_list'] ), $data['view_list'] );
+		$this->assertSame( _wp_add_counts_to_view_list( 'page', $config['view_list'], $config['default_view'], $config['default_layouts'] ), $data['view_list'] );
 		$this->assertSame( $config['form'], $data['form'] );
 	}
 
@@ -569,5 +569,106 @@ class WP_REST_View_Config_Controller_Test extends WP_Test_REST_TestCase {
 		remove_filter( 'get_entity_view_config_posttype_page', $add_unpublished );
 
 		$this->assertSame( 3, $view_list['unpublished']['count'] );
+	}
+
+	/**
+	 * A view without filters of its own inherits those of the default view, so
+	 * a filter there leaves the "All" view without a count. The status views
+	 * set their own filters, which replace the inherited ones, so they keep
+	 * theirs.
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_count_of_view_inheriting_default_view_filters() {
+		$filter_default_view = static function ( $data ) {
+			return $data->merge(
+				array(
+					'default_view' => array(
+						'filters' => array(
+							array(
+								'field'    => 'author',
+								'operator' => 'isAny',
+								'value'    => array( 1 ),
+							),
+						),
+					),
+				),
+				1
+			);
+		};
+		add_filter( 'get_entity_view_config_posttype_page', $filter_default_view );
+		$view_list = $this->get_page_view_list();
+		remove_filter( 'get_entity_view_config_posttype_page', $filter_default_view );
+
+		$this->assertArrayNotHasKey( 'count', $view_list['all'] );
+		$this->assertSame( 2, $view_list['drafts']['count'] );
+	}
+
+	/**
+	 * A view without filters of its own also inherits those of its layout's
+	 * defaults, which take precedence over the default view's.
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_count_of_view_inheriting_layout_filters() {
+		$filter_table_layout = static function ( $data ) {
+			return $data->merge(
+				array(
+					'default_view'    => array( 'type' => 'table' ),
+					'default_layouts' => array(
+						'table' => array(
+							'filters' => array(
+								array(
+									'field'    => 'author',
+									'operator' => 'isAny',
+									'value'    => array( 1 ),
+								),
+							),
+						),
+					),
+				),
+				1
+			);
+		};
+		add_filter( 'get_entity_view_config_posttype_page', $filter_table_layout );
+		$view_list = $this->get_page_view_list();
+		remove_filter( 'get_entity_view_config_posttype_page', $filter_table_layout );
+
+		$this->assertArrayNotHasKey( 'count', $view_list['all'] );
+		$this->assertSame( 2, $view_list['drafts']['count'] );
+	}
+
+	/**
+	 * The user can switch a view to any layout on offer, which the server cannot
+	 * see, so a filter in the defaults of a layout other than the default one
+	 * also leaves the "All" view without a count.
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_count_when_another_layout_has_filters() {
+		$filter_table_layout = static function ( $data ) {
+			return $data->merge(
+				array(
+					'default_layouts' => array(
+						'table' => array(
+							'filters' => array(
+								array(
+									'field'    => 'author',
+									'operator' => 'isAny',
+									'value'    => array( 1 ),
+								),
+							),
+						),
+					),
+				),
+				1
+			);
+		};
+		add_filter( 'get_entity_view_config_posttype_page', $filter_table_layout );
+		$view_list = $this->get_page_view_list();
+		remove_filter( 'get_entity_view_config_posttype_page', $filter_table_layout );
+
+		$this->assertArrayNotHasKey( 'count', $view_list['all'] );
+		$this->assertSame( 2, $view_list['drafts']['count'], 'Views with filters of their own keep their count in every layout.' );
 	}
 }

@@ -168,7 +168,7 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		 * changed it.
 		 */
 		if ( 'postType' === $kind && 'page' === $name && is_array( $response['view_list'] ) ) {
-			$response['view_list'] = _wp_add_counts_to_view_list( 'page', $response['view_list'] );
+			$response['view_list'] = _wp_add_counts_to_view_list( 'page', $response['view_list'], $response['default_view'], $response['default_layouts'] );
 		}
 
 		return rest_ensure_response( $response );
