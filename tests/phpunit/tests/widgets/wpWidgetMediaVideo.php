@@ -107,9 +107,41 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 				'missing_attachment',
 				'no_media_selected',
 				'add_media',
+				'invalid_url',
+				'youtube_error',
+				'vimeo_error',
+				'network_error',
+				'file_not_found',
 			),
 			array_keys( $widget->l10n )
 		);
+	}
+
+	/**
+	 * Test enhanced error messages are properly defined.
+	 *
+	 * @covers WP_Widget_Media_Video::__construct
+	 */
+	public function test_enhanced_error_messages() {
+		$widget = new WP_Widget_Media_Video();
+
+		$required_error_messages = array(
+			'invalid_url',
+			'youtube_error',
+			'vimeo_error',
+			'file_not_found',
+			'network_error',
+		);
+
+		foreach ( $required_error_messages as $error_key ) {
+			$this->assertArrayHasKey( $error_key, $widget->l10n, "Error message '$error_key' should be defined" );
+			$this->assertNotEmpty( $widget->l10n[ $error_key ], "Error message '$error_key' should not be empty" );
+			$this->assertIsString( $widget->l10n[ $error_key ], "Error message '$error_key' should be a string" );
+		}
+
+		$this->assertStringNotContainsString( 'filter_var', $widget->l10n['invalid_url'] );
+		$this->assertStringNotContainsString( 'HTTP', $widget->l10n['youtube_error'] );
+		$this->assertStringNotContainsString( 'oEmbed', $widget->l10n['vimeo_error'] );
 	}
 
 	/**
@@ -210,6 +242,69 @@ class Tests_Widgets_wpWidgetMediaVideo extends WP_UnitTestCase {
 			$instance
 		);
 		$this->assertSame( $result, $instance );
+	}
+
+	/**
+	 * Test render_error_message method.
+	 *
+	 * @covers WP_Widget_Media_Video::render_error_message
+	 */
+	public function test_render_error_message() {
+		$widget = new WP_Widget_Media_Video();
+
+		ob_start();
+		$reflection = new ReflectionClass( $widget );
+		$method     = $reflection->getMethod( 'render_error_message' );
+		$method->setAccessible( true );
+		$method->invoke( $widget, 'invalid_url' );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'notice notice-error', $output );
+		$this->assertStringContainsString( $widget->l10n['invalid_url'], $output );
+
+		ob_start();
+		$method->invoke( $widget, 'nonexistent_error' );
+		$output = ob_get_clean();
+
+		$this->assertEmpty( $output );
+
+		$error_types = array( 'invalid_url', 'youtube_error', 'vimeo_error', 'file_not_found' );
+		foreach ( $error_types as $error_type ) {
+			ob_start();
+			$method->invoke( $widget, $error_type );
+			$output = ob_get_clean();
+
+			$this->assertStringContainsString( 'notice notice-error', $output, "Error type '$error_type' should render with notice classes" );
+			$this->assertStringContainsString( $widget->l10n[ $error_type ], $output, "Error type '$error_type' should contain the error message" );
+		}
+	}
+
+	/**
+	 * Test render_media method with invalid URLs.
+	 *
+	 * @covers WP_Widget_Media_Video::render_media
+	 */
+	public function test_render_media_invalid_url() {
+		$widget = new WP_Widget_Media_Video();
+
+		ob_start();
+		$widget->render_media( array( 'url' => 'not-a-valid-url' ) );
+		$output = ob_get_clean();
+
+		$this->assertStringContainsString( 'notice notice-error', $output );
+		$this->assertStringContainsString( $widget->l10n['invalid_url'], $output );
+
+		ob_start();
+		$widget->render_media( array( 'url' => '' ) );
+		$output = ob_get_clean();
+
+		$this->assertEmpty( $output );
+
+		ob_start();
+		$widget->render_media( array( 'url' => 'https://www.youtube.com/watch?v=72xdCU__XCk' ) );
+		$output = ob_get_clean();
+
+		$this->assertStringNotContainsString( $widget->l10n['invalid_url'], $output );
 	}
 
 	/**
