@@ -48,6 +48,15 @@ class Tests_Admin_wpPluginsListTableGetBulkActions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Revokes the super admin grant before the fixture users are deleted.
+	 */
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+	}
+
+	/**
 	 * Saves the globals the list table sets and enables plugin auto-updates.
 	 */
 	public function set_up() {
@@ -130,6 +139,8 @@ class Tests_Admin_wpPluginsListTableGetBulkActions extends WP_UnitTestCase {
 					'disable-auto-update-selected',
 				),
 			),
+			// The Recently Active view; get_bulk_actions() checks for 'recent', so Deactivate is offered.
+			'recently_activated'   => array( 'recently_activated', $all ),
 			'recent'               => array(
 				'recent',
 				array(
