@@ -1,7 +1,7 @@
-== Ipsum ==
+=== Ipsum ===
 Contributors: wordpressdotorg
 Requires at least: 7.1
-Tested up to: 7.1
+Tested up to: 7.2
 Requires PHP: 7.4
 Stable tag: 1.0
 License: GPLv2 or later
@@ -14,8 +14,10 @@ Ipsum is a blank canvas built around the blogging experience, our proposal for w
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release
+= 1.0 =
+* Released: December 8, 2026
+
+https://wordpress.org/documentation/article/ipsum-changelog/#Version_1.0
 
 
 == Copyright ==
