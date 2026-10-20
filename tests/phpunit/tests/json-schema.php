@@ -201,7 +201,7 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 	 * Tests that an empty default on an object schema is sent to clients as a JSON object.
 	 *
 	 * An empty PHP array is encoded as `[]`, which does not match an object schema.
-	 * Other defaults stay unchanged.
+	 * Defaults that allow arrays stay unchanged.
 	 *
 	 * @ticket 66267
 	 *
@@ -214,6 +214,61 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 		$prepared = wp_prepare_json_schema_for_client( $schema );
 
 		$this->assertSame( $expected, wp_json_encode( $prepared['default'] ) );
+	}
+
+	/**
+	 * Tests that defaults use the same preparation as other JSON values.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_wp_prepare_json_value_for_client
+	 *
+	 * @param mixed                $value    The default value to prepare.
+	 * @param array<string, mixed> $schema   The schema describing the value.
+	 * @param string               $expected The expected encoded default.
+	 */
+	public function test_wp_prepare_json_schema_for_client_prepares_default_values( $value, $schema, $expected ) {
+		$schema['default'] = $value;
+		$prepared          = wp_prepare_json_schema_for_client( $schema );
+
+		$this->assertSame( $expected, wp_json_encode( $prepared['default'] ) );
+	}
+
+	/**
+	 * Tests that defaults inside child schemas have their nested values prepared.
+	 *
+	 * @ticket 66267
+	 */
+	public function test_wp_prepare_json_schema_for_client_prepares_nested_default_values() {
+		$schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'settings' => array(
+					'type'                 => 'object',
+					'properties'           => array(
+						'list' => array(
+							'type'  => 'array',
+							'items' => array( 'type' => 'object' ),
+						),
+					),
+					'patternProperties'    => array(
+						'^object-' => array( 'type' => 'object' ),
+					),
+					'additionalProperties' => array( 'type' => 'object' ),
+					'default'              => array(
+						'list'     => array( array() ),
+						'object-1' => array(),
+						'extra'    => array(),
+					),
+				),
+			),
+		);
+
+		$prepared = wp_prepare_json_schema_for_client( $schema );
+
+		$this->assertSame(
+			'{"list":[{}],"object-1":{},"extra":{}}',
+			wp_json_encode( $prepared['properties']['settings']['default'] )
+		);
 	}
 
 	/**
