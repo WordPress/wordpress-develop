@@ -33,7 +33,7 @@ class Tests_Compat_arrayLast extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_last(): array {
+	public static function data_array_last(): array {
 		$obj = new \stdClass();
 		return array(
 			'string values'          => array(
