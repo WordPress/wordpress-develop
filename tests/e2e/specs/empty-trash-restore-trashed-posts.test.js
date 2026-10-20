@@ -116,3 +116,68 @@ test.describe( 'Empty Trash', () => {
 		await expect( page.locator( '#message' ) ).toContainText( '1 post restored from the Trash.' );
 	} );
 } );
+
+test( 'bulk trashes only the selected posts', async ( {
+	page,
+	admin,
+	requestUtils,
+} ) => {
+	const posts = [];
+	const titlePrefix = `Bulk trash ${ Date.now() }`;
+
+	try {
+		for ( const suffix of [ 'first', 'second', 'control' ] ) {
+			posts.push(
+				await requestUtils.createPost( {
+					title: `${ titlePrefix } ${ suffix }`,
+					status: 'publish',
+				} )
+			);
+		}
+
+		await admin.visitAdminPage(
+			'edit.php',
+			new URLSearchParams( { s: titlePrefix } ).toString()
+		);
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await page
+				.locator( `#post-${ post.id }` )
+				.getByRole( 'checkbox' )
+				.check();
+		}
+		await page
+			.locator( '#bulk-action-selector-top' )
+			.selectOption( 'trash' );
+		await page.locator( '#doaction' ).click();
+		await expect( page.locator( '#message' ) ).toContainText(
+			'2 posts moved to the Trash.'
+		);
+
+		for ( const post of posts.slice( 0, 2 ) ) {
+			await expect( page.locator( `#post-${ post.id }` ) ).toHaveCount(
+				0
+			);
+			const savedPost = await requestUtils.rest( {
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { context: 'edit' },
+			} );
+			expect( savedPost.status ).toBe( 'trash' );
+		}
+		await expect(
+			page.locator( `#post-${ posts[ 2 ].id }` )
+		).toBeVisible();
+		const control = await requestUtils.rest( {
+			path: `/wp/v2/posts/${ posts[ 2 ].id }`,
+			params: { context: 'edit' },
+		} );
+		expect( control.status ).toBe( 'publish' );
+	} finally {
+		for ( const post of posts ) {
+			await requestUtils.rest( {
+				method: 'DELETE',
+				path: `/wp/v2/posts/${ post.id }`,
+				params: { force: true },
+			} );
+		}
+	}
+} );
