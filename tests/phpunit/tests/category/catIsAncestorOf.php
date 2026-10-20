@@ -213,4 +213,27 @@ class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 		$this->assertFalse( cat_is_ancestor_of( self::$tag_id, self::$child_id ) );
 		$this->assertFalse( cat_is_ancestor_of( self::$parent_id, self::$tag_id ) );
 	}
+
+	/**
+	 * Tests that cat_is_ancestor_of() returns false for hierarchical term IDs from another taxonomy.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_returns_false_for_term_ids_from_another_taxonomy() {
+		register_taxonomy( 'wptests_tax', 'post', array( 'hierarchical' => true ) );
+
+		$parent_term_id = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+		$child_term_id  = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $parent_term_id,
+			)
+		);
+
+		$this->assertFalse( cat_is_ancestor_of( $parent_term_id, $child_term_id ) );
+	}
 }
