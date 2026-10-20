@@ -116,8 +116,7 @@ class Tests_Link_PermalinkAnchor extends WP_UnitTestCase {
 
 		$GLOBALS['post'] = get_post( $special_post_id );
 
-		$expected_slug = sanitize_title( 'Special Characters & Symbols: 100% Valid!' ) . '-' . $special_post_id;
-		$expected      = '<a id="' . $expected_slug . '"></a>';
+		$expected = '<a id="special-characters-symbols-100-valid-' . $special_post_id . '"></a>';
 
 		$this->assertSame( $expected, get_echo( 'permalink_anchor', array( 'title' ) ) );
 	}
