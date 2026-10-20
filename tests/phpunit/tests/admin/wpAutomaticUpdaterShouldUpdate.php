@@ -67,7 +67,8 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 	 */
 	private function get_updater( $email_count = 0 ) {
 		$updater = $this->getMockBuilder( WP_Automatic_Updater::class )
-			->onlyMethods( array( 'send_core_update_notification_email' ) )
+			// Note: setMethods() is deprecated in PHPUnit 9, but still supported.
+			->setMethods( array( 'send_core_update_notification_email' ) )
 			->getMock();
 
 		$updater->expects( $this->exactly( $email_count ) )->method( 'send_core_update_notification_email' );
@@ -351,6 +352,35 @@ class Tests_Admin_WpAutomaticUpdaterShouldUpdate extends WP_UnitTestCase {
 		add_filter( 'auto_update_core', '__return_false' );
 
 		$this->assertFalse( $this->get_updater( 1 )->should_update( 'core', self::core_offer(), ABSPATH ) );
+	}
+
+	/**
+	 * Tests that the core update decision comes from the core update policy when no auto_update_core filter is added.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_core_update_policy
+	 *
+	 * @param bool $allow_major Whether the core update policy allows major updates.
+	 * @param bool $expected    Whether core should be updated.
+	 */
+	public function test_core_update_follows_core_update_policy( $allow_major, $expected ) {
+		add_filter( 'allow_dev_auto_core_updates', '__return_true' );
+		add_filter( 'allow_major_auto_core_updates', $allow_major ? '__return_true' : '__return_false' );
+
+		$this->assertSame( $expected, $this->get_updater( $expected ? 0 : 1 )->should_update( 'core', self::core_offer(), ABSPATH ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_core_update_policy() {
+		return array(
+			'policy allows the update' => array( true, true ),
+			'policy denies the update' => array( false, false ),
+		);
 	}
 
 	/**
