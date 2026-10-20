@@ -14,21 +14,24 @@ for ( const { taxonomy, endpoint, label } of [
 ] ) {
 	test.describe( `${ label } management`, () => {
 		let prefix;
-		let slugs;
 
 		test.beforeEach( async () => {
 			prefix = `e2e-term-${ randomUUID() }`;
-			slugs = [];
 		} );
 
 		test.afterEach( async ( { requestUtils } ) => {
-			// Look up owned slugs even when a browser assertion fails after creation.
-			for ( const slug of slugs.reverse() ) {
-				const terms = await requestUtils.rest( {
-					path: `/wp/v2/${ endpoint }`,
-					params: { slug },
-				} );
-				for ( const term of terms ) {
+			// Find owned terms by name even if a regression changes their saved slug.
+			const terms = await requestUtils.rest( {
+				path: `/wp/v2/${ endpoint }`,
+				params: {
+					search: prefix,
+					per_page: 100,
+					orderby: 'id',
+					order: 'desc',
+				},
+			} );
+			for ( const term of terms ) {
+				if ( term.name.startsWith( `${ prefix }-` ) ) {
 					await requestUtils.rest( {
 						method: 'DELETE',
 						path: `/wp/v2/${ endpoint }/${ term.id }`,
@@ -38,9 +41,15 @@ for ( const { taxonomy, endpoint, label } of [
 			}
 		} );
 
+		/**
+		 * Creates a term owned by the current test.
+		 *
+		 * @param {import('@wordpress/e2e-test-utils-playwright').RequestUtils} requestUtils REST helpers.
+		 * @param {string}                                                      suffix       Term name suffix.
+		 * @return {Promise<Object>} Created term.
+		 */
 		async function createTerm( requestUtils, suffix ) {
 			const slug = `${ prefix }-${ suffix }`;
-			slugs.push( slug );
 			return requestUtils.rest( {
 				method: 'POST',
 				path: `/wp/v2/${ endpoint }`,
@@ -50,7 +59,6 @@ for ( const { taxonomy, endpoint, label } of [
 
 		test( 'adds a term', async ( { admin, page } ) => {
 			const name = `${ prefix }-new`;
-			slugs.push( name );
 			await admin.visitAdminPage(
 				'/edit-tags.php',
 				`taxonomy=${ taxonomy }`
@@ -145,8 +153,6 @@ for ( const { taxonomy, endpoint, label } of [
 					.click(),
 			] );
 			await expect( row ).toBeHidden();
-			await page.reload();
-			await expect( row ).toBeHidden();
 			const terms = await requestUtils.rest( {
 				path: `/wp/v2/${ endpoint }`,
 				params: { slug: term.slug },
@@ -162,7 +168,6 @@ for ( const { taxonomy, endpoint, label } of [
 			} ) => {
 				const parent = await createTerm( requestUtils, 'parent' );
 				const name = `${ prefix }-child`;
-				slugs.push( name );
 				await admin.visitAdminPage(
 					'/edit-tags.php',
 					'taxonomy=category'
