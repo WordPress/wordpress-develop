@@ -32,12 +32,13 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 	}
 
 	/**
-	 * The post editor does not preload the fields, whatever its `p` query arg.
+	 * The post editor preloads the fields of the edited post type, which the
+	 * post summary of its inspector reads, whatever its `p` query arg.
 	 *
 	 * @ticket 66229
 	 */
-	public function test_the_post_editor_does_not_preload_the_fields() {
-		$_GET['p'] = '/page';
+	public function test_the_post_editor_preloads_the_fields_of_the_post_type() {
+		$_GET['p'] = '/wp_template';
 		$post      = self::factory()->post->create_and_get( array( 'post_type' => 'page' ) );
 		$context   = new WP_Block_Editor_Context(
 			array(
@@ -46,7 +47,7 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 			)
 		);
 
-		$this->assertSame( array(), _wp_preload_entity_fields( array(), $context ) );
+		$this->assertSame( array( '/wp/v2/entity-fields?kind=postType&name=page' ), _wp_preload_entity_fields( array(), $context ) );
 	}
 
 	/**
