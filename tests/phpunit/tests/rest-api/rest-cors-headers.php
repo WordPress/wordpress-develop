@@ -16,7 +16,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	/**
 	 * The default method list sent by rest_send_cors_headers().
 	 */
-	const DEFAULT_ALLOW_METHODS = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
+	const DEFAULT_ALLOW_METHODS = 'OPTIONS, GET, POST, PUT, PATCH, DELETE';
 
 	public function set_up() {
 		parent::set_up();
@@ -59,7 +59,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_default_list_is_sent() {
 		$this->send_cors_headers();
 
-		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -135,7 +135,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	public function test_response_value_without_valid_methods_falls_back_to_the_default( string $response_value ) {
 		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => $response_value ) );
 
-		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -185,7 +185,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		rest_send_cors_headers( false, new WP_Error( 'unexpected' ), array( 'unexpected' ), $server ); // @phpstan-ignore argument.type, argument.type (Intentionally passing invalid values.)
 
 		$this->assertNull( $received );
-		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $server->sent_headers['Access-Control-Allow-Methods'] );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $server->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -220,7 +220,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		$this->send_cors_headers();
 
 		$server = $this->get_rest_server();
-		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE, HEAD', $server->sent_headers['Access-Control-Allow-Methods'] );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS . ', HEAD', $server->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
@@ -416,7 +416,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 		$server = $this->get_rest_server();
 		$server->serve_request( '/wp/v2/types' );
-		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $server->sent_headers['Access-Control-Allow-Methods'] );
+		$this->assertSame( self::DEFAULT_ALLOW_METHODS, $server->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
