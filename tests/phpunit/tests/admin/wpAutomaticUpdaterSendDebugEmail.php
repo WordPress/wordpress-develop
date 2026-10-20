@@ -209,10 +209,11 @@ class Tests_Admin_WpAutomaticUpdaterSendDebugEmail extends WP_UnitTestCase {
 	 */
 	public function test_should_use_host_without_site_title() {
 		update_option( 'blogname', '' );
+		update_option( 'home', 'https://example.com:8080/blog' );
 
 		$this->send( array( 'plugin' => array( $this->result( 'Plugin A', true ) ) ) );
 
-		$this->assertSame( '[' . WP_TESTS_DOMAIN . '] Background Update Finished', $this->mail['subject'] );
+		$this->assertSame( '[example.com] Background Update Finished', $this->mail['subject'] );
 	}
 
 	/**
