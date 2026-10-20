@@ -51,6 +51,18 @@ function wp_register_background_support( $block_type ) {
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
  * @return string Filtered block content.
+ *
+ * @phpstan-param array{
+ *     blockName: string,
+ *     attrs: array{
+ *         style?: array{
+ *             background?: array<string, mixed>,
+ *             ...<string, mixed>
+ *         },
+ *         ...<string, mixed>
+ *     },
+ *     ...
+ * } $block
  */
 function wp_render_background_support( $block_content, $block ) {
 	$block_type = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
