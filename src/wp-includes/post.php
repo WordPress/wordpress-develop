@@ -3549,7 +3549,7 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 * served from another source, such as a value pre-computed in the
 	 * background, when an exact real-time count is not required.
 	 *
-	 * Any registered post status missing from the filtered value are added
+	 * Any registered post status missing from the filtered value is added
 	 * to the result and set to zero.
 	 *
 	 * The returned value is not cached and passed through the
