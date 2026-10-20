@@ -18,8 +18,17 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	 */
 	const DEFAULT_ALLOW_METHODS = 'OPTIONS, GET, POST, PUT, PATCH, DELETE';
 
+	/**
+	 * The request method before the test, or null if it was not set.
+	 *
+	 * @var mixed
+	 */
+	private $original_request_method;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->original_request_method = $_SERVER['REQUEST_METHOD'] ?? null;
 
 		// The CORS headers are only sent when the request carries an Origin.
 		$_SERVER['HTTP_ORIGIN']    = 'http://example.org';
@@ -34,6 +43,11 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 
 	public function tear_down() {
 		unset( $_SERVER['HTTP_ORIGIN'], $_GET['_envelope'] );
+		if ( null === $this->original_request_method ) {
+			unset( $_SERVER['REQUEST_METHOD'] );
+		} else {
+			$_SERVER['REQUEST_METHOD'] = $this->original_request_method;
+		}
 		$GLOBALS['wp_rest_server'] = null;
 
 		parent::tear_down();
