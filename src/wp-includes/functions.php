@@ -5111,8 +5111,10 @@ function wp_parse_list( $input_list ): array {
  * Generator for a foreach loop to step through each token in a string of
  * space-separated tokens.
  *
+ * This generator function is designed to be used inside a "foreach" loop.
+ *
  * Tokens are separated by one or more ASCII whitespace characters (space, tab,
- * line feed, form feed, or carriage return), matching how browsers split a
+ * form feed, carriage return, or line feed), matching how browsers split a
  * set of space-separated tokens, such as a list of CSS class names.
  *
  * This is a purely lexical operation on a plain-text string: no character
@@ -5120,12 +5122,12 @@ function wp_parse_list( $input_list ): array {
  * case-normalized. To read the class names of an HTML tag, use
  * {@see WP_HTML_Tag_Processor::class_list()} instead.
  *
- * Example:
- *
- *     foreach ( wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
- *         echo "{$token} ";
- *     }
- *     // Outputs: "wp-block is-style-outline "
+ * ```php
+ * foreach ( wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
+ *   echo "{$token} ";
+ * }
+ * // Outputs: "wp-block is-style-outline "
+ * ```
  *
  * @since 7.2.0
  *
@@ -5135,15 +5137,15 @@ function wp_parse_list( $input_list ): array {
  * @return Generator<int, non-empty-string> Tokens in order of appearance.
  */
 function wp_split_space_separated_tokens( string $input ): Generator {
-	$delimiters = " \t\n\f\r";
-	$length     = strlen( $input );
-	$offset     = strspn( $input, $delimiters );
+	$at           = strspn( $input, " \t\f\r\n" );
+	$input_length = strlen( $input );
+	while ( $at < $input_length ) {
+		// Find the byte length until the next boundary.
+		$length = strcspn( $input, " \t\f\r\n", $at );
+		yield substr( $input, $at, $length );
+		$at += $length;
 
-	while ( $offset < $length ) {
-		$token_length = strcspn( $input, $delimiters, $offset );
-		yield substr( $input, $offset, $token_length );
-		$offset += $token_length;
-		$offset += strspn( $input, $delimiters, $offset );
+		$at += strspn( $input, " \t\f\r\n", $at );
 	}
 }
 
