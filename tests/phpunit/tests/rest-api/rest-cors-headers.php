@@ -19,16 +19,18 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	const DEFAULT_ALLOW_METHODS = 'OPTIONS, GET, POST, PUT, PATCH, DELETE';
 
 	/**
-	 * The request method before the test, or null if it was not set.
+	 * The `$_SERVER` values the tests change, as they were before the test, with null for one that was not set.
 	 *
-	 * @var mixed
+	 * @var array<string, mixed>
 	 */
-	private $original_request_method;
+	private $original_server_values = array();
 
 	public function set_up() {
 		parent::set_up();
 
-		$this->original_request_method = $_SERVER['REQUEST_METHOD'] ?? null;
+		foreach ( array( 'HTTP_ORIGIN', 'REQUEST_METHOD' ) as $key ) {
+			$this->original_server_values[ $key ] = $_SERVER[ $key ] ?? null;
+		}
 
 		// The CORS headers are only sent when the request carries an Origin.
 		$_SERVER['HTTP_ORIGIN']    = 'http://example.org';
@@ -42,11 +44,13 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		unset( $_SERVER['HTTP_ORIGIN'], $_GET['_envelope'] );
-		if ( null === $this->original_request_method ) {
-			unset( $_SERVER['REQUEST_METHOD'] );
-		} else {
-			$_SERVER['REQUEST_METHOD'] = $this->original_request_method;
+		unset( $_GET['_envelope'] );
+		foreach ( $this->original_server_values as $key => $value ) {
+			if ( null === $value ) {
+				unset( $_SERVER[ $key ] );
+			} else {
+				$_SERVER[ $key ] = $value;
+			}
 		}
 		$GLOBALS['wp_rest_server'] = null;
 
