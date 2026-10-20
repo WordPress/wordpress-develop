@@ -48,17 +48,30 @@ test( 'uploads a JPEG and shows the completed attachment', async ( {
 			.getByRole( 'button', { name: 'Select Files', exact: true } )
 			.click();
 		const fileChooser = await fileChooserPromise;
-		const uploadResponsePromise = page.waitForResponse(
-			( response ) =>
-				new URL( response.url() ).pathname.endsWith(
-					'/async-upload.php'
-				) &&
-				response.request().method() === 'POST' &&
+		const uploadResponsePromise = page.waitForResponse( ( response ) => {
+			if ( response.request().method() !== 'POST' ) {
+				return false;
+			}
+
+			const url = new URL( response.url() );
+
+			// Client-side processing creates attachments through the REST API.
+			if (
+				url.pathname.endsWith( '/wp/v2/media' ) ||
+				url.searchParams.get( 'rest_route' ) === '/wp/v2/media'
+			) {
+				return true;
+			}
+
+			// Ignore the separate request that fetches completed attachment markup.
+			return (
+				url.pathname.endsWith( '/async-upload.php' ) &&
 				response
 					.request()
 					.headers()
 					[ 'content-type' ]?.startsWith( 'multipart/form-data' )
-		);
+			);
+		} );
 		await fileChooser.setFiles(
 			path.join( __dirname, '../../phpunit/data/images/test-image.jpg' )
 		);
@@ -67,7 +80,13 @@ test( 'uploads a JPEG and shows the completed attachment', async ( {
 			uploadResponse.headers()[ 'x-wp-upload-attachment-id' ]
 		);
 		if ( ! attachmentId ) {
-			attachmentId = Number( await uploadResponse.text() );
+			attachmentId = Number(
+				uploadResponse.headers()[ 'content-type' ]?.includes(
+					'application/json'
+				)
+					? ( await uploadResponse.json() ).id
+					: await uploadResponse.text()
+			);
 		}
 		expect( uploadResponse.ok() ).toBe( true );
 		expect( attachmentId ).toBeGreaterThan( 0 );
