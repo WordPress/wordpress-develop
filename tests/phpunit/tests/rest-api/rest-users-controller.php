@@ -1765,7 +1765,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'email', 'testjson@example.com' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_email', $response->as_error()->get_error_code() );
 	}
 
@@ -1823,7 +1823,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user1 );
 		$request->set_param( 'locale', 'klingon' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_invalid_param', $response->as_error()->get_error_code() );
 	}
 
@@ -1896,7 +1896,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'username', 'test_json_user' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_argument', $response->as_error()->get_error_code() );
 	}
 
@@ -1921,7 +1921,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/' . $user2 );
 		$request->set_param( 'slug', 'test_json_user' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertInstanceOf( 'WP_Error', $response->as_error() );
+		$this->assertWPError( $response->as_error() );
 		$this->assertSame( 'rest_user_invalid_slug', $response->as_error()->get_error_code() );
 	}
 
