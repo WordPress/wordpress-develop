@@ -65,6 +65,15 @@ class Tests_Ajax_wpAjaxCheckPluginDependencies extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
+	 * Revokes the super admin grant before the fixture users are deleted.
+	 */
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+	}
+
+	/**
 	 * Saves the static properties and sets up the installed plugins.
 	 */
 	public function set_up() {
