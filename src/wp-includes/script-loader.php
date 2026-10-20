@@ -3960,13 +3960,7 @@ function wp_enqueue_command_palette_assets() {
 		)
 	);
 
-	/*
-	 * Styles for teletype easter egg.
-	 *
-	 * These are added to the DOM via the teletype JavaScript if the
-	 * easter egg is activated. Stored here to allow for HEREDOC
-	 * highlighting by IDEs.
-	 */
+	// Styles for the teletype easter egg, injected by teletype.js when it runs.
 	$teletype_styles = <<<'CSS'
 		.wp-teletype {
 			position:fixed;
@@ -4005,25 +3999,22 @@ function wp_enqueue_command_palette_assets() {
 			width:1px;
 			height:1px;
 			margin:-1px;
-
 			padding:0;
 			overflow:hidden;
 			clip-path:inset(50%);
 			white-space:nowrap;
 			border:0
 		}
-		.wp-teletype .exit{
+		.wp-teletype .exit {
 			position:absolute;
 			z-index:2;
 			top:1.5em;
 			right:1.5em;
-
 			padding:.7em 1.8em;
 			border:0;
 			border-radius:999px;
 			background:#2271b1;
 			color:#fff;
-
 			font-family:inherit;
 			font-size:14px;
 			line-height:1;
@@ -4036,26 +4027,26 @@ function wp_enqueue_command_palette_assets() {
 			outline:2px solid #fff;
 			outline-offset:2px
 		}
-		.wp-teletype .cursor{
+		.wp-teletype .cursor {
 			opacity:0;
 			transition:opacity linear;
-			transition-duration: var( --wp-teletype-transition-duration ); /* Set in JS file */
+			transition-duration:var(--wp-teletype-transition-duration) /* Set in teletype.js. */
 		}
-
-		.wp-teletype .cursor.is-visible{
+		.wp-teletype .cursor.is-visible {
 			opacity:1;
 			animation:wp-teletype-blink 1s step-end infinite
 		}
-
-		@keyframes wp-teletype-blink{
+		@keyframes wp-teletype-blink {
 			50% {
-				opacity:0}
+				opacity:0
 			}
-			@media (prefers-reduced-motion:reduce) {
-			.wp-teletype .cursor.is-visible{
+		}
+		@media (prefers-reduced-motion:reduce) {
+			.wp-teletype .cursor.is-visible {
 				animation:none
 			}
-			.wp-teletype,.wp-teletype .cursor {
+			.wp-teletype,
+			.wp-teletype .cursor {
 				transition:none
 			}
 		}
