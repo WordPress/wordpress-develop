@@ -1653,6 +1653,29 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	}
 
 	/**
+	 * A `wp_post_revision_meta_keys` filter that doesn't return an array doesn't break revision responses.
+	 *
+	 * @ticket 66329
+	 *
+	 * @covers WP_REST_Revision_Meta_Fields::get_registered_fields
+	 */
+	public function test_get_item_with_non_array_revision_meta_keys_filter() {
+		$this->register_revisioned_and_non_revisioned_meta();
+
+		$post_id     = $this->create_post_with_revisioned_meta( 'revisioned value' );
+		$revision_id = $this->get_oldest_revision_id( $post_id );
+
+		add_filter( 'wp_post_revision_meta_keys', '__return_false' );
+
+		wp_set_current_user( self::$editor_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id . '/revisions/' . $revision_id );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array(), $response->get_data()['meta'] );
+	}
+
+	/**
 	 * Registers a revisioned and a non-revisioned meta key for posts.
 	 */
 	private function register_revisioned_and_non_revisioned_meta() {
