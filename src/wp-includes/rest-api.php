@@ -858,7 +858,7 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 			if ( ! is_array( $methods ) && ! is_string( $methods ) ) {
 				return array();
 			}
-			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/', wp_parse_list( $methods ) );
+			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/D', wp_parse_list( $methods ) );
 			return is_array( $methods ) ? array_values( $methods ) : array();
 		};
 

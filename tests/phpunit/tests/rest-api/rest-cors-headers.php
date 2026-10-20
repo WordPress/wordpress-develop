@@ -274,7 +274,7 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		add_filter(
 			'rest_allowed_cors_methods',
 			static function () {
-				return array( 'GET', 'P@TCH', "DELETE\r\nX-Injected: 1", '0' );
+				return array( 'GET', 'P@TCH', "DELETE\r\nX-Injected: 1", "PUT\n", '0' );
 			}
 		);
 
