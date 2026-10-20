@@ -15,7 +15,8 @@
  *
  * Actions are registered on the `wp_entity_actions_api_init` action, and only there,
  * with {@see wp_register_entity_actions()} and {@see wp_unregister_entity_actions()}. The
- * other functions read the registry.
+ * other functions read the registry. WordPress core registers its own
+ * actions the same way, from packages/core-actions.
  *
  * @package WordPress
  * @subpackage Entity Actions
@@ -185,4 +186,49 @@ function _wp_add_entity_action_modules_to_editor_script( $scripts = null ) {
 		// `add_data()` replaces the value, hence the merge above.
 		$scripts->add_data( 'wp-editor', 'module_dependencies', $dependencies );
 	}
+}
+
+/**
+ * Preloads the actions of the post types the editors list.
+ *
+ * The editors read them from the `/wp/v2/entity-actions` route as they load,
+ * see `useEntityActions()` in
+ * packages/editor/src/dataviews/entity-actions-loader.ts in Gutenberg. The
+ * post editor reads those of the edited post in its actions menu. The site
+ * editor reads those of the edited post, if any, and of the post types of the
+ * screen it opens on, whose lists show the actions of their items. A path must
+ * match the request of the `getEntityActionsConfig` core data resolver, see
+ * packages/core-data/src/resolvers.js in Gutenberg.
+ *
+ * @since 7.2.0
+ *
+ * @param array                   $paths   REST API paths to preload.
+ * @param WP_Block_Editor_Context $context Block editor context.
+ * @return array Filtered preload paths.
+ */
+function _wp_preload_entity_actions( $paths, $context ) {
+	$post_types = array();
+	if ( 'core/edit-post' === $context->name && isset( $context->post ) ) {
+		$post_types[] = $context->post->post_type;
+	} elseif ( 'core/edit-site' === $context->name ) {
+		if ( isset( $context->post ) ) {
+			$post_types[] = $context->post->post_type;
+		}
+		$post_types = array_merge( $post_types, _wp_get_site_editor_screen_post_types() );
+	}
+
+	foreach ( array_unique( $post_types ) as $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			continue;
+		}
+		$paths[] = add_query_arg(
+			array(
+				'kind' => 'postType',
+				'name' => $post_type,
+			),
+			'/wp/v2/entity-actions'
+		);
+	}
+
+	return $paths;
 }

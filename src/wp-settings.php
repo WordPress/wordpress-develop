@@ -254,6 +254,12 @@ if ( file_exists( ABSPATH . WPINC . '/build/routes.php' ) ) {
 if ( file_exists( ABSPATH . WPINC . '/build/pages.php' ) ) {
 	require ABSPATH . WPINC . '/build/pages.php';
 }
+if ( file_exists( ABSPATH . WPINC . '/build/scripts/core-actions/index.php' ) ) {
+	require ABSPATH . WPINC . '/build/scripts/core-actions/index.php';
+}
+if ( file_exists( ABSPATH . WPINC . '/build/scripts/core-fields/index.php' ) ) {
+	require ABSPATH . WPINC . '/build/scripts/core-fields/index.php';
+}
 require ABSPATH . WPINC . '/taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-term.php';

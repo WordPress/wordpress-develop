@@ -8,8 +8,11 @@
  * @group entity-actions
  *
  * @covers ::_wp_add_entity_action_modules_to_editor_script
+ * @covers ::_wp_preload_entity_actions
+ * @covers ::wp_get_all_registered_entity_action_modules
  * @covers ::wp_register_entity_actions
  * @covers ::wp_unregister_entity_actions
+ * @covers WP_Entity_Actions_Registry::get_all_registered_action_modules
  * @covers WP_Entity_Actions_Registry::initialize
  * @covers WP_Entity_Actions_Registry::register
  * @covers WP_Entity_Actions_Registry::unregister
@@ -17,12 +20,15 @@
 class Tests_Entity_Actions extends WP_UnitTestCase {
 
 	/**
-	 * Sets up each test: the default actions of the tests are registered at
-	 * priority 0, so every test runs against a registry holding actions
-	 * registered before the callbacks hooked at the default priority run.
+	 * Sets up each test: the actions WordPress registers are replaced with
+	 * the default actions of the tests, hooked at priority 0 as WordPress
+	 * registers its own, so every test runs against a registry holding
+	 * actions registered before the callbacks hooked at the default priority
+	 * run.
 	 */
 	public function set_up() {
 		parent::set_up();
+		remove_action( 'wp_entity_actions_api_init', 'register_core_entity_actions', 0 );
 		add_action( 'wp_entity_actions_api_init', array( __CLASS__, 'register_default_actions' ), 0 );
 	}
 
@@ -31,10 +37,12 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	 *
 	 * Resetting the registry drops the actions a test registered along with
 	 * the defaults; the next read fires `wp_entity_actions_api_init` again and
-	 * registers the defaults anew. The test case removes the callbacks the
-	 * test hooked, the defaults included.
+	 * registers the defaults anew. The test case restores the hooks: it
+	 * removes the callbacks the test hooked, the defaults included, and hooks
+	 * the actions WordPress registers back.
 	 */
 	public function tear_down() {
+		unset( $_GET['p'] );
 		self::reset_registry();
 
 		parent::tear_down();
@@ -388,6 +396,196 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The post editor preloads the actions of the post type it edits, with
+	 * the path the `getEntityActionsConfig` resolver of core data requests.
+	 *
+	 * @ticket 66343
+	 */
+	public function test_the_post_editor_preloads_the_actions_of_the_post_type() {
+		$context = new WP_Block_Editor_Context( array( 'post' => self::factory()->post->create_and_get( array( 'post_type' => 'page' ) ) ) );
+
+		$paths = apply_filters( 'block_editor_rest_api_preload_paths', array(), $context );
+
+		$this->assertContains( '/wp/v2/entity-actions?kind=postType&name=page', $paths, 'The actions of pages are preloaded.' );
+	}
+
+	/**
+	 * The preloaded path serves the actions of the post type.
+	 *
+	 * @ticket 66343
+	 */
+	public function test_the_preloaded_actions_path_serves_the_actions() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$context = new WP_Block_Editor_Context( array( 'post' => self::factory()->post->create_and_get( array( 'post_type' => 'page' ) ) ) );
+
+		$paths     = _wp_preload_entity_actions( array(), $context );
+		$preloaded = array_reduce( $paths, 'rest_preload_api_request', array() );
+
+		$this->assertSame(
+			array( 'rename-post', 'move-to-trash' ),
+			array_column( $preloaded['/wp/v2/entity-actions?kind=postType&name=page']['body']['actions'], 'id' ),
+			'The preloaded response holds the actions of pages.'
+		);
+	}
+
+	/**
+	 * The site editor preloads the actions of the post types its screen lists,
+	 * from the `p` query arg.
+	 *
+	 * @ticket 66343
+	 *
+	 * @dataProvider data_site_editor_screens
+	 *
+	 * @param string   $path       The `p` query arg.
+	 * @param string[] $post_types The post types whose actions are preloaded.
+	 */
+	public function test_the_site_editor_preloads_the_actions_of_its_screen( $path, $post_types ) {
+		$_GET['p'] = $path;
+		$context   = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+
+		$expected = array();
+		foreach ( $post_types as $post_type ) {
+			$expected[] = '/wp/v2/entity-actions?kind=postType&name=' . $post_type;
+		}
+		$this->assertSame( $expected, _wp_preload_entity_actions( array(), $context ), 'The actions of the post types of the screen are preloaded.' );
+	}
+
+	/**
+	 * Data provider for test_the_site_editor_preloads_the_actions_of_its_screen().
+	 *
+	 * @return array[]
+	 */
+	public static function data_site_editor_screens() {
+		return array(
+			'pages'         => array( '/page', array( 'page' ) ),
+			'page'          => array( '/page/12', array( 'page' ) ),
+			'templates'     => array( '/template', array( 'wp_template' ) ),
+			'template'      => array( '/wp_template/emptytheme//index', array( 'wp_template' ) ),
+			'patterns'      => array( '/pattern', array( 'wp_block', 'wp_template_part' ) ),
+			'pattern'       => array( '/wp_block/12', array( 'wp_block' ) ),
+			'template part' => array( '/wp_template_part/emptytheme//header', array( 'wp_template_part' ) ),
+			'root'          => array( '/', array() ),
+			'styles'        => array( '/styles', array() ),
+			'navigation'    => array( '/navigation', array() ),
+		);
+	}
+
+	/**
+	 * The site editor preloads the actions of the edited post, once, next to
+	 * those of its screen.
+	 *
+	 * @ticket 66343
+	 */
+	public function test_the_site_editor_preloads_the_actions_of_the_edited_post() {
+		$_GET['p'] = '/page';
+		$context   = new WP_Block_Editor_Context(
+			array(
+				'name' => 'core/edit-site',
+				'post' => self::factory()->post->create_and_get( array( 'post_type' => 'page' ) ),
+			)
+		);
+
+		$this->assertSame(
+			array( '/wp/v2/entity-actions?kind=postType&name=page' ),
+			_wp_preload_entity_actions( array(), $context ),
+			'The actions of pages are preloaded once.'
+		);
+	}
+
+	/**
+	 * Other editors, a post editor context without a post, and a site editor
+	 * screen that lists no posts are left untouched.
+	 *
+	 * @ticket 66343
+	 */
+	public function test_other_editors_do_not_preload_the_actions() {
+		$site_editor = new WP_Block_Editor_Context( array( 'name' => 'core/edit-site' ) );
+		$no_post     = new WP_Block_Editor_Context( array( 'name' => 'core/edit-post' ) );
+		$widgets     = new WP_Block_Editor_Context( array( 'name' => 'core/edit-widgets' ) );
+
+		$this->assertSame( array( '/wp/v2/types' ), _wp_preload_entity_actions( array( '/wp/v2/types' ), $site_editor ), 'The paths of the site editor root are unchanged.' );
+		$this->assertSame( array( '/wp/v2/types' ), _wp_preload_entity_actions( array( '/wp/v2/types' ), $no_post ), 'The paths of a post editor without a post are unchanged.' );
+		$this->assertSame( array( '/wp/v2/types' ), _wp_preload_entity_actions( array( '/wp/v2/types' ), $widgets ), 'The paths of the widgets editor are unchanged.' );
+	}
+
+	/**
+	 * The script modules of every entity are listed by entity kind, then by
+	 * entity name, in registration order.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_are_listed_by_kind_and_name() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ), 'plugin/post-actions' );
+		$this->register_actions( 'taxonomy', 'category', array( $this->action( 'merge' ) ), 'plugin/term-actions' );
+
+		$this->assertSame(
+			array(
+				'postType' => array(
+					'page' => array( 'core/defaults' ),
+					'post' => array( 'plugin/post-actions' ),
+				),
+				'taxonomy' => array(
+					'category' => array( 'plugin/term-actions' ),
+				),
+			),
+			wp_get_all_registered_entity_action_modules()
+		);
+	}
+
+	/**
+	 * A numeric script module id is listed as a string, although PHP turns it
+	 * into an integer as an array key.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_lists_a_numeric_module_id_as_a_string() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ), '42' );
+
+		$modules = wp_get_all_registered_entity_action_modules();
+
+		$this->assertSame( array( '42' ), $modules['postType']['post'] );
+	}
+
+	/**
+	 * An entity whose actions have no script module is not listed.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_skips_entities_without_a_module() {
+		$this->register_actions( 'postType', 'post', array( $this->action( 'feature' ) ) );
+
+		$modules = wp_get_all_registered_entity_action_modules();
+
+		$this->assertArrayNotHasKey( 'post', $modules['postType'] );
+		$this->assertSame( array( 'core/defaults' ), $modules['postType']['page'], 'The entities with a module are still listed.' );
+	}
+
+	/**
+	 * Reading the script modules while `init` runs is refused: nothing is
+	 * listed, and the registry is not read, so the action is not fired.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_all_registered_action_modules_are_empty_while_init_runs() {
+		global $wp_current_filter;
+
+		$this->setExpectedIncorrectUsage( 'WP_Entity_Actions_Registry::initialize' );
+		self::reset_registry();
+		$fired = did_action( 'wp_entity_actions_api_init' );
+
+		// Act as if a callback hooked to `init` read the modules.
+		$wp_current_filter[] = 'init';
+		try {
+			$modules = wp_get_all_registered_entity_action_modules();
+		} finally {
+			array_pop( $wp_current_filter );
+		}
+
+		$this->assertSame( array(), $modules );
+		$this->assertSame( $fired, did_action( 'wp_entity_actions_api_init' ), 'The action is not fired.' );
+	}
+
+	/**
 	 * Reading the registry fires `wp_entity_actions_api_init` once, whichever
 	 * getter is read first and however many times it is read.
 	 *
@@ -543,7 +741,7 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 				array(
 					'id'         => 'archive',
 					'label'      => 'Archive',
-					'context'    => 'lists',
+					'context'    => 'single',
 					'isEligible' => true,
 				),
 				array(
@@ -556,12 +754,12 @@ class Tests_Entity_Actions extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'feature', 'archive', 'export' ), $registered, 'The actions are registered anyway.' );
 		$actions = array_column( wp_get_registered_entity_actions( 'postType', 'page' ), null, 'id' );
-		$this->assertSame( 'lists', $actions['archive']['context'], 'A value DataViews does not support is kept.' );
+		$this->assertSame( 'single', $actions['archive']['context'], 'A value DataViews does not support is kept.' );
 		$this->assertSame( 'huge', $actions['export']['modalSize'], 'A value DataViews does not support is kept.' );
 		$this->assertArrayNotHasKey( 'isEligible', $actions['archive'], 'A property only a script module can provide is removed.' );
 		$this->assertCount( 1, $reported );
 		$this->assertStringContainsString( 'postType "page"', $reported[0], 'The notice names the entity.' );
-		$this->assertStringContainsString( ': archive (context is not one of list and single.)', $reported[0], 'The notice names the action and its value DataViews does not support.' );
+		$this->assertStringContainsString( ': archive (context is not one of list.)', $reported[0], 'The notice names the action and its value DataViews does not support.' );
 		$this->assertStringContainsString( 'archive (isEligible can only come from a script module', $reported[0], 'The notice names the property that is removed.' );
 		$this->assertStringContainsString( 'export (modalSize is not one of small, medium, large, and fill.)', $reported[0], 'The notice names every value DataViews does not support.' );
 		$this->assertStringNotContainsString( 'feature', $reported[0], 'The other actions of the call are not reported.' );
