@@ -858,9 +858,10 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 			return is_array( $methods ) ? array_values( $methods ) : array();
 		};
 
-		$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
-		if ( isset( $response_headers['access-control-allow-methods'] ) ) {
-			$allow_methods = $parse_methods( $response_headers['access-control-allow-methods'] );
+		// Fall back to the default list when the response names no valid methods.
+		$allow_methods = $parse_methods( $response_headers['access-control-allow-methods'] ?? null );
+		if ( empty( $allow_methods ) ) {
+			$allow_methods = array( 'OPTIONS', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' );
 		}
 
 		/**
@@ -871,8 +872,8 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		 * fixed default and is not derived from the registered routes, so a site
 		 * serving routes that accept other methods can advertise them here.
 		 *
-		 * If the response already set its own `Access-Control-Allow-Methods` header,
-		 * `$allow_methods` is the valid methods it names instead of the default list.
+		 * If the response already set its own `Access-Control-Allow-Methods` header
+		 * naming valid methods, `$allow_methods` is those methods instead of the default list.
 		 * Entries that are not valid method tokens are dropped, and an empty list
 		 * omits the header.
 		 *

@@ -124,6 +124,34 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A response value that names no valid methods falls back to the default list.
+	 *
+	 * @ticket 46992
+	 *
+	 * @dataProvider data_response_value_without_valid_methods
+	 *
+	 * @param string $response_value Access-Control-Allow-Methods value set on the response.
+	 */
+	public function test_response_value_without_valid_methods_falls_back_to_the_default( string $response_value ) {
+		$this->send_cors_headers( array( 'Access-Control-Allow-Methods' => $response_value ) );
+
+		$this->assertSame( 'OPTIONS, GET, POST, PUT, PATCH, DELETE', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: string }>
+	 */
+	public function data_response_value_without_valid_methods(): array {
+		return array(
+			'empty'           => array( '' ),
+			'whitespace'      => array( ' ' ),
+			'invalid methods' => array( 'GET;POST' ),
+		);
+	}
+
+	/**
 	 * Methods in a response value keep their case, as methods are case-sensitive.
 	 *
 	 * @ticket 46992
