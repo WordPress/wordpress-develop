@@ -258,6 +258,7 @@ function wp_enqueue_block_custom_css() {
  * via {@see wp_generate_custom_css_class_name()}.
  *
  * @since 7.0.0
+ * @since 7.2.0 Generates the class name when the block attributes lack one.
  *
  * @param string $block_content Rendered block content.
  * @param array  $block         Block object.
