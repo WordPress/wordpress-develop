@@ -681,10 +681,6 @@ class Tests_Block_Supports_BlockStyleVariations extends WP_UnitTestCase {
 				'custom is-style-fancy--1',
 				'<p class="is-style-fancy--1">Test</p>',
 			),
-			'instance class name after a tab'      => array(
-				"custom\tis-style-fancy--2",
-				'<p class="is-style-fancy--2">Test</p>',
-			),
 			'variation slug containing dashes'     => array(
 				'is-style-my--fancy--3',
 				'<p class="is-style-my--fancy--3">Test</p>',

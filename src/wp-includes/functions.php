@@ -5108,7 +5108,8 @@ function wp_parse_list( $input_list ): array {
 }
 
 /**
- * Splits a string of space-separated tokens into a list of tokens.
+ * Generator for a foreach loop to step through each token in a string of
+ * space-separated tokens.
  *
  * Tokens are separated by one or more ASCII whitespace characters (space, tab,
  * line feed, form feed, or carriage return), matching how browsers split a
@@ -5121,31 +5122,29 @@ function wp_parse_list( $input_list ): array {
  *
  * Example:
  *
- *     wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" );
- *     // array( 'wp-block', 'is-style-outline' )
+ *     foreach ( wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
+ *         echo "{$token} ";
+ *     }
+ *     // Outputs: "wp-block is-style-outline "
  *
  * @since 7.2.0
  *
  * @link https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#set-of-space-separated-tokens
  *
  * @param string $input Plain-text string of space-separated tokens.
- * @return string[] Tokens in order of appearance.
- * @phpstan-return list<non-empty-string>
+ * @return Generator<int, non-empty-string> Tokens in order of appearance.
  */
-function wp_split_space_separated_tokens( string $input ): array {
-	$tokens     = array();
+function wp_split_space_separated_tokens( string $input ): Generator {
 	$delimiters = " \t\n\f\r";
 	$length     = strlen( $input );
 	$offset     = strspn( $input, $delimiters );
 
 	while ( $offset < $length ) {
 		$token_length = strcspn( $input, $delimiters, $offset );
-		$tokens[]     = substr( $input, $offset, $token_length );
-		$offset      += $token_length;
-		$offset      += strspn( $input, $delimiters, $offset );
+		yield substr( $input, $offset, $token_length );
+		$offset += $token_length;
+		$offset += strspn( $input, $delimiters, $offset );
 	}
-
-	return $tokens;
 }
 
 /**

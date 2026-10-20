@@ -18,7 +18,7 @@ class Tests_Functions_wpSplitSpaceSeparatedTokens extends WP_UnitTestCase {
 	 * @param string[] $expected Expected tokens.
 	 */
 	public function test_wp_split_space_separated_tokens( string $input, array $expected ): void {
-		$this->assertSame( $expected, wp_split_space_separated_tokens( $input ) );
+		$this->assertSame( $expected, iterator_to_array( wp_split_space_separated_tokens( $input ), false ) );
 	}
 
 	/**

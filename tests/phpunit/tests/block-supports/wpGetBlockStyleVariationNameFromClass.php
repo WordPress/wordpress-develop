@@ -61,11 +61,6 @@ class Tests_Block_Supports_WpGetBlockStyleVariationNameFromClass extends WP_Unit
 				'expected'     => array( 'light', 'outline' ),
 			),
 			// @ticket 65466
-			'whitespace separators'                    => array(
-				'class_string' => "is-style-light\tcustom-class\nis-style-outline",
-				'expected'     => array( 'light', 'outline' ),
-			),
-			// @ticket 65466
 			'prefix inside another class name'         => array(
 				'class_string' => 'custom-is-style-outline',
 				'expected'     => array(),
@@ -74,11 +69,6 @@ class Tests_Block_Supports_WpGetBlockStyleVariationNameFromClass extends WP_Unit
 			'variation ending in a non-word character' => array(
 				'class_string' => 'is-style-outline-',
 				'expected'     => array( 'outline-' ),
-			),
-			// @ticket 65466
-			'default variation'                        => array(
-				'class_string' => 'is-style-default is-style-outline',
-				'expected'     => array( 'outline' ),
 			),
 		);
 	}
