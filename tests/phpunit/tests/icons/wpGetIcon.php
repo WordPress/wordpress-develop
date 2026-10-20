@@ -12,6 +12,22 @@
  */
 class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 
+	public function set_up() {
+		parent::set_up();
+
+		/*
+		 * Other suites reset the icon registries, wiping collections and icons that
+		 * `init` only registers once. Re-register them when missing so order-dependent
+		 * tests pass.
+		 */
+		if ( ! WP_Icon_Collections_Registry::get_instance()->is_registered( 'core' ) ) {
+			_wp_register_default_icon_collections();
+		}
+		if ( ! WP_Icons_Registry::get_instance()->is_registered( 'core/plus' ) ) {
+			_wp_register_default_icons();
+		}
+	}
+
 	/**
 	 * @ticket 64847
 	 */
