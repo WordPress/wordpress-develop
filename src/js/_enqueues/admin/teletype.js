@@ -5,10 +5,10 @@
  */
 
 /**
- * IIFE.
+ * Defines wp.teletype, which plays the scene.
  *
  * @param {Object} wp       The global WordPress JS object.
- * @param {Object} settings The settings object.
+ * @param {Object} settings Settings printed by wp_enqueue_command_palette_assets().
  */
 ( function ( wp, settings ) {
 	'use strict';
@@ -43,7 +43,7 @@
 		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
 
 	/**
-	 * Maps a string through the character tables.
+	 * Maps a string from Dvorak to QWERTY key positions.
 	 *
 	 * @param {string} value Text to map.
 	 * @return {string} Mapped text.
@@ -85,7 +85,7 @@
 		canvas.setAttribute( 'aria-hidden', 'true' );
 
 		/**
-		 * Recalculate canvas size on resize event.
+		 * Sizes the canvas to its parent and adds or drops columns to fit.
 		 */
 		function resize() {
 			var ratio = window.devicePixelRatio || 1,
@@ -105,11 +105,7 @@
 
 			count = Math.ceil( width / RAIN_SIZE );
 
-			/*
-			 * Columns keep their position across a resize so the rain does not restart,
-			 * and any new ones start at a random height so the edge does not arrive as
-			 * a straight line.
-			 */
+			// New columns start at a random height so they do not arrive as a straight line.
 			for ( i = columns.length; i < count; i++ ) {
 				columns.push( Math.random() * height );
 			}
@@ -118,7 +114,7 @@
 		}
 
 		/**
-		 * Draw the rain.
+		 * Draws one row of glyphs and advances each column.
 		 */
 		function draw() {
 			var i;
@@ -144,9 +140,9 @@
 		}
 
 		/**
-		 * Rain animation frame tick event.
+		 * Draws a row once every RAIN_SPEED milliseconds.
 		 *
-		 * @param {DOMHighResTimeStamp} now Event timestamp.
+		 * @param {DOMHighResTimeStamp} now Current frame time.
 		 */
 		function tick( now ) {
 			frame = window.requestAnimationFrame( tick );
@@ -191,10 +187,6 @@
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;
 
-		/*
-		 * The scene is a modal dialog so that it is reachable and escapable rather than
-		 * something that happens silently over the top of an admin page.
-		 */
 		var overlay = document.createElement( 'div' );
 		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'role', 'dialog' );
@@ -202,14 +194,12 @@
 		overlay.setAttribute( 'aria-label', i18n.label || 'Press Escape to leave.' );
 		overlay.setAttribute( 'tabindex', '-1' );
 
-		// Typed a character at a time, so it reaches the accessibility tree as whole
-		// lines through the live region below instead.
+		// Hidden from screen readers, which get whole lines from the live region.
 		var line = document.createElement( 'p' );
 		line.setAttribute( 'aria-hidden', 'true' );
 		line.setAttribute( 'lang', 'en' );
 
-		// The dialogue is English whatever the profile language, so it says so. The
-		// dialog label and Exit button are translated and inherit the page language.
+		// The dialogue is untranslated; the label and Exit button inherit the page language.
 		var narration = document.createElement( 'div' );
 		narration.className = 'narration';
 		narration.setAttribute( 'lang', 'en' );
@@ -240,10 +230,10 @@
 		}
 
 		/**
-		 * setTimout helper.
+		 * Calls a function after a delay unless the scene has ended.
 		 *
 		 * @param {number}   ms   Milliseconds to wait.
-		 * @param {callback} next Callback function.
+		 * @param {Function} next Function to call.
 		 */
 		function wait( ms, next ) {
 			timer = window.setTimeout( function () {
@@ -254,7 +244,7 @@
 		}
 
 		/**
-		 * Clear the first line.
+		 * Removes the typed text, leaving the cursor.
 		 */
 		function clear() {
 			while ( line.firstChild !== cursor ) {
@@ -263,7 +253,7 @@
 		}
 
 		/**
-		 * Add a new line.
+		 * Starts a new line ahead of the cursor.
 		 */
 		function newline() {
 			line.insertBefore( document.createElement( 'br' ), cursor );
@@ -272,8 +262,8 @@
 		/**
 		 * Types one line, a character at a time, ahead of the cursor.
 		 *
-		 * @param {string}   text String to type.
-		 * @param {callback} done Event callback at completion.
+		 * @param {string}   text Text to type.
+		 * @param {Function} done Called once the line is typed.
 		 */
 		function type( text, done ) {
 			var chars = text.split( '' );
@@ -294,9 +284,9 @@
 		}
 
 		/**
-		 * Act one: typed on the lights-on screen, each line under the last.
+		 * Types act one on the white screen, each line under the last.
 		 *
-		 * @param {number} index Line index to type.
+		 * @param {number} index Index of the line to type.
 		 */
 		function actOne( index ) {
 			if ( index >= ACT_ONE.length ) {
@@ -314,7 +304,7 @@
 		}
 
 		/**
-		 * The turn: screen to black, text to green, rain starts, cursor fades up alone.
+		 * Switches the screen to black, starts the rain, and fades the cursor in.
 		 */
 		function lightsOut() {
 			overlay.className = 'wp-teletype is-dark';
@@ -335,10 +325,9 @@
 		}
 
 		/**
-		 * Act two: one line at a time, cleared between each. The last line holds, then
-		 * the scene takes itself down and gives the admin page back.
+		 * Types act two one line at a time, then ends the scene after the last line.
 		 *
-		 * @param {number} index Line index to type.
+		 * @param {number} index Index of the line to type.
 		 */
 		function actTwo( index ) {
 			var text = dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
@@ -360,7 +349,7 @@
 		}
 
 		/**
-		 * End the easter egg.
+		 * Ends the scene and restores the page, its scrolling, and focus.
 		 */
 		function abort() {
 			if ( aborted ) {
@@ -385,9 +374,9 @@
 		}
 
 		/**
-		 * Keydown event listener while easter egg running.
+		 * Exits on Escape and keeps Tab on the Exit button.
 		 *
-		 * @param {KeyboardEvent} event Fired keyboard event.
+		 * @param {KeyboardEvent} event The keydown event.
 		 */
 		function onKeydown( event ) {
 			if ( 'Escape' === event.key ) {

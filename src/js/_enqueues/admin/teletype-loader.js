@@ -5,10 +5,10 @@
  */
 
 /**
- * IIFE.
+ * Watches Enter in the command palette and loads the teletype on a match.
  *
  * @param {Object} wp       The global WordPress JS object.
- * @param {Object} settings The settings object.
+ * @param {Object} settings Settings printed by wp_enqueue_command_palette_assets().
  */
 ( function ( wp, settings ) {
 	'use strict';
@@ -22,7 +22,7 @@
 		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
 
 	/**
-	 * Maps a string through the character tables.
+	 * Maps a string from Dvorak to QWERTY key positions.
 	 *
 	 * @param {string} value Text to map.
 	 * @return {string} Mapped text.
