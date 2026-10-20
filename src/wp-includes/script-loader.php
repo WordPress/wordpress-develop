@@ -3014,6 +3014,32 @@ function wp_should_load_block_editor_scripts_and_styles() {
 }
 
 /**
+ * Determines whether the current request is known not to be a front-end page load.
+ *
+ * This is used by {@see wp_should_load_separate_core_block_assets()} and
+ * {@see wp_should_load_block_assets_on_demand()}, which can be called very early (such as at `init` or
+ * `wp_default_styles`) before the main query has been run. Conditional query tags like {@see is_feed()} cannot return
+ * meaningful results until then, so the feed check is only performed once the main query is known.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @return bool Whether the request is for the admin, a feed, or a REST API endpoint.
+ */
+function _wp_is_non_frontend_request_for_block_assets() {
+	if ( is_admin() ) {
+		return true;
+	}
+
+	// The query is only parsed and run by the time the 'wp' action fires.
+	if ( did_action( 'wp' ) && is_feed() ) {
+		return true;
+	}
+
+	return wp_is_rest_endpoint();
+}
+
+/**
  * Checks whether separate styles should be loaded for core blocks.
  *
  * When this function returns true, other functions ensure that core blocks use their own separate stylesheets.
@@ -3032,7 +3058,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  * @return bool Whether separate core block assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
-	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+	if ( _wp_is_non_frontend_request_for_block_assets() ) {
 		return false;
 	}
 
@@ -3067,7 +3093,7 @@ function wp_should_load_separate_core_block_assets() {
  * @return bool Whether to load block assets only when they are rendered.
  */
 function wp_should_load_block_assets_on_demand() {
-	if ( is_admin() || is_feed() || wp_is_rest_endpoint() ) {
+	if ( _wp_is_non_frontend_request_for_block_assets() ) {
 		return false;
 	}
 
