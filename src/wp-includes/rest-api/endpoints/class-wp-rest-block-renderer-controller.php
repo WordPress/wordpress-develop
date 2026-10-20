@@ -64,7 +64,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 
 								$schema = array(
 									'type'                 => 'object',
-									'properties'           => $block->get_attributes(),
+									'properties'           => $block->get_attributes_for_rest_validation(),
 									'additionalProperties' => false,
 								);
 
@@ -80,7 +80,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 
 								$schema = array(
 									'type'                 => 'object',
-									'properties'           => $block->get_attributes(),
+									'properties'           => $block->get_attributes_for_rest_validation(),
 									'additionalProperties' => false,
 								);
 
