@@ -3,6 +3,11 @@
 /**
  * Tests for _wp_call_all_hook() and how the hook functions call the 'all' hook.
  *
+ * Tests_Actions::test_all_action() and Tests_Filters::test_all_filter() already check
+ * that the 'all' hook runs once per call with the hook name, and that it does not change
+ * the filtered value. Tests_Hooks_DoAllHook covers WP_Hook::do_all_hook() on its own.
+ * These tests add the arguments passed, the run order and the current filter.
+ *
  * @group hooks
  * @group plugins
  *
@@ -47,7 +52,6 @@ class Tests_Hooks_WpCallAllHook extends WP_UnitTestCase {
 	 */
 	public static function data_hook_calls() {
 		return array(
-			'do_action without arguments'     => array( 'do_action', array() ),
 			'do_action with arguments'        => array( 'do_action', array( 'a', 2, false ) ),
 			'do_action_ref_array'             => array( 'do_action_ref_array', array( array( 'a', 2 ) ) ),
 			'apply_filters without arguments' => array( 'apply_filters', array( 'value' ) ),
@@ -154,18 +158,6 @@ class Tests_Hooks_WpCallAllHook extends WP_UnitTestCase {
 		do_action( 'test_hook' );
 
 		$this->assertSame( array( 5, '5 again', 20 ), $order );
-	}
-
-	/**
-	 * Tests that the return value of an 'all' hook callback does not change the filtered value.
-	 *
-	 * @ticket 65819
-	 */
-	public function test_should_ignore_all_hook_return_value() {
-		add_filter( 'all', '__return_false' );
-		add_filter( 'test_hook', 'strtoupper' );
-
-		$this->assertSame( 'VALUE', apply_filters( 'test_hook', 'value' ) );
 	}
 
 	/**
