@@ -184,15 +184,20 @@ class Tests_Post_wpCountPosts extends WP_UnitTestCase {
 	 * @ticket 66098
 	 */
 	public function test_pre_wp_count_posts_result_is_not_cached() {
-		add_filter(
-			'pre_wp_count_posts',
-			static function () {
-				return (object) array( 'publish' => 99 );
-			}
-		);
+		self::factory()->post->create_many( 3 );
 
-		wp_count_posts();
+		$filter = static function () {
+			return (object) array( 'publish' => 99 );
+		};
+		add_filter( 'pre_wp_count_posts', $filter );
 
-		$this->assertFalse( wp_cache_get( _count_posts_cache_key( 'post' ), 'counts' ) );
+		$this->assertSame( 99, wp_count_posts()->publish, 'Expected the filtered count.' );
+		$this->assertFalse( wp_cache_get( _count_posts_cache_key( 'post' ), 'counts' ), 'Expected the filtered counts not to be cached.' );
+
+		remove_filter( 'pre_wp_count_posts', $filter );
+		$start_num_queries = get_num_queries();
+
+		$this->assertSame( '3', wp_count_posts()->publish, 'Expected the real count once the filter is removed.' );
+		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'Expected database queries since nothing should have been cached.' );
 	}
 }

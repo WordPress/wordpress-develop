@@ -230,15 +230,26 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	 * @ticket 66291
 	 */
 	public function test_pre_wp_count_attachments_result_is_not_cached() {
-		add_filter(
-			'pre_wp_count_attachments',
-			static function () {
-				return (object) array( 'image/jpeg' => 99 );
-			}
+		self::factory()->post->create_many(
+			3,
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image/jpeg',
+			)
 		);
 
-		wp_count_attachments( 'image/jpeg' );
+		$filter = static function () {
+			return (object) array( 'image/jpeg' => 99 );
+		};
+		add_filter( 'pre_wp_count_attachments', $filter );
 
-		$this->assertFalse( wp_cache_get( 'attachments:image_jpeg', 'counts' ) );
+		$this->assertSame( 99, wp_count_attachments( 'image/jpeg' )->{'image/jpeg'}, 'Expected the filtered count.' );
+		$this->assertFalse( wp_cache_get( 'attachments:image_jpeg', 'counts' ), 'Expected the filtered counts not to be cached.' );
+
+		remove_filter( 'pre_wp_count_attachments', $filter );
+		$start_num_queries = get_num_queries();
+
+		$this->assertSame( '3', wp_count_attachments( 'image/jpeg' )->{'image/jpeg'}, 'Expected the real count once the filter is removed.' );
+		$this->assertGreaterThan( 0, get_num_queries() - $start_num_queries, 'Expected database queries since nothing should have been cached.' );
 	}
 }
