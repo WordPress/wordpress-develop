@@ -729,7 +729,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 			)
 		);
 		$validity = $setting->validate( 'BAD!' );
-		$this->assertInstanceOf( 'WP_Error', $validity );
+		$this->assertWPError( $validity );
 		$this->assertSame( 'invalid_key', $validity->get_error_code() );
 	}
 
@@ -743,7 +743,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 * @return WP_Error
 	 */
 	public function filter_validate_for_test_validate( $validity, $value ) {
-		$this->assertInstanceOf( 'WP_Error', $validity );
+		$this->assertWPError( $validity );
 		$this->assertIsString( $value );
 		if ( sanitize_key( $value ) !== $value ) {
 			$validity->add( 'invalid_key', 'Invalid key' );
