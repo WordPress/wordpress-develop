@@ -2370,6 +2370,216 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_focus_color_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus' => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:focus, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_user_invalid_spacing_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':user-invalid' => array(
+								'spacing' => array(
+									'padding' => array(
+										'top' => '1rem',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:user-invalid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-invalid){padding-top: 1rem;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_text_input_placeholder_typography_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							'::placeholder' => array(
+								'typography' => array(
+									'fontStyle' => 'italic',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{font-style: italic;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_variation_responsive_text_input_pseudo_selectors() {
+		register_block_style(
+			'core/group',
+			array(
+				'name'  => 'section-1',
+				'label' => 'Section 1',
+			)
+		);
+
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/group' => array(
+							'variations' => array(
+								'section-1' => array(
+									'@mobile' => array(
+										'elements' => array(
+											'textInput' => array(
+												':focus' => array(
+													'color' => array(
+														'text' => 'blue',
+													),
+												),
+												'::placeholder' => array(
+													'color' => array(
+														'text' => 'green',
+													),
+												),
+											),
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual = $theme_json->get_stylesheet(
+			array( 'styles' ),
+			null,
+			array(
+				'skip_root_layout_styles'        => true,
+				'include_block_style_variations' => true,
+			)
+		);
+
+		unregister_block_style( 'core/group', 'section-1' );
+
+		$focus       = '@media (width <= 480px){:root :where(.wp-block-group.is-style-section-1 textarea:focus, .wp-block-group.is-style-section-1 input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}}';
+		$placeholder = '@media (width <= 480px){:root :where(.wp-block-group.is-style-section-1 textarea, .wp-block-group.is-style-section-1 input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{color: green;}}';
+
+		$this->assertStringContainsString( $focus, $actual );
+		$this->assertStringContainsString( $placeholder, $actual );
+	}
+
+	/**
+	 * Tests that text input focus styles are output after validation styles, so focus wins when both match.
+	 *
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_outputs_text_input_focus_after_validation_states() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus'        => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+							':user-valid'   => array(
+								'color' => array(
+									'text' => 'green',
+								),
+							),
+							':user-invalid' => array(
+								'color' => array(
+									'text' => 'red',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(textarea:user-valid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-valid){color: green;}:root :where(textarea:user-invalid, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):user-invalid){color: red;}:root :where(textarea:focus, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]):focus){color: blue;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_get_stylesheet_renders_block_text_input_placeholder_styles() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'blocks' => array(
+						'core/search' => array(
+							'elements' => array(
+								'textInput' => array(
+									'::placeholder' => array(
+										'color' => array(
+											'text' => 'green',
+										),
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$expected = ':root :where(.wp-block-search textarea, .wp-block-search input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url]))::placeholder{color: green;}';
+
+		$this->assertSame( $expected, $theme_json->get_stylesheet( array( 'styles' ), null, array( 'skip_root_layout_styles' => true ) ) );
+	}
+
+	/**
 	 * @ticket 56467
 	 * @ticket 58550
 	 * @ticket 60936
@@ -4986,6 +5196,70 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							'color' => array(
 								'text'       => 'red',
 								'background' => 'blue',
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	/**
+	 * @ticket 65880
+	 */
+	public function test_remove_insecure_properties_preserves_supported_text_input_pseudo_selectors() {
+		$actual = WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'elements' => array(
+						'textInput' => array(
+							':focus'        => array(
+								'color' => array(
+									'text' => 'blue',
+								),
+							),
+							':user-invalid' => array(
+								'spacing' => array(
+									'padding' => array(
+										'top' => '1rem',
+									),
+								),
+							),
+							'::placeholder' => array(
+								'typography' => array(
+									'fontStyle' => 'italic',
+								),
+							),
+						),
+					),
+				),
+			),
+			'theme'
+		);
+
+		$expected = array(
+			'version' => WP_Theme_JSON::LATEST_SCHEMA,
+			'styles'  => array(
+				'elements' => array(
+					'textInput' => array(
+						':focus'        => array(
+							'color' => array(
+								'text' => 'blue',
+							),
+						),
+						':user-invalid' => array(
+							'spacing' => array(
+								'padding' => array(
+									'top' => '1rem',
+								),
+							),
+						),
+						'::placeholder' => array(
+							'typography' => array(
+								'fontStyle' => 'italic',
 							),
 						),
 					),
