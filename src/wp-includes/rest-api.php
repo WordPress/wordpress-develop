@@ -855,7 +855,9 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		 * @phpstan-var Closure(mixed): list<non-empty-string> $parse_methods
 		 */
 		$parse_methods = static function ( $methods ): array {
-			if ( ! is_array( $methods ) && ! is_string( $methods ) ) {
+			if ( is_array( $methods ) ) {
+				$methods = array_filter( $methods, 'is_string' );
+			} elseif ( ! is_string( $methods ) ) {
 				return array();
 			}
 			$methods = preg_grep( '/^[!#$%&\'*+.^_`|~0-9A-Za-z-]+$/D', wp_parse_list( $methods ) );

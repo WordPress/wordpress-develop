@@ -284,6 +284,24 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Entries in the filtered list that are not strings are dropped.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_drops_entries_that_are_not_strings() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function () {
+				return array( 'GET', true, 1, 1.5, null, array( 'POST' ) );
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( 'GET', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
 	 * An empty filtered list removes a value the response already sent.
 	 *
 	 * @ticket 46992
