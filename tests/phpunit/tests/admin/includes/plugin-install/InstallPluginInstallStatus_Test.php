@@ -55,6 +55,15 @@ class Admin_Includes_Plugin_Install_InstallPluginInstallStatus_Test extends WP_U
 	}
 
 	/**
+	 * Revokes the super admin grant before the fixture users are deleted.
+	 */
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$admin_id );
+		}
+	}
+
+	/**
 	 * Resets the update transient and the plugins cache before each test.
 	 *
 	 * Also removes a test plugin directory left behind by an interrupted run.
