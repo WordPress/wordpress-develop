@@ -242,7 +242,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_too_long_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
 	}
 
 	/**
@@ -251,7 +251,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_empty_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( '', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( '', 'post', array() ) );
 	}
 
 	/**
@@ -359,7 +359,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	public function test_get_objects_in_term_should_return_invalid_taxonomy_error() {
 		$terms = get_objects_in_term( 1, 'invalid_taxonomy' );
-		$this->assertInstanceOf( 'WP_Error', $terms );
+		$this->assertWPError( $terms );
 		$this->assertSame( 'invalid_taxonomy', $terms->get_error_code() );
 	}
 
@@ -496,7 +496,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'force_error',
 			'cat_name' => 'Error',
 		);
-		$this->assertInstanceOf( 'WP_Error', wp_insert_category( $cat, true ) );
+		$this->assertWPError( wp_insert_category( $cat, true ) );
 	}
 
 	public function test_insert_category_force_error_no_handle() {
