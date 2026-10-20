@@ -3,117 +3,215 @@
 /**
  * Tests for cat_is_ancestor_of().
  *
- * @group taxonomy
  * @group category
+ * @group taxonomy
  *
  * @covers ::cat_is_ancestor_of
  */
 class Tests_Category_CatIsAncestorOf extends WP_UnitTestCase {
 
 	/**
-	 * Grandparent category object.
+	 * Grandparent category ID.
 	 *
-	 * @var WP_Term
+	 * @var int
 	 */
-	private static $grandparent;
+	private static $grandparent_id;
 
 	/**
-	 * Parent category object.
+	 * Parent category ID.
 	 *
-	 * @var WP_Term
+	 * @var int
 	 */
-	private static $parent;
+	private static $parent_id;
 
 	/**
-	 * Child category object.
+	 * Child category ID.
 	 *
-	 * @var WP_Term
+	 * @var int
 	 */
-	private static $child;
+	private static $child_id;
 
 	/**
-	 * Unrelated category object.
+	 * Unrelated category ID.
 	 *
-	 * @var WP_Term
+	 * @var int
 	 */
-	private static $unrelated;
+	private static $unrelated_id;
 
 	/**
-	 * Creates shared category hierarchy fixtures.
+	 * Post tag ID (different taxonomy).
+	 *
+	 * @var int
+	 */
+	private static $tag_id;
+
+	/**
+	 * Creates category fixtures before tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$grandparent = $factory->category->create_and_get(
+		self::$grandparent_id = $factory->category->create(
 			array(
 				'name' => 'Grandparent Category',
+				'slug' => 'grandparent-category',
 			)
 		);
 
-		self::$parent = $factory->category->create_and_get(
+		self::$parent_id = $factory->category->create(
 			array(
 				'name'   => 'Parent Category',
-				'parent' => self::$grandparent->term_id,
+				'slug'   => 'parent-category',
+				'parent' => self::$grandparent_id,
 			)
 		);
 
-		self::$child = $factory->category->create_and_get(
+		self::$child_id = $factory->category->create(
 			array(
 				'name'   => 'Child Category',
-				'parent' => self::$parent->term_id,
+				'slug'   => 'child-category',
+				'parent' => self::$parent_id,
 			)
 		);
 
-		self::$unrelated = $factory->category->create_and_get(
+		self::$unrelated_id = $factory->category->create(
 			array(
 				'name' => 'Unrelated Category',
+				'slug' => 'unrelated-category',
+			)
+		);
+
+		self::$tag_id = $factory->tag->create(
+			array(
+				'name' => 'Test Tag',
+				'slug' => 'test-tag',
 			)
 		);
 	}
 
 	/**
-	 * Tests that cat_is_ancestor_of() returns true for direct and indirect descendants
-	 * when given category IDs, WP_Term objects, or a mix of both.
+	 * Tests that cat_is_ancestor_of() returns true for a direct parent category.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_returns_true_for_direct_and_indirect_descendants() {
-		// Category IDs.
-		$this->assertTrue( cat_is_ancestor_of( self::$parent->term_id, self::$child->term_id ) );
-		$this->assertTrue( cat_is_ancestor_of( self::$grandparent->term_id, self::$child->term_id ) );
-		$this->assertTrue( cat_is_ancestor_of( self::$grandparent->term_id, self::$parent->term_id ) );
-
-		// Category objects.
-		$this->assertTrue( cat_is_ancestor_of( self::$parent, self::$child ) );
-		$this->assertTrue( cat_is_ancestor_of( self::$grandparent, self::$child ) );
-
-		// Mixed ID and object inputs.
-		$this->assertTrue( cat_is_ancestor_of( self::$parent->term_id, self::$child ) );
-		$this->assertTrue( cat_is_ancestor_of( self::$grandparent, self::$child->term_id ) );
+	public function test_returns_true_for_direct_parent() {
+		$this->assertTrue( cat_is_ancestor_of( self::$parent_id, self::$child_id ) );
+		$this->assertTrue( cat_is_ancestor_of( self::$grandparent_id, self::$parent_id ) );
 	}
 
 	/**
-	 * Tests that cat_is_ancestor_of() returns false when the first category is not an ancestor.
+	 * Tests that cat_is_ancestor_of() returns true for a grandparent category.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_returns_false_for_non_ancestors() {
-		// Child is not an ancestor of its parent or grandparent.
-		$this->assertFalse( cat_is_ancestor_of( self::$child->term_id, self::$parent->term_id ) );
-		$this->assertFalse( cat_is_ancestor_of( self::$child->term_id, self::$grandparent->term_id ) );
-		$this->assertFalse( cat_is_ancestor_of( self::$child, self::$parent ) );
+	public function test_returns_true_for_grandparent() {
+		$this->assertTrue( cat_is_ancestor_of( self::$grandparent_id, self::$child_id ) );
+	}
 
-		// A category is not an ancestor of itself.
-		$this->assertFalse( cat_is_ancestor_of( self::$parent->term_id, self::$parent->term_id ) );
-		$this->assertFalse( cat_is_ancestor_of( self::$parent, self::$parent ) );
+	/**
+	 * Tests that cat_is_ancestor_of() returns false when cat1 is not an ancestor of cat2.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_returns_false_when_not_an_ancestor() {
+		// Child is not an ancestor of parent or grandparent.
+		$this->assertFalse( cat_is_ancestor_of( self::$child_id, self::$parent_id ) );
+		$this->assertFalse( cat_is_ancestor_of( self::$child_id, self::$grandparent_id ) );
 
-		// Unrelated categories.
-		$this->assertFalse( cat_is_ancestor_of( self::$unrelated->term_id, self::$child->term_id ) );
-		$this->assertFalse( cat_is_ancestor_of( self::$parent->term_id, self::$unrelated->term_id ) );
+		// Unrelated category is not an ancestor.
+		$this->assertFalse( cat_is_ancestor_of( self::$unrelated_id, self::$child_id ) );
+		$this->assertFalse( cat_is_ancestor_of( self::$child_id, self::$unrelated_id ) );
+	}
 
-		// Non-existent category IDs.
-		$this->assertFalse( cat_is_ancestor_of( 99999999, self::$child->term_id ) );
-		$this->assertFalse( cat_is_ancestor_of( self::$parent->term_id, 99999999 ) );
+	/**
+	 * Tests that cat_is_ancestor_of() returns false when comparing a category to itself.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_returns_false_for_same_category() {
+		$this->assertFalse( cat_is_ancestor_of( self::$parent_id, self::$parent_id ) );
+	}
+
+	/**
+	 * Tests that cat_is_ancestor_of() accepts category IDs and WP_Term objects in any combination.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_category_parameter_types
+	 *
+	 * @param string $parent_type Parameter type for parent category.
+	 * @param string $child_type  Parameter type for child category.
+	 */
+	public function test_accepts_category_objects_and_ids( $parent_type, $child_type ) {
+		$parent = ( 'object' === $parent_type ) ? get_term( self::$parent_id, 'category' ) : self::$parent_id;
+		$child  = ( 'object' === $child_type ) ? get_term( self::$child_id, 'category' ) : self::$child_id;
+
+		$this->assertTrue( cat_is_ancestor_of( $parent, $child ) );
+	}
+
+	/**
+	 * Data provider for test_accepts_category_objects_and_ids().
+	 *
+	 * @return array[]
+	 */
+	public static function data_category_parameter_types() {
+		return array(
+			'both category IDs'                  => array( 'id', 'id' ),
+			'both WP_Term objects'               => array( 'object', 'object' ),
+			'parent ID and child WP_Term object' => array( 'id', 'object' ),
+			'parent WP_Term object and child ID' => array( 'object', 'id' ),
+		);
+	}
+
+	/**
+	 * Tests that cat_is_ancestor_of() returns false when either category does not exist.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_returns_false_for_non_existent_category() {
+		$this->assertFalse( cat_is_ancestor_of( 999999, self::$child_id ) );
+		$this->assertFalse( cat_is_ancestor_of( self::$parent_id, 999999 ) );
+		$this->assertFalse( cat_is_ancestor_of( 999998, 999999 ) );
+	}
+
+	/**
+	 * Tests that cat_is_ancestor_of() returns false for invalid or empty inputs.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_invalid_inputs
+	 *
+	 * @param mixed $cat1 Invalid category 1.
+	 * @param mixed $cat2 Invalid category 2.
+	 */
+	public function test_returns_false_for_invalid_inputs( $cat1, $cat2 ) {
+		$this->assertFalse( cat_is_ancestor_of( $cat1, $cat2 ) );
+	}
+
+	/**
+	 * Data provider for test_returns_false_for_invalid_inputs().
+	 *
+	 * @return array[]
+	 */
+	public static function data_invalid_inputs() {
+		return array(
+			'both integer zeros'          => array( 0, 0 ),
+			'empty strings'               => array( '', '' ),
+			'null values'                 => array( null, null ),
+			'boolean false values'        => array( false, false ),
+			'valid parent and zero child' => array( 1, 0 ),
+			'zero parent and valid child' => array( 0, 1 ),
+		);
+	}
+
+	/**
+	 * Tests that cat_is_ancestor_of() returns false when passed a term from another taxonomy.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_returns_false_for_term_from_different_taxonomy() {
+		$this->assertFalse( cat_is_ancestor_of( self::$tag_id, self::$child_id ) );
+		$this->assertFalse( cat_is_ancestor_of( self::$parent_id, self::$tag_id ) );
 	}
 
 	/**
