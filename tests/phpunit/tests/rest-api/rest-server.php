@@ -592,7 +592,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 400, $response->get_status() );
 
 		$error = $response->as_error();
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertSame( $code, $error->get_error_code() );
 		$this->assertSame( $message, $error->get_error_message() );
 		$this->assertSame( $message2, $error->errors[ $code2 ][0] );
