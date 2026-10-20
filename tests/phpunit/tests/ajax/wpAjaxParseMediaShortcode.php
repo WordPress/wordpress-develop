@@ -6,7 +6,7 @@
 require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
- * Testing Ajax save draft functionality.
+ * Tests for the parse-media-shortcode Ajax action.
  *
  * @package WordPress
  * @subpackage UnitTests
@@ -14,7 +14,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  *
  * @group ajax
  *
- * @covers ::wp_ajax_parse-media-shortcode
+ * @covers ::wp_ajax_parse_media_shortcode
  */
 class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 	const SHORTCODE_RETURN_VALUE = 'TEST';
@@ -60,6 +60,60 @@ class Tests_Ajax_wpAjaxParseMediaShortcode extends WP_Ajax_UnitTestCase {
 			$this->assertStringNotContainsString( self::SHORTCODE_RETURN_VALUE, $body );
 		}
 		$this->assertSame( $expected['success'], $response['success'] );
+	}
+
+	/**
+	 * The media sandbox stylesheets are printed with the style link tag API, so their attributes can be filtered,
+	 * and their URLs are escaped.
+	 *
+	 * @ticket 66342
+	 */
+	public function test_sandbox_stylesheets_receive_filtered_attributes() {
+		$expected_hrefs = array();
+		foreach ( wpview_media_sandbox_styles() as $style ) {
+			$expected_hrefs[] = $style . '&onload=alert(1)';
+		}
+
+		// A quote in a URL is removed by esc_url(), so it cannot end the `href` attribute.
+		add_filter(
+			'includes_url',
+			static function ( string $url ): string {
+				return $url . '&"onload="alert(1)';
+			}
+		);
+		add_filter(
+			'wp_style_attributes',
+			static function ( array $attributes ): array {
+				$attributes['nonce'] = 'sandbox-style';
+				return $attributes;
+			}
+		);
+
+		$_POST = array(
+			'action'    => 'parse-media-shortcode',
+			'type'      => '',
+			'shortcode' => '[gallery ids="' . self::$media_id . '"]',
+		);
+
+		try {
+			$this->_handleAjax( 'parse-media-shortcode' );
+		} catch ( WPAjaxDieContinueException $e ) {
+			unset( $e );
+		}
+
+		$response = json_decode( $this->_last_response, true );
+		$this->assertTrue( $response['success'] );
+
+		$hrefs     = array();
+		$processor = new WP_HTML_Tag_Processor( $response['data']['head'] );
+		while ( $processor->next_tag( 'LINK' ) ) {
+			$this->assertSame( 'stylesheet', $processor->get_attribute( 'rel' ) );
+			$this->assertSame( 'sandbox-style', $processor->get_attribute( 'nonce' ) );
+			$this->assertNull( $processor->get_attribute( 'onload' ), 'A quote in the URL should not end the href attribute.' );
+			$hrefs[] = $processor->get_attribute( 'href' );
+		}
+
+		$this->assertSame( $expected_hrefs, $hrefs );
 	}
 
 	public function shortcode_test() {
