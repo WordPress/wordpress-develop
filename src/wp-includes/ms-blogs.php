@@ -895,7 +895,7 @@ function _update_blog_date_on_post_delete( $post_id ) {
  * @param WP_Post|null $post    Optional. Post object. Default null.
  */
 function _update_posts_count_on_delete( $post_id, $post = null ) {
-	if ( ! $post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
+	if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status || 'post' !== $post->post_type ) {
 		return;
 	}
 
