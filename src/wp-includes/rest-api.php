@@ -856,7 +856,8 @@ function rest_send_cors_headers( $value, $result = null, $request = null, $serve
 		 */
 		$parse_methods = static function ( $methods ): array {
 			if ( is_array( $methods ) ) {
-				$methods = array_filter( $methods, 'is_string' );
+				// Join the entries so that each one is split like a string value, as in array( 'GET, POST' ).
+				$methods = implode( ',', array_filter( $methods, 'is_string' ) );
 			} elseif ( ! is_string( $methods ) ) {
 				return array();
 			}

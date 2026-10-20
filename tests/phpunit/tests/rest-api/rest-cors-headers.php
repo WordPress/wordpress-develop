@@ -274,13 +274,49 @@ class Tests_REST_CORS_Headers extends WP_UnitTestCase {
 		add_filter(
 			'rest_allowed_cors_methods',
 			static function () {
-				return array( 'GET', 'P@TCH', "DELETE\r\nX-Injected: 1", "PUT\n", '0' );
+				return array( 'GET', 'P@TCH', '<script>', 'X-Injected:', '0' );
 			}
 		);
 
 		$this->send_cors_headers();
 
 		$this->assertSame( 'GET, 0', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * Line breaks in the filtered list separate entries and never reach the header.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_line_breaks_do_not_reach_the_header() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function () {
+				return array( 'GET', "DELETE\r\nX-Injected: 1", "PUT\n" );
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( 'GET, DELETE, 1, PUT', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
+	}
+
+	/**
+	 * Entries in the filtered list are split and trimmed like a string value.
+	 *
+	 * @ticket 46992
+	 */
+	public function test_filter_value_entries_are_split() {
+		add_filter(
+			'rest_allowed_cors_methods',
+			static function () {
+				return array( 'OPTIONS, GET', ' POST ' );
+			}
+		);
+
+		$this->send_cors_headers();
+
+		$this->assertSame( 'OPTIONS, GET, POST', $this->get_rest_server()->sent_headers['Access-Control-Allow-Methods'] );
 	}
 
 	/**
