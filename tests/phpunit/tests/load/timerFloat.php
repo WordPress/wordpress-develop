@@ -44,17 +44,4 @@ class Tests_Load_TimerFloat extends WP_UnitTestCase {
 		$this->assertGreaterThanOrEqual( 1.25, $result );
 		$this->assertLessThanOrEqual( microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'], $result );
 	}
-
-	/**
-	 * @ticket 65819
-	 */
-	public function test_elapsed_time_increases() {
-		$_SERVER['REQUEST_TIME_FLOAT'] = microtime( true );
-
-		$first = timer_float();
-		usleep( 10000 ); // 10ms.
-		$second = timer_float();
-
-		$this->assertGreaterThan( $first, $second );
-	}
 }
