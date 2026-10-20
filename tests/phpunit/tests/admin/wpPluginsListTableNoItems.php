@@ -32,7 +32,8 @@ class Tests_Admin_wpPluginsListTableNoItems extends WP_UnitTestCase {
 	private $original_plugins;
 
 	/**
-	 * The original request URI, which the list table changes for a search.
+	 * The original request URI, which the list table changes for a search,
+	 * or null when it was not set.
 	 *
 	 * @var string|null
 	 */
@@ -63,8 +64,14 @@ class Tests_Admin_wpPluginsListTableNoItems extends WP_UnitTestCase {
 	 * Restores the plugins global and the search request.
 	 */
 	public function tear_down() {
-		$GLOBALS['plugins']     = $this->original_plugins;
-		$_SERVER['REQUEST_URI'] = $this->original_request_uri;
+		$GLOBALS['plugins'] = $this->original_plugins;
+
+		if ( null === $this->original_request_uri ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $this->original_request_uri;
+		}
+
 		unset( $_REQUEST['s'] );
 
 		parent::tear_down();
