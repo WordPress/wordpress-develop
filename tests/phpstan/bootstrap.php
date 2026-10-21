@@ -12,11 +12,6 @@
  * is ignored, and the type comes from `base.neon` instead.
  */
 
-/*
- * A fixed, fictional path rather than the real checkout location. PHPStan resolves
- * no files through this constant, and deriving it from __DIR__ embeds the developer's
- * own path in error messages, making output differ between machines.
- */
 define( 'ABSPATH', '/var/www/html/' );
 
 /** @see wp_initial_constants() */
@@ -28,7 +23,7 @@ define( 'PB_IN_BYTES', 1024 * TB_IN_BYTES );
 define( 'EB_IN_BYTES', 1024 * PB_IN_BYTES );
 define( 'ZB_IN_BYTES', 1024 * EB_IN_BYTES );
 define( 'YB_IN_BYTES', 1024 * ZB_IN_BYTES );
-define( 'WP_START_TIMESTAMP', 1700000000.0 ); // Fixed rather than microtime( true ), whose value would differ on every run.
+define( 'WP_START_TIMESTAMP', 1700000000.0 );
 define( 'WP_MEMORY_LIMIT', '40M' );
 define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
