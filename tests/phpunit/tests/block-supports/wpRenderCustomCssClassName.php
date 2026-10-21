@@ -15,8 +15,9 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 		parent::set_up();
 		$this->test_block_name = null;
 
-		global $wp_styles;
-		$wp_styles = null;
+		global $wp_styles, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_script_modules = null;
 	}
 
 	public function tear_down() {
@@ -25,8 +26,9 @@ class Tests_Block_Supports_WpRenderCustomCssClassName extends WP_UnitTestCase {
 		}
 		$this->test_block_name = null;
 
-		global $wp_styles;
-		$wp_styles = null;
+		global $wp_styles, $wp_script_modules;
+		$wp_styles         = null;
+		$wp_script_modules = null;
 
 		parent::tear_down();
 	}
