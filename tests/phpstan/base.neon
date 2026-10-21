@@ -139,8 +139,9 @@ parameters:
 		DOING_AJAX: 'bool'
 		# Some plugins define 1. Core checks truthiness.
 		DOING_CRON: 'bool'
-		# Also defined as false (treated like 0), -1, and getenv() strings. An empty string fatals where core multiplies
-		# it by DAY_IN_SECONDS, and a negative number makes wp_scheduled_delete() purge all trash.
+		# Also defined as false (treated like 0), -1, and getenv() strings. Where core multiplies it by DAY_IN_SECONDS,
+		# an empty string fatals on PHP 8 (on PHP 7.4 it acts like 0), and a negative number makes wp_scheduled_delete()
+		# purge all trash.
 		EMPTY_TRASH_DAYS: 'non-negative-int'
 		# Also defined as getenv() strings. force_ssl_admin() casts it with (bool).
 		FORCE_SSL_ADMIN: 'bool'
