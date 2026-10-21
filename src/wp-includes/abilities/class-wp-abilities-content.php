@@ -460,14 +460,16 @@ final class WP_Abilities_Content {
 				);
 			}
 
-			$author = $this->get_author_by_slug( $where['author_slug'], $post_type_object );
-			if ( ! $author ) {
+			if ( ! is_string( $where['author_slug'] ) ) {
 				return $this->invalid_filter_error(
 					'where[author_slug]',
 					/* translators: %s: Parameter. */
-					sprintf( __( 'The %s filter must be the slug of an existing user.' ), 'author_slug' )
+					sprintf( __( 'The %s filter must be a string.' ), 'author_slug' )
 				);
 			}
+
+			// A slug that names no user stays false, see below.
+			$author = get_user_by( 'slug', $where['author_slug'] );
 		}
 
 		/*
@@ -561,12 +563,20 @@ final class WP_Abilities_Content {
 			$query_args['post_name__in'] = $slugs;
 		}
 
-		if ( null !== $author ) {
+		if ( $author ) {
 			$query_args['author'] = $author->ID;
 		}
 
 		if ( null !== $parent ) {
 			$query_args['post_parent'] = $parent;
+		}
+
+		/*
+		 * An author_slug that names no user matches no post, like IDs and slugs that name no
+		 * post, rather than failing the query.
+		 */
+		if ( false === $author ) {
+			return $this->prepare_output( array(), 0, 0 );
 		}
 
 		$query = new WP_Query( $query_args );
@@ -743,50 +753,6 @@ final class WP_Abilities_Content {
 	 */
 	private function is_field_requested( string $path, array $fields ): bool {
 		return rest_is_field_included( $path, $fields );
-	}
-
-	/**
-	 * Looks up the user an author slug names.
-	 *
-	 * The slug is the user's nicename, which the REST API users endpoint returns as `slug`. It is
-	 * looked up as given, like that endpoint's `slug` filter, so the database collation decides
-	 * whether a variant in another case matches. A user the current user may not see is reported
-	 * like a missing one. The current user can see themselves, any user of the site when they can
-	 * list users, and authors with posts in a publicly viewable post type. A user who can edit
-	 * others' posts of the post type can also see any user of the site, since they may make any of
-	 * them the author, so for them the lookup does tell whether such an account exists.
-	 *
-	 * On multisite the lookup searches the whole network, so posts by authors who are not
-	 * members of the site, such as super admins, can still be filtered. Those users are only
-	 * visible as the current user or as authors with posts in a publicly viewable post type, so
-	 * the lookup does not tell whether an account exists elsewhere on the network.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param mixed        $slug             The author slug.
-	 * @param WP_Post_Type $post_type_object The post type the author is looked up for.
-	 * @return WP_User|null The user, or null when the slug does not name a visible user.
-	 */
-	private function get_author_by_slug( $slug, WP_Post_Type $post_type_object ): ?WP_User {
-		$user = is_string( $slug ) ? get_user_by( 'slug', $slug ) : false;
-		if ( ! $user ) {
-			return null;
-		}
-
-		if ( get_current_user_id() === $user->ID ) {
-			return $user;
-		}
-
-		// The capabilities only reveal users of the site, not of the whole network.
-		if ( is_user_member_of_blog( $user->ID )
-			&& ( current_user_can( 'list_users' ) || current_user_can( $post_type_object->cap->edit_others_posts ) )
-		) {
-			return $user;
-		}
-
-		$public_post_types = array_values( array_filter( get_post_types(), 'is_post_type_viewable' ) );
-
-		return ! empty( $public_post_types ) && count_user_posts( $user->ID, $public_post_types ) > 0 ? $user : null;
 	}
 
 	/**
@@ -1198,7 +1164,7 @@ final class WP_Abilities_Content {
 						'author_slug' => array(
 							'type'        => 'string',
 							'minLength'   => 1,
-							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. Only supported for post types that support authors." ),
+							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. A slug that names no user matches no post. Only supported for post types that support authors." ),
 						),
 						'parent'      => array(
 							'type'        => 'integer',

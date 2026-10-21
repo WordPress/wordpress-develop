@@ -5036,34 +5036,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns author slugs that do not name a user.
-	 *
-	 * @return array<string, array{0: mixed}> The author slug filter value.
-	 */
-	public function data_author_slugs_that_name_no_user(): array {
-		return array(
-			'unknown slug' => array( 'no-such-user' ),
-			'not a string' => array( 5 ),
-		);
-	}
-
-	/**
-	 * An author_slug filter that does not name a user is rejected rather than silently
-	 * dropped, which would widen the query to every author's posts.
+	 * An author_slug filter that is not a string is rejected rather than silently dropped,
+	 * which would widen the query to every author's posts.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_slugs_that_name_no_user
-	 *
-	 * @param mixed $author_slug The author slug filter value.
 	 */
-	public function test_execute_callback_rejects_an_author_slug_that_names_no_user( $author_slug ): void {
-		wp_update_user(
-			array(
-				'ID'            => self::$user_ids['author'],
-				'user_nicename' => 'author-slug',
-			)
-		);
-
+	public function test_execute_callback_rejects_an_author_slug_that_is_not_a_string(): void {
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
@@ -5071,18 +5049,40 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array(
 				'where' => array(
 					'type'        => 'post',
-					'author_slug' => $author_slug,
+					'author_slug' => 5,
 				),
 			)
 		);
 
-		$this->assertWPError( $result, 'An author_slug that names no user must not silently widen the query to all authors.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An unhonorable author_slug filter should fail closed as an invalid filter.' );
+		$this->assertWPError( $result, 'An author_slug that is not a string must not silently widen the query to all authors.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author_slug that is not a string should fail as an invalid filter.' );
 		$this->assertSame(
 			array( 'where[author_slug]' => $result->get_error_message() ),
 			$result->get_error_data()['params'],
-			'The error data should map the unmatched author_slug filter to the error message.'
+			'The error data should map the malformed author_slug filter to the error message.'
 		);
+	}
+
+	/**
+	 * An author_slug filter that names no user matches no post, rather than being dropped,
+	 * which would widen the query to every author's posts.
+	 *
+	 * @ticket 66268
+	 */
+	public function test_author_slug_filter_that_names_no_user_matches_no_post(): void {
+		$this->login_as( 'administrator' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type'        => 'post',
+					'author_slug' => 'no-such-user',
+				),
+			)
+		);
+
+		$this->assertSame( self::EMPTY_RESULT, $result, 'An author_slug that names no user should match no post.' );
 	}
 
 	/**
@@ -5664,14 +5664,13 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An author_slug filter names only users the current user may see: a user without
-	 * published posts is reported like a missing one to a subscriber, but not to an editor,
-	 * who can edit their posts.
+	 * An author_slug filter matches only the posts the current user may read, so a user
+	 * without such posts gives the same empty result as a slug that names no user.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
 	 */
-	public function test_author_slug_filter_only_names_users_the_current_user_may_see(): void {
+	public function test_author_slug_filter_matches_no_post_for_a_user_without_readable_posts(): void {
 		$published_id = self::factory()->post->create( array( 'post_author' => self::$user_ids['author'] ) );
 		$draft_id     = self::factory()->post->create(
 			array(
@@ -5681,90 +5680,48 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		);
 
 		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$query   = static function ( array $statuses, int $user_id ) use ( $execute ) {
+		$query   = static function ( array $statuses, string $author_slug ) use ( $execute ) {
 			return $execute(
 				array(
 					'where'  => array(
 						'type'        => 'post',
 						'status'      => $statuses,
-						'author_slug' => get_userdata( $user_id )->user_nicename,
+						'author_slug' => $author_slug,
 					),
 					'fields' => array( 'id' ),
 				)
 			);
 		};
 
+		$author_slug           = get_userdata( self::$user_ids['author'] )->user_nicename;
+		$author_secondary_slug = get_userdata( self::$user_ids['author_secondary'] )->user_nicename;
+		$subscriber_slug       = get_userdata( self::$user_ids['subscriber'] )->user_nicename;
+
 		$this->login_as( 'subscriber' );
-		$public = $query( array( 'publish' ), self::$user_ids['author'] );
+		$public = $query( array( 'publish' ), $author_slug );
 		$this->assertIsArray( $public, 'A subscriber should filter by an author with published posts.' );
 		$this->assertSame( array( $published_id ), wp_list_pluck( $public['items'], 'id' ), 'The filter should return that author\'s posts.' );
-
-		$hidden = $query( array( 'publish' ), self::$user_ids['author_secondary'] );
-		$this->assertWPError( $hidden, 'A subscriber should not learn that an author without published posts exists.' );
-		$this->assertSame( 'content_invalid_filter', $hidden->get_error_code(), 'A hidden author should be reported like a missing one.' );
-		$this->assertSame(
-			array( 'where[author_slug]' => $hidden->get_error_message() ),
-			$hidden->get_error_data()['params'],
-			'The error data should map the hidden author_slug filter to the error message.'
-		);
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $author_secondary_slug ), 'A subscriber should get the empty result for an author without published posts.' );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), 'no-such-user' ), 'A subscriber should get the empty result for a slug that names no user.' );
 
 		$this->login_as( 'editor' );
-		$drafts = $query( array( 'draft' ), self::$user_ids['author_secondary'] );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $subscriber_slug ), 'An editor should get the empty result for a user without posts.' );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), 'no-such-user' ), 'An editor should get the empty result for a slug that names no user.' );
+
+		$drafts = $query( array( 'draft' ), $author_secondary_slug );
 		$this->assertIsArray( $drafts, 'An editor should filter by an author without published posts.' );
 		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['items'], 'id' ), 'The filter should return that author\'s drafts.' );
 	}
 
 	/**
-	 * For a post type with its own capabilities, an author_slug filter names a user without
-	 * published posts to the users who can edit others' posts of that post type, not to those
-	 * who can edit others' posts.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_author_slug_filter_follows_the_capabilities_of_the_queried_post_type(): void {
-		$this->register_post_type_with_own_capabilities();
-
-		$draft_id = self::factory()->post->create(
-			array(
-				'post_type'   => 'book',
-				'post_author' => self::$user_ids['author_secondary'],
-				'post_status' => 'draft',
-			)
-		);
-
-		$execute = $this->get_ability_callbacks()['execute_callback'];
-		$input   = array(
-			'where'  => array(
-				'type'        => 'book',
-				'status'      => array( 'draft' ),
-				'author_slug' => get_userdata( self::$user_ids['author_secondary'] )->user_nicename,
-			),
-			'fields' => array( 'id' ),
-		);
-
-		$this->login_as( 'editor' );
-		$hidden = $execute( $input );
-
-		$this->assertWPError( $hidden, 'An editor, who can edit others\' posts but not others\' books, should not learn that an author without published posts exists.' );
-		$this->assertSame( 'content_invalid_filter', $hidden->get_error_code(), 'An author hidden from the editor should be reported like a missing one.' );
-
-		wp_set_current_user( $this->create_subscriber_with_capabilities( array( 'edit_books', 'edit_others_books' ) ) );
-		$drafts = $execute( $input );
-
-		$this->assertIsArray( $drafts, 'A user who can edit others\' books should filter by an author without published posts.' );
-		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['items'], 'id' ), 'The filter should return that author\'s draft books.' );
-	}
-
-	/**
-	 * On multisite, an author_slug filter does not tell an editor of one site whether a user
-	 * of another site exists.
+	 * On multisite, an author_slug filter that names a user of another site matches no post,
+	 * like a slug that names no user.
 	 *
 	 * @ticket 66268
 	 * @group ms-required
 	 * @since 7.2.0
 	 */
-	public function test_author_slug_filter_hides_users_of_other_sites(): void {
+	public function test_author_slug_filter_matches_no_post_for_a_user_of_another_site(): void {
 		$other_user_id = self::factory()->user->create( array( 'user_nicename' => 'other-site-user' ) );
 		$site_id       = self::factory()->blog->create();
 
@@ -5790,9 +5747,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		restore_current_blog();
 
 		$this->assertFalse( $is_member, 'Precondition: the other user should not be a member of the site.' );
-		$this->assertWPError( $missing, 'Precondition: a slug that names no user should be rejected.' );
-		$this->assertWPError( $other, 'An editor should not learn that a user of another site exists.' );
-		$this->assertSame( $missing->get_error_code(), $other->get_error_code(), 'A user of another site should be reported like a missing one.' );
+		$this->assertSame( self::EMPTY_RESULT, $missing, 'Precondition: a slug that names no user should match no post.' );
+		$this->assertSame( self::EMPTY_RESULT, $other, 'A user of another site should match no post of the site.' );
 	}
 
 	/**
