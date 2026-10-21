@@ -136,8 +136,9 @@ parameters:
 		DOING_AJAX: 'bool'
 		# Some plugins define 1. Core checks truthiness.
 		DOING_CRON: 'bool'
-		# Also defined as false (treated like 0) and getenv() strings. An empty string fatals in wp_scheduled_delete().
-		EMPTY_TRASH_DAYS: 'int'
+		# Also defined as false (treated like 0), -1, and getenv() strings. In wp_scheduled_delete(), an empty string
+		# fatals and a negative number purges all trash.
+		EMPTY_TRASH_DAYS: 'non-negative-int'
 		FORCE_SSL_LOGIN: 'bool'
 		HEADER_IMAGE: 'string'
 		# Some legacy themes define a numeric string, such as '200'. Core casts it with (int).
