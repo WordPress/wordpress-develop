@@ -13,6 +13,8 @@ class Tests_Kses_wpKsesHook extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_returns_content_unchanged_without_filters() {
+		remove_all_filters( 'pre_kses' );
+
 		$content = '<p>Hello</p>';
 
 		$this->assertSame(
