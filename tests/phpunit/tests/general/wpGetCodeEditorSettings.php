@@ -200,6 +200,13 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 			'patch file'                   => array( 'changes.patch', 'diff' ),
 			'HTTP message'                 => array( 'request.http', 'message/http' ),
 			'JavaScript module'            => array( 'module.mjs', 'javascript' ),
+			'JSON file'                    => array(
+				'data.json',
+				array(
+					'name' => 'javascript',
+					'json' => true,
+				),
+			),
 			'JSX file'                     => array( 'component.jsx', 'jsx' ),
 			'Less file'                    => array( 'style.less', 'text/x-less' ),
 			'Markdown file'                => array( 'readme.md', 'gfm' ),
@@ -289,9 +296,7 @@ class Tests_General_wpGetCodeEditorSettings extends WP_UnitTestCase {
 			$this->assertArrayNotHasKey( 'kses', $htmlhint, 'No KSES rules should be passed.' );
 		} else {
 			$this->assertArrayHasKey( 'kses', $htmlhint, 'The KSES rules should be passed.' );
-			$this->assertArrayHasKey( 'a', $htmlhint['kses'], 'Links should be allowed.' );
-			$this->assertArrayHasKey( 'href', $htmlhint['kses']['a'], 'The href attribute should be allowed on links.' );
-			$this->assertArrayNotHasKey( 'script', $htmlhint['kses'], 'Scripts should not be allowed.' );
+			$this->assertSame( wp_kses_allowed_html( 'post' ), $htmlhint['kses'], 'The KSES rules should be the HTML allowed in posts.' );
 		}
 	}
 

@@ -419,11 +419,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
 		-
-			message: '#^Parameter \#3 \$args of function register_setting expects array\{type\?\: string, label\?\: string, description\?\: string, sanitize_callback\?\: \(callable\(\)\: mixed\)\|null, show_in_rest\?\: array\|bool, show_in_abilities\?\: array\|bool, default\?\: mixed, \.\.\.\}, ''twentyeleven_theme…'' given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-content/themes/twentyeleven/inc/theme-options.php
-		-
 			message: '#^Parameter \#3 \$deps of function wp_enqueue_style expects array\<string\>, false given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1178,11 +1173,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/rest-api.php
-		-
-			message: '#^Parameter \#1 \$haystack of function str_starts_with expects string, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/rest-api/class-wp-rest-server.php
 		-
 			message: '#^Parameter \#1 \$response of method WP_REST_Server\:\:envelope_response\(\) expects WP_REST_Response, WP_HTTP_Response given\.$#'
 			identifier: argument.type
