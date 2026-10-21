@@ -259,6 +259,7 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added `dimensions.width` and `dimensions.height`.
 	 *              Added `text-indent` property.
 	 * @since 7.1.0 Added `min-width` and `text-shadow`.
+	 * @since 7.2.0 Added `background-clip`.
 	 * @var array
 	 */
 	const PROPERTIES_METADATA = array(
@@ -270,6 +271,7 @@ class WP_Theme_JSON {
 		'background-repeat'                 => array( 'background', 'backgroundRepeat' ),
 		'background-size'                   => array( 'background', 'backgroundSize' ),
 		'background-attachment'             => array( 'background', 'backgroundAttachment' ),
+		'background-clip'                   => array( 'background', 'backgroundClip' ),
 		'border-radius'                     => array( 'border', 'radius' ),
 		'border-top-left-radius'            => array( 'border', 'radius', 'topLeft' ),
 		'border-top-right-radius'           => array( 'border', 'radius', 'topRight' ),
@@ -428,6 +430,7 @@ class WP_Theme_JSON {
 	 *              Added support for `dimensions.width` and `dimensions.height`.
 	 *              Added support for `typography.textIndent`.
 	 * @since 7.1.0 Added `viewport` property.
+	 * @since 7.2.0 Added `background.backgroundClip` property.
 	 *              Added support for `background.gradient`, `dimensions.minWidth` and `blockVisibility.allowEditing`.
 	 * @since 7.2.0 Added support for `typography.textShadow`, `typography.textShadowPresets`,
 	 *              and `typography.defaultTextShadowPresets`.
@@ -437,6 +440,7 @@ class WP_Theme_JSON {
 		'appearanceTools'               => null,
 		'useRootPaddingAwareAlignments' => null,
 		'background'                    => array(
+			'backgroundClip'  => null,
 			'backgroundImage' => null,
 			'backgroundSize'  => null,
 			'gradient'        => null,
@@ -582,10 +586,12 @@ class WP_Theme_JSON {
 	 * @since 7.0.0 Added support for `dimensions.width` and `dimensions.height`.
 	 * @since 7.1.0 Added support for `background.gradient`,`dimensions.minWidth`,
 	 *              and `typography.textShadow`.
+	 * @since 7.2.0 Added support for `background.backgroundClip`.
 	 * @var array
 	 */
 	const VALID_STYLES = array(
 		'background' => array(
+			'backgroundClip'       => null,
 			'backgroundImage'      => null,
 			'backgroundPosition'   => null,
 			'backgroundRepeat'     => null,
@@ -651,10 +657,10 @@ class WP_Theme_JSON {
 	/**
 	 * Defines which pseudo selectors are enabled for which elements.
 	 *
-	 * The order of the selectors should be: link, any-link, visited, hover, focus, focus-visible, active.
-	 * This is to ensure the user action (hover, focus and active) styles have a higher
-	 * specificity than the visited styles, which in turn have a higher specificity than
-	 * the unvisited styles.
+	 * The selector order controls the cascade when multiple states match. Link and button
+	 * selectors follow the LVHA order, with focus-visible immediately after focus. Text input
+	 * validation states come before the focus states because an edited field can match both
+	 * at once, so user action styles must be output last to win.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/56928.
 	 * Note: this will affect both top-level and block-level elements.
@@ -663,22 +669,29 @@ class WP_Theme_JSON {
 	 * @since 6.2.0 Added support for ':link' and ':any-link'.
 	 * @since 6.8.0 Added support for ':focus-visible'.
 	 * @since 6.9.0 Added `textInput` and `select` elements.
+	 * @since 7.2.0 Added ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible',
+	 *              and '::placeholder' support for the text input element.
+	 * @since 7.2.0 Added ':hover', ':focus', ':focus-visible', and ':active' support for the select element.
 	 * @var array
 	 */
 	const VALID_ELEMENT_PSEUDO_SELECTORS = array(
-		'link'   => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
-		'button' => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'link'      => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'button'    => array( ':link', ':any-link', ':visited', ':hover', ':focus', ':focus-visible', ':active' ),
+		'textInput' => array( ':required', ':user-valid', ':user-invalid', ':focus', ':focus-visible', '::placeholder' ),
+		'select'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
 	 * The valid pseudo-selectors that can be used for blocks.
 	 *
-	 * @since 7.0
+	 * @since 7.0.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_PSEUDO_SELECTORS = array(
-		'core/button'          => array( ':hover', ':focus', ':focus-visible', ':active' ),
-		'core/navigation-link' => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/button'             => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-link'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-submenu' => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -697,10 +710,12 @@ class WP_Theme_JSON {
 	 * `.wp-block-navigation-item.current-menu-item:hover`.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_CUSTOM_STATES = array(
-		'core/navigation-link' => array( '-current' ),
+		'core/navigation-link'    => array( '-current' ),
+		'core/navigation-submenu' => array( '-current' ),
 	);
 
 	/**
@@ -1000,6 +1015,15 @@ class WP_Theme_JSON {
 			return $pseudo_declarations;
 		}
 
+		// Nearest first: this node, then its variation's block.
+		$base_styles = array( $node );
+		foreach ( array( $style_variation['path'] ?? null, $block_metadata['path'] ?? null ) as $path ) {
+			$layer = $path ? _wp_array_get( $this->theme_json, $path ) : null;
+			if ( is_array( $layer ) ) {
+				$base_styles[] = $layer;
+			}
+		}
+
 		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS[ $block_name ] as $pseudo_selector ) {
 			if ( isset( $node[ $pseudo_selector ] ) ) {
 				$pseudo_node = $node[ $pseudo_selector ];
@@ -1021,6 +1045,7 @@ class WP_Theme_JSON {
 
 				$combined_selector = static::append_to_selector( $base_selector, $pseudo_selector );
 				$declarations      = static::compute_style_properties( $pseudo_node, $settings, null, null );
+				$declarations      = self::get_state_declarations_with_text_clip_escapes( $declarations, $pseudo_node, $base_styles );
 				$add_declarations( $combined_selector, $declarations );
 			}
 		}
@@ -1536,6 +1561,32 @@ class WP_Theme_JSON {
 				$result['viewport'] = self::sanitize_viewport_settings( $input[ $subtree ]['viewport'] );
 			}
 
+			if ( 'settings' === $subtree ) {
+				// Preset leaves are untyped in VALID_SETTINGS, but consumers read `$preset['slug']` as a string.
+				$is_valid_preset = static function ( $preset ) {
+					return is_array( $preset ) && ( ! isset( $preset['slug'] ) || is_scalar( $preset['slug'] ) );
+				};
+				foreach ( static::get_setting_nodes( array( 'settings' => $result ) ) as $node ) {
+					foreach ( static::PRESETS_METADATA as $preset_metadata ) {
+						$path    = array_merge( array_slice( $node['path'], 1 ), $preset_metadata['path'] );
+						$presets = _wp_array_get( $result, $path, null );
+						if ( ! is_array( $presets ) ) {
+							continue;
+						}
+						if ( isset( $presets[0] ) ) {
+							$presets = array_values( array_filter( $presets, $is_valid_preset ) );
+						} else {
+							foreach ( static::VALID_ORIGINS as $origin ) {
+								if ( isset( $presets[ $origin ] ) && is_array( $presets[ $origin ] ) ) {
+									$presets[ $origin ] = array_values( array_filter( $presets[ $origin ], $is_valid_preset ) );
+								}
+							}
+						}
+						_wp_array_set( $result, $path, $presets );
+					}
+				}
+			}
+
 			if ( empty( $result ) ) {
 				unset( $output[ $subtree ] );
 			} else {
@@ -1544,6 +1595,44 @@ class WP_Theme_JSON {
 		}
 
 		return $output;
+	}
+
+	/**
+	 * Determines whether a pseudo selector is a pseudo-element, e.g. '::placeholder'.
+	 *
+	 * Pseudo-elements are not valid inside `:where()`, so rules that target them
+	 * cannot use the `:root :where()` specificity wrapper.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|null $pseudo_selector Pseudo selector to check, e.g. ':hover' or '::placeholder'.
+	 * @return bool True if the pseudo selector is a pseudo-element.
+	 */
+	protected static function is_pseudo_element( $pseudo_selector ) {
+		return is_string( $pseudo_selector ) && str_starts_with( $pseudo_selector, '::' );
+	}
+
+	/**
+	 * Builds the specificity-capped selector for a pseudo selector rule.
+	 *
+	 * Pseudo-classes are appended to each part of the base selector inside the
+	 * `:root :where()` wrapper, e.g. `:root :where(a:hover)`. Pseudo-elements are
+	 * not valid inside `:where()`, so they are appended after the wrapper instead,
+	 * e.g. `:root :where(textarea, input)::placeholder`, which keeps the same
+	 * specificity regardless of where the element styles are defined.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $base_selector   Selector without the pseudo selector, e.g. 'textarea, input'.
+	 * @param string $pseudo_selector Pseudo selector to apply, e.g. ':hover' or '::placeholder'.
+	 * @return string The selector to use for the rule.
+	 */
+	protected static function get_pseudo_rule_selector( $base_selector, $pseudo_selector ) {
+		if ( static::is_pseudo_element( $pseudo_selector ) ) {
+			return ':root :where(' . $base_selector . ')' . $pseudo_selector;
+		}
+
+		return ':root :where(' . static::append_to_selector( $base_selector, $pseudo_selector ) . ')';
 	}
 
 	/**
@@ -1583,7 +1672,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return preg_replace( '~[ \t\n]*,[ \t\n]*~', "{$to_append}, ", trim( $selector, " \t\n" ) ) . $to_append;
@@ -1632,7 +1721,7 @@ class WP_Theme_JSON {
 		 * there should be no way for a comma to mean anything other than a
 		 * comma token. The exception are syntax errors, which are not handled here.
 		 *
-		 * @see https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
+		 * @link https://www.w3.org/TR/css-syntax-3/#parse-comma-separated-list-of-component-values
 		 */
 		if ( strlen( $selector ) === strcspn( $selector, '/\'"(<\\' ) ) {
 			return $to_prepend . preg_replace( '~[ \t\n]*,[ \t\n]*~', ", {$to_prepend}", trim( $selector, " \t\n" ) );
@@ -1677,8 +1766,8 @@ class WP_Theme_JSON {
 	 *     // Comments stay with the selector they follow.
 	 *     array( '.a /* a, the first *\/', '.b' ) === self::split_selector_list( '.a /* a, the first *\/,.b' );
 	 *
-	 * @see https://www.w3.org/TR/selectors/#parse-selector
-	 * @see https://www.w3.org/TR/css-syntax-3/
+	 * @link https://www.w3.org/TR/selectors/#parse-selector
+	 * @link https://www.w3.org/TR/css-syntax-3/
 	 *
 	 * @since 7.1.0
 	 *
@@ -1785,8 +1874,8 @@ class WP_Theme_JSON {
 				 * > not included in this definition, as they are converted
 				 * > to U+000A LINE FEED during preprocessing.
 				 *
-				 * @see https://www.w3.org/TR/css-syntax/#whitespace
-				 * @see https://www.w3.org/TR/css-syntax/#newline
+				 * @link https://www.w3.org/TR/css-syntax/#whitespace
+				 * @link https://www.w3.org/TR/css-syntax/#newline
 				 */
 				$selectors[] = trim( substr( $selector, $was_at, $next_at - $was_at ), " \t\n" );
 				$at          = $next_at + 1;
@@ -3198,6 +3287,34 @@ class WP_Theme_JSON {
 				'name'  => $css_property,
 				'value' => $value,
 			);
+
+			/*
+			 * Background clipping needs vendor prefixed properties for
+			 * cross-browser support. The `text` value clips the background to
+			 * the text and makes it visible through a transparent fill. The box
+			 * values only reset the fill color, to cancel any inherited text
+			 * clipping. `-webkit-background-clip` is an alias of
+			 * `background-clip` in Chromium, so resetting it would discard the
+			 * value set above. Values outside the set the style engine accepts
+			 * get neither, so a typo cannot reset the fill color.
+			 */
+			if ( 'background-clip' === $css_property ) {
+				if ( 'text' === $value ) {
+					$declarations[] = array(
+						'name'  => '-webkit-background-clip',
+						'value' => 'text',
+					);
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'transparent',
+					);
+				} elseif ( in_array( $value, array( 'border-box', 'padding-box', 'content-box' ), true ) ) {
+					$declarations[] = array(
+						'name'  => '-webkit-text-fill-color',
+						'value' => 'currentColor',
+					);
+				}
+			}
 		}
 
 		// If a variable value is added to the root, the corresponding property should be removed.
@@ -3896,6 +4013,108 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns the node keys that hold a state's styles: a breakpoint, a pseudo
+	 * state or a custom state.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $settings Settings from theme.json.
+	 * @return string[] Style-state keys.
+	 *
+	 * @phpstan-return list<non-falsy-string>
+	 */
+	private static function get_style_state_keys( array $settings ): array {
+		$keys = array_keys( static::get_viewport_media_queries( $settings['viewport'] ?? null ) );
+
+		foreach ( static::VALID_BLOCK_PSEUDO_SELECTORS as $pseudo_selectors ) {
+			$keys = array_merge( $keys, $pseudo_selectors );
+		}
+
+		foreach ( static::VALID_ELEMENT_PSEUDO_SELECTORS as $pseudo_selectors ) {
+			$keys = array_merge( $keys, $pseudo_selectors );
+		}
+
+		foreach ( static::VALID_BLOCK_CUSTOM_STATES as $custom_states ) {
+			$keys = array_merge( $keys, $custom_states );
+		}
+
+		return array_values( array_unique( $keys ) );
+	}
+
+	/**
+	 * Returns the style objects a state node layers over, nearest first.
+	 *
+	 * Drops the path's state keys (e.g. `@mobile`) from the innermost outward.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[]             $path     Path to the node within the theme.json tree.
+	 * @param array<string, mixed> $tree     The theme.json tree to read from.
+	 * @param array<string, mixed> $settings Settings from theme.json.
+	 * @return array[] Style objects, nearest first.
+	 */
+	private static function get_state_base_styles( array $path, array $tree, array $settings ): array {
+		$state_keys  = self::get_style_state_keys( $settings );
+		$base_path   = $path;
+		$base_styles = array();
+
+		foreach ( array_reverse( array_keys( $path ) ) as $index ) {
+			if ( ! in_array( $path[ $index ], $state_keys, true ) ) {
+				continue;
+			}
+
+			unset( $base_path[ $index ] );
+			$layer = _wp_array_get( $tree, array_values( $base_path ) );
+			if ( is_array( $layer ) ) {
+				$base_styles[] = $layer;
+			}
+		}
+
+		return $base_styles;
+	}
+
+	/**
+	 * Adds the declarations a state needs to escape a text clip set below it.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array[]              $declarations Declarations generated for the state.
+	 * @param array<string, mixed> $state_style  State style object.
+	 * @param array[]              $base_styles  Style objects the state layers over, nearest first.
+	 * @return array[] Declarations with the escapes applied where needed.
+	 *
+	 * @phpstan-param list<array{ name: non-falsy-string, value: scalar }> $declarations
+	 * @phpstan-return list<array{ name: non-falsy-string, value: scalar }>
+	 */
+	private static function get_state_declarations_with_text_clip_escapes( array $declarations, array $state_style, array $base_styles ): array {
+		$base_clip = '';
+		foreach ( $base_styles as $base_style ) {
+			if ( ! empty( $base_style['background']['backgroundClip'] ) ) {
+				$base_clip = is_string( $base_style['background']['backgroundClip'] ) ? $base_style['background']['backgroundClip'] : '';
+				break;
+			}
+		}
+
+		if ( 'text' !== $base_clip ) {
+			return $declarations;
+		}
+
+		$escapes = array_merge(
+			wp_get_state_text_clip_escape( $state_style, $base_clip ),
+			wp_get_state_text_fill_reset( $state_style )
+		);
+
+		foreach ( $escapes as $name => $value ) {
+			$declarations[] = array(
+				'name'  => $name,
+				'value' => $value,
+			);
+		}
+
+		return $declarations;
+	}
+
+	/**
 	 * Gets the CSS rules for a particular block from theme.json.
 	 *
 	 * @since 6.1.0
@@ -4030,6 +4249,11 @@ class WP_Theme_JSON {
 
 					// Process base properties for this breakpoint.
 					$breakpoint_declarations = static::compute_style_properties( $breakpoint_node, $settings, null, $this->theme_json );
+					$breakpoint_declarations = self::get_state_declarations_with_text_clip_escapes(
+						$breakpoint_declarations,
+						$breakpoint_node,
+						array( $style_variation_node, $node )
+					);
 					if ( ! empty( $breakpoint_declarations ) ) {
 						$base_ruleset              = static::to_ruleset( ':root :where(' . $style_variation['selector'] . ')', $breakpoint_declarations );
 						$variation_responsive_css .= $breakpoint_media . '{' . $base_ruleset . '}';
@@ -4098,7 +4322,7 @@ class WP_Theme_JSON {
 										continue;
 									}
 
-									$pseudo_selector_ruleset          = static::to_ruleset( ':root :where(' . static::append_to_selector( $variation_element_selector, $pseudo_selector ) . ')', $pseudo_declarations );
+									$pseudo_selector_ruleset          = static::to_ruleset( static::get_pseudo_rule_selector( $variation_element_selector, $pseudo_selector ), $pseudo_declarations );
 									$variation_responsive_pseudo_css .= $breakpoint_media . '{' . $pseudo_selector_ruleset . '}';
 								}
 							}
@@ -4154,11 +4378,18 @@ class WP_Theme_JSON {
 		 * element then compute the style properties for it.
 		 * Otherwise just compute the styles for the default selector as normal.
 		 */
+		$base_styles = self::get_state_base_styles( $block_metadata['path'] ?? array(), $this->theme_json, $settings );
+
 		if ( $pseudo_selector && isset( $node[ $pseudo_selector ] ) &&
 			isset( static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ] )
 			&& in_array( $pseudo_selector, static::VALID_ELEMENT_PSEUDO_SELECTORS[ $current_element ], true )
 		) {
 			$declarations = static::compute_style_properties( $node[ $pseudo_selector ], $settings, null, $this->theme_json, $selector, $use_root_padding );
+			$declarations = self::get_state_declarations_with_text_clip_escapes(
+				$declarations,
+				$node[ $pseudo_selector ],
+				array_merge( array( $node ), $base_styles )
+			);
 		} else {
 			/*
 			 * For block pseudo-selector nodes (e.g. ':hover'), $node has already had any
@@ -4166,6 +4397,7 @@ class WP_Theme_JSON {
 			 * so those properties are not output twice.
 			 */
 			$declarations = static::compute_style_properties( $node, $settings, null, $this->theme_json, $selector, $use_root_padding );
+			$declarations = self::get_state_declarations_with_text_clip_escapes( $declarations, $node, $base_styles );
 		}
 
 		$block_rules = '';
@@ -4235,6 +4467,9 @@ class WP_Theme_JSON {
 		 * Pseudo classes, e.g. :hover, :focus etc., are a class-level selector so
 		 * still need to be wrapped in `:root :where` to cap specificity for nested
 		 * variations etc. Pseudo selectors won't match the ELEMENTS selector exactly.
+		 *
+		 * Pseudo-elements, e.g. ::placeholder, are not valid inside `:where()`, so
+		 * they are appended after the wrapper instead.
 		 */
 		$element_only_selector = $is_root_selector || (
 			$current_element &&
@@ -4245,8 +4480,13 @@ class WP_Theme_JSON {
 		);
 
 		// 2. Generate and append the rules that use the general selector.
-		$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
-		$block_rules     .= static::to_ruleset( $general_selector, $declarations );
+		if ( static::is_pseudo_element( $pseudo_selector ) ) {
+			// The node selector already carries the pseudo-element on each part, so strip it to get the base selector.
+			$general_selector = static::get_pseudo_rule_selector( str_replace( $pseudo_selector, '', $selector ), $pseudo_selector );
+		} else {
+			$general_selector = $element_only_selector ? $selector : ":root :where($selector)";
+		}
+		$block_rules .= static::to_ruleset( $general_selector, $declarations );
 
 		// 3. Generate and append the rules that use the duotone selector.
 		if ( isset( $block_metadata['duotone'] ) && ! empty( $declarations_duotone ) ) {

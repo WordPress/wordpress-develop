@@ -2489,7 +2489,7 @@ function wp_kses_split2( $content, $allowed_html, $allowed_protocols ) {
 	 *
 	 * Preserve these comments and do not treat them like tags.
 	 *
-	 * @see https://html.spec.whatwg.org/#bogus-comment-state
+	 * @link https://html.spec.whatwg.org/#bogus-comment-state
 	 */
 	if ( 1 === preg_match( '~^(?:</[^a-zA-Z][^>]*>|<![a-z][^>]*>)$~', $content ) ) {
 		/**
@@ -3389,7 +3389,7 @@ function wp_kses_normalize_entities3( $matches ) {
  *
  * @since 2.7.0
  *
- * @see https://www.w3.org/TR/xml/#charsets
+ * @link https://www.w3.org/TR/xml/#charsets
  *
  * @param int $i Unicode codepoint.
  * @return bool Whether or not the codepoint is a valid Unicode codepoint.
@@ -3692,6 +3692,7 @@ function kses_init() {
  *              Added support for transform functions, `clip-path` basic shapes,
  *              and URLs in the SVG element reference properties.
  * @since 7.2.0 Added support for CSS anchor positioning properties and `text-shadow`.
+ *              Added support for `background-clip`.
  *
  * @param string $css        A string of CSS rules, decoded from an HTML `style` attribute.
  * @param string $deprecated Not used.
@@ -3717,6 +3718,7 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 	 *
 	 * @since 2.8.1
 	 * @since 7.1.0 Added support for SVG presentation attributes.
+	 * @since 7.2.0 Added support for `background-clip` and its vendor prefixed companions.
 	 *
 	 * @param string[] $attr Array of allowed CSS attributes.
 	 */
@@ -3731,6 +3733,9 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			'background-size',
 			'background-attachment',
 			'background-blend-mode',
+			'background-clip',
+			'-webkit-background-clip',
+			'-webkit-text-fill-color',
 
 			'border',
 			'border-radius',

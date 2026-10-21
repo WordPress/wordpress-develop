@@ -531,6 +531,9 @@ module.exports = function(grunt) {
 					[ WORKING_DIR + 'wp-admin/js/language-chooser.js' ]: [ './src/js/_enqueues/lib/language-chooser.js' ],
 					[ WORKING_DIR + 'wp-admin/js/link.js' ]: [ './src/js/_enqueues/admin/link.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media-gallery.js' ]: [ './src/js/_enqueues/deprecated/media-gallery.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-frame-upload.js' ]: [ './src/js/_enqueues/admin/media-frame-upload.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-new-upload.js' ]: [ './src/js/_enqueues/admin/media-new-upload.js' ],
+					[ WORKING_DIR + 'wp-admin/js/media-upload-pipeline.js' ]: [ './src/js/_enqueues/admin/media-upload-pipeline.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media-upload.js' ]: [ './src/js/_enqueues/admin/media-upload.js' ],
 					[ WORKING_DIR + 'wp-admin/js/media.js' ]: [ './src/js/_enqueues/admin/media.js' ],
 					[ WORKING_DIR + 'wp-admin/js/nav-menu.js' ]: [ './src/js/_enqueues/lib/nav-menu.js' ],
@@ -697,7 +700,7 @@ module.exports = function(grunt) {
 				src: 'vendor/composer/ca-bundle/res/cacert.pem',
 				dest: SOURCE_DIR + 'wp-includes/certificates/ca-bundle.crt'
 			},
-			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/).
+			// Gutenberg PHP infrastructure files (routes.php, pages.php, constants.php, pages/, core actions, core fields).
 			'gutenberg-php': {
 				options: {
 					process: function( content ) {
@@ -716,6 +719,10 @@ module.exports = function(grunt) {
 						'pages.php',
 						'constants.php',
 						'pages/**/*.php',
+						// The actions Core registers through the entity actions API.
+						'scripts/core-actions/**/*.php',
+						// The fields Core registers through the entity fields API.
+						'scripts/core-fields/**/*.php',
 					],
 					dest: SOURCE_DIR + 'wp-includes/build/',
 				} ],
@@ -1321,6 +1328,9 @@ module.exports = function(grunt) {
 					'src/wp-admin/js/language-chooser.js': 'src/js/_enqueues/lib/language-chooser.js',
 					'src/wp-admin/js/link.js': 'src/js/_enqueues/admin/link.js',
 					'src/wp-admin/js/media-gallery.js': 'src/js/_enqueues/deprecated/media-gallery.js',
+					'src/wp-admin/js/media-frame-upload.js': 'src/js/_enqueues/admin/media-frame-upload.js',
+					'src/wp-admin/js/media-new-upload.js': 'src/js/_enqueues/admin/media-new-upload.js',
+					'src/wp-admin/js/media-upload-pipeline.js': 'src/js/_enqueues/admin/media-upload-pipeline.js',
 					'src/wp-admin/js/media-upload.js': 'src/js/_enqueues/admin/media-upload.js',
 					'src/wp-admin/js/media.js': 'src/js/_enqueues/admin/media.js',
 					'src/wp-admin/js/nav-menu.js': 'src/js/_enqueues/lib/nav-menu.js',
