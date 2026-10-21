@@ -301,14 +301,14 @@ function wp_cookie_constants() {
 	 * @since 1.2.0
 	 */
 	if ( ! defined( 'COOKIEPATH' ) ) {
-		define( 'COOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'home' ) . '/' ) );
+		define( 'COOKIEPATH', (string) preg_replace( '|https?://[^/]+|i', '', get_option( 'home' ) . '/' ) );
 	}
 
 	/**
 	 * @since 1.5.0
 	 */
 	if ( ! defined( 'SITECOOKIEPATH' ) ) {
-		define( 'SITECOOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'siteurl' ) . '/' ) );
+		define( 'SITECOOKIEPATH', (string) preg_replace( '|https?://[^/]+|i', '', get_option( 'siteurl' ) . '/' ) );
 	}
 
 	/**
