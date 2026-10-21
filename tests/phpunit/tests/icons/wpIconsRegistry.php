@@ -480,6 +480,90 @@ class Tests_Icons_WpIconsRegistry extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66344
+	 *
+	 * @covers ::unregister
+	 *
+	 * @expectedIncorrectUsage WP_Icons_Registry::unregister
+	 */
+	public function test_cannot_unregister_core_admin_icon() {
+		$this->registry->register(
+			'core-admin/test-icon',
+			array(
+				'label'   => 'Admin icon',
+				'content' => '<svg><path d="M0 0"/></svg>',
+			)
+		);
+		$before = wp_get_icon( 'core-admin/test-icon' );
+
+		$this->assertNotEmpty( $before );
+		$this->assertFalse( wp_unregister_icon( 'core-admin/test-icon' ) );
+		$this->assertSame( $before, wp_get_icon( 'core-admin/test-icon' ) );
+	}
+
+	/**
+	 * @ticket 66344
+	 *
+	 * @covers WP_Icon_Collections_Registry::unregister
+	 *
+	 * @expectedIncorrectUsage WP_Icon_Collections_Registry::unregister
+	 */
+	public function test_cannot_unregister_core_admin_collection() {
+		$this->registry->register(
+			'core-admin/test-icon',
+			array(
+				'label'   => 'Admin icon',
+				'content' => '<svg><path d="M0 0"/></svg>',
+			)
+		);
+		$collections = WP_Icon_Collections_Registry::get_instance();
+		$collection  = $collections->get_registered( 'core-admin' );
+		$before      = wp_get_icon( 'core-admin/test-icon' );
+
+		$this->assertNotEmpty( $before );
+		$this->assertFalse( wp_unregister_icon_collection( 'core-admin' ) );
+		$this->assertSame( $collection, $collections->get_registered( 'core-admin' ) );
+		$this->assertSame( $before, wp_get_icon( 'core-admin/test-icon' ) );
+	}
+
+	/**
+	 * @ticket 66344
+	 *
+	 * @covers ::unregister
+	 * @covers WP_Icon_Collections_Registry::unregister
+	 */
+	public function test_can_unregister_core_icons_and_collection() {
+		$collections = WP_Icon_Collections_Registry::get_instance();
+		$collection  = $collections->get_registered( 'core' );
+		unset( $collection['slug'] );
+
+		$this->registry->register(
+			'core/test-icon',
+			array(
+				'label'   => 'Core icon',
+				'content' => '<svg></svg>',
+			)
+		);
+		$this->registry->register(
+			'core/cascade-icon',
+			array(
+				'label'   => 'Core icon',
+				'content' => '<svg></svg>',
+			)
+		);
+
+		try {
+			$this->assertTrue( wp_unregister_icon( 'core/test-icon' ) );
+			$this->assertFalse( $this->registry->is_registered( 'core/test-icon' ) );
+			$this->assertTrue( wp_unregister_icon_collection( 'core' ) );
+			$this->assertFalse( $collections->is_registered( 'core' ) );
+			$this->assertFalse( $this->registry->is_registered( 'core/cascade-icon' ) );
+		} finally {
+			$collections->register( 'core', $collection );
+		}
+	}
+
+	/**
 	 * @ticket 64651
 	 *
 	 * @covers ::get_content
