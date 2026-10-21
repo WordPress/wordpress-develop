@@ -4067,9 +4067,35 @@ function wp_enqueue_command_palette_assets() {
 					),
 					'name'   => wp_get_current_user()->display_name,
 					'styles' => str_replace( array( "\n", "\t" ), '', $teletype_styles ),
+					/*
+					 * The teletype is an easter egg: typing the trigger phrase into the
+					 * command palette plays a short scene. See #65907 for the details.
+					 */
 					'i18n'   => array(
-						'label' => __( 'Press Escape to leave.' ),
-						'exit'  => __( 'Exit' ),
+						/* translators: Easter egg trigger, typed into the command palette. Case, spaces and punctuation are ignored. Feel free to pick a phrase loved by your local community. See https://core.trac.wordpress.org/ticket/65907 */
+						'trigger' => __( 'Code is poetry' ),
+						/* translators: Accessible name of the easter egg dialog. See https://core.trac.wordpress.org/ticket/65907 */
+						'label'   => __( 'A WordPress easter egg. Press Escape to leave.' ),
+						/* translators: Button that closes the easter egg. See https://core.trac.wordpress.org/ticket/65907 */
+						'exit'    => __( 'Exit' ),
+						/* translators: Read aloud to screen readers when the easter egg screen goes black and Matrix-style code rain starts. See https://core.trac.wordpress.org/ticket/65907 */
+						'rain'    => __( 'The screen goes black. Green code rains down it.' ),
+						'actOne'  => array(
+							/* translators: Easter egg, typed out like a computer terminal. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'Self-reference detected.' ),
+							/* translators: Easter egg, typed out like a computer terminal. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'Initiating infinite loop eschewal protocol.' ),
+							/* translators: Easter egg, typed out like a computer terminal. The 3 starts a countdown that continues 2, 1. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'Running a routine maintenance cycle. Back in... 3' ),
+						),
+						'actTwo'  => array(
+							/* translators: %s: User display name. Easter egg quoting The Matrix (1999); use the line from your local release of the film if there is one. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'Wake up, %s...' ),
+							/* translators: Easter egg quoting The Matrix (1999); use the line from your local release of the film if there is one. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'The Matrix has you...' ),
+							/* translators: Easter egg quoting The Matrix (1999); use the line from your local release of the film if there is one. See https://core.trac.wordpress.org/ticket/65907 */
+							__( 'Follow the white rabbit.' ),
+						),
 					),
 				),
 				JSON_HEX_TAG | JSON_UNESCAPED_SLASHES

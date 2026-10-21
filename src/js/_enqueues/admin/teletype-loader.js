@@ -13,32 +13,21 @@
 ( function ( wp, settings ) {
 	'use strict';
 
-	if ( ! wp || ! wp.data || ! settings ) {
+	if ( ! wp || ! wp.data || ! settings || ! settings.i18n ) {
 		return;
 	}
 
-	var KEY  = 'ishdg;rsdkot',
-		FROM = '\',.pyfgcrl/=\\aoeuidhtns-;qjkxbmwvz"<>PYFGCRL?+|AOEUIDHTNS_:QJKXBMWVZ[]',
-		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
-
 	/**
-	 * Maps a string from Dvorak to QWERTY key positions.
+	 * Lowercases text and strips its whitespace and punctuation.
 	 *
-	 * @param {string} value Text to map.
-	 * @return {string} Mapped text.
+	 * @param {string} value Text to normalize.
+	 * @return {string} Normalized text.
 	 */
-	function dvortr( value ) {
-		var map = {},
-			i;
-
-		for ( i = 0; i < FROM.length; i++ ) {
-			map[ FROM.charAt( i ) ] = TO.charAt( i );
-		}
-
-		return value.replace( /[\s\S]/g, function ( character ) {
-			return map[ character ] || character;
-		} );
+	function normalize( value ) {
+		return value.toLowerCase().replace( /[\s!-\/:-@\[-`{-~\u3000-\u303f\uff01-\uff0f]/g, '' );
 	}
+
+	var trigger = normalize( settings.i18n.trigger || '' );
 
 	/**
 	 * Loads the teletype if needed, then runs it.
@@ -91,9 +80,9 @@
 			return;
 		}
 
-		value = input.value.toLowerCase().replace( /[^a-z0-9]/g, '' );
+		value = normalize( input.value );
 
-		if ( ! value || dvortr( value ) !== KEY ) {
+		if ( ! value || value !== trigger ) {
 			return;
 		}
 

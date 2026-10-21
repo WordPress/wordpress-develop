@@ -24,43 +24,6 @@
 	// Half-width katakana and digits.
 	var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789';
 
-	var ACT_ONE = [
-		'O.nu[p.u.p.bj. e.y.jy.ev',
-		'Cbcycaycbi cbucbcy. nrrl .ojd.,an lpryrjrnv',
-		'Pgbbcbi a prgycb. macby.babj. jfjn.v Xajt cbvvv 3',
-		'2',
-		'1'
-	];
-
-	// %s is replaced with the current user's display name.
-	var ACT_TWO = [
-		'<at. glw %ovvv',
-		'Yd. Maypcq dao frgvvv',
-		'Urnnr, yd. ,dcy. paxxcyv'
-	];
-
-	var FROM = '\',.pyfgcrl/=\\aoeuidhtns-;qjkxbmwvz"<>PYFGCRL?+|AOEUIDHTNS_:QJKXBMWVZ[]',
-		TO   = 'qwertyuiop[]\\asdfghjkl;\'zxcvbnm,./QWERTYUIOP{}|ASDFGHJKL:"ZXCVBNM<>?-=';
-
-	/**
-	 * Maps a string from Dvorak to QWERTY key positions.
-	 *
-	 * @param {string} value Text to map.
-	 * @return {string} Mapped text.
-	 */
-	function dvortr( value ) {
-		var map = {},
-			i;
-
-		for ( i = 0; i < FROM.length; i++ ) {
-			map[ FROM.charAt( i ) ] = TO.charAt( i );
-		}
-
-		return value.replace( /[\s\S]/g, function ( character ) {
-			return map[ character ] || character;
-		} );
-	}
-
 	var STYLE = [
 		'.wp-teletype { --wp-teletype-transition-duration: ' + FADE_TIME / 1000 + 's }',
 		settings.styles,
@@ -170,19 +133,21 @@
 	/**
 	 * Plays the scene.
 	 *
-	 * @param {string} displayName  The current user's display name.
-	 * @param {Object} [i18n]       Translated interface strings.
-	 * @param {string} [i18n.label] Accessible name of the dialog.
-	 * @param {string} [i18n.exit]  Text of the Exit button.
+	 * @param {string}   displayName The current user's display name.
+	 * @param {Object}   i18n        Translated strings.
+	 * @param {string}   i18n.label  Accessible name of the dialog.
+	 * @param {string}   i18n.exit   Text of the Exit button.
+	 * @param {string}   i18n.rain   Description of the rain for screen readers.
+	 * @param {string[]} i18n.actOne Lines typed on the white screen.
+	 * @param {string[]} i18n.actTwo Lines typed on the black screen; %s is the display name.
 	 */
 	function run( displayName, i18n ) {
 		var aborted          = false,
 			timer            = null,
 			stopRain         = null,
 			previousFocus    = document.activeElement,
-			previousOverflow = document.documentElement.style.overflow;
-
-		i18n = i18n || {};
+			previousOverflow = document.documentElement.style.overflow,
+			actOneLines      = i18n.actOne.concat( [ '2', '1' ] );
 
 		var style = document.createElement( 'style' );
 		style.textContent = STYLE;
@@ -191,25 +156,22 @@
 		overlay.className = 'wp-teletype';
 		overlay.setAttribute( 'role', 'dialog' );
 		overlay.setAttribute( 'aria-modal', 'true' );
-		overlay.setAttribute( 'aria-label', i18n.label || 'Press Escape to leave.' );
+		overlay.setAttribute( 'aria-label', i18n.label );
 		overlay.setAttribute( 'tabindex', '-1' );
 
 		// Hidden from screen readers, which get whole lines from the live region.
 		var line = document.createElement( 'p' );
 		line.setAttribute( 'aria-hidden', 'true' );
-		line.setAttribute( 'lang', 'en' );
 
-		// The dialogue is untranslated; the label and Exit button inherit the page language.
 		var narration = document.createElement( 'div' );
 		narration.className = 'narration';
-		narration.setAttribute( 'lang', 'en' );
 		narration.setAttribute( 'aria-live', 'polite' );
 		narration.setAttribute( 'aria-atomic', 'true' );
 
 		var exit = document.createElement( 'button' );
 		exit.type = 'button';
 		exit.className = 'exit';
-		exit.textContent = i18n.exit || 'Exit';
+		exit.textContent = i18n.exit;
 
 		var cursor = document.createElement( 'span' );
 		cursor.className = 'cursor';
@@ -289,13 +251,13 @@
 		 * @param {number} index Index of the line to type.
 		 */
 		function actOne( index ) {
-			if ( index >= ACT_ONE.length ) {
+			if ( index >= actOneLines.length ) {
 				lightsOut();
 				return;
 			}
 
-			say( dvortr( ACT_ONE[ index ] ) );
-			type( dvortr( ACT_ONE[ index ] ), function () {
+			say( actOneLines[ index ] );
+			type( actOneLines[ index ], function () {
 				newline();
 				wait( LINE_PAUSE, function () {
 					actOne( index + 1 );
@@ -317,7 +279,7 @@
 			}
 
 			// Describe the rain once for screen readers.
-			say( 'The screen goes black. Green code rains down it.' );
+			say( i18n.rain );
 
 			wait( ACT_PAUSE, function () {
 				actTwo( 0 );
@@ -330,13 +292,13 @@
 		 * @param {number} index Index of the line to type.
 		 */
 		function actTwo( index ) {
-			var text = dvortr( ACT_TWO[ index ] ).replace( '%s', function () {
+			var text = i18n.actTwo[ index ].replace( '%s', function () {
 				return displayName;
 			} );
 
 			say( text );
 			type( text, function () {
-				if ( index + 1 >= ACT_TWO.length ) {
+				if ( index + 1 >= i18n.actTwo.length ) {
 					wait( ACT_PAUSE, abort );
 					return;
 				}
