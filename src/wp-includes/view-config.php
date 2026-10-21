@@ -951,9 +951,10 @@ function _wp_get_view_list_entry_statuses( $entry, $default_view = array(), $def
 /**
  * Returns the statuses a view lists, when the status is all it filters by.
  *
- * Resolves the view's filters and search out of its layers as the client does:
- * a later layer that sets either one replaces it outright rather than adding to
- * it.
+ * Resolves the view's filters out of its layers as the client does: a later
+ * layer that sets them replaces them outright rather than adding to them. A
+ * `search` in a layer is ignored, as the client drops it from the config and
+ * takes the search from the URL instead.
  *
  * @since 7.2.0
  *
@@ -963,17 +964,13 @@ function _wp_get_view_list_entry_statuses( $entry, $default_view = array(), $def
  */
 function _wp_get_layered_view_statuses( $layers ) {
 	$filters = array();
-	$search  = '';
 	foreach ( $layers as $layer ) {
 		if ( array_key_exists( 'filters', $layer ) ) {
 			$filters = $layer['filters'];
 		}
-		if ( array_key_exists( 'search', $layer ) ) {
-			$search = $layer['search'];
-		}
 	}
 
-	if ( ! empty( $search ) || ! is_array( $filters ) ) {
+	if ( ! is_array( $filters ) ) {
 		return null;
 	}
 	if ( empty( $filters ) ) {
@@ -1000,5 +997,6 @@ function _wp_get_layered_view_statuses( $layers ) {
 		}
 	}
 
-	return $statuses;
+	// A status listed twice is still queried once.
+	return array_values( array_unique( $statuses ) );
 }

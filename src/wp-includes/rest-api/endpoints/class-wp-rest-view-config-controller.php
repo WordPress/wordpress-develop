@@ -165,9 +165,15 @@ class WP_REST_View_Config_Controller extends WP_REST_Controller {
 		/*
 		 * The counts are added here rather than through the view config filter,
 		 * so that they are computed from the view list after every filter has
-		 * changed it.
+		 * changed it. The counting is skipped when the request leaves out the
+		 * view list, such as the editor's request for the form alone.
 		 */
-		if ( 'postType' === $kind && 'page' === $name && is_array( $response['view_list'] ) ) {
+		if (
+			'postType' === $kind &&
+			'page' === $name &&
+			rest_is_field_included( 'view_list', $this->get_fields_for_response( $request ) ) &&
+			is_array( $response['view_list'] )
+		) {
 			$response['view_list'] = _wp_add_counts_to_view_list( 'page', $response['view_list'], $response['default_view'], $response['default_layouts'] );
 		}
 
