@@ -636,50 +636,50 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$table_label = $this->screen->get_screen_reader_text( 'heading_list' );
 
 		?>
-<div class="wp-list-table-scroll" role="region" aria-label="<?php echo esc_attr( $table_label ? $table_label : __( 'Items list' ) ); ?>" tabindex="0">
-	<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
-			<?php
-			if ( ! isset( $_GET['orderby'] ) ) {
-				// In the initial view, Comments are ordered by comment's date but there's no column for that.
-				echo '<caption class="screen-reader-text">' .
-				/* translators: Hidden accessibility text. */
-				__( 'Ordered by Comment Date, descending.' ) .
-				'</caption>';
-			} else {
-				$this->print_table_description();
-			}
-			?>
-		<thead>
-		<tr>
-			<?php $this->print_column_headers(); ?>
-		</tr>
-		</thead>
+		<div class="wp-list-table-scroll" role="region" aria-label="<?php echo esc_attr( $table_label ? $table_label : __( 'Items list' ) ); ?>" tabindex="0">
+			<table class="wp-list-table <?php echo implode( ' ', $this->get_table_classes() ); ?>">
+				<?php
+				if ( ! isset( $_GET['orderby'] ) ) {
+					// In the initial view, Comments are ordered by comment's date but there's no column for that.
+					echo '<caption class="screen-reader-text">' .
+					/* translators: Hidden accessibility text. */
+					__( 'Ordered by Comment Date, descending.' ) .
+					'</caption>';
+				} else {
+					$this->print_table_description();
+				}
+				?>
+				<thead>
+					<tr>
+						<?php $this->print_column_headers(); ?>
+					</tr>
+				</thead>
 
-		<tbody id="the-comment-list" data-wp-lists="list:comment">
-			<?php $this->display_rows_or_placeholder(); ?>
-		</tbody>
+				<tbody id="the-comment-list" data-wp-lists="list:comment">
+					<?php $this->display_rows_or_placeholder(); ?>
+				</tbody>
 
-		<tbody id="the-extra-comment-list" data-wp-lists="list:comment" style="display: none;">
-			<?php
-				/*
-				 * Back up the items to restore after printing the extra items markup.
-				 * The extra items may be empty, which will prevent the table nav from displaying later.
-				 */
-				$items       = $this->items;
-				$this->items = $this->extra_items;
-				$this->display_rows_or_placeholder();
-				$this->items = $items;
-			?>
-		</tbody>
+				<tbody id="the-extra-comment-list" data-wp-lists="list:comment" style="display: none;">
+					<?php
+					/*
+					 * Back up the items to restore after printing the extra items markup.
+					 * The extra items may be empty, which will prevent the table nav from displaying later.
+					 */
+					$items       = $this->items;
+					$this->items = $this->extra_items;
+					$this->display_rows_or_placeholder();
+					$this->items = $items;
+					?>
+				</tbody>
 
-		<tfoot>
-		<tr>
-			<?php $this->print_column_headers( false ); ?>
-		</tr>
-		</tfoot>
+				<tfoot>
+					<tr>
+						<?php $this->print_column_headers( false ); ?>
+					</tr>
+				</tfoot>
 
-	</table>
-</div>
+			</table>
+		</div>
 		<?php
 
 		$this->display_tablenav( 'bottom' );

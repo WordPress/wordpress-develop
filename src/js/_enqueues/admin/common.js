@@ -2245,12 +2245,12 @@ jQuery( function() {
 	const content = document.getElementById( 'wpbody-content' );
 	if (
 		! content ||
-		! content.querySelector( '.wp-list-table-scroll' ) ||
-		! window.ResizeObserver
+		! content.querySelector( '.wp-list-table-scroll' )
 	) {
 		return;
 	}
 
+	/** @type {Map<HTMLTableElement, { wrapper: HTMLElement, cleanup: function(): void }>} */
 	const tables = new Map();
 
 	/**
