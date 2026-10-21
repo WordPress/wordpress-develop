@@ -173,6 +173,14 @@ parameters:
 			count: 2
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
+			# The step_*() methods only document WP_HTML_Unsupported_Exception, so PHPStan reports the generic Exception
+			# catch in step() as dead. It is not: an exception from outside the HTML API, such as one thrown by a
+			# doing_it_wrong_run callback when bookmarks run out, propagates out of a nested step() and is rethrown here.
+			message: '#^Dead catch \- Exception is never thrown in the try block\.$#'
+			identifier: catch.neverThrown
+			count: 1
+			path: src/wp-includes/html-api/class-wp-html-processor.php
+		-
 			# The early return at the start of step() narrows $last_error to null, and PHPStan does not see that
 			# bookmark_token() sets it to ERROR_EXCEEDED_MAX_BOOKMARKS before throwing. So it reports that the
 			# check in the catch block can never match, when in fact it always does.

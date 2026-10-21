@@ -1634,7 +1634,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see WP_HTML_Processor::step
@@ -1733,7 +1732,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see WP_HTML_Processor::step
@@ -2159,7 +2157,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see WP_HTML_Processor::step
@@ -3423,7 +3420,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see WP_HTML_Processor::step
@@ -3896,7 +3892,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @since 6.7.0
 	 * @ignore
 	 *
-	 * @throws Exception                     When unable to allocate a bookmark for the next token in the input HTML document.
 	 * @throws WP_HTML_Unsupported_Exception When encountering unsupported HTML input.
 	 *
 	 * @see WP_HTML_Processor::step
@@ -5105,8 +5100,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
 	 * @return string Name of created bookmark.
-	 *
-	 * @phpstan-impure
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
