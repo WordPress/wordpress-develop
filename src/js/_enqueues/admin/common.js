@@ -2283,7 +2283,7 @@ jQuery( function() {
 	function observeTableOverflow( table ) {
 		const wrapper = table.parentElement;
 		const tabIndex = wrapper.getAttribute( 'tabindex' );
-		const commentCells = new Map();
+		const contentAreas = new Set();
 
 		/**
 		 * Updates the overflow indicators and the wrapper's place in the Tab order.
@@ -2293,22 +2293,47 @@ jQuery( function() {
 		 * @return {void}
 		 */
 		function update() {
-			commentCells.forEach( function( originalTabIndex, cell ) {
-				if ( cell.closest( '.wp-list-table' ) !== table || ! table.contains( cell ) ) {
-					observer.unobserve( cell );
-					restoreTabIndex( cell, originalTabIndex );
-					commentCells.delete( cell );
+			contentAreas.forEach( function( area ) {
+				if ( area.closest( '.wp-list-table' ) !== table || ! table.contains( area ) ) {
+					observer.unobserve( area );
+					area.replaceWith( ...area.childNodes );
+					contentAreas.delete( area );
 				}
 			} );
 
-			table.querySelectorAll( ':scope > tbody > tr > .column-comment' ).forEach( function( cell ) {
-				if ( ! commentCells.has( cell ) ) {
-					commentCells.set( cell, cell.getAttribute( 'tabindex' ) );
-					observer.observe( cell );
+			table.querySelectorAll( ':scope > tbody > tr > td, :scope > tbody > tr > th' ).forEach( function( cell ) {
+				if ( cell.colSpan > 1 || cell.closest( '.inline-edit-row, .inline-editor, #replyrow' ) ) {
+					return;
 				}
-				const cellStyle = window.getComputedStyle( cell );
-				cell.tabIndex = cell.scrollWidth > cell.clientWidth &&
-					( cellStyle.overflowX === 'auto' || cellStyle.overflowX === 'scroll' ) ? 0 : -1;
+				Array.from( cell.children ).forEach( function( block ) {
+					if (
+						! block.matches( 'p, pre, div, blockquote, ul, ol, dl, figure, table' ) ||
+						block.matches( '.row-actions, .hidden, .comment-author, .wp-list-table-content-scroll, [hidden]' ) ||
+						window.getComputedStyle( block ).display === 'none'
+					) {
+						return;
+					}
+					const area = document.createElement( 'div' );
+					area.className = 'wp-list-table-content-scroll';
+					block.before( area );
+					area.append( block );
+					contentAreas.add( area );
+					observer.observe( area );
+				} );
+			} );
+
+			contentAreas.forEach( function( area ) {
+				const areaStyle = window.getComputedStyle( area );
+				const scrollable = area.scrollWidth > area.clientWidth &&
+					( areaStyle.overflowX === 'auto' || areaStyle.overflowX === 'scroll' );
+				area.tabIndex = scrollable ? 0 : -1;
+				if ( scrollable ) {
+					area.setAttribute( 'role', 'region' );
+					area.setAttribute( 'aria-label', wp.i18n.__( 'Scrollable content' ) );
+				} else {
+					area.removeAttribute( 'role' );
+					area.removeAttribute( 'aria-label' );
+				}
 			} );
 
 			const style = window.getComputedStyle( wrapper );
@@ -2348,10 +2373,10 @@ jQuery( function() {
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
 				restoreTabIndex( wrapper, tabIndex );
-				commentCells.forEach( function( originalTabIndex, cell ) {
-					restoreTabIndex( cell, originalTabIndex );
+				contentAreas.forEach( function( area ) {
+					area.replaceWith( ...area.childNodes );
 				} );
-				commentCells.clear();
+				contentAreas.clear();
 			},
 		} );
 	}

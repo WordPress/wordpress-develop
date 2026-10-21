@@ -237,46 +237,54 @@ jQuery( function() {
 		}
 	);
 
-	QUnit.test( 'Keeps only scrollable comment cells in the Tab order', async function( assert ) {
-		this.table.style.width = '600px';
-		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" style="max-width: 200px; overflow: auto"><pre style="width: 1000px">Wide comment</pre></th><td>Other column</td></tr></tbody>';
-		const cell = this.table.querySelector( '.column-comment' );
+	QUnit.test( 'Scrolls oversized blocks in any column without moving row actions', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><td class="column-example"><p>Ordinary text.</p><pre style="width: 1000px">Wide content</pre><div class="row-actions"><a href="#">Edit</a></div></td><td>Other column</td></tr></tbody>';
 		await afterResize();
-		assert.ok( cell.scrollWidth > cell.clientWidth, 'The comment cell has overflow.' );
-		assert.strictEqual( cell.tabIndex, 0, 'An overflowing comment cell can be reached by Tab.' );
-
-		cell.focus();
-		cell.firstElementChild.remove();
-		await afterResize();
-		assert.strictEqual( cell.tabIndex, -1, 'A fitting cell is removed from the Tab order.' );
-		assert.strictEqual( document.activeElement, cell, 'Removing overflow preserves existing focus.' );
+		const cell = this.table.querySelector( '.column-example' );
+		const area = cell.querySelector( 'pre' ).parentElement;
+		assert.ok( area.classList.contains( 'wp-list-table-content-scroll' ), 'The oversized block has a scrolling wrapper.' );
+		assert.ok( area.scrollWidth > area.clientWidth, 'Only the content area overflows.' );
+		assert.strictEqual( area.tabIndex, 0, 'The scrolling content is keyboard accessible.' );
+		assert.strictEqual( cell.querySelector( '.row-actions' ).parentElement, cell, 'Actions stay outside the scroller.' );
+		assert.strictEqual( cell.querySelector( 'p' ).parentElement.tabIndex, -1, 'Ordinary text adds no Tab stop.' );
+		const actionX = cell.querySelector( '.row-actions' ).getBoundingClientRect().x;
+		area.scrollLeft = 100;
+		assert.strictEqual( cell.querySelector( '.row-actions' ).getBoundingClientRect().x, actionX, 'Scrolling content leaves actions in place.' );
 	} );
 
-	QUnit.test( 'Updates comment keyboard access after content changes without resizing the cell', async function( assert ) {
-		this.table.style.width = '600px';
-		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" style="max-width: 200px; overflow: auto"><pre>Short</pre></th><td>Other column</td></tr></tbody>';
-		const cell = this.table.querySelector( '.column-comment' );
+	QUnit.test( 'Updates content keyboard access after text changes', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><td><pre>Short</pre></td></tr></tbody>';
 		await afterResize();
-		assert.strictEqual( cell.tabIndex, -1, 'Short content does not add a Tab stop.' );
-
-		cell.firstElementChild.firstChild.data = 'W'.repeat( 200 );
+		const pre = this.table.querySelector( 'pre' );
+		const area = pre.parentElement;
+		assert.strictEqual( area.tabIndex, -1, 'Short content does not add a Tab stop.' );
+		pre.firstChild.data = 'W'.repeat( 200 );
 		await afterResize();
-		assert.strictEqual( cell.tabIndex, 0, 'Changed text makes the scrolling cell keyboard accessible.' );
-
-		cell.style.overflow = 'visible';
-		this.table.style.width = '650px';
+		assert.strictEqual( area.tabIndex, 0, 'Text changes make overflowing content keyboard accessible.' );
+		area.focus();
+		pre.firstChild.data = 'Short';
 		await afterResize();
-		assert.strictEqual( cell.tabIndex, -1, 'Visible overflow, as on mobile, does not add a Tab stop.' );
+		assert.strictEqual( area.tabIndex, -1, 'Fitting content is removed from the Tab order.' );
+		assert.strictEqual( document.activeElement, area, 'Existing focus is preserved.' );
 	} );
 
-	QUnit.test( 'Restores comment cell focus attributes when its table is removed', async function( assert ) {
-		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" tabindex="0">Comment</th></tr></tbody>';
-		const cell = this.table.querySelector( '.column-comment' );
+	QUnit.test( 'Leaves existing plugin scrolling inside its content block', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><td><div class="plugin-scroller" style="overflow: auto"><pre style="width: 1000px">Plugin content</pre></div></td></tr></tbody>';
 		await afterResize();
-		assert.strictEqual( cell.tabIndex, -1, 'A fitting cell is skipped while managed.' );
+		const plugin = this.table.querySelector( '.plugin-scroller' );
+		const area = plugin.parentElement;
+		assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin still owns its overflow.' );
+		assert.strictEqual( area.scrollWidth, area.clientWidth, 'The enclosing content area does not add another scrollbar.' );
+		assert.strictEqual( area.tabIndex, -1, 'The enclosing content area adds no Tab stop.' );
+	} );
+
+	QUnit.test( 'Removes generated content wrappers when a table is removed', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><td><pre>Content</pre></td></tr></tbody>';
+		await afterResize();
+		const cell = this.table.querySelector( 'td' );
 		this.table.remove();
 		await afterResize();
-		assert.strictEqual( cell.getAttribute( 'tabindex' ), '0', 'Cleanup restores the original attribute.' );
+		assert.strictEqual( cell.firstElementChild.tagName, 'PRE', 'Cleanup restores the original content structure.' );
 	} );
 
 	QUnit.test( 'Preserves focus when a focused wrapper stops overflowing', async function( assert ) {

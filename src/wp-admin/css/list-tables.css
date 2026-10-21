@@ -1794,6 +1794,11 @@ div.action-links,
 	outline-offset: 0;
 }
 
+/* Preserve the existing mobile layout for content wrappers. */
+.wp-list-table-content-scroll {
+	display: contents;
+}
+
 /* =Media Queries
 -------------------------------------------------------------- */
 
@@ -1811,13 +1816,15 @@ div.action-links,
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	}
 
-	/* Keep oversized comments from widening every row in the column. */
-	.wp-list-table-scroll > .wp-list-table > tbody > tr > .column-comment {
+	/* Keep oversized content blocks from widening every row in their column. */
+	.wp-list-table-scroll .wp-list-table-content-scroll {
+		display: block;
 		max-width: 40em;
 		overflow: auto;
+		scrollbar-color: var(--wpds-color-background-thumb-neutral-weak) transparent;
 	}
 
-	.wp-list-table-scroll > .wp-list-table > tbody > tr > .column-comment:focus-visible {
+	.wp-list-table-scroll .wp-list-table-content-scroll:focus-visible {
 		outline: 2px solid var(--wp-admin-theme-color);
 		outline-offset: -2px;
 	}
