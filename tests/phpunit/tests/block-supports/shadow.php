@@ -74,7 +74,7 @@ class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_generate_shadow_fixtures() {
+	public static function data_generate_shadow_fixtures() {
 		return array(
 			'with no styles'               => array(
 				'support'  => true,
