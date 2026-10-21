@@ -450,26 +450,72 @@ final class WP_Abilities_Content {
 			}
 		}
 
-		$author = null;
-		if ( isset( $where['author_slug'] ) ) {
+		/*
+		 * The author filter is an object with an `id` or a `slug`, the keys the `author`
+		 * field returns. Null, int, or false: no filter, the user ID to query, or a filter
+		 * that names no user, which matches no post (see below).
+		 */
+		$author_id = null;
+		if ( array_key_exists( 'author', $where ) ) {
 			if ( ! post_type_supports( $post_type, 'author' ) ) {
 				return $this->invalid_filter_error(
-					'where[author_slug]',
+					'where[author]',
 					/* translators: %s: Parameter. */
-					sprintf( __( 'The %s filter is only supported for post types that support authors.' ), 'author_slug' )
+					sprintf( __( 'The %s filter is only supported for post types that support authors.' ), 'author' )
 				);
 			}
 
-			if ( ! is_string( $where['author_slug'] ) ) {
+			/*
+			 * An object without `id` or `slug`, such as `{}` or an empty string, and one with
+			 * an unknown key, such as a list or a misspelled property, name no user and must not
+			 * fall through to an unrestricted query, like an empty `ids` filter.
+			 */
+			$author_filter = $this->get_input_object( $where, 'author' );
+			if ( empty( $author_filter ) || ! empty( array_diff_key( $author_filter, array_flip( array( 'id', 'slug' ) ) ) ) ) {
 				return $this->invalid_filter_error(
-					'where[author_slug]',
+					'where[author]',
 					/* translators: %s: Parameter. */
-					sprintf( __( 'The %s filter must be a string.' ), 'author_slug' )
+					sprintf( __( 'The %s filter must be an object with an id or a slug.' ), 'author' )
 				);
 			}
 
-			// A slug that names no user stays false, see below.
-			$author = get_user_by( 'slug', $where['author_slug'] );
+			/*
+			 * An `id` of 0 must not reach the query: WP_Query reads `author => 0` as no author
+			 * filter, which would return every post of the type.
+			 */
+			if ( array_key_exists( 'id', $author_filter ) ) {
+				$author_id = $this->parse_filter_int( $author_filter['id'], 1 );
+				if ( null === $author_id ) {
+					return $this->invalid_filter_error(
+						'where[author][id]',
+						/* translators: %s: Parameter. */
+						sprintf( __( 'The %s ID must be a positive integer.' ), 'author' )
+					);
+				}
+			}
+
+			if ( array_key_exists( 'slug', $author_filter ) ) {
+				if ( ! is_string( $author_filter['slug'] ) || '' === $author_filter['slug'] ) {
+					return $this->invalid_filter_error(
+						'where[author][slug]',
+						/* translators: %s: Parameter. */
+						sprintf( __( 'The %s slug must be a string.' ), 'author' )
+					);
+				}
+
+				/*
+				 * The slug is looked up as given, like the `slug` of the users endpoint: the
+				 * collation of the users table decides whether the case matters. A slug that
+				 * names no user, or names another user than `id`, matches no post, as a post
+				 * must match every given filter.
+				 */
+				$user = get_user_by( 'slug', $author_filter['slug'] );
+				if ( ! $user || ( null !== $author_id && $user->ID !== $author_id ) ) {
+					$author_id = false;
+				} else {
+					$author_id = $user->ID;
+				}
+			}
 		}
 
 		/*
@@ -563,8 +609,8 @@ final class WP_Abilities_Content {
 			$query_args['post_name__in'] = $slugs;
 		}
 
-		if ( $author ) {
-			$query_args['author'] = $author->ID;
+		if ( is_int( $author_id ) ) {
+			$query_args['author'] = $author_id;
 		}
 
 		if ( null !== $parent ) {
@@ -572,10 +618,11 @@ final class WP_Abilities_Content {
 		}
 
 		/*
-		 * An author_slug that names no user matches no post, like IDs and slugs that name no
-		 * post, rather than failing the query.
+		 * An author filter that names no user matches no post, like IDs and slugs that name
+		 * no post, rather than failing the query. An `id` that names no user needs no lookup:
+		 * the query matches no post on its own.
 		 */
-		if ( false === $author ) {
+		if ( false === $author_id ) {
 			return $this->prepare_output( array(), 0, 0 );
 		}
 
@@ -1037,7 +1084,7 @@ final class WP_Abilities_Content {
 					),
 					'slug' => array(
 						'type'        => array( 'string', 'null' ),
-						'description' => __( "The author's user slug (nicename), as the REST API users endpoint returns it in `slug`, and as the `author_slug` filter takes it. Null when the author no longer exists." ),
+						'description' => __( "The author's user slug (nicename), as the REST API users endpoint returns it in `slug`, and as the `author.slug` filter takes it. Null when the author no longer exists." ),
 					),
 				),
 				'description'          => __( 'The post author. Present when the post type supports authors.' ),
@@ -1103,7 +1150,7 @@ final class WP_Abilities_Content {
 	 * The input has three members: `where` selects the posts, `fields` selects the fields
 	 * returned for each post, and `pagination` selects the page of results. `where` holds
 	 * the post type to query in `type`, and any of the filters `ids`, `slugs`, `status`,
-	 * `author_slug`, and `parent`, which all combine. Every object sets
+	 * `author`, and `parent`, which all combine. Every object sets
 	 * `additionalProperties: false`, so an unknown key, such as a misspelled filter, fails
 	 * validation instead of being silently ignored.
 	 *
@@ -1124,12 +1171,12 @@ final class WP_Abilities_Content {
 					'additionalProperties' => false,
 					'required'             => array( 'type' ),
 					'properties'           => array(
-						'type'        => array(
+						'type'   => array(
 							'type'        => 'string',
 							'enum'        => $post_types,
 							'description' => __( 'Post type to query for readable posts.' ),
 						),
-						'ids'         => array(
+						'ids'    => array(
 							'type'        => 'array',
 							'uniqueItems' => true,
 							'minItems'    => 1,
@@ -1140,7 +1187,7 @@ final class WP_Abilities_Content {
 							),
 							'description' => __( 'Limit the query to these post IDs. The order of the IDs does not affect the order of the results. If `pagination.per_page` is omitted, every matching post is returned on the first page.' ),
 						),
-						'slugs'       => array(
+						'slugs'  => array(
 							'type'        => 'array',
 							'uniqueItems' => true,
 							'minItems'    => 1,
@@ -1151,7 +1198,7 @@ final class WP_Abilities_Content {
 							),
 							'description' => __( 'Limit the query to posts with these slugs. Each slug is sanitized as a post slug is, so `Hello-World` matches `hello-world`. A slug can match several posts, such as pages under different parents, and every match is returned. The order of the slugs does not affect the order of the results. If `pagination.per_page` is omitted, every matching post is returned on the first page, up to the `per_page` maximum.' ),
 						),
-						'status'      => array(
+						'status' => array(
 							'type'        => 'array',
 							'uniqueItems' => true,
 							'minItems'    => 1,
@@ -1161,18 +1208,31 @@ final class WP_Abilities_Content {
 							),
 							'description' => __( 'Filter readable posts by one or more post statuses. Defaults to publish, or, when `ids` or `slugs` is given, to every status the current user may query. Statuses that are not publicly viewable, other than private, require edit access.' ),
 						),
-						'author_slug' => array(
-							'type'        => 'string',
-							'minLength'   => 1,
-							'description' => __( "Filter by the author's user slug (nicename), as the REST API users endpoint returns it in `slug`. A slug that names no user matches no post. Only supported for post types that support authors." ),
+						'author' => array(
+							'type'                 => 'object',
+							'additionalProperties' => false,
+							'minProperties'        => 1,
+							'properties'           => array(
+								'id'   => array(
+									'type'        => 'integer',
+									'minimum'     => 1,
+									'description' => __( 'The user ID of the author, as `author.id` is returned.' ),
+								),
+								'slug' => array(
+									'type'        => 'string',
+									'minLength'   => 1,
+									'description' => __( "The author's user slug (nicename), as `author.slug` is returned and as the REST API users endpoint returns it in `slug`." ),
+								),
+							),
+							'description'          => __( 'Filter by the post author, given as the `id` or the `slug` the `author` field of a post returns. When both are given they must name the same user. An ID or slug that names no user matches no post. Only supported for post types that support authors.' ),
 						),
-						'parent'      => array(
+						'parent' => array(
 							'type'        => 'integer',
 							'minimum'     => 0,
 							'description' => __( 'Filter by parent post ID. Only supported for hierarchical post types. Use 0 for top-level posts.' ),
 						),
 					),
-					'description'          => __( 'Selects the posts to return: the readable posts of a `type`, filtered by any of `ids`, `slugs`, `status`, `author_slug`, and `parent`. A post must match every given filter.' ),
+					'description'          => __( 'Selects the posts to return: the readable posts of a `type`, filtered by any of `ids`, `slugs`, `status`, `author`, and `parent`. A post must match every given filter.' ),
 				),
 				'fields'     => $this->get_fields_input_schema(),
 				'pagination' => array(
