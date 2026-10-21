@@ -5825,7 +5825,8 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 
 	if ( 'attachment' === $post_type ) {
 		// Attachment slugs must be unique across all types.
-		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND ID != %d LIMIT 1";
+		$check_where     = 'ID != %d';
+		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND $check_where LIMIT 1";
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_id ) );
 
 		/**
@@ -5842,13 +5843,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			|| in_array( $slug, $feeds, true ) || 'embed' === $slug
 			|| $is_bad_attachment_slug
 		) {
-			$suffix = 2;
-			do {
-				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
-				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_id ) );
-				++$suffix;
-			} while ( $post_name_check );
-			$slug = $alt_post_name;
+			$slug = _wp_unique_post_slug_add_suffix( $slug, $check_where, $post_id );
 		}
 	} elseif ( is_post_type_hierarchical( $post_type ) ) {
 		if ( 'nav_menu_item' === $post_type ) {
@@ -5859,7 +5854,8 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 		 * Page slugs must be unique within their own trees. Pages are in a separate
 		 * namespace than posts so page slugs are allowed to overlap post slugs.
 		 */
-		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND post_type IN ( %s, 'attachment' ) AND ID != %d AND post_parent = %d LIMIT 1";
+		$check_where     = "post_type IN ( %s, 'attachment' ) AND ID != %d AND post_parent = %d";
+		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND $check_where LIMIT 1";
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_type, $post_id, $post_parent ) );
 
 		/**
@@ -5879,17 +5875,12 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			|| preg_match( "@^($wp_rewrite->pagination_base)?\d+$@", $slug )
 			|| $is_bad_hierarchical_slug
 		) {
-			$suffix = 2;
-			do {
-				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
-				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id, $post_parent ) );
-				++$suffix;
-			} while ( $post_name_check );
-			$slug = $alt_post_name;
+			$slug = _wp_unique_post_slug_add_suffix( $slug, $check_where, $post_type, $post_id, $post_parent );
 		}
 	} else {
 		// Post slugs must be unique across all posts.
-		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND post_type = %s AND ID != %d LIMIT 1";
+		$check_where     = 'post_type = %s AND ID != %d';
+		$check_sql       = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND $check_where LIMIT 1";
 		$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $post_type, $post_id ) );
 
 		$post = get_post( $post_id );
@@ -5935,13 +5926,7 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 			|| $conflicts_with_date_archive
 			|| $is_bad_flat_slug
 		) {
-			$suffix = 2;
-			do {
-				$alt_post_name   = wp_truncate_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
-				$post_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_post_name, $post_type, $post_id ) );
-				++$suffix;
-			} while ( $post_name_check );
-			$slug = $alt_post_name;
+			$slug = _wp_unique_post_slug_add_suffix( $slug, $check_where, $post_type, $post_id );
 		}
 	}
 
@@ -5958,6 +5943,51 @@ function wp_unique_post_slug( $slug, $post_id, $post_status, $post_type, $post_p
 	 * @param string $original_slug The original post slug.
 	 */
 	return apply_filters( 'wp_unique_post_slug', $slug, $post_id, $post_status, $post_type, $post_parent, $original_slug );
+}
+
+/**
+ * Appends the lowest free numeric suffix to a post slug.
+ *
+ * Suffixes are checked in batches that double in size, so a slug with many
+ * duplicates needs only a few queries.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string $slug    The slug that needs a suffix.
+ * @param string $where   Conditions a post with the same slug must match to count as a conflict.
+ * @param mixed  ...$args Values for the placeholders in `$where`.
+ * @return string The slug with the lowest free suffix.
+ */
+function _wp_unique_post_slug_add_suffix( $slug, $where, ...$args ) {
+	global $wpdb;
+
+	$check_sql = "SELECT post_name FROM $wpdb->posts WHERE post_name = %s AND $where LIMIT 1";
+	$suffix    = 2;
+	$size      = 1;
+
+	while ( true ) {
+		$candidates = array();
+		for ( $number = $suffix; $number < $suffix + $size; $number++ ) {
+			$candidates[] = wp_truncate_slug( $slug, 200 - ( strlen( $number ) + 1 ) ) . "-$number";
+		}
+
+		$placeholders = implode( ', ', array_fill( 0, $size, '%s' ) );
+		$batch_sql    = "SELECT post_name FROM $wpdb->posts WHERE post_name IN ( $placeholders ) AND $where";
+		$taken        = $wpdb->get_col( $wpdb->prepare( $batch_sql, ...$candidates, ...$args ) );
+		$variants     = array_diff( $taken, $candidates );
+
+		foreach ( array_diff( $candidates, $taken ) as $candidate ) {
+			if ( ! $variants || ! $wpdb->get_var( $wpdb->prepare( $check_sql, $candidate, ...$args ) ) ) {
+				return $candidate;
+			}
+		}
+
+		$suffix += $size;
+		$size    = min( $size * 2, 1000 );
+	}
 }
 
 /**
