@@ -44,6 +44,15 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		}
 	}
 
+	public function tear_down() {
+		foreach ( array( 'rest-visibility-public', 'rest-visibility-private' ) as $slug ) {
+			if ( WP_Icon_Collections_Registry::get_instance()->is_registered( $slug ) ) {
+				wp_unregister_icon_collection( $slug );
+			}
+		}
+		parent::tear_down();
+	}
+
 	/**
 	 * @ticket 64847
 	 *
@@ -193,6 +202,22 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
+	 * Tests that getting a specific collection requires edit_posts capability.
+	 *
+	 * @ticket 66287
+	 *
+	 * @covers ::get_item_permissions_check
+	 */
+	public function test_get_item_requires_permissions() {
+		wp_set_current_user( self::$subscriber_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections/core' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_cannot_view', $response, 403 );
+	}
+
+	/**
 	 * @ticket 64847
 	 *
 	 * @covers ::prepare_item_for_response
@@ -213,6 +238,7 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 
 	/**
 	 * @ticket 64847
+	 * @ticket 66287
 	 *
 	 * @covers ::prepare_item_for_response
 	 */
@@ -220,20 +246,45 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/icon-collections' );
-		$request->set_param( '_fields', 'slug' );
+		$request->set_param( '_fields', 'slug,label' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
 		$this->assertSame( 200, $response->get_status() );
+		$this->assertIsArray( $data );
+		$this->assertNotEmpty( $data );
 
 		foreach ( $data as $collection ) {
 			$this->assertArrayHasKey( 'slug', $collection );
-			$this->assertArrayNotHasKey( 'label', $collection );
+			$this->assertArrayHasKey( 'label', $collection );
+			$this->assertArrayNotHasKey( 'description', $collection );
 		}
 	}
 
 	/**
+	 * Tests that the _fields parameter filters single collection response fields.
+	 *
+	 * @ticket 66287
+	 *
+	 * @covers ::prepare_item_for_response
+	 */
+	public function test_get_item_fields_parameter() {
+		wp_set_current_user( self::$editor_id );
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/icon-collections/core' );
+		$request->set_param( '_fields', 'label' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'label', $data );
+		$this->assertArrayNotHasKey( 'slug', $data );
+		$this->assertArrayNotHasKey( 'description', $data );
+	}
+
+	/**
 	 * @ticket 64847
+	 * @ticket 66287
 	 *
 	 * @covers ::get_item_schema
 	 */
@@ -241,12 +292,20 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icon-collections' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
+		$schema   = $data['schema'];
 
-		$properties = $data['schema']['properties'];
+		$this->assertSame( 'icon-collection', $schema['title'] );
+		$this->assertSame( 'object', $schema['type'] );
+
+		$properties = $schema['properties'];
 		$this->assertCount( 3, $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'label', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
+
+		$this->assertTrue( $properties['slug']['readonly'] );
+		$this->assertTrue( $properties['label']['readonly'] );
+		$this->assertTrue( $properties['description']['readonly'] );
 	}
 
 	/**
@@ -293,6 +352,86 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$this->assertSame( 404, $response->get_status() );
 	}
 
+	/**
+	 * Test that non-public collections are omitted from the collection list.
+	 *
+	 * @ticket 66087
+	 * @ticket 66287
+	 *
+	 * @covers ::get_items
+	 */
+	public function test_get_items_omits_non_public_collections() {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+
+		$slugs = wp_list_pluck( $response->get_data(), 'slug' );
+		$this->assertContains( 'rest-visibility-public', $slugs );
+		$this->assertNotContains( 'rest-visibility-private', $slugs );
+		$this->assertNotContains( 'core-admin', $slugs );
+	}
+
+	/**
+	 * Test that a non-public collection is reported as not found by slug.
+	 *
+	 * @ticket 66087
+	 * @ticket 66287
+	 *
+	 * @dataProvider data_non_public_collections
+	 *
+	 * @covers ::get_item
+	 * @covers ::get_icon_collection
+	 *
+	 * @param string $slug Icon collection slug.
+	 */
+	public function test_get_item_returns_404_for_non_public_collection( $slug ) {
+		$this->register_visibility_collections();
+
+		wp_set_current_user( self::$editor_id );
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/icon-collections/' . $slug );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_icon_collection_not_found', $response, 404 );
+	}
+
+	/**
+	 * Data provider of non-public collection slugs.
+	 *
+	 * @return array[]
+	 */
+	public function data_non_public_collections() {
+		return array(
+			'custom non-public collection' => array( 'rest-visibility-private' ),
+			'built-in core-admin'          => array( 'core-admin' ),
+		);
+	}
+
+	/**
+	 * Registers a public and a non-public collection.
+	 */
+	private function register_visibility_collections() {
+		$collections = array(
+			'rest-visibility-public'  => true,
+			'rest-visibility-private' => false,
+		);
+
+		foreach ( $collections as $slug => $is_public ) {
+			wp_register_icon_collection(
+				$slug,
+				array(
+					'label'  => 'REST Visibility',
+					'public' => $is_public,
+				)
+			);
+		}
+	}
+
 	public function test_context_param() {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/icon-collections' );
 		$response = rest_get_server()->dispatch( $request );
@@ -305,5 +444,20 @@ class Tests_REST_WpRestIconCollectionsController extends WP_Test_REST_Controller
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
+	/**
+	 * Tests that collection query parameters include context with view default.
+	 *
+	 * @ticket 66287
+	 *
+	 * @covers ::get_collection_params
+	 */
+	public function test_get_collection_params() {
+		$controller = new WP_REST_Icon_Collections_Controller();
+		$params     = $controller->get_collection_params();
+
+		$this->assertArrayHasKey( 'context', $params );
+		$this->assertSame( 'view', $params['context']['default'] );
 	}
 }

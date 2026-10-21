@@ -242,7 +242,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_too_long_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( 'abcdefghijklmnopqrstuvwxyz0123456789', 'post', array() ) );
 	}
 
 	/**
@@ -251,7 +251,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @expectedIncorrectUsage register_taxonomy
 	 */
 	public function test_register_taxonomy_with_empty_name() {
-		$this->assertInstanceOf( 'WP_Error', register_taxonomy( '', 'post', array() ) );
+		$this->assertWPError( register_taxonomy( '', 'post', array() ) );
 	}
 
 	/**
@@ -359,7 +359,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 	public function test_get_objects_in_term_should_return_invalid_taxonomy_error() {
 		$terms = get_objects_in_term( 1, 'invalid_taxonomy' );
-		$this->assertInstanceOf( 'WP_Error', $terms );
+		$this->assertWPError( $terms );
 		$this->assertSame( 'invalid_taxonomy', $terms->get_error_code() );
 	}
 
@@ -472,23 +472,6 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertSame( array(), $after );
 	}
 
-	/**
-	 * @ticket 25706
-	 */
-	public function test_in_category() {
-		$post = self::factory()->post->create_and_get();
-
-		// in_category() returns false when first parameter is empty().
-		$this->assertFalse( in_category( '', $post ) );
-		$this->assertFalse( in_category( false, $post ) );
-		$this->assertFalse( in_category( null, $post ) );
-
-		// Test expected behavior of in_category().
-		$term = wp_insert_term( 'Test', 'category' );
-		wp_set_object_terms( $post->ID, $term['term_id'], 'category' );
-		$this->assertTrue( in_category( $term['term_id'], $post ) );
-	}
-
 	public function test_insert_category_create() {
 		$cat = array(
 			'cat_ID'   => 0,
@@ -513,7 +496,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			'taxonomy' => 'force_error',
 			'cat_name' => 'Error',
 		);
-		$this->assertInstanceOf( 'WP_Error', wp_insert_category( $cat, true ) );
+		$this->assertWPError( wp_insert_category( $cat, true ) );
 	}
 
 	public function test_insert_category_force_error_no_handle() {

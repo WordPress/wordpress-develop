@@ -669,17 +669,17 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// Password is not accepted.
 		$user = wp_authenticate( $this->user->user_login, $beyond_limit );
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 
 		// Placeholder is not accepted.
 		$user = wp_authenticate( $this->user->user_login, '*' );
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
 	/**
-	 * @see https://core.trac.wordpress.org/changeset/30466
+	 * @link https://core.trac.wordpress.org/changeset/30466
 	 */
 	public function test_invalid_password_at_phpass_length_limit_is_rejected() {
 		$limit = str_repeat( 'a', self::$phpass_length_limit );
@@ -691,7 +691,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 
 		// Wrong password.
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
@@ -720,7 +720,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
 
 		// Wrong password.
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
@@ -737,7 +737,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// Password is not accepted.
 		$user = wp_authenticate( $this->user->user_login, '*' );
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
@@ -750,7 +750,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		wp_set_password( 'password', self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, $value );
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 	}
 
 	/**
@@ -762,7 +762,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		self::set_user_password_with_phpass( 'password', self::$user_id );
 
 		$user = wp_authenticate( $this->user->user_login, $value );
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 	}
 
 	public function test_incorrect_password_is_rejected_by_phpass() {
@@ -772,7 +772,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $this->user->user_login, 'aaaaaaaa' );
 
 		// Wrong password.
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
@@ -785,7 +785,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate( $this->user->user_login, $limit . 'a' );
 
 		// Password broken by setting it to be too long.
-		$this->assertInstanceOf( 'WP_Error', $user );
+		$this->assertWPError( $user );
 		$this->assertSame( 'incorrect_password', $user->get_error_code() );
 	}
 
@@ -829,16 +829,16 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// An invalid key should be rejected.
 		$check = check_password_reset_key( 'key', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 
 		// An empty key should be rejected.
 		$check = check_password_reset_key( '', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 
 		// A truncated key should be rejected.
 		$partial = substr( $key, 0, 10 );
 		$check   = check_password_reset_key( $partial, $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 	}
 
 	/**
@@ -861,7 +861,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// An expired but otherwise valid key should be rejected.
 		$check = check_password_reset_key( $key, $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 		$this->assertSame( 'expired_key', $check->get_error_code() );
 	}
 
@@ -871,11 +871,11 @@ class Tests_Auth extends WP_UnitTestCase {
 	public function test_empty_user_activation_key_fails_key_check() {
 		// An empty user_activation_key should not allow any key to be accepted.
 		$check = check_password_reset_key( 'key', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 
 		// An empty user_activation_key should not allow an empty key to be accepted.
 		$check = check_password_reset_key( '', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 	}
 
 	/**
@@ -900,12 +900,12 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// A legacy user_activation_key should not be accepted.
 		$check = check_password_reset_key( $key, $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 		$this->assertSame( 'expired_key', $check->get_error_code() );
 
 		// An empty key with a legacy user_activation_key should be rejected.
 		$check = check_password_reset_key( '', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 		$this->assertSame( 'invalid_key', $check->get_error_code() );
 	}
 
@@ -1078,11 +1078,11 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// A plaintext user_activation_key should not allow an otherwise valid key to be accepted.
 		$check = check_password_reset_key( $key, $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 
 		// A plaintext user_activation_key should not allow an empty key to be accepted.
 		$check = check_password_reset_key( '', $this->user->user_login );
-		$this->assertInstanceOf( 'WP_Error', $check );
+		$this->assertWPError( $check );
 	}
 
 	/**
@@ -1387,9 +1387,9 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_authenticate_filter() {
 		add_filter( 'authenticate', '__return_null', 20 );
-		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+		$this->assertWPError( wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 		add_filter( 'authenticate', '__return_false', 20 );
-		$this->assertInstanceOf( 'WP_Error', wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
+		$this->assertWPError( wp_authenticate( self::USER_LOGIN, self::USER_PASS ) );
 	}
 
 	/**
@@ -1413,7 +1413,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_username_password_with_null_password() {
 		$result = wp_authenticate_username_password( null, self::USER_LOGIN, null );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1421,7 +1421,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_username_password_with_null_login() {
 		$result = wp_authenticate_username_password( null, null, self::USER_PASS );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1429,7 +1429,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_username_password_with_invalid_login() {
 		$result = wp_authenticate_username_password( null, 'invalidlogin', self::USER_PASS );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1437,7 +1437,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_username_password_with_invalid_password() {
 		$result = wp_authenticate_username_password( null, self::USER_LOGIN, 'invalidpassword' );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1461,7 +1461,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_email_password_with_null_password() {
 		$result = wp_authenticate_email_password( null, self::USER_EMAIL, null );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1469,7 +1469,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_email_password_with_null_email() {
 		$result = wp_authenticate_email_password( null, null, self::USER_PASS );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1477,7 +1477,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_email_password_with_invalid_email() {
 		$result = wp_authenticate_email_password( null, 'invalid@example.com', self::USER_PASS );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1485,7 +1485,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	public function test_wp_authenticate_email_password_with_invalid_password() {
 		$result = wp_authenticate_email_password( null, self::USER_EMAIL, 'invalidpassword' );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
@@ -1512,7 +1512,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		$_COOKIE[ SECURE_AUTH_COOKIE ] = 'secure_invalid_cookie';
 
 		$result = wp_authenticate_cookie( null, null, null );
-		$this->assertInstanceOf( 'WP_Error', $result );
+		$this->assertWPError( $result );
 	}
 
 	/**
