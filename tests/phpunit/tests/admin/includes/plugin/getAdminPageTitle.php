@@ -70,6 +70,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageTitle extends WP_UnitTestCase {
 		unset( $_GET['page'] );
 
 		$GLOBALS['title']            = '';
+		$GLOBALS['plugin_page']      = '';
 		$GLOBALS['typenow']          = '';
 		$GLOBALS['parent_file']      = '';
 		$GLOBALS['admin_page_hooks'] = array();
