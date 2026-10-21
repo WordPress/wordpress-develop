@@ -6,9 +6,10 @@
  *
  * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
  *
- * For a constant listed under `dynamicConstantNames` in `base.neon`, the define() here
- * only makes the constant known to PHPStan, which otherwise reports it as not found. Its
- * value is ignored, and the type comes from `base.neon` instead.
+ * For a constant listed under `dynamicConstantNames` in `base.neon`, a define() here only
+ * declares the constant, since PHPStan does not discover the ones core defines inside a
+ * function, and reports reads of them outside a defined() check as not found. Its value
+ * is ignored, and the type comes from `base.neon` instead.
  */
 
 /*
