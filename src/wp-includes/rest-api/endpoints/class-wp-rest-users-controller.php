@@ -180,7 +180,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @phpstan-return (
 	 *     T is int|float|numeric-string
 	 *         ? T
-	 *         : ( T is ''|'false'|false|null|array{} ? false : WP_Error )
+	 *         : ( T is empty|'false' ? false : WP_Error )
 	 * )
 	 */
 	public function check_reassign( $value, $request, $param ) {
