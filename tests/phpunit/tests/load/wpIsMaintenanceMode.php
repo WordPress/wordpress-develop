@@ -37,7 +37,7 @@ class Tests_Load_WpIsMaintenanceMode extends WP_UnitTestCase {
 		$this->original_installing = wp_installing();
 
 		foreach ( array( 'wp_scrape_key', 'wp_scrape_nonce' ) as $key ) {
-			$this->original_scrape_request[ $key ] = array_key_exists( $key, $_REQUEST ) ? $_REQUEST[ $key ] : null;
+			$this->original_scrape_request[ $key ] = $_REQUEST[ $key ] ?? null;
 		}
 
 		$this->delete_maintenance_file();

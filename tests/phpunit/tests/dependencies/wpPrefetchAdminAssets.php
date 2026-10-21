@@ -656,10 +656,10 @@ class Tests_Dependencies_WpPrefetchAdminAssets extends WP_UnitTestCase {
 			if ( 'SCRIPT' === $processor->get_tag() ) {
 				$src = $processor->get_attribute( 'src' );
 				if ( is_string( $src ) && in_array( basename( (string) wp_parse_url( $src, PHP_URL_PATH ) ), array( 'jquery.js', 'jquery.min.js' ), true ) ) {
-					$jquery_index = $jquery_index ?? $tag_index;
+					$jquery_index ??= $tag_index;
 				}
 			} elseif ( 'LINK' === $processor->get_tag() && 'prefetch' === $processor->get_attribute( 'rel' ) ) {
-				$first_prefetch_index = $first_prefetch_index ?? $tag_index;
+				$first_prefetch_index ??= $tag_index;
 			}
 		}
 
