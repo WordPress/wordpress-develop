@@ -58,11 +58,7 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 	 * Removes the test plugin and restores $_GET.
 	 */
 	public function tear_down() {
-		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
-		if ( is_dir( $dir ) ) {
-			$this->rmdir( $dir );
-			rmdir( $dir );
-		}
+		$this->remove_plugin();
 		wp_cache_delete( 'plugins', 'plugins' );
 
 		if ( ! $this->had_networkwide ) {
@@ -305,6 +301,7 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 	private function create_plugin( $headers = '', $code = '' ) {
 		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
 
+		$this->remove_plugin();
 		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
 		$this->assertNotFalse(
 			file_put_contents( "{$dir}/{$this->slug}.php", "<?php\n/**\n * Plugin Name: Activation Test Plugin\n{$headers} */\n{$code}" ),
@@ -312,5 +309,17 @@ class Tests_Admin_Includes_Plugin_ActivatePlugin extends WP_UnitTestCase {
 		);
 
 		wp_cache_delete( 'plugins', 'plugins' );
+	}
+
+	/**
+	 * Removes the test plugin, including one left over by an interrupted run.
+	 */
+	private function remove_plugin() {
+		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+
+		if ( is_dir( $dir ) ) {
+			$this->rmdir( $dir );
+			rmdir( $dir );
+		}
 	}
 }
