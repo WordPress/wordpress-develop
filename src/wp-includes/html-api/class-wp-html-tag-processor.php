@@ -4631,8 +4631,11 @@ class WP_HTML_Tag_Processor {
 				++$at;
 			}
 
+			// Tag names match ASCII case-insensitively. The first letter is compared before the name is copied.
 			if (
-				0 === substr_compare( $text, $tag_name, $at, $length, true ) &&
+				$at < $end &&
+				0 === strncasecmp( $text[ $at ], $tag_name, 1 ) &&
+				0 === strncasecmp( substr( $text, $at, $length ), $tag_name, $length ) &&
 				1 === strspn( $text, " \t\f\r\n/>", $at + $length, 1 )
 			) {
 				$found[] = $at;
