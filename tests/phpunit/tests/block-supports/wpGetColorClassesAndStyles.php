@@ -78,6 +78,14 @@ class Tests_Block_Supports_WpGetColorClassesAndStyles extends WP_UnitTestCase {
 					'style' => 'color:#d92828;',
 				),
 			),
+			'numeric preset'               => array(
+				'block_attributes' => array(
+					'textColor' => 1,
+				),
+				'expected'         => array(
+					'class' => 'has-text-color has-1-color',
+				),
+			),
 			'empty'                        => array(
 				'block_attributes' => array(),
 				'expected'         => array(),
