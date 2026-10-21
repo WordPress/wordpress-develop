@@ -69,6 +69,17 @@ class Admin_Includes_Comment_GetPendingCommentsNum_Test extends WP_UnitTestCase 
 	/**
 	 * @ticket 17020
 	 */
+	public function test_should_return_empty_array_for_empty_array() {
+		$filter = new MockAction();
+		add_filter( 'get_pending_comments_num_query', array( $filter, 'filter' ) );
+
+		$this->assertSame( array(), get_pending_comments_num( array() ), 'An empty array should be returned.' );
+		$this->assertSame( 0, $filter->get_call_count(), 'No query should be run.' );
+	}
+
+	/**
+	 * @ticket 17020
+	 */
 	public function test_query_filter_receives_query_and_post_ids() {
 		$filter = new MockAction();
 		add_filter( 'get_pending_comments_num_query', array( $filter, 'filter' ), 10, 2 );
