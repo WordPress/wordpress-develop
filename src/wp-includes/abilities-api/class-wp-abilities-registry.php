@@ -43,6 +43,7 @@ final class WP_Abilities_Registry {
 	 * @since 7.1.0 Added the `public` meta argument.
 	 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 	 * @since 7.2.0 Added the `deprecated` meta property.
+	 * @since 7.2.0 Added the `required_capabilities` argument.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -60,6 +61,9 @@ final class WP_Abilities_Registry {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
+	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -94,6 +98,8 @@ final class WP_Abilities_Registry {
 	 *     @type string               $ability_class         Optional. Custom class to instantiate instead of WP_Ability.
 	 * }
 	 * @return WP_Ability|null The registered ability instance on success, null on failure.
+	 *
+	 * @phpstan-param lowercase-string&non-falsy-string $name
 	 */
 	public function register( string $name, array $args ): ?WP_Ability {
 		if ( ! preg_match( '/^[a-z0-9-]+\/[a-z0-9-]+$/', $name ) ) {
@@ -124,6 +130,7 @@ final class WP_Abilities_Registry {
 		 * @since 7.1.0 Added the `public` meta argument.
 		 * @since 7.2.0 The `category` argument is now optional and defaults to `uncategorized`.
 		 * @since 7.2.0 Added the `deprecated` meta property.
+		 * @since 7.2.0 Added the `required_capabilities` argument.
 		 *
 		 * @param array<string, mixed> $args {
 		 *     An associative array of arguments for the ability.
@@ -136,6 +143,9 @@ final class WP_Abilities_Registry {
 		 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 		 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 		 *                                                       Receives optional mixed input and returns bool or WP_Error.
+		 *                                                       Required unless `$required_capabilities` lists at least one capability.
+		 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+		 *                                                       ability. They are checked before `$permission_callback`.
 		 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 		 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 		 *     @type array<string, mixed> $meta                  {
