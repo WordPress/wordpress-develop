@@ -28,12 +28,12 @@ class Tests_Kses_wpKsesDecodeEntities extends WP_UnitTestCase {
 	 */
 	public static function data_wp_kses_decode_entities() {
 		return array(
-			'plain text'              => array( 'hello', 'hello' ),
-			'decimal entity'          => array( '&#65;', 'A' ),
-			'hex entity lowercase x'  => array( '&#x41;', 'A' ),
-			'hex entity uppercase X'  => array( '&#X41;', 'A' ),
-			'mixed content'           => array( 'A&#66;&#x43;D', 'ABCD' ),
-			'leaves named entities'   => array( '&amp;', '&amp;' ),
+			'plain text'             => array( 'hello', 'hello' ),
+			'decimal entity'         => array( '&#65;', 'A' ),
+			'hex entity lowercase x' => array( '&#x41;', 'A' ),
+			'hex entity uppercase X' => array( '&#X41;', 'A' ),
+			'mixed content'          => array( 'A&#66;&#x43;D', 'ABCD' ),
+			'leaves named entities'  => array( '&amp;', '&amp;' ),
 		);
 	}
 }
