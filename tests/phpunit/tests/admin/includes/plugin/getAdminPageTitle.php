@@ -136,6 +136,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageTitle extends WP_UnitTestCase {
 	public function test_returns_submenu_title_for_plugin_page() {
 		$GLOBALS['pagenow']     = 'options-general.php';
 		$GLOBALS['plugin_page'] = 'my-settings';
+		$_GET['page']           = 'my-settings';
 		$GLOBALS['menu']        = array(
 			80 => array( 'Settings', 'manage_options', 'options-general.php', 'Settings', 'menu-top', 'menu-settings', 'dashicons-admin-settings' ),
 		);
@@ -176,9 +177,10 @@ class Tests_Admin_Includes_Plugin_GetAdminPageTitle extends WP_UnitTestCase {
 		$GLOBALS['menu']        = array(
 			25 => array( 'My Plugin', 'manage_options', 'my-plugin', 'My Plugin Title', 'menu-top', 'toplevel_page_my-plugin', 'dashicons-admin-generic' ),
 		);
+		// Use a distinct submenu slug/title so the expected title must come from the top-level menu fallback.
 		$GLOBALS['submenu']     = array(
 			'my-plugin' => array(
-				0 => array( 'My Plugin', 'manage_options', 'my-plugin', 'My Plugin Title' ),
+				0 => array( 'Settings', 'manage_options', 'my-plugin-settings', 'My Plugin Settings' ),
 			),
 		);
 
