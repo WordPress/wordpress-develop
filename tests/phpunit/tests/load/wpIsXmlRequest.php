@@ -26,8 +26,8 @@ class Tests_Load_WpIsXmlRequest extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->original_http_accept  = isset( $_SERVER['HTTP_ACCEPT'] ) ? $_SERVER['HTTP_ACCEPT'] : null;
-		$this->original_content_type = isset( $_SERVER['CONTENT_TYPE'] ) ? $_SERVER['CONTENT_TYPE'] : null;
+		$this->original_http_accept  = $_SERVER['HTTP_ACCEPT'] ?? null;
+		$this->original_content_type = $_SERVER['CONTENT_TYPE'] ?? null;
 	}
 
 	public function tear_down() {
