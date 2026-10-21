@@ -19,7 +19,10 @@ class Tests_Formatting_wpSpecialcharsDecode extends WP_UnitTestCase {
 	 * @param string|int $quote_style Optional quote style.
 	 */
 	public function test_wp_specialchars_decode( $text, $expected, $quote_style = ENT_NOQUOTES ) {
-		$this->assertSame( $expected, wp_specialchars_decode( $text, $quote_style ) );
+		$this->assertSame(
+			$expected,
+			2 === func_num_args() ? wp_specialchars_decode( $text ) : wp_specialchars_decode( $text, $quote_style )
+		);
 	}
 
 	/**
