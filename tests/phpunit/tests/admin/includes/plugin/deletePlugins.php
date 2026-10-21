@@ -63,12 +63,7 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 	 */
 	public function tear_down() {
 		foreach ( array_reverse( $this->created ) as $path ) {
-			if ( is_file( $path ) ) {
-				unlink( $path );
-			} elseif ( is_dir( $path ) ) {
-				$this->rmdir( $path );
-				$this->delete_folders( $path );
-			}
+			$this->remove_path( $path );
 		}
 
 		if ( $this->had_filesystem ) {
@@ -254,7 +249,7 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 		$slug = 'delete-test-plugin-' . ++self::$counter;
 		$dir  = WP_PLUGIN_DIR . '/' . $slug;
 
-		$this->assertDirectoryDoesNotExist( $dir, 'The test plugin directory should not exist yet.' );
+		$this->remove_path( $dir );
 		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
 		$this->created[] = $dir;
 
@@ -276,7 +271,7 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 		$plugin = 'delete-test-undeletable-' . ++self::$counter . '.php';
 		$dir    = WP_PLUGIN_DIR . '/' . $plugin;
 
-		$this->assertDirectoryDoesNotExist( $dir, 'The test directory should not exist yet.' );
+		$this->remove_path( $dir );
 		$this->assertTrue( mkdir( $dir ), 'The test directory should be created.' );
 		$this->created[] = $dir;
 
@@ -292,8 +287,22 @@ class Tests_Admin_Includes_Plugin_DeletePlugins extends WP_UnitTestCase {
 	 * @param string $contents The file contents.
 	 */
 	private function create_file( $path, $contents ) {
-		$this->assertFileDoesNotExist( $path, 'The file should not exist yet.' );
+		$this->remove_path( $path );
 		$this->assertNotFalse( file_put_contents( $path, $contents ), 'The file should be written.' );
 		$this->created[] = $path;
+	}
+
+	/**
+	 * Removes a file or directory, including one left over by an interrupted run.
+	 *
+	 * @param string $path The file or directory path.
+	 */
+	private function remove_path( $path ) {
+		if ( is_file( $path ) ) {
+			unlink( $path );
+		} elseif ( is_dir( $path ) ) {
+			$this->rmdir( $path );
+			$this->delete_folders( $path );
+		}
 	}
 }
