@@ -18,6 +18,13 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	const SLUG = 'editor-test-plugin';
 
 	/**
+	 * The edited content of the main plugin file.
+	 *
+	 * @var string
+	 */
+	const EDITED_PHP = "<?php\n/**\n * Plugin Name: Editor Test Plugin\n */\n// Edited.\n";
+
+	/**
 	 * Administrator user ID.
 	 *
 	 * @var int
@@ -37,6 +44,15 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	 * @var string[]
 	 */
 	private $loopback_requests = array();
+
+	/**
+	 * The scrape results returned by the next loopback requests, in order.
+	 *
+	 * A null result makes the request fail.
+	 *
+	 * @var array
+	 */
+	private $scrape_results = array();
 
 	/**
 	 * Sets up the users.
@@ -85,6 +101,7 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 		update_option( 'active_plugins', array() );
 
 		$this->loopback_requests = array();
+		$this->scrape_results    = array();
 		add_filter( 'pre_http_request', array( $this, 'record_loopback' ), 10, 3 );
 
 		wp_set_current_user( self::$admin_id );
@@ -304,7 +321,95 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Records loopback requests and answers them as successful scrapes.
+	 * Tests that a PHP file of an active plugin is saved when both loopback checks pass.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_should_save_php_file_of_active_plugin_when_loopback_passes() {
+		update_option( 'active_plugins', array( $this->get_plugin() ) );
+		$this->scrape_results = array( 'true', 'true' );
+
+		$this->assertTrue( wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) ), 'The file should be saved.' );
+		$this->assertSame( self::EDITED_PHP, $this->get_contents( self::SLUG . '.php' ), 'The new content should be written.' );
+		$this->assertSame( array( '/wp-admin/plugin-editor.php', '/' ), $this->get_loopback_paths(), 'The editor and the home page should be checked.' );
+		$this->assert_scrape_key_deleted();
+	}
+
+	/**
+	 * Tests that a PHP file edit of an active plugin is reverted when a loopback check fails.
+	 *
+	 * @ticket 65819
+	 *
+	 * @dataProvider data_failed_loopbacks
+	 *
+	 * @param array    $scrape_results The scrape results of the loopback requests.
+	 * @param string   $message        The expected error message.
+	 * @param array    $data           The expected error data.
+	 * @param string[] $paths          The expected paths of the loopback requests.
+	 */
+	public function test_should_revert_php_file_of_active_plugin_when_loopback_fails( $scrape_results, $message, $data, $paths ) {
+		update_option( 'active_plugins', array( $this->get_plugin() ) );
+		$original             = $this->get_contents( self::SLUG . '.php' );
+		$this->scrape_results = $scrape_results;
+
+		$result = wp_edit_theme_plugin_file( $this->get_request( self::SLUG . '.php', self::EDITED_PHP ) );
+
+		$this->assertWPError( $result, 'An error should be returned.' );
+		$this->assertSame( 'php_error', $result->get_error_code(), 'The error code should match.' );
+		$this->assertSame( $message, $result->get_error_message(), 'The error message should match.' );
+		$this->assertSame( $data, $result->get_error_data(), 'The error data should match.' );
+		$this->assertSame( $original, $this->get_contents( self::SLUG . '.php' ), 'The previous content should be restored.' );
+		$this->assertSame( $paths, $this->get_loopback_paths(), 'The loopback requests should match.' );
+		$this->assert_scrape_key_deleted();
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_failed_loopbacks() {
+		$loopback_failed = 'Unable to communicate back with site to check for fatal errors, so the PHP change was reverted. You will need to upload your PHP file change by some other means, such as by using SFTP.';
+
+		return array(
+			'editor request fails'       => array(
+				array( null ),
+				$loopback_failed,
+				array( 'code' => 'loopback_request_failed' ),
+				array( '/wp-admin/plugin-editor.php' ),
+			),
+			'editor reports an error'    => array(
+				array( '{"code":"E_ERROR","message":"Fatal error.","line":5}' ),
+				'Fatal error.',
+				array(
+					'code' => 'E_ERROR',
+					'line' => 5,
+				),
+				array( '/wp-admin/plugin-editor.php' ),
+			),
+			'editor returns no JSON'     => array(
+				array( 'not JSON' ),
+				'An error occurred. Please try again later.',
+				array( 'code' => 'json_parse_error' ),
+				array( '/wp-admin/plugin-editor.php' ),
+			),
+			'home page request fails'    => array(
+				array( 'true', null ),
+				$loopback_failed,
+				array( 'code' => 'loopback_request_failed' ),
+				array( '/wp-admin/plugin-editor.php', '/' ),
+			),
+			'home page reports an error' => array(
+				array( 'true', '{"code":"E_PARSE","message":"Parse error."}' ),
+				'Parse error.',
+				array( 'code' => 'E_PARSE' ),
+				array( '/wp-admin/plugin-editor.php', '/' ),
+			),
+		);
+	}
+
+	/**
+	 * Records loopback requests and answers them with the next scrape result.
 	 *
 	 * @param false|array $response A preemptive response.
 	 * @param array       $args     The request arguments.
@@ -318,7 +423,57 @@ class Tests_Admin_wpEditThemePluginFilePlugin extends WP_UnitTestCase {
 
 		$this->loopback_requests[] = $url;
 
-		return new WP_Error( 'loopback_blocked', 'Loopback requests are not made in tests.' );
+		$scrape_result = array_shift( $this->scrape_results );
+		if ( null === $scrape_result ) {
+			return new WP_Error( 'loopback_blocked', 'Loopback requests are not made in tests.' );
+		}
+
+		$key = $this->get_scrape_key( $url );
+
+		return array(
+			'headers'  => array(),
+			'body'     => "<html></html>\n###### wp_scraping_result_start:{$key} ######\n{$scrape_result}\n###### wp_scraping_result_end:{$key} ######\n",
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
+		);
+	}
+
+	/**
+	 * Returns the scrape key of a loopback request.
+	 *
+	 * @param string $url The request URL.
+	 * @return string The scrape key.
+	 */
+	private function get_scrape_key( $url ) {
+		wp_parse_str( wp_parse_url( $url, PHP_URL_QUERY ), $query );
+
+		return $query['wp_scrape_key'];
+	}
+
+	/**
+	 * Returns the paths of the loopback requests.
+	 *
+	 * @return string[] The paths.
+	 */
+	private function get_loopback_paths() {
+		return array_map(
+			static function ( $url ) {
+				return wp_parse_url( $url, PHP_URL_PATH );
+			},
+			$this->loopback_requests
+		);
+	}
+
+	/**
+	 * Asserts that the scrape key transient of the loopback requests was deleted.
+	 */
+	private function assert_scrape_key_deleted() {
+		$this->assertNotEmpty( $this->loopback_requests, 'A loopback request should be made.' );
+		$this->assertFalse( get_transient( 'scrape_key_' . $this->get_scrape_key( $this->loopback_requests[0] ) ), 'The scrape key should be deleted.' );
 	}
 
 	/**
