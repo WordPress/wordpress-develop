@@ -222,23 +222,21 @@ class Tests_Admin_PluginUpgraderUpgradeHooks extends WP_UnitTestCase {
 	/**
 	 * Tests that maintenance mode is enabled and disabled for an active plugin during a background upgrade.
 	 *
-	 * Runs in a separate process because the maintenance file is written with FS_CHMOD_FILE,
-	 * which WP_Filesystem() defines.
+	 * The maintenance file is written with FS_CHMOD_FILE, which WP_Filesystem() defines.
 	 *
 	 * @ticket 65819
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
 	public function test_active_before_and_after_should_toggle_maintenance_mode_in_cron() {
-		define( 'FS_CHMOD_FILE', 0644 );
+		if ( ! defined( 'FS_CHMOD_FILE' ) ) {
+			define( 'FS_CHMOD_FILE', 0644 );
+		}
 
 		add_filter( 'wp_doing_cron', '__return_true' );
 		update_option( 'active_plugins', array( self::FILE ) );
 
 		$this->filesystem->expects( $this->once() )
 			->method( 'put_contents' )
-			->with( '/remote/.maintenance', $this->stringStartsWith( '<?php $upgrading = ' ), 0644 );
+			->with( '/remote/.maintenance', $this->stringStartsWith( '<?php $upgrading = ' ), FS_CHMOD_FILE );
 		$this->filesystem->method( 'exists' )->willReturn( true );
 		$this->filesystem->expects( $this->exactly( 2 ) )->method( 'delete' )->with( '/remote/.maintenance' );
 
