@@ -40,6 +40,9 @@
  *     accept_raw: bool,
  *     show_in_index: bool,
  *     allow_batch?: array{v1?: bool}|false,
+ *     allow_fields?: bool,
+ *     allow_embed?: bool,
+ *     allow_links?: bool,
  *     ...
  * }
  */
@@ -622,6 +625,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
+	 * @since 7.2.0 Links are not added or embedded when the route disables `allow_links` or `allow_embed`.
 	 *
 	 * @param WP_REST_Response $response Response object.
 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
@@ -634,14 +638,14 @@ class WP_REST_Server {
 	 */
 	public function response_to_data( $response, $embed ) {
 		$data  = $response->get_data();
-		$links = self::get_compact_response_links( $response );
+		$links = $this->is_response_option_enabled( $response, 'allow_links' ) ? self::get_compact_response_links( $response ) : array();
 
 		if ( ! empty( $links ) ) {
 			// Convert links to part of the data.
 			$data['_links'] = $links;
 		}
 
-		if ( $embed ) {
+		if ( $embed && $this->is_response_option_enabled( $response, 'allow_embed' ) ) {
 			$this->embed_cache = array();
 			// Determine if this is a numeric array.
 			if ( wp_is_numeric_array( $data ) ) {
@@ -1129,6 +1133,43 @@ class WP_REST_Server {
 		}
 
 		return $this->route_options[ $route ];
+	}
+
+	/**
+	 * Determines whether a response option is enabled for the route that generated a response.
+	 *
+	 * Routes, or individual handlers of a route, can set these options to false:
+	 *
+	 * - `allow_fields`: Whether the `_fields` parameter filters the response data.
+	 * - `allow_embed`: Whether the `_embed` parameter embeds linked resources in the response data.
+	 * - `allow_links`: Whether the response links are added to the response data as `_links`.
+	 *
+	 * A handler option takes precedence over the route option of the same name.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param WP_HTTP_Response $response Response object.
+	 * @param string           $option   Option name. Accepts 'allow_fields', 'allow_embed', or 'allow_links'.
+	 * @return bool Whether the option is enabled. True when neither the handler nor the route sets it.
+	 */
+	public function is_response_option_enabled( $response, $option ) {
+		if ( ! $response instanceof WP_REST_Response ) {
+			return true;
+		}
+
+		$handler = $response->get_matched_handler();
+		if ( is_array( $handler ) && isset( $handler[ $option ] ) ) {
+			return (bool) $handler[ $option ];
+		}
+
+		$route = $response->get_matched_route();
+		if ( ! is_string( $route ) || '' === $route ) {
+			return true;
+		}
+
+		$route_options = $this->get_route_options( $route );
+
+		return ! isset( $route_options[ $option ] ) || (bool) $route_options[ $option ];
 	}
 
 	/**

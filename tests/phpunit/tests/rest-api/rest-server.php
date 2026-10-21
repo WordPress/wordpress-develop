@@ -2900,4 +2900,254 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'allow', $link['targetHints'] );
 		$this->assertSame( array( 'GET', 'PUT' ), $link['targetHints']['allow'] );
 	}
+
+	/**
+	 * Registers a route for the response option tests, and a route that its link embeds.
+	 *
+	 * @param mixed                $data            The response data.
+	 * @param bool                 $with_link       Whether the response has an embeddable link.
+	 * @param array<string, mixed> $handler_options Options for the route handler.
+	 * @param array<string, mixed> $route_options   Options for the route.
+	 */
+	private function register_response_options_route( $data, bool $with_link, array $handler_options = array(), array $route_options = array() ): void {
+		rest_get_server()->register_route(
+			'test-ns',
+			'/test-ns/response-options',
+			array_merge(
+				array(
+					array_merge(
+						array(
+							'methods'             => 'GET',
+							'callback'            => static function () use ( $data, $with_link ) {
+								$response = new WP_REST_Response( $data );
+								if ( $with_link ) {
+									$response->add_link( 'alternate', rest_url( '/test-ns/embedded' ), array( 'embeddable' => true ) );
+								}
+								return $response;
+							},
+							'permission_callback' => '__return_true',
+						),
+						$handler_options
+					),
+				),
+				$route_options
+			)
+		);
+
+		rest_get_server()->register_route(
+			'test-ns',
+			'/test-ns/embedded',
+			array(
+				'methods'             => 'GET',
+				'callback'            => static function () {
+					return array( 'hello' => 'world' );
+				},
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
+
+	/**
+	 * Data provider for test_allow_fields_false_leaves_the_data_unfiltered().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_allow_fields_false_leaves_the_data_unfiltered(): array {
+		return array(
+			'associative array' => array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				'{"a":1,"b":2}',
+			),
+			'list'              => array( array( array( 'b' => 2 ), 'c' ), '[{"b":2},"c"]' ),
+			'empty object'      => array( new stdClass(), '{}' ),
+			'object'            => array( (object) array( 'b' => 2 ), '{"b":2}' ),
+			'string'            => array( 'value', '"value"' ),
+			'integer'           => array( 5, '5' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_allow_fields_false_leaves_the_data_unfiltered
+	 *
+	 * @param mixed  $data     The response data.
+	 * @param string $expected The expected response body.
+	 */
+	public function test_allow_fields_false_leaves_the_data_unfiltered( $data, string $expected ): void {
+		$this->register_response_options_route( $data, false, array( 'allow_fields' => false ) );
+
+		$_GET['_fields'] = 'a';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The _fields parameter should not filter the data.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_fields_are_filtered_by_default(): void {
+		$this->register_response_options_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			false
+		);
+
+		$_GET['_fields'] = 'a';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+
+		$this->assertSame( '{"a":1}', rest_get_server()->sent_body, 'The _fields parameter should filter the data.' );
+	}
+
+	/**
+	 * Data provider for test_allow_links_false_leaves_out_the_links().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_allow_links_false_leaves_out_the_links(): array {
+		return array(
+			'associative array' => array( array( 'a' => 1 ), '{"a":1}' ),
+			'list'              => array( array( 'a', 'b' ), '["a","b"]' ),
+			'empty object'      => array( new stdClass(), '{}' ),
+			'string'            => array( 'value', '"value"' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_allow_links_false_leaves_out_the_links
+	 *
+	 * @param mixed  $data     The response data.
+	 * @param string $expected The expected response body.
+	 */
+	public function test_allow_links_false_leaves_out_the_links( $data, string $expected ): void {
+		$this->register_response_options_route( $data, true, array( 'allow_links' => false ) );
+
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The response links should not be added.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_allow_embed_false_keeps_the_links_without_embedding(): void {
+		$this->register_response_options_route( array( 'a' => 1 ), true, array( 'allow_embed' => false ) );
+
+		$_GET['_embed'] = '1';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$data = json_decode( rest_get_server()->sent_body, true );
+
+		$this->assertArrayHasKey( '_links', $data, 'The response links should be added.' );
+		$this->assertArrayNotHasKey( '_embedded', $data, 'The links should not be embedded.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_links_are_added_and_embedded_by_default(): void {
+		$this->register_response_options_route( array( 'a' => 1 ), true );
+
+		$_GET['_embed'] = '1';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$data = json_decode( rest_get_server()->sent_body, true );
+
+		$this->assertArrayHasKey( '_links', $data, 'The response links should be added.' );
+		$this->assertSame( array( array( 'hello' => 'world' ) ), $data['_embedded']['alternate'], 'The link should be embedded.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_allow_embed_false_applies_to_enveloped_responses(): void {
+		$this->register_response_options_route( array( 'a' => 1 ), true, array( 'allow_embed' => false ) );
+
+		$_GET['_embed']    = '1';
+		$_GET['_envelope'] = '1';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$data = json_decode( rest_get_server()->sent_body, true );
+
+		$this->assertSame( 200, $data['status'], 'The enveloped response should succeed.' );
+		$this->assertArrayHasKey( '_links', $data['body'], 'The response links should be added to the body.' );
+		$this->assertArrayNotHasKey( '_embedded', $data['body'], 'The links should not be embedded in the body.' );
+	}
+
+	/**
+	 * Data provider for test_handler_option_takes_precedence_over_route_option().
+	 *
+	 * @return array<string, array{0: array<string, bool>, 1: array<string, bool>, 2: string}>
+	 */
+	public static function data_handler_option_takes_precedence_over_route_option(): array {
+		return array(
+			'route disables'                     => array( array(), array( 'allow_fields' => false ), '{"a":1,"b":2}' ),
+			'route disables and handler enables' => array( array( 'allow_fields' => true ), array( 'allow_fields' => false ), '{"a":1}' ),
+			'route enables and handler disables' => array( array( 'allow_fields' => false ), array( 'allow_fields' => true ), '{"a":1,"b":2}' ),
+			'handler disables another option'    => array( array( 'allow_links' => false ), array(), '{"a":1}' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_handler_option_takes_precedence_over_route_option
+	 *
+	 * @param array<string, bool> $handler_options Options for the route handler.
+	 * @param array<string, bool> $route_options   Options for the route.
+	 * @param string              $expected        The expected response body.
+	 */
+	public function test_handler_option_takes_precedence_over_route_option( array $handler_options, array $route_options, string $expected ): void {
+		$this->register_response_options_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			false,
+			$handler_options,
+			$route_options
+		);
+
+		$_GET['_fields'] = 'a';
+		rest_get_server()->serve_request( '/test-ns/response-options' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The handler option should take precedence over the route option.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_response_options_apply_to_preloaded_requests(): void {
+		$this->register_response_options_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			true,
+			array(
+				'allow_fields' => false,
+				'allow_links'  => false,
+			)
+		);
+
+		$preload = rest_preload_api_request( array(), '/test-ns/response-options?_fields=a&_embed=1' );
+
+		$this->assertSame(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			$preload['/test-ns/response-options?_fields=a&_embed=1']['body'],
+			'The preloaded data should not be filtered or have links.'
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_is_response_option_enabled_without_a_matched_route(): void {
+		$this->assertTrue( rest_get_server()->is_response_option_enabled( new WP_REST_Response(), 'allow_fields' ), 'A response without a matched route should enable the option.' );
+		$this->assertTrue( rest_get_server()->is_response_option_enabled( new WP_HTTP_Response(), 'allow_links' ), 'A response that is not a REST response should enable the option.' );
+	}
 }

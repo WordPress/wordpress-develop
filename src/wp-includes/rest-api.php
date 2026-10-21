@@ -950,6 +950,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
+ * @since 7.2.0 The response is left unchanged when the route disables `allow_fields`.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -958,6 +959,10 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  */
 function rest_filter_response_fields( $response, $server, $request ) {
 	if ( ! isset( $request['_fields'] ) || $response->is_error() ) {
+		return $response;
+	}
+
+	if ( $server instanceof WP_REST_Server && ! $server->is_response_option_enabled( $response, 'allow_fields' ) ) {
 		return $response;
 	}
 
