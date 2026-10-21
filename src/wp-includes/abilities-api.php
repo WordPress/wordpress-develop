@@ -31,6 +31,7 @@
  *             array(
  *                 'label'                 => __( 'Export Users', 'my-plugin' ),
  *                 'description'           => __( 'Exports user data to CSV format.', 'my-plugin' ),
+ *                 'category'              => 'data-export',
  *                 'execute_callback'      => 'my_plugin_export_users',
  *                 'required_capabilities' => array( 'export' ),
  *                 'input_schema'          => array(
@@ -51,8 +52,10 @@
  *     }
  *     add_action( 'wp_abilities_api_init', 'my_plugin_register_abilities' );
  *
- * This example omits `category`, so the ability uses the built-in `uncategorized`
- * category. Register custom categories on `wp_abilities_api_categories_init`.
+ * Use a category to group related abilities and improve discoverability. The
+ * `data-export` category must be registered first with `wp_register_ability_category()`
+ * on `wp_abilities_api_categories_init`, or the ability registration fails.
+ * Abilities that omit `category` fall back to the built-in `uncategorized` category.
  *
  * Once registered, abilities can be checked, retrieved, and managed:
  *
@@ -92,7 +95,8 @@ declare( strict_types = 1 );
  *
  *  1. Hook into the `wp_abilities_api_init` action.
  *  2. Call `wp_register_ability()` with a namespaced name and configuration.
- *  3. Provide an execute callback, plus required capabilities, a permission callback, or both.
+ *  3. Provide an `execute_callback`. For permission checks, set `required_capabilities`,
+ *     `permission_callback`, or both.
  *
  * Example:
  *
@@ -246,7 +250,8 @@ declare( strict_types = 1 );
  *  1. `wp_ability_invoked` action, with the raw input.
  *  2. `wp_pre_execute_ability` filter, which can short-circuit the rest of execution.
  *  3. `wp_ability_normalize_input`, `wp_ability_validate_input`, and
- *     `wp_ability_permission_result` filters.
+ *     `wp_ability_permission_result` filters. The input validation filter runs only
+ *     when a non-empty input schema is defined.
  *  4. `wp_before_execute_ability` action.
  *  5. `wp_ability_execute_result` and `wp_ability_validate_output` filters.
  *  6. `wp_after_execute_ability` action.
@@ -544,6 +549,7 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *
  * @param array $args {
  *     Optional. Arguments to filter the returned abilities. Default empty array.
+ *     Omitted filters do not restrict the results.
  *
  *     @type string          $category                  Optional. Filter by category slug. Only abilities whose category
  *                                                      exactly matches the given slug are included. Default empty string.
@@ -557,8 +563,8 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     @type bool            $has_required_capabilities Optional. Whether to leave out abilities whose required capabilities
  *                                                      the current user doesn't have. Abilities without required
  *                                                      capabilities pass this check but remain subject to other filters.
- *                                                      Neither permission callbacks nor `wp_ability_permission_result`
- *                                                      run, so inclusion does not guarantee execution permission.
+ *                                                      Permission callbacks do not run, so inclusion does not guarantee
+ *                                                      execution permission.
  *                                                      Default false.
  *     @type callable        $item_include_callback     Optional. A callback invoked per ability after declarative
  *                                                      filters. Receives a WP_Ability instance, returns bool.
