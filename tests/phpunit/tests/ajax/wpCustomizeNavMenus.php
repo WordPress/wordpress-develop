@@ -151,7 +151,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_cap_check() {
+	public static function data_ajax_load_available_items_cap_check() {
 		return array(
 			array(
 				'subscriber',
@@ -223,7 +223,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_error_messages() {
+	public static function data_ajax_load_available_items_error_messages() {
 		return array(
 			// Testing empty obj_type and type.
 			array(
@@ -334,7 +334,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_success_status() {
+	public static function data_ajax_load_available_items_success_status() {
 		return array(
 			array(
 				array(
@@ -470,7 +470,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_load_available_items_structure() {
+	public static function data_ajax_load_available_items_structure() {
 		return array(
 			array(
 				array(
@@ -547,7 +547,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_search_available_items_caps_check() {
+	public static function data_ajax_search_available_items_caps_check() {
 		return array(
 			array(
 				'subscriber',
@@ -642,7 +642,7 @@ class Tests_Ajax_wpCustomizeNavMenus extends WP_Ajax_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ajax_search_available_items_results() {
+	public static function data_ajax_search_available_items_results() {
 		return array(
 			array(
 				array(),
