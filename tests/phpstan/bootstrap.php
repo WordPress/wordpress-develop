@@ -5,6 +5,10 @@
  * Mocks the constant initiation that would normally happen in wp-includes/wp-settings.php.
  *
  * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
+ *
+ * For a constant listed under `dynamicConstantNames` in `base.neon`, the define() here
+ * only makes the constant known to PHPStan, which otherwise reports it as not found. Its
+ * value is ignored, and the type comes from `base.neon` instead.
  */
 
 /*
@@ -92,7 +96,7 @@ define( 'WPMU_SENDFILE', false );
 define( 'WPMU_ACCEL_REDIRECT', false );
 
 /** @see ms_load_current_site_and_network() */
-define( 'NOBLOGREDIRECT', '' );
+define( 'NOBLOGREDIRECT', '%siteurl%' );
 
 /** @see ms_upload_constants() */
 define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
