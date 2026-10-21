@@ -178,7 +178,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @phpstan-template T
 	 * @phpstan-param T $value
 	 * @phpstan-return (
-	 *     T is int|float|numeric-string
+	 *     T is numeric
 	 *         ? T
 	 *         : ( T is empty|'false' ? false : WP_Error )
 	 * )
