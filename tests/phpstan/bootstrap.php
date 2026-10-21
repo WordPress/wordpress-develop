@@ -5,13 +5,13 @@
  * Mocks the constant initiation that would normally happen in wp-includes/wp-settings.php.
  *
  * Loaded as a `bootstrapFile` by PHPStan; see `base.neon`.
+ *
+ * For a constant listed under `dynamicConstantNames` in `base.neon`, a define() here only
+ * declares the constant, since PHPStan does not discover the ones core defines inside a
+ * function, and reports reads of them outside a defined() check as not found. Its value
+ * is ignored, and the type comes from `base.neon` instead.
  */
 
-/*
- * A fixed, fictional path rather than the real checkout location. PHPStan resolves
- * no files through this constant, and deriving it from __DIR__ embeds the developer's
- * own path in error messages, making output differ between machines.
- */
 define( 'ABSPATH', '/var/www/html/' );
 
 /** @see wp_initial_constants() */
@@ -23,7 +23,7 @@ define( 'PB_IN_BYTES', 1024 * TB_IN_BYTES );
 define( 'EB_IN_BYTES', 1024 * PB_IN_BYTES );
 define( 'ZB_IN_BYTES', 1024 * EB_IN_BYTES );
 define( 'YB_IN_BYTES', 1024 * ZB_IN_BYTES );
-define( 'WP_START_TIMESTAMP', 1700000000.0 ); // Fixed rather than microtime( true ), whose value would differ on every run.
+define( 'WP_START_TIMESTAMP', 1700000000.0 );
 define( 'WP_MEMORY_LIMIT', '40M' );
 define( 'WP_MAX_MEMORY_LIMIT', '256M' );
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
@@ -63,14 +63,14 @@ define( 'COOKIE_DOMAIN', '' );
 
 /** @see wp_cookie_constants() */
 define( 'COOKIEHASH', '' );
-define( 'USER_COOKIE', '' );
-define( 'PASS_COOKIE', '' );
-define( 'AUTH_COOKIE', '' );
-define( 'SECURE_AUTH_COOKIE', '' );
-define( 'LOGGED_IN_COOKIE', '' );
-define( 'TEST_COOKIE', '' );
+define( 'USER_COOKIE', 'wordpressuser_' );
+define( 'PASS_COOKIE', 'wordpresspass_' );
+define( 'AUTH_COOKIE', 'wordpress_' );
+define( 'SECURE_AUTH_COOKIE', 'wordpress_sec_' );
+define( 'LOGGED_IN_COOKIE', 'wordpress_logged_in_' );
+define( 'TEST_COOKIE', 'wordpress_test_cookie' );
 define( 'PLUGINS_COOKIE_PATH', '' );
-define( 'RECOVERY_MODE_COOKIE', '' );
+define( 'RECOVERY_MODE_COOKIE', 'wordpress_rec_' );
 
 /** @see wp_ssl_constants() */
 define( 'FORCE_SSL_LOGIN', false );
@@ -92,7 +92,7 @@ define( 'WPMU_SENDFILE', false );
 define( 'WPMU_ACCEL_REDIRECT', false );
 
 /** @see ms_load_current_site_and_network() */
-define( 'NOBLOGREDIRECT', '' );
+define( 'NOBLOGREDIRECT', '%siteurl%' );
 
 /** @see ms_upload_constants() */
 define( 'UPLOADBLOGSDIR', 'wp-content/blogs.dir' );
