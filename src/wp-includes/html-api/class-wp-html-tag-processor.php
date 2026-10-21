@@ -4512,50 +4512,25 @@ class WP_HTML_Tag_Processor {
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
 	 */
 	private static function escape_javascript_script_contents( string $sourcecode ): string {
-		$at      = 0;
-		$was_at  = 0;
-		$end     = strlen( $sourcecode );
 		$escaped = '';
+		$was_at  = 0;
 
 		/*
 		 * Replace all instances of the ASCII case-insensitive match of "<script"
 		 * and "</script", when followed by whitespace or "/" or ">", by using a
 		 * character replacement for the "s" (or the "S").
 		 */
-		while ( $at < $end ) {
-			$tag_at = strpos( $sourcecode, '<', $at );
-			if ( false === $tag_at ) {
-				break;
-			}
-
-			$tag_name_at       = $tag_at + 1;
-			$has_closing_slash = $tag_name_at < $end && '/' === $sourcecode[ $tag_name_at ];
-			$tag_name_at      += $has_closing_slash ? 1 : 0;
-
-			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 6, true ) ) {
-				$at = $tag_at + 1;
-				continue;
-			}
-
-			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>", $tag_name_at + 6, 1 ) ) {
-				$at = $tag_name_at + 6;
-				continue;
-			}
-
-			$escaped .= substr( $sourcecode, $was_at, $tag_name_at - $was_at );
-			$escaped .= 's' === $sourcecode[ $tag_name_at ] ? '\u0073' : '\u0053';
-			$was_at   = $tag_name_at + 1;
-			$at       = $tag_name_at + 7;
+		foreach ( self::find_tag_names( $sourcecode, 'script', true ) as $at ) {
+			$escaped .= substr( $sourcecode, $was_at, $at - $was_at );
+			$escaped .= 's' === $sourcecode[ $at ] ? '\u0073' : '\u0053';
+			$was_at   = $at + 1;
 		}
 
-		if ( '' === $escaped ) {
+		if ( 0 === $was_at ) {
 			return $sourcecode;
 		}
 
-		if ( $was_at < $end ) {
-			$escaped .= substr( $sourcecode, $was_at );
-		}
-
+		$escaped .= substr( $sourcecode, $was_at );
 		return $escaped;
 	}
 
@@ -4592,6 +4567,51 @@ class WP_HTML_Tag_Processor {
 			},
 			$text
 		);
+	}
+
+	/**
+	 * Finds each tag name in raw text which the tokenizer would read as a tag
+	 * of the given name.
+	 *
+	 * A tag name matches after "</", or also after "<" when start tags count,
+	 * in any mix of ASCII case, when whitespace, "/" or ">" follows it.
+	 *
+	 * Example:
+	 *
+	 *     array( 1, 10 ) === self::find_tag_names( '<script></SCRIPT/>', 'script', true );
+	 *     array( 10 )    === self::find_tag_names( '<script></SCRIPT/>', 'script', false );
+	 *     array()        === self::find_tag_names( '</scripts>', 'script', false );
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string $text           Raw text.
+	 * @param string $tag_name       Tag name, in any case.
+	 * @param bool   $start_tags_too Whether a start tag matches as well as an end tag.
+	 * @return int[] Byte offset of the first letter of each matching tag name.
+	 */
+	private static function find_tag_names( string $text, string $tag_name, bool $start_tags_too ): array {
+		$found  = array();
+		$opener = $start_tags_too ? '<' : '</';
+		$length = strlen( $tag_name );
+		$end    = strlen( $text );
+		$at     = 0;
+
+		while ( false !== ( $tag_at = strpos( $text, $opener, $at ) ) ) {
+			$at = $tag_at + strlen( $opener );
+			if ( $start_tags_too && $at < $end && '/' === $text[ $at ] ) {
+				++$at;
+			}
+
+			if (
+				0 === substr_compare( $text, $tag_name, $at, $length, true ) &&
+				1 === strspn( $text, " \t\f\r\n/>", $at + $length, 1 )
+			) {
+				$found[] = $at;
+			}
+		}
+
+		return $found;
 	}
 
 	/**

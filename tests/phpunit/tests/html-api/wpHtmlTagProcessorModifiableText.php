@@ -820,6 +820,7 @@ HTML
 			'Tricky script open tag with \r\n'      => array( '<script></script>', "<!-- <script\r\n>", "<script><!-- <\\u0073cript\r\n></script>" ),
 			'Tricky script close tag with \r'       => array( '<script></script>', "// </script\r>", "<script>// </\\u0073cript\r></script>" ),
 			'Tricky script close tag with \r\n'     => array( '<script></script>', "// </script\r\n>", "<script>// </\\u0073cript\r\n></script>" ),
+			'Tag name terminators'                  => array( '<script></script>', "a<script b</script\tc<script\fd</script\ne<script/f", "<script>a<\\u0073cript b</\\u0073cript\tc<\\u0073cript\fd</\\u0073cript\ne<\\u0073cript/f</script>" ),
 			'Module tag'                            => array( '<script type="module"></script>', '"<script>"', '<script type="module">"<\u0073cript>"</script>' ),
 			'Tag with type'                         => array( '<script type="text/javascript"></script>', '"<script>"', '<script type="text/javascript">"<\u0073cript>"</script>' ),
 			'Tag with language'                     => array( '<script language="javascript"></script>', '"<script>"', '<script language="javascript">"<\u0073cript>"</script>' ),
