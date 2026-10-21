@@ -15,7 +15,7 @@ class Tests_Kses_wpKsesAllowPdfObjects extends WP_UnitTestCase {
 	public function test_rejects_urls_with_query_string() {
 		$uploads = wp_upload_dir( null, false );
 
-		$this->assertFalse( _wp_kses_allow_pdf_objects( $uploads['url'] . '/file.pdf?download=1' ) );
+		$this->assertFalse( _wp_kses_allow_pdf_objects( $uploads['url'] . '/file.pdf?download=.pdf' ) );
 	}
 
 	/**
@@ -24,7 +24,7 @@ class Tests_Kses_wpKsesAllowPdfObjects extends WP_UnitTestCase {
 	public function test_rejects_urls_with_fragment() {
 		$uploads = wp_upload_dir( null, false );
 
-		$this->assertFalse( _wp_kses_allow_pdf_objects( $uploads['url'] . '/file.pdf#page=1' ) );
+		$this->assertFalse( _wp_kses_allow_pdf_objects( $uploads['url'] . '/file.pdf#page=.pdf' ) );
 	}
 
 	/**
