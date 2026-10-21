@@ -184,7 +184,7 @@ parameters:
 		WP_LANG_DIR: 'non-empty-string'
 		WP_NETWORK_ADMIN: 'bool'
 		# Also defined as numeric strings, from options or getenv(). Core casts with (int).
-		WP_POST_REVISIONS: 'bool|int<-1, max>'
+		WP_POST_REVISIONS: 'bool|int'
 		WP_REPAIRING: 'bool'
 		# Raw getenv() configs also yield false when unset.
 		WP_SITEURL: 'string'
