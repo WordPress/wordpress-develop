@@ -116,7 +116,7 @@ parameters:
 	# Each type is what core expects: the values core defines and documents, and that its reads are designed for.
 	# Where sites, plugins, or themes are known to define wider values, a comment notes them. Many configs pass
 	# getenv() through unconverted, which yields false when the variable is unset and otherwise a string (where
-	# 'false' and 'off' are truthy).
+	# 'false' and 'off' are truthy). When core starts handling a value outside a type, widen the type along with it.
 	dynamicConstantNames:
 		ALLOW_SUBDIRECTORY_INSTALL: 'bool'
 		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
