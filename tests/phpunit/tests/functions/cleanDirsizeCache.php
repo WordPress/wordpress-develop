@@ -31,7 +31,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_clean_dirsize_cache_with_invalid_inputs() {
+	public static function data_clean_dirsize_cache_with_invalid_inputs() {
 		return array(
 			'null'         => array(
 				'path'             => null,
@@ -78,7 +78,7 @@ class Tests_Functions_CleanDirsizeCache extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_clean_dirsize_cache_with_non_path_string() {
+	public static function data_clean_dirsize_cache_with_non_path_string() {
 		return array(
 			'single dot'                        => array(
 				'path'           => '.',

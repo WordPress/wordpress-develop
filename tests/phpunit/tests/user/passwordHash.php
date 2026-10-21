@@ -24,14 +24,17 @@ class Tests_User_PasswordHash extends WP_UnitTestCase {
 	 * `Deprecated: Implicit conversion from float to int loses precision`.
 	 *
 	 * @ticket 56340
+	 * @ticket 40538
 	 *
 	 * @covers PasswordHash::gensalt_blowfish
 	 *
 	 * @requires PHP 8.1
-	 * @doesNotPerformAssertions
 	 */
 	public function test_gensalt_blowfish_should_not_throw_deprecation_notice_on_php81() {
 		$hasher = new PasswordHash( 8, true );
-		$hasher->gensalt_blowfish( 'a password string' );
+		$salt   = $hasher->gensalt_blowfish( 'a password string' );
+
+		$this->assertStringStartsWith( '$2a$08$', $salt, 'The salt should use the blowfish identifier and configured cost.' );
+		$this->assertSame( 29, strlen( $salt ), 'A blowfish salt should be 29 characters long.' );
 	}
 }

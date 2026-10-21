@@ -128,12 +128,12 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 
 		// Invalid post type $obj_name.
 		$items = $menus->load_available_items_query( 'post_type', 'invalid' );
-		$this->assertInstanceOf( 'WP_Error', $items );
+		$this->assertWPError( $items );
 		$this->assertSame( 'nav_menus_invalid_post_type', $items->get_error_code() );
 
 		// Invalid taxonomy $obj_name.
 		$items = $menus->load_available_items_query( 'taxonomy', 'invalid' );
-		$this->assertInstanceOf( 'WP_Error', $items );
+		$this->assertWPError( $items );
 		$this->assertSame( 'invalid_taxonomy', $items->get_error_code() );
 	}
 
@@ -686,7 +686,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$menus = new WP_Customize_Nav_Menus( $this->wp_customize );
 
 		$r = $menus->insert_auto_draft_post( array() );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'unknown_post_type', $r->get_error_code() );
 
 		// Non-existent post types allowed as of #39610.
@@ -700,7 +700,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		$this->assertSame( $this->wp_customize->changeset_uuid(), get_post_meta( $r->ID, '_customize_changeset_uuid', true ) );
 
 		$r = $menus->insert_auto_draft_post( array( 'post_type' => 'post' ) );
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'empty_title', $r->get_error_code() );
 
 		$r = $menus->insert_auto_draft_post(
@@ -710,7 +710,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 				'post_type'   => 'post',
 			)
 		);
-		$this->assertInstanceOf( 'WP_Error', $r );
+		$this->assertWPError( $r );
 		$this->assertSame( 'status_forbidden', $r->get_error_code() );
 
 		$r = $menus->insert_auto_draft_post(

@@ -259,6 +259,8 @@ class Tests_Multisite_SiteMeta extends WP_UnitTestCase {
 			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 		}
 
+		$this->reset_lazyload_queue();
+
 		$filter = new MockAction();
 		add_filter( 'update_blog_metadata_cache', array( $filter, 'filter' ), 10, 2 );
 
@@ -293,6 +295,8 @@ class Tests_Multisite_SiteMeta extends WP_UnitTestCase {
 		if ( ! is_site_meta_supported() ) {
 			$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
 		}
+
+		$this->reset_lazyload_queue();
 
 		$filter = new MockAction();
 		add_filter( 'update_blog_metadata_cache', array( $filter, 'filter' ), 10, 2 );

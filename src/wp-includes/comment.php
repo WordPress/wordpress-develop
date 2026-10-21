@@ -401,6 +401,7 @@ function get_default_comment_status( $post_type = 'post', $comment_type = 'comme
  * @since 1.5.0
  * @since 4.7.0 Replaced caching the modified date in a local static variable
  *              with the Object Cache API.
+ * @since 7.2.0 The 'note' and 'reaction' comment types are excluded from the query.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -420,15 +421,15 @@ function get_lastcommentmodified( $timezone = 'server' ) {
 
 	switch ( $timezone ) {
 		case 'gmt':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date_gmt FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'blog':
-			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1" );
+			$comment_modified_date = $wpdb->get_var( "SELECT comment_date FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1" );
 			break;
 		case 'server':
 			$add_seconds_server = gmdate( 'Z' );
 
-			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
+			$comment_modified_date = $wpdb->get_var( $wpdb->prepare( "SELECT DATE_ADD(comment_date_gmt, INTERVAL %s SECOND) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' ) ORDER BY comment_date_gmt DESC LIMIT 1", $add_seconds_server ) );
 			break;
 	}
 
@@ -548,6 +549,8 @@ function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false 
  *                           rows will only be removed that match the value.
  *                           Must be serializable if non-scalar. Default empty string.
  * @return bool True on success, false on failure.
+ *
+ * @phpstan-param positive-int $comment_id
  */
 function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
 	return delete_metadata( 'comment', $comment_id, $meta_key, $meta_value );
@@ -576,7 +579,19 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  *               - true values are returned as '1'
  *               - numbers are returned as strings
  *               Arrays and objects retain their original type.
+ *               These conversions apply to stored values. A default value registered
+ *               with {@see register_meta()} is never stored, so it is returned with
+ *               the type it was registered with, which may be an integer, float, or
+ *               boolean.
+ *
  * @phpstan-param int|numeric-string $comment_id
+ * @phpstan-return (
+ *     $key is ''|'0'
+ *         ? array<array-key, list<string>>|false
+ *         : ( $single is true
+ *             ? mixed
+ *             : list<mixed>|false )
+ * )
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -747,7 +762,8 @@ function sanitize_comment_cookies() {
  *                           returning a WP_Error object, rather than executing wp_die().
  *                           Default false.
  * @return int|string|WP_Error Allowed comments return the approval status (0|1|'spam'|'trash').
- *                             If `$wp_error` is true, disallowed comments return a WP_Error.
+ *                             WP_Error if the comment is a duplicate or a flood and `$wp_error`
+ *                             is true, or if the {@see 'pre_comment_approved'} filter returns one.
  */
 function wp_allow_comment( $commentdata, $wp_error = false ) {
 	global $wpdb;
@@ -1247,7 +1263,7 @@ function get_page_of_comment( $comment_id, $args = array() ) {
 	 *     @type int    $per_page  Number of comments per page.
 	 *     @type int    $max_depth Maximum comment threading depth allowed.
 	 * }
-	 * @param int $comment_id ID of the comment.
+	 * @param int   $comment_id    ID of the comment.
 	 */
 	return apply_filters( 'get_page_of_comment', (int) $page, $args, $original_args, $comment_id );
 }
@@ -1556,6 +1572,8 @@ function wp_count_comments( $post_id = 0 ) {
  * post ID available.
  *
  * @since 2.0.0
+ * @since 7.2.0 A note's reactions are deleted along with it, rather than
+ *              being reparented.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1585,6 +1603,27 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
 	 * @param WP_Comment $comment    The comment to be deleted.
 	 */
 	do_action( 'delete_comment', $comment->comment_ID, $comment );
+
+	/*
+	 * Delete a note's reactions rather than letting them be reparented below.
+	 * A reaction only means anything attached to its note, and an orphaned one
+	 * would keep the reactor's identity on a note that no longer exists. This
+	 * covers every status: a reaction the user removed is trashed, not deleted.
+	 */
+	if ( 'note' === $comment->comment_type ) {
+		$reaction_ids = get_comments(
+			array(
+				'parent' => $comment->comment_ID,
+				'type'   => 'reaction',
+				'status' => 'any',
+				'fields' => 'ids',
+			)
+		);
+
+		foreach ( $reaction_ids as $reaction_id ) {
+			wp_delete_comment( $reaction_id, true );
+		}
+	}
 
 	// Move children up a level.
 	$children = $wpdb->get_col( $wpdb->prepare( "SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment->comment_ID ) );
@@ -1636,6 +1675,7 @@ function wp_delete_comment( $comment_id, $force_delete = false ) {
  *
  * @since 2.9.0
  * @since 6.9.0 Any child notes are deleted when deleting a note.
+ * @since 7.2.0 A note's reactions are trashed along with it.
  *
  * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
  * @return bool True on success, false on failure.
@@ -1701,6 +1741,30 @@ function wp_trash_comment( $comment_id ) {
 		 * @param WP_Comment $comment    The trashed comment.
 		 */
 		do_action( 'trashed_comment', $comment->comment_ID, $comment );
+
+		/*
+		 * Trash a note's reactions with it, at any depth. The child-note
+		 * cascade below trashes each reply in turn, which brings the replies'
+		 * own reactions along through this same branch.
+		 *
+		 * Restoring the note does not bring its reactions back:
+		 * wp_untrash_comment() restores no children of any type, so restoring
+		 * children is left to a cascade that covers every child type together.
+		 */
+		if ( 'note' === $comment->comment_type ) {
+			$reaction_ids = get_comments(
+				array(
+					'parent' => $comment->comment_ID,
+					'type'   => 'reaction',
+					'status' => 'approve',
+					'fields' => 'ids',
+				)
+			);
+
+			foreach ( $reaction_ids as $reaction_id ) {
+				wp_trash_comment( $reaction_id );
+			}
+		}
 
 		// For top level 'note' type comments, also trash children.
 		if ( 'note' === $comment->comment_type && 0 === (int) $comment->comment_parent ) {
@@ -2781,7 +2845,7 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
  * Sets the status of a comment.
  *
  * The {@see 'wp_set_comment_status'} action is called after the comment is handled.
- * If the comment status is not in the list, then false is returned.
+ * If the comment status is not in the list, then false is returned, even when `$wp_error` is true.
  *
  * @since 1.0.0
  *
@@ -2790,7 +2854,14 @@ function wp_send_note_notification( WP_User $user, WP_Comment $comment, ?WP_Post
  * @param int|WP_Comment $comment_id     Comment ID or WP_Comment object.
  * @param string         $comment_status New comment status, either 'hold', 'approve', 'spam', or 'trash'.
  * @param bool           $wp_error       Whether to return a WP_Error object if there is a failure. Default false.
- * @return bool|WP_Error True on success, false or WP_Error on failure.
+ * @return bool|WP_Error True on success, false or WP_Error on failure. False for an invalid
+ *                       `$comment_status` regardless of `$wp_error`.
+ *
+ * @phpstan-return (
+ *     $wp_error is false
+ *         ? bool
+ *         : ( $comment_status is 'hold'|'0'|'approve'|'1'|'spam'|'trash' ? true|WP_Error : bool|WP_Error )
+ * )
  */
 function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false ) {
 	global $wpdb;
@@ -2865,6 +2936,8 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
  * @param bool  $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
  * @return int|false|WP_Error The value 1 if the comment was updated, 0 if not updated.
  *                            False or a WP_Error object on failure.
+ *
+ * @phpstan-return ( $wp_error is false ? int|false : int|WP_Error )
  */
 function wp_update_comment( $commentarr, $wp_error = false ) {
 	global $wpdb;
@@ -3135,7 +3208,7 @@ function wp_update_comment_count_now( $post_id ) {
 	$new = apply_filters( 'pre_wp_update_comment_count_now', null, $old, $post_id );
 
 	if ( is_null( $new ) ) {
-		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type != 'note'", $post_id ) );
+		$new = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved = '1' AND comment_type NOT IN ( 'note', 'reaction' )", $post_id ) );
 	} else {
 		$new = (int) $new;
 	}
@@ -3180,6 +3253,8 @@ function wp_update_comment_count_now( $post_id ) {
  * @param string $url        URL to ping.
  * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
+ *
+ * @phpstan-param '' $deprecated
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -3445,8 +3520,8 @@ function wp_should_disable_pings_for_environment() {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @param bool   $should_disable  Whether pings should be disabled. Default true
-	 *                                for non-production environments, false for production.
+	 * @param bool   $should_disable   Whether pings should be disabled. Default true
+	 *                                 for non-production environments, false for production.
 	 * @param string $environment_type The current environment type as returned by
 	 *                                 wp_get_environment_type().
 	 */
@@ -3611,7 +3686,7 @@ function pingback( $content, $post ) {
 			$status = $client->query( 'pingback.ping', $pagelinkedfrom, $pagelinkedto );
 
 			if ( $status // Ping registered.
-				|| ( isset( $client->error->code ) && 48 === $client->error->code ) // Already registered.
+				|| ( $client->error instanceof IXR_Error && 48 === $client->error->code ) // Already registered.
 			) {
 				add_ping( $post, $pagelinkedto );
 			}
@@ -3685,7 +3760,7 @@ function trackback( $trackback_url, $title, $excerpt, $post_id ) {
  * @since 1.2.0
  *
  * @param string $server Host of blog to connect to.
- * @param string $path Path to send the ping.
+ * @param string $path   Path to send the ping.
  */
 function weblog_ping( $server = '', $path = '' ) {
 	require_once ABSPATH . WPINC . '/class-IXR.php';
@@ -3876,7 +3951,7 @@ function _close_comments_for_old_posts( $posts, $query ) {
  *
  * @param bool $open    Comments open or closed.
  * @param int  $post_id Post ID.
- * @return bool $open
+ * @return bool True if comments are open, false otherwise.
  */
 function _close_comments_for_old_post( $open, $post_id ) {
 	if ( ! $open ) {
