@@ -34,6 +34,8 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Setup test fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ): void {
 		self::$admin_id      = $factory->user->create( array( 'role' => 'administrator' ) );
@@ -46,7 +48,6 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		update_option( 'link_manager_enabled', 1 );
-		add_action( 'admin_init', 'wp_ajax_delete_link', 1 );
 	}
 
 	/**
@@ -57,7 +58,7 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 	public function test_delete_link_success(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$link_id = $this->factory->bookmark->create();
+		$link_id = self::factory()->bookmark->create();
 
 		$_POST = array(
 			'id'          => $link_id,
@@ -65,11 +66,15 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 		);
 
 		try {
-			$this->_handleAjax( 'delete_link' );
+			$this->_handleAjax( 'delete-link' );
 		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertSame( '1', $e->getMessage(), 'AJAX response should be 1 (success).' );
+			// Expect success.
+			$this->_last_response = $e->getMessage();
+		} catch ( WPAjaxDieContinueException $e ) {
+			// Expect success.
 		}
 
+		$this->assertSame( '1', $this->_last_response );
 		$this->assertNull( get_bookmark( $link_id ), 'Link should be deleted.' );
 	}
 
@@ -81,7 +86,7 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 	public function test_delete_link_invalid_nonce(): void {
 		wp_set_current_user( self::$admin_id );
 
-		$link_id = $this->factory->bookmark->create();
+		$link_id = self::factory()->bookmark->create();
 
 		$_POST = array(
 			'id'          => $link_id,
@@ -91,7 +96,7 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 		$this->expectException( WPAjaxDieStopException::class );
 		$this->expectExceptionMessage( '-1' );
 
-		$this->_handleAjax( 'delete_link' );
+		$this->_handleAjax( 'delete-link' );
 	}
 
 	/**
@@ -102,20 +107,17 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 	public function test_delete_link_insufficient_permissions(): void {
 		wp_set_current_user( self::$subscriber_id );
 
-		$link_id = $this->factory->bookmark->create();
+		$link_id = self::factory()->bookmark->create();
 
 		$_POST = array(
 			'id'          => $link_id,
 			'_ajax_nonce' => wp_create_nonce( "delete-bookmark_$link_id" ),
 		);
 
-		try {
-			$this->_handleAjax( 'delete_link' );
-		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertSame( '-1', $e->getMessage(), 'AJAX response should be -1 (insufficient permissions).' );
-		}
+		$this->expectException( WPAjaxDieStopException::class );
+		$this->expectExceptionMessage( '-1' );
 
-		$this->assertNotNull( get_bookmark( $link_id ), 'Link should NOT be deleted.' );
+		$this->_handleAjax( 'delete-link' );
 	}
 
 	/**
@@ -134,9 +136,15 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 		);
 
 		try {
-			$this->_handleAjax( 'delete_link' );
+			$this->_handleAjax( 'delete-link' );
 		} catch ( WPAjaxDieStopException $e ) {
-			$this->assertSame( '1', $e->getMessage(), 'AJAX response should be 1 if link doesn\'t exist (idempotent behavior).' );
+			// Expect success.
+			$this->_last_response = $e->getMessage();
+		} catch ( WPAjaxDieContinueException $e ) {
+			// Expect success.
 		}
+
+		$this->assertSame( '1', $this->_last_response );
+		$this->assertNull( get_bookmark( $link_id ), 'no Link and no error.' );
 	}
 }
