@@ -124,6 +124,9 @@ parameters:
 		AUTH_COOKIE: 'non-empty-string'
 		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
 		# treats a falsy value as missing.
+		AUTH_KEY: 'non-empty-string'
+		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
+		# treats a falsy value as missing.
 		AUTH_SALT: 'non-empty-string'
 		# Also defined from getenv() strings, and as 'minor' (confused with WP_AUTO_UPDATE_CORE). Core checks truthiness.
 		AUTOMATIC_UPDATER_DISABLED: 'bool'
@@ -180,6 +183,12 @@ parameters:
 		# The WordPress MU sample config defined '', which disables the 404 redirect, but for an unknown site on a
 		# subdomain network core then sends an empty Location header.
 		NOBLOGREDIRECT: 'non-empty-string'
+		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
+		# treats a falsy value as missing.
+		NONCE_KEY: 'non-empty-string'
+		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
+		# treats a falsy value as missing.
+		NONCE_SALT: 'non-empty-string'
 		PASS_COOKIE: 'non-empty-string'
 		PLUGINDIR: 'non-empty-string'
 		PLUGINS_COOKIE_PATH: 'string'
@@ -192,6 +201,12 @@ parameters:
 		SECRET_KEY: 'non-empty-string'
 		SECRET_SALT: 'non-empty-string'
 		SECURE_AUTH_COOKIE: 'non-empty-string'
+		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
+		# treats a falsy value as missing.
+		SECURE_AUTH_KEY: 'non-empty-string'
+		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
+		# treats a falsy value as missing.
+		SECURE_AUTH_SALT: 'non-empty-string'
 		# Some code defines 1 or 'true'. Core checks truthiness.
 		SHORTINIT: 'bool'
 		SITECOOKIEPATH: 'string'
