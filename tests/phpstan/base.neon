@@ -139,8 +139,8 @@ parameters:
 		DOING_AJAX: 'bool'
 		# Some plugins define 1. Core checks truthiness.
 		DOING_CRON: 'bool'
-		# Also defined as false (treated like 0), -1, and getenv() strings. In wp_scheduled_delete(), an empty string
-		# fatals and a negative number purges all trash.
+		# Also defined as false (treated like 0), -1, and getenv() strings. An empty string fatals where core multiplies
+		# it by DAY_IN_SECONDS, and a negative number makes wp_scheduled_delete() purge all trash.
 		EMPTY_TRASH_DAYS: 'non-negative-int'
 		# Also defined as getenv() strings. force_ssl_admin() casts it with (bool).
 		FORCE_SSL_ADMIN: 'bool'
@@ -195,7 +195,7 @@ parameters:
 		WP_REPAIRING: 'bool'
 		# Raw getenv() configs also yield false when unset.
 		WP_SITEURL: 'string'
-		# Some code defines 0, or the string 'false', which core treats as true.
+		# Some code defines 0, or the string 'false' (which core treats as true).
 		WP_USE_THEMES: 'bool'
 		WP_USER_ADMIN: 'bool'
 		WPLANG: 'string'
