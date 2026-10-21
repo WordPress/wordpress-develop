@@ -529,6 +529,16 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 		// Back-compat with wp_page_menu(): add "current_page_parent" to static home page link for any non-page query.
 		if ( ! empty( $home_page_id ) && 'post_type' === $menu_item->type
 			&& empty( $wp_query->is_page ) && $home_page_id === (int) $menu_item->object_id
+			&& ! is_post_type_archive()
+			&& ! ( $wp_query->is_singular && ! empty( $queried_object->post_type ) && 'post' !== $queried_object->post_type )
+		) {
+			$classes[] = 'current_page_parent';
+		}
+
+		// Add "current_page_parent" to the post type archive menu item when viewing a singular custom post type.
+		if ( $wp_query->is_singular && ! empty( $queried_object->post_type )
+			&& 'post' !== $queried_object->post_type && 'page' !== $queried_object->post_type
+			&& 'post_type_archive' === $menu_item->type && $queried_object->post_type === $menu_item->object
 		) {
 			$classes[] = 'current_page_parent';
 		}
