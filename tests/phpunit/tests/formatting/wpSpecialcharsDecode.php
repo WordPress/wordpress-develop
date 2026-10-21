@@ -14,15 +14,16 @@ class Tests_Formatting_wpSpecialcharsDecode extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_specialchars_decode
 	 *
-	 * @param string     $text        Text to decode.
-	 * @param string     $expected    Expected decoded text.
-	 * @param string|int $quote_style Optional quote style.
+	 * @param string          $text        Text to decode.
+	 * @param string          $expected    Expected decoded text.
+	 * @param string|int|null $quote_style Optional quote style. Null omits the argument so the helper default is used.
 	 */
-	public function test_wp_specialchars_decode( $text, $expected, $quote_style = ENT_NOQUOTES ) {
-		$this->assertSame(
-			$expected,
-			2 === func_num_args() ? wp_specialchars_decode( $text ) : wp_specialchars_decode( $text, $quote_style )
-		);
+	public function test_wp_specialchars_decode( $text, $expected, $quote_style = null ) {
+		if ( null === $quote_style ) {
+			$this->assertSame( $expected, wp_specialchars_decode( $text ) );
+		} else {
+			$this->assertSame( $expected, wp_specialchars_decode( $text, $quote_style ) );
+		}
 	}
 
 	/**
@@ -41,8 +42,10 @@ class Tests_Formatting_wpSpecialcharsDecode extends WP_UnitTestCase {
 			'ENT_COMPAT decodes doubles'     => array( '&quot;hi&#039;', '"hi&#039;', ENT_COMPAT ),
 			'double style decodes doubles'   => array( '&quot;hi&#039;', '"hi&#039;', 'double' ),
 			'single style decodes singles'   => array( '&quot;&#039;hi&#039;', '&quot;\'hi\'', 'single' ),
-			'zero-padded numeric amp'        => array( '&#038;', '&' ),
+			'numeric amp entity'             => array( '&#038;', '&' ),
 			'hex amp entity'                 => array( '&#x26;', '&' ),
+			'padded decimal amp'             => array( '&#0038;', '&' ),
+			'padded hex amp'                 => array( '&#x0026;', '&' ),
 		);
 	}
 }
