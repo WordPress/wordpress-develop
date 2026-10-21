@@ -552,20 +552,19 @@ function wp_get_ability( string $name ): ?WP_Ability {
  *     Omitted filters do not restrict the results.
  *
  *     @type string          $category                  Optional. Filter by category slug. Only abilities whose category
- *                                                      exactly matches the given slug are included. Default empty string.
+ *                                                      exactly matches the given slug are included.
  *     @type string          $namespace                 Optional. Filter by ability namespace prefix. Pass the namespace
  *                                                      without a trailing slash, e.g. `'woocommerce'` matches
- *                                                      `'woocommerce/create-order'`. Default empty string.
+ *                                                      `'woocommerce/create-order'`.
  *     @type array           $meta                      Optional. Filter by meta key/value pairs. All keys must exist
  *                                                      and non-array values must match strictly, including their types.
  *                                                      Nested arrays are matched recursively as subsets, e.g.
- *                                                      `array( 'mcp' => array( 'public' => true ) )`. Default empty array.
+ *                                                      `array( 'mcp' => array( 'public' => true ) )`.
  *     @type bool            $has_required_capabilities Optional. Whether to leave out abilities whose required capabilities
  *                                                      the current user doesn't have. Abilities without required
  *                                                      capabilities pass this check but remain subject to other filters.
  *                                                      Permission callbacks do not run, so inclusion does not guarantee
  *                                                      execution permission.
- *                                                      Default false.
  *     @type callable        $item_include_callback     Optional. A callback invoked per ability after declarative
  *                                                      filters. Receives a WP_Ability instance, returns bool.
  *                                                      Return true to include, false to exclude.
