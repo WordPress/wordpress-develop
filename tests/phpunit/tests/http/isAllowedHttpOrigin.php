@@ -42,8 +42,8 @@ class Tests_HTTP_IsAllowedHttpOrigin extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_uses_get_http_origin_when_origin_not_provided() {
-		$allowed                    = get_allowed_http_origins();
-		$_SERVER['HTTP_ORIGIN']     = $allowed[0];
+		$allowed                = get_allowed_http_origins();
+		$_SERVER['HTTP_ORIGIN'] = $allowed[0];
 
 		$this->assertSame( $allowed[0], is_allowed_http_origin() );
 	}
