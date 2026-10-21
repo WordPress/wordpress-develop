@@ -76,11 +76,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 
 		unset( $_REQUEST['plugin_status'] );
 
-		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
-		if ( is_dir( $dir ) ) {
-			unlink( $dir . '/' . $this->slug . '.php' );
-			rmdir( $dir );
-		}
+		$this->remove_plugin();
 
 		parent::tear_down();
 	}
@@ -300,6 +296,7 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	private function render( $plugin_data = array(), $headers = '' ) {
 		// is_network_only_plugin() reads the plugin headers on multisite.
 		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+		$this->remove_plugin();
 		$this->assertTrue( mkdir( $dir ), 'The test plugin directory should be created.' );
 		$this->assertNotFalse( file_put_contents( $dir . '/' . $this->slug . '.php', "<?php\n/**\n * Plugin Name: My Plugin\n{$headers} */\n" ), 'The test plugin should be written.' );
 
@@ -338,5 +335,17 @@ class Tests_Admin_wpPluginsListTableRowCheckbox extends WP_PluginDependencies_Un
 	 */
 	private function get_file() {
 		return "{$this->slug}/{$this->slug}.php";
+	}
+
+	/**
+	 * Removes the test plugin, including one left over by an interrupted run.
+	 */
+	private function remove_plugin() {
+		$dir = WP_PLUGIN_DIR . '/' . $this->slug;
+
+		if ( is_dir( $dir ) ) {
+			$this->rmdir( $dir );
+			rmdir( $dir );
+		}
 	}
 }
