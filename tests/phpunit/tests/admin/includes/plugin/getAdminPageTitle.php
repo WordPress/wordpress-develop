@@ -178,7 +178,7 @@ class Tests_Admin_Includes_Plugin_GetAdminPageTitle extends WP_UnitTestCase {
 			25 => array( 'My Plugin', 'manage_options', 'my-plugin', 'My Plugin Title', 'menu-top', 'toplevel_page_my-plugin', 'dashicons-admin-generic' ),
 		);
 		// Use a distinct submenu slug/title so the expected title must come from the top-level menu fallback.
-		$GLOBALS['submenu']     = array(
+		$GLOBALS['submenu'] = array(
 			'my-plugin' => array(
 				0 => array( 'Settings', 'manage_options', 'my-plugin-settings', 'My Plugin Settings' ),
 			),
