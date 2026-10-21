@@ -2250,8 +2250,26 @@ jQuery( function() {
 		return;
 	}
 
-	/** @type {Map<HTMLTableElement, { wrapper: HTMLElement, cleanup: function(): void }>} */
+	/** @type {Map<HTMLTableElement, { wrapper: HTMLElement, update: function(): void, cleanup: function(): void }>} */
 	const tables = new Map();
+
+	/**
+	 * Restores an element's original Tab order after overflow tracking ends.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param {HTMLElement} element  The previously observed element.
+	 * @param {?string}     tabIndex Its original tabindex attribute.
+	 *
+	 * @return {void}
+	 */
+	function restoreTabIndex( element, tabIndex ) {
+		if ( tabIndex === null ) {
+			element.removeAttribute( 'tabindex' );
+		} else {
+			element.setAttribute( 'tabindex', tabIndex );
+		}
+	}
 
 	/**
 	 * Tracks a table's scroll position and dimensions.
@@ -2265,6 +2283,7 @@ jQuery( function() {
 	function observeTableOverflow( table ) {
 		const wrapper = table.parentElement;
 		const tabIndex = wrapper.getAttribute( 'tabindex' );
+		const commentCells = new Map();
 
 		/**
 		 * Updates the overflow indicators and the wrapper's place in the Tab order.
@@ -2274,6 +2293,24 @@ jQuery( function() {
 		 * @return {void}
 		 */
 		function update() {
+			commentCells.forEach( function( originalTabIndex, cell ) {
+				if ( cell.closest( '.wp-list-table' ) !== table || ! table.contains( cell ) ) {
+					observer.unobserve( cell );
+					restoreTabIndex( cell, originalTabIndex );
+					commentCells.delete( cell );
+				}
+			} );
+
+			table.querySelectorAll( ':scope > tbody > tr > .column-comment' ).forEach( function( cell ) {
+				if ( ! commentCells.has( cell ) ) {
+					commentCells.set( cell, cell.getAttribute( 'tabindex' ) );
+					observer.observe( cell );
+				}
+				const cellStyle = window.getComputedStyle( cell );
+				cell.tabIndex = cell.scrollWidth > cell.clientWidth &&
+					( cellStyle.overflowX === 'auto' || cellStyle.overflowX === 'scroll' ) ? 0 : -1;
+			} );
+
 			const style = window.getComputedStyle( wrapper );
 			const isRTL = style.direction === 'rtl';
 			const scrollLeft = isRTL ? -wrapper.scrollLeft : wrapper.scrollLeft;
@@ -2297,6 +2334,7 @@ jQuery( function() {
 
 		tables.set( table, {
 			wrapper: wrapper,
+			update: update,
 
 			/**
 			 * Releases overflow tracking and restores the wrapper's original Tab order.
@@ -2309,11 +2347,11 @@ jQuery( function() {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
-				if ( tabIndex === null ) {
-					wrapper.removeAttribute( 'tabindex' );
-				} else {
-					wrapper.setAttribute( 'tabindex', tabIndex );
-				}
+				restoreTabIndex( wrapper, tabIndex );
+				commentCells.forEach( function( originalTabIndex, cell ) {
+					restoreTabIndex( cell, originalTabIndex );
+				} );
+				commentCells.clear();
 			},
 		} );
 	}
@@ -2337,6 +2375,8 @@ jQuery( function() {
 			.forEach( function( table ) {
 				if ( ! tables.has( table ) ) {
 					observeTableOverflow( table );
+				} else {
+					tables.get( table ).update();
 				}
 			} );
 	}
@@ -2345,7 +2385,7 @@ jQuery( function() {
 
 	// Plugins live search replaces the table and its wrapper.
 	const observer = new window.MutationObserver( refreshTables );
-	observer.observe( content, { childList: true, subtree: true } );
+	observer.observe( content, { childList: true, characterData: true, subtree: true } );
 } );
 
 /**

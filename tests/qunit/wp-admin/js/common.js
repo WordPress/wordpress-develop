@@ -237,6 +237,48 @@ jQuery( function() {
 		}
 	);
 
+	QUnit.test( 'Keeps only scrollable comment cells in the Tab order', async function( assert ) {
+		this.table.style.width = '600px';
+		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" style="max-width: 200px; overflow: auto"><pre style="width: 1000px">Wide comment</pre></th><td>Other column</td></tr></tbody>';
+		const cell = this.table.querySelector( '.column-comment' );
+		await afterResize();
+		assert.ok( cell.scrollWidth > cell.clientWidth, 'The comment cell has overflow.' );
+		assert.strictEqual( cell.tabIndex, 0, 'An overflowing comment cell can be reached by Tab.' );
+
+		cell.focus();
+		cell.firstElementChild.remove();
+		await afterResize();
+		assert.strictEqual( cell.tabIndex, -1, 'A fitting cell is removed from the Tab order.' );
+		assert.strictEqual( document.activeElement, cell, 'Removing overflow preserves existing focus.' );
+	} );
+
+	QUnit.test( 'Updates comment keyboard access after content changes without resizing the cell', async function( assert ) {
+		this.table.style.width = '600px';
+		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" style="max-width: 200px; overflow: auto"><pre>Short</pre></th><td>Other column</td></tr></tbody>';
+		const cell = this.table.querySelector( '.column-comment' );
+		await afterResize();
+		assert.strictEqual( cell.tabIndex, -1, 'Short content does not add a Tab stop.' );
+
+		cell.firstElementChild.firstChild.data = 'W'.repeat( 200 );
+		await afterResize();
+		assert.strictEqual( cell.tabIndex, 0, 'Changed text makes the scrolling cell keyboard accessible.' );
+
+		cell.style.overflow = 'visible';
+		this.table.style.width = '650px';
+		await afterResize();
+		assert.strictEqual( cell.tabIndex, -1, 'Visible overflow, as on mobile, does not add a Tab stop.' );
+	} );
+
+	QUnit.test( 'Restores comment cell focus attributes when its table is removed', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><th scope="row" class="column-comment" tabindex="0">Comment</th></tr></tbody>';
+		const cell = this.table.querySelector( '.column-comment' );
+		await afterResize();
+		assert.strictEqual( cell.tabIndex, -1, 'A fitting cell is skipped while managed.' );
+		this.table.remove();
+		await afterResize();
+		assert.strictEqual( cell.getAttribute( 'tabindex' ), '0', 'Cleanup restores the original attribute.' );
+	} );
+
 	QUnit.test( 'Preserves focus when a focused wrapper stops overflowing', async function( assert ) {
 		this.wrapper.focus();
 		assert.strictEqual(
