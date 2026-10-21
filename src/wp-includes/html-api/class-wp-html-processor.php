@@ -643,8 +643,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @see self::ERROR_UNSUPPORTED
 	 * @see self::ERROR_EXCEEDED_MAX_BOOKMARKS
 	 *
-	 * @phpstan-impure
-	 *
 	 * @return string|null The last error, if one exists, otherwise null.
 	 */
 	public function get_last_error(): ?string {
@@ -809,7 +807,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	private function next_visitable_token(): bool {
 		$this->current_element = null;
 
-		if ( null !== $this->get_last_error() ) {
+		if ( isset( $this->last_error ) ) {
 			return false;
 		}
 
@@ -828,7 +826,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 				return $this->next_visitable_token();
 			}
 
-			if ( null !== $this->get_last_error() ) {
+			if ( isset( $this->last_error ) ) {
 				return false;
 			}
 		}
@@ -1024,7 +1022,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 */
 	public function step( $node_to_process = self::PROCESS_NEXT_NODE ): bool {
 		// Refuse to proceed if there was a previous error.
-		if ( null !== $this->get_last_error() ) {
+		if ( null !== $this->last_error ) {
 			return false;
 		}
 
@@ -1068,7 +1066,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			try {
 				$bookmark_name = $this->bookmark_token();
 			} catch ( Exception $e ) {
-				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->get_last_error() ) {
+				if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
 					return false;
 				}
 				throw $e;
@@ -1180,7 +1178,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 			 */
 			return false;
 		} catch ( Exception $e ) {
-			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->get_last_error() ) {
+			if ( self::ERROR_EXCEEDED_MAX_BOOKMARKS === $this->last_error ) {
 				return false;
 			}
 			// Rethrow any other exceptions for higher-level handling.
@@ -5107,6 +5105,8 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
 	 * @return string Name of created bookmark.
+	 *
+	 * @phpstan-impure
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
@@ -5158,7 +5158,7 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @return string|null Name of currently matched tag in input HTML, or `null` if none found.
 	 */
 	public function get_tag(): ?string {
-		if ( null !== $this->get_last_error() ) {
+		if ( null !== $this->last_error ) {
 			return null;
 		}
 
