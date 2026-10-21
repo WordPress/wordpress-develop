@@ -33,7 +33,7 @@ class Tests_Formatting_Htmlentities2 extends WP_UnitTestCase {
 			'encodes double quotes'   => array( '"quoted"', '&quot;quoted&quot;' ),
 			'encodes bare ampersand'  => array( 'A & B', 'A &amp; B' ),
 			'preserves amp entity'    => array( 'A &amp; B', 'A &amp; B' ),
-			'preserves numeric entity'=> array( '&#38;', '&#38;' ),
+			'preserves numeric entity' => array( '&#38;', '&#38;' ),
 		);
 	}
 }
