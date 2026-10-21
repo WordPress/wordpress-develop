@@ -118,7 +118,9 @@ parameters:
 	# getenv() through unconverted, which yields false when the variable is unset and otherwise a string (where
 	# 'false' and 'off' are truthy). When core starts handling a value outside a type, widen the type along with it.
 	dynamicConstantNames:
+		ADMIN_COOKIE_PATH: 'string'
 		ALLOW_SUBDIRECTORY_INSTALL: 'bool'
+		AUTH_COOKIE: 'non-empty-string'
 		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
 		# treats a falsy value as missing.
 		AUTH_SALT: 'non-empty-string'
@@ -128,6 +130,8 @@ parameters:
 		BACKGROUND_IMAGE: 'string'
 		# Core defined false before r58011, and many configs still do. setcookie() treats it like ''.
 		COOKIE_DOMAIN: 'string'
+		# Raw getenv() configs also yield false when unset. Core only concatenates it, so false acts like ''.
+		COOKIEHASH: 'string'
 		COOKIEPATH: 'string'
 		CUSTOM_TAGS: 'bool'
 		# Raw getenv() configs also yield false. Core treats any falsy value as empty.
@@ -152,6 +156,7 @@ parameters:
 		# Some legacy themes define a numeric string, such as '940'. Core casts it with (int).
 		HEADER_IMAGE_WIDTH: 'int'
 		HEADER_TEXTCOLOR: 'string'
+		LOGGED_IN_COOKIE: 'non-empty-string'
 		# Some configs define '', and ones that read environment variables also yield false or null when unset. Core
 		# treats a falsy value as missing.
 		LOGGED_IN_KEY: 'non-empty-string'
@@ -165,6 +170,9 @@ parameters:
 		# The WordPress MU sample config defined '', which disables the 404 redirect, but for an unknown site on a
 		# subdomain network core then sends an empty Location header.
 		NOBLOGREDIRECT: 'non-empty-string'
+		PASS_COOKIE: 'non-empty-string'
+		PLUGINS_COOKIE_PATH: 'string'
+		RECOVERY_MODE_COOKIE: 'non-empty-string'
 		REST_REQUEST: 'bool'
 		# Also defined as 1 or 0, and as getenv() strings. Core checks truthiness.
 		SAVEQUERIES: 'bool'
@@ -172,10 +180,13 @@ parameters:
 		SCRIPT_DEBUG: 'bool'
 		SECRET_KEY: 'non-empty-string'
 		SECRET_SALT: 'non-empty-string'
+		SECURE_AUTH_COOKIE: 'non-empty-string'
 		# Some code defines 1 or 'true'. Core checks truthiness.
 		SHORTINIT: 'bool'
 		SITECOOKIEPATH: 'string'
+		TEST_COOKIE: 'non-empty-string'
 		UPLOADBLOGSDIR: 'non-empty-string'
+		USER_COOKIE: 'non-empty-string'
 		WP_ALLOW_MULTISITE: 'bool'
 		WP_CACHE: 'bool'
 		# Also defined as 0 or 1, and as getenv() strings. Core checks truthiness.

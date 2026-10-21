@@ -68,14 +68,14 @@ define( 'COOKIE_DOMAIN', '' );
 
 /** @see wp_cookie_constants() */
 define( 'COOKIEHASH', '' );
-define( 'USER_COOKIE', '' );
-define( 'PASS_COOKIE', '' );
-define( 'AUTH_COOKIE', '' );
-define( 'SECURE_AUTH_COOKIE', '' );
-define( 'LOGGED_IN_COOKIE', '' );
-define( 'TEST_COOKIE', '' );
+define( 'USER_COOKIE', 'wordpressuser_' );
+define( 'PASS_COOKIE', 'wordpresspass_' );
+define( 'AUTH_COOKIE', 'wordpress_' );
+define( 'SECURE_AUTH_COOKIE', 'wordpress_sec_' );
+define( 'LOGGED_IN_COOKIE', 'wordpress_logged_in_' );
+define( 'TEST_COOKIE', 'wordpress_test_cookie' );
 define( 'PLUGINS_COOKIE_PATH', '' );
-define( 'RECOVERY_MODE_COOKIE', '' );
+define( 'RECOVERY_MODE_COOKIE', 'wordpress_rec_' );
 
 /** @see wp_ssl_constants() */
 define( 'FORCE_SSL_LOGIN', false );
