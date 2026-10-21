@@ -51,8 +51,9 @@ class Tests_Kses_wpKsesPostDeep extends WP_UnitTestCase {
 		$input       = new stdClass();
 		$input->html = '<p>Ok</p><script>bad</script>';
 
-		$result = wp_kses_post_deep( $input );
+		$expected = wp_kses_post( $input->html );
+		$result   = wp_kses_post_deep( $input );
 
-		$this->assertSame( wp_kses_post( $input->html ), $result->html );
+		$this->assertSame( $expected, $result->html );
 	}
 }
