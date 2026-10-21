@@ -4149,16 +4149,12 @@ class WP_HTML_Tag_Processor {
 				return true;
 
 			case 'STYLE':
-				$escaped = self::escape_style_contents( $plaintext_content );
-				if ( null === $escaped ) {
-					return false;
-				}
-
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$escaped
+					self::escape_style_contents( $plaintext_content )
 				);
+
 				return true;
 
 			case 'TEXTAREA':
@@ -4544,10 +4540,12 @@ class WP_HTML_Tag_Processor {
 	 * @ignore
 	 *
 	 * @param string $text Raw contents intended to be serialized into an HTML STYLE element.
-	 * @return string|null Escaped form of input contents which will not lead to premature closing of the containing STYLE element,
-	 *                     or null if the regular expression engine fails.
+	 * @return string Escaped form of input contents which will not lead to premature closing of the containing STYLE element.
 	 */
-	private static function escape_style_contents( string $text ): ?string {
+	private static function escape_style_contents( string $text ): string {
+		$escaped = '';
+		$was_at  = 0;
+
 		/*
 		 * Replace all instances of the ASCII case-insensitive match of "</style"
 		 * when followed by whitespace or "/" or ">", by using a CSS Unicode
@@ -4556,17 +4554,19 @@ class WP_HTML_Tag_Processor {
 		 * CSS Unicode escape sequences will terminate at the first non-hexadecimal,
 		 * so the `t` character in `style` ensures that a Unicode escape sequence
 		 * like `\73t` is correctly interpreted as `st`.
-		 *
-		 * The match is only the "s": `\K` leaves "</" in place and the
-		 * lookahead leaves the rest of the tag name and the character after it.
 		 */
-		return preg_replace_callback(
-			'~</\Ks(?=tyle[ \t\f\r\n/>])~i',
-			static function ( array $matches ): string {
-				return 's' === $matches[0] ? '\73' : '\53';
-			},
-			$text
-		);
+		foreach ( self::find_tag_names( $text, 'style', false ) as $at ) {
+			$escaped .= substr( $text, $was_at, $at - $was_at );
+			$escaped .= 's' === $text[ $at ] ? '\73' : '\53';
+			$was_at   = $at + 1;
+		}
+
+		if ( 0 === $was_at ) {
+			return $text;
+		}
+
+		$escaped .= substr( $text, $was_at );
+		return $escaped;
 	}
 
 	/**
