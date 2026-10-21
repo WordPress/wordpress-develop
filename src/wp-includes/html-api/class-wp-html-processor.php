@@ -5105,8 +5105,6 @@ class WP_HTML_Processor extends WP_HTML_Tag_Processor {
 	 * @throws Exception When unable to allocate requested bookmark.
 	 *
 	 * @return string Name of created bookmark.
-	 *
-	 * @phpstan-impure
 	 */
 	private function bookmark_token() {
 		if ( ! parent::set_bookmark( (string) ++$this->bookmark_counter ) ) {
