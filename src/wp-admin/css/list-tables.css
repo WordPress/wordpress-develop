@@ -1816,9 +1816,13 @@ div.action-links,
 		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	}
 
-	/* Keep oversized content blocks from widening every row in their column. */
+	/*
+	 * Cap oversized content while letting the column shrink below its intrinsic minimum width.
+	 * A zero-minimum grid track keeps overflow inside the content wrapper.
+	 */
 	.wp-list-table-scroll .wp-list-table-content-scroll {
-		display: block;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		max-width: 40em;
 		overflow: auto;
 		scrollbar-color: var(--wpds-color-background-thumb-neutral-weak) transparent;

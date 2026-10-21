@@ -252,6 +252,44 @@ jQuery( function() {
 		assert.strictEqual( cell.querySelector( '.row-actions' ).getBoundingClientRect().x, actionX, 'Scrolling content leaves actions in place.' );
 	} );
 
+	[ 'ltr', 'rtl' ].forEach( function( direction ) {
+		QUnit.test( 'Shrinks oversized content with its column in ' + direction, async function( assert ) {
+			this.table.classList.add( 'widefat', 'fixed' );
+			this.table.style.width = '100%';
+			this.table.innerHTML = '<thead><tr><th class="column-primary">Content</th><th style="min-width: 180px">Other column</th></tr></thead><tbody><tr><td><p>Ordinary text can wrap when the available space gets smaller.</p><pre style="width: 1000px">Wide content</pre><div class="plugin-scroller" style="overflow: auto"><pre style="width: 1000px">Plugin content</pre></div></td><td>Other content</td></tr></tbody>';
+			await afterResize();
+
+			// Use the production stylesheet in an isolated desktop viewport.
+			const frame = document.createElement( 'iframe' );
+			frame.width = '1000';
+			const loaded = new Promise( function( resolve ) {
+				frame.onload = resolve;
+			} );
+			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
+			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"></head><body style="font: 13px sans-serif">' + this.wrapper.outerHTML + '</body></html>';
+			document.getElementById( 'qunit-fixture' ).appendChild( frame );
+			await loaded;
+			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
+			const area = wrapper.querySelector( 'td > .wp-list-table-content-scroll > pre' ).parentElement;
+			wrapper.style.width = '800px';
+			const wideWidth = area.clientWidth;
+
+			wrapper.style.width = '600px';
+			assert.ok( area.clientWidth < wideWidth, 'The content area shrinks when the table has less space.' );
+			assert.strictEqual( wrapper.scrollWidth, wrapper.clientWidth, 'Oversized content does not force the fitting table to scroll.' );
+			assert.ok( area.scrollWidth > area.clientWidth, 'The oversized block still scrolls inside its column.' );
+			const ordinary = wrapper.querySelector( 'p' ).parentElement;
+			assert.strictEqual( ordinary.scrollWidth, ordinary.clientWidth, 'Ordinary text wraps without a scrollbar.' );
+			const plugin = wrapper.querySelector( '.plugin-scroller' );
+			assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin retains its own scrollbar after shrinking.' );
+			assert.strictEqual( plugin.parentElement.scrollWidth, plugin.parentElement.clientWidth, 'The plugin does not acquire a second scrollbar.' );
+
+			wrapper.style.width = '400px';
+			assert.ok( wrapper.scrollWidth > wrapper.clientWidth, 'Column minimum widths still cause table scrolling when needed.' );
+			frame.remove();
+		} );
+	} );
+
 	QUnit.test( 'Updates content keyboard access after text changes', async function( assert ) {
 		this.table.innerHTML = '<tbody><tr><td><pre>Short</pre></td></tr></tbody>';
 		await afterResize();
