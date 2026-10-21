@@ -174,8 +174,9 @@ parameters:
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
 			# The step_*() methods only document WP_HTML_Unsupported_Exception, so PHPStan reports the generic Exception
-			# catch in step() as dead. It is not: an exception from outside the HTML API, such as one thrown by a
-			# doing_it_wrong_run callback when bookmarks run out, propagates out of a nested step() and is rethrown here.
+			# catch after the insertion-mode switch in step() as dead. It is not: an exception from outside the HTML API,
+			# such as one thrown by a doing_it_wrong_run callback when bookmarks run out, propagates out of a nested
+			# step() and is rethrown there.
 			message: '#^Dead catch \- Exception is never thrown in the try block\.$#'
 			identifier: catch.neverThrown
 			count: 1
