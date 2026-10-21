@@ -65,7 +65,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * Distinct plural expressions from the GlotPress locales file, keyed by one locale that uses each.
 	 *
-	 * @see https://github.com/GlotPress/GlotPress/blob/1bf58a783e1888849faf45b53dbc84bc169b3246/locales/locales.php
+	 * @link https://github.com/GlotPress/GlotPress/blob/1bf58a783e1888849faf45b53dbc84bc169b3246/locales/locales.php
 	 *
 	 * @return array<string, array{ 0: int, 1: string }>
 	 */
