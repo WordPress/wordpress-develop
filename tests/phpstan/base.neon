@@ -127,6 +127,8 @@ parameters:
 		AUTH_SALT: 'non-empty-string'
 		# Also defined from getenv() strings, and as 'minor' (confused with WP_AUTO_UPDATE_CORE). Core checks truthiness.
 		AUTOMATIC_UPDATER_DISABLED: 'bool'
+		# Also defined as numeric strings from options, and as 0 or false, which turn off autosaves in the block editor.
+		AUTOSAVE_INTERVAL: 'positive-int'
 		BACKGROUND_COLOR: 'string'
 		BACKGROUND_IMAGE: 'string'
 		BLOGUPLOADDIR: 'non-empty-string'
@@ -152,6 +154,11 @@ parameters:
 		# Also defined as getenv() strings. force_ssl_admin() casts it with (bool).
 		FORCE_SSL_ADMIN: 'bool'
 		FORCE_SSL_LOGIN: 'bool'
+		FS_CHMOD_DIR: 'int'
+		FS_CHMOD_FILE: 'int'
+		# Also defined as numeric strings from options. On PHP 8, ftp_connect() throws for a value below 1.
+		FS_CONNECT_TIMEOUT: 'positive-int'
+		FS_TIMEOUT: 'positive-int'
 		HEADER_IMAGE: 'string'
 		# Some legacy themes define a numeric string, such as '200'. Core casts it with (int).
 		HEADER_IMAGE_HEIGHT: 'int'
@@ -198,6 +205,7 @@ parameters:
 		# Raw getenv() configs also yield false, which core concatenates as '', so that plugins load from /plugins.
 		WP_CONTENT_DIR: 'non-empty-string'
 		WP_CONTENT_URL: 'non-empty-string'
+		WP_CRON_LOCK_TIMEOUT: 'positive-int'
 		# Also defined as 0 or 1, and as getenv() strings. Core checks truthiness.
 		WP_DEBUG: 'bool'
 		# Also defined as 0, and as getenv() strings. Core checks truthiness, and null leaves display_errors as is.
@@ -205,11 +213,17 @@ parameters:
 		# A bool or a log file path. getenv() configs also define '' or '0' (both disable logging) and 'false' (logs
 		# to a file named "false").
 		WP_DEBUG_LOG: 'bool|non-falsy-string'
+		# getenv() configs also yield '' or false, for which wp_get_theme() returns the active theme instead.
+		WP_DEFAULT_THEME: 'non-empty-string'
 		# Some sites define true. wp_get_development_mode() treats an unknown value as '', but Site Health shows it as is.
 		WP_DEVELOPMENT_MODE: '''core''|''plugin''|''theme''|''all''|'''''
 		WP_INSTALLING: 'bool'
 		WP_INSTALLING_NETWORK: 'bool'
 		WP_LANG_DIR: 'non-empty-string'
+		# The PHPUnit bootstrap also defines the int -1, which core reads like '-1'.
+		WP_MAX_MEMORY_LIMIT: 'string'
+		# The PHPUnit bootstrap also defines the int -1, which core reads like '-1'.
+		WP_MEMORY_LIMIT: 'string'
 		WP_NETWORK_ADMIN: 'bool'
 		WP_PLUGIN_DIR: 'non-empty-string'
 		WP_PLUGIN_URL: 'non-empty-string'
@@ -218,6 +232,7 @@ parameters:
 		WP_REPAIRING: 'bool'
 		# Raw getenv() configs also yield false when unset.
 		WP_SITEURL: 'string'
+		WP_START_TIMESTAMP: 'float'
 		# Some code defines 0, or the string 'false' (which core treats as true).
 		WP_USE_THEMES: 'bool'
 		WP_USER_ADMIN: 'bool'
