@@ -35,6 +35,10 @@ class Tests_General_CalendarWeekMod extends WP_UnitTestCase {
 			'day after wrap'           => array( 8, 1.0 ),
 			'two weeks'                => array( 14, 0.0 ),
 			'large offset'             => array( 20, 6.0 ),
+			'negative offset'          => array( -1, 6.0 ),
+			'negative six days'        => array( -6, 1.0 ),
+			'negative week boundary'   => array( -7, 0.0 ),
+			'negative beyond boundary' => array( -8, 6.0 ),
 		);
 	}
 }
