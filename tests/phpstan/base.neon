@@ -126,6 +126,8 @@ parameters:
 		AUTOMATIC_UPDATER_DISABLED: 'bool'
 		BACKGROUND_COLOR: 'string'
 		BACKGROUND_IMAGE: 'string'
+		# Core defined false before r58011, and many configs still do. setcookie() treats it like ''.
+		COOKIE_DOMAIN: 'string'
 		COOKIEPATH: 'string'
 		CUSTOM_TAGS: 'bool'
 		# Raw getenv() configs also yield false. Core treats any falsy value as empty.
@@ -140,6 +142,8 @@ parameters:
 		# Also defined as false (treated like 0), -1, and getenv() strings. In wp_scheduled_delete(), an empty string
 		# fatals and a negative number purges all trash.
 		EMPTY_TRASH_DAYS: 'non-negative-int'
+		# Also defined as getenv() strings. force_ssl_admin() casts it with (bool).
+		FORCE_SSL_ADMIN: 'bool'
 		FORCE_SSL_LOGIN: 'bool'
 		HEADER_IMAGE: 'string'
 		# Some legacy themes define a numeric string, such as '200'. Core casts it with (int).
