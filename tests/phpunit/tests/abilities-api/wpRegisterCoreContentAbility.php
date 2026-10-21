@@ -5312,7 +5312,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
 	 * Returns `where.author` values that are not an object holding an ID or a slug: values
-	 * that are not objects, empty objects, and objects with an unknown property.
+	 * that are not objects, empty values, and objects with an unknown property.
 	 *
 	 * Schema validation rejects them all, so the test calls the execute callback directly.
 	 *
@@ -5334,6 +5334,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			),
 			'null'                            => array(
 				'author' => null,
+			),
+			'empty string'                    => array(
+				'author' => '',
 			),
 			'empty array'                     => array(
 				'author' => array(),
@@ -5453,13 +5456,32 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Called directly, an author ID given as a string of digits is accepted like a `parent`
-	 * ID, and names the user with that ID.
+	 * Returns the scalar types, other than integer, that carry a whole number.
+	 *
+	 * @return array<string, array{type: string}> The type names, as `settype()` takes them.
+	 */
+	public function data_author_id_whole_number_types(): array {
+		return array(
+			'string of digits' => array(
+				'type' => 'string',
+			),
+			'whole float'      => array(
+				'type' => 'float',
+			),
+		);
+	}
+
+	/**
+	 * Called directly, an author ID given as a string of digits or a whole float is accepted
+	 * like a `parent` ID, and names the user with that ID.
 	 *
 	 * @ticket 66268
+	 * @dataProvider data_author_id_whole_number_types
 	 * @since 7.2.0
+	 *
+	 * @param string $type The type to give the ID as.
 	 */
-	public function test_execute_callback_accepts_an_author_id_given_as_a_string_of_digits(): void {
+	public function test_execute_callback_accepts_an_author_id_given_as_a_whole_number( string $type ): void {
 		$mine_id = self::factory()->post->create(
 			array(
 				'post_author' => self::$user_ids['author'],
@@ -5473,6 +5495,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
+		$author_id = self::$user_ids['author'];
+		settype( $author_id, $type );
+
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
@@ -5480,24 +5505,96 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array(
 				'where'  => array(
 					'type'   => 'post',
-					'author' => array( 'id' => (string) self::$user_ids['author'] ),
+					'author' => array( 'id' => $author_id ),
 				),
 				'fields' => array( 'id' ),
 			)
 		);
 
-		$this->assertIsArray( $result, 'An author ID given as a string of digits should be accepted.' );
-		$this->assertSame( array( $mine_id ), wp_list_pluck( $result['items'], 'id' ), 'An author ID given as a string of digits should return only that author\'s posts.' );
+		$this->assertIsArray( $result, "An author ID given as a {$type} should be accepted." );
+		$this->assertSame( array( $mine_id ), wp_list_pluck( $result['items'], 'id' ), "An author ID given as a {$type} should return only that author's posts." );
 	}
 
 	/**
-	 * Returns `where.author.slug` values that are not a string, and the empty string.
+	 * Returns author filters with more than one problem, with the parameter the error
+	 * should name: the object's shape is checked before its ID, and the ID before its slug.
+	 *
+	 * @return array<string, array{author: array<string, mixed>, param: string}> The filters and parameters.
+	 */
+	public function data_author_filters_with_several_problems(): array {
+		return array(
+			'unknown property next to a bad id' => array(
+				'author' => array(
+					'id'   => 0,
+					'name' => 'x',
+				),
+				'param'  => 'where[author]',
+			),
+			'bad id and bad slug'               => array(
+				'author' => array(
+					'id'   => 0,
+					'slug' => 5,
+				),
+				'param'  => 'where[author][id]',
+			),
+			'bad id and empty slug'             => array(
+				'author' => array(
+					'id'   => 0,
+					'slug' => '',
+				),
+				'param'  => 'where[author][id]',
+			),
+			'good id and bad slug'              => array(
+				'author' => array(
+					'id'   => 1,
+					'slug' => 5,
+				),
+				'param'  => 'where[author][slug]',
+			),
+		);
+	}
+
+	/**
+	 * Called directly, an author filter with several problems reports the first one found:
+	 * the object's shape, then the ID, then the slug.
+	 *
+	 * @ticket 66268
+	 * @dataProvider data_author_filters_with_several_problems
+	 * @since 7.2.0
+	 *
+	 * @param array<string, mixed> $author The `where.author` value to send.
+	 * @param string               $param  The parameter the error should name.
+	 */
+	public function test_execute_callback_reports_the_first_problem_of_an_author_filter( array $author, string $param ): void {
+		$this->login_as( 'administrator' );
+		$execute = $this->get_ability_callbacks()['execute_callback'];
+
+		$result = $execute(
+			array(
+				'where' => array(
+					'type'   => 'post',
+					'author' => $author,
+				),
+			)
+		);
+
+		$this->assertWPError( $result, 'An author filter with several problems should be rejected.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author filter with several problems should fail as an invalid filter.' );
+		$this->assertSame(
+			array( $param => $result->get_error_message() ),
+			$result->get_error_data()['params'],
+			'The error data should name the first problem found in the author filter.'
+		);
+	}
+
+	/**
+	 * Returns `where.author.slug` values that are not a non-empty string.
 	 *
 	 * Schema validation rejects them all, so the test calls the execute callback directly.
 	 *
 	 * @return array<string, array{slug: mixed}> The `where.author.slug` values.
 	 */
-	public function data_author_slugs_that_are_not_strings(): array {
+	public function data_author_slugs_that_are_not_non_empty_strings(): array {
 		return array(
 			'integer'      => array(
 				'slug' => 5,
@@ -5525,12 +5622,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	 * than silently dropped, which would widen the query to every author's posts.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_slugs_that_are_not_strings
+	 * @dataProvider data_author_slugs_that_are_not_non_empty_strings
 	 * @since 7.2.0
 	 *
 	 * @param mixed $slug The `where.author.slug` value to send.
 	 */
-	public function test_execute_callback_rejects_an_author_slug_that_is_not_a_string( $slug ): void {
+	public function test_execute_callback_rejects_an_author_slug_that_is_not_a_non_empty_string( $slug ): void {
 		$this->login_as( 'administrator' );
 		$execute = $this->get_ability_callbacks()['execute_callback'];
 
@@ -5543,8 +5640,8 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertWPError( $result, 'An author slug that is not a string must not silently widen the query to all authors.' );
-		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author slug that is not a string should fail as an invalid filter.' );
+		$this->assertWPError( $result, 'An author slug that is not a non-empty string must not silently widen the query to all authors.' );
+		$this->assertSame( 'content_invalid_filter', $result->get_error_code(), 'An author slug that is not a non-empty string should fail as an invalid filter.' );
 		$this->assertSame(
 			array( 'where[author][slug]' => $result->get_error_message() ),
 			$result->get_error_data()['params'],

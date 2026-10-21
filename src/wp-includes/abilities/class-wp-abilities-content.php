@@ -499,7 +499,7 @@ final class WP_Abilities_Content {
 					return $this->invalid_filter_error(
 						'where[author][slug]',
 						/* translators: %s: Parameter. */
-						sprintf( __( 'The %s slug must be a string.' ), 'author' )
+						sprintf( __( 'The %s slug must be a non-empty string.' ), 'author' )
 					);
 				}
 
@@ -1076,7 +1076,7 @@ final class WP_Abilities_Content {
 				'properties'           => array(
 					'id'   => array(
 						'type'        => 'integer',
-						'description' => __( 'The user ID of the author.' ),
+						'description' => __( 'The user ID of the author, as the `author.id` filter takes it.' ),
 					),
 					'name' => array(
 						'type'        => array( 'string', 'null' ),
@@ -1224,7 +1224,7 @@ final class WP_Abilities_Content {
 									'description' => __( "The author's user slug (nicename), as `author.slug` is returned and as the REST API users endpoint returns it in `slug`." ),
 								),
 							),
-							'description'          => __( 'Filter by the post author, given as the `id` or the `slug` the `author` field of a post returns. When both are given they must name the same user. An ID or slug that names no user matches no post. Only supported for post types that support authors.' ),
+							'description'          => __( 'Filter by the post author, given as the `id` or the `slug` the `author` field of a post returns. An ID or slug that names no user, or an ID and a slug that name different users, match no post. Only supported for post types that support authors.' ),
 						),
 						'parent' => array(
 							'type'        => 'integer',
