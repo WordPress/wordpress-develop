@@ -65,6 +65,14 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 					'callback'            => array( $this, 'execute_ability' ),
 					'permission_callback' => array( $this, 'check_ability_permissions' ),
 					'args'                => $this->get_run_args(),
+
+					/*
+					 * Serve the ability result as returned, so it follows the ability's output
+					 * schema whether it is an object, an array, or a scalar value.
+					 */
+					'allow_fields'        => false,
+					'allow_embed'         => false,
+					'allow_links'         => false,
 				),
 				'schema' => array( $this, 'get_run_schema' ),
 			)
@@ -96,18 +104,10 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 		}
 
 		/*
-		 * Preserve empty objects in nested properties when encoding an associative
-		 * result as JSON. Preparation can convert empty PHP arrays to stdClass.
-		 *
-		 * The REST server's `_fields` and `_embed` processing expects arrays at the
-		 * response root and for numeric collection items. Converting those values
-		 * to objects would cause type errors, so skip root empty arrays and numeric
-		 * collections until that processing supports objects. An empty object result
-		 * therefore still encodes as [], and a list containing one encodes as [[]].
+		 * Preserve empty objects when encoding the result as JSON. Preparation can
+		 * convert empty PHP arrays to stdClass, also within object results.
 		 */
-		if ( is_array( $result ) && ! wp_is_numeric_array( $result ) ) {
-			$result = wp_prepare_json_value_for_client( $result, $ability->get_output_schema() );
-		}
+		$result = wp_prepare_json_value_for_client( $result, $ability->get_output_schema() );
 
 		return rest_ensure_response( $result );
 	}
