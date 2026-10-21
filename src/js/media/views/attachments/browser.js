@@ -5,6 +5,7 @@ var View = wp.media.View,
 	AttachmentsBrowser,
 	infiniteScrolling = wp.media.view.settings.infiniteScrolling,
 	__ = wp.i18n.__,
+	_n = wp.i18n._n,
 	sprintf = wp.i18n.sprintf;
 
 /**
@@ -606,9 +607,13 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		if ( this.collection.length ) {
 			this.loadMoreCount.$el.text(
-				/* translators: 1: Number of displayed attachments, 2: Number of total attachments. */
 				sprintf(
-					__( 'Showing %1$s of %2$s media items' ),
+					/* translators: 1: Number of displayed attachments, 2: Number of total attachments. */
+					_n(
+						'Showing %1$s of %2$s media item',
+						'Showing %1$s of %2$s media items',
+						this.collection.getTotalAttachments()
+					),
 					this.collection.length,
 					this.collection.getTotalAttachments()
 				)
