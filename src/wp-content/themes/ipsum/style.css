@@ -38,7 +38,16 @@ body {
  * Progressive enhancement to reduce widows and orphans
  * https://github.com/WordPress/gutenberg/issues/55190
  */
-h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+blockquote,
+caption,
+figcaption,
+p {
 	text-wrap: pretty;
 }
 
@@ -49,11 +58,13 @@ h1, h2, h3, h4, h5, h6, blockquote, caption, figcaption, p {
  * by the text-decoration shorthand emitted in generated global styles.
  * The span selector catches the editor's inline underline format.
  */
-a, u, ins,
+a,
+u,
+ins,
 span[style*="text-decoration"] {
 	text-decoration-thickness: 1px !important;
 	text-decoration-style: dotted !important;
-	text-underline-offset: 0.1em
+	text-underline-offset: 0.1em;
 }
 
 /*
@@ -76,7 +87,7 @@ span[style*="text-decoration"] {
 /*
  * Change the position of the more block on the front, by making it a block level element.
  * https://github.com/WordPress/gutenberg/issues/65934
-*/
+ */
 .more-link {
 	display: block;
 }
@@ -96,7 +107,7 @@ span[style*="text-decoration"] {
  */
 header.wp-block-template-part,
 footer.wp-block-template-part {
-	margin-block-start: 0 !important;
+	margin-block-start: 0;
 }
 
 /*
