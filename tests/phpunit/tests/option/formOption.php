@@ -13,10 +13,10 @@ class Tests_Option_FormOption extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_echoes_escaped_option_value() {
-		update_option( 'blogname', 'A & B <Site>' );
+		update_option( 'form_option_test_value', 'A & B <Site>' );
 
 		ob_start();
-		form_option( 'blogname' );
+		form_option( 'form_option_test_value' );
 		$output = ob_get_clean();
 
 		$this->assertSame( esc_attr( 'A & B <Site>' ), $output );
