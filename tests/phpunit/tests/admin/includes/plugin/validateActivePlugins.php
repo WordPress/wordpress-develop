@@ -53,8 +53,9 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	public function set_up() {
 		parent::set_up();
 
+		$this->remove_plugin();
+
 		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
-		$this->assertDirectoryDoesNotExist( $dir, 'The test directory should not exist yet.' );
 		$this->assertTrue( mkdir( $dir ), 'The test directory should be created.' );
 		$this->assertNotFalse( file_put_contents( $dir . '/functions.php', "<?php\n// No plugin header.\n" ), 'The file should be written.' );
 
@@ -66,11 +67,7 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 	 * Removes the plugin file without a header.
 	 */
 	public function tear_down() {
-		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
-		if ( is_dir( $dir ) ) {
-			unlink( $dir . '/functions.php' );
-			rmdir( $dir );
-		}
+		$this->remove_plugin();
 
 		wp_cache_delete( 'plugins', 'plugins' );
 
@@ -186,5 +183,17 @@ class Tests_Admin_Includes_Plugin_ValidateActivePlugins extends WP_UnitTestCase 
 
 		$this->assertSame( array(), validate_active_plugins(), 'No plugins should be validated.' );
 		$this->assertSame( array( 'missing/missing.php' => 1000 ), get_site_option( 'active_sitewide_plugins' ), 'The network plugins should not change.' );
+	}
+
+	/**
+	 * Removes the plugin file without a header, including one left over by an interrupted run.
+	 */
+	private function remove_plugin() {
+		$dir = WP_PLUGIN_DIR . '/' . self::NO_HEADER_DIR;
+
+		if ( is_dir( $dir ) ) {
+			$this->rmdir( $dir );
+			rmdir( $dir );
+		}
 	}
 }
