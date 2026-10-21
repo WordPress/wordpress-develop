@@ -3978,8 +3978,7 @@ class WP_HTML_Tag_Processor {
 			self::STATE_COMMENT === $this->parser_state &&
 			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
 		) {
-			// Check if the text could close the comment.
-			if ( 1 === preg_match( '/^-?>|--!?>/', $plaintext_content ) ) {
+			if ( self::has_comment_closer( $plaintext_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Comment text cannot contain a comment closer.' ),
@@ -4093,14 +4092,13 @@ class WP_HTML_Tag_Processor {
 				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
 				 * states, where a later `</script>` no longer closes the element.
 				 *
-				 * In both cases the tag name ends only at one of the characters matched
-				 * below, so text such as `</scriptx>` cannot change that structure and is
-				 * safe to set.
+				 * In both cases the tag name ends only at whitespace, "/" or ">", so text
+				 * such as `</scriptx>` cannot change that structure and is safe to set.
 				 *
 				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
 				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
 				 */
-				if ( 1 === preg_match( '~</?script[ \t\f\r\n/>]~i', $plaintext_content ) ) {
+				if ( array() !== self::find_tag_names( $plaintext_content, 'script', true ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
@@ -4122,12 +4120,12 @@ class WP_HTML_Tag_Processor {
 				$tag_name = $this->get_tag();
 
 				/*
-				 * A tag name ends only at one of the characters matched below, so text
-				 * such as `</xmp-tag>` cannot close the element and is safe to set.
+				 * A tag name ends only at whitespace, "/" or ">", so text such as
+				 * `</xmp-tag>` cannot close the element and is safe to set.
 				 *
 				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
 				 */
-				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
+				if ( array() !== self::find_tag_names( $plaintext_content, $tag_name, false ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
@@ -4528,6 +4526,36 @@ class WP_HTML_Tag_Processor {
 
 		$escaped .= substr( $sourcecode, $was_at );
 		return $escaped;
+	}
+
+	/**
+	 * Indicates whether comment text holds a sequence which would end the comment.
+	 *
+	 * A comment ends at "-->" or "--!>", or at ">" or "->" right after "<!--".
+	 *
+	 * @link https://html.spec.whatwg.org/#comment-start-state
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string $text Comment text.
+	 * @return bool Whether the text would end the comment.
+	 */
+	private static function has_comment_closer( string $text ): bool {
+		$at = 0;
+		while ( false !== ( $gt_at = strpos( $text, '>', $at ) ) ) {
+			$at = $gt_at + 1;
+			if (
+				0 === $gt_at ||
+				( 1 === $gt_at && '-' === $text[0] ) ||
+				( $gt_at >= 2 && '-' === $text[ $gt_at - 1 ] && '-' === $text[ $gt_at - 2 ] ) ||
+				( $gt_at >= 3 && '!' === $text[ $gt_at - 1 ] && '-' === $text[ $gt_at - 2 ] && '-' === $text[ $gt_at - 3 ] )
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

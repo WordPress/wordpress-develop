@@ -709,6 +709,8 @@ HTML
 		return array(
 			'Comment with -->'                        => array( '<!-- this is a comment -->', 'Comments end in -->' ),
 			'Comment with --!>'                       => array( '<!-- this is a comment -->', 'Invalid but legitimate comments end in --!>' ),
+			'Comment starting with >'                 => array( '<!-- this is a comment -->', '> ends an empty comment' ),
+			'Comment starting with ->'                => array( '<!-- this is a comment -->', '-> ends an empty comment' ),
 			'IFRAME with </iframe>'                   => array( '<iframe>Replace me</iframe>', 'Just a </iframe>' ),
 			'NOEMBED with </NOEMBED>'                 => array( '<noembed>Replace me</noembed>', 'Just a </NOEMBED>' ),
 			'NOFRAMES with </noframes attributes>'    => array( '<noframes>Replace me</noframes>', 'before</noframes sneaky>after' ),
@@ -724,6 +726,46 @@ HTML
 			'XMP with </xmp/>'                        => array( '<xmp>Replace me</xmp>', 'Also closed by </xmp/>' ),
 			'XMP with </xmp\f>'                       => array( '<xmp>Replace me</xmp>', "Also closed by </xmp\f>" ),
 			'Non-JS SCRIPT with </script\r>'          => array( '<script language="text">Replace me</script>', "before</script\r>after" ),
+		);
+	}
+
+	/**
+	 * Ensures that comment text which resembles a comment closer, but cannot
+	 * end the comment, is allowed.
+	 *
+	 * @dataProvider data_comment_text_resembling_a_closer
+	 *
+	 * @param string $update Text resembling, but not forming, a comment closer.
+	 */
+	public function test_allows_comment_text_which_cannot_close_the_comment( string $update ): void {
+		$processor = new WP_HTML_Tag_Processor( '<!-- comment -->' );
+		$processor->next_token();
+
+		$this->assertTrue(
+			$processor->set_modifiable_text( $update ),
+			'Should have allowed text which cannot close the comment.'
+		);
+
+		$this->assertSame(
+			"<!--{$update}-->",
+			$processor->get_updated_html(),
+			'Should have updated the comment.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public static function data_comment_text_resembling_a_closer(): array {
+		return array(
+			'> after text'      => array( 'a>' ),
+			'-> after text'     => array( 'a->' ),
+			'-!> at the start'  => array( '-!>' ),
+			'--! before text'   => array( '--!x>' ),
+			'Spaced dashes'     => array( '- ->' ),
+			'Dashes at the end' => array( 'a--' ),
 		);
 	}
 
