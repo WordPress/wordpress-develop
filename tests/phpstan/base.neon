@@ -220,9 +220,7 @@ parameters:
 		WP_INSTALLING: 'bool'
 		WP_INSTALLING_NETWORK: 'bool'
 		WP_LANG_DIR: 'non-empty-string'
-		# The PHPUnit bootstrap also defines the int -1, which core reads like '-1'.
 		WP_MAX_MEMORY_LIMIT: 'string'
-		# The PHPUnit bootstrap also defines the int -1, which core reads like '-1'.
 		WP_MEMORY_LIMIT: 'string'
 		WP_NETWORK_ADMIN: 'bool'
 		WP_PLUGIN_DIR: 'non-empty-string'
