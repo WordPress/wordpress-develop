@@ -159,7 +159,11 @@ class Tests_Admin_Includes_Plugin_DeactivatePlugins extends WP_UnitTestCase {
 		deactivate_plugins( 'a/a.php', false, true );
 
 		$this->assertSame( array( 'a/a.php', 'b/b.php', 'c.php' ), get_option( 'active_plugins' ), 'The site activation should be kept.' );
-		$this->assertNotContains( 'deactivated_plugin', array_column( $this->calls, 0 ), 'The plugin should not be reported as deactivated.' );
+		$this->assertSame(
+			array( array( 'deactivate_plugin', array( 'a/a.php', false ) ) ),
+			$this->calls,
+			'Only deactivate_plugin should fire, although the plugin stays active.'
+		);
 	}
 
 	/**
