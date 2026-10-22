@@ -256,41 +256,6 @@ function wp_register_entity_field_collection( $directory ) {
 }
 
 /**
- * Returns the post types whose items the screen of the site editor being
- * loaded lists or edits, from its `p` query arg.
- *
- * The screens are the routes in
- * packages/edit-site/src/components/site-editor-routes in Gutenberg: the
- * lists and the editors of pages, templates, patterns, and template parts.
- * The patterns screen lists both patterns and template parts.
- *
- * @since 7.2.0
- * @access private
- *
- * @return string[] The post types, empty for any other screen.
- */
-function _wp_get_site_editor_screen_post_types() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks what to preload.
-	$path     = isset( $_GET['p'] ) && is_string( $_GET['p'] ) ? sanitize_text_field( wp_unslash( $_GET['p'] ) ) : '';
-	$segments = explode( '/', trim( $path, '/' ) );
-
-	switch ( $segments[0] ) {
-		case 'page':
-			return array( 'page' );
-		case 'template':
-		case 'wp_template':
-			return array( 'wp_template' );
-		case 'pattern':
-			return array( 'wp_block', 'wp_template_part' );
-		case 'wp_block':
-			return array( 'wp_block' );
-		case 'wp_template_part':
-			return array( 'wp_template_part' );
-	}
-	return array();
-}
-
-/**
  * Adds the paths of an entity route for the post types the editors list.
  *
  * The post editor lists the post type of the edited post. The site editor
@@ -325,7 +290,28 @@ function _wp_add_entity_preload_paths( $paths, $context, $route ) {
 		if ( isset( $context->post ) ) {
 			$post_types[] = $context->post->post_type;
 		}
-		$post_types = array_merge( $post_types, _wp_get_site_editor_screen_post_types() );
+
+		/*
+		 * Adds the post types the screen lists or edits, from the first
+		 * segment of its `p` query arg. The screens are the routes in
+		 * packages/edit-site/src/components/site-editor-routes in Gutenberg.
+		 * The patterns screen lists both patterns and template parts.
+		 */
+		$screen_post_types = array(
+			'page'             => array( 'page' ),
+			'template'         => array( 'wp_template' ),
+			'wp_template'      => array( 'wp_template' ),
+			'pattern'          => array( 'wp_block', 'wp_template_part' ),
+			'wp_block'         => array( 'wp_block' ),
+			'wp_template_part' => array( 'wp_template_part' ),
+		);
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks what to preload.
+		$screen   = isset( $_GET['p'] ) && is_string( $_GET['p'] ) ? sanitize_text_field( wp_unslash( $_GET['p'] ) ) : '';
+		$segments = explode( '/', trim( $screen, '/' ) );
+		if ( isset( $screen_post_types[ $segments[0] ] ) ) {
+			$post_types = array_merge( $post_types, $screen_post_types[ $segments[0] ] );
+		}
 	}
 
 	foreach ( array_unique( $post_types ) as $post_type ) {

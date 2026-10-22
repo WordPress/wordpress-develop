@@ -13,7 +13,6 @@ require_once __DIR__ . '/base.php';
  *
  * @covers ::_wp_add_entity_preload_paths
  * @covers ::_wp_preload_entity_fields
- * @covers ::_wp_get_site_editor_screen_post_types
  */
 class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTestCase {
 
