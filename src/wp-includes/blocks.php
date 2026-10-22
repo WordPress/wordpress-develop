@@ -1755,7 +1755,11 @@ function serialize_block_attributes( $block_attributes ): string {
 			return $replaced;
 		};
 
-		$block_attributes   = $replace_non_finite_numbers( $block_attributes, 512 );
+		$block_attributes = $replace_non_finite_numbers( $block_attributes, 512 );
+
+		// Free the closure now, since it refers to itself and would otherwise wait for the cycle collector.
+		$replace_non_finite_numbers = null;
+
 		$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
 	}
 
