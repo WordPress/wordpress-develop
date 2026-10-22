@@ -1548,4 +1548,54 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * Updating a post should not swap its tags when a tag name contains a
+	 * character that wp_slash() escapes and another tag's name sanitizes to
+	 * an existing slug.
+	 *
+	 * @ticket 62461
+	 *
+	 * @covers ::wp_update_post
+	 */
+	public function test_wp_update_post_should_not_change_tags_with_slashable_names() {
+		// Order matters: 'kid' must own the slug 'kid' for the bug to show.
+		$kid      = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'kid',
+			)
+		);
+		$kid_plus = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'kid+',
+			)
+		);
+		$childs   = self::factory()->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => "children's",
+			)
+		);
+
+		$post_id = self::factory()->post->create();
+		wp_set_post_terms( $post_id, array( $kid_plus, $childs ), 'post_tag' );
+
+		wp_update_post(
+			array(
+				'ID'         => $post_id,
+				'post_title' => 'Updated title',
+			)
+		);
+
+		$term_ids = wp_get_post_terms( $post_id, 'post_tag', array( 'fields' => 'ids' ) );
+		sort( $term_ids );
+
+		$expected = array( $kid_plus, $childs );
+		sort( $expected );
+
+		$this->assertSame( $expected, $term_ids, 'Post tags should be unchanged after a title-only update.' );
+		$this->assertNotContains( $kid, $term_ids, 'The "kid" tag should not replace "kid+".' );
+	}
 }

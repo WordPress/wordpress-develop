@@ -5614,7 +5614,7 @@ function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hook
 			$tag_names = wp_list_pluck( $tags, 'name' );
 		}
 
-		if ( $postarr['tags_input'] === $tag_names ) {
+		if ( wp_unslash( $postarr['tags_input'] ) === $tag_names ) {
 			unset( $postarr['tags_input'] );
 		}
 	}
