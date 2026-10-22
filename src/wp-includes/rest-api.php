@@ -950,7 +950,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
- * @since 7.2.0 The response is left unchanged when the route disables `allow_fields`.
+ * @since 7.2.0 The response is left unchanged when the route turns off the `fields` response processing.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -962,8 +962,12 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
-	if ( $server instanceof WP_REST_Server && ! $server->is_response_option_enabled( $response, 'allow_fields' ) ) {
-		return $response;
+	if ( $server instanceof WP_REST_Server ) {
+		$processing = $server->get_response_processing( $request, $response );
+
+		if ( ! $processing['fields'] ) {
+			return $response;
+		}
 	}
 
 	$data = $response->get_data();
@@ -3053,7 +3057,7 @@ function rest_preload_api_request( $memo, $path ) {
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = (array) $server->response_to_data( $response, $embed );
+		$data     = $server->response_to_data( $response, $embed, $request );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(

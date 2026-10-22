@@ -1678,6 +1678,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$server->serve_request( '/test/status' );
 
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		unset( $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
+
 		$this->assertSame( $status, $server->status, 'The response status is not the one returned by the callback.' );
 
 		$headers = $server->sent_headers;
@@ -2902,17 +2905,17 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Registers a route for the response option tests, and a route that its link embeds.
+	 * Registers a route for the response processing tests, and a route that its link embeds.
 	 *
 	 * @param mixed                $data            The response data.
 	 * @param bool                 $with_link       Whether the response has an embeddable link.
 	 * @param array<string, mixed> $handler_options Options for the route handler.
 	 * @param array<string, mixed> $route_options   Options for the route.
 	 */
-	private function register_response_options_route( $data, bool $with_link, array $handler_options = array(), array $route_options = array() ): void {
+	private function register_response_processing_route( $data, bool $with_link, array $handler_options = array(), array $route_options = array() ): void {
 		rest_get_server()->register_route(
 			'test-ns',
-			'/test-ns/response-options',
+			'/test-ns/response-processing',
 			array_merge(
 				array(
 					array_merge(
@@ -2948,11 +2951,92 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_allow_fields_false_leaves_the_data_unfiltered().
+	 * Data provider for test_resolve_response_processing().
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: array<string, mixed>|null, 2: array<string, bool>}>
+	 */
+	public static function data_resolve_response_processing(): array {
+		$all_on  = array(
+			'fields' => true,
+			'embed'  => true,
+			'links'  => true,
+		);
+		$all_off = array(
+			'fields' => false,
+			'embed'  => false,
+			'links'  => false,
+		);
+
+		return array(
+			'no setting'                          => array( array(), null, $all_on ),
+			'empty route options'                 => array( array(), array(), $all_on ),
+			'handler false'                       => array( array( 'response_processing' => false ), null, $all_off ),
+			'route false'                         => array( array(), array( 'response_processing' => false ), $all_off ),
+			'route false and handler true'        => array( array( 'response_processing' => true ), array( 'response_processing' => false ), $all_on ),
+			'route false and handler fields'      => array(
+				array( 'response_processing' => array( 'fields' => true ) ),
+				array( 'response_processing' => false ),
+				array(
+					'fields' => true,
+					'embed'  => false,
+					'links'  => false,
+				),
+			),
+			'handler fields false'                => array(
+				array( 'response_processing' => array( 'fields' => false ) ),
+				null,
+				array(
+					'fields' => false,
+					'embed'  => true,
+					'links'  => true,
+				),
+			),
+			'handler links false turns off embed' => array(
+				array( 'response_processing' => array( 'links' => false ) ),
+				null,
+				array(
+					'fields' => true,
+					'embed'  => false,
+					'links'  => false,
+				),
+			),
+			'handler embed true needs the links'  => array(
+				array( 'response_processing' => array( 'embed' => true ) ),
+				array( 'response_processing' => array( 'links' => false ) ),
+				array(
+					'fields' => true,
+					'embed'  => false,
+					'links'  => false,
+				),
+			),
+			'route fields false and handler true' => array(
+				array( 'response_processing' => array( 'fields' => true ) ),
+				array( 'response_processing' => array( 'fields' => false ) ),
+				$all_on,
+			),
+			'unknown keys are ignored'            => array( array( 'response_processing' => array( 'envelope' => false ) ), null, $all_on ),
+			'other types are ignored'             => array( array( 'response_processing' => 'no' ), array( 'response_processing' => 0 ), $all_on ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_resolve_response_processing
+	 *
+	 * @param array<string, mixed>      $handler       The route handler.
+	 * @param array<string, mixed>|null $route_options The route options.
+	 * @param array<string, bool>       $expected      The expected settings.
+	 */
+	public function test_resolve_response_processing( array $handler, ?array $route_options, array $expected ): void {
+		$this->assertSame( $expected, WP_REST_Server::resolve_response_processing( $handler, $route_options ), 'The settings should be resolved feature by feature.' );
+	}
+
+	/**
+	 * Data provider for test_response_processing_false_serves_the_data_as_returned().
 	 *
 	 * @return array<string, array{0: mixed, 1: string}>
 	 */
-	public static function data_allow_fields_false_leaves_the_data_unfiltered(): array {
+	public static function data_response_processing_false_serves_the_data_as_returned(): array {
 		return array(
 			'associative array' => array(
 				array(
@@ -2962,6 +3046,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				'{"a":1,"b":2}',
 			),
 			'list'              => array( array( array( 'b' => 2 ), 'c' ), '[{"b":2},"c"]' ),
+			'empty array'       => array( array(), '[]' ),
 			'empty object'      => array( new stdClass(), '{}' ),
 			'object'            => array( (object) array( 'b' => 2 ), '{"b":2}' ),
 			'string'            => array( 'value', '"value"' ),
@@ -2971,44 +3056,69 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 66267
-	 * @dataProvider data_allow_fields_false_leaves_the_data_unfiltered
+	 * @dataProvider data_response_processing_false_serves_the_data_as_returned
 	 *
 	 * @param mixed  $data     The response data.
 	 * @param string $expected The expected response body.
 	 */
-	public function test_allow_fields_false_leaves_the_data_unfiltered( $data, string $expected ): void {
-		$this->register_response_options_route( $data, false, array( 'allow_fields' => false ) );
+	public function test_response_processing_false_serves_the_data_as_returned( $data, string $expected ): void {
+		$this->register_response_processing_route( $data, true, array( 'response_processing' => false ) );
 
 		$_GET['_fields'] = 'a';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
 
-		$this->assertSame( $expected, rest_get_server()->sent_body, 'The _fields parameter should not filter the data.' );
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The data should be served as returned, without links or filtering.' );
 	}
 
 	/**
 	 * @ticket 66267
 	 */
-	public function test_fields_are_filtered_by_default(): void {
-		$this->register_response_options_route(
+	public function test_fields_are_filtered_and_links_embedded_by_default(): void {
+		$this->register_response_processing_route(
 			array(
 				'a' => 1,
 				'b' => 2,
 			),
-			false
+			true
 		);
 
 		$_GET['_fields'] = 'a';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+		$data = json_decode( rest_get_server()->sent_body, true );
 
-		$this->assertSame( '{"a":1}', rest_get_server()->sent_body, 'The _fields parameter should filter the data.' );
+		$this->assertSame( array( 'a', '_links', '_embedded' ), array_keys( $data ), 'The _fields parameter should filter the data, and the links should be added.' );
+		$this->assertSame( array( array( 'hello' => 'world' ) ), $data['_embedded']['alternate'], 'The link should be embedded.' );
 	}
 
 	/**
-	 * Data provider for test_allow_links_false_leaves_out_the_links().
+	 * @ticket 66267
+	 */
+	public function test_response_processing_fields_false_leaves_the_data_unfiltered(): void {
+		$this->register_response_processing_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			true,
+			array( 'response_processing' => array( 'fields' => false ) )
+		);
+
+		$_GET['_fields'] = 'a';
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+		$data = json_decode( rest_get_server()->sent_body, true );
+
+		$this->assertSame( array( 'a', 'b', '_links', '_embedded' ), array_keys( $data ), 'Only the _fields parameter should be ignored.' );
+	}
+
+	/**
+	 * Data provider for test_response_processing_links_false_leaves_out_the_links().
 	 *
 	 * @return array<string, array{0: mixed, 1: string}>
 	 */
-	public static function data_allow_links_false_leaves_out_the_links(): array {
+	public static function data_response_processing_links_false_leaves_out_the_links(): array {
 		return array(
 			'associative array' => array( array( 'a' => 1 ), '{"a":1}' ),
 			'list'              => array( array( 'a', 'b' ), '["a","b"]' ),
@@ -3019,27 +3129,28 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 66267
-	 * @dataProvider data_allow_links_false_leaves_out_the_links
+	 * @dataProvider data_response_processing_links_false_leaves_out_the_links
 	 *
 	 * @param mixed  $data     The response data.
 	 * @param string $expected The expected response body.
 	 */
-	public function test_allow_links_false_leaves_out_the_links( $data, string $expected ): void {
-		$this->register_response_options_route( $data, true, array( 'allow_links' => false ) );
+	public function test_response_processing_links_false_leaves_out_the_links( $data, string $expected ): void {
+		$this->register_response_processing_route( $data, true, array( 'response_processing' => array( 'links' => false ) ) );
 
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		$_GET['_embed'] = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
 
-		$this->assertSame( $expected, rest_get_server()->sent_body, 'The response links should not be added.' );
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'The response links should not be added or embedded.' );
 	}
 
 	/**
 	 * @ticket 66267
 	 */
-	public function test_allow_embed_false_keeps_the_links_without_embedding(): void {
-		$this->register_response_options_route( array( 'a' => 1 ), true, array( 'allow_embed' => false ) );
+	public function test_response_processing_embed_false_keeps_the_links_without_embedding(): void {
+		$this->register_response_processing_route( array( 'a' => 1 ), true, array( 'response_processing' => array( 'embed' => false ) ) );
 
 		$_GET['_embed'] = '1';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
 		$data = json_decode( rest_get_server()->sent_body, true );
 
 		$this->assertArrayHasKey( '_links', $data, 'The response links should be added.' );
@@ -3049,105 +3160,338 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 66267
 	 */
-	public function test_links_are_added_and_embedded_by_default(): void {
-		$this->register_response_options_route( array( 'a' => 1 ), true );
+	public function test_response_processing_false_keeps_the_own_links_of_the_data(): void {
+		$own_links = array( 'custom' => array( array( 'href' => 'https://example.org/' ) ) );
+		$this->register_response_processing_route(
+			array(
+				'a'      => 1,
+				'_links' => $own_links,
+			),
+			true,
+			array( 'response_processing' => false )
+		);
 
 		$_GET['_embed'] = '1';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
 		$data = json_decode( rest_get_server()->sent_body, true );
 
-		$this->assertArrayHasKey( '_links', $data, 'The response links should be added.' );
-		$this->assertSame( array( array( 'hello' => 'world' ) ), $data['_embedded']['alternate'], 'The link should be embedded.' );
+		$this->assertSame( $own_links, $data['_links'], 'The _links key of the data should be served as returned.' );
+		$this->assertArrayNotHasKey( '_embedded', $data, 'The links of the data should not be embedded.' );
 	}
 
 	/**
 	 * @ticket 66267
 	 */
-	public function test_allow_embed_false_applies_to_enveloped_responses(): void {
-		$this->register_response_options_route( array( 'a' => 1 ), true, array( 'allow_embed' => false ) );
+	public function test_response_processing_applies_to_enveloped_responses(): void {
+		$this->register_response_processing_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			true,
+			array( 'response_processing' => false )
+		);
 
+		$_GET['_fields']   = 'a';
 		$_GET['_embed']    = '1';
 		$_GET['_envelope'] = '1';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
 		$data = json_decode( rest_get_server()->sent_body, true );
 
 		$this->assertSame( 200, $data['status'], 'The enveloped response should succeed.' );
-		$this->assertArrayHasKey( '_links', $data['body'], 'The response links should be added to the body.' );
-		$this->assertArrayNotHasKey( '_embedded', $data['body'], 'The links should not be embedded in the body.' );
+		$this->assertSame(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			$data['body'],
+			'The envelope should wrap the data as returned.'
+		);
 	}
 
 	/**
-	 * Data provider for test_handler_option_takes_precedence_over_route_option().
+	 * Data provider for test_handler_setting_takes_precedence_over_route_setting().
 	 *
-	 * @return array<string, array{0: array<string, bool>, 1: array<string, bool>, 2: string}>
+	 * @return array<string, array{0: array<string, mixed>, 1: array<string, mixed>, 2: string[]}>
 	 */
-	public static function data_handler_option_takes_precedence_over_route_option(): array {
+	public static function data_handler_setting_takes_precedence_over_route_setting(): array {
 		return array(
-			'route disables'                     => array( array(), array( 'allow_fields' => false ), '{"a":1,"b":2}' ),
-			'route disables and handler enables' => array( array( 'allow_fields' => true ), array( 'allow_fields' => false ), '{"a":1}' ),
-			'route enables and handler disables' => array( array( 'allow_fields' => false ), array( 'allow_fields' => true ), '{"a":1,"b":2}' ),
-			'handler disables another option'    => array( array( 'allow_links' => false ), array(), '{"a":1}' ),
+			'route false'                              => array( array(), array( 'response_processing' => false ), array( 'a', 'b' ) ),
+			'route false and handler true'             => array( array( 'response_processing' => true ), array( 'response_processing' => false ), array( 'a', '_links' ) ),
+			'route false and handler fields'           => array( array( 'response_processing' => array( 'fields' => true ) ), array( 'response_processing' => false ), array( 'a' ) ),
+			'route fields false and handler links off' => array( array( 'response_processing' => array( 'links' => false ) ), array( 'response_processing' => array( 'fields' => false ) ), array( 'a', 'b' ) ),
+			'route links false and handler fields off' => array( array( 'response_processing' => array( 'fields' => false ) ), array( 'response_processing' => array( 'links' => false ) ), array( 'a', 'b' ) ),
 		);
 	}
 
 	/**
 	 * @ticket 66267
-	 * @dataProvider data_handler_option_takes_precedence_over_route_option
+	 * @dataProvider data_handler_setting_takes_precedence_over_route_setting
 	 *
-	 * @param array<string, bool> $handler_options Options for the route handler.
-	 * @param array<string, bool> $route_options   Options for the route.
-	 * @param string              $expected        The expected response body.
+	 * @param array<string, mixed> $handler_options Options for the route handler.
+	 * @param array<string, mixed> $route_options   Options for the route.
+	 * @param string[]             $expected_keys   The expected keys of the response body.
 	 */
-	public function test_handler_option_takes_precedence_over_route_option( array $handler_options, array $route_options, string $expected ): void {
-		$this->register_response_options_route(
+	public function test_handler_setting_takes_precedence_over_route_setting( array $handler_options, array $route_options, array $expected_keys ): void {
+		$this->register_response_processing_route(
 			array(
 				'a' => 1,
 				'b' => 2,
 			),
-			false,
+			true,
 			$handler_options,
 			$route_options
 		);
 
 		$_GET['_fields'] = 'a';
-		rest_get_server()->serve_request( '/test-ns/response-options' );
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+		$data = json_decode( rest_get_server()->sent_body, true );
 
-		$this->assertSame( $expected, rest_get_server()->sent_body, 'The handler option should take precedence over the route option.' );
+		$this->assertSame( $expected_keys, array_keys( $data ), 'The handler setting should take precedence over the route setting, feature by feature.' );
 	}
 
 	/**
 	 * @ticket 66267
 	 */
-	public function test_response_options_apply_to_preloaded_requests(): void {
-		$this->register_response_options_route(
+	public function test_response_processing_is_set_on_the_request_attributes_and_the_matched_handler(): void {
+		$this->register_response_processing_route( array( 'a' => 1 ), false, array( 'response_processing' => array( 'links' => false ) ) );
+
+		$request  = new WP_REST_Request( 'GET', '/test-ns/response-processing' );
+		$response = rest_get_server()->dispatch( $request );
+		$expected = array(
+			'fields' => true,
+			'embed'  => false,
+			'links'  => false,
+		);
+
+		$this->assertSame( $expected, $request->get_attributes()['response_processing'], 'The request attributes should carry the resolved settings.' );
+		$this->assertSame( $expected, $response->get_matched_handler()['response_processing'], 'The matched handler should carry the resolved settings.' );
+		$this->assertSame( $expected, rest_get_server()->get_response_processing( $request, $response ), 'The settings of the response should be the resolved ones.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_routes_without_the_option_have_every_feature_on(): void {
+		$this->register_response_processing_route( array( 'a' => 1 ), false );
+
+		$request  = new WP_REST_Request( 'GET', '/test-ns/response-processing' );
+		$response = rest_get_server()->dispatch( $request );
+		$expected = array(
+			'fields' => true,
+			'embed'  => true,
+			'links'  => true,
+		);
+
+		$this->assertSame( $expected, $request->get_attributes()['response_processing'], 'The request attributes should have every feature on.' );
+		$this->assertSame( $expected, $response->get_matched_handler()['response_processing'], 'The matched handler should have every feature on.' );
+		$this->assertSame( $expected, rest_get_server()->get_response_processing( $request, $response ), 'The settings of the response should have every feature on.' );
+	}
+
+	/**
+	 * Data provider for test_response_processing_applies_to_hijacked_responses().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_response_processing_applies_to_hijacked_responses(): array {
+		return array(
+			'associative array' => array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				'{"a":1,"b":2}',
+			),
+			'string'            => array( 'value', '"value"' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_response_processing_applies_to_hijacked_responses
+	 *
+	 * @param mixed  $data     The data returned by the `rest_pre_dispatch` filter.
+	 * @param string $expected The expected response body.
+	 */
+	public function test_response_processing_applies_to_hijacked_responses( $data, string $expected ): void {
+		$this->register_response_processing_route( array( 'unexpected' => true ), true, array( 'response_processing' => false ) );
+
+		add_filter(
+			'rest_pre_dispatch',
+			static function () use ( $data ) {
+				return $data;
+			}
+		);
+
+		$_GET['_fields'] = 'a';
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'A response returned by rest_pre_dispatch should follow the settings of the route it was returned for.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_hijacked_responses_are_processed_by_default(): void {
+		$this->register_response_processing_route( array( 'unexpected' => true ), true );
+
+		add_filter(
+			'rest_pre_dispatch',
+			static function () {
+				return array(
+					'a' => 1,
+					'b' => 2,
+				);
+			}
+		);
+
+		$_GET['_fields'] = 'a';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+
+		$this->assertSame( '{"a":1}', rest_get_server()->sent_body, 'A response returned by rest_pre_dispatch for a route without the option should be filtered.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_get_response_processing_without_a_matched_handler(): void {
+		$all_on = array(
+			'fields' => true,
+			'embed'  => true,
+			'links'  => true,
+		);
+
+		$this->assertSame( $all_on, rest_get_server()->get_response_processing( new WP_REST_Request( 'GET', '/test-ns/no-such-route' ) ), 'A request that matches no route should enable every feature.' );
+		$this->assertSame( $all_on, rest_get_server()->get_response_processing( null, new WP_REST_Response() ), 'A response without a matched handler should enable every feature.' );
+		$this->assertSame( $all_on, rest_get_server()->get_response_processing( null ), 'The defaults should apply without a request.' );
+	}
+
+	/**
+	 * Data provider for test_response_processing_applies_to_preloaded_requests().
+	 *
+	 * @return array<string, array{0: mixed, 1: string}>
+	 */
+	public static function data_response_processing_applies_to_preloaded_requests(): array {
+		return array(
+			'associative array' => array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				'{"a":1,"b":2}',
+			),
+			'empty object'      => array( new stdClass(), '{}' ),
+			'string'            => array( 'value', '"value"' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_response_processing_applies_to_preloaded_requests
+	 *
+	 * @param mixed  $data     The response data.
+	 * @param string $expected The expected JSON encoding of the preloaded body.
+	 */
+	public function test_response_processing_applies_to_preloaded_requests( $data, string $expected ): void {
+		$this->register_response_processing_route( $data, true, array( 'response_processing' => false ) );
+
+		$preload = rest_preload_api_request( array(), '/test-ns/response-processing?_fields=a&_embed=1' );
+
+		$this->assertSame( $expected, wp_json_encode( $preload['/test-ns/response-processing?_fields=a&_embed=1']['body'] ), 'The preloaded body should be the data as returned.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_response_processing_applies_to_batch_requests(): void {
+		$this->register_response_processing_route(
 			array(
 				'a' => 1,
 				'b' => 2,
 			),
 			true,
 			array(
-				'allow_fields' => false,
-				'allow_links'  => false,
+				'methods'             => 'POST',
+				'allow_batch'         => array( 'v1' => true ),
+				'response_processing' => false,
 			)
 		);
 
-		$preload = rest_preload_api_request( array(), '/test-ns/response-options?_fields=a&_embed=1' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array( 'path' => '/test-ns/response-processing?_fields=a' ),
+				),
+			)
+		);
 
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 207, $response->get_status(), 'The batch request should succeed.' );
 		$this->assertSame(
 			array(
 				'a' => 1,
 				'b' => 2,
 			),
-			$preload['/test-ns/response-options?_fields=a&_embed=1']['body'],
-			'The preloaded data should not be filtered or have links.'
+			$response->get_data()['responses'][0]['body'],
+			'The batched response body should be the data as returned.'
 		);
 	}
 
 	/**
 	 * @ticket 66267
 	 */
-	public function test_is_response_option_enabled_without_a_matched_route(): void {
-		$this->assertTrue( rest_get_server()->is_response_option_enabled( new WP_REST_Response(), 'allow_fields' ), 'A response without a matched route should enable the option.' );
-		$this->assertTrue( rest_get_server()->is_response_option_enabled( new WP_HTTP_Response(), 'allow_links' ), 'A response that is not a REST response should enable the option.' );
+	public function test_response_processing_is_listed_in_the_index(): void {
+		rest_get_server()->register_route(
+			'test-ns',
+			'/test-ns/response-processing',
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => '__return_null',
+					'permission_callback' => '__return_true',
+					'response_processing' => array( 'fields' => true ),
+				),
+				'response_processing' => array( 'fields' => false ),
+			)
+		);
+
+		$request  = new WP_REST_Request( 'OPTIONS', '/test-ns/response-processing' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame(
+			array(
+				'fields' => false,
+				'embed'  => true,
+				'links'  => true,
+			),
+			$data['endpoints'][0]['response_processing'],
+			'An endpoint with a feature turned off should list the settings.'
+		);
+		$this->assertArrayNotHasKey( 'response_processing', $data['endpoints'][1], 'An endpoint with every feature on should not list the settings.' );
 	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_options_requests_are_processed_by_default(): void {
+		$this->register_response_processing_route( array( 'a' => 1 ), true, array( 'response_processing' => false ) );
+
+		$_SERVER['REQUEST_METHOD'] = 'OPTIONS';
+		$_GET['_fields']           = 'methods';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$data                      = json_decode( rest_get_server()->sent_body, true );
+
+		$this->assertSame( array( 'methods' ), array_keys( $data ), 'The _fields parameter should filter the route description of a route with the option.' );
+	}
+
 }
