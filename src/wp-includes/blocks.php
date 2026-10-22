@@ -1698,6 +1698,8 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * to ensure consistent operation between PHP and JavaScript.
  *
  * @since 5.3.1
+ * @since 7.2.0 Attributes are always serialized as an object, which is empty
+ *              if they cannot be encoded.
  *
  * @param array<string, mixed> $block_attributes Attributes object.
  * @return string Serialized attributes.
