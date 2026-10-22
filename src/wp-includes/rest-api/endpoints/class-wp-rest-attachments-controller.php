@@ -772,7 +772,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			}
 
 			// Content that does not match an allowed type is a client error, not a server one.
-			if ( __( 'Sorry, you are not allowed to upload this file type.' ) === $sideloaded['error'] ) {
+			if ( isset( $sideloaded['error_code'] ) && 'upload_invalid_file_type' === $sideloaded['error_code'] ) {
 				return new WP_Error(
 					'rest_upload_invalid_file_type',
 					$sideloaded['error'],
@@ -783,7 +783,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error(
 				'rest_upload_sideload_error',
 				$sideloaded['error'],
-				array( 'status' => 500 )
+				array( 'status' => $this->get_upload_error_status( $sideloaded ) )
 			);
 		}
 
@@ -2067,7 +2067,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error(
 				'rest_upload_sideload_error',
 				$sideloaded['error'],
-				array( 'status' => 500 )
+				array( 'status' => $this->get_upload_error_status( $sideloaded ) )
 			);
 		}
 
@@ -2181,6 +2181,39 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	}
 
 	/**
+	 * Gets the HTTP status for an upload that wp_handle_upload() or wp_handle_sideload() rejected.
+	 *
+	 * Rejections caused by the request are client errors: a file type the site does not
+	 * allow, an empty or partial file, a file over the size limit, or a file a plugin
+	 * rejected through a prefilter. Anything else, such as an uploads directory that
+	 * cannot be created or a file that cannot be moved into it, is a server error.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param array $file Data returned by wp_handle_upload() or wp_handle_sideload().
+	 * @return int HTTP status code.
+	 */
+	protected function get_upload_error_status( $file ) {
+		$client_errors = array(
+			'upload_prefilter_error',
+			'upload_invalid_form',
+			'upload_err_ini_size',
+			'upload_err_form_size',
+			'upload_err_partial',
+			'upload_err_no_file',
+			'upload_failed_test',
+			'upload_empty_file',
+			'upload_invalid_file_type',
+		);
+
+		if ( isset( $file['error_code'] ) && in_array( $file['error_code'], $client_errors, true ) ) {
+			return 400;
+		}
+
+		return 500;
+	}
+
+	/**
 	 * Handles an upload via multipart/form-data ($_FILES).
 	 *
 	 * @since 4.7.0
@@ -2239,7 +2272,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return new WP_Error(
 				'rest_upload_unknown_error',
 				$file['error'],
-				array( 'status' => 500 )
+				array( 'status' => $this->get_upload_error_status( $file ) )
 			);
 		}
 
