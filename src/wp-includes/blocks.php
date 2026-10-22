@@ -1714,11 +1714,30 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * cast to an object, since json_encode() skips object properties whose names start with a
 	 * null byte, which an attribute name decoded from JSON may do.
 	 */
-	if ( is_array( $block_attributes ) && array_is_list( $block_attributes ) ) {
-		$block_attributes = (object) $block_attributes;
+	$is_list = is_array( $block_attributes ) && array_is_list( $block_attributes );
+	$flags   = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+
+	$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
+
+	/*
+	 * JSON cannot represent INF or NAN, so encoding fails if any attribute value is one. The
+	 * JSON.stringify() in serializeAttributes() encodes them as null instead, so do the same
+	 * and try again, rather than losing all the attributes. Values in nested arrays are
+	 * replaced too, but not those in objects, which belong to the caller.
+	 */
+	if ( false === $encoded_attributes && is_array( $block_attributes ) ) {
+		array_walk_recursive(
+			$block_attributes,
+			static function ( &$value ) {
+				if ( is_float( $value ) && ! is_finite( $value ) ) {
+					$value = null;
+				}
+			}
+		);
+
+		$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
 	}
 
-	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	if ( false === $encoded_attributes ) {
 		return '{}'; // JSON encoding of an empty object.
 	}

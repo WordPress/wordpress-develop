@@ -162,12 +162,56 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that attributes which cannot be encoded are serialized as an empty object.
+	 * Tests that INF and NAN are serialized as null, as JSON.stringify() does, rather than losing all attributes.
+	 *
+	 * @dataProvider data_serialize_block_attributes_non_finite_numbers
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes_non_finite_numbers( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serialize_block_attributes_non_finite_numbers()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: string }>
+	 */
+	public static function data_serialize_block_attributes_non_finite_numbers(): array {
+		return array(
+			'INF'                      => array(
+				array(
+					'align' => 'wide',
+					'ratio' => INF,
+				),
+				'{"align":"wide","ratio":null}',
+			),
+			'Negative INF'             => array( array( 'ratio' => -INF ), '{"ratio":null}' ),
+			'NAN'                      => array( array( 'ratio' => NAN ), '{"ratio":null}' ),
+			'Nested in an array'       => array( array( 'style' => array( 'ratios' => array( 1.5, INF ) ) ), '{"style":{"ratios":[1.5,null]}}' ),
+			'Numeric attribute name'   => array( array( 0 => INF ), '{"0":null}' ),
+			'Finite floats left alone' => array( array( 'ratio' => 1.5 ), '{"ratio":1.5}' ),
+		);
+	}
+
+	/**
+	 * Tests that attributes which still cannot be encoded are serialized as an empty object.
 	 *
 	 * @covers ::serialize_block_attributes
 	 */
 	public function test_serialize_block_attributes_encoding_failure() {
-		$this->assertSame( '{}', serialize_block_attributes( array( 'number' => INF ) ) );
+		$block_attributes = array();
+		$nested           = &$block_attributes;
+		for ( $i = 0; $i < 600; $i++ ) {
+			$nested['a'] = array();
+			$nested      = &$nested['a'];
+		}
+		unset( $nested );
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
 	}
 
 	/**
