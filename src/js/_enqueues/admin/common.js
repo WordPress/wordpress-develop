@@ -2241,7 +2241,7 @@ $( function( $ ) {
  *
  * @since 7.2.0
  */
-jQuery( function() {
+jQuery( () => {
 	const content = document.getElementById( 'wpbody-content' );
 	if (
 		! content ||
@@ -2283,6 +2283,7 @@ jQuery( function() {
 	function observeTableOverflow( table ) {
 		const wrapper = table.parentElement;
 		const tabIndex = wrapper.getAttribute( 'tabindex' );
+		/** @type {Set<HTMLElement>} */
 		const contentAreas = new Set();
 
 		/**
@@ -2293,7 +2294,7 @@ jQuery( function() {
 		 * @return {void}
 		 */
 		function update() {
-			contentAreas.forEach( function( area ) {
+			contentAreas.forEach( ( area ) => {
 				if ( area.closest( '.wp-list-table' ) !== table || ! table.contains( area ) ) {
 					observer.unobserve( area );
 					area.replaceWith( ...area.childNodes );
@@ -2301,11 +2302,11 @@ jQuery( function() {
 				}
 			} );
 
-			table.querySelectorAll( ':scope > tbody > tr > td, :scope > tbody > tr > th' ).forEach( function( cell ) {
+			table.querySelectorAll( ':scope > tbody > tr > td, :scope > tbody > tr > th' ).forEach( ( cell ) => {
 				if ( cell.colSpan > 1 || cell.closest( '.inline-edit-row, .inline-editor, #replyrow' ) ) {
 					return;
 				}
-				Array.from( cell.children ).forEach( function( block ) {
+				Array.from( cell.children ).forEach( ( block ) => {
 					if (
 						! block.matches( 'p, pre, div, blockquote, ul, ol, dl, figure, table' ) ||
 						block.matches( '.row-actions, .hidden, .comment-author, .wp-list-table-content-scroll, [hidden]' ) ||
@@ -2322,7 +2323,7 @@ jQuery( function() {
 				} );
 			} );
 
-			contentAreas.forEach( function( area ) {
+			contentAreas.forEach( ( area ) => {
 				const areaStyle = window.getComputedStyle( area );
 				const scrollable = area.scrollWidth > area.clientWidth &&
 					( areaStyle.overflowX === 'auto' || areaStyle.overflowX === 'scroll' );
@@ -2358,8 +2359,8 @@ jQuery( function() {
 		update();
 
 		tables.set( table, {
-			wrapper: wrapper,
-			update: update,
+			wrapper,
+			update,
 
 			/**
 			 * Releases overflow tracking and restores the wrapper's original Tab order.
@@ -2368,12 +2369,12 @@ jQuery( function() {
 			 *
 			 * @return {void}
 			 */
-			cleanup: function() {
+			cleanup: () => {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
 				restoreTabIndex( wrapper, tabIndex );
-				contentAreas.forEach( function( area ) {
+				contentAreas.forEach( ( area ) => {
 					area.replaceWith( ...area.childNodes );
 				} );
 				contentAreas.clear();
@@ -2389,7 +2390,7 @@ jQuery( function() {
 	 * @return {void}
 	 */
 	function refreshTables() {
-		tables.forEach( function( state, table ) {
+		tables.forEach( ( state, table ) => {
 			if ( ! content.contains( table ) || table.parentElement !== state.wrapper ) {
 				state.cleanup();
 				tables.delete( table );
@@ -2397,7 +2398,7 @@ jQuery( function() {
 		} );
 
 		content.querySelectorAll( '.wp-list-table-scroll > .wp-list-table' )
-			.forEach( function( table ) {
+			.forEach( ( table ) => {
 				if ( ! tables.has( table ) ) {
 					observeTableOverflow( table );
 				} else {
