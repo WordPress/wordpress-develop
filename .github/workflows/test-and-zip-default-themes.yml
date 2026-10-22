@@ -83,6 +83,7 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+          'ipsum',
           'twentytwentyfive',
           'twentytwentyfour',
           'twentytwentythree',
@@ -224,6 +225,7 @@ jobs:
       fail-fast: false
       matrix:
         theme: [
+            'ipsum',
             'twentytwentyfive',
             'twentytwentyfour',
             'twentytwentythree',
