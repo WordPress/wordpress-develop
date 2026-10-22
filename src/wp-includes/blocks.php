@@ -1725,17 +1725,37 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * JSON.stringify() in serializeAttributes() encodes them as null instead, so do the same
 	 * and try again, rather than losing all the attributes. Values in nested arrays are
 	 * replaced too, but not those in objects, which belong to the caller.
+	 *
+	 * The arrays are copied rather than changed in place, since an element may be a reference
+	 * to a variable of the caller. They are walked no deeper than json_encode() goes, as a
+	 * safeguard: attributes which refer to themselves fail with a recursion error instead, so
+	 * they are not retried.
 	 */
 	if ( false === $encoded_attributes && JSON_ERROR_INF_OR_NAN === json_last_error() && is_array( $block_attributes ) ) {
-		array_walk_recursive(
-			$block_attributes,
-			static function ( &$value ) {
-				if ( is_float( $value ) && ! is_finite( $value ) ) {
-					$value = null;
-				}
+		/**
+		 * Replaces INF and NAN with null in a value and in the arrays it contains.
+		 *
+		 * @param mixed $value Attribute value.
+		 * @param int   $depth How many more levels of arrays to walk.
+		 * @return mixed The value, with INF and NAN replaced.
+		 */
+		$replace_non_finite_numbers = static function ( $value, int $depth ) use ( &$replace_non_finite_numbers ) {
+			if ( is_float( $value ) && ! is_finite( $value ) ) {
+				return null;
 			}
-		);
 
+			if ( ! is_array( $value ) || $depth <= 0 ) {
+				return $value;
+			}
+
+			$replaced = array();
+			foreach ( $value as $key => $item ) {
+				$replaced[ $key ] = $replace_non_finite_numbers( $item, $depth - 1 );
+			}
+			return $replaced;
+		};
+
+		$block_attributes   = $replace_non_finite_numbers( $block_attributes, 512 );
 		$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
 	}
 

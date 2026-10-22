@@ -198,6 +198,19 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that replacing INF with null does not change a variable that an attribute refers to.
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_non_finite_number_reference() {
+		$ratio            = INF;
+		$block_attributes = array( 'ratio' => &$ratio );
+
+		$this->assertSame( '{"ratio":null}', serialize_block_attributes( $block_attributes ) );
+		$this->assertInfinite( $ratio, 'The variable the attribute refers to should not be changed.' );
+	}
+
+	/**
 	 * Tests that attributes which still cannot be encoded are serialized as an empty object.
 	 *
 	 * @covers ::serialize_block_attributes
