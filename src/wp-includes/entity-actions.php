@@ -146,9 +146,9 @@ function _wp_add_entity_action_modules_to_editor_script( $scripts = null ) {
  * @since 7.2.0
  * @access private
  *
- * @param array                   $paths   REST API paths to preload.
- * @param WP_Block_Editor_Context $context Block editor context.
- * @return array Filtered preload paths.
+ * @param mixed $paths   REST API paths to preload.
+ * @param mixed $context Optional. Block editor context. Default null.
+ * @return mixed Filtered preload paths. See _wp_add_entity_preload_paths().
  */
 function _wp_preload_entity_actions( $paths, $context = null ) {
 	return _wp_add_entity_preload_paths( $paths, $context, '/wp/v2/entity-actions' );
