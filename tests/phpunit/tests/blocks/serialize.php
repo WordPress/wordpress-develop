@@ -41,6 +41,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 * @param string $original Original block markup.
 	 *
 	 * @ticket 63917
+	 * @ticket 66368
 	 */
 	public function test_serialize_identity_from_parsed( $original ) {
 		$blocks = parse_blocks( $original );
@@ -127,6 +128,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_serialize_block_attributes
 	 *
+	 * @ticket 66368
+	 *
 	 * @covers ::serialize_block_attributes
 	 *
 	 * @param array<array-key, mixed> $block_attributes Block attributes.
@@ -166,6 +169,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_serialize_block_attributes_non_finite_numbers
 	 *
+	 * @ticket 66368
+	 *
 	 * @covers ::serialize_block_attributes
 	 *
 	 * @param array<array-key, mixed> $block_attributes Block attributes.
@@ -200,6 +205,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * Tests that replacing INF with null does not change a variable that an attribute refers to.
 	 *
+	 * @ticket 66368
+	 *
 	 * @covers ::serialize_block_attributes
 	 */
 	public function test_serialize_block_attributes_non_finite_number_reference() {
@@ -212,6 +219,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * Tests that attributes which still cannot be encoded are serialized as an empty object.
+	 *
+	 * @ticket 66368
 	 *
 	 * @covers ::serialize_block_attributes
 	 */
@@ -230,6 +239,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * Tests that attributes which refer to themselves are serialized as an empty object, rather than causing a fatal error.
 	 *
+	 * @ticket 66368
+	 *
 	 * @covers ::serialize_block_attributes
 	 */
 	public function test_serialize_block_attributes_recursion() {
@@ -241,6 +252,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 
 	/**
 	 * Tests that attributes passed as an object are still serialized, rather than causing a fatal error.
+	 *
+	 * @ticket 66368
 	 *
 	 * @covers ::serialize_block_attributes
 	 */
@@ -440,6 +453,7 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	/**
 	 * @ticket 59327
 	 * @ticket 59412
+	 * @ticket 66368
 	 *
 	 * @covers ::traverse_and_serialize_blocks
 	 *
