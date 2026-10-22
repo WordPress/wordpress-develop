@@ -2175,11 +2175,13 @@ function wp_update_custom_css_post( $css, $args = array() ) {
  * Since version 3.4 the TinyMCE body has .rtl CSS class.
  * It is a better option to use that class and add any RTL styles to the main stylesheet.
  *
- * Internally this registers the 'editor-style' theme support (singular), an internal
- * marker for TinyMCE editor stylesheets. It is distinct from the 'editor-styles'
- * (plural) theme support, which opts in to editor styles in the block editor and is
- * exposed via the REST API. To enable editor styles in the block editor, use
- * add_theme_support( 'editor-styles' ) rather than this function.
+ * Internally this registers the 'editor-style' (singular) theme support to enable
+ * editor stylesheets for the classic/TinyMCE editor.
+ *
+ * The plural form, 'editor-styles', is a separate theme support that allows the block
+ * editor to load the stylesheets registered by this function. To add styles to the
+ * block editor, use add_theme_support( 'editor-styles' ) in addition to this function.
+ * Block themes support 'editor-styles' by default.
  *
  * @since 3.0.0
  *
@@ -2207,10 +2209,12 @@ function add_editor_style( $stylesheet = 'editor-style.css' ) {
 /**
  * Removes all visual editor stylesheets.
  *
- * Removes the internal 'editor-style' theme support (singular) added by
- * add_editor_style(). This is distinct from the 'editor-styles' (plural) theme
- * support, which opts in to editor styles in the block editor and is removed
- * normally via remove_theme_support( 'editor-styles' ).
+ * Internally this removes the 'editor-style' (singular) theme support added by
+ * add_editor_style(). In the admin, it also clears the registered stylesheets,
+ * so they are no longer loaded in either the classic/TinyMCE or the block editor.
+ *
+ * The plural form, 'editor-styles', is a separate theme support and is not affected
+ * by this function. To remove it, use remove_theme_support( 'editor-styles' ).
  *
  * @since 3.1.0
  *
@@ -3077,10 +3081,11 @@ function get_theme_support( $feature, ...$args ) {
  * @return bool Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
-	// Do not remove internal registrations that are not used directly by themes.
-	// Note: 'editor-style' (singular) is the internal TinyMCE marker added by
-	// add_editor_style(), and is intentionally distinct from the public
-	// 'editor-styles' (plural) block-editor feature, which remains removable.
+	/*
+	 * Do not remove internal registrations that are not used directly by themes.
+	 * 'editor-style' (singular) is added by add_editor_style(); use remove_editor_styles().
+	 * It is unrelated to the 'editor-styles' (plural) feature, which can be removed here.
+	 */
 	if ( in_array( $feature, array( 'editor-style', 'widgets', 'menus' ), true ) ) {
 		return false;
 	}

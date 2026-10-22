@@ -234,28 +234,38 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 *
 	 * @covers ::add_editor_style
 	 * @covers ::remove_editor_styles
+	 * @covers ::remove_theme_support
+	 * @covers ::get_block_editor_theme_styles
 	 */
 	public function test_editor_style_singular_and_editor_styles_plural_are_distinct() {
+		global $editor_styles;
+
+		$original_editor_styles = $editor_styles;
+
 		// Ensure a clean slate: supports may be left over from a prior test or the active theme.
+		$editor_styles = array();
 		remove_editor_styles();
 		remove_theme_support( 'editor-styles' );
-		$this->assertFalse( current_theme_supports( 'editor-style' ) );
-		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
 
-		// 'editor-style' (singular) is the internal TinyMCE marker added by add_editor_style().
-		add_editor_style();
-		$this->assertTrue( current_theme_supports( 'editor-style' ) );
-		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
-
-		// remove_editor_styles() clears the singular marker only.
-		$this->assertTrue( remove_editor_styles() );
-		$this->assertFalse( current_theme_supports( 'editor-style' ) );
-
-		// 'editor-styles' (plural) is a distinct, public block-editor feature and remains removable.
 		add_theme_support( 'editor-styles' );
-		$this->assertTrue( current_theme_supports( 'editor-styles' ) );
-		$this->assertFalse( current_theme_supports( 'editor-style' ) );
-		$this->assertTrue( remove_theme_support( 'editor-styles' ) );
-		$this->assertFalse( current_theme_supports( 'editor-styles' ) );
+		$this->assertFalse( current_theme_supports( 'editor-style' ), "add_theme_support( 'editor-styles' ) should not add 'editor-style' support." );
+		$this->assertSame( array(), get_block_editor_theme_styles(), "'editor-styles' support alone should not load any stylesheets." );
+		$this->assertTrue( remove_theme_support( 'editor-styles' ), "'editor-styles' should be removable with remove_theme_support()." );
+
+		add_editor_style( 'style.css' );
+		$this->assertTrue( current_theme_supports( 'editor-style' ), "add_editor_style() should add 'editor-style' support." );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ), "add_editor_style() should not add 'editor-styles' support." );
+		$this->assertSame( array(), get_block_editor_theme_styles(), "Stylesheets should not load in the block editor without 'editor-styles' support." );
+
+		add_theme_support( 'editor-styles' );
+		$this->assertCount( 1, get_block_editor_theme_styles(), "Stylesheets should load in the block editor with 'editor-styles' support." );
+
+		$this->assertFalse( remove_theme_support( 'editor-style' ), "'editor-style' should not be removable with remove_theme_support()." );
+		$this->assertTrue( remove_editor_styles(), 'remove_editor_styles() should return true when stylesheets were added.' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ), "remove_editor_styles() should remove 'editor-style' support." );
+		$this->assertTrue( current_theme_supports( 'editor-styles' ), "remove_editor_styles() should not remove 'editor-styles' support." );
+
+		remove_theme_support( 'editor-styles' );
+		$editor_styles = $original_editor_styles;
 	}
 }
