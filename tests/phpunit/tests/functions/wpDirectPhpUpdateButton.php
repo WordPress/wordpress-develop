@@ -13,6 +13,8 @@ class Tests_Functions_WpDirectPhpUpdateButton extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_outputs_nothing_when_direct_update_url_is_empty() {
+		add_filter( 'wp_direct_php_update_url', '__return_empty_string' );
+
 		ob_start();
 		wp_direct_php_update_button();
 		$output = ob_get_clean();
