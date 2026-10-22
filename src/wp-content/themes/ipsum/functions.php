@@ -53,7 +53,7 @@ if ( ! function_exists( 'ipsum_enqueue_styles' ) ) :
 			'ipsum-style',
 			get_parent_theme_file_uri( 'style.css' ),
 			array(),
-			wp_get_theme()->get( 'Version' )
+			wp_get_theme( get_template() )->get( 'Version' )
 		);
 
 		// Enqueue theme stylesheet.
