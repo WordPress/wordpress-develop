@@ -161,4 +161,62 @@ class Tests_Meta_DeleteMetadata extends WP_UnitTestCase {
 			gettype( $object_id )
 		);
 	}
+
+	/**
+	 * @ticket 65976
+	 *
+	 * @dataProvider data_actions_should_receive_delete_all
+	 *
+	 * @param bool $delete_all Whether to delete the matching metadata entries for all objects.
+	 */
+	public function test_actions_should_receive_delete_all( $delete_all ) {
+		add_metadata( 'post', 123, 'test_key', 'value' );
+
+		$delete_action  = new MockAction();
+		$deleted_action = new MockAction();
+
+		add_action( 'delete_post_meta', array( $delete_action, 'action' ), 10, 5 );
+		add_action( 'deleted_post_meta', array( $deleted_action, 'action' ), 10, 5 );
+
+		delete_metadata( 'post', 123, 'test_key', '', $delete_all );
+
+		$delete_args  = $delete_action->get_args();
+		$deleted_args = $deleted_action->get_args();
+
+		$this->assertSame( $delete_all, $delete_args[0][4], 'The delete_post_meta action should receive the value of $delete_all.' );
+		$this->assertSame( $delete_all, $deleted_args[0][4], 'The deleted_post_meta action should receive the value of $delete_all.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_actions_should_receive_delete_all() {
+		return array(
+			'deleting for a single object' => array( false ),
+			'deleting for all objects'     => array( true ),
+		);
+	}
+
+	/**
+	 * @ticket 65976
+	 */
+	public function test_actions_should_receive_delete_all_false_when_deleting_by_mid() {
+		$meta_id = add_metadata( 'post', 123, 'test_key', 'value' );
+
+		$delete_action  = new MockAction();
+		$deleted_action = new MockAction();
+
+		add_action( 'delete_post_meta', array( $delete_action, 'action' ), 10, 5 );
+		add_action( 'deleted_post_meta', array( $deleted_action, 'action' ), 10, 5 );
+
+		delete_metadata_by_mid( 'post', $meta_id );
+
+		$delete_args  = $delete_action->get_args();
+		$deleted_args = $deleted_action->get_args();
+
+		$this->assertFalse( $delete_args[0][4], 'The delete_post_meta action should receive false for $delete_all when deleting by meta ID.' );
+		$this->assertFalse( $deleted_args[0][4], 'The deleted_post_meta action should receive false for $delete_all when deleting by meta ID.' );
+	}
 }
