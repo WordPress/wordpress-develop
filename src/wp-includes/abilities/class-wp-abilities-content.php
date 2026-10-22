@@ -618,9 +618,10 @@ final class WP_Abilities_Content {
 		}
 
 		/*
-		 * An author filter that names no user matches no post, like IDs and slugs that name
-		 * no post, rather than failing the query. An `id` that names no user needs no lookup:
-		 * the query matches no post on its own.
+		 * A slug that names no user, or an ID and a slug that name different users, match no
+		 * post, like IDs and slugs that name no post, rather than failing the query. An `id` is
+		 * not looked up: the query matches the stored author ID, so the posts of a deleted user
+		 * still match it.
 		 */
 		if ( false === $author_id ) {
 			return $this->prepare_output( array(), 0, 0 );
@@ -1224,7 +1225,7 @@ final class WP_Abilities_Content {
 									'description' => __( "The author's user slug (nicename), as `author.slug` is returned and as the REST API users endpoint returns it in `slug`." ),
 								),
 							),
-							'description'          => __( 'Filter by the post author, given as the `id` or the `slug` the `author` field of a post returns. An ID or slug that names no user, or an ID and a slug that name different users, match no post. Only supported for post types that support authors.' ),
+							'description'          => __( 'Filter by the post author, given as the `id` or the `slug` the `author` field of a post returns. An `id` matches the author ID stored on the post, even when that user no longer exists. A `slug` that names no user, or an `id` and a `slug` that name different users, match no post. Only supported for post types that support authors.' ),
 						),
 						'parent' => array(
 							'type'        => 'integer',

@@ -3549,7 +3549,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'slug' => $author_slug,
 				)
 			),
-			'A slug next to an ID that names no user should match no post.'
+			'A slug next to an ID of another user should match no post.'
 		);
 	}
 
@@ -5626,33 +5626,20 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Returns `where.author` values that name no user: an ID no user has, and a slug no user
-	 * has.
-	 *
-	 * @return array<string, array{author: array<string, mixed>}> The `where.author` values.
-	 */
-	public function data_author_filters_that_name_no_user(): array {
-		return array(
-			'ID'   => array(
-				'author' => array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
-			),
-			'slug' => array(
-				'author' => array( 'slug' => 'no-such-user' ),
-			),
-		);
-	}
-
-	/**
-	 * An author filter that names no user matches no post, rather than being dropped, which
+	 * An author slug that names no user matches no post, rather than being dropped, which
 	 * would widen the query to every author's posts.
 	 *
 	 * @ticket 66268
-	 * @dataProvider data_author_filters_that_name_no_user
 	 * @since 7.2.0
-	 *
-	 * @param array<string, mixed> $author The `where.author` value to send.
 	 */
-	public function test_author_filter_that_names_no_user_matches_no_post( array $author ): void {
+	public function test_author_filter_with_a_slug_that_names_no_user_matches_no_post(): void {
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'publish',
+			)
+		);
+
 		$this->login_as( 'administrator' );
 		$this->register_ability();
 
@@ -5660,12 +5647,54 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 			array(
 				'where' => array(
 					'type'   => 'post',
-					'author' => $author,
+					'author' => array( 'slug' => 'no-such-user' ),
 				),
 			)
 		);
 
-		$this->assertSame( self::EMPTY_RESULT, $result, 'An author filter that names no user should match no post.' );
+		$this->assertSame( self::EMPTY_RESULT, $result, 'An author slug that names no user should match no post.' );
+	}
+
+	/**
+	 * An author ID matches the author ID stored on the post without looking the user up, so
+	 * the posts of a deleted user are still found by the `author.id` their output returns.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_author_filter_by_id_matches_the_posts_of_a_deleted_user(): void {
+		// No user has this ID, as when the author was deleted after writing the post.
+		$orphan_id = self::factory()->post->create(
+			array(
+				'post_author' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER,
+				'post_status' => 'publish',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_author' => self::$user_ids['author'],
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertFalse( get_userdata( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ), 'Precondition: no user should have the stored author ID.' );
+
+		$this->login_as( 'administrator' );
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type'   => 'post',
+					'author' => array( 'id' => REST_TESTS_IMPOSSIBLY_HIGH_NUMBER ),
+				),
+				'fields' => array( 'id', 'author' ),
+			)
+		);
+
+		$this->assertIsArray( $result, 'The stored author ID of a deleted user should be accepted as a filter.' );
+		$this->assertSame( array( $orphan_id ), wp_list_pluck( $result['items'], 'id' ), 'The filter should return the posts that store the deleted user\'s ID.' );
+		$this->assertSame( REST_TESTS_IMPOSSIBLY_HIGH_NUMBER, $result['items'][0]['author']['id'], 'The returned author ID should be the one the filter named.' );
 	}
 
 	/**
@@ -6290,12 +6319,12 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $author_secondary_slug ), 'A subscriber should get the empty result for the slug of an author without published posts.' );
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $author_secondary_id ), 'A subscriber should get the empty result for the ID of an author without published posts.' );
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_slug ), 'A subscriber should get the empty result for a slug that names no user.' );
-		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_id ), 'A subscriber should get the empty result for an ID that names no user.' );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_id ), 'A subscriber should get the empty result for an ID no post stores.' );
 
 		$this->login_as( 'editor' );
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $subscriber_slug ), 'An editor should get the empty result for a user without posts.' );
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_slug ), 'An editor should get the empty result for a slug that names no user.' );
-		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_id ), 'An editor should get the empty result for an ID that names no user.' );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_id ), 'An editor should get the empty result for an ID no post stores.' );
 
 		$drafts = $query( array( 'draft' ), $author_secondary_slug );
 		$this->assertIsArray( $drafts, 'An editor should filter by the slug of an author without published posts.' );
@@ -6343,7 +6372,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 		$this->assertFalse( $is_member, 'Precondition: the other user should not be a member of the site.' );
 		$this->assertSame( self::EMPTY_RESULT, $missing_slug, 'Precondition: a slug that names no user should match no post.' );
-		$this->assertSame( self::EMPTY_RESULT, $missing_id, 'Precondition: an ID that names no user should match no post.' );
+		$this->assertSame( self::EMPTY_RESULT, $missing_id, 'Precondition: an ID no post stores should match no post.' );
 		$this->assertSame( self::EMPTY_RESULT, $other_by_slug, 'The slug of a user of another site should match no post of the site.' );
 		$this->assertSame( self::EMPTY_RESULT, $other_by_id, 'The ID of a user of another site should match no post of the site.' );
 	}
