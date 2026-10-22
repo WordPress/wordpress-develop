@@ -262,7 +262,7 @@ class Walker_Nav_Menu extends Walker {
 			$atts['href'] = '';
 		}
 
-		$atts['aria-current'] = $menu_item->current ? 'page' : '';
+		$atts['aria-current'] = ! empty( $menu_item->current ) ? 'page' : '';
 
 		// Add title attribute only if it does not match the link text (before or after filtering).
 		if ( ! empty( $menu_item->attr_title )

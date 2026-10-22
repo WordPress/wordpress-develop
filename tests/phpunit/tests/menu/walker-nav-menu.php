@@ -144,6 +144,39 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that `Walker_Nav_Menu::start_el()` does not trigger a PHP warning
+	 * when the `current` property is not set on the menu item object.
+	 *
+	 * @ticket 65786
+	 *
+	 * @covers Walker_Nav_Menu::start_el
+	 */
+	public function test_start_el_should_not_warn_when_current_property_is_not_set() {
+		$output  = '';
+		$post_id = self::factory()->post->create();
+
+		$item = (object) array(
+			'ID'        => $post_id,
+			'object_id' => $post_id,
+			'title'     => get_the_title( $post_id ),
+			'target'    => '',
+			'xfn'       => '',
+			// Intentionally omitted to replicate menu item objects without a `current` property.
+		);
+
+		$args = (object) array(
+			'before'      => '',
+			'after'       => '',
+			'link_before' => '',
+			'link_after'  => '',
+		);
+
+		$this->walker->start_el( $output, $item, 0, $args );
+
+		$this->assertStringNotContainsString( 'aria-current', $output );
+	}
+
+	/**
 	 * Tests that `Walker_Nav_Menu::start_el()` adds `rel="privacy-policy"`.
 	 *
 	 * @ticket 56345
