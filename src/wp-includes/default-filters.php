@@ -714,7 +714,7 @@ add_action( 'delete_attachment', '_wp_delete_edit_root_attachment_id' );
 // JPEG XL (JXL) upload support: register the MIME type and restore it during
 // upload validation when fileinfo reports the non-canonical image/x-jxl form.
 add_filter( 'upload_mimes', 'wp_add_jxl_upload_mimes' );
-add_filter( 'wp_check_filetype_and_ext', 'wp_filter_jxl_filetype_and_ext', 10, 3 );
+add_filter( 'wp_check_filetype_and_ext', 'wp_filter_jxl_filetype_and_ext', 10, 4 );
 
 // Client-side media processing.
 add_action( 'admin_init', 'wp_set_client_side_media_processing_flag' );

@@ -5957,16 +5957,29 @@ function wp_add_jxl_upload_mimes( $mimes ) {
  * When the file is genuinely a JPEG XL (verified via its magic bytes), restore
  * the expected extension and MIME type so the upload is allowed.
  *
+ * Core also empties the type when JXL is not an allowed MIME type, for example
+ * when a network's upload file types leave it out, so only restore it when
+ * image/jxl is allowed.
+ *
  * @since 7.1.0
  *
- * @param array  $data     Values for the extension, MIME type, and corrected filename.
- * @param string $file     Full path to the file.
- * @param string $filename The name of the file.
+ * @param array         $data     Values for the extension, MIME type, and corrected filename.
+ * @param string        $file     Full path to the file.
+ * @param string        $filename The name of the file.
+ * @param string[]|null $mimes    Array of mime types keyed by their file extension regex, or null for the defaults.
  * @return array Filtered values for the extension, MIME type, and corrected filename.
  */
-function wp_filter_jxl_filetype_and_ext( $data, $file, $filename ) {
+function wp_filter_jxl_filetype_and_ext( $data, $file, $filename, $mimes = null ) {
 	// Leave already-recognized files untouched.
 	if ( ! empty( $data['type'] ) ) {
+		return $data;
+	}
+
+	if ( empty( $mimes ) ) {
+		$mimes = get_allowed_mime_types();
+	}
+
+	if ( ! in_array( 'image/jxl', $mimes, true ) ) {
 		return $data;
 	}
 

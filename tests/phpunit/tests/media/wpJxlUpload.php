@@ -166,4 +166,40 @@ class Tests_Media_wpJxlUpload extends WP_UnitTestCase {
 		$this->assertFalse( $data['ext'], 'JXL extension on a non-JXL file must not be restored.' );
 		$this->assertFalse( $data['type'] );
 	}
+
+	/**
+	 * A site that removes JXL from its upload types, like a network's
+	 * "Upload file types" setting does, must not have it restored.
+	 *
+	 * @ticket 64915
+	 */
+	public function test_filetype_and_ext_does_not_restore_jxl_when_the_site_disallows_it() {
+		$path = $this->create_temp_file( "\xFF\x0A" . str_repeat( "\x00", 32 ) );
+
+		add_filter(
+			'upload_mimes',
+			static function ( $mimes ) {
+				unset( $mimes['jxl'] );
+				return $mimes;
+			},
+			20
+		);
+
+		$data = wp_check_filetype_and_ext( $path, 'photo.jxl' );
+
+		$this->assertFalse( $data['ext'], 'A disallowed JXL must not be restored.' );
+		$this->assertFalse( $data['type'] );
+	}
+
+	/**
+	 * @ticket 64915
+	 */
+	public function test_filetype_and_ext_does_not_restore_jxl_when_the_passed_mimes_exclude_it() {
+		$path = $this->create_temp_file( "\xFF\x0A" . str_repeat( "\x00", 32 ) );
+
+		$data = wp_check_filetype_and_ext( $path, 'photo.jxl', array( 'jpg|jpeg|jpe' => 'image/jpeg' ) );
+
+		$this->assertFalse( $data['ext'], 'A JXL outside the passed MIME types must not be restored.' );
+		$this->assertFalse( $data['type'] );
+	}
 }
