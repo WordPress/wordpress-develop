@@ -1580,8 +1580,7 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 					global $wpdb;
 
 					$result = ( add_option( $transient_timeout, time() + $expiration, '', false )
-						|| '' === $wpdb->last_error
-						|| false !== get_option( $transient_timeout ) )
+						|| '' === $wpdb->last_error )
 						&& add_option( $transient_option, $value, '', false );
 					$update = false;
 				} else {
@@ -2720,8 +2719,7 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 					global $wpdb;
 
 					$result = add_site_option( $transient_timeout, time() + $expiration )
-						|| '' === $wpdb->last_error
-						|| false !== get_site_option( $transient_timeout );
+						|| '' === $wpdb->last_error;
 					if ( ! $result ) {
 						$update = false;
 					}
