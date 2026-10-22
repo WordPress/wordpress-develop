@@ -50,6 +50,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	private static $file_stream_fixture_url = null;
 
 	/**
+	 * Local redirection fixture URL shared with instance tests after set_up_before_class().
+	 *
+	 * @var string|null
+	 */
+	private static $redirection_fixture_url = null;
+
+	/**
 	 * Skip reason when a fixture prerequisite is unavailable.
 	 *
 	 * @var string|null
@@ -103,6 +110,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 				$fixture_dir
 			);
 			return;
+		}
+
+		$redirection_script_source = DIR_TESTDATA . '/WPHTTP-testcase-redirection-script.php';
+		if ( file_exists( $redirection_script_source ) ) {
+			copy( $redirection_script_source, $fixture_dir . '/redirection.php' );
 		}
 
 		set_error_handler(
@@ -207,6 +219,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		self::$file_stream_fixture_dir     = $fixture_dir;
 		self::$file_stream_fixture_process = $process;
 		self::$file_stream_fixture_url     = $url;
+		self::$redirection_fixture_url     = 'http://127.0.0.1:' . $port . '/redirection.php';
 	}
 
 	/**
@@ -225,6 +238,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 
 		self::$file_stream_fixture_url         = null;
+		self::$redirection_fixture_url         = null;
 		self::$file_stream_fixture_skip_reason = null;
 		self::$file_stream_fixture_fail_reason = null;
 
@@ -272,6 +286,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		if ( self::$file_stream_fixture_url ) {
 			$this->file_stream_url = self::$file_stream_fixture_url;
+		}
+
+		if ( self::$redirection_fixture_url ) {
+			$this->redirection_script = self::$redirection_fixture_url;
 		}
 	}
 
