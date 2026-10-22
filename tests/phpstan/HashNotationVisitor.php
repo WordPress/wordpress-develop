@@ -57,7 +57,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  *   or `object`, or a class, on its own or as one member of a union such as
  *   `string|array` or `array|WP_Error`, where the bare member is the one the
  *   hash is about. A type that is already more specific than the hash, such as
- *   `array<string, string|bool>`, is left as written. A shape derived for a
+ *   `array<string, string|bool>`, is left as written, except for a `T[]` whose
+ *   hash is a single `...$0` entry typed as that `T`, which describes the
+ *   elements the way a hash on a bare `array` would. A shape derived for a
  *   named class is intersected with it, as `stdClass&object{...}`, because an
  *   object shape is structural on its own and one derived from a bare `object`
  *   would not be assignable to a property declared `stdClass`.
@@ -79,8 +81,9 @@ use PHPStan\PhpDocParser\ParserConfig;
  * they describe a value core itself builds. Numbered keys such as `$0`, `$1`
  * used for positional arguments are required in either case, because they are
  * passed in order. A description opening with `Optional.` overrides all of
- * that, and is the only thing that does; the word elsewhere in a description is
- * prose, not a marker.
+ * that, and a `Required.` sentence opening or closing it makes a `@param` key
+ * required, for a value such as a parsed block whose keys are always set. Those
+ * are the only markers; either word elsewhere in a description is prose.
  *
  * The shape of a `@param` hash is left open, with a trailing `...`, because the
  * hash lists the keys core reads rather than the only keys a caller may pass.
@@ -600,8 +603,19 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$bare      = array();
 		$shapeable = array();
+		$elements  = array();
 
 		foreach ( $members as $position => $member ) {
+			/*
+			 * A `T[]` member describes its elements, so it takes a hash that does the
+			 * same: a single `...$0` entry documenting the repeated value as a `T`, as
+			 * the blocks `parse_blocks()` returns are.
+			 */
+			if ( $this->describes_elements( $member, $entries ) ) {
+				$elements[] = $position;
+				continue;
+			}
+
 			if ( ! $this->is_shapeable( $member ) ) {
 				continue;
 			}
@@ -620,10 +634,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		 * `WP_Error` carries no keys. So the bare member takes the shape whenever
 		 * there is exactly one. Two of them, or two classes and no bare member,
 		 * would leave it a guess which one the hash is about.
+		 *
+		 * A `T[]` member comes next, so a bare `array` beside it keeps the shape it
+		 * had before `T[]` members could take one, as in `array|array[]`.
 		 */
 		if ( 1 === count( $bare ) ) {
 			$target = $bare[0];
-		} elseif ( array() === $bare && 1 === count( $shapeable ) ) {
+		} elseif ( array() === $bare && 1 === count( $elements ) ) {
+			$target = $elements[0];
+		} elseif ( array() === $bare && array() === $elements && 1 === count( $shapeable ) ) {
 			$target = $shapeable[0];
 		} else {
 			return null;
@@ -631,8 +650,9 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 
 		$member     = $members[ $target ];
 		$normalized = strtolower( $member );
-		$named      = 'array' !== $normalized && 'object' !== $normalized;
-		$shape      = $this->resolve_container( $entries, $for_param, 'array' === $normalized, $named );
+		$is_array   = 'array' === $normalized || in_array( $target, $elements, true );
+		$named      = ! $is_array && 'object' !== $normalized;
+		$shape      = $this->resolve_container( $entries, $for_param, $is_array, $named );
 		if ( null === $shape ) {
 			return null;
 		}
@@ -681,6 +701,49 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return preg_match( '#^\\\\?[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$#', $member ) === 1;
+	}
+
+	/**
+	 * Reports whether a hash documents the elements of a `T[]` member of a union type.
+	 *
+	 * Only a single `...$0` entry whose own type is that `T` qualifies. Named keys
+	 * beside a `T[]` describe the array itself, as the `string[]` of a list of
+	 * labels keyed by name does, and an entry of any other type would contradict
+	 * the declared element type rather than narrow it. The one exception is a bare
+	 * `array` entry for an `array[]` element, which is how the `array[][]` of
+	 * `wp_print_font_faces()` is written. Its own hash must then describe the
+	 * elements of that `array[]` in turn, so the inner arrays are still only
+	 * narrowed: named keys there, or no hash at all, would type an array of
+	 * arrays as a single shape, or drop a level of it.
+	 *
+	 * @param string      $member  One member of a union type.
+	 * @param list<mixed> $entries Entries of the hash describing it.
+	 * @return bool
+	 */
+	private function describes_elements( string $member, array $entries ): bool {
+		if ( ! str_ends_with( $member, '[]' ) || 1 !== count( $entries ) ) {
+			return false;
+		}
+
+		$entry = $entries[0];
+		if ( ! is_array( $entry ) || true !== ( $entry['variadic'] ?? null ) || ! is_string( $entry['type'] ?? null ) ) {
+			return false;
+		}
+
+		$element = strtolower( substr( $member, 0, -2 ) );
+		$type    = strtolower( $entry['type'] );
+
+		if ( $element === $type ) {
+			return true;
+		}
+
+		if ( 'array' !== $type || preg_match( '#^array(?:\[\])+$#', $element ) !== 1 ) {
+			return false;
+		}
+
+		$children = $entry['children'] ?? null;
+
+		return is_array( $children ) && $this->describes_elements( $element, array_values( $children ) );
 	}
 
 	/**
@@ -795,6 +858,15 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		/*
+		 * Core marks the keys a caller must pass with a `Required.` sentence. It is
+		 * redundant in a `@return` hash, whose keys are required already, but says
+		 * what the default cannot in a `@param` hash.
+		 */
+		if ( $this->is_required( $entry['description'] ) ) {
+			return false;
+		}
+
+		/*
 		 * A `@return` hash describes a value core builds, so its keys are
 		 * present unless the description says otherwise. `Default ...` is not
 		 * that: a key documented with a default is still always set.
@@ -809,6 +881,21 @@ final class HashNotationVisitor extends NodeVisitorAbstract {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Reports whether a description marks its key as required.
+	 *
+	 * The marker is a `Required.` sentence, written either first, as `Optional.`
+	 * is, or last, as some of core's hashes have it. Only the whole sentence
+	 * counts: the word inside one is prose, as in a "Capability required for the
+	 * panel", or the "Required for multi-widgets" of a key that is not.
+	 *
+	 * @param string $description Description of the entry.
+	 * @return bool
+	 */
+	private function is_required( string $description ): bool {
+		return preg_match( '#^\s*Required\.(?:\s|$)|(?:^|[.!?]\s+)Required\.\s*$#i', $description ) === 1;
 	}
 
 	/**
