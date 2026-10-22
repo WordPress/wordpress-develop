@@ -55,6 +55,9 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 			'Void block'                                  =>
 				array( '<!-- wp:void /-->' ),
 
+			'Void block with a numeric attribute name'    =>
+				array( '<!-- wp:void {"0":"a"} /-->' ),
+
 			'Freeform content ($block_name = null)'       =>
 				array( 'Example.' ),
 
@@ -117,6 +120,54 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 				'<!-- wp:attributes {"bs":"\\u005c","bsQuote":"\\u005c\\u0022","bsQuoteBs":"\\u005c\\u0022\\u005c"} /-->',
 			),
 		);
+	}
+
+	/**
+	 * Tests that block attributes are always serialized as a JSON object.
+	 *
+	 * @dataProvider data_serialize_block_attributes
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<string, mixed> $block_attributes Block attributes.
+	 * @param string               $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for test_serialize_block_attributes().
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: string }>
+	 */
+	public static function data_serialize_block_attributes(): array {
+		return array(
+			'No attributes'                        => array( array(), '{}' ),
+			'String attribute'                     => array( array( 'align' => 'wide' ), '{"align":"wide"}' ),
+			'Numeric attribute name'               => array( array( 0 => 'a' ), '{"0":"a"}' ),
+			'Sequential numeric names'             => array(
+				array(
+					0 => 'a',
+					1 => 'b',
+				),
+				'{"0":"a","1":"b"}',
+			),
+			'Numeric name not starting from zero'  => array( array( 1 => 'a' ), '{"1":"a"}' ),
+			'Name starting with a null byte'       => array( array( "\0" . 'a' => 1 ), '{"\\u0000a":1}' ),
+			'List value'                           => array( array( 'className' => array( 'a', 'b' ) ), '{"className":["a","b"]}' ),
+			'Empty array value'                    => array( array( 'style' => array() ), '{"style":[]}' ),
+			'Characters unsafe in an HTML comment' => array( array( 'text' => '--> <!-- & "' ), '{"text":"\\u002d\\u002d\\u003e \\u003c!\\u002d\\u002d \\u0026 \\u0022"}' ),
+		);
+	}
+
+	/**
+	 * Tests that attributes which cannot be encoded are serialized as an empty object.
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_encoding_failure() {
+		$this->assertSame( '{}', serialize_block_attributes( array( 'number' => INF ) ) );
 	}
 
 	public function test_serialized_block_name() {

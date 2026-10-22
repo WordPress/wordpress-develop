@@ -1699,11 +1699,26 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  *
  * @since 5.3.1
  *
- * @param array $block_attributes Attributes object.
+ * @param array<string, mixed> $block_attributes Attributes object.
  * @return string Serialized attributes.
+ *
+ * @phpstan-return non-empty-string
  */
-function serialize_block_attributes( $block_attributes ) {
+function serialize_block_attributes( $block_attributes ): string {
+	/*
+	 * Attributes are always an object, but an empty array, or one whose keys are numeric
+	 * attribute names counting up from zero, would be encoded as a JSON array. Only these are
+	 * cast to an object, since json_encode() skips object properties whose names start with a
+	 * null byte, which an attribute name decoded from JSON may do.
+	 */
+	if ( array_is_list( $block_attributes ) ) {
+		$block_attributes = (object) $block_attributes;
+	}
+
 	$encoded_attributes = wp_json_encode( $block_attributes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	if ( false === $encoded_attributes ) {
+		return '{}'; // JSON encoding of an empty object.
+	}
 
 	return strtr(
 		$encoded_attributes,
