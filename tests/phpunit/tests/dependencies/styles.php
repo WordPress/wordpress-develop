@@ -13,8 +13,17 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 
 	private ?WP_Scripts $old_wp_scripts = null;
 
+	/**
+	 * Original theme features before test runs.
+	 *
+	 * @var array
+	 */
+	private $orig_theme_features;
+
 	public function set_up() {
 		parent::set_up();
+
+		$this->orig_theme_features = $GLOBALS['_wp_theme_features'];
 
 		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
 		$old_wp_scripts       = $GLOBALS['wp_scripts'] ?? null;
@@ -32,15 +41,12 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
-		$GLOBALS['wp_styles']  = $this->old_wp_styles;
-		$GLOBALS['wp_scripts'] = $this->old_wp_scripts;
+		$GLOBALS['wp_styles']          = $this->old_wp_styles;
+		$GLOBALS['wp_scripts']         = $this->old_wp_scripts;
+		$GLOBALS['_wp_theme_features'] = $this->orig_theme_features;
 
 		add_action( 'wp_default_styles', 'wp_default_styles' );
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
-
-		if ( current_theme_supports( 'wp-block-styles' ) ) {
-			remove_theme_support( 'wp-block-styles' );
-		}
 
 		parent::tear_down();
 	}
