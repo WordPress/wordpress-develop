@@ -8,7 +8,7 @@ process.env.WP_ARTIFACTS_PATH ??= join( process.cwd(), 'artifacts' );
 
 const locales = [ 'en_US', 'de_DE' ];
 
-const themes = [ 'twentytwentyone', 'twentytwentythree', 'twentytwentyfour', 'twentytwentyfive' ];
+const themes = [ 'twentytwentyone', 'twentytwentythree', 'twentytwentyfour', 'twentytwentyfive', 'ipsum' ];
 
 /**
  * Parse test files into JSON objects.
