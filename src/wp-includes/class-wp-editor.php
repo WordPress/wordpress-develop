@@ -214,6 +214,10 @@ final class _WP_Editors {
 			self::$editor_buttons_css = false;
 		}
 
+		if ( ! empty( $set['quicktags'] ) ) {
+			wp_print_styles( 'buttons' );
+		}
+
 		if ( ! empty( $set['editor_css'] ) ) {
 			echo $set['editor_css'] . "\n";
 		}
