@@ -1420,12 +1420,18 @@ function count_users( $strategy = 'time', $site_id = null ) {
 		}
 
 		// Build a CPU-intensive query that will return concise information.
-		$select_count = array();
+		$select_count  = array();
+		$role_matchers = array();
 		foreach ( $avail_roles as $this_role => $name ) {
-			$select_count[] = $wpdb->prepare( 'COUNT(NULLIF(`meta_value` LIKE %s, false))', '%' . $wpdb->esc_like( '"' . $this_role . '"' ) . '%' );
+			$role_matcher    = $wpdb->prepare( '`meta_value` LIKE %s', '%' . $wpdb->esc_like( '"' . $this_role . '"' ) . '%' );
+			$role_matchers[] = $role_matcher;
+			$select_count[]  = "COUNT(NULLIF({$role_matcher}, false))";
 		}
-		$select_count[] = "COUNT(NULLIF(`meta_value` = 'a:0:{}', false))";
-		$select_count   = implode( ', ', $select_count );
+
+		// Users whose roles are all unregistered count as having no role, matching wp_get_users_with_no_role().
+		$no_role_condition = empty( $role_matchers ) ? '1' : 'NOT (' . implode( ' OR ', $role_matchers ) . ')';
+		$select_count[]    = "COUNT(NULLIF({$no_role_condition}, false))";
+		$select_count      = implode( ', ', $select_count );
 
 		// Add the meta_value index to the selection list, then run the query.
 		$row = $wpdb->get_row(
