@@ -624,22 +624,27 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 * @since 7.2.0 Added the `$request` parameter. The links are not added or embedded when the
-	 *              route turns off the `links` or `embed` response processing.
+	 *              route turns off the `links` or `embed` response processing, scalar and object
+	 *              data is returned as it is unless the object implements `ArrayAccess`, and list
+	 *              items that are not arrays are left as they are when embedding.
 	 *
 	 * @param WP_REST_Response     $response Response object.
 	 * @param bool|string[]        $embed    Whether to embed all links, a filtered list of link relations, or no links.
 	 * @param WP_REST_Request|null $request  Optional. The request that generated the response. It resolves the
 	 *                                       response processing settings when the response has no matched handler.
 	 *                                       Default null.
-	 * @return array {
-	 *     Data with sub-requests embedded.
-	 *
-	 *     @type array $_links    Links.
-	 *     @type array $_embedded Embedded objects.
-	 * }
+	 * @return mixed Data with sub-requests embedded: an array with the links under `_links` and the embedded
+	 *               resources under `_embedded`, or scalar and object data as it is unless the object
+	 *               implements `ArrayAccess`.
 	 */
 	public function response_to_data( $response, $embed, $request = null ) {
-		$data       = $response->get_data();
+		$data = $response->get_data();
+
+		// Scalar and object data has no place for links or embedded resources, unless the object acts as an array.
+		if ( null !== $data && ! is_array( $data ) && ! $data instanceof ArrayAccess ) {
+			return $data;
+		}
+
 		$processing = $this->get_response_processing( $request, $response );
 		$links      = $processing['links'] ? self::get_compact_response_links( $response ) : array();
 
@@ -653,7 +658,7 @@ class WP_REST_Server {
 			// Determine if this is a numeric array.
 			if ( wp_is_numeric_array( $data ) ) {
 				foreach ( $data as $key => $item ) {
-					$data[ $key ] = $this->embed_links( $item, $embed );
+					$data[ $key ] = is_array( $item ) || $item instanceof ArrayAccess ? $this->embed_links( $item, $embed ) : $item;
 				}
 			} else {
 				$data = $this->embed_links( $data, $embed );
