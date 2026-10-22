@@ -1489,7 +1489,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentyten' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentyten' ) );
 	}
 
 	/**
@@ -1512,6 +1512,6 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentytwenty' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentytwenty' ) );
 	}
 }
