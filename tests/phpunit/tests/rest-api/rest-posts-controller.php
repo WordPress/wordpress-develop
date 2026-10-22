@@ -488,7 +488,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			$this->assertSame( 2, $headers['X-WP-Total'], 'Failed asserting that the number of posts is correct.' );
 		}
 
-		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_date DESC, {posts}.ID DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
@@ -544,7 +544,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( self::$editor_id, $data[1]['author'] );
 		$this->assertSame( self::$editor_id, $data[2]['author'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_author DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_author DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_orderby_modified_query() {
@@ -568,7 +568,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $id3, $data[1]['id'] );
 		$this->assertSame( $id2, $data[2]['id'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_modified DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_modified DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_orderby_parent_query() {
@@ -606,7 +606,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $data[1]['parent'] );
 		$this->assertSame( 0, $data[2]['parent'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_parent DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_parent DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_exclude_query() {
@@ -976,14 +976,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Sauce', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title DESC, {posts}.ID DESC' );
 
 		// 'order' => 'asc'.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Cobbler', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title ASC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title ASC, {posts}.ID ASC' );
 
 		// 'order' => 'asc,id' should error.
 		$request->set_param( 'order', 'asc,id' );
@@ -1068,7 +1068,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Default ORDER is DESC.
 		$this->assertSame( 'xyz', $data[0]['slug'] );
 		$this->assertSame( 'abc', $data[1]['slug'] );
-		$this->assertPostsOrderedBy( '{posts}.post_name DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_name DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_slugs() {
@@ -1120,7 +1120,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 		$this->assertSame( $id2, $data[1]['id'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title LIKE \'%relevant%\' DESC, {posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title LIKE \'%relevant%\' DESC, {posts}.post_date DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_relevance_two_terms() {
@@ -1148,7 +1148,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 		$this->assertSame( $id2, $data[1]['id'] );
-		$this->assertPostsOrderedBy( '(CASE WHEN {posts}.post_title LIKE \'%relevant content%\' THEN 1 WHEN {posts}.post_title LIKE \'%relevant%\' AND {posts}.post_title LIKE \'%content%\' THEN 2 WHEN {posts}.post_title LIKE \'%relevant%\' OR {posts}.post_title LIKE \'%content%\' THEN 3 WHEN {posts}.post_excerpt LIKE \'%relevant content%\' THEN 4 WHEN {posts}.post_content LIKE \'%relevant content%\' THEN 5 ELSE 6 END), {posts}.post_date DESC' );
+		$this->assertPostsOrderedBy( '(CASE WHEN {posts}.post_title LIKE \'%relevant content%\' THEN 1 WHEN {posts}.post_title LIKE \'%relevant%\' AND {posts}.post_title LIKE \'%content%\' THEN 2 WHEN {posts}.post_title LIKE \'%relevant%\' OR {posts}.post_title LIKE \'%content%\' THEN 3 WHEN {posts}.post_excerpt LIKE \'%relevant content%\' THEN 4 WHEN {posts}.post_content LIKE \'%relevant content%\' THEN 5 ELSE 6 END), {posts}.post_date DESC, {posts}.ID DESC' );
 	}
 
 	public function test_get_items_with_orderby_relevance_missing_search() {
