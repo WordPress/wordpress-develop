@@ -194,8 +194,8 @@ if ( ! function_exists( 'ipsum_search_aria_label_support' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array $metadata Metadata for the block type being registered.
-	 * @return array The block metadata, with ARIA label support on the Search block.
+	 * @param array<string, mixed> $metadata Metadata for the block type being registered.
+	 * @return array<string, mixed> The block metadata, with ARIA label support on the Search block.
 	 */
 	function ipsum_search_aria_label_support( $metadata ) {
 		if ( isset( $metadata['name'] ) && 'core/search' === $metadata['name'] ) {
