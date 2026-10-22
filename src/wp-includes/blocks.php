@@ -1726,7 +1726,7 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * and try again, rather than losing all the attributes. Values in nested arrays are
 	 * replaced too, but not those in objects, which belong to the caller.
 	 */
-	if ( false === $encoded_attributes && is_array( $block_attributes ) ) {
+	if ( false === $encoded_attributes && JSON_ERROR_INF_OR_NAN === json_last_error() && is_array( $block_attributes ) ) {
 		array_walk_recursive(
 			$block_attributes,
 			static function ( &$value ) {

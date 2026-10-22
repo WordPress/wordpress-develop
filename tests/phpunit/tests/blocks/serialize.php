@@ -215,6 +215,18 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that attributes which refer to themselves are serialized as an empty object, rather than causing a fatal error.
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_recursion() {
+		$block_attributes         = array( 'align' => 'wide' );
+		$block_attributes['self'] = &$block_attributes;
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
 	 * Tests that attributes passed as an object are still serialized, rather than causing a fatal error.
 	 *
 	 * @covers ::serialize_block_attributes
