@@ -152,8 +152,6 @@ class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 	 * @ticket 65819
 	 */
 	public function test_adjacent_post_links_output_nothing_on_terminal_posts() {
-		global $GLOBALS;
-
 		// Move to first (most recent) post so there is no next post.
 		$GLOBALS['post'] = get_post( $this->post_ids[0] );
 		$this->assertSame( '', get_echo( 'next_post_link' ) );
