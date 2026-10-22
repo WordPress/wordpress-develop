@@ -718,6 +718,8 @@ add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-upload.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-media-new.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );
@@ -841,7 +843,7 @@ add_filter( 'rest_pre_insert_wp_template', 'inject_ignored_hooked_blocks_metadat
 add_filter( 'rest_pre_insert_wp_template_part', 'inject_ignored_hooked_blocks_metadata_attributes' );
 
 // View Config API.
-foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $post_type ) {
+foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template', 'attachment' ) as $post_type ) {
 	// Base definitions run before the default priority, so third-party
 	// callbacks registered at the default compose on top of them
 	// regardless of registration order.
@@ -852,5 +854,13 @@ foreach ( array( 'page', 'wp_block', 'wp_template_part', 'wp_template' ) as $pos
 	);
 }
 add_filter( 'get_entity_view_config_root_site', '_wp_get_entity_view_config_root_site', 5 );
+
+// Entity Actions API.
+add_action( 'admin_footer', '_wp_add_entity_action_modules_to_editor_script', 10, 0 );
+add_filter( 'block_editor_rest_api_preload_paths', '_wp_preload_entity_actions', 10, 2 );
+
+// Entity Fields API.
+add_action( 'admin_footer', '_wp_add_entity_field_modules_to_editor_script', 10, 0 );
+add_filter( 'block_editor_rest_api_preload_paths', '_wp_preload_entity_fields', 10, 2 );
 
 unset( $filter, $action, $post_type );
