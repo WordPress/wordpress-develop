@@ -5898,7 +5898,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * JXL files come in two flavors: a naked codestream (starts with 0xFF 0x0A)
  * and an ISOBMFF container (starts with the 12-byte JXL box signature).
  *
- * @since 7.1.0
+ * @since 7.3.0
  *
  * @param string $file Full path to the file.
  * @return bool Whether the file is a JPEG XL image.
@@ -5938,7 +5938,7 @@ function wp_is_jxl_file( $file ) {
  * the editor's allowed-types check rejects the original .jxl before it can be
  * converted, and the companion sideload is rejected by the server.
  *
- * @since 7.1.0
+ * @since 7.3.0
  *
  * @param array $mimes Allowed MIME types (extension => type).
  * @return array Modified MIME types.
@@ -5961,7 +5961,7 @@ function wp_add_jxl_upload_mimes( $mimes ) {
  * when a network's upload file types leave it out, so only restore it when
  * image/jxl is allowed.
  *
- * @since 7.1.0
+ * @since 7.3.0
  *
  * @param array         $data     Values for the extension, MIME type, and corrected filename.
  * @param string        $file     Full path to the file.
