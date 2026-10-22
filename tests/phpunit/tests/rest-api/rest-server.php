@@ -3475,4 +3475,38 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$this->assertArrayNotHasKey( 'response_processing', $data['endpoints'][1], 'An endpoint with every feature on should not list the settings.' );
 	}
+
+	/**
+	 * Data provider for test_non_array_data_is_served_as_returned_by_default().
+	 *
+	 * @return array<string, array{0: mixed, 1: bool, 2: string}>
+	 */
+	public static function data_non_array_data_is_served_as_returned_by_default(): array {
+		return array(
+			'string'          => array( 'value', true, '"value"' ),
+			'integer'         => array( 5, true, '5' ),
+			'object'          => array( (object) array( 'b' => 2 ), true, '{"b":2}' ),
+			'empty object'    => array( new stdClass(), true, '{}' ),
+			'list of scalars' => array( array( 'a', 'b' ), false, '["a","b"]' ),
+			'mixed list'      => array( array( array( 'b' => 2 ), 'c' ), false, '[[],"c"]' ),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_non_array_data_is_served_as_returned_by_default
+	 *
+	 * @param mixed  $data      The response data.
+	 * @param bool   $with_link Whether the response has an embeddable link.
+	 * @param string $expected  The expected response body.
+	 */
+	public function test_non_array_data_is_served_as_returned_by_default( $data, bool $with_link, string $expected ): void {
+		$this->register_response_processing_route( $data, $with_link );
+
+		$_GET['_fields'] = 'a';
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+
+		$this->assertSame( $expected, rest_get_server()->sent_body, 'Data without fields, or items without fields, should be served as returned.' );
+	}
 }
