@@ -1084,6 +1084,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_json_encode_throw_on_error
 	 *
+	 * @ticket 66368
+	 *
 	 * @covers ::wp_json_encode
 	 *
 	 * @param mixed       $value Value to encode.
@@ -1113,6 +1115,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * This is why {@see wp_json_encode()} is typed to return a non-empty string, not a non-falsy one.
 	 *
 	 * @dataProvider data_wp_json_encode_falsy_output
+	 *
+	 * @ticket 66368
 	 *
 	 * @covers ::wp_json_encode
 	 *
