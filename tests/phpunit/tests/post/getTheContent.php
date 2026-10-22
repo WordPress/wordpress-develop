@@ -84,4 +84,14 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 		$this->assertSame( 'Foo', get_the_content() );
 	}
+
+	/**
+	 * @ticket 66093
+	 * @requires extension intl
+	 */
+	public function test_should_normalize_the_content_to_unicode_nfc() {
+		$GLOBALS['post'] = self::factory()->post->create_and_get( array( 'post_content' => "a\u{0308}" ) );
+
+		$this->assertSame( "<p>ä</p>\n", get_echo( 'the_content' ) );
+	}
 }
