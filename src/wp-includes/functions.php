@@ -4480,9 +4480,9 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *
  * @param mixed $value Variable (usually an array or object) to encode as JSON.
  * @param int   $flags Optional. Options to be passed to json_encode(). If it includes
- *                     `JSON_THROW_ON_ERROR`, a `JsonException` is thrown when `$value`
- *                     cannot be encoded as is, since the confidence checks are then
- *                     skipped. Default 0.
+ *                     `JSON_THROW_ON_ERROR` but not `JSON_PARTIAL_OUTPUT_ON_ERROR`, a
+ *                     `JsonException` is thrown when `$value` cannot be encoded as is,
+ *                     since the confidence checks are then skipped. Default 0.
  * @param int   $depth Optional. Maximum depth to walk through $value. Must be
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded

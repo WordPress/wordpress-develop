@@ -1135,6 +1135,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			'numeric string with JSON_NUMERIC_CHECK' => array( '0', JSON_NUMERIC_CHECK ),
 			'INF with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( INF, JSON_PARTIAL_OUTPUT_ON_ERROR ),
 			'NAN with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( NAN, JSON_PARTIAL_OUTPUT_ON_ERROR ),
+			'INF with JSON_PARTIAL_OUTPUT_ON_ERROR and JSON_THROW_ON_ERROR' => array( INF, JSON_PARTIAL_OUTPUT_ON_ERROR | JSON_THROW_ON_ERROR ),
 			'JsonSerializable serializing to zero'   => array(
 				new class() implements JsonSerializable {
 					#[ReturnTypeWillChange]
