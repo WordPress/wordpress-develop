@@ -62,12 +62,12 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 
 	/**
 	 * @ticket       54160
-	 * @dataProvider data_sanitize_key_nonstring_scalar
+	 * @dataProvider data_sanitize_key_non_string
 	 *
 	 * @param mixed  $key      The key to sanitize.
 	 * @param string $expected The expected value.
 	 */
-	public function test_sanitize_key_nonstring_scalar( $key, $expected ) {
+	public function test_sanitize_key_non_string( $key, $expected ) {
 		$this->assertSame( $expected, sanitize_key( $key ) );
 	}
 
@@ -76,7 +76,7 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public static function data_sanitize_key_nonstring_scalar() {
+	public static function data_sanitize_key_non_string() {
 		return array(
 			'integer type'                 => array(
 				'key'      => 0,
@@ -110,18 +110,36 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 				'key'      => new stdClass(),
 				'expected' => '',
 			),
+			'float infinity'               => array(
+				'key'      => INF,
+				'expected' => 'inf',
+			),
+			'null'                         => array(
+				'key'      => null,
+				'expected' => '',
+			),
+			'stringable object'            => array(
+				'key'      => new Exception( 'HOWDY' ),
+				'expected' => '',
+			),
+			'closure'                      => array(
+				'key'      => static function () {
+					return 'howdy';
+				},
+				'expected' => '',
+			),
 		);
 	}
 
 	/**
-	 * Tests that the filter receives the sanitized key and the original non-string scalar key.
+	 * Tests that the filter receives the sanitized key and the original non-string key.
 	 *
-	 * @dataProvider data_sanitize_key_nonstring_scalar
+	 * @dataProvider data_sanitize_key_non_string
 	 *
 	 * @param mixed  $key      The key to sanitize.
 	 * @param string $expected The expected value.
 	 */
-	public function test_sanitize_key_filter_with_nonstring_scalar( $key, string $expected ): void {
+	public function test_sanitize_key_filter_with_non_string( $key, string $expected ): void {
 		$filter = new MockAction();
 		add_filter( 'sanitize_key', array( $filter, 'filter' ), 10, 2 );
 
