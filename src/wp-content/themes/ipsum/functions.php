@@ -144,8 +144,9 @@ if ( ! function_exists( 'ipsum_sidebar_template_types' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array $default_template_types The default template types.
-	 * @return array The template types, with the sidebar variants added.
+	 * @param array<string, array<string, string>> $default_template_types The default template types, keyed by
+	 *                                                                     slug, each with a title and description.
+	 * @return array<string, array<string, string>> The template types, with the sidebar variants added.
 	 */
 	function ipsum_sidebar_template_types( $default_template_types ) {
 		$default_template_types['index-sidebar']   = array(
