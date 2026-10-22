@@ -231,10 +231,6 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @return {wp.media.model.Query} A new Attachments Query collection.
 	 */
 	get: (function(){
-		/**
-		 * @static
-		 * @type Array
-		 */
 		var queries = [];
 
 		/**

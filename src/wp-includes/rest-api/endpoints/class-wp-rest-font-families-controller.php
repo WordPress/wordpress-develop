@@ -427,6 +427,7 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 6.5.0
 	 *
+	 * @param string $method Optional. HTTP method of the request. Default WP_REST_Server::CREATABLE.
 	 * @return array Font family create/edit arguments.
 	 */
 	public function get_endpoint_args_for_item_schema( $method = WP_REST_Server::CREATABLE ) {
@@ -495,6 +496,8 @@ class WP_REST_Font_Families_Controller extends WP_REST_Posts_Controller {
 
 	/**
 	 * Prepares child font face links for the request.
+	 *
+	 * @since 6.5.0
 	 *
 	 * @param int $font_family_id Font family post ID.
 	 * @return array Links for the child font face posts.

@@ -34,7 +34,7 @@ class Tests_Compat_arrayFirst extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_array_first(): array {
+	public static function data_array_first(): array {
 		$obj = new \stdClass();
 		return array(
 			'string values'        => array(

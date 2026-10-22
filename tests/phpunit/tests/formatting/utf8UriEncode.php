@@ -25,7 +25,7 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 		$this->assertLessThanOrEqual( $max_length, strlen( utf8_uri_encode( $utf8, $max_length ) ) );
 	}
 
-	public function data() {
+	public static function data() {
 		$utf8_urls     = file( DIR_TESTDATA . '/formatting/utf-8/utf-8.txt' );
 		$urlencoded    = file( DIR_TESTDATA . '/formatting/utf-8/urlencoded.txt' );
 		$data_provided = array();
