@@ -94,8 +94,8 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @param array    $source_args    Block binding source arguments.
-	 * @param WP_Block $block_instance The block instance.
+	 * @param array<string, mixed> $source_args    Block binding source arguments.
+	 * @param WP_Block             $block_instance The block instance.
 	 * @return string The call to action text.
 	 */
 	function ipsum_comments_cta_binding( $source_args, $block_instance ) {
