@@ -430,6 +430,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 5.4.0 Added the registered taxonomy object as a return value.
  * @since 5.5.0 Introduced `default_term` argument.
  * @since 5.9.0 Introduced `rest_namespace` argument.
+ * @since 7.2.0 Introduced `allow_multiple_terms` argument.
  *
  * @global WP_Taxonomy[] $wp_taxonomies Registered taxonomies.
  *
@@ -471,10 +472,18 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *                                                the default is inherited from `$show_ui` (default true).
  *     @type bool          $show_admin_column     Whether to display a column for the taxonomy on its post type listing
  *                                                screens. Default false.
+ *     @type bool          $allow_multiple_terms  Whether objects can be assigned more than one term from this taxonomy.
+ *                                                When false, the default meta box renders a single-select control
+ *                                                (radios for hierarchical taxonomies, a dropdown for non-hierarchical
+ *                                                ones) and term assignment is capped at one term per object across all
+ *                                                entry points, including the REST API and wp_set_object_terms().
+ *                                                Ignored when a custom `$meta_box_cb` is supplied, though the
+ *                                                server-side cap still applies. Default true.
  *     @type bool|callable $meta_box_cb           Provide a callback function for the meta box display. If not set,
  *                                                post_categories_meta_box() is used for hierarchical taxonomies, and
- *                                                post_tags_meta_box() is used for non-hierarchical. If false, no meta
- *                                                box is shown.
+ *                                                post_tags_meta_box() is used for non-hierarchical. If
+ *                                                `$allow_multiple_terms` is false, post_single_term_meta_box() is used
+ *                                                instead. If false, no meta box is shown.
  *     @type callable      $meta_box_sanitize_cb  Callback function for sanitizing taxonomy data saved from a meta
  *                                                box. If no callback is defined, an appropriate one is determined
  *                                                based on the value of `$meta_box_cb`.
@@ -2977,6 +2986,21 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$terms = array();
 	} elseif ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
+	}
+
+	/*
+	 * For single-term taxonomies (registered with allow_multiple_terms => false),
+	 * keep only the last submitted term so that every entry point -- admin, REST API,
+	 * WP-CLI, direct callers -- honors the cardinality constraint. When $append is
+	 * true for a single-term taxonomy, appending would otherwise stack terms, so the
+	 * append request is downgraded to a replace with the supplied term.
+	 */
+	$taxonomy_object = get_taxonomy( $taxonomy );
+	if ( $taxonomy_object && isset( $taxonomy_object->allow_multiple_terms ) && ! $taxonomy_object->allow_multiple_terms ) {
+		if ( count( $terms ) > 1 ) {
+			$terms = array( end( $terms ) );
+		}
+		$append = false;
 	}
 
 	if ( ! $append ) {
