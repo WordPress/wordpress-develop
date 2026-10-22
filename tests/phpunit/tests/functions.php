@@ -1078,6 +1078,34 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a value which cannot be encoded as is throws a JsonException when JSON_THROW_ON_ERROR is passed.
+	 *
+	 * The error is thrown before the confidence checks can recover from it, as they do for invalid UTF-8.
+	 *
+	 * @dataProvider data_wp_json_encode_throw_on_error
+	 *
+	 * @param mixed       $value Value to encode.
+	 * @param int<1, max> $depth Maximum depth.
+	 */
+	public function test_wp_json_encode_throw_on_error( $value, int $depth ) {
+		$this->expectException( JsonException::class );
+		wp_json_encode( $value, JSON_THROW_ON_ERROR, $depth );
+	}
+
+	/**
+	 * Data provider for test_wp_json_encode_throw_on_error().
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: int<1, max> }>
+	 */
+	public static function data_wp_json_encode_throw_on_error(): array {
+		return array(
+			'INF'                 => array( INF, 512 ),
+			'exceeding the depth' => array( array( array( 1 ) ), 1 ),
+			'invalid UTF-8'       => array( "\xB1", 512 ),
+		);
+	}
+
+	/**
 	 * Tests that a number, a numeric string or a JSON serializable object can encode to the falsy string '0'.
 	 *
 	 * This is why {@see wp_json_encode()} is typed to return a non-empty string, not a non-falsy one.
