@@ -21,6 +21,7 @@ AudioDetails = State.extend(/** @lends wp.media.controller.AudioDetails.prototyp
 		content: 'audio-details',
 		menu: 'audio-details',
 		router: false,
+		uploader: false,
 		priority: 60
 	},
 
