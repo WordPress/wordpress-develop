@@ -2567,7 +2567,7 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     ...
  * } $args
  * @phpstan-return array{
- *     term_id: int,
+ *     term_id: non-negative-int,
  *     term_taxonomy_id: int|numeric-string,
  * }|WP_Error
  */
@@ -2801,7 +2801,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		$wpdb->delete( $wpdb->terms, array( 'term_id' => $term_id ) );
 		$wpdb->delete( $wpdb->term_taxonomy, array( 'term_taxonomy_id' => $tt_id ) );
 
-		$term_id = (int) $duplicate_term->term_id;
+		$term_id = max( 0, (int) $duplicate_term->term_id );
 		$tt_id   = (int) $duplicate_term->term_taxonomy_id;
 
 		clean_term_cache( $term_id, $taxonomy );
@@ -2857,7 +2857,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * @param int   $tt_id   Term taxonomy ID.
 	 * @param array $args    Arguments passed to wp_insert_term().
 	 */
-	$term_id = apply_filters( 'term_id_filter', $term_id, $tt_id, $args );
+	$term_id = max( 0, (int) apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
 
 	clean_term_cache( $term_id, $taxonomy );
 
@@ -3379,7 +3379,7 @@ function wp_unique_term_slug( $slug, $term ) {
  *     ...
  * } $args
  * @phpstan-return array{
- *     term_id: int,
+ *     term_id: non-negative-int,
  *     term_taxonomy_id: int,
  * }|WP_Error
  */
@@ -3618,7 +3618,7 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	do_action( "edit_{$taxonomy}", $term_id, $tt_id, $args );
 
 	/** This filter is documented in wp-includes/taxonomy.php */
-	$term_id = apply_filters( 'term_id_filter', $term_id, $tt_id, $args );
+	$term_id = max( 0, (int) apply_filters( 'term_id_filter', $term_id, $tt_id, $args ) );
 
 	clean_term_cache( $term_id, $taxonomy );
 

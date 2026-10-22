@@ -101,7 +101,7 @@ class MockAction {
 	/**
 	 * @since UT (3.7.0)
 	 *
-	 * @global array<non-empty-string, non-negative-int> $wp_actions
+	 * @global array<string, positive-int> $wp_actions
 	 * @return string|false
 	 */
 	public function current_filter() {

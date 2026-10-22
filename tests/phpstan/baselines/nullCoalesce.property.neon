@@ -19,11 +19,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property WP_Locale\:\:\$word_count_type \(string\) on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.property
-			count: 1
-			path: ../../../src/wp-includes/class-wp-locale.php
-		-
 			message: '#^Property WP_Query\:\:\$max_num_pages \(int\) on left side of \?\? is not nullable\.$#'
 			identifier: nullCoalesce.property
 			count: 1
