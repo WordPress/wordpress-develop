@@ -68,11 +68,10 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 
 					/*
 					 * Serve the ability result as returned, so it follows the ability's output
-					 * schema whether it is an object, an array, or a scalar value.
+					 * schema whether it is an object, an array, or a scalar value: `_fields`,
+					 * `_embed` and response links leave it unchanged.
 					 */
-					'allow_fields'        => false,
-					'allow_embed'         => false,
-					'allow_links'         => false,
+					'response_processing' => false,
 				),
 				'schema' => array( $this, 'get_run_schema' ),
 			)
