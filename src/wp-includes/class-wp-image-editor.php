@@ -550,6 +550,8 @@ abstract class WP_Image_Editor {
 				// Rotate 90 degrees counter-clockwise.
 				$result = $this->rotate( 90 );
 				break;
+			default:
+				return false;
 		}
 
 		return $result;
