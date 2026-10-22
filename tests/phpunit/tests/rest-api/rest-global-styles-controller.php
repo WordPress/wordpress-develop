@@ -809,7 +809,7 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 		$this->assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame( 200, $response->get_status() );
 
-		$this->assertEqualSets(
+		$this->assertEqualSetsWithIndex(
 			array(
 				'id'       => self::$global_styles_id,
 				'title'    => array(
