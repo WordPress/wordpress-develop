@@ -971,11 +971,10 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$this->assertSame( 'publish', $data['status'] );
 		$this->assertSame( self::$template_post->ID, $data['wp_id'] );
 
-		$links = $response->get_links();
-		$this->assertArrayHasKey( 'self', $links );
+		$links = test_rest_expand_compact_links( $response->get_links() );
 		$this->assertSame( rest_url( 'wp/v2/templates/default//my_template' ), $links['self'][0]['href'] );
-		$this->assertArrayHasKey( 'collection', $links );
 		$this->assertSame( rest_url( 'wp/v2/templates' ), $links['collection'][0]['href'] );
+		$this->assertSame( rest_url( 'wp/v2/types/wp_template' ), $links['about'][0]['href'] );
 	}
 
 	/**
