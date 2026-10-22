@@ -15,7 +15,7 @@
 <div class="wp-block-group alignwide" style="margin-top:0;margin-bottom:0;padding-top:var(--wp--preset--spacing--60);padding-bottom:var(--wp--preset--spacing--60)"><!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
 <div class="wp-block-columns alignwide are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} -->
 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"aspectRatio":"4/3","scale":"cover","focalPoint":{"x":0.5,"y":0.5},"sizeSlug":"full","linkDestination":"none"} -->
-<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/ipsum-cover-essays.webp?ver=<?php echo esc_attr( ipsum_get_version() ); ?>" alt="<?php echo esc_attr_x( 'Pale branching channels running through dark green moss, seen from above.', 'Alt text for the Essays section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
+<figure class="wp-block-image size-full"><img src="<?php echo esc_url( ipsum_get_asset_url( 'assets/images/ipsum-cover-essays.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'Pale branching channels running through dark green moss, seen from above.', 'Alt text for the Essays section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column -->
 
@@ -47,7 +47,7 @@
 
 <!-- wp:column {"verticalAlignment":"center"} -->
 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"aspectRatio":"4/3","scale":"cover","focalPoint":{"x":0.5,"y":0.5},"sizeSlug":"full","linkDestination":"none"} -->
-<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/ipsum-cover-pictures.webp?ver=<?php echo esc_attr( ipsum_get_version() ); ?>" alt="<?php echo esc_attr_x( 'Close-up of ruffled white petals against a dark green background.', 'Alt text for the Pictures section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
+<figure class="wp-block-image size-full"><img src="<?php echo esc_url( ipsum_get_asset_url( 'assets/images/ipsum-cover-pictures.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'Close-up of ruffled white petals against a dark green background.', 'Alt text for the Pictures section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column --></div>
 <!-- /wp:columns -->
@@ -55,7 +55,7 @@
 <!-- wp:columns {"verticalAlignment":"center","align":"wide"} -->
 <div class="wp-block-columns alignwide are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} -->
 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"aspectRatio":"4/3","scale":"cover","focalPoint":{"x":0.5,"y":0.5},"sizeSlug":"full","linkDestination":"none"} -->
-<figure class="wp-block-image size-full"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/images/ipsum-cover-sounds.webp?ver=<?php echo esc_attr( ipsum_get_version() ); ?>" alt="<?php echo esc_attr_x( 'Pale winding lines crossing dark green grass, seen from above.', 'Alt text for the Sounds section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
+<figure class="wp-block-image size-full"><img src="<?php echo esc_url( ipsum_get_asset_url( 'assets/images/ipsum-cover-sounds.webp' ) ); ?>" alt="<?php echo esc_attr_x( 'Pale winding lines crossing dark green grass, seen from above.', 'Alt text for the Sounds section image', 'ipsum' ); ?>" style="aspect-ratio:4/3;object-fit:cover;object-position:50% 50%"/></figure>
 <!-- /wp:image --></div>
 <!-- /wp:column -->
 

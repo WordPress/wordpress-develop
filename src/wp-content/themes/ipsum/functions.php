@@ -62,20 +62,27 @@ if ( ! function_exists( 'ipsum_enqueue_styles' ) ) :
 endif;
 add_action( 'wp_enqueue_scripts', 'ipsum_enqueue_styles' );
 
-if ( ! function_exists( 'ipsum_get_version' ) ) :
+if ( ! function_exists( 'ipsum_get_asset_url' ) ) :
 	/**
-	 * Gets the theme version, for the cache busting query string on pattern images.
+	 * Gets the URL of a theme asset, with the theme version added for cache busting.
 	 *
-	 * The version comes from the parent theme, so a child theme's version doesn't
-	 * stand in for Ipsum's.
+	 * The asset and the version both come from the parent theme, so a child
+	 * theme's version doesn't stand in for Ipsum's.
 	 *
 	 * @since Ipsum 1.0
 	 *
-	 * @return string The theme version, or an empty string if it cannot be read.
+	 * @param string $path Path to the asset, relative to the theme directory, such as
+	 *                     'assets/images/ipsum-polygons.webp'.
+	 * @return string The asset URL, with a `ver` query argument when the theme
+	 *                version can be read.
 	 */
-	function ipsum_get_version(): string {
+	function ipsum_get_asset_url( string $path ): string {
+		$url     = get_parent_theme_file_uri( $path );
 		$version = wp_get_theme( get_template() )->get( 'Version' );
-		return is_string( $version ) ? $version : '';
+		if ( false !== $version ) {
+			$url = add_query_arg( 'ver', $version, $url );
+		}
+		return $url;
 	}
 endif;
 
