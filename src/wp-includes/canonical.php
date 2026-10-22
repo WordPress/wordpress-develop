@@ -440,14 +440,19 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$feed  = get_query_var( 'feed' );
 			$cpage = get_query_var( 'cpage' );
 
+			$feed_ending_stripped = false;
+
 			while ( preg_match( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", $redirect['path'] )
-				|| preg_match( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+)?$#', $redirect['path'] )
+				|| ( ! $feed_ending_stripped && preg_match( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+)?$#', $redirect['path'] ) )
 				|| preg_match( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+(/+)?$#", $redirect['path'] )
 			) {
 				// Strip off any existing paging.
 				$redirect['path'] = preg_replace( "#/$wp_rewrite->pagination_base/?[0-9]+?(/+)?$#", '/', $redirect['path'] );
-				// Strip off feed endings.
-				$redirect['path'] = preg_replace( '#/(comments/?)?(feed|rss2?|rdf|atom)(/+|$)#', '/', $redirect['path'] );
+				// Strip off the feed ending only once, so a slug named like a feed endpoint is kept.
+				if ( ! $feed_ending_stripped ) {
+					$redirect['path']     = preg_replace( '#/(comments/?)?(feed/(?:rss2?|rdf|atom)|feed|rss2?|rdf|atom)(/+)?$#', '/', $redirect['path'], -1, $count );
+					$feed_ending_stripped = $count > 0;
+				}
 				// Strip off any existing comment paging.
 				$redirect['path'] = preg_replace( "#/{$wp_rewrite->comments_pagination_base}-[0-9]+?(/+)?$#", '/', $redirect['path'] );
 			}
