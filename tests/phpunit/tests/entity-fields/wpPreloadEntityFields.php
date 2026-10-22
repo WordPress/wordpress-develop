@@ -12,7 +12,6 @@ require_once __DIR__ . '/base.php';
  * @group entity-fields
  *
  * @covers ::_wp_preload_entity_fields
- * @covers ::_wp_get_post_type_fields_preload_paths
  * @covers ::_wp_get_site_editor_screen_post_types
  */
 class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTestCase {
@@ -140,10 +139,14 @@ class Tests_Entity_Fields_WpPreloadEntityFields extends WP_Entity_Fields_UnitTes
 	 * @ticket 66229
 	 */
 	public function test_unregistered_post_types_are_not_preloaded() {
-		$this->assertSame(
-			array( '/wp/v2/entity-fields?kind=postType&name=page' ),
-			_wp_get_post_type_fields_preload_paths( array( 'page', 'not_a_post_type', 'page' ) )
+		$context = new WP_Block_Editor_Context(
+			array(
+				'name' => 'core/edit-post',
+				'post' => new WP_Post( (object) array( 'post_type' => 'not_a_post_type' ) ),
+			)
 		);
+
+		$this->assertSame( array(), _wp_preload_entity_fields( array(), $context ) );
 	}
 
 	/**

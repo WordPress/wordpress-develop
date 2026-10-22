@@ -256,38 +256,6 @@ function wp_register_entity_field_collection( $directory ) {
 }
 
 /**
- * Returns the paths that serve the fields of the given post types, skipping
- * the post types that are not registered.
- *
- * A path must match the request of the `getFieldsConfig` core data resolver,
- * see packages/core-data/src/resolvers.js in Gutenberg.
- *
- * @since 7.2.0
- * @access private
- *
- * @param string[] $post_types The post types.
- * @return string[] One path of the `/wp/v2/entity-fields` route per post type,
- *                  in the order the post types are given, without duplicates.
- */
-function _wp_get_post_type_fields_preload_paths( $post_types ) {
-	$paths = array();
-	foreach ( array_unique( $post_types ) as $post_type ) {
-		if ( ! post_type_exists( $post_type ) ) {
-			continue;
-		}
-		$paths[] = add_query_arg(
-			array(
-				'kind' => 'postType',
-				'name' => $post_type,
-			),
-			'/wp/v2/entity-fields'
-		);
-	}
-
-	return $paths;
-}
-
-/**
  * Returns the post types whose items the screen of the site editor being
  * loaded lists or edits, from its `p` query arg.
  *
@@ -329,7 +297,9 @@ function _wp_get_site_editor_screen_post_types() {
  * in packages/editor/src/dataviews/fields-loader/index.ts in Gutenberg. The
  * post editor reads those of the edited post in the post summary of its
  * inspector. The site editor reads those of the edited post, if any, and of
- * the post types of the screen it opens on.
+ * the post types of the screen it opens on. A path must match the request of
+ * the `getFieldsConfig` core data resolver, see
+ * packages/core-data/src/resolvers.js in Gutenberg.
  *
  * @since 7.2.0
  * @access private
@@ -357,8 +327,18 @@ function _wp_preload_entity_fields( $paths, $context = null ) {
 		$post_types = array_merge( $post_types, _wp_get_site_editor_screen_post_types() );
 	}
 
-	return array_merge(
-		$paths,
-		_wp_get_post_type_fields_preload_paths( $post_types )
-	);
+	foreach ( array_unique( $post_types ) as $post_type ) {
+		if ( ! post_type_exists( $post_type ) ) {
+			continue;
+		}
+		$paths[] = add_query_arg(
+			array(
+				'kind' => 'postType',
+				'name' => $post_type,
+			),
+			'/wp/v2/entity-fields'
+		);
+	}
+
+	return $paths;
 }
