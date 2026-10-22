@@ -303,21 +303,12 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	public function test_core_get_environment_info_executes(): void {
 		// Requires access to Site Health diagnostics.
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
-		if ( is_multisite() ) {
-			grant_super_admin( $admin_id );
-		}
-
-		$ability     = wp_get_ability( 'core/get-environment-info' );
-		$environment = wp_get_environment_type();
-		try {
-			$ability_data = $ability->execute();
-		} finally {
-			if ( is_multisite() ) {
-				revoke_super_admin( $admin_id );
-			}
-		}
+		$ability      = wp_get_ability( 'core/get-environment-info' );
+		$environment  = wp_get_environment_type();
+		$ability_data = $ability->execute();
 
 		$this->assertIsArray( $ability_data );
 		$this->assertArrayHasKey( 'environment', $ability_data );
