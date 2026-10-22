@@ -162,7 +162,8 @@ class WP_REST_Entity_Fields_Controller extends WP_REST_Controller {
 		$script_modules = array();
 		foreach ( wp_get_registered_entity_field_modules( $kind, $name ) as $module => $field_ids ) {
 			$script_modules[] = array(
-				'id'     => $module,
+				// A numeric module id is an integer as an array key.
+				'id'     => (string) $module,
 				'fields' => array_values( $field_ids ),
 			);
 		}
