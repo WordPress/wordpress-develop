@@ -284,7 +284,7 @@ function wp_render_custom_css_class_name( $block_content, $block ) {
 
 	// Parse out the 'wp-custom-css-*' class name added by wp_render_custom_css_support_styles().
 	if ( is_string( $class_name_attr ) && str_contains( $class_name_attr, $class_name_prefix ) ) {
-		foreach ( wp_split_space_separated_tokens( $class_name_attr ) as $class_token ) {
+		foreach ( wp_html_attribute_split_space_separated_tokens( $class_name_attr ) as $class_token ) {
 			if ( str_starts_with( $class_token, $class_name_prefix ) ) {
 				$matched_class_name = $class_token;
 				break;

@@ -285,7 +285,7 @@ function wp_render_elements_class_name( $block_content, $block ) {
 
 	// Parse out the 'wp-elements-*' class name.
 	$matched_class_name = null;
-	foreach ( wp_split_space_separated_tokens( $class_name_attr ) as $class_token ) {
+	foreach ( wp_html_attribute_split_space_separated_tokens( $class_name_attr ) as $class_token ) {
 		if ( str_starts_with( $class_token, $class_name_prefix ) ) {
 			$matched_class_name = $class_token;
 			break;

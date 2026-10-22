@@ -1,26 +1,26 @@
 <?php
 
 /**
- * Tests for the wp_split_space_separated_tokens() function.
+ * Tests for the wp_html_attribute_split_space_separated_tokens() function.
  *
  * @group functions
  *
- * @covers ::wp_split_space_separated_tokens
+ * @covers ::wp_html_attribute_split_space_separated_tokens
  */
-class Tests_Functions_wpSplitSpaceSeparatedTokens extends WP_UnitTestCase {
+class Tests_Functions_wpHtmlAttributeSplitSpaceSeparatedTokens extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65466
 	 *
-	 * @dataProvider data_wp_split_space_separated_tokens
+	 * @dataProvider data_wp_html_attribute_split_space_separated_tokens
 	 *
 	 * @param string                 $input    String to split.
-	 * @param list<non-empty-string> $expected Tokens wp_split_space_separated_tokens() should yield.
+	 * @param list<non-empty-string> $expected Tokens wp_html_attribute_split_space_separated_tokens() should yield.
 	 */
-	public function test_wp_split_space_separated_tokens( string $input, array $expected ): void {
+	public function test_wp_html_attribute_split_space_separated_tokens( string $input, array $expected ): void {
 		$this->assertSame(
 			$expected,
-			iterator_to_array( wp_split_space_separated_tokens( $input ) ),
+			iterator_to_array( wp_html_attribute_split_space_separated_tokens( $input ) ),
 			'Should have yielded the expected tokens.'
 		);
 	}
@@ -30,7 +30,7 @@ class Tests_Functions_wpSplitSpaceSeparatedTokens extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ input: string, expected: list<non-empty-string> }>
 	 */
-	public static function data_wp_split_space_separated_tokens(): array {
+	public static function data_wp_html_attribute_split_space_separated_tokens(): array {
 		return array(
 			'empty string'                          => array(
 				'input'    => '',

@@ -23,7 +23,7 @@ function wp_get_block_style_variation_name_from_class( $class_string ): ?array {
 
 	$prefix     = 'is-style-';
 	$variations = array();
-	foreach ( wp_split_space_separated_tokens( $class_string ) as $class_name ) {
+	foreach ( wp_html_attribute_split_space_separated_tokens( $class_string ) as $class_name ) {
 		if ( ! str_starts_with( $class_name, $prefix ) ) {
 			continue;
 		}
@@ -243,7 +243,7 @@ function wp_render_block_style_variation_class_name( $block_content, $block ) {
 	 * variation slug, then `--`, and finally an instance number.
 	 */
 	$instance_class_name = null;
-	foreach ( wp_split_space_separated_tokens( $block_class_name ) as $class_name ) {
+	foreach ( wp_html_attribute_split_space_separated_tokens( $block_class_name ) as $class_name ) {
 		if ( preg_match( '/^is-style-.+--\d+$/', $class_name ) ) {
 			$instance_class_name = $class_name;
 			break;
