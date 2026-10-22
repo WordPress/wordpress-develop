@@ -2309,9 +2309,13 @@ jQuery( () => {
 				Array.from( cell.children ).forEach( ( block ) => {
 					if (
 						! block.matches( 'p, pre, div, blockquote, ul, ol, dl, figure, table' ) ||
-						block.matches( '.row-actions, .hidden, .comment-author, .wp-list-table-content-scroll, [hidden]' ) ||
-						window.getComputedStyle( block ).display === 'none'
+						block.matches( '.row-actions, .hidden, .comment-author, .wp-list-table-content-scroll, [hidden]' )
 					) {
+						return;
+					}
+					// Preserve inline formatting for icons, badges, and other inline content.
+					const display = window.getComputedStyle( block ).display;
+					if ( display === 'none' || display.startsWith( 'inline' ) ) {
 						return;
 					}
 					const area = document.createElement( 'div' );

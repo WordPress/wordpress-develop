@@ -253,6 +253,32 @@ jQuery( function() {
 	} );
 
 	[ 'ltr', 'rtl' ].forEach( function( direction ) {
+		QUnit.test( 'Preserves narrow icon columns in ' + direction, async function( assert ) {
+			this.wrapper.style.width = '400px';
+			this.table.classList.add( 'widefat', 'fixed' );
+			this.table.style.width = '100%';
+			this.table.innerHTML = '<thead><tr><th style="min-width: 600px">Title</th><th class="sortable column-score" style="width: 3.5em"><a href="#"><span style="width: 20px; height: 20px">S</span><span class="sorting-indicators"><span class="sorting-indicator asc"></span><span class="sorting-indicator desc"></span></span></a></th></tr></thead><tbody><tr><td>Post title</td><td style="padding: 8px 10px"><div class="score-icon" style="display: inline-block; width: 12px; height: 12px; margin: 3px 10px 0 5px; border-radius: 50%; background: red"></div></td></tr></tbody>';
+			await afterResize();
+			assert.strictEqual( this.table.querySelector( '.score-icon' ).parentElement.tagName, 'TD', 'Inline indicators retain their original formatting context.' );
+
+			const frame = document.createElement( 'iframe' );
+			frame.width = '1000';
+			const loaded = new Promise( function( resolve ) {
+				frame.onload = resolve;
+			} );
+			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
+			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"><style>.column-score a { display: inline-block; padding: 8px 0 8px 11px; }</style></head><body style="font: 13px sans-serif">' + this.wrapper.outerHTML + '</body></html>';
+			document.getElementById( 'qunit-fixture' ).appendChild( frame );
+			await loaded;
+			const table = frame.contentDocument.querySelector( 'table' );
+			const icon = table.querySelector( '.score-icon' );
+			assert.strictEqual( icon.parentElement.scrollWidth, icon.parentElement.clientWidth, 'The small indicator is fully visible without inner scrolling.' );
+			const label = table.querySelector( 'a > span' ).getBoundingClientRect();
+			const arrows = table.querySelector( '.sorting-indicators' ).getBoundingClientRect();
+			assert.ok( arrows.top < label.bottom && arrows.bottom > label.top, 'Sort arrows stay beside the header icon.' );
+			frame.remove();
+		} );
+
 		QUnit.test( 'Shrinks oversized content with its column in ' + direction, async function( assert ) {
 			this.table.classList.add( 'widefat', 'fixed' );
 			this.table.style.width = '100%';
