@@ -1084,6 +1084,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_json_encode_throw_on_error
 	 *
+	 * @covers ::wp_json_encode
+	 *
 	 * @param mixed       $value Value to encode.
 	 * @param int<1, max> $depth Maximum depth.
 	 */
@@ -1093,7 +1095,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_json_encode_throw_on_error().
+	 * Data provider for {@see self::test_wp_json_encode_throw_on_error()}.
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed, 1: int<1, max> }>
 	 */
@@ -1106,11 +1108,13 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a number, a numeric string or a JSON serializable object can encode to the falsy string '0'.
+	 * Tests that a number, a numeric string, or a JSON serializable object can encode to the falsy string '0'.
 	 *
 	 * This is why {@see wp_json_encode()} is typed to return a non-empty string, not a non-falsy one.
 	 *
 	 * @dataProvider data_wp_json_encode_falsy_output
+	 *
+	 * @covers ::wp_json_encode
 	 *
 	 * @param mixed $value Value to encode.
 	 * @param int   $flags Options to pass to json_encode().
@@ -1120,7 +1124,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_json_encode_falsy_output().
+	 * Data provider for {@see self::test_wp_json_encode_falsy_output()}.
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed, 1: int }>
 	 */
