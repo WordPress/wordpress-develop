@@ -206,7 +206,15 @@ function _wp_add_entity_action_modules_to_editor_script( $scripts = null ) {
  * @param WP_Block_Editor_Context $context Block editor context.
  * @return array Filtered preload paths.
  */
-function _wp_preload_entity_actions( $paths, $context ) {
+function _wp_preload_entity_actions( $paths, $context = null ) {
+	if ( empty( $paths ) && ! is_array( $paths ) ) {
+		$paths = array();
+	}
+
+	if ( ! is_array( $paths ) || ! $context instanceof WP_Block_Editor_Context ) {
+		return $paths;
+	}
+
 	$post_types = array();
 	if ( 'core/edit-post' === $context->name && isset( $context->post ) ) {
 		$post_types[] = $context->post->post_type;

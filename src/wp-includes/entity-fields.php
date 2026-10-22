@@ -338,7 +338,15 @@ function _wp_get_site_editor_screen_post_types() {
  * @param WP_Block_Editor_Context $context Block editor context.
  * @return array Filtered preload paths.
  */
-function _wp_preload_entity_fields( $paths, $context ) {
+function _wp_preload_entity_fields( $paths, $context = null ) {
+	if ( empty( $paths ) && ! is_array( $paths ) ) {
+		$paths = array();
+	}
+
+	if ( ! is_array( $paths ) || ! $context instanceof WP_Block_Editor_Context ) {
+		return $paths;
+	}
+
 	$post_types = array();
 	if ( 'core/edit-post' === $context->name && isset( $context->post ) ) {
 		$post_types[] = $context->post->post_type;
