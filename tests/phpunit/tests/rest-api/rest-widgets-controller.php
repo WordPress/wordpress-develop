@@ -1752,7 +1752,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertInstanceOf( WP_REST_Response::class, $response );
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSameSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'id'       => 'text-1',
 				'id_base'  => 'text',
