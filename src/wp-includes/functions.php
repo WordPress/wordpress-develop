@@ -5121,7 +5121,7 @@ function wp_parse_list( $input_list ): array {
  * neither deduplicated nor case-normalized. To read the class names of an
  * HTML tag, use {@see WP_HTML_Tag_Processor::class_list()} instead.
  *
- * ```php
+ * ```php interactive
  * foreach ( wp_split_space_separated_tokens( " wp-block\tis-style-outline \n" ) as $token ) {
  *   echo "{$token} ";
  * }
@@ -5142,7 +5142,10 @@ function wp_split_space_separated_tokens( string $input ): Generator {
 	while ( $at < $input_length ) {
 		// Find the byte length until the next boundary.
 		$length = strcspn( $input, " \t\f\r\n", $at );
-		yield substr( $input, $at, $length );
+		$token  = substr( $input, $at, $length );
+		if ( false !== $token && '' !== $token ) {
+			yield $token;
+		}
 		$at += $length;
 
 		$at += strspn( $input, " \t\f\r\n", $at );
