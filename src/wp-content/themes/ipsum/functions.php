@@ -75,6 +75,8 @@ if ( ! function_exists( 'ipsum_get_asset_url' ) ) :
 	 *                     'assets/images/ipsum-polygons.webp'.
 	 * @return string The asset URL, with a `ver` query argument when the theme
 	 *                version can be read.
+	 *
+	 * @phpstan-param non-falsy-string $path
 	 */
 	function ipsum_get_asset_url( string $path ): string {
 		$url     = get_parent_theme_file_uri( $path );
