@@ -29,6 +29,14 @@ class WP_Ability {
 	protected const DEFAULT_SHOW_IN_REST = false;
 
 	/**
+	 * The default value for the `public` meta.
+	 *
+	 * @since 7.1.0
+	 * @var bool
+	 */
+	protected const DEFAULT_PUBLIC = false;
+
+	/**
 	 * The default ability annotations.
 	 * They are not guaranteed to provide a faithful description of ability behavior.
 	 *
@@ -116,6 +124,14 @@ class WP_Ability {
 	protected $permission_callback;
 
 	/**
+	 * The optional capabilities the current user must have to run the ability.
+	 *
+	 * @since 7.2.0
+	 * @var list<string>
+	 */
+	protected $required_capabilities = array();
+
+	/**
 	 * The optional ability metadata.
 	 *
 	 * @since 6.9.0
@@ -131,6 +147,8 @@ class WP_Ability {
 	 * @access private
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `required_capabilities` argument.
 	 *
 	 * @see wp_register_ability()
 	 *
@@ -145,6 +163,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
+	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -160,7 +181,12 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
+	 *                                                      to clients such as the REST API, MCP, or AI agents.
+	 *                                                      Seeds the default for per-channel flags like
+	 *                                                      `$show_in_rest`. Defaults to false.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                      Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 * }
 	 */
@@ -196,6 +222,8 @@ class WP_Ability {
 	 * caught and converted to a WP_Error by WP_Abilities_Registry::register().
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `public` meta argument.
+	 * @since 7.2.0 Added the `required_capabilities` argument.
 	 *
 	 * @see WP_Abilities_Registry::register()
 	 *
@@ -209,6 +237,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
+	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input. Required if ability accepts an input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -224,7 +255,12 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  Optional. If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API. Default false.
+	 *         @type bool                     $public       Optional. Whether the ability is meant to be available
+	 *                                                      to clients such as the REST API, MCP, or AI agents.
+	 *                                                      Seeds the default for per-channel flags like
+	 *                                                      `$show_in_rest`. Defaults to false.
+	 *         @type bool                     $show_in_rest Optional. Whether to expose this ability in the REST API.
+	 *                                                      Default is the value of `$public` when set, false otherwise.
 	 *     }
 	 * }
 	 * @return array<string, mixed> {
@@ -237,6 +273,9 @@ class WP_Ability {
 	 *                                                       Receives optional mixed input and returns mixed result or WP_Error.
 	 *     @type callable             $permission_callback   A callback function to check permissions before execution.
 	 *                                                       Receives optional mixed input and returns bool or WP_Error.
+	 *                                                       Required unless `$required_capabilities` lists at least one capability.
+	 *     @type list<string>         $required_capabilities Optional. Capabilities the current user must have to run the
+	 *                                                       ability. They are checked before `$permission_callback`.
 	 *     @type array<string, mixed> $input_schema          Optional. JSON Schema definition for the ability's input.
 	 *     @type array<string, mixed> $output_schema         Optional. JSON Schema definition for the ability's output.
 	 *     @type array<string, mixed> $meta                  {
@@ -252,7 +291,10 @@ class WP_Ability {
 	 *             @type bool|null $idempotent  If true, calling the ability repeatedly with the same arguments
 	 *                                          will have no additional effect on its environment.
 	 *         }
-	 *         @type bool                     $show_in_rest Whether to expose this ability in the REST API. Default false.
+	 *         @type bool                     $public       Whether the ability is meant to be available to clients
+	 *                                                      such as the REST API, MCP, or AI agents. Defaults to
+	 *                                                      false.
+	 *         @type bool                     $show_in_rest Whether to expose this ability in the REST API.
 	 *     }
 	 * }
 	 * @throws InvalidArgumentException if an argument is invalid.
@@ -284,11 +326,28 @@ class WP_Ability {
 			);
 		}
 
-		// If we are not overriding `ability_class` parameter during instantiation, then we need to validate the permission_callback.
-		if ( get_class( $this ) === self::class && ( empty( $args['permission_callback'] ) || ! is_callable( $args['permission_callback'] ) ) ) {
+		if ( isset( $args['required_capabilities'] ) && ! self::is_valid_capability_list( $args['required_capabilities'] ) ) {
 			throw new InvalidArgumentException(
-				__( 'The ability properties must provide a valid `permission_callback` function.' )
+				__( 'The ability properties should provide a valid `required_capabilities` list of non-empty strings.' )
 			);
+		}
+
+		/*
+		 * Validate the permission_callback, unless a custom `ability_class` is used.
+		 * It can be left out when the ability declares required capabilities.
+		 */
+		if ( get_class( $this ) === self::class ) {
+			if ( isset( $args['permission_callback'] ) ) {
+				if ( ! is_callable( $args['permission_callback'] ) ) {
+					throw new InvalidArgumentException(
+						__( 'The ability properties must provide a valid `permission_callback` function.' )
+					);
+				}
+			} elseif ( empty( $args['required_capabilities'] ) ) {
+				throw new InvalidArgumentException(
+					__( 'The ability properties must provide a valid `permission_callback` function or a non-empty `required_capabilities` list.' )
+				);
+			}
 		}
 
 		// Optional args only need to be of the correct type if they are present.
@@ -322,18 +381,34 @@ class WP_Ability {
 			);
 		}
 
+		if ( isset( $args['meta']['public'] ) && ! is_bool( $args['meta']['public'] ) ) {
+			throw new InvalidArgumentException(
+				__( 'The ability meta should provide a valid `public` boolean.' )
+			);
+		}
+
+		$args['required_capabilities'] ??= array();
+
 		// Set defaults for optional meta.
-		$args['meta']                = wp_parse_args(
+		$args['meta'] = wp_parse_args(
 			$args['meta'] ?? array(),
 			array(
-				'annotations'  => static::$default_annotations,
-				'show_in_rest' => self::DEFAULT_SHOW_IN_REST,
+				'annotations' => static::$default_annotations,
 			)
 		);
+
 		$args['meta']['annotations'] = wp_parse_args(
 			$args['meta']['annotations'],
 			static::$default_annotations
 		);
+
+		/*
+		 * Resolve `show_in_rest` from most specific to least specific: an explicit
+		 * `show_in_rest` value wins, then the high-level `public` flag seeds the
+		 * default, then the built-in default applies.
+		 */
+		$args['meta']['show_in_rest'] ??= $args['meta']['public'] ?? self::DEFAULT_SHOW_IN_REST;
+		$args['meta']['public']       ??= self::DEFAULT_PUBLIC;
 
 		return $args;
 	}
@@ -417,6 +492,17 @@ class WP_Ability {
 	}
 
 	/**
+	 * Retrieves the capabilities the current user must have to run the ability.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return list<string> The required capabilities. Empty when the ability declares none.
+	 */
+	public function get_required_capabilities(): array {
+		return $this->required_capabilities;
+	}
+
+	/**
 	 * Retrieves a specific metadata item for the ability.
 	 *
 	 * @since 6.9.0
@@ -477,6 +563,7 @@ class WP_Ability {
 	 * Validates input data against the input schema.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_validate_input` filter.
 	 *
 	 * @param mixed $input Optional. The input data to validate. Default `null`.
 	 * @return true|WP_Error Returns true if valid or the WP_Error object if validation fails.
@@ -539,9 +626,31 @@ class WP_Ability {
 	}
 
 	/**
+	 * Checks whether a value is a list of non-empty capability strings.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param mixed $capabilities The value to check.
+	 * @return bool Whether the value is a valid list of capabilities.
+	 */
+	private static function is_valid_capability_list( $capabilities ): bool {
+		if ( ! is_array( $capabilities ) || ! array_is_list( $capabilities ) ) {
+			return false;
+		}
+
+		foreach ( $capabilities as $capability ) {
+			if ( ! is_string( $capability ) || '' === trim( $capability ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Invokes a callable, ensuring the input is passed through only if the input schema is defined.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Exceptions thrown by the callback are now caught and returned as a `WP_Error`.
 	 *
 	 * @param callable $callback The callable to invoke.
 	 * @param mixed    $input    Optional. The input data for the ability. Default `null`.
@@ -574,11 +683,19 @@ class WP_Ability {
 	 * Please note that input is not automatically validated against the input schema.
 	 * Use `validate_input()` method to validate input before calling this method if needed.
 	 *
-	 * The {@see 'wp_ability_permission_result'} filter fires after the registered
-	 * `permission_callback` returns, allowing plugins to override the result.
+	 * The checks run in this order:
+	 *
+	 *  1. When the ability declares `required_capabilities`, each one is checked with
+	 *     `current_user_can()`. The check fails right away if one is missing.
+	 *  2. When all capabilities pass and the ability has a `permission_callback`, it runs
+	 *     with the given input.
+	 *
+	 * The {@see 'wp_ability_permission_result'} filter fires on the final result, allowing
+	 * plugins to override it.
 	 *
 	 * @since 6.9.0
 	 * @since 7.1.0 Added the `wp_ability_permission_result` filter.
+	 * @since 7.2.0 Added the `required_capabilities` check.
 	 *
 	 * @see validate_input()
 	 *
@@ -586,30 +703,50 @@ class WP_Ability {
 	 * @return bool|WP_Error Whether the ability has the necessary permission.
 	 */
 	public function check_permissions( $input = null ) {
-		if ( ! is_callable( $this->permission_callback ) ) {
+		// A permission callback that is set must be callable.
+		$is_invalid_callback = null !== $this->permission_callback && ! is_callable( $this->permission_callback );
+
+		// Without a permission callback, the ability must declare required capabilities.
+		$is_missing_check = null === $this->permission_callback && empty( $this->required_capabilities );
+
+		if ( $is_invalid_callback || $is_missing_check ) {
 			return new WP_Error(
 				'ability_invalid_permission_callback',
 				/* translators: %s ability name. */
-				sprintf( __( 'Ability "%s" does not have a valid permission callback.' ), $this->name )
+				sprintf( __( 'Ability "%s" must provide a valid permission callback, or omit it and declare required capabilities.' ), $this->name )
 			);
 		}
 
-		$permission = $this->invoke_callback( $this->permission_callback, $input );
+		// Both checks must pass. A check that isn't set is skipped.
+		$permission = true;
+		foreach ( $this->required_capabilities as $capability ) {
+			if ( ! current_user_can( $capability ) ) {
+				$permission = false;
+				break;
+			}
+		}
+
+		if ( $permission && null !== $this->permission_callback ) {
+			$permission = $this->invoke_callback( $this->permission_callback, $input );
+		}
 
 		/**
 		 * Filters the result of an ability's permission check.
 		 *
-		 * Fires after the registered `permission_callback` returns. Plugins can use this to layer
-		 * additional authorization rules on top of the ability's own permission logic — for example,
+		 * Fires after the required capabilities check and the `permission_callback`. Plugins can use this
+		 * to layer additional authorization rules on top of the ability's own permission logic — for example,
 		 * multi-factor authorization gates or temporary permission elevation for trusted contexts.
 		 *
-		 * Filters can return `true` to grant, `false` to deny, or a `WP_Error` to deny with a specific
-		 * error code and message. The filter receives whatever the `permission_callback` produced.
-		 * Any other return value is coerced to `false`.
+		 * The filter receives `false` when a required capability is missing. Otherwise, it receives the
+		 * result of `permission_callback`, or `true` when there is none. Filters can return `true` to grant,
+		 * `false` to deny, or a `WP_Error` to deny with a specific error code and message. Any other return
+		 * value is coerced to `false`.
 		 *
 		 * @since 7.1.0
+		 * @since 7.2.0 Also fires with `false` when a required capability is missing.
 		 *
-		 * @param bool|WP_Error $permission   The permission result returned by `permission_callback`.
+		 * @param bool|WP_Error $permission   The result of the required capabilities check and the
+		 *                                    `permission_callback`.
 		 * @param string        $ability_name The name of the ability.
 		 * @param mixed         $input        The input data for the permission check.
 		 * @param WP_Ability    $ability      The ability instance.
@@ -670,6 +807,7 @@ class WP_Ability {
 	 * Validates output data against the output schema.
 	 *
 	 * @since 6.9.0
+	 * @since 7.1.0 Added the `wp_ability_validate_output` filter.
 	 *
 	 * @param mixed $output The output data to validate.
 	 * @return true|WP_Error Returns true if valid, or a WP_Error object if validation fails.
@@ -747,6 +885,8 @@ class WP_Ability {
 		 */
 		do_action( 'wp_ability_invoked', $this->name, $input, $this );
 
+		$pre_execute_sentinel = new WP_Filter_Sentinel();
+
 		/**
 		 * Filters whether to short-circuit ability execution.
 		 *
@@ -769,8 +909,7 @@ class WP_Ability {
 		 * @param mixed      $input        The raw input passed to `execute()`.
 		 * @param WP_Ability $ability      The ability instance.
 		 */
-		$pre_execute_sentinel = new WP_Filter_Sentinel();
-		$pre                  = apply_filters( 'wp_pre_execute_ability', $pre_execute_sentinel, $this->name, $input, $this );
+		$pre = apply_filters( 'wp_pre_execute_ability', $pre_execute_sentinel, $this->name, $input, $this );
 		if ( $pre !== $pre_execute_sentinel ) {
 			return $pre;
 		}

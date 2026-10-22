@@ -5,6 +5,8 @@
  * @package WordPress
  * @subpackage Theme
  * @since 3.4.0
+ *
+ * @phpstan-type Theme_Key 'Name'|'Version'|'Status'|'Title'|'Author'|'Author Name'|'Author URI'|'Description'|'Template'|'Stylesheet'|'Template Files'|'Stylesheet Files'|'Template Dir'|'Stylesheet Dir'|'Screenshot'|'Tags'|'Theme Root'|'Theme Root URI'|'Parent Theme'
  */
 #[AllowDynamicProperties]
 final class WP_Theme implements ArrayAccess {
@@ -61,6 +63,7 @@ final class WP_Theme implements ArrayAccess {
 	 * @since 6.1.0 Added the Twenty Twenty-Three theme.
 	 * @since 6.4.0 Added the Twenty Twenty-Four theme.
 	 * @since 6.7.0 Added the Twenty Twenty-Five theme.
+	 * @since 7.2.0 Added the Ipsum theme.
 	 * @var string[]
 	 */
 	private static $default_themes = array(
@@ -81,6 +84,7 @@ final class WP_Theme implements ArrayAccess {
 		'twentytwentythree' => 'Twenty Twenty-Three',
 		'twentytwentyfour'  => 'Twenty Twenty-Four',
 		'twentytwentyfive'  => 'Twenty Twenty-Five',
+		'ipsum'             => 'Ipsum',
 	);
 
 	/**
@@ -246,7 +250,7 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param string        $theme_dir  Directory of the theme within the theme_root.
 	 * @param string        $theme_root Theme root.
-	 * @param WP_Theme|null $_child If this theme is a parent theme, the child may be passed for validation purposes.
+	 * @param WP_Theme|null $_child     If this theme is a parent theme, the child may be passed for validation purposes.
 	 */
 	public function __construct( $theme_dir, $theme_root, $_child = null ) {
 		global $wp_theme_directories;
@@ -361,7 +365,7 @@ final class WP_Theme implements ArrayAccess {
 		}
 
 		if ( ! $this->template && $this->stylesheet === $this->headers['Template'] ) {
-			$this->errors = new WP_Error(
+			$this->errors   = new WP_Error(
 				'theme_child_invalid',
 				sprintf(
 					/* translators: %s: Template. */
@@ -369,6 +373,7 @@ final class WP_Theme implements ArrayAccess {
 					'<code>Template</code>'
 				)
 			);
+			$this->template = $this->stylesheet;
 			$this->cache_add(
 				'theme',
 				array(
@@ -377,6 +382,7 @@ final class WP_Theme implements ArrayAccess {
 					'headers'                => $this->headers,
 					'errors'                 => $this->errors,
 					'stylesheet'             => $this->stylesheet,
+					'template'               => $this->template,
 				)
 			);
 
@@ -652,6 +658,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return bool
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? true : false )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetExists( $offset ) {
@@ -694,6 +702,8 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @param mixed $offset
 	 * @return mixed
+	 *
+	 * @phpstan-return ( $offset is Theme_Key ? mixed : null )
 	 */
 	#[ReturnTypeWillChange]
 	public function offsetGet( $offset ) {
@@ -914,6 +924,14 @@ final class WP_Theme implements ArrayAccess {
 	 * @param bool   $translate Optional. Whether to translate the header. Defaults to true.
 	 * @return string|array|false Processed header. An array for Tags if `$markup` is false, string otherwise.
 	 *                            False on failure.
+	 *
+	 * @phpstan-return (
+	 *     $markup is false
+	 *         ? ( $header is 'Tags'
+	 *             ? string[]|false
+	 *             : string|false )
+	 *         : string|false
+	 * )
 	 */
 	public function display( $header, $markup = true, $translate = true ) {
 		$value = $this->get( $header );
@@ -947,7 +965,9 @@ final class WP_Theme implements ArrayAccess {
 	 *                       'ThemeURI', 'AuthorURI', 'Status', 'Tags', 'RequiresWP', 'RequiresPHP',
 	 *                       'UpdateURI'.
 	 * @param string $value  Value to sanitize.
-	 * @return string|array An array for Tags header, string otherwise.
+	 * @return string|string[] An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-return ( $header is 'Tags' ? string[] : string )
 	 */
 	private function sanitize_header( $header, $value ) {
 		switch ( $header ) {
@@ -1051,9 +1071,11 @@ final class WP_Theme implements ArrayAccess {
 	 *
 	 * @since 3.4.0
 	 *
-	 * @param string       $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
-	 * @param string|array $value  Value to translate. An array for Tags header, string otherwise.
-	 * @return string|array Translated value. An array for Tags header, string otherwise.
+	 * @param string          $header Theme header. Name, Description, Author, Version, ThemeURI, AuthorURI, Status, Tags.
+	 * @param string|string[] $value  Value to translate. An array for Tags header, string otherwise.
+	 * @return string|string[] Translated value. An array for Tags header, string otherwise.
+	 *
+	 * @phpstan-return ( $value is string ? string : string[] )
 	 */
 	private function translate_header( $header, $value ) {
 		switch ( $header ) {
@@ -1338,13 +1360,22 @@ final class WP_Theme implements ArrayAccess {
 			$files = (array) $this->get_files( 'php', 1, true );
 
 			foreach ( $files as $file => $full_path ) {
-				if ( ! preg_match( '|Template Name:(.*)$|mi', file_get_contents( $full_path ), $header ) ) {
+				$headers = get_file_data(
+					$full_path,
+					array(
+						'TemplateName'     => 'Template Name',
+						'TemplatePostType' => 'Template Post Type',
+					),
+					'theme'
+				);
+
+				if ( ! $headers['TemplateName'] ) {
 					continue;
 				}
 
 				$types = array( 'page' );
-				if ( preg_match( '|Template Post Type:(.*)$|mi', file_get_contents( $full_path ), $type ) ) {
-					$types = explode( ',', _cleanup_header_comment( $type[1] ) );
+				if ( $headers['TemplatePostType'] ) {
+					$types = explode( ',', $headers['TemplatePostType'] );
 				}
 
 				foreach ( $types as $type ) {
@@ -1353,7 +1384,7 @@ final class WP_Theme implements ArrayAccess {
 						$post_templates[ $type ] = array();
 					}
 
-					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
+					$post_templates[ $type ][ $file ] = $headers['TemplateName'];
 				}
 			}
 
