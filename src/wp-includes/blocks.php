@@ -1699,8 +1699,9 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  *
  * @since 5.3.1
  * @since 7.2.0 Attributes are always serialized as an object, `INF` and `NAN`
- *              values are serialized as null, and an empty object is returned
- *              if the attributes cannot be encoded.
+ *              values are serialized as null, invalid UTF-8 is replaced with
+ *              U+FFFD, and an empty object is returned if the attributes cannot
+ *              be encoded.
  *
  * @param array<string, mixed> $block_attributes Attributes object.
  * @return string Serialized attributes.
@@ -1716,7 +1717,12 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * null byte, which an attribute name decoded from JSON may do.
 	 */
 	$is_list = is_array( $block_attributes ) && array_is_list( $block_attributes );
-	$flags   = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+
+	/*
+	 * Invalid UTF-8 is replaced with the replacement character U+FFFD, rather than failing to
+	 * encode and leaving wp_json_encode() to replace it with a question mark.
+	 */
+	$flags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE;
 
 	$encoded_attributes = wp_json_encode( $is_list ? (object) $block_attributes : $block_attributes, $flags );
 

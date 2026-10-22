@@ -203,6 +203,44 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that invalid UTF-8 is replaced with the replacement character U+FFFD.
+	 *
+	 * @dataProvider data_serialize_block_attributes_invalid_utf8
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 *
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
+	 */
+	public function test_serialize_block_attributes_invalid_utf8( array $block_attributes, string $expected ) {
+		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
+	 * Data provider for {@see self::test_serialize_block_attributes_invalid_utf8()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: array<mixed>, 1: string }>
+	 */
+	public static function data_serialize_block_attributes_invalid_utf8(): array {
+		return array(
+			'Invalid byte'           => array( array( 'content' => "a\xFFb" ), "{\"content\":\"a\u{FFFD}b\"}" ),
+			'Truncated sequence'     => array( array( 'content' => "a\xE2\x82b" ), "{\"content\":\"a\u{FFFD}b\"}" ),
+			'Attribute name'         => array( array( "a\xFF" => 'b' ), "{\"a\u{FFFD}\":\"b\"}" ),
+			'Nested in an array'     => array( array( 'items' => array( "a\xFF" ) ), "{\"items\":[\"a\u{FFFD}\"]}" ),
+			'With INF'               => array(
+				array(
+					'content' => "a\xFF",
+					'ratio'   => INF,
+				),
+				"{\"content\":\"a\u{FFFD}\",\"ratio\":null}",
+			),
+			'Valid UTF-8 left alone' => array( array( 'content' => 'café' ), '{"content":"café"}' ),
+		);
+	}
+
+	/**
 	 * Tests that replacing INF with null does not change a variable that an attribute refers to.
 	 *
 	 * @ticket 66368
