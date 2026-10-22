@@ -91,6 +91,19 @@ jobs:
           coverage: none
           tools: wp-cli
 
+      # setup-php only warns when a tool fails to install, so fall back to the official phar if WP-CLI is missing.
+      - name: Ensure WP-CLI is available
+        run: |
+          if ! command -v wp > /dev/null; then
+            mkdir -p "${RUNNER_TEMP}/wp-cli"
+            curl -fsSL --retry 3 -o "${RUNNER_TEMP}/wp-cli/wp" https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+            chmod +x "${RUNNER_TEMP}/wp-cli/wp"
+            echo "${RUNNER_TEMP}/wp-cli" >> "${GITHUB_PATH}"
+            "${RUNNER_TEMP}/wp-cli/wp" --version
+          else
+            wp --version
+          fi
+
       - name: Download WordPress ${{ inputs.wp }}
         run: wp core download --version="${WP_VERSION}"
         env:
