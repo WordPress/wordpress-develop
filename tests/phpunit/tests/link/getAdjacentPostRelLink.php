@@ -117,11 +117,26 @@ class Tests_Link_GetAdjacentPostRelLink extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests adjacent_posts_rel_link_wp_head() outputs on single post but not on home page.
+	 * Tests adjacent_posts_rel_link_wp_head() outputs relational links on a single post.
 	 *
 	 * @ticket 65819
 	 */
-	public function test_adjacent_posts_rel_link_wp_head() {
+	public function test_adjacent_posts_rel_link_wp_head_outputs_on_single_post() {
+		$this->go_to( get_permalink( self::$post_ids[1] ) );
+
+		$expected_prev = get_adjacent_post_rel_link( '%title', false, '', true );
+		$expected_next = get_adjacent_post_rel_link( '%title', false, '', false );
+
+		$this->expectOutputString( $expected_prev . $expected_next );
+		adjacent_posts_rel_link_wp_head();
+	}
+
+	/**
+	 * Tests adjacent_posts_rel_link_wp_head() outputs nothing on the home page.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_adjacent_posts_rel_link_wp_head_outputs_nothing_when_not_single() {
 		$this->go_to( home_url( '/' ) );
 		$this->expectOutputString( '' );
 		adjacent_posts_rel_link_wp_head();
