@@ -1166,6 +1166,70 @@ class Tests_Admin_IncludesPost extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for test_add_meta_authorization.
+	 *
+	 * @return array[]
+	 */
+	public function data_add_meta_authorization() {
+		return array(
+			'has capability, unprotected metakey' => array(
+				'metakey'             => 'ordinary_key',
+				'role'                => 'administrator',
+				'expected_error_code' => '',
+			),
+			'no capability, unprotected metakey'  => array(
+				'metakey'             => 'ordinary_key',
+				'role'                => 'subscriber',
+				'expected_error_code' => 'cannot_add_post_meta',
+			),
+			'has capability, protected metakey'   => array(
+				'metakey'             => '_protected_testkey',
+				'role'                => 'administrator',
+				'expected_error_code' => 'protected_meta',
+			),
+			'no capability, protected metakey'    => array(
+				'metakey'             => '_protected_testkey',
+				'role'                => 'subscriber',
+				'expected_error_code' => 'protected_meta',
+			),
+		);
+	}
+
+	/**
+	 * @ticket 32565
+	 *
+	 * @covers ::add_meta
+	 *
+	 * @dataProvider data_add_meta_authorization
+	 *
+	 * @param string $metakey             Meta key to add.
+	 * @param string $role                User role to test with.
+	 * @param string $expected_error_code Expected error code, or empty string if no error is expected.
+	 */
+	public function test_add_meta_authorization( string $metakey, string $role, string $expected_error_code ) {
+		$post_id = self::factory()->post->create();
+		$user_id = 'administrator' === $role ? self::$admin_id : self::factory()->user->create( array( 'role' => $role ) );
+
+		$_POST = array(
+			'metakeyinput' => $metakey,
+			'metavalue'    => 'test_value',
+		);
+
+		wp_set_current_user( $user_id );
+
+		$result = add_meta( $post_id );
+
+		if ( $expected_error_code ) {
+			$this->assertWPError( $result );
+			$this->assertSame( $expected_error_code, $result->get_error_code() );
+			$this->assertSame( 'Sorry, you are not allowed to add this custom field.', $result->get_error_message() );
+		} else {
+			$this->assertIsInt( $result );
+			$this->assertSame( 'test_value', get_post_meta( $post_id, $metakey, true ) );
+		}
+	}
+
+	/**
 	 * Test the post type support in post_exists().
 	 *
 	 * @ticket 37406
