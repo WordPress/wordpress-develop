@@ -137,7 +137,10 @@ function wp_register_core_abilities(): void {
 			),
 			'execute_callback'      => static function ( $input = array() ) use ( $site_info_fields ): array {
 				$input = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $site_info_fields;
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $site_info_fields;
+				}
 
 				$result = array();
 				foreach ( $requested_fields as $field ) {
@@ -252,7 +255,10 @@ function wp_register_core_abilities(): void {
 			),
 			'execute_callback'    => static function ( $input = array() ) use ( $user_info_fields ): array {
 				$input            = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $user_info_fields;
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $user_info_fields;
+				}
 				$current_user     = wp_get_current_user();
 
 				$all = array(
@@ -340,9 +346,12 @@ function wp_register_core_abilities(): void {
 			'execute_callback'      => static function ( $input = array() ) use ( $environment_info_fields ): array {
 				global $wpdb;
 
-				/** @var array{ fields?: string[] } $input */
+				/** @var array{ fields?: string[]|string } $input */
 				$input            = is_array( $input ) ? $input : array();
-				$requested_fields = ! empty( $input['fields'] ) ? $input['fields'] : $environment_info_fields;
+				$requested_fields = rest_sanitize_array( $input['fields'] ?? array() );
+				if ( empty( $requested_fields ) ) {
+					$requested_fields = $environment_info_fields;
+				}
 
 				$db_server_info = '';
 				if ( method_exists( $wpdb, 'db_server_info' ) ) {
