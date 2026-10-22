@@ -102,6 +102,14 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 				'key'      => 1.0E+25,
 				'expected' => '10e25',
 			),
+			'array type'                   => array(
+				'key'      => array( 'key' ),
+				'expected' => '',
+			),
+			'object type'                  => array(
+				'key'      => new stdClass(),
+				'expected' => '',
+			),
 		);
 	}
 
