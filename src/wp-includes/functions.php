@@ -4479,14 +4479,14 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *              the `$options` parameter to `$flags` for parity with PHP.
  *
  * @param mixed $value Variable (usually an array or object) to encode as JSON.
- * @param int   $flags Optional. Options to be passed to json_encode(). Default 0.
+ * @param int   $flags Optional. Options to be passed to json_encode(). If it includes
+ *                     `JSON_THROW_ON_ERROR`, a `JsonException` is thrown when `$value`
+ *                     cannot be encoded as is, since the confidence checks are then
+ *                     skipped. Default 0.
  * @param int   $depth Optional. Maximum depth to walk through $value. Must be
  *                     greater than 0. Default 512.
  * @return string|false The JSON encoded string, or false if it cannot be encoded
  *                      and `$flags` does not include `JSON_THROW_ON_ERROR`.
- *
- * @throws JsonException If `$flags` includes `JSON_THROW_ON_ERROR` and `$value` cannot be encoded as is,
- *                       since the confidence checks are then skipped.
  *
  * @phpstan-param int<1, max> $depth
  * @phpstan-return (
