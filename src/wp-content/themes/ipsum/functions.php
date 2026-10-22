@@ -199,7 +199,9 @@ if ( ! function_exists( 'ipsum_search_aria_label_support' ) ) :
 	 */
 	function ipsum_search_aria_label_support( $metadata ) {
 		if ( isset( $metadata['name'] ) && 'core/search' === $metadata['name'] ) {
-			$metadata['supports']['ariaLabel'] = true;
+			$supports              = isset( $metadata['supports'] ) && is_array( $metadata['supports'] ) ? $metadata['supports'] : array();
+			$supports['ariaLabel'] = true;
+			$metadata['supports']  = $supports;
 		}
 		return $metadata;
 	}
