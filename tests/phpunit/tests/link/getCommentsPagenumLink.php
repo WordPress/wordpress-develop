@@ -67,7 +67,7 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 
 		// Page 2 should have comment-page-2.
 		$link_page_two     = get_comments_pagenum_link( 2 );
-		$expected_page_two = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'comment-page-2', 'commentpaged' ) . '#comments';
+		$expected_page_two = get_permalink( self::$post_id ) . 'comment-page-2/#comments';
 		$this->assertSame( $expected_page_two, $link_page_two );
 	}
 
@@ -107,7 +107,7 @@ class Tests_Link_GetCommentsPagenumLink extends WP_UnitTestCase {
 
 		// When requesting an older page (pagenum != max_page), comment-page slug should be added.
 		$link_older_page     = get_comments_pagenum_link( 1, 3 );
-		$expected_older_page = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . 'comment-page-1', 'commentpaged' ) . '#comments';
+		$expected_older_page = get_permalink( self::$post_id ) . 'comment-page-1/#comments';
 		$this->assertSame( $expected_older_page, $link_older_page );
 	}
 
