@@ -170,6 +170,18 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 		$this->assertSame( '{}', serialize_block_attributes( array( 'number' => INF ) ) );
 	}
 
+	/**
+	 * Tests that attributes passed as an object are still serialized, rather than causing a fatal error.
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_object() {
+		$block_attributes = (object) array( 'align' => 'wide' );
+
+		// @phpstan-ignore argument.type (An object is passed on purpose, since the function encoded one before its attributes were checked for a list.)
+		$this->assertSame( '{"align":"wide"}', serialize_block_attributes( $block_attributes ) );
+	}
+
 	public function test_serialized_block_name() {
 		$this->assertNull( strip_core_block_namespace( null ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );
