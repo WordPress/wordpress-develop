@@ -74,3 +74,15 @@
 .wrap .CodeMirror .CodeMirror-linenumber {
 	color: #646970;
 }
+
+.CodeMirror .CodeMirror-gutter-filler,
+.CodeMirror .CodeMirror-hscrollbar,
+.CodeMirror .CodeMirror-scrollbar-filler,
+.CodeMirror .CodeMirror-vscrollbar {
+	z-index: 16;
+}
+
+/* rtl:ignore */
+.CodeMirror-dialog {
+	padding: 4px 24px 4px 8px;
+}
