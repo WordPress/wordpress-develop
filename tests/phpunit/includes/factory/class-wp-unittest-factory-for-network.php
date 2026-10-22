@@ -3,12 +3,10 @@
 /**
  * Unit test factory for networks.
  *
- * Note: The below @method notations are defined solely for the benefit of IDEs,
- * as a way to indicate expected return values from the given factory methods.
+ * Note: The below @method notation is defined solely for the benefit of IDEs,
+ * as a way to indicate the expected return value from the given factory method.
  *
- * @method int|WP_Error        create( $args = array(), $generation_definitions = null )
- * @method WP_Network|WP_Error create_and_get( $args = array(), $generation_definitions = null )
- * @method (int|WP_Error)[]    create_many( $count, $args = array(), $generation_definitions = null )
+ * @method WP_Network create_and_get( $args = array(), $generation_definitions = null )
  */
 class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 
@@ -28,10 +26,11 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @since 3.9.0
 	 * @since 6.2.0 Returns a WP_Error object on failure.
+	 * @since 7.2.0 Throws an exception instead of returning a WP_Error object on failure.
 	 *
-	 * @param array $args Arguments for the network object.
-	 *
-	 * @return int|WP_Error The network ID on success, WP_Error object on failure.
+	 * @param array<string, mixed> $args Arguments for the network object.
+	 * @return positive-int The network ID.
+	 * @throws WP_UnitTest_Factory_Exception When the network could not be created.
 	 */
 	public function create_object( $args ) {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -51,33 +50,51 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 			$args['subdomain_install']
 		);
 
-		if ( is_wp_error( $result ) ) {
-			return $result;
-		}
+		$network_id = is_wp_error( $result ) ? $result : (int) $args['network_id'];
 
-		return (int) $args['network_id'];
+		$this->assert_valid_object_id( $network_id, 'Unable to create the network' );
+
+		return $network_id;
 	}
 
 	/**
-	 * Updates a network object. Not implemented.
+	 * Updates a network object.
+	 *
+	 * Not implemented. This throws rather than doing nothing so that an after-create
+	 * callback, whose result create() feeds through here, cannot look as though it was
+	 * applied when nothing was written.
+	 *
+	 * @todo Implement via a direct update of the site table, so that after-create callbacks work with this factory.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Throws an exception instead of silently doing nothing.
 	 *
-	 * @param int   $network_id ID of the network to update.
-	 * @param array $fields  The fields to update.
+	 * @param int                  $network_id ID of the network to update.
+	 * @param array<string, mixed> $fields     The fields to update.
+	 * @return never
+	 * @throws WP_UnitTest_Factory_Exception Always, since updating a network is not supported.
 	 */
-	public function update_object( $network_id, $fields ) {}
+	public function update_object( $network_id, $fields ) {
+		throw new WP_UnitTest_Factory_Exception(
+			'Updating a network is not implemented in ' . __CLASS__ . '.'
+		);
+	}
 
 	/**
 	 * Retrieves a network by a given ID.
 	 *
 	 * @since 3.9.0
+	 * @since 7.2.0 Throws an exception instead of returning null when the object cannot be retrieved.
 	 *
 	 * @param int $network_id ID of the network to retrieve.
-	 *
-	 * @return WP_Network|null The network object on success, null on failure.
+	 * @return WP_Network The network object.
+	 * @throws WP_UnitTest_Factory_Exception When the network could not be retrieved.
 	 */
 	public function get_object_by_id( $network_id ) {
-		return get_network( $network_id );
+		$network = get_network( $network_id );
+
+		$this->assert_valid_object( $network, $network_id, WP_Network::class );
+
+		return $network;
 	}
 }

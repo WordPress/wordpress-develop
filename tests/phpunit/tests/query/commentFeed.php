@@ -88,12 +88,17 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
 	 */
-	public function test_main_comment_feed_should_exclude_notes(): void {
-		$note_id = self::factory()->comment->create(
+	public function test_main_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
+		$internal_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_ids[0],
-				'comment_type'     => 'note',
+				'comment_type'     => $comment_type,
 				'comment_approved' => '1',
 			)
 		);
@@ -110,18 +115,23 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_singular() );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
-		$this->assertNotContains( $note_id, $comment_ids, 'Comments feed should not include notes.' );
+		$this->assertNotContains( $internal_id, $comment_ids, "Comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 15, $q->comment_count, 'Comments feed should include all regular comments.' );
 	}
 
 	/**
 	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
 	 */
-	public function test_archive_comment_feed_should_exclude_notes(): void {
-		$note_id = self::factory()->comment->create(
+	public function test_archive_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
+		$internal_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => self::$post_ids[0],
-				'comment_type'     => 'note',
+				'comment_type'     => $comment_type,
 				'comment_approved' => '1',
 			)
 		);
@@ -139,21 +149,26 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_archive() );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
-		$this->assertNotContains( $note_id, $comment_ids, 'Archive comments feed should not include notes.' );
+		$this->assertNotContains( $internal_id, $comment_ids, "Archive comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 15, $q->comment_count, 'Archive comments feed should include all regular comments.' );
 	}
 
 	/**
 	 * @ticket 65613
+	 * @ticket 64638
+	 *
+	 * @dataProvider data_internal_comment_types
+	 *
+	 * @param string $comment_type Internal comment type.
 	 */
-	public function test_single_comment_feed_should_exclude_notes(): void {
+	public function test_single_comment_feed_should_exclude_internal_comment_types( string $comment_type ): void {
 		$post = get_post( self::$post_ids[0] );
 		$this->assertInstanceOf( WP_Post::class, $post );
 
-		$note_id = self::factory()->comment->create(
+		$internal_id = self::factory()->comment->create(
 			array(
 				'comment_post_ID'  => $post->ID,
-				'comment_type'     => 'note',
+				'comment_type'     => $comment_type,
 				'comment_approved' => '1',
 			)
 		);
@@ -172,8 +187,20 @@ class Tests_Query_CommentFeed extends WP_UnitTestCase {
 		$this->assertTrue( $q->is_singular() );
 
 		$comment_ids = array_map( 'intval', wp_list_pluck( $q->comments, 'comment_ID' ) );
-		$this->assertNotContains( $note_id, $comment_ids, 'Singular comments feed should not include notes.' );
+		$this->assertNotContains( $internal_id, $comment_ids, "Singular comments feed should not include '{$comment_type}' comments." );
 		$this->assertSame( 5, $q->comment_count, 'Singular comments feed should include all regular comments.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, string[]>
+	 */
+	public function data_internal_comment_types(): array {
+		return array(
+			'note'     => array( 'note' ),
+			'reaction' => array( 'reaction' ),
+		);
 	}
 
 	/**

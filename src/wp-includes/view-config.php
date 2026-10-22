@@ -76,6 +76,10 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'       => 'status',
 				'label'    => __( 'Status' ),
+				'layout'   => array(
+					'type'    => 'panel',
+					'summary' => 'status',
+				),
 				'children' => array(
 					array(
 						'id'     => 'status',
@@ -96,6 +100,10 @@ function _wp_get_default_posttype_form() {
 			array(
 				'id'       => 'discussion',
 				'label'    => __( 'Discussion' ),
+				'layout'   => array(
+					'type'    => 'panel',
+					'summary' => 'discussion',
+				),
 				'children' => array(
 					array(
 						'id'     => 'comment_status',
@@ -334,6 +342,7 @@ function _wp_get_entity_view_config_posttype_wp_block( $data ) {
 				'styles' => array(
 					'author' => array(
 						'width' => '1%',
+						'align' => 'start',
 					),
 				),
 			),
@@ -361,7 +370,7 @@ function _wp_get_entity_view_config_posttype_wp_block( $data ) {
 			'slug'  => 'all-patterns',
 		),
 		array(
-			'title' => __( 'My patterns' ),
+			'title' => __( 'Site patterns' ),
 			'slug'  => 'my-patterns',
 		),
 	);
@@ -558,7 +567,7 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 		'titleField'       => 'title',
 		'descriptionField' => 'description',
 		'mediaField'       => 'preview',
-		'fields'           => array( 'author', 'active', 'slug', 'theme' ),
+		'fields'           => array( 'author' ),
 		'filters'          => array(),
 		'showMedia'        => true,
 	);
@@ -725,6 +734,13 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 				),
 			),
 			array(
+				'id'     => 'reading_settings',
+				'layout' => array(
+					'type'          => 'regular',
+					'labelPosition' => 'none',
+				),
+			),
+			array(
 				'id'     => 'last_edited_date',
 				'layout' => array(
 					'type'          => 'panel',
@@ -753,4 +769,92 @@ function _wp_get_entity_view_config_posttype_wp_template( $data ) {
 	);
 
 	return $data;
+}
+
+/**
+ * Provides the view configuration for the `attachment` post type.
+ *
+ * An attachment is edited through a form (the media editor) that shares
+ * nothing with the default post type form, so the `form` is replaced: the
+ * editable fields first, in a regular layout, then the metadata and the file
+ * information, in panels. The generic `default_view`, `default_layouts`, and
+ * `view_list` built by wp_get_entity_view_config() are left untouched.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
+ */
+function _wp_get_entity_view_config_posttype_attachment( $data ) {
+	$regular_layout = array(
+		'type'          => 'regular',
+		'labelPosition' => 'top',
+	);
+
+	return $data->set(
+		array(
+			'form' => array(
+				'layout' => array( 'type' => 'panel' ),
+				'fields' => array(
+					array(
+						'id'     => 'title',
+						'layout' => $regular_layout,
+					),
+					array(
+						'id'     => 'alt_text',
+						'layout' => $regular_layout,
+					),
+					array(
+						'id'     => 'caption',
+						'layout' => $regular_layout,
+					),
+					array(
+						'id'     => 'description',
+						'layout' => $regular_layout,
+					),
+					'date',
+					'author',
+					'filename',
+					'mime_type',
+					'filesize',
+					'media_dimensions',
+					'attached_to',
+				),
+			),
+		),
+		1
+	);
+}
+
+/**
+ * Provides the view configuration for the `root`/`site` entity.
+ *
+ * The site settings are a singleton record edited through a form (the site
+ * editor's Identity screen) rather than listed in a view, so only the `form`
+ * is defined here. The generic `default_view`, `default_layouts`, and
+ * `view_list` built by wp_get_entity_view_config() are left untouched.
+ *
+ * @since 7.2.0
+ *
+ * @param WP_View_Config_Data $data The view configuration container for the entity.
+ * @return WP_View_Config_Data The updated view configuration container.
+ */
+function _wp_get_entity_view_config_root_site( $data ) {
+	return $data->set(
+		array(
+			'form' => array(
+				'layout' => array(
+					'type'          => 'regular',
+					'labelPosition' => 'top',
+				),
+				'fields' => array(
+					'title',
+					'description',
+					'site_logo',
+					'site_icon',
+				),
+			),
+		),
+		1
+	);
 }
