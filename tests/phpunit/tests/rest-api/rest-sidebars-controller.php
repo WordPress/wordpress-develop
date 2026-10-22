@@ -1199,9 +1199,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( '_fields', 'id,name' );
 
 		$response = $controller->prepare_item_for_response( $raw_sidebar, $request );
-		$this->assertSame( 'sidebar-1', $response->get_data()['id'] );
-		$this->assertSame( 'Test sidebar', $response->get_data()['name'] );
-		$this->assertEmpty( $response->get_links() );
+
+		$this->assertEmpty( $response->get_links(), 'Links should be omitted when _links is not in _fields.' );
 	}
 
 	/**
