@@ -1077,4 +1077,59 @@ BLOB;
 			'The src key of the first gallery is empty.'
 		);
 	}
+
+	/**
+	 * Tests that inner blocks without an image ID do not trigger a warning
+	 * and are left out of the returned IDs.
+	 *
+	 * @ticket 63577
+	 *
+	 * @group blocks
+	 *
+	 * @dataProvider data_block_gallery_with_inner_blocks_missing_ids
+	 *
+	 * @param string $inner_blocks Serialized inner image blocks.
+	 * @param string $expected_ids Expected comma-separated IDs, with {id} replaced by the attachment ID.
+	 */
+	public function test_returns_ids_from_block_gallery_when_inner_blocks_lack_an_id( $inner_blocks, $expected_ids ) {
+		$image_id = self::factory()->attachment->create_object(
+			array(
+				'file'           => 'test.jpg',
+				'post_mime_type' => 'image/jpeg',
+				'post_type'      => 'attachment',
+			)
+		);
+
+		$inner_blocks = str_replace( '{id}', (string) $image_id, $inner_blocks );
+		$post_id      = self::factory()->post->create(
+			array(
+				'post_content' => "<!-- wp:gallery -->\n<figure class=\"wp-block-gallery\">$inner_blocks</figure>\n<!-- /wp:gallery -->",
+			)
+		);
+
+		$galleries = get_post_galleries( $post_id, false );
+
+		$this->assertCount( 1, $galleries, 'Expected one gallery.' );
+		$this->assertSame(
+			str_replace( '{id}', (string) $image_id, $expected_ids ),
+			$galleries[0]['ids'],
+			'The IDs of inner blocks with an ID should be returned.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_block_gallery_with_inner_blocks_missing_ids() {
+		$without_id = '<!-- wp:image {"width":"188px","height":"auto"} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->';
+		$with_id    = '<!-- wp:image {"id":{id}} --><figure class="wp-block-image"><img alt=""/></figure><!-- /wp:image -->';
+
+		return array(
+			'no inner block has an ID'    => array( $without_id . $without_id, '' ),
+			'only some have an ID'        => array( $without_id . $with_id, '{id}' ),
+			'all inner blocks have an ID' => array( $with_id, '{id}' ),
+		);
+	}
 }
