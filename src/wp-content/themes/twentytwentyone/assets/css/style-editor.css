@@ -856,6 +856,10 @@ a:hover {
 	padding-right: var(--global--spacing-unit);
 }
 
+.wp-block-details > .wp-block {
+	max-width: 100%;
+}
+
 .wp-block-file .wp-block-file__textlink {
 	text-decoration: underline;
 	text-decoration-style: solid;

@@ -1094,6 +1094,12 @@ hr.wp-block-separator.is-style-dots::before {
 	margin-right: auto;
 }
 
+/* Block: Details ----------------------------- */
+
+.wp-block-details > .wp-block {
+	max-width: 100%;
+}
+
 /* Block: File ------------------------------- */
 
 .editor-styles-wrapper .wp-block-file {
