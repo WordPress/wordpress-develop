@@ -223,6 +223,18 @@ class Tests_Entity_Fields_WpEntityFieldsRegistry extends WP_Entity_Fields_UnitTe
 	}
 
 	/**
+	 * A numeric module id is listed as a string, as it was registered, not
+	 * as the integer its array key becomes.
+	 *
+	 * @ticket 66229
+	 */
+	public function test_all_registered_field_modules_lists_a_numeric_module_id_as_a_string() {
+		$this->register_fields( 'postType', 'post', array( $this->field( 'color' ) ), '42' );
+
+		$this->assertSame( array( '42' ), wp_get_all_registered_entity_field_modules()['postType']['post'] );
+	}
+
+	/**
 	 * Unregistering returns the definitions it removes, in registration
 	 * order and with their origin, whatever the order of the ids asked for;
 	 * ids not registered are ignored, and nothing is returned when none is.
