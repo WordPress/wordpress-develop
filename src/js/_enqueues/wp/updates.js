@@ -1379,6 +1379,16 @@
 				 * @type {Object}
 				 */
 				plugins          = settings.plugins,
+				/**
+				 * Plugin groups that Core handles on its own.
+				 *
+				 * @type {Array}
+				 */
+				coreGroups       = [
+					'all', 'search', 'upgrade', 'active', 'inactive',
+					'recently_activated', 'mustuse', 'dropins', 'paused',
+					'auto-update-enabled', 'auto-update-disabled'
+				],
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1446,6 +1456,24 @@
 					$views.find( '.auto-update-disabled' ).remove();
 				}
 			}
+
+			// Remove from custom groups added through the `plugins_list` filter.
+			_.each( _.keys( plugins ), function( group ) {
+				var $view;
+
+				if ( -1 !== _.indexOf( coreGroups, group ) || ! _.isArray( plugins[ group ] ) || -1 === _.indexOf( plugins[ group ], response.plugin ) ) {
+					return;
+				}
+
+				plugins[ group ] = _.without( plugins[ group ], response.plugin );
+				$view = $views.find( '.' + $.escapeSelector( group ) );
+
+				if ( plugins[ group ].length ) {
+					$view.find( '.count' ).text( '(' + plugins[ group ].length + ')' );
+				} else {
+					$view.remove();
+				}
+			} );
 
 			plugins.all = _.without( plugins.all, response.plugin );
 

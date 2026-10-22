@@ -122,6 +122,43 @@ jQuery( function( $ ) {
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.action, 'delete-plugin' );
 		assert.equal( jQuery.ajax.getCall( 0 ).args[0].data.slug, 'jetpack' );
 	} );
+	QUnit.test( 'Deleting a plugin should update the counts of custom plugin groups', function( assert ) {
+		var plugins = window._wpUpdatesSettings.plugins;
+
+		$( '#qunit-fixture' ).append(
+			'<script type="text/html" id="tmpl-item-deleted-row"><tr class="plugin-deleted-tr"><td colspan="{{ data.colspan }}"></td></tr></script>' +
+			'<ul class="subsubsub">' +
+				'<li class="all"><a href="#">All <span class="count">(3)</span></a></li>' +
+				'<li class="demo_group"><a href="#">Demo Group <span class="count">(2)</span></a></li>' +
+				'<li class="single_group"><a href="#">Single Group <span class="count">(1)</span></a></li>' +
+			'</ul>' +
+			'<form id="bulk-action-form"><table><tbody id="the-list">' +
+				'<tr data-plugin="custom-a/custom-a.php"><td></td></tr>' +
+			'</tbody></table></form>'
+		);
+
+		window._wpUpdatesSettings.plugins = {
+			all: [ 'custom-a/custom-a.php', 'custom-b/custom-b.php', 'other/other.php' ],
+			demo_group: [ 'custom-a/custom-a.php', 'custom-b/custom-b.php' ],
+			single_group: [ 'custom-a/custom-a.php' ]
+		};
+
+		// Run the fade out callback right away.
+		sinon.stub( $.fn, 'fadeOut' ).callsFake( function( speed, callback ) {
+			return this.each( callback );
+		} );
+
+		wp.updates.deletePluginSuccess( { slug: 'custom-a', plugin: 'custom-a/custom-a.php', pluginName: 'Custom A' } );
+
+		$.fn.fadeOut.restore();
+
+		assert.equal( $( '.subsubsub .all .count' ).text(), '(2)', 'The All count should go down.' );
+		assert.equal( $( '.subsubsub .demo_group .count' ).text(), '(1)', 'The custom group count should go down.' );
+		assert.strictEqual( $( '.subsubsub .single_group' ).length, 0, 'An empty custom group should be removed.' );
+		assert.deepEqual( window._wpUpdatesSettings.plugins.demo_group, [ 'custom-b/custom-b.php' ], 'The deleted plugin should be removed from the custom group.' );
+
+		window._wpUpdatesSettings.plugins = plugins;
+	} );
 
 	// QUnit.test( 'A successful update changes the message?', function( assert ) {} );
 	// QUnit.test( 'A failed update changes the message?', function( assert ) {} );
