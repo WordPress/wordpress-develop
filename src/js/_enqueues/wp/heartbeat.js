@@ -429,6 +429,7 @@
 				data: heartbeatData,
 				interval: settings.tempInterval ? settings.tempInterval / 1000 : settings.mainInterval / 1000,
 				_nonce: typeof window.heartbeatSettings === 'object' ? window.heartbeatSettings.nonce : '',
+				refresh_nonce: typeof window.heartbeatSettings === 'object' ? window.heartbeatSettings.refreshNonce : '',
 				action: 'heartbeat',
 				screen_id: settings.screenId,
 				has_focus: settings.hasFocus
@@ -475,9 +476,23 @@
 					delete response.heartbeat_nonce;
 				}
 
-				// Update the Rest API nonce if set and wp-api loaded.
-				if ( response.rest_nonce && typeof window.wpApiSettings === 'object' ) {
-					window.wpApiSettings.nonce = response.rest_nonce;
+				// Update the heartbeat refresh nonce if set.
+				if ( response.heartbeat_refresh_nonce && typeof window.heartbeatSettings === 'object' ) {
+					window.heartbeatSettings.refreshNonce = response.heartbeat_refresh_nonce;
+					delete response.heartbeat_refresh_nonce;
+				}
+
+				if ( response.rest_nonce ) {
+					// Update the Rest API nonce if set and wp-api loaded.
+					if ( typeof window.wpApiSettings === 'object' ) {
+						window.wpApiSettings.nonce = response.rest_nonce;
+					}
+
+					// Update the nonce used by wp.apiFetch, for example in the block editor.
+					if ( window.wp && wp.apiFetch && wp.apiFetch.nonceMiddleware ) {
+						wp.apiFetch.nonceMiddleware.nonce = response.rest_nonce;
+					}
+
 					// This nonce is required for api-fetch through heartbeat.tick.
 					// delete response.rest_nonce;
 				}
