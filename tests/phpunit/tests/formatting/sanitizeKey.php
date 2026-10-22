@@ -78,23 +78,48 @@ class Tests_Formatting_SanitizeKey extends WP_UnitTestCase {
 	 */
 	public static function data_sanitize_key_nonstring_scalar() {
 		return array(
-			'integer type'  => array(
+			'integer type'                 => array(
 				'key'      => 0,
 				'expected' => '0',
 			),
-			'boolean true'  => array(
+			'boolean true'                 => array(
 				'key'      => true,
 				'expected' => '1',
 			),
-			'boolean false' => array(
+			'boolean false'                => array(
 				'key'      => false,
 				'expected' => '',
 			),
-			'float type'    => array(
+			'float type'                   => array(
 				'key'      => 0.123,
 				'expected' => '0123',
 			),
+			'negative integer'             => array(
+				'key'      => -1,
+				'expected' => '-1',
+			),
+			'float in scientific notation' => array(
+				'key'      => 1.0E+25,
+				'expected' => '10e25',
+			),
 		);
+	}
+
+	/**
+	 * Tests that the filter receives the sanitized key and the original non-string scalar key.
+	 *
+	 * @dataProvider data_sanitize_key_nonstring_scalar
+	 *
+	 * @param mixed  $key      The key to sanitize.
+	 * @param string $expected The expected value.
+	 */
+	public function test_sanitize_key_filter_with_nonstring_scalar( $key, string $expected ): void {
+		$filter = new MockAction();
+		add_filter( 'sanitize_key', array( $filter, 'filter' ), 10, 2 );
+
+		$this->assertSame( $expected, sanitize_key( $key ), 'Unexpected sanitized key.' );
+		$this->assertSame( 1, $filter->get_call_count(), 'The filter was not applied once.' );
+		$this->assertSame( array( $expected, $key ), $filter->get_args()[0], 'The filter did not receive the sanitized key and the original key.' );
 	}
 
 	/**
