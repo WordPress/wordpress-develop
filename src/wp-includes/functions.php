@@ -4489,7 +4489,26 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *                       since the confidence checks are then skipped.
  *
  * @phpstan-param int<1, max> $depth
- * @phpstan-return non-empty-string|false
+ * @phpstan-return (
+ *     $flags is int-mask<
+ *         JSON_HEX_TAG,
+ *         JSON_HEX_AMP,
+ *         JSON_HEX_APOS,
+ *         JSON_HEX_QUOT,
+ *         JSON_FORCE_OBJECT,
+ *         JSON_NUMERIC_CHECK,
+ *         JSON_UNESCAPED_SLASHES,
+ *         JSON_PRETTY_PRINT,
+ *         JSON_UNESCAPED_UNICODE,
+ *         JSON_PARTIAL_OUTPUT_ON_ERROR,
+ *         JSON_PRESERVE_ZERO_FRACTION,
+ *         JSON_UNESCAPED_LINE_TERMINATORS,
+ *         JSON_INVALID_UTF8_IGNORE,
+ *         JSON_INVALID_UTF8_SUBSTITUTE
+ *     >
+ *         ? non-empty-string|false
+ *         : non-empty-string
+ * )
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
 	$json = json_encode( $value, $flags, $depth );
