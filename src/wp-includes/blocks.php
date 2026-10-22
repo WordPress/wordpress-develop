@@ -1711,7 +1711,7 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * cast to an object, since json_encode() skips object properties whose names start with a
 	 * null byte, which an attribute name decoded from JSON may do.
 	 */
-	if ( array_is_list( $block_attributes ) ) {
+	if ( is_array( $block_attributes ) && array_is_list( $block_attributes ) ) {
 		$block_attributes = (object) $block_attributes;
 	}
 
