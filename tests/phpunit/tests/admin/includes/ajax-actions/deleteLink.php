@@ -93,10 +93,14 @@ class Tests_wp_ajax_delete_link extends WP_Ajax_UnitTestCase {
 			'_ajax_nonce' => 'invalid-nonce',
 		);
 
-		$this->expectException( WPAjaxDieStopException::class );
-		$this->expectExceptionMessage( '-1' );
+		try {
+			$this->_handleAjax( 'delete-link' );
+			$this->fail( 'Expected link deletion to stop due to an invalid nonce.' );
+		} catch ( WPAjaxDieStopException $e ) {
+			$this->assertSame( '-1', $e->getMessage() );
+		}
 
-		$this->_handleAjax( 'delete-link' );
+		$this->assertNotNull( get_bookmark( $link_id ), 'Link should not be deleted when the nonce is invalid.' );
 	}
 
 	/**
