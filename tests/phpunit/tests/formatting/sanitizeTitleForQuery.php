@@ -61,10 +61,10 @@ class Tests_Formatting_SanitizeTitleForQuery extends WP_UnitTestCase {
 	 */
 	public static function data_sanitize_title_for_query() {
 		return array(
-			'empty string'     => array( '', '' ),
-			'simple title'     => array( 'Hello World', 'hello-world' ),
-			'strips tags'      => array( '<strong>Hello</strong> World', 'hello-world' ),
-			'punctuation'      => array( 'Hello, World!', 'hello-world' ),
+			'empty string' => array( '', '' ),
+			'simple title' => array( 'Hello World', 'hello-world' ),
+			'strips tags'  => array( '<strong>Hello</strong> World', 'hello-world' ),
+			'punctuation'  => array( 'Hello, World!', 'hello-world' ),
 		);
 	}
 }
