@@ -100,6 +100,8 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	 *                     original content when there is no post.
 	 */
 	function ipsum_comments_cta_binding( $source_args, $block_instance ) {
+		unset( $source_args ); // Unused, but must be accepted to get the block instance.
+
 		$post_id = $block_instance->context['postId'] ?? null;
 		$post    = get_post( is_numeric( $post_id ) ? (int) $post_id : null );
 		if ( ! $post ) {
