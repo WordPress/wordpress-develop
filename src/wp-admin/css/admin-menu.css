@@ -676,6 +676,47 @@ li#wp-admin-bar-menu-toggle {
 
 }
 
+/* Show the name of a folded top-level item without a submenu where a submenu head would appear. */
+@media screen and (min-width: 783px) {
+	.folded #adminmenu li.menu-top:not(.wp-has-submenu):not(.current):hover > a.menu-top,
+	.folded #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:hover > .wp-menu-name,
+	.folded #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:focus > .wp-menu-name {
+		background-color: inherit;
+	}
+
+	.folded #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:hover > .wp-menu-name,
+	.folded #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:focus > .wp-menu-name {
+		left: 36px;
+		min-width: 160px;
+		min-height: 34px;
+		padding: 5px 4px 5px 16px; /* Padding of .wp-submenu-head plus its 5px left border. */
+		box-sizing: border-box;
+		/* Only visible in Windows High Contrast mode. */
+		border: 1px solid transparent;
+		border-left-width: 0;
+	}
+}
+
+@media screen and (min-width: 783px) and (max-width: 960px) {
+	.auto-fold #adminmenu li.menu-top:not(.wp-has-submenu):not(.current):hover > a.menu-top,
+	.auto-fold #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:hover > .wp-menu-name,
+	.auto-fold #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:focus > .wp-menu-name {
+		background-color: inherit;
+	}
+
+	.auto-fold #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:hover > .wp-menu-name,
+	.auto-fold #adminmenu li.menu-top:not(.wp-has-submenu) > a.menu-top:focus > .wp-menu-name {
+		left: 36px;
+		min-width: 160px;
+		min-height: 34px;
+		padding: 5px 4px 5px 16px; /* Padding of .wp-submenu-head plus its 5px left border. */
+		box-sizing: border-box;
+		/* Only visible in Windows High Contrast mode. */
+		border: 1px solid transparent;
+		border-left-width: 0;
+	}
+}
+
 @media screen and (max-width: 782px) {
 	.auto-fold #wpcontent,
 	.auto-fold #wpfooter {
