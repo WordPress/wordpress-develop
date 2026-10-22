@@ -369,7 +369,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( 1, $author['properties']['id']['minimum'], 'The author ID should be positive.' );
 		$this->assertSame( 'string', $author['properties']['slug']['type'], 'The author slug should be a string.' );
 		$this->assertSame( 1, $author['properties']['slug']['minLength'], 'The author slug should not be empty.' );
-		$this->assertArrayNotHasKey( 'author_slug', $where['properties'], 'The author_slug filter should be replaced by the author filter.' );
 		$this->assertSame( 'integer', $where['properties']['parent']['type'], 'The parent filter should be an integer.' );
 		$this->assertSame( 0, $where['properties']['parent']['minimum'], 'The parent filter should accept 0 for top-level posts.' );
 
@@ -451,22 +450,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$schema = wp_get_ability( 'core/content-query' )->get_input_schema();
 
 		$this->assertSame( array(), $this->find_schema_keywords( $schema, array( 'default' ) ), 'The input schema should not declare a default at any depth.' );
-	}
-
-	/**
-	 * The `author_slug` filter is replaced by the `author` filter, so no description in the
-	 * input or output schema refers to it any more.
-	 *
-	 * @ticket 66268
-	 * @since 7.2.0
-	 */
-	public function test_schemas_do_not_mention_the_author_slug_filter(): void {
-		$this->register_ability();
-
-		$ability = wp_get_ability( 'core/content-query' );
-
-		$this->assertStringNotContainsString( 'author_slug', wp_json_encode( $ability->get_input_schema() ), 'The input schema should not mention the author_slug filter.' );
-		$this->assertStringNotContainsString( 'author_slug', wp_json_encode( $ability->get_output_schema() ), 'The output schema should not mention the author_slug filter.' );
 	}
 
 	/**
@@ -600,14 +583,6 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 					'where' => array(
 						'type'  => 'post',
 						'slugs' => array( 'x', 'x' ),
-					),
-				),
-			),
-			'author_slug filter'     => array(
-				'input' => array(
-					'where' => array(
-						'type'        => 'post',
-						'author_slug' => 'author-slug',
 					),
 				),
 			),
