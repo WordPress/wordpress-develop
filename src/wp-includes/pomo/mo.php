@@ -1,10 +1,10 @@
 <?php
 /**
- * Class for working with MO files
+ * Class for working with MO files.
  *
- * @version $Id: mo.php 1157 2015-11-20 04:30:11Z dd32 $
  * @package pomo
  * @subpackage mo
+ * @since 2.8.0
  */
 
 require_once __DIR__ . '/translations.php';
