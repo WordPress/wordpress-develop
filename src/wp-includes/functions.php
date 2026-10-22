@@ -4507,7 +4507,27 @@ function _wp_die_process_input( $message, $title = '', $args = array() ) {
  *         JSON_INVALID_UTF8_SUBSTITUTE
  *     >
  *         ? non-empty-string|false
- *         : non-empty-string
+ *         : (
+ *             $flags is int-mask<
+ *                 JSON_HEX_TAG,
+ *                 JSON_HEX_AMP,
+ *                 JSON_HEX_APOS,
+ *                 JSON_HEX_QUOT,
+ *                 JSON_FORCE_OBJECT,
+ *                 JSON_NUMERIC_CHECK,
+ *                 JSON_UNESCAPED_SLASHES,
+ *                 JSON_PRETTY_PRINT,
+ *                 JSON_UNESCAPED_UNICODE,
+ *                 JSON_PARTIAL_OUTPUT_ON_ERROR,
+ *                 JSON_PRESERVE_ZERO_FRACTION,
+ *                 JSON_UNESCAPED_LINE_TERMINATORS,
+ *                 JSON_INVALID_UTF8_IGNORE,
+ *                 JSON_INVALID_UTF8_SUBSTITUTE,
+ *                 JSON_THROW_ON_ERROR
+ *             >
+ *                 ? non-empty-string
+ *                 : non-empty-string|false
+ *         )
  * )
  */
 function wp_json_encode( $value, $flags = 0, $depth = 512 ) {
