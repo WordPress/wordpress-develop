@@ -5647,4 +5647,112 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $counts['all'] );
 		$this->assertSame( 1, $counts['total_comments'] );
 	}
+
+	/**
+	 * @ticket 41339
+	 * @covers WP_Comment_Query::get_comment_ids
+	 * @dataProvider data_status_not_in_excludes_not_any_status
+	 */
+	public function test_status_not_in_excludes_not_any_status( $statuses, array $status__not_in, array $expected_statuses ) {
+		$post_id = self::factory()->post->create();
+
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '1',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => '0',
+			)
+		);
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_approved' => 'spam',
+			)
+		);
+
+		$query          = new WP_Comment_Query();
+		$found          = $query->query(
+			array(
+				'status'         => $statuses,
+				'status__not_in' => $status__not_in,
+			)
+		);
+		$found_statuses = array_map(
+			function ( $comment ) {
+				return $comment->comment_approved;
+			},
+			$found
+		);
+
+		$this->assertSameSets( $expected_statuses, $found_statuses, 'Expected comments statuses with status__not_in set failed.' );
+	}
+
+	/**
+	 * Data provider for testing status__not_in with statuses not any.
+	 * @ticket 41339
+	 */
+	public static function data_status_not_in_excludes_not_any_status(): array {
+		return array(
+			'status__not_in spam'             => array(
+				'statuses'          => array( 'approve', 'hold', 'spam' ),
+				'status__not_in'    => array( 'spam' ),
+				'expected_statuses' => array( '1', '0' ),
+			),
+			'status__not_in hold'             => array(
+				'statuses'          => array( 'approve', 'hold', 'spam' ),
+				'status__not_in'    => array( 'hold' ),
+				'expected_statuses' => array( '1', 'spam' ),
+			),
+			'status__not_in approve'          => array(
+				'statuses'          => array( 'approve', 'hold', 'spam' ),
+				'status__not_in'    => array( 'approve' ),
+				'expected_statuses' => array( '0', 'spam' ),
+			),
+			'status__not_in all'              => array(
+				'statuses'          => array( 'approve', 'hold', 'spam' ),
+				'status__not_in'    => array( 'all' ),
+				'expected_statuses' => array( 'spam' ),
+			),
+			'status__not_in all status all'   => array(
+				'statuses'          => array( 'all' ),
+				'status__not_in'    => array( 'all' ),
+				'expected_statuses' => array(),
+			),
+			'status__not_in approve and hold the same as all' => array(
+				'statuses'          => array( 'all' ),
+				'status__not_in'    => array( 'approve', 'hold' ),
+				'expected_statuses' => array(),
+			),
+			'status__not_in empty'            => array(
+				'statuses'          => array( 'all' ),
+				'status__not_in'    => array(),
+				'expected_statuses' => array( '1', '0' ),
+			),
+			'status__not_in not exist'        => array(
+				'statuses'          => array( 'all' ),
+				'status__not_in'    => array( 'invalid_status' ),
+				'expected_statuses' => array( '1', '0' ),
+			),
+			'status__not_in with status any'  => array(
+				'statuses'          => array( 'any' ),
+				'status__not_in'    => array( 'spam' ),
+				'expected_statuses' => array( '1', '0' ),
+			),
+			'status__not_in hold status hold' => array(
+				'statuses'          => array( 'hold' ),
+				'status__not_in'    => array( 'hold' ),
+				'expected_statuses' => array(),
+			),
+			'status__not_in status omitted defaults to any' => array(
+				'status'            => '',
+				'status__not_in'    => array( 'hold' ),
+				'expected_statuses' => array( '1' ),
+			),
+		);
+	}
 }
