@@ -877,6 +877,68 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that response data represented as an object (such as an empty
+	 * collection that is cast to stdClass so it is encoded as a JSON object)
+	 * does not cause a fatal error when request['_fields'] is present.
+	 *
+	 * @ticket 62534
+	 */
+	public function test_rest_filter_response_fields_empty_object_data() {
+		$response = new WP_REST_Response();
+		$response->set_data( new stdClass() );
+		$request = array(
+			'_fields' => 'name,slug',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertEquals( new stdClass(), $response->get_data() );
+	}
+
+	/**
+	 * Ensure that request['_fields'] allowed list apply to individual items in a
+	 * collection that is keyed by a non-numeric identifier (such as a taxonomy or
+	 * post type slug), rather than being applied to the collection's own keys.
+	 *
+	 * @ticket 62534
+	 */
+	public function test_rest_filter_response_fields_keyed_collection() {
+		$response = new WP_REST_Response();
+
+		$response->set_data(
+			array(
+				'category' => array(
+					'name'  => 'Categories',
+					'slug'  => 'category',
+					'types' => array( 'post' ),
+				),
+				'post_tag' => array(
+					'name'  => 'Tags',
+					'slug'  => 'post_tag',
+					'types' => array( 'post' ),
+				),
+			)
+		);
+		$request = array(
+			'_fields' => 'name,slug',
+		);
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$this->assertSame(
+			array(
+				'category' => array(
+					'name' => 'Categories',
+					'slug' => 'category',
+				),
+				'post_tag' => array(
+					'name' => 'Tags',
+					'slug' => 'post_tag',
+				),
+			),
+			$response->get_data()
+		);
+	}
+
+	/**
 	 * @ticket 42094
 	 */
 	public function test_rest_is_field_included() {
