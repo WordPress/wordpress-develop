@@ -272,15 +272,6 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @covers ::get_block_editor_theme_styles
 	 */
 	public function test_editor_style_singular_and_editor_styles_plural_are_distinct() {
-		global $editor_styles;
-
-		$original_editor_styles = $editor_styles;
-
-		// Ensure a clean slate: supports may be left over from a prior test or the active theme.
-		$editor_styles = array();
-		remove_editor_styles();
-		remove_theme_support( 'editor-styles' );
-
 		add_theme_support( 'editor-styles' );
 		$this->assertFalse( current_theme_supports( 'editor-style' ), "add_theme_support( 'editor-styles' ) should not add 'editor-style' support." );
 		$this->assertSame( array(), get_block_editor_theme_styles(), "'editor-styles' support alone should not load any stylesheets." );
@@ -298,8 +289,5 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertTrue( remove_editor_styles(), 'remove_editor_styles() should return true when stylesheets were added.' );
 		$this->assertFalse( current_theme_supports( 'editor-style' ), "remove_editor_styles() should remove 'editor-style' support." );
 		$this->assertTrue( current_theme_supports( 'editor-styles' ), "remove_editor_styles() should not remove 'editor-styles' support." );
-
-		remove_theme_support( 'editor-styles' );
-		$editor_styles = $original_editor_styles;
 	}
 }
