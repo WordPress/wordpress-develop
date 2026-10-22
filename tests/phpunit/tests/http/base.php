@@ -112,9 +112,10 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			return;
 		}
 
+		$redirection_copied        = false;
 		$redirection_script_source = DIR_TESTDATA . '/WPHTTP-testcase-redirection-script.php';
 		if ( file_exists( $redirection_script_source ) ) {
-			copy( $redirection_script_source, $fixture_dir . '/redirection.php' );
+			$redirection_copied = copy( $redirection_script_source, $fixture_dir . '/redirection.php' );
 		}
 
 		set_error_handler(
@@ -219,7 +220,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		self::$file_stream_fixture_dir     = $fixture_dir;
 		self::$file_stream_fixture_process = $process;
 		self::$file_stream_fixture_url     = $url;
-		self::$redirection_fixture_url     = 'http://127.0.0.1:' . $port . '/redirection.php';
+		if ( $redirection_copied ) {
+			self::$redirection_fixture_url = 'http://127.0.0.1:' . $port . '/redirection.php';
+		}
 	}
 
 	/**
