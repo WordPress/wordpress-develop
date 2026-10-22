@@ -18,6 +18,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Constructs the controller.
+	 *
+	 * @since 5.5.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -26,6 +28,8 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the necessary REST API routes.
+	 *
+	 * @since 5.5.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -200,9 +204,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			return '';
 		}
 
-		$plugin_files = array_keys( $plugin_files );
-
-		return $slug . '/' . reset( $plugin_files );
+		return $slug . '/' . array_key_first( $plugin_files );
 	}
 
 	/**

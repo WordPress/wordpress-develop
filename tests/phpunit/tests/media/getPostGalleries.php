@@ -83,7 +83,7 @@ class Tests_Media_GetPostGalleries extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_returns_only_galleries() {
+	public static function data_returns_only_galleries() {
 		$gallery = '
 		<!-- wp:gallery {"linkTo":"none","className":"columns-2"} -->
 		<figure
