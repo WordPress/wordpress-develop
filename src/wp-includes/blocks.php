@@ -1704,6 +1704,7 @@ function make_after_block_visitor( $hooked_blocks, $context, $callback = 'insert
  * @param array<string, mixed> $block_attributes Attributes object.
  * @return string Serialized attributes.
  *
+ * @phpstan-param array<array-key, mixed> $block_attributes
  * @phpstan-return non-empty-string
  */
 function serialize_block_attributes( $block_attributes ): string {

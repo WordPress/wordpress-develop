@@ -129,8 +129,8 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	 *
 	 * @covers ::serialize_block_attributes
 	 *
-	 * @param array<string, mixed> $block_attributes Block attributes.
-	 * @param non-empty-string     $expected         Expected serialization.
+	 * @param array<array-key, mixed> $block_attributes Block attributes.
+	 * @param non-empty-string        $expected         Expected serialization.
 	 */
 	public function test_serialize_block_attributes( array $block_attributes, string $expected ) {
 		$this->assertSame( $expected, serialize_block_attributes( $block_attributes ) );
