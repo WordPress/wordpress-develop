@@ -1010,6 +1010,8 @@ function _wp_call_all_hook( $args ) {
  * @since 6.9.0 Returns explicit null if an invalid callback is supplied.
  * @since 7.1.0 Uses spl_object_id() instead of spl_object_hash() for performance.
  * @since 7.1.1 The ID for an object callback is prefixed so that it is never cast to an integer array key.
+ * @since 7.3.0 A closure created from a named function or method, such as with first-class callable
+ *              syntax or Closure::fromCallable(), gets the ID of that function or method.
  *
  * @access private
  *
@@ -1025,6 +1027,34 @@ function _wp_call_all_hook( $args ) {
 function _wp_filter_build_unique_id( $hook_name, $callback, $priority ): ?string {
 	if ( is_string( $callback ) ) {
 		return $callback;
+	}
+
+	if ( $callback instanceof Closure ) {
+		/*
+		 * Each `$object->method(...)` or Closure::fromCallable() call creates a new closure, so its object
+		 * ID can't be used to remove the callback again. A closure created from a named function or method
+		 * is identified like that function or method instead. Anonymous functions are named "{closure}"
+		 * (or "{closure:...}" since PHP 8.4) and keep their object ID below.
+		 */
+		$function = new ReflectionFunction( $callback );
+		$name     = $function->getName();
+
+		if ( ! str_starts_with( $name, '{closure' ) ) {
+			$bound_object = $function->getClosureThis();
+			if ( null !== $bound_object ) {
+				// Same ID as the array( $object, 'method' ) form below.
+				return ( (string) spl_object_id( $bound_object ) ) . $name;
+			}
+
+			$scope_class = $function->getClosureScopeClass();
+			if ( null !== $scope_class ) {
+				// Same ID as the array( 'Class', 'method' ) form below.
+				return $scope_class->getName() . '::' . $name;
+			}
+
+			// Same ID as a function name string.
+			return $name;
+		}
 	}
 
 	if ( is_object( $callback ) ) {
