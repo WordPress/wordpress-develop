@@ -11,6 +11,7 @@ require_once __DIR__ . '/base.php';
  *
  * @group entity-fields
  *
+ * @covers ::_wp_add_entity_preload_paths
  * @covers ::_wp_preload_entity_fields
  * @covers ::_wp_get_site_editor_screen_post_types
  */

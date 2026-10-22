@@ -8,6 +8,7 @@
  * @group entity-actions
  *
  * @covers ::_wp_add_entity_action_modules_to_editor_script
+ * @covers ::_wp_add_entity_preload_paths
  * @covers ::_wp_preload_entity_actions
  * @covers ::wp_get_all_registered_entity_action_modules
  * @covers ::wp_register_entity_actions

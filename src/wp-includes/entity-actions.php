@@ -207,36 +207,5 @@ function _wp_add_entity_action_modules_to_editor_script( $scripts = null ) {
  * @return array Filtered preload paths.
  */
 function _wp_preload_entity_actions( $paths, $context = null ) {
-	if ( empty( $paths ) && ! is_array( $paths ) ) {
-		$paths = array();
-	}
-
-	if ( ! is_array( $paths ) || ! $context instanceof WP_Block_Editor_Context ) {
-		return $paths;
-	}
-
-	$post_types = array();
-	if ( 'core/edit-post' === $context->name && isset( $context->post ) ) {
-		$post_types[] = $context->post->post_type;
-	} elseif ( 'core/edit-site' === $context->name ) {
-		if ( isset( $context->post ) ) {
-			$post_types[] = $context->post->post_type;
-		}
-		$post_types = array_merge( $post_types, _wp_get_site_editor_screen_post_types() );
-	}
-
-	foreach ( array_unique( $post_types ) as $post_type ) {
-		if ( ! post_type_exists( $post_type ) ) {
-			continue;
-		}
-		$paths[] = add_query_arg(
-			array(
-				'kind' => 'postType',
-				'name' => $post_type,
-			),
-			'/wp/v2/entity-actions'
-		);
-	}
-
-	return $paths;
+	return _wp_add_entity_preload_paths( $paths, $context, '/wp/v2/entity-actions' );
 }

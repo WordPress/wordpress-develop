@@ -291,24 +291,25 @@ function _wp_get_site_editor_screen_post_types() {
 }
 
 /**
- * Preloads the fields of the post types the editors list.
+ * Adds the paths of an entity route for the post types the editors list.
  *
- * The editors read them from the `/wp/v2/entity-fields` route, see `useFields`
- * in packages/editor/src/dataviews/fields-loader/index.ts in Gutenberg. The
- * post editor reads those of the edited post in the post summary of its
- * inspector. The site editor reads those of the edited post, if any, and of
- * the post types of the screen it opens on. A path must match the request of
- * the `getFieldsConfig` core data resolver, see
- * packages/core-data/src/resolvers.js in Gutenberg.
+ * The post editor lists the post type of the edited post. The site editor
+ * lists that of the edited post, if any, and those of the screen it opens on.
+ * Post types that are not registered are skipped, and each post type is added
+ * once.
  *
  * @since 7.2.0
  * @access private
  *
- * @param array                   $paths   REST API paths to preload.
- * @param WP_Block_Editor_Context $context Block editor context.
- * @return array Filtered preload paths.
+ * @param mixed  $paths   REST API paths to preload.
+ * @param mixed  $context Block editor context.
+ * @param string $route   The entity route, such as `/wp/v2/entity-fields`.
+ * @return mixed The paths with one path per post type added. An empty value
+ *               that is not an array becomes an array. Any other value that
+ *               is not an array, or a context that is not a block editor
+ *               context, returns `$paths` unchanged.
  */
-function _wp_preload_entity_fields( $paths, $context = null ) {
+function _wp_add_entity_preload_paths( $paths, $context, $route ) {
 	if ( empty( $paths ) && ! is_array( $paths ) ) {
 		$paths = array();
 	}
@@ -336,9 +337,31 @@ function _wp_preload_entity_fields( $paths, $context = null ) {
 				'kind' => 'postType',
 				'name' => $post_type,
 			),
-			'/wp/v2/entity-fields'
+			$route
 		);
 	}
 
 	return $paths;
+}
+
+/**
+ * Preloads the fields of the post types the editors list.
+ *
+ * The editors read them from the `/wp/v2/entity-fields` route, see `useFields`
+ * in packages/editor/src/dataviews/fields-loader/index.ts in Gutenberg. The
+ * post editor reads those of the edited post in the post summary of its
+ * inspector. The site editor reads those of the edited post, if any, and of
+ * the post types of the screen it opens on. A path must match the request of
+ * the `getFieldsConfig` core data resolver, see
+ * packages/core-data/src/resolvers.js in Gutenberg.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param array                   $paths   REST API paths to preload.
+ * @param WP_Block_Editor_Context $context Block editor context.
+ * @return array Filtered preload paths.
+ */
+function _wp_preload_entity_fields( $paths, $context = null ) {
+	return _wp_add_entity_preload_paths( $paths, $context, '/wp/v2/entity-fields' );
 }
