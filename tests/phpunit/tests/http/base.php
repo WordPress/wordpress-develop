@@ -454,7 +454,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_no_redirection_on_PUT() {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?201-location=1';
+		$url = $this->redirection_script . '?201-location=1';
 
 		// Test 301 - POST to POST.
 		$res = $this->wp_remote_request(
@@ -626,7 +626,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @covers ::wp_remote_retrieve_body
 	 */
 	public function test_post_redirect_to_method_300( $response_code, $method ) {
-		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?post-redirect-to-method=1';
+		$url = $this->redirection_script . '?post-redirect-to-method=1';
 
 		$res = $this->wp_remote_post( add_query_arg( 'response_code', $response_code, $url ), array( 'timeout' => 30 ) );
 
