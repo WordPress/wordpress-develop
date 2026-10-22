@@ -128,8 +128,8 @@ jQuery( function( $ ) {
 		$( '#qunit-fixture' ).append(
 			'<script type="text/html" id="tmpl-item-deleted-row"><tr class="plugin-deleted-tr"><td colspan="{{ data.colspan }}"></td></tr></script>' +
 			'<ul class="subsubsub">' +
-				'<li class="all"><a href="#">All <span class="count">(3)</span></a></li>' +
-				'<li class="demo_group"><a href="#">Demo Group <span class="count">(2)</span></a></li>' +
+				'<li class="all"><a href="#">All <span class="count">(3)</span></a> |</li>' +
+				'<li class="demo_group"><a href="#">Demo Group <span class="count">(2)</span></a> |</li>' +
 				'<li class="single_group"><a href="#">Single Group <span class="count">(1)</span></a></li>' +
 			'</ul>' +
 			'<form id="bulk-action-form"><table><tbody id="the-list">' +
@@ -155,6 +155,8 @@ jQuery( function( $ ) {
 		assert.equal( $( '.subsubsub .all .count' ).text(), '(2)', 'The All count should go down.' );
 		assert.equal( $( '.subsubsub .demo_group .count' ).text(), '(1)', 'The custom group count should go down.' );
 		assert.strictEqual( $( '.subsubsub .single_group' ).length, 0, 'An empty custom group should be removed.' );
+		assert.strictEqual( $( '.subsubsub .all' ).text(), 'All (2) |', 'Separators between views should be kept.' );
+		assert.strictEqual( $( '.subsubsub .demo_group' ).text(), 'Demo Group (1)', 'The new last view should not end with a separator.' );
 		assert.deepEqual( window._wpUpdatesSettings.plugins.demo_group, [ 'custom-b/custom-b.php' ], 'The deleted plugin should be removed from the custom group.' );
 
 		window._wpUpdatesSettings.plugins = plugins;

@@ -1389,6 +1389,7 @@
 					'recently_activated', 'mustuse', 'dropins', 'paused',
 					'auto-update-enabled', 'auto-update-disabled'
 				],
+				lastViewNode,
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1486,6 +1487,13 @@
 				if ( ! $form.find( 'tr.no-items' ).length ) {
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
+			}
+
+			// When the last view was removed, remove the separator left on the new last view.
+			lastViewNode = $views.children( 'li' ).last().contents().last().get( 0 );
+
+			if ( lastViewNode && Node.TEXT_NODE === lastViewNode.nodeType ) {
+				lastViewNode.nodeValue = lastViewNode.nodeValue.replace( /\s*\|\s*$/, '' );
 			}
 
 			if ( $itemsCount.length && $currentView.length ) {
