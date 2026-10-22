@@ -42,6 +42,34 @@ class WP_Application_Passwords {
 	const PW_LENGTH = 24;
 
 	/**
+	 * Expiration preset constants.
+	 *
+	 * @since 7.2.0
+	 */
+	const EXPIRY_NO_EXPIRY = 'no_expiry';
+	const EXPIRY_7_DAYS    = '7_days';
+	const EXPIRY_30_DAYS   = '30_days';
+	const EXPIRY_90_DAYS   = '90_days';
+	const EXPIRY_CUSTOM    = 'custom';
+
+	/**
+	 * Gets the supported expiration presets and their labels.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @return array<string, string> Array of preset keys and translatable labels.
+	 */
+	public static function get_expiry_presets() {
+		return array(
+			self::EXPIRY_7_DAYS    => __( '7 days' ),
+			self::EXPIRY_30_DAYS   => __( '30 days' ),
+			self::EXPIRY_90_DAYS   => __( '90 days' ),
+			self::EXPIRY_NO_EXPIRY => __( 'No expiry' ),
+			self::EXPIRY_CUSTOM    => __( 'Custom date' ),
+		);
+	}
+
+	/**
 	 * Checks if application passwords are being used by the site.
 	 *
 	 * This returns true if at least one application password has ever been created.
@@ -61,6 +89,7 @@ class WP_Application_Passwords {
 	 * @since 5.6.0
 	 * @since 5.7.0 Returns WP_Error if application name already exists.
 	 * @since 6.8.0 The hashed password value now uses wp_fast_hash() instead of phpass.
+	 * @since 7.2.0 The application password expiration functionality added.
 	 *
 	 * @param int   $user_id  User ID.
 	 * @param array $args     {
@@ -98,6 +127,18 @@ class WP_Application_Passwords {
 		$new_password    = wp_generate_password( static::PW_LENGTH, false );
 		$hashed_password = self::hash_password( $new_password );
 
+		$expires = null;
+		if ( ! empty( $args['expires'] ) ) {
+			$expires = (int) $args['expires'];
+			if ( $expires <= time() ) {
+				return new WP_Error(
+					'application_password_past_expiration',
+					__( 'Application password expiration date must be in the future.' ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
 		$new_item = array(
 			'uuid'      => wp_generate_uuid4(),
 			'app_id'    => empty( $args['app_id'] ) ? '' : $args['app_id'],
@@ -106,6 +147,7 @@ class WP_Application_Passwords {
 			'created'   => time(),
 			'last_used' => null,
 			'last_ip'   => null,
+			'expires'   => $expires,
 		);
 
 		$passwords   = static::get_user_application_passwords( $user_id );
@@ -281,6 +323,14 @@ class WP_Application_Passwords {
 			}
 
 			$save = false;
+
+			if ( array_key_exists( 'expires', $update ) ) {
+				$expires = null === $update['expires'] ? null : (int) $update['expires'];
+				if ( ! array_key_exists( 'expires', $item ) || $item['expires'] !== $expires ) {
+					$item['expires'] = $expires;
+					$save            = true;
+				}
+			}
 
 			if ( ! empty( $update['name'] ) && $item['name'] !== $update['name'] ) {
 				$item['name'] = $update['name'];

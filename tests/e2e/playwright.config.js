@@ -3,6 +3,7 @@
  */
 import path from 'node:path';
 import { defineConfig } from '@playwright/test';
+import 'dotenv/config';
 
 /**
  * WordPress dependencies

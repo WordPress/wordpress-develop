@@ -95,7 +95,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $new_password );
 		$this->assertSame(
-			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip' ),
+			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip', 'expires' ),
 			array_keys( $new_item )
 		);
 		$this->assertSame( $args['name'], $new_item['name'] );
@@ -106,9 +106,15 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
 			),
-			'should create new password when name is unique'      => array(
+			'should create new password when name is unique' => array(
 				'args'  => array( 'name' => 'test3' ),
 				'names' => array( 'test1', 'test2' ),
+			),
+			'should create new password with expiration' => array(
+				'args' => array(
+					'name'    => 'test_expire',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
 			),
 		);
 	}
@@ -154,7 +160,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		// Check updated only given values.
 		$updated_item = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid );
 		foreach ( $updated_item as $key => $update_value ) {
-			$expected_value = $update[ $key ] ?? $original_item[ $key ];
+			$expected_value = array_key_exists( $key, $update ) ? $update[ $key ] : $original_item[ $key ];
 			$this->assertSame( $expected_value, $update_value );
 		}
 	}
@@ -186,6 +192,17 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 				'update'   => array( 'name' => 'Test Updated' ),
 				'existing' => array( 'name' => 'Test' ),
 			),
+			'should update expires'                  => array(
+				'update'   => array( 'expires' => time() + DAY_IN_SECONDS ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should clear expires'                   => array(
+				'update'   => array( 'expires' => null ),
+				'existing' => array(
+					'name'    => 'Test',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
+			),
 		);
 	}
 
@@ -197,5 +214,35 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		$this->assertNotWPError( $created, 'First attempt to create an application password should not return an error' );
 		$created = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'My App' ) );
 		$this->assertNotWPError( $created, 'Second attempt to create an application password should not return an error' );
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_create_application_password_rejects_past_expiration() {
+		$result = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'Past Expire App',
+				'expires' => time() - DAY_IN_SECONDS,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'application_password_past_expiration', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 53995
+	 */
+	public function test_get_expiry_presets() {
+		$presets = WP_Application_Passwords::get_expiry_presets();
+
+		$this->assertIsArray( $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_7_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_30_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_90_DAYS, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_NO_EXPIRY, $presets );
+		$this->assertArrayHasKey( WP_Application_Passwords::EXPIRY_CUSTOM, $presets );
 	}
 }
