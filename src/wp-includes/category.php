@@ -291,6 +291,8 @@ function cat_is_ancestor_of( $cat1, $cat2 ) {
  * @param object|array $category Category data.
  * @param string       $context  Optional. Default 'display'.
  * @return object|array Same type as $category with sanitized data for safe use.
+ *
+ * @phpstan-return ($category is WP_Term ? WP_Term : ($category is array ? array<string, mixed> : object))
  */
 function sanitize_category( $category, $context = 'display' ) {
 	return sanitize_term( $category, 'category', $context );
