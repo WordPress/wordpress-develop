@@ -1078,6 +1078,44 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a number, a numeric string or a JSON serializable object can encode to the falsy string '0'.
+	 *
+	 * This is why {@see wp_json_encode()} is typed to return a non-empty string, not a non-falsy one.
+	 *
+	 * @dataProvider data_wp_json_encode_falsy_output
+	 *
+	 * @param mixed $value Value to encode.
+	 * @param int   $flags Options to pass to json_encode().
+	 */
+	public function test_wp_json_encode_falsy_output( $value, int $flags ) {
+		$this->assertSame( '0', wp_json_encode( $value, $flags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_json_encode_falsy_output().
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: int }>
+	 */
+	public static function data_wp_json_encode_falsy_output(): array {
+		return array(
+			'zero integer'                           => array( 0, 0 ),
+			'zero float'                             => array( 0.0, 0 ),
+			'numeric string with JSON_NUMERIC_CHECK' => array( '0', JSON_NUMERIC_CHECK ),
+			'INF with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( INF, JSON_PARTIAL_OUTPUT_ON_ERROR ),
+			'NAN with JSON_PARTIAL_OUTPUT_ON_ERROR'  => array( NAN, JSON_PARTIAL_OUTPUT_ON_ERROR ),
+			'JsonSerializable serializing to zero'   => array(
+				new class() implements JsonSerializable {
+					#[ReturnTypeWillChange]
+					public function jsonSerialize() {
+						return 0;
+					}
+				},
+				0,
+			),
+		);
+	}
+
+	/**
 	 * @ticket 53238
 	 */
 	public function test_wp_json_file_decode() {
