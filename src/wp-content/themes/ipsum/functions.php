@@ -96,18 +96,23 @@ if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	 *
 	 * @param array<string, mixed> $source_args    Block binding source arguments.
 	 * @param WP_Block             $block_instance The block instance.
-	 * @return string The call to action text.
+	 * @return string|null The call to action text, or null to keep the block's
+	 *                     original content when there is no post.
 	 */
 	function ipsum_comments_cta_binding( $source_args, $block_instance ) {
-		$post_id = $block_instance->context['postId'] ?? get_the_ID();
+		$post_id = $block_instance->context['postId'] ?? null;
+		$post    = get_post( is_numeric( $post_id ) ? (int) $post_id : null );
+		if ( ! $post ) {
+			return null;
+		}
 
-		if ( get_comments_number( $post_id ) > 0 ) {
+		if ( get_comments_number( $post ) > 0 ) {
 			$text = __( 'Join the conversation', 'ipsum' );
 		} else {
 			$text = __( 'Be the first to comment', 'ipsum' );
 		}
 
-		return '<a href="' . esc_url( get_comments_link( $post_id ) ) . '">' . esc_html( $text ) . '</a>';
+		return '<a href="' . esc_url( get_comments_link( $post ) ) . '">' . esc_html( $text ) . '</a>';
 	}
 endif;
 
