@@ -19,7 +19,7 @@ class Tests_Load_WpGetServerProtocol extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->original_server_protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : null;
+		$this->original_server_protocol = $_SERVER['SERVER_PROTOCOL'] ?? null;
 	}
 
 	public function tear_down() {

@@ -173,15 +173,11 @@ parameters:
 			count: 2
 			path: src/wp-includes/html-api/class-wp-html-processor.php
 		-
-			message: '#^Dead catch \- Exception is never thrown in the try block\.$#'
-			identifier: catch.neverThrown
-			count: 1
-			path: src/wp-includes/html-api/class-wp-html-processor.php
-		-
 			# The early return at the start of step() narrows $last_error to null, and PHPStan does not see that
-			# bookmark_token() sets it to ERROR_EXCEEDED_MAX_BOOKMARKS before throwing. So it reports that the
-			# check in the catch block can never match, when in fact it always does.
+			# bookmark_token() sets it to ERROR_EXCEEDED_MAX_BOOKMARKS before throwing, whether it is called directly
+			# in step() or via insert_virtual_node() in a step_*() method. So it reports that the checks in both catch
+			# blocks of step() can never match, when in fact they do whenever bookmarks run out.
 			message: '#^Strict comparison using \=\=\= between ''exceeded\-max…'' and null will always evaluate to false\.$#'
 			identifier: identical.alwaysFalse
-			count: 1
+			count: 2
 			path: src/wp-includes/html-api/class-wp-html-processor.php

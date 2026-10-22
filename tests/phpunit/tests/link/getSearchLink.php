@@ -17,7 +17,7 @@ class Tests_Link_GetSearchLink extends WP_UnitTestCase {
 
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
-		self::$original_search_query = isset( $GLOBALS['wp_query']->query_vars['s'] ) ? $GLOBALS['wp_query']->query_vars['s'] : '';
+		self::$original_search_query = $GLOBALS['wp_query']->query_vars['s'] ?? '';
 	}
 
 	public function tear_down() {
