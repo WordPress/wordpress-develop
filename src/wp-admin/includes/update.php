@@ -129,7 +129,8 @@ function find_core_auto_update() {
  * @return array<string, string>|false An array of checksums on success, false on failure.
  */
 function get_core_checksums( $version, $locale ) {
-	$http_url = 'http://api.wordpress.org/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
+	$path = '/core/checksums/1.0/?' . http_build_query( compact( 'version', 'locale' ), '', '&' );
+	$http_url = wp_get_api_request_url( $path, 'http' );
 	$url      = $http_url;
 
 	$ssl = wp_http_supports( array( 'ssl' ) );
