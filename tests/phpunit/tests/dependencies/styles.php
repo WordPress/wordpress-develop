@@ -48,6 +48,10 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		add_action( 'wp_default_styles', 'wp_default_styles' );
 		add_action( 'wp_print_styles', 'print_emoji_styles' );
 
+		if ( current_theme_supports( 'wp-block-styles' ) ) {
+			remove_theme_support( 'wp-block-styles' );
+		}
+
 		parent::tear_down();
 	}
 
