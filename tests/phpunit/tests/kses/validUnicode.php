@@ -38,7 +38,7 @@ class Tests_Kses_ValidUnicode extends WP_UnitTestCase {
 			'near end of bmp'              => array( 0xFFFD, true ),
 			'supplementary plane start'    => array( 0x10000, true ),
 			'max unicode'                  => array( 0x10FFFF, true ),
-			'backspace control'                  => array( 0x8, false ),
+			'backspace control'            => array( 0x8, false ),
 			'null'                         => array( 0x0, false ),
 			'surrogate start'              => array( 0xD800, false ),
 			'surrogate end'                => array( 0xDFFF, false ),
