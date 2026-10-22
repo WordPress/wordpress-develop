@@ -1389,7 +1389,6 @@
 					'recently_activated', 'mustuse', 'dropins', 'paused',
 					'auto-update-enabled', 'auto-update-disabled'
 				],
-				lastViewNode,
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1489,12 +1488,8 @@
 				}
 			}
 
-			// When the last view was removed, remove the separator left on the new last view.
-			lastViewNode = $views.children( 'li' ).last().contents().last().get( 0 );
-
-			if ( lastViewNode && Node.TEXT_NODE === lastViewNode.nodeType ) {
-				lastViewNode.nodeValue = lastViewNode.nodeValue.replace( /\s*\|\s*$/, '' );
-			}
+			// Remove the trailing separator left on the last view when the view after it was removed.
+			$views.find( 'li:last' ).html( function() { return $( this ).children(); } );
 
 			if ( $itemsCount.length && $currentView.length ) {
 				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;
