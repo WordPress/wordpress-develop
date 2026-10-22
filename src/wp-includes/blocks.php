@@ -1727,9 +1727,11 @@ function serialize_block_attributes( $block_attributes ): string {
 	 * replaced too, but not those in objects, which belong to the caller.
 	 *
 	 * The arrays are copied rather than changed in place, since an element may be a reference
-	 * to a variable of the caller. They are walked no deeper than json_encode() goes, as a
-	 * safeguard: attributes which refer to themselves fail with a recursion error instead, so
-	 * they are not retried.
+	 * to a variable of the caller. Only an INF or NAN error is retried, and json_encode() does
+	 * not stop at an INF or NAN value but carries on, so an error further along, such as from
+	 * attributes nested too deeply or referring to themselves, is reported in its place. The
+	 * arrays are therefore no deeper than json_encode() allows. They are still walked no
+	 * deeper than that, but only as a safeguard against unbounded recursion.
 	 */
 	if ( false === $encoded_attributes && JSON_ERROR_INF_OR_NAN === json_last_error() && is_array( $block_attributes ) ) {
 		/**

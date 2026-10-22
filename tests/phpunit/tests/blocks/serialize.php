@@ -237,6 +237,25 @@ class Tests_Blocks_Serialize extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that an INF value does not hide attributes nested too deeply, since json_encode() reports the later error.
+	 *
+	 * @ticket 66368
+	 *
+	 * @covers ::serialize_block_attributes
+	 */
+	public function test_serialize_block_attributes_non_finite_number_with_encoding_failure() {
+		$block_attributes = array( 'ratio' => INF );
+		$nested           = &$block_attributes;
+		for ( $i = 0; $i < 600; $i++ ) {
+			$nested['a'] = array();
+			$nested      = &$nested['a'];
+		}
+		unset( $nested );
+
+		$this->assertSame( '{}', serialize_block_attributes( $block_attributes ) );
+	}
+
+	/**
 	 * Tests that attributes which refer to themselves are serialized as an empty object, rather than causing a fatal error.
 	 *
 	 * @ticket 66368
