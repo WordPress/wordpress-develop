@@ -123,6 +123,7 @@ function wp_get_all_registered_entity_action_modules() {
  * used. In other scenarios (tests), the scripts are given directly.
  *
  * @since 7.2.0
+ * @access private
  *
  * @param WP_Scripts|null $scripts The scripts registry. Defaults to the global one.
  */
@@ -143,6 +144,7 @@ function _wp_add_entity_action_modules_to_editor_script( $scripts = null ) {
  * packages/core-data/src/resolvers.js in Gutenberg.
  *
  * @since 7.2.0
+ * @access private
  *
  * @param array                   $paths   REST API paths to preload.
  * @param WP_Block_Editor_Context $context Block editor context.
