@@ -261,6 +261,7 @@ parameters:
 	paths:
 		- ../../src/wp-admin
 		- ../../src/wp-includes
+		- ../../src/wp-content/themes/ipsum
 		- ../../src/wp-content/themes/twentyeleven
 		- ../../src/wp-content/themes/twentyfifteen
 		- ../../src/wp-content/themes/twentyfourteen
