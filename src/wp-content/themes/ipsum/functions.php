@@ -62,6 +62,23 @@ if ( ! function_exists( 'ipsum_enqueue_styles' ) ) :
 endif;
 add_action( 'wp_enqueue_scripts', 'ipsum_enqueue_styles' );
 
+if ( ! function_exists( 'ipsum_get_version' ) ) :
+	/**
+	 * Gets the theme version, for the cache busting query string on pattern images.
+	 *
+	 * The version comes from the parent theme, so a child theme's version doesn't
+	 * stand in for Ipsum's.
+	 *
+	 * @since Ipsum 1.0
+	 *
+	 * @return string The theme version, or an empty string if it cannot be read.
+	 */
+	function ipsum_get_version(): string {
+		$version = wp_get_theme( get_template() )->get( 'Version' );
+		return is_string( $version ) ? $version : '';
+	}
+endif;
+
 if ( ! function_exists( 'ipsum_comments_cta_binding' ) ) :
 	/**
 	 * Returns the comments call to action for the current post.
