@@ -259,6 +259,14 @@ jQuery( function() {
 			this.table.innerHTML = '<thead><tr><th class="column-primary">Content</th><th style="min-width: 180px">Other column</th></tr></thead><tbody><tr><td><p>Ordinary text can wrap when the available space gets smaller.</p><pre style="width: 1000px">Wide content</pre><div class="plugin-scroller" style="overflow: auto"><pre style="width: 1000px">Plugin content</pre></div></td><td>Other content</td></tr></tbody>';
 			await afterResize();
 
+			const sampleText = '    ' + 'W'.repeat( 200 ) + '\n    Second line';
+			const sample = document.createElement( 'pre' );
+			sample.className = 'wrapping-sample';
+			sample.style.whiteSpace = 'pre';
+			sample.textContent = sampleText;
+			this.table.querySelector( 'td' ).appendChild( sample );
+			await afterResize();
+
 			// Use the production stylesheet in an isolated desktop viewport.
 			const frame = document.createElement( 'iframe' );
 			frame.width = '1000';
@@ -283,6 +291,11 @@ jQuery( function() {
 			const plugin = wrapper.querySelector( '.plugin-scroller' );
 			assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin retains its own scrollbar after shrinking.' );
 			assert.strictEqual( plugin.parentElement.scrollWidth, plugin.parentElement.clientWidth, 'The plugin does not acquire a second scrollbar.' );
+
+			const wrappedPre = wrapper.querySelector( '.wrapping-sample' );
+			assert.strictEqual( wrappedPre.parentElement.scrollWidth, wrappedPre.parentElement.clientWidth, 'Plain preformatted text wraps without horizontal scrolling.' );
+			assert.ok( wrappedPre.clientHeight > 3 * area.firstElementChild.clientHeight, 'Long preformatted lines wrap onto additional lines.' );
+			assert.strictEqual( wrappedPre.textContent, sampleText, 'Wrapping preserves the original whitespace and text.' );
 
 			wrapper.style.width = '400px';
 			assert.ok( wrapper.scrollWidth > wrapper.clientWidth, 'Column minimum widths still cause table scrolling when needed.' );

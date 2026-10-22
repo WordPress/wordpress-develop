@@ -1804,7 +1804,7 @@ div.action-links,
 
 @media screen and (min-width: 783px) {
 
-	/* Share the table's scrollable area so the fades stick to the viewport. */
+	/* Share the table's scrollable area so the shadows stick to the viewport. */
 	.wp-list-table-scroll {
 		display: grid;
 		container-type: inline-size;
@@ -1831,6 +1831,12 @@ div.action-links,
 	.wp-list-table-scroll .wp-list-table-content-scroll:focus-visible {
 		outline: 2px solid var(--wp-admin-theme-color);
 		outline-offset: -2px;
+	}
+
+	/* Wrap preformatted text, including inline preformatting, while preserving whitespace. */
+	.wp-list-table-scroll > .wp-list-table pre {
+		white-space: pre-wrap !important;
+		overflow-wrap: anywhere;
 	}
 
 	/* Keep inline editing forms within the visible table container. */
@@ -1927,7 +1933,7 @@ div.action-links,
 		content: "";
 		position: sticky;
 		z-index: 1;
-		width: 32px;
+		width: 12px;
 		pointer-events: none;
 		opacity: 0;
 	}
@@ -1937,7 +1943,7 @@ div.action-links,
 		justify-self: start;
 
 		/* rtl:ignore */
-		background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0));
+		background: linear-gradient(to right, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.04) 50%, rgba(0, 0, 0, 0));
 	}
 
 	.wp-list-table-scroll::after {
@@ -1945,7 +1951,7 @@ div.action-links,
 		justify-self: end;
 
 		/* rtl:ignore */
-		background: linear-gradient(to left, #fff, rgba(255, 255, 255, 0));
+		background: linear-gradient(to left, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.04) 50%, rgba(0, 0, 0, 0));
 	}
 
 	.wp-list-table-scroll.has-scroll-overflow-start::before,
