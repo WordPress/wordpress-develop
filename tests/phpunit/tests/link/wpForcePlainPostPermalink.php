@@ -82,10 +82,10 @@ class Tests_Link_WpForcePlainPostPermalink extends WP_UnitTestCase {
 		$draft_id     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 		$published_id = self::factory()->post->create();
 
-		$GLOBALS['post'] = get_post( $draft_id );
+		$GLOBALS['post'] = get_post( $published_id );
 
-		$this->assertTrue( wp_force_plain_post_permalink(), 'The global draft post should force a plain permalink.' );
-		$this->assertFalse( wp_force_plain_post_permalink( $published_id ), 'An explicit published post should not force a plain permalink.' );
+		$this->assertFalse( wp_force_plain_post_permalink(), 'The global published post should not force a plain permalink.' );
+		$this->assertTrue( wp_force_plain_post_permalink( $draft_id ), 'An explicit draft post should force a plain permalink.' );
 	}
 
 	/**
