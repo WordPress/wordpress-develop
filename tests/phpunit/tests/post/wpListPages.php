@@ -592,7 +592,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_wp_list_pages_omitted_ancestor() {
+	public static function data_wp_list_pages_omitted_ancestor() {
 		return array(
 			'unlimited depth' => array( 0 ),
 			'depth one'       => array( 1 ),

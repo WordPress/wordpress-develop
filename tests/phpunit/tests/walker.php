@@ -297,7 +297,7 @@ class Tests_Walker extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_walk_without_top_level_elements() {
+	public static function data_walk_without_top_level_elements() {
 		return array(
 			'parent first, unlimited depth'     => array(
 				array( array( 2, 1 ), array( 3, 2 ) ),
