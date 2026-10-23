@@ -45,7 +45,10 @@
 	 * group, so that it fades out instead of being cut off by the clip above,
 	 * since it extends outside its menu-top box. match-element gives each
 	 * flyout a unique name, so two open at once cannot collide and abort the
-	 * transition.
+	 * transition. view-transition-group nests the flyout's group inside its
+	 * menu-top's group, so it moves along with its menu item while fading out
+	 * instead of staying behind at its old position. Since the nested group is
+	 * a sibling of the menu-top's image pair, it is not cut off by the clip.
 	 *
 	 * In the expanded menu, the current item's submenu is in the normal flow,
 	 * so it is left to the clipped menu-top. When the menu is folded, either
@@ -59,6 +62,7 @@
 		.folded #adminmenu > .opensub > .wp-submenu,
 		.folded #adminmenu > .menu-top > a.menu-top:focus + .wp-submenu {
 			view-transition-name: match-element;
+			view-transition-group: nearest;
 		}
 	}
 
@@ -66,6 +70,7 @@
 		.auto-fold #adminmenu > .opensub > .wp-submenu,
 		.auto-fold #adminmenu > .menu-top > a.menu-top:focus + .wp-submenu {
 			view-transition-name: match-element;
+			view-transition-group: nearest;
 		}
 	}
 }
