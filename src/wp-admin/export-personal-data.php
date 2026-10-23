@@ -89,7 +89,7 @@ $_list_table_args = array(
 
 $requests_table = _get_list_table( 'WP_Privacy_Data_Export_Requests_List_Table', $_list_table_args );
 
-$requests_table->screen->set_screen_reader_content(
+get_current_screen()->set_screen_reader_content(
 	array(
 		'heading_views'      => __( 'Filter export personal data list' ),
 		'heading_pagination' => __( 'Export personal data list navigation' ),

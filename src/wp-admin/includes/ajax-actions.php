@@ -2135,12 +2135,13 @@ function wp_ajax_inline_save() {
 	// Update the post.
 	edit_post();
 
-	$wp_list_table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => $_POST['screen'] ) );
+	$screen        = convert_to_screen( $_POST['screen'] );
+	$wp_list_table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => $screen ) );
 
 	$mode = 'excerpt' === $_POST['post_view'] ? 'excerpt' : 'list';
 
 	$level = 0;
-	if ( is_post_type_hierarchical( $wp_list_table->screen->post_type ) ) {
+	if ( is_post_type_hierarchical( $screen->post_type ) ) {
 		$request_post = array( get_post( $_POST['post_ID'] ) );
 		$parent       = $request_post[0]->post_parent;
 
