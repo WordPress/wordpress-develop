@@ -313,6 +313,7 @@ function wp_secrets_validate_name( string $name ) {
  * be the exact silent downgrade this API refuses to make.
  *
  * @since 7.2.0
+ * @access private
  *
  * @return WP_Secrets_Store
  */
@@ -349,6 +350,7 @@ function _wp_secrets_get_store(): WP_Secrets_Store {
  * fails closed (WP_Secrets_Broken_Keyring) rather than falling back to the default.
  *
  * @since 7.2.0
+ * @access private
  *
  * @return WP_Secrets_Key_Manager
  */
@@ -640,6 +642,7 @@ function wp_list_network_secrets( string $namespace = '' ) { // phpcs:ignore Uni
  * to be empty.
  *
  * @since 7.2.0
+ * @access private
  *
  * @return WP_Secrets_Provider
  */
@@ -715,6 +718,7 @@ function wp_secrets_provider_label(): string {
  * Shared implementation behind wp_set_secret() and wp_set_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string      $name            The secret's name.
  * @param string      $value           The plaintext value.
@@ -732,6 +736,7 @@ function _wp_secrets_set( string $name, $value, bool $network, bool $needs_rotat
  * Shared implementation behind wp_get_secret() and wp_get_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param string $version A WP_Secret_Version constant.
@@ -767,6 +772,7 @@ function _wp_secrets_get( string $name, string $version, bool $network ) {
  * Shared implementation behind wp_delete_secret() and wp_delete_network_secret().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param bool   $network Whether this is a network-scope secret.
@@ -780,6 +786,7 @@ function _wp_secrets_delete( string $name, bool $network ) {
  * Shared implementation behind wp_retire_secret_version() and its network twin.
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name    The secret's name.
  * @param bool   $network Whether this is a network-scope secret.
@@ -793,6 +800,7 @@ function _wp_secrets_retire( string $name, bool $network ) {
  * Shared implementation behind wp_list_secrets() and wp_list_network_secrets().
  *
  * @since 7.2.0
+ * @access private
  *
  * @param string $name_prefix Restrict to names beginning with this prefix.
  * @param bool   $network     Whether to list network-scope secrets.
