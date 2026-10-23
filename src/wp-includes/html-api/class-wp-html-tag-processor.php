@@ -3978,8 +3978,7 @@ class WP_HTML_Tag_Processor {
 			self::STATE_COMMENT === $this->parser_state &&
 			self::COMMENT_AS_HTML_COMMENT === $this->comment_type
 		) {
-			// Check if the text could close the comment.
-			if ( 1 === preg_match( '/^-?>|--!?>/', $plaintext_content ) ) {
+			if ( self::has_comment_closer( $plaintext_content ) ) {
 				_doing_it_wrong(
 					__METHOD__,
 					__( 'Comment text cannot contain a comment closer.' ),
@@ -4093,14 +4092,13 @@ class WP_HTML_Tag_Processor {
 				 * start tag which follows `<!--` moves the tokenizer into the double-escaped
 				 * states, where a later `</script>` no longer closes the element.
 				 *
-				 * In both cases the tag name ends only at one of the characters matched
-				 * below, so text such as `</scriptx>` cannot change that structure and is
-				 * safe to set.
+				 * In both cases the tag name ends only at whitespace, "/" or ">", so text
+				 * such as `</scriptx>` cannot change that structure and is safe to set.
 				 *
 				 * @link https://html.spec.whatwg.org/#script-data-end-tag-name-state
 				 * @link https://html.spec.whatwg.org/#script-data-double-escape-start-state
 				 */
-				if ( 1 === preg_match( '~</?script[ \t\f\r\n/>]~i', $plaintext_content ) ) {
+				if ( array() !== self::find_tag_names( $plaintext_content, 'script', true ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						__( 'SCRIPT text with an unrecognized content type cannot contain a SCRIPT tag. Apply the escaping appropriate for the content type.' ),
@@ -4122,12 +4120,12 @@ class WP_HTML_Tag_Processor {
 				$tag_name = $this->get_tag();
 
 				/*
-				 * A tag name ends only at one of the characters matched below, so text
-				 * such as `</xmp-tag>` cannot close the element and is safe to set.
+				 * A tag name ends only at whitespace, "/" or ">", so text such as
+				 * `</xmp-tag>` cannot close the element and is safe to set.
 				 *
 				 * @link https://html.spec.whatwg.org/#rawtext-end-tag-name-state
 				 */
-				if ( 1 === preg_match( '~</' . preg_quote( $tag_name, '~' ) . '[ \t\f\r\n/>]~i', $plaintext_content ) ) {
+				if ( array() !== self::find_tag_names( $plaintext_content, $tag_name, false ) ) {
 					_doing_it_wrong(
 						__METHOD__,
 						sprintf(
@@ -4149,18 +4147,10 @@ class WP_HTML_Tag_Processor {
 				return true;
 
 			case 'STYLE':
-				$plaintext_content = preg_replace_callback(
-					'~</(?P<TAG_NAME>style)~i',
-					static function ( $tag_match ) {
-						return "\\3c\\2f{$tag_match['TAG_NAME']}";
-					},
-					$plaintext_content
-				);
-
 				$this->lexical_updates['modifiable text'] = new WP_HTML_Text_Replacement(
 					$this->text_starts_at,
 					$this->text_length,
-					$plaintext_content
+					self::escape_style_contents( $plaintext_content )
 				);
 
 				return true;
@@ -4516,51 +4506,143 @@ class WP_HTML_Tag_Processor {
 	 * @return string Escaped form of input contents which will not lead to premature closing of the containing SCRIPT element.
 	 */
 	private static function escape_javascript_script_contents( string $sourcecode ): string {
-		$at      = 0;
-		$was_at  = 0;
-		$end     = strlen( $sourcecode );
 		$escaped = '';
+		$was_at  = 0;
 
 		/*
 		 * Replace all instances of the ASCII case-insensitive match of "<script"
 		 * and "</script", when followed by whitespace or "/" or ">", by using a
 		 * character replacement for the "s" (or the "S").
 		 */
-		while ( $at < $end ) {
-			$tag_at = strpos( $sourcecode, '<', $at );
-			if ( false === $tag_at ) {
-				break;
-			}
-
-			$tag_name_at       = $tag_at + 1;
-			$has_closing_slash = $tag_name_at < $end && '/' === $sourcecode[ $tag_name_at ];
-			$tag_name_at      += $has_closing_slash ? 1 : 0;
-
-			if ( 0 !== substr_compare( $sourcecode, 'script', $tag_name_at, 6, true ) ) {
-				$at = $tag_at + 1;
-				continue;
-			}
-
-			if ( 1 !== strspn( $sourcecode, " \t\f\r\n/>", $tag_name_at + 6, 1 ) ) {
-				$at = $tag_name_at + 6;
-				continue;
-			}
-
-			$escaped .= substr( $sourcecode, $was_at, $tag_name_at - $was_at );
-			$escaped .= 's' === $sourcecode[ $tag_name_at ] ? '\u0073' : '\u0053';
-			$was_at   = $tag_name_at + 1;
-			$at       = $tag_name_at + 7;
+		foreach ( self::find_tag_names( $sourcecode, 'script', true ) as $at ) {
+			$escaped .= substr( $sourcecode, $was_at, $at - $was_at );
+			$escaped .= 's' === $sourcecode[ $at ] ? '\u0073' : '\u0053';
+			$was_at   = $at + 1;
 		}
 
-		if ( '' === $escaped ) {
+		if ( 0 === $was_at ) {
 			return $sourcecode;
 		}
 
-		if ( $was_at < $end ) {
-			$escaped .= substr( $sourcecode, $was_at );
+		$escaped .= substr( $sourcecode, $was_at );
+		return $escaped;
+	}
+
+	/**
+	 * Indicates whether comment text holds a sequence which would end the comment.
+	 *
+	 * A comment ends at "-->" or "--!>", or at ">" or "->" right after "<!--".
+	 *
+	 * @link https://html.spec.whatwg.org/#comment-start-state
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string $text Comment text.
+	 * @return bool Whether the text would end the comment.
+	 */
+	private static function has_comment_closer( string $text ): bool {
+		$at = 0;
+		while ( false !== ( $gt_at = strpos( $text, '>', $at ) ) ) {
+			$at = $gt_at + 1;
+			if (
+				0 === $gt_at ||
+				( 1 === $gt_at && '-' === $text[0] ) ||
+				( $gt_at >= 2 && '-' === $text[ $gt_at - 1 ] && '-' === $text[ $gt_at - 2 ] ) ||
+				( $gt_at >= 3 && '!' === $text[ $gt_at - 1 ] && '-' === $text[ $gt_at - 2 ] && '-' === $text[ $gt_at - 3 ] )
+			) {
+				return true;
+			}
 		}
 
+		return false;
+	}
+
+	/**
+	 * Escape style tag contents.
+	 *
+	 * Prevent CSS text from modifying the HTML structure of a document and
+	 * ensure that it's contained within its enclosing STYLE tag as intended.
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string $text Raw contents intended to be serialized into an HTML STYLE element.
+	 * @return string Escaped form of input contents which will not lead to premature closing of the containing STYLE element.
+	 */
+	private static function escape_style_contents( string $text ): string {
+		$escaped = '';
+		$was_at  = 0;
+
+		/*
+		 * Replace all instances of the ASCII case-insensitive match of "</style"
+		 * when followed by whitespace or "/" or ">", by using a CSS Unicode
+		 * escape sequence for the "s" (or the "S").
+		 *
+		 * CSS Unicode escape sequences will terminate at the first non-hexadecimal,
+		 * so the `t` character in `style` ensures that a Unicode escape sequence
+		 * like `\73t` is correctly interpreted as `st`.
+		 */
+		foreach ( self::find_tag_names( $text, 'style', false ) as $at ) {
+			$escaped .= substr( $text, $was_at, $at - $was_at );
+			$escaped .= 's' === $text[ $at ] ? '\73' : '\53';
+			$was_at   = $at + 1;
+		}
+
+		if ( 0 === $was_at ) {
+			return $text;
+		}
+
+		$escaped .= substr( $text, $was_at );
 		return $escaped;
+	}
+
+	/**
+	 * Finds each tag name in raw text which the tokenizer would read as a tag
+	 * of the given name.
+	 *
+	 * A tag name matches after "</", or also after "<" when start tags count,
+	 * in any mix of ASCII case, when whitespace, "/" or ">" follows it.
+	 *
+	 * Example:
+	 *
+	 *     array( 1, 10 ) === self::find_tag_names( '<script></SCRIPT/>', 'script', true );
+	 *     array( 10 )    === self::find_tag_names( '<script></SCRIPT/>', 'script', false );
+	 *     array()        === self::find_tag_names( '</scripts>', 'script', false );
+	 *
+	 * @since 7.2.0
+	 * @ignore
+	 *
+	 * @param string $text           Raw text.
+	 * @param string $tag_name       Tag name, in any case.
+	 * @param bool   $start_tags_too Whether a start tag matches as well as an end tag.
+	 * @return int[] Byte offset of the first letter of each matching tag name.
+	 */
+	private static function find_tag_names( string $text, string $tag_name, bool $start_tags_too ): array {
+		$found  = array();
+		$opener = $start_tags_too ? '<' : '</';
+		$length = strlen( $tag_name );
+		$end    = strlen( $text );
+		$at     = 0;
+
+		while ( false !== ( $tag_at = strpos( $text, $opener, $at ) ) ) {
+			$at = $tag_at + strlen( $opener );
+			if ( $start_tags_too && $at < $end && '/' === $text[ $at ] ) {
+				++$at;
+			}
+
+			// Tag names match ASCII case-insensitively. The first letter is compared before the name is copied.
+			if (
+				$at < $end &&
+				0 === strncasecmp( $text[ $at ], $tag_name, 1 ) &&
+				0 === strncasecmp( substr( $text, $at, $length ), $tag_name, $length ) &&
+				1 === strspn( $text, " \t\f\r\n/>", $at + $length, 1 )
+			) {
+				$found[] = $at;
+			}
+		}
+
+		return $found;
 	}
 
 	/**
