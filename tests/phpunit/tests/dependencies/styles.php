@@ -9,23 +9,17 @@
  * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
-	private $old_wp_styles;
-	private $old_wp_scripts;
+	private ?WP_Styles $old_wp_styles = null;
+
+	private ?WP_Scripts $old_wp_scripts = null;
 
 	public function set_up() {
 		parent::set_up();
 
-		if ( empty( $GLOBALS['wp_styles'] ) ) {
-			$GLOBALS['wp_styles'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_styles'];
-
-		if ( empty( $GLOBALS['wp_scripts'] ) ) {
-			$GLOBALS['wp_scripts'] = null;
-		}
-
-		$this->old_wp_styles = $GLOBALS['wp_scripts'];
+		$old_wp_styles        = $GLOBALS['wp_styles'] ?? null;
+		$old_wp_scripts       = $GLOBALS['wp_scripts'] ?? null;
+		$this->old_wp_styles  = $old_wp_styles instanceof WP_Styles ? $old_wp_styles : null;
+		$this->old_wp_scripts = $old_wp_scripts instanceof WP_Scripts ? $old_wp_scripts : null;
 
 		remove_action( 'wp_default_styles', 'wp_default_styles' );
 		remove_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -198,16 +192,17 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if inline styles work with concatenation
+	 * Tests that inline styles are printed right away when the deprecated `do_concat` property is set.
 	 *
 	 * @global WP_Styles $wp_styles
 	 * @ticket 24813
+	 * @ticket 57548
 	 */
 	public function test_inline_styles_concat() {
 		global $wp_styles;
 
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/', '/wp-includes/css/' ); // Default dirs as in wp-includes/script-loader.php.
+		// The deprecated property is set as plugins may still do, to verify that it no longer has any effect.
+		$wp_styles->do_concat = true;
 
 		$style  = ".thing {\n";
 		$style .= "\tbackground: red;\n";
@@ -216,13 +211,54 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		$expected  = "<link rel='stylesheet' id='handle-css' href='http://example.com?ver=1' media='all' />\n";
 		$expected .= "<style id='handle-inline-css'>\n";
 		$expected .= "$style\n";
+		$expected .= "/*# sourceURL=handle-inline-css */\n";
 		$expected .= "</style>\n";
 
 		wp_enqueue_style( 'handle', 'http://example.com', array(), 1 );
 		wp_add_inline_style( 'handle', $style );
 
-		wp_print_styles();
-		$this->assertEqualHTML( $expected, $wp_styles->print_html );
+		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
+		$this->assertSame( '', $wp_styles->print_html );
+	}
+
+	/**
+	 * Tests that the deprecated filters for printing styles no longer keep them from being printed.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers ::print_admin_styles
+	 * @covers ::print_late_styles
+	 *
+	 * @expectedDeprecated print_admin_styles
+	 * @expectedDeprecated print_late_styles
+	 */
+	public function test_print_styles_filters_are_deprecated(): void {
+		add_filter( 'print_admin_styles', '__return_false' );
+		add_filter( 'print_late_styles', '__return_false' );
+
+		wp_enqueue_style( 'admin', '/admin.css', array(), null );
+
+		$this->assertEqualHTML( "<link rel='stylesheet' id='admin-css' href='/admin.css' media='all' />\n", get_echo( 'print_admin_styles' ), '<body>', 'Expected the admin styles to be printed.' );
+
+		wp_enqueue_style( 'late', '/late.css', array(), null );
+
+		$this->assertEqualHTML( "<link rel='stylesheet' id='late-css' href='/late.css' media='all' />\n", get_echo( 'print_late_styles' ), '<body>', 'Expected the late styles to be printed.' );
+	}
+
+	/**
+	 * Tests that WP_Styles::in_default_dir() is deprecated but still works.
+	 *
+	 * @ticket 57548
+	 *
+	 * @covers WP_Styles::in_default_dir
+	 *
+	 * @expectedDeprecated WP_Styles::in_default_dir
+	 */
+	public function test_in_default_dir_is_deprecated(): void {
+		$wp_styles               = wp_styles();
+		$wp_styles->default_dirs = array( '/wp-includes/css/' );
+
+		$this->assertTrue( $wp_styles->in_default_dir( '/wp-includes/css/file' ) );
 	}
 
 	/**
@@ -898,49 +934,15 @@ class Tests_Dependencies_Styles extends WP_UnitTestCase {
 		wp_add_inline_style( $handle, 'custom-el { content: "ok"; }' );
 
 		$expected = <<<HTML
-<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all">
-<style id="# test/</style> #-inline-css">
-custom-el { content: "ok"; }
-/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
-</style>
+		<link rel='stylesheet' href="/example.css?ver=0.0" id="# test/</style> #-css" media="all">
+		<style id="# test/</style> #-inline-css">
+		custom-el { content: "ok"; }
+		/*# sourceURL=%23%20test%2F%3C%2Fstyle%3E%20%23-inline-css */
+		</style>
 
-HTML;
+		HTML;
 
 		$this->assertEqualHTML( $expected, get_echo( 'wp_print_styles' ) );
-	}
-
-	/**
-	 * @ticket 63887
-	 */
-	public function test_source_url_with_concat() {
-		global $wp_styles, $wp_version;
-		add_theme_support( 'html5', array( 'style' ) );
-
-		$wp_styles->do_concat    = true;
-		$wp_styles->default_dirs = array( '/wp-admin/' );
-
-		wp_enqueue_style( 'one', '/wp-admin/1.css' );
-		wp_enqueue_style( 'two', '/wp-admin/2.css' );
-		wp_add_inline_style( 'one', 'h1 { background: blue; }' );
-		wp_add_inline_style( 'two', 'h2 { color: green; }' );
-
-		wp_print_styles();
-		$printed = get_echo( '_print_styles' );
-
-		$expected = <<<HTML
-<link
-	rel="stylesheet"
-	href="/wp-admin/load-styles.php?c=0&dir=ltr&load%5Bchunk_0%5D=one,two&ver={$wp_version}"
-	media="all"
->
-<style>
-h1 { background: blue; }h2 { color: green; }
-/*# sourceURL=css-inline-concat-one%2Ctwo */
-</style>
-
-HTML;
-
-		$this->assertEqualHTML( $expected, $printed );
 	}
 
 	/**
