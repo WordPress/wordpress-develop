@@ -206,6 +206,10 @@ require ABSPATH . WPINC . '/theme-previews.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/class-wp-view-config-data.php';
 require ABSPATH . WPINC . '/view-config.php';
+require ABSPATH . WPINC . '/class-wp-entity-actions-registry.php';
+require ABSPATH . WPINC . '/entity-actions.php';
+require ABSPATH . WPINC . '/class-wp-entity-fields-registry.php';
+require ABSPATH . WPINC . '/entity-fields.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
 require ABSPATH . WPINC . '/class-wp-user-request.php';
@@ -249,6 +253,12 @@ if ( file_exists( ABSPATH . WPINC . '/build/routes.php' ) ) {
 }
 if ( file_exists( ABSPATH . WPINC . '/build/pages.php' ) ) {
 	require ABSPATH . WPINC . '/build/pages.php';
+}
+if ( file_exists( ABSPATH . WPINC . '/build/scripts/core-actions/index.php' ) ) {
+	require ABSPATH . WPINC . '/build/scripts/core-actions/index.php';
+}
+if ( file_exists( ABSPATH . WPINC . '/build/scripts/core-fields/index.php' ) ) {
+	require ABSPATH . WPINC . '/build/scripts/core-fields/index.php';
 }
 require ABSPATH . WPINC . '/taxonomy.php';
 require ABSPATH . WPINC . '/class-wp-taxonomy.php';
@@ -379,6 +389,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-font-collections-co
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icons-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-icon-collections-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-view-config-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-entity-actions-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-entity-fields-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-categories-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-list-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-abilities-v1-run-controller.php';

@@ -27,6 +27,7 @@ function create_initial_post_types() {
 				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
 			'public'                => true,
+			'randomable'            => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
 			'capability_type'       => 'post',
@@ -64,6 +65,7 @@ function create_initial_post_types() {
 			),
 			'public'                => true,
 			'publicly_queryable'    => false,
+			'randomable'            => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
 			'capability_type'       => 'page',
@@ -104,6 +106,7 @@ function create_initial_post_types() {
 				'attributes'     => __( 'Attachment Attributes' ),
 			),
 			'public'                => true,
+			'randomable'            => false,
 			'show_ui'               => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
 			'_edit_link'            => 'post.php?post=%d', /* internal use only. don't use this when registering your own post type. */
@@ -355,7 +358,10 @@ function create_initial_post_types() {
 				'editor',
 				'revisions',
 				'custom-fields',
+				'author',
 			),
+			// Keep patterns when their author is deleted, as they may be used across the site.
+			'delete_with_user'      => false,
 		)
 	);
 
@@ -1725,6 +1731,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                          * ?{post_type_key}={single_post_slug}
  *                                                          * ?{post_type_query_var}={single_post_slug}
  *                                                         If not set, the default is inherited from $public.
+ *     @type bool         $randomable                      Whether posts of this post type can be selected by random content
+ *                                                         redirects, such as example.com/random/. If not set, the default is
+ *                                                         true when $publicly_queryable is true and $has_archive is set.
  *     @type bool         $show_ui                         Whether to generate and allow a UI for managing this post type in the
  *                                                         admin. Default is value of $public.
  *     @type bool|string  $show_in_menu                    Where to show the post type in the admin menu. To work, $show_ui
@@ -1755,8 +1764,10 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                                         SVG using a data URI, which will be colored to match the color scheme
  *                                                         -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
  *                                                         of a Dashicons helper class to use a font icon, e.g.
- *                                                        'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
- *                                                         so an icon can be added via CSS. Defaults to use the posts icon.
+ *                                                        'dashicons-chart-pie'. Pass the namespaced name of a registered icon
+ *                                                         to render it as an inline SVG, e.g. 'core-admin/pin'. Pass 'none'
+ *                                                         to leave div.wp-menu-image empty so an icon can be added via CSS.
+ *                                                         Defaults to use the posts icon.
  *     @type string|array $capability_type                 The string to use to build the read, edit, and delete capabilities.
  *                                                         May be passed as an array to allow for alternative plurals when using
  *                                                         this argument as a base to construct the capabilities, e.g.
@@ -3533,12 +3544,12 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	/**
 	 * Filters the post counts before the query is run.
 	 *
-	 * Returning a non-null value short-circuits wp_count_posts(), skipping both
-	 * the object cache lookup and the database query. This allows the counts to
-	 * be served from another source, such as a value pre-computed in the
-	 * background, when an exact real-time count is not required.
+	 * Returning a stdClass object short-circuits wp_count_posts(), skipping
+	 * both the object cache lookup and the database query. This allows the
+	 * counts to be served from another source, such as a value pre-computed in
+	 * the background, when an exact real-time count is not required.
 	 *
-	 * Any registered post status missing from the filtered value are added
+	 * Any registered post status missing from the filtered value is added
 	 * to the result and set to zero.
 	 *
 	 * The returned value is not cached and passed through the
@@ -3554,8 +3565,8 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 	 */
 	$counts = apply_filters( 'pre_wp_count_posts', null, $type, $perm );
 
-	if ( null !== $counts ) {
-		$counts = (object) $counts;
+	if ( $counts instanceof stdClass ) {
+		$counts = clone $counts;
 
 		foreach ( get_post_stati() as $status ) {
 			if ( ! isset( $counts->{$status} ) ) {
@@ -3657,6 +3668,47 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
  */
 function wp_count_attachments( $mime_type = '' ) {
 	global $wpdb;
+
+	/**
+	 * Filters the attachment counts before the query is run.
+	 *
+	 * Returning a stdClass object short-circuits wp_count_attachments(),
+	 * skipping both the object cache lookup and the database queries. This
+	 * allows the counts to be served from another source, such as a value
+	 * pre-computed in the background, when an exact real-time count is not
+	 * required.
+	 *
+	 * If the filtered value does not contain a trash count, one is added to the
+	 * result and set to zero. Missing MIME types are not added, as they depend on
+	 * the attachments that exist. The filtered value should therefore contain a
+	 * count for every MIME type matching `$mime_type` that has attachments,
+	 * including types first uploaded after the value was computed, as callers
+	 * may read the count for any MIME type that exists. It should also contain
+	 * only MIME types matching `$mime_type`, with a trash count limited to
+	 * attachments of those types, as the default query does.
+	 *
+	 * The returned value is not cached and passed through the
+	 * {@see 'wp_count_attachments'} filter.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param stdClass|null   $counts    An object containing the attachment counts by
+	 *                                   mime type, or null to run the default query.
+	 *                                   Default null.
+	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
+	 */
+	$counts = apply_filters( 'pre_wp_count_attachments', null, $mime_type );
+
+	if ( $counts instanceof stdClass ) {
+		$counts = clone $counts;
+
+		if ( ! isset( $counts->trash ) ) {
+			$counts->trash = 0;
+		}
+
+		/** This filter is documented in wp-includes/post.php */
+		return apply_filters( 'wp_count_attachments', $counts, $mime_type );
+	}
 
 	$cache_key = sprintf(
 		'attachments%s',
