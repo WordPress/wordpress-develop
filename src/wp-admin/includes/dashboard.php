@@ -359,9 +359,9 @@ function wp_dashboard_right_now() {
 					),
 					admin_url( 'edit.php' )
 				);
-				printf( '<li class="%1$s-count"><a class="glance-item" href="%2$s">%3$s%4$s</a></li>', $post_type, esc_url( $url ), $icon, esc_html( $text ) );
+				printf( '<li class="%1$s-count"><a href="%2$s">%3$s%4$s</a></li>', $post_type, esc_url( $url ), $icon, esc_html( $text ) );
 			} else {
-				printf( '<li class="%1$s-count"><span class="glance-item">%2$s%3$s</span></li>', $post_type, $icon, esc_html( $text ) );
+				printf( '<li class="%1$s-count"><span>%2$s%3$s</span></li>', $post_type, $icon, esc_html( $text ) );
 			}
 		}
 	}
@@ -374,7 +374,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment', '%s Comments', $num_comm->approved ), number_format_i18n( $num_comm->approved ) );
 		?>
 		<li class="comment-count">
-			<a class="glance-item" href="edit-comments.php"><?php echo wp_get_icon( 'core-admin/comment', array( 'size' => 20 ) ); ?><span class="comments-count-text"><?php echo $text; ?></span></a>
+			<a href="edit-comments.php"><?php echo wp_get_icon( 'core-admin/comment', array( 'size' => 20 ) ); ?><span class="comments-count-text"><?php echo $text; ?></span></a>
 		</li>
 		<?php
 		$moderated_comments_count_i18n = number_format_i18n( $num_comm->moderated );
@@ -382,7 +382,7 @@ function wp_dashboard_right_now() {
 		$text = sprintf( _n( '%s Comment in moderation', '%s Comments in moderation', $num_comm->moderated ), $moderated_comments_count_i18n );
 		?>
 		<li class="comment-mod-count<?php echo ! $num_comm->moderated ? ' hidden' : ''; ?>">
-			<a href="edit-comments.php?comment_status=moderated" class="glance-item"><?php echo wp_get_icon( 'core-admin/comment', array( 'size' => 20 ) ); ?><span class="comments-in-moderation-text"><?php echo $text; ?></span></a>
+			<a href="edit-comments.php?comment_status=moderated"><?php echo wp_get_icon( 'core-admin/post-comments', array( 'size' => 20 ) ); ?><span class="comments-in-moderation-text"><?php echo $text; ?></span></a>
 		</li>
 		<?php
 	}
@@ -441,8 +441,8 @@ function wp_dashboard_right_now() {
 
 		$title_attr = '' === $title ? '' : " title='$title'";
 
-		$icon = wp_get_icon( 'core/caution', array( 'size' => 20 ) );
-		echo "<p class='search-engines-info'><a class='glance-item' href='options-reading.php'$title_attr>$icon$content</a></p>";
+		$icon = wp_get_icon( 'core-admin/info', array( 'size' => 20 ) );
+		echo "<p class='search-engines-info'><a href='options-reading.php'$title_attr>$icon$content</a></p>";
 	}
 	?>
 	</div>
@@ -1923,12 +1923,12 @@ function wp_dashboard_quota() {
 				number_format_i18n( $quota )
 			);
 			printf(
-				'<a class="glance-item" href="%1$s">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' ),
-				wp_get_icon( 'core/upload', array( 'size' => 20 ) )
+				wp_get_icon( 'core-admin/media', array( 'size' => 20 ) )
 			);
 			?>
 		</li><li class="storage-count <?php echo $used_class; ?>">
@@ -1940,12 +1940,12 @@ function wp_dashboard_quota() {
 				$percentused
 			);
 			printf(
-				'<a href="%1$s" class="musublink glance-item">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
+				'<a href="%1$s" class="musublink">%4$s%2$s<span class="screen-reader-text"> (%3$s)</span></a>',
 				esc_url( admin_url( 'upload.php' ) ),
 				$text,
 				/* translators: Hidden accessibility text. */
 				__( 'Manage Uploads' ),
-				wp_get_icon( $used_class ? 'core/caution' : 'core/upload', array( 'size' => 20 ) )
+				wp_get_icon( $used_class ? 'core-admin/error' : 'core-admin/media', array( 'size' => 20 ) )
 			);
 			?>
 		</li>
