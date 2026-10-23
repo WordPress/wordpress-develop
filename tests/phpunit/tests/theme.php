@@ -24,6 +24,7 @@ class Tests_Theme extends WP_UnitTestCase {
 		'twentytwentythree',
 		'twentytwentyfour',
 		'twentytwentyfive',
+		'ipsum',
 	);
 
 	/**
@@ -228,11 +229,12 @@ class Tests_Theme extends WP_UnitTestCase {
 	 * Make sure we update the default theme list to include the latest default theme.
 	 *
 	 * @ticket 29925
+	 * @ticket 66352
 	 */
 	public function test_default_theme_in_default_theme_list() {
 		$latest_default_theme = WP_Theme::get_core_default_theme();
-		if ( ! $latest_default_theme->exists() || 'twenty' !== substr( $latest_default_theme->get_stylesheet(), 0, 6 ) ) {
-			$this->fail( 'No Twenty* series default themes are installed.' );
+		if ( ! $latest_default_theme->exists() ) {
+			$this->fail( 'No default themes are installed.' );
 		}
 		$this->assertContains( $latest_default_theme->get_stylesheet(), $this->default_themes );
 	}
@@ -1487,7 +1489,7 @@ class Tests_Theme extends WP_UnitTestCase {
 			}
 		);
 
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentyten' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentyten' ) );
 	}
 
 	/**
@@ -1510,6 +1512,6 @@ class Tests_Theme extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( validate_theme_requirements( 'twentyten' ) );
-		$this->assertInstanceOf( 'WP_Error', validate_theme_requirements( 'twentytwenty' ) );
+		$this->assertWPError( validate_theme_requirements( 'twentytwenty' ) );
 	}
 }

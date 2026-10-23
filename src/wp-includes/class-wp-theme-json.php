@@ -684,12 +684,14 @@ class WP_Theme_JSON {
 	/**
 	 * The valid pseudo-selectors that can be used for blocks.
 	 *
-	 * @since 7.0
+	 * @since 7.0.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_PSEUDO_SELECTORS = array(
-		'core/button'          => array( ':hover', ':focus', ':focus-visible', ':active' ),
-		'core/navigation-link' => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/button'             => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-link'    => array( ':hover', ':focus', ':focus-visible', ':active' ),
+		'core/navigation-submenu' => array( ':hover', ':focus', ':focus-visible', ':active' ),
 	);
 
 	/**
@@ -708,10 +710,12 @@ class WP_Theme_JSON {
 	 * `.wp-block-navigation-item.current-menu-item:hover`.
 	 *
 	 * @since 7.1.0
+	 * @since 7.2.0 Added `core/navigation-submenu`.
 	 * @var array
 	 */
 	const VALID_BLOCK_CUSTOM_STATES = array(
-		'core/navigation-link' => array( '-current' ),
+		'core/navigation-link'    => array( '-current' ),
+		'core/navigation-submenu' => array( '-current' ),
 	);
 
 	/**
@@ -889,6 +893,7 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 * @since 6.1.0 Added `heading`, `button`, and `caption` elements.
+	 * @since 7.2.0 Added `label` element.
 	 * @var string[]
 	 */
 	const ELEMENTS = array(
@@ -905,6 +910,7 @@ class WP_Theme_JSON {
 		// The block classes are necessary to target older content that won't use the new class names.
 		'caption'   => '.wp-element-caption, .wp-block-audio figcaption, .wp-block-embed figcaption, .wp-block-gallery figcaption, .wp-block-image figcaption, .wp-block-table figcaption, .wp-block-video figcaption',
 		'cite'      => 'cite',
+		'label'     => 'label',
 		'textInput' => 'textarea, input:where([type=email],[type=number],[type=password],[type=search],[type=text],[type=tel],[type=url])',
 		'select'    => 'select',
 	);
