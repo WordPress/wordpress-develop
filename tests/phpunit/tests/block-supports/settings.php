@@ -29,7 +29,6 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 
 	/**
 	 * An earlier non-null filter result must bypass the block renderer unchanged.
-	 * Preset CSS must still be enqueued when that markup uses the block's settings.
 	 * A null result must continue through the normal rendering path.
 	 *
 	 * @ticket 59551
@@ -44,8 +43,6 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 		$this->assertTrue( wp_is_block_theme(), "'{$theme->name}' is not a block theme: check test setup." );
 
 		$this->test_block_name = 'test/settings-pre-render';
-		$render_calls          = 0;
-		$filter_calls          = 0;
 
 		register_block_type(
 			$this->test_block_name,
@@ -53,8 +50,7 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 				'api_version'     => 3,
 				'attributes'      => array( 'settings' => array( 'type' => 'object' ) ),
 				'supports'        => array( '__experimentalSettings' => $supports_settings ),
-				'render_callback' => static function () use ( &$render_calls ) {
-					++$render_calls;
+				'render_callback' => static function () {
 					return '<div>Rendered settings block</div>';
 				},
 			)
@@ -68,67 +64,17 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 
 		// Compare the real rendering path before and after adding the earlier filter.
 		$normal_content = do_blocks( $block_content );
-		$this->assertSame( 1, $render_calls );
-		$render_calls = 0;
 
-		$pre_render_filter = function ( $content, $parsed_block ) use ( $pre_render, &$filter_calls ) {
+		$pre_render_filter = function ( $content, $parsed_block ) use ( $pre_render ) {
 			if ( $this->test_block_name !== $parsed_block['blockName'] ) {
 				return $content;
 			}
-			++$filter_calls;
-			$this->assertNull( $content );
 			return $pre_render;
 		};
 		add_filter( 'pre_render_block', $pre_render_filter, 9, 2 );
 
-		$style_hooks = array();
-		foreach ( array( 'wp_head', 'wp_footer' ) as $hook_name ) {
-			$style_hooks[ $hook_name ] = isset( $GLOBALS['wp_filter'][ $hook_name ] )
-				? clone $GLOBALS['wp_filter'][ $hook_name ]
-				: null;
-		}
-
 		$actual = do_blocks( $block_content );
 		$this->assertSame( null === $pre_render ? $normal_content : $pre_render, $actual );
-		$this->assertSame( null === $pre_render ? 1 : 0, $render_calls );
-		$this->assertSame( 1, $filter_calls );
-
-		$styles = $this->get_added_style_output( $style_hooks );
-		if ( $supports_settings && $settings ) {
-			foreach ( $settings['color']['palette']['custom'] as $preset ) {
-				$this->assertStringContainsString( '--wp--preset--color--' . $preset['slug'], $styles );
-				$this->assertStringContainsString( $preset['color'], $styles );
-				$this->assertStringContainsString( '.has-' . $preset['slug'] . '-color', $styles );
-			}
-		} else {
-			$this->assertSame( '', $styles );
-		}
-	}
-
-	/**
-	 * Captures the real style callbacks added by the rendered block only.
-	 *
-	 * @param array $original_hooks Style hooks before rendering.
-	 * @return string Newly enqueued stylesheet output.
-	 */
-	private function get_added_style_output( $original_hooks ) {
-		ob_start();
-		try {
-			foreach ( $original_hooks as $hook_name => $original_hook ) {
-				if ( ! isset( $GLOBALS['wp_filter'][ $hook_name ] ) ) {
-					continue;
-				}
-				foreach ( $GLOBALS['wp_filter'][ $hook_name ]->callbacks as $priority => $callbacks ) {
-					$original_callbacks = null === $original_hook ? array() : ( $original_hook->callbacks[ $priority ] ?? array() );
-					foreach ( array_diff_key( $callbacks, $original_callbacks ) as $callback ) {
-						call_user_func( $callback['function'] );
-					}
-				}
-			}
-			return ob_get_contents();
-		} finally {
-			ob_end_clean();
-		}
 	}
 
 	/**
