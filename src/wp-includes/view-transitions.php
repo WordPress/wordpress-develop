@@ -46,14 +46,16 @@ function wp_get_view_transitions_admin_css(): string {
  * `@view-transition` rule in view-transitions.css.
  *
  * Nothing is printed when the admin View Transitions style is not enqueued, since there is then
- * no transition to wait for.
+ * no transition to wait for. Nothing is printed for iframe requests either, such as Thickbox
+ * modals: they have no admin menu, and an `expect` link whose target never appears blocks the
+ * first render until the whole document has been parsed.
  *
  * @since 7.2.0
  *
  * @link https://html.spec.whatwg.org/multipage/links.html#link-type-expect
  */
 function wp_print_view_transitions_render_blocking_link(): void {
-	if ( ! wp_style_is( 'wp-view-transitions-admin' ) ) {
+	if ( ! wp_style_is( 'wp-view-transitions-admin' ) || defined( 'IFRAME_REQUEST' ) ) {
 		return;
 	}
 

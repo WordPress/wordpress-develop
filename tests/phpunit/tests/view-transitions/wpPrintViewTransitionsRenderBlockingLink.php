@@ -70,4 +70,19 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 		$this->assertFalse( wp_style_is( 'wp-view-transitions-admin' ), 'Expected the style to not be enqueued.' );
 		$this->assertSame( '', get_echo( 'wp_print_view_transitions_render_blocking_link' ) );
 	}
+
+	/**
+	 * Tests that nothing is printed for an iframe request, which has no admin menu.
+	 *
+	 * @ticket 65032
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_prints_nothing_for_iframe_request(): void {
+		define( 'IFRAME_REQUEST', true );
+		wp_enqueue_view_transitions_admin_css();
+
+		$this->assertSame( '', get_echo( 'wp_print_view_transitions_render_blocking_link' ) );
+	}
 }
