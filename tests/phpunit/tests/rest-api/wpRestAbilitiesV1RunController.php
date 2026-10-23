@@ -379,6 +379,70 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
+		// Ability that returns an empty object.
+		$this->register_test_ability(
+			'test/empty-object-output',
+			array(
+				'label'               => 'Empty Object Output',
+				'description'         => 'Returns an empty object.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type' => 'object',
+				),
+				'execute_callback'    => static function () {
+					return array();
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns an empty object nested in an object.
+		$this->register_test_ability(
+			'test/nested-empty-object-output',
+			array(
+				'label'               => 'Nested Empty Object Output',
+				'description'         => 'Returns an object with an empty object property.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'settings' => array( 'type' => 'object' ),
+					),
+				),
+				'execute_callback'    => static function () {
+					return array( 'settings' => array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
+		// Ability that returns a list of empty objects.
+		$this->register_test_ability(
+			'test/empty-object-list-output',
+			array(
+				'label'               => 'Empty Object List Output',
+				'description'         => 'Returns a list of empty objects.',
+				'category'            => 'general',
+				'output_schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+				'execute_callback'    => static function () {
+					return array( array() );
+				},
+				'permission_callback' => '__return_true',
+				'meta'                => array(
+					'show_in_rest' => true,
+				),
+			)
+		);
+
 		// Read-only ability for query params testing.
 		$this->register_test_ability(
 			'test/query-params',
@@ -428,8 +492,8 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 8, $response->get_data() );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 8.0, $response->get_data() );
 	}
 
 	/**
@@ -449,9 +513,9 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( self::$user_id, $data['id'] );
+		$this->assertSame( self::$user_id, $data['id'] );
 	}
 
 	/**
@@ -471,7 +535,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'User successfully deleted!', $response->get_data() );
 	}
 
@@ -567,6 +631,44 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for test_output_is_prepared_for_json_clients().
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public static function data_output_is_prepared_for_json_clients(): array {
+		return array(
+			'root empty object stays unchanged'  => array( 'test/empty-object-output', '[]' ),
+			'nested empty object'                => array( 'test/nested-empty-object-output', '{"settings":{}}' ),
+			'numeric collection stays unchanged' => array( 'test/empty-object-list-output', '[[]]' ),
+		);
+	}
+
+	/**
+	 * Tests that ability results are prepared for JSON clients without breaking
+	 * the global `_fields` and `_embed` parameters.
+	 *
+	 * @ticket 66267
+	 * @dataProvider data_output_is_prepared_for_json_clients
+	 *
+	 * @param string $ability_name The ability name.
+	 * @param string $expected     The expected encoded result.
+	 */
+	public function test_output_is_prepared_for_json_clients( string $ability_name, string $expected ): void {
+		$request  = new WP_REST_Request( 'POST', "/wp-abilities/v1/abilities/{$ability_name}/run" );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( $expected, wp_json_encode( $response->get_data() ) );
+
+		$request->set_param( '_fields', 'settings' );
+
+		add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
+		$response = apply_filters( 'rest_post_dispatch', $response, $this->server, $request );
+
+		$this->assertSame( $expected, wp_json_encode( $this->server->response_to_data( $response, true ) ) );
+	}
+
+	/**
 	 * Test permission check for execution.
 	 *
 	 * @ticket 64098
@@ -615,7 +717,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		);
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 
 		$request->set_body(
 			wp_json_encode(
@@ -629,7 +731,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		);
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'Success: test data', $response->get_data() );
 	}
 
@@ -644,7 +746,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 		$this->assertSame( 'Ability not found.', $data['message'] );
@@ -675,7 +777,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( $response->get_data() );
 	}
 
@@ -690,7 +792,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertNull( $data );
 	}
@@ -706,7 +808,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 500, $response->get_status() );
+		$this->assertSame( 500, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'test_error', $data['code'] );
 		$this->assertSame( 'This is a test error', $data['message'] );
@@ -723,7 +825,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 		$data = $response->get_data();
 		$this->assertSame( 'rest_ability_not_found', $data['code'] );
 	}
@@ -761,7 +863,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		// When JSON is invalid, WordPress returns 400 Bad Request
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -785,11 +887,11 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		);
 
 		$response = $this->server->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
 		$this->assertSame( 'nested', $data['level1']['level2']['value'] );
-		$this->assertEquals( array( 1, 2, 3 ), $data['array'] );
+		$this->assertSame( array( 1, 2, 3 ), $data['array'] );
 	}
 
 	/**
@@ -807,7 +909,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 		// When input is not an array, WordPress returns 400 Bad Request
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -828,7 +930,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 		// When input is not an array, WordPress returns 400 Bad Request
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -1103,14 +1205,14 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		// Should require POST (default behavior).
 		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/no-annotations/run' );
 		$get_response = $this->server->dispatch( $get_request );
-		$this->assertEquals( 405, $get_response->get_status() );
+		$this->assertSame( 405, $get_response->get_status() );
 
 		// Should work with POST.
 		$post_request = new WP_REST_Request( 'POST', '/wp-abilities/v1/abilities/test/no-annotations/run' );
 		$post_request->set_header( 'Content-Type', 'application/json' );
 
 		$post_response = $this->server->dispatch( $post_request );
-		$this->assertEquals( 200, $post_response->get_status() );
+		$this->assertSame( 200, $post_response->get_status() );
 	}
 
 	/**
@@ -1141,7 +1243,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		// Tests GET with no input parameter.
 		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/read-only-empty/run' );
 		$get_response = $this->server->dispatch( $get_request );
-		$this->assertEquals( 200, $get_response->get_status() );
+		$this->assertSame( 200, $get_response->get_status() );
 		$this->assertTrue( $get_response->get_data()['input_was_empty'] );
 	}
 
@@ -1177,7 +1279,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		// Tests GET with no input parameter.
 		$get_request  = new WP_REST_Request( 'GET', '/wp-abilities/v1/abilities/test/read-only-empty-array/run' );
 		$get_response = $this->server->dispatch( $get_request );
-		$this->assertEquals( 200, $get_response->get_status() );
+		$this->assertSame( 200, $get_response->get_status() );
 		$this->assertTrue( $get_response->get_data() );
 	}
 
@@ -1209,7 +1311,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$post_request->set_body( '{}' ); // Empty JSON object
 
 		$post_response = $this->server->dispatch( $post_request );
-		$this->assertEquals( 200, $post_response->get_status() );
+		$this->assertSame( 200, $post_response->get_status() );
 		$this->assertTrue( $post_response->get_data()['input_was_empty'] );
 	}
 
@@ -1248,7 +1350,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$response = $this->server->dispatch( $request );
 
 		// Malformed JSON should result in 400 Bad Request
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -1295,9 +1397,9 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $inputs, $data['echo'] );
+		$this->assertSame( $inputs, $data['echo'] );
 	}
 
 	/**
@@ -1342,13 +1444,13 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 
 		$response = $this->server->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
 		// Input should be preserved exactly
-		$this->assertEquals( $input['utf8'], $data['echo']['utf8'] );
-		$this->assertEquals( $input['emoji'], $data['echo']['emoji'] );
-		$this->assertEquals( $input['html'], $data['echo']['html'] );
+		$this->assertSame( $input['utf8'], $data['echo']['utf8'] );
+		$this->assertSame( $input['emoji'], $data['echo']['emoji'] );
+		$this->assertSame( $input['html'], $data['echo']['html'] );
 	}
 
 	/**
@@ -1411,7 +1513,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp-abilities/v1/abilities/test/calculator/run' );
 		$response = $this->server->dispatch( $request );
 		// OPTIONS requests return 200 with allowed methods
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**

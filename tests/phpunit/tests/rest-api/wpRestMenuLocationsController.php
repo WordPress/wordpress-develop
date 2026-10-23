@@ -175,30 +175,54 @@ class Tests_REST_WpRestMenuLocationsController extends WP_Test_REST_Controller_T
 	}
 
 	/**
-	 * The create_item() method does not exist for menu locations.
+	 * Menu locations are read-only; create requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_create_item() {
-		// Controller does not implement create_item().
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-locations' );
+		$request->set_param( 'name', 'primary' );
+		$request->set_param( 'description', 'Primary' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The update_item() method does not exist for menu locations.
+	 * Menu locations are read-only; update requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_update_item() {
-		// Controller does not implement update_item().
+		$menu = 'primary';
+		$this->register_nav_menu_locations( array( $menu ) );
+		wp_set_current_user( self::$admin_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/menu-locations/' . $menu );
+		$request->set_param( 'description', 'Updated' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**
-	 * The delete_item() method does not exist for menu locations.
+	 * Menu locations are read-only; delete requests should not match a route.
 	 *
-	 * @doesNotPerformAssertions
+	 * @ticket 66073
 	 */
 	public function test_delete_item() {
-		// Controller does not implement delete_item().
+		$menu = 'primary';
+		$this->register_nav_menu_locations( array( $menu ) );
+		wp_set_current_user( self::$admin_id );
+
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/menu-locations/' . $menu );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
 	}
 
 	/**

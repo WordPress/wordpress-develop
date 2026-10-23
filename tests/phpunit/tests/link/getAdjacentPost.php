@@ -49,6 +49,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		// Test normal post adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ) );
 		$this->assertEquals( $post_three, get_adjacent_post( false, '', false ) );
 
@@ -59,29 +60,34 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $post_one->ID ) );
 
 		$this->assertSame( '', get_adjacent_post( true, '', true, 'category' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_three, get_adjacent_post( true, '', false, 'category' ) );
 
 		// Test tag adjacency.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
 		$this->assertSame( '', get_adjacent_post( true, '', true, 'post_tag' ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false, 'post_tag' ) );
 
 		// Test normal boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_one ), get_boundary_post( false, '', true ) );
 		$this->assertEquals( array( $post_four ), get_boundary_post( false, '', false ) );
 
 		// Test category boundary post.
 		$this->go_to( get_permalink( $post_one->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_one ), get_boundary_post( true, '', true, 'category' ) );
 		$this->assertEquals( array( $post_three ), get_boundary_post( true, '', false, 'category' ) );
 
 		// Test tag boundary post.
 		$this->go_to( get_permalink( $post_two->ID ) );
 
+		// Keep assertEquals() because the array of objects are intentionally compared by value.
 		$this->assertEquals( array( $post_two ), get_boundary_post( true, '', true, 'post_tag' ) );
 		$this->assertEquals( array( $post_four ), get_boundary_post( true, '', false, 'post_tag' ) );
 	}
@@ -146,6 +152,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// First post.
 		$this->go_to( get_permalink( $one ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $two, get_adjacent_post( false, array(), false ) );
 		$this->assertEquals( $three, get_adjacent_post( true, array(), false ) );
 		$this->assertEquals( $two, get_adjacent_post( false, array( $exclude ), false ) );
@@ -154,11 +161,13 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Fourth post.
 		$this->go_to( get_permalink( $four ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $five, get_adjacent_post( false, array(), false ) );
 		$this->assertEquals( $five, get_adjacent_post( true, array(), false ) );
 		$this->assertEmpty( get_adjacent_post( false, array( $exclude ), false ) );
 		$this->assertEmpty( get_adjacent_post( true, array( $exclude ), false ) );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $three, get_adjacent_post( false, array(), true ) );
 		$this->assertEquals( $three, get_adjacent_post( true, array(), true ) );
 		$this->assertEquals( $two, get_adjacent_post( false, array( $exclude ), true ) );
@@ -166,6 +175,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Last post.
 		$this->go_to( get_permalink( $five ) );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $four, get_adjacent_post( false, array(), true ) );
 		$this->assertEquals( $four, get_adjacent_post( true, array(), true ) );
 		$this->assertEquals( $four, get_adjacent_post( false, array( $exclude ), true ) );
@@ -555,6 +565,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 		// Test getting the right result.
 		$first_run = get_adjacent_post( false, '', true );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $first_run, 'Did not get first post when on second post' );
 		$this->assertNotEquals( $post_two, $first_run, 'Got second post when on second post' );
 
@@ -562,6 +573,7 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		$num_queries = get_num_queries();
 		$second_run  = get_adjacent_post( false, '', true );
 		$this->assertNotEquals( $post_two, $second_run, 'Got second post when on second post on second run' );
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, $second_run, 'Did not get first post when on second post on second run' );
 		$this->assertSame( $num_queries, get_num_queries() );
 
@@ -574,16 +586,20 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 		);
 		$num_queries = get_num_queries();
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_one, get_adjacent_post( false, '', true ), 'Did not get first post after new post is added' );
 		$this->assertSame( get_num_queries() - $num_queries, 1, 'Number of queries run was not one after new post is added' );
 
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
 		$num_queries = get_num_queries();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Did not get forth post after new post is added' );
 		$this->assertSame( $num_queries, get_num_queries() );
 		wp_set_object_terms( $post_four->ID, 'themes', 'post_tag', false );
 
 		$num_queries = get_num_queries();
+		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $post_four, get_adjacent_post( true, '', false ), 'Result of function call is wrong after after adding new term' );
 		$this->assertSame( get_num_queries() - $num_queries, 2, 'Number of queries run was not two after adding new term' );
 	}

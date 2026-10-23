@@ -23,8 +23,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$filename       = DIR_TESTDATA . '/images/test-image-large.jpg';
-		self::$icon_id  = $factory->attachment->create_upload_object( $filename );
+		self::$icon_id  = $factory->attachment->create(
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'file'           => 'rest-server-site-icon/test-image-large.jpg',
+			)
+		);
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -54,6 +58,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	public function tear_down() {
 		// Remove our temporary spy server.
 		$GLOBALS['wp_rest_server'] = null;
+		unset( $GLOBALS['wp_rest_auth_cookie'] );
 		unset( $_REQUEST['_wpnonce'] );
 
 		parent::tear_down();
@@ -210,7 +215,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request->set_query_params( array( 'foo' => 123 ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( '123', $request['foo'] );
+		$this->assertSame( 123, $request['foo'] );
 	}
 
 	public function test_optional_param() {
@@ -587,7 +592,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 400, $response->get_status() );
 
 		$error = $response->as_error();
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertSame( $code, $error->get_error_code() );
 		$this->assertSame( $message, $error->get_error_message() );
 		$this->assertSame( $message2, $error->errors[ $code2 ][0] );
@@ -652,7 +657,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$stub->expects( $this->once() )
 			->method( 'set_status' )
-			->with( $this->equalTo( 400 ) );
+			->with( 400 );
 
 		$data     = array(
 			'code'    => 'wp-api-test-error',
@@ -1209,12 +1214,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 64804
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
 	public function test_get_index_should_include_media_processing_settings(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		$this->assertIsInt( $user_id );
 		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 
@@ -1230,10 +1235,13 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertTrue( $data['image_strip_meta'] );
 		$this->assertArrayHasKey( 'image_max_bit_depth', $data );
 		$this->assertSame( 16, $data['image_max_bit_depth'] );
+		$this->assertArrayHasKey( 'generate_animated_image_subsizes', $data );
+		$this->assertTrue( $data['generate_animated_image_subsizes'] );
 	}
 
 	/**
 	 * @ticket 64804
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
@@ -1250,16 +1258,17 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'image_size_threshold', $data );
 		$this->assertArrayNotHasKey( 'image_strip_meta', $data );
 		$this->assertArrayNotHasKey( 'image_max_bit_depth', $data );
+		$this->assertArrayNotHasKey( 'generate_animated_image_subsizes', $data );
 	}
 
 	/**
 	 * @ticket 64804
+	 * @ticket 65656
 	 *
 	 * @covers WP_REST_Server::get_index
 	 */
 	public function test_get_index_should_honor_media_processing_filters(): void {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		$this->assertIsInt( $user_id );
 		wp_set_current_user( $user_id );
 		add_filter( 'wp_client_side_media_processing_enabled', '__return_true' );
 		add_filter( 'image_strip_meta', '__return_false' );
@@ -1267,6 +1276,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'image_max_bit_depth',
 			static fn ( int $max_depth ) => min( 8, $max_depth )
 		);
+		add_filter( 'wp_generate_animated_image_subsizes', '__return_false' );
 
 		$server  = new WP_REST_Server();
 		$request = new WP_REST_Request( 'GET', '/' );
@@ -1275,6 +1285,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertFalse( $data['image_strip_meta'] );
 		$this->assertSame( 8, $data['image_max_bit_depth'] );
+		$this->assertFalse( $data['generate_animated_image_subsizes'] );
 	}
 
 	/**
@@ -1632,6 +1643,73 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		foreach ( wp_get_nocache_headers() as $header => $value ) {
 			$this->assertFalse( isset( $headers[ $header ] ) && $headers[ $header ] === $value, sprintf( 'Header %s is set to nocache.', $header ) );
 		}
+	}
+
+	/**
+	 * Tests that no-cache headers are sent for a client error response to a request whose method was overridden.
+	 *
+	 * @covers WP_REST_Server::serve_request
+	 *
+	 * @dataProvider data_nocache_headers_on_method_overridden_requests
+	 *
+	 * @param int<100, 599> $status         Response status code.
+	 * @param bool          $expect_nocache Whether no-cache headers are expected.
+	 */
+	public function test_nocache_headers_on_method_overridden_requests( int $status, bool $expect_nocache ): void {
+		$server = rest_get_server();
+		$this->assertInstanceOf( Spy_REST_Server::class, $server );
+
+		$server->register_route(
+			'test',
+			'/test/status',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => static function () use ( $status ) {
+						return new WP_REST_Response( null, $status );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+
+		$_SERVER['REQUEST_METHOD']              = 'POST';
+		$_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = 'GET';
+
+		$server->serve_request( '/test/status' );
+
+		$this->assertSame( $status, $server->status, 'The response status is not the one returned by the callback.' );
+
+		$headers = $server->sent_headers;
+		$this->assertIsArray( $headers );
+
+		foreach ( wp_get_nocache_headers() as $header => $value ) {
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			$this->assertSame(
+				$expect_nocache,
+				isset( $headers[ $header ] ) && $headers[ $header ] === $value,
+				sprintf( 'Header %s is not as expected.', $header )
+			);
+		}
+	}
+
+	/**
+	 * Data provider for {@see self::test_nocache_headers_on_method_overridden_requests()}.
+	 *
+	 * @return array<non-falsy-string, array{ 0: int<100, 599>, 1: bool }>
+	 */
+	public static function data_nocache_headers_on_method_overridden_requests(): array {
+		return array(
+			'200 OK'                    => array( 200, false ),
+			'302 Found'                 => array( 302, false ),
+			'400 Bad Request'           => array( 400, true ),
+			'404 Not Found'             => array( 404, true ),
+			'499 unassigned client'     => array( 499, true ),
+			'500 Internal Server Error' => array( 500, false ),
+		);
 	}
 
 	public function test_serve_request_url_params_are_unslashed() {

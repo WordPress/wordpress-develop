@@ -121,7 +121,46 @@ class Tests_User_wpDeleteUser extends WP_UnitTestCase {
 		wp_delete_user( $user_id, $reassign );
 
 		$post = get_post( $post_id );
-		$this->assertEquals( $reassign, $post->post_author );
+		$this->assertSame( (string) $reassign, $post->post_author );
+	}
+
+	/**
+	 * Patterns may be used across the site, so they're kept when their author is deleted.
+	 *
+	 * @ticket 66307
+	 */
+	public function test_delete_user_keeps_patterns() {
+		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+
+		wp_delete_user( $user_id );
+
+		$this->assertSame( 'publish', get_post_status( $pattern_id ) );
+	}
+
+	/**
+	 * @ticket 66307
+	 */
+	public function test_delete_user_reassigns_patterns() {
+		$user_id    = self::factory()->user->create( array( 'role' => 'author' ) );
+		$reassign   = self::factory()->user->create( array( 'role' => 'author' ) );
+		$pattern_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'wp_block',
+				'post_author' => $user_id,
+			)
+		);
+
+		wp_delete_user( $user_id, $reassign );
+
+		$pattern = get_post( $pattern_id );
+		$this->assertSame( 'publish', $pattern->post_status, 'The pattern should not be deleted.' );
+		$this->assertSame( (string) $reassign, $pattern->post_author, 'The pattern should be reassigned.' );
 	}
 
 	/**
