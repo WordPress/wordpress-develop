@@ -2394,6 +2394,287 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The author's name and slug are returned to the author, to a user who can list users, and,
+	 * once the author has a published post, to any user who can read the post. Other users get
+	 * the ID with a null name and slug. The `author` slug filter follows the same rule: it
+	 * matches the post exactly when the slug is returned, while the ID filter always does.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 *
+	 * @dataProvider data_author_visibility
+	 *
+	 * @param string $role              The role that reads the post, or `self` for the author.
+	 * @param string $post_status       The status of the author's only post.
+	 * @param bool   $expected_visible  Whether the name and slug should be returned.
+	 */
+	public function test_author_name_and_slug_are_returned_to_users_who_may_see_the_author( string $role, string $post_status, bool $expected_visible ): void {
+		$author_id = self::factory()->user->create(
+			array(
+				'role'          => 'contributor',
+				'display_name'  => 'Hidden Contributor',
+				'user_nicename' => 'hidden-contributor',
+			)
+		);
+		$post_id   = self::factory()->post->create(
+			array(
+				'post_author' => $author_id,
+				'post_status' => $post_status,
+			)
+		);
+
+		if ( 'self' === $role ) {
+			wp_set_current_user( $author_id );
+		} else {
+			$this->login_as( $role );
+		}
+		$this->register_ability();
+
+		$result = wp_get_ability( 'core/content-query' )->execute(
+			array(
+				'where'  => array(
+					'type' => 'post',
+					'ids'  => array( $post_id ),
+				),
+				'fields' => array( 'author' ),
+			)
+		);
+
+		$this->assertCount( 1, $result['items'], 'Precondition: the current user should read the post.' );
+		$this->assertSame(
+			array(
+				'id'   => $author_id,
+				'name' => $expected_visible ? 'Hidden Contributor' : null,
+				'slug' => $expected_visible ? 'hidden-contributor' : null,
+			),
+			$result['items'][0]['author'],
+			$expected_visible ? 'The author object should name an author the current user may see.' : 'The author object should keep the ID and null the name and slug of an author the current user may not see.'
+		);
+
+		$filter = static function ( array $author ) use ( $post_id ) {
+			return wp_get_ability( 'core/content-query' )->execute(
+				array(
+					'where'  => array(
+						'type'   => 'post',
+						'ids'    => array( $post_id ),
+						'author' => $author,
+					),
+					'fields' => array( 'id' ),
+				)
+			);
+		};
+
+		$by_slug = $filter( array( 'slug' => 'hidden-contributor' ) );
+		if ( $expected_visible ) {
+			$this->assertSame( array( $post_id ), wp_list_pluck( $by_slug['items'], 'id' ), 'The slug filter should match the post of an author whose slug is returned.' );
+		} else {
+			$this->assertSame( self::EMPTY_RESULT, $by_slug, 'The slug filter should match no post for an author whose slug is withheld.' );
+		}
+
+		$by_id = $filter( array( 'id' => $author_id ) );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $by_id['items'], 'id' ), 'The ID filter should match the post whichever author the current user may see.' );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<string, array{role: string, post_status: string, expected_visible: bool}>
+	 */
+	public function data_author_visibility(): array {
+		return array(
+			'editor, pending post'         => array(
+				'role'             => 'editor',
+				'post_status'      => 'pending',
+				'expected_visible' => false,
+			),
+			'editor, published post'       => array(
+				'role'             => 'editor',
+				'post_status'      => 'publish',
+				'expected_visible' => true,
+			),
+			'subscriber, published post'   => array(
+				'role'             => 'subscriber',
+				'post_status'      => 'publish',
+				'expected_visible' => true,
+			),
+			'administrator, pending post'  => array(
+				'role'             => 'administrator',
+				'post_status'      => 'pending',
+				'expected_visible' => true,
+			),
+			'the author, own pending post' => array(
+				'role'             => 'self',
+				'post_status'      => 'pending',
+				'expected_visible' => true,
+			),
+		);
+	}
+
+	/**
+	 * Whether an author has posts the current user may read is looked up once per author and
+	 * query, not once per post, and only when the name or slug is requested.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_author_visibility_is_looked_up_once_per_author(): void {
+		$post_ids = array();
+		foreach ( array( 'contributor', 'contributor', 'author_secondary' ) as $role ) {
+			$post_ids[] = self::factory()->post->create(
+				array(
+					'post_author' => self::$user_ids[ $role ],
+					'post_status' => 'pending',
+				)
+			);
+		}
+
+		$this->login_as( 'editor' );
+		$this->register_ability();
+
+		$looked_up = array();
+		add_filter(
+			'get_usernumposts',
+			static function ( $count, $user_id ) use ( &$looked_up ) {
+				$looked_up[] = $user_id;
+				return $count;
+			},
+			10,
+			2
+		);
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$query   = static function ( array $fields ) use ( $ability, $post_ids ) {
+			return $ability->execute(
+				array(
+					'where'  => array(
+						'type'   => 'post',
+						'status' => array( 'pending' ),
+						'ids'    => $post_ids,
+					),
+					'fields' => $fields,
+				)
+			);
+		};
+
+		$ids_only = $query( array( 'author.id' ) );
+		$this->assertCount( 3, $ids_only['items'], 'Precondition: the editor should read the pending posts.' );
+		$this->assertSame( array(), $looked_up, 'A query for the author ID alone should not count any author\'s posts.' );
+
+		$query( array( 'author.name' ) );
+		$this->assertSameSets( array( self::$user_ids['contributor'], self::$user_ids['author_secondary'] ), $looked_up, 'A query for the author name should count each author\'s posts once.' );
+
+		$looked_up = array();
+		$ability->execute(
+			array(
+				'where'  => array(
+					'type'   => 'post',
+					'status' => array( 'pending' ),
+					'ids'    => $post_ids,
+					'author' => array( 'slug' => get_userdata( self::$user_ids['contributor'] )->user_nicename ),
+				),
+				'fields' => array( 'author.name' ),
+			)
+		);
+		$this->assertSame( array( self::$user_ids['contributor'] ), $looked_up, 'A slug filter and the author name should share one count of the author\'s posts.' );
+	}
+
+	/**
+	 * An author is visible once they have a published post in a post type exposed to
+	 * abilities, whether or not that post type is exposed to the REST API, and not for a
+	 * published post in a post type exposed to the REST API only.
+	 *
+	 * @ticket 66268
+	 * @since 7.2.0
+	 */
+	public function test_author_visibility_follows_the_post_types_exposed_to_abilities(): void {
+		register_post_type(
+			'rest_only_cpt',
+			array(
+				'public'            => false,
+				'show_in_rest'      => true,
+				'show_in_abilities' => false,
+				'supports'          => array( 'title', 'author' ),
+			)
+		);
+		register_post_type(
+			'abilities_cpt',
+			array(
+				'public'            => false,
+				'show_in_rest'      => false,
+				'show_in_abilities' => true,
+				'supports'          => array( 'title', 'author' ),
+			)
+		);
+
+		$authors  = array();
+		$post_ids = array();
+		foreach ( array( 'rest_only_cpt', 'abilities_cpt' ) as $post_type ) {
+			$authors[ $post_type ] = self::factory()->user->create(
+				array(
+					'role'          => 'contributor',
+					'user_nicename' => "$post_type-author",
+				)
+			);
+			self::factory()->post->create(
+				array(
+					'post_type'   => $post_type,
+					'post_author' => $authors[ $post_type ],
+					'post_status' => 'publish',
+				)
+			);
+			$post_ids[ $post_type ] = self::factory()->post->create(
+				array(
+					'post_author' => $authors[ $post_type ],
+					'post_status' => 'pending',
+				)
+			);
+		}
+
+		$this->login_as( 'editor' );
+		$this->register_ability();
+
+		$ability = wp_get_ability( 'core/content-query' );
+		$result  = $ability->execute(
+			array(
+				'where'  => array(
+					'type'   => 'post',
+					'status' => array( 'pending' ),
+					'ids'    => array_values( $post_ids ),
+				),
+				'fields' => array( 'id', 'author' ),
+			)
+		);
+		$slugs   = array();
+		foreach ( $result['items'] as $item ) {
+			$slugs[ $item['id'] ] = $item['author']['slug'];
+		}
+		$this->assertSameSetsWithIndex(
+			array(
+				$post_ids['rest_only_cpt'] => null,
+				$post_ids['abilities_cpt'] => 'abilities_cpt-author',
+			),
+			$slugs,
+			'Only the author with a published post in a post type exposed to abilities should be named.'
+		);
+
+		$filter = static function ( string $slug ) use ( $ability, $post_ids ) {
+			return $ability->execute(
+				array(
+					'where'  => array(
+						'type'   => 'post',
+						'status' => array( 'pending' ),
+						'ids'    => array_values( $post_ids ),
+						'author' => array( 'slug' => $slug ),
+					),
+					'fields' => array( 'id' ),
+				)
+			);
+		};
+		$this->assertSame( self::EMPTY_RESULT, $filter( 'rest_only_cpt-author' ), 'The slug of an author published only in a post type exposed to the REST API should match no post.' );
+		$this->assertSame( array( $post_ids['abilities_cpt'] ), wp_list_pluck( $filter( 'abilities_cpt-author' )['items'], 'id' ), 'The slug of an author published in a post type exposed to abilities should match their post.' );
+	}
+
+	/**
 	 * Requested objects that do not apply to the post type are left out, and the post keeps its
 	 * ID.
 	 *
@@ -6277,7 +6558,9 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 
 	/**
 	 * An author filter matches only the posts the current user may read, so a user without
-	 * such posts gives the same empty result as an ID or a slug that names no user.
+	 * such posts gives the same empty result as an ID or a slug that names no user. A slug
+	 * further names only a user the current user may see, as the `author` field reports them,
+	 * while an ID matches the author stored on the post.
 	 *
 	 * @ticket 66268
 	 * @since 7.2.0
@@ -6326,9 +6609,7 @@ class Tests_Abilities_API_WpRegisterCoreContentAbility extends WP_UnitTestCase {
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_slug ), 'An editor should get the empty result for a slug that names no user.' );
 		$this->assertSame( self::EMPTY_RESULT, $query( array( 'publish' ), $missing_id ), 'An editor should get the empty result for an ID no post stores.' );
 
-		$drafts = $query( array( 'draft' ), $author_secondary_slug );
-		$this->assertIsArray( $drafts, 'An editor should filter by the slug of an author without published posts.' );
-		$this->assertSame( array( $draft_id ), wp_list_pluck( $drafts['items'], 'id' ), 'The slug should return that author\'s drafts.' );
+		$this->assertSame( self::EMPTY_RESULT, $query( array( 'draft' ), $author_secondary_slug ), 'An editor should get the empty result for the slug of an author without published posts, whom they may not see, even for drafts they may read.' );
 
 		$drafts_by_id = $query( array( 'draft' ), $author_secondary_id );
 		$this->assertIsArray( $drafts_by_id, 'An editor should filter by the ID of an author without published posts.' );
