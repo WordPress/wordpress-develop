@@ -347,7 +347,7 @@ class Tests_AI_Client_Prompt_Builder_Filters extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_invalid_generation_parameters(): array {
+	public static function data_invalid_generation_parameters(): array {
 		return array(
 			'non_numeric_temperature'       => array( array( 'temperature' => 'high' ) ),
 			'non_positive_max_tokens'       => array( array( 'max_tokens' => 0 ) ),
@@ -380,5 +380,45 @@ class Tests_AI_Client_Prompt_Builder_Filters extends WP_UnitTestCase {
 
 		$this->assertSame( 0.85, $builder2->get_generation_parameters()['temperature'] );
 		$this->assertSame( array( 'model-2' ), $builder2->get_model_preferences() );
+	}
+
+	/**
+	 * Tests that builders in an error state do not invoke customization filters.
+	 */
+	public function test_error_state_builder_does_not_fire_customization_filters(): void {
+		$filter_fired = false;
+
+		add_filter(
+			'wp_ai_client_generation_parameters',
+			static function ( $params ) use ( &$filter_fired ) {
+				$filter_fired = true;
+				return $params;
+			}
+		);
+
+		add_filter(
+			'wp_ai_client_model',
+			static function ( $model ) use ( &$filter_fired ) {
+				$filter_fired = true;
+				return $model;
+			}
+		);
+
+		$builder = new WP_AI_Client_Prompt_Builder( $this->registry, 'Test' );
+
+		$this->assertFalse( $builder->has_error() );
+		$this->assertNull( $builder->get_error() );
+
+		// Cause a TypeError by passing an invalid argument type.
+		$builder->using_temperature( array( 0.7 ) );
+
+		$this->assertTrue( $builder->has_error() );
+		$this->assertInstanceOf( WP_Error::class, $builder->get_error() );
+
+		$error = $builder->generate_text();
+
+		$this->assertWPError( $error );
+		$this->assertSame( 'prompt_builder_error', $error->get_error_code() );
+		$this->assertFalse( $filter_fired, 'Customization filters should not fire when builder is in an error state.' );
 	}
 }

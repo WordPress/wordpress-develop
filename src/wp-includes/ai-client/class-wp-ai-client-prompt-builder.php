@@ -359,6 +359,11 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 	 * @return mixed The result of the method call.
 	 */
 	public function __call( string $name, array $arguments ) {
+		// If the builder is already in an error state, delegate immediately to maintain no-op behavior.
+		if ( $this->has_error() ) {
+			return parent::__call( $name, $arguments );
+		}
+
 		// Check if execution should apply customization filters for support check and generating methods.
 		if ( isset( self::$support_check_methods[ $name ] ) || isset( self::$generating_methods[ $name ] ) ) {
 			$capability = $this->get_capability_for_method( $name, $arguments );
@@ -425,34 +430,38 @@ class WP_AI_Client_Prompt_Builder extends WP_AI_Client_Builder {
 			}
 		}
 
-		// Track configured parameters and preferences for filtering and inspection.
-		if ( 'using_temperature' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['temperature'] = $arguments[0];
-		} elseif ( 'using_max_tokens' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['max_tokens'] = $arguments[0];
-		} elseif ( 'using_top_p' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['top_p'] = $arguments[0];
-		} elseif ( 'using_top_k' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['top_k'] = $arguments[0];
-		} elseif ( 'using_presence_penalty' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['presence_penalty'] = $arguments[0];
-		} elseif ( 'using_frequency_penalty' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['frequency_penalty'] = $arguments[0];
-		} elseif ( 'using_stop_sequences' === $name ) {
-			$this->generation_parameters['stop_sequences'] = $arguments;
-		} elseif ( 'using_candidate_count' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['candidate_count'] = $arguments[0];
-		} elseif ( 'using_system_instruction' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['system_instruction'] = $arguments[0];
-		} elseif ( 'using_top_logprobs' === $name && isset( $arguments[0] ) ) {
-			$this->generation_parameters['top_logprobs'] = $arguments[0];
-		} elseif ( 'using_model_preference' === $name ) {
-			$this->model_preferences = $arguments;
-		} elseif ( 'using_model' === $name && isset( $arguments[0] ) && $arguments[0] instanceof ModelInterface ) {
-			$this->model = $arguments[0];
+		$result = parent::__call( $name, $arguments );
+
+		// Only track configured parameters and preferences if no error occurred.
+		if ( ! $this->has_error() ) {
+			if ( 'using_temperature' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['temperature'] = $arguments[0];
+			} elseif ( 'using_max_tokens' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['max_tokens'] = $arguments[0];
+			} elseif ( 'using_top_p' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['top_p'] = $arguments[0];
+			} elseif ( 'using_top_k' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['top_k'] = $arguments[0];
+			} elseif ( 'using_presence_penalty' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['presence_penalty'] = $arguments[0];
+			} elseif ( 'using_frequency_penalty' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['frequency_penalty'] = $arguments[0];
+			} elseif ( 'using_stop_sequences' === $name ) {
+				$this->generation_parameters['stop_sequences'] = $arguments;
+			} elseif ( 'using_candidate_count' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['candidate_count'] = $arguments[0];
+			} elseif ( 'using_system_instruction' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['system_instruction'] = $arguments[0];
+			} elseif ( 'using_top_logprobs' === $name && isset( $arguments[0] ) ) {
+				$this->generation_parameters['top_logprobs'] = $arguments[0];
+			} elseif ( 'using_model_preference' === $name ) {
+				$this->model_preferences = $arguments;
+			} elseif ( 'using_model' === $name && isset( $arguments[0] ) && $arguments[0] instanceof ModelInterface ) {
+				$this->model = $arguments[0];
+			}
 		}
 
-		return parent::__call( $name, $arguments );
+		return $result;
 	}
 
 	/**
