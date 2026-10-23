@@ -24,10 +24,23 @@ test.describe( 'Maintenance mode', () => {
 		unlinkSync( maintenanceLockFile );
 	} );
 
-	test( 'should display maintenance mode page', async ( { page } ) => {
-		await page.goto( '/' );
-		await expect(
-			page.getByText( /Briefly unavailable for scheduled maintenance\. Check back in a minute\./ )
-		).toBeVisible();
+	test.describe( 'Default (en_US)', () => {
+		test( 'should display maintenance mode page', async ( { page } ) => {
+			await page.goto( '/' );
+			await expect(
+				page.getByText( /Briefly unavailable for scheduled maintenance\. Check back in a minute\./ )
+			).toBeVisible();
+		} );
+	} );
+
+	test.describe( 'Localized (de_DE)', () => {
+		test.use( { locale: 'de-DE' } ); // Sets the Accept-Language header.
+
+		test( 'should display maintenance mode page', async ( { page } ) => {
+			await page.goto( '/' );
+			await expect(
+				page.getByText( /Wegen Wartungsarbeiten ist diese Website kurzzeitig nicht verfügbar/ )
+			).toBeVisible();
+		} );
 	} );
 } );
