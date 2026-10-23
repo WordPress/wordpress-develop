@@ -488,60 +488,37 @@ class WP_Block_Processor {
 	private $type;
 
 	/**
-	 * Whether the last-matched delimiter acts like a void block and should be
-	 * popped from the stack of open blocks as soon as the parser advances.
-	 *
-	 * This applies to void block delimiters and to HTML spans.
-	 *
-	 * @since 6.9.0
-	 *
-	 * @var bool
-	 */
-	private $was_void = false;
-
-	/**
 	 * For every open block, in hierarchical order, this stores the byte offset
-	 * into the source text where the block type starts, including for HTML spans.
+	 * into the source text where the block type starts.
 	 *
 	 * To avoid allocating and normalizing block names when they aren’t requested,
-	 * the stack of open blocks is stored as the byte offsets and byte lengths of
-	 * each open block’s block type. This allows for minimal tracking and quick
-	 * reading or comparison of block types when requested.
+	 * the stack of open blocks is stored as the byte offsets of each open block’s
+	 * block type. This allows for minimal tracking and quick reading or comparison
+	 * of block types when requested.
+	 *
+	 * Void blocks and HTML spans contain no other tokens, so they are not stored
+	 * on this stack. While the processor is paused on one, it counts as one more
+	 * level of depth. {@see self::get_depth()}.
+	 *
+	 * Since HTML spans are discovered after matching the block delimiter which
+	 * follows them, the stack is not updated for that delimiter until the
+	 * processor advances from the HTML span onto the delimiter.
 	 *
 	 * @since 6.9.0
-	 *
-	 * @see self::$open_blocks_length
 	 *
 	 * @var int[]
 	 */
 	private $open_blocks_at = array();
 
 	/**
-	 * For every open block, in hierarchical order, this stores the byte length
-	 * of the block’s block type in the source text. For HTML spans this is 0.
+	 * Whether {@see self::next_token()} should pass over HTML spans instead
+	 * of pausing on them, for searches which cannot match an HTML span.
 	 *
-	 * @since 6.9.0
+	 * @since 7.2.0
 	 *
-	 * @see self::$open_blocks_at
-	 *
-	 * @var int[]
+	 * @var bool
 	 */
-	private $open_blocks_length = array();
-
-	/**
-	 * Indicates which operation should apply to the stack of open blocks after
-	 * processing any pending spans of HTML.
-	 *
-	 * Since HTML spans are discovered after matching block delimiters, those
-	 * delimiters need to defer modifying the stack of open blocks. This value,
-	 * if set, indicates what operation should be applied. The properties
-	 * associated with token boundaries still point to the delimiters even
-	 * when processing HTML spans, so there’s no need to track them independently.
-	 *
-	 * @since 6.9.0
-	 * @var 'push'|'void'|'pop'|null
-	 */
-	private $next_stack_op = null;
+	private $skip_html_spans = false;
 
 	/**
 	 * Creates a new block processor.
@@ -628,6 +605,8 @@ class WP_Block_Processor {
 	 * @param string|null $block_type Optional. If provided, advance until a block of this type is found.
 	 *                                Default is to stop at any block regardless of its type.
 	 * @return bool Whether an opening delimiter for a block was found.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_block( ?string $block_type = null ): bool {
 		while ( $this->next_delimiter( $block_type ) ) {
@@ -679,11 +658,14 @@ class WP_Block_Processor {
 	 * @param string|null $block_name Optional. Keep searching until a block of this name is found.
 	 *                                Defaults to visit every block regardless of type.
 	 * @return bool Whether a block delimiter was matched.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_delimiter( ?string $block_name = null ): bool {
-		if ( ! isset( $block_name ) ) {
+		// Only the wildcard and the freeform block types match HTML spans.
+		if ( '*' === $block_name || 'core/freeform' === $block_name || 'freeform' === $block_name ) {
 			while ( $this->next_token() ) {
-				if ( ! $this->is_html() ) {
+				if ( $this->is_block_type( $block_name ) ) {
 					return true;
 				}
 			}
@@ -691,13 +673,41 @@ class WP_Block_Processor {
 			return false;
 		}
 
-		while ( $this->next_token() ) {
-			if ( $this->is_block_type( $block_name ) ) {
-				return true;
-			}
+		$this->skip_html_spans = true;
+
+		if ( ! isset( $block_name ) ) {
+			$found = $this->next_token();
+		} else {
+			// A block type in the document without a namespace is in the implicit `core` namespace.
+			$text       = $this->source_text;
+			$block_type = self::normalize_block_type( $block_name );
+			$core_name  = str_starts_with( $block_type, 'core/' ) ? substr( $block_type, 5 ) : null;
+
+			do {
+				$found = $this->next_token();
+				if ( ! $found ) {
+					break;
+				}
+
+				if ( $this->namespace_at === $this->name_at ) {
+					$matches = (
+						isset( $core_name ) &&
+						strlen( $core_name ) === $this->name_length &&
+						0 === substr_compare( $text, $core_name, $this->name_at, $this->name_length )
+					);
+				} else {
+					$length  = $this->name_at + $this->name_length - $this->namespace_at;
+					$matches = (
+						strlen( $block_type ) === $length &&
+						0 === substr_compare( $text, $block_type, $this->namespace_at, $length )
+					);
+				}
+			} while ( ! $matches );
 		}
 
-		return false;
+		$this->skip_html_spans = false;
+
+		return $found;
 	}
 
 	/**
@@ -733,17 +743,12 @@ class WP_Block_Processor {
 	 * @since 6.9.0
 	 *
 	 * @return bool Whether a token was matched or the end of the document was reached without finding any.
+	 *
+	 * @phpstan-impure
 	 */
 	public function next_token(): bool {
 		if ( $this->last_error || self::COMPLETE === $this->state || self::INCOMPLETE_INPUT === $this->state ) {
 			return false;
-		}
-
-		// Void tokens automatically pop off the stack of open blocks.
-		if ( $this->was_void ) {
-			array_pop( $this->open_blocks_at );
-			array_pop( $this->open_blocks_length );
-			$this->was_void = false;
 		}
 
 		$text = $this->source_text;
@@ -762,26 +767,13 @@ class WP_Block_Processor {
 				return false;
 			}
 
-			switch ( $this->next_stack_op ) {
-				case 'void':
-					$this->was_void             = true;
-					$this->open_blocks_at[]     = $this->namespace_at;
-					$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
-					break;
-
-				case 'push':
-					$this->open_blocks_at[]     = $this->namespace_at;
-					$this->open_blocks_length[] = $this->name_at + $this->name_length - $this->namespace_at;
-					break;
-
-				case 'pop':
-					array_pop( $this->open_blocks_at );
-					array_pop( $this->open_blocks_length );
-					break;
+			if ( self::OPENER === $this->type ) {
+				$this->open_blocks_at[] = $this->namespace_at;
+			} elseif ( self::CLOSER === $this->type ) {
+				array_pop( $this->open_blocks_at );
 			}
 
-			$this->next_stack_op = null;
-			$this->state         = self::MATCHED;
+			$this->state = self::MATCHED;
 			return true;
 		}
 
@@ -804,9 +796,17 @@ class WP_Block_Processor {
 			 * comments once they are matched to see if they are also block delimiters. In
 			 * practice, this nuance has not caused any known problems since developing blocks.
 			 *
+			 * Searching for the `!` skips past the many `<` which open HTML tags.
+			 *
 			 * <⃨!⃨-⃨-⃨ /wp:core/paragraph {"dropCap":true} /-->
 			 */
-			$comment_opening_at = strpos( $text, '<!--', $at );
+			$comment_opening_at = false;
+			for ( $bang_at = strpos( $text, '!--', $at + 1 ); false !== $bang_at; $bang_at = strpos( $text, '!--', $bang_at + 1 ) ) {
+				if ( '<' === $text[ $bang_at - 1 ] ) {
+					$comment_opening_at = $bang_at - 1;
+					break;
+				}
+			}
 
 			/*
 			 * Even if the start of a potential block delimiter is not found, the document
@@ -829,12 +829,16 @@ class WP_Block_Processor {
 					$this->after_previous_delimiter = $after_prev_delimiter;
 					$this->matched_delimiter_at     = $end - $backup;
 					$this->matched_delimiter_length = $backup;
-					$this->open_blocks_at[]         = $after_prev_delimiter;
-					$this->open_blocks_length[]     = 0;
-					$this->was_void                 = true;
 
+					// No token follows this HTML span.
 					if ( $backup > 0 ) {
 						$this->last_error = self::INCOMPLETE_INPUT;
+						return ! $this->skip_html_spans;
+					}
+
+					if ( $this->skip_html_spans ) {
+						$this->state = self::COMPLETE;
+						return false;
 					}
 
 					return true;
@@ -981,18 +985,22 @@ class WP_Block_Processor {
 			 *
 			 * The delimiter must also be a single complete HTML comment.
 			 *
+			 * The comment closer, as in {@see self::find_html_comment_end()}, cannot start
+			 * before the JSON span. It ends at the first `>` there which follows `--` or `--!`.
+			 *
 			 * <!-- /wp:core/paragraph {"dropCap":true} /-⃨-⃨>⃨
 			 */
-			$after_comment_end = $this->find_html_comment_end( $comment_opening_at, $end );
+			$closer_at = $json_at - 1;
+			do {
+				$closer_at = strpos( $text, '>', $closer_at + 1 );
+				if ( false === $closer_at ) {
+					goto incomplete;
+				}
 
-			/*
-			 * The reported end of the comment could be after the end of the document if
-			 * no actual end was found, so differentiate a comment ending at the end of
-			 * the document from documents with missing comment ends.
-			 */
-			if ( $after_comment_end >= $end && ! str_ends_with( $text, '-->' ) && ! str_ends_with( $text, '--!>' ) ) {
-				goto incomplete;
-			}
+				$dashes_at = '!' === $text[ $closer_at - 1 ] ? $closer_at - 3 : $closer_at - 2;
+			} while ( '-' !== $text[ $dashes_at ] || '-' !== $text[ $dashes_at + 1 ] );
+
+			$after_comment_end = $closer_at + 1;
 
 			/*
 			 * Only normative comment closers are recognized block delimiters,
@@ -1083,11 +1091,10 @@ class WP_Block_Processor {
 				$this->after_previous_delimiter = $after_prev_delimiter;
 				$this->matched_delimiter_at     = $end;
 				$this->matched_delimiter_length = 0;
-				$this->open_blocks_at[]         = $after_prev_delimiter;
-				$this->open_blocks_length[]     = 0;
-				$this->was_void                 = true;
 
-				return true;
+				if ( ! $this->skip_html_spans ) {
+					return true;
+				}
 			}
 
 			$this->state = self::COMPLETE;
@@ -1116,53 +1123,35 @@ class WP_Block_Processor {
 		 * they shall be interpreted as void blocks, per the spec parser.
 		 */
 		if ( $has_void_flag ) {
-			$this->type          = self::VOID;
-			$this->next_stack_op = 'void';
+			$this->type = self::VOID;
 		} elseif ( $has_closer ) {
-			$this->type          = self::CLOSER;
-			$this->next_stack_op = 'pop';
+			$this->type = self::CLOSER;
 
 			/*
 			 * @todo Check if the name matches and bail according to the spec parser.
 			 *       The default parser doesn’t examine the names.
 			 */
 		} else {
-			$this->type          = self::OPENER;
-			$this->next_stack_op = 'push';
+			$this->type = self::OPENER;
 		}
 
 		$this->has_closing_flag = $has_closer;
 
-		// HTML spans are visited before the delimiter that follows them.
-		if ( $comment_opening_at > $after_prev_delimiter ) {
-			$this->state                = self::HTML_SPAN;
-			$this->open_blocks_at[]     = $after_prev_delimiter;
-			$this->open_blocks_length[] = 0;
-			$this->was_void             = true;
-
+		/*
+		 * HTML spans are visited before the delimiter that follows them,
+		 * and the stack of open blocks is updated once the processor
+		 * advances onto that delimiter.
+		 */
+		if ( $comment_opening_at > $after_prev_delimiter && ! $this->skip_html_spans ) {
+			$this->state = self::HTML_SPAN;
 			return true;
 		}
 
-		// If there were no HTML spans then flush the enqueued stack operations immediately.
-		switch ( $this->next_stack_op ) {
-			case 'void':
-				$this->was_void             = true;
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'push':
-				$this->open_blocks_at[]     = $namespace_at;
-				$this->open_blocks_length[] = $name_at + $name_length - $namespace_at;
-				break;
-
-			case 'pop':
-				array_pop( $this->open_blocks_at );
-				array_pop( $this->open_blocks_length );
-				break;
+		if ( self::OPENER === $this->type ) {
+			$this->open_blocks_at[] = $namespace_at;
+		} elseif ( self::CLOSER === $this->type ) {
+			array_pop( $this->open_blocks_at );
 		}
-
-		$this->next_stack_op = null;
 
 		return true;
 
@@ -1181,7 +1170,7 @@ class WP_Block_Processor {
 	 *     // Freeform HTML content is an HTML span.
 	 *     $processor = new WP_Block_Processor( 'Just text' );
 	 *     $processor->next_token();
-	 *     array( '#text' ) === $processor->get_breadcrumbs();
+	 *     array( '#html' ) === $processor->get_breadcrumbs();
 	 *
 	 *     $processor = new WP_Block_Processor( '<!-- wp:a --><!-- wp:b --><!-- wp:c /--><!-- /wp:b --><!-- /wp:a -->' );
 	 *     $processor->next_token();
@@ -1208,20 +1197,18 @@ class WP_Block_Processor {
 	 * @return string[]
 	 */
 	public function get_breadcrumbs(): array {
-		$breadcrumbs = array_fill( 0, count( $this->open_blocks_at ), null );
+		$breadcrumbs = array();
 
-		/*
-		 * Since HTML spans can only be at the very end, set the normalized block name for
-		 * each open element and then work backwards after creating the array. This allows
-		 * for the elimination of a conditional on each iteration of the loop.
-		 */
-		foreach ( $this->open_blocks_at as $i => $at ) {
-			$block_type        = substr( $this->source_text, $at, $this->open_blocks_length[ $i ] );
-			$breadcrumbs[ $i ] = self::normalize_block_type( $block_type );
+		foreach ( $this->open_blocks_at as $at ) {
+			// A block type is always followed by whitespace, which ends this span.
+			$length        = strspn( $this->source_text, 'abcdefghijklmnopqrstuvwxyz0123456789-_/', $at );
+			$breadcrumbs[] = self::normalize_block_type( substr( $this->source_text, $at, $length ) );
 		}
 
-		if ( isset( $i ) && 0 === $this->open_blocks_length[ $i ] ) {
-			$breadcrumbs[ $i ] = '#html';
+		if ( self::HTML_SPAN === $this->state ) {
+			$breadcrumbs[] = '#html';
+		} elseif ( self::MATCHED === $this->state && self::VOID === $this->type ) {
+			$breadcrumbs[] = $this->get_block_type();
 		}
 
 		return $breadcrumbs;
@@ -1238,7 +1225,14 @@ class WP_Block_Processor {
 	 * @return int
 	 */
 	public function get_depth(): int {
-		return count( $this->open_blocks_at );
+		$depth = count( $this->open_blocks_at );
+
+		// Void blocks and HTML spans are open only while visiting them.
+		if ( self::HTML_SPAN === $this->state || ( self::MATCHED === $this->state && self::VOID === $this->type ) ) {
+			++$depth;
+		}
+
+		return $depth;
 	}
 
 	/**
@@ -1292,9 +1286,11 @@ class WP_Block_Processor {
 	 *                                         inner blocks were found.
 	 *     }
 	 * }
+	 *
+	 * @phpstan-impure
 	 */
 	public function extract_full_block_and_advance(): ?array {
-		if ( $this->is_html() ) {
+		if ( self::HTML_SPAN === $this->state ) {
 			$chunk = $this->get_html_content();
 
 			return array(
@@ -1315,9 +1311,16 @@ class WP_Block_Processor {
 		);
 
 		$depth = $this->get_depth();
-		while ( $this->next_token() && $this->get_depth() > $depth ) {
-			if ( $this->is_html() ) {
-				$chunk                   = $this->get_html_content();
+		while ( $this->next_token() ) {
+			$is_html = self::HTML_SPAN === $this->state;
+
+			// Equivalent to `$this->get_depth() <= $depth`.
+			if ( count( $this->open_blocks_at ) + ( $is_html || self::VOID === $this->type ? 1 : 0 ) <= $depth ) {
+				break;
+			}
+
+			if ( $is_html ) {
+				$chunk                   = substr( $this->source_text, $this->after_previous_delimiter, $this->matched_delimiter_at - $this->after_previous_delimiter );
 				$block['innerHTML']     .= $chunk;
 				$block['innerContent'][] = $chunk;
 				continue;
@@ -1329,7 +1332,7 @@ class WP_Block_Processor {
 			 * @todo This is a decent place to call {@link \render_block()}
 			 * @todo Use iteration instead of recursion, or at least refactor to tail-call form.
 			 */
-			if ( $this->opens_block() ) {
+			if ( self::CLOSER !== $this->type ) {
 				$inner_block             = $this->extract_full_block_and_advance();
 				$block['innerBlocks'][]  = $inner_block;
 				$block['innerContent'][] = null;
@@ -1340,8 +1343,8 @@ class WP_Block_Processor {
 			 * may be matched on an HTML span. This needs to be processed before
 			 * moving on to the next token at the start of the next loop iteration.
 			 */
-			if ( $this->is_html() ) {
-				$chunk                   = $this->get_html_content();
+			if ( self::HTML_SPAN === $this->state ) {
+				$chunk                   = substr( $this->source_text, $this->after_previous_delimiter, $this->matched_delimiter_at - $this->after_previous_delimiter );
 				$block['innerHTML']     .= $chunk;
 				$block['innerContent'][] = $chunk;
 			}
@@ -1492,9 +1495,9 @@ class WP_Block_Processor {
 			return true;
 		}
 
-		if ( $this->is_html() ) {
+		if ( self::HTML_SPAN === $this->state ) {
 			// This is a core/freeform text block, it’s special.
-			if ( 0 === ( $this->open_blocks_length[0] ?? null ) ) {
+			if ( array() === $this->open_blocks_at ) {
 				return (
 					'core/freeform' === $block_type ||
 					'freeform' === $block_type
@@ -1621,7 +1624,7 @@ class WP_Block_Processor {
 	 */
 	public function opens_block( string ...$block_type ): bool {
 		// HTML spans only open implicit freeform content at the top level.
-		if ( self::HTML_SPAN === $this->state && 1 !== count( $this->open_blocks_at ) ) {
+		if ( self::HTML_SPAN === $this->state && array() !== $this->open_blocks_at ) {
 			return false;
 		}
 
@@ -1631,7 +1634,7 @@ class WP_Block_Processor {
 		 * following delimiter. Therefore the HTML case is handled by checking
 		 * the state and depth of the stack of open block.
 		 */
-		if ( self::CLOSER === $this->type && ! $this->is_html() ) {
+		if ( self::CLOSER === $this->type && self::HTML_SPAN !== $this->state ) {
 			return false;
 		}
 
@@ -1673,7 +1676,7 @@ class WP_Block_Processor {
 	 *              span containing non-whitespace text.
 	 */
 	public function is_non_whitespace_html(): bool {
-		if ( ! $this->is_html() ) {
+		if ( self::HTML_SPAN !== $this->state ) {
 			return false;
 		}
 
@@ -1697,7 +1700,7 @@ class WP_Block_Processor {
 	 * @return string|null Raw HTML content, or `null` if not currently matched on HTML.
 	 */
 	public function get_html_content(): ?string {
-		if ( ! $this->is_html() ) {
+		if ( self::HTML_SPAN !== $this->state ) {
 			return null;
 		}
 
@@ -1746,21 +1749,14 @@ class WP_Block_Processor {
 	 *                     if matched on an explicit delimiter, otherwise `null`.
 	 */
 	public function get_block_type(): ?string {
-		if (
-			self::READY === $this->state ||
-			self::COMPLETE === $this->state ||
-			self::INCOMPLETE_INPUT === $this->state
-		) {
-			return null;
-		}
-
-		// This is a core/freeform text block, it’s special.
-		if ( $this->is_html() ) {
+		if ( self::MATCHED !== $this->state ) {
 			return null;
 		}
 
 		$block_type = substr( $this->source_text, $this->namespace_at, $this->name_at - $this->namespace_at + $this->name_length );
-		return self::normalize_block_type( $block_type );
+
+		// The name starts where the namespace would when the namespace is the implicit “core”.
+		return $this->namespace_at === $this->name_at ? "core/{$block_type}" : $block_type;
 	}
 
 	/**
@@ -1800,23 +1796,14 @@ class WP_Block_Processor {
 	 *                     if matched on an explicit delimiter or freeform block, otherwise `null`.
 	 */
 	public function get_printable_block_type(): ?string {
-		if (
-			self::READY === $this->state ||
-			self::COMPLETE === $this->state ||
-			self::INCOMPLETE_INPUT === $this->state
-		) {
-			return null;
-		}
-
 		// This is a core/freeform text block, it’s special.
-		if ( $this->is_html() ) {
-			return 1 === count( $this->open_blocks_at )
+		if ( self::HTML_SPAN === $this->state ) {
+			return array() === $this->open_blocks_at
 				? 'core/freeform'
 				: '#innerHTML';
 		}
 
-		$block_type = substr( $this->source_text, $this->namespace_at, $this->name_at - $this->namespace_at + $this->name_length );
-		return self::normalize_block_type( $block_type );
+		return $this->get_block_type();
 	}
 
 	/**
@@ -1911,7 +1898,7 @@ class WP_Block_Processor {
 	public function allocate_and_return_parsed_attributes(): ?array {
 		$this->last_json_error = JSON_ERROR_NONE;
 
-		if ( self::CLOSER === $this->type || $this->is_html() || 0 === $this->json_length ) {
+		if ( self::CLOSER === $this->type || self::HTML_SPAN === $this->state || 0 === $this->json_length ) {
 			return null;
 		}
 
