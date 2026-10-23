@@ -122,7 +122,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 * does not result in a PHP warning.
 	 *
 	 * The warning that we should not see:
-	 * PHP <= 7.4: `Invalid argument supplied for foreach()`.
+	 * PHP 7.4: `Invalid argument supplied for foreach()`.
 	 * PHP 8.0 and higher: `Warning: foreach() argument must be of type array|object, bool given`.
 	 *
 	 * Note: This does not test the actual functioning of the WP_Media_List_Table::prepare_items() method.
@@ -206,7 +206,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_row_actions_should_include_action() {
+	public static function data_get_row_actions_should_include_action() {
 		return array(
 			'"edit" while not on "trash"'  => array(
 				'action'   => 'edit',
@@ -291,7 +291,7 @@ class Tests_Admin_wpMediaListTable extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_row_actions_should_not_include_action() {
+	public static function data_get_row_actions_should_not_include_action() {
 		return array(
 			'"edit" while on "trash"'               => array(
 				'action'   => 'edit',

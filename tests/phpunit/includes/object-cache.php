@@ -2171,7 +2171,7 @@ class WP_Object_Cache {
 			$group = 'default';
 		}
 
-		if ( false !== array_search( $group, $this->global_groups, true ) ) {
+		if ( in_array( $group, $this->global_groups, true ) ) {
 			$prefix = $this->global_prefix;
 		} else {
 			$prefix = $this->blog_prefix;
@@ -2364,11 +2364,7 @@ class WP_Object_Cache {
 	public function get_from_runtime_cache( $key, $group ) {
 		$derived_key = $this->buildKey( $key, $group );
 
-		if ( isset( $this->cache[ $derived_key ] ) ) {
-			return $this->cache[ $derived_key ];
-		}
-
-		return false;
+		return $this->cache[ $derived_key ] ?? false;
 	}
 
 	/**

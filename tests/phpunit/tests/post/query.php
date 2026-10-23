@@ -779,6 +779,23 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 47719
+	 */
+	public function test_post__in_should_return_no_posts_when_0() {
+		self::factory()->post->create_many( 4 );
+
+		$query = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'post__in'  => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->found_posts );
+	}
+
+	/**
 	 * @ticket 57296
 	 * @covers WP_Query::get_posts
 	 */

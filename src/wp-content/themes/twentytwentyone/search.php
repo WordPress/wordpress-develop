@@ -9,6 +9,11 @@
  * @since Twenty Twenty-One 1.0
  */
 
+/**
+ * @global WP_Query $wp_query WordPress Query object.
+ */
+global $wp_query;
+
 get_header();
 
 if ( have_posts() ) {
@@ -19,7 +24,7 @@ if ( have_posts() ) {
 			printf(
 				/* translators: %s: Search term. */
 				esc_html__( 'Results for "%s"', 'twentytwentyone' ),
-				'<span class="page-description search-term">' . esc_html( get_search_query() ) . '</span>'
+				'<span class="page-description search-term">' . esc_html( get_search_query( false ) ) . '</span>'
 			);
 			?>
 		</h1>

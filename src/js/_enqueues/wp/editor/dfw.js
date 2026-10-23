@@ -2,6 +2,13 @@
  * @output wp-admin/js/editor-expand.js
  */
 
+/**
+ * Handles the editor Distraction-Free Writing (DFW) functionality.
+ *
+ * @param {Window}       window    The global window object.
+ * @param {JQueryStatic} $         The jQuery object.
+ * @param {undefined}    undefined The undefined value.
+ */
 ( function( window, $, undefined ) {
 	'use strict';
 
@@ -166,8 +173,8 @@
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param {event} event The TinyMCE editor init event.
-		 * @param {object} editor The editor to bind the vents on.
+		 * @param {event}  event  The TinyMCE editor init event.
+		 * @param {Object} editor The editor to bind the vents on.
 		 *
 		 * @return {void}
 		 */
@@ -785,7 +792,7 @@
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param {function} callback The function to run in the timeout.
+		 * @param {Function} callback The function to run in the timeout.
 		 *
 		 * @return {void}
 		 */
@@ -1160,7 +1167,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */
@@ -1299,7 +1306,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param event The event that triggers this function.
+		 * @param {Event} event The event that triggers this function.
 		 *
 		 * @return {void}
 		 */
@@ -1353,6 +1360,12 @@
 			setTimeout( function() {
 				var position = document.activeElement.compareDocumentPosition( $editor.get( 0 ) );
 
+				/**
+				 * Determines whether the passed element has focus.
+				 *
+				 * @param {jQuery} $el The element to check for focus.
+				 * @return {boolean} True if the element has focus, false otherwise.
+				 */
 				function hasFocus( $el ) {
 					return $.contains( $el.get( 0 ), document.activeElement );
 				}
@@ -1460,8 +1473,8 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {event} event The TinyMCE editor setup event.
-		 * @param {object} editor The editor to add the button to.
+		 * @param {event}  event  The TinyMCE editor setup event.
+		 * @param {Object} editor The editor to add the button to.
 		 *
 		 * @return {void}
 		 */
@@ -1509,18 +1522,24 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {event} event The TinyMCE editor init event.
-		 * @param {object} editor The editor to bind events on.
+		 * @param {event}  event  The TinyMCE editor init event.
+		 * @param {Object} editor The editor to bind events on.
 		 *
 		 * @return {void}
 		 */
 		$document.on( 'tinymce-editor-init.focus', function( event, editor ) {
 			var mceBind, mceUnbind;
 
+			/**
+			 * Tracks when the TinyMCE editor receives focus.
+			 */
 			function focus() {
 				editorHasFocus = true;
 			}
 
+			/**
+			 * Tracks when the TinyMCE editor loses focus.
+			 */
 			function blur() {
 				editorHasFocus = false;
 			}
@@ -1562,12 +1581,12 @@
 		} );
 
 		/**
-		 *  Binds events on quicktags init.
+		 * Binds events on quicktags init.
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {event} event The quicktags init event.
-		 * @param {object} editor The editor to bind events on.
+		 * @param {event}  event  The quicktags init event.
+		 * @param {Object} editor The editor to bind events on.
 		 *
 		 * @return {void}
 		 */

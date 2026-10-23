@@ -10,7 +10,38 @@
 /**
  * Core class used to implement the WordPress REST API server.
  *
+ * The aliases below describe a route handler as {@see WP_REST_Server::get_routes()}
+ * returns it, once the defaults have been filled in and the methods normalized.
+ *
+ * An endpoint argument is a JSON Schema fragment, so the keys named here are only the
+ * ones WordPress reads itself. The rest are schema keywords, left to the open end of
+ * the shape and validated by {@see rest_validate_value_from_schema()}. See
+ * {@see rest_get_allowed_schema_keywords()} for the vocabulary the REST API exposes.
+ *
  * @since 4.4.0
+ *
+ * @phpstan-import-type Target_Hints from WP_REST_Response
+ *
+ * @phpstan-type Endpoint_Arg array{
+ *     required?: bool,
+ *     default?: mixed,
+ *     type?: string|list<string>,
+ *     validate_callback?: callable|false|null,
+ *     sanitize_callback?: callable|false|null,
+ *     ...
+ * }
+ * @phpstan-type Route_Handler array{
+ *     methods: array<uppercase-string, true>,
+ *     callback?: callable|null,
+ *     permission_callback?: callable|null,
+ *     validate_callback?: callable|null,
+ *     args: array<non-empty-string, Endpoint_Arg>,
+ *     accept_json: bool,
+ *     accept_raw: bool,
+ *     show_in_index: bool,
+ *     allow_batch?: array{v1?: bool}|false,
+ *     ...
+ * }
  */
 #[AllowDynamicProperties]
 class WP_REST_Server {
@@ -58,16 +89,28 @@ class WP_REST_Server {
 	/**
 	 * Namespaces registered to the server.
 	 *
+	 * Keyed by namespace, each value being the set of path regexes registered in it,
+	 * held as keys mapped to true so that a route cannot be registered twice.
+	 *
 	 * @since 4.4.0
 	 * @var array
+	 *
+	 * @phpstan-var array<string, array<non-empty-string, true>>
 	 */
 	protected $namespaces = array();
 
 	/**
 	 * Endpoints registered to the server.
 	 *
+	 * Keyed by path regex. Each value is a route exactly as it was registered, before
+	 * {@see WP_REST_Server::get_routes()} normalizes it: either a single endpoint's
+	 * arguments, or an array of them under numeric keys alongside the route's options
+	 * under their own non-numeric keys.
+	 *
 	 * @since 4.4.0
 	 * @var array
+	 *
+	 * @phpstan-var array<non-empty-string, array<array-key, mixed>>
 	 */
 	protected $endpoints = array();
 
@@ -76,6 +119,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 * @var array
+	 *
+	 * @phpstan-var array<non-empty-string, array<string, mixed>>
 	 */
 	protected $route_options = array();
 
@@ -166,8 +211,8 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return WP_Error|null|true WP_Error indicates unsuccessful login, null indicates successful
-	 *                            or no authentication provided
+	 * @return WP_Error|null|true WP_Error if authentication error occurred, null if authentication
+	 *                            method wasn't used, true if authentication succeeded.
 	 */
 	public function check_authentication() {
 		/**
@@ -191,7 +236,7 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param WP_Error|null|true $errors WP_Error if authentication error, null if authentication
+		 * @param WP_Error|null|true $errors WP_Error if authentication error occurred, null if authentication
 		 *                                   method wasn't used, true if authentication succeeded.
 		 */
 		return apply_filters( 'rest_authentication_errors', null );
@@ -224,10 +269,12 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $code    WP_Error-style code.
-	 * @param string $message Human-readable message.
-	 * @param int    $status  Optional. HTTP status code to send. Default null.
-	 * @return string JSON representation of the error
+	 * @param string   $code    WP_Error-style code.
+	 * @param string   $message Human-readable message.
+	 * @param int|null $status  Optional. HTTP status code to send. Default null.
+	 * @return string JSON representation of the error.
+	 *
+	 * @phpstan-param int<100, 599>|null $status
 	 */
 	protected function json_error( $code, $message, $status = null ) {
 		if ( $status ) {
@@ -245,7 +292,6 @@ class WP_REST_Server {
 	 * @since 6.1.0
 	 *
 	 * @param \WP_REST_Request $request The current request object.
-	 *
 	 * @return int The JSON encode options.
 	 */
 	protected function get_json_encode_options( WP_REST_Request $request ) {
@@ -260,7 +306,7 @@ class WP_REST_Server {
 		 *
 		 * @since 6.1.0
 		 *
-		 * @param int $options             JSON encoding options {@see json_encode()}.
+		 * @param int             $options JSON encoding options {@see json_encode()}.
 		 * @param WP_REST_Request $request Current request object.
 		 */
 		return apply_filters( 'rest_json_encode_options', $options, $request );
@@ -278,11 +324,17 @@ class WP_REST_Server {
 	 *
 	 * @global WP_User $current_user The currently authenticated user.
 	 *
-	 * @param string $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
-	 *                     Default null.
+	 * @param string|null $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
+	 *                          Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
+		// Refuse to start a fresh top-level REST cycle while another dispatch
+		// is already in flight. Internal sub-requests must use dispatch().
+		if ( $this->is_dispatching() ) {
+			return false;
+		}
+
 		/* @var WP_User|null $current_user */
 		global $current_user;
 
@@ -364,11 +416,7 @@ class WP_REST_Server {
 		}
 
 		if ( empty( $path ) ) {
-			if ( isset( $_SERVER['PATH_INFO'] ) ) {
-				$path = $_SERVER['PATH_INFO'];
-			} else {
-				$path = '/';
-			}
+			$path = $_SERVER['PATH_INFO'] ?? '/';
 		}
 
 		$request = new WP_REST_Request( $_SERVER['REQUEST_METHOD'], $path );
@@ -488,7 +536,7 @@ class WP_REST_Server {
 		 * Send no-cache headers if $send_no_cache_headers is true,
 		 * OR if the HTTP_X_HTTP_METHOD_OVERRIDE is used but resulted a 4xx response code.
 		 */
-		if ( $send_no_cache_headers || ( true === $method_overridden && str_starts_with( $code, '4' ) ) ) {
+		if ( $send_no_cache_headers || ( true === $method_overridden && $code >= 400 && $code < 500 ) ) {
 			foreach ( wp_get_nocache_headers() as $header => $header_value ) {
 				if ( empty( $header_value ) ) {
 					$this->remove_header( $header );
@@ -506,8 +554,7 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param bool             $served  Whether the request has already been served.
-		 *                                           Default false.
+		 * @param bool             $served  Whether the request has already been served. Default false.
 		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
 		 * @param WP_REST_Request  $request Request used to generate the response.
 		 * @param WP_REST_Server   $server  Server instance.
@@ -655,13 +702,21 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Gets the target links for a REST API Link.
+	 * Gets the target hints for a REST API Link.
 	 *
 	 * @since 6.7.0
 	 *
-	 * @param array $link
+	 * @param array<string, mixed> $link The link to get target hints for.
+	 * @return array<string, string[]>|null Map of hint name to list of values, which is empty if the route
+	 *                                      allows no methods. Null if the link already has an `allow` hint,
+	 *                                      or its URL does not resolve to a valid REST API request.
 	 *
-	 * @return array|null
+	 * @phpstan-param array{
+	 *     href: non-falsy-string,
+	 *     targetHints?: Target_Hints,
+	 *     ...<string, mixed>
+	 * } $link
+	 * @phpstan-return array<lowercase-string, list<string>>|null
 	 */
 	protected static function get_target_hints_for_link( $link ) {
 		// Prefer targetHints that were specifically designated by the developer.
@@ -697,7 +752,7 @@ class WP_REST_Server {
 		$headers = rest_send_allow_header( $response, $server, $request )->get_headers();
 
 		foreach ( $headers as $name => $value ) {
-			$name = WP_REST_Request::canonicalize_header_name( $name );
+			$name = $request::canonicalize_header_name( $name );
 
 			$target_hints[ $name ] = array_map( 'trim', explode( ',', $value ) );
 		}
@@ -764,6 +819,7 @@ class WP_REST_Server {
 	 *
 	 * @param array         $data  Data from the request.
 	 * @param bool|string[] $embed Whether to embed all links or a filtered list of link relations.
+	 *                             Default true.
 	 * @return array {
 	 *     Data with sub-requests embedded.
 	 *
@@ -894,6 +950,8 @@ class WP_REST_Server {
 	 * @param array  $route_args      Route arguments.
 	 * @param bool   $override        Optional. Whether the route should be overridden if it already exists.
 	 *                                Default false.
+	 *
+	 * @phpstan-param non-empty-string $route
 	 */
 	public function register_route( $route_namespace, $route, $route_args, $override = false ) {
 		if ( ! isset( $this->namespaces[ $route_namespace ] ) ) {
@@ -934,14 +992,18 @@ class WP_REST_Server {
 	/**
 	 * Retrieves the route map.
 	 *
-	 * The route map is an associative array with path regexes as the keys. The
-	 * value is an indexed array with the callback function/method as the first
-	 * item, and a bitmask of HTTP methods as the second item (see the class
-	 * constants).
+	 * The route map is an associative array with path regexes as the keys. The value
+	 * is an indexed array of the handlers registered for that route, each of them an
+	 * associative array of endpoint arguments: the callback, its permission callback,
+	 * the arguments it accepts, and the HTTP methods it responds to as a map of method
+	 * name to true.
 	 *
-	 * Each route can be mapped to more than one callback by using an array of
-	 * the indexed arrays. This allows mapping e.g. GET requests to one callback
-	 * and POST requests to another.
+	 * Each route can be mapped to more than one handler. This allows mapping e.g. GET
+	 * requests to one callback and POST requests to another.
+	 *
+	 * Route options, the non-numeric keys a route is registered with such as `schema`
+	 * and `namespace`, are not returned here. They are moved to
+	 * {@see WP_REST_Server::get_route_options()}.
 	 *
 	 * Note that the path regexes (array keys) must have @ escaped, as this is
 	 * used as the delimiter with preg_match()
@@ -950,8 +1012,10 @@ class WP_REST_Server {
 	 * @since 5.4.0 Added `$route_namespace` parameter.
 	 *
 	 * @param string $route_namespace Optionally, only return routes in the given namespace.
-	 * @return array `'/path/regex' => array( $callback, $bitmask )` or
-	 *               `'/path/regex' => array( array( $callback, $bitmask ), ...)`.
+	 * @return array Route map as `'/path/regex' => array( $handler, ... )`, where each
+	 *               `$handler` is an array of endpoint arguments.
+	 *
+	 * @phpstan-return array<non-empty-string, array<int, Route_Handler>>
 	 */
 	public function get_routes( $route_namespace = '' ) {
 		$endpoints = $this->endpoints;
@@ -965,10 +1029,12 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param array $endpoints The available endpoints. An array of matching regex patterns, each mapped
-		 *                         to an array of callbacks for the endpoint. These take the format
-		 *                         `'/path/regex' => array( $callback, $bitmask )` or
-		 *                         `'/path/regex' => array( array( $callback, $bitmask ).
+		 * @param array $endpoints The available endpoints, as registered and before normalization.
+		 *                         An array of matching regex patterns, each mapped either to a single
+		 *                         endpoint's arguments or to an array of them, alongside any route
+		 *                         options under their own non-numeric keys.
+		 *
+		 * @phpstan-param array<non-empty-string, array<array-key, mixed>> $endpoints
 		 */
 		$endpoints = apply_filters( 'rest_endpoints', $endpoints );
 
@@ -1007,7 +1073,15 @@ class WP_REST_Server {
 				if ( is_string( $handler['methods'] ) ) {
 					$methods = explode( ',', $handler['methods'] );
 				} elseif ( is_array( $handler['methods'] ) ) {
-					$methods = $handler['methods'];
+					$methods = array();
+
+					/*
+					 * Array values may themselves be comma-separated, either written that way or
+					 * because they are a multi-method constant such as WP_REST_Server::EDITABLE.
+					 */
+					foreach ( array_filter( $handler['methods'], 'is_string' ) as $method ) {
+						$methods = array_merge( $methods, explode( ',', $method ) );
+					}
 				} else {
 					$methods = array();
 				}
@@ -1020,6 +1094,12 @@ class WP_REST_Server {
 				}
 			}
 		}
+
+		/*
+		 * The loop above is what turns each registered handler into the documented shape,
+		 * but it does so by reference, which static analysis cannot follow.
+		 */
+		/** @phpstan-var array<non-empty-string, array<int, Route_Handler>> $endpoints */
 
 		return $endpoints;
 	}
@@ -1147,7 +1227,9 @@ class WP_REST_Server {
 	 * @since 5.6.0
 	 *
 	 * @param WP_REST_Request $request The request object.
-	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 * @return array<int, string|array<string, mixed>>|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 *
+	 * @phpstan-return array{non-empty-string, Route_Handler}|WP_Error
 	 */
 	protected function match_request_to_handler( $request ) {
 		$method = $request->get_method();
@@ -1228,11 +1310,13 @@ class WP_REST_Server {
 	 * @access private
 	 * @since 5.6.0
 	 *
-	 * @param WP_REST_Request $request  The request object.
-	 * @param string          $route    The matched route regex.
-	 * @param array           $handler  The matched route handler.
-	 * @param WP_Error|null   $response The current error object if any.
+	 * @param WP_REST_Request      $request  The request object.
+	 * @param string               $route    The matched route regex.
+	 * @param array<string, mixed> $handler  The matched route handler.
+	 * @param WP_Error|null        $response The current error object if any.
 	 * @return WP_REST_Response
+	 *
+	 * @phpstan-param Route_Handler $handler
 	 */
 	protected function respond_to_request( $request, $route, $handler, $response ) {
 		/**
@@ -1249,8 +1333,10 @@ class WP_REST_Server {
 		 *
 		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
-		 * @param array                                            $handler  Route handler used for the request.
+		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 *
+		 * @phpstan-param Route_Handler $handler
 		 */
 		$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
 
@@ -1278,10 +1364,12 @@ class WP_REST_Server {
 			 * @since 4.4.0
 			 * @since 4.5.0 Added `$route` and `$handler` parameters.
 			 *
-			 * @param mixed           $dispatch_result Dispatch result, will be used if not empty.
-			 * @param WP_REST_Request $request         Request used to generate the response.
-			 * @param string          $route           Route matched for the request.
-			 * @param array           $handler         Route handler used for the request.
+			 * @param mixed                $dispatch_result Dispatch result, will be used if not empty.
+			 * @param WP_REST_Request      $request         Request used to generate the response.
+			 * @param string               $route           Route matched for the request.
+			 * @param array<string, mixed> $handler         Route handler used for the request.
+			 *
+			 * @phpstan-param Route_Handler $handler
 			 */
 			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
 
@@ -1311,8 +1399,10 @@ class WP_REST_Server {
 		 *
 		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
 		 *                                                                   Usually a WP_REST_Response or WP_Error.
-		 * @param array                                            $handler  Route handler used for the request.
+		 * @param array<string, mixed>                             $handler  Route handler used for the request.
 		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 *
+		 * @phpstan-param Route_Handler $handler
 		 */
 		$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
 
@@ -1373,9 +1463,14 @@ class WP_REST_Server {
 			'routes'          => $this->get_data_for_routes( $this->get_routes(), $request['context'] ),
 		);
 
+		// Add media processing settings for users who can upload files.
+		if ( wp_is_client_side_media_processing_enabled() && current_user_can( 'upload_files' ) ) {
+			$available = array_merge( $available, _wp_get_client_side_media_image_settings() );
+		}
+
 		$response = new WP_REST_Response( $available );
 
-		$fields = isset( $request['_fields'] ) ? $request['_fields'] : '';
+		$fields = $request['_fields'] ?? '';
 		$fields = wp_parse_list( $fields );
 		if ( empty( $fields ) ) {
 			$fields[] = '_links';
@@ -1619,14 +1714,14 @@ class WP_REST_Server {
 				$data['namespace'] = $options['namespace'];
 			}
 
-			$allow_batch = isset( $options['allow_batch'] ) ? $options['allow_batch'] : false;
+			$allow_batch = $options['allow_batch'] ?? false;
 
 			if ( isset( $options['schema'] ) && 'help' === $context ) {
 				$data['schema'] = call_user_func( $options['schema'] );
 			}
 		}
 
-		$allowed_schema_keywords = array_flip( rest_get_allowed_schema_keywords() );
+		$allowed_schema_keywords = array_flip( wp_get_json_schema_allowed_keywords( 'rest-api' ) );
 
 		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
@@ -1641,7 +1736,7 @@ class WP_REST_Server {
 				'methods' => array_keys( $callback['methods'] ),
 			);
 
-			$callback_batch = isset( $callback['allow_batch'] ) ? $callback['allow_batch'] : $allow_batch;
+			$callback_batch = $callback['allow_batch'] ?? $allow_batch;
 
 			if ( $callback_batch ) {
 				$endpoint_data['allow_batch'] = $callback_batch;
@@ -1723,7 +1818,7 @@ class WP_REST_Server {
 				continue;
 			}
 
-			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
+			$single_request = new WP_REST_Request( $args['method'] ?? 'POST', $parsed_url['path'] );
 
 			if ( ! empty( $parsed_url['query'] ) ) {
 				$query_args = array();
@@ -1749,6 +1844,7 @@ class WP_REST_Server {
 		foreach ( $requests as $single_request ) {
 			if ( is_wp_error( $single_request ) ) {
 				$has_error    = true;
+				$matches[]    = $single_request;
 				$validation[] = $single_request;
 				continue;
 			}
@@ -1768,7 +1864,7 @@ class WP_REST_Server {
 					$allow_batch = $handler['allow_batch'];
 				} else {
 					$route_options = $this->get_route_options( $route );
-					$allow_batch   = isset( $route_options['allow_batch'] ) ? $route_options['allow_batch'] : false;
+					$allow_batch   = $route_options['allow_batch'] ?? false;
 				}
 
 				if ( ! is_array( $allow_batch ) || empty( $allow_batch['v1'] ) ) {
@@ -1877,6 +1973,8 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 *
 	 * @param int $code HTTP status.
+	 *
+	 * @phpstan-param int<100, 599> $code
 	 */
 	protected function set_status( $code ) {
 		status_header( $code );
@@ -1887,7 +1985,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string $key Header key.
+	 * @param string $key   Header key.
 	 * @param string $value Header value.
 	 */
 	public function send_header( $key, $value ) {
@@ -1907,7 +2005,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $headers Map of header name to header value.
+	 * @param array<string, string> $headers Map of header name to header value.
 	 */
 	public function send_headers( $headers ) {
 		foreach ( $headers as $key => $value ) {
@@ -1972,7 +2070,7 @@ class WP_REST_Server {
 			} elseif ( 'REDIRECT_HTTP_AUTHORIZATION' === $key && empty( $server['HTTP_AUTHORIZATION'] ) ) {
 				/*
 				 * In some server configurations, the authorization header is passed in this alternate location.
-				 * Since it would not be passed in in both places we do not check for both headers and resolve.
+				 * Since it would not be passed in both places we do not check for both headers and resolve.
 				 */
 				$headers['AUTHORIZATION'] = $value;
 			} elseif ( isset( $additional[ $key ] ) ) {

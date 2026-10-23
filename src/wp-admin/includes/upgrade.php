@@ -43,6 +43,8 @@ if ( ! function_exists( 'wp_install' ) ) :
 	 *     @type string $password         The password of the site owner, if their user account didn't already exist.
 	 *     @type string $password_message The explanatory message regarding the password.
 	 * }
+	 *
+	 * @phpstan-param '' $deprecated
 	 */
 	function wp_install(
 		$blog_title,
@@ -621,7 +623,7 @@ https://wordpress.org/
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param array $installed_email {
+		 * @param array   $installed_email {
 		 *     Used to build wp_mail().
 		 *
 		 *     @type string $to      The email address of the recipient.
@@ -629,11 +631,11 @@ https://wordpress.org/
 		 *     @type string $message The content of the email.
 		 *     @type string $headers Headers.
 		 * }
-		 * @param WP_User $user          The site administrator user object.
-		 * @param string  $blog_title    The site title.
-		 * @param string  $blog_url      The site URL.
-		 * @param string  $password      The site administrator's password. Note that a placeholder message
-		 *                               is usually passed instead of the user's actual password.
+		 * @param WP_User $user            The site administrator user object.
+		 * @param string  $blog_title      The site title.
+		 * @param string  $blog_url        The site URL.
+		 * @param string  $password        The site administrator's password. Note that a placeholder message
+		 *                                 is usually passed instead of the user's actual password.
 		 */
 		$installed_email = apply_filters( 'wp_installed_email', $installed_email, $user, $blog_title, $blog_url, $password );
 
@@ -886,8 +888,12 @@ function upgrade_all() {
 		upgrade_682();
 	}
 
-	if ( $wp_current_db_version < 60717 ) {
-		upgrade_690();
+	if ( $wp_current_db_version < 61644 ) {
+		upgrade_700();
+	}
+
+	if ( $wp_current_db_version < 64337 ) {
+		upgrade_720();
 	}
 
 	maybe_disable_link_manager();
@@ -1865,7 +1871,7 @@ function upgrade_340() {
 		if ( 'yes' === $wpdb->get_var( "SELECT autoload FROM $wpdb->options WHERE option_name = 'uninstall_plugins'" ) ) {
 			$uninstall_plugins = get_option( 'uninstall_plugins' );
 			delete_option( 'uninstall_plugins' );
-			add_option( 'uninstall_plugins', $uninstall_plugins, null, false );
+			add_option( 'uninstall_plugins', $uninstall_plugins, '', false );
 		}
 	}
 }
@@ -2037,24 +2043,14 @@ function upgrade_430_fix_comments() {
 
 	$content_length = $wpdb->get_col_length( $wpdb->comments, 'comment_content' );
 
-	if ( is_wp_error( $content_length ) ) {
-		return;
-	}
-
 	if ( false === $content_length ) {
 		$content_length = array(
 			'type'   => 'byte',
 			'length' => 65535,
 		);
-	} elseif ( ! is_array( $content_length ) ) {
-		$length         = (int) $content_length > 0 ? (int) $content_length : 65535;
-		$content_length = array(
-			'type'   => 'byte',
-			'length' => $length,
-		);
 	}
 
-	if ( 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
+	if ( ! is_array( $content_length ) || 'byte' !== $content_length['type'] || 0 === $content_length['length'] ) {
 		// Sites with malformed DB schemas are on their own.
 		return;
 	}
@@ -2486,27 +2482,44 @@ function upgrade_682() {
 }
 
 /**
- * Executes changes made in WordPress 6.9.0.
+ * Executes changes made in WordPress 7.0.
  *
  * @ignore
- * @since 6.9.0
+ * @since 7.0.0
+ *
+ * @global int  $wp_current_db_version The old (current) database version.
+ * @global wpdb $wpdb                  WordPress database abstraction object.
+ */
+function upgrade_700() {
+	global $wp_current_db_version, $wpdb;
+
+	// Migrate users with 'fresh' admin color to 'modern'.
+	if ( $wp_current_db_version < 61644 ) {
+		$wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'modern' ),
+			array(
+				'meta_key'   => 'admin_color',
+				'meta_value' => 'fresh',
+			)
+		);
+	}
+}
+
+/**
+ * Executes changes made in WordPress 7.2.
+ *
+ * @ignore
+ * @since 7.2.0
  *
  * @global int $wp_current_db_version The old (current) database version.
  */
-function upgrade_690() {
+function upgrade_720(): void {
 	global $wp_current_db_version;
 
-	if ( $wp_current_db_version < 60717 ) {
-		// Switch Hello Dolly from file to directory format. See #53323
-		$active_plugins = (array) get_option( 'active_plugins', array() );
-		$old_plugin     = 'hello.php';
-		$new_plugin     = 'hello-dolly/hello.php';
-		$key            = array_search( $old_plugin, $active_plugins, true );
-
-		if ( $key ) {
-			$active_plugins[ $key ] = $new_plugin;
-			update_option( 'active_plugins', $active_plugins );
-		}
+	// Grant the Secrets API's site-level capability to administrators.
+	if ( $wp_current_db_version < 64337 ) {
+		populate_roles_720();
 	}
 }
 
@@ -2659,6 +2672,12 @@ function upgrade_network() {
 		$network_id = get_main_network_id();
 		delete_network_option( $network_id, 'site_meta_supported' );
 		is_site_meta_supported();
+	}
+
+	// 7.2.0
+	if ( $wp_current_db_version < 64486 ) {
+		// The compression test that set this option was removed.
+		delete_site_option( 'can_compress_scripts' );
 	}
 }
 
@@ -2860,7 +2879,7 @@ function get_alloptions_110() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $setting Option name.
- * @return mixed
+ * @return mixed Option value.
  */
 function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionDoubleUnderscore,PHPCompatibility.FunctionNameRestrictions.ReservedFunctionNames.FunctionDoubleUnderscore
 	global $wpdb;
@@ -2879,7 +2898,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 		return __get_option( 'siteurl' );
 	}
 
-	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base' ), true ) ) {
+	if ( in_array( $setting, array( 'siteurl', 'home', 'category_base', 'tag_base', 'wp_random_base' ), true ) ) {
 		$option = untrailingslashit( $option );
 	}
 
@@ -3010,6 +3029,33 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 	$text_fields = array( 'tinytext', 'text', 'mediumtext', 'longtext' );
 	$blob_fields = array( 'tinyblob', 'blob', 'mediumblob', 'longblob' );
 	$int_fields  = array( 'tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint' );
+
+	/*
+	 * Display widths that a server applies by itself when an integer definition omits one.
+	 * MariaDB does this in every version, as did MySQL before 8.0.17.
+	 */
+	$int_display_widths = array(
+		'tinyint'   => array(
+			'signed'   => 4,
+			'unsigned' => 3,
+		),
+		'smallint'  => array(
+			'signed'   => 6,
+			'unsigned' => 5,
+		),
+		'mediumint' => array(
+			'signed'   => 9,
+			'unsigned' => 8,
+		),
+		'int'       => array(
+			'signed'   => 11,
+			'unsigned' => 10,
+		),
+		'bigint'    => array(
+			'signed'   => 20,
+			'unsigned' => 20,
+		),
+	);
 
 	$global_tables  = $wpdb->tables( 'global' );
 	$db_version     = $wpdb->db_version();
@@ -3189,6 +3235,12 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 				$fieldtype            = $matches[1];
 				$fieldtype_lowercased = strtolower( $fieldtype );
 
+				/*
+				 * `INTEGER` is an alias for `INT`, and the server reports the column as `int`,
+				 * so the alias never compares equal to the type it created.
+				 */
+				$fieldtype_lowercased = preg_replace( '/^integer\b/', 'int', $fieldtype_lowercased );
+
 				$fieldtype_without_parentheses = preg_replace(
 					'/'
 					. '(.+)'       // Field type, e.g. `int`.
@@ -3220,15 +3272,31 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					if ( in_array( $fieldtype_base, $int_fields, true ) && in_array( $tablefield_type_base, $int_fields, true )
 						&& $fieldtype_without_parentheses === $tablefield_type_without_parentheses
 					) {
-						/*
-						 * MySQL 8.0.17 or later does not support display width for integer data types,
-						 * so if display width is the only difference, it can be safely ignored.
-						 * Note: This is specific to MySQL and does not affect MariaDB.
-						 */
 						if ( version_compare( $db_version, '8.0.17', '>=' )
 							&& ! str_contains( $db_server_info, 'MariaDB' )
 						) {
+							/*
+							 * MySQL 8.0.17 or later does not support display width for integer data types,
+							 * so if display width is the only difference, it can be safely ignored.
+							 * Note: This is specific to MySQL and does not affect MariaDB.
+							 */
 							$do_change = false;
+						} elseif ( ! str_contains( $fieldtype_lowercased, '(' )
+							&& isset( $int_display_widths[ $fieldtype_base ] )
+						) {
+							/*
+							 * Every other server stores a default display width when the definition
+							 * omits one, so `DESCRIBE` reports a width the query never asked for.
+							 * The `ALTER TABLE` below cannot remove that width, which would leave the
+							 * same difference in place and repeat the query on every call.
+							 */
+							$signedness    = str_contains( $fieldtype_lowercased, 'unsigned' ) ? 'unsigned' : 'signed';
+							$default_width = $int_display_widths[ $fieldtype_base ][ $signedness ];
+							$padded_type   = $fieldtype_base . '(' . $default_width . ')' . substr( $fieldtype_lowercased, strlen( $fieldtype_base ) );
+
+							if ( $tablefield_type_lowercased === $padded_type ) {
+								$do_change = false;
+							}
 						}
 					}
 
@@ -3282,7 +3350,7 @@ function dbDelta( $queries = '', $execute = true ) { // phpcs:ignore WordPress.N
 					'fieldname' => $tableindex->Column_name,
 					'subpart'   => $tableindex->Sub_part,
 				);
-				$index_ary[ $keyname ]['unique']     = ( '0' === (string) $tableindex->Non_unique ) ? true : false;
+				$index_ary[ $keyname ]['unique']     = '0' === (string) $tableindex->Non_unique;
 				$index_ary[ $keyname ]['index_type'] = $tableindex->Index_type;
 			}
 
@@ -3403,7 +3471,7 @@ function make_db_current_silent( $tables = 'all' ) {
  *
  * @param string $theme_name The name of the theme.
  * @param string $template   The directory name of the theme.
- * @return bool
+ * @return bool True on success, false on failure.
  */
 function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$home_path   = get_home_path();

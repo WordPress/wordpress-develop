@@ -40,6 +40,7 @@ add_filter( 'media_upload_tabs', 'update_gallery_tab' );
 // Admin color schemes.
 add_action( 'admin_init', 'register_admin_color_schemes', 1 );
 add_action( 'admin_head', 'wp_color_scheme_settings' );
+add_action( 'admin_enqueue_scripts', 'wp_color_scheme_menu_icon_styles' );
 add_action( 'admin_color_scheme_picker', 'admin_color_scheme_picker' );
 
 // Misc hooks.
@@ -48,12 +49,13 @@ add_action( 'admin_init', 'send_frame_options_header', 10, 0 );
 add_action( 'admin_head', 'wp_admin_canonical_url' );
 add_action( 'admin_head', 'wp_site_icon' );
 add_action( 'admin_head', 'wp_admin_viewport_meta' );
+add_action( 'admin_head', 'wp_prefetch_admin_assets' );
 add_action( 'customize_controls_head', 'wp_admin_viewport_meta' );
 add_filter( 'nav_menu_meta_box_object', '_wp_nav_menu_meta_box_object' );
 
 // Prerendering.
 if ( ! is_customize_preview() ) {
-	add_filter( 'admin_print_styles', 'wp_resource_hints', 1 );
+	add_action( 'admin_print_styles', 'wp_resource_hints', 1 );
 }
 
 add_action( 'admin_print_scripts', 'print_emoji_detection_script' );
@@ -85,7 +87,7 @@ add_filter( 'wp_refresh_nonces', 'wp_refresh_heartbeat_nonces' );
 
 add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );
 
-add_action( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
+add_filter( 'use_block_editor_for_post_type', '_disable_block_editor_for_navigation_post_type', 10, 2 );
 add_action( 'edit_form_after_title', '_disable_content_editor_for_navigation_post_type' );
 add_action( 'edit_form_after_editor', '_enable_content_editor_for_navigation_post_type' );
 
@@ -120,7 +122,6 @@ add_action( 'install_themes_pre_theme-information', 'install_theme_information' 
 add_action( 'admin_init', 'default_password_nag_handler' );
 
 add_action( 'admin_notices', 'default_password_nag' );
-add_action( 'admin_notices', 'new_user_email_admin_notice' );
 
 add_action( 'profile_update', 'default_password_nag_edit_user', 10, 2 );
 

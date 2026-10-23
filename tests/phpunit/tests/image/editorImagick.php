@@ -665,8 +665,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			$this->markTestSkipped( 'The version of ImageMagick does not support removing alpha channels from PDFs.' );
 		}
 
-		$test_file     = DIR_TESTDATA . '/images/test-alpha.pdf';
-		$attachment_id = $this->factory->attachment->create_upload_object( $test_file );
+		$test_file = DIR_TESTDATA . '/images/test-alpha.pdf';
+
+		$editor = wp_get_image_editor( $test_file );
+		if ( is_wp_error( $editor ) ) {
+			$this->markTestSkipped( $editor->get_error_message() );
+		}
+
+		$attachment_id = self::factory()->attachment->create_upload_object( $test_file );
 		$this->assertNotEmpty( $attachment_id, 'The attachment was not created before testing.' );
 
 		$attached_file = get_attached_file( $attachment_id );
@@ -836,14 +842,15 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing
+	 * Tests that the 'png:IHDR.color-type-orig' property is preserved after resizing.
 	 * Used to identify indexed PNG images, see https://www.w3.org/TR/PNG-Chunks.html#C.IHDR.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_png_color_type_after_resize
 	 *
-	 * @param string $file_path             Path to the image file.
-	 * @param int    $expected_color_type   The expected original color type.
+	 * @param string $file_path           Path to the image file.
+	 * @param int    $expected_color_type The expected original color type.
 	 */
 	public function test_png_color_type_is_preserved_after_resize( $file_path, $expected_color_type ) {
 
@@ -902,6 +909,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Tests that alpha transparency is preserved after resizing.
 	 *
 	 * @ticket 63448
+	 *
 	 * @dataProvider data_alpha_transparency_is_preserved_after_resize
 	 *
 	 * @param string $file_path Path to the image file.

@@ -2,12 +2,15 @@
  * @output wp-admin/js/theme-plugin-editor.js
  */
 
-/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1] }] */
+/* eslint no-magic-numbers: ["error", { "ignore": [-1, 0, 1, 9, 1000] }] */
 
 if ( ! window.wp ) {
 	window.wp = {};
 }
 
+/**
+ * @param {JQueryStatic} $ The jQuery object.
+ */
 wp.themePluginEditor = (function( $ ) {
 	'use strict';
 	var component, TreeLinks,
@@ -26,9 +29,9 @@ wp.themePluginEditor = (function( $ ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {jQuery}         form - Form element.
-	 * @param {Object}         settings - Settings.
-	 * @param {Object|boolean} settings.codeEditor - Code editor settings (or `false` if syntax highlighting is disabled).
+	 * @param {jQuery}         form                Form element.
+	 * @param {Object}         settings            Settings.
+	 * @param {Object|boolean} settings.codeEditor Code editor settings (or `false` if syntax highlighting is disabled).
 	 * @return {void}
 	 */
 	component.init = function init( form, settings ) {
@@ -79,6 +82,18 @@ wp.themePluginEditor = (function( $ ) {
 				component.docsLookUpButton.prop( 'disabled', true );
 			} else {
 				component.docsLookUpButton.prop( 'disabled', false );
+			}
+		} );
+
+		// Initiate saving the file when not focused in CodeMirror or when the user has syntax highlighting turned off.
+		$( window ).on( 'keydown', function( event ) {
+			if (
+				( event.ctrlKey || event.metaKey ) &&
+				( 's' === event.key.toLowerCase() ) &&
+				( ! component.instance || ! component.instance.codemirror.hasFocus() )
+			) {
+				event.preventDefault();
+				component.form.trigger( 'submit' );
 			}
 		} );
 	};
@@ -172,7 +187,7 @@ wp.themePluginEditor = (function( $ ) {
 	 * Submit file via Ajax.
 	 *
 	 * @since 4.9.0
-	 * @param {jQuery.Event} event - Event.
+	 * @param {jQuery.Event} event Event.
 	 * @return {void}
 	 */
 	component.submit = function( event ) {
@@ -189,6 +204,10 @@ wp.themePluginEditor = (function( $ ) {
 
 		if ( component.isSaving ) {
 			return;
+		}
+
+		if ( component.instance && component.instance.updateErrorNotice ) {
+			component.instance.updateErrorNotice();
 		}
 
 		// Scroll to the line that has the error.
@@ -254,12 +273,12 @@ wp.themePluginEditor = (function( $ ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {Object}   notice - Notice.
-	 * @param {string}   notice.code - Code.
-	 * @param {string}   notice.type - Type.
-	 * @param {string}   notice.message - Message.
-	 * @param {boolean}  [notice.dismissible=false] - Dismissible.
-	 * @param {Function} [notice.onDismiss] - Callback for when a user dismisses the notice.
+	 * @param {Object}   notice                     Notice.
+	 * @param {string}   notice.code                Code.
+	 * @param {string}   notice.type                Type.
+	 * @param {string}   notice.message             Message.
+	 * @param {boolean}  [notice.dismissible=false] Dismissible.
+	 * @param {Function} [notice.onDismiss]         Callback for when a user dismisses the notice.
 	 * @return {jQuery} Notice element.
 	 */
 	component.addNotice = function( notice ) {
@@ -295,7 +314,7 @@ wp.themePluginEditor = (function( $ ) {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param {string} code - Notice code.
+	 * @param {string} code Notice code.
 	 * @return {boolean} Whether a notice was removed.
 	 */
 	component.removeNotice = function( code ) {
@@ -347,7 +366,7 @@ wp.themePluginEditor = (function( $ ) {
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {Array} errors - List of linting errors.
+		 * @param {Array} errors List of linting errors.
 		 * @return {void}
 		 */
 		codeEditorSettings.onChangeLintingErrors = function( errors ) {
@@ -364,7 +383,7 @@ wp.themePluginEditor = (function( $ ) {
 		 *
 		 * @since 4.9.0
 		 *
-		 * @param {Array} errorAnnotations - Error annotations.
+		 * @param {Array} errorAnnotations Error annotations.
 		 * @return {void}
 		 */
 		codeEditorSettings.onUpdateErrorNotice = function onUpdateErrorNotice( errorAnnotations ) {
@@ -398,6 +417,19 @@ wp.themePluginEditor = (function( $ ) {
 
 		editor = wp.codeEditor.initialize( $( '#newcontent' ), codeEditorSettings );
 		editor.codemirror.on( 'change', component.onChange );
+
+		/**
+		 * Handles the save shortcut (Ctrl+S / Cmd+S).
+		 */
+		function onSaveShortcut() {
+			component.form.trigger( 'submit' );
+		}
+
+		editor.codemirror.setOption( 'extraKeys', {
+			...( editor.codemirror.getOption( 'extraKeys' ) || {} ),
+			'Ctrl-S': onSaveShortcut,
+			'Cmd-S': onSaveShortcut,
+		} );
 
 		// Improve the editor accessibility.
 		$( editor.codemirror.display.lineDiv )
@@ -448,10 +480,6 @@ wp.themePluginEditor = (function( $ ) {
 		} );
 	};
 
-	/* jshint ignore:start */
-	/* jscs:disable */
-	/* eslint-disable */
-
 	/**
 	 * Creates a new TreeitemLink.
 	 *
@@ -463,26 +491,24 @@ wp.themePluginEditor = (function( $ ) {
 	 */
 	var TreeitemLink = (function () {
 		/**
-		 *   This content is licensed according to the W3C Software License at
-		 *   https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
+		 * This content is licensed according to the W3C Software License at
+		 * https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
 		 *
-		 *   File:   TreeitemLink.js
+		 * File:   TreeitemLink.js
 		 *
-		 *   Desc:   Treeitem widget that implements ARIA Authoring Practices
-		 *           for a tree being used as a file viewer
+		 * Desc:   Treeitem widget that implements ARIA Authoring Practices
+		 * for a tree being used as a file viewer
 		 *
-		 *   Author: Jon Gunderson, Ku Ja Eun and Nicholas Hoyt
+		 * Author: Jon Gunderson, Ku Ja Eun and Nicholas Hoyt
 		 */
 
 		/**
-		 *   @constructor
+		 * @class
 		 *
-		 *   @desc
-		 *       Treeitem object for representing the state and user interactions for a
-		 *       treeItem widget
+		 * Treeitem object for representing the state and user interactions for a
+		 * treeItem widget
 		 *
-		 *   @param node
-		 *       An element with the role=tree attribute
+		 * @param node An element with the role=tree attribute
 		 */
 
 		var TreeitemLink = function (node, treeObj, group) {
@@ -573,15 +599,25 @@ wp.themePluginEditor = (function( $ ) {
 		/* EVENT HANDLERS */
 
 		TreeitemLink.prototype.handleKeydown = function (event) {
-			var tgt = event.currentTarget,
-				flag = false,
-				_char = event.key,
-				clickEvent;
+			var flag = false,
+				_char = event.key;
 
+			/**
+			 * Determines whether a character is a printable character.
+			 *
+			 * @param {string} str The character to check.
+			 * @return {boolean} True if the character is printable, false otherwise.
+			 */
 			function isPrintableCharacter(str) {
 				return str.length === 1 && str.match(/\S/);
 			}
 
+			/**
+			 * Handles printable character key press.
+			 *
+			 * @param {TreeitemLink} item The tree item link instance.
+			 * @return {void}
+			 */
 			function printableCharacter(item) {
 				if (_char == '*') {
 					item.tree.expandAllSiblingItems(item);
@@ -708,7 +744,7 @@ wp.themePluginEditor = (function( $ ) {
 			}
 		};
 
-		TreeitemLink.prototype.handleFocus = function (event) {
+		TreeitemLink.prototype.handleFocus = function () {
 			var node = this.domNode;
 			if (this.isExpandable) {
 				node = node.firstElementChild;
@@ -716,7 +752,7 @@ wp.themePluginEditor = (function( $ ) {
 			node.classList.add('focus');
 		};
 
-		TreeitemLink.prototype.handleBlur = function (event) {
+		TreeitemLink.prototype.handleBlur = function () {
 			var node = this.domNode;
 			if (this.isExpandable) {
 				node = node.firstElementChild;
@@ -785,7 +821,14 @@ wp.themePluginEditor = (function( $ ) {
 		};
 
 		TreeLinks.prototype.init = function () {
-
+			/**
+			 * Finds all treeitems and groups and creates object instances.
+			 *
+			 * @param {Element}              node  The DOM node to search for treeitems.
+			 * @param {TreeLinks}            tree  The TreeLinks instance.
+			 * @param {TreeitemLink|boolean} group The parent TreeitemLink instance or false if there is no parent.
+			 * @return {void}
+			 */
 			function findTreeitems(node, tree, group) {
 
 				var elem = node.firstElementChild;
@@ -994,10 +1037,6 @@ wp.themePluginEditor = (function( $ ) {
 		return TreeLinks;
 	})();
 
-	/* jshint ignore:end */
-	/* jscs:enable */
-	/* eslint-enable */
-
 	return component;
 })( jQuery );
 
@@ -1007,7 +1046,7 @@ wp.themePluginEditor = (function( $ ) {
  * @since 4.9.0
  * @deprecated 5.5.0
  *
- * @type {object}
+ * @type {Object}
  */
 wp.themePluginEditor.l10n = wp.themePluginEditor.l10n || {
 	saveAlert: '',

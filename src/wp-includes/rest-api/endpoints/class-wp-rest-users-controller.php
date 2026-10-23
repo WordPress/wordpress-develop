@@ -165,21 +165,30 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	/**
 	 * Checks for a valid value for the reassign parameter when deleting users.
 	 *
-	 * The value can be an integer, 'false', false, or ''.
+	 * The value is expected to be an integer, a numeric string, 'false', false, or ''.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param int|bool        $value   The value passed to the reassign parameter.
+	 * @param mixed           $value   The value passed to the reassign parameter.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter that is being sanitized.
-	 * @return int|bool|WP_Error
+	 * @return int|float|string|false|WP_Error The value unchanged if it is numeric, false if posts should not
+	 *                                         be reassigned, or a WP_Error if the value is invalid.
+	 *
+	 * @phpstan-template T
+	 * @phpstan-param T $value
+	 * @phpstan-return (
+	 *     T is numeric
+	 *         ? T
+	 *         : ( T is empty|'false' ? false : WP_Error )
+	 * )
 	 */
 	public function check_reassign( $value, $request, $param ) {
 		if ( is_numeric( $value ) ) {
 			return $value;
 		}
 
-		if ( empty( $value ) || false === $value || 'false' === $value ) {
+		if ( empty( $value ) || 'false' === $value ) {
 			return false;
 		}
 
@@ -333,9 +342,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 				$prepared_args['search_columns'] = array( 'ID', 'user_login', 'user_nicename', 'display_name' );
 			}
 			$search_columns         = $request->get_param( 'search_columns' );
-			$valid_columns          = isset( $prepared_args['search_columns'] )
-				? $prepared_args['search_columns']
-				: array( 'ID', 'user_login', 'user_nicename', 'user_email', 'display_name' );
+			$valid_columns          = $prepared_args['search_columns'] ?? array( 'ID', 'user_login', 'user_nicename', 'user_email', 'display_name' );
 			$search_columns_mapping = array(
 				'id'       => 'ID',
 				'username' => 'user_login',
@@ -399,10 +406,13 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		$total_users = $query->get_total();
 
 		if ( $total_users < 1 ) {
-			// Out-of-bounds, run the query again without LIMIT for total count.
+			// Out-of-bounds, run the query without pagination/offset to get the total count.
 			unset( $prepared_args['number'], $prepared_args['offset'] );
-			$count_query = new WP_User_Query( $prepared_args );
-			$total_users = $count_query->get_total();
+
+			$prepared_args['number'] = 1;
+			$prepared_args['fields'] = 'ID';
+			$count_query             = new WP_User_Query( $prepared_args );
+			$total_users             = $count_query->get_total();
 		}
 
 		$response->header( 'X-WP-Total', (int) $total_users );

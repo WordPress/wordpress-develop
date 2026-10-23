@@ -29,7 +29,7 @@ if ( extension_loaded( 'mbstring' ) ) :
 	 *  byte sequence required by UTF-8, and that no sequence encodes a UTF-16 surrogate
 	 *  code point or any character above the representable range.
 	 *
-	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
+	 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-3/#G32860
 	 *
 	 * @since 6.9.0
 	 *
@@ -101,7 +101,7 @@ if (
 	 *
 	 * @since 6.9.0
 	 *
-	 * @see https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
+	 * @link https://www.unicode.org/versions/Unicode16.0.0/core-spec/chapter-5/#G40630
 	 *
 	 * @param string $text String which is assumed to be UTF-8 but may contain invalid sequences of bytes.
 	 * @return string Input text with invalid sequences of bytes replaced with the Unicode replacement character.
@@ -133,3 +133,41 @@ else :
 		return _wp_scrub_utf8_fallback( $text );
 	}
 endif;
+
+/**
+ * Returns whether the given string contains Unicode noncharacters.
+ *
+ * XML recommends against using noncharacters and HTML forbids their
+ * use in attribute names. Unicode recommends that they not be used
+ * in open exchange of data.
+ *
+ * Noncharacters are code points within the following ranges:
+ *  - U+FDD0–U+FDEF
+ *  - U+FFFE–U+FFFF
+ *  - U+1FFFE, U+1FFFF, U+2FFFE, U+2FFFF, …, U+10FFFE, U+10FFFF
+ *
+ * @link https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-23/#G12612
+ * @link https://www.w3.org/TR/xml/#charsets
+ * @link https://html.spec.whatwg.org/#attributes-2
+ *
+ * @since 6.9.0
+ *
+ * @param string $text Are there noncharacters in this string?
+ * @return bool Whether noncharacters were found in the string.
+ */
+function wp_has_noncharacters( string $text ): bool {
+	/*
+	 * Match the UTF-8 byte sequences directly so malformed UTF-8 elsewhere
+	 * in the subject does not cause PCRE's Unicode mode to reject the string.
+	 */
+	return 1 === preg_match(
+		'~
+			# U+FDD0-U+FDEF, U+FFFE-U+FFFF
+			\xEF(?:\xB7[\x90-\xAF]|\xBF[\xBE\xBF])
+			|
+			# U+nFFFE/U+nFFFF
+			(?:\xF0[\x9F\xAF\xBF]|[\xF1-\xF3][\x8F\x9F\xAF\xBF]|\xF4\x8F)\xBF[\xBE\xBF]
+		~x',
+		$text
+	);
+}

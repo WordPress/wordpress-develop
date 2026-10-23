@@ -22,6 +22,9 @@ $parent_file = 'options-general.php';
 /* translators: Date and time format for exact current time, mainly about timezones, see https://www.php.net/manual/datetime.format.php */
 $timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 
+$new_admin_email         = get_option( 'new_admin_email' );
+$pending_new_admin_email = $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email;
+
 add_action( 'admin_head', 'options_general_add_js' );
 
 $options_help = '<p>' . __( 'The fields on this screen determine some of the basics of your site setup.' ) . '</p>' .
@@ -66,6 +69,36 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
+
+<?php
+if ( isset( $_GET['admin_email_updated'] ) ) {
+	$message = '<strong>' . __( 'Administration email updated.' ) . '</strong>';
+	wp_admin_notice(
+		$message,
+		array(
+			'id'          => 'message',
+			'dismissible' => true,
+			'type'        => 'success',
+		)
+	);
+}
+
+$pending_admin_email_cancel_request_link = sprintf(
+	' <a href="%1$s">%2$s</a>',
+	esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
+	_x( 'Cancel request', 'admin email change' )
+);
+
+if ( $pending_new_admin_email ) {
+	$message = sprintf(
+		/* translators: %s: New administration email address. */
+		__( 'The administration email address has not been updated yet. Please check the inbox at %s for a confirmation email.' ),
+		'<code>' . esc_html( $new_admin_email ) . '</code>'
+	);
+	$message .= $pending_admin_email_cancel_request_link;
+	wp_admin_notice( $message, array( 'type' => 'info' ) );
+}
+?>
 
 <form method="post" action="options.php" novalidate="novalidate">
 <?php settings_fields( 'general' ); ?>
@@ -190,7 +223,7 @@ $tagline_description = sprintf(
 			data-choose-text="<?php esc_attr_e( 'Choose a Site Icon' ); ?>"
 			data-update-text="<?php esc_attr_e( 'Change Site Icon' ); ?>"
 			data-update="<?php esc_attr_e( 'Set as Site Icon' ); ?>"
-			data-state="<?php echo esc_attr( has_site_icon() ); ?>"
+			data-state="<?php echo has_site_icon() ? '1' : ''; ?>"
 
 		>
 			<?php if ( has_site_icon() ) : ?>
@@ -202,7 +235,7 @@ $tagline_description = sprintf(
 		<button
 			id="js-remove-site-icon"
 			type="button"
-			<?php echo has_site_icon() ? 'class="button button-secondary reset remove-site-icon"' : 'class="button button-secondary reset hidden"'; ?>
+			<?php echo has_site_icon() ? 'class="button button-secondary reset remove-site-icon"' : 'class="button button-secondary reset remove-site-icon hidden"'; ?>
 		>
 			<?php _e( 'Remove Site Icon' ); ?>
 		</button>
@@ -212,7 +245,7 @@ $tagline_description = sprintf(
 		<?php
 			printf(
 				/* translators: 1: pixel value for icon size. 2: pixel value for icon size. */
-				__( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <code>%1$s by %2$s</code> pixels.' ),
+				__( 'The Site Icon is what you see in browser tabs, bookmark bars, and within the WordPress mobile apps. It should be square and at least <strong>%1$s by %2$s</strong> pixels.' ),
 				512,
 				512
 			);
@@ -266,22 +299,18 @@ if ( ! is_multisite() ) {
 <td><input name="new_admin_email" type="email" id="new_admin_email" aria-describedby="new-admin-email-description" value="<?php form_option( 'admin_email' ); ?>" class="regular-text ltr" />
 <p class="description" id="new-admin-email-description"><?php _e( 'This address is used for admin purposes. If you change this, an email will be sent to your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?></p>
 <?php
-$new_admin_email = get_option( 'new_admin_email' );
-if ( $new_admin_email && get_option( 'admin_email' ) !== $new_admin_email ) {
+if ( $pending_new_admin_email ) {
 	$pending_admin_email_message = sprintf(
-		/* translators: %s: New admin email. */
-		__( 'There is a pending change of the admin email to %s.' ),
+		/* translators: %s: New administration email address. */
+		__( 'There is a pending change of the administration email to %s.' ),
 		'<code>' . esc_html( $new_admin_email ) . '</code>'
 	);
-	$pending_admin_email_message .= sprintf(
-		' <a href="%1$s">%2$s</a>',
-		esc_url( wp_nonce_url( admin_url( 'options.php?dismiss=new_admin_email' ), 'dismiss-' . get_current_blog_id() . '-new_admin_email' ) ),
-		__( 'Cancel' )
-	);
+	$pending_admin_email_message .= $pending_admin_email_cancel_request_link;
 	wp_admin_notice(
 		$pending_admin_email_message,
 		array(
-			'additional_classes' => array( 'updated', 'inline' ),
+			'type'               => 'info',
+			'additional_classes' => array( 'inline' ),
 		)
 	);
 }
@@ -304,7 +333,28 @@ if ( ! is_multisite() ) {
 <tr>
 <th scope="row"><label for="default_role"><?php _e( 'New User Default Role' ); ?></label></th>
 <td>
-<select name="default_role" id="default_role"><?php wp_dropdown_roles( get_option( 'default_role' ) ); ?></select>
+	<?php
+	/**
+	 * Filters the roles to be excluded from the default_role option.
+	 *
+	 * @since 7.0.0
+	 *
+	 * @param string[] $roles_to_exclude Array of roles to exclude from the dropdown.
+	 *                                   Defaults to administrator and editor.
+	 */
+	$excluded_roles = (array) apply_filters( 'default_role_dropdown_excluded_roles', array( 'administrator', 'editor' ) );
+
+	$editable_roles = array_reverse( get_editable_roles() );
+
+	$selected = get_option( 'default_role' );
+
+	foreach ( $editable_roles as $role => $details ) {
+		if ( in_array( $role, $excluded_roles, true ) && $role !== $selected ) {
+			unset( $editable_roles[ $role ] );
+		}
+	}
+	?>
+	<select name="default_role" id="default_role"><?php wp_dropdown_roles( $selected, $editable_roles ); ?></select>
 </td>
 </tr>
 
@@ -445,7 +495,8 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 				__( 'Standard time begins on: %s.' );
 			printf(
 				$message,
-				'<code>' . wp_date( __( 'F j, Y' ) . ' ' . __( 'g:i a' ), $transitions[1]['ts'] ) . '</code>'
+				/* translators: Localized date and time format, see https://www.php.net/manual/datetime.format.php */
+				'<code>' . wp_date( __( 'F j, Y g:i a' ), $transitions[1]['ts'] ) . '</code>'
 			);
 		} else {
 			_e( 'This timezone does not observe daylight saving time.' );
@@ -479,20 +530,11 @@ if ( empty( $tzstring ) ) { // Create a UTC+- zone if no timezone string exists.
 
 foreach ( $date_formats as $format ) {
 	echo "\t<label><input type='radio' name='date_format' value='" . esc_attr( $format ) . "'";
-
 	if ( get_option( 'date_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
-		'<code>' . esc_html( $format ) . '</code>';
-
-	if ( __( 'F j, Y' ) === $format ) {
-		echo ' ' . __( '(Site language default)' );
-	}
-
-	echo "</label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
 }
 
 	echo '<label><input type="radio" name="date_format" id="date_format_custom_radio" value="\c\u\s\t\o\m"';
@@ -533,20 +575,11 @@ foreach ( $date_formats as $format ) {
 
 foreach ( $time_formats as $format ) {
 	echo "\t<label><input type='radio' name='time_format' value='" . esc_attr( $format ) . "'";
-
 	if ( get_option( 'time_format' ) === $format ) { // checked() uses "==" rather than "===".
 		echo " checked='checked'";
 		$custom = false;
 	}
-
-	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span>' .
-		'<code>' . esc_html( $format ) . '</code>';
-
-	if ( __( 'g:i a' ) === $format ) {
-		echo ' ' . __( '(Site language default)' );
-	}
-
-	echo "</label><br />\n";
+	echo ' /> <span class="date-time-text format-i18n">' . date_i18n( $format ) . '</span><code>' . esc_html( $format ) . "</code></label><br />\n";
 }
 
 	echo '<label><input type="radio" name="time_format" id="time_format_custom_radio" value="\c\u\s\t\o\m"';

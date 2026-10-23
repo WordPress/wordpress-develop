@@ -279,7 +279,7 @@ class Custom_Background {
 <table class="form-table" role="presentation">
 <tbody>
 <tr>
-<th scope="row"><?php _e( 'Preview' ); ?></th>
+<th scope="row"><?php echo esc_html_x( 'Preview', 'noun' ); ?></th>
 <td>
 		<?php
 		if ( $this->admin_image_div_callback ) {
@@ -569,6 +569,8 @@ class Custom_Background {
 	 * Media Manager.
 	 *
 	 * @since 4.1.0
+	 *
+	 * @return never
 	 */
 	public function ajax_background_add() {
 		check_ajax_referer( 'background-add', 'nonce' );
@@ -591,8 +593,8 @@ class Custom_Background {
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
 	 *
-	 * @param array $form_fields
-	 * @return array $form_fields
+	 * @param array $form_fields An array of attachment form fields.
+	 * @return array Unmodified form fields.
 	 */
 	public function attachment_fields_to_edit( $form_fields ) {
 		return $form_fields;
@@ -602,8 +604,8 @@ class Custom_Background {
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
 	 *
-	 * @param array $tabs
-	 * @return array $tabs
+	 * @param array $tabs An array of media upload tabs.
+	 * @return array Unmodified upload tabs.
 	 */
 	public function filter_upload_tabs( $tabs ) {
 		return $tabs;
@@ -612,6 +614,8 @@ class Custom_Background {
 	/**
 	 * @since 3.4.0
 	 * @deprecated 3.5.0
+	 *
+	 * @return never
 	 */
 	public function wp_set_background_image() {
 		check_ajax_referer( 'custom-background' );

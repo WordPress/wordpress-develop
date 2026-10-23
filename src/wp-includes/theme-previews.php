@@ -61,7 +61,7 @@ function wp_attach_theme_preview_middleware() {
  * Sets the JavaScript global WP_BLOCK_THEME_ACTIVATE_NONCE containing the nonce
  * required to activate a theme. For use within the site editor.
  *
- * @see https://github.com/WordPress/gutenberg/pull/41836
+ * @link https://github.com/WordPress/gutenberg/pull/41836
  *
  * @since 6.3.0
  * @access private
@@ -69,7 +69,7 @@ function wp_attach_theme_preview_middleware() {
 function wp_block_theme_activate_nonce() {
 	$nonce_handle = 'switch-theme_' . wp_get_theme_preview_path();
 	?>
-	<script type="text/javascript">
+	<script>
 		window.WP_BLOCK_THEME_ACTIVATE_NONCE = <?php echo wp_json_encode( wp_create_nonce( $nonce_handle ), JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ); ?>;
 	</script>
 	<?php
