@@ -15,7 +15,6 @@
  * @covers ::wp_is_random_content_query
  * @covers ::wp_get_random_content_post_types
  * @covers ::wp_random_content_flush_rewrite_rules_for_post
- * @covers ::wp_random_content_split_the_query
  * @covers ::wp_is_random_content_redirect_enabled
  */
 class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
@@ -1489,26 +1488,45 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 	 * Database queries.
 	 */
 
-	public function test_random_post_is_selected_with_a_single_database_query(): void {
-		$this->go_to_and_record_queries( home_url( '/random/' ) );
-
-		$this->assertNotNull( $this->redirect_location, 'The single database query request did not redirect.' );
-		$this->assertCount( 1, $this->queries, "Only one database query should be made to select the random post:\n" . implode( "\n", $this->queries ) );
-		$this->assertStringContainsString( 'RAND()', $this->queries[0], 'The random query should be the only query made.' );
-	}
-
 	/**
+	 * The random order is applied to post IDs only, so the database sorts IDs rather than
+	 * full rows, including post content, of every eligible post.
+	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 */
-	public function test_random_query_selects_a_single_full_post_row(): void {
+	public function test_random_post_is_selected_by_a_single_random_id_query(): void {
 		global $wpdb;
 
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
-		$this->assertMatchesRegularExpression( "/SELECT\s+{$wpdb->posts}\.\*/", $this->queries[0], 'The query should not be split into an ID query and a post query.' );
-		$this->assertMatchesRegularExpression( '/ORDER BY RAND\(\)/', $this->queries[0], 'The query should use a random order.' );
-		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $this->queries[0], 'The query should select a single post.' );
-		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $this->queries[0], 'The query should not count found rows.' );
+		$this->assertNotNull( $this->redirect_location, 'The request did not redirect.' );
+
+		$random_queries = array_values( preg_grep( '/RAND\(\)/', $this->queries ) );
+		$this->assertCount( 1, $random_queries, "Exactly one random query should be made:\n" . implode( "\n", $this->queries ) );
+		$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.ID\s+FROM/", $random_queries[0], 'The random query should select post IDs only.' );
+		$this->assertMatchesRegularExpression( '/ORDER BY RAND\(\)/', $random_queries[0], 'The query should use a random order.' );
+		$this->assertMatchesRegularExpression( '/LIMIT 0, 1\s*$/', $random_queries[0], 'The query should select a single post.' );
+		$this->assertStringNotContainsString( 'SQL_CALC_FOUND_ROWS', $random_queries[0], 'The query should not count found rows.' );
+	}
+
+	/**
+	 * At most one more query is made, to load the selected post by its ID.
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 */
+	public function test_random_post_is_loaded_by_id_after_the_random_query(): void {
+		global $wpdb;
+
+		wp_cache_flush();
+
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+
+		$this->assertLessThanOrEqual( 2, count( $this->queries ), "No more than two database queries should be made to select the random post:\n" . implode( "\n", $this->queries ) );
+		$this->assertStringContainsString( 'RAND()', $this->queries[0], 'The random query should be made first.' );
+
+		if ( isset( $this->queries[1] ) ) {
+			$this->assertMatchesRegularExpression( "/^\s*SELECT\s+{$wpdb->posts}\.\*\s+FROM\s+{$wpdb->posts}\s+WHERE\s+ID\s+IN\s+\(\d+\)/", $this->queries[1], 'The second query should load the selected post by its ID.' );
+		}
 	}
 
 	/**
@@ -1526,19 +1544,24 @@ class Tests_Query_RandomContentRedirect extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_random_query_is_not_split_with_persistent_object_cache(): void {
+	/**
+	 * The random ID query must never be served from the query cache, or the same post
+	 * would be selected until the cache is invalidated.
+	 */
+	public function test_random_query_is_not_cached_with_persistent_object_cache(): void {
 		$using_ext_cache = wp_using_ext_object_cache( true );
 
+		$this->go_to_and_record_queries( home_url( '/random/' ) );
+		$first_request_queries = $this->queries;
+
+		$this->queries           = array();
+		$this->redirect_location = null;
 		$this->go_to_and_record_queries( home_url( '/random/' ) );
 
 		wp_using_ext_object_cache( $using_ext_cache );
 
-		$this->assertCount( 1, $this->queries, "Only one database query should be made with a persistent object cache:\n" . implode( "\n", $this->queries ) );
-	}
-
-	public function test_split_the_query_is_unchanged_for_other_queries(): void {
-		$this->assertTrue( wp_random_content_split_the_query( true, new WP_Query() ), 'Splitting should remain enabled for non-random queries.' );
-		$this->assertFalse( wp_random_content_split_the_query( false, new WP_Query() ), 'Splitting should remain disabled for non-random queries.' );
+		$this->assertCount( 1, preg_grep( '/RAND\(\)/', $first_request_queries ), 'The first request should run the random query.' );
+		$this->assertCount( 1, preg_grep( '/RAND\(\)/', $this->queries ), "The second request should run the random query again rather than reuse a cached result:\n" . implode( "\n", $this->queries ) );
 	}
 
 	public function test_random_selection_varies_between_requests(): void {
