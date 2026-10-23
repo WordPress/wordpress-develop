@@ -199,9 +199,7 @@ function wpmu_delete_user( $id ) {
 	}
 
 	$meta = $wpdb->get_col( $wpdb->prepare( "SELECT umeta_id FROM $wpdb->usermeta WHERE user_id = %d", $id ) );
-	foreach ( $meta as $mid ) {
-		delete_metadata_by_mid( 'user', $mid );
-	}
+	bulk_delete_metadata_by_mid( 'user', $meta );
 
 	$wpdb->delete( $wpdb->users, array( 'ID' => $id ) );
 
