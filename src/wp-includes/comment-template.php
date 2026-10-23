@@ -616,7 +616,17 @@ function get_comment_date( $format = '', $comment_id = 0 ) {
 
 	$_format = ! empty( $format ) ? $format : get_option( 'date_format' );
 
-	$comment_date = mysql2date( $_format, $comment->comment_date );
+	$comment_date = false;
+	$datetime     = empty( $comment->comment_date ) ? false : date_create( $comment->comment_date, wp_timezone() );
+
+	if ( false !== $datetime ) {
+		if ( 'U' === $_format || 'G' === $_format ) {
+			// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+			$comment_date = $datetime->getTimestamp() + $datetime->getOffset();
+		} else {
+			$comment_date = wp_date( $_format, $datetime->getTimestamp() );
+		}
+	}
 
 	/**
 	 * Filters the returned comment date.
@@ -1119,7 +1129,24 @@ function get_comment_time( $format = '', $gmt = false, $translate = true, $comme
 
 	$_format = ! empty( $format ) ? $format : get_option( 'time_format' );
 
-	$comment_time = mysql2date( $_format, $comment_date, $translate );
+	$timezone     = $gmt ? new DateTimeZone( 'UTC' ) : wp_timezone();
+	$comment_time = false;
+	$datetime     = empty( $comment_date ) ? false : date_create( $comment_date, $timezone );
+
+	if ( false !== $datetime ) {
+		if ( 'U' === $_format || 'G' === $_format ) {
+			$comment_time = $datetime->getTimestamp();
+
+			// Returns a sum of timestamp with timezone offset. Ideally should never be used.
+			if ( ! $gmt ) {
+				$comment_time += $datetime->getOffset();
+			}
+		} elseif ( $translate ) {
+			$comment_time = wp_date( $_format, $datetime->getTimestamp(), $timezone );
+		} else {
+			$comment_time = $datetime->format( $_format );
+		}
+	}
 
 	/**
 	 * Filters the returned comment time.

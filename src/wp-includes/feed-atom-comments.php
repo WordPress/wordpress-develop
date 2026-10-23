@@ -107,8 +107,8 @@ while ( have_comments() ) :
 		</author>
 
 		<id><?php comment_guid(); ?></id>
-		<updated><?php echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ?></updated>
-		<published><?php echo mysql2date( 'Y-m-d\TH:i:s\Z', get_comment_time( 'Y-m-d H:i:s', true, false ), false ); ?></published>
+		<updated><?php echo get_comment_time( 'Y-m-d\TH:i:s\Z', true, false ); ?></updated>
+		<published><?php echo get_comment_time( 'Y-m-d\TH:i:s\Z', true, false ); ?></published>
 
 		<?php if ( post_password_required( $comment_post ) ) : ?>
 			<content type="html" xml:base="<?php comment_link(); ?>"><![CDATA[<?php echo get_the_password_form(); ?>]]></content>

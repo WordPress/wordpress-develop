@@ -76,7 +76,7 @@ while ( have_posts() ) :
 	<link><?php the_permalink_rss(); ?></link>
 
 	<dc:creator><![CDATA[<?php the_author(); ?>]]></dc:creator>
-	<dc:date><?php echo mysql2date( 'Y-m-d\TH:i:s\Z', $post->post_date_gmt, false ); ?></dc:date>
+	<dc:date><?php echo get_post_time( 'Y-m-d\TH:i:s\Z', true ); ?></dc:date>
 	<?php the_category_rss( 'rdf' ); ?>
 
 	<?php if ( get_option( 'rss_use_excerpt' ) ) : ?>
