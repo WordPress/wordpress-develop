@@ -60,16 +60,14 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 			)
 		);
 
-		$block = array(
-			'blockName'    => $this->test_block_name,
-			'attrs'        => $settings ? array( 'settings' => $settings ) : array(),
-			'innerBlocks'  => array(),
-			'innerHTML'    => '',
-			'innerContent' => array(),
+		$block_content = get_comment_delimited_block_content(
+			$this->test_block_name,
+			$settings ? array( 'settings' => $settings ) : array(),
+			''
 		);
 
 		// Compare the real rendering path before and after adding the earlier filter.
-		$normal_content = render_block( $block );
+		$normal_content = do_blocks( $block_content );
 		$this->assertSame( 1, $render_calls );
 		$render_calls = 0;
 
@@ -90,7 +88,7 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 				: null;
 		}
 
-		$actual = render_block( $block );
+		$actual = do_blocks( $block_content );
 		$this->assertSame( null === $pre_render ? $normal_content : $pre_render, $actual );
 		$this->assertSame( null === $pre_render ? 1 : 0, $render_calls );
 		$this->assertSame( 1, $filter_calls );
