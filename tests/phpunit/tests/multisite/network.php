@@ -493,7 +493,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	/**
 	 * @ticket 55926
 	 */
-	public function data_upload_size_limit_filter_empty_fileupload_maxk() {
+	public static function data_upload_size_limit_filter_empty_fileupload_maxk() {
 		return array(
 			array( '__return_zero' ),
 			array( '__return_empty_string' ),
@@ -530,7 +530,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_is_large_network() {
+	public static function data_wp_is_large_network() {
 		return array(
 			array( 'sites', 10000, false, false ),
 			array( 'sites', 10001, true, false ),
@@ -564,7 +564,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_is_large_network_filtered_by_component() {
+	public static function data_wp_is_large_network_filtered_by_component() {
 		return array(
 			array( 'sites', 10000, false, false ),
 			array( 'sites', 10001, true, false ),
@@ -606,7 +606,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 		}
 	}
 
-	public function data_wp_is_large_network_filtered_by_network() {
+	public static function data_wp_is_large_network_filtered_by_network() {
 		return array(
 			array( 'sites', 10000, false, false ),
 			array( 'sites', 10001, true, false ),
@@ -731,7 +731,7 @@ class Tests_Multisite_Network extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ mixed }>
 	 */
-	public function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
+	public static function data_get_instance_treats_a_poisoned_cache_value_as_a_cache_miss(): array {
 		return array(
 			'true'                     => array( true ),
 			'a non-numeric string'     => array( 'not-a-network' ),
