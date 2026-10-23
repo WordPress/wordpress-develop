@@ -46,8 +46,10 @@ function wp_get_view_transitions_admin_css(): string {
  * right after the admin menu rather than the menu itself: once `#wpcontent` starts, the whole
  * menu has been parsed. Targeting an element near the end of the body would also work, but it
  * would delay the first render by the time it takes to parse all of the page content. The media
- * query limits the first-render delay to when view transitions actually run, matching the
- * `@view-transition` rule in view-transitions.css.
+ * query limits the first-render delay to when view transitions can run, matching the
+ * `@view-transition` rule in view-transitions.css. It does not detect whether a transition is
+ * actually in progress, so a reload or a direct visit is also held until `#wpcontent` is parsed,
+ * but since that element starts right after the admin menu, the delay is negligible.
  *
  * Nothing is printed unless the admin View Transitions style has already been printed, since
  * there is otherwise no transition to wait for. That style is only enqueued from
