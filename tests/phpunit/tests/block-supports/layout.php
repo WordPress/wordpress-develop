@@ -42,11 +42,10 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_stylesheet = get_stylesheet();
-		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
-
+		$this->original_stylesheet     = get_stylesheet();
 		$this->original_theme_switched = get_option( 'theme_switched' );
+		$this->theme_root              = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir          = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
