@@ -219,6 +219,25 @@ function wp_is_valid_icon_name( $icon_name ) {
  * @return string SVG markup for the icon, or empty string if not found.
  */
 function wp_get_icon( $name, $args = array() ) {
+	/**
+	 * Filters whether to short-circuit the wp_get_icon() output.
+	 *
+	 * Returning a non-null value bypasses icon lookup and SVG processing, including
+	 * sizing and accessibility attributes. Callbacks should return complete SVG
+	 * markup, or an empty string to suppress the icon.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string|null $svg  The SVG markup to return. Default null.
+	 * @param string      $name The icon name.
+	 * @param array       $args The arguments passed to wp_get_icon().
+	 */
+	$pre = apply_filters( 'pre_wp_get_icon', null, $name, $args );
+
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
 	$icon = WP_Icons_Registry::get_instance()->get_registered_icon( $name );
 	if ( is_null( $icon ) ) {
 		return '';

@@ -157,6 +157,62 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66344
+	 * @dataProvider data_pre_wp_get_icon_output
+	 *
+	 * @param string $expected The short-circuited output.
+	 */
+	public function test_pre_wp_get_icon_bypasses_lookup_and_output_filter( $expected ) {
+		$args          = array( 'size' => 32 );
+		$filter        = function ( $pre, $name, $received_args ) use ( $expected, $args ) {
+			$this->assertNull( $pre );
+			$this->assertSame( 'unregistered/icon', $name );
+			$this->assertSame( $args, $received_args );
+
+			return $expected;
+		};
+		$output_filter = static function () {
+			return 'The output filter should not run.';
+		};
+
+		add_filter( 'pre_wp_get_icon', $filter, 10, 3 );
+		add_filter( 'wp_get_icon', $output_filter );
+
+		try {
+			$this->assertSame( $expected, wp_get_icon( 'unregistered/icon', $args ) );
+		} finally {
+			remove_filter( 'pre_wp_get_icon', $filter, 10 );
+			remove_filter( 'wp_get_icon', $output_filter );
+		}
+	}
+
+	/**
+	 * Data provider for test_pre_wp_get_icon_bypasses_lookup_and_output_filter().
+	 *
+	 * @return array[]
+	 */
+	public function data_pre_wp_get_icon_output() {
+		return array(
+			'custom SVG' => array( '<svg><circle cx="12" cy="12" r="10" /></svg>' ),
+			'no icon'    => array( '' ),
+		);
+	}
+
+	/**
+	 * @ticket 66344
+	 */
+	public function test_pre_wp_get_icon_null_preserves_normal_processing() {
+		$expected = wp_get_icon( 'core/plus', array( 'size' => 32 ) );
+		add_filter( 'pre_wp_get_icon', '__return_null' );
+
+		try {
+			$this->assertSame( $expected, wp_get_icon( 'core/plus', array( 'size' => 32 ) ) );
+		} finally {
+			remove_filter( 'pre_wp_get_icon', '__return_null' );
+		}
+	}
+
+	/**
 	 * @ticket 64847
 	 */
 	public function test_wp_get_icon_escapes_attributes() {
