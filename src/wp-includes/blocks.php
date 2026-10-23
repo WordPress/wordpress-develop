@@ -1277,6 +1277,24 @@ function apply_block_hooks_to_content_from_post_object(
 	$callback = 'insert_hooked_blocks',
 	&$ignored_hooked_blocks_at_root = null
 ) {
+	/*
+	 * If no blocks are hooked, either via a block type's `block_hooks` property or
+	 * the `hooked_block_types` filter, there is nothing to insert, so skip parsing
+	 * and re-serializing the content.
+	 * This check has to run before the temporary `hooked_block_types` filter is added below,
+	 * as `has_filter()` would always return true afterwards.
+	 * Template part blocks still need their `theme` attribute set, and callers that ask
+	 * for the ignored hooked blocks at the root level still need them populated.
+	 */
+	if (
+		null === $ignored_hooked_blocks_at_root &&
+		empty( get_hooked_blocks() ) &&
+		! has_filter( 'hooked_block_types' ) &&
+		! has_block( 'core/template-part', $content )
+	) {
+		return $content;
+	}
+
 	// Default to the current post if no context is provided.
 	if ( null === $post ) {
 		$post = get_post();
