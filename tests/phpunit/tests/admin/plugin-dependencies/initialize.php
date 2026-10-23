@@ -62,7 +62,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public function data_static_properties_set_during_initialization() {
+	public static function data_static_properties_set_during_initialization() {
 		/*
 		 * This does not include 'dependency_api_data' as it is only set
 		 * on certain pages. This is tested later.
@@ -117,7 +117,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public function data_screens() {
+	public static function data_screens() {
 		return array(
 			'plugins.php'        => array(
 				'screen' => 'plugins.php',
@@ -167,7 +167,7 @@ class Tests_Admin_WPPluginDependencies_Initialize extends WP_PluginDependencies_
 	 *
 	 * @return array[]
 	 */
-	public function data_should_sanitize_slugs() {
+	public static function data_should_sanitize_slugs() {
 		return array(
 			// Valid slugs.
 			'one dependency'                         => array(

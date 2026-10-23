@@ -68,7 +68,7 @@ class Tests_Comment_CommentTime extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_output_the_same_value_that_get_comment_time_returns() {
+	public static function data_should_output_the_same_value_that_get_comment_time_returns() {
 		return array(
 			'an empty format'   => array(
 				'format' => '',
