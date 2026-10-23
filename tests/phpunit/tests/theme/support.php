@@ -274,30 +274,77 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure adding classic editor styles does not add block editor styles support.
+	 *
 	 * @ticket 60826
 	 *
 	 * @covers ::add_editor_style
+	 */
+	public function test_adding_classic_editor_styles_does_not_add_block_editor_styles_support() {
+		add_editor_style( 'style.css' );
+
+		$this->assertTrue( current_theme_supports( 'editor-style' ), 'The theme should support classic editor styles.' );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ), 'The theme should not support block editor styles.' );
+	}
+
+	/**
+	 * Ensure adding block editor styles support does not add classic editor styles support.
+	 *
+	 * @ticket 60826
+	 *
+	 * @covers ::add_theme_support
+	 */
+	public function test_adding_block_editor_styles_support_does_not_add_classic_editor_styles() {
+		add_theme_support( 'editor-styles' );
+
+		$this->assertTrue( current_theme_supports( 'editor-styles' ), 'The theme should support block editor styles.' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ), 'The theme should not support classic editor styles.' );
+	}
+
+	/**
+	 * Ensure removing classic editor styles does not remove block editor styles support.
+	 *
+	 * @ticket 60826
+	 *
 	 * @covers ::remove_editor_styles
+	 */
+	public function test_removing_classic_editor_styles_does_not_remove_block_editor_styles_support() {
+		add_editor_style( 'style.css' );
+		add_theme_support( 'editor-styles' );
+
+		$this->assertTrue( remove_editor_styles(), 'Removing classic editor styles should succeed.' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ), 'The theme should no longer support classic editor styles.' );
+		$this->assertTrue( current_theme_supports( 'editor-styles' ), 'The theme should still support block editor styles.' );
+	}
+
+	/**
+	 * Ensure removing block editor styles support does not remove classic editor styles.
+	 *
+	 * @ticket 60826
+	 *
 	 * @covers ::remove_theme_support
+	 */
+	public function test_removing_block_editor_styles_support_does_not_remove_classic_editor_styles() {
+		add_editor_style( 'style.css' );
+		add_theme_support( 'editor-styles' );
+
+		$this->assertTrue( remove_theme_support( 'editor-styles' ), 'Removing block editor styles support should succeed.' );
+		$this->assertFalse( current_theme_supports( 'editor-styles' ), 'The theme should no longer support block editor styles.' );
+		$this->assertTrue( current_theme_supports( 'editor-style' ), 'The theme should still support classic editor styles.' );
+	}
+
+	/**
+	 * Ensure adding block editor styles support loads registered stylesheets in the block editor.
+	 *
+	 * @ticket 60826
+	 *
 	 * @covers ::get_block_editor_theme_styles
 	 */
-	public function test_editor_style_singular_and_editor_styles_plural_are_distinct() {
-		add_theme_support( 'editor-styles' );
-		$this->assertFalse( current_theme_supports( 'editor-style' ), "add_theme_support( 'editor-styles' ) should not add 'editor-style' support." );
-		$this->assertSame( array(), get_block_editor_theme_styles(), "'editor-styles' support alone should not load any stylesheets." );
-		$this->assertTrue( remove_theme_support( 'editor-styles' ), "'editor-styles' should be removable with remove_theme_support()." );
-
+	public function test_adding_block_editor_styles_support_loads_stylesheets_in_block_editor() {
 		add_editor_style( 'style.css' );
-		$this->assertTrue( current_theme_supports( 'editor-style' ), "add_editor_style() should add 'editor-style' support." );
-		$this->assertFalse( current_theme_supports( 'editor-styles' ), "add_editor_style() should not add 'editor-styles' support." );
-		$this->assertSame( array(), get_block_editor_theme_styles(), "Stylesheets should not load in the block editor without 'editor-styles' support." );
+		$this->assertSame( array(), get_block_editor_theme_styles(), 'Stylesheets should not load in the block editor without block editor styles support.' );
 
 		add_theme_support( 'editor-styles' );
-		$this->assertCount( 1, get_block_editor_theme_styles(), "Stylesheets should load in the block editor with 'editor-styles' support." );
-
-		$this->assertFalse( remove_theme_support( 'editor-style' ), "'editor-style' should not be removable with remove_theme_support()." );
-		$this->assertTrue( remove_editor_styles(), 'remove_editor_styles() should return true when stylesheets were added.' );
-		$this->assertFalse( current_theme_supports( 'editor-style' ), "remove_editor_styles() should remove 'editor-style' support." );
-		$this->assertTrue( current_theme_supports( 'editor-styles' ), "remove_editor_styles() should not remove 'editor-styles' support." );
+		$this->assertCount( 1, get_block_editor_theme_styles(), 'Stylesheets should load in the block editor with block editor styles support.' );
 	}
 }
