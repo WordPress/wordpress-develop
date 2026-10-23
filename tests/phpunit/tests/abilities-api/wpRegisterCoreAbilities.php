@@ -455,6 +455,72 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests field selection through direct execution, without REST input coercion.
+	 *
+	 * @dataProvider data_core_ability_field_lists
+	 *
+	 * @param string       $ability_name    Ability name.
+	 * @param array|string $fields          Field selection input.
+	 * @param array|null   $expected_fields Expected fields, or null for invalid input.
+	 */
+	public function test_core_ability_field_lists( string $ability_name, $fields, ?array $expected_fields ): void {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
+
+		$ability = wp_get_ability( $ability_name );
+		$result  = $ability->execute( array( 'fields' => $fields ) );
+
+		if ( null === $expected_fields ) {
+			$this->assertWPError( $result );
+			$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+			return;
+		}
+
+		$expected = $ability->execute();
+		$this->assertIsArray( $expected );
+		if ( ! empty( $expected_fields ) ) {
+			$expected = array_intersect_key( $expected, array_flip( $expected_fields ) );
+		}
+
+		$this->assertSame( $expected, $result );
+	}
+
+	/**
+	 * Provides array and string field selections for the core information abilities.
+	 *
+	 * @return array
+	 */
+	public static function data_core_ability_field_lists(): array {
+		$abilities = array(
+			'core/get-site-info'        => array( 'name', 'url' ),
+			'core/get-user-info'        => array( 'id', 'display_name' ),
+			'core/get-environment-info' => array( 'environment', 'php_version' ),
+		);
+		$datasets  = array();
+
+		foreach ( $abilities as $ability_name => $fields ) {
+			$cases = array(
+				'array'           => array( $fields, $fields ),
+				'csv'             => array( implode( ',', $fields ), $fields ),
+				'whitespace'      => array( implode( " \t\n", $fields ), $fields ),
+				'duplicates'      => array( ', ' . implode( ',, ', $fields ) . ',' . $fields[0] . ',', $fields ),
+				'empty array'     => array( array(), array() ),
+				'empty string'    => array( '', array() ),
+				'only separators' => array( " , \t\n,, ", array() ),
+				'invalid csv'     => array( $fields[0] . ',not_a_real_field', null ),
+				'invalid array'   => array( array( $fields[0], 'not_a_real_field' ), null ),
+			);
+
+			foreach ( $cases as $case => $values ) {
+				$datasets[ $ability_name . ': ' . $case ] = array( $ability_name, $values[0], $values[1] );
+			}
+		}
+
+		return $datasets;
+	}
+
+	/**
 	 * Tests that all core ability schemas only use valid JSON Schema keywords.
 	 *
 	 * This prevents regressions where invalid keywords like 'examples' are used
