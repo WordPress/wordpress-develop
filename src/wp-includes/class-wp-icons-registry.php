@@ -21,6 +21,14 @@ class WP_Icons_Registry {
 	protected $registered_icons = array();
 
 	/**
+	 * Resolved path of the core icon library directory.
+	 *
+	 * @since 7.2.0
+	 * @var string|false|null
+	 */
+	private $core_icon_library_directory = null;
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @since 7.0.0
@@ -410,13 +418,11 @@ class WP_Icons_Registry {
 	 * @return bool Whether the file is in the core icon library.
 	 */
 	private function is_core_icon_file( $icon_path ) {
-		static $library_directory = null;
-
-		if ( null === $library_directory ) {
-			$library_directory = realpath( ABSPATH . WPINC . '/images/icon-library' );
+		if ( null === $this->core_icon_library_directory ) {
+			$this->core_icon_library_directory = realpath( ABSPATH . WPINC . '/images/icon-library' );
 		}
 
-		return is_string( $library_directory ) && str_starts_with( $icon_path, $library_directory . DIRECTORY_SEPARATOR );
+		return is_string( $this->core_icon_library_directory ) && str_starts_with( $icon_path, $this->core_icon_library_directory . DIRECTORY_SEPARATOR );
 	}
 
 	/**
