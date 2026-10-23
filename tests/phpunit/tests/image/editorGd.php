@@ -674,4 +674,92 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$this->assertTrue( $loaded );
 	}
+
+	/**
+	 * Tests that resizing an opaque indexed PNG saves an indexed PNG, like the original.
+	 *
+	 * @ticket 66262
+	 */
+	public function test_resize_opaque_indexed_png_saves_indexed_png() {
+		$file = DIR_TESTDATA . '/images/png-tests/cloudflare-status.png';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+		$gd_image_editor->resize( 300, 300 );
+
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+		$gd_image_editor->save( $save_to_file );
+
+		$color_type = $this->get_png_color_type( $save_to_file );
+
+		unlink( $save_to_file );
+
+		$this->assertSame( 3, $color_type, 'A resized opaque indexed PNG should be saved as an indexed PNG (color type 3).' );
+	}
+
+	/**
+	 * Tests that resizing an indexed PNG with transparency keeps the transparency.
+	 *
+	 * @ticket 66262
+	 */
+	public function test_resize_indexed_png_with_transparency_preserves_alpha() {
+		$file = DIR_TESTDATA . '/images/png-tests/test8.png';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+		$gd_image_editor->resize( 300, 300 );
+
+		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
+		$gd_image_editor->save( $save_to_file );
+
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0, 0 ), 127 );
+
+		unlink( $save_to_file );
+	}
+
+	/**
+	 * Tests that saving a resized opaque indexed PNG does not prevent a later WebP save from the same editor.
+	 *
+	 * @ticket 66262
+	 */
+	public function test_resize_opaque_indexed_png_then_save_webp() {
+		if ( ! ( imagetypes() & IMG_WEBP ) ) {
+			$this->markTestSkipped( 'This test requires WebP support in GD.' );
+		}
+
+		$file = DIR_TESTDATA . '/images/png-tests/cloudflare-status.png';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+		$gd_image_editor->resize( 300, 300 );
+
+		$png_file  = tempnam( get_temp_dir(), '' ) . '.png';
+		$webp_file = tempnam( get_temp_dir(), '' ) . '.webp';
+
+		$png_result  = $gd_image_editor->save( $png_file, 'image/png' );
+		$webp_result = $gd_image_editor->save( $webp_file, 'image/webp' );
+
+		$webp_size = file_exists( $webp_file ) ? filesize( $webp_file ) : 0;
+		$webp_mime = wp_get_image_mime( $webp_file );
+
+		unlink( $png_file );
+		unlink( $webp_file );
+
+		$this->assertNotWPError( $png_result, 'Saving the PNG should succeed.' );
+		$this->assertNotWPError( $webp_result, 'Saving the WebP after the PNG should succeed.' );
+		$this->assertGreaterThan( 0, $webp_size, 'The WebP file should not be empty.' );
+		$this->assertSame( 'image/webp', $webp_mime, 'The saved file should be a WebP image.' );
+	}
+
+	/**
+	 * Reads the color type from a PNG file's IHDR chunk.
+	 *
+	 * @param string $file Path to the PNG file.
+	 * @return int PNG color type.
+	 */
+	private function get_png_color_type( $file ) {
+		$header = file_get_contents( $file, false, null, 0, 26 );
+
+		return ord( $header[25] );
+	}
 }
