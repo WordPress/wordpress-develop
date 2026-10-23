@@ -12682,6 +12682,11 @@ mockedApiResponse.Schema = {
                         "PATCH",
                         "DELETE"
                     ],
+                    "response_processing": {
+                        "fields": false,
+                        "embed": false,
+                        "links": false
+                    },
                     "args": {
                         "name": {
                             "description": "Unique identifier for the ability.",
