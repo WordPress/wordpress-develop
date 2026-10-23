@@ -17,7 +17,7 @@ class Walker {
 	 * What the class handles.
 	 *
 	 * @since 2.1.0
-	 * @var string
+	 * @var string|string[]
 	 */
 	public $tree_type;
 
