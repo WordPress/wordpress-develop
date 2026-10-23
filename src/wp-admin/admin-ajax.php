@@ -89,6 +89,7 @@ $core_actions_post = array(
 	'sample-permalink',
 	'inline-save',
 	'inline-save-tax',
+	'inline-edit-custom-box',
 	'find_posts',
 	'widgets-order',
 	'save-widget',
