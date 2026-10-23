@@ -1254,7 +1254,7 @@ class WP_REST_Server {
 			// The response matched no handler, so it follows the settings of the handler the request would match.
 			$match = $this->find_handler_for_request( $request );
 			if ( null !== $match ) {
-				$result->set_data_processing( self::resolve_data_processing( $match[1], $this->get_route_options( $match[0] ) ) );
+				$result->set_data_processing( $match[1]['data_processing'] ?? true );
 			}
 
 			array_pop( $this->dispatching_requests );
@@ -1334,9 +1334,6 @@ class WP_REST_Server {
 
 		list( $route, $handler, $args ) = $match;
 
-		// Resolve the data processing settings once, for the request attributes and the matched handler.
-		$handler['data_processing'] = self::resolve_data_processing( $handler, $this->get_route_options( $route ) );
-
 		if ( ! is_callable( $handler['callback'] ) ) {
 			return array( $route, $handler );
 		}
@@ -1360,11 +1357,14 @@ class WP_REST_Server {
 	/**
 	 * Finds the route and the handler that a request matches, without changing the request.
 	 *
+	 * The handler carries its resolved data processing settings under `data_processing`.
+	 *
 	 * @access private
 	 * @since 7.2.0
 	 *
 	 * @param WP_REST_Request $request The request object.
-	 * @return array|null The route, the handler and the URL parameters, or null when no handler matches.
+	 * @return array|null The route, the handler with its resolved data processing settings, and the URL
+	 *                    parameters, or null when no handler matches.
 	 *
 	 * @phpstan-return array{non-empty-string, Route_Handler, array<string, string>}|null
 	 */
@@ -1410,6 +1410,9 @@ class WP_REST_Server {
 				if ( empty( $handler['methods'][ $checked_method ] ) ) {
 					continue;
 				}
+
+				// Resolve the data processing settings once, for the request attributes, the matched handler and the response.
+				$handler['data_processing'] = self::resolve_data_processing( $handler, $this->get_route_options( $route ) );
 
 				return array( $route, $handler, $args );
 			}
@@ -1528,7 +1531,7 @@ class WP_REST_Server {
 
 		$response->set_matched_route( $route );
 		$response->set_matched_handler( $handler );
-		$response->set_data_processing( self::resolve_data_processing( $handler, $this->get_route_options( $route ) ) );
+		$response->set_data_processing( $handler['data_processing'] ?? true );
 
 		return $response;
 	}
@@ -2082,7 +2085,7 @@ class WP_REST_Server {
 				// The response matched no handler, so it follows the settings of the handler the request matched.
 				$result = rest_ensure_response( $result );
 				if ( $result instanceof WP_REST_Response ) {
-					$result->set_data_processing( self::resolve_data_processing( $matches[ $i ][1], $this->get_route_options( $matches[ $i ][0] ) ) );
+					$result->set_data_processing( $matches[ $i ][1]['data_processing'] ?? true );
 				}
 			}
 
