@@ -161,6 +161,39 @@ jQuery( function( $ ) {
 
 		window._wpUpdatesSettings.plugins = plugins;
 	} );
+	QUnit.test( 'Deleting a plugin should only remove the view of an emptied custom group', function( assert ) {
+		var plugins = window._wpUpdatesSettings.plugins;
+
+		$( '#qunit-fixture' ).append(
+			'<script type="text/html" id="tmpl-item-deleted-row"><tr class="plugin-deleted-tr"><td colspan="{{ data.colspan }}"></td></tr></script>' +
+			'<ul class="subsubsub">' +
+				'<li class="all"><a href="#">All <span class="count">(2)</span></a> |</li>' +
+				'<li class="count"><a href="#">Count <span class="count">(1)</span></a></li>' +
+			'</ul>' +
+			'<form id="bulk-action-form"><table><tbody id="the-list">' +
+				'<tr data-plugin="custom-a/custom-a.php"><td></td></tr>' +
+			'</tbody></table></form>'
+		);
+
+		// A group key that matches the class of the count elements.
+		window._wpUpdatesSettings.plugins = {
+			all: [ 'custom-a/custom-a.php', 'other/other.php' ],
+			count: [ 'custom-a/custom-a.php' ]
+		};
+
+		sinon.stub( $.fn, 'fadeOut' ).callsFake( function( speed, callback ) {
+			return this.each( callback );
+		} );
+
+		wp.updates.deletePluginSuccess( { slug: 'custom-a', plugin: 'custom-a/custom-a.php', pluginName: 'Custom A' } );
+
+		$.fn.fadeOut.restore();
+
+		assert.strictEqual( $( '.subsubsub > li.count' ).length, 0, 'The emptied group view should be removed.' );
+		assert.strictEqual( $( '.subsubsub .all' ).text(), 'All (1)', 'The All view should keep its count.' );
+
+		window._wpUpdatesSettings.plugins = plugins;
+	} );
 
 	// QUnit.test( 'A successful update changes the message?', function( assert ) {} );
 	// QUnit.test( 'A failed update changes the message?', function( assert ) {} );

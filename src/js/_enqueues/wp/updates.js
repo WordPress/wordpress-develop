@@ -1466,7 +1466,7 @@
 				}
 
 				plugins[ group ] = _.without( plugins[ group ], response.plugin );
-				$view = $views.find( '.' + $.escapeSelector( group ) );
+				$view = $views.children( 'li.' + $.escapeSelector( group ) );
 
 				if ( plugins[ group ].length ) {
 					$view.find( '.count' ).text( '(' + plugins[ group ].length + ')' );
