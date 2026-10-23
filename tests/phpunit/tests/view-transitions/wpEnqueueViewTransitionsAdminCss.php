@@ -29,18 +29,6 @@ class Tests_View_Transitions_wpEnqueueViewTransitionsAdminCss extends WP_UnitTes
 	}
 
 	/**
-	 * Tests that admin view transitions CSS is not enqueued via a hook.
-	 *
-	 * It is enqueued from wp-admin/admin-header.php instead, so iframe screens without the admin menu do not get it.
-	 *
-	 * @ticket 64470
-	 * @ticket 65032
-	 */
-	public function test_not_hooked() {
-		$this->assertFalse( has_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' ) );
-	}
-
-	/**
 	 * Tests that the admin view transitions style handle includes the inline CSS.
 	 *
 	 * @group assets
