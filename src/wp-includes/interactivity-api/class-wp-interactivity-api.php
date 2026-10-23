@@ -1188,10 +1188,10 @@ final class WP_Interactivity_API {
 				 * JsonSerializable::jsonSerialize() directly keeps this resolution identical to the client's,
 				 * including for an object which serializes to another serializable object. When the encoding fails
 				 * the object is left in place, to be reported as a usage error below. Note that it rarely does
-				 * fail: wp_json_encode() retries through _wp_json_sanity_check(), which rebuilds the object from
-				 * its public properties and so ignores jsonSerialize() altogether. An object whose serialized form
-				 * JSON cannot represent therefore resolves to whatever that rebuild encodes to, which is what the
-				 * client is sent for it as well.
+				 * fail: wp_json_encode() retries through _wp_json_sanity_check(), which converts strings to UTF-8,
+				 * and rebuilds the object from its public properties when its serialized form JSON cannot represent.
+				 * Such an object therefore resolves to whatever that rebuild encodes to, which is what the client is
+				 * sent for it as well.
 				 *
 				 * A throwing JsonSerializable::jsonSerialize() is caught for the same reason the value is checked
 				 * at all: a binding must not be able to abort the render. An exception escaping here would leave
