@@ -269,7 +269,15 @@ if ( file_exists( DIR_TESTDATA . '/themedir1' ) ) {
 	$wp_theme_directories[] = DIR_TESTDATA . '/themedir1';
 }
 
-if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) ) {
+/*
+ * Install WordPress, unless asked not to.
+ *
+ * Not in a process-isolated test: PHPUnit sets $GLOBALS['__PHPUNIT_BOOTSTRAP']
+ * while it loads this file in a child process, after the parent process has
+ * already installed WordPress. Reinstalling in every child would slow down
+ * each isolated test and drop the tables the parent process is using.
+ */
+if ( '1' !== getenv( 'WP_TESTS_SKIP_INSTALL' ) && ! isset( $GLOBALS['__PHPUNIT_BOOTSTRAP'] ) ) {
 	$core_tests = ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) ? 'run_core_tests' : 'no_core_tests';
 	$ms_tests   = $multisite ? 'run_ms_tests' : 'no_ms_tests';
 
