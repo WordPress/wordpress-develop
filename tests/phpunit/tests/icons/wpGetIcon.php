@@ -134,6 +134,29 @@ class Tests_Icons_WpGetIcon extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 66344
+	 */
+	public function test_wp_get_icon_filter_can_customize_core_admin_icons() {
+		$filter = static function ( $svg, $name ) {
+			if ( 'core-admin/wordpress' === $name ) {
+				return '<svg><circle cx="12" cy="12" r="10" /></svg>';
+			}
+
+			return $svg;
+		};
+
+		add_filter( 'wp_get_icon', $filter, 10, 2 );
+
+		try {
+			$output = wp_get_icon( 'core-admin/wordpress' );
+		} finally {
+			remove_filter( 'wp_get_icon', $filter, 10 );
+		}
+
+		$this->assertSame( '<svg><circle cx="12" cy="12" r="10" /></svg>', $output );
+	}
+
+	/**
 	 * @ticket 64847
 	 */
 	public function test_wp_get_icon_escapes_attributes() {

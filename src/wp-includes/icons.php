@@ -267,5 +267,17 @@ function wp_get_icon( $name, $args = array() ) {
 		$processor->remove_attribute( 'aria-label' );
 	}
 
-	return $processor->get_updated_html();
+	/**
+	 * Filters the SVG markup returned for an icon.
+	 *
+	 * This filter can be used to customize registered icons, including icons in
+	 * the `core-admin` collection, without unregistering them.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string $svg  The SVG markup for the icon.
+	 * @param string $name The icon name.
+	 * @param array  $args The arguments passed to `wp_get_icon()`.
+	 */
+	return apply_filters( 'wp_get_icon', $processor->get_updated_html(), $name, $args );
 }
