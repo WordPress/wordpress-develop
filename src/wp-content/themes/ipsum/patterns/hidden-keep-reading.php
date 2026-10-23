@@ -9,8 +9,8 @@
  */
 
 ?>
-<!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Keep Reading', 'Name of the keep reading group', 'ipsum' ); ?>"},"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"default"}} -->
-<div class="wp-block-group"><!-- wp:heading {"metadata":{"name":"<?php echo esc_html_x( 'Keep Reading Label', 'Name of the keep reading heading', 'ipsum' ); ?>"},"style":{"typography":{"letterSpacing":"0rem"}},"fontSize":"small"} -->
+<!-- wp:group {"metadata":{"name":"<?php echo esc_html_x( 'Keep Reading', 'Name of the keep reading group', 'ipsum' ); ?>"},"className":"hide-without-posts","style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"default"}} -->
+<div class="wp-block-group hide-without-posts"><!-- wp:heading {"metadata":{"name":"<?php echo esc_html_x( 'Keep Reading Label', 'Name of the keep reading heading', 'ipsum' ); ?>"},"style":{"typography":{"letterSpacing":"0rem"}},"fontSize":"small"} -->
 <h2 class="wp-block-heading has-small-font-size" style="letter-spacing:0rem"><?php esc_html_e( 'Keep Reading', 'ipsum' ); ?></h2>
 <!-- /wp:heading -->
 
