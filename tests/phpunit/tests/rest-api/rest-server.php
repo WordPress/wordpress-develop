@@ -3253,7 +3253,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 66267
 	 */
-	public function test_response_processing_is_set_on_the_request_attributes_and_the_matched_handler(): void {
+	public function test_response_processing_is_set_on_the_request_attributes_the_matched_handler_and_the_response(): void {
 		$this->register_response_processing_route( array( 'a' => 1 ), false, array( 'response_processing' => array( 'links' => false ) ) );
 
 		$request  = new WP_REST_Request( 'GET', '/test-ns/response-processing' );
@@ -3266,7 +3266,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertSame( $expected, $request->get_attributes()['response_processing'], 'The request attributes should carry the resolved settings.' );
 		$this->assertSame( $expected, $response->get_matched_handler()['response_processing'], 'The matched handler should carry the resolved settings.' );
-		$this->assertSame( $expected, rest_get_server()->get_response_processing( $request, $response ), 'The settings of the response should be the resolved ones.' );
+		$this->assertSame( $expected, $response->get_response_processing(), 'The response should carry the resolved settings.' );
 	}
 
 	/**
@@ -3285,7 +3285,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertSame( $expected, $request->get_attributes()['response_processing'], 'The request attributes should have every feature on.' );
 		$this->assertSame( $expected, $response->get_matched_handler()['response_processing'], 'The matched handler should have every feature on.' );
-		$this->assertSame( $expected, rest_get_server()->get_response_processing( $request, $response ), 'The settings of the response should have every feature on.' );
+		$this->assertSame( $expected, $response->get_response_processing(), 'The response should have every feature on.' );
 	}
 
 	/**
@@ -3355,16 +3355,149 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * @ticket 66267
 	 */
-	public function test_get_response_processing_without_a_matched_handler(): void {
+	public function test_hijacked_responses_carry_the_settings_of_their_route(): void {
+		$this->register_response_processing_route( array( 'unexpected' => true ), true, array( 'response_processing' => array( 'links' => false ) ) );
+
+		add_filter(
+			'rest_pre_dispatch',
+			static function () {
+				return array( 'a' => 1 );
+			}
+		);
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/test-ns/response-processing' ) );
+
+		$this->assertSame(
+			array(
+				'fields' => true,
+				'embed'  => false,
+				'links'  => false,
+			),
+			$response->get_response_processing(),
+			'A response returned by rest_pre_dispatch should carry the settings of the handler the request would match.'
+		);
+		$this->assertSame( '', $response->get_matched_route(), 'A response returned by rest_pre_dispatch should still have no matched route.' );
+		$this->assertNull( $response->get_matched_handler(), 'A response returned by rest_pre_dispatch should still have no matched handler.' );
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_hijacked_responses_for_unknown_routes_have_every_feature_on(): void {
+		add_filter(
+			'rest_pre_dispatch',
+			static function () {
+				return array( 'a' => 1 );
+			}
+		);
+
+		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/test-ns/no-such-route' ) );
+
+		$this->assertSame(
+			array(
+				'fields' => true,
+				'embed'  => true,
+				'links'  => true,
+			),
+			$response->get_response_processing(),
+			'A response returned by rest_pre_dispatch for an unknown route should have every feature on.'
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 */
+	public function test_response_setting_applies_when_set_before_the_fields_filter(): void {
+		$this->register_response_processing_route(
+			array(
+				'a' => 1,
+				'b' => 2,
+			),
+			true
+		);
+
+		// Before rest_filter_response_fields(), which runs on the same filter at priority 10.
+		add_filter(
+			'rest_post_dispatch',
+			static function ( $response ) {
+				$response->set_response_processing( false );
+				return $response;
+			},
+			9
+		);
+
+		$_GET['_fields'] = 'a';
+		$_GET['_embed']  = '1';
+		rest_get_server()->serve_request( '/test-ns/response-processing' );
+
+		$this->assertSame( '{"a":1,"b":2}', rest_get_server()->sent_body, 'A setting made on the response after dispatch should apply when the response is served.' );
+	}
+
+	/**
+	 * Data provider for test_response_set_response_processing().
+	 *
+	 * @return array<string, array{0: mixed, 1: array<string, bool>}>
+	 */
+	public static function data_response_set_response_processing(): array {
 		$all_on = array(
 			'fields' => true,
 			'embed'  => true,
 			'links'  => true,
 		);
 
-		$this->assertSame( $all_on, rest_get_server()->get_response_processing( new WP_REST_Request( 'GET', '/test-ns/no-such-route' ) ), 'A request that matches no route should enable every feature.' );
-		$this->assertSame( $all_on, rest_get_server()->get_response_processing( null, new WP_REST_Response() ), 'A response without a matched handler should enable every feature.' );
-		$this->assertSame( $all_on, rest_get_server()->get_response_processing( null ), 'The defaults should apply without a request.' );
+		return array(
+			'true'        => array( true, $all_on ),
+			'false'       => array(
+				false,
+				array(
+					'fields' => false,
+					'embed'  => false,
+					'links'  => false,
+				),
+			),
+			'empty array' => array( array(), $all_on ),
+			'fields off'  => array(
+				array( 'fields' => false ),
+				array(
+					'fields' => false,
+					'embed'  => true,
+					'links'  => true,
+				),
+			),
+			'links off'   => array(
+				array( 'links' => false ),
+				array(
+					'fields' => true,
+					'embed'  => false,
+					'links'  => false,
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 66267
+	 * @dataProvider data_response_set_response_processing
+	 *
+	 * @param mixed               $processing The setting, in the form of the `response_processing` option.
+	 * @param array<string, bool> $expected   The expected settings of the response.
+	 */
+	public function test_response_set_response_processing( $processing, array $expected ): void {
+		$response = new WP_REST_Response();
+
+		$this->assertSame(
+			array(
+				'fields' => true,
+				'embed'  => true,
+				'links'  => true,
+			),
+			$response->get_response_processing(),
+			'A new response should have every feature on.'
+		);
+
+		$response->set_response_processing( $processing );
+
+		$this->assertSame( $expected, $response->get_response_processing(), 'The setting should be resolved like the route option.' );
 	}
 
 	/**

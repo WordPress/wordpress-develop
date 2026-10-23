@@ -15,6 +15,7 @@
  * @see WP_HTTP_Response
  *
  * @phpstan-import-type Route_Handler from WP_REST_Server
+ * @phpstan-import-type Response_Processing from WP_REST_Server
  *
  * @phpstan-type Target_Hints array{
  *     allow?: list<uppercase-string>,
@@ -68,6 +69,19 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 * @phpstan-var Route_Handler|null
 	 */
 	protected $matched_handler = null;
+
+	/**
+	 * Whether each response processing feature is on for the response.
+	 *
+	 * @since 7.2.0
+	 * @var array<string, bool> Whether the `fields`, `embed` and `links` features are on. Every feature is on by default.
+	 * @phpstan-var Response_Processing
+	 */
+	protected $response_processing = array(
+		'fields' => true,
+		'embed'  => true,
+		'links'  => true,
+	);
 
 	/**
 	 * Adds a link to the response.
@@ -247,6 +261,50 @@ class WP_REST_Response extends WP_HTTP_Response {
 	 */
 	public function set_matched_handler( $handler ) {
 		$this->matched_handler = $handler;
+	}
+
+	/**
+	 * Retrieves whether each response processing feature is on for the response.
+	 *
+	 * The server sets the settings of the matched route when it dispatches a request, for responses
+	 * returned by the `rest_pre_dispatch` filter too. Every feature is on until then.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_REST_Server::resolve_response_processing()
+	 *
+	 * @return array<string, bool> {
+	 *     Whether each response processing feature is on.
+	 *
+	 *     @type bool $fields Whether the `_fields` parameter filters the response data.
+	 *     @type bool $embed  Whether the `_embed` parameter embeds linked resources in the response data.
+	 *     @type bool $links  Whether the response links are added to the response data as `_links`.
+	 * }
+	 *
+	 * @phpstan-return Response_Processing
+	 */
+	public function get_response_processing() {
+		return $this->response_processing;
+	}
+
+	/**
+	 * Sets whether each response processing feature is on for the response.
+	 *
+	 * The setting takes the form of the `response_processing` route option: `false` turns off every
+	 * feature, and an array turns off, or on, the features it names. Embedding needs the links, so
+	 * `embed` is off whenever `links` is off.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @see WP_REST_Server::resolve_response_processing()
+	 *
+	 * @param bool|array<string, bool> $processing Whether every feature is on, or whether the `fields`, `embed`
+	 *                                             and `links` features are on. A feature not named stays on.
+	 *
+	 * @phpstan-param bool|array{fields?: bool, embed?: bool, links?: bool} $processing
+	 */
+	public function set_response_processing( $processing ) {
+		$this->response_processing = WP_REST_Server::resolve_response_processing( array( 'response_processing' => $processing ) );
 	}
 
 	/**

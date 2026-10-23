@@ -43,6 +43,7 @@
  *     response_processing?: bool|array{fields?: bool, embed?: bool, links?: bool},
  *     ...
  * }
+ * @phpstan-type Response_Processing array{fields: bool, embed: bool, links: bool}
  */
 #[AllowDynamicProperties]
 class WP_REST_Server {
@@ -513,7 +514,7 @@ class WP_REST_Server {
 		// Wrap the response in an envelope if asked for.
 		if ( isset( $_GET['_envelope'] ) ) {
 			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
-			$result = $this->envelope_response( $result, $embed, $request );
+			$result = $this->envelope_response( $result, $embed );
 		}
 
 		// Send extra data from response objects.
@@ -569,7 +570,7 @@ class WP_REST_Server {
 
 			// Embed links inside the request.
 			$embed  = isset( $_GET['_embed'] ) ? rest_parse_embed_param( $_GET['_embed'] ) : false;
-			$result = $this->response_to_data( $result, $embed, $request );
+			$result = $this->response_to_data( $result, $embed );
 
 			/**
 			 * Filters the REST API response.
@@ -623,21 +624,20 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
-	 * @since 7.2.0 Added the `$request` parameter. The links are not added or embedded when the
-	 *              route turns off the `links` or `embed` response processing, scalar and object
-	 *              data is returned as it is unless the object implements `ArrayAccess`, and list
-	 *              items that are not arrays are left as they are when embedding.
+	 * @since 7.2.0 The links are not added or embedded when the response turns off the `links` or
+	 *              `embed` response processing, scalar and object data is returned as it is unless
+	 *              the object implements `ArrayAccess`, and list items that are not arrays are left
+	 *              as they are when embedding.
 	 *
-	 * @param WP_REST_Response     $response Response object.
-	 * @param bool|string[]        $embed    Whether to embed all links, a filtered list of link relations, or no links.
-	 * @param WP_REST_Request|null $request  Optional. The request that generated the response. It resolves the
-	 *                                       response processing settings when the response has no matched handler.
-	 *                                       Default null.
+	 * @see WP_REST_Response::get_response_processing()
+	 *
+	 * @param WP_REST_Response $response Response object.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
 	 * @return mixed Data with sub-requests embedded: an array with the links under `_links` and the embedded
 	 *               resources under `_embedded`, or scalar and object data as it is unless the object
 	 *               implements `ArrayAccess`.
 	 */
-	public function response_to_data( $response, $embed, $request = null ) {
+	public function response_to_data( $response, $embed ) {
 		$data = $response->get_data();
 
 		// Scalar and object data has no place for links or embedded resources, unless the object acts as an array.
@@ -645,7 +645,7 @@ class WP_REST_Server {
 			return $data;
 		}
 
-		$processing = $this->get_response_processing( $request, $response );
+		$processing = $response->get_response_processing();
 		$links      = $processing['links'] ? self::get_compact_response_links( $response ) : array();
 
 		if ( ! empty( $links ) ) {
@@ -890,7 +890,7 @@ class WP_REST_Server {
 					/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 					$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $this, $request );
 
-					$this->embed_cache[ $item['href'] ] = $this->response_to_data( $response, false, $request );
+					$this->embed_cache[ $item['href'] ] = $this->response_to_data( $response, false );
 				}
 
 				$embeds[] = $this->embed_cache[ $item['href'] ];
@@ -920,16 +920,14 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 * @since 6.0.0 The `$embed` parameter can now contain a list of link relations to include.
-	 * @since 7.2.0 Added the `$request` parameter.
 	 *
-	 * @param WP_REST_Response     $response Response object.
-	 * @param bool|string[]        $embed    Whether to embed all links, a filtered list of link relations, or no links.
-	 * @param WP_REST_Request|null $request  Optional. The request that generated the response. Default null.
+	 * @param WP_REST_Response $response Response object.
+	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
 	 * @return WP_REST_Response New response with wrapped data
 	 */
-	public function envelope_response( $response, $embed, $request = null ) {
+	public function envelope_response( $response, $embed ) {
 		$envelope = array(
-			'body'    => $this->response_to_data( $response, $embed, $request ),
+			'body'    => $this->response_to_data( $response, $embed ),
 			'status'  => $response->get_status(),
 			'headers' => $response->get_headers(),
 		);
@@ -1162,7 +1160,12 @@ class WP_REST_Server {
 	 * The option covers these three features only. Authentication, permission checks, status codes, headers
 	 * and JSON encoding apply as usual, and keys of the data itself, such as its own `_links`, stay as returned.
 	 *
+	 * The server resolves the settings when it matches a request, and sets them on the request attributes,
+	 * on the matched handler and on the response, for a response returned by the `rest_pre_dispatch` filter too.
+	 *
 	 * @since 7.2.0
+	 *
+	 * @see WP_REST_Response::get_response_processing()
 	 *
 	 * @param array      $handler       The route handler.
 	 * @param array|null $route_options Optional. The options of the handler's route. Default null.
@@ -1174,7 +1177,7 @@ class WP_REST_Server {
 	 *     @type bool $links  Whether the response links are added to the response data as `_links`.
 	 * }
 	 *
-	 * @phpstan-return array{fields: bool, embed: bool, links: bool}
+	 * @phpstan-return Response_Processing
 	 */
 	public static function resolve_response_processing( $handler, $route_options = null ) {
 		$processing = array(
@@ -1213,58 +1216,6 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Retrieves the response processing settings for a request.
-	 *
-	 * The settings are those of the handler the request matched. A response returned by the
-	 * `rest_pre_dispatch` filter matches no handler, so the request is matched to a handler here
-	 * without changing the request. An OPTIONS request is served the route description, so every
-	 * feature is on for it.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @see WP_REST_Server::resolve_response_processing()
-	 *
-	 * @param WP_REST_Request|null  $request  The request, or null when only the response is known.
-	 * @param WP_REST_Response|null $response Optional. The response generated for the request. Default null.
-	 * @return array Whether each feature is on, keyed by `fields`, `embed` and `links`. Every feature is on
-	 *               when no handler matches.
-	 *
-	 * @phpstan-return array{fields: bool, embed: bool, links: bool}
-	 */
-	public function get_response_processing( $request, $response = null ) {
-		if ( $response instanceof WP_REST_Response && is_array( $response->get_matched_handler() ) ) {
-			$route = $response->get_matched_route();
-
-			return self::resolve_response_processing(
-				$response->get_matched_handler(),
-				is_string( $route ) ? $this->get_route_options( $route ) : null
-			);
-		}
-
-		if ( ! $request instanceof WP_REST_Request ) {
-			return self::resolve_response_processing( array() );
-		}
-
-		// An OPTIONS request is served the route description, which rest_handle_options_request()
-		// builds with the raw handlers of the route as the request attributes.
-		if ( 'OPTIONS' === $request->get_method() ) {
-			return self::resolve_response_processing( array() );
-		}
-
-		$attributes = $request->get_attributes();
-		if ( isset( $attributes['response_processing'] ) ) {
-			return self::resolve_response_processing( $attributes );
-		}
-
-		$match = $this->find_handler_for_request( $request );
-		if ( null === $match ) {
-			return self::resolve_response_processing( array() );
-		}
-
-		return self::resolve_response_processing( $match[1], $this->get_route_options( $match[0] ) );
-	}
-
-	/**
 	 * Matches the request to a callback and call it.
 	 *
 	 * @since 4.4.0
@@ -1298,6 +1249,12 @@ class WP_REST_Server {
 			// ...then convert WP_Error across.
 			if ( is_wp_error( $result ) ) {
 				$result = $this->error_to_response( $result );
+			}
+
+			// The response matched no handler, so it follows the settings of the handler the request would match.
+			$match = $this->find_handler_for_request( $request );
+			if ( null !== $match ) {
+				$result->set_response_processing( self::resolve_response_processing( $match[1], $this->get_route_options( $match[0] ) ) );
 			}
 
 			array_pop( $this->dispatching_requests );
@@ -1571,6 +1528,7 @@ class WP_REST_Server {
 
 		$response->set_matched_route( $route );
 		$response->set_matched_handler( $handler );
+		$response->set_response_processing( self::resolve_response_processing( $handler, $this->get_route_options( $route ) ) );
 
 		return $response;
 	}
@@ -2120,12 +2078,18 @@ class WP_REST_Server {
 
 					$result = $this->respond_to_request( $single_request, $route, $handler, $error );
 				}
+			} elseif ( ! is_wp_error( $matches[ $i ] ) ) {
+				// The response matched no handler, so it follows the settings of the handler the request matched.
+				$result = rest_ensure_response( $result );
+				if ( $result instanceof WP_REST_Response ) {
+					$result->set_response_processing( self::resolve_response_processing( $matches[ $i ][1], $this->get_route_options( $matches[ $i ][0] ) ) );
+				}
 			}
 
 			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 			$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $single_request );
 
-			$responses[] = $this->envelope_response( $result, false, $single_request )->get_data();
+			$responses[] = $this->envelope_response( $result, false )->get_data();
 		}
 
 		return new WP_REST_Response( array( 'responses' => $responses ), WP_Http::MULTI_STATUS );

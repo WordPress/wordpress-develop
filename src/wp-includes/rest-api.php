@@ -963,12 +963,9 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
-	if ( $server instanceof WP_REST_Server ) {
-		$processing = $server->get_response_processing( $request, $response );
-
-		if ( ! $processing['fields'] ) {
-			return $response;
-		}
+	$processing = $response->get_response_processing();
+	if ( ! $processing['fields'] ) {
+		return $response;
 	}
 
 	$data = $response->get_data();
@@ -3063,7 +3060,7 @@ function rest_preload_api_request( $memo, $path ) {
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = $server->response_to_data( $response, $embed, $request );
+		$data     = $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(
