@@ -40,10 +40,10 @@
  *     accept_raw: bool,
  *     show_in_index: bool,
  *     allow_batch?: array{v1?: bool}|false,
- *     response_processing?: bool|array{fields?: bool, embed?: bool, links?: bool},
+ *     data_processing?: bool|array{fields?: bool, embed?: bool, links?: bool},
  *     ...
  * }
- * @phpstan-type Response_Processing array{fields: bool, embed: bool, links: bool}
+ * @phpstan-type Data_Processing array{fields: bool, embed: bool, links: bool}
  */
 #[AllowDynamicProperties]
 class WP_REST_Server {
@@ -625,11 +625,11 @@ class WP_REST_Server {
 	 * @since 4.4.0
 	 * @since 5.4.0 The `$embed` parameter can now contain a list of link relations to include.
 	 * @since 7.2.0 The links are not added or embedded when the response turns off the `links` or
-	 *              `embed` response processing, scalar and object data is returned as it is unless
+	 *              `embed` data processing, scalar and object data is returned as it is unless
 	 *              the object implements `ArrayAccess`, and list items that are not arrays are left
 	 *              as they are when embedding.
 	 *
-	 * @see WP_REST_Response::get_response_processing()
+	 * @see WP_REST_Response::get_data_processing()
 	 *
 	 * @param WP_REST_Response $response Response object.
 	 * @param bool|string[]    $embed    Whether to embed all links, a filtered list of link relations, or no links.
@@ -645,7 +645,7 @@ class WP_REST_Server {
 			return $data;
 		}
 
-		$processing = $response->get_response_processing();
+		$processing = $response->get_data_processing();
 		$links      = $processing['links'] ? self::get_compact_response_links( $response ) : array();
 
 		if ( ! empty( $links ) ) {
@@ -1144,9 +1144,9 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Resolves the response processing settings of a route handler.
+	 * Resolves the data processing settings of a route handler.
 	 *
-	 * A route, or one of its handlers, sets the `response_processing` option to serve its data as returned.
+	 * A route, or one of its handlers, sets the `data_processing` option to serve its data as returned.
 	 * The option is `false` to turn off every feature, or an array with any of these keys:
 	 *
 	 * - `fields`: Whether the `_fields` parameter filters the response data.
@@ -1165,21 +1165,21 @@ class WP_REST_Server {
 	 *
 	 * @since 7.2.0
 	 *
-	 * @see WP_REST_Response::get_response_processing()
+	 * @see WP_REST_Response::get_data_processing()
 	 *
 	 * @param array      $handler       The route handler.
 	 * @param array|null $route_options Optional. The options of the handler's route. Default null.
 	 * @return array {
-	 *     Whether each response processing feature is on.
+	 *     Whether each data processing feature is on.
 	 *
 	 *     @type bool $fields Whether the `_fields` parameter filters the response data.
 	 *     @type bool $embed  Whether the `_embed` parameter embeds linked resources in the response data.
 	 *     @type bool $links  Whether the response links are added to the response data as `_links`.
 	 * }
 	 *
-	 * @phpstan-return Response_Processing
+	 * @phpstan-return Data_Processing
 	 */
-	public static function resolve_response_processing( $handler, $route_options = null ) {
+	public static function resolve_data_processing( $handler, $route_options = null ) {
 		$processing = array(
 			'fields' => true,
 			'embed'  => true,
@@ -1187,8 +1187,8 @@ class WP_REST_Server {
 		);
 
 		$settings = array(
-			$route_options['response_processing'] ?? null,
-			$handler['response_processing'] ?? null,
+			$route_options['data_processing'] ?? null,
+			$handler['data_processing'] ?? null,
 		);
 
 		foreach ( $settings as $setting ) {
@@ -1254,7 +1254,7 @@ class WP_REST_Server {
 			// The response matched no handler, so it follows the settings of the handler the request would match.
 			$match = $this->find_handler_for_request( $request );
 			if ( null !== $match ) {
-				$result->set_response_processing( self::resolve_response_processing( $match[1], $this->get_route_options( $match[0] ) ) );
+				$result->set_data_processing( self::resolve_data_processing( $match[1], $this->get_route_options( $match[0] ) ) );
 			}
 
 			array_pop( $this->dispatching_requests );
@@ -1334,8 +1334,8 @@ class WP_REST_Server {
 
 		list( $route, $handler, $args ) = $match;
 
-		// Resolve the response processing settings once, for the request attributes and the matched handler.
-		$handler['response_processing'] = self::resolve_response_processing( $handler, $this->get_route_options( $route ) );
+		// Resolve the data processing settings once, for the request attributes and the matched handler.
+		$handler['data_processing'] = self::resolve_data_processing( $handler, $this->get_route_options( $route ) );
 
 		if ( ! is_callable( $handler['callback'] ) ) {
 			return array( $route, $handler );
@@ -1528,7 +1528,7 @@ class WP_REST_Server {
 
 		$response->set_matched_route( $route );
 		$response->set_matched_handler( $handler );
-		$response->set_response_processing( self::resolve_response_processing( $handler, $this->get_route_options( $route ) ) );
+		$response->set_data_processing( self::resolve_data_processing( $handler, $this->get_route_options( $route ) ) );
 
 		return $response;
 	}
@@ -1858,10 +1858,10 @@ class WP_REST_Server {
 				$endpoint_data['allow_batch'] = $callback_batch;
 			}
 
-			$response_processing = self::resolve_response_processing( $callback, $route_options );
+			$data_processing = self::resolve_data_processing( $callback, $route_options );
 
-			if ( in_array( false, $response_processing, true ) ) {
-				$endpoint_data['response_processing'] = $response_processing;
+			if ( in_array( false, $data_processing, true ) ) {
+				$endpoint_data['data_processing'] = $data_processing;
 			}
 
 			if ( isset( $callback['args'] ) ) {
@@ -2082,7 +2082,7 @@ class WP_REST_Server {
 				// The response matched no handler, so it follows the settings of the handler the request matched.
 				$result = rest_ensure_response( $result );
 				if ( $result instanceof WP_REST_Response ) {
-					$result->set_response_processing( self::resolve_response_processing( $matches[ $i ][1], $this->get_route_options( $matches[ $i ][0] ) ) );
+					$result->set_data_processing( self::resolve_data_processing( $matches[ $i ][1], $this->get_route_options( $matches[ $i ][0] ) ) );
 				}
 			}
 

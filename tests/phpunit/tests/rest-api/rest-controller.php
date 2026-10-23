@@ -442,11 +442,11 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Data provider for test_get_fields_for_response_respects_response_processing().
+	 * Data provider for test_get_fields_for_response_respects_data_processing().
 	 *
 	 * @return array<string, array{0: mixed, 1: bool}>
 	 */
-	public static function data_get_fields_for_response_respects_response_processing(): array {
+	public static function data_get_fields_for_response_respects_data_processing(): array {
 		return array(
 			'false'        => array( false, false ),
 			'fields false' => array( array( 'fields' => false ), false ),
@@ -457,15 +457,15 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 66267
-	 * @dataProvider data_get_fields_for_response_respects_response_processing
+	 * @dataProvider data_get_fields_for_response_respects_data_processing
 	 *
-	 * @param mixed $response_processing The `response_processing` setting of the matched handler.
+	 * @param mixed $data_processing The `data_processing` setting of the matched handler.
 	 * @param bool  $filtered            Whether the `_fields` parameter should filter the fields.
 	 */
-	public function test_get_fields_for_response_respects_response_processing( $response_processing, bool $filtered ): void {
+	public function test_get_fields_for_response_respects_data_processing( $data_processing, bool $filtered ): void {
 		$controller = new WP_REST_Test_Controller();
 		$request    = new WP_REST_Request( 'GET', '/wp/v2/testroute' );
-		$request->set_attributes( array( 'response_processing' => $response_processing ) );
+		$request->set_attributes( array( 'data_processing' => $data_processing ) );
 		$request->set_param( '_fields', 'somestring' );
 
 		$fields = $controller->get_fields_for_response( $request );

@@ -566,7 +566,7 @@ abstract class WP_REST_Controller {
 	 *
 	 * @since 4.9.6
 	 * @since 7.2.0 The `_fields` argument is ignored when the matched route turns off
-	 *              the `fields` response processing.
+	 *              the `fields` data processing.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return string[] Fields to be included in the response.
@@ -611,7 +611,7 @@ abstract class WP_REST_Controller {
 
 		$fields = array_unique( $fields );
 
-		$processing = WP_REST_Server::resolve_response_processing( $request->get_attributes() );
+		$processing = WP_REST_Server::resolve_data_processing( $request->get_attributes() );
 
 		if ( ! isset( $request['_fields'] ) || ! $processing['fields'] ) {
 			return $fields;

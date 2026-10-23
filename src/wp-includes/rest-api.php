@@ -963,7 +963,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
-	$processing = $response->get_response_processing();
+	$processing = $response->get_data_processing();
 	if ( ! $processing['fields'] ) {
 		return $response;
 	}
