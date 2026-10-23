@@ -347,4 +347,32 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'editor-styles' );
 		$this->assertCount( 1, get_block_editor_theme_styles(), 'Stylesheets should load in the block editor with block editor styles support.' );
 	}
+
+	/**
+	 * Ensure classic editor styles cannot be removed with remove_theme_support().
+	 *
+	 * @ticket 60826
+	 *
+	 * @covers ::remove_theme_support
+	 */
+	public function test_classic_editor_styles_cannot_be_removed_with_remove_theme_support() {
+		add_editor_style( 'style.css' );
+
+		$this->assertFalse( remove_theme_support( 'editor-style' ), 'Removing classic editor styles with remove_theme_support() should fail.' );
+		$this->assertTrue( current_theme_supports( 'editor-style' ), 'The theme should still support classic editor styles.' );
+	}
+
+	/**
+	 * Ensure classic editor styles can be removed with remove_editor_styles().
+	 *
+	 * @ticket 60826
+	 *
+	 * @covers ::remove_editor_styles
+	 */
+	public function test_classic_editor_styles_can_be_removed_with_remove_editor_styles() {
+		add_editor_style( 'style.css' );
+
+		$this->assertTrue( remove_editor_styles(), 'Removing classic editor styles with remove_editor_styles() should succeed.' );
+		$this->assertFalse( current_theme_supports( 'editor-style' ), 'The theme should no longer support classic editor styles.' );
+	}
 }
