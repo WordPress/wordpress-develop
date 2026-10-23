@@ -689,7 +689,7 @@ class Tests_Block_Template extends WP_UnitTestCase {
 		// Try to unregister again, should return WP_Error.
 		$error = unregister_block_template( $template_name );
 
-		$this->assertInstanceOf( 'WP_Error', $error );
+		$this->assertWPError( $error );
 		$this->assertStringContainsString(
 			$template_name,
 			$error->get_error_message(),
