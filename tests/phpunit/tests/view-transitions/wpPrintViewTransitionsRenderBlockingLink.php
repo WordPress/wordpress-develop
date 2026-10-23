@@ -50,6 +50,9 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 	 */
 	public function test_prints_render_blocking_link(): void {
 		wp_enqueue_view_transitions_admin_css();
+		get_echo( 'wp_print_styles', array( 'wp-view-transitions-admin' ) );
+		$this->assertTrue( wp_style_is( 'wp-view-transitions-admin', 'done' ), 'Expected the style to have been printed.' );
+
 		$output = get_echo( 'wp_print_view_transitions_render_blocking_link' );
 
 		$processor = new WP_HTML_Tag_Processor( $output );
@@ -72,16 +75,16 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 	}
 
 	/**
-	 * Tests that nothing is printed for an iframe request, which has no admin menu.
+	 * Tests that nothing is printed when the admin View Transitions style is enqueued but not yet printed.
+	 *
+	 * This happens when the style is enqueued too late for the head, so it is printed in the footer instead.
 	 *
 	 * @ticket 65032
-	 *
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
 	 */
-	public function test_prints_nothing_for_iframe_request(): void {
-		define( 'IFRAME_REQUEST', true );
+	public function test_prints_nothing_when_style_not_printed(): void {
 		wp_enqueue_view_transitions_admin_css();
+		$this->assertTrue( wp_style_is( 'wp-view-transitions-admin' ), 'Expected the style to be enqueued.' );
+		$this->assertFalse( wp_style_is( 'wp-view-transitions-admin', 'done' ), 'Expected the style to not be printed yet.' );
 
 		$this->assertSame( '', get_echo( 'wp_print_view_transitions_render_blocking_link' ) );
 	}
