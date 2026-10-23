@@ -584,8 +584,11 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 		 */
 		$markup = sprintf(
 			'<span class="%1$s">
-				%7$s
-				<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
+				%8$s
+				<span popover="hint" id="%2$s-hint" class="wp-tooltip__bubble wp-tooltip__hint" aria-hidden="true">' .
+					'<span class="wp-tooltip__text">%7$s</span>' .
+				'</span>' .
+				'<span popover="auto" id="%2$s" class="wp-tooltip__bubble" role="dialog" aria-label="%3$s" tabindex="-1" autofocus>' .
 					'<span id="%2$s-text" class="wp-tooltip__text">%5$s</span>' .
 					'<button type="button" class="wp-tooltip__close" popovertarget="%2$s" popovertargetaction="hide" aria-label="%6$s">' .
 						'<span class="dashicons dashicons-no-alt" aria-hidden="true"></span>' .
@@ -598,6 +601,7 @@ function wp_get_tooltip_helper( $content, $args = array() ) {
 			esc_attr( $icon ),
 			esc_html( $content ),
 			esc_attr( $args['close_label'] ),
+			esc_html( $args['label'] ),
 			$button,
 		);
 	}
@@ -1929,6 +1933,8 @@ function single_term_title( $prefix = '', $display = true ) {
  * @param string $prefix  Optional. What to display before the title.
  * @param bool   $display Optional. Whether to display or retrieve title. Default true.
  * @return string|false|null False if there's no valid title for the month. Title when retrieving.
+ *
+ * @phpstan-return ( $display is true ? false|null : string|false )
  */
 function single_month_title( $prefix = '', $display = true ) {
 	global $wp_locale;
@@ -3005,6 +3011,8 @@ function the_date( $format = '', $before = '', $after = '', $display = true ) {
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was written. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3072,6 +3080,8 @@ function the_modified_date( $format = '', $before = '', $after = '', $display = 
  * @param string           $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Date the current post was modified. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3131,6 +3141,8 @@ function the_time( $format = '' ) {
  * @param int|WP_Post|null $post   Post ID or post object. Default is global `$post` object.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3168,6 +3180,8 @@ function get_the_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -3318,6 +3332,8 @@ function the_modified_time( $format = '' ) {
  *                                 Defaults to the 'time_format' option.
  * @param int|WP_Post|null $post   Optional. Post ID or WP_Post object. Default current post.
  * @return string|int|false Formatted date string or Unix timestamp. False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_the_modified_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -3357,6 +3373,8 @@ function get_the_modified_time( $format = '', $post = null ) {
  * @param bool             $translate Whether to translate the time string. Default false.
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
+ *
+ * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
  */
 function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -4947,6 +4965,16 @@ function language_attributes( $doctype = 'html' ) {
  * }
  * @return string|string[]|null String of page links or array of page links, depending on 'type' argument.
  *                              Null if total number of pages is less than 2.
+ *
+ * @phpstan-return (
+ *     $args is array{ total: int<min, 1>, ... }
+ *         ? null
+ *         : (
+ *             $args is array{ total: int<2, max>, ... }
+ *                 ? ( $args is array{ type: 'array', ... } ? list<string> : string )
+ *                 : ( $args is array{ type: 'array', ... } ? list<string> : string )|null
+ *         )
+ * )
  */
 function paginate_links( $args = '' ) {
 	global $wp_query, $wp_rewrite;

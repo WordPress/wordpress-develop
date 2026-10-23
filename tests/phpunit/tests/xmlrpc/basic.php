@@ -34,6 +34,55 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 	}
 
 	/**
+	 * Tests that non-scalar credentials return an error instead of causing a fatal error.
+	 *
+	 * @ticket 66168
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 *
+	 * @dataProvider data_login_rejects_non_scalar_credentials
+	 *
+	 * @param mixed $username The username argument.
+	 * @param mixed $password The password argument.
+	 */
+	public function test_login_rejects_non_scalar_credentials( $username, $password ): void {
+		$this->make_user_by_role( 'subscriber' );
+
+		$this->assertFalse( $this->myxmlrpcserver->login( $username, $password ) ); // @phpstan-ignore argument.type, argument.type (Non-string arguments passed intentionally to test error scenario.)
+		$this->assertIXRError( $this->myxmlrpcserver->error );
+		$this->assertSame( 400, $this->myxmlrpcserver->error->code );
+
+		// A rejected request is not a failed login attempt, so a valid login should still succeed.
+		$this->assertInstanceOf( WP_User::class, $this->myxmlrpcserver->login( 'subscriber', 'subscriber' ) );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array<non-falsy-string, array{ 0: mixed, 1: mixed }>
+	 */
+	public static function data_login_rejects_non_scalar_credentials(): array {
+		return array(
+			'array username'      => array( array( 'subscriber' ), 'subscriber' ),
+			'array password'      => array( 'subscriber', array( 'subscriber' ) ),
+			'IXR_Base64 password' => array( 'subscriber', new IXR_Base64( 'subscriber' ) ),
+		);
+	}
+
+	/**
+	 * Tests that integer credentials are still passed through to authentication.
+	 *
+	 * @ticket 66168
+	 *
+	 * @covers wp_xmlrpc_server::login
+	 */
+	public function test_login_passes_integer_credentials_to_authentication(): void {
+		$this->assertFalse( $this->myxmlrpcserver->login( 12345, 67890 ) );
+		$this->assertIXRError( $this->myxmlrpcserver->error );
+		$this->assertSame( 403, $this->myxmlrpcserver->error->code );
+	}
+
+	/**
 	 * @ticket 34336
 	 */
 	public function test_multicall_invalidates_all_calls_after_invalid_call() {

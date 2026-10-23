@@ -218,6 +218,7 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_user_properties() {
 		$user = new WP_User( self::$author_id );
 
+		// Keep assertEquals() because the public ID is an integer while data->ID may be a numeric string.
 		foreach ( $user->data as $key => $data ) {
 			$this->assertEquals( $data, $user->$key );
 		}
@@ -449,6 +450,7 @@ class Tests_User extends WP_UnitTestCase {
 		wp_update_user( $user_data );
 
 		$user = new WP_User( self::$author_id );
+		// Keep assertEquals() because integer preference flags and the user ID may be retrieved as numeric strings.
 		foreach ( $user_data as $key => $value ) {
 			$this->assertEquals( $value, $user->get( $key ), $key );
 		}
@@ -842,7 +844,7 @@ class Tests_User extends WP_UnitTestCase {
 		}
 
 		// If this test fails, it will error out for calling the to_array() method on a non-object.
-		$this->assertInstanceOf( 'WP_Error', wp_update_user( array( 'ID' => $user_id ) ) );
+		$this->assertWPError( wp_update_user( array( 'ID' => $user_id ) ) );
 	}
 
 	/**
@@ -1172,7 +1174,7 @@ class Tests_User extends WP_UnitTestCase {
 		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wp_insert_user( $user_data );
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
@@ -1192,7 +1194,7 @@ class Tests_User extends WP_UnitTestCase {
 		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = register_new_user( $user_login, $user_email );
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 		$this->assertSame( 'invalid_username', $response->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
@@ -1215,13 +1217,13 @@ class Tests_User extends WP_UnitTestCase {
 		add_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
-		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
+		$this->assertWPError( $response['errors'] );
 		$this->assertSame( 'user_name', $response['errors']->get_error_code() );
 
 		remove_filter( 'illegal_user_logins', array( $this, 'illegal_user_logins' ) );
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
-		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
+		$this->assertWPError( $response['errors'] );
 		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
@@ -1497,7 +1499,13 @@ class Tests_User extends WP_UnitTestCase {
 	public function test_wp_insert_user_with_empty_data() {
 		add_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 
-		$u = self::factory()->user->create();
+		$u = wp_insert_user(
+			array(
+				'user_login' => 'user_empty_data',
+				'user_pass'  => 'password',
+				'user_email' => 'user_empty_data@example.org',
+			)
+		);
 
 		remove_filter( 'wp_pre_insert_user_data', '__return_empty_array' );
 
@@ -2183,7 +2191,7 @@ class Tests_User extends WP_UnitTestCase {
 		// Check new user with missing password.
 		$response = edit_user();
 
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 		$this->assertSame( 'pass', $response->get_error_code() );
 
 		// Check new user with password set.
@@ -2226,7 +2234,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = edit_user( $user_id );
 
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 		$this->assertSame( 'pass', $response->get_error_code() );
 		$this->assertSame( 'nickname_updated', $user->nickname );
 
