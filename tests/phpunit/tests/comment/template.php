@@ -133,7 +133,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_get_comments_number_text_declension() {
+	public static function data_get_comments_number_text_declension() {
 		return array(
 			array(
 				2,
