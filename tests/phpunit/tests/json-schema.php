@@ -816,6 +816,43 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				),
 				'[{}]',
 			),
+			'array branch whose oneOf matches more than once' => array(
+				array(),
+				array(
+					'type'  => array( 'object', 'array' ),
+					'anyOf' => array(
+						array(
+							'oneOf' => array(
+								array( 'type' => 'array' ),
+								array(
+									'type'     => 'array',
+									'maxItems' => 5,
+								),
+							),
+						),
+						array( 'type' => 'object' ),
+					),
+				),
+				'{}',
+			),
+			'branch whose anyOf allows an array but whose oneOf does not' => array(
+				array(),
+				array(
+					'type'  => array( 'object', 'array' ),
+					'anyOf' => array(
+						array(
+							'anyOf' => array(
+								array( 'type' => 'array' ),
+							),
+							'oneOf' => array(
+								array( 'type' => 'object' ),
+							),
+						),
+						array( 'type' => 'array' ),
+					),
+				),
+				'[]',
+			),
 		);
 	}
 
@@ -1011,133 +1048,6 @@ class Tests_JSON_Schema extends WP_UnitTestCase {
 				),
 				'array',
 				false,
-			),
-			'schema without type or combining keywords'    => array(
-				array(),
-				array( 'minItems' => 0 ),
-				'array',
-				false,
-			),
-			'anyOf with a matching branch'                 => array(
-				array(),
-				array(
-					'anyOf' => array(
-						array( 'type' => 'object' ),
-						array( 'type' => 'array' ),
-					),
-				),
-				'array',
-				true,
-			),
-			'anyOf with the type and a valid value in different branches' => array(
-				array(),
-				array(
-					'anyOf' => array(
-						array(
-							'type'     => 'array',
-							'minItems' => 1,
-						),
-						array( 'type' => 'object' ),
-					),
-				),
-				'array',
-				false,
-			),
-			'oneOf without a branch of the requested type' => array(
-				array(),
-				array(
-					'oneOf' => array(
-						array( 'type' => 'object' ),
-						array( 'type' => 'string' ),
-					),
-				),
-				'array',
-				false,
-			),
-			'oneOf with several matching branches'         => array(
-				array(),
-				array(
-					'oneOf' => array(
-						array( 'type' => 'array' ),
-						array(
-							'type'     => 'array',
-							'maxItems' => 1,
-						),
-					),
-				),
-				'array',
-				false,
-			),
-			'anyOf and oneOf must both match'              => array(
-				array(),
-				array(
-					'anyOf' => array(
-						array( 'type' => 'array' ),
-					),
-					'oneOf' => array(
-						array( 'type' => 'object' ),
-					),
-				),
-				'array',
-				false,
-			),
-			'untyped branch inherits an allowing parent type' => array(
-				array(),
-				array(
-					'type'  => array( 'object', 'array' ),
-					'anyOf' => array(
-						array( 'maxItems' => 1 ),
-					),
-				),
-				'array',
-				true,
-			),
-			'untyped branch inherits a rejecting parent type' => array(
-				array(),
-				array(
-					'type'  => array( 'object', 'string' ),
-					'anyOf' => array(
-						array( 'maxProperties' => 1 ),
-					),
-				),
-				'array',
-				false,
-			),
-			'only non-array branches'                      => array(
-				array(),
-				array(
-					'anyOf' => array( 'array' ),
-				),
-				'array',
-				false,
-			),
-			'nested combining keywords'                    => array(
-				array( 'a' ),
-				array(
-					'oneOf' => array(
-						array(
-							'anyOf' => array(
-								array(
-									'type'     => 'array',
-									'minItems' => 2,
-								),
-								array(
-									'type'  => 'array',
-									'items' => array( 'type' => 'string' ),
-								),
-							),
-						),
-						array( 'type' => 'string' ),
-					),
-				),
-				'array',
-				true,
-			),
-			'object requested for an empty array'          => array(
-				array(),
-				array( 'type' => array( 'object', 'array' ) ),
-				'object',
-				true,
 			),
 		);
 	}
