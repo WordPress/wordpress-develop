@@ -212,6 +212,16 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Adapter_TestCase {
 
 		$wpdb->query( 'ROLLBACK' );
 
+		/*
+		 * A persistent object cache still holds the values the rollback just undid.
+		 * Flush it now: a process-isolated test bootstraps WordPress against it
+		 * before its own set_up() runs, and would act on the stale values,
+		 * e.g. a rolled back `theme_switched` option rebuilding the sidebars.
+		 */
+		if ( wp_using_ext_object_cache() ) {
+			self::flush_cache();
+		}
+
 		if ( is_multisite() ) {
 			while ( ms_is_switched() ) {
 				restore_current_blog();
