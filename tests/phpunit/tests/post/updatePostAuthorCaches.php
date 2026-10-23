@@ -67,6 +67,28 @@ class Tests_Post_UpdatePostAuthorCaches extends WP_UnitTestCase {
 			$q->the_post();
 		}
 
+		$this->assertSame( 0, $action->get_call_count(), 'Ensure that user meta are not primed' );
+	}
+
+	/**
+	 * @ticket 63021
+	 */
+	public function test_update_post_author_caches_force_load_meta() {
+		$action = new MockAction();
+		add_filter( 'update_user_metadata_cache', array( $action, 'filter' ), 10, 2 );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'post',
+				'posts_per_page' => self::$post_author_count,
+			)
+		);
+
+		while ( $q->have_posts() ) {
+			$q->the_post();
+			get_the_author_meta(); // Force loading of author meta.
+		}
+
 		$args      = $action->get_args();
 		$last_args = end( $args );
 
