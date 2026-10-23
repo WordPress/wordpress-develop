@@ -14,6 +14,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	public static $category;
 	public static $post_date;
 
+	private static $original_blogdescription;
+
 	private $post_count;
 	private $excerpt_only;
 
@@ -62,7 +64,8 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 			wp_set_object_terms( $post, self::$category->slug, 'category' );
 		}
 
-		// Assign a tagline option.
+		// Assign a tagline option, restored after the class runs.
+		self::$original_blogdescription = get_option( 'blogdescription' );
 		update_option( 'blogdescription', 'Just another WordPress site' );
 	}
 
@@ -85,7 +88,7 @@ class Tests_Feed_RSS2 extends WP_UnitTestCase {
 	 * Tear down.
 	 */
 	public static function wpTearDownAfterClass() {
-		delete_option( 'blogdescription' );
+		update_option( 'blogdescription', self::$original_blogdescription );
 	}
 
 	/**
