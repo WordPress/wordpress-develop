@@ -19,14 +19,23 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 */
 	private $orig_registered_nav_menus;
 
+	/**
+	 * Editor stylesheets registered before the test ran.
+	 *
+	 * @var array
+	 */
+	private $orig_editor_styles;
+
 	public function set_up() {
 		parent::set_up();
 
 		$this->orig_theme_features       = $GLOBALS['_wp_theme_features'];
 		$this->orig_registered_nav_menus = $GLOBALS['_wp_registered_nav_menus'] ?? array();
+		$this->orig_editor_styles        = $GLOBALS['editor_styles'] ?? array();
 
-		// Start without support from the bootstrapped theme.
+		// Start without support or stylesheets from the bootstrapped theme.
 		$GLOBALS['_wp_theme_features'] = array();
+		$GLOBALS['editor_styles']      = array();
 	}
 
 	public function tear_down() {
@@ -36,6 +45,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 			// Restore after the parent removes HTML5 theme support.
 			$GLOBALS['_wp_theme_features']       = $this->orig_theme_features;
 			$GLOBALS['_wp_registered_nav_menus'] = $this->orig_registered_nav_menus;
+			$GLOBALS['editor_styles']            = $this->orig_editor_styles;
 		}
 	}
 
