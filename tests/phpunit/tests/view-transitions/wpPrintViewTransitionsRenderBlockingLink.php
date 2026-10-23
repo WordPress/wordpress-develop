@@ -12,6 +12,28 @@
  */
 class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP_UnitTestCase {
 
+	private ?WP_Styles $original_wp_styles = null;
+
+	/**
+	 * Saves the global styles instance and resets it so each test starts with nothing enqueued.
+	 *
+	 * @global WP_Styles|null $wp_styles
+	 */
+	public function set_up() {
+		global $wp_styles;
+
+		parent::set_up();
+		$this->original_wp_styles = $wp_styles;
+		$wp_styles                = null;
+	}
+
+	public function tear_down() {
+		global $wp_styles;
+
+		$wp_styles = $this->original_wp_styles;
+		parent::tear_down();
+	}
+
 	/**
 	 * Tests that the hook for printing the render-blocking link is set up.
 	 *
@@ -27,6 +49,7 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 	 * @ticket 65032
 	 */
 	public function test_prints_render_blocking_link(): void {
+		wp_enqueue_view_transitions_admin_css();
 		$output = get_echo( 'wp_print_view_transitions_render_blocking_link' );
 
 		$processor = new WP_HTML_Tag_Processor( $output );
@@ -36,5 +59,15 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 		$this->assertSame( 'render', $processor->get_attribute( 'blocking' ), 'Expected the LINK to block rendering.' );
 		$this->assertSame( '(prefers-reduced-motion: no-preference)', $processor->get_attribute( 'media' ), 'Expected the LINK to be scoped to the view transitions media query.' );
 		$this->assertFalse( $processor->next_tag(), 'Expected only a single tag to be printed.' );
+	}
+
+	/**
+	 * Tests that nothing is printed when the admin View Transitions style is not enqueued.
+	 *
+	 * @ticket 65032
+	 */
+	public function test_prints_nothing_when_style_not_enqueued(): void {
+		$this->assertFalse( wp_style_is( 'wp-view-transitions-admin' ), 'Expected the style to not be enqueued.' );
+		$this->assertSame( '', get_echo( 'wp_print_view_transitions_render_blocking_link' ) );
 	}
 }

@@ -45,10 +45,17 @@ function wp_get_view_transitions_admin_css(): string {
  * query limits the first-render delay to when view transitions actually run, matching the
  * `@view-transition` rule in view-transitions.css.
  *
+ * Nothing is printed when the admin View Transitions style is not enqueued, since there is then
+ * no transition to wait for.
+ *
  * @since 7.2.0
  *
  * @link https://html.spec.whatwg.org/multipage/links.html#link-type-expect
  */
 function wp_print_view_transitions_render_blocking_link(): void {
+	if ( ! wp_style_is( 'wp-view-transitions-admin' ) ) {
+		return;
+	}
+
 	echo '<link rel="expect" href="#wpcontent" blocking="render" media="(prefers-reduced-motion: no-preference)">' . "\n";
 }
