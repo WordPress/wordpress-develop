@@ -10,7 +10,11 @@
 /**
  * Enqueues View Transitions CSS for the admin.
  *
+ * To disable admin View Transitions, dequeue the `wp-view-transitions-admin` style at the
+ * `admin_enqueue_scripts` action, rather than unhooking this function.
+ *
  * @since 7.0.0
+ * @since 7.2.0 Called from wp-admin/admin-header.php instead of hooked to `admin_enqueue_scripts`.
  */
 function wp_enqueue_view_transitions_admin_css(): void {
 	wp_enqueue_style( 'wp-view-transitions-admin' );
