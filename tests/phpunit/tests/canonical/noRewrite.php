@@ -28,7 +28,7 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );
 	}
 
-	public function data() {
+	public static function data() {
 		/*
 		 * Test URL.
 		 * [0]: Test URL.
@@ -303,7 +303,7 @@ class Tests_Canonical_NoRewrite extends WP_Canonical_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_missing_host_header() {
+	public static function data_missing_host_header() {
 		return array(
 			'no port'   => array(
 				'wp_home'      => 'http://example.com',

@@ -6384,12 +6384,12 @@ function wp_get_global_styles_custom_css() {
 	 * that can use dynamic data (modify the stylesheet depending on some option,
 	 * settings depending on user permissions, etc.).
 	 * See some of the existing hooks to modify theme.json behavior:
-	 * @see https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
+	 * @link https://make.wordpress.org/core/2022/10/10/filters-for-theme-json-data/
 	 *
 	 * A different alternative considered was to invalidate the cache upon certain
 	 * events such as options add/update/delete, user meta, etc.
 	 * It was judged not enough, hence this approach.
-	 * @see https://github.com/WordPress/gutenberg/pull/45372
+	 * @link https://github.com/WordPress/gutenberg/pull/45372
 	 */
 	$cache_key   = 'wp_get_global_styles_custom_css';
 	$cache_group = 'theme_json';
@@ -6517,9 +6517,9 @@ function wp_add_editor_classic_theme_styles( $editor_settings ) {
  * @deprecated 6.9.0 Use wp_enqueue_img_auto_sizes_contain_css_fix() instead.
  * @see wp_enqueue_img_auto_sizes_contain_css_fix()
  *
- * @see https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
- * @see https://core.trac.wordpress.org/ticket/62413
- * @see https://core.trac.wordpress.org/ticket/62731
+ * @link https://html.spec.whatwg.org/multipage/rendering.html#img-contain-size
+ * @link https://core.trac.wordpress.org/ticket/62413
+ * @link https://core.trac.wordpress.org/ticket/62731
  */
 function wp_print_auto_sizes_contain_css_fix() {
 	_deprecated_function( __FUNCTION__, '6.9.0', 'wp_enqueue_img_auto_sizes_contain_css_fix' );
@@ -6599,4 +6599,113 @@ function _truncate_post_slug( $slug, $length = 200 ) {
 	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_truncate_slug()' );
 
 	return wp_truncate_slug( $slug, $length );
+}
+
+/**
+ * Determines the concatenation settings for scripts and styles.
+ *
+ * Scripts and styles are no longer concatenated, so this only gives the `$concatenate_scripts`,
+ * `$compress_scripts`, and `$compress_css` globals a value of false when they are not already set,
+ * for code that still reads them.
+ *
+ * @since 2.8.0
+ * @since 7.2.0 The `$compress_scripts` and `$compress_css` globals default to false, as PHP compression
+ *              of scripts and styles was removed in 4.9.9.
+ * @deprecated 7.2.0 Scripts and styles are no longer concatenated.
+ *
+ * @global bool $concatenate_scripts
+ * @global bool $compress_scripts
+ * @global bool $compress_css
+ */
+function script_concat_settings(): void {
+	global $concatenate_scripts, $compress_scripts, $compress_css;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! isset( $concatenate_scripts ) ) {
+		$concatenate_scripts = false;
+	}
+
+	if ( ! isset( $compress_scripts ) ) {
+		$compress_scripts = false;
+	}
+
+	if ( ! isset( $compress_css ) ) {
+		$compress_css = false;
+	}
+}
+
+/**
+ * Prints scripts (internal use only)
+ *
+ * @since 2.8.0
+ * @deprecated 7.2.0 Scripts are no longer concatenated.
+ *
+ * @ignore
+ *
+ * @global WP_Scripts $wp_scripts
+ */
+function _print_scripts(): void {
+	global $wp_scripts;
+
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	if ( ! empty( $wp_scripts->print_html ) ) {
+		echo $wp_scripts->print_html;
+	}
+}
+
+/**
+ * Prints styles (internal use only).
+ *
+ * @ignore
+ * @since 3.3.0
+ * @deprecated 7.2.0 Styles are no longer concatenated.
+ */
+function _print_styles(): void {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	$wp_styles = wp_styles();
+
+	if ( ! empty( $wp_styles->print_html ) ) {
+		echo $wp_styles->print_html;
+	}
+}
+
+/**
+ * Starts an output buffer that sends the Document-Isolation-Policy header
+ * and adds crossorigin="anonymous" to cross-origin resources.
+ *
+ * The attribute injection was dropped because `isolate-and-credentialless`
+ * loads cross-origin resources without it, and forcing CORS mode broke
+ * resources served without `Access-Control-Allow-Origin`. Only the header
+ * is sent now.
+ *
+ * @since 7.1.0
+ * @deprecated 7.2.0 Use wp_send_document_isolation_policy_header() instead.
+ * @see wp_send_document_isolation_policy_header()
+ */
+function wp_start_cross_origin_isolation_output_buffer(): void {
+	_deprecated_function( __FUNCTION__, '7.2.0', 'wp_send_document_isolation_policy_header()' );
+
+	wp_send_document_isolation_policy_header();
+}
+
+/**
+ * Adds crossorigin="anonymous" to relevant tags in the given HTML string.
+ *
+ * No longer modifies the HTML. Under `Document-Isolation-Policy:
+ * isolate-and-credentialless` cross-origin resources load without the
+ * attribute, and adding it broke resources served without CORS headers.
+ *
+ * @since 7.1.0
+ * @deprecated 7.2.0
+ *
+ * @param string $html HTML input.
+ * @return string The unmodified HTML.
+ */
+function wp_add_crossorigin_attributes( string $html ): string {
+	_deprecated_function( __FUNCTION__, '7.2.0' );
+
+	return $html;
 }

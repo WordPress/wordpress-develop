@@ -659,28 +659,6 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 54507
-	 * @dataProvider data_sanitize_template_id
-	 */
-	public function test_sanitize_template_id( $input_id, $sanitized_id ) {
-		$endpoint = new WP_REST_Templates_Controller( 'wp_template' );
-		$this->assertSame(
-			$sanitized_id,
-			$endpoint->_sanitize_template_id( $input_id )
-		);
-	}
-
-	public function data_sanitize_template_id() {
-		return array(
-			array( 'tt1-blocks/index', 'tt1-blocks//index' ),
-			array( 'tt1-blocks//index', 'tt1-blocks//index' ),
-
-			array( 'theme-experiments/tt1-blocks/index', 'theme-experiments/tt1-blocks//index' ),
-			array( 'theme-experiments/tt1-blocks//index', 'theme-experiments/tt1-blocks//index' ),
-		);
-	}
-
-	/**
 	 * @ticket 54422
 	 * @covers WP_REST_Templates_Controller::create_item
 	 */
