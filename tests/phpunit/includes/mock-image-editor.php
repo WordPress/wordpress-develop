@@ -72,4 +72,16 @@ if ( class_exists( 'WP_Image_Editor' ) ) :
 		}
 	}
 
+	/**
+	 * An image editor that always reports itself as unavailable.
+	 *
+	 * Used to test that editor selection falls through to the next implementation.
+	 */
+	class WP_Image_Editor_Unavailable_Mock extends WP_Image_Editor_Mock {
+
+		public static function test( $args = array() ) {
+			return false;
+		}
+	}
+
 endif;

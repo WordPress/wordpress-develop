@@ -635,8 +635,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		/**
 		 * Filters whether to strip metadata from images when they're resized.
 		 *
-		 * This filter only applies when resizing using the Imagick editor since GD
-		 * always strips profiles by default.
+		 * This filter only applies when resizing using the Imagick or VIPS editors,
+		 * since GD always strips profiles by default.
 		 *
 		 * @since 4.5.0
 		 *
@@ -790,8 +790,9 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				/**
 				 * Filters the maximum bit depth of resized images.
 				 *
-				 * This filter only applies when resizing using the Imagick editor since GD
-				 * does not support getting or setting bit depth.
+				 * This filter applies when resizing using the Imagick or VIPS editors. GD does
+				 * not support getting or setting bit depth, and VIPS can only honour it for the
+				 * encoders that accept a bit depth.
 				 *
 				 * Use this to adjust the maximum bit depth of resized images.
 				 *
