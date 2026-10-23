@@ -1112,4 +1112,36 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		return $item;
 	}
+
+	/**
+	 * @ticket 60029
+	 * @group ms-required
+	 */
+	public function test_create_item_for_user_without_role_on_main_site() {
+		if ( ! is_multisite() ) {
+			$this->markTestSkipped( 'Test only runs in multisite' );
+		}
+
+		wp_set_current_user( self::$admin );
+
+		$blog_id = self::factory()->blog->create();
+		$user_id = self::factory()->user->create();
+
+		// Remove user from main site if they were automatically added.
+		if ( is_user_member_of_blog( $user_id ) ) {
+			remove_user_from_blog( $user_id, get_current_blog_id() );
+		}
+		add_user_to_blog( $blog_id, $user_id, 'subscriber' );
+
+		$this->assertFalse( is_user_member_of_blog( $user_id ) );
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/users/%d/application-passwords', $user_id ) );
+		$request->set_body_params( array( 'name' => 'Test App' ) );
+		$response = rest_do_request( $request );
+		$this->assertSame( 201, $response->get_status() );
+
+		$passwords = WP_Application_Passwords::get_user_application_passwords( $user_id );
+		$this->assertCount( 1, $passwords );
+		$this->assertSame( 'Test App', $passwords[0]['name'] );
+	}
 }
