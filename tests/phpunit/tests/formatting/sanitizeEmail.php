@@ -39,7 +39,7 @@ class Tests_Formatting_SanitizeEmail extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_sanitized_email_pairs() {
+	public static function data_sanitized_email_pairs() {
 		return array(
 			'shorter than 6 characters'      => array( 'a@b', '' ),
 			'contains no @'                  => array( 'ab', '' ),
