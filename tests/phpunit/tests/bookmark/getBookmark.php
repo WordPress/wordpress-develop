@@ -75,7 +75,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Path 1 data provider, i.e. when given empty bookmark.
 	 */
-	public function data_when_empty_bookmark() {
+	public static function data_when_empty_bookmark() {
 		return array(
 			// Unhappy path.
 			'with bookmark type mismatch'        => array(
@@ -151,7 +151,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * Path 2 data provider, i.e. when bookmark instance is given.
 	 */
-	public function data_when_instance_bookmark() {
+	public static function data_when_instance_bookmark() {
 		return array(
 			// Unhappy path.
 			'with incomplete bookmark data'      => array(
@@ -312,7 +312,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * Path 3's data provider which covers the "else" branch, i.e. when the bookmark argument is not empty and
 	 * not an object.
 	 */
-	public function data_when_else() {
+	public static function data_when_else() {
 		return array(
 			// Unhappy path.
 			'with invalid output'                => array(
