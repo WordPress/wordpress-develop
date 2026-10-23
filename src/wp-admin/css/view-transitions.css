@@ -39,4 +39,17 @@
 	::view-transition-image-pair(.wp-menu-top) {
 		overflow: clip;
 	}
+
+	/*
+	 * Capture an open flyout submenu — one shown on hover or focus for an item
+	 * that is not the current one — as its own group, so that it fades out
+	 * instead of being cut off by the clip above, since it extends outside its
+	 * menu-top box. The current item's submenu is in the normal flow, so it is
+	 * left to the clipped menu-top. match-element gives each flyout a unique
+	 * name, so two open at once cannot collide and abort the transition.
+	 */
+	#adminmenu > .wp-not-current-submenu.opensub > .wp-submenu,
+	#adminmenu > .wp-not-current-submenu > a.menu-top:focus + .wp-submenu {
+		view-transition-name: match-element;
+	}
 }
