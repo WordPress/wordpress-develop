@@ -1053,6 +1053,294 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider for recursive input defaults.
+	 *
+	 * @return array<string, array{0: array, 1: mixed, 2: mixed}> Schema, supplied input, and expected input.
+	 */
+	public static function data_normalize_input_defaults() {
+		$object_schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'enabled' => array(
+					'type'    => array( 'boolean', 'null' ),
+					'default' => true,
+				),
+			),
+		);
+		$array_schema  = array(
+			'type'  => 'array',
+			'items' => $object_schema,
+		);
+		$nested_schema = array(
+			'type'       => 'object',
+			'properties' => array(
+				'options' => $object_schema,
+				'entries' => $array_schema,
+			),
+		);
+
+		$cases = array(
+			'missing property'                   => array( $object_schema, array(), array( 'enabled' => true ) ),
+			'explicit false property'            => array( $object_schema, array( 'enabled' => false ), array( 'enabled' => false ) ),
+			'explicit null property'             => array( $object_schema, array( 'enabled' => null ), array( 'enabled' => null ) ),
+			'unknown property preserved'         => array(
+				$object_schema,
+				array( 'extra' => 42 ),
+				array(
+					'extra'   => 42,
+					'enabled' => true,
+				),
+			),
+			'no top-level default'               => array( $nested_schema, null, null ),
+			'missing containers without default' => array( $nested_schema, array(), array() ),
+			'empty array has no invented items'  => array( $array_schema, array(), array() ),
+			'array item null is preserved'       => array( $array_schema, array( null ), array( null ) ),
+			'nested objects and arrays'          => array(
+				$nested_schema,
+				array(
+					'options' => array(),
+					'entries' => array( array(), array( 'enabled' => false ) ),
+				),
+				array(
+					'options' => array( 'enabled' => true ),
+					'entries' => array( array( 'enabled' => true ), array( 'enabled' => false ) ),
+				),
+			),
+			'arrays within arrays'               => array(
+				array(
+					'type'  => 'array',
+					'items' => $array_schema,
+				),
+				array( array( array() ) ),
+				array( array( array( 'enabled' => true ) ) ),
+			),
+			'array keys are preserved'           => array(
+				$array_schema,
+				array( 2 => array() ),
+				array( 2 => array( 'enabled' => true ) ),
+			),
+			'top-level object default'           => array(
+				array_merge(
+					$nested_schema,
+					array(
+						'default' => array(
+							'options' => array(),
+							'entries' => array( array() ),
+						),
+					)
+				),
+				null,
+				array(
+					'options' => array( 'enabled' => true ),
+					'entries' => array( array( 'enabled' => true ) ),
+				),
+			),
+			'top-level array default'            => array(
+				array_merge( $array_schema, array( 'default' => array( array() ) ) ),
+				null,
+				array( array( 'enabled' => true ) ),
+			),
+			'explicit array overrides default'   => array(
+				array_merge( $array_schema, array( 'default' => array( array() ) ) ),
+				array(),
+				array(),
+			),
+			'explicit object overrides default'  => array(
+				array_merge(
+					$object_schema,
+					array(
+						'default' => array(
+							'enabled' => false,
+							'extra'   => 42,
+						),
+					)
+				),
+				array(),
+				array( 'enabled' => true ),
+			),
+			'item default preserves null item'   => array(
+				array(
+					'type'  => 'array',
+					'items' => array_merge( $object_schema, array( 'default' => array() ) ),
+				),
+				array( null ),
+				array( null ),
+			),
+			'missing containers with defaults'   => array(
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'options' => array_merge( $object_schema, array( 'default' => array() ) ),
+						'entries' => array_merge( $array_schema, array( 'default' => array( array() ) ) ),
+					),
+				),
+				array(),
+				array(
+					'options' => array( 'enabled' => true ),
+					'entries' => array( array( 'enabled' => true ) ),
+				),
+			),
+			'nullable object'                    => array(
+				array_merge( $object_schema, array( 'type' => array( 'null', 'object' ) ) ),
+				array(),
+				array( 'enabled' => true ),
+			),
+			'nullable array'                     => array(
+				array_merge( $array_schema, array( 'type' => array( 'array', 'null' ) ) ),
+				array( array() ),
+				array( array( 'enabled' => true ) ),
+			),
+			'pattern properties'                 => array(
+				array(
+					'type'              => 'object',
+					'patternProperties' => array( '^item-' => $object_schema ),
+				),
+				array( 'item-1' => array() ),
+				array( 'item-1' => array( 'enabled' => true ) ),
+			),
+			'additional properties'              => array(
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => $object_schema,
+				),
+				array( 'extra' => array() ),
+				array( 'extra' => array( 'enabled' => true ) ),
+			),
+		);
+
+		foreach ( array(
+			'null'         => null,
+			'false'        => false,
+			'zero'         => 0,
+			'empty string' => '',
+			'empty array'  => array(),
+		) as $name => $value ) {
+			$schema = array(
+				'type'       => 'object',
+				'properties' => array(
+					'value' => array(
+						'type'    => array( 'null', 'boolean', 'integer', 'string', 'array' ),
+						'default' => $value,
+					),
+				),
+			);
+			$cases[ 'missing property with ' . $name . ' default' ] = array( $schema, array(), array( 'value' => $value ) );
+			$schema['properties']['value']['default']               = 'replacement';
+			$cases[ 'preserve explicit ' . $name . ' property' ]    = array( $schema, array( 'value' => $value ), array( 'value' => $value ) );
+			$cases[ 'top-level ' . $name . ' default' ]             = array( array( 'default' => $value ), null, $value );
+			if ( null !== $value ) {
+				$cases[ 'preserve explicit top-level ' . $name ] = array( array( 'default' => 'replacement' ), $value, $value );
+			}
+		}
+
+		return $cases;
+	}
+
+	/**
+	 * Tests that normalization applies declared defaults without replacing supplied values.
+	 *
+	 * @covers WP_Ability::normalize_input
+	 * @dataProvider data_normalize_input_defaults
+	 *
+	 * @param array $input_schema The input schema.
+	 * @param mixed $input        The supplied input.
+	 * @param mixed $expected     The expected normalized input.
+	 */
+	public function test_normalize_input_defaults( $input_schema, $input, $expected ) {
+		$args                 = self::$test_ability_properties;
+		$args['input_schema'] = $input_schema;
+		$ability              = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( $expected, $ability->normalize_input( $input ) );
+		$this->assertSame( $input_schema, $ability->get_input_schema(), 'Applying defaults should not modify the input schema.' );
+	}
+
+	/**
+	 * Tests that nested object inputs and schema defaults are not mutated.
+	 *
+	 * @covers WP_Ability::normalize_input
+	 */
+	public function test_normalize_input_defaults_preserves_objects() {
+		$default              = (object) array();
+		$input                = (object) array( 'existing' => (object) array() );
+		$schema               = array(
+			'type'       => 'object',
+			'properties' => array(
+				'enabled' => array(
+					'type'    => 'boolean',
+					'default' => true,
+				),
+			),
+			'default'    => $default,
+		);
+		$args                 = self::$test_ability_properties;
+		$args['input_schema'] = array(
+			'type'       => 'object',
+			'properties' => array(
+				'existing' => $schema,
+				'missing'  => $schema,
+			),
+		);
+		$ability              = new WP_Ability( self::$test_ability_name, $args );
+
+		$normalized = $ability->normalize_input( $input );
+
+		$this->assertEquals(
+			(object) array(
+				'existing' => (object) array( 'enabled' => true ),
+				'missing'  => (object) array( 'enabled' => true ),
+			),
+			$normalized
+		);
+		$this->assertEquals( (object) array( 'existing' => (object) array() ), $input );
+		$this->assertEquals( (object) array(), $default );
+	}
+
+	/**
+	 * Tests that defaults reach filters, validation, permissions, and execution.
+	 *
+	 * @covers WP_Ability::normalize_input
+	 * @covers WP_Ability::execute
+	 */
+	public function test_execute_receives_nested_input_defaults() {
+		$args                        = self::$test_ability_properties;
+		$args['input_schema']        = array(
+			'type'       => 'object',
+			'properties' => array(
+				'options' => array(
+					'type'       => 'object',
+					'required'   => array( 'count' ),
+					'properties' => array(
+						'count' => array(
+							'type'    => 'integer',
+							'default' => 42,
+						),
+					),
+				),
+			),
+		);
+		$expected                    = array( 'options' => array( 'count' => 42 ) );
+		$args['permission_callback'] = static function ( $input ) use ( $expected ) {
+			return $expected === $input;
+		};
+		$args['execute_callback']    = static function ( $input ) {
+			return $input['options']['count'];
+		};
+		$filtered_input              = null;
+		add_filter(
+			'wp_ability_normalize_input',
+			static function ( $input ) use ( &$filtered_input ) {
+				$filtered_input = $input;
+				return $input;
+			}
+		);
+		$ability = new WP_Ability( self::$test_ability_name, $args );
+
+		$this->assertSame( 42, $ability->execute( array( 'options' => array() ) ) );
+		$this->assertSame( $expected, $filtered_input );
+	}
+
+	/**
 	 * Tests that the wp_ability_normalize_input filter can transform input and receives the
 	 * expected ability name and instance (verified via args-as-guards on the transformation).
 	 *
