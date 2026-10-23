@@ -3020,7 +3020,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_resolve_data_processing
 	 *
 	 * @param array<string, mixed>      $handler       The route handler.
@@ -3055,7 +3055,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_data_processing_false_serves_the_data_as_returned
 	 *
 	 * @param mixed  $data     The response data.
@@ -3072,7 +3072,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_fields_are_filtered_and_links_embedded_by_default(): void {
 		$this->register_data_processing_route(
@@ -3093,7 +3093,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_fields_false_leaves_the_data_unfiltered(): void {
 		$this->register_data_processing_route(
@@ -3128,7 +3128,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_data_processing_links_false_leaves_out_the_links
 	 *
 	 * @param mixed  $data     The response data.
@@ -3144,7 +3144,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_embed_false_keeps_the_links_without_embedding(): void {
 		$this->register_data_processing_route( array( 'a' => 1 ), true, array( 'data_processing' => array( 'embed' => false ) ) );
@@ -3158,7 +3158,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_false_keeps_the_own_links_of_the_data(): void {
 		$own_links = array( 'custom' => array( array( 'href' => 'https://example.org/' ) ) );
@@ -3180,7 +3180,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_applies_to_enveloped_responses(): void {
 		$this->register_data_processing_route(
@@ -3225,7 +3225,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_handler_setting_takes_precedence_over_route_setting
 	 *
 	 * @param array<string, mixed> $handler_options Options for the route handler.
@@ -3251,7 +3251,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_is_set_on_the_request_attributes_the_matched_handler_and_the_response(): void {
 		$this->register_data_processing_route( array( 'a' => 1 ), false, array( 'data_processing' => array( 'links' => false ) ) );
@@ -3270,7 +3270,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_routes_without_the_option_have_every_feature_on(): void {
 		$this->register_data_processing_route( array( 'a' => 1 ), false );
@@ -3307,7 +3307,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_data_processing_applies_to_hijacked_responses
 	 *
 	 * @param mixed  $data     The data returned by the `rest_pre_dispatch` filter.
@@ -3331,7 +3331,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_hijacked_responses_are_processed_by_default(): void {
 		$this->register_data_processing_route( array( 'unexpected' => true ), true );
@@ -3353,7 +3353,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_hijacked_responses_carry_the_settings_of_their_route(): void {
 		$this->register_data_processing_route( array( 'unexpected' => true ), true, array( 'data_processing' => array( 'links' => false ) ) );
@@ -3381,7 +3381,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_hijacked_responses_for_unknown_routes_have_every_feature_on(): void {
 		add_filter(
@@ -3405,7 +3405,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_response_setting_applies_when_set_before_the_fields_filter(): void {
 		$this->register_data_processing_route(
@@ -3476,7 +3476,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_response_set_data_processing
 	 *
 	 * @param mixed               $processing The setting, in the form of the `data_processing` option.
@@ -3520,7 +3520,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_data_processing_applies_to_preloaded_requests
 	 *
 	 * @param mixed  $data     The response data.
@@ -3535,7 +3535,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_applies_to_batch_requests(): void {
 		$this->register_data_processing_route(
@@ -3574,7 +3574,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_data_processing_is_listed_in_the_index(): void {
 		rest_get_server()->register_route(
@@ -3613,7 +3613,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_options_requests_are_processed_by_default(): void {
 		$this->register_data_processing_route( array( 'a' => 1 ), true, array( 'data_processing' => false ) );
@@ -3628,7 +3628,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 */
 	public function test_array_access_data_gets_links_and_embedded_resources(): void {
 		$this->register_data_processing_route( new ArrayObject( array( 'a' => 1 ) ), true );
@@ -3658,7 +3658,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_non_array_data_is_served_as_returned_by_default
 	 *
 	 * @param mixed  $data      The response data.

@@ -456,7 +456,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * @ticket 66267
+	 * @ticket 66372
 	 * @dataProvider data_get_fields_for_response_respects_data_processing
 	 *
 	 * @param mixed $data_processing The `data_processing` setting of the matched handler.
