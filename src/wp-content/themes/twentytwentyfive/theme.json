@@ -685,6 +685,36 @@
 			}
 		}
 	},
+	"templates": [
+		{
+			"name": "404",
+			"template": "index"
+		},
+		{
+			"name": "archive",
+			"template": "index"
+		},
+		{
+			"name": "home",
+			"template": "index"
+		},
+		{
+			"name": "page",
+			"template": "index"
+		},
+		{
+			"name": "page-no-title",
+			"template": "index"
+		},
+		{
+			"name": "search",
+			"template": "index"
+		},
+		{
+			"name": "single",
+			"template": "index"
+		}
+	],
 	"templateParts": [
 		{
 			"area": "header",
