@@ -180,6 +180,35 @@ class Tests_Nav_Menu_Theme_Change extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A new location that matches only one slug in its group should still be mapped
+	 * after an earlier location in the same group has been mapped.
+	 *
+	 * 'primary-menu' matches 'primary' and nothing else in that group, so unlike
+	 * 'main' in the test above it has no later slug to be picked up by.
+	 *
+	 * @ticket 65884
+	 *
+	 * @covers ::wp_map_nav_menu_locations
+	 */
+	public function test_location_guessing_after_an_earlier_location_in_the_group_matched() {
+		$this->register_nav_menu_locations( array( 'primary', 'primary-menu' ) );
+
+		$prev_theme_nav_menu_locations = array(
+			'header'   => 1,
+			'mainmenu' => 2,
+		);
+
+		$old_next_theme_nav_menu_locations = array();
+		$new_next_theme_nav_menu_locations = wp_map_nav_menu_locations( $old_next_theme_nav_menu_locations, $prev_theme_nav_menu_locations );
+
+		$expected_nav_menu_locations = array(
+			'primary'      => 1,
+			'primary-menu' => 2,
+		);
+		$this->assertSame( $expected_nav_menu_locations, $new_next_theme_nav_menu_locations );
+	}
+
+	/**
 	 * Technically possible to register menu locations numerically.
 	 *
 	 * @expectedIncorrectUsage register_nav_menus
