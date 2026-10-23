@@ -117,8 +117,9 @@ class Tests_Multisite_SiteMeta extends WP_UnitTestCase {
 
 		$found    = get_site_meta( self::$site_id );
 		$expected = array(
-			'foo'  => array( 'bar' ),
-			'foo1' => array( 'baz' ),
+			'blogname' => array( get_blog_option( self::$site_id, 'blogname' ) ),
+			'foo'      => array( 'bar' ),
+			'foo1'     => array( 'baz' ),
 		);
 
 		$this->assertSameSets( $expected, $found );
@@ -472,5 +473,65 @@ class Tests_Multisite_SiteMeta extends WP_UnitTestCase {
 		);
 
 		$this->assertSameSets( array( self::$site_id ), $found );
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_title_option_addition_and_deletion_update_metadata() {
+		$site_id = self::$site_id;
+
+		$this->assertTrue( delete_blog_option( $site_id, 'blogname' ) );
+		$this->assertFalse( metadata_exists( 'blog', $site_id, 'blogname' ) );
+		$this->assertTrue( add_blog_option( $site_id, 'blogname', 'Added Catalog 58795' ) );
+		$this->assertSame( 'Added Catalog 58795', get_site_meta( $site_id, 'blogname', true ) );
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_title_metadata_keeps_latest_interleaved_update() {
+		$site_id  = self::$site_id;
+		$callback = static function ( $check, $object_id, $meta_key ) use ( $site_id ) {
+			if ( $site_id === $object_id && 'blogname' === $meta_key ) {
+				update_blog_option( $site_id, 'blogname', 'Latest Catalog 58795' );
+			}
+			return $check;
+		};
+		add_filter( 'update_blog_metadata', $callback, 10, 3 );
+
+		try {
+			update_blog_option( $site_id, 'blogname', 'Earlier Catalog 58795' );
+		} finally {
+			remove_filter( 'update_blog_metadata', $callback, 10 );
+		}
+
+		$this->assertSame( 'Latest Catalog 58795', get_blog_option( $site_id, 'blogname' ) );
+		$this->assertSame( 'Latest Catalog 58795', get_site_meta( $site_id, 'blogname', true ) );
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_network_upgrade_backfills_existing_site_title_idempotently() {
+		delete_site_meta( self::$site_id, 'blogname' );
+
+		do_action( 'wpmu_upgrade_site', self::$site_id );
+		do_action( 'wpmu_upgrade_site', self::$site_id );
+
+		$this->assertSame(
+			array( get_blog_option( self::$site_id, 'blogname' ) ),
+			get_site_meta( self::$site_id, 'blogname' )
+		);
+	}
+
+	/**
+	 * @ticket 58795
+	 */
+	public function test_uninitialization_removes_title_metadata() {
+		$site_id = self::factory()->blog->create( array( 'title' => 'Removed Catalog 58795' ) );
+
+		$this->assertTrue( wp_uninitialize_site( $site_id ) );
+		$this->assertFalse( metadata_exists( 'blog', $site_id, 'blogname' ) );
 	}
 }
