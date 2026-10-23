@@ -18,7 +18,7 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_size_format() {
+	public static function data_size_format() {
 		return array(
 			// Invalid values.
 			array( array(), 0, false ),

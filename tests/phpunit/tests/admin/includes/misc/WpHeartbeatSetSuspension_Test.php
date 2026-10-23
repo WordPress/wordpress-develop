@@ -59,7 +59,7 @@ class Tests_Admin_Includes_Misc_WpHeartbeatSetSuspension_Test extends WP_UnitTes
 	 *     expected:      string,
 	 * }>
 	 */
-	public function data_wp_heartbeat_set_suspension(): array {
+	public static function data_wp_heartbeat_set_suspension(): array {
 		return array(
 			'post.php'     => array(
 				'pagenow_value' => 'post.php',
