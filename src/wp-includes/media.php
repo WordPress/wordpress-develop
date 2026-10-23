@@ -7018,6 +7018,9 @@ function wp_is_cross_origin_isolated_request(): bool {
 		return true;
 	}
 
-	return array_any( headers_list(), fn( $header ) => 0 === stripos( $header, 'Document-Isolation-Policy:' ) );
+	return array_any(
+		headers_list(),
+		fn( $header ) => 0 === stripos( $header, 'Document-Isolation-Policy:' )
+	);
 }
 

@@ -715,7 +715,10 @@ final class WP_Abilities_Content {
 	 * @return bool True when post meta and term caches should be primed.
 	 */
 	private function should_prime_post_caches( array $fields ): bool {
-		return array_any( self::CACHE_PRIMING_FIELDS, fn( $field ) => $this->is_field_requested( $field, $fields ) );
+		return array_any(
+			self::CACHE_PRIMING_FIELDS,
+			fn( $field ) => $this->is_field_requested( $field, $fields )
+		);
 	}
 
 	/**
