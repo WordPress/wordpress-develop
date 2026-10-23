@@ -665,7 +665,7 @@ foreach ( $themes as $theme ) :
 <?php endforeach; ?>
 	</div>
 </div>
-<div class="theme-overlay" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
+<div class="theme-overlay theme-overlay-initial" tabindex="0" role="dialog" aria-label="<?php esc_attr_e( 'Theme Details' ); ?>"></div>
 
 <p class="no-themes"><?php _e( 'No themes found. Try a different search.' ); ?></p>
 
@@ -812,7 +812,7 @@ function wp_theme_auto_update_setting_template() {
 				<# } else { #>
 					<span class="auto-update-time hidden">
 				<# } #>
-				<br />' . wp_get_auto_update_message() . '</span>
+				<br />' . wp_get_auto_update_message( 'theme' ) . '</span>
 			<# } #>
 			' . $notice . '
 		</div>
@@ -1058,19 +1058,19 @@ function wp_theme_auto_update_setting_template() {
 			<button class="left dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Show previous theme' );
+				_ex( 'Previous', 'theme' );
 				?>
 			</span></button>
 			<button class="right dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Show next theme' );
+				_ex( 'Next', 'theme' );
 				?>
 			</span></button>
 			<button class="close dashicons dashicons-no"><span class="screen-reader-text">
 				<?php
 				/* translators: Hidden accessibility text. */
-				_e( 'Close details dialog' );
+				_e( 'Close' );
 				?>
 			</span></button>
 		</div>
