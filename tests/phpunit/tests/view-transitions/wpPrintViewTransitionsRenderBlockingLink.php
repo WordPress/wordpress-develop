@@ -88,4 +88,33 @@ class Tests_View_Transitions_wpPrintViewTransitionsRenderBlockingLink extends WP
 
 		$this->assertSame( '', get_echo( 'wp_print_view_transitions_render_blocking_link' ) );
 	}
+
+	/**
+	 * Tests that iframe screens, which have no admin menu, get neither the style nor the expect link.
+	 *
+	 * iframe_header() fires the same enqueue and head actions as wp-admin/admin-header.php, so
+	 * hooking the enqueue to one of those actions would print a link whose target never appears.
+	 *
+	 * @ticket 65032
+	 *
+	 * @covers ::iframe_header
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_iframe_header_prints_no_style_or_link(): void {
+		require_once ABSPATH . 'wp-admin/includes/template.php';
+		set_current_screen( 'media-upload' );
+
+		$output = get_echo( 'iframe_header' );
+
+		$this->assertTrue( did_action( 'admin_head' ) > 0, 'Expected iframe_header() to fire the admin_head action.' );
+		$this->assertFalse( wp_style_is( 'wp-view-transitions-admin' ), 'Expected the style to not be enqueued.' );
+		$this->assertStringNotContainsString( '@view-transition', $output, 'Expected no view transitions CSS to be printed.' );
+
+		$processor = new WP_HTML_Tag_Processor( $output );
+		while ( $processor->next_tag( 'LINK' ) ) {
+			$this->assertNotSame( 'expect', $processor->get_attribute( 'rel' ), 'Expected no expect link to be printed.' );
+		}
+	}
 }
