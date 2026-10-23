@@ -620,7 +620,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_image_editor_should_fail_with_wp_error_object_when_loading_a_directory() {
 		$editor = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor );
+		$this->assertWPError( $editor );
 	}
 
 	/**
@@ -638,7 +638,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$editor = new $class_name( DIR_TESTDATA );
 		$loaded = $editor->load();
 
-		$this->assertInstanceOf( 'WP_Error', $loaded, 'Loading a directory did not result in a WP_Error.' );
+		$this->assertWPError( $loaded, 'Loading a directory did not result in a WP_Error.' );
 		$this->assertSame( 'error_loading_image', $loaded->get_error_code(), 'Error code from WP_Error did not match expectation.' );
 	}
 
@@ -720,7 +720,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 	}
 
 	/**
@@ -772,7 +772,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			100,
 			100
 		);
-		$this->assertInstanceOf( 'WP_Error', $file );
+		$this->assertWPError( $file );
 
 		WP_Image_Editor_Mock::$save_return = array();
 	}
