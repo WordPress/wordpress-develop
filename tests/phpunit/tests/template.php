@@ -361,6 +361,29 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a decoded page name containing directory traversal is left out of the hierarchy.
+	 *
+	 * @ticket 65819
+	 *
+	 * @covers ::get_page_template
+	 */
+	public function test_page_template_hierarchy_omits_decoded_pagename_with_directory_traversal() {
+		$this->go_to( get_permalink( self::$page ) );
+		set_query_var( 'pagename', '..%2Fpage-name' );
+
+		$this->assertSame(
+			array(
+				'templates/page.php',
+				'page-..%2Fpage-name.php',
+				'page-' . self::$page->ID . '.php',
+				'page.php',
+				'singular.php',
+			),
+			$this->get_template_hierarchy()
+		);
+	}
+
+	/**
 	 * @ticket 44005
 	 * @group privacy
 	 */
