@@ -228,6 +228,8 @@ class WP_Icons_Registry {
 	/**
 	 * Unregisters an icon.
 	 *
+	 * Icons in the core-admin collection cannot be unregistered.
+	 *
 	 * @since 7.1.0
 	 *
 	 * @param string $icon_name Namespaced icon name in the form "collection/icon-name"
@@ -244,6 +246,15 @@ class WP_Icons_Registry {
 					$icon_name
 				),
 				'7.1.0'
+			);
+			return false;
+		}
+
+		if ( 'core-admin' === $this->registered_icons[ $icon_name ]['collection'] ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'Icons in the "core-admin" collection cannot be unregistered.' ),
+				'7.2.0'
 			);
 			return false;
 		}

@@ -154,6 +154,7 @@ class WP_Icon_Collections_Registry {
 	 * Unregisters an icon collection.
 	 *
 	 * Any icons registered under the given collection are also unregistered.
+	 * The core-admin collection cannot be unregistered.
 	 *
 	 * @since 7.1.0
 	 *
@@ -170,6 +171,15 @@ class WP_Icon_Collections_Registry {
 					$collection_slug
 				),
 				'7.1.0'
+			);
+			return false;
+		}
+
+		if ( 'core-admin' === $collection_slug ) {
+			_doing_it_wrong(
+				__METHOD__,
+				__( 'The "core-admin" icon collection cannot be unregistered.' ),
+				'7.2.0'
 			);
 			return false;
 		}
