@@ -32,11 +32,12 @@ class getid3_lyrics3 extends getid3_handler
 			return false;
 		}
 
-		$this->fseek((0 - 128 - 9 - 6), SEEK_END);          // end - ID3v1 - "LYRICSEND" - [Lyrics3size]
+		$scanlength = min(128 + 9 + 6, $info['filesize']); // end - ID3v1 - "LYRICSEND" - [Lyrics3size];
+		$this->fseek(0 - $scanlength, SEEK_END);
 		$lyrics3offset = null;
 		$lyrics3version = null;
 		$lyrics3size   = null;
-		$lyrics3_id3v1 = $this->fread(128 + 9 + 6);
+		$lyrics3_id3v1 = $this->fread($scanlength);
 		$lyrics3lsz    = (int) substr($lyrics3_id3v1, 0, 6); // Lyrics3size
 		$lyrics3end    = substr($lyrics3_id3v1,  6,   9); // LYRICSEND or LYRICS200
 		$id3v1tag      = substr($lyrics3_id3v1, 15, 128); // ID3v1

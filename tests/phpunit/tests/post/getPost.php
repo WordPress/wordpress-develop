@@ -13,7 +13,7 @@ class Tests_Post_GetPost extends WP_UnitTestCase {
 	public static function set_up_before_class(): void {
 		parent::set_up_before_class();
 		$post_id = self::factory()->post->create();
-		assert( is_int( $post_id ) );
+		self::assertIsInt( $post_id );
 		self::$post_id = $post_id;
 
 		global $wpdb;
