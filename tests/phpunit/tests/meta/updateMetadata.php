@@ -6,6 +6,33 @@
  */
 class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 	/**
+	 * @ticket 40052
+	 */
+	public function test_unchanged_database_value_clears_stale_metadata_cache() {
+		global $wpdb;
+
+		$user_id = self::factory()->user->create();
+		update_user_meta( $user_id, 'key', 'old' );
+
+		$this->assertSame( 'old', get_user_meta( $user_id, 'key', true ) );
+
+		// Simulate another writer updating the database while the cached value remains stale.
+		$updated = $wpdb->update(
+			$wpdb->usermeta,
+			array( 'meta_value' => 'new' ),
+			array(
+				'user_id'  => $user_id,
+				'meta_key' => 'key',
+			)
+		);
+		$this->assertSame( 1, $updated );
+
+		$this->assertSame( 'old', get_user_meta( $user_id, 'key', true ) );
+		$this->assertFalse( update_user_meta( $user_id, 'key', 'new' ) );
+		$this->assertSame( 'new', get_user_meta( $user_id, 'key', true ) );
+	}
+
+	/**
 	 * @ticket 35795
 	 */
 	public function test_slashed_key_for_new_metadata() {
