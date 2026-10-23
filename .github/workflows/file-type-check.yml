@@ -1,0 +1,149 @@
+name: File Type Check
+
+on:
+  push:
+    branches:
+      - trunk
+      - '6.[8-9]'
+      - '[7-9].[0-9]'
+    paths:
+      # Inward check: files added to CSS/JS directories.
+      - 'src/wp-includes/css/**'
+      - 'src/wp-includes/js/**'
+      - 'src/wp-admin/css/**'
+      - 'src/wp-admin/js/**'
+      # Outward check: CSS/JS files placed outside designated directories.
+      - 'src/wp-includes/**.css'
+      - 'src/wp-includes/**.js'
+      - 'src/wp-admin/**.css'
+      - 'src/wp-admin/**.js'
+      # Confirm any changes to the workflow file itself.
+      - '.github/workflows/file-type-check.yml'
+  pull_request:
+    branches:
+      - trunk
+      - '6.[8-9]'
+      - '[7-9].[0-9]'
+    paths:
+      - 'src/wp-includes/css/**'
+      - 'src/wp-includes/js/**'
+      - 'src/wp-admin/css/**'
+      - 'src/wp-admin/js/**'
+      - 'src/wp-includes/**.css'
+      - 'src/wp-includes/**.js'
+      - 'src/wp-admin/**.css'
+      - 'src/wp-admin/**.js'
+      - '.github/workflows/file-type-check.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  # Verifies that CSS and JS files live in the directories intended for them.
+  #
+  # The JS sources in src/js/ are out of scope. The build system decides where
+  # those are placed, so only its output is checked.
+  check-file-types:
+    name: Verify file types in CSS/JS directories
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    if: |
+      github.repository == 'WordPress/wordpress-develop' || (
+        github.event_name == 'pull_request' && (
+          ! github.event.repository.private ||
+          ! github.event.pull_request.draft ||
+          contains( github.event.pull_request.labels.*.name, 'Draft Workflow Runs' )
+        )
+      )
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          show-progress: ${{ runner.debug == '1' && 'true' || 'false' }}
+          persist-credentials: false
+
+      - name: Check for misplaced CSS and JS files
+        run: |
+          # Git does the filtering, so no path is ever matched as text. Shell
+          # patterns break on names holding a tab, a newline or a quote: Git
+          # C-quotes those, and core.quotePath=false does not stop it.
+          #
+          # Each check is a bare assignment, so `set -e` sees a failure from Git.
+          #
+          # Every exclude starts with src/, the directory the positive pathspecs share.
+          # git ls-files strips that shared directory from every pathspec, excludes
+          # included, without checking that it is there. An exclude such as *.js is
+          # then cut down to a pattern that can match every file.
+          #
+          # Only tracked files are checked. The PHP that Gutenberg generates
+          # into css/dist and js/dist is untracked, so it never appears here.
+          # Whether it should be tracked, moved, or not copied at all is still
+          # open in #65278. If it becomes tracked, this check will flag it.
+
+          # Git exits 0 when a pathspec matches nothing.
+          if [ -z "$( git ls-files -- src/wp-includes src/wp-admin )" ]; then
+            echo "::error::No tracked files found under src/wp-includes or src/wp-admin."
+            exit 1
+          fi
+
+          # The SCSS sources for the admin color schemes are the only tracked
+          # non-CSS files in these directories.
+          inward_css=$( git ls-files -- src/wp-includes/css src/wp-admin/css \
+            ':(exclude,glob)src/wp-includes/css/**/*.css' \
+            ':(exclude,glob)src/wp-admin/css/**/*.css' \
+            ':(exclude,glob)src/wp-admin/css/colors/**/*.scss' )
+
+          # Both directories are gitignored in full, so this only catches a file
+          # committed with `git add -f`.
+          inward_js=$( git ls-files -- src/wp-includes/js src/wp-admin/js \
+            ':(exclude,glob)src/wp-includes/js/**/*.js' \
+            ':(exclude,glob)src/wp-admin/js/**/*.js' )
+
+          # src/wp-includes/build/ is tracked, not gitignored: it holds the
+          # generated routes and pages.
+          outward=$( git ls-files -- \
+            ':(glob)src/wp-includes/**/*.css' ':(glob)src/wp-includes/**/*.js' \
+            ':(glob)src/wp-admin/**/*.css' ':(glob)src/wp-admin/**/*.js' \
+            ':(exclude,glob)src/wp-includes/css/**' \
+            ':(exclude,glob)src/wp-includes/js/**' \
+            ':(exclude,glob)src/wp-admin/css/**' \
+            ':(exclude,glob)src/wp-admin/js/**' \
+            ':(exclude,glob)src/wp-includes/build/**' )
+
+          violations=$( printf '%s\n%s\n%s' "$inward_css" "$inward_js" "$outward" | grep -v '^$' || true )
+
+          if [ -n "$violations" ]; then
+            echo "::error::Misplaced files found."
+            echo
+            echo "$violations"
+            echo
+            echo "CSS directories should contain only .css files and JS directories only .js files."
+            echo ".css and .js files belong in those directories, not elsewhere in wp-includes/ or wp-admin/."
+            echo "If a file is a legitimate exception, update .github/workflows/file-type-check.yml."
+            exit 1
+          fi
+
+          echo "All tracked CSS and JS files are correctly placed."
+
+  slack-notifications:
+    name: Slack Notifications
+    uses: ./.github/workflows/slack-notifications.yml
+    permissions:
+      actions: read
+      contents: read
+    needs: [ check-file-types ]
+    if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && always() }}
+    with:
+      calling_status: ${{ contains( needs.*.result, 'cancelled' ) && 'cancelled' || contains( needs.*.result, 'failure' ) && 'failure' || 'success' }}
+    secrets:
+      SLACK_GHA_SUCCESS_WEBHOOK: ${{ secrets.SLACK_GHA_SUCCESS_WEBHOOK }}
+      SLACK_GHA_CANCELLED_WEBHOOK: ${{ secrets.SLACK_GHA_CANCELLED_WEBHOOK }}
+      SLACK_GHA_FIXED_WEBHOOK: ${{ secrets.SLACK_GHA_FIXED_WEBHOOK }}
+      SLACK_GHA_FAILURE_WEBHOOK: ${{ secrets.SLACK_GHA_FAILURE_WEBHOOK }}
