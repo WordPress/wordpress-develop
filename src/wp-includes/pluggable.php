@@ -3046,11 +3046,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 				$_max = max( $min, $max );
 				$_min = min( $min, $max );
 				$val  = random_int( $_min, $_max );
-				if ( false !== $val ) {
-					return absint( $val );
-				} else {
-					$use_random_int_functionality = false;
-				}
+				return absint( $val );
 			} catch ( Error $e ) {
 				$use_random_int_functionality = false;
 			} catch ( Exception $e ) {
