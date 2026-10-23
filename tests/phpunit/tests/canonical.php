@@ -34,6 +34,23 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 64029
+	 */
+	public function test_canonical_redirect_uses_https_home_scheme_without_scheme_only_redirect() {
+		update_option( 'home', set_url_scheme( home_url(), 'https' ) );
+
+		$requested_url = set_url_scheme( home_url( '/category/cat-a/page/1/' ), 'http' );
+		$this->go_to( $requested_url );
+
+		$this->assertSame( home_url( '/category/cat-a/' ), redirect_canonical( $requested_url, false ) );
+
+		$canonical_url = set_url_scheme( home_url( '/category/cat-a/' ), 'http' );
+		$this->go_to( $canonical_url );
+
+		$this->assertNull( redirect_canonical( $canonical_url, false ) );
+	}
+
+	/**
 	 * Register custom post type for tests.
 	 *
 	 * Register non publicly queryable post type with public set to true.
