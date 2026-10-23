@@ -1548,8 +1548,7 @@ class Tests_Template extends WP_UnitTestCase {
 				'wp-block-library-css', // Inline printed.
 				'wp-block-separator-css', // Hoisted.
 
-				// The wp_common_block_scripts_and_styles() function also fires enqueue_block_assets, at which wp_enqueue_classic_theme_styles() runs.
-				'classic-theme-styles-css', // Printed at enqueue_block_assets.
+				// No classic-theme-styles: with block assets loaded on demand, it is only enqueued with the Button and File blocks.
 
 				// Third-party block styles.
 				'third-party-test-block-css', // Hoisted.
@@ -1586,7 +1585,55 @@ class Tests_Template extends WP_UnitTestCase {
 						array(
 							'wp-block-library-inline-css',
 							'wp-block-separator-inline-css',
-							'classic-theme-styles-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+			),
+
+			'classic_theme_styles_with_button_block'      => array(
+				'set_up'            => null,
+				'content'           => $blocks_content . '<!-- wp:buttons --><div class="wp-block-buttons"><!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button">Button</a></div><!-- /wp:button --></div><!-- /wp:buttons -->',
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'wp-block-button-inline-css',
+							'classic-theme-styles-inline-css', // Enqueued with the Button block, printed with the core block styles.
+							'wp-block-buttons-inline-css',
+							'wp-block-separator-inline-css',
+							'third-party-test-block-css',
+							'custom-block-styles-css',
+							'global-styles-inline-css',
+						),
+						$common_at_wp_enqueue_scripts,
+						$common_late_in_head,
+						$common_late_in_body
+					),
+					'BODY' => array(),
+				),
+			),
+
+			'classic_theme_styles_with_file_block'        => array(
+				'set_up'            => null,
+				'content'           => $blocks_content . '<!-- wp:file {"href":"https://example.org/file.pdf"} --><div class="wp-block-file"><a href="https://example.org/file.pdf">file.pdf</a><a href="https://example.org/file.pdf" class="wp-block-file__button wp-element-button" download>Download</a></div><!-- /wp:file -->',
+				'inline_size_limit' => PHP_INT_MAX,
+				'expected_styles'   => array(
+					'HEAD' => array_merge(
+						$early_common_styles,
+						array(
+							'wp-block-library-inline-css',
+							'classic-theme-styles-inline-css', // Enqueued with the File block, printed with the core block styles.
+							'wp-block-file-inline-css',
+							'wp-block-separator-inline-css',
 							'third-party-test-block-css',
 							'custom-block-styles-css',
 							'global-styles-inline-css',
@@ -1676,7 +1723,6 @@ class Tests_Template extends WP_UnitTestCase {
 						array(
 							'wp-block-library-inline-css',
 							'wp-block-separator-inline-css',
-							'classic-theme-styles-inline-css',
 							'third-party-test-block-css',
 							'custom-block-styles-css',
 						),
@@ -1707,7 +1753,6 @@ class Tests_Template extends WP_UnitTestCase {
 							'wp-block-library-css',
 							'wp-block-separator-css',
 							'wp-block-library-inline-css-extra',
-							'classic-theme-styles-css',
 							'third-party-test-block-css',
 							'custom-block-styles-css',
 							'global-styles-inline-css',
@@ -1768,7 +1813,6 @@ class Tests_Template extends WP_UnitTestCase {
 							'wp-block-library-inline-css',
 							'wp-block-separator-inline-css',
 							'wp-block-library-inline-css-extra',
-							'classic-theme-styles-inline-css',
 							'third-party-test-block-css',
 							'custom-block-styles-css',
 							'global-styles-inline-css',
@@ -1941,7 +1985,8 @@ class Tests_Template extends WP_UnitTestCase {
 					);
 
 					/*
-					 * Simulate the theme NOT having a theme.json so that 'classic-theme-styles' is enqueued.
+					 * Simulate the theme NOT having a theme.json. 'classic-theme-styles' is still not enqueued, since
+					 * the content has no Button or File block.
 					 */
 					$GLOBALS['_wp_tests_development_mode'] = 'theme';
 					add_filter(
@@ -1962,7 +2007,6 @@ class Tests_Template extends WP_UnitTestCase {
 					'HEAD' => array_merge(
 						$early_common_styles,
 						array(
-							'classic-theme-styles-css',
 							'global-styles-inline-css',
 						),
 						$common_at_wp_enqueue_scripts,
