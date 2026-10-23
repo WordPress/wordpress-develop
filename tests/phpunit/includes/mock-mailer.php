@@ -102,21 +102,22 @@ function tests_retrieve_phpmailer_instance() {
 /**
  * Helper method to reset the phpmailer instance.
  *
- * @since 4.6.0
+ * Always replaces the global instance with a fresh MockPHPMailer, so that a test
+ * which unsets or replaces the global cannot cause later tests to send email
+ * through a real PHPMailer instance.
  *
- * @return bool
+ * @since 4.6.0
+ * @since 7.2.0 The instance is now reset even if the global is unset or empty.
+ *
+ * @return true Always true.
  */
 function reset_phpmailer_instance() {
-	$mailer = tests_retrieve_phpmailer_instance();
-	if ( $mailer ) {
-		$mailer             = new MockPHPMailer( true );
-		$mailer::$validator = static function ( $email ) {
-			return (bool) is_email( $email );
-		};
+	$mailer             = new MockPHPMailer( true );
+	$mailer::$validator = static function ( $email ) {
+		return (bool) is_email( $email );
+	};
 
-		$GLOBALS['phpmailer'] = $mailer;
-		return true;
-	}
+	$GLOBALS['phpmailer'] = $mailer;
 
-	return false;
+	return true;
 }
