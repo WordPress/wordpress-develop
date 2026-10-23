@@ -415,7 +415,7 @@ class Admin_Includes_Comment_EditComment_Test extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_should_reject_spam_or_trashed_parent() {
+	public static function data_should_reject_spam_or_trashed_parent() {
 		return array(
 			'a spam parent'    => array( 'spam' ),
 			'a trashed parent' => array( 'trash' ),

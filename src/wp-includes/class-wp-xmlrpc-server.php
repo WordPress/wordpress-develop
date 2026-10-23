@@ -287,6 +287,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 * Logs user in.
 	 *
 	 * @since 2.8.0
+	 * @since 7.2.0 Returns an error if the `$username` or `$password` argument is not a scalar.
 	 *
 	 * @param string $username User's username.
 	 * @param string $password User's password.
@@ -299,6 +300,16 @@ class wp_xmlrpc_server extends IXR_Server {
 	) {
 		if ( ! $this->is_enabled ) {
 			$this->error = new IXR_Error( 405, __( 'XML-RPC services are disabled on this site.' ) );
+			return false;
+		}
+
+		/*
+		 * Arrays and objects sent by the client would cause a fatal error in
+		 * wp_authenticate(). Other scalar types are tolerated because PHP
+		 * coerces them to strings, which preserves backward compatibility.
+		 */
+		if ( ! is_scalar( $username ) || ! is_scalar( $password ) ) {
+			$this->error = new IXR_Error( 400, __( 'The username and password arguments should be strings.' ) );
 			return false;
 		}
 
@@ -381,8 +392,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @since 5.7.3
 	 *
-	 * @param IXR_Error|string $error   Error code or an error object.
-	 * @param false            $message Error message. Optional.
+	 * @param IXR_Error|int $error   Error code or an error object.
+	 * @param string|false  $message Error message. Optional. Default false.
 	 */
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
@@ -1479,6 +1490,33 @@ class wp_xmlrpc_server extends IXR_Server {
 		$post_type = get_post_type_object( $post_data['post_type'] );
 		if ( ! $post_type ) {
 			return new IXR_Error( 403, __( 'Invalid post type.' ) );
+		}
+
+		// Reject writes to internal-only builtin post types (e.g. customize_changeset)
+		// whose intended write path is a dedicated helper, not a generic post API.
+		$is_internal_only = (
+			empty( $post_type->public )
+			&& empty( $post_type->show_in_rest )
+			&& ! empty( $post_type->_builtin )
+		);
+
+		/**
+		 * Filters whether a post type accepts writes via XML-RPC.
+		 *
+		 * Defaults to false for internal-only builtin post types (public=false,
+		 * show_in_rest=false, _builtin=true), such as customize_changeset, whose
+		 * writes are meant to flow through dedicated helpers. Return true to opt
+		 * a post type back in.
+		 *
+		 * @since 7.1.1
+		 *
+		 * @param bool         $allowed   Whether the post type accepts XML-RPC writes.
+		 * @param WP_Post_Type $post_type The post type object.
+		 */
+		$allowed = apply_filters( 'xmlrpc_allow_post_type_writes', ! $is_internal_only, $post_type );
+
+		if ( ! $allowed ) {
+			return new IXR_Error( 403, __( 'Sorry, this post type is not supported over XML-RPC.' ) );
 		}
 
 		$update = ! empty( $post_data['ID'] );
@@ -6594,7 +6632,8 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 2.1.0
 		 *
-		 * @param bool $error Whether to pre-empt the media upload. Default false.
+		 * @param string|false $error Error message to return instead of uploading, or false to
+		 *                            allow the upload. Default false.
 		 */
 		$upload_err = apply_filters( 'pre_upload_error', false );
 		if ( $upload_err ) {

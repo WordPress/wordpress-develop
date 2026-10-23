@@ -39,7 +39,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_convert_standard_smilies() {
+	public static function data_convert_standard_smilies() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -109,7 +109,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_convert_custom_smilies() {
+	public static function data_convert_custom_smilies() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -153,7 +153,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_ignore_smilies_in_tags() {
+	public static function data_ignore_smilies_in_tags() {
 		return array(
 			array( 'pre' ),
 			array( 'code' ),
@@ -189,7 +189,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_smilies_combinations() {
+	public static function data_smilies_combinations() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -258,7 +258,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_single_smilies_in_wpsmiliestrans() {
+	public static function data_single_smilies_in_wpsmiliestrans() {
 		$includes_path = includes_url( 'images/smilies/' );
 
 		return array(
@@ -301,7 +301,7 @@ class Tests_Formatting_ConvertSmilies extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_spaces_around_smilies() {
+	public static function data_spaces_around_smilies() {
 		$nbsp = "\xC2\xA0";
 
 		return array(

@@ -43,6 +43,8 @@ function get_category_link( $category ) {
  * @param bool   $nicename    Optional. Whether to use nice name for display. Default false.
  * @param array  $deprecated  Not used.
  * @return string|WP_Error A list of category parents on success, WP_Error on failure.
+ *
+ * @phpstan-param array{} $deprecated
  */
 function get_category_parents( $category_id, $link = false, $separator = '/', $nicename = false, $deprecated = array() ) {
 
@@ -534,6 +536,8 @@ function wp_dropdown_categories( $args = '' ) {
  * }
  * @return void|string|false Void if 'echo' argument is true, HTML list of categories if 'echo' is false.
  *                           False if the taxonomy does not exist.
+ *
+ * @phpstan-return ( $args is array{ echo: false|0, ... } ? string|false : false|void )
  */
 function wp_list_categories( $args = '' ) {
 	$defaults = array(
@@ -849,6 +853,8 @@ function default_topic_count_scale( $count ) {
  *                                                0, 1, or their bool equivalents.
  * }
  * @return string|string[] Tag cloud as a string or an array, depending on 'format' argument.
+ *
+ * @phpstan-return ( $args is array{ format: 'array', ... } ? array<int, string> : string )
  */
 function wp_generate_tag_cloud( $tags, $args = '' ) {
 	$defaults = array(
@@ -890,7 +896,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	} elseif ( isset( $args['single_text'] ) && isset( $args['multiple_text'] ) ) {
 		// If no callback exists, look for the old-style single_text and multiple_text arguments.
 		// phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular,WordPress.WP.I18n.NonSingularStringLiteralPlural
-		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] );
+		$translate_nooped_plural = _n_noop( $args['single_text'], $args['multiple_text'] ); // @phpstan-ignore argument.type, argument.type (These are runtime values, so there is nothing to extract for translation.)
 	} else {
 		// This is the default for when no callback, plural, or argument is passed in.
 		/* translators: %s: Number of items (tags). */

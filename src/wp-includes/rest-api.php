@@ -436,6 +436,14 @@ function create_initial_rest_routes() {
 	// View Config.
 	$view_config_controller = new WP_REST_View_Config_Controller();
 	$view_config_controller->register_routes();
+
+	// Entity Actions.
+	$entity_actions_controller = new WP_REST_Entity_Actions_Controller();
+	$entity_actions_controller->register_routes();
+
+	// Entity Fields.
+	$entity_fields_controller = new WP_REST_Entity_Fields_Controller();
+	$entity_fields_controller->register_routes();
 }
 
 /**
@@ -694,6 +702,8 @@ function rest_ensure_request( $request ) {
  * @return WP_REST_Response|WP_Error If response generated an error, WP_Error, if response
  *                                   is already an instance, WP_REST_Response, otherwise
  *                                   returns a new WP_REST_Response instance.
+ *
+ * @phpstan-return ( $response is WP_Error ? WP_Error : WP_REST_Response )
  */
 function rest_ensure_response( $response ) {
 	if ( is_wp_error( $response ) ) {
@@ -1531,6 +1541,12 @@ function rest_is_ip_address( $ip ) {
  *
  * @param bool|string|int $value The value being evaluated.
  * @return bool Returns the proper associated boolean value.
+ *
+ * @phpstan-return (
+ *     $value is false|''|'0'|0|'false'|'False'|'FALSE'
+ *         ? false
+ *         : ( $value is true|int|lowercase-string ? true : bool )
+ * )
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.

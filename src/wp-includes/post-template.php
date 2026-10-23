@@ -1110,8 +1110,11 @@ function _wp_link_page( $i ) {
  * @since 1.5.0
  *
  * @param string $key Meta data key name.
- * @return array|string|false Array of values, or single value if only one element exists.
- *                            False if the key does not exist.
+ * @return string[]|string|false Array of values, or single value if only one element exists.
+ *                               False if the key does not exist.
+ *                               Values are always strings, as described for {@see get_post_custom()}.
+ *
+ * @phpstan-return list<string>|string|false
  */
 function post_custom( $key = '' ) {
 	$custom = get_post_custom();
@@ -1637,6 +1640,8 @@ function walk_page_dropdown_tree( ...$args ) {
  * @param bool        $fullsize   Optional. Whether to use full size. Default false.
  * @param bool        $deprecated Deprecated. Not used.
  * @param bool        $permalink  Optional. Whether to include permalink. Default false.
+ *
+ * @phpstan-param false $deprecated
  */
 function the_attachment_link( $post = 0, $fullsize = false, $deprecated = false, $permalink = false ) {
 	if ( ! empty( $deprecated ) ) {
