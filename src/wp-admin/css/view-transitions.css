@@ -41,15 +41,31 @@
 	}
 
 	/*
-	 * Capture an open flyout submenu — one shown on hover or focus for an item
-	 * that is not the current one — as its own group, so that it fades out
-	 * instead of being cut off by the clip above, since it extends outside its
-	 * menu-top box. The current item's submenu is in the normal flow, so it is
-	 * left to the clipped menu-top. match-element gives each flyout a unique
-	 * name, so two open at once cannot collide and abort the transition.
+	 * Capture an open flyout submenu — one shown on hover or focus — as its own
+	 * group, so that it fades out instead of being cut off by the clip above,
+	 * since it extends outside its menu-top box. match-element gives each
+	 * flyout a unique name, so two open at once cannot collide and abort the
+	 * transition.
+	 *
+	 * In the expanded menu, the current item's submenu is in the normal flow,
+	 * so it is left to the clipped menu-top. When the menu is folded, either
+	 * explicitly or automatically on narrower screens, every submenu is a
+	 * flyout, including the current one. Below 783px the menu is responsive and
+	 * its submenus are in the normal flow, so none are named there.
 	 */
-	#adminmenu > .wp-not-current-submenu.opensub > .wp-submenu,
-	#adminmenu > .wp-not-current-submenu > a.menu-top:focus + .wp-submenu {
-		view-transition-name: match-element;
+	@media screen and (min-width: 783px) {
+		#adminmenu > .wp-not-current-submenu.opensub > .wp-submenu,
+		#adminmenu > .wp-not-current-submenu > a.menu-top:focus + .wp-submenu,
+		.folded #adminmenu > .opensub > .wp-submenu,
+		.folded #adminmenu > .menu-top > a.menu-top:focus + .wp-submenu {
+			view-transition-name: match-element;
+		}
+	}
+
+	@media screen and (min-width: 783px) and (max-width: 960px) {
+		.auto-fold #adminmenu > .opensub > .wp-submenu,
+		.auto-fold #adminmenu > .menu-top > a.menu-top:focus + .wp-submenu {
+			view-transition-name: match-element;
+		}
 	}
 }
