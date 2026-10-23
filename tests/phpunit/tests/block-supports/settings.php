@@ -7,30 +7,42 @@
 
 class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 
-	/**
-	 * @var string|null
-	 */
-	private $test_block_name;
+	private ?string $test_block_name     = null;
+	private ?string $original_stylesheet = null;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+		switch_theme( 'block-theme' );
+	}
 
 	public function tear_down() {
 		if ( null !== $this->test_block_name ) {
 			unregister_block_type( $this->test_block_name );
 		}
 		$this->test_block_name = null;
+		if ( null !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 		parent::tear_down();
 	}
 
 	/**
-	 * Preserves earlier render results without losing the block's preset styles.
+	 * An earlier non-null filter result must bypass the block renderer unchanged.
+	 * Preset CSS must still be enqueued when that markup uses the block's settings.
+	 * A null result must continue through the normal rendering path.
 	 *
 	 * @ticket 59551
 	 * @dataProvider data_preserve_pre_rendered_content
 	 *
-	 * @param bool        $supports_settings Whether the block supports preset settings.
-	 * @param array       $settings          The block's preset settings.
-	 * @param string|null $pre_render        The earlier filter's render result.
+	 * @param bool                 $supports_settings Whether the block supports preset settings.
+	 * @param array<string, mixed> $settings          The block's preset settings.
+	 * @param string|null          $pre_render        The earlier filter's render result.
 	 */
 	public function test_preserve_pre_rendered_content( $supports_settings, $settings, $pre_render ) {
+		$theme = wp_get_theme();
+		$this->assertTrue( wp_is_block_theme(), "'{$theme->name}' is not a block theme: check test setup." );
+
 		$this->test_block_name = 'test/settings-pre-render';
 		$render_calls          = 0;
 		$filter_calls          = 0;
@@ -56,6 +68,11 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 			'innerContent' => array(),
 		);
 
+		// Compare the real rendering path before and after adding the earlier filter.
+		$normal_content = render_block( $block );
+		$this->assertSame( 1, $render_calls );
+		$render_calls = 0;
+
 		$pre_render_filter = function ( $content, $parsed_block ) use ( $pre_render, &$filter_calls ) {
 			if ( $this->test_block_name !== $parsed_block['blockName'] ) {
 				return $content;
@@ -66,8 +83,6 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 		};
 		add_filter( 'pre_render_block', $pre_render_filter, 9, 2 );
 
-		// Resolve the theme before measuring the block's newly enqueued styles.
-		wp_is_block_theme();
 		$style_hooks = array();
 		foreach ( array( 'wp_head', 'wp_footer' ) as $hook_name ) {
 			$style_hooks[ $hook_name ] = isset( $GLOBALS['wp_filter'][ $hook_name ] )
@@ -75,35 +90,20 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 				: null;
 		}
 
-		try {
-			$actual = do_blocks( serialize_block( $block ) );
+		$actual = render_block( $block );
+		$this->assertSame( null === $pre_render ? $normal_content : $pre_render, $actual );
+		$this->assertSame( null === $pre_render ? 1 : 0, $render_calls );
+		$this->assertSame( 1, $filter_calls );
 
-			if ( null === $pre_render ) {
-				$this->assertSame( 1, $render_calls );
-				$this->assertStringContainsString( 'Rendered settings block', $actual );
-			} else {
-				$this->assertSame( $pre_render, $actual );
-				$this->assertSame( 0, $render_calls );
+		$styles = $this->get_added_style_output( $style_hooks );
+		if ( $supports_settings && $settings ) {
+			foreach ( $settings['color']['palette']['custom'] as $preset ) {
+				$this->assertStringContainsString( '--wp--preset--color--' . $preset['slug'], $styles );
+				$this->assertStringContainsString( $preset['color'], $styles );
+				$this->assertStringContainsString( '.has-' . $preset['slug'] . '-color', $styles );
 			}
-			$this->assertSame( 1, $filter_calls );
-
-			$styles = $this->get_added_style_output( $style_hooks );
-			if ( $supports_settings && $settings ) {
-				$this->assertStringContainsString( '--wp--preset--color--test-settings-pre-render', $styles );
-				$this->assertStringContainsString( '#123abc', $styles );
-				$this->assertStringContainsString( '.has-test-settings-pre-render-color', $styles );
-			} else {
-				$this->assertStringNotContainsString( 'test-settings-pre-render', $styles );
-			}
-		} finally {
-			remove_filter( 'pre_render_block', $pre_render_filter, 9 );
-			foreach ( $style_hooks as $hook_name => $original_hook ) {
-				if ( null === $original_hook ) {
-					unset( $GLOBALS['wp_filter'][ $hook_name ] );
-				} else {
-					$GLOBALS['wp_filter'][ $hook_name ] = $original_hook;
-				}
-			}
+		} else {
+			$this->assertSame( '', $styles );
 		}
 	}
 
@@ -134,9 +134,9 @@ class Tests_Block_Supports_Settings extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array
+	 * @return array<non-falsy-string, array{ 0: bool, 1: array<string, mixed>, 2: string|null }>
 	 */
-	public static function data_preserve_pre_rendered_content() {
+	public static function data_preserve_pre_rendered_content(): array {
 		$settings = array(
 			'color' => array(
 				'palette' => array(
