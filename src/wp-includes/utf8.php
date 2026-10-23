@@ -134,6 +134,48 @@ else :
 	}
 endif;
 
+if ( extension_loaded( 'mbstring' ) ) :
+	/**
+	 * Converts a string from ISO-8859-1 (latin1) to UTF-8.
+	 *
+	 * This is a last resort for text whose encoding is unknown and which has already
+	 * failed to validate as UTF-8. Interpreting those bytes as ISO-8859-1 is a guess:
+	 * it is correct when the text really is ISO-8859-1, and produces mojibake for any
+	 * other single-byte or multi-byte encoding. Call sites which do know the encoding
+	 * of their text should decode it with {@see \mb_convert_encoding()} instead.
+	 *
+	 * Every byte maps to a code point, so the return value is always valid UTF-8.
+	 *
+	 * This function exists so that the call sites which historically relied on PHP’s
+	 * `utf8_encode()` can keep their behavior after that function’s removal in PHP 9.0.
+	 * It is not a replacement for {@see \wp_scrub_utf8()}, which neutralizes invalid
+	 * bytes instead of reinterpreting them.
+	 *
+	 * @ignore
+	 * @private
+	 *
+	 * @since 7.1.0
+	 *
+	 * @param string $text Text treated as ISO-8859-1 (latin1) bytes.
+	 * @return string Text converted into UTF-8.
+	 */
+	function _wp_iso_8859_1_to_utf8( $text ) {
+		return mb_convert_encoding( (string) $text, 'UTF-8', 'ISO-8859-1' );
+	}
+else :
+	/**
+	 * Fallback function for converting ISO-8859-1 into UTF-8.
+	 *
+	 * @ignore
+	 * @private
+	 *
+	 * @since 7.1.0
+	 */
+	function _wp_iso_8859_1_to_utf8( $text ) {
+		return _wp_utf8_encode_fallback( $text );
+	}
+endif;
+
 /**
  * Returns whether the given string contains Unicode noncharacters.
  *
