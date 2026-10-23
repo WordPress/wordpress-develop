@@ -6997,4 +6997,145 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			'An unrelated image should have kept its record.'
 		);
 	}
+
+	/**
+	 * Uploads a copy of the test JPEG as a multipart file, as the media library and block editor do.
+	 *
+	 * @param string $name File name to send.
+	 * @return WP_REST_Response Response.
+	 */
+	private function upload_test_file_as( $name ) {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_file_params(
+			array(
+				'file' => array(
+					'file'     => file_get_contents( self::$test_file ),
+					'name'     => $name,
+					'size'     => filesize( self::$test_file ),
+					'tmp_name' => self::$test_file,
+				),
+			)
+		);
+
+		return rest_get_server()->dispatch( $request );
+	}
+
+	/**
+	 * Rejects any file whose name contains "reject", as size and naming policy plugins do.
+	 *
+	 * @param array $file An array of data for a single file.
+	 * @return array Filtered file data.
+	 */
+	public function reject_named_files( $file ) {
+		if ( str_contains( $file['name'], 'reject' ) ) {
+			$file['error'] = 'Rejected by a plugin.';
+		}
+
+		return $file;
+	}
+
+	/**
+	 * @ticket 66374
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_rejected_by_upload_prefilter_is_a_client_error() {
+		wp_set_current_user( self::$author_id );
+		add_filter( 'wp_handle_upload_prefilter', array( $this, 'reject_named_files' ) );
+		// Unit tests upload through the 'wp_handle_mock_upload' action, see upload_from_file().
+		add_filter( 'wp_handle_mock_upload_prefilter', array( $this, 'reject_named_files' ) );
+
+		$response = $this->upload_test_file_as( 'reject-me.jpg' );
+
+		$this->assertErrorResponse( 'rest_upload_unknown_error', $response, 400 );
+		$this->assertSame( 'Rejected by a plugin.', $response->get_data()['message'] );
+	}
+
+	/**
+	 * @ticket 66374
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_with_disallowed_file_type_is_a_client_error() {
+		wp_set_current_user( self::$author_id );
+
+		$response = $this->upload_test_file_as( 'canola.exe' );
+
+		$this->assertErrorResponse( 'rest_upload_unknown_error', $response, 400 );
+	}
+
+	/**
+	 * @ticket 66374
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_from_body_rejected_by_sideload_prefilter_is_a_client_error() {
+		wp_set_current_user( self::$author_id );
+		add_filter( 'wp_handle_sideload_prefilter', array( $this, 'reject_named_files' ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/jpeg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=reject-me.jpg' );
+		$request->set_body( file_get_contents( self::$test_file ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_upload_sideload_error', $response, 400 );
+	}
+
+	/**
+	 * @ticket 66374
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_when_uploads_directory_fails_is_a_server_error() {
+		wp_set_current_user( self::$author_id );
+		add_filter( 'upload_dir', array( $this, 'make_upload_path_uncreatable' ) );
+
+		$response = $this->upload_test_file_as( 'canola.jpg' );
+
+		$this->assertErrorResponse( 'rest_upload_unknown_error', $response, 500 );
+	}
+
+	/**
+	 * @ticket 66374
+	 * @requires function imagejpeg
+	 */
+	public function test_create_item_when_file_cannot_be_moved_is_a_server_error() {
+		wp_set_current_user( self::$author_id );
+		$blocked = $this->block_upload_destination();
+
+		$response = $this->upload_test_file_as( 'canola.jpg' );
+
+		rmdir( $blocked );
+
+		$this->assertErrorResponse( 'rest_upload_unknown_error', $response, 500 );
+	}
+
+	/**
+	 * Points the uploads path below a file, so the directory cannot be created.
+	 *
+	 * @param array $uploads Array of upload directory data.
+	 * @return array Filtered upload directory data.
+	 */
+	public function make_upload_path_uncreatable( $uploads ) {
+		$uploads['path'] = self::$test_file . '/subdir';
+
+		return $uploads;
+	}
+
+	/**
+	 * Makes the next upload's destination an existing directory, so the file cannot be moved there.
+	 *
+	 * @return string Path of the blocking directory, to remove after the request.
+	 */
+	private function block_upload_destination() {
+		$uploads = wp_upload_dir();
+		$blocked = $uploads['path'] . '/blocked-destination.jpg';
+		wp_mkdir_p( $blocked );
+
+		add_filter(
+			'wp_unique_filename',
+			static function () {
+				return 'blocked-destination.jpg';
+			}
+		);
+
+		return $blocked;
+	}
 }
