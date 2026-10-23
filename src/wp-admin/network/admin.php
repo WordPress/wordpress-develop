@@ -9,14 +9,17 @@
 
 define( 'WP_NETWORK_ADMIN', true );
 
-/** Load WordPress Administration Bootstrap */
-require_once dirname( __DIR__ ) . '/admin.php';
-
+if ( ! defined( 'ABSPATH' ) ) {
+	/** Load WordPress Bootstrap */
+	require_once dirname( __DIR__, 2 ) . '/wp-load.php';
+}
 // Do not remove this check. It is required by individual network admin pages.
 if ( ! is_multisite() ) {
 	wp_die( __( 'Multisite support is not enabled.' ) );
 }
 
+/** Load WordPress Administration Bootstrap */
+require_once dirname( __DIR__ ) . '/admin.php';
 $redirect_network_admin_request = ( 0 !== strcasecmp( $current_blog->domain, $current_site->domain ) || 0 !== strcasecmp( $current_blog->path, $current_site->path ) );
 
 /**
