@@ -465,7 +465,8 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 */
 	public function test_core_ability_field_lists( string $ability_name, $fields, ?array $expected_fields ): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $admin_id );
+		$user     = wp_set_current_user( $admin_id );
+		$user->add_cap( 'view_site_health_checks' );
 
 		$ability = wp_get_ability( $ability_name );
 		$result  = $ability->execute( array( 'fields' => $fields ) );
