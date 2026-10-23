@@ -802,7 +802,7 @@ function wp_load_core_site_options( $network_id = null ) {
 	if ( ! is_multisite() || wp_installing() ) {
 		return;
 	}
-	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'can_compress_scripts', 'global_terms_enabled', 'ms_files_rewriting', 'WPLANG' );
+	$core_options = array( 'site_name', 'siteurl', 'active_sitewide_plugins', '_site_transient_timeout_theme_roots', '_site_transient_theme_roots', 'site_admins', 'global_terms_enabled', 'ms_files_rewriting', 'WPLANG' );
 
 	wp_prime_network_option_caches( $network_id, $core_options );
 }
@@ -3047,12 +3047,13 @@ function _wp_register_initial_settings_for_abilities(): void {
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
  *
- * @param string $option_group A settings group name. Should correspond to an allowed option key name.
- *                             Default allowed option key names include 'general', 'discussion', 'media',
- *                             'reading', 'writing', and 'options'.
- * @param string $option_name  The name of an option to sanitize and save.
- * @param array  $args {
- *     Data used to describe the setting when registered.
+ * @param string         $option_group A settings group name. Should correspond to an allowed option key name.
+ *                                     Default allowed option key names include 'general', 'discussion', 'media',
+ *                                     'reading', 'writing', and 'options'.
+ * @param string         $option_name  The name of an option to sanitize and save.
+ * @param array|callable $args {
+ *     Data used to describe the setting when registered. For backward compatibility, a callable
+ *     may be passed instead, which is used as the `$sanitize_callback`.
  *
  *     @type string        $type              The type of data associated with this setting.
  *                                            Valid values are 'string', 'boolean', 'integer', 'number', 'array',
