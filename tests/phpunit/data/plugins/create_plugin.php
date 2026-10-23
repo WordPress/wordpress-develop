@@ -1,0 +1,4 @@
+<?php
+/*
+Plugin Name: Test
+*/
