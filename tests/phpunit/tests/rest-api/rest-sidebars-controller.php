@@ -56,9 +56,17 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		wp_widgets_init();
 	}
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		wp_set_current_user( self::$admin_id );
 
 		// Unregister all widgets and sidebars.
@@ -67,6 +75,14 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$_wp_sidebars_widgets   = array();
 		$sidebars_widgets       = array();
 		update_option( 'sidebars_widgets', array() );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	public function clean_up_global_scope() {
