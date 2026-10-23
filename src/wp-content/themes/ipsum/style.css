@@ -217,6 +217,16 @@ header.wp-block-template-part:has(> .is-position-sticky) {
 }
 
 /*
+ * Utility class for a section built around a query loop, such as Keep Reading:
+ * hides the whole section when the query finds no posts. The Post Template
+ * block renders nothing without results, but a heading next to it would still
+ * show on its own, for example on a new site with only one post.
+ */
+.hide-without-posts:not(:has(.wp-block-post-template)) {
+	display: none;
+}
+
+/*
  * Quiet search button inside the pinned Search Bar part only: light ground,
  * outlined; global button states take back over on hover/focus/active.
  */
