@@ -5148,12 +5148,13 @@ function wp_html_attribute_split_space_separated_tokens( string $decoded_attribu
 	while ( $at < $input_length ) {
 		// Find the byte length until the next boundary.
 		$length = strcspn( $decoded_attribute_value, " \t\f\r\n", $at );
-		$token  = substr( $decoded_attribute_value, $at, $length );
-		if ( false !== $token && '' !== $token ) {
-			yield $token;
+		if ( 0 === $length ) {
+			return;
 		}
-		$at += $length;
 
+		yield substr( $decoded_attribute_value, $at, $length );
+
+		$at += $length;
 		$at += strspn( $decoded_attribute_value, " \t\f\r\n", $at );
 	}
 }
