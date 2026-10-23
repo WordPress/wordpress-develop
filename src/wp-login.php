@@ -94,7 +94,7 @@ function login_header( $title = null, $message = '', $wp_error = null ) {
 	<html <?php language_attributes(); ?>>
 	<head>
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php bloginfo( 'charset' ); ?>" />
-	<title><?php echo $login_title; ?></title>
+	<title><?php echo wp_html_title( $login_title ); ?></title>
 	<?php
 
 	wp_enqueue_style( 'login' );
