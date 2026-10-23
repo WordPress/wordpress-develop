@@ -116,6 +116,19 @@ function wp_admin_bar_render() {
 }
 
 /**
+ * Returns inline SVG markup wrapped for use as an admin bar node icon.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string $icon_name Namespaced icon name, e.g. 'core-admin/wordpress'.
+ * @return string Admin bar icon markup. The wrapper is empty if the icon is not found.
+ */
+function _wp_admin_bar_icon( $icon_name ) {
+	return '<span class="ab-icon svg-icon" aria-hidden="true">' . wp_get_icon( $icon_name ) . '</span>';
+}
+
+/**
  * Adds the WordPress logo menu.
  *
  * @since 3.3.0
@@ -256,6 +269,8 @@ function wp_admin_bar_sidebar_toggle( $wp_admin_bar ) {
  * Adds the "My Account" item.
  *
  * @since 3.3.0
+ * @since 7.2.0 Removed "Howdy" from the item title and added a fallback to the
+ *              user login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -273,19 +288,23 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
 		$profile_url = false;
 	}
 
-	/* translators: %s: Current user's display name. */
-	$howdy = sprintf( __( 'Howdy, %s' ), '<span class="display-name">' . wp_get_current_user()->display_name . '</span>' );
+	$current_user = wp_get_current_user();
+	$display_name = $current_user->display_name;
+	if ( empty( $display_name ) ) {
+		$display_name = $current_user->user_login;
+	}
 
-	$avatar = get_avatar( $user_id, 26 );
+	$avatar = get_avatar( $user_id, 28 );
 	$wp_admin_bar->add_node(
 		array(
 			'id'     => 'my-account',
 			'parent' => 'top-secondary',
-			'title'  => $howdy . $avatar,
+			'icon'   => empty( $avatar ) ? 'core-admin/people' : false,
+			'title'  => '<span class="display-name user-display-name">' . $display_name . '</span>' . $avatar,
 			'href'   => $profile_url,
 			'meta'   => array(
 				'class'      => empty( $avatar ) ? '' : 'with-avatar',
-				'menu_title' => wp_strip_all_tags( $howdy ),
+				'menu_title' => wp_strip_all_tags( $display_name ),
 				'tabindex'   => ( false !== $profile_url ) ? '' : 0,
 			),
 		)
@@ -296,6 +315,8 @@ function wp_admin_bar_my_account_item( $wp_admin_bar ) {
  * Adds the "My Account" submenu items.
  *
  * @since 3.1.0
+ * @since 7.2.0 Added "Howdy" to the user info item and a fallback to the user
+ *              login when the display name is empty.
  *
  * @param WP_Admin_Bar $wp_admin_bar The WP_Admin_Bar instance.
  */
@@ -322,12 +343,19 @@ function wp_admin_bar_my_account_menu( $wp_admin_bar ) {
 		)
 	);
 
-	$user_info  = get_avatar( $user_id, 64 );
-	$user_info .= "<span class='display-name'>{$current_user->display_name}</span>";
-
-	if ( $current_user->display_name !== $current_user->user_login ) {
-		$user_info .= "<span class='username'>{$current_user->user_login}</span>";
+	$display_name = $current_user->display_name;
+	if ( empty( $display_name ) ) {
+		$display_name = $current_user->user_login;
 	}
+
+	/* translators: %s: Current user's display name. */
+	$howdy = sprintf( __( 'Howdy, %s' ), "<span class='user-display-name'>" . $display_name . '</span>' );
+
+	$user_info  = get_avatar( $user_id, 64 );
+	$user_info .= "<span class='display-name howdy'>" . $howdy . '</span>';
+
+	$username_hidden = ( $display_name === $current_user->user_login ) ? ' hidden' : '';
+	$user_info      .= "<span class='username'{$username_hidden}>{$current_user->user_login}</span>";
 
 	if ( false !== $profile_url ) {
 		$user_info .= "<span class='display-name edit-profile'>" . __( 'Edit Profile' ) . '</span>';
@@ -385,15 +413,38 @@ function wp_admin_bar_site_menu( $wp_admin_bar ) {
 	}
 
 	$title = wp_html_excerpt( $blogname, 40, '&hellip;' );
+	$meta  = array(
+		'menu_title' => $title,
+	);
+
+	if ( ! is_network_admin() && ! is_user_admin() ) {
+		/** This filter is documented in wp-includes/admin-bar.php */
+		$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
+
+		if ( true === $show_site_icons && has_site_icon() ) {
+			$site_icon_url    = get_site_icon_url( 32 );
+			$site_icon_url_2x = get_site_icon_url( 64 );
+			$srcset           = ( $site_icon_url_2x && $site_icon_url !== $site_icon_url_2x ) ? sprintf( ' srcset="%s 2x"', esc_url( $site_icon_url_2x ) ) : '';
+			$site_icon        = sprintf(
+				'<img class="site-icon" src="%s"%s alt="" width="20" height="20" />',
+				esc_url( $site_icon_url ),
+				$srcset
+			);
+
+			$title         = $site_icon . $title;
+			$meta['class'] = 'has-site-icon';
+		}
+	}
+
+	$links_to_home = is_admin() || ! current_user_can( 'read' );
 
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-name',
+			'icon'  => $links_to_home ? 'core-admin/home' : 'core-admin/dashboard',
 			'title' => $title,
-			'href'  => ( is_admin() || ! current_user_can( 'read' ) ) ? home_url( '/' ) : admin_url(),
-			'meta'  => array(
-				'menu_title' => $title,
-			),
+			'href'  => $links_to_home ? home_url( '/' ) : admin_url(),
+			'meta'  => $meta,
 		)
 	);
 
@@ -475,6 +526,7 @@ function wp_admin_bar_edit_site_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'site-editor',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Edit Site' ),
 			'href'  => add_query_arg(
 				array(
@@ -530,6 +582,7 @@ function wp_admin_bar_customize_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'customize',
+			'icon'  => 'core-admin/brush',
 			'title' => __( 'Customize' ),
 			'href'  => $customize_url,
 			'meta'  => array(
@@ -567,6 +620,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	$wp_admin_bar->add_node(
 		array(
 			'id'    => 'my-sites',
+			'icon'  => 'core-admin/sites',
 			'title' => __( 'My Sites' ),
 			'href'  => $my_sites_url,
 		)
@@ -677,6 +731,8 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 	 */
 	$show_site_icons = apply_filters( 'wp_admin_bar_show_site_icons', true );
 
+	$default_blavatar = '<div class="blavatar">' . wp_get_icon( 'core-admin/wordpress', array( 'size' => 16 ) ) . '</div>';
+
 	foreach ( (array) $wp_admin_bar->user->blogs as $blog ) {
 		switch_to_blog( $blog->userblog_id );
 
@@ -688,7 +744,7 @@ function wp_admin_bar_my_sites_menu( $wp_admin_bar ) {
 				( wp_lazy_loading_enabled( 'img', 'site_icon_in_toolbar' ) ? ' loading="lazy"' : '' )
 			);
 		} else {
-			$blavatar = '<div class="blavatar"></div>';
+			$blavatar = $default_blavatar;
 		}
 
 		$blogname = $blog->blogname;
@@ -902,6 +958,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $post_type_object->labels->edit_item,
 						'href'  => $edit_post_link,
 					)
@@ -914,6 +971,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => $tax->labels->edit_item,
 						'href'  => $edit_term_link,
 					)
@@ -925,6 +983,7 @@ function wp_admin_bar_edit_menu( $wp_admin_bar ) {
 				$wp_admin_bar->add_node(
 					array(
 						'id'    => 'edit',
+						'icon'  => 'core-admin/pencil',
 						'title' => __( 'Edit User' ),
 						'href'  => $edit_user_link,
 					)
@@ -1060,7 +1119,7 @@ function wp_admin_bar_new_content_menu( $wp_admin_bar ) {
 		array(
 			'id'    => 'new-content',
 			'title' => $title,
-			'href'  => admin_url( current( array_keys( $actions ) ) ),
+			'href'  => admin_url( array_key_first( $actions ) ),
 			'meta'  => array(
 				'menu_title' => _x( 'New', 'admin bar menu group label' ),
 			),
@@ -1253,6 +1312,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	}
 
 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
+	$form .= _wp_admin_bar_icon( 'core-admin/search' );
 	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
 	$form .= '<label for="adminbar-search" class="screen-reader-text">' .
 			/* translators: Hidden accessibility text. */

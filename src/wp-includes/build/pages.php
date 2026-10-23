@@ -6,7 +6,13 @@
  * @package wp
  */
 
-require_once __DIR__ . '/pages/font-library/page.php';
-require_once __DIR__ . '/pages/font-library/page-wp-admin.php';
-require_once __DIR__ . '/pages/options-connectors/page.php';
-require_once __DIR__ . '/pages/options-connectors/page-wp-admin.php';
+foreach ( [
+	__DIR__ . '/pages/font-library/page.php',
+	__DIR__ . '/pages/font-library/page-wp-admin.php',
+	__DIR__ . '/pages/options-connectors/page.php',
+	__DIR__ . '/pages/options-connectors/page-wp-admin.php',
+] as $file ) {
+	if ( file_exists( $file ) ) {
+		require_once $file;
+	}
+}
