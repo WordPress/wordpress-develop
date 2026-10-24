@@ -33,6 +33,7 @@
 		background: var(--wp-admin-theme-color-darker-20);
 		border-color: transparent;
 		color: $button-text-color;
+		box-shadow: none;
 	}
 
 	&:disabled,
@@ -120,6 +121,7 @@
 		background: rgba(0, 0, 0, 0.1);
 		border-color: tokens.$gray-700;
 		color: tokens.$gray-900;
+		box-shadow: none;
 	}
 
 	&:disabled,
