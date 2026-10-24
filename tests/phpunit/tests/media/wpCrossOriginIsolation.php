@@ -40,14 +40,20 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 	 */
 	private ?string $original_pagenow;
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 */
+	private string $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
-		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
-		$this->original_https      = $_SERVER['HTTPS'] ?? null;
-		$this->original_get_action = $_GET['action'] ?? null;
-		$this->original_get_p      = $_GET['p'] ?? null;
-		$this->original_pagenow    = $GLOBALS['pagenow'] ?? null;
+		$this->original_user_agent  = $_SERVER['HTTP_USER_AGENT'] ?? null;
+		$this->original_http_host   = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_https       = $_SERVER['HTTPS'] ?? null;
+		$this->original_get_action  = $_GET['action'] ?? null;
+		$this->original_get_p       = $_GET['p'] ?? null;
+		$this->original_pagenow     = $GLOBALS['pagenow'] ?? null;
+		$this->original_stylesheet  = get_stylesheet();
 	}
 
 	public function tear_down() {
@@ -88,6 +94,10 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 		}
 
 		$GLOBALS['current_screen'] = null;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		remove_all_filters( 'wp_client_side_media_processing_enabled' );
 		parent::tear_down();
