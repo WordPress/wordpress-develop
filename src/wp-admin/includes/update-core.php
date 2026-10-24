@@ -1173,6 +1173,9 @@ $_old_files = array(
 	// 7.2
 	'wp-includes/js/dist/sync.js',
 	'wp-includes/js/dist/sync.min.js',
+	// 7.3
+	'wp-includes/css/classic-themes.css',
+	'wp-includes/css/classic-themes.min.css',
 );
 
 /**

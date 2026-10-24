@@ -1667,7 +1667,7 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
-	$classic_theme_styles_path = WPINC . "/css/classic-themes$suffix.css";
+	$classic_theme_styles_path = WPINC . "/css/dist/block-library/classic$suffix.css";
 	$styles->add( 'classic-theme-styles', "/$classic_theme_styles_path" );
 	$styles->add_data( 'classic-theme-styles', 'path', ABSPATH . $classic_theme_styles_path );
 
@@ -1850,6 +1850,7 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-editor-classic-layout-styles',
 		'wp-block-library-theme',
+		'classic-theme-styles',
 		'wp-theme',
 		'wp-edit-blocks',
 		'wp-block-editor',
@@ -3814,11 +3815,12 @@ function wp_enqueue_block_style( $block_name, $args ) {
 /**
  * Loads classic theme styles when the current theme lacks a theme.json file.
  *
- * This is used for backwards compatibility for Button and File blocks specifically.
+ * This is used for backwards compatibility for some core blocks, such as the Button and File blocks.
  *
  * @since 6.1.0
  * @since 6.2.0 Added File block styles.
  * @since 6.8.0 Moved stylesheet registration outside of this function.
+ * @since 7.3.0 Added Accordion Heading and Tab block styles.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
