@@ -1455,6 +1455,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  * @since 5.5.0 The `$default` argument was added to the arguments array.
  * @since 6.4.0 The `$revisions_enabled` argument was added to the arguments array.
  * @since 6.7.0 The `label` argument was added to the arguments array.
+ * @since 7.3.0 The `omit_if_not_exists` key was added to the `$show_in_rest` argument.
  *
  * @global array $wp_meta_keys Global registry for meta keys.
  *
@@ -1483,6 +1484,9 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *                                         support for custom fields for registered meta to be accessible via REST.
  *                                         When registering complex meta values this argument may optionally be an
  *                                         array with 'schema' or 'prepare_callback' keys instead of a boolean.
+ *                                         Set the 'omit_if_not_exists' key to true to leave the meta key out of
+ *                                         REST API responses when it has no stored value, instead of returning
+ *                                         its default.
  *     @type bool       $revisions_enabled Whether to enable revisions support for this meta_key. Can only be used when the
  *                                         object type is 'post'.
  * }

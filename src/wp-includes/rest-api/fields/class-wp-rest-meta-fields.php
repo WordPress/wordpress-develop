@@ -71,6 +71,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Retrieves the meta field value.
 	 *
 	 * @since 4.7.0
+	 * @since 7.3.0 Leaves out meta keys registered with `show_in_rest.omit_if_not_exists` that have no stored value.
 	 *
 	 * @param int             $object_id Object ID to fetch meta for.
 	 * @param WP_REST_Request $request   Full details about the request.
@@ -81,6 +82,10 @@ abstract class WP_REST_Meta_Fields {
 		$response = array();
 
 		foreach ( $fields as $meta_key => $args ) {
+			if ( ! empty( $args['omit_if_not_exists'] ) && ! metadata_exists( $this->get_meta_type(), $object_id, $meta_key ) ) {
+				continue;
+			}
+
 			$name       = $args['name'];
 			$all_values = get_metadata( $this->get_meta_type(), $object_id, $meta_key, false );
 
@@ -473,11 +478,12 @@ abstract class WP_REST_Meta_Fields {
 			}
 
 			$default_args = array(
-				'name'             => $name,
-				'single'           => $args['single'],
-				'type'             => ! empty( $args['type'] ) ? $args['type'] : null,
-				'schema'           => array(),
-				'prepare_callback' => array( $this, 'prepare_value' ),
+				'name'               => $name,
+				'single'             => $args['single'],
+				'type'               => ! empty( $args['type'] ) ? $args['type'] : null,
+				'schema'             => array(),
+				'prepare_callback'   => array( $this, 'prepare_value' ),
+				'omit_if_not_exists' => false,
 			);
 
 			$default_schema = array(
