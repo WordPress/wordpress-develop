@@ -78,8 +78,24 @@ abstract class WP_Block_Templates_UnitTestCase extends WP_UnitTestCase {
 		wp_delete_post( self::$template_part_post->ID );
 	}
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( self::TEST_THEME );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 }
