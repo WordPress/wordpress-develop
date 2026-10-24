@@ -2357,23 +2357,15 @@ function _add_post_type_submenus() {
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
  *
- * @global array $_wp_post_type_features
- *
  * @param string       $post_type The post type for which to add the feature.
  * @param string|array $feature   The feature being added, accepts an array of
  *                                feature strings or a single string.
  * @param mixed        ...$args   Optional extra arguments to pass along with certain features.
  */
 function add_post_type_support( $post_type, $feature, ...$args ) {
-	global $_wp_post_type_features;
-
 	$features = (array) $feature;
 	foreach ( $features as $feature ) {
-		if ( $args ) {
-			$_wp_post_type_features[ $post_type ][ $feature ] = $args;
-		} else {
-			$_wp_post_type_features[ $post_type ][ $feature ] = true;
-		}
+		WP_Post_Type::add_feature( $post_type, $feature, $args );
 	}
 }
 
@@ -2382,15 +2374,11 @@ function add_post_type_support( $post_type, $feature, ...$args ) {
  *
  * @since 3.0.0
  *
- * @global array $_wp_post_type_features
- *
  * @param string $post_type The post type for which to remove the feature.
  * @param string $feature   The feature being removed.
  */
 function remove_post_type_support( $post_type, $feature ) {
-	global $_wp_post_type_features;
-
-	unset( $_wp_post_type_features[ $post_type ][ $feature ] );
+	WP_Post_Type::remove_feature( $post_type, $feature );
 }
 
 /**
@@ -2398,14 +2386,11 @@ function remove_post_type_support( $post_type, $feature ) {
  *
  * @since 3.4.0
  *
- * @global array $_wp_post_type_features
- *
  * @param string $post_type The post type.
  * @return array Post type supports list.
  */
 function get_all_post_type_supports( $post_type ) {
-	global $_wp_post_type_features;
-	return $_wp_post_type_features[ $post_type ] ?? array();
+	return WP_Post_Type::get_features( $post_type );
 }
 
 /**
@@ -2413,23 +2398,17 @@ function get_all_post_type_supports( $post_type ) {
  *
  * @since 3.0.0
  *
- * @global array $_wp_post_type_features
- *
  * @param string $post_type The post type being checked.
  * @param string $feature   The feature being checked.
  * @return bool Whether the post type supports the given feature.
  */
 function post_type_supports( $post_type, $feature ) {
-	global $_wp_post_type_features;
-
-	return ( isset( $_wp_post_type_features[ $post_type ][ $feature ] ) );
+	return WP_Post_Type::supports_feature( $post_type, $feature );
 }
 /**
  * Retrieves a list of post type names that support a specific feature.
  *
  * @since 4.5.0
- *
- * @global array $_wp_post_type_features Post type features
  *
  * @param array|string $feature  Single feature or an array of features the post types should support.
  * @param string       $operator Optional. The logical operation to perform. 'or' means
@@ -2439,11 +2418,7 @@ function post_type_supports( $post_type, $feature ) {
  * @return string[] A list of post type names.
  */
 function get_post_types_by_support( $feature, $operator = 'and' ) {
-	global $_wp_post_type_features;
-
-	$features = array_fill_keys( (array) $feature, true );
-
-	return array_keys( wp_filter_object_list( $_wp_post_type_features, $features, $operator ) );
+	return WP_Post_Type::get_post_types_with_features( $feature, $operator );
 }
 
 /**

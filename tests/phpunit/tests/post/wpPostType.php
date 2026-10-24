@@ -436,4 +436,80 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	/**
+	 * @ticket 37667
+	 */
+	public function test_supports_method_returns_expected_value() {
+		$post_type = new WP_Post_Type(
+			'cpt',
+			array(
+				'supports' => array( 'title', 'editor' ),
+			)
+		);
+		$post_type->add_supports();
+
+		$this->assertTrue( $post_type->supports( 'title' ) );
+		$this->assertFalse( $post_type->supports( 'comments' ) );
+
+		$post_type->remove_supports();
+	}
+
+	/**
+	 * @ticket 37667
+	 */
+	public function test_supports_method_handles_subtype() {
+		add_post_type_support( 'attachment:audio', 'thumbnail' );
+
+		$attachment = get_post_type_object( 'attachment' );
+
+		$this->assertTrue( $attachment->supports( 'thumbnail', 'audio' ) );
+		$this->assertSame(
+			post_type_supports( 'attachment:video', 'thumbnail' ),
+			$attachment->supports( 'thumbnail', 'video' )
+		);
+	}
+
+	/**
+	 * @ticket 37667
+	 */
+	public function test_add_and_remove_support_methods() {
+		$post_type = new WP_Post_Type( 'cpt' );
+
+		$post_type->add_support( 'thumbnail' );
+		$this->assertTrue( $post_type->supports( 'thumbnail' ) );
+
+		$post_type->remove_support( 'thumbnail' );
+		$this->assertFalse( $post_type->supports( 'thumbnail' ) );
+
+		$post_type->remove_supports();
+	}
+
+	/**
+	 * @ticket 37667
+	 */
+	public function test_get_post_types_by_support_preserves_registration_order() {
+		register_post_type(
+			'zz_a',
+			array(
+				'supports' => array( 'thumbnail' ),
+			)
+		);
+		register_post_type(
+			'zz_b',
+			array(
+				'supports' => array( 'thumbnail' ),
+			)
+		);
+
+		$post_types = get_post_types_by_support( 'thumbnail' );
+
+		$this->assertLessThan(
+			array_search( 'zz_b', $post_types, true ),
+			array_search( 'zz_a', $post_types, true )
+		);
+
+		unregister_post_type( 'zz_a' );
+		unregister_post_type( 'zz_b' );
+	}
 }
