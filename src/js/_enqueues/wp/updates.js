@@ -1379,6 +1379,16 @@
 				 * @type {Object}
 				 */
 				plugins          = settings.plugins,
+				/**
+				 * Plugin groups that Core handles on its own.
+				 *
+				 * @type {Array}
+				 */
+				coreGroups       = [
+					'all', 'search', 'upgrade', 'active', 'inactive',
+					'recently_activated', 'mustuse', 'dropins', 'paused',
+					'auto-update-enabled', 'auto-update-disabled'
+				],
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1447,6 +1457,24 @@
 				}
 			}
 
+			// Remove from custom groups added through the `plugins_list` filter.
+			_.each( _.keys( plugins ), function( group ) {
+				var $view;
+
+				if ( -1 !== _.indexOf( coreGroups, group ) || ! _.isArray( plugins[ group ] ) || -1 === _.indexOf( plugins[ group ], response.plugin ) ) {
+					return;
+				}
+
+				plugins[ group ] = _.without( plugins[ group ], response.plugin );
+				$view = $views.children( 'li.' + $.escapeSelector( group ) );
+
+				if ( plugins[ group ].length ) {
+					$view.find( '.count' ).text( '(' + plugins[ group ].length + ')' );
+				} else {
+					$view.remove();
+				}
+			} );
+
 			plugins.all = _.without( plugins.all, response.plugin );
 
 			if ( plugins.all.length ) {
@@ -1459,6 +1487,9 @@
 					$form.find( '#the-list' ).append( '<tr class="no-items"><td class="colspanchange" colspan="' + columnCount + '">' + __( 'No plugins are currently available.' ) + '</td></tr>' );
 				}
 			}
+
+			// Remove the trailing separator left on the last view when the view after it was removed.
+			$views.find( 'li:last' ).html( function() { return $( this ).children(); } );
 
 			if ( $itemsCount.length && $currentView.length ) {
 				remainingCount = plugins[ $currentView.parent( 'li' ).attr('class') ].length;
