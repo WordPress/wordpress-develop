@@ -5896,7 +5896,8 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * Determines whether a file is a JPEG XL image by inspecting its magic bytes.
  *
  * JXL files come in two flavors: a naked codestream (starts with 0xFF 0x0A)
- * and an ISOBMFF container (starts with the 12-byte JXL box signature).
+ * and an ISOBMFF container (starts with the 12-byte JXL box signature), which
+ * must hold a codestream.
  *
  * @since 7.3.0
  *
@@ -5909,34 +5910,174 @@ function wp_is_jxl_file( $file ) {
 		return false;
 	}
 
-	$bytes = fread( $handle, 12 );
+	$is_jxl = false !== _wp_read_jxl_codestream_header( $handle );
 	fclose( $handle );
 
-	if ( ! is_string( $bytes ) || strlen( $bytes ) < 2 ) {
+	return $is_jxl;
+}
+
+/**
+ * Reads the start of a JPEG XL codestream, unwrapping an ISOBMFF container.
+ *
+ * @since 7.3.0
+ * @access private
+ *
+ * @param resource $handle File handle positioned at the start of the file.
+ * @return string|false The first bytes of the codestream, starting with its signature, or false if none was found.
+ */
+function _wp_read_jxl_codestream_header( $handle ) {
+	// Enough for the signature, the largest SizeHeader and the orientation.
+	$header_length = 16;
+
+	$start = fread( $handle, 12 );
+	if ( ! is_string( $start ) || strlen( $start ) < 2 ) {
 		return false;
 	}
 
-	// Naked JXL codestream.
-	if ( "\xFF\x0A" === substr( $bytes, 0, 2 ) ) {
-		return true;
+	if ( "\xFF\x0A" === substr( $start, 0, 2 ) ) {
+		return $start . fread( $handle, $header_length - strlen( $start ) );
 	}
 
-	// JXL ISOBMFF container ("....JXL \r\n\x87\n").
-	if ( "\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A" === $bytes ) {
-		return true;
+	if ( "\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A" !== $start ) {
+		return false;
+	}
+
+	$offset = 12;
+	while ( fseek( $handle, $offset ) === 0 ) {
+		$box = fread( $handle, 8 );
+		if ( ! is_string( $box ) || strlen( $box ) < 8 ) {
+			return false;
+		}
+
+		$size        = unpack( 'N', $box )[1];
+		$type        = substr( $box, 4, 4 );
+		$header_size = 8;
+
+		if ( 1 === $size ) {
+			$large_size = fread( $handle, 8 );
+			if ( ! is_string( $large_size ) || strlen( $large_size ) < 8 ) {
+				return false;
+			}
+			$size        = unpack( 'J', $large_size )[1];
+			$header_size = 16;
+		}
+
+		if ( 'jxlc' === $type || 'jxlp' === $type ) {
+			if ( 'jxlp' === $type ) {
+				// Skip the partial codestream box's sequence number.
+				fread( $handle, 4 );
+			}
+			$codestream = fread( $handle, $header_length );
+			return is_string( $codestream ) && "\xFF\x0A" === substr( $codestream, 0, 2 ) ? $codestream : false;
+		}
+
+		// A size of 0 means the box runs to the end of the file.
+		if ( 0 === $size || $size < $header_size ) {
+			return false;
+		}
+
+		$offset += $size;
 	}
 
 	return false;
 }
 
 /**
+ * Extracts the dimensions of a JPEG XL image from its codestream header.
+ *
+ * getimagesize() cannot identify JPEG XL, so this decodes the SizeHeader
+ * (ISO/IEC 18181-1, section A.3) itself. Handles both a naked codestream and
+ * one wrapped in an ISOBMFF container, in a `jxlc` or the first `jxlp` box.
+ * The dimensions are swapped for orientations that transpose the image, since
+ * decoders apply the orientation and report the upright size.
+ *
+ * @since 7.3.0
+ *
+ * @param string $filename Path to a JXL file.
+ * @return array {
+ *     An array of JXL image information.
+ *
+ *     @type int|false $width  Image width on success, false on failure.
+ *     @type int|false $height Image height on success, false on failure.
+ * }
+ */
+function wp_get_jxl_info( $filename ) {
+	$results = array(
+		'width'  => false,
+		'height' => false,
+	);
+
+	$handle = @fopen( $filename, 'rb' );
+	if ( ! $handle ) {
+		return $results;
+	}
+
+	$header = _wp_read_jxl_codestream_header( $handle );
+	fclose( $handle );
+
+	if ( false === $header ) {
+		return $results;
+	}
+
+	$bit_position = 16;
+	$read_bits    = static function ( $count ) use ( $header, &$bit_position ) {
+		$value = 0;
+		for ( $i = 0; $i < $count; $i++, $bit_position++ ) {
+			$byte   = ord( $header[ $bit_position >> 3 ] ?? "\0" );
+			$value |= ( ( $byte >> ( $bit_position & 7 ) ) & 1 ) << $i;
+		}
+		return $value;
+	};
+	$read_size    = static function () use ( $read_bits ) {
+		$distribution = array( 9, 13, 18, 30 );
+		return 1 + $read_bits( $distribution[ $read_bits( 2 ) ] );
+	};
+
+	$is_div8 = (bool) $read_bits( 1 );
+	$height  = $is_div8 ? 8 * ( 1 + $read_bits( 5 ) ) : $read_size();
+	$ratio   = $read_bits( 3 );
+
+	if ( 0 === $ratio ) {
+		$width = $is_div8 ? 8 * ( 1 + $read_bits( 5 ) ) : $read_size();
+	} else {
+		$ratios = array(
+			1 => array( 1, 1 ),
+			array( 12, 10 ),
+			array( 4, 3 ),
+			array( 3, 2 ),
+			array( 16, 9 ),
+			array( 5, 4 ),
+			array( 2, 1 ),
+		);
+		$width  = intdiv( $height * $ratios[ $ratio ][0], $ratios[ $ratio ][1] );
+	}
+
+	// ImageMetadata: all_default, then extra_fields, which carries the orientation.
+	$orientation = 1;
+	if ( ! $read_bits( 1 ) && $read_bits( 1 ) ) {
+		$orientation = 1 + $read_bits( 3 );
+	}
+
+	if ( $orientation > 4 ) {
+		list( $width, $height ) = array( $height, $width );
+	}
+
+	$results['width']  = $width;
+	$results['height'] = $height;
+
+	return $results;
+}
+
+/**
  * Registers JPEG XL (JXL) as an allowed upload MIME type.
  *
- * JXL images are decoded to JPEG client-side via VIPS/WASM and the JPEG is
- * uploaded; the original .jxl is preserved as a companion file. WordPress core
- * does not include image/jxl in its default MIME list, so without this filter
- * the editor's allowed-types check rejects the original .jxl before it can be
- * converted, and the companion sideload is rejected by the server.
+ * JXL uploads are kept in their own format, with their sub-sizes generated
+ * client-side via VIPS/WASM, since the server cannot read JXL. WordPress does
+ * not include image/jxl in its default MIME list, so without this filter the
+ * editor's allowed-types check rejects the .jxl upload.
+ *
+ * Runs before check_upload_mimes() (priority 10), so on multisite the
+ * network's "Upload file types" setting still decides whether JXL is allowed.
  *
  * @since 7.3.0
  *
@@ -5970,8 +6111,8 @@ function wp_add_jxl_upload_mimes( $mimes ) {
  * @return array Filtered values for the extension, MIME type, and corrected filename.
  */
 function wp_filter_jxl_filetype_and_ext( $data, $file, $filename, $mimes = null ) {
-	// Leave already-recognized files untouched.
-	if ( ! empty( $data['type'] ) ) {
+	// Leave already-recognized files, and arguments that are not strings, untouched.
+	if ( ! is_array( $data ) || ! empty( $data['type'] ) || ! is_string( $file ) || ! is_string( $filename ) ) {
 		return $data;
 	}
 
@@ -5999,6 +6140,7 @@ function wp_filter_jxl_filetype_and_ext( $data, $file, $filename, $mimes = null 
  * @since 5.7.0
  * @since 5.8.0 Added support for WebP images.
  * @since 6.5.0 Added support for AVIF images.
+ * @since 7.3.0 Added support for JPEG XL images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -6039,6 +6181,28 @@ function wp_getimagesize( $filename, ?array &$image_info = null ) {
 	}
 
 	$image_mime_type = wp_get_image_mime( $filename );
+
+	// PHP cannot identify JPEG XL, so read its size from the codestream header.
+	if ( false === $image_mime_type && wp_is_jxl_file( $filename ) ) {
+		$jxl_info = wp_get_jxl_info( $filename );
+		$width    = $jxl_info['width'];
+		$height   = $jxl_info['height'];
+
+		// Mimic the native return format.
+		if ( $width && $height ) {
+			return array(
+				$width,
+				$height,
+				IMAGETYPE_UNKNOWN,
+				sprintf(
+					'width="%d" height="%d"',
+					$width,
+					$height
+				),
+				'mime' => 'image/jxl',
+			);
+		}
+	}
 
 	// Not an image?
 	if ( false === $image_mime_type ) {
