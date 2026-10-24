@@ -904,7 +904,7 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/functions.php
 		-
-			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string given\.$#'
+			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int\<0, 6\>, ''0''\|''1''\|''2''\|''3''\|''4''\|''5''\|''6'' given\.$#'
 			identifier: argument.type
 			count: 1
 			path: ../../../src/wp-includes/functions.php
@@ -954,7 +954,7 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int, string\|false given\.$#'
+			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int\<0, 6\>, string\|false given\.$#'
 			identifier: argument.type
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
