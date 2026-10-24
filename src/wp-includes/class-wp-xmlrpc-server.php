@@ -1333,6 +1333,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *         @type string $post_status    Post status. Default 'draft'
 	 *         @type string $post_title     Post title.
 	 *         @type int    $post_author    Post author ID.
+	 *         @type int    $menu_order     Post order. Default 0.
 	 *         @type string $post_excerpt   Post excerpt.
 	 *         @type string $post_content   Post content.
 	 *         @type string $post_date_gmt  Post date in GMT.
@@ -1475,6 +1476,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			'post_name'      => null,
 			'post_thumbnail' => null,
 			'post_parent'    => 0,
+			'menu_order'     => 0,
 			'ping_status'    => '',
 			'comment_status' => '',
 			'custom_fields'  => null,
