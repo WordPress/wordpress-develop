@@ -93,6 +93,18 @@ class WP_Script_Modules {
 	private $modules_with_missing_dependencies = array();
 
 	/**
+	 * List of handles for classic scripts encountered which have missing script module dependencies.
+	 *
+	 * A handle is added to this list when it is discovered to have script module dependencies that are not
+	 * registered. At this time, a warning is emitted with {@see _doing_it_wrong()}. The handle is then added to this
+	 * list, so that duplicate warnings don't occur.
+	 *
+	 * @since 7.2.0
+	 * @var string[]
+	 */
+	private $classic_scripts_with_missing_module_dependencies = array();
+
+	/**
 	 * Registers the script module if no script module with that script module
 	 * identifier has already been registered.
 	 *
@@ -367,7 +379,8 @@ class WP_Script_Modules {
 	}
 
 	/**
-	 * Prints translations for all enqueued script modules.
+	 * Prints translations for all enqueued script modules and for the script
+	 * modules that classic scripts depend on.
 	 *
 	 * Outputs inline `<script>` tags that call `wp.i18n.setLocaleData()` with
 	 * the translated strings for each script module. This must run before
@@ -379,10 +392,23 @@ class WP_Script_Modules {
 	 * {@see WP_Script_Modules::set_translations()}.
 	 *
 	 * @since 7.0.0
+	 * @since 7.2.0 Also prints the translations of the script modules that classic scripts depend on
+	 *              ('module_dependencies'), and of their dependencies.
 	 */
 	public function print_script_module_translations(): void {
-		// Collect all module IDs that will be on the page (enqueued + their dependencies).
-		$module_ids = $this->get_sorted_dependencies( $this->queue );
+		/*
+		 * Collect the IDs of the script modules that can load on the page: the enqueued ones, the ones that classic
+		 * scripts depend on, and the dependencies of both.
+		 */
+		$classic_script_module_dependencies = $this->get_classic_script_module_dependencies();
+
+		$module_ids = array_unique(
+			array_merge(
+				$this->get_sorted_dependencies( $this->queue ),
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( $classic_script_module_dependencies ) )
+			)
+		);
 
 		$set_locale_data_js_function = <<<'JS'
 		( domain, translations ) => {
@@ -636,17 +662,47 @@ class WP_Script_Modules {
 	 * @since 6.5.0
 	 * @since 7.0.0 Script module dependencies ('module_dependencies') of classic scripts are now included.
 	 *
-	 * @global WP_Scripts $wp_scripts
-	 *
 	 * @return array<string, array<string, string>> Array with an `imports` key mapping to an array of script module
 	 *                                              identifiers and their respective URLs, including the version query.
 	 */
 	private function get_import_map(): array {
-		global $wp_scripts;
-
 		$imports = array();
 
 		// Identify script modules that are dependencies of classic scripts.
+		$classic_script_module_dependencies = $this->get_classic_script_module_dependencies();
+
+		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
+		$ids = array_unique(
+			array_merge(
+				$classic_script_module_dependencies,
+				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
+			)
+		);
+		foreach ( $ids as $id ) {
+			$src = $this->get_src( $id );
+			if ( '' !== $src ) {
+				$imports[ $id ] = $src;
+			}
+		}
+		return array( 'imports' => $imports );
+	}
+
+	/**
+	 * Gets the IDs of the script modules that classic scripts depend on.
+	 *
+	 * Walks the enqueued, to-do and done classic scripts and their dependencies, and collects the registered
+	 * script modules in their 'module_dependencies' data. Script modules that are not registered trigger a
+	 * {@see _doing_it_wrong()} notice, once per classic script.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @global WP_Scripts $wp_scripts
+	 *
+	 * @return string[] Script module IDs.
+	 */
+	private function get_classic_script_module_dependencies(): array {
+		global $wp_scripts;
+
 		$classic_script_module_dependencies = array();
 		if ( $wp_scripts instanceof WP_Scripts ) {
 			$handles = array_merge(
@@ -684,7 +740,10 @@ class WP_Script_Modules {
 						}
 					}
 
-					if ( count( $missing_module_dependencies ) > 0 ) {
+					if (
+						count( $missing_module_dependencies ) > 0 &&
+						! in_array( $handle, $this->classic_scripts_with_missing_module_dependencies, true )
+					) {
 						_doing_it_wrong(
 							'WP_Scripts::add_data',
 							sprintf(
@@ -696,6 +755,7 @@ class WP_Script_Modules {
 							),
 							'7.0.0'
 						);
+						$this->classic_scripts_with_missing_module_dependencies[] = $handle;
 					}
 				}
 
@@ -707,20 +767,7 @@ class WP_Script_Modules {
 			}
 		}
 
-		// Note: the script modules in $this->queue are not included in the importmap because they get printed as scripts.
-		$ids = array_unique(
-			array_merge(
-				$classic_script_module_dependencies,
-				array_keys( $this->get_dependencies( array_merge( $this->queue, $classic_script_module_dependencies ) ) )
-			)
-		);
-		foreach ( $ids as $id ) {
-			$src = $this->get_src( $id );
-			if ( '' !== $src ) {
-				$imports[ $id ] = $src;
-			}
-		}
-		return array( 'imports' => $imports );
+		return $classic_script_module_dependencies;
 	}
 
 	/**
