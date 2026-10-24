@@ -1834,8 +1834,21 @@ module.exports = function(grunt) {
 		'qunit:compiled'
 	] );
 
-	grunt.registerTask( 'precommit:css', 'Processes core CSS files with PostCSS in preparation for a commit.', [
-		'postcss:core'
+	grunt.registerTask( 'lint:css', 'Runs Stylelint on core CSS.', function() {
+		var done = this.async();
+
+		grunt.util.spawn( {
+			cmd: 'node',
+			args: [ 'tools/stylelint/lint-css.js' ],
+			opts: { stdio: 'inherit' }
+		}, function( error ) {
+			done( ! error );
+		} );
+	} );
+
+	grunt.registerTask( 'precommit:css', 'Processes core CSS files with PostCSS and Stylelint in preparation for a commit.', [
+		'postcss:core',
+		'lint:css',
 	] );
 
 	grunt.registerTask( 'precommit:php', 'Runs PHPStan and PHPUnit tests in preparation for a commit.', [
@@ -1932,7 +1945,7 @@ module.exports = function(grunt) {
 				}
 
 				if ( code === 0 ) {
-					if ( [ 'package.json', 'Gruntfile.js', 'composer.json' ].some( testPath ) ) {
+					if ( [ 'package.json', 'Gruntfile.js', 'composer.json', '.stylelintrc.js', '.stylelintignore' ].some( testPath ) ) {
 						grunt.log.writeln( 'Configuration files modified. Running `prerelease`.' );
 						taskList.push( 'prerelease' );
 					} else {
