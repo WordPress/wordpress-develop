@@ -3109,19 +3109,19 @@ final class WP_Customize_Manager {
 		wp_transition_post_status( $new_status, $previous_status, $post );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( "edit_post_{$post->post_type}", $post->ID, $post );
+		do_action( "edit_post_{$post->post_type}", $post->ID, $post, array() );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'edit_post', $post->ID, $post );
+		do_action( 'edit_post', $post->ID, $post, array() );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( "save_post_{$post->post_type}", $post->ID, $post, true );
+		do_action( "save_post_{$post->post_type}", $post->ID, $post, true, array() );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'save_post', $post->ID, $post, true );
+		do_action( 'save_post', $post->ID, $post, true, array() );
 
 		/** This action is documented in wp-includes/post.php */
-		do_action( 'wp_insert_post', $post->ID, $post, true );
+		do_action( 'wp_insert_post', $post->ID, $post, true, array() );
 
 		wp_after_insert_post( get_post( $post_id ), true, $post );
 
