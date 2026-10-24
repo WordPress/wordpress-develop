@@ -1,9 +1,6 @@
 <?php
 
-/**
- * @return non-empty-list<array{ non-falsy-string }>
- */
-function data_whole_posts(): array {
+function data_whole_posts() {
 	return array(
 
 /* DIVIDER */

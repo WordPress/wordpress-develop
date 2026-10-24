@@ -7,18 +7,12 @@
  */
 class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 
-	/**
-	 * Tests smart dash conversion.
-	 */
-	public function test_dashes(): void {
+	public function test_dashes() {
 		$this->assertSame( 'Hey &#8212; boo?', wptexturize( 'Hey -- boo?' ) );
 		$this->assertSame( '<a href="http://xx--xx">Hey &#8212; boo?</a>', wptexturize( '<a href="http://xx--xx">Hey -- boo?</a>' ) );
 	}
 
-	/**
-	 * Tests texturization is disabled inside certain HTML elements.
-	 */
-	public function test_disable(): void {
+	public function test_disable() {
 		$this->assertSame( '<pre>---&</pre>', wptexturize( '<pre>---&</pre>' ) );
 		$this->assertSame( '<pre><code></code>--&</pre>', wptexturize( '<pre><code></code>--&</pre>' ) );
 
@@ -41,31 +35,25 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests bracketed quote conversion.
-	 *
 	 * @ticket 1418
 	 */
-	public function test_bracketed_quotes_1418(): void {
+	public function test_bracketed_quotes_1418() {
 		$this->assertSame( '(&#8220;test&#8221;)', wptexturize( '("test")' ) );
 		$this->assertSame( '(&#8216;test&#8217;)', wptexturize( "('test')" ) );
 		$this->assertSame( '(&#8217;twas)', wptexturize( "('twas)" ) );
 	}
 
 	/**
-	 * Tests bracketed quote conversion with a specific example.
-	 *
 	 * @ticket 3810
 	 */
-	public function test_bracketed_quotes_3810(): void {
+	public function test_bracketed_quotes_3810() {
 		$this->assertSame( 'A dog (&#8220;Hubertus&#8221;) was sent out.', wptexturize( 'A dog ("Hubertus") was sent out.' ) );
 	}
 
 	/**
-	 * Tests basic quote conversion (apostrophes, single quotes, double quotes).
-	 *
 	 * @ticket 4539
 	 */
-	public function test_basic_quotes(): void {
+	public function test_basic_quotes() {
 		$this->assertSame( 'test&#8217;s', wptexturize( 'test\'s' ) );
 
 		$this->assertSame( '&#8216;quoted&#8217;', wptexturize( '\'quoted\'' ) );
@@ -85,12 +73,10 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests full sentences with unmatched single quotes.
-	 *
 	 * @ticket 4539
 	 * @ticket 15241
 	 */
-	public function test_full_sentences_with_unmatched_single_quotes(): void {
+	public function test_full_sentences_with_unmatched_single_quotes() {
 		$this->assertSame(
 			'That means every moment you&#8217;re working on something without it being in the public it&#8217;s actually dying.',
 			wptexturize( "That means every moment you're working on something without it being in the public it's actually dying." )
@@ -98,11 +84,9 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests quote conversion with various surrounding contexts.
-	 *
 	 * @ticket 4539
 	 */
-	public function test_quotes(): void {
+	public function test_quotes() {
 		$this->assertSame( '&#8220;Quoted String&#8221;', wptexturize( '"Quoted String"' ) );
 		// $this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link</a>&#8221;', wptexturize( 'Here is "<a href="http://example.com">a test with a link</a>"' ) );
 		// $this->assertSame( 'Here is &#8220;<a href="http://example.com">a test with a link and a period</a>&#8221;.', wptexturize( 'Here is "<a href="http://example.com">a test with a link and a period</a>".' ) );
@@ -119,11 +103,9 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests quotes before an "s" (possessives and contractions).
-	 *
 	 * @ticket 4539
 	 */
-	public function test_quotes_before_s(): void {
+	public function test_quotes_before_s() {
 		$this->assertSame( 'test&#8217;s', wptexturize( "test's" ) );
 		$this->assertSame( '&#8216;test&#8217;s', wptexturize( "'test's" ) );
 		$this->assertSame( '&#8216;test&#8217;s&#8217;', wptexturize( "'test's'" ) );
@@ -132,11 +114,9 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests quotes before numbers (year abbreviations, etc.).
-	 *
 	 * @ticket 4539
 	 */
-	public function test_quotes_before_numbers(): void {
+	public function test_quotes_before_numbers() {
 		$this->assertSame( 'Class of &#8217;99', wptexturize( "Class of '99" ) );
 		$this->assertSame( 'Class of &#8217;99&#8217;s', wptexturize( "Class of '99's" ) );
 		$this->assertSame( '&#8216;Class of &#8217;99&#8217;', wptexturize( "'Class of '99'" ) );
@@ -163,36 +143,25 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		$this->assertSame( '}&#8221;Class of &#8217;99&#8243;{', wptexturize( "}\"Class of '99\"{" ) );
 	}
 
-	/**
-	 * Tests quotes after numbers.
-	 */
-	public function test_quotes_after_numbers(): void {
+	public function test_quotes_after_numbers() {
 		$this->assertSame( 'Class of &#8217;99', wptexturize( "Class of '99" ) );
 	}
 
 	/**
-	 * Tests quotes next to HTML tags.
-	 *
 	 * @ticket 4539
 	 * @ticket 15241
 	 */
-	public function test_other_html(): void {
+	public function test_other_html() {
 		$this->assertSame( '&#8216;<strong>', wptexturize( "'<strong>" ) );
 		// $this->assertSame( '&#8216;<strong>Quoted Text</strong>&#8217;,', wptexturize( "'<strong>Quoted Text</strong>'," ) );
 		// $this->assertSame( '&#8220;<strong>Quoted Text</strong>&#8221;,', wptexturize( '"<strong>Quoted Text</strong>",' ) );
 	}
 
-	/**
-	 * Tests multiplication sign (x between digits) conversion.
-	 */
-	public function test_x(): void {
+	public function test_x() {
 		$this->assertSame( '14&#215;24', wptexturize( '14x24' ) );
 	}
 
-	/**
-	 * Tests prime (minutes/feet) and double-prime (seconds/inches) conversion.
-	 */
-	public function test_minutes_seconds(): void {
+	public function test_minutes_seconds() {
 		$this->assertSame( '9&#8242;', wptexturize( '9\'' ) );
 		$this->assertSame( '9&#8243;', wptexturize( '9"' ) );
 
@@ -204,11 +173,9 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests quotes around numbers.
-	 *
 	 * @ticket 8775
 	 */
-	public function test_wptexturize_quotes_around_numbers(): void {
+	public function test_wptexturize_quotes_around_numbers() {
 		$this->assertSame( '&#8220;12345&#8221;', wptexturize( '"12345"' ) );
 		$this->assertSame( '&#8216;12345&#8217;', wptexturize( '\'12345\'' ) );
 		$this->assertSame( '&#8220;a 9&#8242; plus a &#8216;9&#8217;, maybe a 9&#8242; &#8216;9&#8217;&#8221;', wptexturize( '"a 9\' plus a \'9\', maybe a 9\' \'9\'"' ) );
@@ -216,42 +183,34 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests HTML comments are not texturized.
-	 *
 	 * @ticket 8912
 	 */
-	public function test_wptexturize_html_comments(): void {
+	public function test_wptexturize_html_comments() {
 		$this->assertSame( '<!--[if !IE]>--><!--<![endif]-->', wptexturize( '<!--[if !IE]>--><!--<![endif]-->' ) );
 		$this->assertSame( '<!--[if !IE]>"a 9\' plus a \'9\', maybe a 9\' \'9\' "<![endif]-->', wptexturize( '<!--[if !IE]>"a 9\' plus a \'9\', maybe a 9\' \'9\' "<![endif]-->' ) );
 		$this->assertSame( '<ul><li>Hello.</li><!--<li>Goodbye.</li>--></ul>', wptexturize( '<ul><li>Hello.</li><!--<li>Goodbye.</li>--></ul>' ) );
 	}
 
 	/**
-	 * Tests quote cuddling with HTML entities.
-	 *
 	 * @ticket 4539
 	 * @ticket 15241
 	 */
-	public function test_entity_quote_cuddling(): void {
+	public function test_entity_quote_cuddling() {
 		$this->assertSame( '&nbsp;&#8220;Testing&#8221;', wptexturize( '&nbsp;"Testing"' ) );
 		// $this->assertSame( '&#38;&#8220;Testing&#8221;', wptexturize( '&#38;"Testing"' ) );
 	}
 
 	/**
-	 * Tests apostrophes before primes in version numbers.
-	 *
 	 * @ticket 22823
 	 */
-	public function test_apostrophes_before_primes(): void {
+	public function test_apostrophes_before_primes() {
 		$this->assertSame( 'WordPress 3.5&#8217;s release date', wptexturize( "WordPress 3.5's release date" ) );
 	}
 
 	/**
-	 * Tests spaces around hyphens and dashes.
-	 *
 	 * @ticket 23185
 	 */
-	public function test_spaces_around_hyphens(): void {
+	public function test_spaces_around_hyphens() {
 		$nbsp = "\xC2\xA0";
 
 		$this->assertSame( ' &#8211; ', wptexturize( ' - ' ) );
@@ -272,11 +231,9 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests hyphens and dashes at the start or end of strings.
-	 *
 	 * @ticket 31030
 	 */
-	public function test_hyphens_at_start_and_end(): void {
+	public function test_hyphens_at_start_and_end() {
 		$this->assertSame( '&#8211; ', wptexturize( '- ' ) );
 		$this->assertSame( '&#8211; &#8211;', wptexturize( '- -' ) );
 		$this->assertSame( ' &#8211;', wptexturize( ' -' ) );
@@ -293,7 +250,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 *
 	 * @ticket 22692
 	 */
-	public function test_spaces_around_quotes_never(): void {
+	public function test_spaces_around_quotes_never() {
 		$nbsp = "\xC2\xA0";
 
 		$problem_input  = "$nbsp\"A";
@@ -310,16 +267,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_spaces_around_quotes
 	 */
-	public function test_spaces_around_quotes( string $input, string $output ): void {
+	public function test_spaces_around_quotes( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_spaces_around_quotes()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_spaces_around_quotes(): array {
+	public static function data_spaces_around_quotes() {
 		$nbsp = "\xC2\xA0";
 		$pi   = "\xCE\xA0";
 
@@ -371,16 +323,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_apos_before_digits
 	 */
-	public function test_apos_before_digits( string $input, string $output ): void {
+	public function test_apos_before_digits( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_apos_before_digits()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_apos_before_digits(): array {
+	public static function data_apos_before_digits() {
 		return array(
 			array(
 				"word '99 word",
@@ -417,16 +364,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_opening_single_quote
 	 */
-	public function test_opening_single_quote( string $input, string $output ): void {
+	public function test_opening_single_quote( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_opening_single_quote()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_opening_single_quote(): array {
+	public static function data_opening_single_quote() {
 		return array(
 			array(
 				"word 'word word",
@@ -442,7 +384,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word <'word word",    // Invalid HTML.
-				'word <&#8217;word word',
+				"word <'word word",
 			),
 			array(
 				"word &lt;'word word", // Valid HTML input makes curly quotes.
@@ -470,7 +412,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word<'word word",
-				'word<&#8217;word word',
+				"word<'word word",
 			),
 			array(
 				"word&lt;'word word",
@@ -498,7 +440,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word <' word word",
-				'word <&#8217; word word',
+				"word <' word word",
 			),
 			array(
 				"word &lt;' word word",
@@ -526,7 +468,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				"word<' word word",
-				'word<&#8217; word word',
+				"word<' word word",
 			),
 			array(
 				"word&lt;' word word",
@@ -551,16 +493,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_double_prime
 	 */
-	public function test_double_prime( string $input, string $output ): void {
+	public function test_double_prime( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_double_prime()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_double_prime(): array {
+	public static function data_double_prime() {
 		return array(
 			array(
 				'word 99" word',
@@ -589,16 +526,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_single_prime
 	 */
-	public function test_single_prime( string $input, string $output ): void {
+	public function test_single_prime( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_single_prime()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_single_prime(): array {
+	public static function data_single_prime() {
 		return array(
 			array(
 				"word 99' word",
@@ -627,16 +559,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_contractions
 	 */
-	public function test_contractions( string $input, string $output ): void {
+	public function test_contractions( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_contractions()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_contractions(): array {
+	public static function data_contractions() {
 		return array(
 			array(
 				"word word's word",
@@ -673,16 +600,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_opening_quote
 	 */
-	public function test_opening_quote( string $input, string $output ): void {
+	public function test_opening_quote( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_opening_quote()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_opening_quote(): array {
+	public static function data_opening_quote() {
 		return array(
 			array(
 				'word "word word',
@@ -698,7 +620,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'word <"word word', // Invalid HTML.
-				'word <&#8221;word word',
+				'word <"word word',
 			),
 			array(
 				'word &lt;"word word',
@@ -730,7 +652,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'word<"word word',
-				'word<&#8221;word word',
+				'word<"word word',
 			),
 			array(
 				'word&lt;"word word',
@@ -755,16 +677,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_closing_quote
 	 */
-	public function test_closing_quote( string $input, string $output ): void {
+	public function test_closing_quote( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_closing_quote()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_closing_quote(): array {
+	public static function data_closing_quote() {
 		return array(
 			array(
 				'word word" word',
@@ -849,16 +766,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_closing_single_quote
 	 */
-	public function test_closing_single_quote( string $input, string $output ): void {
+	public function test_closing_single_quote( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_closing_single_quote()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_closing_single_quote(): array {
+	public static function data_closing_single_quote() {
 		return array(
 			array(
 				"word word' word",
@@ -944,16 +856,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 30445
 	 * @dataProvider data_multiplication
 	 */
-	public function test_multiplication( string $input, string $output ): void {
+	public function test_multiplication( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_multiplication()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_multiplication(): array {
+	public static function data_multiplication() {
 		return array(
 			array(
 				'9x9',
@@ -999,16 +906,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_ampersand
 	 */
-	public function test_ampersand( string $input, string $output ): void {
+	public function test_ampersand( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_ampersand()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_ampersand(): array {
+	public static function data_ampersand() {
 		return array(
 			array(
 				'word & word',
@@ -1069,16 +971,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_cockney
 	 */
-	public function test_cockney( string $input, string $output ): void {
+	public function test_cockney( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_cockney()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_cockney(): array {
+	public static function data_cockney() {
 		return array(
 			array(
 				"word 'tain't word",
@@ -1135,16 +1032,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_smart_dashes
 	 */
-	public function test_smart_dashes( string $input, string $output ): void {
+	public function test_smart_dashes( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_smart_dashes()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_smart_dashes(): array {
+	public static function data_smart_dashes() {
 		return array(
 			array(
 				'word --- word',
@@ -1193,16 +1085,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 22692
 	 * @dataProvider data_misc_static_replacements
 	 */
-	public function test_misc_static_replacements( string $input, string $output ): void {
+	public function test_misc_static_replacements( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_misc_static_replacements()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_misc_static_replacements(): array {
+	public static function data_misc_static_replacements() {
 		return array(
 			array(
 				'word ... word',
@@ -1253,16 +1140,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 8775
 	 * @dataProvider data_quoted_numbers
 	 */
-	public function test_quoted_numbers( string $input, string $output ): void {
+	public function test_quoted_numbers( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_quoted_numbers()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_quoted_numbers(): array {
+	public static function data_quoted_numbers() {
 		return array(
 			array(
 				'word "42.00" word',
@@ -1309,16 +1191,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 20342
 	 * @dataProvider data_quotes_and_dashes
 	 */
-	public function test_quotes_and_dashes( string $input, string $output ): void {
+	public function test_quotes_and_dashes( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_quotes_and_dashes()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_quotes_and_dashes(): array {
+	public static function data_quotes_and_dashes() {
 		return array(
 			array(
 				'word---"quote"',
@@ -1377,16 +1254,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 12690
 	 * @dataProvider data_tag_avoidance
 	 */
-	public function test_tag_avoidance( string $input, string $output ): void {
+	public function test_tag_avoidance( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_tag_avoidance()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_tag_avoidance(): array {
+	public static function data_tag_avoidance() {
 		return array(
 			array(
 				'[ ... ]',
@@ -1406,11 +1278,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a> ]',
-				'[ photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a> ]',
+				'[ photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a> ]',
 			),
 			array(
 				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy & that guy </a>]',
-				'[photos by <a href="http://example.com/?a[]=1&a[]=2"> this guy &#038; that guy </a>]',
+				'[photos by <a href="http://example.com/?a[]=1&#038;a[]=2"> this guy &#038; that guy </a>]',
 			),
 			array(
 				'& <script>&&</script>',
@@ -1454,7 +1326,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'<br [gallery ...] ... /',
-				'<br [gallery ...] &#8230; /',
+				'<br [gallery ...] ... /',
 			),
 			array(
 				'<br ... />',
@@ -1494,7 +1366,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 			),
 			array(
 				'<br [[gallery ...]] ... /',
-				'<br [[gallery ...]] &#8230; /',
+				'<br [[gallery ...]] ... /',
 			),
 			array(
 				'[[gallery ...]]...[[gallery ...]]',
@@ -1605,16 +1477,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 26850
 	 * @dataProvider data_year_abbr
 	 */
-	public function test_year_abbr( string $input, string $output ): void {
+	public function test_year_abbr( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_year_abbr()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_year_abbr(): array {
+	public static function data_year_abbr() {
 		return array(
 			array(
 				"word '99 word",
@@ -1699,7 +1566,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 27426
 	 * @dataProvider data_translate
 	 */
-	public function test_translate( string $input, string $output ): void {
+	public function test_translate( $input, $output ) {
 		add_filter( 'gettext_with_context', array( $this, 'filter_translate' ), 10, 4 );
 
 		$result = wptexturize( $input, true );
@@ -1739,12 +1606,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * Data provider for {@see self::test_translate()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_translate(): array {
+	public static function data_translate() {
 		return array(
 			array(
 				"word '99 word",
@@ -1931,16 +1793,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 28483
 	 * @dataProvider data_element_stack
 	 */
-	public function test_element_stack( string $input, string $output ): void {
+	public function test_element_stack( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_element_stack()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_element_stack(): array {
+	public static function data_element_stack() {
 		return array(
 			array(
 				'<span>hello</code>---</span>',
@@ -1987,12 +1844,13 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 29557
 	 * @dataProvider data_unregistered_shortcodes
 	 */
-	public function test_unregistered_shortcodes( string $input, string $output ): void {
+	public function test_unregistered_shortcodes( $input, $output ) {
 		add_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ), 10, 1 );
 
-		$this->assertSame( $output, wptexturize( $input ) );
+		$output = $this->assertSame( $output, wptexturize( $input ) );
 
 		remove_filter( 'no_texturize_shortcodes', array( $this, 'filter_shortcodes' ) );
+		return $output;
 	}
 
 	public function filter_shortcodes( $disabled ) {
@@ -2000,12 +1858,7 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 		return $disabled;
 	}
 
-	/**
-	 * Data provider for {@see self::test_unregistered_shortcodes()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_unregistered_shortcodes(): array {
+	public static function data_unregistered_shortcodes() {
 		return array(
 			array(
 				'[a]a--b[audio]---[/audio]a--b[/a]',
@@ -2076,16 +1929,11 @@ class Tests_Formatting_wpTexturize extends WP_UnitTestCase {
 	 * @ticket 29256
 	 * @dataProvider data_primes_vs_quotes
 	 */
-	public function test_primes_vs_quotes( string $input, string $output ): void {
+	public function test_primes_vs_quotes( $input, $output ) {
 		$this->assertSame( $output, wptexturize( $input ) );
 	}
 
-	/**
-	 * Data provider for {@see self::test_primes_vs_quotes()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_primes_vs_quotes(): array {
+	public static function data_primes_vs_quotes() {
 		return array(
 			array(
 				"George's porch is 99' long.",
@@ -2143,7 +1991,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 	 * @ticket 29256
 	 * @dataProvider data_primes_quotes_translation
 	 */
-	public function test_primes_quotes_translation( string $input, string $output ): void {
+	public function test_primes_quotes_translation( $input, $output ) {
 		add_filter( 'gettext_with_context', array( $this, 'filter_translate2' ), 10, 4 );
 
 		$result = wptexturize( $input, true );
@@ -2181,12 +2029,7 @@ String with a number followed by a single quote &#8216;Expendables 3&#8217; vest
 		}
 	}
 
-	/**
-	 * Data provider for {@see self::test_primes_quotes_translation()}.
-	 *
-	 * @return list<array{0: string, 1: string}>
-	 */
-	public function data_primes_quotes_translation(): array {
+	public static function data_primes_quotes_translation() {
 		return array(
 			array(
 				"George's porch is 99' long.",
@@ -2243,9 +2086,8 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	 *
 	 * @covers ::_get_wptexturize_split_regex
 	 * @covers ::_get_wptexturize_shortcode_regex
-	 * @covers ::get_html_split_regex
 	 */
-	public function test_pcre_performance( string $input ): void {
+	public function test_pcre_performance( $input ) {
 		global $shortcode_tags;
 
 		// With shortcodes disabled.
@@ -2257,7 +2099,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 		$shortcode_regex = _get_wptexturize_shortcode_regex( array_keys( $shortcode_tags ) );
 		$regex           = _get_wptexturize_split_regex( $shortcode_regex );
 		$result          = benchmark_pcre_backtracking( $regex, $input, 'split' );
-		$this->assertLessThan( 200, $result );
+		return $this->assertLessThan( 200, $result );
 	}
 
 	/**
@@ -2265,7 +2107,7 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	 *
 	 * @ticket 35864
 	 */
-	public function test_trailing_less_than(): void {
+	public function test_trailing_less_than() {
 		$this->assertSame( 'F&#8211;oo<', wptexturize( 'F--oo<', true ) );
 	}
 
@@ -2274,7 +2116,13 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	 * tag splitting, which would leave quotes exposed to texturization.
 	 *
 	 * @ticket 63997
+	 * @ticket 57381
+	 * @ticket 63426
+	 *
 	 * @dataProvider data_gt_in_quoted_attribute_values
+	 *
+	 * @param string $input  Input HTML.
+	 * @param string $output Expected output.
 	 */
 	public function test_gt_in_quoted_attribute_values( string $input, string $output ): void {
 		$this->assertSame( $output, wptexturize( $input ) );
@@ -2285,57 +2133,89 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	 *
 	 * @return list<array{0: string, 1: string}>
 	 */
-	public function data_gt_in_quoted_attribute_values(): array {
+	public static function data_gt_in_quoted_attribute_values(): array {
 		return array(
-			// Single-quoted attribute containing double quotes and >.
 			array(
 				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
 				'<div data-test=\'a > 0 ? "yes" : "no"\'>content</div>',
 			),
-			// Double-quoted attribute containing single quotes and >.
 			array(
 				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
 				"<div data-test=\"a > 0 ? 'yes' : 'no'\">content</div>",
 			),
-			// Multiple attributes, with > in one of them.
 			array(
 				'<div data-a="x > y" data-b="z">content</div>',
 				'<div data-a="x > y" data-b="z">content</div>',
 			),
-			// Escaped &gt; with nested quotes should still work as before.
 			array(
 				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
 				'<div data-test=\'a &gt; 0 ? "yes" : "no"\'>content</div>',
 			),
-			// Ticket 63997
 			array(
 				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
 				'<div data-template="Label <% value %>" data-label="{A \'message\' string}">Content</div>',
 			),
-			// Ticket 63426
 			array(
 				'<iframe srcdoc="<body></body>"></iframe>',
 				'<iframe srcdoc="<body></body>"></iframe>',
 			),
-			// Ticket 43785
-			array(
-				'<script type="text/javascript">if(a<b)window&&document</script>',
-				'<script type="text/javascript">if(a<b)window&&document</script>',
-			),
-			// Ticket 57381
 			array(
 				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
-				'<div class="swiper [&>.swiper-pagination]:static">content</div>',
+				'<div class="swiper [&#038;>.swiper-pagination]:static">content</div>',
 			),
 		);
 	}
 
 	/**
-	 * Data provider for {@see self::test_pcre_performance()}.
+	 * Ensure that an ampersand in a quoted attribute value is still encoded.
 	 *
-	 * @return array<int, array{0: string}>
+	 * @ticket 57381
 	 */
-	public function data_whole_posts(): array {
+	public function test_ampersand_in_quoted_attribute_value_is_encoded(): void {
+		$this->assertSame(
+			'<a href="?a[]=1&#038;a[]=2">x</a>',
+			wptexturize( '<a href="?a[]=1&a[]=2">x</a>' )
+		);
+	}
+
+	/**
+	 * Ensure that a quote in an unquoted attribute value does not pair with a
+	 * quote after the tag and swallow the following text.
+	 *
+	 * @ticket 63997
+	 */
+	public function test_quote_in_unquoted_attribute_value_does_not_pair_across_tag(): void {
+		$input = "<p>Hi</p>\n<a href=\"/x\" title=it's>It's here</a>";
+
+		$this->assertSame(
+			"<p>Hi</p>\n<a href=\"/x\" title=it's>It&#8217;s here</a>",
+			wptexturize( $input )
+		);
+	}
+
+	/**
+	 * Ensure that an unclosed tag is not texturized.
+	 *
+	 * @ticket 63997
+	 */
+	public function test_unclosed_tag_is_not_texturized(): void {
+		$input = "<p>Truncated <a href=\"http://example.com/it's";
+
+		$this->assertSame( $input, wptexturize( $input ) );
+	}
+
+	/**
+	 * Ensure that an ampersand inside a CDATA section is not encoded.
+	 *
+	 * @ticket 63997
+	 */
+	public function test_ampersand_in_cdata_is_not_encoded(): void {
+		$input = '<script>/*<![CDATA[*/ if (a > b && c) {} /*]]>*/</script>';
+
+		$this->assertSame( $input, wptexturize( $input ) );
+	}
+
+	public static function data_whole_posts() {
 		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}

@@ -250,21 +250,8 @@ function wptexturize( $text, $reset = false ) {
 			} else {
 				// This is an HTML element delimiter.
 
-				/*
-				 * Replace each & with &#038; unless it already looks like an entity,
-				 * but preserve & inside quoted attribute values (e.g. Tailwind
-				 * arbitrary variants like [&>.swiper-pagination] in class attrs).
-				 */
-				$curl = preg_replace_callback(
-					'/"[^"]*"|\'[^\']*\'|(&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};))/i',
-					static function ( array $matches ): string {
-						// Quoted strings (matched by the first two alternations): group 1 is
-						// unset, so return the match unchanged. A bare & (captured in group 1)
-						// is the only other case, so it is replaced with &#038;.
-						return isset( $matches[1] ) ? '&#038;' : $matches[0];
-					},
-					$curl
-				);
+				// Replace each & with &#038; unless it already looks like an entity.
+				$curl = preg_replace( '/&(?!#(?:\d+|x[a-f0-9]+);|[a-z1-4]{1,8};)/i', '&#038;', $curl );
 
 				_wptexturize_pushpop_element( $curl, $no_texturize_tags_stack, $no_texturize_tags );
 			}
@@ -673,13 +660,29 @@ function get_html_split_regex() {
 			.     $cdata
 			. ')';
 
+		// Keep in sync with the element pattern in _get_wptexturize_split_regex().
+		$element =
+			'(?:'                         // Unroll the loop: Consume everything until > is found.
+			.     '[^>=]++'               // Consume anything but > and =.
+			. '|'
+			.     '=[ \t\f\r\n]*'         // Attribute value follows.
+			.     '(?:'
+			.         '"[^"]*"'           // Double-quoted value, which may contain >.
+			.     '|'
+			.         '\'[^\']*\''        // Single-quoted value, which may contain >.
+			.     '|'
+			.         '[^> \t\f\r\n]*+'   // Unquoted value.
+			.     ')'
+			. ')*+'                       // Loop possessively.
+			. '>?';                       // End of element. If not found, match all input.
+
 		$regex =
 			'/('                // Capture the entire match.
 			.     '<'           // Find start of element.
 			.     '(?'          // Conditional expression follows.
 			.         $escaped  // Find end of escaped element.
 			.     '|'           // ...else...
-			.         '(?:"[^"]*"|\'[^\']*\'|[^<>])*+>' // Find end of element, allowing > inside quoted strings.
+			.         $element  // Find end of element, allowing > inside quoted attribute values.
 			.     ')'
 			. ')/';
 		// phpcs:enable
@@ -700,12 +703,43 @@ function get_html_split_regex() {
  * @return string The regular expression.
  */
 function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
-	/*
-	 * Derive the HTML pattern from get_html_split_regex() instead of
-	 * maintaining a separate copy. Strip the outer '/(' prefix and
-	 * ')/' suffix to get the inner matching pattern.
-	 */
-	$html_regex = substr( get_html_split_regex(), 2, -2 );
+	static $html_regex;
+
+	if ( ! isset( $html_regex ) ) {
+		// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
+		$comment_regex =
+			'!'             // Start of comment, after the <.
+			. '(?:'         // Unroll the loop: Consume everything until --> is found.
+			.     '-(?!->)' // Dash not followed by end of comment.
+			.     '[^\-]*+' // Consume non-dashes.
+			. ')*+'         // Loop possessively.
+			. '(?:-->)?';   // End of comment. If not found, match all input.
+
+		// Keep in sync with the element pattern in get_html_split_regex().
+		$element =
+			'(?:'                         // Unroll the loop: Consume everything until > is found.
+			.     '[^>=]++'               // Consume anything but > and =.
+			. '|'
+			.     '=[ \t\f\r\n]*'         // Attribute value follows.
+			.     '(?:'
+			.         '"[^"]*"'           // Double-quoted value, which may contain >.
+			.     '|'
+			.         '\'[^\']*\''        // Single-quoted value, which may contain >.
+			.     '|'
+			.         '[^> \t\f\r\n]*+'   // Unquoted value.
+			.     ')'
+			. ')*+'                       // Loop possessively.
+			. '>?';                       // End of element. If not found, match all input.
+
+		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
+			'<'                  // Find start of element.
+			. '(?(?=!--)'        // Is this a comment?
+			.     $comment_regex // Find end of comment.
+			. '|'
+			.     $element       // Find end of element.
+			. ')';
+		// phpcs:enable
+	}
 
 	if ( empty( $shortcode_regex ) ) {
 		$regex = '/(' . $html_regex . ')/';
