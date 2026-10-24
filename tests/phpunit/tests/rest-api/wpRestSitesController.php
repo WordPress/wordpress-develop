@@ -1891,6 +1891,15 @@ class WP_Test_REST_Sites_Controller extends WP_Test_REST_Controller_Testcase {
 			'path with a query string' => array( '/with?query/', false ),
 			'path with a fragment'     => array( '/with#fragment/', false ),
 			'path with a double quote' => array( '/with"quote/', false ),
+			// A site on these paths would take over the REST API or the login page of the whole network.
+			'reserved rest api path'   => array( '/wp-json/', false ),
+			'reserved name, uppercase' => array( '/WP-JSON/', false ),
+			'reserved name as parent'  => array( '/wp-admin/child/', false ),
+			'reserved name nested'     => array( '/parent/wp-json/', true ),
+			'login file'               => array( '/wp-login.php/', false ),
+			'php file, uppercase'      => array( '/XMLRPC.PHP/', false ),
+			'php file nested'          => array( '/parent/wp-login.php/', false ),
+			'php in the middle'        => array( '/my.php.site/', true ),
 			// The wp_blogs.path column is varchar(100).
 			'path at max length'       => array( '/' . str_repeat( 'a', 98 ) . '/', true ),
 			'path over max length'     => array( '/' . str_repeat( 'a', 99 ) . '/', false ),

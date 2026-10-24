@@ -1307,6 +1307,10 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 	 * forward slash, made up of characters allowed in a URL path segment
 	 * (RFC 3986 `pchar`).
 	 *
+	 * A site's path takes precedence over the files and routes beneath it, so
+	 * the first segment must not be a reserved name such as `wp-json`, and no
+	 * segment may name a PHP file such as `wp-login.php`.
+	 *
 	 * @since 7.2.0
 	 *
 	 * @param string $path The path to check.
@@ -1317,10 +1321,15 @@ class WP_REST_Sites_Controller extends WP_REST_Controller {
 			return false;
 		}
 
-		return 1 === preg_match(
-			'#^/(?:(?:[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[0-9A-Fa-f]{2})+/)*$#',
-			$path
-		);
+		if ( 1 !== preg_match( '#^/(?:(?:[A-Za-z0-9._~!$&\'()*+,;=:@-]|%[0-9A-Fa-f]{2})+/)*$#', $path ) ) {
+			return false;
+		}
+
+		// Sites are looked up case-insensitively, so /WP-JSON/ would take over /wp-json/ too.
+		$segments = explode( '/', trim( strtolower( $path ), '/' ) );
+
+		// Every segment ends with a slash, so a segment naming a PHP file shows up as ".php/".
+		return ! in_array( $segments[0], get_subdirectory_reserved_names(), true ) && 1 !== preg_match( '#\.php/#i', $path );
 	}
 
 	/**
