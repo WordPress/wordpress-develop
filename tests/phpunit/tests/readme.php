@@ -92,30 +92,38 @@ class Tests_Readme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Helper function to retrieve the response body or skip the test on HTTP timeout.
+	 * Helper function to retrieve the response body or skip the test on HTTP timeout or server unavailability.
 	 *
 	 * @param string $url The URL to retrieve the response from.
 	 * @return string The response body.
 	 */
 	public function get_response_body( $url ) {
-		$response = $this->wp_remote_get( $url );
+		$parsed_url = parse_url( $url );
+		$host       = isset( $parsed_url['host'] ) ? $parsed_url['host'] : $url;
+		$response   = $this->wp_remote_get( $url );
 
-		$this->assertNotWPError( $response );
+		if ( is_wp_error( $response ) ) {
+			$this->markTestSkipped(
+				sprintf(
+					'Could not contact %1$s to check versions: %2$s',
+					$host,
+					$response->get_error_message()
+				)
+			);
+		}
 
 		$response_code = wp_remote_retrieve_response_code( $response );
 		$response_body = wp_remote_retrieve_body( $response );
 
 		if ( 200 !== $response_code ) {
-			$parsed_url = parse_url( $url );
-
 			$error_message = sprintf(
 				'Could not contact %1$s to check versions. Response code: %2$s. Response body: %3$s',
-				$parsed_url['host'],
+				$host,
 				$response_code,
 				$response_body
 			);
 
-			if ( 503 === $response_code ) {
+			if ( in_array( $response_code, array( 429, 500, 502, 503, 504 ), true ) ) {
 				$this->markTestSkipped( $error_message );
 			}
 
