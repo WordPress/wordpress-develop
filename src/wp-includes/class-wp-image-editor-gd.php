@@ -438,25 +438,20 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @return true|WP_Error
 	 */
 	public function flip( $horz, $vert ) {
-		$w   = $this->size['width'];
-		$h   = $this->size['height'];
-		$dst = wp_imagecreatetruecolor( $w, $h );
+		if ( ! $horz && ! $vert ) {
+			return true;
+		}
 
-		if ( is_gd_image( $dst ) ) {
-			$sx = $vert ? ( $w - 1 ) : 0;
-			$sy = $horz ? ( $h - 1 ) : 0;
-			$sw = $vert ? -$w : $w;
-			$sh = $horz ? -$h : $h;
+		if ( $horz && $vert ) {
+			$mode = IMG_FLIP_BOTH;
+		} elseif ( $horz ) {
+			$mode = IMG_FLIP_VERTICAL;
+		} else {
+			$mode = IMG_FLIP_HORIZONTAL;
+		}
 
-			if ( imagecopyresampled( $dst, $this->image, 0, 0, $sx, $sy, $w, $h, $sw, $sh ) ) {
-				if ( PHP_VERSION_ID < 80000 ) { // imagedestroy() has no effect as of PHP 8.0.
-					imagedestroy( $this->image );
-				}
-
-				$this->image = $dst;
-
-				return true;
-			}
+		if ( is_gd_image( $this->image ) && imageflip( $this->image, $mode ) ) {
+			return true;
 		}
 
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
