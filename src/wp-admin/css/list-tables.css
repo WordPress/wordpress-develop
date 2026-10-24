@@ -736,11 +736,29 @@ th.sorted a span {
 }
 
 .tablenav .actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 5px 6px;
 	padding: 0 8px 0 0;
+	margin-bottom: 5px;
 }
 
-.wp-filter .actions {
-	display: inline-block;
+.wp-core-ui .tablenav .actions select {
+	margin-right: 0;
+}
+
+.tablenav-filter {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-right: 6px;
+}
+
+.wp-filter .actions,
+.wp-filter .tablenav-filter {
+	display: inline-flex;
+	align-items: center;
 	vertical-align: middle;
 }
 
@@ -1891,6 +1909,10 @@ div.action-links,
 
 	.tablenav.bottom .actions select {
 		margin-bottom: 5px;
+	}
+
+	.tablenav .actions {
+		margin-bottom: 0;
 	}
 
 	.tablenav.bottom .actions.alignleft + .actions.alignleft {

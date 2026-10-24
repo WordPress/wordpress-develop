@@ -537,9 +537,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 		);
 
 		if ( $comment_types && is_array( $comment_types ) ) {
+			echo '<div class="tablenav-filter">';
 			printf(
-				'<label class="screen-reader-text" for="filter-by-comment-type">%s</label>',
-				/* translators: Hidden accessibility text. */
+				'<label for="filter-by-comment-type">%s</label>',
 				__( 'Filter by comment type' )
 			);
 
@@ -565,6 +565,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 			}
 
 			echo '</select>';
+			echo '</div>';
 		}
 	}
 
