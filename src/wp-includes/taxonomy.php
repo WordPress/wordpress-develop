@@ -1202,9 +1202,22 @@ function get_term_children( $term_id, $taxonomy ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
-	$term_id = (int) $term_id;
+	return _get_term_children_from_hierarchy( $term_id, _get_term_hierarchy( $taxonomy ) );
+}
 
-	$terms = _get_term_hierarchy( $taxonomy );
+/**
+ * Retrieves descendant IDs from an already loaded term hierarchy.
+ *
+ * @since 7.2.0
+ *
+ * @access private
+ *
+ * @param int   $term_id ID of the term whose children to retrieve.
+ * @param array<int, int[]> $terms   Complete taxonomy hierarchy, keyed by parent term ID.
+ * @return int[] Descendant term IDs.
+ */
+function _get_term_children_from_hierarchy( $term_id, $terms ) {
+	$term_id = (int) $term_id;
 
 	if ( ! isset( $terms[ $term_id ] ) ) {
 		return array();
@@ -1218,7 +1231,7 @@ function get_term_children( $term_id, $taxonomy ) {
 		}
 
 		if ( isset( $terms[ $child ] ) ) {
-			$children = array_merge( $children, get_term_children( $child, $taxonomy ) );
+			$children = array_merge( $children, _get_term_children_from_hierarchy( $child, $terms ) );
 		}
 	}
 
