@@ -843,6 +843,95 @@ class Tests_Date_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 31083
+	 *
+	 * @dataProvider data_valid_before_after_date_strings
+	 *
+	 * @param string $date_string A date string that can be parsed by date_create().
+	 */
+	public function test_validate_date_query_before_after_strings_valid( $date_string ) {
+		$this->assertTrue( $this->q->validate_date_values( array( 'before' => $date_string ) ) );
+		$this->assertTrue( $this->q->validate_date_values( array( 'after' => $date_string ) ) );
+	}
+
+	public static function data_valid_before_after_date_strings() {
+		return array(
+			array( '2024-01-15' ),
+			array( '2024-01-15 10:30:00' ),
+			array( '2024-01' ),
+			array( '2024' ),
+			array( '+1 day' ),
+			array( 'now' ),
+			array( 'yesterday' ),
+			array( '1970-01-01 00:00:00' ),
+			array( '1970-01-01' ),
+		);
+	}
+
+	/**
+	 * @ticket 31083
+	 * @expectedIncorrectUsage WP_Date_Query
+	 *
+	 * @dataProvider data_invalid_before_after_date_strings
+	 *
+	 * @param string $date_string A date string that cannot be parsed by date_create().
+	 */
+	public function test_validate_date_query_before_after_strings_invalid( $date_string ) {
+		$this->assertFalse( $this->q->validate_date_values( array( 'before' => $date_string ) ) );
+		$this->assertFalse( $this->q->validate_date_values( array( 'after' => $date_string ) ) );
+	}
+
+	public static function data_invalid_before_after_date_strings() {
+		return array(
+			array( 'i am a valid date string!?' ),
+			array( 'garbage' ),
+			array( 'not-a-date' ),
+			array( '2024-13-45' ),
+			array( '' ),
+		);
+	}
+
+	/**
+	 * @ticket 31083
+	 * @expectedIncorrectUsage WP_Date_Query
+	 */
+	public function test_get_sql_with_invalid_before_string() {
+		$q = new WP_Date_Query( array( array( 'before' => 'garbage' ) ) );
+
+		// The SQL is still generated; only the developer-facing notice is new.
+		$this->assertIsString( $q->get_sql() );
+	}
+
+	/**
+	 * @ticket 31083
+	 * @expectedIncorrectUsage WP_Date_Query
+	 */
+	public function test_validate_date_values_valid_string_before_does_not_mask_invalid_after() {
+		// String values for 'hour' are still rejected by the is_numeric() check.
+		$this->assertFalse( $this->q->validate_date_values( array( 'hour' => 'abc' ) ) );
+
+		// A valid 'before' string must not overwrite an invalid 'after' result.
+		$this->assertFalse(
+			$this->q->validate_date_values(
+				array(
+					'before' => '2024-01-15',
+					'after'  => array( 'month' => 13 ),
+				)
+			)
+		);
+
+		// A valid 'after' value must not overwrite an invalid 'before' result.
+		$this->assertFalse(
+			$this->q->validate_date_values(
+				array(
+					'before' => array( 'month' => 13 ),
+					'after'  => array( 'month' => 1 ),
+				)
+			)
+		);
+	}
+
+	/**
 	 * @ticket 25834
 	 * @expectedIncorrectUsage WP_Date_Query
 	 */
