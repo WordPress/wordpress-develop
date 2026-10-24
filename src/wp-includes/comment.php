@@ -132,16 +132,27 @@ function check_comment( $author, $email, $url, $comment, $user_ip, $user_agent, 
 	 */
 	if ( '1' === get_option( 'comment_previously_approved' ) ) {
 		if ( 'trackback' !== $comment_type && 'pingback' !== $comment_type && '' !== $author && '' !== $email ) {
-			$comment_user = get_user_by( 'email', wp_unslash( $email ) );
+			$comment_author       = wp_unslash( $author );
+			$comment_author_email = wp_unslash( $email );
+			$comment_user         = get_user_by( 'email', $comment_author_email );
+
 			if ( ! empty( $comment_user->ID ) ) {
 				$ok_to_comment = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT comment_approved
 						FROM $wpdb->comments
-						WHERE user_id = %d
-						AND comment_approved = '1'
+						WHERE comment_approved = '1'
+						AND (
+							user_id = %d
+							OR (
+								comment_author = %s
+								AND comment_author_email = %s
+							)
+						)
 						LIMIT 1",
-						$comment_user->ID
+						$comment_user->ID,
+						$comment_author,
+						$comment_author_email
 					)
 				);
 			} else {
