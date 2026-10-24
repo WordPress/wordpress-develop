@@ -47,13 +47,13 @@ class Tests_Media_wpCrossOriginIsolation extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		$this->original_user_agent  = $_SERVER['HTTP_USER_AGENT'] ?? null;
-		$this->original_http_host   = $_SERVER['HTTP_HOST'] ?? null;
-		$this->original_https       = $_SERVER['HTTPS'] ?? null;
-		$this->original_get_action  = $_GET['action'] ?? null;
-		$this->original_get_p       = $_GET['p'] ?? null;
-		$this->original_pagenow     = $GLOBALS['pagenow'] ?? null;
-		$this->original_stylesheet  = get_stylesheet();
+		$this->original_user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null;
+		$this->original_http_host  = $_SERVER['HTTP_HOST'] ?? null;
+		$this->original_https      = $_SERVER['HTTPS'] ?? null;
+		$this->original_get_action = $_GET['action'] ?? null;
+		$this->original_get_p      = $_GET['p'] ?? null;
+		$this->original_pagenow    = $GLOBALS['pagenow'] ?? null;
+		$this->original_stylesheet = get_stylesheet();
 	}
 
 	public function tear_down() {
