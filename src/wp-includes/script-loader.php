@@ -2970,10 +2970,10 @@ function wp_enqueue_global_styles() {
 			$custom_css = "\n" . $custom_css;
 		}
 		$stylesheet .= $custom_css;
-
-		// Add the global styles custom CSS at the end.
-		$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
 	}
+
+	// Add the global styles custom CSS at the end.
+	$stylesheet .= wp_get_global_stylesheet( array( 'custom-css' ) );
 
 	if ( empty( $stylesheet ) ) {
 		return;
