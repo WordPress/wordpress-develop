@@ -201,6 +201,10 @@ function edit_user( $user_id = 0 ) {
 		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is already registered. Please choose another one.' ) );
 	}
 
+	if ( ! $update && email_exists( $user->user_login ) ) {
+		$errors->add( 'user_login', __( '<strong>Error:</strong> This username is not available. Please choose another one.' ) );
+	}
+
 	/** This filter is documented in wp-includes/user.php */
 	$illegal_logins = (array) apply_filters( 'illegal_user_logins', array() );
 
@@ -217,6 +221,13 @@ function edit_user( $user_id = 0 ) {
 		$owner_id = email_exists( $user->user_email );
 		if ( $owner_id && ( ! $update || ( $owner_id !== $user->ID ) ) ) {
 			$errors->add( 'email_exists', __( '<strong>Error:</strong> This email is already registered. Please choose another one.' ), array( 'form-field' => 'email' ) );
+		}
+
+		// Only check a new or changed email address against existing usernames.
+		$is_new_email   = ! $update || 0 !== strcasecmp( $user->user_email, $userdata->user_email );
+		$login_owner_id = $is_new_email ? username_exists( $user->user_email ) : false;
+		if ( $login_owner_id && ( ! $update || ( (int) $login_owner_id !== $user->ID ) ) ) {
+			$errors->add( 'email_exists_as_username', __( '<strong>Error:</strong> This email address is not available. Please choose another one.' ), array( 'form-field' => 'email' ) );
 		}
 	}
 
