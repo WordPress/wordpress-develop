@@ -6,6 +6,7 @@
  * @group themes
  *
  * @covers ::_wp_is_template_path_allowed
+ * @ticket 65893
  */
 class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
 
