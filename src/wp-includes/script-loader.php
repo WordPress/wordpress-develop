@@ -3816,14 +3816,41 @@ function wp_enqueue_block_style( $block_name, $args ) {
  *
  * This is used for backwards compatibility for Button and File blocks specifically.
  *
+ * When block assets are loaded on demand, the styles are added to the style handles of
+ * the Button and File blocks instead, so they are only enqueued when one of those blocks
+ * is rendered, and they are printed with the other core block styles.
+ *
  * @since 6.1.0
  * @since 6.2.0 Added File block styles.
  * @since 6.8.0 Moved stylesheet registration outside of this function.
+ * @since 7.2.0 Only enqueued with the Button and File blocks when block assets are loaded on demand.
  */
 function wp_enqueue_classic_theme_styles() {
-	if ( ! wp_theme_has_theme_json() ) {
-		wp_enqueue_style( 'classic-theme-styles' );
+	if ( wp_theme_has_theme_json() ) {
+		return;
 	}
+
+	if ( wp_should_load_block_assets_on_demand() ) {
+		$registry    = WP_Block_Type_Registry::get_instance();
+		$block_types = 0;
+		foreach ( array( 'core/button', 'core/file' ) as $block_name ) {
+			$block_type = $registry->get_registered( $block_name );
+			if ( ! $block_type ) {
+				continue;
+			}
+			if ( ! in_array( 'classic-theme-styles', $block_type->style_handles, true ) ) {
+				$block_type->style_handles[] = 'classic-theme-styles';
+			}
+			++$block_types;
+		}
+
+		// Both blocks carry the styles, so there is no need to enqueue them on every page.
+		if ( 2 === $block_types ) {
+			return;
+		}
+	}
+
+	wp_enqueue_style( 'classic-theme-styles' );
 }
 
 /**
