@@ -41,6 +41,183 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Scheduled publication must advance the feed date even without a later edit.
+	 *
+	 * @ticket 47623
+	 * @dataProvider data_post_publication_and_modified_dates
+	 *
+	 * @param string $fields        Query result fields.
+	 * @param string $modified_date Last modification time in UTC.
+	 * @param string $expected_date Expected feed date.
+	 */
+	public function test_should_use_latest_publication_or_modified_date( $fields, $modified_date, $expected_date ) {
+		global $wp_query;
+
+		$post_id = $this->create_published_scheduled_post( $modified_date );
+		self::factory()->post->create(
+			array(
+				'post_date'     => '2024-06-15 12:00:00',
+				'post_date_gmt' => '2024-06-15 12:00:00',
+			)
+		);
+		self::factory()->post->create(
+			array(
+				'post_status'   => 'future',
+				'post_date'     => '2030-06-15 12:00:00',
+				'post_date_gmt' => '2030-06-15 12:00:00',
+			)
+		);
+
+		$wp_query = new WP_Query(
+			array(
+				'p'      => $post_id,
+				'fields' => $fields,
+			)
+		);
+		$this->assertSame( 1, $wp_query->post_count );
+
+		// ID and partial-object queries must also work without a warm post cache.
+		wp_cache_delete( $post_id, 'posts' );
+		$num_queries = get_num_queries();
+
+		$this->assertSame( $expected_date, get_feed_build_date( DATE_RFC3339 ) );
+		$this->assertSame( 'all' === $fields ? 0 : 1, get_num_queries() - $num_queries );
+	}
+
+	/**
+	 * @return array
+	 */
+	public static function data_post_publication_and_modified_dates() {
+		$cases = array();
+		foreach ( array( 'all', 'ids', 'id=>parent' ) as $fields ) {
+			$cases[ $fields . ', publication is newer' ]  = array(
+				$fields,
+				'2020-06-15 12:00:00',
+				'2021-06-15T12:00:00+00:00',
+			);
+			$cases[ $fields . ', modification is newer' ] = array(
+				$fields,
+				'2022-06-15 12:00:00',
+				'2022-06-15T12:00:00+00:00',
+			);
+		}
+		return $cases;
+	}
+
+	/**
+	 * Virtual post publication dates must be read without a database lookup.
+	 *
+	 * @ticket 47623
+	 */
+	public function test_should_use_virtual_post_publication_date_as_is() {
+		global $wp_query;
+
+		$wp_query        = new WP_Query();
+		$wp_query->posts = array(
+			new WP_Post(
+				(object) array(
+					'ID'                => -1,
+					'post_date_gmt'     => '2021-06-15 12:00:00',
+					'post_modified_gmt' => '2020-06-15 12:00:00',
+				)
+			),
+		);
+
+		$this->assertSame( '2021-06-15T12:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * A filtered post's publication date must retain in-memory changes.
+	 *
+	 * @ticket 47623
+	 */
+	public function test_should_use_display_filtered_post_publication_date_as_is() {
+		global $wp_query;
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => '2020-06-15 12:00:00',
+				'post_date_gmt' => '2020-06-15 12:00:00',
+			)
+		);
+		$post    = get_post( $post_id, OBJECT, 'display' );
+		$this->assertInstanceOf( WP_Post::class, $post );
+		$post->post_date_gmt = '2021-06-15 12:00:00';
+
+		$wp_query        = new WP_Query();
+		$wp_query->posts = array( $post );
+
+		$this->assertSame( '2021-06-15T12:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * Older comments must not hide a more recent scheduled publication.
+	 *
+	 * @ticket 47623
+	 */
+	public function test_should_use_newer_publication_date_in_comment_feed() {
+		$post_id = $this->create_published_scheduled_post( '2019-06-15 12:00:00' );
+		self::factory()->comment->create(
+			array(
+				'comment_post_ID'  => $post_id,
+				'comment_date'     => '2020-06-15 12:00:00',
+				'comment_date_gmt' => '2020-06-15 12:00:00',
+			)
+		);
+
+		$this->go_to( get_post_comments_feed_link( $post_id ) );
+		$this->assertTrue( is_comment_feed(), 'Expected a comment feed.' );
+
+		$this->assertSame( '2021-06-15T12:00:00+00:00', get_feed_build_date( DATE_RFC3339 ) );
+	}
+
+	/**
+	 * Reconstructs a scheduled post's historic timestamps before publishing it.
+	 *
+	 * @param string $modified_date Last modification time in UTC.
+	 * @return int Post ID.
+	 */
+	private function create_published_scheduled_post( $modified_date ) {
+		$prepared_posts         = 0;
+		$prepare_scheduled_post = static function ( $data ) use ( $modified_date, &$prepared_posts ) {
+			if ( 'post' === $data['post_type'] && 'Scheduled feed fixture 47623' === $data['post_title'] ) {
+				// Keep an overdue schedule, without requiring a real clock delay.
+				$data['post_status']       = 'future';
+				$data['post_modified']     = get_date_from_gmt( $modified_date );
+				$data['post_modified_gmt'] = $modified_date;
+				++$prepared_posts;
+			}
+			return $data;
+		};
+		add_filter( 'wp_insert_post_data', $prepare_scheduled_post );
+		try {
+			$post_id = self::factory()->post->create(
+				array(
+					'post_title'    => 'Scheduled feed fixture 47623',
+					'post_status'   => 'future',
+					'post_date'     => '2021-06-15 12:00:00',
+					'post_date_gmt' => '2021-06-15 12:00:00',
+				)
+			);
+		} finally {
+			remove_filter( 'wp_insert_post_data', $prepare_scheduled_post );
+		}
+
+		$this->assertSame( 1, $prepared_posts );
+		$post_before = get_post( $post_id );
+		$this->assertSame( 'future', $post_before->post_status );
+		$this->assertSame( '2021-06-15 12:00:00', $post_before->post_date_gmt );
+		$this->assertSame( $modified_date, $post_before->post_modified_gmt );
+		wp_publish_post( $post_id );
+		$post = get_post( $post_id );
+		$this->assertSame( 'publish', $post->post_status );
+		$this->assertSame( $post_before->post_date_gmt, $post->post_date_gmt );
+		$this->assertSame( $post_before->post_modified_gmt, $post->post_modified_gmt );
+
+		return $post_id;
+	}
+
+	/**
 	 * Test that get_feed_build_date() does not throw a ValueError when no
 	 * entry in $wp_query->posts resolves to a post, and falls back to the
 	 * last modified time of any post instead.
