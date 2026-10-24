@@ -2357,6 +2357,37 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * Verifies image_output_format respects filters that use array union (+)
+	 * without overwriting existing keys, ensuring parity with WP_Image_Editor::get_output_format().
+	 *
+	 * @ticket 64677
+	 *
+	 * @covers WP_REST_Attachments_Controller::prepare_item_for_response
+	 */
+	public function test_image_output_format_with_array_union_filter(): void {
+		wp_set_current_user( self::$superadmin_id );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( DIR_TESTDATA . '/images/canola.jpg' );
+
+		add_filter(
+			'image_editor_output_format',
+			static function ( $formats ) {
+				return $formats + array( 'image/jpeg' => 'image/webp' );
+			}
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'context', 'edit' );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertArrayHasKey( 'image_output_format', $data );
+		$this->assertSame( 'image/webp', $data['image_output_format'] );
+	}
+
+	/**
 	 * Verifies image_save_progressive surfaces the filter result for the
 	 * attachment's MIME type.
 	 *
