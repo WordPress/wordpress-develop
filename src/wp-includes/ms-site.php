@@ -841,6 +841,17 @@ function wp_uninitialize_site( $site_id ) {
 		$wpdb->query( "DROP TABLE IF EXISTS `$table`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 
+	/*
+	 * The site's options tables have just been dropped, so clear the caches that would
+	 * otherwise keep serving the deleted site's data. `clean_blog_cache()` is deliberately
+	 * network level only, and `switch_to_blog()` depends on these caches being cleared to
+	 * surface the failure instead of silently continuing.
+	 *
+	 * @since 7.2.0
+	 */
+	wp_cache_delete_multiple( array( 'alloptions', 'notoptions' ), 'options' );
+	wp_cache_delete( 'is_blog_installed' );
+
 	/**
 	 * Filters the upload base directory to delete when the site is deleted.
 	 *
