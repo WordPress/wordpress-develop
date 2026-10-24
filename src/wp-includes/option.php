@@ -1501,6 +1501,8 @@ function get_transient( $transient ) {
  *
  * @since 2.8.0
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string $transient  Transient name. Expected to not be SQL-escaped.
  *                           Must be 172 characters or fewer in length.
  * @param mixed  $value      Transient value. Must be serializable if non-scalar.
@@ -1549,11 +1551,21 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 
 		if ( false === get_option( $transient_option ) ) {
 			$autoload = true;
+			$result   = true;
 			if ( $expiration ) {
 				$autoload = false;
-				add_option( $transient_timeout, time() + $expiration, '', false );
+
+				global $wpdb;
+
+				// add_option() also fails when the timeout row already exists (orphaned or added concurrently);
+				// only a database error leaves the value without a timeout, so it would never expire.
+				$result = add_option( $transient_timeout, time() + $expiration, '', false )
+					|| '' === $wpdb->last_error
+					|| false !== get_option( $transient_timeout );
 			}
-			$result = add_option( $transient_option, $value, '', $autoload );
+			if ( $result ) {
+				$result = add_option( $transient_option, $value, '', $autoload );
+			}
 		} else {
 			/*
 			 * If expiration is requested, but the transient has no timeout option,
@@ -1564,8 +1576,12 @@ function set_transient( $transient, $value, $expiration = 0 ) {
 			if ( $expiration ) {
 				if ( false === get_option( $transient_timeout ) ) {
 					delete_option( $transient_option );
-					add_option( $transient_timeout, time() + $expiration, '', false );
-					$result = add_option( $transient_option, $value, '', false );
+
+					global $wpdb;
+
+					$result = ( add_option( $transient_timeout, time() + $expiration, '', false )
+						|| '' === $wpdb->last_error )
+						&& add_option( $transient_option, $value, '', false );
 					$update = false;
 				} else {
 					update_option( $transient_timeout, time() + $expiration );
@@ -2636,6 +2652,8 @@ function get_site_transient( $transient ) {
  *
  * @see set_transient()
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param string $transient  Transient name. Expected to not be SQL-escaped. Must be
  *                           167 characters or fewer in length.
  * @param mixed  $value      Transient value. Expected to not be SQL-escaped.
@@ -2680,15 +2698,39 @@ function set_site_transient( $transient, $value, $expiration = 0 ) {
 		wp_prime_site_option_caches( array( $option, $transient_timeout ) );
 
 		if ( false === get_site_option( $option ) ) {
+			$result = true;
 			if ( $expiration ) {
-				add_site_option( $transient_timeout, time() + $expiration );
+				global $wpdb;
+
+				// add_site_option() also fails when the timeout row already exists (orphaned or added concurrently);
+				// only a database error leaves the value without a timeout, so it would never expire.
+				$result = add_site_option( $transient_timeout, time() + $expiration )
+					|| '' === $wpdb->last_error
+					|| false !== get_site_option( $transient_timeout );
 			}
-			$result = add_site_option( $option, $value );
+			if ( $result ) {
+				$result = add_site_option( $option, $value );
+			}
 		} else {
+			$update = true;
+
 			if ( $expiration ) {
-				update_site_option( $transient_timeout, time() + $expiration );
+				if ( false === get_site_option( $transient_timeout ) ) {
+					global $wpdb;
+
+					$result = add_site_option( $transient_timeout, time() + $expiration )
+						|| '' === $wpdb->last_error;
+					if ( ! $result ) {
+						$update = false;
+					}
+				} else {
+					update_site_option( $transient_timeout, time() + $expiration );
+				}
 			}
-			$result = update_site_option( $option, $value );
+
+			if ( $update ) {
+				$result = update_site_option( $option, $value );
+			}
 		}
 	}
 
