@@ -91,9 +91,17 @@ class Tests_General_Template extends WP_UnitTestCase {
 		remove_theme_support( 'custom-logo' );
 	}
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'default' );
 		$this->wp_site_icon = new WP_Site_Icon();
 	}
@@ -103,6 +111,10 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->remove_custom_logo();
 		$this->remove_site_icon();
 		$wp_customize = null;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
