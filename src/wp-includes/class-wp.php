@@ -179,7 +179,7 @@ class WP {
 			$home_path_regex = '';
 			if ( is_string( $home_path ) && '' !== $home_path ) {
 				$home_path       = trim( $home_path, '/' );
-				$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
+				$home_path_regex = sprintf( '!^%s(?:/|$)!i', preg_quote( $home_path, '!' ) );
 			}
 
 			/*
