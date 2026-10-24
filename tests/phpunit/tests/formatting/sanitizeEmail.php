@@ -47,6 +47,8 @@ class Tests_Formatting_SanitizeEmail extends WP_UnitTestCase {
 			'plain'                          => array( 'abc@example.com', 'abc@example.com' ),
 			'invalid utf8 subdomain dropped' => array( "abc@sub.\x80.org", 'abc@sub.org' ),
 			'all subdomains invalid utf8'    => array( "abc@\x80.org", '' ),
+			'localhost domain accepted'      => array( 'mylogin@localhost', 'mylogin@localhost' ),
+			'localhost lookalike'            => array( 'mylogin@notlocalhost', '' ),
 		);
 	}
 
