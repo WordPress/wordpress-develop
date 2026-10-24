@@ -13,6 +13,13 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 	 */
 	private static $wp_registered_sidebars;
 
+	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public static function set_up_before_class() {
 		global $wp_registered_sidebars;
 		parent::set_up_before_class();
@@ -21,10 +28,19 @@ class Tests_Widgets_WpBlockThemeRegisterClassicSidebars extends WP_UnitTestCase 
 		static::$wp_registered_sidebars = $wp_registered_sidebars;
 	}
 
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
 	public function tear_down() {
 		// Restore the global after each test.
 		global $wp_registered_sidebars;
 		$wp_registered_sidebars = static::$wp_registered_sidebars;
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
