@@ -493,6 +493,176 @@ class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	}
 
 	/**
+	 * Exported items retain the order of exporter callbacks and their pages.
+	 *
+	 * @ticket 44151
+	 * @dataProvider data_exported_item_keys
+	 *
+	 * @param array $data_keys Keys used for each page's name/value pairs.
+	 */
+	public function test_grouped_data_preserves_exporter_and_page_order( $data_keys ) {
+		global $wp_filter;
+
+		$filter_name    = 'wp_privacy_personal_data_exporters';
+		$original_hook  = $wp_filter[ $filter_name ];
+		$exporter_calls = array();
+		$groups         = null;
+		$export_calls   = 0;
+		$capture_groups = static function ( $request_id ) use ( &$groups, &$export_calls ) {
+			++$export_calls;
+			$groups = get_post_meta( $request_id, '_export_data_grouped', true );
+		};
+
+		// Isolate exporter registration so callback priorities determine the order.
+		$wp_filter[ $filter_name ] = new WP_Hook();
+		add_action( 'wp_privacy_personal_data_export_file', $capture_groups );
+		update_post_meta( self::$request_id, '_export_file_name', self::$export_file_name );
+
+		try {
+			// Register the later exporter first to also check filter priority ordering.
+			foreach ( array(
+				'second-exporter' => 10,
+				'first-exporter'  => 5,
+			) as $exporter_key => $priority ) {
+				$callback = static function ( $email_address, $page ) use ( $exporter_key, $data_keys, &$exporter_calls ) {
+					$exporter_calls[] = array( $exporter_key, $email_address, $page );
+					$data             = array();
+					foreach ( $data_keys as $position => $key ) {
+						$data[ $key ] = array(
+							'name'  => 'Field ' . $position,
+							'value' => $exporter_key . ':' . $page . ':' . $position,
+						);
+					}
+
+					$item  = array(
+						'group_id'    => 'shared-group',
+						'group_label' => 'Shared group',
+						'item_id'     => 'shared-item',
+						'data'        => $data,
+					);
+					$items = array( $item );
+
+					if ( 1 === $page ) {
+						$control_data = array(
+							array(
+								'name'  => 'Email',
+								'value' => $email_address,
+							),
+						);
+						$items[]      = array_merge(
+							$item,
+							array(
+								'item_id' => $exporter_key,
+								'data'    => $control_data,
+							)
+						);
+						$items[]      = array_merge(
+							$item,
+							array(
+								'group_id' => 'other-' . $exporter_key,
+								'data'     => $control_data,
+							)
+						);
+					}
+
+					return array(
+						'data' => $items,
+						'done' => 2 === $page,
+					);
+				};
+				add_filter(
+					$filter_name,
+					static function ( $exporters ) use ( $exporter_key, $callback ) {
+						$exporters[ $exporter_key ] = array(
+							'exporter_friendly_name' => $exporter_key,
+							'callback'               => $callback,
+						);
+						return $exporters;
+					},
+					$priority
+				);
+			}
+
+			$exporters      = apply_filters( $filter_name, array() );
+			$exporter_index = 0;
+			$this->assertSame( array( 'first-exporter', 'second-exporter' ), array_keys( $exporters ) );
+
+			foreach ( $exporters as $exporter_key => $exporter ) {
+				++$exporter_index;
+				for ( $page = 1; $page <= 2; ++$page ) {
+					$response = call_user_func( $exporter['callback'], self::$requester_email, $page );
+					$actual   = wp_privacy_process_personal_data_export_page(
+						$response,
+						$exporter_index,
+						self::$requester_email,
+						$page,
+						self::$request_id,
+						false,
+						$exporter_key
+					);
+					$this->assertSame( $response['data'], $actual['data'] );
+					$this->assertSame( $response['done'], $actual['done'] );
+				}
+			}
+
+			$expected_data = array();
+			foreach ( array( 'first-exporter:1', 'first-exporter:2', 'second-exporter:1', 'second-exporter:2' ) as $prefix ) {
+				foreach ( $data_keys as $position => $key ) {
+					$expected_data[] = array(
+						'name'  => 'Field ' . $position,
+						'value' => $prefix . ':' . $position,
+					);
+				}
+			}
+
+			$this->assertSame( 1, $export_calls );
+			$this->assertSame( $expected_data, $groups['shared-group']['items']['shared-item'] );
+			$this->assertSame(
+				array(
+					array( 'first-exporter', self::$requester_email, 1 ),
+					array( 'first-exporter', self::$requester_email, 2 ),
+					array( 'second-exporter', self::$requester_email, 1 ),
+					array( 'second-exporter', self::$requester_email, 2 ),
+				),
+				$exporter_calls
+			);
+			foreach ( array( 'first-exporter', 'second-exporter' ) as $exporter_key ) {
+				$control_data = array(
+					array(
+						'name'  => 'Email',
+						'value' => self::$requester_email,
+					),
+				);
+				$this->assertSame( $control_data, $groups['shared-group']['items'][ $exporter_key ] );
+				$this->assertSame( $control_data, $groups[ 'other-' . $exporter_key ]['items']['shared-item'] );
+			}
+			$this->assertSame( self::$export_file_url, $actual['url'] );
+			$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
+			$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_grouped', true ) );
+		} finally {
+			$wp_filter[ $filter_name ] = $original_hook;
+			remove_action( 'wp_privacy_personal_data_export_file', $capture_groups );
+			delete_post_meta( self::$request_id, '_export_file_name' );
+			delete_post_meta( self::$request_id, '_export_data_raw' );
+			delete_post_meta( self::$request_id, '_export_data_grouped' );
+		}
+	}
+
+	/**
+	 * Data keys, including keys reused across exporters and pages.
+	 *
+	 * @return array
+	 */
+	public static function data_exported_item_keys() {
+		return array(
+			'numeric keys'        => array( array( 0, 1 ) ),
+			'sparse numeric keys' => array( array( 7, 19 ) ),
+			'shared string keys'  => array( array( 'shared', 'other' ) ),
+			'empty data'          => array( array() ),
+		);
+	}
+
+	/**
 	 * When mail delivery fails, the function should send a JSON error on the last page of the last exporter.
 	 *
 	 * @ticket 44233
