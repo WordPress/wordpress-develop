@@ -107,9 +107,10 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 
 		$actual = wp_render_dimensions_support( $wrapper, $block );
 
-		$this->assertSame(
+		$this->assertEqualHTML(
 			$expected_wrapper,
 			$actual,
+			'<body>',
 			'Dimensions block wrapper markup should be correct'
 		);
 	}
@@ -212,7 +213,11 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( 'height:unset', $actual );
-		$this->assertStringNotContainsString( 'min-height:unset', $actual );
+		$this->assertEqualHTML(
+			'<div class="wp-block-test" style="aspect-ratio:auto;">Hello</div>',
+			$actual,
+			'<body>',
+			'Height styles should not be unset for the default aspect ratio'
+		);
 	}
 }
