@@ -31,6 +31,13 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	 */
 	protected $orig_wp_locale;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
@@ -43,8 +50,9 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		$this->locale          = '';
-		$this->previous_locale = '';
+		$this->original_stylesheet = get_stylesheet();
+		$this->locale              = '';
+		$this->previous_locale     = '';
 
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
@@ -81,6 +89,10 @@ class Tests_L10n_wpLocaleSwitcher extends WP_UnitTestCase {
 
 		unload_textdomain( 'internationalized-plugin' );
 		unload_textdomain( 'custom-internationalized-theme' );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
