@@ -6,8 +6,29 @@
  * @group themes
  *
  * @covers ::_wp_is_template_path_allowed
+ * @ticket 65893
  */
 class Tests_Theme_wpIsTemplatePathAllowed extends WP_UnitTestCase {
+
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
+	}
 
 	/**
 	 * Tests that a path without a parent directory segment is allowed without further checks.
