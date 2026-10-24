@@ -4669,6 +4669,24 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "author": {
+                            "description": "Limit result set to posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
+                        "author_exclude": {
+                            "description": "Ensure result set excludes posts assigned to specific authors.",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            },
+                            "default": [],
+                            "required": false
+                        },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
                             "type": "string",
@@ -4970,6 +4988,11 @@ mockedApiResponse.Schema = {
                             },
                             "required": false
                         },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
+                            "required": false
+                        },
                         "excerpt": {
                             "description": "The excerpt for the post.",
                             "type": "object",
@@ -5177,6 +5200,11 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "excerpt": {
@@ -5541,6 +5569,11 @@ mockedApiResponse.Schema = {
                                     "readonly": true
                                 }
                             },
+                            "required": false
+                        },
+                        "author": {
+                            "description": "The ID for the author of the post.",
+                            "type": "integer",
                             "required": false
                         },
                         "excerpt": {
@@ -10588,9 +10621,14 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "status": {
-                            "default": "approve",
-                            "description": "Limit result set to comments assigned a specific status. Requires authorization.",
-                            "type": "string",
+                            "default": [
+                                "approve"
+                            ],
+                            "description": "Limit result set to comments assigned one or more statuses. Requires authorization.",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
                             "required": false
                         },
                         "type": {
@@ -12751,6 +12789,12 @@ mockedApiResponse.Schema = {
                             },
                             "additionalProperties": true,
                             "required": false
+                        },
+                        "has_required_capabilities": {
+                            "description": "Limit results to abilities whose required capabilities the current user has. Abilities without required capabilities are always included. Permission callbacks don't run, so an included ability can still deny execution.",
+                            "type": "boolean",
+                            "default": false,
+                            "required": false
                         }
                     }
                 }
@@ -13041,6 +13085,72 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/wp/v2/entity-actions": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "minLength": 1,
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "minLength": 1,
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/entity-actions"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/entity-fields": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "kind": {
+                            "description": "Entity kind.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "name": {
+                            "description": "Entity name.",
+                            "type": "string",
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/entity-fields"
+                    }
+                ]
+            }
         }
     },
     "image_sizes": {
@@ -13078,6 +13188,7 @@ mockedApiResponse.Schema = {
     "image_size_threshold": 2560,
     "image_strip_meta": true,
     "image_max_bit_depth": 16,
+    "generate_animated_image_subsizes": true,
     "site_logo": 0,
     "site_icon": 0,
     "site_icon_url": ""

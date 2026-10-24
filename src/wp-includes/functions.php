@@ -1077,7 +1077,7 @@ function build_query( $data ) {
  * @since 3.2.0
  * @access private
  *
- * @see https://www.php.net/manual/en/function.http-build-query.php
+ * @link https://www.php.net/manual/en/function.http-build-query.php
  *
  * @param array|object $data      An array or object of data. Converted to array.
  * @param string       $prefix    Optional. Numeric index. If set, start parameter numbering with it.
@@ -2330,8 +2330,8 @@ function wp_is_writable( $path ) {
  *
  * @since 2.8.0
  *
- * @see https://bugs.php.net/bug.php?id=27609
- * @see https://bugs.php.net/bug.php?id=30931
+ * @link https://bugs.php.net/bug.php?id=27609
+ * @link https://bugs.php.net/bug.php?id=30931
  *
  * @param string $path Windows path to check for write-ability.
  * @return bool Whether the path is writable.
@@ -3265,8 +3265,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 			 * finfo_file() can return duplicate mime type for Google docs,
 			 * this conditional reduces it to a single instance.
 			 *
-			 * @see https://bugs.php.net/bug.php?id=77784
-			 * @see https://core.trac.wordpress.org/ticket/57898
+			 * @link https://bugs.php.net/bug.php?id=77784
+			 * @link https://core.trac.wordpress.org/ticket/57898
 			 */
 			if ( 2 === substr_count( $real_mime, $google_docs_type ) ) {
 				$real_mime = $google_docs_type;
@@ -3509,7 +3509,7 @@ function wp_get_image_mime( $file ) {
  * @since 4.9.6 Support was added for AAC (.aac) files.
  * @since 6.8.0 Support was added for `audio/x-wav`.
  *
- * @return string[] Array of mime types keyed by the file extension regex corresponding to those types.
+ * @return array<string, string> Array of mime types keyed by the file extension regex corresponding to those types.
  */
 function wp_get_mime_types() {
 	/**
@@ -3520,8 +3520,8 @@ function wp_get_mime_types() {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param string[] $wp_get_mime_types Mime types keyed by the file extension regex
-	 *                                    corresponding to those types.
+	 * @param array<string, string> $wp_get_mime_types Mime types keyed by the file extension regex
+	 *                                                 corresponding to those types.
 	 */
 	return apply_filters(
 		'mime_types',
@@ -3645,7 +3645,7 @@ function wp_get_mime_types() {
  *
  * @since 4.6.0
  *
- * @return array[] Multi-dimensional array of file extensions types keyed by the type of file.
+ * @return array<string, string[]> Multi-dimensional array of file extensions types keyed by the type of file.
  */
 function wp_get_ext_types() {
 
@@ -3656,7 +3656,7 @@ function wp_get_ext_types() {
 	 *
 	 * @see wp_ext2type()
 	 *
-	 * @param array[] $ext2type Multi-dimensional array of file extensions types keyed by the type of file.
+	 * @param array<string, string[]> $ext2type Multi-dimensional array of file extensions types keyed by the type of file.
 	 */
 	return apply_filters(
 		'ext2type',
@@ -3730,8 +3730,7 @@ function wp_filesize( $path ): int {
  * @since 2.8.6
  *
  * @param int|WP_User $user Optional. User to check. Defaults to current user.
- * @return string[] Array of mime types keyed by the file extension regex corresponding
- *                  to those types.
+ * @return array<string, string> Array of mime types keyed by the file extension regex corresponding to those types.
  */
 function get_allowed_mime_types( $user = null ) {
 	$t = wp_get_mime_types();
@@ -3750,8 +3749,8 @@ function get_allowed_mime_types( $user = null ) {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param array            $t    Mime types keyed by the file extension regex corresponding to those types.
-	 * @param int|WP_User|null $user User ID, User object or null if not provided (indicates current user).
+	 * @param array<string, string> $t    Mime types keyed by the file extension regex corresponding to those types.
+	 * @param int|WP_User|null      $user User ID, User object or null if not provided (indicates current user).
 	 */
 	return apply_filters( 'upload_mimes', $t, $user );
 }
@@ -7047,7 +7046,7 @@ function wp_timezone_choice( $selected_zone, $locale = null ) {
  * @since 2.8.0
  * @access private
  *
- * @see https://core.trac.wordpress.org/ticket/8497
+ * @link https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
  * @return string Cleaned header comment.
@@ -7257,8 +7256,8 @@ function __return_empty_string() { // phpcs:ignore WordPress.NamingConventions.V
  *
  * @since 3.0.0
  *
- * @see https://blogs.msdn.com/ie/archive/2008/07/02/ie8-security-part-v-comprehensive-protection.aspx
- * @see https://src.chromium.org/viewvc/chrome?view=rev&revision=6985
+ * @link https://learn.microsoft.com/en-us/archive/blogs/ie/ie8-security-part-v-comprehensive-protection
+ * @link https://fetch.spec.whatwg.org/#x-content-type-options-header
  */
 function send_nosniff_header() {
 	header( 'X-Content-Type-Options: nosniff' );
@@ -7375,8 +7374,8 @@ function wp_find_hierarchy_loop_tortoise_hare( $callback, $start, $override = ar
  *
  * @since 3.1.3
  *
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options
+ * @link https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors
  */
 function send_frame_options_header() {
 	if ( ! headers_sent() ) {
@@ -7454,7 +7453,7 @@ function wp_allowed_protocols() {
  *
  * @since 3.4.0
  *
- * @see https://core.trac.wordpress.org/ticket/19589
+ * @link https://core.trac.wordpress.org/ticket/19589
  *
  * @param string $ignore_class Optional. A class to ignore all function calls within - useful
  *                             when you want to just give info about the callee. Default null.
@@ -7827,7 +7826,7 @@ function is_utf8_charset( $blog_charset = null ) {
  * @since 3.6.0
  * @access private
  *
- * @see https://core.trac.wordpress.org/ticket/23688
+ * @link https://core.trac.wordpress.org/ticket/23688
  *
  * @param string $charset A charset name, e.g. "UTF-8", "Windows-1252", "SJIS".
  * @return string The canonical form of the charset.

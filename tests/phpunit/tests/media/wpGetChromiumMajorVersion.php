@@ -55,7 +55,7 @@ class Tests_Media_wpGetChromiumMajorVersion extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_user_agents() {
+	public static function data_user_agents() {
 		return array(
 			'empty user agent'   => array( '', null ),
 			'Firefox'            => array( 'Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0', null ),
