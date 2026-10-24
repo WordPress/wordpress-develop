@@ -994,18 +994,18 @@ function wp_save_image( $post_id ) {
 	// Generate new filename.
 	$path = get_attached_file( $post_id );
 
-	$basename = pathinfo( $path, PATHINFO_BASENAME );
-	$dirname  = pathinfo( $path, PATHINFO_DIRNAME );
-	$ext      = pathinfo( $path, PATHINFO_EXTENSION );
-	$filename = pathinfo( $path, PATHINFO_FILENAME );
-	$suffix   = time() . rand( 100, 999 );
+	$basename  = pathinfo( $path, PATHINFO_BASENAME );
+	$dirname   = pathinfo( $path, PATHINFO_DIRNAME );
+	$extension = pathinfo( $path, PATHINFO_EXTENSION );
+	$filename  = pathinfo( $path, PATHINFO_FILENAME );
+	$suffix    = time() . rand( 100, 999 );
 
 	if ( defined( 'IMAGE_EDIT_OVERWRITE' ) && IMAGE_EDIT_OVERWRITE
 		&& isset( $backup_sizes['full-orig'] ) && $backup_sizes['full-orig']['file'] !== $basename
 	) {
 
 		if ( $edit_thumbnails_separately && 'thumbnail' === $target ) {
-			$new_path = "{$dirname}/{$filename}-temp.{$ext}";
+			$new_path = "{$dirname}/{$filename}-temp.{$extension}";
 		} else {
 			$new_path = $path;
 		}
@@ -1013,7 +1013,7 @@ function wp_save_image( $post_id ) {
 		while ( true ) {
 			$filename     = preg_replace( '/-e([0-9]+)$/', '', $filename );
 			$filename    .= "-e{$suffix}";
-			$new_filename = "{$filename}.{$ext}";
+			$new_filename = "{$filename}.{$extension}";
 			$new_path     = "{$dirname}/$new_filename";
 
 			if ( file_exists( $new_path ) ) {
