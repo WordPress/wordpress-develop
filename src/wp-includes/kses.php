@@ -3201,6 +3201,97 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 }
 
 /**
+ * Removes image candidates with a disallowed URL protocol from a `srcset` value.
+ *
+ * A `srcset` attribute holds a comma-separated list of image candidate strings,
+ * each a URL optionally followed by whitespace and width or density descriptors,
+ * for example `small.jpg 480w, large.jpg 1024w`. The value is split into candidates
+ * following the HTML specification's srcset parsing algorithm, so a comma only
+ * separates candidates when it ends a URL or its descriptors; a comma inside a URL,
+ * as produced by image CDN resizers, belongs to the URL.
+ *
+ * Each URL is checked with {@see wp_kses_bad_protocol()}. A candidate whose URL that
+ * check would change is removed in full, descriptors included, because stripping a
+ * scheme and keeping the rest would rewrite the URL rather than remove it, and
+ * descriptors left behind would be read as the next candidate's URL. As in
+ * {@see esc_url()}, a URL starting with `/` cannot carry a scheme and is kept as is.
+ *
+ * The value must be decoded attribute text, as returned by
+ * {@see WP_HTML_Tag_Processor::get_attribute()}, not raw HTML containing character
+ * references. The returned value is decoded text too; callers writing it back into
+ * HTML must escape it. When every candidate is allowed, the input is returned
+ * unchanged. Otherwise the remaining candidates are rejoined with `, `.
+ *
+ * @since 7.2.0
+ *
+ * @link https://html.spec.whatwg.org/multipage/images.html#parsing-a-srcset-attribute
+ *
+ * @param string   $srcset            Decoded `srcset` attribute value.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @return string The value without candidates whose URL uses a disallowed protocol.
+ */
+function wp_kses_sanitize_srcset( string $srcset, array $allowed_protocols ): string {
+	$whitespace = " \t\f\r\n";
+	$length     = strlen( $srcset );
+	$at         = 0;
+	$result     = '';
+
+	/*
+	 * Candidates are only copied once one has to be removed. Until then the
+	 * scan allocates nothing but the URLs it checks, and an all-allowed value
+	 * is returned as the very string that was passed in.
+	 *
+	 * On the first removal the scan restarts to rebuild the output; candidates
+	 * before `$checked_until` passed their check in the first pass and are not
+	 * checked again.
+	 */
+	$rebuild       = false;
+	$checked_until = 0;
+
+	while ( $at < $length ) {
+		$at += strspn( $srcset, "{$whitespace},", $at );
+		if ( $at >= $length ) {
+			break;
+		}
+
+		// The URL is the run of non-whitespace characters, less any commas ending it.
+		$candidate_at = $at;
+		$url_length   = strcspn( $srcset, $whitespace, $at );
+		$url          = rtrim( substr( $srcset, $at, $url_length ), ',' );
+		$at          += $url_length;
+
+		// A URL ended by a comma has no descriptors; otherwise they run to the next comma.
+		if ( strlen( $url ) === $url_length ) {
+			$at              += strcspn( $srcset, ',', $at );
+			$candidate_length = $at - $candidate_at;
+		} else {
+			$candidate_length = strlen( $url );
+		}
+
+		if ( $rebuild && $candidate_at < $checked_until ) {
+			$is_allowed = true;
+		} else {
+			$is_allowed = '/' === $url[0] || 0 === strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url );
+		}
+
+		if ( $rebuild ) {
+			if ( $is_allowed ) {
+				$result .= ( '' === $result ? '' : ', ' ) . rtrim( substr( $srcset, $candidate_at, $candidate_length ), $whitespace );
+			}
+			continue;
+		}
+
+		if ( ! $is_allowed ) {
+			$rebuild       = true;
+			$checked_until = $candidate_at;
+			$at            = 0;
+		}
+	}
+
+	return $rebuild ? $result : $srcset;
+}
+
+/**
  * Converts and fixes HTML entities.
  *
  * This function normalizes HTML entities. It will convert `AT&T` to the correct
