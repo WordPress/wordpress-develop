@@ -620,9 +620,21 @@ function wp_get_layout_style( $selector, $layout, $has_block_gap_support = false
 			? $wide_size
 			: ( $content_size && ! $has_wide_size_override ? $content_size : 'var(--wp--style--global--wide-size, none)' );
 
-		// Make sure there is a single CSS rule, and all tags are stripped for security.
-		$all_max_width_value  = safecss_filter_attr( explode( ';', $all_max_width_value )[0] );
-		$wide_max_width_value = safecss_filter_attr( explode( ';', $wide_max_width_value )[0] );
+		/*
+		 * Make sure there is a single CSS rule, and all tags are stripped for security.
+		 * safecss_filter_attr() filters declarations, so the value is filtered as a
+		 * `max-width` declaration and the value of the result is kept.
+		 */
+		$filter_max_width     = static function ( $value ) {
+			$declaration = safecss_filter_attr( 'max-width:' . explode( ';', $value )[0] );
+			if ( ! str_starts_with( $declaration, 'max-width:' ) ) {
+				return '';
+			}
+			$value = substr( $declaration, strlen( 'max-width:' ) );
+			return str_ends_with( $value, ';' ) ? substr( $value, 0, -1 ) : $value;
+		};
+		$all_max_width_value  = $filter_max_width( $all_max_width_value );
+		$wide_max_width_value = $filter_max_width( $wide_max_width_value );
 
 		$margin_left  = 'left' === $justify_content ? '0 !important' : 'auto !important';
 		$margin_right = 'right' === $justify_content ? '0 !important' : 'auto !important';

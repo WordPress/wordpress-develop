@@ -5010,6 +5010,27 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 65738
+	 *
+	 * @covers WP_Theme_JSON::remove_insecure_properties
+	 */
+	public function test_remove_insecure_properties_leaves_the_css_filter_implementation_unchanged() {
+		WP_Theme_JSON::remove_insecure_properties(
+			array(
+				'version' => WP_Theme_JSON::LATEST_SCHEMA,
+				'styles'  => array(
+					'color' => array(
+						'text' => '#abcabc',
+					),
+				),
+			)
+		);
+
+		$this->assertFalse( has_filter( 'wp_kses_force_legacy_css_parser' ), 'The legacy CSS filter opt-in should be removed after validation.' );
+		$this->assertSame( 'color: red;', safecss_filter_attr( 'color: red' ), 'Later calls should use the parser-based filter.' );
+	}
+
+	/**
 	 * @ticket 57321
 	 *
 	 * @covers WP_Theme_JSON::remove_insecure_properties
