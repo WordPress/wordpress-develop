@@ -242,4 +242,49 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 
 		$this->assertIsArray( $q->posts );
 	}
+
+	/**
+	 * Tests that a secondary query can be `is_home` while serving a REST request.
+	 *
+	 * Runs in a separate process because constants cannot be redefined.
+	 *
+	 * @ticket 50213
+	 *
+	 * @covers WP_Query::parse_query
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_secondary_query_during_rest_request_can_be_home() {
+		define( 'REST_REQUEST', true );
+
+		$query = new WP_Query();
+		$query->parse_query( array() );
+
+		$this->assertFalse( $query->is_main_query(), 'Precondition: the query must not be the main query.' );
+		$this->assertTrue( $query->is_home );
+	}
+
+	/**
+	 * Tests that the main query is not `is_home` while serving a REST request.
+	 *
+	 * Runs in a separate process because constants cannot be redefined.
+	 *
+	 * @ticket 50213
+	 *
+	 * @covers WP_Query::parse_query
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_main_query_during_rest_request_is_not_home() {
+		define( 'REST_REQUEST', true );
+
+		$query                   = new WP_Query();
+		$GLOBALS['wp_the_query'] = $query;
+		$query->parse_query( array() );
+
+		$this->assertTrue( $query->is_main_query(), 'Precondition: the query must be the main query.' );
+		$this->assertFalse( $query->is_home );
+	}
 }
