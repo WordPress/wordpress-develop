@@ -174,4 +174,30 @@ class Tests_Admin_WpMenuOutput extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( "<div class='wp-menu-image dashicons-before' aria-hidden='true'><br /></div>", $html );
 	}
+
+	/**
+	 * Tests that a submenu item without a capability is skipped without a PHP warning.
+	 *
+	 * @ticket 56254
+	 *
+	 * @covers ::_wp_menu_output
+	 */
+	public function test_submenu_item_without_capability_is_skipped(): void {
+		// 0 = menu_title, 1 = capability, 2 = menu_slug, 3 = page_title, 4 = classes, 5 = hookname, 6 = icon_url.
+		$menu = array(
+			array( 'Parent', 'read', 'my-plugin', '', 'menu-top', 'toplevel_page_my-plugin', '' ),
+		);
+		// 0 = menu_title, 1 = capability, 2 = menu_slug.
+		$submenu = array(
+			'my-plugin' => array(
+				array( 'Visible item', 'read', 'my-plugin' ),
+				array( 'Item without capability' ),
+			),
+		);
+
+		$html = get_echo( '_wp_menu_output', array( $menu, $submenu ) );
+
+		$this->assertStringContainsString( 'Visible item', $html, 'A submenu item with a capability should be listed.' );
+		$this->assertStringNotContainsString( 'Item without capability', $html, 'A submenu item without a capability should be skipped.' );
+	}
 }
