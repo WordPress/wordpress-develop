@@ -8,6 +8,7 @@
  * @group link
  *
  * @covers ::get_next_posts_link
+ * @covers ::next_posts_link
  */
 class Tests_Link_GetNextPostsLink extends WP_UnitTestCase {
 
@@ -42,5 +43,43 @@ class Tests_Link_GetNextPostsLink extends WP_UnitTestCase {
 		get_next_posts_link();
 
 		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that next_posts_link() echoes get_next_posts_link().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_next_posts_link_echoes_get_next_posts_link() {
+		global $paged;
+
+		$old_paged = $paged;
+		$paged     = 1;
+
+		$expected = get_next_posts_link( 'Next Page', 3 );
+		$actual   = get_echo( 'next_posts_link', array( 'Next Page', 3 ) );
+
+		$paged = $old_paged;
+
+		$this->assertNotEmpty( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that next_posts_link() outputs nothing when on the last page.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_next_posts_link_outputs_nothing_on_last_page() {
+		global $paged;
+
+		$old_paged = $paged;
+		$paged     = 3;
+
+		$actual = get_echo( 'next_posts_link', array( 'Next Page', 3 ) );
+
+		$paged = $old_paged;
+
+		$this->assertSame( '', $actual );
 	}
 }

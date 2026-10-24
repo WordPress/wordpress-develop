@@ -8,6 +8,7 @@
  * @group link
  *
  * @covers ::get_previous_posts_link
+ * @covers ::previous_posts_link
  */
 class Tests_Link_GetPreviousPostsLink extends WP_UnitTestCase {
 
@@ -42,5 +43,43 @@ class Tests_Link_GetPreviousPostsLink extends WP_UnitTestCase {
 		get_previous_posts_link();
 
 		$this->assertSame( 1, $filter->get_call_count() );
+	}
+
+	/**
+	 * Tests that previous_posts_link() echoes get_previous_posts_link().
+	 *
+	 * @ticket 65819
+	 */
+	public function test_previous_posts_link_echoes_get_previous_posts_link() {
+		global $paged;
+
+		$old_paged = $paged;
+		$paged     = 2;
+
+		$expected = get_previous_posts_link( 'Previous Page' );
+		$actual   = get_echo( 'previous_posts_link', array( 'Previous Page' ) );
+
+		$paged = $old_paged;
+
+		$this->assertNotEmpty( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
+	 * Tests that previous_posts_link() outputs nothing when on the first page.
+	 *
+	 * @ticket 65819
+	 */
+	public function test_previous_posts_link_outputs_nothing_on_first_page() {
+		global $paged;
+
+		$old_paged = $paged;
+		$paged     = 1;
+
+		$actual = get_echo( 'previous_posts_link', array( 'Previous Page' ) );
+
+		$paged = $old_paged;
+
+		$this->assertSame( '', $actual );
 	}
 }
