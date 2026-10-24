@@ -262,7 +262,7 @@ class WP_Locale {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param int $weekday_number 0 for Sunday through 6 Saturday.
+	 * @param int<0, 6> $weekday_number 0 for Sunday through 6 Saturday.
 	 * @return string Full translated weekday.
 	 */
 	public function get_weekday( $weekday_number ) {
