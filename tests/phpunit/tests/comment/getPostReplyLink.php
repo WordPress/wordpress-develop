@@ -121,7 +121,7 @@ class Tests_Comment_GetPostReplyLink extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( self::$post_id );
 
 		$this->assertSame(
-			'<p><a rel="nofollow" class="comment-reply-login" href="http://' . WP_TESTS_DOMAIN . '/wp-login.php?redirect_to=http%3A%2F%2F' . WP_TESTS_DOMAIN . '%2F%3Fp%3D' . self::$post_id . '">Log in to comment</a></p>',
+			'<p><a rel="nofollow" class="comment-reply-login" href="http://' . WP_TESTS_DOMAIN . '/wp-login.php?redirect_to=' . urlencode( get_permalink( self::$post_id ) ) . '">Log in to comment</a></p>',
 			get_post_reply_link(
 				array(
 					'login_text' => 'Log in to comment',
