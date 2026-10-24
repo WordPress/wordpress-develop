@@ -386,6 +386,71 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 58824
+	 *
+	 * @covers WP_Posts_List_Table::get_table_classes
+	 */
+	public function test_get_table_classes_returns_default_classes() {
+		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
+
+		$classes = $method->invoke( $this->table );
+
+		$this->assertContains( 'widefat', $classes );
+		$this->assertContains( 'fixed', $classes );
+		$this->assertContains( 'striped', $classes );
+		$this->assertContains( 'pages', $classes );
+	}
+
+	/**
+	 * @ticket 58824
+	 *
+	 * @covers WP_Posts_List_Table::get_table_classes
+	 */
+	public function test_get_table_classes_filter_modifies_classes() {
+		add_filter(
+			'post_list_table_classes',
+			static function ( $classes ) {
+				$classes[] = 'my-custom-class';
+				return $classes;
+			}
+		);
+
+		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
+
+		$classes = $method->invoke( $this->table );
+
+		remove_all_filters( 'post_list_table_classes' );
+
+		$this->assertContains( 'my-custom-class', $classes );
+	}
+
+	/**
+	 * @ticket 58824
+	 *
+	 * @covers WP_Posts_List_Table::get_table_classes
+	 */
+	public function test_get_table_classes_filter_receives_post_type() {
+		$received_post_type = null;
+
+		add_filter(
+			'post_list_table_classes',
+			static function ( $classes, $post_type ) use ( &$received_post_type ) {
+				$received_post_type = $post_type;
+				return $classes;
+			},
+			10,
+			2
+		);
+
+		$method = new ReflectionMethod( $this->table, 'get_table_classes' );
+		$method->invoke( $this->table );
+
+		remove_all_filters( 'post_list_table_classes' );
+
+		$this->assertSame( 'page', $received_post_type );
+	}
+
+	/**
 	 * @ticket 42066
 	 *
 	 * @covers WP_Posts_List_Table::get_views
