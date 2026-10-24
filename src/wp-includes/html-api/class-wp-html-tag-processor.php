@@ -2796,8 +2796,11 @@ class WP_HTML_Tag_Processor {
 
 		$enqueued_text = $this->lexical_updates[ $comparable_name ]->text;
 
-		// Removed attributes erase the entire span.
-		if ( '' === $enqueued_text ) {
+		/*
+		 * Removed attributes erase the entire span, unless a space is needed
+		 * to prevent a preceding slash from becoming a self-closing flag.
+		 */
+		if ( '' === $enqueued_text || ' ' === $enqueued_text ) {
 			return null;
 		}
 
@@ -2991,7 +2994,8 @@ class WP_HTML_Tag_Processor {
 				continue;
 			}
 
-			if ( '' === $update->text ) {
+			// A removal replaces the attribute with nothing, or with a space when a slash precedes it.
+			if ( '' === $update->text || ' ' === $update->text ) {
 				$removals[ $update_name ] = true;
 			} elseif ( ! isset( $this->attributes[ $update_name ] ) && str_starts_with( $update_name, $comparable ) ) {
 				$additions[] = $update_name;
@@ -4798,20 +4802,62 @@ class WP_HTML_Tag_Processor {
 		 *    replacement: ``
 		 *
 		 *    Result: <div />
+		 *
+		 * Inside a tag, `/` is ignored unless `>` immediately follows it, which
+		 * makes it the self-closing flag. A `/` directly before an attribute is
+		 * always one of these ignored separators: tag names and attribute names
+		 * end at `/`, and when a `/` appears in an unquoted value, the characters
+		 * after it belong to the value, not to a new attribute. Removing the
+		 * attribute could leave that `/` directly before the `>`, so a space
+		 * replaces the attribute instead.
+		 *
+		 * Example – remove the attribute attr from <g /attr>:
+		 *    <g /attr>
+		 *        ^--^
+		 *    replacement: ` `
+		 *
+		 *    Result: <g / >
+		 *
+		 * get_enqueued_attribute_value() and get_attribute_names_with_prefix()
+		 * read a replacement of a single space as a removal.
 		 */
+		$attribute_token = $this->attributes[ $name ];
+		$replacement     = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
+
 		$this->lexical_updates[ $name ] = new WP_HTML_Text_Replacement(
-			$this->attributes[ $name ]->start,
-			$this->attributes[ $name ]->length,
-			''
+			$attribute_token->start,
+			$attribute_token->length,
+			$replacement
 		);
 
+		$duplicate_attributes       = $this->duplicate_attributes[ $name ] ?? array();
+		$duplicates_already_removed = false;
+
+		/*
+		 * Duplicate removals are always enqueued as a batch. If the first is
+		 * already present, all are present, and none should be enqueued again.
+		 */
+		if ( count( $duplicate_attributes ) > 0 ) {
+			$first_duplicate = $duplicate_attributes[0];
+			foreach ( $this->lexical_updates as $update ) {
+				if ( $first_duplicate->start === $update->start && $first_duplicate->length === $update->length ) {
+					$duplicates_already_removed = true;
+					break;
+				}
+			}
+		}
+
 		// Removes any duplicated attributes if they were also present.
-		foreach ( $this->duplicate_attributes[ $name ] ?? array() as $attribute_token ) {
-			$this->lexical_updates[] = new WP_HTML_Text_Replacement(
-				$attribute_token->start,
-				$attribute_token->length,
-				''
-			);
+		if ( ! $duplicates_already_removed ) {
+			foreach ( $duplicate_attributes as $attribute_token ) {
+				$replacement = '/' === $this->html[ $attribute_token->start - 1 ] ? ' ' : '';
+
+				$this->lexical_updates[] = new WP_HTML_Text_Replacement(
+					$attribute_token->start,
+					$attribute_token->length,
+					$replacement
+				);
+			}
 		}
 
 		return true;
