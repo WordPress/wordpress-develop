@@ -99,10 +99,26 @@ class Tests_REST_WpRestBlockPatternCategoriesController extends WP_Test_REST_Con
 		self::$orig_registry              = null;
 	}
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	protected $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'emptytheme' );
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
 	}
 
 	public function test_register_routes() {
