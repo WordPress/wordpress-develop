@@ -56,4 +56,27 @@ class Tests_WP_ParseRequest extends WP_UnitTestCase {
 		$this->wp->parse_request();
 		$this->assertSame( '', $this->wp->request );
 	}
+
+	/**
+	 * Tests that a requested path starting with the same characters as the home
+	 * path, but not actually inside it, is not stripped as if it were a match.
+	 *
+	 * @ticket 40339
+	 */
+	public function test_pathinfo_prefix_matching_home_path_is_not_stripped() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );
+
+		add_filter(
+			'home_url',
+			static function () {
+				return 'http://' . WP_TESTS_DOMAIN . '/wp';
+			}
+		);
+
+		$_SERVER['PATH_INFO'] = '/wp-json/wc/v1/products';
+
+		$this->wp->parse_request();
+
+		$this->assertSame( 'wp-json/wc/v1/products', $this->wp->request );
+	}
 }
