@@ -1,0 +1,4988 @@
+{
+	"tests/at-keyword/0001": {
+		"css": "@foo\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@foo",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "@foo",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0002": {
+		"css": "@--\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@--",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "@--",
+				"value": "--"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0003": {
+		"css": "@-1\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "@",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "@",
+				"value": "@"
+			},
+			{
+				"type": "number-token",
+				"raw": "-1",
+				"startIndex": 1,
+				"endIndex": 3,
+				"normalized": "-1",
+				"value": "-1",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0004": {
+		"css": "@--1\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@--1",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "@--1",
+				"value": "--1"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0005": {
+		"css": "@\\@\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@\\@",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "@@",
+				"value": "@"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0006": {
+		"css": "@_\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@_",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "@_",
+				"value": "_"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0007": {
+		"css": "@\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "@",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "@",
+				"value": "@"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0008": {
+		"css": "pvA3@\\\neBnP\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "pvA3",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "pvA3",
+				"value": "pvA3"
+			},
+			{
+				"type": "delim-token",
+				"raw": "@",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "@",
+				"value": "@"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\\",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\\",
+				"value": "\\"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "eBnP",
+				"startIndex": 7,
+				"endIndex": 11,
+				"normalized": "eBnP",
+				"value": "eBnP"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/at-keyword/0009": {
+		"css": "@aa𐀀\n",
+		"tokens": [
+			{
+				"type": "at-keyword-token",
+				"raw": "@aa𐀀",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "@aa𐀀",
+				"value": "aa𐀀"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-string/0001": {
+		"css": "\"foo\n\"\n",
+		"tokens": [
+			{
+				"type": "bad-string-token",
+				"raw": "\"foo",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "\"foo",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "bad-string-token",
+				"raw": "\"",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\"",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-string/0002": {
+		"css": "\"foo\\\n\"\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"foo\\\n\"",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "\"foo\"",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-string/0003": {
+		"css": "\"foo\r\n\"\n",
+		"tokens": [
+			{
+				"type": "bad-string-token",
+				"raw": "\"foo",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "\"foo",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\r\n",
+				"startIndex": 4,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "bad-string-token",
+				"raw": "\"",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\"",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-string/0004": {
+		"css": "\"foo\\\r\n\"\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"foo\\\r\n\"",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "\"foo\"",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-string/0005": {
+		"css": "\"aa𐀀\n",
+		"tokens": [
+			{
+				"type": "bad-string-token",
+				"raw": "\"aa𐀀",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "\"aa𐀀",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0001": {
+		"css": "url(\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(\n",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "url(\n",
+				"value": ""
+			}
+		]
+	},
+	"tests/bad-url/0002": {
+		"css": "url( a\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( a\n",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "url( a\n",
+				"value": "a"
+			}
+		]
+	},
+	"tests/bad-url/0003": {
+		"css": "url( a a\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url( a a\n",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "url( a a\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0004": {
+		"css": "url( a a)\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url( a a)",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "url( a a)",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0005": {
+		"css": "url( a a\\)\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url( a a\\)\n",
+				"startIndex": 0,
+				"endIndex": 11,
+				"normalized": "url( a a)\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0006": {
+		"css": "url( \\\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url( \\\n",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "url( \\\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0007": {
+		"css": "url(a'')\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url(a'')",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "url(a'')",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/bad-url/0008": {
+		"css": "url(a\")\n",
+		"tokens": [
+			{
+				"type": "bad-url-token",
+				"raw": "url(a\")",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "url(a\")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/colon/0001": {
+		"css": ":\n",
+		"tokens": [
+			{
+				"type": "colon-token",
+				"raw": ":",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ":",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/comma/0001": {
+		"css": ",\n",
+		"tokens": [
+			{
+				"type": "comma-token",
+				"raw": ",",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ",",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0001": {
+		"css": "/* a comment */\n",
+		"tokens": [
+			{
+				"type": "comment",
+				"raw": "/* a comment */",
+				"startIndex": 0,
+				"endIndex": 15,
+				"normalized": "/* a comment */",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 15,
+				"endIndex": 16,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0002": {
+		"css": "/* a comment ",
+		"tokens": [
+			{
+				"type": "comment",
+				"raw": "/* a comment ",
+				"startIndex": 0,
+				"endIndex": 13,
+				"normalized": "/* a comment ",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0003": {
+		"css": "a/**/b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "a",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": "comment",
+				"raw": "/**/",
+				"startIndex": 1,
+				"endIndex": 5,
+				"normalized": "/**/",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "b",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "b",
+				"value": "b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0004": {
+		"css": "/*\\*/*/\n",
+		"tokens": [
+			{
+				"type": "comment",
+				"raw": "/*\\*/",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "/**/",
+				"value": null
+			},
+			{
+				"type": "delim-token",
+				"raw": "*",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "*",
+				"value": "*"
+			},
+			{
+				"type": "delim-token",
+				"raw": "/",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "/",
+				"value": "/"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0005": {
+		"css": "/* a comment *",
+		"tokens": [
+			{
+				"type": "comment",
+				"raw": "/* a comment *",
+				"startIndex": 0,
+				"endIndex": 14,
+				"normalized": "/* a comment *",
+				"value": null
+			}
+		]
+	},
+	"tests/comment/0006": {
+		"css": "/*a𐀀*/\n",
+		"tokens": [
+			{
+				"type": "comment",
+				"raw": "/*a𐀀*/",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "/*a𐀀*/",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/digit/0001": {
+		"css": "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "0",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "0",
+				"value": "0",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "1",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "1",
+				"value": "1",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "2",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "2",
+				"value": "2",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "3",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "3",
+				"value": "3",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "4",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "4",
+				"value": "4",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "5",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": "5",
+				"value": "5",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "6",
+				"startIndex": 12,
+				"endIndex": 13,
+				"normalized": "6",
+				"value": "6",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 13,
+				"endIndex": 14,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "7",
+				"startIndex": 14,
+				"endIndex": 15,
+				"normalized": "7",
+				"value": "7",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 15,
+				"endIndex": 16,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "8",
+				"startIndex": 16,
+				"endIndex": 17,
+				"normalized": "8",
+				"value": "8",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 17,
+				"endIndex": 18,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "9",
+				"startIndex": 18,
+				"endIndex": 19,
+				"normalized": "9",
+				"value": "9",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 19,
+				"endIndex": 20,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0001": {
+		"css": "10px\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10px",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "10px",
+				"value": "10",
+				"unit": "px",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0002": {
+		"css": "10\\70 x\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10\\70 x",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "10px",
+				"value": "10",
+				"unit": "px",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0003": {
+		"css": "10--custom-px\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10--custom-px",
+				"startIndex": 0,
+				"endIndex": 13,
+				"normalized": "10--custom-px",
+				"value": "10",
+				"unit": "--custom-px",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 13,
+				"endIndex": 14,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0004": {
+		"css": "10e2px\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10e2px",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "10e2px",
+				"value": "10e2",
+				"unit": "px",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0005": {
+		"css": "10E2PX\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10E2PX",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "10E2PX",
+				"value": "10E2",
+				"unit": "PX",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0006": {
+		"css": "10\\0\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10\\0\n",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "10�",
+				"value": "10",
+				"unit": "�",
+				"numberType": "integer"
+			}
+		]
+	},
+	"tests/dimension/0007": {
+		"css": "10a𐀀\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10a𐀀",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "10a𐀀",
+				"value": "10",
+				"unit": "a𐀀",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/dimension/0008": {
+		"css": "10a\u0000",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "10a\u0000",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "10a�",
+				"value": "10",
+				"unit": "a�",
+				"numberType": "integer"
+			}
+		]
+	},
+	"tests/escaped-code-point/0001": {
+		"css": "\\",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/escaped-code-point/0002": {
+		"css": "\\0",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\0",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/escaped-code-point/0003": {
+		"css": "\\\\",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\\\",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "\\",
+				"value": "\\"
+			}
+		]
+	},
+	"tests/escaped-code-point/0004": {
+		"css": "\\0a b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\0a b",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "\nb",
+				"value": "\nb"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0005": {
+		"css": "\\0ab \n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\0ab ",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "«",
+				"value": "«"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0006": {
+		"css": "\\0ab (foo)\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "\\0ab (",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "«(",
+				"value": "«"
+			},
+			{
+				"type": "ident-token",
+				"raw": "foo",
+				"startIndex": 6,
+				"endIndex": 9,
+				"normalized": "foo",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0007": {
+		"css": "\\0ab  (foo)\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\0ab ",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "«",
+				"value": "«"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "(-token",
+				"raw": "(",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "(",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "foo",
+				"startIndex": 7,
+				"endIndex": 10,
+				"normalized": "foo",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0008": {
+		"css": "\\0000ab\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\0000ab\n",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "«",
+				"value": "«"
+			}
+		]
+	},
+	"tests/escaped-code-point/0009": {
+		"css": "\\00000ab\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\00000ab",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "\nb",
+				"value": "\nb"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0010": {
+		"css": "\\110000\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\110000\n",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/escaped-code-point/0011": {
+		"css": "\\00D800\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\00D800\n",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/escaped-code-point/0012": {
+		"css": "\\00DFFF\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\00DFFF\n",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/escaped-code-point/0013": {
+		"css": "\\\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "\\",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "\\",
+				"value": "\\"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0014": {
+		"css": "\\\u0000\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\\u0000",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "�",
+				"value": "�"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0015": {
+		"css": "\\\u0000\b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\\u0000",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "�",
+				"value": "�"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\b",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\b",
+				"value": "\b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/escaped-code-point/0016": {
+		"css": "\"a\\12\r\nb\"",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"a\\12\r\nb\"",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "\"a\u0012b\"",
+				"value": "a\u0012b"
+			}
+		]
+	},
+	"tests/full-stop/0001": {
+		"css": ".\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": ".",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ".",
+				"value": "."
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/full-stop/0002": {
+		"css": ".a\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": ".",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ".",
+				"value": "."
+			},
+			{
+				"type": "ident-token",
+				"raw": "a",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/full-stop/0003": {
+		"css": ".1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": ".1",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": ".1",
+				"value": ".1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/fuzz/01a166c0-ca20-43a5-9ab0-0984e4a5362b": {
+		"css": "4waPtwEEGH\\\u0000jV3zM6hh6w30N0PC 7m8KM0HcWGOPw28Gt(r19",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "4waPtwEEGH\\\u0000jV3zM6hh6w30N0PC",
+				"startIndex": 0,
+				"endIndex": 28,
+				"normalized": "4waPtwEEGH�jV3zM6hh6w30N0PC",
+				"value": "4",
+				"unit": "waPtwEEGH�jV3zM6hh6w30N0PC",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 28,
+				"endIndex": 29,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "dimension-token",
+				"raw": "7m8KM0HcWGOPw28Gt",
+				"startIndex": 29,
+				"endIndex": 46,
+				"normalized": "7m8KM0HcWGOPw28Gt",
+				"value": "7",
+				"unit": "m8KM0HcWGOPw28Gt",
+				"numberType": "integer"
+			},
+			{
+				"type": "(-token",
+				"raw": "(",
+				"startIndex": 46,
+				"endIndex": 47,
+				"normalized": "(",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "r19",
+				"startIndex": 47,
+				"endIndex": 50,
+				"normalized": "r19",
+				"value": "r19"
+			}
+		]
+	},
+	"tests/fuzz/2abe9406-c063-4e9a-85ac-b13660671553": {
+		"css": "ak]P0A}808G\"lQh{R5M!QyOWE}oC2{2K TIa9}zb2oXWREY]0aj5J\\\r\nBJ5CO-16W5H7noF 19䀹41H3e8Z9%tg[O5AHEY24xh'9\"\"c34Q\"iiC0e45Da5f\"F5X3\"o(",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "ak",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "ak",
+				"value": "ak"
+			},
+			{
+				"type": "]-token",
+				"raw": "]",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "]",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "P0A",
+				"startIndex": 3,
+				"endIndex": 6,
+				"normalized": "P0A",
+				"value": "P0A"
+			},
+			{
+				"type": "}-token",
+				"raw": "}",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "}",
+				"value": null
+			},
+			{
+				"type": "dimension-token",
+				"raw": "808G",
+				"startIndex": 7,
+				"endIndex": 11,
+				"normalized": "808G",
+				"value": "808",
+				"unit": "G",
+				"numberType": "integer"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"lQh{R5M!QyOWE}oC2{2K TIa9}zb2oXWREY]0aj5J\\\r\nBJ5CO-16W5H7noF 19䀹41H3e8Z9%tg[O5AHEY24xh'9\"",
+				"startIndex": 11,
+				"endIndex": 102,
+				"normalized": "\"lQh{R5M!QyOWE}oC2{2K TIa9}zb2oXWREY]0aj5JBJ5CO-16W5H7noF 19䀹41H3e8Z9%tg[O5AHEY24xh'9\"",
+				"value": "lQh{R5M!QyOWE}oC2{2K TIa9}zb2oXWREY]0aj5JBJ5CO-16W5H7noF 19䀹41H3e8Z9%tg[O5AHEY24xh'9"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"c34Q\"",
+				"startIndex": 102,
+				"endIndex": 108,
+				"normalized": "\"c34Q\"",
+				"value": "c34Q"
+			},
+			{
+				"type": "ident-token",
+				"raw": "iiC0e45Da5f",
+				"startIndex": 108,
+				"endIndex": 119,
+				"normalized": "iiC0e45Da5f",
+				"value": "iiC0e45Da5f"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"F5X3\"",
+				"startIndex": 119,
+				"endIndex": 125,
+				"normalized": "\"F5X3\"",
+				"value": "F5X3"
+			},
+			{
+				"type": "function-token",
+				"raw": "o(",
+				"startIndex": 125,
+				"endIndex": 127,
+				"normalized": "o(",
+				"value": "o"
+			}
+		]
+	},
+	"tests/fuzz/4e630a47-507b-4b79-b00f-57f7dc1cc79d": {
+		"css": "\u000e7rSD6I5L1lglVRlL2X7BbEk\\3HCd\r94 \\\u0000skoW25d4%l64UUskN\"pHun\"!",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "\u000e",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "\u000e",
+				"value": "\u000e"
+			},
+			{
+				"type": "dimension-token",
+				"raw": "7rSD6I5L1lglVRlL2X7BbEk\\3HCd",
+				"startIndex": 1,
+				"endIndex": 29,
+				"normalized": "7rSD6I5L1lglVRlL2X7BbEk\u0003HCd",
+				"value": "7",
+				"unit": "rSD6I5L1lglVRlL2X7BbEk\u0003HCd",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\r",
+				"startIndex": 29,
+				"endIndex": 30,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "number-token",
+				"raw": "94",
+				"startIndex": 30,
+				"endIndex": 32,
+				"normalized": "94",
+				"value": "94",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 32,
+				"endIndex": 33,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "\\\u0000skoW25d4",
+				"startIndex": 33,
+				"endIndex": 43,
+				"normalized": "�skoW25d4",
+				"value": "�skoW25d4"
+			},
+			{
+				"type": "delim-token",
+				"raw": "%",
+				"startIndex": 43,
+				"endIndex": 44,
+				"normalized": "%",
+				"value": "%"
+			},
+			{
+				"type": "ident-token",
+				"raw": "l64UUskN",
+				"startIndex": 44,
+				"endIndex": 52,
+				"normalized": "l64UUskN",
+				"value": "l64UUskN"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"pHun\"",
+				"startIndex": 52,
+				"endIndex": 58,
+				"normalized": "\"pHun\"",
+				"value": "pHun"
+			},
+			{
+				"type": "delim-token",
+				"raw": "!",
+				"startIndex": 58,
+				"endIndex": 59,
+				"normalized": "!",
+				"value": "!"
+			}
+		]
+	},
+	"tests/fuzz/4f865903-e4dd-4a0b-83ed-e630cfa9dcca": {
+		"css": "gzO0{(p{DzQ7\u0000(a1;r1iN7w)",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "gzO0",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "gzO0",
+				"value": "gzO0"
+			},
+			{
+				"type": "{-token",
+				"raw": "{",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "{",
+				"value": null
+			},
+			{
+				"type": "(-token",
+				"raw": "(",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "(",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "p",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "p",
+				"value": "p"
+			},
+			{
+				"type": "{-token",
+				"raw": "{",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "{",
+				"value": null
+			},
+			{
+				"type": "function-token",
+				"raw": "DzQ7\u0000(",
+				"startIndex": 8,
+				"endIndex": 14,
+				"normalized": "DzQ7�(",
+				"value": "DzQ7�"
+			},
+			{
+				"type": "ident-token",
+				"raw": "a1",
+				"startIndex": 14,
+				"endIndex": 16,
+				"normalized": "a1",
+				"value": "a1"
+			},
+			{
+				"type": "semicolon-token",
+				"raw": ";",
+				"startIndex": 16,
+				"endIndex": 17,
+				"normalized": ";",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "r1iN7w",
+				"startIndex": 17,
+				"endIndex": 23,
+				"normalized": "r1iN7w",
+				"value": "r1iN7w"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 23,
+				"endIndex": 24,
+				"normalized": ")",
+				"value": null
+			}
+		]
+	},
+	"tests/fuzz/5181013c-60ab-483b-9c06-fb32c7e1e7e8": {
+		"css": "565'E{z\u0000U\u001fEG2}2Verb>nj3TVk3mu7wX1J\b.H\u000bi1Ga8f5 dserqydJ3\"xj398xy.W\" uHQbv7Bw1NtF;N3PwNY7Vx00BF o\"4CXzvP\"{594 6r}8QQKNQw135i1\\\r\nrey\thg7[5%rBK8RUC64Lu␌17O{E\\90873u}1O3vx4gHTC55Q9i4\"V3Vx4\"7r(34L]F\"ns2pPf\"V7b)EOBGH8rdC7\"\u000eVJ4OQ[ 9jtoMdINgS7o�206vo72kTcKkZR9wl30G'vK\ndhCEs3tValX ",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "565",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "565",
+				"value": "565",
+				"numberType": "integer"
+			},
+			{
+				"type": "string-token",
+				"raw": "'E{z\u0000U\u001fEG2}2Verb>nj3TVk3mu7wX1J\b.H\u000bi1Ga8f5 dserqydJ3\"xj398xy.W\" uHQbv7Bw1NtF;N3PwNY7Vx00BF o\"4CXzvP\"{594 6r}8QQKNQw135i1\\\r\nrey\thg7[5%rBK8RUC64Lu␌17O{E\\90873u}1O3vx4gHTC55Q9i4\"V3Vx4\"7r(34L]F\"ns2pPf\"V7b)EOBGH8rdC7\"\u000eVJ4OQ[ 9jtoMdINgS7o�206vo72kTcKkZR9wl30G'",
+				"startIndex": 3,
+				"endIndex": 263,
+				"normalized": "'E{z�U\u001fEG2}2Verb>nj3TVk3mu7wX1J\b.H\u000bi1Ga8f5 dserqydJ3\"xj398xy.W\" uHQbv7Bw1NtF;N3PwNY7Vx00BF o\"4CXzvP\"{594 6r}8QQKNQw135i1rey\thg7[5%rBK8RUC64Lu␌17O{E򐡳u}1O3vx4gHTC55Q9i4\"V3Vx4\"7r(34L]F\"ns2pPf\"V7b)EOBGH8rdC7\"\u000eVJ4OQ[ 9jtoMdINgS7o�206vo72kTcKkZR9wl30G'",
+				"value": "E{z�U\u001fEG2}2Verb>nj3TVk3mu7wX1J\b.H\u000bi1Ga8f5 dserqydJ3\"xj398xy.W\" uHQbv7Bw1NtF;N3PwNY7Vx00BF o\"4CXzvP\"{594 6r}8QQKNQw135i1rey\thg7[5%rBK8RUC64Lu␌17O{E򐡳u}1O3vx4gHTC55Q9i4\"V3Vx4\"7r(34L]F\"ns2pPf\"V7b)EOBGH8rdC7\"\u000eVJ4OQ[ 9jtoMdINgS7o�206vo72kTcKkZR9wl30G"
+			},
+			{
+				"type": "ident-token",
+				"raw": "vK",
+				"startIndex": 263,
+				"endIndex": 265,
+				"normalized": "vK",
+				"value": "vK"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 265,
+				"endIndex": 266,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "dhCEs3tValX",
+				"startIndex": 266,
+				"endIndex": 277,
+				"normalized": "dhCEs3tValX",
+				"value": "dhCEs3tValX"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 277,
+				"endIndex": 278,
+				"normalized": " ",
+				"value": null
+			}
+		]
+	},
+	"tests/fuzz/6d07fc79-586f-4efa-a0a2-37d4dd3beb09": {
+		"css": "FWUNqr7uv8300nz\b,8lU0j6B186kh \u00009 \u000eGZafxf2GIhL9%",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "FWUNqr7uv8300nz",
+				"startIndex": 0,
+				"endIndex": 15,
+				"normalized": "FWUNqr7uv8300nz",
+				"value": "FWUNqr7uv8300nz"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\b",
+				"startIndex": 15,
+				"endIndex": 16,
+				"normalized": "\b",
+				"value": "\b"
+			},
+			{
+				"type": "comma-token",
+				"raw": ",",
+				"startIndex": 16,
+				"endIndex": 17,
+				"normalized": ",",
+				"value": null
+			},
+			{
+				"type": "dimension-token",
+				"raw": "8lU0j6B186kh",
+				"startIndex": 17,
+				"endIndex": 29,
+				"normalized": "8lU0j6B186kh",
+				"value": "8",
+				"unit": "lU0j6B186kh",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 29,
+				"endIndex": 30,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "\u00009",
+				"startIndex": 30,
+				"endIndex": 32,
+				"normalized": "�9",
+				"value": "�9"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 32,
+				"endIndex": 33,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "delim-token",
+				"raw": "\u000e",
+				"startIndex": 33,
+				"endIndex": 34,
+				"normalized": "\u000e",
+				"value": "\u000e"
+			},
+			{
+				"type": "ident-token",
+				"raw": "GZafxf2GIhL9",
+				"startIndex": 34,
+				"endIndex": 46,
+				"normalized": "GZafxf2GIhL9",
+				"value": "GZafxf2GIhL9"
+			},
+			{
+				"type": "delim-token",
+				"raw": "%",
+				"startIndex": 46,
+				"endIndex": 47,
+				"normalized": "%",
+				"value": "%"
+			}
+		]
+	},
+	"tests/fuzz/7f49c8fc-8292-4a3e-828b-b5d028a80d5f": {
+		"css": "FZ 0B120h5QUbNbmTD2K8mAD傿i+Yv9V0KS14Ng18ag'\\\r\n{X<E/9b}0nIa%eSz-vapw2GqeMsri#e1BQf3b\u001fPlEnFQg{ofB)L9b571J4!{mCN㐥a\\BgK48qgu9'jVRS䎟ROYRbe0m5508k,O0C\u001f",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "FZ",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "FZ",
+				"value": "FZ"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "dimension-token",
+				"raw": "0B120h5QUbNbmTD2K8mAD傿i",
+				"startIndex": 3,
+				"endIndex": 28,
+				"normalized": "0B120h5QUbNbmTD2K8mAD傿i",
+				"value": "0",
+				"unit": "B120h5QUbNbmTD2K8mAD傿i",
+				"numberType": "integer"
+			},
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 28,
+				"endIndex": 29,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "ident-token",
+				"raw": "Yv9V0KS14Ng18ag",
+				"startIndex": 29,
+				"endIndex": 44,
+				"normalized": "Yv9V0KS14Ng18ag",
+				"value": "Yv9V0KS14Ng18ag"
+			},
+			{
+				"type": "string-token",
+				"raw": "'\\\r\n{X<E/9b}0nIa%eSz-vapw2GqeMsri#e1BQf3b\u001fPlEnFQg{ofB)L9b571J4!{mCN㐥a\\BgK48qgu9'",
+				"startIndex": 44,
+				"endIndex": 126,
+				"normalized": "'{X<E/9b}0nIa%eSz-vapw2GqeMsri#e1BQf3b\u001fPlEnFQg{ofB)L9b571J4!{mCN㐥a\u000bgK48qgu9'",
+				"value": "{X<E/9b}0nIa%eSz-vapw2GqeMsri#e1BQf3b\u001fPlEnFQg{ofB)L9b571J4!{mCN㐥a\u000bgK48qgu9"
+			},
+			{
+				"type": "ident-token",
+				"raw": "jVRS䎟ROYRbe0m5508k",
+				"startIndex": 126,
+				"endIndex": 146,
+				"normalized": "jVRS䎟ROYRbe0m5508k",
+				"value": "jVRS䎟ROYRbe0m5508k"
+			},
+			{
+				"type": "comma-token",
+				"raw": ",",
+				"startIndex": 146,
+				"endIndex": 147,
+				"normalized": ",",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "O0C",
+				"startIndex": 147,
+				"endIndex": 150,
+				"normalized": "O0C",
+				"value": "O0C"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\u001f",
+				"startIndex": 150,
+				"endIndex": 151,
+				"normalized": "\u001f",
+				"value": "\u001f"
+			}
+		]
+	},
+	"tests/fuzz/864d7812-b82f-47c2-94e4-8402ba6ba94a": {
+		"css": "'TR(:\b5RN)_e3w<gD5iL1EO-3zZw ntX3@0<KP9}V0 3Q80{Tqp}7dkUykEm ks �(ZnXhqsp3)G4JKqbWAfx7sPRW\"zKg19p\"Gcoi22xb\"3h5WQan.I4EUmЕ1IBofxvJ73hTA2Em\bA97(qOU)1\u0000rV7P'5528LZ14)䓑gqcRX\"aiu� \"z3i74FJ3\u00004x8F-V5b1f(U\u000b bUc",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "'TR(:\b5RN)_e3w<gD5iL1EO-3zZw ntX3@0<KP9}V0 3Q80{Tqp}7dkUykEm ks �(ZnXhqsp3)G4JKqbWAfx7sPRW\"zKg19p\"Gcoi22xb\"3h5WQan.I4EUmЕ1IBofxvJ73hTA2Em\bA97(qOU)1\u0000rV7P'",
+				"startIndex": 0,
+				"endIndex": 156,
+				"normalized": "'TR(:\b5RN)_e3w<gD5iL1EO-3zZw ntX3@0<KP9}V0 3Q80{Tqp}7dkUykEm ks �(ZnXhqsp3)G4JKqbWAfx7sPRW\"zKg19p\"Gcoi22xb\"3h5WQan.I4EUmЕ1IBofxvJ73hTA2Em\bA97(qOU)1�rV7P'",
+				"value": "TR(:\b5RN)_e3w<gD5iL1EO-3zZw ntX3@0<KP9}V0 3Q80{Tqp}7dkUykEm ks �(ZnXhqsp3)G4JKqbWAfx7sPRW\"zKg19p\"Gcoi22xb\"3h5WQan.I4EUmЕ1IBofxvJ73hTA2Em\bA97(qOU)1�rV7P"
+			},
+			{
+				"type": "dimension-token",
+				"raw": "5528LZ14",
+				"startIndex": 156,
+				"endIndex": 164,
+				"normalized": "5528LZ14",
+				"value": "5528",
+				"unit": "LZ14",
+				"numberType": "integer"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 164,
+				"endIndex": 165,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "䓑gqcRX",
+				"startIndex": 165,
+				"endIndex": 173,
+				"normalized": "䓑gqcRX",
+				"value": "䓑gqcRX"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"aiu� \"",
+				"startIndex": 173,
+				"endIndex": 182,
+				"normalized": "\"aiu� \"",
+				"value": "aiu� "
+			},
+			{
+				"type": "function-token",
+				"raw": "z3i74FJ3\u00004x8F-V5b1f(",
+				"startIndex": 182,
+				"endIndex": 202,
+				"normalized": "z3i74FJ3�4x8F-V5b1f(",
+				"value": "z3i74FJ3�4x8F-V5b1f"
+			},
+			{
+				"type": "ident-token",
+				"raw": "U",
+				"startIndex": 202,
+				"endIndex": 203,
+				"normalized": "U",
+				"value": "U"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\u000b",
+				"startIndex": 203,
+				"endIndex": 204,
+				"normalized": "\u000b",
+				"value": "\u000b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 204,
+				"endIndex": 205,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "bUc",
+				"startIndex": 205,
+				"endIndex": 208,
+				"normalized": "bUc",
+				"value": "bUc"
+			}
+		]
+	},
+	"tests/fuzz/91de56d3-d1c7-41c9-93e2-4b0770e36e79": {
+		"css": "\tb6SUejoqAEDa\u000e9,kYO\\",
+		"tokens": [
+			{
+				"type": "whitespace-token",
+				"raw": "\t",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "\t",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "b6SUejoqAEDa",
+				"startIndex": 1,
+				"endIndex": 13,
+				"normalized": "b6SUejoqAEDa",
+				"value": "b6SUejoqAEDa"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\u000e",
+				"startIndex": 13,
+				"endIndex": 14,
+				"normalized": "\u000e",
+				"value": "\u000e"
+			},
+			{
+				"type": "number-token",
+				"raw": "9",
+				"startIndex": 14,
+				"endIndex": 15,
+				"normalized": "9",
+				"value": "9",
+				"numberType": "integer"
+			},
+			{
+				"type": "comma-token",
+				"raw": ",",
+				"startIndex": 15,
+				"endIndex": 16,
+				"normalized": ",",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "kYO\\",
+				"startIndex": 16,
+				"endIndex": 20,
+				"normalized": "kYO�",
+				"value": "kYO�"
+			}
+		]
+	},
+	"tests/fuzz/b69ece36-057f-4450-9423-a1661787bce6": {
+		"css": "Iv1\u0000B}1E+X9oO\u001fN3G",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "Iv1\u0000B",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "Iv1�B",
+				"value": "Iv1�B"
+			},
+			{
+				"type": "}-token",
+				"raw": "}",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "}",
+				"value": null
+			},
+			{
+				"type": "dimension-token",
+				"raw": "1E",
+				"startIndex": 9,
+				"endIndex": 11,
+				"normalized": "1E",
+				"value": "1",
+				"unit": "E",
+				"numberType": "integer"
+			},
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "ident-token",
+				"raw": "X9oO",
+				"startIndex": 12,
+				"endIndex": 16,
+				"normalized": "X9oO",
+				"value": "X9oO"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\u001f",
+				"startIndex": 16,
+				"endIndex": 17,
+				"normalized": "\u001f",
+				"value": "\u001f"
+			},
+			{
+				"type": "ident-token",
+				"raw": "N3G",
+				"startIndex": 17,
+				"endIndex": 20,
+				"normalized": "N3G",
+				"value": "N3G"
+			}
+		]
+	},
+	"tests/fuzz/ccfaf86d-7471-465b-bbc8-5b65be03e9cf": {
+		"css": "H%7Zkc0P17 m2cqKMI5Cz34YPit.2.7,oP ",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "H",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "H",
+				"value": "H"
+			},
+			{
+				"type": "delim-token",
+				"raw": "%",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "%",
+				"value": "%"
+			},
+			{
+				"type": "dimension-token",
+				"raw": "7Zkc0P17",
+				"startIndex": 2,
+				"endIndex": 10,
+				"normalized": "7Zkc0P17",
+				"value": "7",
+				"unit": "Zkc0P17",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "m2cqKMI5Cz34YPit",
+				"startIndex": 11,
+				"endIndex": 27,
+				"normalized": "m2cqKMI5Cz34YPit",
+				"value": "m2cqKMI5Cz34YPit"
+			},
+			{
+				"type": "number-token",
+				"raw": ".2",
+				"startIndex": 27,
+				"endIndex": 29,
+				"normalized": ".2",
+				"value": ".2",
+				"numberType": "number"
+			},
+			{
+				"type": "number-token",
+				"raw": ".7",
+				"startIndex": 29,
+				"endIndex": 31,
+				"normalized": ".7",
+				"value": ".7",
+				"numberType": "number"
+			},
+			{
+				"type": "comma-token",
+				"raw": ",",
+				"startIndex": 31,
+				"endIndex": 32,
+				"normalized": ",",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "oP",
+				"startIndex": 32,
+				"endIndex": 34,
+				"normalized": "oP",
+				"value": "oP"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 34,
+				"endIndex": 35,
+				"normalized": " ",
+				"value": null
+			}
+		]
+	},
+	"tests/fuzz/eb11f9d4-f8ef-4e11-88dc-2cbf7f56e537": {
+		"css": ">u)k2a76}y4\\6fb9ONI\\",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": ">",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ">",
+				"value": ">"
+			},
+			{
+				"type": "ident-token",
+				"raw": "u",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "u",
+				"value": "u"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "k2a76",
+				"startIndex": 3,
+				"endIndex": 8,
+				"normalized": "k2a76",
+				"value": "k2a76"
+			},
+			{
+				"type": "}-token",
+				"raw": "}",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "}",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "y4\\6fb9ONI\\",
+				"startIndex": 9,
+				"endIndex": 20,
+				"normalized": "y4澹ONI�",
+				"value": "y4澹ONI�"
+			}
+		]
+	},
+	"tests/hash/0001": {
+		"css": "#1\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#1",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "#1",
+				"value": "1"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0002": {
+		"css": "#-2\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#-2",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "#-2",
+				"value": "-2"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0003": {
+		"css": "#--3\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#--3",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "#--3",
+				"value": "--3"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0004": {
+		"css": "#---4\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#---4",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "#---4",
+				"value": "---4"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0005": {
+		"css": "#a\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#a",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "#a",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0006": {
+		"css": "#-b\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#-b",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "#-b",
+				"value": "-b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0007": {
+		"css": "#--c\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#--c",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "#--c",
+				"value": "--c"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0008": {
+		"css": "#---d\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#---d",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "#---d",
+				"value": "---d"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0009": {
+		"css": "#_\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#_",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "#_",
+				"value": "_"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0010": {
+		"css": "#_1\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#_1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "#_1",
+				"value": "_1"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0011": {
+		"css": "#-\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#-",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "#-",
+				"value": "-"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0012": {
+		"css": "#+\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "#",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "#",
+				"value": "#"
+			},
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0013": {
+		"css": "##\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "#",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "#",
+				"value": "#"
+			},
+			{
+				"type": "delim-token",
+				"raw": "#",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "#",
+				"value": "#"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hash/0014": {
+		"css": "#",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "#",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "#",
+				"value": "#"
+			}
+		]
+	},
+	"tests/hash/0015": {
+		"css": "#aa𐀀\n",
+		"tokens": [
+			{
+				"type": "hash-token",
+				"raw": "#aa𐀀",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "#aa𐀀",
+				"value": "aa𐀀"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0001": {
+		"css": "-\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "-",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "-",
+				"value": "-"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0002": {
+		"css": "-1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-1",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "-1",
+				"value": "-1",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0003": {
+		"css": "-.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-.1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-.1",
+				"value": "-.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0004": {
+		"css": "--1\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "--1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "--1",
+				"value": "--1"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0005": {
+		"css": "-0\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-0",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "-0",
+				"value": "-0",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/hyphen-minus/0006": {
+		"css": "-->\n",
+		"tokens": [
+			{
+				"type": "CDC-token",
+				"raw": "-->",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-->",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0001": {
+		"css": "foo\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "foo",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "foo",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0002": {
+		"css": "--\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "--",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "--",
+				"value": "--"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0003": {
+		"css": "--0\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "--0",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "--0",
+				"value": "--0"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0004": {
+		"css": "-\\\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "-",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "-",
+				"value": "-"
+			},
+			{
+				"type": "delim-token",
+				"raw": "\\",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\\",
+				"value": "\\"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0005": {
+		"css": "-\\ \n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "-\\ ",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "- ",
+				"value": "- "
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0006": {
+		"css": "--💅\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "--💅",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "--💅",
+				"value": "--💅"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0007": {
+		"css": "-§\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "-§",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-§",
+				"value": "-§"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0008": {
+		"css": "-×\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "-×",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-×",
+				"value": "-×"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident/0009": {
+		"css": "--a𐀀\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "--a𐀀",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "--a𐀀",
+				"value": "--a𐀀"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0001": {
+		"css": "url(foo)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(foo)",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "url(foo)",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0002": {
+		"css": "\\75 Rl(foo)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "\\75 Rl(foo)",
+				"startIndex": 0,
+				"endIndex": 11,
+				"normalized": "uRl(foo)",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0003": {
+		"css": "uR\\6c (foo)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "uR\\6c (foo)",
+				"startIndex": 0,
+				"endIndex": 11,
+				"normalized": "uRl(foo)",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0004": {
+		"css": "url('foo')\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "url(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "url(",
+				"value": "url"
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 4,
+				"endIndex": 9,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0005": {
+		"css": "url( 'foo')\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "url(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "url(",
+				"value": "url"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 5,
+				"endIndex": 10,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 10,
+				"endIndex": 11,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0006": {
+		"css": "url(  'foo')\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "url(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "url(",
+				"value": "url"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "  ",
+				"startIndex": 4,
+				"endIndex": 6,
+				"normalized": "  ",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 6,
+				"endIndex": 11,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 12,
+				"endIndex": 13,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0007": {
+		"css": "url(   'foo')\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "url(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "url(",
+				"value": "url"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "   ",
+				"startIndex": 4,
+				"endIndex": 7,
+				"normalized": "   ",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 7,
+				"endIndex": 12,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 12,
+				"endIndex": 13,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 13,
+				"endIndex": 14,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0008": {
+		"css": "not-url(   'foo')\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "not-url(",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "not-url(",
+				"value": "not-url"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "   ",
+				"startIndex": 8,
+				"endIndex": 11,
+				"normalized": "   ",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 11,
+				"endIndex": 16,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 16,
+				"endIndex": 17,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 17,
+				"endIndex": 18,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/ident-like/0009": {
+		"css": "url(   foo)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(   foo)",
+				"startIndex": 0,
+				"endIndex": 11,
+				"normalized": "url(   foo)",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/left-curly-bracket/0001": {
+		"css": "{\n",
+		"tokens": [
+			{
+				"type": "{-token",
+				"raw": "{",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "{",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/left-parenthesis/0001": {
+		"css": "(\n",
+		"tokens": [
+			{
+				"type": "(-token",
+				"raw": "(",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "(",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/left-square-bracket/0001": {
+		"css": "[\n",
+		"tokens": [
+			{
+				"type": "[-token",
+				"raw": "[",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "[",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/less-than/0001": {
+		"css": "<\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "<",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "<",
+				"value": "<"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/less-than/0002": {
+		"css": "<!--\n",
+		"tokens": [
+			{
+				"type": "CDO-token",
+				"raw": "<!--",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "<!--",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/less-than/0003": {
+		"css": "<--\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "<",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "<",
+				"value": "<"
+			},
+			{
+				"type": "ident-token",
+				"raw": "--",
+				"startIndex": 1,
+				"endIndex": 3,
+				"normalized": "--",
+				"value": "--"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/less-than/0004": {
+		"css": "<!-\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "<",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "<",
+				"value": "<"
+			},
+			{
+				"type": "delim-token",
+				"raw": "!",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "!",
+				"value": "!"
+			},
+			{
+				"type": "delim-token",
+				"raw": "-",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "-",
+				"value": "-"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0001": {
+		"css": "10\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "10",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "10",
+				"value": "10",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0002": {
+		"css": "+10\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+10",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "+10",
+				"value": "+10",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0003": {
+		"css": "-10\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-10",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-10",
+				"value": "-10",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0004": {
+		"css": "0\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "0",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "0",
+				"value": "0",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0005": {
+		"css": "+0\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+0",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "+0",
+				"value": "+0",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0006": {
+		"css": "-0\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-0",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "-0",
+				"value": "-0",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0007": {
+		"css": ".0\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": ".0",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": ".0",
+				"value": ".0",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0008": {
+		"css": ".1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": ".1",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": ".1",
+				"value": ".1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0009": {
+		"css": "+.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+.1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "+.1",
+				"value": "+.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0010": {
+		"css": "-.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-.1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "-.1",
+				"value": "-.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0011": {
+		"css": "1.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "1.1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "1.1",
+				"value": "1.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0012": {
+		"css": "+1.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+1.1",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "+1.1",
+				"value": "+1.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0013": {
+		"css": "-1.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-1.1",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "-1.1",
+				"value": "-1.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0014": {
+		"css": "1.1e2\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "1.1e2",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "1.1e2",
+				"value": "1.1e2",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0015": {
+		"css": "+1.1e+2\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+1.1e+2",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "+1.1e+2",
+				"value": "+1.1e+2",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0016": {
+		"css": "-1.1e-2\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-1.1e-2",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "-1.1e-2",
+				"value": "-1.1e-2",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0017": {
+		"css": "-1.1e-22\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-1.1e-22",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "-1.1e-22",
+				"value": "-1.1e-22",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0018": {
+		"css": "-1.1e-22e\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "-1.1e-22e",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "-1.1e-22e",
+				"value": "-1.1e-22",
+				"unit": "e",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0019": {
+		"css": "1e+\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "1e",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "1e",
+				"value": "1",
+				"unit": "e",
+				"numberType": "integer"
+			},
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/number/0020": {
+		"css": ".2.7\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": ".2",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": ".2",
+				"value": ".2",
+				"numberType": "number"
+			},
+			{
+				"type": "number-token",
+				"raw": ".7",
+				"startIndex": 2,
+				"endIndex": 4,
+				"normalized": ".7",
+				"value": ".7",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/numeric/0001": {
+		"css": "-123.753e-2\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "-123.753e-2",
+				"startIndex": 0,
+				"endIndex": 11,
+				"normalized": "-123.753e-2",
+				"value": "-123.753e-2",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/numeric/0002": {
+		"css": "-123.753e-2px\n",
+		"tokens": [
+			{
+				"type": "dimension-token",
+				"raw": "-123.753e-2px",
+				"startIndex": 0,
+				"endIndex": 13,
+				"normalized": "-123.753e-2px",
+				"value": "-123.753e-2",
+				"unit": "px",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 13,
+				"endIndex": 14,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/numeric/0003": {
+		"css": "-123.753e-2%\n",
+		"tokens": [
+			{
+				"type": "percentage-token",
+				"raw": "-123.753e-2%",
+				"startIndex": 0,
+				"endIndex": 12,
+				"normalized": "-123.753e-2%",
+				"value": "-123.753e-2"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 12,
+				"endIndex": 13,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/numeric/0004": {
+		"css": "1.2.3\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "1.2",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "1.2",
+				"value": "1.2",
+				"numberType": "number"
+			},
+			{
+				"type": "number-token",
+				"raw": ".3",
+				"startIndex": 3,
+				"endIndex": 5,
+				"normalized": ".3",
+				"value": ".3",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/plus/0001": {
+		"css": "+\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/plus/0002": {
+		"css": "+1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+1",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "+1",
+				"value": "+1",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/plus/0003": {
+		"css": "+.1\n",
+		"tokens": [
+			{
+				"type": "number-token",
+				"raw": "+.1",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "+.1",
+				"value": "+.1",
+				"numberType": "number"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/plus/0004": {
+		"css": "++1\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "+",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "+",
+				"value": "+"
+			},
+			{
+				"type": "number-token",
+				"raw": "+1",
+				"startIndex": 1,
+				"endIndex": 3,
+				"normalized": "+1",
+				"value": "+1",
+				"numberType": "integer"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/reverse-solidus/0001": {
+		"css": "\\\n",
+		"tokens": [
+			{
+				"type": "delim-token",
+				"raw": "\\",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "\\",
+				"value": "\\"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/reverse-solidus/0002": {
+		"css": "\\#\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\#",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "#",
+				"value": "#"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/reverse-solidus/0003": {
+		"css": "\\ \n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\ ",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": " ",
+				"value": " "
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 2,
+				"endIndex": 3,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/reverse-solidus/0004": {
+		"css": "\\61 b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\61 b",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "ab",
+				"value": "ab"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/reverse-solidus/0005": {
+		"css": "\\",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "�",
+				"value": "�"
+			}
+		]
+	},
+	"tests/right-curly-bracket/0001": {
+		"css": "}\n",
+		"tokens": [
+			{
+				"type": "}-token",
+				"raw": "}",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "}",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/right-parenthesis/0001": {
+		"css": ")\n",
+		"tokens": [
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/right-square-bracket/0001": {
+		"css": "]\n",
+		"tokens": [
+			{
+				"type": "]-token",
+				"raw": "]",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "]",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/semi-colon/0001": {
+		"css": ";\n",
+		"tokens": [
+			{
+				"type": "semicolon-token",
+				"raw": ";",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": ";",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 1,
+				"endIndex": 2,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/string/0001": {
+		"css": "\"foo\"\n'foo'\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"foo\"",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "\"foo\"",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'foo'",
+				"startIndex": 6,
+				"endIndex": 11,
+				"normalized": "'foo'",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 11,
+				"endIndex": 12,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/string/0002": {
+		"css": "\"foo",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"foo",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "\"foo",
+				"value": "foo"
+			}
+		]
+	},
+	"tests/string/0003": {
+		"css": "\"fo\no\"",
+		"tokens": [
+			{
+				"type": "bad-string-token",
+				"raw": "\"fo",
+				"startIndex": 0,
+				"endIndex": 3,
+				"normalized": "\"fo",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "o",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "o",
+				"value": "o"
+			},
+			{
+				"type": "string-token",
+				"raw": "\"",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\"",
+				"value": ""
+			}
+		]
+	},
+	"tests/string/0004": {
+		"css": "\"fo\\\no\"\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"fo\\\no\"",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "\"foo\"",
+				"value": "foo"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/string/0005": {
+		"css": "\"fo\\",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"fo\\",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "\"fo",
+				"value": "fo"
+			}
+		]
+	},
+	"tests/string/0006": {
+		"css": "\"esc\\61 ped\"\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"esc\\61 ped\"",
+				"startIndex": 0,
+				"endIndex": 12,
+				"normalized": "\"escaped\"",
+				"value": "escaped"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 12,
+				"endIndex": 13,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/string/0007": {
+		"css": "\"foo\\\"",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"foo\\\"",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "\"foo\"",
+				"value": "foo\""
+			}
+		]
+	},
+	"tests/string/0008": {
+		"css": "\"'foo'\"\n'\"foo\"'\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"'foo'\"",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "\"'foo'\"",
+				"value": "'foo'"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'\"foo\"'",
+				"startIndex": 8,
+				"endIndex": 15,
+				"normalized": "'\"foo\"'",
+				"value": "\"foo\""
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 15,
+				"endIndex": 16,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/string/0009": {
+		"css": "\"\\\"foo\\\"\"\n'\\'foo\\''\n",
+		"tokens": [
+			{
+				"type": "string-token",
+				"raw": "\"\\\"foo\\\"\"",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "\"\"foo\"\"",
+				"value": "\"foo\""
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			},
+			{
+				"type": "string-token",
+				"raw": "'\\'foo\\''",
+				"startIndex": 10,
+				"endIndex": 19,
+				"normalized": "''foo''",
+				"value": "'foo'"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 19,
+				"endIndex": 20,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0001": {
+		"css": "url(\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(\n",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "url(\n",
+				"value": ""
+			}
+		]
+	},
+	"tests/url/0002": {
+		"css": "url(a\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(a\n",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "url(a\n",
+				"value": "a"
+			}
+		]
+	},
+	"tests/url/0003": {
+		"css": "url( a\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( a\n",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "url( a\n",
+				"value": "a"
+			}
+		]
+	},
+	"tests/url/0004": {
+		"css": "url()\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url()",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "url()",
+				"value": ""
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0005": {
+		"css": "url( )\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( )",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "url( )",
+				"value": ""
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0006": {
+		"css": "url( a)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( a)",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "url( a)",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0007": {
+		"css": "url( a )\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( a )",
+				"startIndex": 0,
+				"endIndex": 8,
+				"normalized": "url( a )",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 8,
+				"endIndex": 9,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0008": {
+		"css": "url( \\) )\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url( \\) )",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "url( ) )",
+				"value": ")"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0009": {
+		"css": "url(https://https:⁄⁄www.netmeister.org@https://www.netmeister.org/https:⁄⁄www.netmeister.org⁄?https://www.netmeister.org=https://www.netmeister.org;https://www.netmeister.org#https://www.netmeister.org)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(https://https:⁄⁄www.netmeister.org@https://www.netmeister.org/https:⁄⁄www.netmeister.org⁄?https://www.netmeister.org=https://www.netmeister.org;https://www.netmeister.org#https://www.netmeister.org)",
+				"startIndex": 0,
+				"endIndex": 212,
+				"normalized": "url(https://https:⁄⁄www.netmeister.org@https://www.netmeister.org/https:⁄⁄www.netmeister.org⁄?https://www.netmeister.org=https://www.netmeister.org;https://www.netmeister.org#https://www.netmeister.org)",
+				"value": "https://https:⁄⁄www.netmeister.org@https://www.netmeister.org/https:⁄⁄www.netmeister.org⁄?https://www.netmeister.org=https://www.netmeister.org;https://www.netmeister.org#https://www.netmeister.org"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 212,
+				"endIndex": 213,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0010": {
+		"css": "url(https://www.netmeister.org/%62%6C%6F%67/%75%72%6C%73%2E%68%74%6D%6C?!@#$%25=+_\\)\\(*&^#top)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "url(https://www.netmeister.org/%62%6C%6F%67/%75%72%6C%73%2E%68%74%6D%6C?!@#$%25=+_\\)\\(*&^#top)",
+				"startIndex": 0,
+				"endIndex": 94,
+				"normalized": "url(https://www.netmeister.org/%62%6C%6F%67/%75%72%6C%73%2E%68%74%6D%6C?!@#$%25=+_)(*&^#top)",
+				"value": "https://www.netmeister.org/%62%6C%6F%67/%75%72%6C%73%2E%68%74%6D%6C?!@#$%25=+_)(*&^#top"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 94,
+				"endIndex": 95,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0011": {
+		"css": "Url(a)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "Url(a)",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "Url(a)",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0012": {
+		"css": "uRl(a)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "uRl(a)",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "uRl(a)",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0013": {
+		"css": "urL(a)\n",
+		"tokens": [
+			{
+				"type": "url-token",
+				"raw": "urL(a)",
+				"startIndex": 0,
+				"endIndex": 6,
+				"normalized": "urL(a)",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0014": {
+		"css": "uri(a)\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "uri(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "uri(",
+				"value": "uri"
+			},
+			{
+				"type": "ident-token",
+				"raw": "a",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/url/0015": {
+		"css": "uul(a)\n",
+		"tokens": [
+			{
+				"type": "function-token",
+				"raw": "uul(",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "uul(",
+				"value": "uul"
+			},
+			{
+				"type": "ident-token",
+				"raw": "a",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": ")-token",
+				"raw": ")",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": ")",
+				"value": null
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0001": {
+		"css": "\n",
+		"tokens": [
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0002": {
+		"css": " \n",
+		"tokens": [
+			{
+				"type": "whitespace-token",
+				"raw": " \n",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": " \n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0003": {
+		"css": "a  b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "a",
+				"startIndex": 0,
+				"endIndex": 1,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "  ",
+				"startIndex": 1,
+				"endIndex": 3,
+				"normalized": "  ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "b",
+				"startIndex": 3,
+				"endIndex": 4,
+				"normalized": "b",
+				"value": "b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0004": {
+		"css": "\\61 b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\61 b",
+				"startIndex": 0,
+				"endIndex": 5,
+				"normalized": "ab",
+				"value": "ab"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0005": {
+		"css": "\\000061 b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\000061 b",
+				"startIndex": 0,
+				"endIndex": 9,
+				"normalized": "ab",
+				"value": "ab"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 9,
+				"endIndex": 10,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0006": {
+		"css": "\\61  b\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "\\61 ",
+				"startIndex": 0,
+				"endIndex": 4,
+				"normalized": "a",
+				"value": "a"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": " ",
+				"startIndex": 4,
+				"endIndex": 5,
+				"normalized": " ",
+				"value": null
+			},
+			{
+				"type": "ident-token",
+				"raw": "b",
+				"startIndex": 5,
+				"endIndex": 6,
+				"normalized": "b",
+				"value": "b"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 6,
+				"endIndex": 7,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0007": {
+		"css": "\t\n",
+		"tokens": [
+			{
+				"type": "whitespace-token",
+				"raw": "\t\n",
+				"startIndex": 0,
+				"endIndex": 2,
+				"normalized": "\t\n",
+				"value": null
+			}
+		]
+	},
+	"tests/whitespace/0008": {
+		"css": "f\\ o\\\to\n",
+		"tokens": [
+			{
+				"type": "ident-token",
+				"raw": "f\\ o\\\to",
+				"startIndex": 0,
+				"endIndex": 7,
+				"normalized": "f o\to",
+				"value": "f o\to"
+			},
+			{
+				"type": "whitespace-token",
+				"raw": "\n",
+				"startIndex": 7,
+				"endIndex": 8,
+				"normalized": "\n",
+				"value": null
+			}
+		]
+	}
+}
