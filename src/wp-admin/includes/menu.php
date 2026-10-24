@@ -395,7 +395,15 @@ if ( ! wp_admin_page_exists() ) {
 	 */
 	do_action( 'admin_page_access_denied' );
 
-	wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
+	wp_die(
+		__( 'Sorry, you are not allowed to access this page.' ),
+		__( 'You need a higher level of permission.' ),
+		array(
+			'response'  => 403,
+			'link_url'  => admin_url(),
+			'link_text' => __( 'Go to Dashboard' ),
+		)
+	);
 }
 
 $menu = add_menu_classes( $menu );
