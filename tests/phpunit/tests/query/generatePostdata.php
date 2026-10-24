@@ -53,8 +53,16 @@ class Tests_Query_GeneratePostdata extends WP_UnitTestCase {
 		$data = generate_postdata( $p );
 
 		$this->assertNotEmpty( $data['authordata'] );
+
+		// As of #58001, 'authordata' is populated via get_authordata(), a short-init WP_User
+		// that doesn't eagerly load capability/role data (unlike get_userdata()). Compare
+		// display data directly, and confirm capability data still loads correctly on demand.
+		$this->assertSame( $u->ID, $data['authordata']->ID );
+		$this->assertSame( $u->user_login, $data['authordata']->user_login );
+		$this->assertSame( $u->display_name, $data['authordata']->display_name );
 		// Keep assertEquals() because the objects are intentionally compared by value.
-		$this->assertEquals( $u, $data['authordata'] );
+		$this->assertEquals( get_authordata( $u->ID ), $data['authordata'] );
+		$this->assertSame( $u->has_cap( 'read' ), $data['authordata']->has_cap( 'read' ) );
 	}
 
 	/**

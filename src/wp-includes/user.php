@@ -2029,6 +2029,38 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 }
 
 /**
+ * Retrieves user info by user ID, without loading capability or role data.
+ *
+ * This is a lighter-weight alternative to get_userdata() for contexts that only need
+ * display data (name, avatar, bio, etc.) and never check the user's capabilities or
+ * roles, such as author archives and the `$authordata` global set up in the Loop.
+ *
+ * Capability and role data (`$caps`, `$roles`, `$allcaps`) is not queried until it is
+ * actually needed: calling `has_cap()`, `get_role_caps()`, or any of the role/capability
+ * mutator methods on the returned WP_User will transparently load it at that point.
+ * Reading the `->caps`, `->roles`, or `->allcaps` properties directly, without going
+ * through one of those methods first, will see an empty array rather than triggering
+ * a load — use get_userdata() instead if that is required.
+ *
+ * @since 7.2.0
+ *
+ * @param int $user_id User ID.
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_authordata( $user_id ) {
+	$userdata = WP_User::get_data_by( 'id', $user_id );
+
+	if ( ! $userdata ) {
+		return false;
+	}
+
+	$user = new WP_User();
+	$user->init( $userdata, 0, true );
+
+	return $user;
+}
+
+/**
  * Updates all user caches.
  *
  * @since 3.0.0
