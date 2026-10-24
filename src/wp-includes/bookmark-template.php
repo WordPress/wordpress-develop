@@ -105,7 +105,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		$target = $bookmark->link_target;
 		if ( '' !== $target ) {
-			$target = ' target="' . $target . '"';
+			$target = ' target="' . esc_attr( $target ) . '"';
 		}
 
 		if ( '' !== $rel ) {
@@ -118,9 +118,9 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 
 		if ( '' !== $bookmark->link_image && $parsed_args['show_images'] ) {
 			if ( str_starts_with( $bookmark->link_image, 'http' ) ) {
-				$output .= '<img src="' . $bookmark->link_image . '"' . $alt . $title . ' />';
+				$output .= '<img src="' . esc_url( $bookmark->link_image ) . '"' . $alt . $title . ' />';
 			} else { // If it's a relative path.
-				$output .= '<img src="' . get_option( 'siteurl' ) . $bookmark->link_image . '"' . $alt . $title . ' />';
+				$output .= '<img src="' . esc_url( get_option( 'siteurl' ) . $bookmark->link_image ) . '"' . $alt . $title . ' />';
 			}
 			if ( $parsed_args['show_name'] ) {
 				$output .= " $name";
