@@ -94,6 +94,126 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests that a preset whose slug is not kebab-case is rendered with a matching
+	 * filter ID, CSS custom property, and block CSS declaration.
+	 *
+	 * @ticket 66285
+	 *
+	 * @covers ::render_duotone_support
+	 * @covers ::get_global_styles_presets
+	 *
+	 * @dataProvider data_render_duotone_support_preset_with_non_kebab_case_slug
+	 *
+	 * @param string $preset_slug  The slug of the preset as registered in theme.json.
+	 * @param string $duotone_attr The duotone attribute of the block.
+	 * @param string $kebab_slug   The expected kebab-cased slug.
+	 */
+	public function test_render_duotone_support_preset_with_non_kebab_case_slug( $preset_slug, $duotone_attr, $kebab_slug ) {
+		add_filter(
+			'wp_theme_json_data_theme',
+			static function ( $theme_json ) use ( $preset_slug ) {
+				return $theme_json->update_with(
+					array(
+						'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+						'settings' => array(
+							'color' => array(
+								'duotone' => array(
+									array(
+										'slug'   => $preset_slug,
+										'name'   => 'Test preset',
+										'colors' => array( '#000000', '#ffffff' ),
+									),
+								),
+							),
+						),
+					)
+				);
+			}
+		);
+
+		$this->set_duotone_static_property( 'global_styles_presets', null );
+		$this->set_duotone_static_property( 'used_global_styles_presets', array() );
+		$this->set_duotone_static_property( 'block_css_declarations', array() );
+		wp_clean_theme_json_cache();
+
+		$block         = array(
+			'blockName' => 'core/image',
+			'attrs'     => array( 'style' => array( 'color' => array( 'duotone' => $duotone_attr ) ) ),
+		);
+		$wp_block      = new WP_Block( $block );
+		$block_content = '<figure class="wp-block-image size-full"><img src="/my-image.jpg" /></figure>';
+		$actual        = WP_Duotone::render_duotone_support( $block_content, $block, $wp_block );
+
+		$used_presets_property = new ReflectionProperty( 'WP_Duotone', 'used_global_styles_presets' );
+		$declarations_property = new ReflectionProperty( 'WP_Duotone', 'block_css_declarations' );
+		$presets_css_method    = new ReflectionMethod( 'WP_Duotone', 'get_global_styles_presets' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$used_presets_property->setAccessible( true );
+			$declarations_property->setAccessible( true );
+			$presets_css_method->setAccessible( true );
+		}
+
+		$used_presets = $used_presets_property->getValue();
+		$declarations = $declarations_property->getValue();
+		$presets_css  = $presets_css_method->invoke( null, $used_presets );
+
+		// Reset the static properties so that other tests are not affected.
+		$this->set_duotone_static_property( 'global_styles_presets', null );
+		$this->set_duotone_static_property( 'used_global_styles_presets', array() );
+		$this->set_duotone_static_property( 'block_css_declarations', array() );
+		wp_clean_theme_json_cache();
+
+		$this->assertSame(
+			'<figure class="wp-block-image size-full wp-duotone-' . $kebab_slug . '"><img src="/my-image.jpg" /></figure>',
+			$actual,
+			'The block should have the class name of the preset filter.'
+		);
+		$this->assertArrayHasKey( 'wp-duotone-' . $kebab_slug, $used_presets, 'The preset should be marked as used.' );
+		$this->assertCount( 1, $declarations, 'A single block CSS declaration should be generated.' );
+		$this->assertSame(
+			array( 'filter' => 'var(--wp--preset--duotone--' . $kebab_slug . ')' ),
+			$declarations[0]['declarations'],
+			'The block CSS should reference the CSS custom property of the preset.'
+		);
+		$this->assertStringContainsString(
+			'--wp--preset--duotone--' . $kebab_slug . ':url(#wp-duotone-' . $kebab_slug . ');',
+			$presets_css,
+			'The CSS custom property referenced by the block CSS should be defined.'
+		);
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_render_duotone_support_preset_with_non_kebab_case_slug() {
+		return array(
+			'camelCase slug, pipe reference'       => array( 'testCamelCase', 'var:preset|duotone|testCamelCase', 'test-camel-case' ),
+			'camelCase slug, CSS var reference'    => array( 'testCamelCase', 'var(--wp--preset--duotone--test-camel-case)', 'test-camel-case' ),
+			'trailing number slug, pipe reference' => array( 'testpreset1', 'var:preset|duotone|testpreset1', 'testpreset-1' ),
+			'kebab-case slug, pipe reference'      => array( 'test-kebab-case', 'var:preset|duotone|test-kebab-case', 'test-kebab-case' ),
+		);
+	}
+
+	/**
+	 * Sets a static property of the WP_Duotone class.
+	 *
+	 * WP_Duotone is a static class by design, but as of PHP 8.3,
+	 * ReflectionProperty::setValue() needs an object.
+	 *
+	 * @param string $name  The name of the property.
+	 * @param mixed  $value The value to set.
+	 */
+	private function set_duotone_static_property( $name, $value ) {
+		$property = new ReflectionProperty( 'WP_Duotone', $name );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$property->setAccessible( true );
+		}
+		$property->setValue( new WP_Duotone(), $value );
+	}
+
+	/**
 	 * @ticket 65576
 	 *
 	 * @covers ::restore_image_outer_container
@@ -132,7 +252,10 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		return array(
 			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', 'blue-orange' ),
 			'css-var'                         => array( 'var(--wp--preset--duotone--blue-orange)', 'blue-orange' ),
-			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', '.' ),
+			'pipe-slug-camel-case'            => array( 'var:preset|duotone|blueOrange', 'blue-orange' ),
+			'css-var-camel-case'              => array( 'var(--wp--preset--duotone--blueOrange)', 'blue-orange' ),
+			'pipe-slug-trailing-number'       => array( 'var:preset|duotone|duotone1', 'duotone-1' ),
+			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', '' ),
 			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', '' ),
 			'invalid'                         => array( 'not a valid attribute', '' ),
 			'css-var-no-value'                => array( 'var(--wp--preset--duotone--)', '' ),
@@ -209,6 +332,7 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 		return array(
 			'pipe-slug'                       => array( 'var:preset|duotone|blue-orange', true ),
 			'css-var'                         => array( 'var(--wp--preset--duotone--blue-orange)', true ),
+			'pipe-slug-camel-case'            => array( 'var:preset|duotone|blueOrange', true ),
 			'css-var-invalid-slug-chars'      => array( 'var(--wp--preset--duotone--.)', false ),
 			'css-var-missing-end-parenthesis' => array( 'var(--wp--preset--duotone--blue-orange', false ),
 			'invalid'                         => array( 'not a valid attribute', false ),
