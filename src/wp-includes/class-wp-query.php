@@ -4598,7 +4598,7 @@ class WP_Query {
 			return true;
 		} else {
 			foreach ( $page as $pagepath ) {
-				if ( ! strpos( $pagepath, '/' ) ) {
+				if ( ! str_contains( $pagepath, '/' ) ) {
 					continue;
 				}
 
@@ -4733,7 +4733,7 @@ class WP_Query {
 			return true;
 		} else {
 			foreach ( $post as $postpath ) {
-				if ( ! strpos( $postpath, '/' ) ) {
+				if ( ! str_contains( $postpath, '/' ) ) {
 					continue;
 				}
 
