@@ -40,7 +40,7 @@ class Mock_Store implements WP_Secrets_Store {
 
 		$key = $this->key( $name, $network );
 
-		return array_key_exists( $key, $this->records ) ? $this->records[ $key ] : null;
+		return $this->records[ $key ] ?? null;
 	}
 
 	public function set( string $name, array $record, bool $network = false ) {
@@ -74,7 +74,7 @@ class Mock_Store implements WP_Secrets_Store {
 		$names  = array();
 
 		foreach ( array_keys( $this->records ) as $key ) {
-			if ( 0 === strpos( $key, $prefix ) ) {
+			if ( str_starts_with( $key, $prefix ) ) {
 				$names[] = substr( $key, strlen( $prefix ) );
 			}
 		}
