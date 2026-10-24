@@ -48,6 +48,13 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	private $attachments_created = false;
 
 	/**
+	 * Original stylesheet before the test switches themes.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	/**
 	 * Theme support state before the class tests run.
 	 *
 	 * @var array
@@ -71,6 +78,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$this->manager = $this->instantiate();
 	}
@@ -91,6 +99,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 
 		// Undo enabling revisions for changesets, since post type supports are not reset between tests.
 		remove_post_type_support( 'customize_changeset', 'revisions' );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
 
 		parent::tear_down();
 	}
