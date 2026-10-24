@@ -1110,4 +1110,43 @@ class Tests_Kses_WpKsesHair extends WP_UnitTestCase {
 
 		$this->assertSame( $expected, $result );
 	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_srcset_is_sanitized_for_image_elements
+	 * @covers wp_kses_hair
+	 *
+	 * @param string $element  Element passed to wp_kses_hair().
+	 * @param string $expected Expected srcset value.
+	 */
+	public function test_srcset_is_sanitized_for_image_elements( string $element, string $expected ) {
+		$result = wp_kses_hair( 'srcset="a.jpg 1x, javascript:alert(1) 2x"', $this->allowed_protocols, $element );
+
+		$this->assertSame( $expected, $result['srcset']['value'] );
+		$this->assertSame( "srcset=\"{$expected}\"", $result['srcset']['whole'] );
+	}
+
+	/**
+	 * @return array<string, array{string, string}>
+	 */
+	public function data_srcset_is_sanitized_for_image_elements() {
+		return array(
+			'img'               => array( 'img', 'a.jpg 1x' ),
+			'source'            => array( 'source', 'a.jpg 1x' ),
+			'uppercase element' => array( 'IMG', 'a.jpg 1x' ),
+			'unknown element'   => array( '', 'a.jpg 1x' ),
+			'other element'     => array( 'span', 'a.jpg 1x, javascript:alert(1) 2x' ),
+		);
+	}
+
+	/**
+	 * @ticket 29807
+	 * @covers wp_kses_hair
+	 */
+	public function test_single_url_attributes_are_sanitized_regardless_of_element() {
+		$result = wp_kses_hair( 'href="javascript:alert(1)"', $this->allowed_protocols, 'span' );
+
+		$this->assertSame( 'alert(1)', $result['href']['value'] );
+	}
 }

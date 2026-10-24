@@ -226,17 +226,21 @@ if ( ! CUSTOM_TAGS ) {
 		),
 		'i'          => array(),
 		'img'        => array(
-			'alt'      => true,
-			'align'    => true,
-			'border'   => true,
-			'height'   => true,
-			'hspace'   => true,
-			'loading'  => true,
-			'longdesc' => true,
-			'vspace'   => true,
-			'src'      => true,
-			'usemap'   => true,
-			'width'    => true,
+			'align'         => true,
+			'alt'           => true,
+			'border'        => true,
+			'decoding'      => true,
+			'fetchpriority' => true,
+			'height'        => true,
+			'hspace'        => true,
+			'loading'       => true,
+			'longdesc'      => true,
+			'sizes'         => true,
+			'src'           => true,
+			'srcset'        => true,
+			'usemap'        => true,
+			'vspace'        => true,
+			'width'         => true,
 		),
 		'ins'        => array(
 			'datetime' => true,
@@ -287,6 +291,7 @@ if ( ! CUSTOM_TAGS ) {
 		'p'          => array(
 			'align' => true,
 		),
+		'picture'    => array(),
 		'pre'        => array(
 			'width' => true,
 		),
@@ -312,6 +317,15 @@ if ( ! CUSTOM_TAGS ) {
 			'align' => true,
 		),
 		'small'      => array(),
+		'source'     => array(
+			'height' => true,
+			'media'  => true,
+			'sizes'  => true,
+			'src'    => true,
+			'srcset' => true,
+			'type'   => true,
+			'width'  => true,
+		),
 		'strike'     => array(),
 		'strong'     => array(),
 		'sub'        => array(),
@@ -1874,10 +1888,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									}
 								}
 
-								$is_url_ish = in_array( strtolower( $name ), $this->uri_attributes, true );
-								if ( $is_url_ish ) {
-									$value = wp_kses_bad_protocol( $value, $this->allowed_protocols );
-								}
+								$value = _wp_kses_sanitize_url_attribute( $tag_name, strtolower( $name ), $value, $this->allowed_protocols, $this->uri_attributes );
 
 								/*
 								 * Process the remaining attributes according to their policies.
@@ -2093,9 +2104,14 @@ function wp_kses_one_attr( $attr, $element ) {
 		// Sanitize quotes, angle braces, and entities.
 		$value = esc_attr( $value );
 
-		// Sanitize URI values.
-		if ( in_array( strtolower( $name ), $uris, true ) ) {
-			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
+		/*
+		 * Sanitize URL values. The value is already escaped, so it is decoded
+		 * for sanitization and re-encoded only when sanitization changed it.
+		 */
+		$decoded   = WP_HTML_Decoder::decode_attribute( $value );
+		$sanitized = _wp_kses_sanitize_url_attribute( strtolower( $element ), strtolower( $name ), $decoded, $allowed_protocols, $uris );
+		if ( $sanitized !== $decoded ) {
+			$value = _wp_specialchars( $sanitized, ENT_QUOTES, false, true );
 		}
 
 		$attr  = "$name=$quote$value$quote";
@@ -2416,6 +2432,50 @@ function wp_kses_uri_attributes() {
 }
 
 /**
+ * Sanitizes the value of an attribute that a browser reads as a URL or a list of URLs.
+ *
+ * Most URL attributes hold a single URL and are listed by {@see wp_kses_uri_attributes()}.
+ * A few hold a list whose syntax depends on the element they appear on: `srcset` on
+ * `img` and `source`, and `imagesrcset` on `link`, hold a comma-separated list of
+ * image candidate strings and are handled by {@see wp_kses_sanitize_srcset()}. On any
+ * other element a browser ignores those attributes, so they are left alone.
+ *
+ * Takes and returns decoded attribute text.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string   $element           Lowercase element name, or an empty string when unknown.
+ * @param string   $attribute         Lowercase attribute name.
+ * @param string   $value             Decoded attribute value.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @param string[] $uri_attributes    Names of attributes holding a single URL,
+ *                                    as returned by wp_kses_uri_attributes().
+ * @return string Sanitized value.
+ */
+function _wp_kses_sanitize_url_attribute( string $element, string $attribute, string $value, array $allowed_protocols, array $uri_attributes ): string {
+	switch ( $attribute ) {
+		case 'srcset':
+			if ( '' === $element || 'img' === $element || 'source' === $element ) {
+				return wp_kses_sanitize_srcset( $value, $allowed_protocols );
+			}
+			break;
+
+		case 'imagesrcset':
+			if ( '' === $element || 'link' === $element ) {
+				return wp_kses_sanitize_srcset( $value, $allowed_protocols );
+			}
+			break;
+	}
+
+	if ( in_array( $attribute, $uri_attributes, true ) ) {
+		return wp_kses_bad_protocol( $value, $allowed_protocols );
+	}
+
+	return $value;
+}
+
+/**
  * Callback for `wp_kses_split()`.
  *
  * @since 3.1.0
@@ -2604,7 +2664,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	}
 
 	// Split it.
-	$attrarr = wp_kses_hair( $attr, $allowed_protocols );
+	$attrarr = wp_kses_hair( $attr, $allowed_protocols, $element );
 
 	// Check if there are attributes that are required.
 	$required_attrs = array_filter(
@@ -2746,7 +2806,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  * This function performs a number of transformations while parsing attribute strings:
  *  - It normalizes attribute values and surrounds them with double quotes.
  *  - It normalizes HTML character references inside attribute values.
- *  - It removes “bad” URL protocols from attribute values.
+ *  - It removes “bad” URL protocols from attribute values, including each URL in a `srcset`.
  *
  * Otherwise this reads the attributes as if they were part of an HTML tag. It performs
  * these transformations to lower the risk of mis-parsing down the line and to perform
@@ -2767,14 +2827,18 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  *
  * @since 1.0.0
  * @since 7.0.0 Reliably parses HTML via the HTML API.
+ * @since 7.2.0 Added the optional `$element` parameter.
  *
  * @param string   $attr              Attribute list from HTML element to closing HTML element tag.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @param string   $element           Optional. Name of the element the attributes belong to, which
+ *                                    decides how URL attributes such as `srcset` are read. Default ''.
  * @return array<string, array{name: string, value: string, whole: string, vless: 'y'|'n'}> Array of attribute information after parsing.
  */
-function wp_kses_hair( $attr, $allowed_protocols ) {
+function wp_kses_hair( $attr, $allowed_protocols, $element = '' ) {
 	$attributes = array();
 	$uris       = wp_kses_uri_attributes();
+	$element    = strtolower( (string) $element );
 
 	$processor = new WP_HTML_Tag_Processor( "<wp {$attr}>" );
 	$processor->next_token();
@@ -2795,8 +2859,8 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	foreach ( $attribute_names as $name ) {
 		$value   = $processor->get_attribute( $name );
 		$is_bool = true === $value;
-		if ( is_string( $value ) && in_array( $name, $uris, true ) ) {
-			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
+		if ( is_string( $value ) ) {
+			$value = _wp_kses_sanitize_url_attribute( $element, $name, $value, $allowed_protocols, $uris );
 		}
 
 		// Reconstruct and normalize the attribute value.
@@ -3198,6 +3262,97 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
 	} else {
 		return '';
 	}
+}
+
+/**
+ * Removes image candidates with a disallowed URL protocol from a `srcset` value.
+ *
+ * A `srcset` attribute holds a comma-separated list of image candidate strings,
+ * each a URL optionally followed by whitespace and width or density descriptors,
+ * for example `small.jpg 480w, large.jpg 1024w`. The value is split into candidates
+ * following the HTML specification's srcset parsing algorithm, so a comma only
+ * separates candidates when it ends a URL or its descriptors; a comma inside a URL,
+ * as produced by image CDN resizers, belongs to the URL.
+ *
+ * Each URL is checked with {@see wp_kses_bad_protocol()}. A candidate whose URL that
+ * check would change is removed in full, descriptors included, because stripping a
+ * scheme and keeping the rest would rewrite the URL rather than remove it, and
+ * descriptors left behind would be read as the next candidate's URL. As in
+ * {@see esc_url()}, a URL starting with `/` cannot carry a scheme and is kept as is.
+ *
+ * The value must be decoded attribute text, as returned by
+ * {@see WP_HTML_Tag_Processor::get_attribute()}, not raw HTML containing character
+ * references. The returned value is decoded text too; callers writing it back into
+ * HTML must escape it. When every candidate is allowed, the input is returned
+ * unchanged. Otherwise the remaining candidates are rejoined with `, `.
+ *
+ * @since 7.2.0
+ *
+ * @link https://html.spec.whatwg.org/multipage/images.html#parsing-a-srcset-attribute
+ *
+ * @param string   $srcset            Decoded `srcset` attribute value.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @return string The value without candidates whose URL uses a disallowed protocol.
+ */
+function wp_kses_sanitize_srcset( string $srcset, array $allowed_protocols ): string {
+	$whitespace = " \t\f\r\n";
+	$length     = strlen( $srcset );
+	$at         = 0;
+	$result     = '';
+
+	/*
+	 * Candidates are only copied once one has to be removed. Until then the
+	 * scan allocates nothing but the URLs it checks, and an all-allowed value
+	 * is returned as the very string that was passed in.
+	 *
+	 * On the first removal the scan restarts to rebuild the output; candidates
+	 * before `$checked_until` passed their check in the first pass and are not
+	 * checked again.
+	 */
+	$rebuild       = false;
+	$checked_until = 0;
+
+	while ( $at < $length ) {
+		$at += strspn( $srcset, "{$whitespace},", $at );
+		if ( $at >= $length ) {
+			break;
+		}
+
+		// The URL is the run of non-whitespace characters, less any commas ending it.
+		$candidate_at = $at;
+		$url_length   = strcspn( $srcset, $whitespace, $at );
+		$url          = rtrim( substr( $srcset, $at, $url_length ), ',' );
+		$at          += $url_length;
+
+		// A URL ended by a comma has no descriptors; otherwise they run to the next comma.
+		if ( strlen( $url ) === $url_length ) {
+			$at              += strcspn( $srcset, ',', $at );
+			$candidate_length = $at - $candidate_at;
+		} else {
+			$candidate_length = strlen( $url );
+		}
+
+		if ( $rebuild && $candidate_at < $checked_until ) {
+			$is_allowed = true;
+		} else {
+			$is_allowed = '/' === $url[0] || 0 === strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url );
+		}
+
+		if ( $rebuild ) {
+			if ( $is_allowed ) {
+				$result .= ( '' === $result ? '' : ', ' ) . rtrim( substr( $srcset, $candidate_at, $candidate_length ), $whitespace );
+			}
+			continue;
+		}
+
+		if ( ! $is_allowed ) {
+			$rebuild       = true;
+			$checked_until = $candidate_at;
+			$at            = 0;
+		}
+	}
+
+	return $rebuild ? $result : $srcset;
 }
 
 /**
