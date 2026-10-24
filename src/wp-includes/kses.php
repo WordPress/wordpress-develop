@@ -1874,10 +1874,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 									}
 								}
 
-								$is_url_ish = in_array( strtolower( $name ), $this->uri_attributes, true );
-								if ( $is_url_ish ) {
-									$value = wp_kses_bad_protocol( $value, $this->allowed_protocols );
-								}
+								$value = _wp_kses_sanitize_url_attribute( $tag_name, strtolower( $name ), $value, $this->allowed_protocols, $this->uri_attributes );
 
 								/*
 								 * Process the remaining attributes according to their policies.
@@ -2093,9 +2090,14 @@ function wp_kses_one_attr( $attr, $element ) {
 		// Sanitize quotes, angle braces, and entities.
 		$value = esc_attr( $value );
 
-		// Sanitize URI values.
-		if ( in_array( strtolower( $name ), $uris, true ) ) {
-			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
+		/*
+		 * Sanitize URL values. The value is already escaped, so it is decoded
+		 * for sanitization and re-encoded only when sanitization changed it.
+		 */
+		$decoded   = WP_HTML_Decoder::decode_attribute( $value );
+		$sanitized = _wp_kses_sanitize_url_attribute( strtolower( $element ), strtolower( $name ), $decoded, $allowed_protocols, $uris );
+		if ( $sanitized !== $decoded ) {
+			$value = _wp_specialchars( $sanitized, ENT_QUOTES, false, true );
 		}
 
 		$attr  = "$name=$quote$value$quote";
@@ -2416,6 +2418,50 @@ function wp_kses_uri_attributes() {
 }
 
 /**
+ * Sanitizes the value of an attribute that a browser reads as a URL or a list of URLs.
+ *
+ * Most URL attributes hold a single URL and are listed by {@see wp_kses_uri_attributes()}.
+ * A few hold a list whose syntax depends on the element they appear on: `srcset` on
+ * `img` and `source`, and `imagesrcset` on `link`, hold a comma-separated list of
+ * image candidate strings and are handled by {@see wp_kses_sanitize_srcset()}. On any
+ * other element a browser ignores those attributes, so they are left alone.
+ *
+ * Takes and returns decoded attribute text.
+ *
+ * @since 7.2.0
+ * @access private
+ *
+ * @param string   $element           Lowercase element name, or an empty string when unknown.
+ * @param string   $attribute         Lowercase attribute name.
+ * @param string   $value             Decoded attribute value.
+ * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @param string[] $uri_attributes    Names of attributes holding a single URL,
+ *                                    as returned by wp_kses_uri_attributes().
+ * @return string Sanitized value.
+ */
+function _wp_kses_sanitize_url_attribute( string $element, string $attribute, string $value, array $allowed_protocols, array $uri_attributes ): string {
+	switch ( $attribute ) {
+		case 'srcset':
+			if ( '' === $element || 'img' === $element || 'source' === $element ) {
+				return wp_kses_sanitize_srcset( $value, $allowed_protocols );
+			}
+			break;
+
+		case 'imagesrcset':
+			if ( '' === $element || 'link' === $element ) {
+				return wp_kses_sanitize_srcset( $value, $allowed_protocols );
+			}
+			break;
+	}
+
+	if ( in_array( $attribute, $uri_attributes, true ) ) {
+		return wp_kses_bad_protocol( $value, $allowed_protocols );
+	}
+
+	return $value;
+}
+
+/**
  * Callback for `wp_kses_split()`.
  *
  * @since 3.1.0
@@ -2604,7 +2650,7 @@ function wp_kses_attr( $element, $attr, $allowed_html, $allowed_protocols ) {
 	}
 
 	// Split it.
-	$attrarr = wp_kses_hair( $attr, $allowed_protocols );
+	$attrarr = wp_kses_hair( $attr, $allowed_protocols, $element );
 
 	// Check if there are attributes that are required.
 	$required_attrs = array_filter(
@@ -2746,7 +2792,7 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  * This function performs a number of transformations while parsing attribute strings:
  *  - It normalizes attribute values and surrounds them with double quotes.
  *  - It normalizes HTML character references inside attribute values.
- *  - It removes “bad” URL protocols from attribute values.
+ *  - It removes “bad” URL protocols from attribute values, including each URL in a `srcset`.
  *
  * Otherwise this reads the attributes as if they were part of an HTML tag. It performs
  * these transformations to lower the risk of mis-parsing down the line and to perform
@@ -2767,14 +2813,18 @@ function wp_kses_attr_check( &$name, &$value, &$whole, $vless, $element, $allowe
  *
  * @since 1.0.0
  * @since 7.0.0 Reliably parses HTML via the HTML API.
+ * @since 7.2.0 Added the optional `$element` parameter.
  *
  * @param string   $attr              Attribute list from HTML element to closing HTML element tag.
  * @param string[] $allowed_protocols Array of allowed URL protocols.
+ * @param string   $element           Optional. Name of the element the attributes belong to, which
+ *                                    decides how URL attributes such as `srcset` are read. Default ''.
  * @return array<string, array{name: string, value: string, whole: string, vless: 'y'|'n'}> Array of attribute information after parsing.
  */
-function wp_kses_hair( $attr, $allowed_protocols ) {
+function wp_kses_hair( $attr, $allowed_protocols, $element = '' ) {
 	$attributes = array();
 	$uris       = wp_kses_uri_attributes();
+	$element    = strtolower( (string) $element );
 
 	$processor = new WP_HTML_Tag_Processor( "<wp {$attr}>" );
 	$processor->next_token();
@@ -2795,8 +2845,8 @@ function wp_kses_hair( $attr, $allowed_protocols ) {
 	foreach ( $attribute_names as $name ) {
 		$value   = $processor->get_attribute( $name );
 		$is_bool = true === $value;
-		if ( is_string( $value ) && in_array( $name, $uris, true ) ) {
-			$value = wp_kses_bad_protocol( $value, $allowed_protocols );
+		if ( is_string( $value ) ) {
+			$value = _wp_kses_sanitize_url_attribute( $element, $name, $value, $allowed_protocols, $uris );
 		}
 
 		// Reconstruct and normalize the attribute value.

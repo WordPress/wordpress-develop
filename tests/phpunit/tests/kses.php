@@ -2995,4 +2995,140 @@ HTML;
 			),
 		);
 	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_srcset_is_sanitized_by_element
+	 *
+	 * @param bool   $legacy_parser Whether to run the legacy parser instead of the HTML API one.
+	 * @param string $html          Input HTML.
+	 * @param string $expected      Expected output.
+	 */
+	public function test_srcset_is_sanitized_by_element( bool $legacy_parser, string $html, string $expected ) {
+		if ( $legacy_parser ) {
+			add_filter( 'wp_kses_force_legacy_parser', '__return_true' );
+		}
+
+		$allowed_html = array(
+			'img'    => array(
+				'src'    => true,
+				'srcset' => true,
+			),
+			'source' => array( 'srcset' => true ),
+			'link'   => array(
+				'rel'         => true,
+				'imagesrcset' => true,
+			),
+			'span'   => array( 'srcset' => true ),
+		);
+
+		$this->assertEqualHTML( $expected, wp_kses( $html, $allowed_html ) );
+	}
+
+	/**
+	 * Returns each case once per parser.
+	 *
+	 * @return array<string, array{bool, string, string}>
+	 */
+	public function data_srcset_is_sanitized_by_element() {
+		$cases = array(
+			'allowed candidates are kept'               => array(
+				'<img src="a.jpg" srcset="a.jpg 1x, https://example.com/b.jpg 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x, https://example.com/b.jpg 2x">',
+			),
+			'disallowed candidate is removed from img'  => array(
+				'<img src="a.jpg" srcset="a.jpg 1x, javascript:alert(1) 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x">',
+			),
+			'every candidate disallowed empties srcset' => array(
+				'<img src="a.jpg" srcset="javascript:alert(1) 1x, vbscript:msgbox(1) 2x">',
+				'<img src="a.jpg" srcset="">',
+			),
+			'character references are decoded first'    => array(
+				'<img src="a.jpg" srcset="a.jpg 1x,&#32;javascript:alert(1) 2x">',
+				'<img src="a.jpg" srcset="a.jpg 1x">',
+			),
+			'source srcset is sanitized'                => array(
+				'<source srcset="javascript:alert(1) 1x, a.webp 2x">',
+				'<source srcset="a.webp 2x">',
+			),
+			'link imagesrcset is sanitized'             => array(
+				'<link rel="preload" imagesrcset="a.jpg 1x, javascript:alert(1) 2x">',
+				'<link rel="preload" imagesrcset="a.jpg 1x">',
+			),
+			// Browsers do not read srcset on other elements, so the value is not parsed as one.
+			'srcset on another element is left alone'   => array(
+				'<span srcset="javascript:alert(1) 1x">text</span>',
+				'<span srcset="javascript:alert(1) 1x">text</span>',
+			),
+			'src is still sanitized as a single URL'    => array(
+				'<img src="javascript:alert(1)" srcset="a.jpg 1x">',
+				'<img src="alert(1)" srcset="a.jpg 1x">',
+			),
+		);
+
+		$data = array();
+		foreach ( $cases as $name => $case ) {
+			$data[ "{$name} (HTML API parser)" ] = array( false, ...$case );
+			$data[ "{$name} (legacy parser)" ]   = array( true, ...$case );
+		}
+
+		return $data;
+	}
+
+	/**
+	 * @ticket 29807
+	 *
+	 * @dataProvider data_one_attr_sanitizes_srcset
+	 *
+	 * @param string $element  Element the attribute belongs to.
+	 * @param string $input    Attribute as written.
+	 * @param string $expected Filtered attribute.
+	 */
+	public function test_one_attr_sanitizes_srcset( string $element, string $input, string $expected ) {
+		add_filter(
+			'wp_kses_allowed_html',
+			static function ( $tags ) {
+				$tags['img']['srcset']  = true;
+				$tags['span']['srcset'] = true;
+				return $tags;
+			}
+		);
+
+		$this->assertSame( $expected, wp_kses_one_attr( $input, $element ) );
+	}
+
+	/**
+	 * @return array<string, array{string, string, string}>
+	 */
+	public function data_one_attr_sanitizes_srcset() {
+		return array(
+			'allowed candidates are kept'             => array(
+				'img',
+				'srcset="a.jpg 1x, b.jpg 2x"',
+				'srcset="a.jpg 1x, b.jpg 2x"',
+			),
+			'disallowed candidate is removed'         => array(
+				'img',
+				'srcset="a.jpg 1x, javascript:alert(1) 2x"',
+				'srcset="a.jpg 1x"',
+			),
+			'character references are decoded first'  => array(
+				'img',
+				'srcset="a.jpg 1x,&#32;javascript:alert(1) 2x"',
+				'srcset="a.jpg 1x"',
+			),
+			'ampersand in a kept URL stays escaped'   => array(
+				'img',
+				'srcset="a.jpg?x=1&amp;y=2 1x, javascript:alert(1) 2x"',
+				'srcset="a.jpg?x=1&amp;y=2 1x"',
+			),
+			'srcset on another element is left alone' => array(
+				'span',
+				'srcset="javascript:alert(1) 1x"',
+				'srcset="javascript:alert(1) 1x"',
+			),
+		);
+	}
 }
