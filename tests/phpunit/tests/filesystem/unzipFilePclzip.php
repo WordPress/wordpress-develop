@@ -83,4 +83,19 @@ class Tests_Filesystem_UnzipFilePclzip extends WP_UnitTestCase {
 		$this->assertSame( 1, $filter->get_call_count(), 'The filter should be called once.' );
 		$this->assertSame( self::$test_data_dir . 'archive.zip', $filter->get_args()[0][1], 'The $file parameter should be correct.' );
 	}
+
+	/**
+	 * Tests that _unzip_file_pclzip() returns a translatable WP_Error instead of
+	 * fatal-erroring when the zlib extension is unavailable.
+	 *
+	 * @ticket 30963
+	 */
+	public function test_should_return_wp_error_when_zlib_extension_is_unavailable() {
+		add_filter( 'unzip_file_pclzip_zlib_available', '__return_false' );
+
+		$result = _unzip_file_pclzip( self::$test_data_dir . 'archive.zip', self::$test_data_dir . 'archive/' );
+
+		$this->assertWPError( $result, 'A WP_Error should be returned instead of a fatal error.' );
+		$this->assertSame( 'unzip_file_missing_zlib', $result->get_error_code(), 'The error code should identify the missing zlib extension.' );
+	}
 }
