@@ -322,10 +322,52 @@ class Tests_REST_WpRestFontCollectionsController extends WP_Test_REST_Controller
 	}
 
 	/**
-	 * @doesNotPerformAssertions
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Font_Collections_Controller::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
-		// Controller does not use test_prepare_item().
+		$collection = WP_Font_Library::get_instance()->get_font_collection( 'mock-col-slug' );
+		$controller = new WP_REST_Font_Collections_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/font-collections/mock-col-slug' );
+		$response   = $controller->prepare_item_for_response( $collection, $request );
+
+		$this->assertInstanceOf( WP_REST_Response::class, $response );
+		$this->assertSame( 200, $response->get_status() );
+
+		$data = $response->get_data();
+		$this->assertSame( 'mock-col-slug', $data['slug'] );
+		$this->assertSame( 'My collection', $data['name'] );
+		$this->assertIsArray( $data['font_families'] );
+		$this->assertSame( array(), $data['categories'] );
+
+		$links = $response->get_links();
+		$this->assertArrayHasKey( 'self', $links );
+		$this->assertSame( rest_url( 'wp/v2/font-collections/mock-col-slug' ), $links['self'][0]['href'] );
+		$this->assertArrayHasKey( 'collection', $links );
+		$this->assertSame( rest_url( 'wp/v2/font-collections' ), $links['collection'][0]['href'] );
+	}
+
+	/**
+	 * @ticket 40538
+	 *
+	 * @covers WP_REST_Font_Collections_Controller::prepare_item_for_response
+	 */
+	public function test_prepare_item_limit_fields() {
+		$collection = WP_Font_Library::get_instance()->get_font_collection( 'mock-col-slug' );
+		$controller = new WP_REST_Font_Collections_Controller();
+		$request    = new WP_REST_Request( 'GET', '/wp/v2/font-collections/mock-col-slug' );
+		$request->set_param( '_fields', 'slug,name' );
+
+		$response = $controller->prepare_item_for_response( $collection, $request );
+		$this->assertSame(
+			array(
+				'slug' => 'mock-col-slug',
+				'name' => 'My collection',
+			),
+			$response->get_data()
+		);
+		$this->assertEmpty( $response->get_links() );
 	}
 
 	public function test_get_item_schema() {
