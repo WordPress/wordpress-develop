@@ -3820,6 +3820,7 @@ function wp_enqueue_block_style( $block_name, $args ) {
  * @since 6.1.0
  * @since 6.2.0 Added File block styles.
  * @since 6.8.0 Moved stylesheet registration outside of this function.
+ * @since 7.3.0 Added Accordion Heading and Tab block styles.
  */
 function wp_enqueue_classic_theme_styles() {
 	if ( ! wp_theme_has_theme_json() ) {
