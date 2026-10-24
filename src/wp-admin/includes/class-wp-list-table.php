@@ -557,11 +557,27 @@ class WP_List_Table {
 		$this->screen->render_screen_reader_content( 'heading_views' );
 
 		echo "<ul class='subsubsub'>\n";
+		$this->print_views( $views );
+		echo '</ul>';
+	}
+
+	/**
+	 * Prints the `<li>` elements for the list of views.
+	 *
+	 * Split out from views() so subclasses that need to customize how
+	 * individual views are rendered (e.g. adding a class to some of them)
+	 * can override just this part, instead of the whole method.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param string[] $views An array of available list table views, as
+	 *                        returned by get_views() and already filtered.
+	 */
+	protected function print_views( $views ) {
 		foreach ( $views as $class => $view ) {
 			$views[ $class ] = "\t<li class='$class'>$view";
 		}
 		echo implode( " |</li>\n", $views ) . "</li>\n";
-		echo '</ul>';
 	}
 
 	/**
