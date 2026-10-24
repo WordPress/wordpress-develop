@@ -299,6 +299,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 
 		$this->assertTrue( current_theme_supports( 'editor-styles' ), 'The theme should support block editor styles.' );
 		$this->assertFalse( current_theme_supports( 'editor-style' ), 'The theme should not support classic editor styles.' );
+		$this->assertSame( array(), get_block_editor_theme_styles(), 'Block editor styles support should only load stylesheets if they are defined.' );
 	}
 
 	/**
