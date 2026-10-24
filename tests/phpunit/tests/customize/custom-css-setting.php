@@ -48,6 +48,15 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tear down the test class.
+	 */
+	public static function wpTearDownAfterClass() {
+		if ( is_multisite() ) {
+			revoke_super_admin( self::$user_id );
+		}
+	}
+
+	/**
 	 * Set up the test case.
 	 *
 	 * @see WP_UnitTestCase_Base::set_up()

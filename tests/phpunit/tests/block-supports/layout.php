@@ -33,11 +33,19 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	 */
 	private $original_stylesheet;
 
+	/**
+	 * Original value of the `theme_switched` option.
+	 *
+	 * @var mixed
+	 */
+	private $original_theme_switched;
+
 	public function set_up() {
 		parent::set_up();
-		$this->original_stylesheet = get_stylesheet();
-		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
+		$this->original_stylesheet     = get_stylesheet();
+		$this->original_theme_switched = get_option( 'theme_switched' );
+		$this->theme_root              = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir          = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -71,6 +79,18 @@ class Tests_Block_Supports_Layout extends WP_UnitTestCase {
 	public function tear_down() {
 		if ( get_stylesheet() !== $this->original_stylesheet ) {
 			switch_theme( $this->original_stylesheet );
+		}
+
+		/*
+		 * Restore `theme_switched`, set by every switch_theme() call, before the
+		 * rollback: the rollback does not reach a persistent object cache, and a
+		 * process-isolated test that follows would read the stale value while
+		 * bootstrapping, and commit the sidebars rebuilt by check_theme_switched().
+		 */
+		if ( false === $this->original_theme_switched ) {
+			delete_option( 'theme_switched' );
+		} else {
+			update_option( 'theme_switched', $this->original_theme_switched );
 		}
 
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
