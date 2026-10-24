@@ -82,12 +82,16 @@ abstract class WP_REST_Meta_Fields {
 		$response = array();
 
 		foreach ( $fields as $meta_key => $args ) {
-			if ( ! empty( $args['omit_if_not_exists'] ) && ! metadata_exists( $this->get_meta_type(), $object_id, $meta_key ) ) {
-				continue;
-			}
-
 			$name       = $args['name'];
-			$all_values = get_metadata( $this->get_meta_type(), $object_id, $meta_key, false );
+			$all_values = get_metadata_raw( $this->get_meta_type(), $object_id, $meta_key, false );
+
+			if ( null === $all_values ) {
+				if ( ! empty( $args['omit_if_not_exists'] ) ) {
+					continue;
+				}
+
+				$all_values = get_metadata_default( $this->get_meta_type(), $object_id, $meta_key, false );
+			}
 
 			if ( $args['single'] ) {
 				if ( empty( $all_values ) ) {
