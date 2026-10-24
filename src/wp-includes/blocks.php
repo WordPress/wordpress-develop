@@ -2837,6 +2837,9 @@ function build_query_vars_from_query_block( $block, $page ) {
 		}
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = get_option( 'sticky_posts' );
+			if ( ! is_array( $sticky ) ) {
+				$sticky = array();
+			}
 			if ( 'only' === $block->context['query']['sticky'] ) {
 				/*
 				 * Passing an empty array to post__in will return have_posts() as true (and all posts will be returned).
