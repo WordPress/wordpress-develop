@@ -19,6 +19,7 @@
  *
  * @since 2.8.0
  * @since 5.9.0 Added `'wp_template_part_area'` taxonomy.
+ * @since 7.2.0 Added `'wp_knowledge_type'` taxonomy.
  *
  * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  */
@@ -259,6 +260,38 @@ function create_initial_taxonomies() {
 			'show_in_rest'       => true,
 			'show_admin_column'  => true,
 			'show_tagcloud'      => false,
+		)
+	);
+
+	register_taxonomy(
+		'wp_knowledge_type',
+		array( 'wp_knowledge' ),
+		array(
+			'public'             => false,
+			'publicly_queryable' => false,
+			'hierarchical'       => true,
+			'labels'             => array(
+				'name'          => _x( 'Knowledge Types', 'taxonomy general name' ),
+				'singular_name' => _x( 'Knowledge Type', 'taxonomy singular name' ),
+			),
+			/*
+			 * Editing and assigning terms reuse the `wp_knowledge` primitive
+			 * `edit_knowledge_items` so that anyone who can edit a knowledge row
+			 * can also lazily create and assign its type. Managing or deleting the
+			 * type vocabulary itself stays an administrator task.
+			 */
+			'capabilities'       => array(
+				'manage_terms' => 'manage_options',
+				'edit_terms'   => 'edit_knowledge_items',
+				'delete_terms' => 'manage_options',
+				'assign_terms' => 'edit_knowledge_items',
+			),
+			'query_var'          => false,
+			'rewrite'            => false,
+			'show_ui'            => false,
+			'_builtin'           => true,
+			'show_in_nav_menus'  => false,
+			'show_in_rest'       => true,
 		)
 	);
 }
