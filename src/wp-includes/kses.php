@@ -3152,7 +3152,11 @@ function wp_kses_bad_protocol_once( $content, $allowed_protocols, $count = 1 ) {
 	$content  = preg_replace( '/(&#0*58(?![;0-9])|&#x0*3a(?![;a-f0-9]))/i', '$1;', $content );
 	$content2 = preg_split( '/:|&#0*58;|&#x0*3a;|&colon;/i', $content, 2 );
 
-	if ( isset( $content2[1] ) && ! preg_match( '%/\?%', $content2[0] ) ) {
+	/*
+	 * A scheme cannot contain "/", "?" or "#", so a colon after one of them is not a protocol separator.
+	 * A "#" right after "&" or "&amp;" may belong to a character reference, so it is not counted.
+	 */
+	if ( isset( $content2[1] ) && ! preg_match( '%[/?]|(?<!&)(?<!&amp;)#%', $content2[0] ) ) {
 		$content  = trim( $content2[1] );
 		$protocol = wp_kses_bad_protocol_once2( $content2[0], $allowed_protocols );
 		if ( 'feed:' === $protocol ) {
