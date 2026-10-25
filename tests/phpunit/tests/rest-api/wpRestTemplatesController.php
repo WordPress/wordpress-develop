@@ -1258,17 +1258,12 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function test_get_items_should_not_refetch_each_template_for_links() {
 		wp_set_current_user( self::$admin_id );
 
-		$refetched = 0;
-		$counter   = static function ( $template ) use ( &$refetched ) {
-			++$refetched;
-			return $template;
-		};
-		add_filter( 'pre_get_block_template', $counter );
+		$mock = new MockAction();
+		add_filter( 'pre_get_block_template', array( $mock, 'filter' ) );
 		$response = rest_get_server()->dispatch( new WP_REST_Request( 'GET', '/wp/v2/templates' ) );
-		remove_filter( 'pre_get_block_template', $counter );
 
 		$this->assertSame( 200, $response->get_status(), 'The request should succeed.' );
-		$this->assertSame( 0, $refetched, 'Templates should not be fetched again to prepare their links.' );
+		$this->assertSame( 0, $mock->get_call_count(), 'Templates should not be fetched again to prepare their links.' );
 	}
 
 	/**
@@ -1281,10 +1276,13 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	public function test_get_items_should_include_version_history_link_for_customized_template() {
 		wp_set_current_user( self::$admin_id );
 
-		wp_update_post(
-			array(
-				'ID'           => self::$template_post->ID,
-				'post_content' => 'Content for a revision.',
+		$this->assertIsInt(
+			wp_update_post(
+				array(
+					'ID'           => self::$template_post->ID,
+					'post_content' => 'Content for a revision.',
+				),
+				true
 			)
 		);
 		$revisions = wp_get_latest_revision_id_and_total_count( self::$template_post->ID );
@@ -1293,7 +1291,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 		$data    = rest_get_server()->response_to_data( rest_get_server()->dispatch( $request ), false );
 		$item    = $this->find_and_normalize_template_by_id( $data, 'default//my_template' );
 		$found   = wp_list_filter( $data, array( 'id' => 'default//my_template' ) );
-		$links   = reset( $found )['_links'];
+		$links   = array_first( $found )['_links'];
 
 		$this->assertNotEmpty( $item, 'The customized template should be in the collection.' );
 		$this->assertSame( $revisions['count'], $links['version-history'][0]['count'], 'The version history count should match the revisions of the template.' );
