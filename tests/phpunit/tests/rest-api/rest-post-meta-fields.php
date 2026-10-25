@@ -1102,10 +1102,10 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	 * @ticket 66377
 	 * @dataProvider data_set_value_to_null_with_nothing_stored
 	 *
-	 * @param array|bool $show_in_rest The show_in_rest argument for the meta key.
-	 * @param string     $type         The meta type.
+	 * @param bool|array<string, mixed> $show_in_rest The show_in_rest argument for the meta key.
+	 * @param non-falsy-string&lowercase-string     $type         The meta type.
 	 */
-	public function test_set_value_to_null_with_nothing_stored( $show_in_rest, $type ) {
+	public function test_set_value_to_null_with_nothing_stored( $show_in_rest, string $type ) {
 		register_post_meta(
 			'post',
 			'my_meta_key',
@@ -1139,9 +1139,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	/**
 	 * Data provider for test_set_value_to_null_with_nothing_stored().
 	 *
-	 * @return array[] Array of test parameters.
+	 * @return array<non-falsy-string, array{ bool|array<string, mixed>, non-falsy-string&lowercase-string}> Array of test parameters.
 	 */
-	public function data_set_value_to_null_with_nothing_stored() {
+	public function data_set_value_to_null_with_nothing_stored(): array {
 		return array(
 			'boolean' => array( true, 'boolean' ),
 			'integer' => array( true, 'integer' ),
