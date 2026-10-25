@@ -1251,7 +1251,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * Tests that preparing a collection does not fetch each template again to build its links.
 	 *
-	 * @ticket 00000
+	 * @ticket 66381
 	 *
 	 * @covers WP_REST_Templates_Controller::prepare_links
 	 */
@@ -1274,7 +1274,7 @@ class Tests_REST_WpRestTemplatesController extends WP_Test_REST_Controller_Testc
 	/**
 	 * Tests that the version history link of a customized template is kept when preparing a collection.
 	 *
-	 * @ticket 00000
+	 * @ticket 66381
 	 *
 	 * @covers WP_REST_Templates_Controller::prepare_links
 	 */
