@@ -4006,11 +4006,18 @@ class WP_Query {
 			} elseif ( $this->is_tag ) {
 				$tag_id = $this->get( 'tag_id' );
 				$tag    = $this->get( 'tag' );
+				$term   = null;
 
-				if ( $tag_id ) {
+				if ( $tag ) {
+					$slugs = explode( '+', $tag );
+					foreach ( $slugs as $slug ) {
+						$term = get_term_by( 'slug', sanitize_title( $slug ), 'post_tag' );
+						if ( $term && ! is_wp_error( $term ) ) {
+							break;
+						}
+					}
+				} elseif ( $tag_id ) {
 					$term = get_term( $tag_id, 'post_tag' );
-				} elseif ( $tag ) {
-					$term = get_term_by( 'slug', $tag, 'post_tag' );
 				}
 			} else {
 				// For other tax queries, grab the first term from the first clause.
