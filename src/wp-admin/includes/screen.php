@@ -208,6 +208,19 @@ function wp_is_meta_box_reordering_enabled() {
 }
 
 /**
+ * Determines whether On This Day display is enabled.
+ *
+ * @since 7.2.0
+ *
+ * @return bool Whether meta box reordering is enabled.
+ */
+function wp_is_on_this_day_enabled() {
+	$setting = get_user_option( 'dashboard_show_on_this_day' );
+
+	return 'opt-in' === $setting;
+}
+
+/**
  * Register and configure an admin screen option
  *
  * @since 3.1.0

@@ -355,6 +355,16 @@
 				postboxes.setMetaBoxReordering( enabled );
 				postboxes.save_meta_box_reordering_state( enabled );
 			} );
+
+			$( '#on-this-day-posts-form form button' ).on( 'click', function( event ) {
+				event.preventDefault();
+				var enabled = '1' === $( this ).prop( 'value' );
+
+				postboxes.setOnThisDayDisplay( enabled );
+				postboxes.save_on_this_day_display( enabled );
+			} );
+
+			$()
 		},
 
 		/**
@@ -496,6 +506,31 @@
 		},
 
 		/**
+		 * Enables or disables the On This Day display in the activity widget.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param {boolean} enabled Whether On This Day should be enabled.
+		 * @return {void}
+		 */
+		setOnThisDayDisplay: function( enabled ) {
+			var $onThisDayList = $( '#on-this-day-posts-list' )
+				$onThisDayForm = $( '#on-this-day-posts-form'),
+				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
+
+			this.onThisDayEnabled = enabled;
+			$onThisDayForm.hide(); // Always hidden once a choice is made
+
+			if ( enabled ) {
+				$onThisDayList.show();
+				$onThisDayScreenOption.prop( 'checked', true );
+				return;
+			}
+			$onThisDayList.hide();
+			$onThisDayScreenOption.prop( 'checked', false );
+		},
+
+		/**
 		 * Saves the state of the postboxes to the server.
 		 *
 		 * It sends two lists, one with all the closed postboxes, one with all the
@@ -555,6 +590,32 @@
 						enabled ?
 							__( 'Rearranging screen elements enabled.' ) :
 							__( 'Rearranging screen elements disabled.' )
+					);
+				}
+			);
+		},
+
+		/**
+		 * Saves the On This Day setting to the server.
+		 *
+		 * @since 7.2.0
+		 *
+		 * @param {boolean} enabled Whether On This Day activity is enabled.
+		 * @return {void}
+		 */
+		save_on_this_day_display: function( enabled ) {
+			$.post(
+				ajaxurl,
+				{
+					action: 'on-this-day-display',
+					enabled: enabled ? 1 : 0,
+					screenoptionnonce: $( '#screenoptionnonce' ).val()
+				},
+				function() {
+					wp.a11y.speak(
+						enabled ?
+							__( 'On This Day display is enabled.' ) :
+							__( 'On This Day display is disabled.' )
 					);
 				}
 			);

@@ -1020,8 +1020,15 @@ function wp_dashboard_site_activity() {
  * @return bool False if no posts were found. True otherwise.
  */
 function wp_dashboard_on_this_day( $posts = null ) {
-	if ( 'opt-out' === get_option( 'wp_dashboard_show_on_this_day', 'unknown' ) ) {
-		return false;
+	if ( 'opt-out' === get_user_option( 'dashboard_show_on_this_day' ) ) {
+		$display_list = false;
+		$display_form = false;
+	} elseif ( 'opt-in' === get_user_option( 'dashboard_show_on_this_day' ) ) {
+		$display_list = true;
+		$display_form = false;
+	} else {
+		$display_list = false;
+		$display_form = true;
 	}
 
 	if ( null === $posts ) {
@@ -1032,27 +1039,25 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		return false;
 	}
 
-	echo '<div id="on-this-day-posts" class="activity-block">';
-	echo '<h3>' . esc_html__( 'Published On This Day' ) . '</h3>';
-
-	if ( 'opt-in' !== get_option( 'wp_dashboard_show_on_this_day', 'unknown' ) ) {
-		?>
+	?>
+	<div id="on-this-day-posts-form" class="activity-block on-this-day-posts-title hide-if-no-js" style="<?php echo $display_form ? '' : 'display: none;'; ?>">
+		<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
 		<form method="post">
 		<p>
 			Would you like to see posts from previous years here? You can change this later in the Screen Options tab.
 		</p>
 		<p>
-			<?php wp_nonce_field( 'on-this-day', 'on-this-day-nonce' ); ?>
-			<button name="wp_dashboard_on_this_day_setting" value="opt-in" class="button button-primary">Yes</button>
-			<button name="wp_dashboard_on_this_day_setting" value="opt-out" class="button">No</button>
+			<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
+			<button name="enabled" value="1" class="button button-primary">Yes</button>
+			<button name="enabled" value="0" class="button">No</button>
 		</p>
 		</form>
-		</div>
-		<?php
-		return false;
-	}
+	</div>
 
-	echo '<ul>';
+	<div id="on-this-day-posts-list" class="activity-block on-this-day-posts-title" style="<?php echo $display_list ? '' : 'display: none;'; ?>">
+	<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
+	<ul>
+	<?php
 
 	foreach ( $posts as $post ) {
 		/* translators: Date format for posts published in a previous year. */
