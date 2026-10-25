@@ -98,6 +98,53 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$this->assertSame( 'critical', $result['status'] );
 	}
 
+	/**
+	 * The broken keyring describes itself with a translated string.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_critical_when_the_keyring_is_broken_on_a_translated_site(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		add_filter(
+			'gettext',
+			static function ( $translation, $text ) {
+				return 'broken secrets.php drop-in' === $text ? 'defektes secrets.php-Drop-in' : $translation;
+			},
+			10,
+			2
+		);
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_undecryptable_test_is_critical_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_undecryptable();
+
+		$this->assertSame( 'critical', $result['status'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_needs_rotation_test_is_recommended_when_the_secrets_cannot_be_listed(): void {
+		$GLOBALS['wp_secrets_dropin_broken'] = true;
+
+		$result = wp_secrets_site_health_test_needs_rotation();
+
+		$this->assertSame( 'recommended', $result['status'] );
+	}
+
 	public function test_undecryptable_test_is_good_when_nothing_is_broken(): void {
 		wp_set_secret( 'myplugin/api-key', 'value' );
 

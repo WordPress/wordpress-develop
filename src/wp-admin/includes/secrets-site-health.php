@@ -83,9 +83,11 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
  * @phpstan-return array{test: string, label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_key_source(): array {
-	$key_source = _wp_secrets_get_key_manager()->get_keyring()->get_key_source();
+	$keyring    = _wp_secrets_get_key_manager()->get_keyring();
+	$key_source = $keyring->get_key_source();
 
-	if ( str_contains( $key_source, 'broken' ) ) {
+	// The broken keyring's description is translated, so check its class rather than its text.
+	if ( $keyring instanceof WP_Secrets_Broken_Keyring ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
 			__( 'Secrets API key source is broken' ),
@@ -144,8 +146,23 @@ function wp_secrets_site_health_test_key_source(): array {
 function wp_secrets_site_health_test_undecryptable(): array {
 	$broken = wp_secrets_site_health_find_undecryptable( false );
 
-	if ( is_multisite() && is_super_admin() ) {
-		$broken = array_merge( $broken, wp_secrets_site_health_find_undecryptable( true ) );
+	if ( ! is_wp_error( $broken ) && is_multisite() && is_super_admin() ) {
+		$network_broken = wp_secrets_site_health_find_undecryptable( true );
+		$broken         = is_wp_error( $network_broken ) ? $network_broken : array_merge( $broken, $network_broken );
+	}
+
+	// Secrets that cannot be listed cannot be checked, which must not read as all of them decrypting.
+	if ( is_wp_error( $broken ) ) {
+		return wp_secrets_site_health_result(
+			'secrets_api_undecryptable',
+			__( 'Secrets could not be checked' ),
+			'critical',
+			sprintf(
+				'<p>%s</p><p>%s</p>',
+				esc_html__( 'The stored secrets could not be listed, so none of them could be checked. Secrets probably cannot be read or written either until this is fixed.' ),
+				esc_html( $broken->get_error_message() )
+			)
+		);
 	}
 
 	if ( empty( $broken ) ) {
@@ -190,15 +207,16 @@ function wp_secrets_site_health_test_undecryptable(): array {
  * @since 7.2.0
  *
  * @param bool $network Whether to check network-scope secrets.
- * @return array List of array( 'name' => ..., 'fingerprint' => ... ).
+ * @return array|WP_Error List of array( 'name' => ..., 'fingerprint' => ... ),
+ *                        or WP_Error when the secrets cannot be listed.
  *
- * @phpstan-return list<array{name: string, fingerprint: string}>
+ * @phpstan-return list<array{name: string, fingerprint: string}>|WP_Error
  */
-function wp_secrets_site_health_find_undecryptable( bool $network ): array {
+function wp_secrets_site_health_find_undecryptable( bool $network ) {
 	$entries = $network ? wp_list_network_secrets() : wp_list_secrets();
 
 	if ( is_wp_error( $entries ) ) {
-		return array();
+		return $entries;
 	}
 
 	$broken = array();
@@ -229,8 +247,18 @@ function wp_secrets_site_health_find_undecryptable( bool $network ): array {
 function wp_secrets_site_health_test_needs_rotation(): array {
 	$count = wp_secrets_site_health_count_needing_rotation( false );
 
-	if ( is_multisite() && is_super_admin() ) {
-		$count += wp_secrets_site_health_count_needing_rotation( true );
+	if ( ! is_wp_error( $count ) && is_multisite() && is_super_admin() ) {
+		$network_count = wp_secrets_site_health_count_needing_rotation( true );
+		$count         = is_wp_error( $network_count ) ? $network_count : $count + $network_count;
+	}
+
+	if ( is_wp_error( $count ) ) {
+		return wp_secrets_site_health_result(
+			'secrets_api_needs_rotation',
+			__( 'Secrets could not be checked for pending rotation' ),
+			'recommended',
+			sprintf( '<p>%s</p>', esc_html( $count->get_error_message() ) )
+		);
 	}
 
 	if ( 0 === $count ) {
@@ -269,15 +297,15 @@ function wp_secrets_site_health_test_needs_rotation(): array {
  * @since 7.2.0
  *
  * @param bool $network Whether to check network-scope secrets.
- * @return int
+ * @return int|WP_Error The number of secrets, or WP_Error when the secrets cannot be listed.
  *
- * @phpstan-return int<0, max>
+ * @phpstan-return int<0, max>|WP_Error
  */
-function wp_secrets_site_health_count_needing_rotation( bool $network ): int {
+function wp_secrets_site_health_count_needing_rotation( bool $network ) {
 	$entries = $network ? wp_list_network_secrets() : wp_list_secrets();
 
 	if ( is_wp_error( $entries ) ) {
-		return 0;
+		return $entries;
 	}
 
 	$count = 0;
