@@ -382,7 +382,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$request_params = $request->get_query_params();
 		$base_path      = rest_url( sprintf( '%s/%s/%d/%s', $this->namespace, $this->parent_base, $request['parent'], $this->rest_base ) );
-		$base           = add_query_arg( urlencode_deep( $request_params ), $base_path );
+		$base           = add_query_arg( rest_urlencode_query_params( $request_params ), $base_path );
 
 		if ( $page > 1 ) {
 			$prev_page = $page - 1;
