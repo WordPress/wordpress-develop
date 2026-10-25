@@ -729,11 +729,6 @@ parameters:
 			count: 3
 			path: ../../../src/wp-includes/class-wp-date-query.php
 		-
-			message: '#^Parameter \#1 \$value of static method WP_Duotone\:\:colord_parse_hue\(\) expects float, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/class-wp-duotone.php
-		-
 			message: '#^Parameter \#1 \$postarr of function wp_insert_post expects array\{ID\?\: int, post_author\?\: int, post_date\?\: string, post_date_gmt\?\: string, post_content\?\: string, post_content_filtered\?\: string, post_title\?\: string, post_excerpt\?\: string, \.\.\., \.\.\.\}, array\<string\> given\.$#'
 			identifier: argument.type
 			count: 2
