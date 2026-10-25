@@ -518,9 +518,7 @@
 				$onThisDayForm = $( '#on-this-day-posts-form'),
 				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
 
-			this.onThisDayEnabled = enabled;
-			$onThisDayForm.hide(); // Always hidden once a choice is made
-
+			$onThisDayForm.hide(); // Always hidden once a choice is made.
 			if ( enabled ) {
 				$onThisDayList.show();
 				$onThisDayScreenOption.prop( 'checked', true );
