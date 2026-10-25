@@ -356,15 +356,20 @@
 				postboxes.save_meta_box_reordering_state( enabled );
 			} );
 
-			$( '#on-this-day-posts-form form button' ).on( 'click', function( event ) {
+			$( '.wp-on-this-day-toggle' ).on( 'click.postboxes', function() {
+				var enabled = $( this ).prop( 'checked' );
+
+				postboxes.setOnThisDayDisplay( enabled );
+				postboxes.save_on_this_day_display( enabled );
+			} );
+
+			$( '#on-this-day-posts-form form button' ).on( 'click.postboxes', function( event ) {
 				event.preventDefault();
 				var enabled = '1' === $( this ).prop( 'value' );
 
 				postboxes.setOnThisDayDisplay( enabled );
 				postboxes.save_on_this_day_display( enabled );
 			} );
-
-			$()
 		},
 
 		/**
