@@ -318,8 +318,6 @@ class WP_Locale {
 	 *
 	 * @param string|int $month_number '01' through '12'.
 	 * @return string Translated full month name. If the month number is not found, an empty string is returned.
-	 *
-	 * @phpstan-param int<1, 12>|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|'01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09' $month_number
 	 */
 	public function get_month( $month_number ) {
 		$month_number = zeroise( $month_number, 2 );
