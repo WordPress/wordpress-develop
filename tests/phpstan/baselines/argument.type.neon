@@ -654,11 +654,6 @@ parameters:
 			count: 1
 			path: ../../../src/wp-includes/author-template.php
 		-
-			message: '#^Parameter \#1 \$separator of function explode expects string, float given\.$#'
-			identifier: argument.type
-			count: 1
-			path: ../../../src/wp-includes/block-supports/layout.php
-		-
 			message: '#^Parameter \#1 \$block of function filter_block_kses expects WP_Block_Parser_Block, array given\.$#'
 			identifier: argument.type
 			count: 1
