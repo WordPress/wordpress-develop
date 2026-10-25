@@ -247,7 +247,7 @@ class Custom_Background {
 			$message = sprintf(
 				/* translators: %s: URL to background image configuration in Customizer. */
 				__( 'You can now manage and live-preview Custom Backgrounds in the <a href="%s">Customizer</a>.' ),
-				admin_url( 'customize.php?autofocus[control]=background_image' )
+				esc_url( admin_url( 'customize.php?autofocus[control]=background_image' ) )
 			);
 			wp_admin_notice(
 				$message,
@@ -308,7 +308,7 @@ class Custom_Background {
 				. " background-attachment: $background_attachment;";
 			}
 			?>
-	<div id="custom-background-image" style="<?php echo $background_styles; ?>"><?php // Must be double quote, see above. ?>
+	<div id="custom-background-image" style="<?php echo esc_attr( $background_styles ); ?>"><?php // Must be double quote, see above. ?>
 			<?php if ( $background_image_thumb ) { ?>
 		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt="" /><br />
 		<img class="custom-background-image" src="<?php echo $background_image_thumb; ?>" style="visibility:hidden;" alt="" />
@@ -431,8 +431,8 @@ class Custom_Background {
 			);
 			?>
 <tr>
-<th scope="row"><?php echo $background_position_title; ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php echo $background_position_title; ?></span></legend>
+<th scope="row"><?php echo esc_html( $background_position_title ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo esc_html( $background_position_title ); ?></span></legend>
 <div class="background-position-control">
 			<?php foreach ( $background_position_options as $group ) : ?>
 	<div class="button-group">
@@ -440,7 +440,7 @@ class Custom_Background {
 		<label>
 			<input class="ui-helper-hidden-accessible" name="background-position" type="radio" value="<?php echo esc_attr( $value ); ?>"<?php checked( $value, $background_position ); ?>>
 			<span class="button display-options position"><span class="<?php echo esc_attr( $input['icon'] ); ?>" aria-hidden="true"></span></span>
-			<span class="screen-reader-text"><?php echo $input['label']; ?></span>
+			<span class="screen-reader-text"><?php echo esc_html( $input['label'] ); ?></span>
 		</label>
 	<?php endforeach; ?>
 	</div>
@@ -451,8 +451,8 @@ class Custom_Background {
 
 			<?php $image_size_title = __( 'Image Size' ); ?>
 <tr>
-<th scope="row"><label for="background-size"><?php echo $image_size_title; ?></label></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php echo $image_size_title; ?></span></legend>
+<th scope="row"><label for="background-size"><?php echo esc_html( $image_size_title ); ?></label></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo esc_html( $image_size_title ); ?></span></legend>
 <select id="background-size" name="background-size">
 <option value="auto"<?php selected( 'auto', get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) ) ); ?>><?php _ex( 'Original', 'Original Size' ); ?></option>
 <option value="contain"<?php selected( 'contain', get_theme_mod( 'background_size', get_theme_support( 'custom-background', 'default-size' ) ) ); ?>><?php _e( 'Fit to Screen' ); ?></option>
@@ -463,8 +463,8 @@ class Custom_Background {
 
 			<?php $background_repeat_title = _x( 'Repeat', 'Background Repeat' ); ?>
 <tr>
-<th scope="row"><?php echo $background_repeat_title; ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php echo $background_repeat_title; ?></span></legend>
+<th scope="row"><?php echo esc_html( $background_repeat_title ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo esc_html( $background_repeat_title ); ?></span></legend>
 <input name="background-repeat" type="hidden" value="no-repeat">
 <label><input type="checkbox" name="background-repeat" value="repeat"<?php checked( 'repeat', get_theme_mod( 'background_repeat', get_theme_support( 'custom-background', 'default-repeat' ) ) ); ?>> <?php _e( 'Repeat Background Image' ); ?></label>
 </fieldset></td>
@@ -472,8 +472,8 @@ class Custom_Background {
 
 			<?php $background_scroll_title = _x( 'Scroll', 'Background Scroll' ); ?>
 <tr>
-<th scope="row"><?php echo $background_scroll_title; ?></th>
-<td><fieldset><legend class="screen-reader-text"><span><?php echo $background_scroll_title; ?></span></legend>
+<th scope="row"><?php echo esc_html( $background_scroll_title ); ?></th>
+<td><fieldset><legend class="screen-reader-text"><span><?php echo esc_html( $background_scroll_title ); ?></span></legend>
 <input name="background-attachment" type="hidden" value="fixed">
 <label><input name="background-attachment" type="checkbox" value="scroll" <?php checked( 'scroll', get_theme_mod( 'background_attachment', get_theme_support( 'custom-background', 'default-attachment' ) ) ); ?>> <?php _e( 'Scroll with Page' ); ?></label>
 </fieldset></td>
@@ -487,10 +487,11 @@ class Custom_Background {
 		<?php
 		$default_color = '';
 		if ( current_theme_supports( 'custom-background', 'default-color' ) ) {
-			$default_color = ' data-default-color="#' . esc_attr( get_theme_support( 'custom-background', 'default-color' ) ) . '"';
+			$default_color = get_theme_support( 'custom-background', 'default-color' );
 		}
 		?>
-<input type="text" name="background-color" id="background-color" value="#<?php echo esc_attr( get_background_color() ); ?>"<?php echo $default_color; ?>>
+<input type="text" name="background-color" id="background-color" value="#<?php echo esc_attr( get_background_color() ); ?>"<?php if ( $default_color ) : ?>
+	data-default-color="#<?php echo esc_attr( $default_color ); ?>"<?php endif; ?>>
 </fieldset></td>
 </tr>
 </tbody>
