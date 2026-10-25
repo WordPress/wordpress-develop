@@ -1928,7 +1928,7 @@ function wp_sanitize_html_kses( $content, $allowed_html, $allowed_protocols = ar
 							if ( 'TITLE' === $token_name || 'TEXTAREA' === $token_name ) {
 								/*
 								 * RCDATA nodes can be safely escaped, but this must be
-								 * done after enqueing the update to avoid double-escaping.
+								 * done after enqueuing the update to avoid double-escaping.
 								 */
 								$tag_maker->set_modifiable_text( $text );
 								$tag_maker->lexical_updates['modifiable text']->text = strtr(
