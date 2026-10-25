@@ -53,6 +53,8 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 			'CDN resizer URLs with commas'          => array( 'https://resizer.example/cdn-cgi/image/format=auto,onerror=redirect,quality=80,width=412,height=275,dpr=1,fit=crop,gravity=0.5x0.5/https://bucket.example/photo.jpg 412w, https://resizer.example/cdn-cgi/image/format=auto,quality=80,width=824,height=550/https://bucket.example/photo.jpg 824w' ),
 			'CDN resizer URL without descriptor'    => array( 'https://cdn.example/image/format=auto,quality=80/img.jpg 400w, https://cdn.example/image/format=auto,quality=80/img-large.jpg' ),
 			'root-relative URL containing a colon'  => array( '/images/a:b.jpg 1x' ),
+			'comma inside descriptor parentheses'   => array( 'a.jpg 1x(,)z, b.jpg 2x' ),
+			'unclosed descriptor parenthesis'       => array( 'a.jpg 1x(, javascript:alert(1) 2x' ),
 		);
 	}
 
@@ -136,6 +138,18 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 			'allowed scheme is kept in its original case' => array(
 				'HTTPS://example.com/a.jpg 1x, javascript:alert(1) 2x',
 				'HTTPS://example.com/a.jpg 1x',
+			),
+			'comma inside descriptor parentheses'         => array(
+				'a.jpg 1x(,)z,javascript:alert(1) 2x',
+				'a.jpg 1x(,)z',
+			),
+			'URL after descriptor parentheses that look scheme-less' => array(
+				'a.jpg 1x(,)/?,javascript:alert(1) 2x',
+				'a.jpg 1x(,)/?',
+			),
+			'unclosed parenthesis runs to the end'        => array(
+				'javascript:alert(1) 1x(, a.jpg 2x',
+				'',
 			),
 		);
 	}

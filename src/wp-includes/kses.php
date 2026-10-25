@@ -3207,8 +3207,9 @@ function wp_kses_bad_protocol_once2( $scheme, $allowed_protocols ) {
  * each a URL optionally followed by whitespace and width or density descriptors,
  * for example `small.jpg 480w, large.jpg 1024w`. The value is split into candidates
  * following the HTML specification's srcset parsing algorithm, so a comma only
- * separates candidates when it ends a URL or its descriptors; a comma inside a URL,
- * as produced by image CDN resizers, belongs to the URL.
+ * separates candidates when it ends a URL or its descriptors. A comma inside a URL,
+ * as produced by image CDN resizers, belongs to the URL, and one inside parentheses
+ * in the descriptors belongs to the descriptors.
  *
  * Each URL is checked with {@see wp_kses_bad_protocol()}. A candidate whose URL that
  * check would change is removed in full, descriptors included, because stripping a
@@ -3234,19 +3235,8 @@ function wp_kses_sanitize_srcset( string $srcset, array $allowed_protocols ): st
 	$whitespace = " \t\f\r\n";
 	$length     = strlen( $srcset );
 	$at         = 0;
-	$result     = '';
-
-	/*
-	 * Candidates are only copied once one has to be removed. Until then the
-	 * scan allocates nothing but the URLs it checks, and an all-allowed value
-	 * is returned as the very string that was passed in.
-	 *
-	 * On the first removal the scan restarts to rebuild the output; candidates
-	 * before `$checked_until` passed their check in the first pass and are not
-	 * checked again.
-	 */
-	$rebuild       = false;
-	$checked_until = 0;
+	$kept       = array();
+	$dropped    = false;
 
 	while ( $at < $length ) {
 		$at += strspn( $srcset, "{$whitespace},", $at );
@@ -3260,35 +3250,33 @@ function wp_kses_sanitize_srcset( string $srcset, array $allowed_protocols ): st
 		$url          = rtrim( substr( $srcset, $at, $url_length ), ',' );
 		$at          += $url_length;
 
-		// A URL ended by a comma has no descriptors; otherwise they run to the next comma.
+		/*
+		 * A URL ended by a comma has no descriptors. Otherwise they run to the next
+		 * comma outside parentheses, or to the end when a parenthesis is left open.
+		 */
 		if ( strlen( $url ) === $url_length ) {
-			$at              += strcspn( $srcset, ',', $at );
-			$candidate_length = $at - $candidate_at;
-		} else {
-			$candidate_length = strlen( $url );
-		}
+			while ( $at < $length ) {
+				$at += strcspn( $srcset, ',(', $at );
+				if ( $at >= $length || ',' === $srcset[ $at ] ) {
+					break;
+				}
 
-		if ( $rebuild && $candidate_at < $checked_until ) {
-			$is_allowed = true;
-		} else {
-			$is_allowed = '/' === $url[0] || 0 === strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url );
-		}
-
-		if ( $rebuild ) {
-			if ( $is_allowed ) {
-				$result .= ( '' === $result ? '' : ', ' ) . rtrim( substr( $srcset, $candidate_at, $candidate_length ), $whitespace );
+				$closing_at = strpos( $srcset, ')', $at );
+				$at         = false === $closing_at ? $length : $closing_at + 1;
 			}
-			continue;
+			$candidate = substr( $srcset, $candidate_at, $at - $candidate_at );
+		} else {
+			$candidate = $url;
 		}
 
-		if ( ! $is_allowed ) {
-			$rebuild       = true;
-			$checked_until = $candidate_at;
-			$at            = 0;
+		if ( '/' === $url[0] || 0 === strcasecmp( wp_kses_bad_protocol( $url, $allowed_protocols ), $url ) ) {
+			$kept[] = rtrim( $candidate, $whitespace );
+		} else {
+			$dropped = true;
 		}
 	}
 
-	return $rebuild ? $result : $srcset;
+	return $dropped ? implode( ', ', $kept ) : $srcset;
 }
 
 /**
