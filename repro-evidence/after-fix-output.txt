@@ -1,0 +1,17 @@
+Reproduction: same broken role ('role_missing_caps' with no 'capabilities' key),
+same trigger (wp_dropdown_users() with a capability filter, matching the original
+report's wp-admin/includes/meta-boxes.php -> wp_dropdown_users() call), run against
+trunk with the class-wp-user-query.php and class-wp-roles.php fixes applied.
+
+$ wp eval '
+$results = wp_dropdown_users( array( "capability" => array( "edit_posts" ), "echo" => 0 ) );
+echo "No fatal error. wp_dropdown_users() returned " . strlen( (string) $results ) . " bytes of markup.\n";
+
+$wp_user_search = new WP_User_Query( array( "capability" => array( "edit_posts" ) ) );
+echo "WP_User_Query succeeded, found " . count( $wp_user_search->get_results() ) . " user(s).\n";
+'
+
+No fatal error. wp_dropdown_users() returned 83 bytes of markup.
+WP_User_Query succeeded, found 1 user(s).
+
+wp-content/debug.log: not created (zero warnings, zero errors, zero deprecation notices).
