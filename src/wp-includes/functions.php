@@ -258,6 +258,11 @@ function wp_date( $format, $timestamp = null, $timezone = null ) {
 	}
 
 	$datetime = date_create( '@' . $timestamp );
+
+	if ( false === $datetime ) {
+		return false;
+	}
+
 	$datetime->setTimezone( $timezone );
 
 	if ( empty( $wp_locale->month ) || empty( $wp_locale->weekday ) ) {
