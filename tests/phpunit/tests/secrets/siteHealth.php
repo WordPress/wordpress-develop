@@ -89,7 +89,37 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 		$result = wp_secrets_site_health_test_key_source();
 
 		$this->assertSame( 'recommended', $result['status'] );
-		$this->assertStringContainsString( 'generate-key', $result['description'] );
+		$this->assertStringContainsString( 'can still be replaced', $result['description'] );
+		$this->assertStringNotContainsString( 'generate-key', $result['description'], 'There is no such WP-CLI command in core.' );
+	}
+
+	/**
+	 * Replacing the key once secrets are stored would make them unreadable.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_warns_to_keep_a_legacy_key_once_secrets_are_stored(): void {
+		define( 'WP_SECRETS_KEY', 'not-base64-32!!' );
+
+		$this->assertTrue( wp_set_secret( 'myplugin/api-key', 'value' ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'recommended', $result['status'] );
+		$this->assertStringContainsString( 'Keep its current value', $result['description'] );
+	}
+
+	public function test_key_source_test_is_critical_when_the_key_does_not_match_the_stored_secrets(): void {
+		wp_set_secret( 'myplugin/api-key', 'value' );
+
+		// Stands in for a root key that was wrapped with a different site key.
+		update_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION, base64_encode( random_bytes( 72 ) ) );
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'critical', $result['status'] );
+		$this->assertStringContainsString( 'Restoring the previous value', $result['description'] );
 	}
 
 	/**
