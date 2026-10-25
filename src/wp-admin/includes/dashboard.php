@@ -1020,6 +1020,10 @@ function wp_dashboard_site_activity() {
  * @return bool False if no posts were found. True otherwise.
  */
 function wp_dashboard_on_this_day( $posts = null ) {
+	if ( 'opt-out' === get_option( 'wp_dashboard_show_on_this_day', 'unknown' ) ) {
+		return false;
+	}
+
 	if ( null === $posts ) {
 		$posts = wp_dashboard_on_this_day_get_posts();
 	}
@@ -1030,6 +1034,24 @@ function wp_dashboard_on_this_day( $posts = null ) {
 
 	echo '<div id="on-this-day-posts" class="activity-block">';
 	echo '<h3>' . esc_html__( 'Published On This Day' ) . '</h3>';
+
+	if ( 'opt-in' !== get_option( 'wp_dashboard_show_on_this_day', 'unknown' ) ) {
+		?>
+		<form method="post">
+		<p>
+			Would you like to see posts from previous years here? You can change this later in the Screen Options tab.
+		</p>
+		<p>
+			<?php wp_nonce_field( 'on-this-day', 'on-this-day-nonce' ); ?>
+			<button name="wp_dashboard_on_this_day_setting" value="opt-in" class="button button-primary">Yes</button>
+			<button name="wp_dashboard_on_this_day_setting" value="opt-out" class="button">No</button>
+		</p>
+		</form>
+		</div>
+		<?php
+		return false;
+	}
+
 	echo '<ul>';
 
 	foreach ( $posts as $post ) {

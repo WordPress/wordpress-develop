@@ -566,6 +566,7 @@ function populate_options( array $options = array() ) {
 
 		// 7.2.0
 		'wp_random_base'                  => '',
+		'wp_dashboard_show_on_this_day'   => 'unknown',
 	);
 
 	// 3.3.0
