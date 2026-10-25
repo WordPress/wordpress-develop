@@ -484,24 +484,73 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 		}
 	}
 
+	/*
+	 * Group the sizes that would produce an identical file so each is generated
+	 * only once and then shared by every size name that requested it.
+	 *
+	 * Sub-sizes are stored on disk by their dimensions, so two registered sizes
+	 * with the same width, height, and crop resolve to the same file. Without
+	 * grouping, that file is re-encoded and re-written once per size name, which
+	 * slows uploads and is a common cause of timeouts when many sizes are
+	 * registered (for example a plugin size equal to a core size).
+	 */
+	$size_groups = array();
+
+	foreach ( $new_sizes as $new_size_name => $new_size_data ) {
+		$signature = wp_json_encode(
+			array(
+				'width'  => isset( $new_size_data['width'] ) ? $new_size_data['width'] : null,
+				'height' => isset( $new_size_data['height'] ) ? $new_size_data['height'] : null,
+				'crop'   => isset( $new_size_data['crop'] ) ? $new_size_data['crop'] : false,
+			)
+		);
+
+		if ( ! isset( $size_groups[ $signature ] ) ) {
+			$size_groups[ $signature ] = array(
+				'data'  => $new_size_data,
+				'names' => array(),
+			);
+		}
+
+		$size_groups[ $signature ]['names'][] = $new_size_name;
+	}
+
 	if ( method_exists( $editor, 'make_subsize' ) ) {
-		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
-			$new_size_meta = $editor->make_subsize( $new_size_data );
+		foreach ( $size_groups as $group ) {
+			$new_size_meta = $editor->make_subsize( $group['data'] );
 
 			if ( is_wp_error( $new_size_meta ) ) {
 				// TODO: Log errors.
 			} else {
-				// Save the size meta value.
-				$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+				// Save the size meta value for every size name with these dimensions.
+				foreach ( $group['names'] as $new_size_name ) {
+					$image_meta['sizes'][ $new_size_name ] = $new_size_meta;
+				}
+
 				wp_update_attachment_metadata( $attachment_id, $image_meta );
 			}
 		}
 	} else {
-		// Fall back to `$editor->multi_resize()`.
-		$created_sizes = $editor->multi_resize( $new_sizes );
+		// Fall back to `$editor->multi_resize()`, generating one file per unique size.
+		$unique_sizes = array();
+
+		foreach ( $size_groups as $signature => $group ) {
+			$unique_sizes[ $signature ] = $group['data'];
+		}
+
+		$created_sizes = $editor->multi_resize( $unique_sizes );
 
 		if ( ! empty( $created_sizes ) ) {
-			$image_meta['sizes'] = array_merge( $image_meta['sizes'], $created_sizes );
+			foreach ( $size_groups as $signature => $group ) {
+				if ( ! isset( $created_sizes[ $signature ] ) ) {
+					continue;
+				}
+
+				foreach ( $group['names'] as $new_size_name ) {
+					$image_meta['sizes'][ $new_size_name ] = $created_sizes[ $signature ];
+				}
+			}
+
 			wp_update_attachment_metadata( $attachment_id, $image_meta );
 		}
 	}
