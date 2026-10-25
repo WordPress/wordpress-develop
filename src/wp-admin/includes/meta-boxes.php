@@ -179,27 +179,27 @@ function post_submit_meta_box( $post, $args = array() ) {
 						 * This filter controls presentation only and does not grant permission
 						 * to use a status.
 						 *
-						 * @since 7.1.0
+						 * @since 7.2.0
 						 *
 						 * @param string[] $custom_post_statuses Custom post status names.
 						 * @param WP_Post  $post                 Current post object.
 						 */
-						$custom_post_statuses = apply_filters( 'post_submitbox_custom_statuses', array(), $post );
+						$custom_post_statuses = (array) apply_filters( 'post_submitbox_custom_statuses', array(), $post );
 
-						if ( $post_status_object && ! $post_status_object->_builtin && ! in_array( $post->post_status, $custom_post_statuses, true ) ) {
+						if ( $post_status_object && ! $post_status_object->_builtin ) {
 							$custom_post_statuses[] = $post->post_status;
 						}
 
-						foreach ( $custom_post_statuses as $custom_post_status_name ) {
+						foreach ( array_unique( $custom_post_statuses ) as $custom_post_status_name ) {
 							$custom_post_status = get_post_status_object( $custom_post_status_name );
 							if ( ! $custom_post_status || $custom_post_status->_builtin ) {
 								continue;
 							}
 
 							/* translators: %s: Post status label. */
-							$save_button_text = sprintf( __( 'Save as %s' ), $custom_post_status->label );
+							$custom_post_status_save_text = sprintf( __( 'Save as %s' ), $custom_post_status->label );
 							?>
-							<option<?php selected( $post->post_status, $custom_post_status->name ); ?> value="<?php echo esc_attr( $custom_post_status->name ); ?>" data-save-text="<?php echo esc_attr( $save_button_text ); ?>"><?php echo esc_html( $custom_post_status->label ); ?></option>
+							<option<?php selected( $post->post_status, $custom_post_status->name ); ?> value="<?php echo esc_attr( $custom_post_status->name ); ?>" data-save-text="<?php echo esc_attr( $custom_post_status_save_text ); ?>"><?php echo esc_html( $custom_post_status->label ); ?></option>
 							<?php
 						}
 						?>
