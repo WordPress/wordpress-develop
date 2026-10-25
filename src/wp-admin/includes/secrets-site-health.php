@@ -83,6 +83,30 @@ function wp_secrets_site_health_result( string $test, string $label, string $sta
  * @phpstan-return array{test: string, label: string, status: 'good'|'recommended'|'critical', badge: array{label: string, color: string}, description: string}
  */
 function wp_secrets_site_health_test_key_source(): array {
+	$provider = _wp_secrets_get_provider();
+
+	/*
+	 * A secrets.php drop-in can replace the whole provider, which then protects secrets
+	 * with its own keys. The default keyring, and WP_SECRETS_KEY, are not used at all.
+	 */
+	if ( ! $provider instanceof WP_Secrets_Libsodium_Provider && ! $provider instanceof WP_Secrets_Broken_Provider ) {
+		return wp_secrets_site_health_result(
+			'secrets_api_key_source',
+			__( 'Secrets API keys are managed by the provider' ),
+			'good',
+			sprintf(
+				'<p>%s</p>',
+				esc_html(
+					sprintf(
+						/* translators: %s: Name of the active secrets provider. */
+						__( 'Secrets are protected by the provider of the secrets.php drop-in: %s. WP_SECRETS_KEY is not used.' ),
+						$provider->get_label()
+					)
+				)
+			)
+		);
+	}
+
 	$keyring    = _wp_secrets_get_key_manager()->get_keyring();
 	$key_source = $keyring->get_key_source();
 
