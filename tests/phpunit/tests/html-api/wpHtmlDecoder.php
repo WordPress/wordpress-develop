@@ -227,7 +227,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * treated as alphanumerics by `ctype_alnum()` on some systems, but should never
 	 * be recognized as ASCII Alphanumerics according to the HTML standards.
 	 *
-	 * @see https://html.spec.whatwg.org/#named-character-reference-state
+	 * @link https://html.spec.whatwg.org/#named-character-reference-state
 	 *
 	 * @return array<array{
 	 *   string, // Encoded attribute value.
@@ -316,7 +316,7 @@ class Tests_HtmlApi_WpHtmlDecoder extends WP_UnitTestCase {
 	 * > An ASCII alphanumeric is an ASCII digit or ASCII alpha.
 	 * > An ASCII alpha is an ASCII upper alpha or ASCII lower alpha.
 	 *
-	 * @see https://html.spec.whatwg.org/#named-character-reference-state
+	 * @link https://html.spec.whatwg.org/#named-character-reference-state
 	 *
 	 * @return Generator<string, array{ string }> Test cases.
 	 */
