@@ -6052,11 +6052,14 @@ class WP_Theme_JSON {
 	 *
 	 * @since 6.3.0
 	 *
-	 * @param array $metadata The related block metadata containing selectors.
-	 * @param array $node     A merged theme.json node for block or variation. Features
-	 *                        promoted to their own selector are removed from it.
-	 * @return array The style declarations for the node's features with custom
-	 *               selectors.
+	 * @param array<string, mixed> $metadata The related block metadata containing selectors.
+	 * @param array<string, mixed> $node     A merged theme.json node for block or variation. Features
+	 *                                       promoted to their own selector are removed from it.
+	 * @return array<string, array[]> The style declarations for the node's features with custom
+	 *                                selectors, keyed by selector.
+	 *
+	 * @phpstan-param array{ selectors?: array<string, string|array<string, string>> } $metadata
+	 * @phpstan-return array<string, list<array{ name: non-falsy-string, value: scalar }>>
 	 */
 	protected function get_feature_declarations_for_node( $metadata, &$node ) {
 		$declarations = array();
