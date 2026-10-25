@@ -756,8 +756,10 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 		$table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-post' ) );
 		remove_filter( 'query', $logger );
 
-		$count = ( new ReflectionProperty( $table, 'user_posts_count' ) );
-		$count->setAccessible( true );
+		$count = new ReflectionProperty( $table, 'user_posts_count' );
+		if ( PHP_VERSION_ID < 80100 ) {
+			$count->setAccessible( true );
+		}
 
 		$this->assertSame( 6, $count->getValue( $table ), 'Only posts in statuses shown in the All list should be counted.' );
 		$this->assertCount( 1, $queries, 'The count should run a single query.' );
