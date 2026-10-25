@@ -1148,6 +1148,9 @@ class WP_Term_Query {
 		foreach ( $terms as $key => $term_data ) {
 			if ( is_object( $term_data ) && property_exists( $term_data, 'term_id' ) ) {
 				$term = get_term( $term_data->term_id );
+				if ( ! $term instanceof WP_Term ) {
+					continue;
+				}
 				if ( property_exists( $term_data, 'object_id' ) ) {
 					$term->object_id = (int) $term_data->object_id;
 				}

@@ -899,6 +899,37 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertEmpty( $q->terms, 'The result should be empty.' );
 	}
 
+	/**
+	 * Tests that a term that no longer resolves is discarded when the query also returns
+	 * object IDs, rather than causing a fatal error.
+	 *
+	 * The error that we should not see:
+	 * `Error: Attempt to assign property "object_id" on null`.
+	 *
+	 * @ticket 59785
+	 *
+	 * @covers WP_Term_Query::populate_terms
+	 */
+	public function test_unresolvable_term_with_object_id_should_be_discarded() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$post_id       = self::factory()->post->create();
+		$this->term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		wp_set_object_terms( $post_id, array( $this->term_id ), 'wptests_tax' );
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'object_ids' => $post_id,
+				'fields'     => 'all_with_object_id',
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$this->assertSame( array(), $q->terms );
+	}
+
 	public function filter_term_to_null( $term ) {
 		if ( $this->term_id === $term->term_id ) {
 			return null;
