@@ -616,13 +616,17 @@ function wp_load_alloptions( $force_cache = false ) {
 		return $alloptions;
 	}
 
-	if ( ! wp_installing() || ! is_multisite() ) {
-		$alloptions = wp_cache_get( 'alloptions', 'options', $force_cache );
+	$use_cache = ! wp_installing() || ! is_multisite();
+
+	if ( $use_cache ) {
+		$cache_data = wp_cache_get( 'alloptions', 'options', $force_cache );
+		$alloptions = $cache_data;
 	} else {
 		$alloptions = false;
 	}
 
-	if ( ! $alloptions ) {
+	// Make sure the cached object is an array; on rare events this can be a zero.
+	if ( ! is_array( $alloptions ) ) {
 		$suppress      = $wpdb->suppress_errors();
 		$alloptions_db = $wpdb->get_results( "SELECT option_name, option_value FROM $wpdb->options WHERE autoload IN ( '" . implode( "', '", esc_sql( wp_autoload_values_to_autoload() ) ) . "' )" );
 
@@ -636,7 +640,7 @@ function wp_load_alloptions( $force_cache = false ) {
 			$alloptions[ $o->option_name ] = $o->option_value;
 		}
 
-		if ( ! wp_installing() || ! is_multisite() ) {
+		if ( $use_cache ) {
 			/**
 			 * Filters all options before caching them.
 			 *
@@ -646,7 +650,15 @@ function wp_load_alloptions( $force_cache = false ) {
 			 */
 			$alloptions = apply_filters( 'pre_cache_alloptions', $alloptions );
 
-			wp_cache_add( 'alloptions', $alloptions, 'options' );
+			$cache_added = false;
+			// If original result was false, try to add the data.
+			if ( false === $cache_data ) {
+				$cache_added = wp_cache_add( 'alloptions', $alloptions, 'options' );
+			}
+			// If original result was invalid or adding failed, force set the cache.
+			if ( false === $cache_added ) {
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
 		}
 	}
 

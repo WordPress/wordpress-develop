@@ -170,4 +170,57 @@ class Tests_Option_wpLoadAlloptions extends WP_UnitTestCase {
 			'The hook name was incorrect.'
 		);
 	}
+
+	/**
+	 * Tests that wp_load_alloptions handles invalid cache values correctly.
+	 *
+	 * @ticket 28664
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_invalid_cache_value_handling() {
+
+		add_option( 'test_option_1', 'value1', '', 'yes' );
+		add_option( 'test_option_2', 'value2', '', 'yes' );
+
+		wp_cache_set( 'alloptions', 0, 'options' );
+
+		$alloptions = wp_load_alloptions();
+
+		$this->assertIsArray( $alloptions, 'alloptions should be an array' );
+		$this->assertArrayHasKey( 'test_option_1', $alloptions, 'option1 should be loaded' );
+		$this->assertArrayHasKey( 'test_option_2', $alloptions, 'option2 should be loaded' );
+		$this->assertEquals( 'value1', $alloptions['test_option_1'], 'option1 should have correct value' );
+		$this->assertEquals( 'value2', $alloptions['test_option_2'], 'option2 should have correct value' );
+
+		$cached = wp_cache_get( 'alloptions', 'options' );
+		$this->assertIsArray( $cached, 'cache should be reset to array' );
+		$this->assertEquals( $alloptions, $cached, 'cached value should match loaded options' );
+	}
+
+	/**
+	 * Tests that wp_load_alloptions properly handles cache fallback behavior.
+	 *
+	 * @ticket 28664
+	 *
+	 * @covers ::wp_load_alloptions
+	 */
+	public function test_cache_fallback_behavior() {
+
+		add_option( 'fallback_option_1', 'value1', '', 'yes' );
+		wp_cache_delete( 'alloptions', 'options' );
+
+		$first_load = wp_load_alloptions();
+		$this->assertArrayHasKey( 'fallback_option_1', $first_load );
+
+		wp_cache_set( 'alloptions', 'invalid', 'options' );
+
+		$second_load = wp_load_alloptions();
+		$this->assertArrayHasKey( 'fallback_option_1', $second_load );
+		$this->assertEquals( $first_load, $second_load );
+
+		$cached = wp_cache_get( 'alloptions', 'options' );
+		$this->assertIsArray( $cached );
+		$this->assertEquals( $second_load, $cached );
+	}
 }
