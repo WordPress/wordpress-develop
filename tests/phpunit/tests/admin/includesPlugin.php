@@ -674,7 +674,7 @@ class Tests_Admin_IncludesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 00000
+	 * @ticket 66380
 	 *
 	 * @covers ::get_dropins
 	 */
