@@ -6079,7 +6079,7 @@ class WP_Theme_JSON {
 				continue;
 			}
 
-			if ( is_array( $feature_selectors ) ) {
+			if ( is_array( $feature_selectors ) && is_array( $node[ $feature ] ) ) {
 				foreach ( $feature_selectors as $subfeature => $subfeature_selector ) {
 					if ( 'root' === $subfeature || empty( $node[ $feature ][ $subfeature ] ) ) {
 						continue;
