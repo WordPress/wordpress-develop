@@ -3527,7 +3527,10 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$this->assertSame( '', $data['password'] );
 	}
 
-	public function test_create_post_with_password_and_sticky_fails() {
+	/**
+	 * @ticket 64810
+	 */
+	public function test_create_post_with_password_and_sticky_succeeds() {
 		wp_set_current_user( self::$editor_id );
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/posts' );
@@ -3540,7 +3543,40 @@ Shankle pork chop prosciutto ribeye ham hock pastrami. T-bone shank brisket baco
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertErrorResponse( 'rest_invalid_field', $response, 400 );
+		$this->assertSame( 201, $response->get_status() );
+		$data = $response->get_data();
+		$this->assertSame( '123', $data['password'] );
+		$this->assertTrue( $data['sticky'] );
+		$this->assertTrue( is_sticky( $data['id'] ) );
+		$this->assertSame( '123', get_post( $data['id'] )->post_password );
+	}
+
+	/**
+	 * @ticket 64810
+	 */
+	public function test_update_post_with_password_and_sticky_succeeds() {
+		wp_set_current_user( self::$editor_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_author' => self::$editor_id,
+			)
+		);
+		stick_post( $post_id );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/posts/' . $post_id );
+		$params  = $this->set_post_data(
+			array(
+				'password' => 'secret',
+			)
+		);
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( is_sticky( $post_id ) );
+		$this->assertSame( 'secret', get_post( $post_id )->post_password );
 	}
 
 	public function test_create_post_custom_date() {

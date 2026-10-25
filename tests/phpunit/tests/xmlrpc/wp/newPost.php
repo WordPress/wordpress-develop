@@ -446,4 +446,25 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
+
+	/**
+	 * @ticket 64810
+	 */
+	public function test_post_sticky_with_password() {
+		$this->make_user_by_role( 'editor' );
+
+		$post = array(
+			'post_title'    => 'Sticky with password',
+			'post_content'  => 'Test content',
+			'post_status'   => 'publish',
+			'post_password' => 'secret',
+			'sticky'        => true,
+		);
+
+		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
+		$this->assertNotIXRError( $result );
+		$post_id = (int) $result;
+		$this->assertTrue( is_sticky( $post_id ) );
+		$this->assertSame( 'secret', get_post( $post_id )->post_password );
+	}
 }

@@ -180,7 +180,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 					$visibility_trans    = __( 'Private' );
 				} elseif ( ! empty( $post->post_password ) ) {
 					$visibility       = 'password';
-					$visibility_trans = __( 'Password protected' );
+					$visibility_trans = ( 'post' === $post_type && is_sticky( $post_id ) ) ? __( 'Password protected, Sticky' ) : __( 'Password protected' );
 				} elseif ( 'post' === $post_type && is_sticky( $post_id ) ) {
 					$visibility       = 'public';
 					$visibility_trans = __( 'Public, Sticky' );
