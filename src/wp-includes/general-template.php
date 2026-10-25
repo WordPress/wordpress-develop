@@ -3181,7 +3181,21 @@ function get_the_time( $format = '', $post = null ) {
  * @return string|int|false Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
  *                          False on failure.
  *
- * @phpstan-return ( $format is 'U'|'G' ? int|false : string|false )
+ * @phpstan-return (
+ *     $format is 'U'|'G' ? int|false : (
+ *     $format is 'w' ? '0'|'1'|'2'|'3'|'4'|'5'|'6'|false : (
+ *     $format is 'N' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|false : (
+ *     $format is 'L'|'I' ? '0'|'1'|false : (
+ *     $format is 't' ? '28'|'29'|'30'|'31'|false : (
+ *     $format is 'm'|'h' ? '01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|false : (
+ *     $format is 'n'|'g' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|false : (
+ *     $format is 'H' ? '00'|'01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|false : (
+ *     $format is 'd' ? '01'|'02'|'03'|'04'|'05'|'06'|'07'|'08'|'09'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|'24'|'25'|'26'|'27'|'28'|'29'|'30'|'31'|false : (
+ *     $format is 'j' ? '1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'|'10'|'11'|'12'|'13'|'14'|'15'|'16'|'17'|'18'|'19'|'20'|'21'|'22'|'23'|'24'|'25'|'26'|'27'|'28'|'29'|'30'|'31'|false : (
+ *     $format is 'z'|'W'|'o'|'Y'|'y'|'B'|'i'|'s'|'u'|'v'|'Z' ? numeric-string|false :
+ *     string|false
+ *     ) ) ) ) ) ) ) ) ) )
+ * )
  */
 function get_post_time( $format = 'U', $gmt = false, $post = null, $translate = false ) {
 	$post = get_post( $post );
@@ -3442,7 +3456,7 @@ function the_weekday() {
 		return;
 	}
 
-	$the_weekday = $wp_locale->get_weekday( clamp( (int) $weekday_number, 0, 6 ) );
+	$the_weekday = $wp_locale->get_weekday( (int) $weekday_number );
 
 	/**
 	 * Filters the localized weekday of the post, for display.
@@ -3483,7 +3497,7 @@ function the_weekday_date( $before = '', $after = '' ) {
 
 	if ( false !== $weekday_number && $currentday !== $previousweekday ) {
 		$the_weekday_date .= $before;
-		$the_weekday_date .= $wp_locale->get_weekday( clamp( (int) $weekday_number, 0, 6 ) );
+		$the_weekday_date .= $wp_locale->get_weekday( (int) $weekday_number );
 		$the_weekday_date .= $after;
 		$previousweekday   = $currentday;
 	}
