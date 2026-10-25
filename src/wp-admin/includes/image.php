@@ -485,8 +485,51 @@ function _wp_make_subsizes( $new_sizes, $file, $image_meta, $attachment_id ) {
 	}
 
 	if ( method_exists( $editor, 'make_subsize' ) ) {
+		// Crop false must run first, since it can possibly be reused for crop true.
+		uasort(
+			$new_sizes,
+			static function ( $a, $b ) {
+				if ( $b['crop'] === $a['crop'] ) {
+					return 0;
+				}
+
+				return false === $a['crop'] ? -1 : 1;
+			}
+		);
+
+		// We could use $image_meta['sizes'], however this would break consistency with legacy behavior and "multi_resize" below.
+		$generated_sizes = array();
 		foreach ( $new_sizes as $new_size_name => $new_size_data ) {
-			$new_size_meta = $editor->make_subsize( $new_size_data );
+			$new_size_meta = false;
+			foreach ( $generated_sizes as $previous_size_name => $previous_size_meta ) {
+				// Check if we have already run the same size with a different name.
+				if (
+					$new_sizes[ $previous_size_name ]['crop'] === $new_size_data['crop'] &&
+					$new_sizes[ $previous_size_name ]['width'] === $new_size_data['width'] &&
+					$new_sizes[ $previous_size_name ]['height'] === $new_size_data['height']
+				) {
+					$new_size_meta = $previous_size_meta;
+
+					break;
+				}
+
+				// If the actual image size of the generated image matches the required dimensions, we can reuse that.
+				// Since "crop" https://core.trac.wordpress.org/ticket/62389 is irrelevant.
+				if (
+					is_array( $previous_size_meta ) &&
+					$previous_size_meta['width'] === $new_size_data['width'] &&
+					$previous_size_meta['height'] === $new_size_data['height']
+				) {
+					$new_size_meta = $previous_size_meta;
+
+					break;
+				}
+			}
+
+			if ( false === $new_size_meta ) {
+				$new_size_meta = $editor->make_subsize( $new_size_data );
+				$generated_sizes[ $new_size_name ] = $new_size_meta;
+			}
 
 			if ( is_wp_error( $new_size_meta ) ) {
 				// TODO: Log errors.
