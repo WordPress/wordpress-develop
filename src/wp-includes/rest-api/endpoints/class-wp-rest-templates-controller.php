@@ -27,7 +27,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * The template being prepared for the response, so prepare_links() can reuse it.
 	 *
-	 * @since 7.3.0
+	 * @since 7.2.0
 	 */
 	private ?WP_Block_Template $prepared_template = null;
 
