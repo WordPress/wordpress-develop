@@ -105,7 +105,12 @@
 
 				// Timer that keeps track of how long needs to be waited before connecting to
 				// the server again.
-				beatTimer: 0
+				beatTimer: 0,
+
+				// Post lock window in milliseconds. Synced from PHP via heartbeat_settings.
+				// Used to calculate the background tab heartbeat interval.
+				// Default matches the wp_check_post_lock_window default of 150 seconds.
+				postLockWindow: 150000
 			};
 
 		/**
@@ -117,7 +122,7 @@
 		 * @return {void}
 		 */
 		function initialize() {
-			var options, hidden, visibilityState, visibilitychange;
+			var options, hidden, visibilityState, visibilitychange, postLockWindow;
 
 			if ( typeof window.pagenow === 'string' ) {
 				settings.screenId = window.pagenow;
@@ -176,6 +181,14 @@
 
 				if ( options.suspension === 'disable' ) {
 					settings.suspendEnabled = false;
+				}
+
+				if ( options.post_lock_window ) {
+					postLockWindow = parseInt( options.post_lock_window, 10 );
+
+					if ( postLockWindow > 0 ) {
+						settings.postLockWindow = postLockWindow * 1000;
+					}
 				}
 			}
 
@@ -515,7 +528,11 @@
 			}
 
 			if ( ! settings.hasFocus ) {
-				interval = 120000; // 120 seconds. Post locks expire after 150 seconds.
+				// Fire 30 seconds before the post lock window expires so backgrounded
+				// tabs always refresh the lock in time. For the default 150s window this
+				// equals 120s, preserving existing behaviour. Floored at 5s for very
+				// short custom windows.
+				interval = Math.max( 5000, settings.postLockWindow - 30000 );
 			} else if ( settings.countdown > 0 && settings.tempInterval ) {
 				interval = settings.tempInterval;
 				settings.countdown--;
