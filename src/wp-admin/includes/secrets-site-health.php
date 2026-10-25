@@ -123,14 +123,41 @@ function wp_secrets_site_health_test_key_source(): array {
 		);
 	}
 
+	/*
+	 * Once a root key exists, it is wrapped with the current site key, and core has no way
+	 * to re-wrap it under another one. Changing the key source then locks every stored
+	 * secret, and blocks saving new ones, until the change is reverted.
+	 */
+	$has_root_key = false !== get_site_option( WP_Secrets_Key_Manager::ROOT_KEY_OPTION );
+
+	if ( $has_root_key ) {
+		$root_key = _wp_secrets_get_key_manager()->get_root_key();
+
+		if ( is_wp_error( $root_key ) ) {
+			return wp_secrets_site_health_result(
+				'secrets_api_key_source',
+				__( 'Secrets API key does not match the stored secrets' ),
+				'critical',
+				sprintf(
+					'<p>%s</p>',
+					esc_html__( 'The configured key cannot decrypt the root key that protects the stored secrets, so no secret can be read or saved. This happens when WP_SECRETS_KEY, LOGGED_IN_KEY, or LOGGED_IN_SALT changed after secrets were stored. Restoring the previous value fixes it.' )
+				)
+			);
+		}
+
+		wp_secrets_memzero( $root_key );
+	}
+
 	if ( str_contains( $key_source, 'legacy interpretation' ) ) {
 		return wp_secrets_site_health_result(
 			'secrets_api_key_source',
-			__( 'Secrets API key should be regenerated' ),
+			__( 'Secrets API key is not in the recommended form' ),
 			'recommended',
 			sprintf(
 				'<p>%s</p>',
-				esc_html__( 'WP_SECRETS_KEY is defined, but not in the recommended base64-encoded 32-byte form. Regenerate it with `wp secret generate-key`.' )
+				$has_root_key
+					? esc_html__( 'WP_SECRETS_KEY is defined, but not as a base64-encoded random 32-byte value. Keep its current value: secrets are already encrypted with it, and changing it makes them unreadable.' )
+					: esc_html__( 'WP_SECRETS_KEY is defined, but not as a base64-encoded random 32-byte value. No secrets are stored yet, so it can still be replaced with such a value.' )
 			)
 		);
 	}
@@ -142,7 +169,9 @@ function wp_secrets_site_health_test_key_source(): array {
 			'recommended',
 			sprintf(
 				'<p>%s</p>',
-				esc_html__( 'No dedicated WP_SECRETS_KEY constant is defined. Secrets are encrypted using a key derived from existing salts, which works but is not the recommended configuration. Define WP_SECRETS_KEY with a value from `wp secret generate-key`.' )
+				$has_root_key
+					? esc_html__( 'Secrets are encrypted with a key derived from the LOGGED_IN_KEY and LOGGED_IN_SALT constants. Changing either constant, or defining WP_SECRETS_KEY, makes every stored secret unreadable and prevents saving new ones until the change is reverted.' )
+					: esc_html__( 'No dedicated WP_SECRETS_KEY constant is defined. Before any secrets are stored, define WP_SECRETS_KEY in wp-config.php as a base64-encoded random 32-byte value, so that secrets do not depend on the LOGGED_IN_KEY and LOGGED_IN_SALT constants.' )
 			)
 		);
 	}
@@ -218,9 +247,9 @@ function wp_secrets_site_health_test_undecryptable(): array {
 		'critical',
 		sprintf(
 			'<p>%s</p><ul>%s</ul><p>%s</p>',
-			esc_html__( 'The following secrets exist but could not be decrypted with the current key. There is no way to recover the original value. The credential must be re-entered.' ),
+			esc_html__( 'The following secrets exist but could not be decrypted with the current key.' ),
 			$items,
-			esc_html__( 'This can happen after losing WP_SECRETS_KEY, restoring a database backup without its matching key, or a failed key rotation.' )
+			esc_html__( 'This can happen after WP_SECRETS_KEY, LOGGED_IN_KEY, or LOGGED_IN_SALT changed, after restoring a database backup without its matching key, or after a failed key rotation. Restoring the previous key makes the secrets readable again. Otherwise, each credential must be entered again.' )
 		)
 	);
 }
