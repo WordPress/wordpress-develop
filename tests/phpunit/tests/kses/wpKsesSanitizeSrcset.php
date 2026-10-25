@@ -13,9 +13,9 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 	 *
 	 * @var string[]
 	 */
-	protected $allowed_protocols;
+	protected array $allowed_protocols;
 
-	public function set_up() {
+	public function set_up(): void {
 		parent::set_up();
 		$this->allowed_protocols = wp_allowed_protocols();
 	}
@@ -27,14 +27,14 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 	 *
 	 * @param string $srcset Value whose candidates are all allowed.
 	 */
-	public function test_allowed_values_are_returned_unchanged( string $srcset ) {
+	public function test_allowed_values_are_returned_unchanged( string $srcset ): void {
 		$this->assertSame( $srcset, wp_kses_sanitize_srcset( $srcset, $this->allowed_protocols ) );
 	}
 
 	/**
 	 * @return array<string, array{string}>
 	 */
-	public function data_allowed_values_are_returned_unchanged() {
+	public function data_allowed_values_are_returned_unchanged(): array {
 		return array(
 			'empty value'                           => array( '' ),
 			'whitespace only'                       => array( "  \t\n" ),
@@ -64,14 +64,14 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 	 * @param string $srcset   Value containing at least one disallowed candidate.
 	 * @param string $expected Value with those candidates removed.
 	 */
-	public function test_candidates_with_disallowed_protocols_are_removed( string $srcset, string $expected ) {
+	public function test_candidates_with_disallowed_protocols_are_removed( string $srcset, string $expected ): void {
 		$this->assertSame( $expected, wp_kses_sanitize_srcset( $srcset, $this->allowed_protocols ) );
 	}
 
 	/**
 	 * @return array<string, array{string, string}>
 	 */
-	public function data_candidates_with_disallowed_protocols_are_removed() {
+	public function data_candidates_with_disallowed_protocols_are_removed(): array {
 		return array(
 			'first candidate'                             => array(
 				'bad://localhost/test.png 1x, http://localhost/test-2x.png 2x',
@@ -143,7 +143,7 @@ class Tests_Kses_WpKsesSanitizeSrcset extends WP_UnitTestCase {
 	/**
 	 * @ticket 29807
 	 */
-	public function test_respects_the_given_allowed_protocols() {
+	public function test_respects_the_given_allowed_protocols(): void {
 		$srcset = 'https://example.com/a.jpg 1x, ftp://example.com/b.jpg 2x';
 
 		$this->assertSame( $srcset, wp_kses_sanitize_srcset( $srcset, array( 'https', 'ftp' ) ) );
