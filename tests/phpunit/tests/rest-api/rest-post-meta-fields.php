@@ -1096,6 +1096,106 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		);
 	}
 
+	/**
+	 * Resetting a single key with nothing stored should not be treated as an invalid stored value.
+	 *
+	 * @ticket 66377
+	 * @dataProvider data_set_value_to_null_with_nothing_stored
+	 *
+	 * @param array|bool $show_in_rest The show_in_rest argument for the meta key.
+	 * @param string     $type         The meta type.
+	 */
+	public function test_set_value_to_null_with_nothing_stored( $show_in_rest, $type ) {
+		register_post_meta(
+			'post',
+			'my_meta_key',
+			array(
+				'show_in_rest' => $show_in_rest,
+				'single'       => true,
+				'type'         => $type,
+			)
+		);
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'meta' => array(
+						'my_meta_key' => null,
+					),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertFalse( metadata_exists( 'post', self::$post_id, 'my_meta_key' ) );
+	}
+
+	/**
+	 * Data provider for test_set_value_to_null_with_nothing_stored().
+	 *
+	 * @return array[] Array of test parameters.
+	 */
+	public function data_set_value_to_null_with_nothing_stored() {
+		return array(
+			'boolean' => array( true, 'boolean' ),
+			'integer' => array( true, 'integer' ),
+			'number'  => array( true, 'number' ),
+			'enum'    => array(
+				array(
+					'schema' => array(
+						'type' => 'string',
+						'enum' => array( 'a', 'b' ),
+					),
+				),
+				'string',
+			),
+		);
+	}
+
+	/**
+	 * A stored empty string that does not match the schema is still protected from being reset.
+	 *
+	 * @ticket 66377
+	 */
+	public function test_set_value_to_null_with_invalid_empty_string_stored() {
+		register_post_meta(
+			'post',
+			'my_meta_key',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'boolean',
+			)
+		);
+
+		add_post_meta( self::$post_id, 'my_meta_key', '' );
+
+		$this->grant_write_permission();
+
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'meta' => array(
+						'my_meta_key' => null,
+					),
+				)
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_stored_value', $response, 500 );
+		$this->assertTrue( metadata_exists( 'post', self::$post_id, 'my_meta_key' ) );
+	}
+
 	public function test_remove_multi_value_db_error() {
 		add_post_meta( self::$post_id, 'test_multi', 'val1' );
 		$values = get_post_meta( self::$post_id, 'test_multi', false );
