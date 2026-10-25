@@ -13,7 +13,7 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	public function test_sanitize_sql_orderby_valid( $orderby ) {
 		$this->assertSame( $orderby, sanitize_sql_orderby( $orderby ) );
 	}
-	public function data_sanitize_sql_orderby_valid() {
+	public static function data_sanitize_sql_orderby_valid() {
 		return array(
 			array( '1' ),
 			array( '1 ASC' ),
@@ -39,7 +39,7 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	public function test_sanitize_sql_orderby_invalid( $orderby ) {
 		$this->assertFalse( sanitize_sql_orderby( $orderby ) );
 	}
-	public function data_sanitize_sql_orderby_invalid() {
+	public static function data_sanitize_sql_orderby_invalid() {
 		return array(
 			array( '' ),
 			array( '1 2' ),

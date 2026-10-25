@@ -46,7 +46,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'class="popular-category"', $output );
 	}
 
-	public function data_wp_terms_checklist_with_selected_cats() {
+	public static function data_wp_terms_checklist_with_selected_cats() {
 		return array(
 			array( '1' ),
 			array( 1 ),
@@ -279,7 +279,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_extra_args_for_add_settings_section() {
+	public static function data_extra_args_for_add_settings_section() {
 		return array(
 			'class placeholder section_class present' => array(
 				array(
@@ -350,14 +350,14 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			),
 			'disallowed tag in before_section'        => array(
 				array(
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/"></iframe>',
 					'after_section'  => '</div><!-- end of the test section -->',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
-					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/" />',
+					'before_section' => '<div class="video-settings-section"><iframe src="https://www.wordpress.org/"></iframe>',
 					'after_section'  => '</div><!-- end of the test section -->',
 					'section_class'  => '',
 				),
@@ -367,14 +367,14 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 			'disallowed tag in after_section'         => array(
 				array(
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/"></iframe>',
 				),
 				array(
 					'id'             => 'test-section',
 					'title'          => 'Section title',
 					'callback'       => '__return_false',
 					'before_section' => '<div class="video-settings-section">',
-					'after_section'  => '</div><iframe src="https://www.wordpress.org/" />',
+					'after_section'  => '</div><iframe src="https://www.wordpress.org/"></iframe>',
 					'section_class'  => '',
 				),
 				'<div class="video-settings-section">',
@@ -446,7 +446,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'notice-notice-', $output );
 	}
 
-	public function data_settings_errors_css_classes() {
+	public static function data_settings_errors_css_classes() {
 		return array(
 			// The admin notices default types will generate CSS classes in this order.
 			array( 'error', 'notice notice-error is-dismissible settings-error' ),
@@ -542,7 +542,7 @@ class Tests_Admin_IncludesTemplate extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_get_submit_button_shorthand() {
+	public static function data_get_submit_button_shorthand() {
 		return array(
 			'primary shorthand'            => array( 'primary', 'button button-primary' ),
 			'small shorthand'              => array( 'small', 'button button-small' ),

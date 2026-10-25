@@ -27,7 +27,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 *
 	 * @return array[]
 	 */
-	public function data_wp_list_filter() {
+	public static function data_wp_list_filter() {
 		return array(
 			'string instead of array'  => array(
 				'foo',
