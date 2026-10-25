@@ -143,6 +143,28 @@ class Tests_Secrets_SiteHealth extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
+	/**
+	 * A provider from a secrets.php drop-in does not use the default keyring.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_key_source_test_is_good_when_a_dropin_replaces_the_provider(): void {
+		$provider = $this->createMock( WP_Secrets_Provider::class );
+		$provider->method( 'get_label' )->willReturn( 'Example Vault' );
+
+		$GLOBALS['wp_secrets_provider'] = $provider;
+
+		$result = wp_secrets_site_health_test_key_source();
+
+		$this->assertSame( 'good', $result['status'] );
+		$this->assertStringContainsString( 'Example Vault', $result['description'] );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
 	public function test_undecryptable_test_is_critical_when_the_secrets_cannot_be_listed(): void {
 		$GLOBALS['wp_secrets_dropin_broken'] = true;
 
