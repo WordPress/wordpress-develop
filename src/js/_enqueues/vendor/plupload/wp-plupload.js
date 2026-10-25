@@ -481,7 +481,10 @@ window.wp = window.wp || {};
 		'SECURITY_ERROR':         pluploadL10n.security_error,
 
 		'FILE_SIZE_ERROR': function( file ) {
-			return pluploadL10n.file_exceeds_size_limit.replace( '%s', file.name );
+			return pluploadL10n.file_exceeds_size_limit.replace(
+				'%s',
+				'<strong>' + _.escape(file.name) + '</strong>'
+			);
 		},
 
 		'HTTP_ERROR': function( file ) {
