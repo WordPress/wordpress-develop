@@ -129,6 +129,7 @@ jQuery( function( $ ) {
 			'<script type="text/html" id="tmpl-item-deleted-row"><tr class="plugin-deleted-tr"><td colspan="{{ data.colspan }}"></td></tr></script>' +
 			'<ul class="subsubsub">' +
 				'<li class="all"><a href="#">All <span class="count">(3)</span></a> |</li>' +
+				'<li class="inactive"><a href="#">Inactive <span class="count">(2)</span></a> |</li>' +
 				'<li class="demo_group"><a href="#">Demo Group <span class="count">(2)</span></a> |</li>' +
 				'<li class="single_group"><a href="#">Single Group <span class="count">(1)</span></a></li>' +
 			'</ul>' +
@@ -139,6 +140,7 @@ jQuery( function( $ ) {
 
 		window._wpUpdatesSettings.plugins = {
 			all: [ 'custom-a/custom-a.php', 'custom-b/custom-b.php', 'other/other.php' ],
+			inactive: [ 'custom-a/custom-a.php', 'other/other.php' ],
 			demo_group: [ 'custom-a/custom-a.php', 'custom-b/custom-b.php' ],
 			single_group: [ 'custom-a/custom-a.php' ]
 		};
@@ -153,6 +155,7 @@ jQuery( function( $ ) {
 		$.fn.fadeOut.restore();
 
 		assert.equal( $( '.subsubsub .all .count' ).text(), '(2)', 'The All count should go down.' );
+		assert.equal( $( '.subsubsub .inactive .count' ).text(), '(1)', 'The Inactive count should go down only once.' );
 		assert.equal( $( '.subsubsub .demo_group .count' ).text(), '(1)', 'The custom group count should go down.' );
 		assert.strictEqual( $( '.subsubsub .single_group' ).length, 0, 'An empty custom group should be removed.' );
 		assert.strictEqual( $( '.subsubsub .all' ).text(), 'All (2) |', 'Separators between views should be kept.' );

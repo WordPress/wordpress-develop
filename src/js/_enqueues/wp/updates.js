@@ -1379,16 +1379,6 @@
 				 * @type {Object}
 				 */
 				plugins          = settings.plugins,
-				/**
-				 * Plugin groups that Core handles on its own.
-				 *
-				 * @type {Array}
-				 */
-				coreGroups       = [
-					'all', 'search', 'upgrade', 'active', 'inactive',
-					'recently_activated', 'mustuse', 'dropins', 'paused',
-					'auto-update-enabled', 'auto-update-disabled'
-				],
 				remainingCount;
 
 			// Add a success message after deleting a plugin.
@@ -1457,11 +1447,11 @@
 				}
 			}
 
-			// Remove from custom groups added through the `plugins_list` filter.
+			// Remove from the other groups, such as those added through the `plugins_list` filter.
 			_.each( _.keys( plugins ), function( group ) {
 				var $view;
 
-				if ( -1 !== _.indexOf( coreGroups, group ) || ! _.isArray( plugins[ group ] ) || -1 === _.indexOf( plugins[ group ], response.plugin ) ) {
+				if ( 'all' === group || ! _.isArray( plugins[ group ] ) || -1 === _.indexOf( plugins[ group ], response.plugin ) ) {
 					return;
 				}
 
