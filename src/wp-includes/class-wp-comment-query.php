@@ -247,9 +247,10 @@ class WP_Comment_Query {
 	 *     @type string          $search                    Search term(s) to retrieve matching comments for.
 	 *                                                      Default empty.
 	 *     @type string|array    $status                    Comment statuses to limit results by. Accepts an array
-	 *                                                      or space/comma-separated list of 'hold' (`comment_status=0`),
-	 *                                                      'approve' (`comment_status=1`), 'all', or a custom
-	 *                                                      comment status. Default 'all'.
+	 *                                                      or space/comma-separated list of 'hold' (`comment_approved=0`),
+	 *                                                      'approve' (`comment_approved=1`), 'all' (approved and pending),
+	 *                                                      'any' (all statuses, including spam and trash), or a custom
+	 *                                                      comment status. 'any' overrides other statuses. Default 'all'.
 	 *     @type string|string[] $type                      Include comments of a given type, or array of types.
 	 *                                                      Accepts 'comment', 'pings' (includes 'pingback' and
 	 *                                                      'trackback'), or any custom type string. Default empty.
