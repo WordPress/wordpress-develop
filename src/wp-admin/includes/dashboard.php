@@ -1040,7 +1040,7 @@ function wp_dashboard_on_this_day( $posts = null ) {
 	}
 
 	?>
-	<div id="on-this-day-posts-form" class="activity-block on-this-day-posts-title hide-if-no-js" style="<?php echo $display_form ? '' : 'display: none;'; ?>">
+	<div id="wp-on-this-day-posts-form" class="activity-block wp-on-this-day-posts-title hide-if-no-js" style="<?php echo $display_form ? '' : 'display: none;'; ?>">
 		<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
 		<form method="post">
 		<p>
@@ -1054,7 +1054,7 @@ function wp_dashboard_on_this_day( $posts = null ) {
 		</form>
 	</div>
 
-	<div id="on-this-day-posts-list" class="activity-block on-this-day-posts-title" style="<?php echo $display_list ? '' : 'display: none;'; ?>">
+	<div id="wp-on-this-day-posts-list" class="activity-block wp-on-this-day-posts-title" style="<?php echo $display_list ? '' : 'display: none;'; ?>">
 	<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
 	<ul>
 	<?php

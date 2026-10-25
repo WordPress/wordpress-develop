@@ -931,13 +931,13 @@ body #dashboard-widgets .postbox form .submit {
 
 #future-posts ul,
 #published-posts ul,
-#on-this-day-posts-list ul {
+#wp-on-this-day-posts-list ul {
 	margin: 8px -12px 0 -12px;
 }
 
 #future-posts li,
 #published-posts li,
-#on-this-day-posts-list li {
+#wp-on-this-day-posts-list li {
 	display: grid;
 	grid-template-columns: clamp(160px, calc(2vw + 140px), 200px) auto;
 	column-gap: 10px;
@@ -947,11 +947,11 @@ body #dashboard-widgets .postbox form .submit {
 
 #future-posts li:nth-child(odd),
 #published-posts li:nth-child(odd),
-#on-this-day-posts-list li:nth-child(odd) {
+#wp-on-this-day-posts-list li:nth-child(odd) {
 	background-color: #f6f7f7;
 }
 
-#on-this-day-posts-list .wp-on-this-day-post-author {
+#wp-on-this-day-posts-list .wp-on-this-day-post-author {
 	color: #646970;
 }
 

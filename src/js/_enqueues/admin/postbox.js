@@ -363,7 +363,7 @@
 				postboxes.save_on_this_day_display( enabled );
 			} );
 
-			$( '#on-this-day-posts-form form button' ).on( 'click.postboxes', function( event ) {
+			$( '#wp-on-this-day-posts-form form button' ).on( 'click.postboxes', function( event ) {
 				event.preventDefault();
 				var enabled = '1' === $( this ).prop( 'value' );
 
@@ -519,8 +519,8 @@
 		 * @return {void}
 		 */
 		setOnThisDayDisplay: function( enabled ) {
-			var $onThisDayList = $( '#on-this-day-posts-list' )
-				$onThisDayForm = $( '#on-this-day-posts-form'),
+			var $onThisDayList = $( '#wp-on-this-day-posts-list' )
+				$onThisDayForm = $( '#wp-on-this-day-posts-form'),
 				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
 
 			$onThisDayForm.hide(); // Always hidden once a choice is made.
