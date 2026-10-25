@@ -705,4 +705,77 @@ class Test_Abilities_API_WpRegisterAbility extends WP_UnitTestCase {
 		// Keep assertEquals() because the objects are intentionally compared by value.
 		$this->assertEquals( $expected, $result );
 	}
+
+	/**
+	 * Tests registering an ability with multiple categories.
+	 *
+	 * @ticket 66367
+	 */
+	public function test_register_ability_with_multiple_categories(): void {
+		$this->simulate_doing_wp_abilities_init_action();
+
+		global $wp_current_filter;
+		$wp_current_filter[] = 'wp_abilities_api_categories_init';
+		wp_register_ability_category(
+			'system',
+			array(
+				'label'       => 'System',
+				'description' => 'System category.',
+			)
+		);
+		array_pop( $wp_current_filter );
+
+		$args               = self::$test_ability_args;
+		$args['categories'] = array( 'math', 'system' );
+		unset( $args['category'] );
+
+		$ability = wp_register_ability( 'test/multi-cat', $args );
+
+		wp_unregister_ability_category( 'system' );
+		wp_unregister_ability( 'test/multi-cat' );
+
+		$this->assertInstanceOf( WP_Ability::class, $ability );
+		$this->assertSame( 'math', $ability->get_category() );
+		$this->assertSame( array( 'math', 'system' ), $ability->get_categories() );
+		$this->assertTrue( $ability->has_category( 'math' ) );
+		$this->assertTrue( $ability->has_category( 'system' ) );
+	}
+
+	/**
+	 * Tests registering an ability with an unregistered category in categories fails.
+	 *
+	 * @ticket 66367
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_with_unregistered_category_in_categories_fails(): void {
+		$this->simulate_doing_wp_abilities_init_action();
+
+		$args               = self::$test_ability_args;
+		$args['categories'] = array( 'math', 'nonexistent-category' );
+		unset( $args['category'] );
+
+		$result = wp_register_ability( 'test/invalid-cat', $args );
+
+		$this->assertNull( $result );
+	}
+
+	/**
+	 * Tests registering an ability with invalid categories type fails.
+	 *
+	 * @ticket 66367
+	 *
+	 * @expectedIncorrectUsage WP_Abilities_Registry::register
+	 */
+	public function test_register_ability_with_invalid_categories_type_fails(): void {
+		$this->simulate_doing_wp_abilities_init_action();
+
+		$args               = self::$test_ability_args;
+		$args['categories'] = 'not-an-array';
+		unset( $args['category'] );
+
+		$result = wp_register_ability( 'test/invalid-cat-type', $args );
+
+		$this->assertNull( $result );
+	}
 }
