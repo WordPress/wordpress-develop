@@ -176,6 +176,18 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 				'order'          => 'DESC',
 			);
 
+			/**
+			 * Filters the query arguments for global styles revision requests.
+			 *
+			 * Enables adding extra arguments or setting defaults for a global styles revision collection request.
+			 *
+			 * @since 6.7.0
+			 *
+			 * @param array           $query_args Key value array of query var to query value.
+			 * @param WP_REST_Request $request    The request used.
+			 */
+			$query_args = apply_filters( 'rest_global_styles_revision_query', $query_args, $request );
+
 			$parameter_mappings = array(
 				'offset'   => 'offset',
 				'page'     => 'paged',
@@ -372,6 +384,17 @@ class WP_REST_Global_Styles_Revisions_Controller extends WP_REST_Revisions_Contr
 				)
 			);
 		}
+
+		/**
+		 * Filters the global styles revision data for the REST API response.
+		 *
+		 * @since 6.7.0
+		 *
+		 * @param WP_REST_Response $response The response object.
+		 * @param WP_Post         $post     The original revision object.
+		 * @param WP_REST_Request $request  Request used to generate the response.
+		 */
+		$response = apply_filters( 'rest_prepare_global_styles_revision', $response, $post, $request );
 
 		return $response;
 	}
