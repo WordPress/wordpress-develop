@@ -227,7 +227,10 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Object-backed storage is deprecated as of PHP 8.5.
+	 *
 	 * @ticket 53160
+	 * @requires PHP < 8.5
 	 */
 	public function test_map_deep_should_map_array_object_backed_by_an_object() {
 		$storage = (object) array( 'entry' => 'x' );
