@@ -95,10 +95,11 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $new_password );
 		$this->assertSame(
-			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip' ),
+			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip', 'expires' ),
 			array_keys( $new_item )
 		);
 		$this->assertSame( $args['name'], $new_item['name'] );
+		$this->assertSame( $args['expires'] ?? null, $new_item['expires'] );
 	}
 
 	public function data_create_new_application_password() {
@@ -106,10 +107,61 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
 			),
-			'should create new password when name is unique'      => array(
+			'should create new password when name is unique' => array(
 				'args'  => array( 'name' => 'test3' ),
 				'names' => array( 'test1', 'test2' ),
 			),
+			'should create new password with expiration' => array(
+				'args' => array(
+					'name'    => 'test_expire',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
+			),
+			'should create new password with null expiration' => array(
+				'args' => array(
+					'name'    => 'test_null_expire',
+					'expires' => null,
+				),
+			),
+		);
+	}
+
+	/**
+	 * @ticket 53995
+	 * @dataProvider data_create_new_application_password_with_non_future_expiration
+	 *
+	 * @param int $offset Expiration offset from the current time, in seconds.
+	 */
+	public function test_create_new_application_password_with_non_future_expiration( $offset ) {
+		WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'Existing' ) );
+		$passwords     = WP_Application_Passwords::get_user_application_passwords( self::$user_id );
+		$created_count = did_action( 'wp_create_application_password' );
+
+		$result = WP_Application_Passwords::create_new_application_password(
+			self::$user_id,
+			array(
+				'name'    => 'Expired',
+				'expires' => time() + $offset,
+			)
+		);
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'application_password_invalid_expiration', $result->get_error_code() );
+		$this->assertSame( array( 'status' => 400 ), $result->get_error_data() );
+		$this->assertSame( $passwords, WP_Application_Passwords::get_user_application_passwords( self::$user_id ) );
+		$this->assertSame( $created_count, did_action( 'wp_create_application_password' ) );
+	}
+
+	/**
+	 * Data provider for rejecting an expiration that is not in the future.
+	 *
+	 * @return array[]
+	 */
+	public function data_create_new_application_password_with_non_future_expiration() {
+		return array(
+			'past day'       => array( -DAY_IN_SECONDS ),
+			'past second'    => array( -1 ),
+			'current second' => array( 0 ),
 		);
 	}
 
@@ -154,7 +206,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 		// Check updated only given values.
 		$updated_item = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid );
 		foreach ( $updated_item as $key => $update_value ) {
-			$expected_value = $update[ $key ] ?? $original_item[ $key ];
+			$expected_value = array_key_exists( $key, $update ) ? $update[ $key ] : $original_item[ $key ];
 			$this->assertSame( $expected_value, $update_value );
 		}
 	}
@@ -185,6 +237,21 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should update name'                     => array(
 				'update'   => array( 'name' => 'Test Updated' ),
 				'existing' => array( 'name' => 'Test' ),
+			),
+			'should update expires'                  => array(
+				'update'   => array( 'expires' => time() + DAY_IN_SECONDS ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should update expires to the past'      => array(
+				'update'   => array( 'expires' => time() - DAY_IN_SECONDS ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should clear expires'                   => array(
+				'update'   => array( 'expires' => null ),
+				'existing' => array(
+					'name'    => 'Test',
+					'expires' => time() + DAY_IN_SECONDS,
+				),
 			),
 		);
 	}
