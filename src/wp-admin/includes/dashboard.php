@@ -1112,7 +1112,7 @@ function wp_dashboard_on_this_day_get_posts() {
 	$args = array(
 		'post_type'              => 'post',
 		'post_status'            => array( 'publish' ),
-		'posts_per_page'         => 10,
+		'posts_per_page'         => 100,
 		'ignore_sticky_posts'    => true,
 		'orderby'                => 'date',
 		'order'                  => 'DESC',
