@@ -223,7 +223,7 @@ abstract class WP_REST_Meta_Fields {
 	 * Deletes a meta value for an object.
 	 *
 	 * @since 4.7.0
-	 * @since 7.2.0 Authorization is no longer checked when there is no stored value to delete.
+	 * @since 7.3.0 Authorization is no longer checked when there is no stored value to delete.
 	 *
 	 * @param int    $object_id Object ID the field belongs to.
 	 * @param string $meta_key  Key for the field.
@@ -272,7 +272,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 * @since 6.7.0 Stores values into DB even if provided registered default value.
-	 * @since 7.2.0 Authorization is only checked when the values are changed.
+	 * @since 7.3.0 Authorization is only checked when the values are changed.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -384,7 +384,7 @@ abstract class WP_REST_Meta_Fields {
 	 *
 	 * @since 4.7.0
 	 * @since 6.7.0 Stores values into DB even if provided registered default value.
-	 * @since 7.2.0 Authorization is not checked when the default value is provided for a key with no stored value.
+	 * @since 7.3.0 Authorization is not checked when the default value is provided for a key with no stored value.
 	 *
 	 * @param int    $object_id Object ID to update.
 	 * @param string $meta_key  Key for the custom field.
@@ -469,7 +469,7 @@ abstract class WP_REST_Meta_Fields {
 	 * This mirrors WP_REST_Meta_Fields::get_value(), which returns the default value of a single
 	 * field, and the registered default value wrapped in an array for a multi field.
 	 *
-	 * @since 7.2.0
+	 * @since 7.3.0
 	 *
 	 * @param int    $object_id  Object ID the field belongs to.
 	 * @param string $meta_key   The meta key being checked.
