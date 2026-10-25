@@ -560,6 +560,10 @@
 				// Only show the username when it differs from the display name.
 				usernameLine.prop( 'hidden', display_name === username );
 			} );
+
+			if ( greeting.text() !== current_name ) {
+				select.trigger( 'change' );
+			}
 		}
 
 		$colorpicker = $( '#color-picker' );
