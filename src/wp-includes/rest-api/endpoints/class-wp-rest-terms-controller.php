@@ -154,10 +154,6 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 	 * @return bool Whether the terms for the post can be read.
 	 */
 	public function check_read_terms_permission_for_post( $post, $request ) {
-		// If the requested post isn't associated with this taxonomy, deny access.
-		if ( ! is_object_in_taxonomy( $post->post_type, $this->taxonomy ) ) {
-			return false;
-		}
 
 		// Grant access if the post is publicly viewable.
 		if ( is_post_publicly_viewable( $post ) ) {
@@ -203,6 +199,17 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				return new WP_Error(
 					'rest_post_invalid_id',
 					__( 'Invalid post ID.' ),
+					array(
+						'status' => 400,
+					)
+				);
+			}
+
+			// If the requested post isn't associated with this taxonomy, the request is invalid.
+			if ( ! is_object_in_taxonomy( $post->post_type, $this->taxonomy ) ) {
+				return new WP_Error(
+					'rest_post_invalid_type',
+					__( 'Invalid post type.' ),
 					array(
 						'status' => 400,
 					)
