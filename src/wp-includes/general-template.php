@@ -3436,7 +3436,13 @@ function the_weekday() {
 		return;
 	}
 
-	$the_weekday = $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
+	$weekday_number = get_post_time( 'w', false, $post );
+
+	if ( false === $weekday_number ) {
+		return;
+	}
+
+	$the_weekday = $wp_locale->get_weekday( clamp( (int) $weekday_number, 0, 6 ) );
 
 	/**
 	 * Filters the localized weekday of the post, for display.
@@ -3473,10 +3479,11 @@ function the_weekday_date( $before = '', $after = '' ) {
 	}
 
 	$the_weekday_date = '';
+	$weekday_number   = get_post_time( 'w', false, $post );
 
-	if ( $currentday !== $previousweekday ) {
+	if ( false !== $weekday_number && $currentday !== $previousweekday ) {
 		$the_weekday_date .= $before;
-		$the_weekday_date .= $wp_locale->get_weekday( get_post_time( 'w', false, $post ) );
+		$the_weekday_date .= $wp_locale->get_weekday( clamp( (int) $weekday_number, 0, 6 ) );
 		$the_weekday_date .= $after;
 		$previousweekday   = $currentday;
 	}

@@ -954,11 +954,6 @@ parameters:
 			count: 2
 			path: ../../../src/wp-includes/general-template.php
 		-
-			message: '#^Parameter \#1 \$weekday_number of method WP_Locale\:\:get_weekday\(\) expects int\<0, 6\>, string\|false given\.$#'
-			identifier: argument.type
-			count: 2
-			path: ../../../src/wp-includes/general-template.php
-		-
 			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, int\<1, max\> given\.$#'
 			identifier: argument.type
 			count: 2
