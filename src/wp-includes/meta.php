@@ -35,7 +35,9 @@ require ABSPATH . WPINC . '/class-wp-metadata-lazyloader.php';
  * @param bool   $unique     Optional. Whether the specified metadata key should be unique for the object.
  *                           If true, and the object already has a value for the specified metadata key,
  *                           no change will be made. Default false.
- * @return int|false The meta ID on success, false on failure.
+ * @return int|false The meta ID on success, false on failure. If the `add_{$meta_type}_metadata`
+ *                   filter short-circuits the function, the value returned by the filter is
+ *                   returned as is.
  */
 function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique = false ) {
 	global $wpdb;
@@ -192,6 +194,9 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *                  and was therefore added, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
+ *                  If the `update_{$meta_type}_metadata` filter short-circuits the
+ *                  function, the value returned by the filter is cast to a boolean
+ *                  and returned.
  */
 function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
 	global $wpdb;
@@ -239,7 +244,10 @@ function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param null|bool $check      Whether to allow updating metadata for the given type.
+	 * @param null|bool $check      Whether to allow updating metadata for the given type. Return a non-null
+	 *                              value to short-circuit the function; it will be cast to a boolean and
+	 *                              returned by `update_metadata()`. Return null to continue with the
+	 *                              default behavior.
 	 * @param int       $object_id  ID of the object metadata is for.
 	 * @param string    $meta_key   Metadata key.
 	 * @param mixed     $meta_value Metadata value. Must be serializable if non-scalar.
