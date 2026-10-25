@@ -10,7 +10,10 @@
 ( function( $ ) {
 	var $appPassSection = $( '#application-passwords-section' ),
 		$newAppPassForm = $appPassSection.find( '.create-application-password' ),
-		$newAppPassField = $newAppPassForm.find( '.input' ),
+		$newAppPassField = $newAppPassForm.find( '#new_application_password_name' ),
+		$newAppPassPresetField = $newAppPassForm.find( '#new_application_password_expiration_preset' ),
+		$newAppPassCustomWrap = $newAppPassForm.find( '#new_application_password_custom_expires_wrap' ),
+		$newAppPassExpiresField = $newAppPassForm.find( '#new_application_password_expires' ),
 		$newAppPassButton = $newAppPassForm.find( '.button' ),
 		$appPassTwrapper = $appPassSection.find( '.application-passwords-list-table-wrapper' ),
 		$appPassTbody = $appPassSection.find( 'tbody' ),
@@ -18,7 +21,82 @@
 		$removeAllBtn = $( '#revoke-all-application-passwords' ),
 		tmplNewAppPass = wp.template( 'new-application-password' ),
 		tmplAppPassRow = wp.template( 'application-password-row' ),
-		userId = $( '#user_id' ).val();
+		userId = $( '#user_id' ).val(),
+		settings = window.wpApplicationPasswordsSettings || {};
+
+	$newAppPassPresetField.on( 'change', function() {
+		if ( 'custom' === $( this ).val() ) {
+			$newAppPassCustomWrap.removeClass( 'hidden' );
+			$newAppPassExpiresField.trigger( 'focus' );
+		} else {
+			$newAppPassCustomWrap.addClass( 'hidden' );
+			$newAppPassExpiresField.val( '' );
+		}
+	} );
+
+	/**
+	 * Calculates the ISO string for expiration based on selected preset or custom date.
+	 *
+	 * Expiration is set to 23:59:59 of the target day in the site's local timezone.
+	 *
+	 * @since 7.2.0
+	 * @return {string|null} The ISO 8601 date string, or null if no expiration or invalid.
+	 */
+	function calculateExpiresIso() {
+		var preset = $newAppPassPresetField.val(),
+			days = 0,
+			baseDateIso = settings.todayEndIso,
+			baseDate;
+
+		if ( 'no_expiry' === preset ) {
+			return null;
+		}
+
+		if ( 'custom' === preset ) {
+			var customVal = $newAppPassExpiresField.val();
+			if ( ! customVal ) {
+				return null;
+			}
+
+			// Format custom date string into ISO for end of day in site timezone.
+			var siteTimezone = wp.date.getSettings().timezone;
+			var offsetString = '+00:00';
+			if ( siteTimezone && siteTimezone.offsetFormatted ) {
+				offsetString = siteTimezone.offsetFormatted;
+				// Format to standard ISO offset like +06:00 or -05:00.
+				if ( ! /^[-+]\d{2}:\d{2}$/.test( offsetString ) ) {
+					var numOffset = parseFloat( siteTimezone.offset || 0 );
+					var sign = numOffset >= 0 ? '+' : '-';
+					var absH = Math.floor( Math.abs( numOffset ) );
+					var absM = Math.round( ( Math.abs( numOffset ) - absH ) * 60 );
+					offsetString = sign + ( '0' + absH ).slice( -2 ) + ':' + ( '0' + absM ).slice( -2 );
+				}
+			}
+
+			var customIsoDate = new Date( customVal + 'T23:59:59' + offsetString );
+			if ( ! isNaN( customIsoDate.getTime() ) ) {
+				return customIsoDate.toISOString();
+			}
+
+			return null;
+		}
+
+		if ( '7_days' === preset ) {
+			days = 7;
+		} else if ( '30_days' === preset ) {
+			days = 30;
+		} else if ( '90_days' === preset ) {
+			days = 90;
+		}
+
+		if ( days > 0 ) {
+			baseDate = baseDateIso ? new Date( baseDateIso ) : new Date();
+			baseDate.setUTCDate( baseDate.getUTCDate() + days );
+			return baseDate.toISOString();
+		}
+
+		return null;
+	}
 
 	$newAppPassButton.on( 'click', function( e ) {
 		e.preventDefault();
@@ -41,6 +119,11 @@
 			name: name
 		};
 
+		var expiresIso = calculateExpiresIso();
+		if ( expiresIso ) {
+			request.expires = expiresIso;
+		}
+
 		/**
 		 * Filters the request data used to create a new Application Password.
 		 *
@@ -59,6 +142,9 @@
 			$newAppPassButton.removeProp( 'aria-disabled' ).removeClass( 'disabled' );
 		} ).done( function( response ) {
 			$newAppPassField.val( '' );
+			$newAppPassPresetField.val( '30_days' );
+			$newAppPassCustomWrap.addClass( 'hidden' );
+			$newAppPassExpiresField.val( '' );
 			$newAppPassButton.prop( 'disabled', false );
 
 			$newAppPassForm.after( tmplNewAppPass( {
@@ -82,7 +168,7 @@
 			 */
 			wp.hooks.doAction( 'wp_application_passwords_created_password', response, request );
 		} ).fail( handleErrorResponse );
-	} );
+	});
 
 	$appPassTbody.on( 'click', '.delete', function( e ) {
 		e.preventDefault();
