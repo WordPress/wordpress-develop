@@ -156,22 +156,14 @@ class WP_REST_Entity_Fields_Controller extends WP_REST_Controller {
 		$field_schema = $this->get_field_schema();
 		$fields       = array();
 		foreach ( wp_get_registered_entity_fields( $kind, $name ) as $field ) {
-			$fields[] = _rest_cast_empty_objects_from_schema( $field, $field_schema );
-		}
-
-		$script_modules = array();
-		foreach ( wp_get_registered_entity_field_modules( $kind, $name ) as $module => $field_ids ) {
-			$script_modules[] = array(
-				'id'     => $module,
-				'fields' => array_values( $field_ids ),
-			);
+			$fields[] = wp_prepare_json_value_for_client( $field, $field_schema );
 		}
 
 		$response = array(
 			'kind'           => $kind,
 			'name'           => $name,
 			'fields'         => $fields,
-			'script_modules' => $script_modules,
+			'script_modules' => wp_get_registered_entity_field_modules( $kind, $name ),
 		);
 
 		return rest_ensure_response( $response );

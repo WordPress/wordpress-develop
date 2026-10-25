@@ -634,7 +634,7 @@ add_action( 'wp_enqueue_scripts', 'wp_enqueue_classic_theme_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_enqueue_command_palette_assets' );
-add_action( 'admin_enqueue_scripts', 'wp_enqueue_view_transitions_admin_css' );
+add_action( 'admin_head', 'wp_print_view_transitions_render_blocking_link' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_classic_theme_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'enqueue_block_styles_assets', 30 );
@@ -718,6 +718,8 @@ add_action( 'load-post.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-post-new.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-site-editor.php', 'wp_set_up_cross_origin_isolation' );
 add_action( 'load-widgets.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-upload.php', 'wp_set_up_cross_origin_isolation' );
+add_action( 'load-media-new.php', 'wp_set_up_cross_origin_isolation' );
 // Nav menu.
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 add_filter( 'nav_menu_css_class', 'wp_nav_menu_remove_menu_item_has_children_class', 10, 4 );

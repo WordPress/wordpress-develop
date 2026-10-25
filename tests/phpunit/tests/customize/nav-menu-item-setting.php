@@ -559,7 +559,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		);
 		foreach ( $invalid_urls as $invalid_url ) {
 			$url_setting = $setting->sanitize( array( 'url' => $invalid_url ) );
-			$this->assertInstanceOf( 'WP_Error', $url_setting );
+			$this->assertWPError( $url_setting );
 			$this->assertSame( 'invalid_url', $url_setting->get_error_code() );
 		}
 

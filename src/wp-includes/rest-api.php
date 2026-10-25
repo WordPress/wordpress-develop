@@ -1037,6 +1037,8 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
  * Filters the REST API response to include only an allow-listed set of response object fields.
  *
  * @since 4.8.0
+ * @since 7.2.0 The response is left unchanged when the route turns off the `fields` response
+ *              processing or when the response data is not an array.
  *
  * @param WP_REST_Response $response Current response being served.
  * @param WP_REST_Server   $server   ResponseHandler instance (usually WP_REST_Server).
@@ -1048,7 +1050,17 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		return $response;
 	}
 
+	$processing = $response->get_data_processing();
+	if ( ! $processing['fields'] ) {
+		return $response;
+	}
+
 	$data = $response->get_data();
+
+	// Only arrays have fields to filter.
+	if ( ! is_array( $data ) ) {
+		return $response;
+	}
 
 	$fields = wp_parse_list( $request['_fields'] );
 
@@ -1080,7 +1092,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	if ( wp_is_numeric_array( $data ) ) {
 		$new_data = array();
 		foreach ( $data as $item ) {
-			$new_data[] = _rest_array_intersect_key_recursive( $item, $fields_as_keyed );
+			$new_data[] = is_array( $item ) ? _rest_array_intersect_key_recursive( $item, $fields_as_keyed ) : $item;
 		}
 	} else {
 		$new_data = _rest_array_intersect_key_recursive( $data, $fields_as_keyed );
@@ -3135,7 +3147,7 @@ function rest_preload_api_request( $memo, $path ) {
 		/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
 		$response = apply_filters( 'rest_post_dispatch', rest_ensure_response( $response ), $server, $request );
 		$embed    = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
-		$data     = (array) $server->response_to_data( $response, $embed );
+		$data     = $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$memo[ $method ][ $path ] = array(
@@ -3320,80 +3332,6 @@ function rest_default_additional_properties_to_false( $schema ) {
 	}
 
 	return $schema;
-}
-
-/**
- * Recursively casts empty arrays to objects where the schema types them as objects.
- *
- * PHP cannot distinguish an empty associative array from an empty list, so
- * `json_encode()` always serializes `array()` as a JSON array (`[]`). A REST
- * schema, however, may type a value as an object, which must encode as `{}`.
- * This walks the value against its schema and casts any empty, object-typed
- * array to an object. Non-empty associative arrays already encode as objects,
- * so they are left as arrays and only recursed into to fix any nested empty
- * objects.
- *
- * Union schemas (`oneOf`/`anyOf`) are handled only for the empty-array case:
- * an empty value is cast to an object when any branch allows an object. Such
- * values are not recursed into.
- *
- * @since 7.2.0
- * @access private
- *
- * @param mixed $value  The value to normalize.
- * @param array $schema The schema node describing the value.
- * @return mixed The normalized value, with empty object-typed arrays cast to objects.
- */
-function _rest_cast_empty_objects_from_schema( $value, $schema ) {
-	if ( ! is_array( $value ) || ! is_array( $schema ) ) {
-		return $value;
-	}
-
-	if ( isset( $schema['oneOf'] ) || isset( $schema['anyOf'] ) ) {
-		$branches = $schema['oneOf'] ?? $schema['anyOf'];
-		if ( array() === $value ) {
-			foreach ( $branches as $branch ) {
-				if ( is_array( $branch ) && in_array( 'object', (array) ( $branch['type'] ?? array() ), true ) ) {
-					return (object) array();
-				}
-			}
-		}
-		return $value;
-	}
-
-	$types = (array) ( $schema['type'] ?? array() );
-
-	if ( in_array( 'array', $types, true ) && isset( $schema['items'] ) ) {
-		foreach ( $value as $index => $item ) {
-			$value[ $index ] = _rest_cast_empty_objects_from_schema( $item, $schema['items'] );
-		}
-		return $value;
-	}
-
-	if ( in_array( 'object', $types, true ) ) {
-		if ( isset( $schema['properties'] ) ) {
-			foreach ( $schema['properties'] as $property => $property_schema ) {
-				if ( array_key_exists( $property, $value ) ) {
-					$value[ $property ] = _rest_cast_empty_objects_from_schema( $value[ $property ], $property_schema );
-				}
-			}
-		}
-		if ( isset( $schema['additionalProperties'] ) && is_array( $schema['additionalProperties'] ) ) {
-			foreach ( $value as $key => $item ) {
-				if ( isset( $schema['properties'][ $key ] ) ) {
-					continue;
-				}
-				$value[ $key ] = _rest_cast_empty_objects_from_schema( $item, $schema['additionalProperties'] );
-			}
-		}
-
-		// Empty object-typed arrays must serialize as {} to match the schema.
-		if ( array() === $value ) {
-			return (object) array();
-		}
-	}
-
-	return $value;
 }
 
 /**
