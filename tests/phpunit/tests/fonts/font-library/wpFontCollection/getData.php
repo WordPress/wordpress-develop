@@ -95,35 +95,38 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 					'font_families' => array( array() ),
 				),
 				'expected_data' => array(
-					'description'   => '',
-					'categories'    => array(),
-					'name'          => 'My Collection',
-					'font_families' => array( array() ),
+					'description'          => '',
+					'categories'           => array(),
+					'terms_and_conditions' => '',
+					'name'                 => 'My Collection',
+					'font_families'        => array( array() ),
 				),
 			),
 
 			'font collection with all data'      => array(
 				'slug'          => 'my-collection',
 				'config'        => array(
-					'name'          => 'My Collection',
-					'description'   => 'My collection description',
-					'font_families' => array( array() ),
-					'categories'    => array(),
+					'name'                 => 'My Collection',
+					'description'          => 'My collection description',
+					'font_families'        => array( array() ),
+					'categories'           => array(),
+					'terms_and_conditions' => 'My Font Collection terms and conditions',
 				),
 				'expected_data' => array(
-					'description'   => 'My collection description',
-					'categories'    => array(),
-					'name'          => 'My Collection',
-					'font_families' => array( array() ),
+					'description'          => 'My collection description',
+					'categories'           => array(),
+					'terms_and_conditions' => 'My Font Collection terms and conditions',
+					'name'                 => 'My Collection',
+					'font_families'        => array( array() ),
 				),
 			),
 
 			'font collection with risky data'    => array(
 				'slug'          => 'my-collection',
 				'config'        => array(
-					'name'              => 'My Collection<script>alert("xss")</script>',
-					'description'       => 'My collection description<script>alert("xss")</script>',
-					'font_families'     => array(
+					'name'                 => 'My Collection<script>alert("xss")</script>',
+					'description'          => 'My collection description<script>alert("xss")</script>',
+					'font_families'        => array(
 						array(
 							'font_family_settings' => array(
 								'fontFamily'        => 'Open Sans, sans-serif<script>alert("xss")</script>',
@@ -151,25 +154,27 @@ class Tests_Fonts_WpFontCollection_GetData extends WP_UnitTestCase {
 							'categories'           => array( 'sans-serif<script>alert("xss")</script>' ),
 						),
 					),
-					'categories'        => array(
+					'categories'           => array(
 						array(
 							'name'              => 'Mock col<script>alert("xss")</script>',
 							'slug'              => 'mock-col<script>alert("xss")</script>',
 							'unwanted_property' => 'potentially evil value',
 						),
 					),
-					'unwanted_property' => 'potentially evil value',
+					'terms_and_conditions' => 'My Font Collection terms and conditions<script>alert("xss")</script>',
+					'unwanted_property'    => 'potentially evil value',
 				),
 				'expected_data' => array(
-					'description'   => 'My collection description',
-					'categories'    => array(
+					'description'          => 'My collection description',
+					'categories'           => array(
 						array(
 							'name' => 'Mock col',
 							'slug' => 'mock-colalertxss',
 						),
 					),
-					'name'          => 'My Collection',
-					'font_families' => array(
+					'terms_and_conditions' => 'My Font Collection terms and conditions',
+					'name'                 => 'My Collection',
+					'font_families'        => array(
 						array(
 							'font_family_settings' => array(
 								'fontFamily' => '"Open Sans", sans-serif',

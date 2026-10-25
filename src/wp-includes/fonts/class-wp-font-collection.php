@@ -97,8 +97,9 @@ final class WP_Font_Collection {
 
 		// Set defaults for optional properties.
 		$defaults = array(
-			'description' => '',
-			'categories'  => array(),
+			'description'          => '',
+			'categories'           => array(),
+			'terms_and_conditions' => '',
 		);
 
 		return wp_parse_args( $this->data, $defaults );
@@ -141,6 +142,10 @@ final class WP_Font_Collection {
 
 		if ( isset( $this->data['categories'] ) ) {
 			$data['categories'] = $this->data['categories'];
+		}
+
+		if ( isset( $this->data['terms_and_conditions'] ) ) {
+			$data['terms_and_conditions'] = $this->data['terms_and_conditions'];
 		}
 
 		return $data;
@@ -246,9 +251,9 @@ final class WP_Font_Collection {
 	 */
 	private static function get_sanitization_schema() {
 		return array(
-			'name'          => 'sanitize_text_field',
-			'description'   => 'sanitize_text_field',
-			'font_families' => array(
+			'name'                 => 'sanitize_text_field',
+			'description'          => 'sanitize_text_field',
+			'font_families'        => array(
 				array(
 					'font_family_settings' => array(
 						'name'       => 'sanitize_text_field',
@@ -284,12 +289,13 @@ final class WP_Font_Collection {
 					'categories'           => array( 'sanitize_title' ),
 				),
 			),
-			'categories'    => array(
+			'categories'           => array(
 				array(
 					'name' => 'sanitize_text_field',
 					'slug' => 'sanitize_title',
 				),
 			),
+			'terms_and_conditions' => 'sanitize_text_field',
 		);
 	}
 }
