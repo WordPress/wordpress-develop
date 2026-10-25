@@ -28,9 +28,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * The template being prepared for the response, so prepare_links() can reuse it.
 	 *
 	 * @since 7.3.0
-	 * @var WP_Block_Template|null
 	 */
-	private $prepared_template = null;
+	private ?WP_Block_Template $prepared_template = null;
 
 	/**
 	 * Constructor.
@@ -998,6 +997,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			if ( $this->prepared_template instanceof WP_Block_Template && $this->prepared_template->id === $id ) {
 				$template = $this->prepared_template;
 			} else {
+				// Only reached when a subclass calls prepare_links() outside of prepare_item_for_response().
 				$template = get_block_template( $id, $this->post_type );
 			}
 			if ( $template instanceof WP_Block_Template && ! empty( $template->wp_id ) ) {
