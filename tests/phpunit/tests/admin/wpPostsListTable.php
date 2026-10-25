@@ -724,7 +724,7 @@ class Tests_Admin_wpPostsListTable extends WP_UnitTestCase {
 	/**
 	 * Tests that the "Mine" count only counts the current user's posts in statuses shown in the All list.
 	 *
-	 * @ticket 00000
+	 * @ticket 58593
 	 *
 	 * @covers WP_Posts_List_Table::__construct
 	 */
