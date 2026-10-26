@@ -90,7 +90,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: callable( WP_Secret ): ( string|false )}>
 	 */
-	public function data_masking_surfaces() {
+	public static function data_masking_surfaces() {
 		return array(
 			'(string) cast'        => array(
 				function ( WP_Secret $secret ) {
@@ -205,7 +205,7 @@ class Tests_Secrets_WPSecret extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string, 1: array<int, mixed>}>
 	 */
-	public function data_refusing_magic_methods() {
+	public static function data_refusing_magic_methods() {
 		return array(
 			'__sleep'       => array( '__sleep', array() ),
 			'__wakeup'      => array( '__wakeup', array() ),

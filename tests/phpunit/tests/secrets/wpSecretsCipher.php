@@ -90,7 +90,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_bad_master_keys() {
+	public static function data_bad_master_keys() {
 		return array(
 			'too short' => array( str_repeat( 'a', 31 ) ),
 			'too long'  => array( str_repeat( 'a', 33 ) ),
@@ -167,7 +167,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string, 1: int, 2: string, 3: string}>
 	 */
-	public function data_mismatched_context() {
+	public static function data_mismatched_context() {
 		return array(
 			'different scope'   => array( 'network', 1, self::NAME, WP_Secret_Version::CURRENT ),
 			'different site id' => array( 'site', 2, self::NAME, WP_Secret_Version::CURRENT ),
@@ -214,7 +214,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: string}>
 	 */
-	public function data_tamperable_fields() {
+	public static function data_tamperable_fields() {
 		return array(
 			'ciphertext'       => array( 'ct' ),
 			'value nonce'      => array( 'nonce' ),
@@ -240,7 +240,7 @@ class Tests_Secrets_WPSecretsCipher extends WP_UnitTestCase {
 	/**
 	 * @return array<string, array{0: mixed}>
 	 */
-	public function data_malformed_records() {
+	public static function data_malformed_records() {
 		return array(
 			'not an array'       => array( 'just a string' ),
 			'missing ct'         => array(

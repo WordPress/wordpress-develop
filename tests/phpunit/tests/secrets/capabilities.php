@@ -89,7 +89,7 @@ class Tests_Secrets_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{0: int, 1: bool}>
 	 */
-	public function data_upgrade_720_gate() {
+	public static function data_upgrade_720_gate() {
 		return array(
 			'upgrading from 7.0'              => array( 61644, true ),
 			'upgrading from just below 7.2'   => array( 64336, true ),
