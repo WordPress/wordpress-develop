@@ -524,13 +524,8 @@
 				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
 
 			$onThisDayForm.hide(); // Always hidden once a choice is made.
-			if ( enabled ) {
-				$onThisDayList.show();
-				$onThisDayScreenOption.prop( 'checked', true );
-				return;
-			}
-			$onThisDayList.hide();
-			$onThisDayScreenOption.prop( 'checked', false );
+			$onThisDayList.toggle( enabled );
+			$onThisDayScreenOption.prop( 'checked', enabled );
 		},
 
 		/**
