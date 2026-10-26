@@ -457,19 +457,21 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	/**
 	 * Tests field selection through direct execution, without REST input coercion.
 	 *
+	 * @ticket 66370
+	 *
 	 * @dataProvider data_core_ability_field_lists
 	 *
-	 * @param string       $ability_name    Ability name.
-	 * @param array|string $fields          Field selection input.
-	 * @param array|null   $expected_fields Expected fields, or null for invalid input.
+	 * @param string        $ability_name    Ability name.
+	 * @param array|stdClass$input           Ability input.
+	 * @param array|null    $expected_fields Expected fields, or null for invalid input.
 	 */
-	public function test_core_ability_field_lists( string $ability_name, $fields, ?array $expected_fields ): void {
+	public function test_core_ability_field_lists( string $ability_name, $input, ?array $expected_fields ): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$user     = wp_set_current_user( $admin_id );
 		$user->add_cap( 'view_site_health_checks' );
 
 		$ability = wp_get_ability( $ability_name );
-		$result  = $ability->execute( array( 'fields' => $fields ) );
+		$result  = $ability->execute( $input );
 
 		if ( null === $expected_fields ) {
 			$this->assertWPError( $result );
@@ -483,7 +485,7 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 			$expected = array_intersect_key( $expected, array_flip( $expected_fields ) );
 		}
 
-		$this->assertSame( $expected, $result );
+		$this->assertSameSetsWithIndex( $expected, $result );
 	}
 
 	/**
@@ -503,6 +505,8 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 			$cases = array(
 				'array'           => array( $fields, $fields ),
 				'csv'             => array( implode( ',', $fields ), $fields ),
+				'reversed array'  => array( array_reverse( $fields ), $fields ),
+				'reversed csv'    => array( implode( ',', array_reverse( $fields ) ), $fields ),
 				'whitespace'      => array( implode( " \t\n", $fields ), $fields ),
 				'duplicates'      => array( ', ' . implode( ',, ', $fields ) . ',' . $fields[0] . ',', $fields ),
 				'empty array'     => array( array(), array() ),
@@ -513,7 +517,10 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 			);
 
 			foreach ( $cases as $case => $values ) {
-				$datasets[ $ability_name . ': ' . $case ] = array( $ability_name, $values[0], $values[1] );
+				$input = array( 'fields' => $values[0] );
+
+				$datasets[ $ability_name . ': array input, ' . $case ]  = array( $ability_name, $input, $values[1] );
+				$datasets[ $ability_name . ': object input, ' . $case ] = array( $ability_name, (object) $input, $values[1] );
 			}
 		}
 
