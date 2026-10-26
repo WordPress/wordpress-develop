@@ -154,23 +154,33 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
 		}
 
-		$capture = null;
+		$mock = new MockAction();
 		add_filter(
 			'wp_dashboard_on_this_day_query_args',
-			static function ( $query_args ) use ( &$capture ) {
-				$capture = $query_args['posts_per_page'];
-				return $query_args;
-			},
+			array( $mock, 'filter' ),
 			20 // Run after other filters have run.
 		);
 
 		wp_dashboard_on_this_day_get_posts();
 		$this->assertCount( 11, wp_dashboard_on_this_day_get_posts(), 'Unfiltered OTD Widget should return all posts.' );
-		$this->assertSame( 100, $capture, 'OTD Widget query should default to 100 posts per page.' );
+		$this->assertSame( 2, $mock->get_call_count() );
+		$query_args = $mock->get_args()[ $mock->get_call_count() - 1 ][0];
+		$this->assertIsArray( $query_args );
+		$this->assertArrayHasKey( 'posts_per_page', $query_args );
+		$this->assertSame( 100, $query_args['posts_per_page'], 'OTD Widget query should default to 100 posts per page.' );
 
-		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_limit' ) );
+		add_filter(
+			'wp_dashboard_on_this_day_query_args',
+			static function ( array $args ) {
+				$args['posts_per_page'] = 3;
+				return $args;
+			}
+		);
 		$this->assertCount( 3, wp_dashboard_on_this_day_get_posts(), 'Filtered OTD Widget should return three posts.' );
-		$this->assertSame( 3, $capture, 'Filtered OTD Widget query should be limited to three posts per page.' );
+		$query_args = $mock->get_args()[ $mock->get_call_count() - 1 ][0];
+		$this->assertIsArray( $query_args );
+		$this->assertArrayHasKey( 'posts_per_page', $query_args );
+		$this->assertSame( 3, $query_args['posts_per_page'], 'Filtered OTD Widget query should be limited to three posts per page.' );
 	}
 
 	/**
@@ -488,18 +498,6 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 */
 	public function mock_http_request_failure() {
 		return new WP_Error( 'http_request_failed' );
-	}
-
-	/**
-	 * Sets the On This Day query limit to three.
-	 *
-	 * @param array $args Query arguments.
-	 * @return array Filtered query arguments.
-	 */
-	public function filter_on_this_day_query_limit( $args ) {
-		$args['posts_per_page'] = 3;
-
-		return $args;
 	}
 
 	/**
