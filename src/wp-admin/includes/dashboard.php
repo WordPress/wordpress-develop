@@ -1045,7 +1045,7 @@ function wp_dashboard_on_this_day( $posts = null ) {
 			<h3><?php _e( 'Published On This Day' ); ?></h3>
 			<form method="post">
 			<p>
-				<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' );
+				<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' ); ?>
 			</p>
 			<p>
 				<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
