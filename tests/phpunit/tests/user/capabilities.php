@@ -463,7 +463,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testPrimitiveCapsTestsAreCorrect() {
+	public function test_primitive_caps_tests_are_correct() {
 		$actual   = $this->getPrimitiveCapsAndRoles();
 		$admin    = get_role( 'administrator' );
 		$expected = $admin->capabilities;
@@ -504,7 +504,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 *
 	 * @group capTestTests
 	 */
-	public function testMetaCapsTestsAreCorrect() {
+	public function test_meta_caps_tests_are_correct() {
 		$actual = $this->getMetaCapsAndRoles();
 		$file   = file_get_contents( ABSPATH . WPINC . '/capabilities.php' );
 
