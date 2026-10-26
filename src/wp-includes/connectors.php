@@ -161,6 +161,76 @@ function wp_get_connectors(): array {
 }
 
 /**
+ * Checks whether AI credentials are configured.
+ *
+ * Checks all registered connectors of type 'ai_provider' to determine if
+ * valid API key credentials have been configured via an environment variable,
+ * PHP constant, or database option.
+ *
+ * @since 7.2.0
+ *
+ * @return bool True if AI credentials are configured, false otherwise.
+ */
+function has_ai_credentials(): bool {
+	$has_credentials = false;
+	$connectors      = array();
+
+	if ( wp_supports_ai() ) {
+		$connectors = wp_get_connectors();
+
+		foreach ( $connectors as $connector_data ) {
+			if ( ! isset( $connector_data['type'] ) || 'ai_provider' !== $connector_data['type'] ) {
+				continue;
+			}
+
+			$auth = $connector_data['authentication'] ?? null;
+			if ( ! is_array( $auth ) || ( $auth['method'] ?? '' ) !== 'api_key' ) {
+				continue;
+			}
+
+			$setting_name = $auth['setting_name'] ?? '';
+			if ( ! is_string( $setting_name ) || '' === $setting_name ) {
+				continue;
+			}
+
+			if ( 'none' !== _wp_connectors_get_api_key_source(
+				$setting_name,
+				$auth['env_var_name'] ?? '',
+				$auth['constant_name'] ?? ''
+			) ) {
+				$has_credentials = true;
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Filters whether AI credentials are available.
+	 *
+	 * Allows third-party plugins to declare credential availability for
+	 * connectors that do not rely on API key settings or for custom logic.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool                                $has_credentials Whether AI credentials are available.
+	 * @param array<string, array<string, mixed>> $connectors      The registered connectors.
+	 */
+	$has_credentials = (bool) apply_filters( 'wp_has_ai_credentials', $has_credentials, $connectors );
+
+	/**
+	 * Filters whether AI credentials are available.
+	 *
+	 * Legacy filter for compatibility with the WordPress AI plugin.
+	 *
+	 * @since 7.2.0
+	 *
+	 * @param bool                                $has_credentials Whether AI credentials are available.
+	 * @param array<string, array<string, mixed>> $connectors      The registered connectors.
+	 */
+	return (bool) apply_filters( 'wpai_has_ai_credentials', $has_credentials, $connectors );
+}
+
+/**
  * Resolves an AI provider logo file path to a URL.
  *
  * Converts an absolute file path to a plugin URL. The path must reside within
