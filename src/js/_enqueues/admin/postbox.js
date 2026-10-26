@@ -519,7 +519,7 @@
 		 * @return {void}
 		 */
 		setOnThisDayDisplay: function( enabled ) {
-			var $onThisDayList = $( '#wp-on-this-day-posts-list' )
+			var $onThisDayList = $( '#wp-on-this-day-posts-list' ),
 				$onThisDayForm = $( '#wp-on-this-day-posts-form'),
 				$onThisDayScreenOption = $( '#wp-on-this-day-toggle' );
 
