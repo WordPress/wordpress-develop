@@ -41,14 +41,29 @@ class WP_REST_Global_Styles_Controller_Test extends WP_Test_REST_Controller_Test
 	 */
 	protected static $post_id;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
 		switch_theme( 'tt1-blocks' );
 		add_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
 	}
 
 	public function tear_down() {
 		remove_filter( 'theme_file_uri', array( $this, 'filter_theme_file_uri' ) );
+
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		parent::tear_down();
 	}
 
