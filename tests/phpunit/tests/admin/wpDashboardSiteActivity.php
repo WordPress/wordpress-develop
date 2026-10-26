@@ -170,7 +170,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 
 		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_limit' ) );
 		$this->assertCount( 3, wp_dashboard_on_this_day_get_posts(), 'Filtered OTD Widget should return three posts.' );
-		$this->assertSame( 3, $capture, 'Filter OTD Widget query should be limited to three posts per page.' );
+		$this->assertSame( 3, $capture, 'Filtered OTD Widget query should be limited to three posts per page.' );
 	}
 
 	/**
