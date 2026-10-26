@@ -2081,10 +2081,17 @@ class WP_REST_Server {
 
 					$result = $this->respond_to_request( $single_request, $route, $handler, $error );
 				}
-			} elseif ( ! is_wp_error( $matches[ $i ] ) ) {
-				// The response matched no handler, so it follows the settings of the handler the request matched.
+			} else {
+				// Normalize to either WP_Error or WP_REST_Response...
 				$result = rest_ensure_response( $result );
-				if ( $result instanceof WP_REST_Response ) {
+
+				// ...then convert WP_Error across.
+				if ( is_wp_error( $result ) ) {
+					$result = $this->error_to_response( $result );
+				}
+
+				if ( ! is_wp_error( $matches[ $i ] ) ) {
+					// The response matched no handler, so it follows the settings of the handler the request matched.
 					$result->set_data_processing( $matches[ $i ][1]['data_processing'] ?? true );
 				}
 			}
