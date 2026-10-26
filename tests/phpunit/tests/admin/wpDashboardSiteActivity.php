@@ -214,13 +214,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		);
 
 		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
-		try {
-			ob_start();
-			wp_dashboard_on_this_day();
-			$output = ob_get_clean();
-		} finally {
-			remove_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
-		}
+		$output = get_echo( 'wp_dashboard_on_this_day' );
 
 		$this->assertStringContainsString( '(no title)', $output );
 		$this->assertStringNotContainsString( 'Unreadable private anniversary memory.', $output );
@@ -360,31 +354,27 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	public function test_recent_comments_widget_remains_registered_after_comments_are_deleted() {
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request_failure' ) );
 
-		try {
-			wp_dashboard_setup();
-			$this->assertArrayNotHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
+		wp_dashboard_setup();
+		$this->assertArrayNotHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
 
-			unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
 
-			$post_id    = self::factory()->post->create();
-			$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+		$post_id    = self::factory()->post->create();
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 
-			wp_dashboard_setup();
-			$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
-			$this->assertSame(
-				'wp_dashboard_recent_comments_widget',
-				$GLOBALS['wp_meta_boxes']['dashboard']['normal']['core']['dashboard_recent_comments']['callback']
-			);
-			$this->assertSame( 1, get_option( 'dashboard_recent_comments_widget_registered' ) );
+		wp_dashboard_setup();
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
+		$this->assertSame(
+			'wp_dashboard_recent_comments_widget',
+			$GLOBALS['wp_meta_boxes']['dashboard']['normal']['core']['dashboard_recent_comments']['callback']
+		);
+		$this->assertSame( 1, get_option( 'dashboard_recent_comments_widget_registered' ) );
 
-			wp_delete_comment( $comment_id, true );
-			unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+		wp_delete_comment( $comment_id, true );
+		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
 
-			wp_dashboard_setup();
-			$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
-		} finally {
-			remove_filter( 'pre_http_request', array( $this, 'mock_http_request_failure' ) );
-		}
+		wp_dashboard_setup();
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
 	}
 
 	/**
