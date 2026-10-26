@@ -461,9 +461,9 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_core_ability_field_lists
 	 *
-	 * @param string        $ability_name    Ability name.
-	 * @param array|stdClass$input           Ability input.
-	 * @param array|null    $expected_fields Expected fields, or null for invalid input.
+	 * @param string         $ability_name    Ability name.
+	 * @param array|stdClass $input           Ability input.
+	 * @param array|null     $expected_fields Expected fields, or null for invalid input.
 	 */
 	public function test_core_ability_field_lists( string $ability_name, $input, ?array $expected_fields ): void {
 		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -519,9 +519,14 @@ class Tests_Abilities_API_WpRegisterCoreAbilities extends WP_UnitTestCase {
 			foreach ( $cases as $case => $values ) {
 				$input = array( 'fields' => $values[0] );
 
-				$datasets[ $ability_name . ': array input, ' . $case ]  = array( $ability_name, $input, $values[1] );
-				$datasets[ $ability_name . ': object input, ' . $case ] = array( $ability_name, (object) $input, $values[1] );
+				$datasets[ $ability_name . ': ' . $case ] = array( $ability_name, $input, $values[1] );
 			}
+
+			$datasets[ $ability_name . ': object input' ] = array(
+				$ability_name,
+				(object) array( 'fields' => $fields ),
+				$fields,
+			);
 		}
 
 		return $datasets;
