@@ -2363,6 +2363,30 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 			'top-level string unchanged'     => array( array( 'type' => 'string' ), 'hello', 'hello' ),
 			// A numeric string against a `string` schema must stay a string, not become an integer.
 			'numeric string stays string'    => array( array( 'type' => 'string' ), '10', '10' ),
+			'text-field format'              => array(
+				array(
+					'type'   => 'string',
+					'format' => 'text-field',
+				),
+				"  <strong>Hello</strong>\nworld  ",
+				'Hello world',
+			),
+			'textarea-field format'          => array(
+				array(
+					'type'   => 'string',
+					'format' => 'textarea-field',
+				),
+				"  <strong>Hello</strong>\nworld  ",
+				"Hello\nworld",
+			),
+			'uri format'                     => array(
+				array(
+					'type'   => 'string',
+					'format' => 'uri',
+				),
+				'https://example.org/hello world',
+				'https://example.org/hello%20world',
+			),
 			'top-level array of integers'    => array(
 				array(
 					'type'  => 'array',
@@ -2434,7 +2458,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	public static function data_input_coercion(): array {
 		return array_intersect_key(
 			self::data_input_is_coerced(),
-			array_flip( array( 'integer number', 'nested object', 'default', 'top-level error', 'nested error' ) )
+			array_flip( array( 'integer number', 'nested object', 'default', 'top-level error', 'nested error', 'text-field format', 'textarea-field format', 'uri format' ) )
 		);
 	}
 

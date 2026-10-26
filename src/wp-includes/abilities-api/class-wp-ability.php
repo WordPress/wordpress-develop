@@ -565,6 +565,9 @@ class WP_Ability {
 	/**
 	 * Coerces validated input to the types declared in the input schema.
 	 *
+	 * Also applies schema format sanitization, such as stripping tags for
+	 * `text-field` and sanitizing URLs for `uri`, using rest_sanitize_value_from_schema().
+	 *
 	 * Call validate_input() before this method. Coercing unvalidated input can
 	 * remove unknown properties or cast invalid values, hiding validation errors.
 	 * This method does not apply defaults or run input validation filters.
@@ -588,7 +591,7 @@ class WP_Ability {
 		$sanitized = rest_sanitize_value_from_schema( $input, $schema, 'input' );
 
 		// Values unique before coercion can collide after casting, even in nested arrays.
-		if ( $this->input_contains_error( $sanitized ) ) {
+		if ( self::input_contains_error( $sanitized ) ) {
 			return $input;
 		}
 
@@ -603,14 +606,14 @@ class WP_Ability {
 	 * @param mixed $value The value to inspect.
 	 * @return bool True if the value is, or contains, a WP_Error.
 	 */
-	private function input_contains_error( $value ): bool {
+	private static function input_contains_error( $value ): bool {
 		if ( is_wp_error( $value ) ) {
 			return true;
 		}
 
 		if ( is_array( $value ) ) {
 			foreach ( $value as $item ) {
-				if ( $this->input_contains_error( $item ) ) {
+				if ( self::input_contains_error( $item ) ) {
 					return true;
 				}
 			}

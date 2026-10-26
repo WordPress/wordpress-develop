@@ -241,9 +241,11 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes the run input by coercing it to the ability's input schema.
 	 *
-	 * Registered as the `input` argument `sanitize_callback` so that both
-	 * `check_ability_permissions()` and `execute_ability()` receive natively typed input
-	 * regardless of transport.
+	 * Retains the `input` argument `sanitize_callback` so supplied request input is
+	 * sanitized before the permission and execution callbacks, preserving the existing
+	 * REST lifecycle. `check_ability_permissions()` and `WP_Ability::execute()` also
+	 * coerce input after normalization and validation, including defaults and values
+	 * supplied by normalization filters.
 	 *
 	 * @since 7.1.0
 	 *
