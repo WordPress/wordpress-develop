@@ -3914,9 +3914,13 @@ class wpdb {
 		 * It is usually a pattern for matching a prefix so we just
 		 * strip the trailing % and unescape the _ to get 'wp_123_'
 		 * which drop-ins can use for routing these SQL statements.
+		 *
+		 * A LIKE operand built with wpdb::prepare() and wpdb::esc_like(),
+		 * such as 'wp\\_123\\_%', has its backslashes escaped once more
+		 * as a string literal, so that escaping is removed first.
 		 */
 		if ( preg_match( '/^\s*SHOW\s+(?:TABLE\s+STATUS|(?:FULL\s+)?TABLES)\s+(?:WHERE\s+Name\s+)?LIKE\s*("|\')((?:[\\\\0-9a-zA-Z$_.-]|[\xC2-\xDF][\x80-\xBF])+)%?\\1/is', $query, $maybe ) ) {
-			return str_replace( '\\_', '_', $maybe[2] );
+			return str_replace( '\\_', '_', str_replace( '\\\\', '\\', $maybe[2] ) );
 		}
 
 		// Big pattern for the rest of the table-related queries.

@@ -987,6 +987,41 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Data provider.
+	 *
+	 * @return array[]
+	 */
+	public function data_get_table_from_prepared_show_like_query() {
+		return array(
+			'SHOW TABLES, single quotes'         => array( "SHOW TABLES LIKE 'wp\\\\_my\\\\_custom\\\\_table'", 'wp_my_custom_table' ),
+			'SHOW TABLES, double quotes'         => array( 'SHOW TABLES LIKE "wp\\\\_my\\\\_custom\\\\_table"', 'wp_my_custom_table' ),
+			'SHOW TABLE STATUS, prefix wildcard' => array( "SHOW TABLE STATUS LIKE 'wp\\\\_123\\\\_%'", 'wp_123_' ),
+			'SHOW FULL TABLES, no underscore'    => array( "SHOW FULL TABLES LIKE 'wptable'", 'wptable' ),
+		);
+	}
+
+	/**
+	 * @ticket 57149
+	 *
+	 * @dataProvider data_get_table_from_prepared_show_like_query
+	 *
+	 * @param string $query Query.
+	 * @param string $table Expected table name.
+	 */
+	public function test_get_table_from_prepared_show_like_query( $query, $table ) {
+		$this->assertSame( $table, self::$_wpdb->get_table_from_query( $query ) );
+	}
+
+	/**
+	 * @ticket 57149
+	 */
+	public function test_get_table_from_query_built_with_prepare_and_esc_like() {
+		$query = self::$_wpdb->prepare( 'SHOW TABLES LIKE %s', self::$_wpdb->esc_like( 'wp_my_custom_table' ) );
+
+		$this->assertSame( 'wp_my_custom_table', self::$_wpdb->get_table_from_query( $query ) );
+	}
+
+	/**
 	 * @ticket 21212
 	 */
 	public function data_process_field_formats() {
