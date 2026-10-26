@@ -143,6 +143,19 @@ class Tests_Formatting_wpHtmlSplit extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that a quote after a < that does not start a tag does not pair
+	 * with a quote after the next >.
+	 *
+	 * @ticket 63997
+	 */
+	public function test_quote_after_non_tag_lt_does_not_pair_across_gt(): void {
+		$this->assertSame(
+			array( '', '<p>', 'x', "<=' then</p>", '', '<p>', "don't", '</p>', '' ),
+			wp_html_split( "<p>x<=' then</p><p>don't</p>" )
+		);
+	}
+
+	/**
 	 * Ensure that a CDATA section containing > is a single element.
 	 *
 	 * @ticket 63997

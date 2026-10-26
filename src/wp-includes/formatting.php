@@ -662,19 +662,23 @@ function get_html_split_regex() {
 
 		// Keep in sync with the element pattern in _get_wptexturize_split_regex().
 		$element =
-			'(?:'                         // Unroll the loop: Consume everything until > is found.
-			.     '[^>=]++'               // Consume anything but > and =.
-			. '|'
-			.     '=[ \t\f\r\n]*'         // Attribute value follows.
-			.     '(?:'
-			.         '"[^"]*"'           // Double-quoted value, which may contain >.
+			'(?(?=[a-zA-Z])'                   // Does a tag name follow?
+			.     '(?:'                        // Unroll the loop: Consume everything until > is found.
+			.         '[^>=]++'                // Consume anything but > and =.
 			.     '|'
-			.         '\'[^\']*\''        // Single-quoted value, which may contain >.
-			.     '|'
-			.         '[^> \t\f\r\n]*+'   // Unquoted value.
-			.     ')'
-			. ')*+'                       // Loop possessively.
-			. '>?';                       // End of element. If not found, match all input.
+			.         '=[ \t\f\r\n]*'          // Attribute value follows.
+			.         '(?:'
+			.             '"[^"]*"'            // Double-quoted value, which may contain >.
+			.         '|'
+			.             '\'[^\']*\''         // Single-quoted value, which may contain >.
+			.         '|'
+			.             '[^> \t\f\r\n]*+'    // Unquoted value.
+			.         ')'
+			.     ')*+'                        // Loop possessively.
+			. '|'                              // ...else not a tag, so quotes are not special.
+			.     '[^>]*+'
+			. ')'
+			. '>?';                            // End of element. If not found, match all input.
 
 		$regex =
 			'/('                // Capture the entire match.
@@ -717,19 +721,23 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
 
 		// Keep in sync with the element pattern in get_html_split_regex().
 		$element =
-			'(?:'                         // Unroll the loop: Consume everything until > is found.
-			.     '[^>=]++'               // Consume anything but > and =.
-			. '|'
-			.     '=[ \t\f\r\n]*'         // Attribute value follows.
-			.     '(?:'
-			.         '"[^"]*"'           // Double-quoted value, which may contain >.
+			'(?(?=[a-zA-Z])'                   // Does a tag name follow?
+			.     '(?:'                        // Unroll the loop: Consume everything until > is found.
+			.         '[^>=]++'                // Consume anything but > and =.
 			.     '|'
-			.         '\'[^\']*\''        // Single-quoted value, which may contain >.
-			.     '|'
-			.         '[^> \t\f\r\n]*+'   // Unquoted value.
-			.     ')'
-			. ')*+'                       // Loop possessively.
-			. '>?';                       // End of element. If not found, match all input.
+			.         '=[ \t\f\r\n]*'          // Attribute value follows.
+			.         '(?:'
+			.             '"[^"]*"'            // Double-quoted value, which may contain >.
+			.         '|'
+			.             '\'[^\']*\''         // Single-quoted value, which may contain >.
+			.         '|'
+			.             '[^> \t\f\r\n]*+'    // Unquoted value.
+			.         ')'
+			.     ')*+'                        // Loop possessively.
+			. '|'                              // ...else not a tag, so quotes are not special.
+			.     '[^>]*+'
+			. ')'
+			. '>?';                            // End of element. If not found, match all input.
 
 		$html_regex = // Needs replaced with wp_html_split() per Shortcode API Roadmap.
 			'<'                  // Find start of element.

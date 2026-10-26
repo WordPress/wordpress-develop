@@ -2194,6 +2194,19 @@ String with a number followed by a single quote !q1!Expendables 3!q1! vestibulum
 	}
 
 	/**
+	 * Ensure that a quote after a < that does not start a tag does not pair
+	 * with a quote in the following text.
+	 *
+	 * @ticket 63997
+	 */
+	public function test_quote_after_non_tag_lt_does_not_pair_across_gt(): void {
+		$this->assertSame(
+			"<p>x<=' then</p><p>don&#8217;t</p>",
+			wptexturize( "<p>x<=' then</p><p>don't</p>" )
+		);
+	}
+
+	/**
 	 * Ensure that an unclosed tag is not texturized.
 	 *
 	 * @ticket 63997
