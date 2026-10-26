@@ -1951,7 +1951,6 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * string delivered. The gate runs first, so the first recorded type is the one it acted on.
 	 *
 	 * @ticket 65594
-	 * @ticket 66383
 	 * @dataProvider data_permission_callback_input
 	 *
 	 * @param array|null $input Request input, or null to use the schema default.

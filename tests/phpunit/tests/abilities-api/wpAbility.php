@@ -2188,7 +2188,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Provides input coercion and sanitization-error fallback cases.
+	 * Provides direct-execution coercion and sanitization-error fallback cases.
+	 *
+	 * REST tests cover the full scalar and list conversion matrix. These cases
+	 * focus on lifecycle integration, PHP input types, defaults, and error fallback.
 	 *
 	 * @return array
 	 */
@@ -2204,11 +2207,7 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		);
 		return array(
 			'integer'         => array( array( 'type' => 'integer' ), '10', 10 ),
-			'number'          => array( array( 'type' => 'number' ), '1.5', 1.5 ),
 			'integer number'  => array( array( 'type' => 'number' ), 10, 10.0 ),
-			'boolean'         => array( array( 'type' => 'boolean' ), 'false', false ),
-			'csv'             => array( $list, '1,2', array( 1, 2 ) ),
-			'whitespace'      => array( $list, "1 \t2", array( 1, 2 ) ),
 			'nested object'   => array( $object, (object) array( 'ids' => '1,2' ), array( 'ids' => array( 1, 2 ) ) ),
 			'default'         => array(
 				array(
