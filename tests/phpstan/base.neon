@@ -355,4 +355,6 @@ parameters:
 	# No global `typeAliases` are defined here, since docblocks in src/ that use them are not
 	# self-contained: the aliases are lost from the stubs generated from core, and anyone who
 	# analyzes against core would have to define each one. Declare an alias with `@phpstan-type`
-	# on a class, and import it with `@phpstan-import-type` into other classes, instead.
+	# on a class, and import it with `@phpstan-import-type` into other classes, instead. A type
+	# used by functions has to be repeated until PHPStan supports declaring an alias with
+	# `@phpstan-type` outside a class: https://github.com/phpstan/phpstan/issues/9164
