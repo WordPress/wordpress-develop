@@ -1951,8 +1951,12 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	 * string delivered. The gate runs first, so the first recorded type is the one it acted on.
 	 *
 	 * @ticket 65594
+	 * @ticket 66383
+	 * @dataProvider data_permission_callback_input
+	 *
+	 * @param array|null $input Request input, or null to use the schema default.
 	 */
-	public function test_permission_callback_receives_typed_input(): void {
+	public function test_permission_callback_receives_typed_input( $input ): void {
 		$seen        = new stdClass();
 		$seen->types = array();
 
@@ -1964,6 +1968,7 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 				'category'            => 'general',
 				'input_schema'        => array(
 					'type'       => 'object',
+					'default'    => array( 'count' => '10' ),
 					'properties' => array(
 						'count' => array( 'type' => 'integer' ),
 					),
@@ -1982,12 +1987,24 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			)
 		);
 
-		$response = $this->dispatch_run( 'GET', 'test/permission-typed-input', array( 'count' => '10' ) );
+		$response = $this->dispatch_run( 'GET', 'test/permission-typed-input', $input );
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertNotEmpty( $seen->types, 'The permission callback should have run.' );
 		$this->assertSame( 'integer', $seen->types[0], 'The REST permission gate should receive coerced (typed) input, not a raw string.' );
 		$this->assertSame( array( 'count' => 10 ), $response->get_data(), 'The execute callback should receive coerced input too.' );
+	}
+
+	/**
+	 * Provides explicit input and an omitted input using the schema default.
+	 *
+	 * @return array
+	 */
+	public static function data_permission_callback_input(): array {
+		return array(
+			'explicit input' => array( array( 'count' => '10' ) ),
+			'default input'  => array( null ),
+		);
 	}
 
 	/**

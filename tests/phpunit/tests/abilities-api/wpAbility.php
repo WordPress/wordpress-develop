@@ -2086,12 +2086,10 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests that a `sanitize_callback` is ignored and input is never sanitized.
+	 * Tests that schema coercion ignores a custom `sanitize_callback`.
 	 *
-	 * REST cleans and type-coerces arguments in a sanitization step; abilities have
-	 * no such step, so a `sanitize_callback` never runs and a mistyped value is
-	 * rejected rather than coerced. This is the easiest REST assumption to carry
-	 * over by mistake, so it is pinned explicitly.
+	 * Schema-based coercion does not invoke REST argument callbacks embedded in
+	 * the schema. Only supported JSON Schema keywords affect coercion.
 	 *
 	 * @ticket 64098
 	 */
@@ -2120,11 +2118,182 @@ class Tests_Abilities_API_WpAbility extends WP_UnitTestCase {
 		$ability = new WP_Ability( self::$test_ability_name, $args );
 
 		// The execute callback echoes its input, so an unmodified return value proves
-		// the sanitize_callback never ran and no sanitization pass took place.
+		// the custom sanitize_callback never ran.
 		$result = $ability->execute( 'raw value' );
 
-		$this->assertSame( 'raw value', $result, 'Input should reach the execute callback unmodified (no sanitization).' );
+		$this->assertSame( 'raw value', $result, 'String input should remain unchanged by schema coercion.' );
 		$this->assertFalse( $callback_invoked, 'Schema sanitize_callback must not run.' );
+	}
+
+	/**
+	 * Tests coercion after validation and consistent input throughout execution.
+	 *
+	 * @ticket 66383
+	 * @dataProvider data_input_coercion
+	 *
+	 * @param array $schema   Input schema.
+	 * @param mixed $input    Original input.
+	 * @param mixed $expected Expected callback input.
+	 */
+	public function test_execute_coerces_validated_input( array $schema, $input, $expected ): void {
+		$seen                        = array( 'validation' => array() );
+		$args                        = self::$test_ability_properties;
+		$args['input_schema']        = $schema;
+		$args['permission_callback'] = static function ( $value = null ) use ( &$seen ) {
+			$seen['permission'] = $value;
+			return true;
+		};
+		$args['execute_callback']    = static function ( $value = null ) use ( &$seen ) {
+			$seen['execute'] = $value;
+			return 0;
+		};
+		$ability                     = new WP_Ability( self::$test_ability_name, $args );
+
+		$normalized = $ability->normalize_input( $input );
+		$this->assertTrue( $ability->validate_input( $normalized ) );
+		$this->assertSame( $expected, $ability->coerce_input( $normalized ) );
+
+		add_action(
+			'wp_ability_invoked',
+			static function ( $name, $value ) use ( &$seen ) {
+				$seen['invoked'] = $value;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'wp_ability_validate_input',
+			static function ( $valid, $value ) use ( &$seen ) {
+				$seen['validation'][] = $value;
+				return $valid;
+			},
+			10,
+			2
+		);
+		add_action(
+			'wp_before_execute_ability',
+			static function ( $name, $value ) use ( &$seen ) {
+				$seen['before'] = $value;
+			},
+			10,
+			2
+		);
+
+		$this->assertSame( 0, $ability->execute( $input ) );
+		$this->assertSame( $input, $seen['invoked'] );
+		$this->assertSame( empty( $schema ) ? array() : array( $normalized ), $seen['validation'], 'Validate the normalized input exactly once.' );
+		$this->assertSame( $expected, $seen['permission'] );
+		$this->assertSame( $expected, $seen['before'] );
+		$this->assertSame( $expected, $seen['execute'] );
+	}
+
+	/**
+	 * Provides input coercion and sanitization-error fallback cases.
+	 *
+	 * @return array
+	 */
+	public static function data_input_coercion(): array {
+		$list   = array(
+			'type'  => 'array',
+			'items' => array( 'type' => 'integer' ),
+		);
+		$unique = $list + array( 'uniqueItems' => true );
+		$object = array(
+			'type'       => 'object',
+			'properties' => array( 'ids' => $list ),
+		);
+		return array(
+			'integer'         => array( array( 'type' => 'integer' ), '10', 10 ),
+			'number'          => array( array( 'type' => 'number' ), '1.5', 1.5 ),
+			'integer number'  => array( array( 'type' => 'number' ), 10, 10.0 ),
+			'boolean'         => array( array( 'type' => 'boolean' ), 'false', false ),
+			'csv'             => array( $list, '1,2', array( 1, 2 ) ),
+			'whitespace'      => array( $list, "1 \t2", array( 1, 2 ) ),
+			'nested object'   => array( $object, (object) array( 'ids' => '1,2' ), array( 'ids' => array( 1, 2 ) ) ),
+			'default'         => array(
+				array(
+					'type'    => 'integer',
+					'default' => '10',
+				),
+				null,
+				10,
+			),
+			'null'            => array( array( 'type' => array( 'integer', 'null' ) ), null, null ),
+			'no schema'       => array( array(), null, null ),
+			'top-level error' => array( $unique, array( '1', '01' ), array( '1', '01' ) ),
+			'nested error'    => array(
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'ids'   => $unique,
+						'count' => array( 'type' => 'integer' ),
+					),
+				),
+				array(
+					'ids'   => array( '1', '01' ),
+					'count' => '2',
+				),
+				array(
+					'ids'   => array( '1', '01' ),
+					'count' => '2',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Tests that coercion cannot rescue invalid input or bypass validation filters.
+	 *
+	 * @ticket 66383
+	 */
+	public function test_coercion_respects_input_validation(): void {
+		$seen                        = array();
+		$args                        = self::$test_ability_properties;
+		$args['input_schema']        = array(
+			'type'                 => 'object',
+			'properties'           => array( 'count' => array( 'type' => 'integer' ) ),
+			'additionalProperties' => false,
+		);
+		$args['permission_callback'] = static function ( $input ) use ( &$seen ) {
+			$seen[] = $input;
+			return true;
+		};
+		$ability                     = new WP_Ability( self::$test_ability_name, $args );
+		foreach ( array(
+			array( 'count' => 'invalid' ),
+			array(
+				'count' => '10',
+				'extra' => true,
+			),
+		) as $input ) {
+			$result = $ability->execute( $input );
+			$this->assertWPError( $result );
+			$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
+		}
+		$this->assertSame( array(), $seen );
+
+		$reject = static function () {
+			return new WP_Error( 'custom_rejection' );
+		};
+		add_filter( 'wp_ability_validate_input', $reject );
+		$result = $ability->execute( array( 'count' => '10' ) );
+		remove_filter( 'wp_ability_validate_input', $reject );
+		$this->assertWPError( $result );
+		$this->assertSame( 'custom_rejection', $result->get_error_code() );
+		$this->assertSame( array(), $seen );
+
+		add_filter( 'wp_ability_validate_input', '__return_true' );
+		$this->assertSame(
+			0,
+			$ability->execute(
+				array(
+					'count' => '10',
+					'extra' => true,
+				)
+			)
+		);
+		remove_filter( 'wp_ability_validate_input', '__return_true' );
+		$this->assertSame( array( array( 'count' => 10 ) ), $seen );
 	}
 
 	/**

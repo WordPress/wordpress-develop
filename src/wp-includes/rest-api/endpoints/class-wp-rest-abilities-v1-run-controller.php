@@ -183,6 +183,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $this->ensure_error_status( $is_valid, 400 );
 		}
 
+		$input  = $ability->coerce_input( $input );
 		$result = $ability->check_permissions( $input );
 		if ( is_wp_error( $result ) ) {
 			$result->add_data( array( 'status' => rest_authorization_required_code() ) );
@@ -246,7 +247,7 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 	 *
 	 * @since 7.1.0
 	 *
-	 * @see WP_REST_Abilities_V1_Run_Controller::coerce_input_to_schema()
+	 * @see WP_Ability::coerce_input()
 	 *
 	 * @param mixed           $input   Raw input extracted from the request.
 	 * @param WP_REST_Request $request The request object.
@@ -258,89 +259,12 @@ class WP_REST_Abilities_V1_Run_Controller extends WP_REST_Controller {
 			return $input;
 		}
 
-		return $this->coerce_input_to_schema( $input, $ability );
-	}
-
-	/**
-	 * Coerces raw request input to the types declared in the ability input schema.
-	 *
-	 * GET and DELETE deliver every scalar as a string ("10", "true") and a list as a single
-	 * comma-separated string, so without coercion an ability receives raw strings where its
-	 * schema declares integers, booleans, or arrays.
-	 *
-	 * Coercion never changes what validation accepts. Input is coerced only when
-	 * {@see WP_Ability::validate_input()} already accepts it, and any error surfaced while
-	 * sanitizing falls back to the raw input, so `validate_input()` stays the single authority
-	 * on what is rejected.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param mixed      $input   Raw input extracted from the request.
-	 * @param WP_Ability $ability The ability being executed.
-	 * @return mixed Coerced input, or the raw input when it cannot be safely coerced.
-	 */
-	private function coerce_input_to_schema( $input, WP_Ability $ability ) {
-		if ( null === $input ) {
+		// Validate before coercion so sanitization cannot rescue invalid input.
+		if ( null === $input || empty( $ability->get_input_schema() ) || is_wp_error( $ability->validate_input( $input ) ) ) {
 			return $input;
 		}
 
-		$schema = $ability->get_input_schema();
-		if ( empty( $schema ) ) {
-			return $input;
-		}
-
-		/*
-		 * Only coerce input that already validates. Sanitizing invalid input can silently
-		 * change which values are accepted -- `additionalProperties: false` strips unknown
-		 * keys, and a non-numeric string casts to 0 -- so leaving invalid input untouched
-		 * lets validate_input() reject it exactly as it does without coercion.
-		 *
-		 * validate_input() is asked rather than rest_validate_value_from_schema() so that the
-		 * `wp_ability_validate_input` filter decides what counts as valid here as well. A filter
-		 * that overrides a schema failure accepts the input, so the input is coerced; a filter
-		 * that rejects otherwise valid input leaves it untouched for validate_input() to report.
-		 */
-		if ( is_wp_error( $ability->validate_input( $input ) ) ) {
-			return $input;
-		}
-
-		$sanitized = rest_sanitize_value_from_schema( $input, $schema, 'input' );
-
-		/*
-		 * Sanitizing can still surface an error the lenient validation above did not, such as
-		 * items that are unique as strings but collide once cast to integers (`uniqueItems`).
-		 * The error may be returned at the top level or nested inside the returned array, so
-		 * scan recursively and fall back to the raw input on any error.
-		 */
-		if ( $this->input_contains_error( $sanitized ) ) {
-			return $input;
-		}
-
-		return $sanitized;
-	}
-
-	/**
-	 * Determines whether a sanitized value is, or contains, a WP_Error.
-	 *
-	 * @since 7.1.0
-	 *
-	 * @param mixed $value The value to inspect.
-	 * @return bool True if the value is, or contains, a WP_Error.
-	 */
-	private function input_contains_error( $value ): bool {
-		if ( is_wp_error( $value ) ) {
-			return true;
-		}
-
-		if ( is_array( $value ) ) {
-			foreach ( $value as $item ) {
-				if ( $this->input_contains_error( $item ) ) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return $ability->coerce_input( $input );
 	}
 
 	/**
