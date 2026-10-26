@@ -468,10 +468,11 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 * Gets the inline style declarations of each element with an ID.
 	 *
 	 * @param string $html HTML fragment to parse.
-	 * @return array[] Declarations keyed by element ID, then by lowercase property name.
+	 * @return array<string, array<lowercase-string, string>> Declarations keyed by element ID, then by lowercase property name.
 	 */
-	private function get_inline_styles_by_id( $html ) {
-		$processor     = WP_HTML_Processor::create_fragment( $html );
+	private function get_inline_styles_by_id( string $html ): array {
+		$processor = WP_HTML_Processor::create_fragment( $html );
+		$this->assertInstanceOf( WP_HTML_Processor::class, $processor );
 		$inline_styles = array();
 
 		while ( $processor->next_tag() ) {
