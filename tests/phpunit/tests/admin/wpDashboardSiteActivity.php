@@ -245,6 +245,31 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	/**
 	 * @ticket 65116
 	 *
+	 * @covers ::wp_dashboard_on_this_day
+	 */
+	public function test_otd_activity_is_hidden_before_opt_in() {
+		$this->create_matching_post( self::$user_id, 'A note from me' );
+		$this->assertFalse( get_user_option( 'dashboard_show_on_this_day' ), 'User option should default to false' );
+
+		$otd_activity = get_echo( 'wp_dashboard_on_this_day' );
+
+		$inline_styles = $this->get_inline_styles_by_id( $otd_activity );
+
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-list', $inline_styles, 'OTD Widget should render the posts list element.' );
+		$this->assertArrayHasKey( 'display', $inline_styles['wp-on-this-day-posts-list'], 'OTD Widget posts list should set an inline display property before the user opts in.' );
+		$this->assertSame( 'none', $inline_styles['wp-on-this-day-posts-list']['display'], 'OTD Widget posts list should be hidden before the user opts in.' );
+
+		$this->assertArrayHasKey( 'wp-on-this-day-posts-form', $inline_styles, 'OTD Widget should render the opt-in form element.' );
+		$this->assertSame(
+			'block',
+			$inline_styles['wp-on-this-day-posts-form']['display'] ?? 'block',
+			'OTD Widget opt-in form should not set an inline display property other than block before the user opts in.'
+		);
+	}
+
+	/**
+	 * @ticket 65116
+	 *
 	 * @covers ::wp_dashboard_site_activity
 	 */
 	public function test_activity_renders_no_activity_message_without_posts() {
@@ -360,6 +385,39 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 
 		wp_dashboard_setup();
 		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should remain registered after all comments are deleted.' );
+	}
+
+	/**
+	 * Gets the inline style declarations of each element with an ID.
+	 *
+	 * @param string $html HTML fragment to parse.
+	 * @return array[] Declarations keyed by element ID, then by lowercase property name.
+	 */
+	private function get_inline_styles_by_id( $html ) {
+		$processor     = WP_HTML_Processor::create_fragment( $html );
+		$inline_styles = array();
+
+		while ( $processor->next_tag() ) {
+			$id = $processor->get_attribute( 'id' );
+			if ( ! is_string( $id ) ) {
+				continue;
+			}
+
+			$declarations = array();
+			foreach ( explode( ';', (string) $processor->get_attribute( 'style' ) ) as $declaration ) {
+				if ( ! str_contains( $declaration, ':' ) ) {
+					continue;
+				}
+
+				list( $property, $value ) = explode( ':', $declaration, 2 );
+
+				$declarations[ strtolower( trim( $property ) ) ] = trim( $value );
+			}
+
+			$inline_styles[ $id ] = $declarations;
+		}
+
+		return $inline_styles;
 	}
 
 	/**
