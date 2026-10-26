@@ -3,11 +3,6 @@
  * @group block-supports
  *
  * @covers ::wp_apply_shadow_support
- *
- * @phpstan-type Shadow_Attributes array{
- *     style?: array{ type: 'object', default?: array{ shadow: non-empty-string } },
- *     shadow?: array{ type: 'string', default?: non-empty-string },
- * }
  */
 class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	/**
@@ -61,12 +56,15 @@ class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_wp_register_shadow_support
 	 *
-	 * @param bool                                     $support  Shadow block support configuration.
-	 * @param array<string, array<string, mixed>>|null $value    Attributes array for the block.
-	 * @param array<string, array<string, mixed>>      $expected Expected attributes for the block.
-	 *
-	 * @phpstan-param Shadow_Attributes|null $value
-	 * @phpstan-param Shadow_Attributes      $expected
+	 * @param bool $support Shadow block support configuration.
+	 * @param array{
+	 *     style?: array{ type: 'object', default?: array{ shadow: non-empty-string } },
+	 *     shadow?: array{ type: 'string', default?: non-empty-string },
+	 * }|null $value Attributes array for the block.
+	 * @param array{
+	 *     style?: array{ type: 'object', default?: array{ shadow: non-empty-string } },
+	 *     shadow?: array{ type: 'string', default?: non-empty-string },
+	 * } $expected Expected attributes for the block.
 	 */
 	public function test_wp_register_shadow_support( bool $support, ?array $value, array $expected ) {
 		$this->test_block_name = 'test/shadow-attributes';
@@ -92,9 +90,17 @@ class Tests_Block_Supports_Shadow extends WP_UnitTestCase {
 	/**
 	 * Data provider for {@see self::test_wp_register_shadow_support()}.
 	 *
-	 * @return array<non-falsy-string, array<string, mixed>>
-	 *
-	 * @phpstan-return array<non-falsy-string, array{ support: bool, value: Shadow_Attributes|null, expected: Shadow_Attributes }>
+	 * @return array<non-falsy-string, array{
+	 *     support: bool,
+	 *     value: array{
+	 *         style?: array{ type: 'object', default?: array{ shadow: non-empty-string } },
+	 *         shadow?: array{ type: 'string', default?: non-empty-string },
+	 *     }|null,
+	 *     expected: array{
+	 *         style?: array{ type: 'object', default?: array{ shadow: non-empty-string } },
+	 *         shadow?: array{ type: 'string', default?: non-empty-string },
+	 *     },
+	 * }>
 	 */
 	public static function data_wp_register_shadow_support(): array {
 		return array(
