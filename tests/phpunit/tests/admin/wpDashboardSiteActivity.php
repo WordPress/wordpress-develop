@@ -431,32 +431,37 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_dashboard_has_received_comments
 	 * @covers ::wp_dashboard_setup
+	 *
+	 * @global array{ dashboard: array{ normal: array{ core: array<string, mixed> }, ... }, ... } $wp_meta_boxes
 	 */
 	public function test_recent_comments_widget_remains_registered_after_comments_are_deleted() {
+		global $wp_meta_boxes;
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request_failure' ) );
 
 		wp_dashboard_setup();
-		$this->assertArrayNotHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should not be registered before any comments are received.' );
+		$this->assertArrayHasKey( 'dashboard', $wp_meta_boxes );
+		$this->assertArrayNotHasKey( 'dashboard_recent_comments', $wp_meta_boxes['dashboard']['normal']['core'], 'Recent Comments Widget should not be registered before any comments are received.' );
 
-		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+		unset( $wp_meta_boxes['dashboard'] );
 
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 
 		wp_dashboard_setup();
-		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should be registered once a comment is received.' );
+		$this->assertArrayHasKey( 'dashboard', $wp_meta_boxes );
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $wp_meta_boxes['dashboard']['normal']['core'], 'Recent Comments Widget should be registered once a comment is received.' );
 		$this->assertSame(
 			'wp_dashboard_recent_comments_widget',
-			$GLOBALS['wp_meta_boxes']['dashboard']['normal']['core']['dashboard_recent_comments']['callback'],
+			$wp_meta_boxes['dashboard']['normal']['core']['dashboard_recent_comments']['callback'],
 			'Recent Comments Widget should use the dedicated widget callback.'
 		);
 		$this->assertSame( 1, get_option( 'dashboard_recent_comments_widget_registered' ), 'Recent Comments Widget registration should be stored in an option.' );
 
 		wp_delete_comment( $comment_id, true );
-		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
+		unset( $wp_meta_boxes['dashboard'] );
 
 		wp_dashboard_setup();
-		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should remain registered after all comments are deleted.' );
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $wp_meta_boxes['dashboard']['normal']['core'], 'Recent Comments Widget should remain registered after all comments are deleted.' );
 	}
 
 	/**
