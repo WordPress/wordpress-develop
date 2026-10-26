@@ -143,19 +143,28 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day_get_posts
 	 */
-	public function test_query_defaults_to_ten_posts_and_limit_is_filterable() {
+	public function test_query_defaults_to_one_hundred_posts_and_limit_is_filterable() {
 		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
 			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
 		}
 
-		$this->assertCount( 10, wp_dashboard_on_this_day_get_posts() );
+		$capture = null;
+		add_filter(
+			'wp_dashboard_on_this_day_query_args',
+			static function ( $query_args ) use ( &$capture ) {
+				$capture = $query_args['posts_per_page'];
+				return $query_args;
+			},
+			20 // Run after other filters have run.
+		);
+
+		wp_dashboard_on_this_day_get_posts();
+		$this->assertCount( 11, wp_dashboard_on_this_day_get_posts(), 'Unfiltered OTD Widget should return all posts.' );
+		$this->assertSame( 100, $capture, 'OTD Widget query should default to 100 posts per page.' );
 
 		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_limit' ) );
-		try {
-			$this->assertCount( 3, wp_dashboard_on_this_day_get_posts() );
-		} finally {
-			remove_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_limit' ) );
-		}
+		$this->assertCount( 3, wp_dashboard_on_this_day_get_posts(), 'Filtered OTD Widget should return three posts.' );
+		$this->assertSame( 3, $capture, 'Filter OTD Widget query should be limited to three posts per page.' );
 	}
 
 	/**
