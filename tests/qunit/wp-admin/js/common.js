@@ -264,6 +264,46 @@ jQuery( function() {
 			frame.remove();
 		} );
 
+		QUnit.test( 'Keeps editing rows aligned with all columns in ' + direction, async function( assert ) {
+			const frame = document.createElement( 'iframe' );
+			frame.width = '1000';
+			const loaded = new Promise( function( resolve ) {
+				frame.onload = resolve;
+			} );
+			const stylesheet = new URL( '../../src/wp-admin/css/list-tables.css', document.baseURI );
+			frame.srcdoc = '<!DOCTYPE html><html dir="' + direction + '"><head><link rel="stylesheet" href="' + stylesheet.href + '"></head><body id="wpbody-content"><div class="wp-list-table-scroll has-scroll-overflow-start has-scroll-overflow-end"><table class="wp-list-table widefat" style="width: 800px; border-collapse: collapse"><thead><tr><th>One</th><th>Two</th><th>Three</th><th>Four</th><th>Five</th></tr></thead><tbody><tr><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td></tr><tr class="inline-edit-row"><td colspan="5">Quick Edit</td></tr><tr class="inline-editor"><td colspan="5">Inline editor</td></tr><tr id="replyrow" class="inline-edit-row"><td colspan="5"><fieldset class="comment-reply"><legend>Reply</legend><textarea style="width: 100%; box-sizing: border-box"></textarea><button>Update Comment</button></fieldset></td></tr></tbody></table></div></body></html>';
+			document.getElementById( 'qunit-fixture' ).appendChild( frame );
+			await loaded;
+			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
+			const table = wrapper.querySelector( 'table' );
+			const cells = table.querySelectorAll( 'td[colspan]' );
+
+			[ 900, 600 ].forEach( function( width ) {
+				wrapper.style.width = width + 'px';
+				cells.forEach( function( cell ) {
+					assert.ok(
+						Math.abs( cell.getBoundingClientRect().width - table.getBoundingClientRect().width ) < 1,
+						cell.textContent + ' spans every column with a ' + width + 'px viewport.'
+					);
+				} );
+			} );
+
+			cells.forEach( function( cell ) {
+				[ '::before', '::after' ].forEach( function( pseudo ) {
+					assert.strictEqual( frame.contentWindow.getComputedStyle( cell.parentElement, pseudo ).visibility, 'hidden', cell.textContent + ' hides its ' + pseudo + ' fade.' );
+				} );
+			} );
+			const editor = table.querySelector( '.comment-reply' );
+			[ 0, direction === 'rtl' ? -200 : 200 ].forEach( function( position ) {
+				wrapper.scrollLeft = position;
+				const viewport = wrapper.getBoundingClientRect();
+				const bounds = editor.getBoundingClientRect();
+				assert.ok( bounds.left >= viewport.left && bounds.right <= viewport.right, 'Comment Quick Edit stays within the visible viewport at scroll position ' + position + '.' );
+				assert.ok( Math.abs( bounds.width - ( wrapper.clientWidth - 4 ) ) < 1, 'Comment Quick Edit fills the viewport inside the cell padding.' );
+			} );
+			frame.remove();
+		} );
+
 		QUnit.test( 'Wraps preformatted content with its column in ' + direction, async function( assert ) {
 			this.table.classList.add( 'widefat', 'fixed' );
 			this.table.style.width = '100%';

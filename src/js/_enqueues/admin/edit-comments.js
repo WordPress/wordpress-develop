@@ -806,8 +806,8 @@ window.commentReply = {
 		});
 
 		// Add events.
-		$('#the-comment-list .column-comment > p, #the-comment-list .column-comment > .wp-list-table-content-scroll > p').on( 'dblclick', function(){
-			commentReply.toggle($(this).closest('.column-comment'));
+		$('#the-comment-list .column-comment > p').on( 'dblclick', function(){
+			commentReply.toggle($(this).parent());
 		});
 
 		$('#doaction, #post-query-submit').on( 'click', function(){
@@ -833,8 +833,8 @@ window.commentReply = {
 	 */
 	addEvents : function(r) {
 		r.each(function() {
-			$(this).find('.column-comment > p, .column-comment > .wp-list-table-content-scroll > p').on( 'dblclick', function(){
-				commentReply.toggle($(this).closest('.column-comment'));
+			$(this).find('.column-comment > p').on( 'dblclick', function(){
+				commentReply.toggle($(this).parent());
 			});
 		});
 	},

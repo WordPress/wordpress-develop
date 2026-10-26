@@ -2280,9 +2280,6 @@ jQuery( () => {
 			const maxScroll = Math.max( 0, wrapper.scrollWidth - wrapper.clientWidth );
 			const position = Math.min( maxScroll, Math.max( 0, scrollLeft ) );
 
-			// Keep the row fades aligned with the visible viewport edges.
-			wrapper.style.setProperty( '--list-table-scroll-position', scrollLeft + 'px' );
-
 			// Skip non-scrolling wrappers without moving focus if the wrapper is already focused.
 			wrapper.tabIndex = maxScroll > 0 &&
 				( style.overflowX === 'auto' || style.overflowX === 'scroll' ) ? 0 : -1;
@@ -2312,7 +2309,6 @@ jQuery( () => {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
-				wrapper.style.removeProperty( '--list-table-scroll-position' );
 				if ( tabIndex === null ) {
 					wrapper.removeAttribute( 'tabindex' );
 				} else {
