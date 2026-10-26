@@ -2250,26 +2250,8 @@ jQuery( () => {
 		return;
 	}
 
-	/** @type {Map<HTMLTableElement, { wrapper: HTMLElement, update: function(): void, cleanup: function(): void }>} */
+	/** @type {Map<HTMLTableElement, { wrapper: HTMLElement, cleanup: function(): void }>} */
 	const tables = new Map();
-
-	/**
-	 * Restores an element's original Tab order after overflow tracking ends.
-	 *
-	 * @since 7.2.0
-	 *
-	 * @param {HTMLElement} element  The previously observed element.
-	 * @param {?string}     tabIndex Its original tabindex attribute.
-	 *
-	 * @return {void}
-	 */
-	function restoreTabIndex( element, tabIndex ) {
-		if ( tabIndex === null ) {
-			element.removeAttribute( 'tabindex' );
-		} else {
-			element.setAttribute( 'tabindex', tabIndex );
-		}
-	}
 
 	/**
 	 * Tracks a table's scroll position and dimensions.
@@ -2283,8 +2265,6 @@ jQuery( () => {
 	function observeTableOverflow( table ) {
 		const wrapper = table.parentElement;
 		const tabIndex = wrapper.getAttribute( 'tabindex' );
-		/** @type {Set<HTMLElement>} */
-		const contentAreas = new Set();
 
 		/**
 		 * Updates the overflow indicators and the wrapper's place in the Tab order.
@@ -2294,58 +2274,14 @@ jQuery( () => {
 		 * @return {void}
 		 */
 		function update() {
-			contentAreas.forEach( ( area ) => {
-				if ( area.closest( '.wp-list-table' ) !== table || ! table.contains( area ) ) {
-					observer.unobserve( area );
-					area.replaceWith( ...area.childNodes );
-					contentAreas.delete( area );
-				}
-			} );
-
-			table.querySelectorAll( ':scope > tbody > tr > td, :scope > tbody > tr > th' ).forEach( ( cell ) => {
-				if ( cell.colSpan > 1 || cell.closest( '.inline-edit-row, .inline-editor, #replyrow' ) ) {
-					return;
-				}
-				Array.from( cell.children ).forEach( ( block ) => {
-					if (
-						! block.matches( 'p, pre, div, blockquote, ul, ol, dl, figure, table' ) ||
-						block.matches( '.row-actions, .hidden, .comment-author, .wp-list-table-content-scroll, [hidden]' )
-					) {
-						return;
-					}
-					// Preserve inline formatting for icons, badges, and other inline content.
-					const display = window.getComputedStyle( block ).display;
-					if ( display === 'none' || display.startsWith( 'inline' ) ) {
-						return;
-					}
-					const area = document.createElement( 'div' );
-					area.className = 'wp-list-table-content-scroll';
-					block.before( area );
-					area.append( block );
-					contentAreas.add( area );
-					observer.observe( area );
-				} );
-			} );
-
-			contentAreas.forEach( ( area ) => {
-				const areaStyle = window.getComputedStyle( area );
-				const scrollable = area.scrollWidth > area.clientWidth &&
-					( areaStyle.overflowX === 'auto' || areaStyle.overflowX === 'scroll' );
-				area.tabIndex = scrollable ? 0 : -1;
-				if ( scrollable ) {
-					area.setAttribute( 'role', 'region' );
-					area.setAttribute( 'aria-label', wp.i18n.__( 'Scrollable content' ) );
-				} else {
-					area.removeAttribute( 'role' );
-					area.removeAttribute( 'aria-label' );
-				}
-			} );
-
 			const style = window.getComputedStyle( wrapper );
 			const isRTL = style.direction === 'rtl';
 			const scrollLeft = isRTL ? -wrapper.scrollLeft : wrapper.scrollLeft;
 			const maxScroll = Math.max( 0, wrapper.scrollWidth - wrapper.clientWidth );
 			const position = Math.min( maxScroll, Math.max( 0, scrollLeft ) );
+
+			// Keep the row fades aligned with the visible viewport edges.
+			wrapper.style.setProperty( '--list-table-scroll-position', scrollLeft + 'px' );
 
 			// Skip non-scrolling wrappers without moving focus if the wrapper is already focused.
 			wrapper.tabIndex = maxScroll > 0 &&
@@ -2364,7 +2300,6 @@ jQuery( () => {
 
 		tables.set( table, {
 			wrapper,
-			update,
 
 			/**
 			 * Releases overflow tracking and restores the wrapper's original Tab order.
@@ -2377,11 +2312,12 @@ jQuery( () => {
 				observer.disconnect();
 				wrapper.removeEventListener( 'scroll', update );
 				wrapper.classList.remove( 'has-scroll-overflow-start', 'has-scroll-overflow-end' );
-				restoreTabIndex( wrapper, tabIndex );
-				contentAreas.forEach( ( area ) => {
-					area.replaceWith( ...area.childNodes );
-				} );
-				contentAreas.clear();
+				wrapper.style.removeProperty( '--list-table-scroll-position' );
+				if ( tabIndex === null ) {
+					wrapper.removeAttribute( 'tabindex' );
+				} else {
+					wrapper.setAttribute( 'tabindex', tabIndex );
+				}
 			},
 		} );
 	}
@@ -2405,8 +2341,6 @@ jQuery( () => {
 			.forEach( ( table ) => {
 				if ( ! tables.has( table ) ) {
 					observeTableOverflow( table );
-				} else {
-					tables.get( table ).update();
 				}
 			} );
 	}
@@ -2415,7 +2349,7 @@ jQuery( () => {
 
 	// Plugins live search replaces the table and its wrapper.
 	const observer = new window.MutationObserver( refreshTables );
-	observer.observe( content, { childList: true, characterData: true, subtree: true } );
+	observer.observe( content, { childList: true, subtree: true } );
 } );
 
 /**

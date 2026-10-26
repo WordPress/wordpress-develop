@@ -237,21 +237,6 @@ jQuery( function() {
 		}
 	);
 
-	QUnit.test( 'Scrolls oversized blocks in any column without moving row actions', async function( assert ) {
-		this.table.innerHTML = '<tbody><tr><td class="column-example"><p>Ordinary text.</p><pre style="width: 1000px">Wide content</pre><div class="row-actions"><a href="#">Edit</a></div></td><td>Other column</td></tr></tbody>';
-		await afterResize();
-		const cell = this.table.querySelector( '.column-example' );
-		const area = cell.querySelector( 'pre' ).parentElement;
-		assert.ok( area.classList.contains( 'wp-list-table-content-scroll' ), 'The oversized block has a scrolling wrapper.' );
-		assert.ok( area.scrollWidth > area.clientWidth, 'Only the content area overflows.' );
-		assert.strictEqual( area.tabIndex, 0, 'The scrolling content is keyboard accessible.' );
-		assert.strictEqual( cell.querySelector( '.row-actions' ).parentElement, cell, 'Actions stay outside the scroller.' );
-		assert.strictEqual( cell.querySelector( 'p' ).parentElement.tabIndex, -1, 'Ordinary text adds no Tab stop.' );
-		const actionX = cell.querySelector( '.row-actions' ).getBoundingClientRect().x;
-		area.scrollLeft = 100;
-		assert.strictEqual( cell.querySelector( '.row-actions' ).getBoundingClientRect().x, actionX, 'Scrolling content leaves actions in place.' );
-	} );
-
 	[ 'ltr', 'rtl' ].forEach( function( direction ) {
 		QUnit.test( 'Preserves narrow icon columns in ' + direction, async function( assert ) {
 			this.wrapper.style.width = '400px';
@@ -279,18 +264,12 @@ jQuery( function() {
 			frame.remove();
 		} );
 
-		QUnit.test( 'Shrinks oversized content with its column in ' + direction, async function( assert ) {
+		QUnit.test( 'Wraps preformatted content with its column in ' + direction, async function( assert ) {
 			this.table.classList.add( 'widefat', 'fixed' );
 			this.table.style.width = '100%';
-			this.table.innerHTML = '<thead><tr><th class="column-primary">Content</th><th style="min-width: 180px">Other column</th></tr></thead><tbody><tr><td><p>Ordinary text can wrap when the available space gets smaller.</p><pre style="width: 1000px">Wide content</pre><div class="plugin-scroller" style="overflow: auto"><pre style="width: 1000px">Plugin content</pre></div></td><td>Other content</td></tr></tbody>';
-			await afterResize();
-
+			this.table.innerHTML = '<thead><tr><th class="column-primary">Content</th><th style="min-width: 180px">Other column</th></tr></thead><tbody><tr><td><pre style="white-space: pre"></pre></td><td>Other content</td></tr></tbody>';
 			const sampleText = '    ' + 'W'.repeat( 200 ) + '\n    Second line';
-			const sample = document.createElement( 'pre' );
-			sample.className = 'wrapping-sample';
-			sample.style.whiteSpace = 'pre';
-			sample.textContent = sampleText;
-			this.table.querySelector( 'td' ).appendChild( sample );
+			this.table.querySelector( 'pre' ).textContent = sampleText;
 			await afterResize();
 
 			// Use the production stylesheet in an isolated desktop viewport.
@@ -304,24 +283,16 @@ jQuery( function() {
 			document.getElementById( 'qunit-fixture' ).appendChild( frame );
 			await loaded;
 			const wrapper = frame.contentDocument.querySelector( '.wp-list-table-scroll' );
-			const area = wrapper.querySelector( 'td > .wp-list-table-content-scroll > pre' ).parentElement;
+			const pre = wrapper.querySelector( 'pre' );
 			wrapper.style.width = '800px';
-			const wideWidth = area.clientWidth;
+			const wideHeight = pre.clientHeight;
 
 			wrapper.style.width = '600px';
-			assert.ok( area.clientWidth < wideWidth, 'The content area shrinks when the table has less space.' );
-			assert.strictEqual( wrapper.scrollWidth, wrapper.clientWidth, 'Oversized content does not force the fitting table to scroll.' );
-			assert.ok( area.scrollWidth > area.clientWidth, 'The oversized block still scrolls inside its column.' );
-			const ordinary = wrapper.querySelector( 'p' ).parentElement;
-			assert.strictEqual( ordinary.scrollWidth, ordinary.clientWidth, 'Ordinary text wraps without a scrollbar.' );
-			const plugin = wrapper.querySelector( '.plugin-scroller' );
-			assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin retains its own scrollbar after shrinking.' );
-			assert.strictEqual( plugin.parentElement.scrollWidth, plugin.parentElement.clientWidth, 'The plugin does not acquire a second scrollbar.' );
-
-			const wrappedPre = wrapper.querySelector( '.wrapping-sample' );
-			assert.strictEqual( wrappedPre.parentElement.scrollWidth, wrappedPre.parentElement.clientWidth, 'Plain preformatted text wraps without horizontal scrolling.' );
-			assert.ok( wrappedPre.clientHeight > 3 * area.firstElementChild.clientHeight, 'Long preformatted lines wrap onto additional lines.' );
-			assert.strictEqual( wrappedPre.textContent, sampleText, 'Wrapping preserves the original whitespace and text.' );
+			assert.strictEqual( pre.parentElement.tagName, 'TD', 'Wrapping preserves the existing cell markup.' );
+			assert.strictEqual( wrapper.scrollWidth, wrapper.clientWidth, 'Long preformatted text does not force the fitting table to scroll.' );
+			assert.strictEqual( pre.scrollWidth, pre.clientWidth, 'Preformatted text wraps without an inner scrollbar.' );
+			assert.ok( pre.clientHeight > wideHeight, 'Narrower columns wrap the text onto more lines.' );
+			assert.strictEqual( pre.textContent, sampleText, 'Wrapping preserves the original whitespace and text.' );
 
 			wrapper.style.width = '400px';
 			assert.ok( wrapper.scrollWidth > wrapper.clientWidth, 'Column minimum widths still cause table scrolling when needed.' );
@@ -329,39 +300,15 @@ jQuery( function() {
 		} );
 	} );
 
-	QUnit.test( 'Updates content keyboard access after text changes', async function( assert ) {
-		this.table.innerHTML = '<tbody><tr><td><pre>Short</pre></td></tr></tbody>';
-		await afterResize();
-		const pre = this.table.querySelector( 'pre' );
-		const area = pre.parentElement;
-		assert.strictEqual( area.tabIndex, -1, 'Short content does not add a Tab stop.' );
-		pre.firstChild.data = 'W'.repeat( 200 );
-		await afterResize();
-		assert.strictEqual( area.tabIndex, 0, 'Text changes make overflowing content keyboard accessible.' );
-		area.focus();
-		pre.firstChild.data = 'Short';
-		await afterResize();
-		assert.strictEqual( area.tabIndex, -1, 'Fitting content is removed from the Tab order.' );
-		assert.strictEqual( document.activeElement, area, 'Existing focus is preserved.' );
-	} );
-
-	QUnit.test( 'Leaves existing plugin scrolling inside its content block', async function( assert ) {
-		this.table.innerHTML = '<tbody><tr><td><div class="plugin-scroller" style="overflow: auto"><pre style="width: 1000px">Plugin content</pre></div></td></tr></tbody>';
-		await afterResize();
-		const plugin = this.table.querySelector( '.plugin-scroller' );
-		const area = plugin.parentElement;
-		assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin still owns its overflow.' );
-		assert.strictEqual( area.scrollWidth, area.clientWidth, 'The enclosing content area does not add another scrollbar.' );
-		assert.strictEqual( area.tabIndex, -1, 'The enclosing content area adds no Tab stop.' );
-	} );
-
-	QUnit.test( 'Removes generated content wrappers when a table is removed', async function( assert ) {
-		this.table.innerHTML = '<tbody><tr><td><pre>Content</pre></td></tr></tbody>';
+	QUnit.test( 'Preserves plugin-owned scrolling and content markup', async function( assert ) {
+		this.table.innerHTML = '<tbody><tr><td><div class="plugin-scroller" style="width: 300px; overflow: auto" tabindex="0"><pre style="width: 1000px">Plugin content</pre></div><div class="row-actions"><a href="#">Edit</a></div></td></tr></tbody>';
 		await afterResize();
 		const cell = this.table.querySelector( 'td' );
-		this.table.remove();
-		await afterResize();
-		assert.strictEqual( cell.firstElementChild.tagName, 'PRE', 'Cleanup restores the original content structure.' );
+		const plugin = cell.querySelector( '.plugin-scroller' );
+		assert.strictEqual( plugin.parentElement, cell, 'The plugin retains its original parent for direct-child styling.' );
+		assert.ok( plugin.scrollWidth > plugin.clientWidth, 'The plugin still owns its overflow.' );
+		assert.strictEqual( plugin.tabIndex, 0, 'The plugin retains its own keyboard access.' );
+		assert.strictEqual( cell.querySelector( '.row-actions' ).parentElement, cell, 'Actions retain their original parent.' );
 	} );
 
 	QUnit.test( 'Preserves focus when a focused wrapper stops overflowing', async function( assert ) {
