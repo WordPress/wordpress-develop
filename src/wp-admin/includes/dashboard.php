@@ -1042,15 +1042,15 @@ function wp_dashboard_on_this_day( $posts = null ) {
 	if ( ! str_starts_with( get_user_option( 'dashboard_show_on_this_day' ), 'opt-' ) ) :
 		?>
 		<div id="wp-on-this-day-posts-form" class="activity-block wp-on-this-day-posts-title hide-if-no-js" style="<?php echo $display_form ? '' : 'display: none;'; ?>">
-			<h3><?php esc_html_e( 'Published On This Day' ); ?></h3>
+			<h3><?php _e( 'Published On This Day' ); ?></h3>
 			<form method="post">
 			<p>
-				Would you like to see posts from previous years here? You can change this later in the Screen Options tab.
+				<?php _e( 'Would you like to see posts from previous years here? You can change this later in the Screen Options tab.' );
 			</p>
 			<p>
 				<?php wp_nonce_field( 'screen-options-nonce', 'screenoptionnonce' ); ?>
-				<button name="enabled" value="1" class="button button-primary">Yes</button>
-				<button name="enabled" value="0" class="button">No</button>
+				<button name="enabled" value="1" class="button button-primary"><?php _e( 'Yes' ); ?></button>
+				<button name="enabled" value="0" class="button"><?php _e( 'No' ); ?></button>
 			</p>
 			</form>
 		</div>
