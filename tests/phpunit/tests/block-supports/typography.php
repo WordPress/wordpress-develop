@@ -23,10 +23,20 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
 
-		$this->test_block_name = null;
+		$this->test_block_name         = null;
+		$this->original_stylesheet     = get_stylesheet();
 
 		// Sets up the `wp-content/themes/` directory to ensure consistency when running tests.
 		$this->theme_root                = realpath( DIR_TESTDATA . '/themedir1' );
@@ -49,6 +59,10 @@ class Tests_Block_Supports_Typography extends WP_UnitTestCase {
 	 * Unregisters block type after each test.
 	 */
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		// Restores the original theme directory setup.
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
