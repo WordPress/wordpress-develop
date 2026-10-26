@@ -12,6 +12,8 @@ class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
 	 * Original stylesheet.
 	 *
+	 * @ticket 65893
+	 *
 	 * @var string
 	 */
 	private $original_stylesheet;
