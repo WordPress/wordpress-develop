@@ -24,11 +24,21 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 	 */
 	private $orig_theme_dir;
 
+	/**
+	 * Original stylesheet.
+	 *
+	 * @ticket 65893
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
 	public function set_up() {
 		parent::set_up();
-		$this->test_block_name = null;
-		$this->theme_root      = realpath( DIR_TESTDATA . '/themedir1' );
-		$this->orig_theme_dir  = $GLOBALS['wp_theme_directories'];
+		$this->test_block_name     = null;
+		$this->original_stylesheet = get_stylesheet();
+		$this->theme_root          = realpath( DIR_TESTDATA . '/themedir1' );
+		$this->orig_theme_dir      = $GLOBALS['wp_theme_directories'];
 
 		// /themes is necessary as theme.php functions assume /themes is the root if there is only one root.
 		$GLOBALS['wp_theme_directories'] = array( WP_CONTENT_DIR . '/themes', $this->theme_root );
@@ -43,6 +53,10 @@ class Tests_Block_Supports_WpRenderDimensionsSupport extends WP_UnitTestCase {
 	}
 
 	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 
 		// Clear up the filters to modify the theme root.
