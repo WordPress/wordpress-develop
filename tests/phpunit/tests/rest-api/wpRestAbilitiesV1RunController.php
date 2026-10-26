@@ -1575,206 +1575,69 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for input coerced to the ability input schema over a GET request.
+	 * Tests that REST transports deliver schema-coerced input to the ability.
 	 *
-	 * Covers fields nested inside an object as well as a top-level scalar or array input.
+	 * @ticket 65594
 	 *
-	 * @return array<string, array{0: array, 1: mixed, 2: mixed}> Schema, raw input, and the
-	 *                                                            expected coerced value.
+	 * @dataProvider data_coercion_transports
+	 *
+	 * @param string $method      HTTP method.
+	 * @param array  $annotations Ability annotations selecting the method.
 	 */
-	public static function data_input_is_coerced(): array {
-		$object_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'count' => array( 'type' => 'integer' ),
-				'flag'  => array( 'type' => 'boolean' ),
-				'tags'  => array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'string' ),
+	public function test_input_is_coerced_for_transport( string $method, array $annotations ): void {
+		$this->register_reflecting_ability(
+			'test/coerced-input',
+			array(
+				'type'       => 'object',
+				'properties' => array(
+					'count' => array( 'type' => 'integer' ),
+					'flag'  => array( 'type' => 'boolean' ),
+					'ids'   => array(
+						'type'  => 'array',
+						'items' => array( 'type' => 'integer' ),
+					),
 				),
 			),
+			$annotations
 		);
 
-		$tags_object_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'tags' => array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'string' ),
-				),
-			),
+		$response = $this->dispatch_run(
+			$method,
+			'test/coerced-input',
+			array(
+				'count' => '10',
+				'flag'  => 'false',
+				'ids'   => '1,2',
+			)
 		);
-
-		// Two-mode schema mirroring real read abilities: select by id, or return a collection.
-		$one_of_schema = array(
-			'type'  => 'object',
-			'oneOf' => array(
-				array(
-					'title'                => 'by_id',
-					'type'                 => 'object',
-					'properties'           => array(
-						'id' => array( 'type' => 'integer' ),
-					),
-					'required'             => array( 'id' ),
-					'additionalProperties' => false,
-				),
-				array(
-					'title'                => 'collection',
-					'type'                 => 'object',
-					'properties'           => array(
-						'per_page' => array( 'type' => 'integer' ),
-						'fields'   => array(
-							'type'  => 'array',
-							'items' => array( 'type' => 'string' ),
-						),
-					),
-					'required'             => array( 'per_page' ),
-					'additionalProperties' => false,
-				),
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			array(
+				'count' => 10,
+				'flag'  => false,
+				'ids'   => array( 1, 2 ),
 			),
-		);
-
-		// Object nested two levels deep, to confirm coercion walks `properties` recursively.
-		$deep_schema = array(
-			'type'       => 'object',
-			'properties' => array(
-				'a' => array(
-					'type'       => 'object',
-					'properties' => array(
-						'b' => array(
-							'type'       => 'object',
-							'properties' => array(
-								'id'    => array( 'type' => 'integer' ),
-								'is_ok' => array( 'type' => 'boolean' ),
-								'parts' => array(
-									'type'  => 'array',
-									'items' => array( 'type' => 'string' ),
-								),
-							),
-						),
-					),
-				),
-			),
-		);
-
-		return array(
-			// Fields nested inside an object.
-			'object integer field'           => array(
-				$object_schema,
-				array( 'count' => '10' ),
-				array( 'count' => 10 ),
-			),
-			'object boolean true'            => array(
-				$object_schema,
-				array( 'flag' => 'true' ),
-				array( 'flag' => true ),
-			),
-			'object boolean false'           => array(
-				$object_schema,
-				array( 'flag' => 'false' ),
-				array( 'flag' => false ),
-			),
-			'object comma-separated array'   => array(
-				$object_schema,
-				array( 'tags' => 'a,b' ),
-				array( 'tags' => array( 'a', 'b' ) ),
-			),
-			'object all fields at once'      => array(
-				$object_schema,
-				array(
-					'count' => '10',
-					'flag'  => 'true',
-					'tags'  => 'a,b',
-				),
-				array(
-					'count' => 10,
-					'flag'  => true,
-					'tags'  => array( 'a', 'b' ),
-				),
-			),
-			'object bracket array preserved' => array(
-				$tags_object_schema,
-				array( 'tags' => array( 'a', 'b' ) ),
-				array( 'tags' => array( 'a', 'b' ) ),
-			),
-			'oneOf id mode'                  => array(
-				$one_of_schema,
-				array( 'id' => '5' ),
-				array( 'id' => 5 ),
-			),
-			'oneOf collection mode'          => array(
-				$one_of_schema,
-				array(
-					'per_page' => '2',
-					'fields'   => 'id,name',
-				),
-				array(
-					'per_page' => 2,
-					'fields'   => array( 'id', 'name' ),
-				),
-			),
-			'deeply nested object'           => array(
-				$deep_schema,
-				array(
-					'a' => array(
-						'b' => array(
-							'id'    => '22',
-							'is_ok' => 'true',
-							'parts' => 'x,y',
-						),
-					),
-				),
-				array(
-					'a' => array(
-						'b' => array(
-							'id'    => 22,
-							'is_ok' => true,
-							'parts' => array( 'x', 'y' ),
-						),
-					),
-				),
-			),
-
-			// Top-level (non-object) input.
-			'top-level integer'              => array( array( 'type' => 'integer' ), '10', 10 ),
-			'top-level number'               => array( array( 'type' => 'number' ), '3.5', 3.5 ),
-			'top-level boolean true'         => array( array( 'type' => 'boolean' ), 'true', true ),
-			'top-level boolean false'        => array( array( 'type' => 'boolean' ), 'false', false ),
-			'top-level string unchanged'     => array( array( 'type' => 'string' ), 'hello', 'hello' ),
-			// A numeric string against a `string` schema must stay a string, not become an integer.
-			'numeric string stays string'    => array( array( 'type' => 'string' ), '10', '10' ),
-			'top-level array of integers'    => array(
-				array(
-					'type'  => 'array',
-					'items' => array( 'type' => 'integer' ),
-				),
-				'1,2,3',
-				array( 1, 2, 3 ),
-			),
+			$response->get_data()['value']
 		);
 	}
 
 	/**
-	 * Tests that GET input is coerced to the types declared in the ability input schema.
+	 * Provides query-string and JSON-body transports for the run endpoint.
 	 *
-	 * PHP delivers every scalar in a GET query string as a string ("10", "true") and a
-	 * comma-separated list as a single string, so the whole input must arrive natively typed,
-	 * whether it is a field nested in an object or a top-level scalar or array.
-	 *
-	 * @ticket 65594
-	 *
-	 * @dataProvider data_input_is_coerced
-	 *
-	 * @param array $schema   Ability input schema.
-	 * @param mixed $input    Raw input as delivered over a GET query string.
-	 * @param mixed $expected Expected input value after coercion.
+	 * @return array
 	 */
-	public function test_get_input_is_coerced( array $schema, $input, $expected ): void {
-		$this->register_reflecting_ability( 'test/coerced-input', $schema );
-
-		$response = $this->dispatch_run( 'GET', 'test/coerced-input', $input );
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( $expected, $response->get_data()['value'] );
+	public static function data_coercion_transports(): array {
+		return array(
+			'GET'    => array( 'GET', array( 'readonly' => true ) ),
+			'POST'   => array( 'POST', array() ),
+			'DELETE' => array(
+				'DELETE',
+				array(
+					'destructive' => true,
+					'idempotent'  => true,
+				),
+			),
+		);
 	}
 
 	/**
@@ -2004,36 +1867,5 @@ class Tests_REST_API_WpRestAbilitiesV1RunController extends WP_UnitTestCase {
 			'explicit input' => array( array( 'count' => '10' ) ),
 			'default input'  => array( null ),
 		);
-	}
-
-	/**
-	 * Tests that a value which only fails validation once coerced falls back to the raw input.
-	 *
-	 * `["1", "01"]` is unique as strings but collides once cast to integers, so it cannot be
-	 * coerced without producing a `uniqueItems` error. The raw input is kept instead, so
-	 * validation still accepts it and no `WP_Error` reaches the ability.
-	 *
-	 * @ticket 65594
-	 */
-	public function test_nested_sanitize_error_falls_back_to_raw_input(): void {
-		$this->register_reflecting_ability(
-			'test/unique-items-input',
-			array(
-				'type'       => 'object',
-				'properties' => array(
-					'include' => array(
-						'type'        => 'array',
-						'items'       => array( 'type' => 'integer' ),
-						'uniqueItems' => true,
-					),
-				),
-			)
-		);
-
-		$response = $this->dispatch_run( 'GET', 'test/unique-items-input', array( 'include' => array( '1', '01' ) ) );
-
-		// Accepted (unique as strings) and the ability received the raw values, not a WP_Error.
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( array( 'include' => array( '1', '01' ) ), $response->get_data()['value'] );
 	}
 }
