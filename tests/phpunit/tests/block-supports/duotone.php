@@ -10,6 +10,26 @@
 
 class Tests_Block_Supports_Duotone extends WP_UnitTestCase {
 	/**
+	 * Original stylesheet.
+	 *
+	 * @var string
+	 */
+	private $original_stylesheet;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_stylesheet = get_stylesheet();
+	}
+
+	public function tear_down() {
+		if ( get_stylesheet() !== $this->original_stylesheet ) {
+			switch_theme( $this->original_stylesheet );
+		}
+
+		parent::tear_down();
+	}
+
+	/**
 	 * Tests that unsupported duotone attribute types leave the block unchanged.
 	 *
 	 * @ticket 65817
