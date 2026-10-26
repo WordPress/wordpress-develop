@@ -84,7 +84,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::_wp_dashboard_on_this_day_date_query_clause
 	 */
-	public function test_date_query_includes_february_29_on_february_28_in_non_leap_year() {
+	public function test_otd_date_query_includes_february_29_on_february_28_in_non_leap_year() {
 		$date = new DateTimeImmutable( '2023-02-28 12:00:00', wp_timezone() );
 
 		$this->assertSame(
@@ -108,7 +108,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day_get_posts
 	 */
-	public function test_query_returns_only_published_posts_from_this_day_in_previous_years() {
+	public function test_otd_query_returns_only_published_posts_from_this_day_in_previous_years() {
 		$matching_id = $this->create_matching_post( self::$user_id );
 		$this->create_matching_post( self::$user_id, 'A draft memory', 2, array( 'post_status' => 'draft' ) );
 
@@ -143,7 +143,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day_get_posts
 	 */
-	public function test_query_defaults_to_one_hundred_posts_and_limit_is_filterable() {
+	public function test_otd_query_defaults_to_one_hundred_posts_and_limit_is_filterable() {
 		for ( $years_ago = 1; $years_ago <= 11; $years_ago++ ) {
 			$this->create_matching_post( self::$user_id, 'Anniversary post ' . $years_ago, $years_ago );
 		}
@@ -172,7 +172,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_section_renders_posts_from_all_authors_and_untitled_excerpts() {
+	public function test_otd_renders_posts_from_all_authors_and_untitled_excerpts() {
 		$this->create_matching_post( self::$user_id, 'A note from me' );
 		$this->create_matching_post( self::$other_user_id, 'A note from someone else', 2 );
 		$this->create_matching_post(
@@ -202,7 +202,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_section_hides_untitled_excerpt_for_unreadable_posts() {
+	public function test_otd_hides_untitled_excerpt_for_unreadable_posts() {
 		$this->create_matching_post(
 			self::$other_user_id,
 			'',
@@ -225,7 +225,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	 *
 	 * @covers ::wp_dashboard_on_this_day
 	 */
-	public function test_section_hides_untitled_excerpt_for_password_protected_posts() {
+	public function test_otd_hides_untitled_excerpt_for_password_protected_posts() {
 		$this->create_matching_post(
 			self::$user_id,
 			'',
