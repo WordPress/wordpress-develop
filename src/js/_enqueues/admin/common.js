@@ -517,8 +517,29 @@ window.validateForm = function( form ) {
 		.find( '.form-required' )
 		.filter( function() { return $( ':input:visible', this ).val() === ''; } )
 		.addClass( 'form-invalid' )
+		.each( function() {
+			var input = $( ':input:visible', this );
+			var errorId = $( '.form-error', this ).attr( 'id' );
+
+			input.attr( 'aria-invalid', 'true' );
+
+			if ( errorId ) {
+				input.attr( 'aria-describedby', function( index, value ) {
+					var ids = value ? value.split( /\s+/ ) : [];
+
+					if ( ids.indexOf( errorId ) === -1 ) {
+						ids.push( errorId );
+					}
+
+					return ids.join( ' ' );
+				} );
+			}
+		} )
 		.find( ':input:visible' )
-		.on( 'change', function() { $( this ).closest( '.form-invalid' ).removeClass( 'form-invalid' ); } )
+		.on( 'change', function() {
+			$( this ).closest( '.form-invalid' ).removeClass( 'form-invalid' );
+			$( this ).removeAttr( 'aria-invalid' );
+		} )
 		.length;
 };
 
