@@ -37,7 +37,6 @@ includes:
 	- tests/phpstan/baselines/empty.property.neon
 	- tests/phpstan/baselines/empty.variable.neon
 	- tests/phpstan/baselines/function.alreadyNarrowedType.neon
-	- tests/phpstan/baselines/function.impossibleType.neon
 	- tests/phpstan/baselines/function.resultUnused.neon
 	- tests/phpstan/baselines/identical.alwaysFalse.neon
 	- tests/phpstan/baselines/identical.alwaysTrue.neon
