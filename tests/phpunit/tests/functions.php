@@ -144,7 +144,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return string[][]
 	 */
-	public function data_path_join() {
+	public static function data_path_join() {
 		return array(
 			// Absolute paths.
 			'absolute path should return path' => array(
@@ -201,7 +201,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_normalize_path( $path ) );
 	}
 
-	public function data_wp_normalize_path() {
+	public static function data_wp_normalize_path() {
 		return array(
 			// Windows paths.
 			array( 'C:\\www\\path\\', 'C:/www/path/' ),
@@ -609,7 +609,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *
 	 * @return array
 	 */
-	public function data_add_query_arg_removes_question_mark() {
+	public static function data_add_query_arg_removes_question_mark() {
 		return array(
 			'anchor'                                     => array(
 				'url'      => 'http://example.org?#anchor',
@@ -741,7 +741,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	public function data_device_can_upload() {
+	public static function data_device_can_upload() {
 		return array(
 			// iPhone iOS 5.0.1, Safari 5.1.
 			array(
@@ -1116,7 +1116,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
-	public function data_mysql_to_rfc3339() {
+	public static function data_mysql_to_rfc3339() {
 		return array(
 			array( '2016-03-15T18:54:46', '15-03-2016 18:54:46' ),
 			array( '2016-03-02T19:13:25', '2016-03-02 19:13:25' ),
@@ -1300,7 +1300,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_get_image_mime().
 	 */
-	public function data_wp_get_image_mime() {
+	public static function data_wp_get_image_mime() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1404,7 +1404,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_wp_getimagesize().
 	 */
-	public function data_wp_getimagesize() {
+	public static function data_wp_getimagesize() {
 		$data = array(
 			// Standard JPEG.
 			array(
@@ -1613,7 +1613,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
-	public function data_wp_check_filetype_and_ext() {
+	public static function data_wp_check_filetype_and_ext() {
 		$data = array(
 			// Standard image.
 			array(
@@ -1878,7 +1878,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_validate_file() {
+	public static function data_validate_file() {
 		return array(
 
 			// Allowed files:
@@ -2145,7 +2145,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_wp_is_stream() {
+	public static function data_wp_is_stream() {
 		return array(
 			// Legitimate stream examples.
 			array( 'http://example.com', true ),
@@ -2185,7 +2185,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 *     }
 	 * }
 	 */
-	public function data_human_readable_duration() {
+	public static function data_human_readable_duration() {
 		return array(
 			// Valid ii:ss cases.
 			array( '0:0', '0 minutes, 0 seconds' ),
@@ -2249,7 +2249,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 
-	public function data_wp_is_json_media_type() {
+	public static function data_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
