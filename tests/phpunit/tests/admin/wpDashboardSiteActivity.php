@@ -186,15 +186,15 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		$result = wp_dashboard_on_this_day();
 		$output = ob_get_clean();
 
-		$this->assertTrue( $result );
-		$this->assertStringContainsString( 'Published On This Day', $output );
-		$this->assertStringContainsString( 'A note from me', $output );
-		$this->assertStringNotContainsString( 'by Current Writer', $output );
-		$this->assertStringContainsString( 'A note from someone else', $output );
-		$this->assertStringContainsString( 'by Guest Writer', $output );
-		$this->assertStringContainsString( '(no title)', $output );
-		$this->assertStringContainsString( 'word15', $output );
-		$this->assertStringNotContainsString( 'word16', $output );
+		$this->assertTrue( $result, 'OTD Widget should return true when posts are rendered.' );
+		$this->assertStringContainsString( 'Published On This Day', $output, 'OTD Widget should render the section heading.' );
+		$this->assertStringContainsString( 'A note from me', $output, 'OTD Widget should render posts by the current user.' );
+		$this->assertStringNotContainsString( 'by Current Writer', $output, 'OTD Widget should not show a byline for the current user.' );
+		$this->assertStringContainsString( 'A note from someone else', $output, 'OTD Widget should render posts by other users.' );
+		$this->assertStringContainsString( 'by Guest Writer', $output, 'OTD Widget should show a byline for other users.' );
+		$this->assertStringContainsString( '(no title)', $output, 'OTD Widget should render a placeholder for untitled posts.' );
+		$this->assertStringContainsString( 'word15', $output, 'OTD Widget should include the first fifteen words of the excerpt for untitled posts.' );
+		$this->assertStringNotContainsString( 'word16', $output, 'OTD Widget should trim the excerpt for untitled posts to fifteen words.' );
 	}
 
 	/**
@@ -216,8 +216,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		add_filter( 'wp_dashboard_on_this_day_query_args', array( $this, 'filter_on_this_day_query_private_posts' ) );
 		$output = get_echo( 'wp_dashboard_on_this_day' );
 
-		$this->assertStringContainsString( '(no title)', $output );
-		$this->assertStringNotContainsString( 'Unreadable private anniversary memory.', $output );
+		$this->assertStringContainsString( '(no title)', $output, 'OTD Widget should render a placeholder for untitled unreadable posts.' );
+		$this->assertStringNotContainsString( 'Unreadable private anniversary memory.', $output, 'OTD Widget should not render the excerpt of unreadable posts.' );
 	}
 
 	/**
@@ -238,8 +238,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 
 		$output = get_echo( 'wp_dashboard_on_this_day' );
 
-		$this->assertStringContainsString( '(no title)', $output );
-		$this->assertStringNotContainsString( 'Password-protected anniversary memory.', $output );
+		$this->assertStringContainsString( '(no title)', $output, 'OTD Widget should render a placeholder for untitled password-protected posts.' );
+		$this->assertStringNotContainsString( 'Password-protected anniversary memory.', $output, 'OTD Widget should not render the excerpt of password-protected posts.' );
 	}
 
 	/**
@@ -250,8 +250,8 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 	public function test_activity_renders_no_activity_message_without_posts() {
 		$output = get_echo( 'wp_dashboard_site_activity' );
 
-		$this->assertStringContainsString( 'No activity yet!', $output );
-		$this->assertStringNotContainsString( 'Published On This Day', $output );
+		$this->assertStringContainsString( 'No activity yet!', $output, 'Activity Widget should render the empty state when there are no posts.' );
+		$this->assertStringNotContainsString( 'Published On This Day', $output, 'Activity Widget should not render the OTD section when there are no posts.' );
 	}
 
 	/**
@@ -272,9 +272,9 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 
 		$output = get_echo( 'wp_dashboard_site_activity' );
 
-		$this->assertStringContainsString( 'Published On This Day', $output );
-		$this->assertSame( 1, preg_match( '/<div id="published-posts".*?<\/div>/s', $output, $recent_posts ) );
-		$this->assertStringNotContainsString( 'One anniversary mention', $recent_posts[0] );
+		$this->assertStringContainsString( 'Published On This Day', $output, 'Activity Widget should render the OTD section.' );
+		$this->assertSame( 1, preg_match( '/<div id="published-posts".*?<\/div>/s', $output, $recent_posts ), 'Activity Widget should render the recently published section.' );
+		$this->assertStringNotContainsString( 'One anniversary mention', $recent_posts[0], 'Recently published section should not repeat posts shown in the OTD section.' );
 	}
 
 	/**
@@ -302,11 +302,11 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		$comments_output = get_echo( 'wp_dashboard_recent_comments_widget' );
 		$direct_output   = get_echo( 'wp_dashboard_recent_comments' );
 
-		$this->assertStringNotContainsString( 'A comment in its own widget.', $activity_output );
-		$this->assertStringContainsString( 'No activity yet!', $activity_output );
-		$this->assertStringContainsString( 'A comment in its own widget.', $comments_output );
-		$this->assertStringNotContainsString( '<h3>Recent Comments</h3>', $comments_output );
-		$this->assertStringContainsString( '<h3>Recent Comments</h3>', $direct_output );
+		$this->assertStringNotContainsString( 'A comment in its own widget.', $activity_output, 'Activity Widget should not render recent comments.' );
+		$this->assertStringContainsString( 'No activity yet!', $activity_output, 'Activity Widget should render the empty state when comments are the only activity.' );
+		$this->assertStringContainsString( 'A comment in its own widget.', $comments_output, 'Recent Comments Widget should render recent comments.' );
+		$this->assertStringNotContainsString( '<h3>Recent Comments</h3>', $comments_output, 'Recent Comments Widget should not render the section heading.' );
+		$this->assertStringContainsString( '<h3>Recent Comments</h3>', $direct_output, 'Recent comments rendered directly should include the section heading.' );
 	}
 
 	/**
@@ -339,7 +339,7 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_http_request_failure' ) );
 
 		wp_dashboard_setup();
-		$this->assertArrayNotHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
+		$this->assertArrayNotHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should not be registered before any comments are received.' );
 
 		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
 
@@ -347,18 +347,19 @@ class Tests_Admin_wpDashboardSiteActivity extends WP_UnitTestCase {
 		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
 
 		wp_dashboard_setup();
-		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should be registered once a comment is received.' );
 		$this->assertSame(
 			'wp_dashboard_recent_comments_widget',
-			$GLOBALS['wp_meta_boxes']['dashboard']['normal']['core']['dashboard_recent_comments']['callback']
+			$GLOBALS['wp_meta_boxes']['dashboard']['normal']['core']['dashboard_recent_comments']['callback'],
+			'Recent Comments Widget should use the dedicated widget callback.'
 		);
-		$this->assertSame( 1, get_option( 'dashboard_recent_comments_widget_registered' ) );
+		$this->assertSame( 1, get_option( 'dashboard_recent_comments_widget_registered' ), 'Recent Comments Widget registration should be stored in an option.' );
 
 		wp_delete_comment( $comment_id, true );
 		unset( $GLOBALS['wp_meta_boxes']['dashboard'] );
 
 		wp_dashboard_setup();
-		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'] );
+		$this->assertArrayHasKey( 'dashboard_recent_comments', $GLOBALS['wp_meta_boxes']['dashboard']['normal']['core'], 'Recent Comments Widget should remain registered after all comments are deleted.' );
 	}
 
 	/**
