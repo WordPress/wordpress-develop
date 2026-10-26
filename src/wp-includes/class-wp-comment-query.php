@@ -54,6 +54,7 @@ class WP_Comment_Query {
 		'groupby' => '',
 		'orderby' => '',
 		'limits'  => '',
+		'join'    => '',
 	);
 
 	/**
@@ -120,6 +121,22 @@ class WP_Comment_Query {
 	public $max_num_pages = 0;
 
 	/**
+	 * Tax query container
+	 *
+	 * @since 7.3.0
+	 * @var WP_Tax_Query A tax query instance.
+	 */
+	public $post_tax_query = false;
+
+	/**
+	 * Tax query clauses.
+	 *
+	 * @since 7.3.0
+	 * @var array
+	 */
+	protected $post_tax_query_clauses;
+
+	/**
 	 * Make private/protected methods readable for backward compatibility.
 	 *
 	 * @since 4.0.0
@@ -149,6 +166,7 @@ class WP_Comment_Query {
 	 * @since 4.9.0 Introduced the `$paged` argument.
 	 * @since 5.1.0 Introduced the `$meta_compare_key` argument.
 	 * @since 5.3.0 Introduced the `$meta_type_key` argument.
+	 * @since 7.3.0 Introduced the `$post_tax_query` argument.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of comment query parameters. Default empty.
@@ -273,6 +291,7 @@ class WP_Comment_Query {
 	 *                                                      Default true.
 	 *     @type bool            $update_comment_post_cache Whether to prime the cache for comment posts.
 	 *                                                      Default false.
+	 *     @type array           $post_tax_query            An associative array of WP_Tax_Query arguments.
 	 * }
 	 */
 	public function __construct( $query = '' ) {
@@ -322,6 +341,7 @@ class WP_Comment_Query {
 			'cache_domain'              => 'core',
 			'update_comment_meta_cache' => true,
 			'update_comment_post_cache' => false,
+			'post_tax_query'            => null, // See WP_Tax_Query.
 		);
 
 		if ( ! empty( $query ) ) {
@@ -461,7 +481,12 @@ class WP_Comment_Query {
 		unset( $_args['fields'], $_args['update_comment_meta_cache'], $_args['update_comment_post_cache'] );
 
 		$key          = md5( serialize( $_args ) );
-		$last_changed = wp_cache_get_last_changed( 'comment' );
+		$last_changed = (array) wp_cache_get_last_changed( 'comment' );
+		// var_dump($last_changed, wp_cache_get_last_changed( 'terms' ));
+
+		if ( ! empty( $this->query_vars['post_tax_query'] ) ) {
+			$last_changed[] = wp_cache_get_last_changed( 'terms' );
+		}
 
 		$cache_key   = "get_comments:$key";
 		$cache_value = wp_cache_get_salted( $cache_key, 'comment-queries', $last_changed );
@@ -918,11 +943,31 @@ class WP_Comment_Query {
 			$this->sql_clauses['where']['post_author__not_in'] = 'post_author NOT IN ( ' . implode( ',', wp_parse_id_list( $this->query_vars['post_author__not_in'] ) ) . ' )';
 		}
 
+		if ( ! empty( $this->query_vars['post_tax_query'] ) && is_array( $this->query_vars['post_tax_query'] ) ) {
+			$this->post_tax_query         = new WP_Tax_Query( $this->query_vars['post_tax_query'] );
+			$this->post_tax_query_clauses = $this->post_tax_query->get_sql( $wpdb->posts, 'ID' );
+
+			if ( ! empty( $this->post_tax_query_clauses['where'] ) ) {
+				$this->sql_clauses['where']['post_tax_query'] = preg_replace( '/^\s*AND\s*/', '', $this->post_tax_query_clauses['where'] );
+			}
+
+			$join_posts_table = true;
+		}
+
 		$join    = '';
 		$groupby = '';
 
 		if ( $join_posts_table ) {
 			$join .= "JOIN $wpdb->posts ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID";
+		}
+
+		if ( ! empty( $this->post_tax_query_clauses['join'] ) ) {
+			$join .= $this->post_tax_query_clauses['join'];
+			if ( $this->query_vars['count'] ) {
+				$fields = "COUNT(DISTINCT {$wpdb->comments}.comment_ID)";
+			} else {
+				$groupby = "{$wpdb->comments}.comment_ID";
+			}
 		}
 
 		if ( ! empty( $this->meta_query_clauses ) ) {
