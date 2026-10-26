@@ -1,0 +1,462 @@
+name: Validate PHPUnit Test Cleanup Files
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  validate-files:
+    name: Validate PHPUnit Test Files
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Validate Test File Structure, Namespaces, Class Names, @covers Annotations, and Source Location
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require( 'fs' );
+            const path = require( 'path' );
+
+            const pr = context.payload.pull_request;
+            if ( ! pr ) {
+              core.info( 'No pull request found in event payload. Skipping PR file validation.' );
+              return;
+            }
+
+            core.info( `Validating test files in PR #${pr.number}...` );
+
+            // Fetch list of files changed in the pull request
+            const changedFiles = await github.paginate( github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            } );
+
+            // Helper to get allowed namespace segment variations from a path segment
+            function normalizeSegment( segment ) {
+              const lower = segment.toLowerCase();
+              if ( lower === 'wp-includes' ) return [ 'WP_Includes' ];
+              if ( lower === 'wp-admin' ) return [ 'WP_Admin' ];
+              if ( lower === 'admin' ) return [ 'Admin', 'WP_Admin' ];
+              if ( lower === 'includes' ) return [ 'Includes', 'WP_Includes' ];
+
+              const pascal = segment.replace( /(?:^|-|_)+([a-zA-Z0-9])/g, ( _, chr ) => chr.toUpperCase() );
+              const upperUnderscore = segment.replace( /-/g, '_' );
+              return Array.from( new Set( [ segment, pascal, upperUnderscore ] ) );
+            }
+
+            // Helper to convert any symbol/name (snake_case, kebab-case, or prefix) to PascalCase / CamelCase
+            function toPascalCase( str ) {
+              if ( ! str ) return '';
+              const cleaned = str.replace( /^::/, '' ).replace( /^\\+/, '' );
+              const parts = cleaned.split( /[^a-zA-Z0-9]+/ ).filter( Boolean );
+              return parts.map( ( p ) => {
+                if ( p.length === 0 ) return '';
+                return p.charAt( 0 ).toUpperCase() + p.slice( 1 );
+              } ).join( '' );
+            }
+
+            // Helper to parse @covers value into target class, target function, and full symbol
+            function parseCovers( coversStr ) {
+              const clean = coversStr.trim().replace( /^\\+/, '' );
+              if ( clean.startsWith( '::' ) ) {
+                const fnName = clean.slice( 2 ).trim();
+                return {
+                  raw: coversStr,
+                  targetClass: '',
+                  targetFunction: fnName,
+                  symbolName: fnName,
+                  isMethod: false,
+                };
+              }
+              if ( clean.includes( '::' ) ) {
+                const parts = clean.split( '::' );
+                const clsName = parts[0].trim().replace( /^\\+/, '' );
+                const fnName = parts[1].trim();
+                return {
+                  raw: coversStr,
+                  targetClass: clsName,
+                  targetFunction: fnName,
+                  symbolName: `${clsName}_${fnName}`,
+                  isMethod: true,
+                };
+              }
+              return {
+                raw: coversStr,
+                targetClass: clean,
+                targetFunction: '',
+                symbolName: clean,
+                isMethod: false,
+              };
+            }
+
+            // Helper to get directory/file variations from namespace segment
+            function getSegmentVariations( segment ) {
+              const lower = segment.toLowerCase();
+              const kebab = lower.replace( /_/g, '-' );
+              const underscore = lower.replace( /-/g, '_' );
+              const set = new Set( [ segment, lower, kebab, underscore ] );
+              if ( lower === 'wp-admin' ) {
+                set.add( 'wp-admin' );
+              }
+              if ( lower === 'wp-includes' ) {
+                set.add( 'wp-includes' );
+
+              }
+              return Array.from( set );
+            }
+
+            // Find possible source files in src/ linked to namespace and/or @covers
+            function findLinkedSourceFiles( rootDir, declaredNs, targetClass ) {
+              const nsClean = declaredNs.replace( /^WordPress\\(?:Tests\\)?/i, '' );
+              const segments = nsClean.split( '\\' ).filter( Boolean );
+              const srcRoot = path.join( rootDir, 'src' );
+              const found = new Set();
+
+              function searchPaths( currentDir, segIndex ) {
+                if ( segIndex >= segments.length ) {
+                  if ( fs.existsSync( currentDir ) ) {
+                    const stat = fs.statSync( currentDir );
+                    if ( stat.isFile() && currentDir.endsWith( '.php' ) ) {
+                      found.add( currentDir );
+                    } else if ( stat.isDirectory() ) {
+                      const entries = fs.readdirSync( currentDir );
+                      for ( const entry of entries ) {
+                        if ( entry.endsWith( '.php' ) ) {
+                          found.add( path.join( currentDir, entry ) );
+                        }
+                      }
+                    }
+                  }
+                  return;
+                }
+
+                const seg = segments[ segIndex ];
+                const isLast = ( segIndex === segments.length - 1 );
+                const variations = getSegmentVariations( seg );
+
+                for ( const v of variations ) {
+                  const dirPath = path.join( currentDir, v );
+                  if ( fs.existsSync( dirPath ) && fs.statSync( dirPath ).isDirectory() ) {
+                    searchPaths( dirPath, segIndex + 1 );
+                  }
+                  if ( isLast ) {
+                    const fileCandidates = [
+                      v + '.php',
+                      'class-' + v + '.php',
+                      'class-wp-' + v + '.php',
+                      'class-wp-' + v.replace( /^wp[-_]/i, '' ) + '.php',
+                    ];
+                    if ( targetClass ) {
+                      const classSlug = targetClass.toLowerCase().replace( /_/g, '-' );
+                      const classSlugNoWp = classSlug.replace( /^wp[-_]/i, '' );
+                      fileCandidates.push(
+                        'class-' + classSlug + '.php',
+                        'class-wp-' + classSlug + '.php',
+                        'class-wp-' + classSlugNoWp + '.php',
+                        classSlug + '.php'
+                      );
+                    }
+                    for ( const fc of fileCandidates ) {
+                      const filePath = path.join( currentDir, fc );
+                      if ( fs.existsSync( filePath ) && fs.statSync( filePath ).isFile() ) {
+                        found.add( filePath );
+                      }
+                    }
+                  }
+                }
+              }
+
+              searchPaths( srcRoot, 0 );
+              searchPaths( path.join( srcRoot, 'wp-includes' ), 0 );
+              searchPaths( path.join( srcRoot, 'wp-admin' ), 0 );
+              searchPaths( path.join( srcRoot, 'wp-admin', 'includes' ), 0 );
+
+              return Array.from( found );
+            }
+
+            // Verify if target class and/or function exists in any candidate source files
+            function verifySymbolInSourceFiles( srcFiles, targetClass, targetFunction ) {
+              let classFound = false;
+              let functionFound = false;
+
+              for ( const srcFile of srcFiles ) {
+                try {
+                  const content = fs.readFileSync( srcFile, 'utf8' );
+                  const hasClass = targetClass
+                    ? new RegExp( '\\b(?:class|interface|trait)\\s+' + targetClass + '\\b', 'i' ).test( content )
+                    : true;
+                  const hasFn = targetFunction
+                    ? new RegExp( '\\bfunction\\s+(?:&\\s*)?' + targetFunction + '\\s*[(]', 'i' ).test( content )
+                    : true;
+
+                  if ( targetClass && targetFunction ) {
+                    if ( hasClass && hasFn ) {
+                      return { matchedFile: srcFile, classFound: true, functionFound: true };
+                    }
+                    if ( hasClass ) classFound = true;
+                    if ( hasFn ) functionFound = true;
+                  } else if ( targetClass ) {
+                    if ( hasClass ) {
+                      return { matchedFile: srcFile, classFound: true, functionFound: false };
+                    }
+                  } else if ( targetFunction ) {
+                    if ( hasFn ) {
+                      return { matchedFile: srcFile, classFound: false, functionFound: true };
+                    }
+                  }
+                } catch ( err ) {
+                  // Ignore read error for candidate
+                }
+              }
+
+              return { matchedFile: null, classFound, functionFound };
+            }
+
+            const errors = [];
+            const passes = [];
+            let validatedCount = 0;
+            const workspaceRoot = process.env.GITHUB_WORKSPACE || '.';
+
+            for ( const file of changedFiles ) {
+              const filename = file.filename.replace( /\\/g, '/' );
+
+              // Check only files within tests/phpunit/tests/
+              if ( ! filename.startsWith( 'tests/phpunit/tests/' ) || ! filename.endsWith( '.php' ) ) {
+                continue;
+              }
+
+              // Skip deleted files
+              if ( file.status === 'removed' ) {
+                core.info( `Skipping deleted file: ${filename}` );
+                continue;
+              }
+
+              const relPath = filename.slice( 'tests/phpunit/tests/'.length );
+              const pathParts = relPath.split( '/' );
+              const baseName = pathParts.pop();
+
+              // Skip non-test support files, fixtures, or data directories
+              if ( baseName === 'base.php' || pathParts.includes( 'data' ) || pathParts.includes( 'fixtures' ) ) {
+                core.info( `Skipping helper/fixture file: ${filename}` );
+                continue;
+              }
+
+              validatedCount++;
+              core.info( `\nValidating test file: ${filename}` );
+
+              // 1. Validate Filename conventions (starts with capital letter, CamelCase/PascalCase, ends with Test.php)
+              const expectedClassName = baseName.replace( /\.php$/, '' );
+              let filenameValid = true;
+
+              if ( ! /^[A-Z]/.test( baseName ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must start with a capital letter.` );
+                filenameValid = false;
+              }
+
+              if ( ! baseName.endsWith( 'Test.php' ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must end with "Test.php" (Pattern: FunctionUnderTest[OptionalSubsetIndicator]Test.php).` );
+                filenameValid = false;
+              }
+
+              if ( ! /^[A-Z][a-zA-Z0-9_]*Test\.php$/.test( baseName ) ) {
+                errors.push( `[${filename}] Test filename "${baseName}" must follow CamelCase / PascalCase convention and end with "Test.php".` );
+                filenameValid = false;
+              }
+
+              if ( filenameValid ) {
+                passes.push( `[${filename}] Filename "${baseName}" starts with a capital letter, follows CamelCase convention, and ends with "Test.php".` );
+              }
+
+              // 2. Validate directory depth (must have a parent directory for Class_Under_Test or Functions_FileName)
+              if ( pathParts.length < 1 ) {
+                errors.push( `[${filename}] Test file must reside in a directory representing Class_Under_Test or Functions_FileName.` );
+              }
+
+              // Read file content from checked out workspace
+              let fileContent = '';
+              try {
+                fileContent = fs.readFileSync( path.join( workspaceRoot, filename ), 'utf8' );
+              } catch ( e ) {
+                errors.push( `[${filename}] Could not read file content: ${e.message}` );
+                continue;
+              }
+
+              // 3. Validate Namespace declaration
+              let declaredNs = '';
+              const nsMatch = fileContent.match( /^\s*namespace\s+([^;]+);/m );
+              if ( ! nsMatch ) {
+                errors.push( `[${filename}] Missing namespace declaration.` );
+              } else {
+                declaredNs = nsMatch[1].trim();
+                if ( ! declaredNs.startsWith( 'WordPress\\Tests' ) ) {
+                  errors.push( `[${filename}] Namespace "${declaredNs}" must start with "WordPress\\Tests".` );
+                } else {
+                  const nsParts = declaredNs.split( '\\' ).slice( 2 ); // Remove 'WordPress' and 'Tests'
+                  if ( nsParts.length !== pathParts.length ) {
+                    errors.push( `[${filename}] Namespace depth (${nsParts.length}: "${declaredNs}") does not match directory depth (${pathParts.length}: "${pathParts.join('/')}").` );
+                  } else {
+                    let nsMatchFailed = false;
+                    for ( let i = 0; i < pathParts.length; i++ ) {
+                      const expectedVariants = normalizeSegment( pathParts[i] );
+                      const actualSegment = nsParts[i];
+                      const matched = expectedVariants.some( ( v ) => v.toLowerCase() === actualSegment.toLowerCase() );
+                      if ( ! matched ) {
+                        errors.push( `[${filename}] Namespace segment "${actualSegment}" in "${declaredNs}" does not match directory segment "${pathParts[i]}" (expected one of: ${expectedVariants.join( ', ' )}).` );
+                        nsMatchFailed = true;
+                      }
+                    }
+                    if ( ! nsMatchFailed ) {
+                      passes.push( `[${filename}] Namespace "${declaredNs}" accurately matches file path.` );
+                    }
+                  }
+                }
+              }
+
+              // 4. Validate Class Name declaration
+              const classMatches = [];
+              const classRegex = /^\s*(?:final\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)/gm;
+              let match;
+              while ( ( match = classRegex.exec( fileContent ) ) !== null ) {
+                classMatches.push( match[1] );
+              }
+
+              let declaredClass = '';
+              if ( classMatches.length === 0 ) {
+                errors.push( `[${filename}] No class declaration found in file.` );
+              } else if ( classMatches.length > 1 ) {
+                errors.push( `[${filename}] Declares multiple classes (${classMatches.join(', ')}). Exactly one test class is allowed per file.` );
+              } else {
+                declaredClass = classMatches[0];
+                if ( declaredClass !== expectedClassName ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" does not match filename "${baseName}" (expected "${expectedClassName}").` );
+                } else {
+                  passes.push( `[${filename}] Class name "${declaredClass}" matches filename.` );
+                }
+
+                if ( ! declaredClass.endsWith( 'Test' ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must end with "Test".` );
+                }
+
+                if ( ! /^[A-Z]/.test( declaredClass ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must start with a capital letter.` );
+                }
+
+                if ( ! /^[A-Z][a-zA-Z0-9_]*Test$/.test( declaredClass ) ) {
+                  errors.push( `[${filename}] Class name "${declaredClass}" must follow CamelCase / PascalCase convention and end with "Test".` );
+                }
+              }
+
+              // 5. Validate @covers docblock annotations (must be in opening class comment and nowhere else)
+              let coversParsed = null;
+              const classDocMatch = fileContent.match( /\/\*\*([^*]*(?:\*(?!\/)[^*]*)*)\*\/\s*(?:final\s+|abstract\s+)?class\s+([a-zA-Z0-9_]+)/ );
+              if ( ! classDocMatch ) {
+                errors.push( `[${filename}] Missing opening class docblock comment preceding class declaration.` );
+              } else {
+                const classDocContent = classDocMatch[1];
+                const coversTagMatch = classDocContent.match( /@covers\s+([^\s\r\n*]+)/ );
+
+                if ( ! coversTagMatch ) {
+                  errors.push( `[${filename}] Opening class docblock must contain a "@covers" annotation.` );
+                } else {
+                  coversParsed = parseCovers( coversTagMatch[1] );
+                  passes.push( `[${filename}] Opening class docblock contains "@covers ${coversParsed.raw}" annotation.` );
+                }
+
+                // Check for @covers annotations outside the opening class docblock
+                const docblockStart = classDocMatch.index;
+                const docblockEnd = docblockStart + classDocMatch[0].length;
+                const coversRegex = /@covers\b/g;
+                let m;
+                const outsideLines = [];
+
+                while ( ( m = coversRegex.exec( fileContent ) ) !== null ) {
+                  if ( m.index < docblockStart || m.index >= docblockEnd ) {
+                    const lineNum = fileContent.substring( 0, m.index ).split( '\n' ).length;
+                    outsideLines.push( lineNum );
+                  }
+                }
+
+                if ( outsideLines.length > 0 ) {
+                  errors.push( `[${filename}] Found ${outsideLines.length} "@covers" annotation(s) outside the opening class docblock (lines: ${outsideLines.join( ', ' )}). "@covers" annotations are only permitted in the opening class docblock.` );
+                } else if ( coversTagMatch ) {
+                  passes.push( `[${filename}] No "@covers" annotations found outside the opening class docblock.` );
+                }
+              }
+
+              // 6. Validate classname and filename match @covers target in CamelCase / PascalCase
+              if ( coversParsed && declaredClass ) {
+                const targetToMatch = coversParsed.targetFunction || coversParsed.targetClass;
+                const expectedPascal = toPascalCase( targetToMatch );
+                const cleanBaseName = expectedClassName.replace( /_?[tT]est$/, '' );
+                const cleanClassName = declaredClass.replace( /_?[tT]est$/, '' );
+
+                const baseMatches = cleanBaseName.toLowerCase().includes( expectedPascal.toLowerCase() ) ||
+                                    expectedPascal.toLowerCase().includes( cleanBaseName.toLowerCase() );
+                const classMatchesTarget = cleanClassName.toLowerCase().includes( expectedPascal.toLowerCase() ) ||
+                                           expectedPascal.toLowerCase().includes( cleanClassName.toLowerCase() );
+
+                if ( ! baseMatches || ! classMatchesTarget ) {
+                  errors.push( `[${filename}] Filename "${baseName}" and class name "${declaredClass}" do not match @covers target "${coversParsed.raw}" in CamelCase (expected to contain "${expectedPascal}").` );
+                } else {
+                  passes.push( `[${filename}] Filename "${baseName}" and class name "${declaredClass}" match @covers target "${coversParsed.raw}" in CamelCase ("${expectedPascal}").` );
+                }
+              }
+
+              // 7. Validate that test file location corresponds to the correct source file in src/
+              if ( declaredNs && coversParsed ) {
+                const srcCandidates = findLinkedSourceFiles( workspaceRoot, declaredNs, coversParsed.targetClass );
+                if ( srcCandidates.length === 0 ) {
+                  errors.push( `[${filename}] No matching source file found in "src/" for namespace "${declaredNs}". Ensure the test file is located in the correct directory matching WordPress source code.` );
+                } else {
+                  const result = verifySymbolInSourceFiles( srcCandidates, coversParsed.targetClass, coversParsed.targetFunction );
+                  if ( result.matchedFile ) {
+                    const relSrcPath = path.relative( workspaceRoot, result.matchedFile ).replace( /\\/g, '/' );
+                    passes.push( `[${filename}] Test directory and namespace correctly link to source file "${relSrcPath}" containing @covers target "${coversParsed.raw}".` );
+                  } else {
+                    const candidateNames = srcCandidates.map( ( c ) => path.relative( workspaceRoot, c ).replace( /\\/g, '/' ) ).join( ', ' );
+                    if ( coversParsed.targetClass && coversParsed.targetFunction ) {
+                      errors.push( `[${filename}] Class "${coversParsed.targetClass}" and method "${coversParsed.targetFunction}" (from @covers) were not found in source file(s) for namespace "${declaredNs}" (${candidateNames}). Test file may be in the wrong directory.` );
+                    } else if ( coversParsed.targetFunction ) {
+                      errors.push( `[${filename}] Function "${coversParsed.targetFunction}" (from @covers) was not found in source file(s) for namespace "${declaredNs}" (${candidateNames}). Test file may be in the wrong directory.` );
+                    } else if ( coversParsed.targetClass ) {
+                      errors.push( `[${filename}] Class "${coversParsed.targetClass}" (from @covers) was not found in source file(s) for namespace "${declaredNs}" (${candidateNames}). Test file may be in the wrong directory.` );
+                    }
+                  }
+                }
+              }
+            }
+
+            // Summary Output
+            core.info( `\n--- Validated ${validatedCount} Test File(s) ---` );
+            for ( const pass of passes ) {
+              core.info( `✓ ${pass}` );
+            }
+
+            if ( errors.length > 0 ) {
+              core.info( '\n--- File Validation Failures ---' );
+              for ( const err of errors ) {
+                core.error( `✗ ${err}` );
+              }
+              core.setFailed( `Pull request #${pr.number} failed test file specification validation with ${errors.length} error(s).` );
+            } else if ( validatedCount > 0 ) {
+              core.info( `\n✓ All ${validatedCount} test file(s) meet the path, namespace, class name, and @covers source specifications!` );
+            } else {
+              core.info( '\nNo PHPUnit test files under tests/phpunit/tests/ were modified in this PR.' );
+            }
