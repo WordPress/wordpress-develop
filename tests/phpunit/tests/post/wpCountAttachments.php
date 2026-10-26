@@ -142,7 +142,7 @@ class Tests_Post_wpCountAttachments extends WP_UnitTestCase {
 	 *
 	 * @return array<non-falsy-string, array{ 0: mixed }>
 	 */
-	public function data_non_stdclass_values(): array {
+	public static function data_non_stdclass_values(): array {
 		return array(
 			'array'       => array( array( 'image/jpeg' => 42 ) ),
 			'false'       => array( false ),
